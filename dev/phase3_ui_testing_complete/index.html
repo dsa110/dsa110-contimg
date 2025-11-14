@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1223,76 +1225,94 @@
 <h2 id="status-frontend-ui-testing-complete">Status: ✅ Frontend UI Testing Complete<a class="headerlink" href="#status-frontend-ui-testing-complete" title="Permanent link">¶</a></h2>
 <p><strong>Date:</strong> 2025-01-28</p>
 <h2 id="frontend-server-status">Frontend Server Status<a class="headerlink" href="#frontend-server-status" title="Permanent link">¶</a></h2>
-<p>✅ <strong>Frontend server started successfully</strong>
-- Running on: <code>http://localhost:5173</code>
-- Server: Vite dev server
-- Status: Active and responding</p>
+<p>✅ <strong>Frontend server started successfully</strong></p>
+<ul>
+<li>Running on: <code>http://localhost:5173</code></li>
+<li>Server: Vite dev server</li>
+<li>Status: Active and responding</li>
+</ul>
 <h2 id="ui-testing-results">UI Testing Results<a class="headerlink" href="#ui-testing-results" title="Permanent link">¶</a></h2>
 <h3 id="events-page-events">Events Page (<code>/events</code>) ✅<a class="headerlink" href="#events-page-events" title="Permanent link">¶</a></h3>
-<p><strong>Navigation:</strong>
-- ✅ Events link visible in navigation bar
-- ✅ Page loads correctly at <code>/events</code>
-- ✅ Page title: "Event Bus Monitor"</p>
-<p><strong>Event Stream Tab:</strong>
-- ✅ Tab interface working correctly
-- ✅ Filters displayed:
-  - Event Type dropdown (with "All" option)
-  - Limit input (default: 100)
-  - Since (minutes) input
-- ✅ Event table displayed with columns:
-  - Time
-  - Event Type
-  - Details
-- ✅ Shows "No events found" when no events (expected behavior)
-- ✅ Loading indicator appears during data fetch</p>
-<p><strong>Statistics Tab:</strong>
-- ✅ Tab switching works correctly
-- ✅ Statistics cards displayed:
-  - Total Events: 0
-  - Events in History: 0
-  - Last Minute: 0
-  - Last Hour: 0
-- ✅ "Events by Type" table displayed
-- ✅ Empty state handled correctly (no events)</p>
+<p><strong>Navigation:</strong></p>
+<ul>
+<li>✅ Events link visible in navigation bar</li>
+<li>✅ Page loads correctly at <code>/events</code></li>
+<li>✅ Page title: "Event Bus Monitor"</li>
+</ul>
+<p><strong>Event Stream Tab:</strong></p>
+<ul>
+<li>✅ Tab interface working correctly</li>
+<li>✅ Filters displayed:</li>
+<li>Event Type dropdown (with "All" option)</li>
+<li>Limit input (default: 100)</li>
+<li>Since (minutes) input</li>
+<li>✅ Event table displayed with columns:</li>
+<li>Time</li>
+<li>Event Type</li>
+<li>Details</li>
+<li>✅ Shows "No events found" when no events (expected behavior)</li>
+<li>✅ Loading indicator appears during data fetch</li>
+</ul>
+<p><strong>Statistics Tab:</strong></p>
+<ul>
+<li>✅ Tab switching works correctly</li>
+<li>✅ Statistics cards displayed:</li>
+<li>Total Events: 0</li>
+<li>Events in History: 0</li>
+<li>Last Minute: 0</li>
+<li>Last Hour: 0</li>
+<li>✅ "Events by Type" table displayed</li>
+<li>✅ Empty state handled correctly (no events)</li>
+</ul>
 <h3 id="cache-page-cache">Cache Page (<code>/cache</code>) ✅<a class="headerlink" href="#cache-page-cache" title="Permanent link">¶</a></h3>
-<p><strong>Navigation:</strong>
-- ✅ Cache link visible in navigation bar
-- ✅ Page loads correctly at <code>/cache</code>
-- ✅ Page title: "Cache Statistics"
-- ✅ "Clear All Cache" button visible in header</p>
-<p><strong>Statistics Tab:</strong>
-- ✅ Tab interface working correctly
-- ✅ Statistics cards displayed:
-  - Backend Type: InMemoryCache
-  - Total Keys: 0
-  - Active Keys: 0
-  - Hit Rate: 0.0%
-- ✅ Performance Metrics section:
-  - Hit Rate progress bar (0.00%)
-  - Miss Rate progress bar (0.00%)
-  - Operations card showing:
-    - Hits: 0
-    - Misses: 0
-    - Sets: 0
-    - Deletes: 0
-    - Total Requests: 0</p>
-<p><strong>Keys Tab:</strong>
-- ✅ Tab switching works correctly
-- ✅ Filters displayed:
-  - Filter Pattern input (with placeholder)
-  - Limit input (default: 100)
-- ✅ Keys table displayed with columns:
-  - Key
-  - Status
-  - Actions (View, Delete buttons)
-- ✅ Shows "No cache keys found" when no keys (expected behavior)</p>
-<p><strong>Performance Tab:</strong>
-- ✅ Tab switching works correctly
-- ✅ Performance metrics displayed:
-  - Hit Rate visualization
-  - Miss Rate visualization
-  - Request statistics card
-- ✅ Empty state handled correctly (no performance data)</p>
+<p><strong>Navigation:</strong></p>
+<ul>
+<li>✅ Cache link visible in navigation bar</li>
+<li>✅ Page loads correctly at <code>/cache</code></li>
+<li>✅ Page title: "Cache Statistics"</li>
+<li>✅ "Clear All Cache" button visible in header</li>
+</ul>
+<p><strong>Statistics Tab:</strong></p>
+<ul>
+<li>✅ Tab interface working correctly</li>
+<li>✅ Statistics cards displayed:</li>
+<li>Backend Type: InMemoryCache</li>
+<li>Total Keys: 0</li>
+<li>Active Keys: 0</li>
+<li>Hit Rate: 0.0%</li>
+<li>✅ Performance Metrics section:</li>
+<li>Hit Rate progress bar (0.00%)</li>
+<li>Miss Rate progress bar (0.00%)</li>
+<li>Operations card showing:<ul>
+<li>Hits: 0</li>
+<li>Misses: 0</li>
+<li>Sets: 0</li>
+<li>Deletes: 0</li>
+<li>Total Requests: 0</li>
+</ul>
+</li>
+</ul>
+<p><strong>Keys Tab:</strong></p>
+<ul>
+<li>✅ Tab switching works correctly</li>
+<li>✅ Filters displayed:</li>
+<li>Filter Pattern input (with placeholder)</li>
+<li>Limit input (default: 100)</li>
+<li>✅ Keys table displayed with columns:</li>
+<li>Key</li>
+<li>Status</li>
+<li>Actions (View, Delete buttons)</li>
+<li>✅ Shows "No cache keys found" when no keys (expected behavior)</li>
+</ul>
+<p><strong>Performance Tab:</strong></p>
+<ul>
+<li>✅ Tab switching works correctly</li>
+<li>✅ Performance metrics displayed:</li>
+<li>Hit Rate visualization</li>
+<li>Miss Rate visualization</li>
+<li>Request statistics card</li>
+<li>✅ Empty state handled correctly (no performance data)</li>
+</ul>
 <h2 id="component-functionality-verified">Component Functionality Verified<a class="headerlink" href="#component-functionality-verified" title="Permanent link">¶</a></h2>
 <h3 id="event-components">Event Components ✅<a class="headerlink" href="#event-components" title="Permanent link">¶</a></h3>
 <ul>
@@ -1356,10 +1376,13 @@
 <li>All tabs switch correctly</li>
 </ul>
 <h2 id="test-data">Test Data<a class="headerlink" href="#test-data" title="Permanent link">¶</a></h2>
-<p><strong>Note:</strong> No test data was present in the running API server instance, which is expected since:
-- Event bus and cache use singleton instances per process
-- Test data generated in separate Python processes won't appear
-- Empty states are correctly displayed</p>
+<p><strong>Note:</strong> No test data was present in the running API server instance, which is
+expected since:</p>
+<ul>
+<li>Event bus and cache use singleton instances per process</li>
+<li>Test data generated in separate Python processes won't appear</li>
+<li>Empty states are correctly displayed</li>
+</ul>
 <h2 id="next-steps-for-full-testing">Next Steps for Full Testing<a class="headerlink" href="#next-steps-for-full-testing" title="Permanent link">¶</a></h2>
 <ol>
 <li><strong>Generate Test Data:</strong></li>
@@ -1392,12 +1415,11 @@
 <li>Network errors and retries</li>
 </ol>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
-<p>✅ <strong>Frontend Server:</strong> Running successfully
-✅ <strong>Events Page:</strong> All components loading and functioning correctly
-✅ <strong>Cache Page:</strong> All components loading and functioning correctly
-✅ <strong>Navigation:</strong> Links and routing working correctly
-✅ <strong>API Integration:</strong> Endpoints responding correctly
-✅ <strong>UI Components:</strong> All rendering correctly with proper empty states</p>
+<p>✅ <strong>Frontend Server:</strong> Running successfully ✅ <strong>Events Page:</strong> All components
+loading and functioning correctly ✅ <strong>Cache Page:</strong> All components loading and
+functioning correctly ✅ <strong>Navigation:</strong> Links and routing working correctly ✅
+<strong>API Integration:</strong> Endpoints responding correctly ✅ <strong>UI Components:</strong> All
+rendering correctly with proper empty states</p>
 <p><strong>Phase 3 UI Testing: COMPLETE</strong> ✅</p>
 </article>
 </div>
@@ -1423,7 +1445,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

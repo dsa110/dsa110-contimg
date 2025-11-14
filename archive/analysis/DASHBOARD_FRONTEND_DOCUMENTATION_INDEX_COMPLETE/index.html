@@ -1,0 +1,2220 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/archive/analysis/DASHBOARD_FRONTEND_DOCUMENTATION_INDEX_COMPLETE/" rel="canonical"/>
+<link href="../../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Complete Dashboard &amp; Frontend Documentation Index - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#complete-dashboard-frontend-documentation-index">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Complete Dashboard &amp; Frontend Documentation Index
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core-dashboard-documentation">
+<span class="md-ellipsis">
+      Core Dashboard Documentation
+    </span>
+</a>
+<nav aria-label="Core Dashboard Documentation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview-architecture">
+<span class="md-ellipsis">
+      Overview &amp; Architecture
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#quick-start-user-guides">
+<span class="md-ellipsis">
+      Quick Start &amp; User Guides
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-integration-documentation">
+<span class="md-ellipsis">
+      API &amp; Integration Documentation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#control-panel-documentation">
+<span class="md-ellipsis">
+      Control Panel Documentation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#qa-visualization-integration">
+<span class="md-ellipsis">
+      QA Visualization Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#streaming-service-control">
+<span class="md-ellipsis">
+      Streaming Service &amp; Control
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#analysis-assessment-documents">
+<span class="md-ellipsis">
+      Analysis &amp; Assessment Documents
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#skyview-visualization">
+<span class="md-ellipsis">
+      SkyView &amp; Visualization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#frontend-development-files">
+<span class="md-ellipsis">
+      Frontend Development Files
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-status-reports">
+<span class="md-ellipsis">
+      Implementation Status &amp; Reports
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#testing-documentation">
+<span class="md-ellipsis">
+      Testing Documentation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#troubleshooting">
+<span class="md-ellipsis">
+      Troubleshooting
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#reference-design-documents">
+<span class="md-ellipsis">
+      Reference &amp; Design Documents
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#development-roadmaps-plans">
+<span class="md-ellipsis">
+      Development Roadmaps &amp; Plans
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#visualization-analysis-tools">
+<span class="md-ellipsis">
+      Visualization &amp; Analysis Tools
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#other-related-documents">
+<span class="md-ellipsis">
+      Other Related Documents
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#documentation-organization">
+<span class="md-ellipsis">
+      Documentation Organization
+    </span>
+</a>
+<nav aria-label="Documentation Organization" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#by-category">
+<span class="md-ellipsis">
+      By Category
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#by-audience">
+<span class="md-ellipsis">
+      By Audience
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-documents-summary">
+<span class="md-ellipsis">
+      Key Documents Summary
+    </span>
+</a>
+<nav aria-label="Key Documents Summary" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#essential-reading">
+<span class="md-ellipsis">
+      Essential Reading (⭐⭐⭐⭐⭐)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#highly-recommended">
+<span class="md-ellipsis">
+      Highly Recommended (⭐⭐⭐⭐)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#notes">
+<span class="md-ellipsis">
+      Notes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#recommendations">
+<span class="md-ellipsis">
+      Recommendations
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="complete-dashboard-frontend-documentation-index">Complete Dashboard &amp; Frontend Documentation Index<a class="headerlink" href="#complete-dashboard-frontend-documentation-index" title="Permanent link">¶</a></h1>
+<p><strong>Date:</strong> 2025-11-12<br/>
+<strong>Purpose:</strong> Comprehensive index of ALL markdown documentation files that discuss the dashboard, frontend, web interface, UI/UX design, or related topics</p>
+<p><strong>Total Files Identified:</strong> 80+ markdown files</p>
+<hr/>
+<h2 id="core-dashboard-documentation">Core Dashboard Documentation<a class="headerlink" href="#core-dashboard-documentation" title="Permanent link">¶</a></h2>
+<h3 id="overview-architecture">Overview &amp; Architecture<a class="headerlink" href="#overview-architecture" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong><code>docs/analysis/ANTICIPATORY_DASHBOARD_IMPLEMENTATION.md</code></strong> ⭐⭐⭐⭐⭐</li>
+<li><strong>CONCEPTUAL, USER-ORIENTED DESIGN DOCUMENT</strong></li>
+<li>Vision: "A unified command center that anticipates user needs"</li>
+<li>Philosophy: "Combine Jony Ive's minimalism with Steve Jobs' workflow-focused UX"</li>
+<li>Core principles: Autonomous-first, state-driven UI, predictive loading, contextual actions</li>
+<li>User experience states: idle, autonomous, discovery, investigation, debugging, manual-control, analysis</li>
+<li>Pre-fetching &amp; anticipation engine</li>
+<li>Contextual intelligence and workflow guidance</li>
+<li>
+<p><strong>Status:</strong> Most comprehensive conceptual design document</p>
+</li>
+<li>
+<p><strong><code>docs/analysis/DASHBOARD_OVERVIEW_DETAILED.md</code></strong> ⭐⭐⭐⭐⭐</p>
+</li>
+<li>Comprehensive technical and scientific overview</li>
+<li>For frontend developers and radio astronomers</li>
+<li>Architecture, API details, component patterns, database schemas</li>
+<li>
+<p><strong>Status:</strong> Most complete technical overview document</p>
+</li>
+<li>
+<p><strong><code>docs/analysis/DASHBOARD_OVERVIEW.md</code></strong></p>
+</li>
+<li>Initial overview of dashboard capabilities</li>
+<li>Architecture, pages, API endpoints summary</li>
+<li>
+<p><strong>Status:</strong> Superseded by DASHBOARD_OVERVIEW_DETAILED.md</p>
+</li>
+<li>
+<p><strong><code>docs/analysis/DASHBOARD_REVIEW.md</code></strong></p>
+</li>
+<li>Comprehensive review of dashboard architecture</li>
+<li>Frontend/backend architecture analysis</li>
+<li>Monitoring capabilities and pipeline control</li>
+<li>
+<p>Strengths and opportunities for improvement</p>
+</li>
+<li>
+<p><strong><code>docs/concepts/frontend_design.md</code></strong> ⭐⭐⭐⭐⭐</p>
+</li>
+<li><strong>CONCEPTUAL, USER-ORIENTED DESIGN DOCUMENT</strong></li>
+<li>Strategic design for web-based UI</li>
+<li>Core design principles: information density, ease of use, real-time monitoring, science-first</li>
+<li>User personas: Operations Monitor, Data Quality Scientist, Science User</li>
+<li>Design philosophy: high-density information display</li>
+<li>Page specifications with user workflows</li>
+<li>
+<p><strong>Status:</strong> Primary strategic design document</p>
+</li>
+<li>
+<p><strong><code>docs/concepts/dashboard_mockups.md</code></strong> ⭐⭐⭐⭐</p>
+</li>
+<li><strong>UI/UX MOCKUPS AND WIREFRAMES</strong></li>
+<li>Detailed ASCII wireframes for all dashboard pages</li>
+<li>Layout specifications (1920x1080 reference)</li>
+<li>Interaction specifications</li>
+<li>Color scheme and visual design</li>
+<li>Typography and spacing guidelines</li>
+<li>Responsive breakpoints</li>
+<li><strong>Status:</strong> Visual design specification</li>
+</ol>
+<hr/>
+<h2 id="quick-start-user-guides">Quick Start &amp; User Guides<a class="headerlink" href="#quick-start-user-guides" title="Permanent link">¶</a></h2>
+<ol>
+<li><strong><code>docs/how-to/dashboard-quickstart.md</code></strong></li>
+<li>Quick start guide for dashboard</li>
+<li>Starting backend and frontend</li>
+<li>Feature overview</li>
+<li>
+<p>Technology stack summary</p>
+</li>
+<li>
+<p><strong><code>docs/how-to/quickstart_dashboard.md</code></strong></p>
+</li>
+<li>TL;DR quick start</li>
+<li>What you get overview</li>
+<li>Features at a glance</li>
+<li>
+<p>Troubleshooting tips</p>
+</li>
+<li>
+<p><strong><code>docs/how-to/dashboard-development.md</code></strong></p>
+</li>
+<li>Development guide for dashboard</li>
+<li>Project structure</li>
+<li>Adding new pages/components</li>
+<li>
+<p>Building for production</p>
+</li>
+<li>
+<p><strong><code>docs/how-to/frontend-initial-setup.md</code></strong></p>
+<ul>
+<li>Initial frontend setup instructions</li>
+<li>Development environment configuration</li>
+<li>Dependencies and build setup</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/how-to/persistent-dashboard.md</code></strong></p>
+<ul>
+<li>Setting up persistent dashboard</li>
+<li>Deployment configuration</li>
+<li>Service management</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="api-integration-documentation">API &amp; Integration Documentation<a class="headerlink" href="#api-integration-documentation" title="Permanent link">¶</a></h2>
+<ol>
+<li>
+<p><strong><code>docs/reference/dashboard_api.md</code></strong> ⭐⭐⭐⭐⭐</p>
+<ul>
+<li>Complete API reference</li>
+<li>All dashboard endpoints documented</li>
+<li>Request/response examples</li>
+<li>Streaming service endpoints</li>
+<li><strong>Status:</strong> Primary API reference</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/reference/streaming-api.md</code></strong></p>
+<ul>
+<li>Complete streaming API reference</li>
+<li>Endpoint documentation</li>
+<li>Request/response examples</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/reference/control-panel-cheatsheet.md</code></strong></p>
+<ul>
+<li>Quick reference for control panel</li>
+<li>Common operations</li>
+<li>Keyboard shortcuts (if any)</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/reference/backend_integration_snippets.md</code></strong></p>
+<ul>
+<li>Code snippets for backend integration</li>
+<li>API client examples</li>
+<li>Integration patterns</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="control-panel-documentation">Control Panel Documentation<a class="headerlink" href="#control-panel-documentation" title="Permanent link">¶</a></h2>
+<ol>
+<li>
+<p><strong><code>docs/concepts/control-panel.md</code></strong></p>
+<ul>
+<li>Control panel concept documentation</li>
+<li>Manual job execution interface</li>
+<li>Workflow descriptions</li>
+<li>Architecture overview</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/how-to/control-panel-quickstart.md</code></strong></p>
+<ul>
+<li>Quick start guide for control panel</li>
+<li>Job submission workflow</li>
+<li>Live log streaming</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/how-to/streaming-control.md</code></strong></p>
+<ul>
+<li>Streaming service control guide</li>
+<li>Dashboard control interface</li>
+<li>API endpoints for streaming</li>
+<li>Deployment instructions</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="qa-visualization-integration">QA Visualization Integration<a class="headerlink" href="#qa-visualization-integration" title="Permanent link">¶</a></h2>
+<ol>
+<li>
+<p><strong><code>docs/QA_VISUALIZATION_DASHBOARD_INTEGRATION.md</code></strong></p>
+<ul>
+<li>QA visualization framework integration</li>
+<li>REST API endpoints for QA features</li>
+<li>Dashboard access points</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/QA_VISUALIZATION_DASHBOARD_SUMMARY.md</code></strong></p>
+<ul>
+<li>Summary of QA visualization dashboard integration</li>
+<li>API endpoints implemented</li>
+<li>Access points for users and developers</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/QA_VISUALIZATION_DASHBOARD_TESTING.md</code></strong></p>
+<ul>
+<li>Testing documentation for QA visualization</li>
+<li>Test results and verification</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/QA_VISUALIZATION_ENDPOINT_TESTS.md</code></strong></p>
+<ul>
+<li>Endpoint testing documentation</li>
+<li>Test cases and results</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/QA_VISUALIZATION_DESIGN.md</code></strong> ⭐⭐⭐⭐</p>
+<ul>
+<li><strong>QA VISUALIZATION DESIGN DOCUMENT</strong></li>
+<li>In-house QA visualization framework design</li>
+<li>Architecture overview</li>
+<li>FITS file handling, CASA table browsing</li>
+<li>JS9 integration</li>
+<li>Notebook generation</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/dashboard_integration_plan.md</code></strong></p>
+<ul>
+<li>Dashboard integration plan for QA visualization</li>
+<li>Missing API endpoints</li>
+<li>Dashboard components needed</li>
+<li>Implementation roadmap</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/user_guide_qa_visualization.md</code></strong></p>
+<ul>
+<li>User guide for QA visualization features</li>
+<li>How to use QA tools in dashboard</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/QA_VISUALIZATION_USER_GUIDE.md</code></strong></p>
+<ul>
+<li>User guide for QA visualization</li>
+<li>Feature documentation</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/QA_VISUALIZATION_QUICK_START.md</code></strong></p>
+<ul>
+<li>Quick start for QA visualization</li>
+<li>Getting started guide</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/QA_VISUALIZATION_ACCESS.md</code></strong></p>
+<ul>
+<li>Access documentation for QA visualization</li>
+<li>How to access QA features</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/QA_VISUALIZATION_IMPLEMENTATION_STATUS.md</code></strong></p>
+<ul>
+<li>Implementation status for QA visualization</li>
+<li>Progress tracking</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/QA_VISUALIZATION_USAGE.md</code></strong></p>
+<ul>
+<li>Usage documentation for QA visualization</li>
+<li>How to use features</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="streaming-service-control">Streaming Service &amp; Control<a class="headerlink" href="#streaming-service-control" title="Permanent link">¶</a></h2>
+<ol>
+<li>
+<p><strong><code>docs/concepts/streaming-architecture.md</code></strong></p>
+<ul>
+<li>Streaming service architecture</li>
+<li>Dashboard integration</li>
+<li>Service lifecycle management</li>
+<li>Docker integration</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/how-to/streaming_converter_guide.md</code></strong></p>
+<ul>
+<li>Streaming converter guide</li>
+<li>Technical documentation</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/how-to/streaming-troubleshooting.md</code></strong></p>
+<ul>
+<li>Troubleshooting guide for streaming</li>
+<li>Common issues and fixes</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/tutorials/streaming.md</code></strong></p>
+<ul>
+<li>Streaming tutorial</li>
+<li>Dashboard usage examples</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/analysis/streaming-docs-assessment.md</code></strong></p>
+<ul>
+<li>Assessment of streaming documentation</li>
+<li>Documentation review</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="analysis-assessment-documents">Analysis &amp; Assessment Documents<a class="headerlink" href="#analysis-assessment-documents" title="Permanent link">¶</a></h2>
+<ol>
+<li>
+<p><strong><code>docs/analysis/DASHBOARD_TEMPLATE_RECOMMENDATIONS.md</code></strong> ⭐⭐⭐⭐</p>
+<ul>
+<li>Dashboard template recommendations</li>
+<li>UI framework suggestions (CARTA, Grafana, JupyterLab)</li>
+<li>Design pattern recommendations</li>
+<li>Implementation priorities</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/dashboard_ui_recommendations.md</code></strong> ⭐⭐⭐⭐</p>
+<ul>
+<li><strong>UI DEVELOPMENT RECOMMENDATIONS</strong></li>
+<li>Leverage existing libraries (MUI, React Query, AG Grid)</li>
+<li>Component architecture patterns</li>
+<li>Error handling patterns</li>
+<li>State management recommendations</li>
+<li>Package recommendations</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/scientific_ui_templates.md</code></strong> ⭐⭐⭐⭐</p>
+<ul>
+<li><strong>SCIENTIFIC UI TEMPLATES ANALYSIS</strong></li>
+<li>Analysis of JupyterLab, Grafana, Aladin Lite, JS9, Metabase, CASA, CARTA patterns</li>
+<li>Key patterns to adopt</li>
+<li>Code examples</li>
+<li>Implementation strategies</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/analysis/VAST_ARCHITECTURE_ANALYSIS.md</code></strong></p>
+<ul>
+<li>Analysis of VAST architecture (reference)</li>
+<li>Dashboard patterns from VAST</li>
+<li>Lessons learned</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/analysis/VAST_TO_DSA110_SYNTHESIS.md</code></strong></p>
+<ul>
+<li>Synthesis of VAST patterns for DSA-110</li>
+<li>Dashboard design influences</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="skyview-visualization">SkyView &amp; Visualization<a class="headerlink" href="#skyview-visualization" title="Permanent link">¶</a></h2>
+<ol>
+<li>
+<p><strong><code>docs/SKYVIEW_IMPLEMENTATION_PLAN.md</code></strong> ⭐⭐⭐⭐</p>
+<ul>
+<li><strong>SKYVIEW PAGE IMPLEMENTATION PLAN</strong></li>
+<li>User requirements analysis</li>
+<li>Key features needed</li>
+<li>Image display, selection, catalog overlay</li>
+<li>JS9 integration plan</li>
+<li>Implementation phases</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/how-to/pointing-visualization.md</code></strong></p>
+<ul>
+<li>Pointing visualization usage</li>
+<li>Dashboard component documentation</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/how-to/pointing-visualization-usage.md</code></strong></p>
+<ul>
+<li>Pointing visualization usage guide</li>
+<li>Dashboard integration</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/reports/POINTING_VISUALIZATION_TEST.md</code></strong></p>
+<ul>
+<li>Pointing visualization test results</li>
+<li>Dashboard component verification</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/concepts/pipeline_workflow_visualization.md</code></strong> ⭐⭐⭐</p>
+<ul>
+<li><strong>WORKFLOW VISUALIZATION DOCUMENTATION</strong></li>
+<li>Complete workflow visualization</li>
+<li>End-to-end pipeline overview</li>
+<li>Stage breakdown</li>
+<li>State machine &amp; queue management</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="frontend-development-files">Frontend Development Files<a class="headerlink" href="#frontend-development-files" title="Permanent link">¶</a></h2>
+<ol>
+<li>
+<p><strong><code>frontend/README.md</code></strong></p>
+<ul>
+<li>Frontend project README</li>
+<li>Project overview</li>
+</ul>
+</li>
+<li>
+<p><strong><code>frontend/README-DEV-SERVER.md</code></strong></p>
+<ul>
+<li>Development server documentation</li>
+<li>How to run dev server</li>
+</ul>
+</li>
+<li>
+<p><strong><code>frontend/TESTING.md</code></strong></p>
+<ul>
+<li>Frontend testing documentation</li>
+<li>Test setup and execution</li>
+</ul>
+</li>
+<li>
+<p><strong><code>frontend/BETTER_DEBUGGING.md</code></strong></p>
+<ul>
+<li>Debugging guide for frontend</li>
+<li>Debugging tips and tools</li>
+</ul>
+</li>
+<li>
+<p><strong><code>frontend/DEBUGGING.md</code></strong></p>
+<ul>
+<li>Frontend debugging documentation</li>
+<li>Common debugging scenarios</li>
+</ul>
+</li>
+<li>
+<p><strong><code>frontend/TEST_RESULTS_SKYVIEW.md</code></strong></p>
+<ul>
+<li>SkyView test results</li>
+<li>Test outcomes</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="implementation-status-reports">Implementation Status &amp; Reports<a class="headerlink" href="#implementation-status-reports" title="Permanent link">¶</a></h2>
+<ol>
+<li>
+<p><strong><code>internal/docs/dev/status/2025-01/dashboard_endpoint_test_results.md</code></strong></p>
+<ul>
+<li>Dashboard endpoint test results</li>
+<li>API testing status</li>
+</ul>
+</li>
+<li>
+<p><strong><code>internal/docs/dev/status/2025-01/dashboard_real_data_implementation.md</code></strong></p>
+<ul>
+<li>Real data implementation status</li>
+<li>Dashboard integration progress</li>
+</ul>
+</li>
+<li>
+<p><strong><code>internal/docs/dev/status/2025-01/dashboard_tbd_status.md</code></strong></p>
+<ul>
+<li>Dashboard TBD (to be done) status</li>
+<li>Pending items</li>
+</ul>
+</li>
+<li>
+<p><strong><code>internal/docs/dev/status/2025-01/skyview_image_display_verification.md</code></strong></p>
+<ul>
+<li>SkyView image display verification</li>
+<li>Test results</li>
+</ul>
+</li>
+<li>
+<p><strong><code>internal/docs/dev/status/2025-01/skyview_troubleshooting.md</code></strong></p>
+<ul>
+<li>SkyView troubleshooting notes</li>
+<li>Issues and fixes</li>
+</ul>
+</li>
+<li>
+<p><strong><code>internal/docs/dev/status/2025-01/skyview_test_results.md</code></strong></p>
+<ul>
+<li>SkyView test results</li>
+<li>Test outcomes</li>
+</ul>
+</li>
+<li>
+<p><strong><code>internal/docs/dev/status/2025-01/skyview_sprint1_complete.md</code></strong></p>
+<ul>
+<li>SkyView Sprint 1 completion</li>
+<li>Progress report</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/analysis/API_ENDPOINTS_IMPLEMENTED.md</code></strong></p>
+<ul>
+<li>API endpoints implementation status</li>
+<li>Dashboard-related endpoints</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/reports/PROJECT_REVIEW_2025-01.md</code></strong></p>
+<ul>
+<li>Project review including dashboard status</li>
+<li>Overall assessment</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="testing-documentation">Testing Documentation<a class="headerlink" href="#testing-documentation" title="Permanent link">¶</a></h2>
+<ol>
+<li>
+<p><strong><code>docs/testing/FINAL_TEST_REPORT.md</code></strong></p>
+<ul>
+<li>Final test report including dashboard tests</li>
+<li>Test results and status</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/testing/TEST_EXECUTION_SUMMARY.md</code></strong></p>
+<ul>
+<li>Test execution summary</li>
+<li>Dashboard testing results</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/testing/DATA_DETAIL_TESTING_STATUS.md</code></strong></p>
+<ul>
+<li>Data detail page testing</li>
+<li>Dashboard component testing</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/testing/PROXY_ISSUE_NOTES.md</code></strong></p>
+<ul>
+<li>Proxy issue notes (frontend-related)</li>
+<li>Development server issues</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
+<ol>
+<li>
+<p><strong><code>docs/troubleshooting/frontend-restart-needed.md</code></strong></p>
+<ul>
+<li>Frontend restart troubleshooting</li>
+<li>Common issues and fixes</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/operations/api_server.md</code></strong></p>
+<ul>
+<li>API server operations</li>
+<li>Dashboard backend management</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/operations/port-management.md</code></strong></p>
+<ul>
+<li>Port management for dashboard</li>
+<li>Development/production ports</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="reference-design-documents">Reference &amp; Design Documents<a class="headerlink" href="#reference-design-documents" title="Permanent link">¶</a></h2>
+<ol>
+<li>
+<p><strong><code>docs/reference/database_schema.md</code></strong></p>
+<ul>
+<li>Database schema documentation</li>
+<li>Dashboard data models</li>
+<li>Frontend data requirements</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/design/data_product_organization.md</code></strong></p>
+<ul>
+<li>Data product organization</li>
+<li>Dashboard data display patterns</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/concepts/pipeline_overview.md</code></strong></p>
+<ul>
+<li>Pipeline overview (may mention dashboard)</li>
+<li>Overall system architecture</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="development-roadmaps-plans">Development Roadmaps &amp; Plans<a class="headerlink" href="#development-roadmaps-plans" title="Permanent link">¶</a></h2>
+<ol>
+<li>
+<p><strong><code>docs/DEVELOPMENT_ROADMAP.md</code></strong></p>
+<ul>
+<li>Development roadmap</li>
+<li>Dashboard feature plans</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/IMPLEMENTATION_CHECKLIST.md</code></strong></p>
+<ul>
+<li>Implementation checklist</li>
+<li>Dashboard items</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/analysis/PHASE1_IMPLEMENTATION_STATUS.md</code></strong></p>
+<ul>
+<li>Phase 1 implementation status</li>
+<li>Dashboard progress</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/analysis/PHASE2_WEEK5_COMPLETION.md</code></strong></p>
+<ul>
+<li>Phase 2 week 5 completion</li>
+<li>Dashboard features completed</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="visualization-analysis-tools">Visualization &amp; Analysis Tools<a class="headerlink" href="#visualization-analysis-tools" title="Permanent link">¶</a></h2>
+<ol>
+<li>
+<p><strong><code>docs/dev/VAST_VISUALIZATION_FEATURES_IMPLEMENTED.md</code></strong></p>
+<ul>
+<li>VAST visualization features implemented</li>
+<li>Dashboard visualization capabilities</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/dev/VAST_VISUALIZATION_FEATURES_MISSING.md</code></strong></p>
+<ul>
+<li>VAST visualization features missing</li>
+<li>Gaps in dashboard visualization</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/dev/VISUALIZATION_METHODS_COMPARISON.md</code></strong></p>
+<ul>
+<li>Visualization methods comparison</li>
+<li>Dashboard visualization options</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/analysis/RESIDUAL_VISUALIZATION_DEFERRED.md</code></strong></p>
+<ul>
+<li>Residual visualization deferred</li>
+<li>Dashboard feature status</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="other-related-documents">Other Related Documents<a class="headerlink" href="#other-related-documents" title="Permanent link">¶</a></h2>
+<ol>
+<li>
+<p><strong><code>docs/analysis/DEEP_STUDY_COMPREHENSIVE.md</code></strong></p>
+<ul>
+<li>Deep study document (may include dashboard analysis)</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/analysis/DEEP_STUDY_2025_01_XX.md</code></strong> (filename preserved)</p>
+<ul>
+<li>Deep study analysis (may include dashboard)</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/analysis/PIPELINE_DEEP_UNDERSTANDING.md</code></strong></p>
+<ul>
+<li>Pipeline deep understanding (may mention dashboard)</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/analysis/CARTA_INTEGRATION_ASSESSMENT.md</code></strong></p>
+<ul>
+<li>CARTA integration assessment</li>
+<li>Alternative visualization tool evaluation</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/analysis/CARTA_PHASE1_COMPLETION.md</code></strong></p>
+<ul>
+<li>CARTA Phase 1 completion</li>
+<li>Visualization tool integration</li>
+</ul>
+</li>
+<li>
+<p><strong><code>docs/analysis/CARTA_PHASE2_TODO.md</code></strong></p>
+<ul>
+<li>CARTA Phase 2 TODO</li>
+<li>Visualization improvements</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="documentation-organization">Documentation Organization<a class="headerlink" href="#documentation-organization" title="Permanent link">¶</a></h2>
+<h3 id="by-category">By Category<a class="headerlink" href="#by-category" title="Permanent link">¶</a></h3>
+<p><strong>Core Conceptual Design (Must Read):</strong>
+- <code>docs/analysis/ANTICIPATORY_DASHBOARD_IMPLEMENTATION.md</code> ⭐⭐⭐⭐⭐
+- <code>docs/concepts/frontend_design.md</code> ⭐⭐⭐⭐⭐
+- <code>docs/concepts/dashboard_mockups.md</code> ⭐⭐⭐⭐</p>
+<p><strong>Technical Overview:</strong>
+- <code>docs/analysis/DASHBOARD_OVERVIEW_DETAILED.md</code> ⭐⭐⭐⭐⭐
+- <code>docs/reference/dashboard_api.md</code> ⭐⭐⭐⭐⭐
+- <code>docs/analysis/DASHBOARD_REVIEW.md</code></p>
+<p><strong>Quick Start Guides:</strong>
+- <code>docs/how-to/dashboard-quickstart.md</code>
+- <code>docs/how-to/quickstart_dashboard.md</code>
+- <code>docs/how-to/dashboard-development.md</code>
+- <code>docs/how-to/frontend-initial-setup.md</code></p>
+<p><strong>API Documentation:</strong>
+- <code>docs/reference/dashboard_api.md</code>
+- <code>docs/reference/streaming-api.md</code>
+- <code>docs/reference/backend_integration_snippets.md</code></p>
+<p><strong>UI/UX Design &amp; Templates:</strong>
+- <code>docs/analysis/DASHBOARD_TEMPLATE_RECOMMENDATIONS.md</code>
+- <code>docs/dashboard_ui_recommendations.md</code>
+- <code>docs/scientific_ui_templates.md</code>
+- <code>docs/concepts/dashboard_mockups.md</code></p>
+<p><strong>QA Visualization:</strong>
+- <code>docs/QA_VISUALIZATION_DASHBOARD_INTEGRATION.md</code>
+- <code>docs/QA_VISUALIZATION_DASHBOARD_SUMMARY.md</code>
+- <code>docs/QA_VISUALIZATION_DESIGN.md</code>
+- <code>docs/dashboard_integration_plan.md</code></p>
+<p><strong>Architecture &amp; Design:</strong>
+- <code>docs/analysis/DASHBOARD_REVIEW.md</code>
+- <code>docs/analysis/ANTICIPATORY_DASHBOARD_IMPLEMENTATION.md</code>
+- <code>docs/concepts/frontend_design.md</code>
+- <code>docs/concepts/streaming-architecture.md</code>
+- <code>docs/concepts/control-panel.md</code></p>
+<p><strong>SkyView &amp; Visualization:</strong>
+- <code>docs/SKYVIEW_IMPLEMENTATION_PLAN.md</code>
+- <code>docs/how-to/pointing-visualization.md</code>
+- <code>docs/concepts/pipeline_workflow_visualization.md</code></p>
+<p><strong>Testing &amp; Status:</strong>
+- <code>docs/testing/FINAL_TEST_REPORT.md</code>
+- <code>internal/docs/dev/status/2025-01/dashboard_endpoint_test_results.md</code>
+- <code>docs/analysis/API_ENDPOINTS_IMPLEMENTED.md</code></p>
+<p><strong>Troubleshooting:</strong>
+- <code>docs/troubleshooting/frontend-restart-needed.md</code>
+- <code>docs/operations/api_server.md</code>
+- <code>docs/operations/port-management.md</code></p>
+<p><strong>Frontend Development:</strong>
+- <code>frontend/README.md</code>
+- <code>frontend/README-DEV-SERVER.md</code>
+- <code>frontend/TESTING.md</code>
+- <code>frontend/DEBUGGING.md</code></p>
+<h3 id="by-audience">By Audience<a class="headerlink" href="#by-audience" title="Permanent link">¶</a></h3>
+<p><strong>For Frontend Developers:</strong>
+- <code>docs/analysis/DASHBOARD_OVERVIEW_DETAILED.md</code> ⭐
+- <code>docs/how-to/dashboard-development.md</code>
+- <code>docs/reference/dashboard_api.md</code>
+- <code>docs/reference/backend_integration_snippets.md</code>
+- <code>docs/concepts/frontend_design.md</code>
+- <code>docs/dashboard_ui_recommendations.md</code>
+- <code>frontend/README.md</code>
+- <code>frontend/README-DEV-SERVER.md</code></p>
+<p><strong>For UI/UX Designers:</strong>
+- <code>docs/analysis/ANTICIPATORY_DASHBOARD_IMPLEMENTATION.md</code> ⭐
+- <code>docs/concepts/frontend_design.md</code> ⭐
+- <code>docs/concepts/dashboard_mockups.md</code> ⭐
+- <code>docs/analysis/DASHBOARD_TEMPLATE_RECOMMENDATIONS.md</code>
+- <code>docs/scientific_ui_templates.md</code></p>
+<p><strong>For Radio Astronomers:</strong>
+- <code>docs/analysis/DASHBOARD_OVERVIEW_DETAILED.md</code> ⭐
+- <code>docs/how-to/dashboard-quickstart.md</code>
+- <code>docs/how-to/streaming-control.md</code>
+- <code>docs/concepts/control-panel.md</code>
+- <code>docs/user_guide_qa_visualization.md</code></p>
+<p><strong>For System Administrators:</strong>
+- <code>docs/how-to/persistent-dashboard.md</code>
+- <code>docs/operations/api_server.md</code>
+- <code>docs/operations/port-management.md</code>
+- <code>docs/troubleshooting/frontend-restart-needed.md</code></p>
+<p><strong>For Project Managers:</strong>
+- <code>docs/analysis/DASHBOARD_REVIEW.md</code>
+- <code>docs/analysis/ANTICIPATORY_DASHBOARD_IMPLEMENTATION.md</code>
+- <code>docs/DEVELOPMENT_ROADMAP.md</code>
+- <code>docs/IMPLEMENTATION_CHECKLIST.md</code></p>
+<hr/>
+<h2 id="key-documents-summary">Key Documents Summary<a class="headerlink" href="#key-documents-summary" title="Permanent link">¶</a></h2>
+<h3 id="essential-reading">Essential Reading (⭐⭐⭐⭐⭐)<a class="headerlink" href="#essential-reading" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong><code>docs/analysis/ANTICIPATORY_DASHBOARD_IMPLEMENTATION.md</code></strong></li>
+<li>Most comprehensive conceptual design</li>
+<li>User-oriented design philosophy</li>
+<li>State-driven UI, anticipation engine</li>
+<li>
+<p>Complete workflow guidance</p>
+</li>
+<li>
+<p><strong><code>docs/concepts/frontend_design.md</code></strong></p>
+</li>
+<li>Strategic design document</li>
+<li>Design principles and user personas</li>
+<li>Information architecture</li>
+<li>
+<p>Page specifications</p>
+</li>
+<li>
+<p><strong><code>docs/analysis/DASHBOARD_OVERVIEW_DETAILED.md</code></strong></p>
+</li>
+<li>Most comprehensive technical overview</li>
+<li>Technical and scientific context</li>
+<li>
+<p>Complete architecture documentation</p>
+</li>
+<li>
+<p><strong><code>docs/reference/dashboard_api.md</code></strong></p>
+</li>
+<li>Complete API reference</li>
+<li>All endpoints documented</li>
+<li>
+<p>Request/response examples</p>
+</li>
+<li>
+<p><strong><code>docs/concepts/dashboard_mockups.md</code></strong></p>
+</li>
+<li>Visual design specification</li>
+<li>Wireframes for all pages</li>
+<li>Color scheme and typography</li>
+</ol>
+<h3 id="highly-recommended">Highly Recommended (⭐⭐⭐⭐)<a class="headerlink" href="#highly-recommended" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong><code>docs/analysis/DASHBOARD_TEMPLATE_RECOMMENDATIONS.md</code></strong></li>
+<li>Template recommendations (CARTA, Grafana, JupyterLab)</li>
+<li>
+<p>Implementation priorities</p>
+</li>
+<li>
+<p><strong><code>docs/dashboard_ui_recommendations.md</code></strong></p>
+</li>
+<li>UI development best practices</li>
+<li>
+<p>Component architecture patterns</p>
+</li>
+<li>
+<p><strong><code>docs/scientific_ui_templates.md</code></strong></p>
+</li>
+<li>Analysis of scientific UI patterns</li>
+<li>
+<p>Code examples and implementation strategies</p>
+</li>
+<li>
+<p><strong><code>docs/SKYVIEW_IMPLEMENTATION_PLAN.md</code></strong></p>
+</li>
+<li>SkyView page implementation plan</li>
+<li>
+<p>User requirements and features</p>
+</li>
+<li>
+<p><strong><code>docs/QA_VISUALIZATION_DESIGN.md</code></strong></p>
+<ul>
+<li>QA visualization framework design</li>
+<li>Architecture and components</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">¶</a></h2>
+<ul>
+<li>Some documents may have overlapping content</li>
+<li>Internal docs (<code>internal/docs/</code>) are development status documents</li>
+<li>Analysis docs (<code>docs/analysis/</code>) contain assessments and reviews</li>
+<li>How-to docs (<code>docs/how-to/</code>) are user-facing guides</li>
+<li>Reference docs (<code>docs/reference/</code>) are technical references</li>
+<li>Concepts docs (<code>docs/concepts/</code>) are strategic/design documents</li>
+<li>Frontend directory (<code>frontend/</code>) contains project-specific documentation</li>
+</ul>
+<hr/>
+<h2 id="recommendations">Recommendations<a class="headerlink" href="#recommendations" title="Permanent link">¶</a></h2>
+<ol>
+<li><strong>Start with conceptual design:</strong></li>
+<li><code>docs/analysis/ANTICIPATORY_DASHBOARD_IMPLEMENTATION.md</code> for UX philosophy</li>
+<li><code>docs/concepts/frontend_design.md</code> for strategic design</li>
+<li>
+<p><code>docs/concepts/dashboard_mockups.md</code> for visual design</p>
+</li>
+<li>
+<p><strong>For API work:</strong></p>
+</li>
+<li><code>docs/reference/dashboard_api.md</code></li>
+<li>
+<p><code>docs/reference/streaming-api.md</code></p>
+</li>
+<li>
+<p><strong>For development:</strong></p>
+</li>
+<li><code>docs/how-to/dashboard-development.md</code></li>
+<li><code>docs/dashboard_ui_recommendations.md</code></li>
+<li>
+<p><code>frontend/README-DEV-SERVER.md</code></p>
+</li>
+<li>
+<p><strong>For users:</strong></p>
+</li>
+<li><code>docs/how-to/dashboard-quickstart.md</code></li>
+<li><code>docs/how-to/streaming-control.md</code></li>
+<li>
+<p><code>docs/user_guide_qa_visualization.md</code></p>
+</li>
+<li>
+<p><strong>For architecture:</strong></p>
+</li>
+<li><code>docs/concepts/frontend_design.md</code></li>
+<li><code>docs/analysis/DASHBOARD_REVIEW.md</code></li>
+<li><code>docs/concepts/streaming-architecture.md</code></li>
+</ol>
+<hr/>
+<p><strong>Last Updated:</strong> 2025-11-12<br/>
+<strong>Maintained By:</strong> Documentation Team<br/>
+<strong>Total Files:</strong> 84+ markdown files identified</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

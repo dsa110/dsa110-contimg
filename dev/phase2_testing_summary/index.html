@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1226,19 +1228,23 @@
 <h4 id="endpoints-tested">Endpoints Tested:<a class="headerlink" href="#endpoints-tested" title="Permanent link">¶</a></h4>
 <ul>
 <li>✅ <code>GET /api/pipeline/executions</code> - List executions (HTTP 200)</li>
-<li>✅ <code>GET /api/pipeline/executions/active</code> - Active executions (HTTP 200) - <strong>Fixed initial 500 error</strong></li>
+<li>✅ <code>GET /api/pipeline/executions/active</code> - Active executions (HTTP 200) -
+  <strong>Fixed initial 500 error</strong></li>
 <li>✅ <code>GET /api/pipeline/executions/{id}</code> - Execution details (HTTP 200)</li>
 <li>✅ <code>GET /api/pipeline/executions/{id}/stages</code> - Execution stages (HTTP 200)</li>
 <li>✅ <code>GET /api/pipeline/stages/metrics</code> - Stage metrics (HTTP 200)</li>
-<li>✅ <code>GET /api/pipeline/stages/{name}/metrics</code> - Specific stage metrics (HTTP 200)</li>
+<li>✅ <code>GET /api/pipeline/stages/{name}/metrics</code> - Specific stage metrics
+  (HTTP 200)</li>
 <li>✅ <code>GET /api/pipeline/dependency-graph</code> - Dependency graph (HTTP 200)</li>
 <li>✅ <code>GET /api/pipeline/metrics/summary</code> - Metrics summary (HTTP 200)</li>
 </ul>
 <h4 id="issues-found-and-fixed">Issues Found and Fixed:<a class="headerlink" href="#issues-found-and-fixed" title="Permanent link">¶</a></h4>
 <ol>
 <li><strong>Active Executions Endpoint (500 Error)</strong></li>
-<li><strong>Issue:</strong> <code>get_active_executions</code> was calling <code>list_pipeline_executions</code> directly, but FastAPI expected query parameters</li>
-<li><strong>Fix:</strong> Refactored <code>get_active_executions</code> to directly query the repository and build the response</li>
+<li><strong>Issue:</strong> <code>get_active_executions</code> was calling <code>list_pipeline_executions</code>
+     directly, but FastAPI expected query parameters</li>
+<li><strong>Fix:</strong> Refactored <code>get_active_executions</code> to directly query the
+     repository and build the response</li>
 <li><strong>Status:</strong> ✅ Fixed</li>
 </ol>
 <h4 id="test-data-created">Test Data Created:<a class="headerlink" href="#test-data-created" title="Permanent link">¶</a></h4>
@@ -1251,51 +1257,67 @@
 <h3 id="2-frontend-ui-testing">2. Frontend UI Testing ✅<a class="headerlink" href="#2-frontend-ui-testing" title="Permanent link">¶</a></h3>
 <p><strong>Browser:</strong> Chrome (via Cursor browser extension)</p>
 <h4 id="components-tested">Components Tested:<a class="headerlink" href="#components-tested" title="Permanent link">¶</a></h4>
-<p><strong>Pipeline Summary Card:</strong>
-- ✅ Displays total jobs (16)
-- ✅ Displays running jobs (1)
-- ✅ Displays completed jobs (1)
-- ✅ Displays failed jobs (5)
-- ✅ Calculates success rate (6.3%)
-- ✅ Shows average duration (3.0 min)
-- ✅ Auto-refreshes every 10 seconds</p>
-<p><strong>Active Executions Tab:</strong>
-- ✅ Displays active pipeline executions
-- ✅ Shows execution details (ID, type, status, duration)
-- ✅ Displays stage-by-stage progress
-- ✅ Shows stage status chips with color coding
-- ✅ Real-time updates working (3-second refresh interval)
-- ✅ "Show Details" button present and functional
-- ✅ Duration updates in real-time (observed: 1.8 min → 2.5 min)</p>
-<p><strong>Execution History Tab:</strong>
-- ✅ Displays table of historical executions
-- ✅ Shows all columns: ID, Type, Status, Duration, Stages, Started
-- ✅ Status chips with color coding (completed=green, failed=red, running=blue)
-- ✅ Filter dropdowns present (Status, Job Type)
-- ✅ Pagination controls working (25 rows per page)
-- ✅ Real-time updates working (5-second refresh interval)
-- ✅ Timestamps update correctly ("2 minutes ago" → "3 minutes ago")</p>
-<p><strong>Filtering:</strong>
-- ✅ Status filter dropdown opens correctly
-- ✅ Options available: All, Completed, Failed, Running, Pending
-- ✅ Job Type filter text field present
-- ✅ Filter UI functional (dropdown interaction verified)</p>
-<p><strong>Stage Metrics Tab:</strong>
-- ⏳ Not fully tested (tab switching timeout)
-- Expected: Performance metrics table with success rate visualization</p>
-<p><strong>Dependency Graph Tab:</strong>
-- ⏳ Not fully tested (tab switching timeout)
-- Expected: Visual dependency graph with hierarchical layout</p>
+<p><strong>Pipeline Summary Card:</strong></p>
+<ul>
+<li>✅ Displays total jobs (16)</li>
+<li>✅ Displays running jobs (1)</li>
+<li>✅ Displays completed jobs (1)</li>
+<li>✅ Displays failed jobs (5)</li>
+<li>✅ Calculates success rate (6.3%)</li>
+<li>✅ Shows average duration (3.0 min)</li>
+<li>✅ Auto-refreshes every 10 seconds</li>
+</ul>
+<p><strong>Active Executions Tab:</strong></p>
+<ul>
+<li>✅ Displays active pipeline executions</li>
+<li>✅ Shows execution details (ID, type, status, duration)</li>
+<li>✅ Displays stage-by-stage progress</li>
+<li>✅ Shows stage status chips with color coding</li>
+<li>✅ Real-time updates working (3-second refresh interval)</li>
+<li>✅ "Show Details" button present and functional</li>
+<li>✅ Duration updates in real-time (observed: 1.8 min → 2.5 min)</li>
+</ul>
+<p><strong>Execution History Tab:</strong></p>
+<ul>
+<li>✅ Displays table of historical executions</li>
+<li>✅ Shows all columns: ID, Type, Status, Duration, Stages, Started</li>
+<li>✅ Status chips with color coding (completed=green, failed=red, running=blue)</li>
+<li>✅ Filter dropdowns present (Status, Job Type)</li>
+<li>✅ Pagination controls working (25 rows per page)</li>
+<li>✅ Real-time updates working (5-second refresh interval)</li>
+<li>✅ Timestamps update correctly ("2 minutes ago" → "3 minutes ago")</li>
+</ul>
+<p><strong>Filtering:</strong></p>
+<ul>
+<li>✅ Status filter dropdown opens correctly</li>
+<li>✅ Options available: All, Completed, Failed, Running, Pending</li>
+<li>✅ Job Type filter text field present</li>
+<li>✅ Filter UI functional (dropdown interaction verified)</li>
+</ul>
+<p><strong>Stage Metrics Tab:</strong></p>
+<ul>
+<li>⏳ Not fully tested (tab switching timeout)</li>
+<li>Expected: Performance metrics table with success rate visualization</li>
+</ul>
+<p><strong>Dependency Graph Tab:</strong></p>
+<ul>
+<li>⏳ Not fully tested (tab switching timeout)</li>
+<li>Expected: Visual dependency graph with hierarchical layout</li>
+</ul>
 <h3 id="3-real-time-updates-testing">3. Real-Time Updates Testing ✅<a class="headerlink" href="#3-real-time-updates-testing" title="Permanent link">¶</a></h3>
-<p><strong>Verified Working:</strong>
-- ✅ Active executions refresh every 3 seconds
-- ✅ Execution details refresh every 5 seconds
-- ✅ Metrics summary refreshes every 10 seconds
-- ✅ Execution history refreshes every 5 seconds</p>
-<p><strong>Evidence:</strong>
-- Network requests show repeated API calls at expected intervals
-- UI updates observed: execution duration changed from "1.8 min" to "2.5 min"
-- Timestamps updated: "2 minutes ago" → "3 minutes ago"</p>
+<p><strong>Verified Working:</strong></p>
+<ul>
+<li>✅ Active executions refresh every 3 seconds</li>
+<li>✅ Execution details refresh every 5 seconds</li>
+<li>✅ Metrics summary refreshes every 10 seconds</li>
+<li>✅ Execution history refreshes every 5 seconds</li>
+</ul>
+<p><strong>Evidence:</strong></p>
+<ul>
+<li>Network requests show repeated API calls at expected intervals</li>
+<li>UI updates observed: execution duration changed from "1.8 min" to "2.5 min"</li>
+<li>Timestamps updated: "2 minutes ago" → "3 minutes ago"</li>
+</ul>
 <h3 id="4-navigation-integration">4. Navigation Integration ✅<a class="headerlink" href="#4-navigation-integration" title="Permanent link">¶</a></h3>
 <ul>
 <li>✅ Pipeline link present in main navigation</li>
@@ -1304,11 +1326,13 @@
 <li>✅ Route configured in <code>App.tsx</code></li>
 </ul>
 <h2 id="network-requests-verified">Network Requests Verified<a class="headerlink" href="#network-requests-verified" title="Permanent link">¶</a></h2>
-<p>From browser DevTools, confirmed API calls:
-- <code>/api/pipeline/executions/active</code> - Called every 3 seconds
-- <code>/api/pipeline/metrics/summary</code> - Called every 10 seconds
-- <code>/api/pipeline/executions/14</code> - Called every 5 seconds
-- <code>/api/pipeline/executions?limit=25&amp;offset=0</code> - Called for history tab</p>
+<p>From browser DevTools, confirmed API calls:</p>
+<ul>
+<li><code>/api/pipeline/executions/active</code> - Called every 3 seconds</li>
+<li><code>/api/pipeline/metrics/summary</code> - Called every 10 seconds</li>
+<li><code>/api/pipeline/executions/14</code> - Called every 5 seconds</li>
+<li><code>/api/pipeline/executions?limit=25&amp;offset=0</code> - Called for history tab</li>
+</ul>
 <h2 id="test-coverage-summary">Test Coverage Summary<a class="headerlink" href="#test-coverage-summary" title="Permanent link">¶</a></h2>
 <table>
 <thead>
@@ -1358,19 +1382,25 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Legend:</strong>
-- ✅ Fully tested and working
-- ⏳ Partially tested or pending</p>
+<p><strong>Legend:</strong></p>
+<ul>
+<li>✅ Fully tested and working</li>
+<li>⏳ Partially tested or pending</li>
+</ul>
 <h2 id="issues-and-fixes">Issues and Fixes<a class="headerlink" href="#issues-and-fixes" title="Permanent link">¶</a></h2>
 <h3 id="fixed-issues">Fixed Issues:<a class="headerlink" href="#fixed-issues" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong>Backend:</strong> Active executions endpoint 500 error - Fixed by refactoring endpoint implementation</li>
+<li><strong>Backend:</strong> Active executions endpoint 500 error - Fixed by refactoring
+   endpoint implementation</li>
 <li><strong>Frontend:</strong> All tested components working correctly</li>
 </ol>
 <h3 id="known-limitations">Known Limitations:<a class="headerlink" href="#known-limitations" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong>Tab Switching:</strong> Some tabs (Stage Metrics, Dependency Graph) had timeout issues during automated testing, but this is likely due to browser automation timing, not actual functionality issues</li>
-<li><strong>Filter Testing:</strong> Filter dropdown opened correctly but full filter application not tested in automated session (manual testing recommended)</li>
+<li><strong>Tab Switching:</strong> Some tabs (Stage Metrics, Dependency Graph) had timeout
+   issues during automated testing, but this is likely due to browser automation
+   timing, not actual functionality issues</li>
+<li><strong>Filter Testing:</strong> Filter dropdown opened correctly but full filter
+   application not tested in automated session (manual testing recommended)</li>
 </ol>
 <h2 id="recommendations">Recommendations<a class="headerlink" href="#recommendations" title="Permanent link">¶</a></h2>
 <h3 id="immediate-actions">Immediate Actions:<a class="headerlink" href="#immediate-actions" title="Permanent link">¶</a></h3>
@@ -1397,7 +1427,9 @@
 <li>✅ Navigation integrated</li>
 <li>✅ Filtering UI present and functional</li>
 </ul>
-<p>The Pipeline Stage Monitoring Dashboard is <strong>ready for production use</strong> with the tested components. Remaining tabs (Stage Metrics, Dependency Graph) should be manually verified but are expected to work based on the implementation.</p>
+<p>The Pipeline Stage Monitoring Dashboard is <strong>ready for production use</strong> with the
+tested components. Remaining tabs (Stage Metrics, Dependency Graph) should be
+manually verified but are expected to work based on the implementation.</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1422,7 +1454,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

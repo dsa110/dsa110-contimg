@@ -29,6 +29,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1470,7 +1472,7 @@ uvicorn<span class="w"> </span>dsa110_contimg.api.routes:create_app<span class="
 </code></pre></div>
 <h3 id="logs-not-streaming">Logs Not Streaming<a class="headerlink" href="#logs-not-streaming" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check SSE connection in browser DevTools → Network tab</span>
-<span class="c1"># Look for /api/jobs/{id}/logs with type "eventsource"</span>
+<span class="c1"># Look for /api/jobs/id/{job_id}/logs with type "eventsource"</span>
 
 <span class="c1"># Test SSE endpoint</span>
 curl<span class="w"> </span>-N<span class="w"> </span>http://localhost:8000/api/jobs/1/logs
@@ -1488,7 +1490,7 @@ conda<span class="w"> </span>env<span class="w"> </span>list<span class="w"> </s
 <h2 id="database-queries">📊 Database Queries<a class="headerlink" href="#database-queries" title="Permanent link">¶</a></h2>
 <div class="highlight"><pre><span></span><code><span class="c1"># List recent jobs</span>
 sqlite3<span class="w"> </span>/data/dsa110-contimg/state/products.sqlite3<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span><span class="s2">"SELECT id, type, status, datetime(created_at, 'unixepoch') </span>
+<span class="w">  </span><span class="s2">"SELECT id, type, status, datetime(created_at, 'unixepoch')</span>
 <span class="s2">   FROM jobs ORDER BY id DESC LIMIT 10;"</span>
 
 <span class="c1"># View job logs</span>
@@ -1644,7 +1646,7 @@ sqlite3<span class="w"> </span>state/products.sqlite3<span class="w"> </span><sp
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

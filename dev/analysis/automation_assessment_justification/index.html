@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1430,69 +1432,98 @@
 <article class="md-content__inner md-typeset">
 <h1 id="systematic-justification-streaming-mode-pipeline-automation-assessment">Systematic Justification: Streaming Mode Pipeline Automation Assessment<a class="headerlink" href="#systematic-justification-streaming-mode-pipeline-automation-assessment" title="Permanent link">¶</a></h1>
 <p><strong>Date:</strong> 2025-11-12<br/>
-<strong>Assessment Date:</strong> Previous assessment was incomplete; this document provides systematic code-level justification for each stage.</p>
+<strong>Assessment Date:</strong> Previous assessment was incomplete; this document provides
+systematic code-level justification for each stage.</p>
 <h2 id="methodology">Methodology<a class="headerlink" href="#methodology" title="Permanent link">¶</a></h2>
-<p>For each pipeline stage, I examined:
-1. <strong>Streaming Converter Path</strong> (<code>streaming_converter.py</code>): Autonomous daemon that watches for files and processes them
-2. <strong>Mosaic Orchestrator Path</strong> (<code>mosaic/orchestrator.py</code> + <code>mosaic/streaming_mosaic.py</code>): Orchestrated workflow via <code>create_mosaic_centered.py</code></p>
-<p>Each stage is assessed with:
-- Code references (file:line numbers)
-- Execution flow analysis
-- Conditions and limitations
-- Automation percentage with justification</p>
+<p>For each pipeline stage, I examined:</p>
+<ol>
+<li><strong>Streaming Converter Path</strong> (<code>streaming_converter.py</code>): Autonomous daemon
+   that watches for files and processes them</li>
+<li><strong>Mosaic Orchestrator Path</strong> (<code>mosaic/orchestrator.py</code> +
+   <code>mosaic/streaming_mosaic.py</code>): Orchestrated workflow via
+   <code>create_mosaic_centered.py</code></li>
+</ol>
+<p>Each stage is assessed with:</p>
+<ul>
+<li>Code references (file:line numbers)</li>
+<li>Execution flow analysis</li>
+<li>Conditions and limitations</li>
+<li>Automation percentage with justification</li>
+</ul>
 <hr/>
 <h2 id="stage-1-conversion-uvh5-ms">Stage 1: Conversion (UVH5 → MS)<a class="headerlink" href="#stage-1-conversion-uvh5-ms" title="Permanent link">¶</a></h2>
 <h3 id="assessment-100-automated">Assessment: <strong>100% Automated</strong><a class="headerlink" href="#assessment-100-automated" title="Permanent link">¶</a></h3>
 <h3 id="justification">Justification<a class="headerlink" href="#justification" title="Permanent link">¶</a></h3>
 <h4 id="streaming-converter-path">Streaming Converter Path<a class="headerlink" href="#streaming-converter-path" title="Permanent link">¶</a></h4>
-<p><strong>Code Evidence:</strong>
-- <strong>File:</strong> <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code>
-- <strong>Worker Loop:</strong> Lines 655-1000 (<code>_worker_loop()</code>)
-- <strong>File Watching:</strong> Lines 992-1167 (<code>_start_watch()</code>)</p>
-<p><strong>Execution Flow:</strong>
-1. <strong>Automatic File Detection:</strong>
-   - Lines 992-1000: Watchdog observer monitors <code>/data/incoming/</code> directory
-   - Lines 100-142: <code>_FSHandler</code> class automatically records new <code>*_sb??.hdf5</code> files
-   - Lines 143-450: <code>QueueDB</code> automatically groups files by timestamp (5-minute windows)</p>
+<p><strong>Code Evidence:</strong></p>
+<ul>
+<li><strong>File:</strong> <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code></li>
+<li><strong>Worker Loop:</strong> Lines 655-1000 (<code>_worker_loop()</code>)</li>
+<li><strong>File Watching:</strong> Lines 992-1167 (<code>_start_watch()</code>)</li>
+</ul>
+<p><strong>Execution Flow:</strong></p>
 <ol>
-<li><strong>Automatic Group Processing:</strong></li>
+<li><strong>Automatic File Detection:</strong></li>
+<li>Lines 992-1000: Watchdog observer monitors <code>/data/incoming/</code> directory</li>
+<li>Lines 100-142: <code>_FSHandler</code> class automatically records new <code>*_sb??.hdf5</code>
+     files</li>
+<li>
+<p>Lines 143-450: <code>QueueDB</code> automatically groups files by timestamp (5-minute
+     windows)</p>
+</li>
+<li>
+<p><strong>Automatic Group Processing:</strong></p>
+</li>
 <li>Lines 655-659: Worker loop continuously polls for pending groups</li>
-<li>Lines 659-675: Automatically acquires next pending group (<code>queue.acquire_next_pending()</code>)</li>
-<li>Lines 675-730: Automatically calls <code>convert_subband_groups_to_ms()</code> via orchestrator</li>
+<li>Lines 659-675: Automatically acquires next pending group
+     (<code>queue.acquire_next_pending()</code>)</li>
+<li>Lines 675-730: Automatically calls <code>convert_subband_groups_to_ms()</code> via
+     orchestrator</li>
 <li>
 <p>Lines 730-750: Automatically updates state to <code>completed</code> after conversion</p>
 </li>
 <li>
 <p><strong>Automatic Database Updates:</strong></p>
 </li>
-<li>Lines 800-850: Automatically records MS in <code>products.sqlite3</code> via <code>ms_index_upsert()</code></li>
+<li>Lines 800-850: Automatically records MS in <code>products.sqlite3</code> via
+     <code>ms_index_upsert()</code></li>
 <li>Lines 820-840: Automatically logs pointing to <code>pointing_history</code> table</li>
 <li>No manual intervention required</li>
 </ol>
-<p><strong>Conditions:</strong>
-- None - fully automatic once daemon is running
-- State machine: <code>collecting</code> → <code>pending</code> → <code>in_progress</code> → <code>completed</code></p>
+<p><strong>Conditions:</strong></p>
+<ul>
+<li>None - fully automatic once daemon is running</li>
+<li>State machine: <code>collecting</code> → <code>pending</code> → <code>in_progress</code> → <code>completed</code></li>
+</ul>
 <p><strong>Conclusion:</strong> 100% automated - no manual steps required.</p>
 <hr/>
 <h2 id="stage-2-calibration-kbpg">Stage 2: Calibration (K/BP/G)<a class="headerlink" href="#stage-2-calibration-kbpg" title="Permanent link">¶</a></h2>
 <h3 id="assessment-50-streaming-converter-100-mosaic-orchestrator">Assessment: <strong>50% (Streaming Converter) | 100% (Mosaic Orchestrator)</strong><a class="headerlink" href="#assessment-50-streaming-converter-100-mosaic-orchestrator" title="Permanent link">¶</a></h3>
 <h3 id="justification_1">Justification<a class="headerlink" href="#justification_1" title="Permanent link">¶</a></h3>
 <h4 id="streaming-converter-path-50-automated">Streaming Converter Path: <strong>50% Automated</strong><a class="headerlink" href="#streaming-converter-path-50-automated" title="Permanent link">¶</a></h4>
-<p><strong>Code Evidence:</strong>
-- <strong>File:</strong> <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code>
-- <strong>Calibration Application:</strong> Lines 850-890</p>
-<p><strong>Execution Flow:</strong>
-1. <strong>Conditional Calibration Application:</strong>
-   - Lines 866-875: Queries registry for active calibration tables via <code>get_active_applylist()</code>
-   - Lines 877-885: <strong>IF</strong> calibration tables exist (<code>if applylist:</code>), applies them via <code>apply_to_target()</code>
-   - Lines 877-885: <strong>IF</strong> no tables exist, skips calibration application</p>
+<p><strong>Code Evidence:</strong></p>
+<ul>
+<li><strong>File:</strong> <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code></li>
+<li><strong>Calibration Application:</strong> Lines 850-890</li>
+</ul>
+<p><strong>Execution Flow:</strong></p>
 <ol>
-<li><strong>Limitations:</strong></li>
+<li><strong>Conditional Calibration Application:</strong></li>
+<li>Lines 866-875: Queries registry for active calibration tables via
+     <code>get_active_applylist()</code></li>
+<li>Lines 877-885: <strong>IF</strong> calibration tables exist (<code>if applylist:</code>), applies
+     them via <code>apply_to_target()</code></li>
+<li>
+<p>Lines 877-885: <strong>IF</strong> no tables exist, skips calibration application</p>
+</li>
+<li>
+<p><strong>Limitations:</strong></p>
+</li>
 <li><strong>Does NOT solve calibration</strong> - only applies existing tables from registry</li>
 <li><strong>Conditional execution</strong> - only runs if tables already exist</li>
 <li><strong>No BP/G solving</strong> - relies on pre-existing calibration tables</li>
 </ol>
-<p><strong>Code Reference:</strong>
+<p><strong>Code Reference:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Lines 866-885</span>
 <span class="n">applylist</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">try</span><span class="p">:</span>
@@ -1510,29 +1541,41 @@
         <span class="n">cal_applied</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"applycal failed for </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">ms_path</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Conditions:</strong>
-- Requires pre-existing calibration tables in <code>cal_registry.sqlite3</code>
-- If no tables exist, calibration is skipped (not solved)</p>
-<p><strong>Conclusion:</strong> 50% automated - applies calibration if available, but does not solve it.</p>
+</code></pre></div>
+<p><strong>Conditions:</strong></p>
+<ul>
+<li>Requires pre-existing calibration tables in <code>cal_registry.sqlite3</code></li>
+<li>If no tables exist, calibration is skipped (not solved)</li>
+</ul>
+<p><strong>Conclusion:</strong> 50% automated - applies calibration if available, but does not
+solve it.</p>
 <h4 id="mosaic-orchestrator-path-100-automated">Mosaic Orchestrator Path: <strong>100% Automated</strong><a class="headerlink" href="#mosaic-orchestrator-path-100-automated" title="Permanent link">¶</a></h4>
-<p><strong>Code Evidence:</strong>
-- <strong>File:</strong> <code>src/dsa110_contimg/mosaic/orchestrator.py</code>
-- <strong>Workflow:</strong> Lines 523-580 (<code>_process_group_workflow()</code>)
-- <strong>Calibration Solving:</strong> <code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code> Lines 1049-1605 (<code>solve_calibration_for_group()</code>)
-- <strong>Calibration Application:</strong> Lines 1606-1720 (<code>apply_calibration_to_group()</code>)</p>
-<p><strong>Execution Flow:</strong>
-1. <strong>Automatic Calibration MS Selection:</strong>
-   - Lines 540-545: Automatically selects 5th MS (index 4) as calibration source
-   - Uses <code>manager.select_calibration_ms(ms_paths)</code></p>
+<p><strong>Code Evidence:</strong></p>
+<ul>
+<li><strong>File:</strong> <code>src/dsa110_contimg/mosaic/orchestrator.py</code></li>
+<li><strong>Workflow:</strong> Lines 523-580 (<code>_process_group_workflow()</code>)</li>
+<li><strong>Calibration Solving:</strong> <code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code> Lines
+  1049-1605 (<code>solve_calibration_for_group()</code>)</li>
+<li><strong>Calibration Application:</strong> Lines 1606-1720 (<code>apply_calibration_to_group()</code>)</li>
+</ul>
+<p><strong>Execution Flow:</strong></p>
 <ol>
-<li><strong>Automatic Calibration Solving:</strong></li>
+<li><strong>Automatic Calibration MS Selection:</strong></li>
+<li>Lines 540-545: Automatically selects 5th MS (index 4) as calibration source</li>
+<li>
+<p>Uses <code>manager.select_calibration_ms(ms_paths)</code></p>
+</li>
+<li>
+<p><strong>Automatic Calibration Solving:</strong></p>
+</li>
 <li>Lines 547-553: Automatically calls <code>solve_calibration_for_group()</code></li>
 <li>Lines 1049-1200: Checks registry first, then solves if missing</li>
 <li>Lines 1100-1200: Automatically solves BP calibration (CASA <code>bandpass</code> task)</li>
-<li>Lines 1200-1400: Automatically solves gain calibration (CASA <code>gaincal</code> task with skymodel)</li>
+<li>Lines 1200-1400: Automatically solves gain calibration (CASA <code>gaincal</code> task
+     with skymodel)</li>
 <li>
-<p>Lines 1400-1605: Automatically registers calibration tables in <code>cal_registry.sqlite3</code></p>
+<p>Lines 1400-1605: Automatically registers calibration tables in
+     <code>cal_registry.sqlite3</code></p>
 </li>
 <li>
 <p><strong>Automatic Calibration Application:</strong></p>
@@ -1542,7 +1585,7 @@
 <li>Lines 1650-1680: Validates tables exist on filesystem before applying</li>
 <li>Lines 1680-1700: Automatically updates <code>ms_index</code> status to <code>calibrated</code></li>
 </ol>
-<p><strong>Code Reference:</strong>
+<p><strong>Code Reference:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Lines 547-559 in orchestrator.py</span>
 <span class="n">bpcal_solved</span><span class="p">,</span> <span class="n">gaincal_solved</span><span class="p">,</span> <span class="n">error_msg</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">solve_calibration_for_group</span><span class="p">(</span>
     <span class="n">group_id</span><span class="p">,</span> <span class="n">calibration_ms</span>
@@ -1555,32 +1598,45 @@
 <span class="k">if</span> <span class="ow">not</span> <span class="n">manager</span><span class="o">.</span><span class="n">apply_calibration_to_group</span><span class="p">(</span><span class="n">group_id</span><span class="p">):</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Failed to apply calibration to group </span><span class="si">{</span><span class="n">group_id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">return</span> <span class="kc">None</span>
-</code></pre></div></p>
-<p><strong>Conditions:</strong>
-- Requires calibrator to be present in MS files (validated automatically)
-- Requires bandpass calibrator to be registered for observation Dec (auto-inferred)</p>
-<p><strong>Conclusion:</strong> 100% automated - fully solves and applies calibration automatically.</p>
+</code></pre></div>
+<p><strong>Conditions:</strong></p>
+<ul>
+<li>Requires calibrator to be present in MS files (validated automatically)</li>
+<li>Requires bandpass calibrator to be registered for observation Dec
+  (auto-inferred)</li>
+</ul>
+<p><strong>Conclusion:</strong> 100% automated - fully solves and applies calibration
+automatically.</p>
 <hr/>
 <h2 id="stage-3-imaging-tcleanwsclean">Stage 3: Imaging (tclean/WSClean)<a class="headerlink" href="#stage-3-imaging-tcleanwsclean" title="Permanent link">¶</a></h2>
 <h3 id="assessment-50-streaming-converter-100-mosaic-orchestrator_1">Assessment: <strong>50% (Streaming Converter) | 100% (Mosaic Orchestrator)</strong><a class="headerlink" href="#assessment-50-streaming-converter-100-mosaic-orchestrator_1" title="Permanent link">¶</a></h3>
 <h3 id="justification_2">Justification<a class="headerlink" href="#justification_2" title="Permanent link">¶</a></h3>
 <h4 id="streaming-converter-path-50-automated_1">Streaming Converter Path: <strong>50% Automated</strong><a class="headerlink" href="#streaming-converter-path-50-automated_1" title="Permanent link">¶</a></h4>
-<p><strong>Code Evidence:</strong>
-- <strong>File:</strong> <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code>
-- <strong>Imaging:</strong> Lines 891-978</p>
-<p><strong>Execution Flow:</strong>
-1. <strong>Conditional Imaging:</strong>
-   - Lines 891-978: Images MS <strong>only after</strong> calibration application attempt
-   - Lines 891-900: Calls <code>image_ms()</code> with <code>quality_tier="standard"</code>
-   - Lines 900-945: Automatically runs catalog-based flux scale validation (NVSS)
-   - Lines 945-978: Automatically updates <code>products.sqlite3</code> with image artifacts</p>
+<p><strong>Code Evidence:</strong></p>
+<ul>
+<li><strong>File:</strong> <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code></li>
+<li><strong>Imaging:</strong> Lines 891-978</li>
+</ul>
+<p><strong>Execution Flow:</strong></p>
 <ol>
-<li><strong>Limitations:</strong></li>
-<li><strong>Conditional execution</strong> - runs after calibration application (which may have been skipped)</li>
+<li><strong>Conditional Imaging:</strong></li>
+<li>Lines 891-978: Images MS <strong>only after</strong> calibration application attempt</li>
+<li>Lines 891-900: Calls <code>image_ms()</code> with <code>quality_tier="standard"</code></li>
+<li>Lines 900-945: Automatically runs catalog-based flux scale validation
+     (NVSS)</li>
+<li>
+<p>Lines 945-978: Automatically updates <code>products.sqlite3</code> with image
+     artifacts</p>
+</li>
+<li>
+<p><strong>Limitations:</strong></p>
+</li>
+<li><strong>Conditional execution</strong> - runs after calibration application (which may
+     have been skipped)</li>
 <li><strong>Single MS imaging</strong> - does not create mosaics</li>
 <li><strong>No group-level coordination</strong> - images each MS independently</li>
 </ol>
-<p><strong>Code Reference:</strong>
+<p><strong>Code Reference:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Lines 891-978</span>
 <span class="n">imgroot</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">base</span> <span class="o">+</span> <span class="s2">".img"</span><span class="p">)</span>
 <span class="k">try</span><span class="p">:</span>
@@ -1594,108 +1650,155 @@
     <span class="c1"># ... validation and database updates ...</span>
 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
     <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"imaging failed for </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">ms_path</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Conditions:</strong>
-- Runs after calibration application (which may have been skipped)
-- No dependency on calibration success - images regardless</p>
-<p><strong>Conclusion:</strong> 50% automated - images automatically but only per-MS, not coordinated group imaging.</p>
+</code></pre></div>
+<p><strong>Conditions:</strong></p>
+<ul>
+<li>Runs after calibration application (which may have been skipped)</li>
+<li>No dependency on calibration success - images regardless</li>
+</ul>
+<p><strong>Conclusion:</strong> 50% automated - images automatically but only per-MS, not
+coordinated group imaging.</p>
 <h4 id="mosaic-orchestrator-path-100-automated_1">Mosaic Orchestrator Path: <strong>100% Automated</strong><a class="headerlink" href="#mosaic-orchestrator-path-100-automated_1" title="Permanent link">¶</a></h4>
-<p><strong>Code Evidence:</strong>
-- <strong>File:</strong> <code>src/dsa110_contimg/mosaic/orchestrator.py</code>
-- <strong>Workflow:</strong> Lines 561-567 (<code>_process_group_workflow()</code>)
-- <strong>Imaging:</strong> <code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code> Lines 1723-1857 (<code>image_group()</code>)</p>
-<p><strong>Execution Flow:</strong>
-1. <strong>Automatic Group Imaging:</strong>
-   - Lines 561-567: Automatically calls <code>image_group(group_id)</code>
-   - Lines 1723-1857: Images all MS files in group automatically
-   - Lines 1750-1780: Checks if images already exist (database + filesystem validation)
-   - Lines 1780-1820: Automatically calls <code>image_ms()</code> for each MS
-   - Lines 1820-1857: Automatically updates <code>ms_index</code> status to <code>imaged</code></p>
+<p><strong>Code Evidence:</strong></p>
+<ul>
+<li><strong>File:</strong> <code>src/dsa110_contimg/mosaic/orchestrator.py</code></li>
+<li><strong>Workflow:</strong> Lines 561-567 (<code>_process_group_workflow()</code>)</li>
+<li><strong>Imaging:</strong> <code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code> Lines 1723-1857
+  (<code>image_group()</code>)</li>
+</ul>
+<p><strong>Execution Flow:</strong></p>
 <ol>
-<li><strong>State Management:</strong></li>
-<li>Lines 1850-1857: Automatically updates <code>mosaic_groups</code> table: <code>stage='imaged'</code></li>
+<li><strong>Automatic Group Imaging:</strong></li>
+<li>Lines 561-567: Automatically calls <code>image_group(group_id)</code></li>
+<li>Lines 1723-1857: Images all MS files in group automatically</li>
+<li>Lines 1750-1780: Checks if images already exist (database + filesystem
+     validation)</li>
+<li>Lines 1780-1820: Automatically calls <code>image_ms()</code> for each MS</li>
+<li>
+<p>Lines 1820-1857: Automatically updates <code>ms_index</code> status to <code>imaged</code></p>
+</li>
+<li>
+<p><strong>State Management:</strong></p>
+</li>
+<li>Lines 1850-1857: Automatically updates <code>mosaic_groups</code> table:
+     <code>stage='imaged'</code></li>
 <li>Tracks imaging completion per group</li>
 </ol>
-<p><strong>Code Reference:</strong>
+<p><strong>Code Reference:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Lines 561-567 in orchestrator.py</span>
 <span class="c1"># Image all MS</span>
 <span class="k">if</span> <span class="ow">not</span> <span class="n">manager</span><span class="o">.</span><span class="n">image_group</span><span class="p">(</span><span class="n">group_id</span><span class="p">):</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Failed to image group </span><span class="si">{</span><span class="n">group_id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">return</span> <span class="kc">None</span>
-</code></pre></div></p>
-<p><strong>Conditions:</strong>
-- Requires calibration to be applied first (enforced by workflow order)
-- Skips if images already exist (idempotent)</p>
-<p><strong>Conclusion:</strong> 100% automated - fully images all MS files in group automatically.</p>
+</code></pre></div>
+<p><strong>Conditions:</strong></p>
+<ul>
+<li>Requires calibration to be applied first (enforced by workflow order)</li>
+<li>Skips if images already exist (idempotent)</li>
+</ul>
+<p><strong>Conclusion:</strong> 100% automated - fully images all MS files in group
+automatically.</p>
 <hr/>
 <h2 id="stage-4-mosaic-creation">Stage 4: Mosaic Creation<a class="headerlink" href="#stage-4-mosaic-creation" title="Permanent link">¶</a></h2>
 <h3 id="assessment-0-streaming-converter-100-mosaic-orchestrator">Assessment: <strong>0% (Streaming Converter) | 100% (Mosaic Orchestrator)</strong><a class="headerlink" href="#assessment-0-streaming-converter-100-mosaic-orchestrator" title="Permanent link">¶</a></h3>
 <h3 id="justification_3">Justification<a class="headerlink" href="#justification_3" title="Permanent link">¶</a></h3>
 <h4 id="streaming-converter-path-0-automated">Streaming Converter Path: <strong>0% Automated</strong><a class="headerlink" href="#streaming-converter-path-0-automated" title="Permanent link">¶</a></h4>
-<p><strong>Code Evidence:</strong>
-- <strong>File:</strong> <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code>
-- <strong>Search Results:</strong> No mosaic creation code found</p>
-<p><strong>Execution Flow:</strong>
-- Streaming converter does NOT create mosaics
-- Only processes individual MS files
-- No group-level mosaic coordination</p>
+<p><strong>Code Evidence:</strong></p>
+<ul>
+<li><strong>File:</strong> <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code></li>
+<li><strong>Search Results:</strong> No mosaic creation code found</li>
+</ul>
+<p><strong>Execution Flow:</strong></p>
+<ul>
+<li>Streaming converter does NOT create mosaics</li>
+<li>Only processes individual MS files</li>
+<li>No group-level mosaic coordination</li>
+</ul>
 <p><strong>Conclusion:</strong> 0% automated - not implemented in streaming converter.</p>
 <h4 id="mosaic-orchestrator-path-100-automated_2">Mosaic Orchestrator Path: <strong>100% Automated</strong><a class="headerlink" href="#mosaic-orchestrator-path-100-automated_2" title="Permanent link">¶</a></h4>
-<p><strong>Code Evidence:</strong>
-- <strong>File:</strong> <code>src/dsa110_contimg/mosaic/orchestrator.py</code>
-- <strong>Workflow:</strong> Lines 569-575 (<code>_process_group_workflow()</code>)
-- <strong>Mosaic Creation:</strong> <code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code> Lines 1858-2150 (<code>create_mosaic()</code>)</p>
-<p><strong>Execution Flow:</strong>
-1. <strong>Automatic Mosaic Creation:</strong>
-   - Lines 569-575: Automatically calls <code>create_mosaic(group_id)</code>
-   - Lines 1858-2000: Validates MS paths are in chronological order
-   - Lines 2000-2100: Automatically plans mosaic (determines tile grid and sky coverage)
-   - Lines 2100-2150: Automatically builds mosaic using <code>_build_weighted_mosaic()</code>
-   - Lines 2100-2150: Automatically generates PNG visualization</p>
+<p><strong>Code Evidence:</strong></p>
+<ul>
+<li><strong>File:</strong> <code>src/dsa110_contimg/mosaic/orchestrator.py</code></li>
+<li><strong>Workflow:</strong> Lines 569-575 (<code>_process_group_workflow()</code>)</li>
+<li><strong>Mosaic Creation:</strong> <code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code> Lines
+  1858-2150 (<code>create_mosaic()</code>)</li>
+</ul>
+<p><strong>Execution Flow:</strong></p>
 <ol>
-<li><strong>Output Management:</strong></li>
-<li>Lines 2100-2150: Automatically creates FITS output (preferred) or CASA image format</li>
-<li>Lines 2100-2150: Automatically registers mosaic in <code>images</code> table with <code>image_type='mosaic'</code></li>
-<li>Lines 2100-2150: Automatically updates <code>mosaic_groups</code> table: <code>stage='mosaicked'</code>, <code>status='done'</code></li>
+<li><strong>Automatic Mosaic Creation:</strong></li>
+<li>Lines 569-575: Automatically calls <code>create_mosaic(group_id)</code></li>
+<li>Lines 1858-2000: Validates MS paths are in chronological order</li>
+<li>Lines 2000-2100: Automatically plans mosaic (determines tile grid and sky
+     coverage)</li>
+<li>Lines 2100-2150: Automatically builds mosaic using
+     <code>_build_weighted_mosaic()</code></li>
+<li>
+<p>Lines 2100-2150: Automatically generates PNG visualization</p>
+</li>
+<li>
+<p><strong>Output Management:</strong></p>
+</li>
+<li>Lines 2100-2150: Automatically creates FITS output (preferred) or CASA
+     image format</li>
+<li>Lines 2100-2150: Automatically registers mosaic in <code>images</code> table with
+     <code>image_type='mosaic'</code></li>
+<li>Lines 2100-2150: Automatically updates <code>mosaic_groups</code> table:
+     <code>stage='mosaicked'</code>, <code>status='done'</code></li>
 </ol>
-<p><strong>Code Reference:</strong>
+<p><strong>Code Reference:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Lines 569-575 in orchestrator.py</span>
 <span class="c1"># Create mosaic</span>
 <span class="n">mosaic_path</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">create_mosaic</span><span class="p">(</span><span class="n">group_id</span><span class="p">)</span>
 <span class="k">if</span> <span class="ow">not</span> <span class="n">mosaic_path</span><span class="p">:</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Failed to create mosaic for group </span><span class="si">{</span><span class="n">group_id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">return</span> <span class="kc">None</span>
-</code></pre></div></p>
-<p><strong>Conditions:</strong>
-- Requires all MS files to be imaged first (enforced by workflow order)
-- Requires images to exist on filesystem (validated automatically)</p>
+</code></pre></div>
+<p><strong>Conditions:</strong></p>
+<ul>
+<li>Requires all MS files to be imaged first (enforced by workflow order)</li>
+<li>Requires images to exist on filesystem (validated automatically)</li>
+</ul>
 <p><strong>Conclusion:</strong> 100% automated - fully creates mosaic automatically.</p>
 <hr/>
 <h2 id="stage-5-qavalidation">Stage 5: QA/Validation<a class="headerlink" href="#stage-5-qavalidation" title="Permanent link">¶</a></h2>
 <h3 id="assessment-0-streaming-converter-100-mosaic-orchestrator_1">Assessment: <strong>0% (Streaming Converter) | 100% (Mosaic Orchestrator)</strong><a class="headerlink" href="#assessment-0-streaming-converter-100-mosaic-orchestrator_1" title="Permanent link">¶</a></h3>
 <h3 id="justification_4">Justification<a class="headerlink" href="#justification_4" title="Permanent link">¶</a></h3>
 <h4 id="streaming-converter-path-0-automated_1">Streaming Converter Path: <strong>0% Automated</strong><a class="headerlink" href="#streaming-converter-path-0-automated_1" title="Permanent link">¶</a></h4>
-<p><strong>Code Evidence:</strong>
-- <strong>File:</strong> <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code>
-- <strong>Search Results:</strong> Only catalog validation (lines 900-945), not full QA pipeline</p>
-<p><strong>Execution Flow:</strong>
-- Only runs catalog-based flux scale validation (NVSS) per image
-- No comprehensive QA pipeline
-- No validation status tracking in data_registry</p>
+<p><strong>Code Evidence:</strong></p>
+<ul>
+<li><strong>File:</strong> <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code></li>
+<li><strong>Search Results:</strong> Only catalog validation (lines 900-945), not full QA
+  pipeline</li>
+</ul>
+<p><strong>Execution Flow:</strong></p>
+<ul>
+<li>Only runs catalog-based flux scale validation (NVSS) per image</li>
+<li>No comprehensive QA pipeline</li>
+<li>No validation status tracking in data_registry</li>
+</ul>
 <p><strong>Conclusion:</strong> 0% automated - only basic catalog validation, not full QA.</p>
 <h4 id="mosaic-orchestrator-path-100-automated_3">Mosaic Orchestrator Path: <strong>100% Automated</strong><a class="headerlink" href="#mosaic-orchestrator-path-100-automated_3" title="Permanent link">¶</a></h4>
-<p><strong>Code Evidence:</strong>
-- <strong>File:</strong> <code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code>
-- <strong>Validation:</strong> Lines 2000-2100 (<code>create_mosaic()</code> calls <code>validate_tiles_consistency()</code>)
-- <strong>Registration:</strong> Lines 2150-2250 (<code>_register_mosaic_in_data_registry()</code>)</p>
-<p><strong>Execution Flow:</strong>
-1. <strong>Automatic Tile Validation:</strong>
-   - Lines 2000-2100: Automatically calls <code>validate_tiles_consistency()</code> before mosaic creation
-   - Validates: grid consistency, astrometry, calibration, PB correction
-   - Returns validation result: <code>is_valid</code>, <code>issues</code>, <code>metrics_dict</code></p>
+<p><strong>Code Evidence:</strong></p>
+<ul>
+<li><strong>File:</strong> <code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code></li>
+<li><strong>Validation:</strong> Lines 2000-2100 (<code>create_mosaic()</code> calls
+  <code>validate_tiles_consistency()</code>)</li>
+<li><strong>Registration:</strong> Lines 2150-2250 (<code>_register_mosaic_in_data_registry()</code>)</li>
+</ul>
+<p><strong>Execution Flow:</strong></p>
 <ol>
-<li><strong>Automatic QA Status Setting:</strong></li>
-<li>Lines 2235-2245: Automatically sets <code>qa_status='passed'</code> if validation passed</li>
+<li><strong>Automatic Tile Validation:</strong></li>
+<li>Lines 2000-2100: Automatically calls <code>validate_tiles_consistency()</code> before
+     mosaic creation</li>
+<li>Validates: grid consistency, astrometry, calibration, PB correction</li>
+<li>
+<p>Returns validation result: <code>is_valid</code>, <code>issues</code>, <code>metrics_dict</code></p>
+</li>
+<li>
+<p><strong>Automatic QA Status Setting:</strong></p>
+</li>
+<li>Lines 2235-2245: Automatically sets <code>qa_status='passed'</code> if validation
+     passed</li>
 <li>Lines 2235-2245: Automatically sets <code>qa_status='warning'</code> if issues found</li>
 <li>
 <p>Lines 2235-2245: Automatically sets <code>validation_status='validated'</code></p>
@@ -1703,10 +1806,12 @@
 <li>
 <p><strong>Automatic Data Registry Registration:</strong></p>
 </li>
-<li>Lines 2203-2230: Automatically calls <code>register_pipeline_data()</code> with <code>auto_publish=True</code></li>
-<li>Lines 2235-2250: Automatically calls <code>finalize_data()</code> to trigger QA pipeline</li>
+<li>Lines 2203-2230: Automatically calls <code>register_pipeline_data()</code> with
+     <code>auto_publish=True</code></li>
+<li>Lines 2235-2250: Automatically calls <code>finalize_data()</code> to trigger QA
+     pipeline</li>
 </ol>
-<p><strong>Code Reference:</strong>
+<p><strong>Code Reference:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Lines 2000-2100 in streaming_mosaic.py</span>
 <span class="n">is_valid</span><span class="p">,</span> <span class="n">issues</span><span class="p">,</span> <span class="n">metrics_dict</span> <span class="o">=</span> <span class="n">validate_tiles_consistency</span><span class="p">(</span>
     <span class="n">image_paths</span><span class="p">,</span>
@@ -1723,37 +1828,53 @@
     <span class="n">qa_status</span><span class="o">=</span><span class="n">qa_status</span><span class="p">,</span>
     <span class="n">validation_status</span><span class="o">=</span><span class="n">validation_status</span><span class="p">,</span>
 <span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Conditions:</strong>
-- Requires mosaic to be created first (enforced by workflow order)
-- Warnings prevent auto-publish (requires <code>qa_status='passed'</code>)</p>
-<p><strong>Conclusion:</strong> 100% automated - fully validates and sets QA status automatically.</p>
+</code></pre></div>
+<p><strong>Conditions:</strong></p>
+<ul>
+<li>Requires mosaic to be created first (enforced by workflow order)</li>
+<li>Warnings prevent auto-publish (requires <code>qa_status='passed'</code>)</li>
+</ul>
+<p><strong>Conclusion:</strong> 100% automated - fully validates and sets QA status
+automatically.</p>
 <hr/>
 <h2 id="stage-6-publishing">Stage 6: Publishing<a class="headerlink" href="#stage-6-publishing" title="Permanent link">¶</a></h2>
 <h3 id="assessment-0-streaming-converter-100-mosaic-orchestrator_2">Assessment: <strong>0% (Streaming Converter) | 100% (Mosaic Orchestrator)</strong><a class="headerlink" href="#assessment-0-streaming-converter-100-mosaic-orchestrator_2" title="Permanent link">¶</a></h3>
 <h3 id="justification_5">Justification<a class="headerlink" href="#justification_5" title="Permanent link">¶</a></h3>
 <h4 id="streaming-converter-path-0-automated_2">Streaming Converter Path: <strong>0% Automated</strong><a class="headerlink" href="#streaming-converter-path-0-automated_2" title="Permanent link">¶</a></h4>
-<p><strong>Code Evidence:</strong>
-- <strong>File:</strong> <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code>
-- <strong>Search Results:</strong> No publishing code found</p>
-<p><strong>Execution Flow:</strong>
-- Streaming converter does NOT publish data
-- Only writes to staging directory (<code>/stage/</code>)
-- No data_registry integration</p>
+<p><strong>Code Evidence:</strong></p>
+<ul>
+<li><strong>File:</strong> <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code></li>
+<li><strong>Search Results:</strong> No publishing code found</li>
+</ul>
+<p><strong>Execution Flow:</strong></p>
+<ul>
+<li>Streaming converter does NOT publish data</li>
+<li>Only writes to staging directory (<code>/stage/</code>)</li>
+<li>No data_registry integration</li>
+</ul>
 <p><strong>Conclusion:</strong> 0% automated - not implemented in streaming converter.</p>
 <h4 id="mosaic-orchestrator-path-100-automated_4">Mosaic Orchestrator Path: <strong>100% Automated</strong><a class="headerlink" href="#mosaic-orchestrator-path-100-automated_4" title="Permanent link">¶</a></h4>
-<p><strong>Code Evidence:</strong>
-- <strong>File:</strong> <code>src/dsa110_contimg/database/data_registry.py</code>
-- <strong>Finalization:</strong> Lines 200-300 (<code>finalize_data()</code>)
-- <strong>Auto-Publish:</strong> Lines 400-600 (<code>trigger_auto_publish()</code>)</p>
-<p><strong>Execution Flow:</strong>
-1. <strong>Automatic Finalization:</strong>
-   - Lines 2235-2250 in <code>streaming_mosaic.py</code>: Automatically calls <code>finalize_data()</code>
-   - Lines 200-300 in <code>data_registry.py</code>: Updates <code>finalization_status</code>, <code>qa_status</code>, <code>validation_status</code></p>
+<p><strong>Code Evidence:</strong></p>
+<ul>
+<li><strong>File:</strong> <code>src/dsa110_contimg/database/data_registry.py</code></li>
+<li><strong>Finalization:</strong> Lines 200-300 (<code>finalize_data()</code>)</li>
+<li><strong>Auto-Publish:</strong> Lines 400-600 (<code>trigger_auto_publish()</code>)</li>
+</ul>
+<p><strong>Execution Flow:</strong></p>
 <ol>
-<li><strong>Automatic Publishing Trigger:</strong></li>
+<li><strong>Automatic Finalization:</strong></li>
+<li>Lines 2235-2250 in <code>streaming_mosaic.py</code>: Automatically calls
+     <code>finalize_data()</code></li>
 <li>
-<p>Lines 200-300 in <code>data_registry.py</code>: Automatically calls <code>trigger_auto_publish()</code> if:</p>
+<p>Lines 200-300 in <code>data_registry.py</code>: Updates <code>finalization_status</code>,
+     <code>qa_status</code>, <code>validation_status</code></p>
+</li>
+<li>
+<p><strong>Automatic Publishing Trigger:</strong></p>
+</li>
+<li>
+<p>Lines 200-300 in <code>data_registry.py</code>: Automatically calls
+     <code>trigger_auto_publish()</code> if:</p>
 <ul>
 <li><code>qa_status='passed'</code></li>
 <li><code>validation_status='validated'</code></li>
@@ -1763,13 +1884,16 @@
 <li>
 <p><strong>Automatic Publishing:</strong></p>
 </li>
-<li>Lines 400-600 in <code>data_registry.py</code>: Automatically moves mosaic from <code>/stage/</code> to <code>/data/dsa110-contimg/products/mosaics/</code></li>
-<li>Lines 400-600: Automatically updates <code>data_registry</code>: <code>status='published'</code>, <code>published_path</code>, <code>published_at</code></li>
+<li>Lines 400-600 in <code>data_registry.py</code>: Automatically moves mosaic from
+     <code>/stage/</code> to <code>/data/dsa110-contimg/products/mosaics/</code></li>
+<li>Lines 400-600: Automatically updates <code>data_registry</code>: <code>status='published'</code>,
+     <code>published_path</code>, <code>published_at</code></li>
 <li>Lines 400-600: Automatically updates <code>images</code> table with published path</li>
-<li>Lines 400-600: Uses database-level locking (<code>BEGIN IMMEDIATE</code>) to prevent race conditions</li>
+<li>Lines 400-600: Uses database-level locking (<code>BEGIN IMMEDIATE</code>) to prevent
+     race conditions</li>
 <li>Lines 400-600: Implements retry tracking with exponential backoff</li>
 </ol>
-<p><strong>Code Reference:</strong>
+<p><strong>Code Reference:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Lines 2235-2250 in streaming_mosaic.py</span>
 <span class="n">finalize_success</span> <span class="o">=</span> <span class="n">finalize_data</span><span class="p">(</span>
     <span class="n">conn</span><span class="p">,</span>
@@ -1781,74 +1905,105 @@
 <span class="c1"># Lines 200-300 in data_registry.py</span>
 <span class="k">if</span> <span class="n">qa_status</span> <span class="o">==</span> <span class="s2">"passed"</span> <span class="ow">and</span> <span class="n">validation_status</span> <span class="o">==</span> <span class="s2">"validated"</span> <span class="ow">and</span> <span class="n">auto_publish</span><span class="p">:</span>
     <span class="n">trigger_auto_publish</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">data_id</span><span class="p">,</span> <span class="n">products_base</span><span class="p">,</span> <span class="n">max_attempts</span><span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Conditions:</strong>
-- Requires <code>qa_status='passed'</code> (warnings prevent auto-publish)
-- Requires <code>validation_status='validated'</code>
-- Requires <code>auto_publish=True</code> (set during registration)</p>
+</code></pre></div>
+<p><strong>Conditions:</strong></p>
+<ul>
+<li>Requires <code>qa_status='passed'</code> (warnings prevent auto-publish)</li>
+<li>Requires <code>validation_status='validated'</code></li>
+<li>Requires <code>auto_publish=True</code> (set during registration)</li>
+</ul>
 <p><strong>Conclusion:</strong> 100% automated - fully publishes automatically when QA passes.</p>
 <hr/>
 <h2 id="stage-7-photometry-forced-normalization">Stage 7: Photometry (Forced + Normalization)<a class="headerlink" href="#stage-7-photometry-forced-normalization" title="Permanent link">¶</a></h2>
 <h3 id="assessment-0-automated">Assessment: <strong>0% Automated</strong><a class="headerlink" href="#assessment-0-automated" title="Permanent link">¶</a></h3>
 <h3 id="justification_6">Justification<a class="headerlink" href="#justification_6" title="Permanent link">¶</a></h3>
 <h4 id="streaming-converter-path-0-automated_3">Streaming Converter Path: <strong>0% Automated</strong><a class="headerlink" href="#streaming-converter-path-0-automated_3" title="Permanent link">¶</a></h4>
-<p><strong>Code Evidence:</strong>
-- <strong>File:</strong> <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code>
-- <strong>Search Results:</strong> No photometry code found</p>
-<p><strong>Execution Flow:</strong>
-- Streaming converter does NOT perform photometry
-- No forced photometry calls
-- No normalization calls</p>
+<p><strong>Code Evidence:</strong></p>
+<ul>
+<li><strong>File:</strong> <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code></li>
+<li><strong>Search Results:</strong> No photometry code found</li>
+</ul>
+<p><strong>Execution Flow:</strong></p>
+<ul>
+<li>Streaming converter does NOT perform photometry</li>
+<li>No forced photometry calls</li>
+<li>No normalization calls</li>
+</ul>
 <p><strong>Conclusion:</strong> 0% automated - not implemented.</p>
 <h4 id="mosaic-orchestrator-path-0-automated">Mosaic Orchestrator Path: <strong>0% Automated</strong><a class="headerlink" href="#mosaic-orchestrator-path-0-automated" title="Permanent link">¶</a></h4>
-<p><strong>Code Evidence:</strong>
-- <strong>File:</strong> <code>src/dsa110_contimg/mosaic/orchestrator.py</code>, <code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code>
-- <strong>Search Results:</strong> No photometry code found</p>
-<p><strong>Execution Flow:</strong>
-- Mosaic orchestrator does NOT perform photometry
-- No forced photometry calls
-- No normalization calls
-- Not mentioned in <code>create_mosaic_centered.py</code> phases</p>
-<p><strong>Code Reference:</strong>
-- <code>scripts/create_mosaic_centered.py</code>: No PHASE for photometry
-- <code>src/dsa110_contimg/mosaic/orchestrator.py</code>: No photometry methods
-- <code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code>: No photometry methods</p>
+<p><strong>Code Evidence:</strong></p>
+<ul>
+<li><strong>File:</strong> <code>src/dsa110_contimg/mosaic/orchestrator.py</code>,
+  <code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code></li>
+<li><strong>Search Results:</strong> No photometry code found</li>
+</ul>
+<p><strong>Execution Flow:</strong></p>
+<ul>
+<li>Mosaic orchestrator does NOT perform photometry</li>
+<li>No forced photometry calls</li>
+<li>No normalization calls</li>
+<li>Not mentioned in <code>create_mosaic_centered.py</code> phases</li>
+</ul>
+<p><strong>Code Reference:</strong></p>
+<ul>
+<li><code>scripts/create_mosaic_centered.py</code>: No PHASE for photometry</li>
+<li><code>src/dsa110_contimg/mosaic/orchestrator.py</code>: No photometry methods</li>
+<li><code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code>: No photometry methods</li>
+</ul>
 <p><strong>Conclusion:</strong> 0% automated - not implemented in either path.</p>
-<p><strong>Manual Alternative:</strong>
-- API endpoints exist: <code>api/routers/photometry.py</code>
-- Requires manual triggering via API/CLI</p>
+<p><strong>Manual Alternative:</strong></p>
+<ul>
+<li>API endpoints exist: <code>api/routers/photometry.py</code></li>
+<li>Requires manual triggering via API/CLI</li>
+</ul>
 <hr/>
 <h2 id="stage-8-ese-detection-variability-analysis">Stage 8: ESE Detection (Variability Analysis)<a class="headerlink" href="#stage-8-ese-detection-variability-analysis" title="Permanent link">¶</a></h2>
 <h3 id="assessment-0-automated_1">Assessment: <strong>0% Automated</strong><a class="headerlink" href="#assessment-0-automated_1" title="Permanent link">¶</a></h3>
 <h3 id="justification_7">Justification<a class="headerlink" href="#justification_7" title="Permanent link">¶</a></h3>
 <h4 id="streaming-converter-path-0-automated_4">Streaming Converter Path: <strong>0% Automated</strong><a class="headerlink" href="#streaming-converter-path-0-automated_4" title="Permanent link">¶</a></h4>
-<p><strong>Code Evidence:</strong>
-- <strong>File:</strong> <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code>
-- <strong>Search Results:</strong> No ESE detection code found</p>
-<p><strong>Execution Flow:</strong>
-- Streaming converter does NOT perform ESE detection
-- No variability analysis calls
-- No ESE candidate flagging</p>
+<p><strong>Code Evidence:</strong></p>
+<ul>
+<li><strong>File:</strong> <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code></li>
+<li><strong>Search Results:</strong> No ESE detection code found</li>
+</ul>
+<p><strong>Execution Flow:</strong></p>
+<ul>
+<li>Streaming converter does NOT perform ESE detection</li>
+<li>No variability analysis calls</li>
+<li>No ESE candidate flagging</li>
+</ul>
 <p><strong>Conclusion:</strong> 0% automated - not implemented.</p>
 <h4 id="mosaic-orchestrator-path-0-automated_1">Mosaic Orchestrator Path: <strong>0% Automated</strong><a class="headerlink" href="#mosaic-orchestrator-path-0-automated_1" title="Permanent link">¶</a></h4>
-<p><strong>Code Evidence:</strong>
-- <strong>File:</strong> <code>src/dsa110_contimg/mosaic/orchestrator.py</code>, <code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code>
-- <strong>Search Results:</strong> No ESE detection code found</p>
-<p><strong>Execution Flow:</strong>
-- Mosaic orchestrator does NOT perform ESE detection
-- No variability analysis calls
-- No ESE candidate flagging
-- Not mentioned in <code>create_mosaic_centered.py</code> phases</p>
-<p><strong>Code Reference:</strong>
-- <code>scripts/create_mosaic_centered.py</code>: No PHASE for ESE detection
-- <code>src/dsa110_contimg/mosaic/orchestrator.py</code>: No ESE detection methods
-- <code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code>: No ESE detection methods</p>
+<p><strong>Code Evidence:</strong></p>
+<ul>
+<li><strong>File:</strong> <code>src/dsa110_contimg/mosaic/orchestrator.py</code>,
+  <code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code></li>
+<li><strong>Search Results:</strong> No ESE detection code found</li>
+</ul>
+<p><strong>Execution Flow:</strong></p>
+<ul>
+<li>Mosaic orchestrator does NOT perform ESE detection</li>
+<li>No variability analysis calls</li>
+<li>No ESE candidate flagging</li>
+<li>Not mentioned in <code>create_mosaic_centered.py</code> phases</li>
+</ul>
+<p><strong>Code Reference:</strong></p>
+<ul>
+<li><code>scripts/create_mosaic_centered.py</code>: No PHASE for ESE detection</li>
+<li><code>src/dsa110_contimg/mosaic/orchestrator.py</code>: No ESE detection methods</li>
+<li><code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code>: No ESE detection methods</li>
+</ul>
 <p><strong>Conclusion:</strong> 0% automated - not implemented in either path.</p>
-<p><strong>Manual Alternative:</strong>
-- API endpoint exists: <code>GET /api/ese/candidates</code> (queries real database tables <code>ese_candidates</code> and <code>variability_stats</code>)
-- Requires manual triggering via API
-- Note: Database tables may not be populated if ESE detection pipeline is not running
-- Real implementation needs to connect <code>variability_stats</code> computation to photometry pipeline</p>
+<p><strong>Manual Alternative:</strong></p>
+<ul>
+<li>API endpoint exists: <code>GET /api/ese/candidates</code> (queries real database tables
+  <code>ese_candidates</code> and <code>variability_stats</code>)</li>
+<li>Requires manual triggering via API</li>
+<li>Note: Database tables may not be populated if ESE detection pipeline is not
+  running</li>
+<li>Real implementation needs to connect <code>variability_stats</code> computation to
+  photometry pipeline</li>
+</ul>
 <hr/>
 <h2 id="summary-table">Summary Table<a class="headerlink" href="#summary-table" title="Permanent link">¶</a></h2>
 <table>
@@ -1920,20 +2075,24 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Overall Pipeline Automation: 50%</strong> (4 of 8 stages fully automated via Mosaic Orchestrator)</p>
+<p><strong>Overall Pipeline Automation: 50%</strong> (4 of 8 stages fully automated via Mosaic
+Orchestrator)</p>
 <hr/>
 <h2 id="key-findings">Key Findings<a class="headerlink" href="#key-findings" title="Permanent link">¶</a></h2>
 <ol>
 <li><strong>Two Automation Paths Exist:</strong></li>
-<li><strong>Streaming Converter:</strong> Autonomous daemon for conversion + conditional calibration/imaging</li>
+<li><strong>Streaming Converter:</strong> Autonomous daemon for conversion + conditional
+     calibration/imaging</li>
 <li>
-<p><strong>Mosaic Orchestrator:</strong> Complete end-to-end workflow via <code>create_mosaic_centered.py</code></p>
+<p><strong>Mosaic Orchestrator:</strong> Complete end-to-end workflow via
+     <code>create_mosaic_centered.py</code></p>
 </li>
 <li>
 <p><strong>Mosaic Orchestrator Provides Full Automation:</strong></p>
 </li>
 <li>Stages 1-6 are fully automated when using <code>create_mosaic_centered.py</code></li>
-<li>Single trigger: <code>python scripts/create_mosaic_centered.py --calibrator 0834+555</code></li>
+<li>Single trigger:
+     <code>python scripts/create_mosaic_centered.py --calibrator 0834+555</code></li>
 <li>
 <p>Hands-off operation: waits until published</p>
 </li>
@@ -1957,16 +2116,25 @@
 </li>
 <li><code>create_mosaic_centered.py</code> (Nov 12): Complete end-to-end automation script</li>
 <li><code>mosaic/orchestrator.py</code> (Nov 12): Full workflow orchestration</li>
-<li><code>mosaic/streaming_mosaic.py</code> (Nov 12): Automated calibration, imaging, mosaic creation</li>
+<li><code>mosaic/streaming_mosaic.py</code> (Nov 12): Automated calibration, imaging,
+     mosaic creation</li>
 </ol>
 <hr/>
 <h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
-<p>The previous assessment of "20% automation" was <strong>incorrect</strong>. The correct assessment is <strong>50% automation</strong> (4 of 8 stages fully automated via Mosaic Orchestrator).</p>
-<p>The discrepancy arose because:
-1. The Mosaic Orchestrator path was not fully examined
-2. The <code>create_mosaic_centered.py</code> script (Nov 12) provides complete end-to-end automation
-3. The streaming converter path provides partial automation, but the orchestrator path provides full automation</p>
-<p><strong>Recommendation:</strong> Use <code>create_mosaic_centered.py</code> for complete automation of stages 1-6. For stages 7-8 (photometry, ESE detection), manual triggering via API is currently required.</p>
+<p>The previous assessment of "20% automation" was <strong>incorrect</strong>. The correct
+assessment is <strong>50% automation</strong> (4 of 8 stages fully automated via Mosaic
+Orchestrator).</p>
+<p>The discrepancy arose because:</p>
+<ol>
+<li>The Mosaic Orchestrator path was not fully examined</li>
+<li>The <code>create_mosaic_centered.py</code> script (Nov 12) provides complete end-to-end
+   automation</li>
+<li>The streaming converter path provides partial automation, but the
+   orchestrator path provides full automation</li>
+</ol>
+<p><strong>Recommendation:</strong> Use <code>create_mosaic_centered.py</code> for complete automation of
+stages 1-6. For stages 7-8 (photometry, ESE detection), manual triggering via
+API is currently required.</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1991,7 +2159,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

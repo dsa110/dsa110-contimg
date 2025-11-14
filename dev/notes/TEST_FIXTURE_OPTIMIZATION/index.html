@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1146,19 +1148,24 @@
 <article class="md-content__inner md-typeset">
 <h1 id="test-fixture-optimization-for-mosaic-orchestrator-tests">Test Fixture Optimization for Mosaic Orchestrator Tests<a class="headerlink" href="#test-fixture-optimization-for-mosaic-orchestrator-tests" title="Permanent link">¶</a></h1>
 <h2 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">¶</a></h2>
-<p>Tests in <code>test_mosaic_orchestrator.py</code> take ~8 seconds each, primarily due to:
-1. <strong>Import bottleneck</strong>: Importing <code>CalibratorMSGenerator</code> takes ~9.6 seconds (heavy CASA/astropy dependencies)
-2. <strong>Database initialization</strong>: ~0.4 seconds (acceptable)
-3. <strong>Service initialization</strong>: ~0.007 seconds (negligible)</p>
+<p>Tests in <code>test_mosaic_orchestrator.py</code> take ~8 seconds each, primarily due to:</p>
+<ol>
+<li><strong>Import bottleneck</strong>: Importing <code>CalibratorMSGenerator</code> takes ~9.6 seconds
+   (heavy CASA/astropy dependencies)</li>
+<li><strong>Database initialization</strong>: ~0.4 seconds (acceptable)</li>
+<li><strong>Service initialization</strong>: ~0.007 seconds (negligible)</li>
+</ol>
 <h2 id="root-cause">Root Cause<a class="headerlink" href="#root-cause" title="Permanent link">¶</a></h2>
-<p><code>MosaicOrchestrator.__init__</code> imports and initializes <code>CalibratorMSGenerator</code> even when tests don't need it:</p>
+<p><code>MosaicOrchestrator.__init__</code> imports and initializes <code>CalibratorMSGenerator</code>
+even when tests don't need it:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.conversion.calibrator_ms_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">CalibratorMSGenerator</span>
 <span class="c1"># ... in __init__:</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">calibrator_service</span> <span class="o">=</span> <span class="n">CalibratorMSGenerator</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="solutions">Solutions<a class="headerlink" href="#solutions" title="Permanent link">¶</a></h2>
 <h3 id="option-1-mock-calibrator-service-in-fixture-recommended">Option 1: Mock Calibrator Service in Fixture (RECOMMENDED)<a class="headerlink" href="#option-1-mock-calibrator-service-in-fixture-recommended" title="Permanent link">¶</a></h3>
-<p>Mock the calibrator service initialization in the fixture since most tests don't need the real service:</p>
+<p>Mock the calibrator service initialization in the fixture since most tests don't
+need the real service:</p>
 <div class="highlight"><pre><span></span><code><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">orchestrator</span><span class="p">(</span><span class="n">temp_products_db</span><span class="p">,</span> <span class="n">temp_data_registry_db</span><span class="p">,</span> <span class="n">tmp_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Create a MosaicOrchestrator instance for testing."""</span>
@@ -1178,12 +1185,16 @@
         <span class="n">orch</span><span class="o">.</span><span class="n">calibrator_service</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="n">orch</span>
 </code></pre></div>
-<p><strong>Pros:</strong>
-- Fastest solution (~0.4s per test instead of ~8s)
-- Tests that need calibrator service can override it
-- No code changes needed in production code</p>
-<p><strong>Cons:</strong>
-- Tests that need real calibrator service must set it up manually</p>
+<p><strong>Pros:</strong></p>
+<ul>
+<li>Fastest solution (~0.4s per test instead of ~8s)</li>
+<li>Tests that need calibrator service can override it</li>
+<li>No code changes needed in production code</li>
+</ul>
+<p><strong>Cons:</strong></p>
+<ul>
+<li>Tests that need real calibrator service must set it up manually</li>
+</ul>
 <h3 id="option-2-lazy-import-in-production-code">Option 2: Lazy Import in Production Code<a class="headerlink" href="#option-2-lazy-import-in-production-code" title="Permanent link">¶</a></h3>
 <p>Defer the import until actually needed:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># In orchestrator.py __init__:</span>
@@ -1193,12 +1204,16 @@
         <span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.conversion.calibrator_ms_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">CalibratorMSGenerator</span>
         <span class="c1"># ... initialize</span>
 </code></pre></div>
-<p><strong>Pros:</strong>
-- No test changes needed
-- Production code also benefits</p>
-<p><strong>Cons:</strong>
-- Requires code changes
-- Still slow for tests that use calibrator service</p>
+<p><strong>Pros:</strong></p>
+<ul>
+<li>No test changes needed</li>
+<li>Production code also benefits</li>
+</ul>
+<p><strong>Cons:</strong></p>
+<ul>
+<li>Requires code changes</li>
+<li>Still slow for tests that use calibrator service</li>
+</ul>
 <h3 id="option-3-session-scoped-fixture-for-imports">Option 3: Session-Scoped Fixture for Imports<a class="headerlink" href="#option-3-session-scoped-fixture-for-imports" title="Permanent link">¶</a></h3>
 <p>Use pytest session-scoped fixtures to cache expensive imports:</p>
 <div class="highlight"><pre><span></span><code><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s2">"session"</span><span class="p">)</span>
@@ -1207,12 +1222,16 @@
     <span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.conversion.calibrator_ms_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">CalibratorMSGenerator</span>
     <span class="k">return</span> <span class="n">CalibratorMSGenerator</span>
 </code></pre></div>
-<p><strong>Pros:</strong>
-- Import only happens once per test session
-- Works for all tests</p>
-<p><strong>Cons:</strong>
-- Still slow for first test (~8s)
-- Doesn't help when running individual tests</p>
+<p><strong>Pros:</strong></p>
+<ul>
+<li>Import only happens once per test session</li>
+<li>Works for all tests</li>
+</ul>
+<p><strong>Cons:</strong></p>
+<ul>
+<li>Still slow for first test (~8s)</li>
+<li>Doesn't help when running individual tests</li>
+</ul>
 <h3 id="option-4-separate-fixtures-for-different-test-types">Option 4: Separate Fixtures for Different Test Types<a class="headerlink" href="#option-4-separate-fixtures-for-different-test-types" title="Permanent link">¶</a></h3>
 <p>Create lightweight fixture for tests that don't need calibrator service:</p>
 <div class="highlight"><pre><span></span><code><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
@@ -1227,20 +1246,26 @@
     <span class="c1"># ... create orchestrator with real calibrator service</span>
     <span class="k">pass</span>
 </code></pre></div>
-<p><strong>Pros:</strong>
-- Tests can choose what they need
-- Fast tests stay fast</p>
-<p><strong>Cons:</strong>
-- More fixture complexity
-- Need to update test signatures</p>
+<p><strong>Pros:</strong></p>
+<ul>
+<li>Tests can choose what they need</li>
+<li>Fast tests stay fast</li>
+</ul>
+<p><strong>Cons:</strong></p>
+<ul>
+<li>More fixture complexity</li>
+<li>Need to update test signatures</li>
+</ul>
 <h2 id="recommended-approach">Recommended Approach<a class="headerlink" href="#recommended-approach" title="Permanent link">¶</a></h2>
-<p><strong>Use Option 5</strong> (Patch in conftest.py) because:
-1. Patches before any test modules are imported
-2. Most unit tests don't need the real calibrator service
-3. Tests that do need it can easily override
-4. Fastest solution (~15-30x speedup)
-5. No production code changes needed
-6. Applies to all tests in the unit test suite automatically</p>
+<p><strong>Use Option 5</strong> (Patch in conftest.py) because:</p>
+<ol>
+<li>Patches before any test modules are imported</li>
+<li>Most unit tests don't need the real calibrator service</li>
+<li>Tests that do need it can easily override</li>
+<li>Fastest solution (~15-30x speedup)</li>
+<li>No production code changes needed</li>
+<li>Applies to all tests in the unit test suite automatically</li>
+</ol>
 <h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">¶</a></h2>
 <p>Create <code>tests/unit/conftest.py</code> to patch before any imports:</p>
 <div class="highlight"><pre><span></span><code><span class="sd">"""Unit test configuration and fixtures.</span>
@@ -1281,7 +1306,8 @@
 </ul>
 <h2 id="additional-optimizations">Additional Optimizations<a class="headerlink" href="#additional-optimizations" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Use <code>tmp_path</code> fixture</strong> (already done) - faster than manual temp directories</li>
+<li><strong>Use <code>tmp_path</code> fixture</strong> (already done) - faster than manual temp
+   directories</li>
 <li><strong>Minimal database setup</strong> - only create tables/columns needed for test</li>
 <li><strong>Mock external dependencies</strong> - CASA, file system operations, etc.</li>
 <li><strong>Parallel test execution</strong> - use <code>pytest-xdist</code> for overall suite speedup</li>
@@ -1310,7 +1336,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

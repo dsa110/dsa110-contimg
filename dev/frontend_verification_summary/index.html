@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1196,45 +1198,63 @@
 <article class="md-content__inner md-typeset">
 <h1 id="frontend-api-integration-verification-summary">Frontend API Integration Verification Summary<a class="headerlink" href="#frontend-api-integration-verification-summary" title="Permanent link">¶</a></h1>
 <h2 id="status-all-api-endpoints-verified">Status: ✅ All API Endpoints Verified<a class="headerlink" href="#status-all-api-endpoints-verified" title="Permanent link">¶</a></h2>
-<p>All API endpoints used by the frontend Operations page have been verified and are working correctly.</p>
+<p>All API endpoints used by the frontend Operations page have been verified and
+are working correctly.</p>
 <h2 id="verified-endpoints">Verified Endpoints<a class="headerlink" href="#verified-endpoints" title="Permanent link">¶</a></h2>
 <h3 id="1-dead-letter-queue-endpoints">1. Dead Letter Queue Endpoints ✅<a class="headerlink" href="#1-dead-letter-queue-endpoints" title="Permanent link">¶</a></h3>
-<p><strong>DLQ Stats</strong> (<code>/api/operations/dlq/stats</code>)
-- Status: ✅ Working
-- Returns: <code>{total, pending, retrying, resolved, failed}</code>
-- Used by: <code>DeadLetterQueueStats</code> component
-- Current data: Total=7, Pending=6, Resolved=1</p>
-<p><strong>DLQ Items List</strong> (<code>/api/operations/dlq/items</code>)
-- Status: ✅ Working
-- Returns: Array of DLQ items
-- Used by: <code>DeadLetterQueueTable</code> component
-- Supports: Filtering (component, status), Pagination (limit, offset)</p>
-<p><strong>DLQ Item Detail</strong> (<code>/api/operations/dlq/items/{id}</code>)
-- Status: ✅ Working
-- Returns: Single DLQ item with all details
-- Used by: Item detail views</p>
-<p><strong>DLQ Actions</strong> (<code>POST /api/operations/dlq/items/{id}/retry</code>, <code>/resolve</code>, <code>/fail</code>)
-- Status: ✅ Working
-- Used by: Action buttons in DLQ table</p>
+<p><strong>DLQ Stats</strong> (<code>/api/operations/dlq/stats</code>)</p>
+<ul>
+<li>Status: ✅ Working</li>
+<li>Returns: <code>{total, pending, retrying, resolved, failed}</code></li>
+<li>Used by: <code>DeadLetterQueueStats</code> component</li>
+<li>Current data: Total=7, Pending=6, Resolved=1</li>
+</ul>
+<p><strong>DLQ Items List</strong> (<code>/api/operations/dlq/items</code>)</p>
+<ul>
+<li>Status: ✅ Working</li>
+<li>Returns: Array of DLQ items</li>
+<li>Used by: <code>DeadLetterQueueTable</code> component</li>
+<li>Supports: Filtering (component, status), Pagination (limit, offset)</li>
+</ul>
+<p><strong>DLQ Item Detail</strong> (<code>/api/operations/dlq/items/{id}</code>)</p>
+<ul>
+<li>Status: ✅ Working</li>
+<li>Returns: Single DLQ item with all details</li>
+<li>Used by: Item detail views</li>
+</ul>
+<p><strong>DLQ Actions</strong> (<code>POST /api/operations/dlq/items/{id}/retry</code>, <code>/resolve</code>,
+<code>/fail</code>)</p>
+<ul>
+<li>Status: ✅ Working</li>
+<li>Used by: Action buttons in DLQ table</li>
+</ul>
 <h3 id="2-circuit-breaker-endpoints">2. Circuit Breaker Endpoints ✅<a class="headerlink" href="#2-circuit-breaker-endpoints" title="Permanent link">¶</a></h3>
-<p><strong>Circuit Breakers List</strong> (<code>/api/operations/circuit-breakers</code>)
-- Status: ✅ Working
-- Returns: <code>{circuit_breakers: [...]}</code>
-- Used by: <code>CircuitBreakerStatus</code> component
-- Returns 3 breakers: ese_detection, calibration_solve, photometry</p>
-<p><strong>Individual Circuit Breaker</strong> (<code>/api/operations/circuit-breakers/{name}</code>)
-- Status: ✅ Working
-- Returns: Single breaker state
-- Used by: Individual breaker displays</p>
-<p><strong>Circuit Breaker Reset</strong> (<code>POST /api/operations/circuit-breakers/{name}/reset</code>)
-- Status: ✅ Working
-- Used by: Reset button in CircuitBreakerStatus component</p>
+<p><strong>Circuit Breakers List</strong> (<code>/api/operations/circuit-breakers</code>)</p>
+<ul>
+<li>Status: ✅ Working</li>
+<li>Returns: <code>{circuit_breakers: [...]}</code></li>
+<li>Used by: <code>CircuitBreakerStatus</code> component</li>
+<li>Returns 3 breakers: ese_detection, calibration_solve, photometry</li>
+</ul>
+<p><strong>Individual Circuit Breaker</strong> (<code>/api/operations/circuit-breakers/{name}</code>)</p>
+<ul>
+<li>Status: ✅ Working</li>
+<li>Returns: Single breaker state</li>
+<li>Used by: Individual breaker displays</li>
+</ul>
+<p><strong>Circuit Breaker Reset</strong> (<code>POST /api/operations/circuit-breakers/{name}/reset</code>)</p>
+<ul>
+<li>Status: ✅ Working</li>
+<li>Used by: Reset button in CircuitBreakerStatus component</li>
+</ul>
 <h3 id="3-health-summary-endpoint">3. Health Summary Endpoint ✅<a class="headerlink" href="#3-health-summary-endpoint" title="Permanent link">¶</a></h3>
-<p><strong>Health Summary</strong> (<code>/api/health/summary</code>)
-- Status: ✅ Working
-- Returns: Comprehensive health status
-- Used by: <code>HealthPage</code> Operations Health tab
-- Contains: status, checks, circuit_breakers, dlq_stats, timestamp</p>
+<p><strong>Health Summary</strong> (<code>/api/health/summary</code>)</p>
+<ul>
+<li>Status: ✅ Working</li>
+<li>Returns: Comprehensive health status</li>
+<li>Used by: <code>HealthPage</code> Operations Health tab</li>
+<li>Contains: status, checks, circuit_breakers, dlq_stats, timestamp</li>
+</ul>
 <h2 id="frontend-configuration-verified">Frontend Configuration Verified<a class="headerlink" href="#frontend-configuration-verified" title="Permanent link">¶</a></h2>
 <h3 id="react-query-hooks">React Query Hooks<a class="headerlink" href="#react-query-hooks" title="Permanent link">¶</a></h3>
 <p>All hooks are configured with correct <code>refetchInterval</code>:</p>
@@ -1271,19 +1291,23 @@
 <li>✅ Navigation link added to <code>Navigation.tsx</code></li>
 </ul>
 <h2 id="test-data-available">Test Data Available<a class="headerlink" href="#test-data-available" title="Permanent link">¶</a></h2>
-<p>Current backend state:
-- <strong>DLQ Items:</strong> 7 total (6 pending, 1 resolved)
-- <strong>Circuit Breakers:</strong> 3 breakers, all in "closed" state
-- <strong>Health Status:</strong> "degraded" (expected - disk space check)</p>
+<p>Current backend state:</p>
+<ul>
+<li><strong>DLQ Items:</strong> 7 total (6 pending, 1 resolved)</li>
+<li><strong>Circuit Breakers:</strong> 3 breakers, all in "closed" state</li>
+<li><strong>Health Status:</strong> "degraded" (expected - disk space check)</li>
+</ul>
 <h2 id="browser-testing-instructions">Browser Testing Instructions<a class="headerlink" href="#browser-testing-instructions" title="Permanent link">¶</a></h2>
 <p>Since browser extension connection is required, here are manual testing steps:</p>
 <h3 id="1-open-operations-page">1. Open Operations Page<a class="headerlink" href="#1-open-operations-page" title="Permanent link">¶</a></h3>
 <p>Navigate to: <code>http://localhost:5173/operations</code></p>
-<p><strong>Expected:</strong>
-- Page loads without errors
-- DLQ Stats card shows: Total=7, Pending=6, Resolved=1
-- DLQ Table shows 6 pending items
-- Circuit Breaker status shows 3 breakers</p>
+<p><strong>Expected:</strong></p>
+<ul>
+<li>Page loads without errors</li>
+<li>DLQ Stats card shows: Total=7, Pending=6, Resolved=1</li>
+<li>DLQ Table shows 6 pending items</li>
+<li>Circuit Breaker status shows 3 breakers</li>
+</ul>
 <h3 id="2-test-auto-refresh">2. Test Auto-Refresh<a class="headerlink" href="#2-test-auto-refresh" title="Permanent link">¶</a></h3>
 <ol>
 <li>Open browser DevTools → Network tab</li>
@@ -1318,17 +1342,19 @@
 <li>Circuit breaker status</li>
 </ol>
 <h2 id="verification-scripts">Verification Scripts<a class="headerlink" href="#verification-scripts" title="Permanent link">¶</a></h2>
-<p><strong>Created:</strong>
-- <code>scripts/verify_frontend_api_integration.sh</code> - Tests all API endpoints</p>
-<p><strong>Usage:</strong>
+<p><strong>Created:</strong></p>
+<ul>
+<li><code>scripts/verify_frontend_api_integration.sh</code> - Tests all API endpoints</li>
+</ul>
+<p><strong>Usage:</strong></p>
 <div class="highlight"><pre><span></span><code>bash<span class="w"> </span>scripts/verify_frontend_api_integration.sh
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
-<p>✅ <strong>All backend API endpoints are working correctly</strong>
-✅ <strong>All frontend React Query hooks are configured correctly</strong>
-✅ <strong>All routes and navigation links are configured</strong>
-✅ <strong>Test data is available for testing</strong></p>
-<p><strong>Ready for browser testing!</strong> Once the browser extension is connected, the UI can be tested interactively.</p>
+<p>✅ <strong>All backend API endpoints are working correctly</strong> ✅ <strong>All frontend React
+Query hooks are configured correctly</strong> ✅ <strong>All routes and navigation links are
+configured</strong> ✅ <strong>Test data is available for testing</strong></p>
+<p><strong>Ready for browser testing!</strong> Once the browser extension is connected, the UI
+can be tested interactively.</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1353,7 +1379,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

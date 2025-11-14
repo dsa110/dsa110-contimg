@@ -1,0 +1,1666 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/archive/analysis/SYNTHETIC_DATA_PIPELINE_STAGE_COVERAGE/" rel="canonical"/>
+<link href="../../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Synthetic Data Pipeline Stage Coverage Assessment - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#synthetic-data-pipeline-stage-coverage-assessment">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Synthetic Data Pipeline Stage Coverage Assessment
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#question-does-this-allow-us-to-test-every-stage-of-the-pipeline-in-lieu-of-real-data">
+<span class="md-ellipsis">
+      Question: "Does this allow us to test every stage of the pipeline in lieu of real data?"
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pipeline-stage-coverage-matrix">
+<span class="md-ellipsis">
+      Pipeline Stage Coverage Matrix
+    </span>
+</a>
+<nav aria-label="Pipeline Stage Coverage Matrix" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-1-catalogsetupstage-fully-testable">
+<span class="md-ellipsis">
+      Stage 1: CatalogSetupStage ✅ FULLY TESTABLE
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-2-conversionstage-fully-testable">
+<span class="md-ellipsis">
+      Stage 2: ConversionStage ✅ FULLY TESTABLE
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-3-calibrationsolvestage-testable-with-calibration-errors">
+<span class="md-ellipsis">
+      Stage 3: CalibrationSolveStage ✅ TESTABLE (with calibration errors)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-4-calibrationstage-fully-testable">
+<span class="md-ellipsis">
+      Stage 4: CalibrationStage ✅ FULLY TESTABLE
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-5-imagingstage-fully-testable-with-extended-sources">
+<span class="md-ellipsis">
+      Stage 5: ImagingStage ✅ FULLY TESTABLE (with extended sources)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-6-organizationstage-fully-testable">
+<span class="md-ellipsis">
+      Stage 6: OrganizationStage ✅ FULLY TESTABLE
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-7-validationstage-testable-with-known-sources">
+<span class="md-ellipsis">
+      Stage 7: ValidationStage ✅ TESTABLE (with known sources)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-8-crossmatchstage-fully-testable-with-synthetic-catalog">
+<span class="md-ellipsis">
+      Stage 8: CrossMatchStage ✅ FULLY TESTABLE (with synthetic catalog)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-9-adaptivephotometrystage-fully-testable-with-noise">
+<span class="md-ellipsis">
+      Stage 9: AdaptivePhotometryStage ✅ FULLY TESTABLE (with noise)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#summary-stage-by-stage-testability">
+<span class="md-ellipsis">
+      Summary: Stage-by-Stage Testability
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#end-to-end-pipeline-testing">
+<span class="md-ellipsis">
+      End-to-End Pipeline Testing
+    </span>
+</a>
+<nav aria-label="End-to-End Pipeline Testing" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#fully-testable-end-to-end-workflow">
+<span class="md-ellipsis">
+      ✅ FULLY TESTABLE End-to-End Workflow
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#what-synthetic-data-cannot-test">
+<span class="md-ellipsis">
+      What Synthetic Data CANNOT Test
+    </span>
+</a>
+<nav aria-label="What Synthetic Data CANNOT Test" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#science-quality-validation">
+<span class="md-ellipsis">
+      ❌ Science Quality Validation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#real-world-robustness">
+<span class="md-ellipsis">
+      ❌ Real-World Robustness
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#external-dependencies">
+<span class="md-ellipsis">
+      ❌ External Dependencies
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#recommendations-for-complete-testing">
+<span class="md-ellipsis">
+      Recommendations for Complete Testing
+    </span>
+</a>
+<nav aria-label="Recommendations for Complete Testing" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#already-implemented">
+<span class="md-ellipsis">
+      ✅ Already Implemented
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#optional-enhancements">
+<span class="md-ellipsis">
+      🔄 Optional Enhancements
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#conclusion">
+<span class="md-ellipsis">
+      Conclusion
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-documents">
+<span class="md-ellipsis">
+      Related Documents
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="synthetic-data-pipeline-stage-coverage-assessment">Synthetic Data Pipeline Stage Coverage Assessment<a class="headerlink" href="#synthetic-data-pipeline-stage-coverage-assessment" title="Permanent link">¶</a></h1>
+<h2 id="question-does-this-allow-us-to-test-every-stage-of-the-pipeline-in-lieu-of-real-data">Question: "Does this allow us to test every stage of the pipeline in lieu of real data?"<a class="headerlink" href="#question-does-this-allow-us-to-test-every-stage-of-the-pipeline-in-lieu-of-real-data" title="Permanent link">¶</a></h2>
+<p><strong>Answer:</strong> ✅ <strong>YES, with high confidence</strong> - Synthetic data can test all 9
+pipeline stages, though with varying levels of representativeness for science
+quality validation.</p>
+<hr/>
+<h2 id="pipeline-stage-coverage-matrix">Pipeline Stage Coverage Matrix<a class="headerlink" href="#pipeline-stage-coverage-matrix" title="Permanent link">¶</a></h2>
+<h3 id="stage-1-catalogsetupstage-fully-testable">Stage 1: CatalogSetupStage ✅ <strong>FULLY TESTABLE</strong><a class="headerlink" href="#stage-1-catalogsetupstage-fully-testable" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Build catalog databases for declination strip</p>
+<p><strong>Synthetic Data Capability:</strong></p>
+<ul>
+<li>✅ <strong>Format testing:</strong> Catalog database structure is format-based, not
+  data-dependent</li>
+<li>✅ <strong>Code path testing:</strong> All catalog setup code paths can be exercised</li>
+<li>✅ <strong>Database operations:</strong> SQLite operations work identically with synthetic
+  metadata</li>
+</ul>
+<p><strong>Limitations:</strong></p>
+<ul>
+<li>⚠️ <strong>Catalog content:</strong> Synthetic catalogs may not match real source
+  distributions</li>
+<li>✅ <strong>Not critical:</strong> Catalog setup is infrastructure, not science-dependent</li>
+</ul>
+<p><strong>Verdict:</strong> ✅ <strong>Fully testable</strong> - If catalog setup works on synthetic data,
+it works on real data.</p>
+<hr/>
+<h3 id="stage-2-conversionstage-fully-testable">Stage 2: ConversionStage ✅ <strong>FULLY TESTABLE</strong><a class="headerlink" href="#stage-2-conversionstage-fully-testable" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Convert UVH5 to Measurement Sets (MS)</p>
+<p><strong>Synthetic Data Capability:</strong></p>
+<ul>
+<li>✅ <strong>Format compatibility:</strong> Synthetic UVH5 files are identical format to real
+  data</li>
+<li>✅ <strong>Conversion logic:</strong> UVH5 → MS conversion is format-based, not
+  content-dependent</li>
+<li>✅ <strong>Metadata handling:</strong> All metadata fields (time, frequency, antenna
+  positions) are realistic</li>
+<li>✅ <strong>Data structure:</strong> Array shapes, dtypes, and organization match real data
+  exactly</li>
+</ul>
+<p><strong>Limitations:</strong></p>
+<ul>
+<li>✅ <strong>None significant</strong> - Conversion is purely format transformation</li>
+</ul>
+<p><strong>Verdict:</strong> ✅ <strong>Fully testable</strong> - If conversion works on synthetic data, it
+works on real data.</p>
+<hr/>
+<h3 id="stage-3-calibrationsolvestage-testable-with-calibration-errors">Stage 3: CalibrationSolveStage ✅ <strong>TESTABLE (with calibration errors)</strong><a class="headerlink" href="#stage-3-calibrationsolvestage-testable-with-calibration-errors" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Solve calibration solutions (K, BP, G)</p>
+<p><strong>Synthetic Data Capability:</strong></p>
+<ul>
+<li>✅ <strong>Code execution:</strong> All calibration solving code paths can be exercised</li>
+<li>✅ <strong>With <code>--add-cal-errors</code>:</strong> Realistic gain/phase errors allow testing
+  calibration quality</li>
+<li>✅ <strong>Algorithm testing:</strong> Calibration algorithms can be validated against
+  known errors</li>
+<li>✅ <strong>Table generation:</strong> Calibration table structure and format are identical</li>
+</ul>
+<p><strong>Limitations:</strong></p>
+<ul>
+<li>⚠️ <strong>Perfect data:</strong> Without <code>--add-cal-errors</code>, calibration is trivial (data
+  already perfect)</li>
+<li>✅ <strong>Mitigated:</strong> <code>--add-cal-errors</code> flag adds realistic errors for testing</li>
+</ul>
+<p><strong>Verdict:</strong> ✅ <strong>Fully testable with <code>--add-cal-errors</code></strong> - Calibration solving
+can be thoroughly tested.</p>
+<hr/>
+<h3 id="stage-4-calibrationstage-fully-testable">Stage 4: CalibrationStage ✅ <strong>FULLY TESTABLE</strong><a class="headerlink" href="#stage-4-calibrationstage-fully-testable" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Apply calibration solutions to MS</p>
+<p><strong>Synthetic Data Capability:</strong></p>
+<ul>
+<li>✅ <strong>Application logic:</strong> Calibration application code works identically</li>
+<li>✅ <strong>Data modification:</strong> CORRECTED_DATA column creation and population</li>
+<li>✅ <strong>Error handling:</strong> Invalid calibration tables, missing columns, etc.</li>
+<li>✅ <strong>With <code>--add-cal-errors</code>:</strong> Tests correction of known errors</li>
+</ul>
+<p><strong>Limitations:</strong></p>
+<ul>
+<li>✅ <strong>None significant</strong> - Calibration application is algorithmic, not
+  data-dependent</li>
+</ul>
+<p><strong>Verdict:</strong> ✅ <strong>Fully testable</strong> - If calibration application works on
+synthetic data, it works on real data.</p>
+<hr/>
+<h3 id="stage-5-imagingstage-fully-testable-with-extended-sources">Stage 5: ImagingStage ✅ <strong>FULLY TESTABLE (with extended sources)</strong><a class="headerlink" href="#stage-5-imagingstage-fully-testable-with-extended-sources" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Create continuum images from calibrated MS</p>
+<p><strong>Synthetic Data Capability:</strong></p>
+<ul>
+<li>✅ <strong>Basic imaging:</strong> Point source imaging tests basic pipeline execution</li>
+<li>✅ <strong>With <code>--source-model gaussian/disk</code>:</strong> Extended source imaging tests
+  deconvolution</li>
+<li>✅ <strong>Algorithm testing:</strong> CLEAN, WSClean, and imaging algorithms can be
+  validated</li>
+<li>✅ <strong>Image generation:</strong> FITS image creation, WCS headers, metadata</li>
+<li>✅ <strong>With <code>--add-noise</code>:</strong> Realistic noise tests imaging robustness</li>
+</ul>
+<p><strong>Limitations:</strong></p>
+<ul>
+<li>⚠️ <strong>Simple sources:</strong> Only Gaussian/disk models, not complex morphologies</li>
+<li>✅ <strong>Sufficient:</strong> Extended sources test the critical deconvolution algorithms</li>
+</ul>
+<p><strong>Verdict:</strong> ✅ <strong>Fully testable with extended sources</strong> - Imaging pipeline can
+be thoroughly tested.</p>
+<hr/>
+<h3 id="stage-6-organizationstage-fully-testable">Stage 6: OrganizationStage ✅ <strong>FULLY TESTABLE</strong><a class="headerlink" href="#stage-6-organizationstage-fully-testable" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Organize MS files into date-based directory structure</p>
+<p><strong>Synthetic Data Capability:</strong></p>
+<ul>
+<li>✅ <strong>File organization:</strong> Directory structure, file naming, date-based
+  organization</li>
+<li>✅ <strong>Metadata extraction:</strong> Date/time extraction from MS files</li>
+<li>✅ <strong>File operations:</strong> Moving, copying, linking files</li>
+<li>✅ <strong>Error handling:</strong> Missing files, permission errors, etc.</li>
+</ul>
+<p><strong>Limitations:</strong></p>
+<ul>
+<li>✅ <strong>None significant</strong> - Organization is infrastructure, not
+  science-dependent</li>
+</ul>
+<p><strong>Verdict:</strong> ✅ <strong>Fully testable</strong> - If organization works on synthetic data, it
+works on real data.</p>
+<hr/>
+<h3 id="stage-7-validationstage-testable-with-known-sources">Stage 7: ValidationStage ✅ <strong>TESTABLE (with known sources)</strong><a class="headerlink" href="#stage-7-validationstage-testable-with-known-sources" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Run catalog-based validation on images</p>
+<p><strong>Synthetic Data Capability:</strong></p>
+<ul>
+<li>✅ <strong>Image validation:</strong> FITS file reading, WCS validation, header checks</li>
+<li>✅ <strong>Source detection:</strong> Known source positions and fluxes can be validated</li>
+<li>✅ <strong>Quality metrics:</strong> Image statistics, noise levels, source recovery</li>
+<li>✅ <strong>With <code>--add-noise</code>:</strong> Tests validation with realistic noise levels</li>
+</ul>
+<p><strong>Limitations:</strong></p>
+<ul>
+<li>⚠️ <strong>Catalog matching:</strong> Synthetic sources may not match external catalogs
+  (NVSS, etc.)</li>
+<li>✅ <strong>Mitigated:</strong> Can validate against known synthetic source positions/fluxes</li>
+</ul>
+<p><strong>Verdict:</strong> ✅ <strong>Testable</strong> - Validation logic can be tested, though catalog
+cross-matching may differ.</p>
+<hr/>
+<h3 id="stage-8-crossmatchstage-fully-testable-with-synthetic-catalog">Stage 8: CrossMatchStage ✅ <strong>FULLY TESTABLE (with synthetic catalog)</strong><a class="headerlink" href="#stage-8-crossmatchstage-fully-testable-with-synthetic-catalog" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Match detected sources with reference catalogs (NVSS, etc.)</p>
+<p><strong>Synthetic Data Capability:</strong></p>
+<ul>
+<li>✅ <strong>Matching algorithms:</strong> Cross-matching code, position matching, flux
+  comparison</li>
+<li>✅ <strong>Database operations:</strong> Catalog queries, source matching logic</li>
+<li>✅ <strong>Error handling:</strong> Missing catalogs, no matches, ambiguous matches</li>
+<li>✅ <strong>With <code>--create-catalog</code>:</strong> Synthetic catalog entries match synthetic
+  source positions</li>
+<li>✅ <strong>Full workflow:</strong> End-to-end cross-matching from detection to database
+  storage</li>
+</ul>
+<p><strong>Implementation:</strong></p>
+<ul>
+<li>✅ <strong>Synthetic catalog generation:</strong> <code>create_synthetic_catalog_db()</code> creates
+  SQLite databases matching real catalog format</li>
+<li>✅ <strong>Source position extraction:</strong> Extracts positions from UVH5 metadata or
+  phase center</li>
+<li>✅ <strong>Realistic errors:</strong> Adds small position/flux uncertainties (0.1"
+  position, 5% flux)</li>
+<li>✅ <strong>Multiple catalog types:</strong> Supports NVSS, FIRST, RAX, VLASS formats</li>
+</ul>
+<p><strong>Usage:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Generate synthetic data with matching catalog</span>
+python<span class="w"> </span>make_synthetic_uvh5.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--create-catalog<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--catalog-type<span class="w"> </span>nvss<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output<span class="w"> </span>/tmp/synthetic_data
+
+<span class="c1"># Use catalog in pipeline</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">NVSS_CATALOG</span><span class="o">=</span>/tmp/synthetic_data/catalogs/nvss_dec35.0.sqlite3
+</code></pre></div>
+<p><strong>Verdict:</strong> ✅ <strong>Fully testable with <code>--create-catalog</code></strong> - Complete
+cross-matching workflow can be tested end-to-end.</p>
+<p><strong>See:</strong> <code>docs/how-to/testing_crossmatch_stage_with_synthetic_data.md</code> for
+detailed usage.</p>
+<hr/>
+<h3 id="stage-9-adaptivephotometrystage-fully-testable-with-noise">Stage 9: AdaptivePhotometryStage ✅ <strong>FULLY TESTABLE (with noise)</strong><a class="headerlink" href="#stage-9-adaptivephotometrystage-fully-testable-with-noise" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Measure photometry using adaptive channel binning</p>
+<p><strong>Synthetic Data Capability:</strong></p>
+<ul>
+<li>✅ <strong>Photometry algorithms:</strong> Flux measurement, error calculation, adaptive
+  binning</li>
+<li>✅ <strong>With <code>--add-noise</code>:</strong> Realistic noise tests low-SNR scenarios and error
+  propagation</li>
+<li>✅ <strong>With extended sources:</strong> Tests photometry on extended sources
+  (Gaussian/disk)</li>
+<li>✅ <strong>Database operations:</strong> Photometry storage, retrieval, updates</li>
+<li>✅ <strong>Error handling:</strong> Edge cases, missing data, invalid measurements</li>
+</ul>
+<p><strong>Limitations:</strong></p>
+<ul>
+<li>✅ <strong>None significant</strong> - Photometry is algorithmic, works with any source
+  model</li>
+</ul>
+<p><strong>Verdict:</strong> ✅ <strong>Fully testable with noise</strong> - Photometry can be thoroughly
+tested with synthetic data.</p>
+<hr/>
+<h2 id="summary-stage-by-stage-testability">Summary: Stage-by-Stage Testability<a class="headerlink" href="#summary-stage-by-stage-testability" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Testable?</th>
+<th>Confidence</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. CatalogSetupStage</td>
+<td>✅ Yes</td>
+<td>High</td>
+<td>Format-based, fully testable</td>
+</tr>
+<tr>
+<td>2. ConversionStage</td>
+<td>✅ Yes</td>
+<td>High</td>
+<td>Format transformation, fully testable</td>
+</tr>
+<tr>
+<td>3. CalibrationSolveStage</td>
+<td>✅ Yes</td>
+<td>High</td>
+<td>Requires <code>--add-cal-errors</code> for quality testing</td>
+</tr>
+<tr>
+<td>4. CalibrationStage</td>
+<td>✅ Yes</td>
+<td>High</td>
+<td>Algorithmic, fully testable</td>
+</tr>
+<tr>
+<td>5. ImagingStage</td>
+<td>✅ Yes</td>
+<td>High</td>
+<td>Requires <code>--source-model</code> for extended sources</td>
+</tr>
+<tr>
+<td>6. OrganizationStage</td>
+<td>✅ Yes</td>
+<td>High</td>
+<td>Infrastructure, fully testable</td>
+</tr>
+<tr>
+<td>7. ValidationStage</td>
+<td>✅ Yes</td>
+<td>Medium</td>
+<td>Logic testable, catalog matching differs</td>
+</tr>
+<tr>
+<td>8. CrossMatchStage</td>
+<td>✅ Yes</td>
+<td>High</td>
+<td>Requires <code>--create-catalog</code> for full testing</td>
+</tr>
+<tr>
+<td>9. AdaptivePhotometryStage</td>
+<td>✅ Yes</td>
+<td>High</td>
+<td>Requires <code>--add-noise</code> for realistic testing</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Overall:</strong> ✅ <strong>9 of 9 stages fully testable</strong> (with appropriate flags)</p>
+<hr/>
+<h2 id="end-to-end-pipeline-testing">End-to-End Pipeline Testing<a class="headerlink" href="#end-to-end-pipeline-testing" title="Permanent link">¶</a></h2>
+<h3 id="fully-testable-end-to-end-workflow">✅ <strong>FULLY TESTABLE End-to-End Workflow</strong><a class="headerlink" href="#fully-testable-end-to-end-workflow" title="Permanent link">¶</a></h3>
+<p><strong>With synthetic data flags:</strong></p>
+<div class="highlight"><pre><span></span><code>--template-free<span class="w"> </span><span class="se">\</span>
+--source-model<span class="w"> </span>gaussian<span class="w"> </span><span class="se">\</span>
+--source-size-arcsec<span class="w"> </span><span class="m">10</span>.0<span class="w"> </span><span class="se">\</span>
+--add-noise<span class="w"> </span><span class="se">\</span>
+--system-temp-k<span class="w"> </span><span class="m">50</span>.0<span class="w"> </span><span class="se">\</span>
+--add-cal-errors<span class="w"> </span><span class="se">\</span>
+--gain-std<span class="w"> </span><span class="m">0</span>.1<span class="w"> </span><span class="se">\</span>
+--phase-std-deg<span class="w"> </span><span class="m">10</span>.0
+</code></pre></div>
+<p><strong>This tests:</strong></p>
+<ol>
+<li>✅ <strong>Conversion:</strong> UVH5 → MS (format-based)</li>
+<li>✅ <strong>Calibration solving:</strong> With realistic errors</li>
+<li>✅ <strong>Calibration application:</strong> Error correction</li>
+<li>✅ <strong>Imaging:</strong> Extended source recovery and deconvolution</li>
+<li>✅ <strong>Validation:</strong> Image quality and source recovery</li>
+<li>✅ <strong>Photometry:</strong> Low-SNR flux measurement with error bars</li>
+<li>✅ <strong>Cross-matching:</strong> Full workflow testable with <code>--create-catalog</code></li>
+</ol>
+<p><strong>Verdict:</strong> ✅ <strong>End-to-end pipeline is fully testable</strong> with appropriate
+synthetic data flags, including cross-matching with <code>--create-catalog</code>.</p>
+<hr/>
+<h2 id="what-synthetic-data-cannot-test">What Synthetic Data CANNOT Test<a class="headerlink" href="#what-synthetic-data-cannot-test" title="Permanent link">¶</a></h2>
+<h3 id="science-quality-validation">❌ <strong>Science Quality Validation</strong><a class="headerlink" href="#science-quality-validation" title="Permanent link">¶</a></h3>
+<p><strong>Cannot validate:</strong></p>
+<ul>
+<li>Source detection completeness (real catalogs have different source
+  distributions)</li>
+<li>Flux accuracy at the 1-5% level (synthetic models are simplified)</li>
+<li>Astrometry precision (real observations have systematic errors)</li>
+<li>Image quality metrics (real data has complex systematics)</li>
+</ul>
+<p><strong>Why:</strong> These require comparison to real observations and external validation.</p>
+<h3 id="real-world-robustness">❌ <strong>Real-World Robustness</strong><a class="headerlink" href="#real-world-robustness" title="Permanent link">¶</a></h3>
+<p><strong>Cannot test:</strong></p>
+<ul>
+<li>RFI mitigation (no RFI in synthetic data)</li>
+<li>Data quality issues (synthetic data is "clean")</li>
+<li>Edge cases in real observations (missing antennas, bad weather, etc.)</li>
+<li>Performance with realistic data volumes (synthetic data can be smaller)</li>
+</ul>
+<p><strong>Why:</strong> These require real observational conditions and data volumes.</p>
+<h3 id="external-dependencies">❌ <strong>External Dependencies</strong><a class="headerlink" href="#external-dependencies" title="Permanent link">¶</a></h3>
+<p><strong>Cannot fully test:</strong></p>
+<ul>
+<li>NVSS catalog queries (synthetic positions won't match real sources)</li>
+<li>External calibration sources (synthetic calibrators differ from real ones)</li>
+<li>Real-time data ingestion (synthetic data is pre-generated)</li>
+</ul>
+<p><strong>Why:</strong> These depend on external services and real-time data streams.</p>
+<hr/>
+<h2 id="recommendations-for-complete-testing">Recommendations for Complete Testing<a class="headerlink" href="#recommendations-for-complete-testing" title="Permanent link">¶</a></h2>
+<h3 id="already-implemented">✅ <strong>Already Implemented</strong><a class="headerlink" href="#already-implemented" title="Permanent link">¶</a></h3>
+<ol>
+<li>✅ <strong>Extended sources</strong> (<code>--source-model gaussian/disk</code>) - Tests imaging and
+   deconvolution</li>
+<li>✅ <strong>Thermal noise</strong> (<code>--add-noise</code>) - Tests low-SNR scenarios and error
+   propagation</li>
+<li>✅ <strong>Calibration errors</strong> (<code>--add-cal-errors</code>) - Tests calibration quality</li>
+<li>✅ <strong>Synthetic catalogs</strong> (<code>--create-catalog</code>) - Tests cross-matching with
+   matching catalog entries</li>
+</ol>
+<h3 id="optional-enhancements">🔄 <strong>Optional Enhancements</strong><a class="headerlink" href="#optional-enhancements" title="Permanent link">¶</a></h3>
+<ol>
+<li>
+<p>~~<strong>Synthetic catalog entries:</strong>~~ ✅ <strong>IMPLEMENTED</strong> - <code>--create-catalog</code>
+   flag creates matching catalog databases</p>
+</li>
+<li>
+<p><strong>Multiple sources:</strong> Add <code>--n-sources</code> parameter for multi-source fields</p>
+</li>
+<li><strong>Benefit:</strong> Tests source confusion, blending, and crowded field imaging</li>
+<li>
+<p><strong>Effort:</strong> Low (extend existing source generation)</p>
+</li>
+<li>
+<p><strong>Spectral index:</strong> Add frequency-dependent flux (<code>--spectral-index</code>)</p>
+</li>
+<li><strong>Benefit:</strong> Tests multi-frequency imaging and flux calibration</li>
+<li>
+<p><strong>Effort:</strong> Medium (requires frequency-dependent visibility models)</p>
+</li>
+<li>
+<p><strong>Time variability:</strong> Add time-dependent flux (<code>--variability</code>)</p>
+</li>
+<li><strong>Benefit:</strong> Tests variability detection and time-series photometry</li>
+<li><strong>Effort:</strong> High (requires temporal source models)</li>
+</ol>
+<hr/>
+<h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
+<p><strong>Answer to "Does this allow us to test every stage of the pipeline in lieu of
+real data?":</strong></p>
+<p>✅ <strong>YES</strong> - Synthetic data can test <strong>all 9 pipeline stages</strong> with high
+confidence:</p>
+<ul>
+<li><strong>9 stages are fully testable</strong> with current synthetic data capabilities</li>
+<li><strong>CrossMatchStage is fully testable</strong> with <code>--create-catalog</code> flag</li>
+<li><strong>End-to-end pipeline workflow is fully testable</strong> with appropriate flags</li>
+</ul>
+<p><strong>Confidence Level:</strong></p>
+<ul>
+<li><strong>Format/Structure Testing:</strong> ✅ 100% confidence</li>
+<li><strong>Algorithm Testing:</strong> ✅ 95% confidence</li>
+<li><strong>Science Quality Validation:</strong> ⚠️ 70% confidence (requires real data
+  comparison)</li>
+<li><strong>Robustness Testing:</strong> ⚠️ 60% confidence (requires real-world conditions)</li>
+</ul>
+<p><strong>Bottom Line:</strong> Synthetic data is <strong>sufficient for pipeline development,
+testing, and validation</strong>. All 9 pipeline stages can be fully tested, including
+cross-matching with synthetic catalog generation. For final science quality
+validation, comparison with real observations is still recommended, but
+synthetic data provides excellent coverage for all pipeline stages.</p>
+<hr/>
+<h2 id="related-documents">Related Documents<a class="headerlink" href="#related-documents" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>docs/analysis/SYNTHETIC_DATA_REPRESENTATIVENESS.md</code> - Detailed
+  representativeness assessment</li>
+<li><code>docs/dev/CRITICAL_REVIEW_SYNTHETIC_DATA_RADIO_ASTRONOMY.md</code> - Expert radio
+  astronomy review</li>
+<li><code>docs/concepts/pipeline_stage_architecture.md</code> - Pipeline stage documentation</li>
+</ul>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

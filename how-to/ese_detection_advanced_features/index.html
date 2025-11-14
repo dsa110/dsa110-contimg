@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1242,7 +1244,9 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="ese-detection-advanced-features">ESE Detection Advanced Features<a class="headerlink" href="#ese-detection-advanced-features" title="Permanent link">¶</a></h1>
-<p>This guide covers the advanced features available for ESE (Extreme Scattering Event) detection, including multi-metric scoring, threshold presets, caching, parallel processing, and multi-frequency/multi-observable analysis.</p>
+<p>This guide covers the advanced features available for ESE (Extreme Scattering
+Event) detection, including multi-metric scoring, threshold presets, caching,
+parallel processing, and multi-frequency/multi-observable analysis.</p>
 <h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">¶</a></h2>
 <ol>
 <li><a href="#threshold-presets">Threshold Presets</a></li>
@@ -1253,7 +1257,8 @@
 <li><a href="#multi-observable-correlation">Multi-Observable Correlation</a></li>
 </ol>
 <h2 id="threshold-presets">Threshold Presets<a class="headerlink" href="#threshold-presets" title="Permanent link">¶</a></h2>
-<p>Instead of manually specifying <code>min_sigma</code> values, you can use predefined threshold presets:</p>
+<p>Instead of manually specifying <code>min_sigma</code> values, you can use predefined
+threshold presets:</p>
 <h3 id="available-presets">Available Presets<a class="headerlink" href="#available-presets" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>conservative</strong> (min_sigma=5.0): High confidence, fewer false positives</li>
@@ -1261,24 +1266,25 @@
 <li><strong>sensitive</strong> (min_sigma=3.0): More candidates, may include false positives</li>
 </ul>
 <h3 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">¶</a></h3>
-<p><strong>CLI:</strong>
+<p><strong>CLI:</strong></p>
 <div class="highlight"><pre><span></span><code>photometry<span class="w"> </span>ese-detect<span class="w"> </span>--preset<span class="w"> </span>moderate
-</code></pre></div></p>
-<p><strong>API:</strong>
+</code></pre></div>
+<p><strong>API:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">"preset"</span><span class="p">:</span><span class="w"> </span><span class="s2">"moderate"</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div></p>
-<p><strong>Python:</strong>
+</code></pre></div>
+<p><strong>Python:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.photometry.thresholds</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_threshold_preset</span>
 
 <span class="n">thresholds</span> <span class="o">=</span> <span class="n">get_threshold_preset</span><span class="p">(</span><span class="s2">"moderate"</span><span class="p">)</span>
 <span class="n">min_sigma</span> <span class="o">=</span> <span class="n">thresholds</span><span class="p">[</span><span class="s2">"min_sigma"</span><span class="p">]</span>  <span class="c1"># 3.5</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="multi-metric-composite-scoring">Multi-Metric Composite Scoring<a class="headerlink" href="#multi-metric-composite-scoring" title="Permanent link">¶</a></h2>
-<p>Composite scoring combines multiple variability metrics (sigma_deviation, chi2_nu, eta_metric) into a single confidence score.</p>
+<p>Composite scoring combines multiple variability metrics (sigma_deviation,
+chi2_nu, eta_metric) into a single confidence score.</p>
 <h3 id="benefits">Benefits<a class="headerlink" href="#benefits" title="Permanent link">¶</a></h3>
 <ul>
 <li>More robust detection by considering multiple indicators</li>
@@ -1286,10 +1292,10 @@
 <li>Customizable weights for different metrics</li>
 </ul>
 <h3 id="usage_1">Usage<a class="headerlink" href="#usage_1" title="Permanent link">¶</a></h3>
-<p><strong>CLI:</strong>
+<p><strong>CLI:</strong></p>
 <div class="highlight"><pre><span></span><code>photometry<span class="w"> </span>ese-detect<span class="w"> </span>--use-composite-scoring
-</code></pre></div></p>
-<p><strong>API:</strong>
+</code></pre></div>
+<p><strong>API:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">"min_sigma"</span><span class="p">:</span><span class="w"> </span><span class="mf">5.0</span><span class="p">,</span>
@@ -1301,8 +1307,8 @@
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div></p>
-<p><strong>Python:</strong>
+</code></pre></div>
+<p><strong>Python:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.photometry.ese_detection</span><span class="w"> </span><span class="kn">import</span> <span class="n">detect_ese_candidates</span>
 
 <span class="n">candidates</span> <span class="o">=</span> <span class="n">detect_ese_candidates</span><span class="p">(</span>
@@ -1315,7 +1321,7 @@
 <span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">candidate</span><span class="p">[</span><span class="s1">'source_id'</span><span class="p">]</span><span class="si">}</span><span class="s2">: score=</span><span class="si">{</span><span class="n">candidate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'composite_score'</span><span class="p">)</span><span class="si">}</span><span class="s2">, "</span>
           <span class="sa">f</span><span class="s2">"confidence=</span><span class="si">{</span><span class="n">candidate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'confidence_level'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="confidence-levels">Confidence Levels<a class="headerlink" href="#confidence-levels" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>high</strong>: composite_score &gt;= 7.0</li>
@@ -1323,7 +1329,8 @@
 <li><strong>low</strong>: composite_score &lt; 4.0</li>
 </ul>
 <h2 id="caching">Caching<a class="headerlink" href="#caching" title="Permanent link">¶</a></h2>
-<p>Variability statistics are cached to improve performance for frequently accessed sources.</p>
+<p>Variability statistics are cached to improve performance for frequently accessed
+sources.</p>
 <h3 id="features">Features<a class="headerlink" href="#features" title="Permanent link">¶</a></h3>
 <ul>
 <li>Automatic cache invalidation when stats are updated</li>
@@ -1331,7 +1338,7 @@
 <li>Cache statistics tracking (hits, misses, expired)</li>
 </ul>
 <h3 id="usage_2">Usage<a class="headerlink" href="#usage_2" title="Permanent link">¶</a></h3>
-<p><strong>Python:</strong>
+<p><strong>Python:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.photometry.caching</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">get_cached_variability_stats</span><span class="p">,</span>
     <span class="n">invalidate_cache</span><span class="p">,</span>
@@ -1350,11 +1357,11 @@
 
 <span class="c1"># Check cache performance</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Cache hits: </span><span class="si">{</span><span class="n">CacheStats</span><span class="o">.</span><span class="n">hits</span><span class="si">}</span><span class="s2">, misses: </span><span class="si">{</span><span class="n">CacheStats</span><span class="o">.</span><span class="n">misses</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="parallel-processing">Parallel Processing<a class="headerlink" href="#parallel-processing" title="Permanent link">¶</a></h2>
 <p>Process multiple sources in parallel for faster batch detection.</p>
 <h3 id="usage_3">Usage<a class="headerlink" href="#usage_3" title="Permanent link">¶</a></h3>
-<p><strong>API:</strong>
+<p><strong>API:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">"source_ids"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"J120000+450000"</span><span class="p">,</span><span class="w"> </span><span class="s2">"J120001+450001"</span><span class="p">,</span><span class="w"> </span><span class="s2">"J120002+450002"</span><span class="p">],</span>
@@ -1362,8 +1369,8 @@
 <span class="w">    </span><span class="nt">"min_sigma"</span><span class="p">:</span><span class="w"> </span><span class="mf">5.0</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div></p>
-<p><strong>Python:</strong>
+</code></pre></div>
+<p><strong>Python:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.photometry.parallel</span><span class="w"> </span><span class="kn">import</span> <span class="n">detect_ese_parallel</span>
 
 <span class="n">candidates</span> <span class="o">=</span> <span class="n">detect_ese_parallel</span><span class="p">(</span>
@@ -1372,7 +1379,7 @@
     <span class="n">min_sigma</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
     <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span>  <span class="c1"># Optional: specify worker count</span>
 <span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">¶</a></h3>
 <ul>
 <li>Automatically determines optimal worker count based on CPU cores</li>
@@ -1382,7 +1389,7 @@
 <h2 id="multi-frequency-analysis">Multi-Frequency Analysis<a class="headerlink" href="#multi-frequency-analysis" title="Permanent link">¶</a></h2>
 <p>Detect ESEs by correlating variability across different observing frequencies.</p>
 <h3 id="usage_4">Usage<a class="headerlink" href="#usage_4" title="Permanent link">¶</a></h3>
-<p><strong>Python:</strong>
+<p><strong>Python:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.photometry.multi_frequency</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">analyze_frequency_correlation</span><span class="p">,</span>
     <span class="n">detect_ese_multi_frequency</span>
@@ -1405,11 +1412,11 @@
     <span class="n">frequencies_mhz</span><span class="o">=</span><span class="p">[</span><span class="mi">1400</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">3000</span><span class="p">],</span>
     <span class="n">products_db</span><span class="o">=</span><span class="n">products_db</span>
 <span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="multi-observable-correlation">Multi-Observable Correlation<a class="headerlink" href="#multi-observable-correlation" title="Permanent link">¶</a></h2>
 <p>Correlate ESE detection with other observables (scintillation, DM variations).</p>
 <h3 id="usage_5">Usage<a class="headerlink" href="#usage_5" title="Permanent link">¶</a></h3>
-<p><strong>Python:</strong>
+<p><strong>Python:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.photometry.multi_observable</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">analyze_scintillation_variability</span><span class="p">,</span>
     <span class="n">analyze_dm_variability</span><span class="p">,</span>
@@ -1433,10 +1440,10 @@
     <span class="n">source_id</span><span class="o">=</span><span class="s2">"J120000+450000"</span><span class="p">,</span>
     <span class="n">products_db</span><span class="o">=</span><span class="n">products_db</span>
 <span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="combining-features">Combining Features<a class="headerlink" href="#combining-features" title="Permanent link">¶</a></h2>
 <p>You can combine multiple features for optimal detection:</p>
-<p><strong>API Example:</strong>
+<p><strong>API Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">"preset"</span><span class="p">:</span><span class="w"> </span><span class="s2">"moderate"</span><span class="p">,</span>
@@ -1445,16 +1452,18 @@
 <span class="w">    </span><span class="nt">"source_ids"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"J120000+450000"</span><span class="p">,</span><span class="w"> </span><span class="s2">"J120001+450001"</span><span class="p">]</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div></p>
-<p><strong>CLI Example:</strong>
+</code></pre></div>
+<p><strong>CLI Example:</strong></p>
 <div class="highlight"><pre><span></span><code>photometry<span class="w"> </span>ese-detect<span class="w"> </span>--preset<span class="w"> </span>moderate<span class="w"> </span>--use-composite-scoring
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="performance-considerations">Performance Considerations<a class="headerlink" href="#performance-considerations" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong>Caching</strong>: Reduces database queries by ~50-80% for frequently accessed sources</li>
+<li><strong>Caching</strong>: Reduces database queries by ~50-80% for frequently accessed
+  sources</li>
 <li><strong>Parallel Processing</strong>: 2-4x speedup for batches with &gt;10 sources</li>
 <li><strong>Composite Scoring</strong>: Adds ~10-20% overhead but improves detection quality</li>
-<li><strong>Multi-frequency/Multi-observable</strong>: Adds significant overhead, use selectively</li>
+<li><strong>Multi-frequency/Multi-observable</strong>: Adds significant overhead, use
+  selectively</li>
 </ul>
 <h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">¶</a></h2>
 <ol>
@@ -1462,7 +1471,8 @@
 <li>Enable <strong>composite scoring</strong> for production pipelines to improve confidence</li>
 <li>Use <strong>caching</strong> for frequently accessed sources (default enabled)</li>
 <li>Enable <strong>parallel processing</strong> for batch jobs with &gt;10 sources</li>
-<li>Use <strong>multi-frequency/multi-observable</strong> analysis for high-priority candidates only</li>
+<li>Use <strong>multi-frequency/multi-observable</strong> analysis for high-priority
+   candidates only</li>
 </ol>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
 <ul>
@@ -1494,7 +1504,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

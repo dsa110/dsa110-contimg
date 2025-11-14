@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1158,16 +1160,23 @@
 <h2 id="key-findings-from-code-review">Key Findings from Code Review<a class="headerlink" href="#key-findings-from-code-review" title="Permanent link">¶</a></h2>
 <h3 id="task-1-batch-conversion-api">Task 1: Batch Conversion API<a class="headerlink" href="#task-1-batch-conversion-api" title="Permanent link">¶</a></h3>
 <p><strong>Confidence:</strong> 95% → <strong>90%</strong> (minor adjustment needed)</p>
-<p><strong>Finding:</strong> <code>create_batch_job()</code> expects <code>ms_paths: List[str]</code>, but conversion uses <code>time_windows</code>. Need conversion-specific batch tracking.</p>
-<p><strong>Solution:</strong> Create <code>create_batch_conversion_job()</code> helper that tracks time windows instead of MS paths.</p>
+<p><strong>Finding:</strong> <code>create_batch_job()</code> expects <code>ms_paths: List[str]</code>, but conversion
+uses <code>time_windows</code>. Need conversion-specific batch tracking.</p>
+<p><strong>Solution:</strong> Create <code>create_batch_conversion_job()</code> helper that tracks time
+windows instead of MS paths.</p>
 <hr/>
 <h3 id="task-2-mosaic-creation-api">Task 2: Mosaic Creation API<a class="headerlink" href="#task-2-mosaic-creation-api" title="Permanent link">¶</a></h3>
 <p><strong>Confidence:</strong> 90% → <strong>85%</strong> (needs orchestrator method)</p>
-<p><strong>Findings:</strong>
-1. <code>create_job()</code> requires <code>ms_path TEXT NOT NULL</code> - will use first MS path from group
-2. <code>create_mosaic_in_time_window()</code> doesn't exist - need to create it
-3. Pattern exists: use <code>ensure_ms_files_in_window()</code> → <code>_form_group_from_ms_paths()</code> → <code>_process_group_workflow()</code></p>
-<p><strong>Solution:</strong> Create <code>create_mosaic_in_time_window()</code> method following <code>create_mosaic_centered_on_calibrator()</code> pattern.</p>
+<p><strong>Findings:</strong></p>
+<ol>
+<li><code>create_job()</code> requires <code>ms_path TEXT NOT NULL</code> - will use first MS path from
+   group</li>
+<li><code>create_mosaic_in_time_window()</code> doesn't exist - need to create it</li>
+<li>Pattern exists: use <code>ensure_ms_files_in_window()</code> →
+   <code>_form_group_from_ms_paths()</code> → <code>_process_group_workflow()</code></li>
+</ol>
+<p><strong>Solution:</strong> Create <code>create_mosaic_in_time_window()</code> method following
+<code>create_mosaic_centered_on_calibrator()</code> pattern.</p>
 <hr/>
 <h3 id="task-3-publishing-cli">Task 3: Publishing CLI<a class="headerlink" href="#task-3-publishing-cli" title="Permanent link">¶</a></h3>
 <p><strong>Confidence:</strong> 85% → <strong>90%</strong> (straightforward, functions exist)</p>
@@ -1175,55 +1184,73 @@
 <hr/>
 <h3 id="task-4-photometry-api-execution">Task 4: Photometry API Execution<a class="headerlink" href="#task-4-photometry-api-execution" title="Permanent link">¶</a></h3>
 <p><strong>Confidence:</strong> 85% → <strong>90%</strong> (better than expected)</p>
-<p><strong>Finding:</strong> Underlying functions <code>measure_forced_peak()</code> and <code>measure_many()</code> exist in <code>photometry/forced.py</code> and return data structures directly (not just print JSON). Can call these directly instead of CLI wrappers.</p>
+<p><strong>Finding:</strong> Underlying functions <code>measure_forced_peak()</code> and <code>measure_many()</code>
+exist in <code>photometry/forced.py</code> and return data structures directly (not just
+print JSON). Can call these directly instead of CLI wrappers.</p>
 <p><strong>Solution:</strong> Call underlying functions directly, not CLI wrappers.</p>
 <hr/>
 <h3 id="task-5-unified-qa-cli">Task 5: Unified QA CLI<a class="headerlink" href="#task-5-unified-qa-cli" title="Permanent link">¶</a></h3>
 <p><strong>Confidence:</strong> 75% (unchanged)</p>
-<p><strong>Finding:</strong> QA functions exist in multiple modules. Need to locate and verify signatures.</p>
+<p><strong>Finding:</strong> QA functions exist in multiple modules. Need to locate and verify
+signatures.</p>
 <hr/>
 <h3 id="task-6-coordinated-group-imaging">Task 6: Coordinated Group Imaging<a class="headerlink" href="#task-6-coordinated-group-imaging" title="Permanent link">¶</a></h3>
 <p><strong>Confidence:</strong> 75% → <strong>80%</strong> (clearer integration point)</p>
-<p><strong>Findings:</strong>
-1. Integration point is clear: after <code>image_ms()</code> call in <code>_worker_loop()</code> (around line 891-978)
-2. Need to extract <code>mid_mjd</code> using <code>extract_ms_time_range()</code> from <code>utils/time_utils.py</code>
-3. Query <code>ms_index</code> table for MS files in time window
-4. Check <code>DEFAULT_MS_PER_MOSAIC</code> constant for group size</p>
+<p><strong>Findings:</strong></p>
+<ol>
+<li>Integration point is clear: after <code>image_ms()</code> call in <code>_worker_loop()</code>
+   (around line 891-978)</li>
+<li>Need to extract <code>mid_mjd</code> using <code>extract_ms_time_range()</code> from
+   <code>utils/time_utils.py</code></li>
+<li>Query <code>ms_index</code> table for MS files in time window</li>
+<li>Check <code>DEFAULT_MS_PER_MOSAIC</code> constant for group size</li>
+</ol>
 <p><strong>Solution:</strong> Use existing time extraction utilities and database queries.</p>
 <hr/>
 <h3 id="task-7-streaming-mosaicqapublishing">Task 7: Streaming Mosaic/QA/Publishing<a class="headerlink" href="#task-7-streaming-mosaicqapublishing" title="Permanent link">¶</a></h3>
 <p><strong>Confidence:</strong> 80% → <strong>85%</strong> (more automation exists than expected)</p>
-<p><strong>Findings:</strong>
-1. <code>StreamingMosaicManager.create_mosaic()</code> already registers in <code>data_registry</code>
-2. <code>finalize_data()</code> triggers QA pipeline automatically
-3. <code>trigger_auto_publish()</code> runs automatically when QA passes</p>
-<p><strong>Solution:</strong> Verify that <code>create_mosaic()</code> calls <code>finalize_data()</code>, then integration is straightforward.</p>
+<p><strong>Findings:</strong></p>
+<ol>
+<li><code>StreamingMosaicManager.create_mosaic()</code> already registers in <code>data_registry</code></li>
+<li><code>finalize_data()</code> triggers QA pipeline automatically</li>
+<li><code>trigger_auto_publish()</code> runs automatically when QA passes</li>
+</ol>
+<p><strong>Solution:</strong> Verify that <code>create_mosaic()</code> calls <code>finalize_data()</code>, then
+integration is straightforward.</p>
 <hr/>
 <h3 id="task-8-end-to-end-integration-testing">Task 8: End-to-End Integration Testing<a class="headerlink" href="#task-8-end-to-end-integration-testing" title="Permanent link">¶</a></h3>
 <p><strong>Confidence:</strong> 75% (unchanged)</p>
-<p><strong>Finding:</strong> Test infrastructure exists, synthetic data generation patterns exist.</p>
+<p><strong>Finding:</strong> Test infrastructure exists, synthetic data generation patterns
+exist.</p>
 <hr/>
 <h2 id="overall-confidence-assessment">Overall Confidence Assessment<a class="headerlink" href="#overall-confidence-assessment" title="Permanent link">¶</a></h2>
 <p><strong>Ready to Proceed:</strong> ✅ <strong>YES</strong></p>
-<p><strong>Confidence Levels:</strong>
-- Tasks 1, 3, 4: 90% confidence (minor adjustments needed)
-- Task 2: 85% confidence (need to create orchestrator method)
-- Task 5: 75% confidence (need to locate QA functions)
-- Task 6: 80% confidence (clear integration point)
-- Task 7: 85% confidence (verify existing automation)
-- Task 8: 75% confidence (standard testing)</p>
-<p><strong>Risks Identified:</strong>
-1. <strong>Low Risk:</strong> Batch conversion needs custom tracking (Task 1)
-2. <strong>Low Risk:</strong> Mosaic API needs new orchestrator method (Task 2)
-3. <strong>Low Risk:</strong> QA CLI needs function discovery (Task 5)</p>
-<p><strong>Mitigation:</strong>
-- All risks are low and have clear solutions
-- Patterns exist for all tasks
-- No blocking dependencies</p>
+<p><strong>Confidence Levels:</strong></p>
+<ul>
+<li>Tasks 1, 3, 4: 90% confidence (minor adjustments needed)</li>
+<li>Task 2: 85% confidence (need to create orchestrator method)</li>
+<li>Task 5: 75% confidence (need to locate QA functions)</li>
+<li>Task 6: 80% confidence (clear integration point)</li>
+<li>Task 7: 85% confidence (verify existing automation)</li>
+<li>Task 8: 75% confidence (standard testing)</li>
+</ul>
+<p><strong>Risks Identified:</strong></p>
+<ol>
+<li><strong>Low Risk:</strong> Batch conversion needs custom tracking (Task 1)</li>
+<li><strong>Low Risk:</strong> Mosaic API needs new orchestrator method (Task 2)</li>
+<li><strong>Low Risk:</strong> QA CLI needs function discovery (Task 5)</li>
+</ol>
+<p><strong>Mitigation:</strong></p>
+<ul>
+<li>All risks are low and have clear solutions</li>
+<li>Patterns exist for all tasks</li>
+<li>No blocking dependencies</li>
+</ul>
 <hr/>
 <h2 id="recommended-adjustments-to-plan">Recommended Adjustments to Plan<a class="headerlink" href="#recommended-adjustments-to-plan" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Task 1:</strong> Create conversion-specific batch tracking instead of using <code>create_batch_job()</code></li>
+<li><strong>Task 1:</strong> Create conversion-specific batch tracking instead of using
+   <code>create_batch_job()</code></li>
 <li><strong>Task 2:</strong> Create <code>create_mosaic_in_time_window()</code> method in orchestrator</li>
 <li><strong>Task 4:</strong> Call underlying photometry functions directly, not CLI wrappers</li>
 <li><strong>Task 6:</strong> Use <code>extract_ms_time_range()</code> for time extraction</li>
@@ -1231,7 +1258,9 @@
 </ol>
 <hr/>
 <h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
-<p>Plan is <strong>sound and ready for implementation</strong>. All tasks have clear patterns to follow, and identified risks are low with straightforward solutions. Proceed with confidence.</p>
+<p>Plan is <strong>sound and ready for implementation</strong>. All tasks have clear patterns to
+follow, and identified risks are low with straightforward solutions. Proceed
+with confidence.</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1256,7 +1285,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

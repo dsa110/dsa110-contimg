@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1238,15 +1240,18 @@
 <article class="md-content__inner md-typeset">
 <h1 id="distinction-streaming-converter-vs-mosaic-orchestrator">Distinction: Streaming Converter vs Mosaic Orchestrator<a class="headerlink" href="#distinction-streaming-converter-vs-mosaic-orchestrator" title="Permanent link">¶</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>The DSA-110 pipeline has <strong>two distinct automation paths</strong> that serve different purposes:</p>
+<p>The DSA-110 pipeline has <strong>two distinct automation paths</strong> that serve different
+purposes:</p>
 <ol>
 <li><strong>Streaming Converter</strong> - Autonomous daemon for real-time data ingestion</li>
-<li><strong>Mosaic Orchestrator</strong> - Goal-driven workflow coordinator for end-to-end mosaic creation</li>
+<li><strong>Mosaic Orchestrator</strong> - Goal-driven workflow coordinator for end-to-end
+   mosaic creation</li>
 </ol>
 <hr/>
 <h2 id="streaming-converter">Streaming Converter<a class="headerlink" href="#streaming-converter" title="Permanent link">¶</a></h2>
 <h3 id="purpose">Purpose<a class="headerlink" href="#purpose" title="Permanent link">¶</a></h3>
-<p><strong>Autonomous, reactive data ingestion</strong> - watches for incoming files and processes them automatically.</p>
+<p><strong>Autonomous, reactive data ingestion</strong> - watches for incoming files and
+processes them automatically.</p>
 <h3 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>Type:</strong> Long-running daemon/service</li>
@@ -1255,21 +1260,25 @@
 <li><strong>Scope:</strong> Individual MS file processing</li>
 </ul>
 <h3 id="key-characteristics">Key Characteristics<a class="headerlink" href="#key-characteristics" title="Permanent link">¶</a></h3>
-<p><strong>1. File-Driven Operation</strong>
+<p><strong>1. File-Driven Operation</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Watches /data/incoming/ for new files</span>
 <span class="c1"># Automatically groups by timestamp (5-minute windows, 16 subbands)</span>
 <span class="c1"># Processes complete groups as they arrive</span>
-</code></pre></div></p>
-<p><strong>2. Autonomous Operation</strong>
-- Runs continuously as a background service
-- No user interaction required
-- Automatically handles file arrivals, grouping, conversion
-- State machine: <code>collecting</code> → <code>pending</code> → <code>in_progress</code> → <code>completed</code></p>
-<p><strong>3. Limited Scope</strong>
-- <strong>Primary Function:</strong> Convert UVH5 → MS
-- <strong>Secondary Function:</strong> Apply calibration if available (development tier)
-- <strong>Secondary Function:</strong> Image individual MS files (standard tier)
-- <strong>Does NOT:</strong> Create mosaics, coordinate groups, solve calibration</p>
+</code></pre></div>
+<p><strong>2. Autonomous Operation</strong></p>
+<ul>
+<li>Runs continuously as a background service</li>
+<li>No user interaction required</li>
+<li>Automatically handles file arrivals, grouping, conversion</li>
+<li>State machine: <code>collecting</code> → <code>pending</code> → <code>in_progress</code> → <code>completed</code></li>
+</ul>
+<p><strong>3. Limited Scope</strong></p>
+<ul>
+<li><strong>Primary Function:</strong> Convert UVH5 → MS</li>
+<li><strong>Secondary Function:</strong> Apply calibration if available (development tier)</li>
+<li><strong>Secondary Function:</strong> Image individual MS files (standard tier)</li>
+<li><strong>Does NOT:</strong> Create mosaics, coordinate groups, solve calibration</li>
+</ul>
 <h3 id="code-location">Code Location<a class="headerlink" href="#code-location" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>File:</strong> <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code></li>
@@ -1277,11 +1286,13 @@
 <li><strong>Database:</strong> <code>state/ingest.sqlite3</code> (queue tracking)</li>
 </ul>
 <h3 id="use-case">Use Case<a class="headerlink" href="#use-case" title="Permanent link">¶</a></h3>
-<p><strong>When to use:</strong> Real-time data ingestion during observations
-- Telescope is actively observing
-- UVH5 files are arriving continuously
-- Need automatic conversion as data arrives
-- Want minimal human intervention</p>
+<p><strong>When to use:</strong> Real-time data ingestion during observations</p>
+<ul>
+<li>Telescope is actively observing</li>
+<li>UVH5 files are arriving continuously</li>
+<li>Need automatic conversion as data arrives</li>
+<li>Want minimal human intervention</li>
+</ul>
 <h3 id="example-usage">Example Usage<a class="headerlink" href="#example-usage" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Start streaming converter daemon</span>
 python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.conversion.streaming.streaming_converter<span class="w"> </span><span class="se">\</span>
@@ -1300,7 +1311,8 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.conversio
 <hr/>
 <h2 id="mosaic-orchestrator">Mosaic Orchestrator<a class="headerlink" href="#mosaic-orchestrator" title="Permanent link">¶</a></h2>
 <h3 id="purpose_1">Purpose<a class="headerlink" href="#purpose_1" title="Permanent link">¶</a></h3>
-<p><strong>Goal-driven workflow coordination</strong> - orchestrates complete end-to-end pipeline from HDF5 to published mosaic.</p>
+<p><strong>Goal-driven workflow coordination</strong> - orchestrates complete end-to-end
+pipeline from HDF5 to published mosaic.</p>
 <h3 id="architecture_1">Architecture<a class="headerlink" href="#architecture_1" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>Type:</strong> On-demand workflow coordinator</li>
@@ -1309,7 +1321,7 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.conversio
 <li><strong>Scope:</strong> Complete mosaic creation workflow</li>
 </ul>
 <h3 id="key-characteristics_1">Key Characteristics<a class="headerlink" href="#key-characteristics_1" title="Permanent link">¶</a></h3>
-<p><strong>1. Goal-Driven Operation</strong>
+<p><strong>1. Goal-Driven Operation</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># User specifies goal: "Create mosaic centered on calibrator 0834+555"</span>
 <span class="c1"># Orchestrator:</span>
 <span class="c1">#   1. Finds transit window</span>
@@ -1320,29 +1332,40 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.conversio
 <span class="c1">#   6. Images all MS files</span>
 <span class="c1">#   7. Creates mosaic</span>
 <span class="c1">#   8. Validates and publishes</span>
-</code></pre></div></p>
-<p><strong>2. Intelligent Coordination</strong>
-- <strong>Auto-inference:</strong> Dec from data → BP calibrator → validity windows → skymodels
-- <strong>Transit Discovery:</strong> Automatically finds calibrator transit times
-- <strong>Workflow Management:</strong> Coordinates multiple pipeline stages
-- <strong>State Tracking:</strong> Manages group formation, calibration, imaging, mosaic creation</p>
-<p><strong>3. Complete Scope</strong>
-- <strong>Primary Function:</strong> End-to-end mosaic creation
-- <strong>Includes:</strong> Conversion (if needed), calibration solving, imaging, mosaic creation, QA, publishing
-- <strong>Hands-off Operation:</strong> Single trigger → wait until published</p>
+</code></pre></div>
+<p><strong>2. Intelligent Coordination</strong></p>
+<ul>
+<li><strong>Auto-inference:</strong> Dec from data → BP calibrator → validity windows →
+  skymodels</li>
+<li><strong>Transit Discovery:</strong> Automatically finds calibrator transit times</li>
+<li><strong>Workflow Management:</strong> Coordinates multiple pipeline stages</li>
+<li><strong>State Tracking:</strong> Manages group formation, calibration, imaging, mosaic
+  creation</li>
+</ul>
+<p><strong>3. Complete Scope</strong></p>
+<ul>
+<li><strong>Primary Function:</strong> End-to-end mosaic creation</li>
+<li><strong>Includes:</strong> Conversion (if needed), calibration solving, imaging, mosaic
+  creation, QA, publishing</li>
+<li><strong>Hands-off Operation:</strong> Single trigger → wait until published</li>
+</ul>
 <h3 id="code-location_1">Code Location<a class="headerlink" href="#code-location_1" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>File:</strong> <code>src/dsa110_contimg/mosaic/orchestrator.py</code></li>
-<li><strong>Manager:</strong> <code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code> (StreamingMosaicManager)</li>
+<li><strong>Manager:</strong> <code>src/dsa110_contimg/mosaic/streaming_mosaic.py</code>
+  (StreamingMosaicManager)</li>
 <li><strong>Entry Point:</strong> <code>scripts/create_mosaic_centered.py</code> (example script)</li>
-<li><strong>Database:</strong> <code>state/products.sqlite3</code>, <code>state/cal_registry.sqlite3</code>, <code>state/data_registry.sqlite3</code></li>
+<li><strong>Database:</strong> <code>state/products.sqlite3</code>, <code>state/cal_registry.sqlite3</code>,
+  <code>state/data_registry.sqlite3</code></li>
 </ul>
 <h3 id="use-case_1">Use Case<a class="headerlink" href="#use-case_1" title="Permanent link">¶</a></h3>
-<p><strong>When to use:</strong> On-demand mosaic creation for science analysis
-- Need a complete mosaic for a specific time window
-- Want to process historical data
-- Need coordinated group processing (10 MS files → 1 mosaic)
-- Want full automation with minimal user input</p>
+<p><strong>When to use:</strong> On-demand mosaic creation for science analysis</p>
+<ul>
+<li>Need a complete mosaic for a specific time window</li>
+<li>Want to process historical data</li>
+<li>Need coordinated group processing (10 MS files → 1 mosaic)</li>
+<li>Want full automation with minimal user input</li>
+</ul>
 <h3 id="example-usage_1">Example Usage<a class="headerlink" href="#example-usage_1" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Create mosaic centered on calibrator transit</span>
 python<span class="w"> </span>scripts/create_mosaic_centered.py<span class="w"> </span><span class="se">\</span>
@@ -1426,14 +1449,18 @@ python<span class="w"> </span>scripts/create_mosaic_centered.py<span class="w"> 
 <hr/>
 <h2 id="relationship-between-them">Relationship Between Them<a class="headerlink" href="#relationship-between-them" title="Permanent link">¶</a></h2>
 <h3 id="complementary-roles">Complementary Roles<a class="headerlink" href="#complementary-roles" title="Permanent link">¶</a></h3>
-<p><strong>Streaming Converter:</strong>
-- Handles <strong>real-time data ingestion</strong> during observations
-- Processes files as they arrive
-- Provides <strong>foundation</strong> (MS files) for downstream processing</p>
-<p><strong>Mosaic Orchestrator:</strong>
-- Uses <strong>existing MS files</strong> (from streaming converter or batch conversion)
-- Coordinates <strong>complete workflows</strong> for science products
-- Provides <strong>end-to-end automation</strong> for mosaic creation</p>
+<p><strong>Streaming Converter:</strong></p>
+<ul>
+<li>Handles <strong>real-time data ingestion</strong> during observations</li>
+<li>Processes files as they arrive</li>
+<li>Provides <strong>foundation</strong> (MS files) for downstream processing</li>
+</ul>
+<p><strong>Mosaic Orchestrator:</strong></p>
+<ul>
+<li>Uses <strong>existing MS files</strong> (from streaming converter or batch conversion)</li>
+<li>Coordinates <strong>complete workflows</strong> for science products</li>
+<li>Provides <strong>end-to-end automation</strong> for mosaic creation</li>
+</ul>
 <h3 id="workflow-integration">Workflow Integration<a class="headerlink" href="#workflow-integration" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
 │                    Observation Period                        │
@@ -1468,20 +1495,27 @@ python<span class="w"> </span>scripts/create_mosaic_centered.py<span class="w"> 
 </ol>
 <hr/>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
-<p><strong>Streaming Converter:</strong>
-- <strong>What:</strong> Autonomous daemon for real-time data ingestion
-- <strong>When:</strong> During observations (continuous operation)
-- <strong>How:</strong> Reactive (responds to file arrivals)
-- <strong>Output:</strong> Individual MS files (and optionally images)</p>
-<p><strong>Mosaic Orchestrator:</strong>
-- <strong>What:</strong> Goal-driven workflow coordinator
-- <strong>When:</strong> On-demand for science analysis
-- <strong>How:</strong> Proactive (coordinates complete workflows)
-- <strong>Output:</strong> Published science-ready mosaics</p>
-<p><strong>Key Insight:</strong> They serve different purposes in the pipeline lifecycle:
-- <strong>Streaming Converter</strong> = Data ingestion layer (foundation)
-- <strong>Mosaic Orchestrator</strong> = Science product layer (analysis)</p>
-<p>Both are needed for a complete pipeline, but they operate at different levels and serve different use cases.</p>
+<p><strong>Streaming Converter:</strong></p>
+<ul>
+<li><strong>What:</strong> Autonomous daemon for real-time data ingestion</li>
+<li><strong>When:</strong> During observations (continuous operation)</li>
+<li><strong>How:</strong> Reactive (responds to file arrivals)</li>
+<li><strong>Output:</strong> Individual MS files (and optionally images)</li>
+</ul>
+<p><strong>Mosaic Orchestrator:</strong></p>
+<ul>
+<li><strong>What:</strong> Goal-driven workflow coordinator</li>
+<li><strong>When:</strong> On-demand for science analysis</li>
+<li><strong>How:</strong> Proactive (coordinates complete workflows)</li>
+<li><strong>Output:</strong> Published science-ready mosaics</li>
+</ul>
+<p><strong>Key Insight:</strong> They serve different purposes in the pipeline lifecycle:</p>
+<ul>
+<li><strong>Streaming Converter</strong> = Data ingestion layer (foundation)</li>
+<li><strong>Mosaic Orchestrator</strong> = Science product layer (analysis)</li>
+</ul>
+<p>Both are needed for a complete pipeline, but they operate at different levels
+and serve different use cases.</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1506,7 +1540,7 @@ python<span class="w"> </span>scripts/create_mosaic_centered.py<span class="w"> 
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

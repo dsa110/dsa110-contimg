@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1516,8 +1518,11 @@
 <article class="md-content__inner md-typeset">
 <h1 id="ese-detection-improvements-implementation-phases">ESE Detection Improvements - Implementation Phases<a class="headerlink" href="#ese-detection-improvements-implementation-phases" title="Permanent link">¶</a></h1>
 <h2 id="date-2025-11-12">Date: 2025-11-12<a class="headerlink" href="#date-2025-11-12" title="Permanent link">¶</a></h2>
-<p>This document divides the comprehensive ESE detection improvements into logical implementation phases. Each phase builds upon previous phases and can be implemented independently.</p>
-<p><strong>Reference</strong>: See <code>ese_detection_comprehensive_improvements.md</code> for detailed technical specifications.</p>
+<p>This document divides the comprehensive ESE detection improvements into logical
+implementation phases. Each phase builds upon previous phases and can be
+implemented independently.</p>
+<p><strong>Reference</strong>: See <code>ese_detection_comprehensive_improvements.md</code> for detailed
+technical specifications.</p>
 <hr/>
 <h2 id="phase-overview">Phase Overview<a class="headerlink" href="#phase-overview" title="Permanent link">¶</a></h2>
 <table>
@@ -1567,7 +1572,8 @@
 <h3 id="before-starting-any-task">Before Starting Any Task<a class="headerlink" href="#before-starting-any-task" title="Permanent link">¶</a></h3>
 <ol>
 <li><strong>Read the Comprehensive Specification</strong></li>
-<li>Review <code>ese_detection_comprehensive_improvements.md</code> for detailed technical specifications</li>
+<li>Review <code>ese_detection_comprehensive_improvements.md</code> for detailed technical
+     specifications</li>
 <li>Understand the scientific rationale and mathematical definitions</li>
 <li>
 <p>Review existing code to understand current implementation</p>
@@ -1575,10 +1581,13 @@
 <li>
 <p><strong>Set Up Development Environment</strong></p>
 </li>
-<li>Ensure <code>casa6</code> Python environment is active: <code>/opt/miniforge/envs/casa6/bin/python</code></li>
-<li>Verify all dependencies installed: <code>pip list | grep -E "(numpy|pandas|astropy|sqlite3)"</code></li>
+<li>Ensure <code>casa6</code> Python environment is active:
+     <code>/opt/miniforge/envs/casa6/bin/python</code></li>
+<li>Verify all dependencies installed:
+     <code>pip list | grep -E "(numpy|pandas|astropy|sqlite3)"</code></li>
 <li>
-<p>Run existing tests to ensure baseline: <code>/opt/miniforge/envs/casa6/bin/python -m pytest tests/unit/photometry/ -v</code></p>
+<p>Run existing tests to ensure baseline:
+     <code>/opt/miniforge/envs/casa6/bin/python -m pytest tests/unit/photometry/ -v</code></p>
 </li>
 <li>
 <p><strong>Create Feature Branch</strong></p>
@@ -1620,19 +1629,25 @@
 <h3 id="code-quality-standards">Code Quality Standards<a class="headerlink" href="#code-quality-standards" title="Permanent link">¶</a></h3>
 <ol>
 <li><strong>Type Hints</strong>: All functions must have complete type hints</li>
-<li><strong>Docstrings</strong>: Use Google-style docstrings with Args, Returns, Raises, Examples</li>
+<li><strong>Docstrings</strong>: Use Google-style docstrings with Args, Returns, Raises,
+   Examples</li>
 <li><strong>Error Handling</strong>: Use specific exceptions, informative error messages</li>
 <li><strong>Testing</strong>: Aim for 100% coverage for new code, &gt;90% for modified code</li>
-<li><strong>Style</strong>: Follow existing codebase style (use <code>black</code> formatter if available)</li>
+<li><strong>Style</strong>: Follow existing codebase style (use <code>black</code> formatter if
+   available)</li>
 </ol>
 <h3 id="unit-and-smoke-testing-strategy">Unit and Smoke Testing Strategy<a class="headerlink" href="#unit-and-smoke-testing-strategy" title="Permanent link">¶</a></h3>
-<p><strong>Objective</strong>: Develop comprehensive unit and smoke tests with emphasis on speed and efficiency.</p>
-<p><strong>Principles</strong>:
-- <strong>Speed</strong>: Unit tests should complete in &lt; 1 second each, full suite in &lt; 30 seconds
-- <strong>Isolation</strong>: Each test is independent, no shared state
-- <strong>Targeted</strong>: Tests validate specific functionality, not integration
-- <strong>Fast Failure</strong>: Detect and report failures immediately
-- <strong>Minimal Overhead</strong>: Use mocks/fixtures instead of real I/O when possible</p>
+<p><strong>Objective</strong>: Develop comprehensive unit and smoke tests with emphasis on speed
+and efficiency.</p>
+<p><strong>Principles</strong>:</p>
+<ul>
+<li><strong>Speed</strong>: Unit tests should complete in &lt; 1 second each, full suite in &lt; 30
+  seconds</li>
+<li><strong>Isolation</strong>: Each test is independent, no shared state</li>
+<li><strong>Targeted</strong>: Tests validate specific functionality, not integration</li>
+<li><strong>Fast Failure</strong>: Detect and report failures immediately</li>
+<li><strong>Minimal Overhead</strong>: Use mocks/fixtures instead of real I/O when possible</li>
+</ul>
 <p><strong>Test Categories</strong>:</p>
 <ol>
 <li><strong>Unit Tests</strong> (<code>tests/unit/</code>):</li>
@@ -1650,14 +1665,16 @@
 <li>Verify system works at basic level</li>
 <li>Fast execution (&lt; 5 seconds per test)</li>
 </ol>
-<p><strong>Test Checklist</strong> (for each new feature):
-- [ ] Unit tests for core functionality (3-7 test cases)
-- [ ] Unit tests for edge cases (empty input, None values, boundary conditions)
-- [ ] Unit tests for error handling (invalid input, exceptions)
-- [ ] Smoke test for critical path (end-to-end basic flow)
-- [ ] All tests pass independently
-- [ ] Test execution time &lt; 30 seconds total
-- [ ] Coverage &gt; 95% for new code</p>
+<p><strong>Test Checklist</strong> (for each new feature):</p>
+<ul>
+<li>[ ] Unit tests for core functionality (3-7 test cases)</li>
+<li>[ ] Unit tests for edge cases (empty input, None values, boundary conditions)</li>
+<li>[ ] Unit tests for error handling (invalid input, exceptions)</li>
+<li>[ ] Smoke test for critical path (end-to-end basic flow)</li>
+<li>[ ] All tests pass independently</li>
+<li>[ ] Test execution time &lt; 30 seconds total</li>
+<li>[ ] Coverage &gt; 95% for new code</li>
+</ul>
 <p><strong>Test Design Guidelines</strong>:</p>
 <ol>
 <li><strong>Before Writing Tests</strong>:</li>
@@ -1668,17 +1685,17 @@
 <p>Consider what to mock (database, file I/O, external APIs)</p>
 </li>
 <li>
-<p><strong>Test Structure</strong>:
-   <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_feature_name</span><span class="p">():</span>
+<p><strong>Test Structure</strong>:</p>
+</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_feature_name</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">"""Test description - what it validates."""</span>
     <span class="c1"># Arrange: Set up test data</span>
     <span class="c1"># Act: Execute function</span>
     <span class="c1"># Assert: Verify results</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Error Handling in Tests</strong>:</p>
-</li>
+</code></pre></div>
+<ol>
+<li><strong>Error Handling in Tests</strong>:</li>
 <li>Use <code>pytest.raises()</code> for expected exceptions</li>
 <li>Verify exception messages are informative</li>
 <li>
@@ -1692,11 +1709,13 @@
 <li>Check coverage: <code>pytest --cov=module --cov-report=term-missing</code></li>
 <li>Fix any failures immediately</li>
 </ol>
-<p><strong>Performance Targets</strong>:
-- Unit test: &lt; 100ms per test
-- Smoke test: &lt; 5 seconds per test
-- Full unit suite: &lt; 30 seconds
-- Full smoke suite: &lt; 2 minutes</p>
+<p><strong>Performance Targets</strong>:</p>
+<ul>
+<li>Unit test: &lt; 100ms per test</li>
+<li>Smoke test: &lt; 5 seconds per test</li>
+<li>Full unit suite: &lt; 30 seconds</li>
+<li>Full smoke suite: &lt; 2 minutes</li>
+</ul>
 <h3 id="verification-checklist-before-pr">Verification Checklist (Before PR)<a class="headerlink" href="#verification-checklist-before-pr" title="Permanent link">¶</a></h3>
 <ul>
 <li>[ ] <strong>Unit Tests</strong>:</li>
@@ -1708,7 +1727,8 @@
 <li>[ ] Smoke tests complete in &lt; 2 minutes total</li>
 <li>[ ] Individual smoke tests &lt; 5 seconds each</li>
 <li>[ ] <strong>Test Coverage</strong>:</li>
-<li>[ ] Coverage meets requirements: <code>pytest --cov=... --cov-report=term-missing</code></li>
+<li>[ ] Coverage meets requirements:
+        <code>pytest --cov=... --cov-report=term-missing</code></li>
 <li>[ ] New code coverage &gt; 95%</li>
 <li>[ ] Modified code coverage &gt; 90%</li>
 <li>[ ] <strong>Fast Failure</strong>:</li>
@@ -1723,7 +1743,8 @@
 </ul>
 <h3 id="common-pitfalls-to-avoid">Common Pitfalls to Avoid<a class="headerlink" href="#common-pitfalls-to-avoid" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong>Modifying Multiple Files Simultaneously</strong>: Make one logical change at a time</li>
+<li><strong>Modifying Multiple Files Simultaneously</strong>: Make one logical change at a
+   time</li>
 <li><strong>Skipping Tests</strong>: Always write tests, even for "simple" changes</li>
 <li><strong>Ignoring Edge Cases</strong>: Edge cases are where bugs hide</li>
 <li><strong>Breaking Backward Compatibility</strong>: Ensure existing APIs still work</li>
@@ -1744,19 +1765,23 @@
 <h3 id="tasks">Tasks<a class="headerlink" href="#tasks" title="Permanent link">¶</a></h3>
 <h4 id="11-extract-shared-sigma-deviation-function">1.1 Extract Shared Sigma Deviation Function<a class="headerlink" href="#11-extract-shared-sigma-deviation-function" title="Permanent link">¶</a></h4>
 <p><strong>Effort</strong>: 2-3 days<br/>
-<strong>File Locations</strong>:
-- Implementation: <code>src/dsa110_contimg/photometry/variability.py</code>
-- Tests: <code>tests/unit/photometry/test_variability.py</code>
-- Integration points:
-  - <code>src/dsa110_contimg/photometry/ese_pipeline.py</code> (line ~150-200)
-  - <code>src/dsa110_contimg/photometry/ese_detection.py</code> (line ~200-250)</p>
+<strong>File Locations</strong>:</p>
+<ul>
+<li>Implementation: <code>src/dsa110_contimg/photometry/variability.py</code></li>
+<li>Tests: <code>tests/unit/photometry/test_variability.py</code></li>
+<li>Integration points:</li>
+<li><code>src/dsa110_contimg/photometry/ese_pipeline.py</code> (line ~150-200)</li>
+<li><code>src/dsa110_contimg/photometry/ese_detection.py</code> (line ~200-250)</li>
+</ul>
 <p><strong>Task Breakdown</strong>:</p>
 <ol>
 <li><strong>Create Function Signature</strong> (30 min)</li>
 <li>[ ] Add function to <code>src/dsa110_contimg/photometry/variability.py</code></li>
-<li>[ ] Function signature: <code>def calculate_sigma_deviation(fluxes: np.ndarray, mean_flux: Optional[float] = None, std_flux: Optional[float] = None) -&gt; float:</code></li>
+<li>[ ] Function signature:
+         <code>def calculate_sigma_deviation(fluxes: np.ndarray, mean_flux: Optional[float] = None, std_flux: Optional[float] = None) -&gt; float:</code></li>
 <li>
-<p>[ ] Reference implementation: See <code>ese_detection_comprehensive_improvements.md</code> Section 1.1</p>
+<p>[ ] Reference implementation: See
+         <code>ese_detection_comprehensive_improvements.md</code> Section 1.1</p>
 </li>
 <li>
 <p><strong>Implement Core Logic</strong> (2 hours)</p>
@@ -1767,10 +1792,12 @@
 <li>[ ] Minimum 2 measurements required (return 0.0 if &lt; 2)</li>
 </ul>
 </li>
-<li>[ ] Calculate mean/std if not provided (use <code>np.mean</code>, <code>np.std</code> with <code>ddof=1</code>)</li>
+<li>[ ] Calculate mean/std if not provided (use <code>np.mean</code>, <code>np.std</code> with
+         <code>ddof=1</code>)</li>
 <li>[ ] Handle zero variance case (return 0.0)</li>
 <li>
-<p>[ ] Calculate max deviation: <code>max(abs(max_flux - mean_flux), abs(min_flux - mean_flux)) / std_flux</code></p>
+<p>[ ] Calculate max deviation:
+         <code>max(abs(max_flux - mean_flux), abs(min_flux - mean_flux)) / std_flux</code></p>
 </li>
 <li>
 <p><strong>Add Documentation</strong> (1 hour)</p>
@@ -1778,7 +1805,8 @@
 <li>
 <p>[ ] Docstring includes:</p>
 <ul>
-<li>[ ] Mathematical definition: <code>σ_dev = max(|max(flux) - μ|, |min(flux) - μ|) / σ</code></li>
+<li>[ ] Mathematical definition:
+       <code>σ_dev = max(|max(flux) - μ|, |min(flux) - μ|) / σ</code></li>
 <li>[ ] Parameter descriptions with types</li>
 <li>[ ] Return value description</li>
 <li>[ ] Edge case behavior (empty, NaN, zero variance)</li>
@@ -1855,8 +1883,10 @@
 <p><strong>Update Integration Points</strong> (2 hours)</p>
 </li>
 <li>[ ] Update <code>ese_pipeline.py</code>:<ul>
-<li>[ ] Find inline sigma deviation calculation (search for <code>sigma_deviation =</code>)</li>
-<li>[ ] Replace with: <code>from dsa110_contimg.photometry.variability import calculate_sigma_deviation</code></li>
+<li>[ ] Find inline sigma deviation calculation (search for
+       <code>sigma_deviation =</code>)</li>
+<li>[ ] Replace with:
+       <code>from dsa110_contimg.photometry.variability import calculate_sigma_deviation</code></li>
 <li>[ ] Replace calculation with function call</li>
 <li>[ ] Verify no other sigma deviation calculations remain</li>
 </ul>
@@ -1873,13 +1903,16 @@
 <p><strong>Verification Steps</strong> (1 hour)</p>
 </li>
 <li>[ ] <strong>Run Unit Tests</strong>:<ul>
-<li>[ ] Run new unit tests: <code>/opt/miniforge/envs/casa6/bin/python -m pytest tests/unit/photometry/test_variability.py::TestCalculateSigmaDeviation -v --tb=short</code></li>
-<li>[ ] Verify execution time: <code>pytest tests/unit/photometry/test_variability.py::TestCalculateSigmaDeviation --durations=0</code></li>
+<li>[ ] Run new unit tests:
+       <code>/opt/miniforge/envs/casa6/bin/python -m pytest tests/unit/photometry/test_variability.py::TestCalculateSigmaDeviation -v --tb=short</code></li>
+<li>[ ] Verify execution time:
+       <code>pytest tests/unit/photometry/test_variability.py::TestCalculateSigmaDeviation --durations=0</code></li>
 <li>[ ] All tests should complete in &lt; 100ms total</li>
 </ul>
 </li>
 <li>[ ] <strong>Run Smoke Test</strong>:<ul>
-<li>[ ] Run smoke test: <code>/opt/miniforge/envs/casa6/bin/python -m pytest tests/unit/photometry/test_variability.py::test_sigma_deviation_smoke -v</code></li>
+<li>[ ] Run smoke test:
+       <code>/opt/miniforge/envs/casa6/bin/python -m pytest tests/unit/photometry/test_variability.py::test_sigma_deviation_smoke -v</code></li>
 <li>[ ] Verify smoke test completes in &lt; 100ms</li>
 </ul>
 </li>
@@ -1894,19 +1927,25 @@
 </ul>
 </li>
 <li>[ ] <strong>Manual Verification</strong>:<ul>
-<li>[ ] Test with known values: <code>fluxes = [1.0, 2.0, 3.0, 4.0, 5.0]</code> → expected ≈ 1.414</li>
+<li>[ ] Test with known values: <code>fluxes = [1.0, 2.0, 3.0, 4.0, 5.0]</code> →
+       expected ≈ 1.414</li>
 <li>[ ] Test with zero variance: <code>fluxes = [1.0, 1.0, 1.0]</code> → expected 0.0</li>
 </ul>
 </li>
 <li>[ ] <strong>Code Quality Checks</strong>:<ul>
-<li>[ ] Check code duplication: <code>grep -r "sigma_deviation.*=" src/dsa110_contimg/photometry/</code> should only show function definition</li>
-<li>[ ] Check for inline calculations: <code>grep -r "abs.*max_flux.*mean_flux" src/dsa110_contimg/photometry/</code> should only show function definition</li>
+<li>[ ] Check code duplication:
+       <code>grep -r "sigma_deviation.*=" src/dsa110_contimg/photometry/</code> should
+       only show function definition</li>
+<li>[ ] Check for inline calculations:
+       <code>grep -r "abs.*max_flux.*mean_flux" src/dsa110_contimg/photometry/</code>
+       should only show function definition</li>
 </ul>
 </li>
 <li>
 <p>[ ] <strong>Fast Failure Validation</strong>:</p>
 <ul>
-<li>[ ] Run tests with <code>-x</code> flag to stop on first failure: <code>pytest tests/unit/photometry/test_variability.py -x</code></li>
+<li>[ ] Run tests with <code>-x</code> flag to stop on first failure:
+       <code>pytest tests/unit/photometry/test_variability.py -x</code></li>
 <li>[ ] Verify immediate failure detection</li>
 </ul>
 </li>
@@ -1914,45 +1953,64 @@
 <p><strong>Update Documentation</strong> (30 min)</p>
 </li>
 <li>[ ] Add function to API documentation if applicable</li>
-<li>[ ] Update <code>ese_detection_architecture.md</code> if it references sigma deviation calculation</li>
+<li>[ ] Update <code>ese_detection_architecture.md</code> if it references sigma deviation
+         calculation</li>
 <li>[ ] Add note in CHANGELOG or implementation summary</li>
 </ol>
-<p><strong>Deliverables Checklist</strong>:
-- [ ] Function implemented in <code>src/dsa110_contimg/photometry/variability.py</code>
-- [ ] Tests in <code>tests/unit/photometry/test_variability.py</code> (8+ test cases)
-- [ ] <code>ese_pipeline.py</code> updated (no inline calculations)
-- [ ] <code>ese_detection.py</code> updated (no inline calculations)
-- [ ] All tests passing (existing + new)
-- [ ] Code review completed
-- [ ] Documentation updated</p>
-<p><strong>Acceptance Criteria</strong> (All Must Pass):
-- [ ] <strong>Single Source of Truth</strong>: <code>grep -r "sigma_deviation.*=" src/dsa110_contimg/photometry/</code> returns only function definition
-- [ ] <strong>Test Coverage</strong>: <code>pytest --cov=dsa110_contimg/photometry/variability --cov-report=term-missing</code> shows 100% coverage for <code>calculate_sigma_deviation</code>
-- [ ] <strong>Existing Tests Pass</strong>: All existing tests in <code>tests/unit/photometry/</code> pass without modification
-- [ ] <strong>Edge Cases Covered</strong>: Tests cover empty array, NaN, zero variance, single measurement, negative values
-- [ ] <strong>Mathematical Correctness</strong>: Manual calculation matches function output for known test cases
-- [ ] <strong>No Regressions</strong>: ESE detection produces identical results before/after refactoring (run detection on test database)</p>
-<p><strong>Code Review Checklist</strong>:
-- [ ] Function signature matches specification
-- [ ] Input validation handles all edge cases
-- [ ] Docstring is complete and accurate
-- [ ] Tests cover all edge cases
-- [ ] Integration points updated correctly
-- [ ] No code duplication remains
-- [ ] Type hints are correct
-- [ ] Error messages are informative</p>
-<p><strong>Rollback Procedure</strong> (If Issues Found):
-1. Revert changes to <code>variability.py</code>
-2. Revert changes to <code>ese_pipeline.py</code> and <code>ese_detection.py</code>
-3. Run tests to verify original behavior restored
-4. Document issues found for next attempt</p>
+<p><strong>Deliverables Checklist</strong>:</p>
+<ul>
+<li>[ ] Function implemented in <code>src/dsa110_contimg/photometry/variability.py</code></li>
+<li>[ ] Tests in <code>tests/unit/photometry/test_variability.py</code> (8+ test cases)</li>
+<li>[ ] <code>ese_pipeline.py</code> updated (no inline calculations)</li>
+<li>[ ] <code>ese_detection.py</code> updated (no inline calculations)</li>
+<li>[ ] All tests passing (existing + new)</li>
+<li>[ ] Code review completed</li>
+<li>[ ] Documentation updated</li>
+</ul>
+<p><strong>Acceptance Criteria</strong> (All Must Pass):</p>
+<ul>
+<li>[ ] <strong>Single Source of Truth</strong>:
+      <code>grep -r "sigma_deviation.*=" src/dsa110_contimg/photometry/</code> returns only
+      function definition</li>
+<li>[ ] <strong>Test Coverage</strong>:
+      <code>pytest --cov=dsa110_contimg/photometry/variability --cov-report=term-missing</code>
+      shows 100% coverage for <code>calculate_sigma_deviation</code></li>
+<li>[ ] <strong>Existing Tests Pass</strong>: All existing tests in <code>tests/unit/photometry/</code>
+      pass without modification</li>
+<li>[ ] <strong>Edge Cases Covered</strong>: Tests cover empty array, NaN, zero variance,
+      single measurement, negative values</li>
+<li>[ ] <strong>Mathematical Correctness</strong>: Manual calculation matches function output
+      for known test cases</li>
+<li>[ ] <strong>No Regressions</strong>: ESE detection produces identical results before/after
+      refactoring (run detection on test database)</li>
+</ul>
+<p><strong>Code Review Checklist</strong>:</p>
+<ul>
+<li>[ ] Function signature matches specification</li>
+<li>[ ] Input validation handles all edge cases</li>
+<li>[ ] Docstring is complete and accurate</li>
+<li>[ ] Tests cover all edge cases</li>
+<li>[ ] Integration points updated correctly</li>
+<li>[ ] No code duplication remains</li>
+<li>[ ] Type hints are correct</li>
+<li>[ ] Error messages are informative</li>
+</ul>
+<p><strong>Rollback Procedure</strong> (If Issues Found):</p>
+<ol>
+<li>Revert changes to <code>variability.py</code></li>
+<li>Revert changes to <code>ese_pipeline.py</code> and <code>ese_detection.py</code></li>
+<li>Run tests to verify original behavior restored</li>
+<li>Document issues found for next attempt</li>
+</ol>
 <h4 id="12-comprehensive-validation-test-suite">1.2 Comprehensive Validation Test Suite<a class="headerlink" href="#12-comprehensive-validation-test-suite" title="Permanent link">¶</a></h4>
 <p><strong>Effort</strong>: 3-4 days<br/>
-<strong>File Locations</strong>:
-- Test suite: <code>tests/unit/photometry/test_ese_validation.py</code>
-- Test fixtures: <code>tests/conftest.py</code>
-- Test utilities: <code>tests/utils/test_helpers.py</code> (create if doesn't exist)
-- Reference data: <code>tests/data/test_photometry/</code> (create if needed)</p>
+<strong>File Locations</strong>:</p>
+<ul>
+<li>Test suite: <code>tests/unit/photometry/test_ese_validation.py</code></li>
+<li>Test fixtures: <code>tests/conftest.py</code></li>
+<li>Test utilities: <code>tests/utils/test_helpers.py</code> (create if doesn't exist)</li>
+<li>Reference data: <code>tests/data/test_photometry/</code> (create if needed)</li>
+</ul>
 <p><strong>Task Breakdown</strong>:</p>
 <ol>
 <li><strong>Create Test Infrastructure</strong> (4 hours)</li>
@@ -1970,7 +2028,8 @@
 </ul>
 </li>
 <li>
-<p>[ ] Reference: See <code>ese_detection_comprehensive_improvements.md</code> Section 1.2</p>
+<p>[ ] Reference: See <code>ese_detection_comprehensive_improvements.md</code> Section
+         1.2</p>
 </li>
 <li>
 <p><strong>Unit Tests for Variability Metrics</strong> (6-8 hours)</p>
@@ -2001,9 +2060,12 @@
 </ul>
 </li>
 <li>[ ] <strong>Eta metric tests</strong>:<ul>
-<li>[ ] <code>test_eta_metric_against_vast_tools()</code> - Compare with VAST Tools reference</li>
-<li>[ ] No variability: <code>fluxes = [1.0, 1.0, 1.0]</code>, <code>errors = [0.1, 0.1, 0.1]</code> → <code>eta ≈ 0.0</code></li>
-<li>[ ] Variability: <code>fluxes = [1.0, 2.0, 3.0]</code>, <code>errors = [0.1, 0.1, 0.1]</code> → <code>eta ≈ 0.6667</code></li>
+<li>[ ] <code>test_eta_metric_against_vast_tools()</code> - Compare with VAST Tools
+       reference</li>
+<li>[ ] No variability: <code>fluxes = [1.0, 1.0, 1.0]</code>,
+         <code>errors = [0.1, 0.1, 0.1]</code> → <code>eta ≈ 0.0</code></li>
+<li>[ ] Variability: <code>fluxes = [1.0, 2.0, 3.0]</code>, <code>errors = [0.1, 0.1, 0.1]</code>
+         → <code>eta ≈ 0.6667</code></li>
 <li>[ ] Tolerance: <code>abs(calculated - expected) &lt; 0.01</code></li>
 <li>[ ] Execution time: &lt; 20ms</li>
 <li>[ ] <code>test_eta_metric_edge_cases()</code> - Edge cases</li>
@@ -2045,9 +2107,11 @@
 <li>[ ] <strong>End-to-end smoke test</strong>:<ul>
 <li>[ ] <code>test_end_to_end_detection_smoke()</code>:</li>
 <li>[ ] Create test database (in-memory or temp file)</li>
-<li>[ ] Add photometry with known ESE pattern: <code>fluxes = [1.0, 1.1, 1.2, 1.3, 5.0]</code> (large jump)</li>
+<li>[ ] Add photometry with known ESE pattern:
+         <code>fluxes = [1.0, 1.1, 1.2, 1.3, 5.0]</code> (large jump)</li>
 <li>[ ] Run <code>detect_ese_candidates(db_path, min_sigma=3.0)</code></li>
-<li>[ ] Verify: 1 candidate found, <code>source_id == "TEST001"</code>, <code>significance &gt; 3.0</code></li>
+<li>[ ] Verify: 1 candidate found, <code>source_id == "TEST001"</code>,
+         <code>significance &gt; 3.0</code></li>
 <li>[ ] Execution time: &lt; 1 second</li>
 </ul>
 </li>
@@ -2070,12 +2134,14 @@
 <li>[ ] Test class: <code>TestEdgeCases</code></li>
 <li>[ ] <strong>Single measurement</strong>: <code>test_single_measurement()</code><ul>
 <li>[ ] Input: <code>fluxes = [1.0]</code>, <code>errors = [0.1]</code></li>
-<li>[ ] Expected: Handles gracefully, no candidates (need multiple measurements)</li>
+<li>[ ] Expected: Handles gracefully, no candidates (need multiple
+       measurements)</li>
 <li>[ ] Verify: No exceptions raised, returns empty list</li>
 </ul>
 </li>
 <li>[ ] <strong>Zero variance</strong>: <code>test_zero_variance()</code><ul>
-<li>[ ] Input: <code>fluxes = [1.0, 1.0, 1.0, 1.0]</code>, <code>errors = [0.1, 0.1, 0.1, 0.1]</code></li>
+<li>[ ] Input: <code>fluxes = [1.0, 1.0, 1.0, 1.0]</code>,
+       <code>errors = [0.1, 0.1, 0.1, 0.1]</code></li>
 <li>[ ] Expected: No detection (no variability)</li>
 <li>[ ] Verify: <code>len(candidates) == 0</code></li>
 </ul>
@@ -2117,7 +2183,8 @@
 <li>[ ] Add measurements incrementally</li>
 <li>[ ] Measure time for each update</li>
 <li>[ ] Expected: Only affected sources recomputed</li>
-<li>[ ] Verify: Update time scales with number of new measurements, not total sources</li>
+<li>[ ] Verify: Update time scales with number of new measurements, not total
+       sources</li>
 </ul>
 </li>
 <li>
@@ -2127,30 +2194,44 @@
 <li>[ ] Add comments explaining test cases</li>
 <li>[ ] Document expected behaviors for edge cases</li>
 </ol>
-<p><strong>Deliverables Checklist</strong>:
-- [ ] <code>tests/utils/test_helpers.py</code> created with helper functions
-- [ ] <code>tests/conftest.py</code> updated with fixtures
-- [ ] <code>tests/unit/photometry/test_ese_validation.py</code> created with all test classes
-- [ ] All tests passing: <code>/opt/miniforge/envs/casa6/bin/python -m pytest tests/unit/photometry/test_ese_validation.py -v</code>
-- [ ] Test coverage report: <code>pytest --cov=dsa110_contimg/photometry --cov-report=html</code>
-- [ ] Test documentation complete</p>
-<p><strong>Acceptance Criteria</strong> (All Must Pass):
-- [ ] <strong>Test Coverage</strong>: <code>pytest --cov=dsa110_contimg/photometry --cov-report=term-missing</code> shows &gt; 90% coverage for variability calculations
-- [ ] <strong>All Tests Pass</strong>: All tests in <code>test_ese_validation.py</code> pass
-- [ ] <strong>Edge Cases</strong>: All edge cases handled gracefully (no crashes, appropriate behavior)
-- [ ] <strong>Performance</strong>: Large source count test completes in &lt; 60 seconds
-- [ ] <strong>Documentation</strong>: Tests serve as executable documentation (clear names, docstrings, comments)
-- [ ] <strong>Consistency</strong>: Automatic and manual detection produce identical results (within tolerance)</p>
-<p><strong>Code Review Checklist</strong>:
-- [ ] Test structure follows pytest conventions
-- [ ] Test names are descriptive
-- [ ] Test data is realistic
-- [ ] Edge cases are comprehensive
-- [ ] Performance tests have reasonable thresholds
-- [ ] Helper functions are reusable
-- [ ] Fixtures are properly scoped
-- [ ] Tests are independent (no shared state)</p>
-<p><strong>Verification Commands</strong>:
+<p><strong>Deliverables Checklist</strong>:</p>
+<ul>
+<li>[ ] <code>tests/utils/test_helpers.py</code> created with helper functions</li>
+<li>[ ] <code>tests/conftest.py</code> updated with fixtures</li>
+<li>[ ] <code>tests/unit/photometry/test_ese_validation.py</code> created with all test
+      classes</li>
+<li>[ ] All tests passing:
+      <code>/opt/miniforge/envs/casa6/bin/python -m pytest tests/unit/photometry/test_ese_validation.py -v</code></li>
+<li>[ ] Test coverage report:
+      <code>pytest --cov=dsa110_contimg/photometry --cov-report=html</code></li>
+<li>[ ] Test documentation complete</li>
+</ul>
+<p><strong>Acceptance Criteria</strong> (All Must Pass):</p>
+<ul>
+<li>[ ] <strong>Test Coverage</strong>:
+      <code>pytest --cov=dsa110_contimg/photometry --cov-report=term-missing</code> shows &gt;
+      90% coverage for variability calculations</li>
+<li>[ ] <strong>All Tests Pass</strong>: All tests in <code>test_ese_validation.py</code> pass</li>
+<li>[ ] <strong>Edge Cases</strong>: All edge cases handled gracefully (no crashes, appropriate
+      behavior)</li>
+<li>[ ] <strong>Performance</strong>: Large source count test completes in &lt; 60 seconds</li>
+<li>[ ] <strong>Documentation</strong>: Tests serve as executable documentation (clear names,
+      docstrings, comments)</li>
+<li>[ ] <strong>Consistency</strong>: Automatic and manual detection produce identical results
+      (within tolerance)</li>
+</ul>
+<p><strong>Code Review Checklist</strong>:</p>
+<ul>
+<li>[ ] Test structure follows pytest conventions</li>
+<li>[ ] Test names are descriptive</li>
+<li>[ ] Test data is realistic</li>
+<li>[ ] Edge cases are comprehensive</li>
+<li>[ ] Performance tests have reasonable thresholds</li>
+<li>[ ] Helper functions are reusable</li>
+<li>[ ] Fixtures are properly scoped</li>
+<li>[ ] Tests are independent (no shared state)</li>
+</ul>
+<p><strong>Verification Commands</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Run all unit tests (should complete in &lt; 200ms)</span>
 /opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/photometry/test_ese_validation.py::TestVariabilityMetrics<span class="w"> </span>-v<span class="w"> </span>--tb<span class="o">=</span>short<span class="w"> </span>--durations<span class="o">=</span><span class="m">0</span>
 
@@ -2174,21 +2255,27 @@
 
 <span class="c1"># Fast failure mode (stop on first failure)</span>
 /opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/photometry/test_ese_validation.py<span class="w"> </span>-x<span class="w"> </span>-v
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="phase-1-summary">Phase 1 Summary<a class="headerlink" href="#phase-1-summary" title="Permanent link">¶</a></h3>
-<p><strong>Key Outcomes</strong>:
-- Code quality improved (DRY principle, single source of truth)
-- Comprehensive test coverage ensures correctness
-- Foundation established for future improvements
-- Statistical calculations validated</p>
-<p><strong>Risks &amp; Mitigation</strong>:
-- Risk: Breaking existing functionality during refactoring
-- Mitigation: Comprehensive test suite catches regressions early</p>
-<p><strong>Success Metrics</strong>:
-- Zero code duplication for sigma deviation
-- Test coverage &gt; 90%
-- All existing functionality preserved
-- Documentation complete</p>
+<p><strong>Key Outcomes</strong>:</p>
+<ul>
+<li>Code quality improved (DRY principle, single source of truth)</li>
+<li>Comprehensive test coverage ensures correctness</li>
+<li>Foundation established for future improvements</li>
+<li>Statistical calculations validated</li>
+</ul>
+<p><strong>Risks &amp; Mitigation</strong>:</p>
+<ul>
+<li>Risk: Breaking existing functionality during refactoring</li>
+<li>Mitigation: Comprehensive test suite catches regressions early</li>
+</ul>
+<p><strong>Success Metrics</strong>:</p>
+<ul>
+<li>Zero code duplication for sigma deviation</li>
+<li>Test coverage &gt; 90%</li>
+<li>All existing functionality preserved</li>
+<li>Documentation complete</li>
+</ul>
 <hr/>
 <h2 id="phase-2-detection-enhancement">Phase 2: Detection Enhancement<a class="headerlink" href="#phase-2-detection-enhancement" title="Permanent link">¶</a></h2>
 <p><strong>Duration</strong>: 1-2 weeks<br/>
@@ -2204,14 +2291,17 @@
 <h3 id="tasks_1">Tasks<a class="headerlink" href="#tasks_1" title="Permanent link">¶</a></h3>
 <h4 id="21-multi-metric-scoring-system">2.1 Multi-Metric Scoring System<a class="headerlink" href="#21-multi-metric-scoring-system" title="Permanent link">¶</a></h4>
 <p><strong>Effort</strong>: 4-5 days<br/>
-<strong>File Locations</strong>:
-- Implementation: <code>src/dsa110_contimg/photometry/scoring.py</code> (new file)
-- Configuration: <code>config/ese_detection.yaml</code> (create if doesn't exist)
-- Integration points:
-  - <code>src/dsa110_contimg/photometry/ese_detection.py</code> (update <code>detect_ese_candidates()</code>)
-  - <code>src/dsa110_contimg/api/models.py</code> (update <code>ESEDetectJobParams</code>)
-  - <code>src/dsa110_contimg/photometry/cli.py</code> (update CLI)
-- Tests: <code>tests/unit/photometry/test_scoring.py</code> (new file)</p>
+<strong>File Locations</strong>:</p>
+<ul>
+<li>Implementation: <code>src/dsa110_contimg/photometry/scoring.py</code> (new file)</li>
+<li>Configuration: <code>config/ese_detection.yaml</code> (create if doesn't exist)</li>
+<li>Integration points:</li>
+<li><code>src/dsa110_contimg/photometry/ese_detection.py</code> (update
+    <code>detect_ese_candidates()</code>)</li>
+<li><code>src/dsa110_contimg/api/models.py</code> (update <code>ESEDetectJobParams</code>)</li>
+<li><code>src/dsa110_contimg/photometry/cli.py</code> (update CLI)</li>
+<li>Tests: <code>tests/unit/photometry/test_scoring.py</code> (new file)</li>
+</ul>
 <p><strong>Task Breakdown</strong>:</p>
 <ol>
 <li><strong>Design Scoring Algorithm</strong> (4 hours)</li>
@@ -2224,7 +2314,8 @@
 </ul>
 </li>
 <li>[ ] Design normalization:<ul>
-<li>[ ] Chi-squared: normalize by dividing by 5.0 (chi2_nu &gt; 5.0 gives full boost)</li>
+<li>[ ] Chi-squared: normalize by dividing by 5.0 (chi2_nu &gt; 5.0 gives full
+       boost)</li>
 <li>[ ] Eta: normalize by dividing by 0.5 (eta &gt; 0.5 gives full boost)</li>
 <li>[ ] Observation penalty: <code>(5 - n_obs) / 5.0</code> for n_obs &lt; 5</li>
 </ul>
@@ -2242,7 +2333,8 @@
 <p><strong>Implement Scoring Function</strong> (6-8 hours)</p>
 </li>
 <li>[ ] Create <code>src/dsa110_contimg/photometry/scoring.py</code></li>
-<li>[ ] Function signature: <code>def calculate_ese_composite_score(sigma_deviation: float, chi2_nu: Optional[float], eta_metric: Optional[float], n_obs: int, weights: Optional[dict] = None) -&gt; dict:</code></li>
+<li>[ ] Function signature:
+         <code>def calculate_ese_composite_score(sigma_deviation: float, chi2_nu: Optional[float], eta_metric: Optional[float], n_obs: int, weights: Optional[dict] = None) -&gt; dict:</code></li>
 <li>[ ] Implement base score: <code>sigma_deviation * weights["sigma_deviation"]</code></li>
 <li>[ ] Implement chi-squared contribution:<ul>
 <li>[ ] If <code>chi2_nu &gt; 2.0</code>: <code>min(chi2_nu / 5.0, 1.0) * weights["chi2_nu"]</code></li>
@@ -2250,17 +2342,20 @@
 </ul>
 </li>
 <li>[ ] Implement eta contribution:<ul>
-<li>[ ] If <code>eta_metric &gt; 0.1</code>: <code>min(eta_metric / 0.5, 1.0) * weights["eta_metric"]</code></li>
+<li>[ ] If <code>eta_metric &gt; 0.1</code>:
+       <code>min(eta_metric / 0.5, 1.0) * weights["eta_metric"]</code></li>
 <li>[ ] Else: 0.0</li>
 </ul>
 </li>
 <li>[ ] Implement observation penalty:<ul>
 <li>[ ] If <code>n_obs &lt; 5</code>: <code>(5 - n_obs) / 5.0 * weights["n_obs_penalty"]</code></li>
-<li>[ ] Else if <code>n_obs &lt; 10</code>: <code>(10 - n_obs) / 10.0 * weights["n_obs_penalty"] * 0.5</code></li>
+<li>[ ] Else if <code>n_obs &lt; 10</code>:
+       <code>(10 - n_obs) / 10.0 * weights["n_obs_penalty"] * 0.5</code></li>
 <li>[ ] Else: 0.0</li>
 </ul>
 </li>
-<li>[ ] Calculate composite score: <code>base_score + chi2_contribution + eta_contribution - obs_penalty</code></li>
+<li>[ ] Calculate composite score:
+         <code>base_score + chi2_contribution + eta_contribution - obs_penalty</code></li>
 <li>[ ] Determine confidence level based on composite score</li>
 <li>[ ] Generate human-readable explanation string</li>
 <li>
@@ -2272,7 +2367,7 @@
 <li>[ ] Create <code>config/ese_detection.yaml</code>:
      <div class="highlight"><pre><span></span><code><span class="nt">ese_detection</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">scoring</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">method</span><span class="p">:</span><span class="w"> </span><span class="s">"composite"</span><span class="w">  </span><span class="c1"># or "sigma_only"</span>
+<span class="w">    </span><span class="nt">method</span><span class="p">:</span><span class="w"> </span><span class="s">"composite"</span><span class="w"> </span><span class="c1"># or "sigma_only"</span>
 <span class="w">    </span><span class="nt">composite_weights</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">sigma_deviation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
 <span class="w">      </span><span class="nt">chi2_nu</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
@@ -2343,7 +2438,8 @@
 </li>
 <li>[ ] <strong>Unit tests</strong> (execution time target: &lt; 150ms total):<ul>
 <li>[ ] <code>test_basic_scoring()</code> - Verify basic score calculation</li>
-<li>[ ] Input: <code>sigma_deviation=6.5, chi2_nu=3.2, eta_metric=0.15, n_obs=10</code></li>
+<li>[ ] Input:
+         <code>sigma_deviation=6.5, chi2_nu=3.2, eta_metric=0.15, n_obs=10</code></li>
 <li>[ ] Expected: Valid composite score &gt; 6.0</li>
 <li>[ ] Execution time: &lt; 10ms</li>
 <li>[ ] <code>test_chi2_contribution()</code> - Verify chi-squared boost</li>
@@ -2359,7 +2455,8 @@
 <li>[ ] Expected: Penalty applied correctly</li>
 <li>[ ] Execution time: &lt; 5ms</li>
 <li>[ ] <code>test_confidence_levels()</code> - Verify confidence assignment</li>
-<li>[ ] Test all confidence levels: high (&gt;=7.0), medium (&gt;=5.0), low (&gt;=3.0), very_low (&lt;3.0)</li>
+<li>[ ] Test all confidence levels: high (&gt;=7.0), medium (&gt;=5.0), low
+         (&gt;=3.0), very_low (&lt;3.0)</li>
 <li>[ ] Execution time: &lt; 15ms</li>
 <li>[ ] <code>test_custom_weights()</code> - Verify custom weight support</li>
 <li>[ ] Input: Custom weights dict</li>
@@ -2380,7 +2477,8 @@
 <li>[ ] Use scoring in context of detection pipeline</li>
 <li>[ ] Verify integration with <code>detect_ese_candidates()</code></li>
 <li>[ ] Execution time: &lt; 500ms</li>
-<li>[ ] <code>test_backward_compatibility_smoke()</code> - Verify old behavior still works</li>
+<li>[ ] <code>test_backward_compatibility_smoke()</code> - Verify old behavior still
+       works</li>
 <li>[ ] Test with <code>use_composite_score=False</code></li>
 <li>[ ] Expected: Identical results to current behavior</li>
 <li>[ ] Execution time: &lt; 500ms</li>
@@ -2399,33 +2497,43 @@
 </li>
 <li>[ ] <strong>Total test execution time</strong>: &lt; 4 seconds (unit + smoke + validation)</li>
 </ol>
-<p><strong>Deliverables Checklist</strong>:
-- [ ] <code>scoring.py</code> created with <code>calculate_ese_composite_score()</code> function
-- [ ] <code>config/ese_detection.yaml</code> created with default weights
-- [ ] <code>detect_ese_candidates()</code> updated with scoring support
-- [ ] API models updated (<code>ESEDetectJobParams</code>)
-- [ ] CLI updated with scoring flags
-- [ ] Validation framework script created
-- [ ] Test suite created (<code>test_scoring.py</code>)
-- [ ] Documentation updated</p>
-<p><strong>Acceptance Criteria</strong> (All Must Pass):
-- [ ] <strong>Functionality</strong>: Composite scoring produces scores &gt; single metric for ESE candidates
-- [ ] <strong>Validation</strong>: Weights tuned based on known ESE candidates (ROC AUC &gt; 0.8)
-- [ ] <strong>Backward Compatibility</strong>: <code>use_composite_score=False</code> produces identical results to current behavior
-- [ ] <strong>Test Coverage</strong>: <code>pytest --cov=dsa110_contimg/photometry/scoring</code> shows &gt; 95% coverage
-- [ ] <strong>API Integration</strong>: API endpoints accept and use scoring parameters
-- [ ] <strong>CLI Integration</strong>: CLI accepts scoring flags and produces correct output
-- [ ] <strong>Documentation</strong>: Scoring algorithm documented with examples</p>
-<p><strong>Code Review Checklist</strong>:
-- [ ] Scoring algorithm matches specification
-- [ ] Weights are configurable
-- [ ] Confidence levels are clearly defined
-- [ ] Explanation strings are informative
-- [ ] Backward compatibility maintained
-- [ ] Error handling for edge cases
-- [ ] Type hints complete
-- [ ] Docstrings comprehensive</p>
-<p><strong>Verification Commands</strong>:
+<p><strong>Deliverables Checklist</strong>:</p>
+<ul>
+<li>[ ] <code>scoring.py</code> created with <code>calculate_ese_composite_score()</code> function</li>
+<li>[ ] <code>config/ese_detection.yaml</code> created with default weights</li>
+<li>[ ] <code>detect_ese_candidates()</code> updated with scoring support</li>
+<li>[ ] API models updated (<code>ESEDetectJobParams</code>)</li>
+<li>[ ] CLI updated with scoring flags</li>
+<li>[ ] Validation framework script created</li>
+<li>[ ] Test suite created (<code>test_scoring.py</code>)</li>
+<li>[ ] Documentation updated</li>
+</ul>
+<p><strong>Acceptance Criteria</strong> (All Must Pass):</p>
+<ul>
+<li>[ ] <strong>Functionality</strong>: Composite scoring produces scores &gt; single metric for
+      ESE candidates</li>
+<li>[ ] <strong>Validation</strong>: Weights tuned based on known ESE candidates (ROC AUC &gt;
+      0.8)</li>
+<li>[ ] <strong>Backward Compatibility</strong>: <code>use_composite_score=False</code> produces identical
+      results to current behavior</li>
+<li>[ ] <strong>Test Coverage</strong>: <code>pytest --cov=dsa110_contimg/photometry/scoring</code>
+      shows &gt; 95% coverage</li>
+<li>[ ] <strong>API Integration</strong>: API endpoints accept and use scoring parameters</li>
+<li>[ ] <strong>CLI Integration</strong>: CLI accepts scoring flags and produces correct output</li>
+<li>[ ] <strong>Documentation</strong>: Scoring algorithm documented with examples</li>
+</ul>
+<p><strong>Code Review Checklist</strong>:</p>
+<ul>
+<li>[ ] Scoring algorithm matches specification</li>
+<li>[ ] Weights are configurable</li>
+<li>[ ] Confidence levels are clearly defined</li>
+<li>[ ] Explanation strings are informative</li>
+<li>[ ] Backward compatibility maintained</li>
+<li>[ ] Error handling for edge cases</li>
+<li>[ ] Type hints complete</li>
+<li>[ ] Docstrings comprehensive</li>
+</ul>
+<p><strong>Verification Commands</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Run unit tests (should complete in &lt; 150ms)</span>
 /opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/photometry/test_scoring.py::TestCalculateESECompositeScore<span class="w"> </span>-v<span class="w"> </span>--tb<span class="o">=</span>short<span class="w"> </span>--durations<span class="o">=</span><span class="m">0</span>
 
@@ -2455,21 +2563,25 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <span class="c1"># Test CLI</span>
 /opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.photometry.cli<span class="w"> </span>ese-detect<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--use-composite-score<span class="w"> </span>--score-threshold<span class="w"> </span><span class="m">5</span>.5
-</code></pre></div></p>
-<p><strong>Performance Benchmarks</strong>:
-- Scoring function should complete in &lt; 1ms per candidate
-- Integration should add &lt; 5% overhead to detection pipeline
-- Memory usage should be minimal (no large data structures)</p>
+</code></pre></div>
+<p><strong>Performance Benchmarks</strong>:</p>
+<ul>
+<li>Scoring function should complete in &lt; 1ms per candidate</li>
+<li>Integration should add &lt; 5% overhead to detection pipeline</li>
+<li>Memory usage should be minimal (no large data structures)</li>
+</ul>
 <h4 id="22-configurable-threshold-presets">2.2 Configurable Threshold Presets<a class="headerlink" href="#22-configurable-threshold-presets" title="Permanent link">¶</a></h4>
 <p><strong>Effort</strong>: 2-3 days<br/>
-<strong>File Locations</strong>:
-- Implementation: <code>src/dsa110_contimg/photometry/thresholds.py</code> (new file)
-- Integration points:
-  - <code>src/dsa110_contimg/api/models.py</code> (update <code>ESEDetectJobParams</code>)
-  - <code>src/dsa110_contimg/api/routes.py</code> (update endpoint handlers)
-  - <code>src/dsa110_contimg/photometry/cli.py</code> (update CLI)
-- Tests: <code>tests/unit/photometry/test_thresholds.py</code> (new file)
-- Documentation: <code>docs/how-to/ese_threshold_selection.md</code> (new file)</p>
+<strong>File Locations</strong>:</p>
+<ul>
+<li>Implementation: <code>src/dsa110_contimg/photometry/thresholds.py</code> (new file)</li>
+<li>Integration points:</li>
+<li><code>src/dsa110_contimg/api/models.py</code> (update <code>ESEDetectJobParams</code>)</li>
+<li><code>src/dsa110_contimg/api/routes.py</code> (update endpoint handlers)</li>
+<li><code>src/dsa110_contimg/photometry/cli.py</code> (update CLI)</li>
+<li>Tests: <code>tests/unit/photometry/test_thresholds.py</code> (new file)</li>
+<li>Documentation: <code>docs/how-to/ese_threshold_selection.md</code> (new file)</li>
+</ul>
 <p><strong>Task Breakdown</strong>:</p>
 <ol>
 <li><strong>Design Preset System</strong> (2-3 hours)</li>
@@ -2495,8 +2607,9 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <p><strong>Implement <code>ESEThresholdPreset</code> Class</strong> (3-4 hours)</p>
 </li>
 <li>[ ] Create <code>src/dsa110_contimg/photometry/thresholds.py</code></li>
-<li>[ ] Class structure:
-     <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">ESEThresholdPreset</span><span class="p">:</span>
+<li>
+<p>[ ] Class structure:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">ESEThresholdPreset</span><span class="p">:</span>
     <span class="n">PRESETS</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">"conservative"</span><span class="p">:</span> <span class="p">{</span>
             <span class="s2">"sigma_threshold"</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span>
@@ -2514,8 +2627,11 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_preset_info</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">preset</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Get information about a preset."""</span>
-</code></pre></div></li>
-<li>[ ] Implement <code>get_threshold()</code>:<ul>
+</code></pre></div>
+</li>
+<li>
+<p>[ ] Implement <code>get_threshold()</code>:</p>
+<ul>
 <li>[ ] Validate preset name</li>
 <li>[ ] Return custom value if provided (overrides preset)</li>
 <li>[ ] Return preset threshold if valid preset</li>
@@ -2535,8 +2651,10 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 </li>
 <li>[ ] Update <code>ESEDetectJobParams</code> in <code>api/models.py</code>:<ul>
 <li>[ ] Add <code>threshold_preset: str = Field("conservative", ...)</code></li>
-<li>[ ] Add <code>min_sigma: Optional[float] = Field(None, ...)</code> (optional override)</li>
-<li>[ ] Add validator: <code>@validator("threshold_preset")</code> to check valid presets</li>
+<li>[ ] Add <code>min_sigma: Optional[float] = Field(None, ...)</code> (optional
+       override)</li>
+<li>[ ] Add validator: <code>@validator("threshold_preset")</code> to check valid
+       presets</li>
 <li>[ ] Add method: <code>def get_threshold(self) -&gt; float:</code></li>
 </ul>
 </li>
@@ -2555,13 +2673,16 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <p>[ ] Update <code>photometry/cli.py</code>:</p>
 <ul>
 <li>[ ] Add <code>--threshold-preset</code> argument:</li>
-<li>[ ] Choices: <code>["conservative", "moderate", "sensitive", "very_sensitive"]</code></li>
+<li>[ ] Choices:
+         <code>["conservative", "moderate", "sensitive", "very_sensitive"]</code></li>
 <li>[ ] Default: <code>"conservative"</code></li>
-<li>[ ] Help text: "Threshold preset (conservative, moderate, sensitive, very_sensitive)"</li>
+<li>[ ] Help text: "Threshold preset (conservative, moderate, sensitive,
+         very_sensitive)"</li>
 <li>[ ] Keep <code>--min-sigma</code> as optional override</li>
 <li>[ ] Update <code>cmd_ese_detect()</code>:</li>
 <li>[ ] Import <code>ESEThresholdPreset</code></li>
-<li>[ ] Get threshold: <code>threshold = ESEThresholdPreset.get_threshold(args.threshold_preset, args.min_sigma)</code></li>
+<li>[ ] Get threshold:
+         <code>threshold = ESEThresholdPreset.get_threshold(args.threshold_preset, args.min_sigma)</code></li>
 <li>[ ] Pass threshold to <code>detect_ese_candidates()</code></li>
 </ul>
 </li>
@@ -2645,31 +2766,43 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 </li>
 <li>[ ] <strong>Total test execution time</strong>: &lt; 1.5 seconds (unit + smoke)</li>
 </ol>
-<p><strong>Deliverables Checklist</strong>:
-- [ ] <code>thresholds.py</code> created with <code>ESEThresholdPreset</code> class
-- [ ] API models updated (<code>ESEDetectJobParams</code>)
-- [ ] API endpoints updated (use preset system)
-- [ ] CLI updated with <code>--threshold-preset</code> argument
-- [ ] Documentation created (<code>ese_threshold_selection.md</code>)
-- [ ] Test suite created (<code>test_thresholds.py</code>)
-- [ ] All tests passing</p>
-<p><strong>Acceptance Criteria</strong> (All Must Pass):
-- [ ] <strong>Four Presets Available</strong>: All four presets (conservative, moderate, sensitive, very_sensitive) work correctly
-- [ ] <strong>Custom Override</strong>: Custom thresholds override presets when provided
-- [ ] <strong>API Integration</strong>: API endpoints accept and use <code>threshold_preset</code> parameter
-- [ ] <strong>CLI Integration</strong>: CLI accepts <code>--threshold-preset</code> argument and uses it correctly
-- [ ] <strong>Error Handling</strong>: Invalid preset names raise <code>ValueError</code> with informative message
-- [ ] <strong>Test Coverage</strong>: <code>pytest --cov=dsa110_contimg/photometry/thresholds</code> shows &gt; 95% coverage
-- [ ] <strong>Documentation</strong>: Threshold selection guide is clear and complete</p>
-<p><strong>Code Review Checklist</strong>:
-- [ ] Preset definitions match specification (thresholds, descriptions, use cases)
-- [ ] <code>get_threshold()</code> handles custom override correctly
-- [ ] Error messages are informative
-- [ ] Type hints are complete
-- [ ] Docstrings are comprehensive
-- [ ] API integration maintains backward compatibility
-- [ ] CLI integration provides clear help text</p>
-<p><strong>Verification Commands</strong>:
+<p><strong>Deliverables Checklist</strong>:</p>
+<ul>
+<li>[ ] <code>thresholds.py</code> created with <code>ESEThresholdPreset</code> class</li>
+<li>[ ] API models updated (<code>ESEDetectJobParams</code>)</li>
+<li>[ ] API endpoints updated (use preset system)</li>
+<li>[ ] CLI updated with <code>--threshold-preset</code> argument</li>
+<li>[ ] Documentation created (<code>ese_threshold_selection.md</code>)</li>
+<li>[ ] Test suite created (<code>test_thresholds.py</code>)</li>
+<li>[ ] All tests passing</li>
+</ul>
+<p><strong>Acceptance Criteria</strong> (All Must Pass):</p>
+<ul>
+<li>[ ] <strong>Four Presets Available</strong>: All four presets (conservative, moderate,
+      sensitive, very_sensitive) work correctly</li>
+<li>[ ] <strong>Custom Override</strong>: Custom thresholds override presets when provided</li>
+<li>[ ] <strong>API Integration</strong>: API endpoints accept and use <code>threshold_preset</code>
+      parameter</li>
+<li>[ ] <strong>CLI Integration</strong>: CLI accepts <code>--threshold-preset</code> argument and uses it
+      correctly</li>
+<li>[ ] <strong>Error Handling</strong>: Invalid preset names raise <code>ValueError</code> with
+      informative message</li>
+<li>[ ] <strong>Test Coverage</strong>: <code>pytest --cov=dsa110_contimg/photometry/thresholds</code>
+      shows &gt; 95% coverage</li>
+<li>[ ] <strong>Documentation</strong>: Threshold selection guide is clear and complete</li>
+</ul>
+<p><strong>Code Review Checklist</strong>:</p>
+<ul>
+<li>[ ] Preset definitions match specification (thresholds, descriptions, use
+      cases)</li>
+<li>[ ] <code>get_threshold()</code> handles custom override correctly</li>
+<li>[ ] Error messages are informative</li>
+<li>[ ] Type hints are complete</li>
+<li>[ ] Docstrings are comprehensive</li>
+<li>[ ] API integration maintains backward compatibility</li>
+<li>[ ] CLI integration provides clear help text</li>
+</ul>
+<p><strong>Verification Commands</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Run unit tests (should complete in &lt; 100ms)</span>
 /opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/photometry/test_thresholds.py::TestESEThresholdPreset<span class="w"> </span>-v<span class="w"> </span>--tb<span class="o">=</span>short<span class="w"> </span>--durations<span class="o">=</span><span class="m">0</span>
 
@@ -2693,27 +2826,36 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <span class="c1"># Test CLI</span>
 /opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.photometry.cli<span class="w"> </span>ese-detect<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--threshold-preset<span class="w"> </span>sensitive<span class="w"> </span>--min-sigma<span class="w"> </span><span class="m">3</span>.5
-</code></pre></div></p>
-<p><strong>Performance Benchmarks</strong>:
-- Threshold retrieval should complete in &lt; 1ms per call
-- No performance impact on detection pipeline (threshold is retrieved once per job)
-- Memory usage minimal (presets are class-level constants)</p>
+</code></pre></div>
+<p><strong>Performance Benchmarks</strong>:</p>
+<ul>
+<li>Threshold retrieval should complete in &lt; 1ms per call</li>
+<li>No performance impact on detection pipeline (threshold is retrieved once per
+  job)</li>
+<li>Memory usage minimal (presets are class-level constants)</li>
+</ul>
 <h3 id="phase-2-summary">Phase 2 Summary<a class="headerlink" href="#phase-2-summary" title="Permanent link">¶</a></h3>
-<p><strong>Key Outcomes</strong>:
-- More robust detection through multi-metric scoring
-- Flexible threshold configuration for different use cases
-- Better candidate ranking and prioritization
-- Improved detection confidence assessment</p>
-<p><strong>Risks &amp; Mitigation</strong>:
-- Risk: Scoring weights may need tuning based on real data
-- Mitigation: Validation framework allows iterative tuning
-- Risk: Presets may not match all use cases
-- Mitigation: Custom thresholds always available as override</p>
-<p><strong>Success Metrics</strong>:
-- Composite scoring reduces false positives while maintaining sensitivity
-- Presets cover common use cases
-- API and CLI fully support new features
-- Documentation complete</p>
+<p><strong>Key Outcomes</strong>:</p>
+<ul>
+<li>More robust detection through multi-metric scoring</li>
+<li>Flexible threshold configuration for different use cases</li>
+<li>Better candidate ranking and prioritization</li>
+<li>Improved detection confidence assessment</li>
+</ul>
+<p><strong>Risks &amp; Mitigation</strong>:</p>
+<ul>
+<li>Risk: Scoring weights may need tuning based on real data</li>
+<li>Mitigation: Validation framework allows iterative tuning</li>
+<li>Risk: Presets may not match all use cases</li>
+<li>Mitigation: Custom thresholds always available as override</li>
+</ul>
+<p><strong>Success Metrics</strong>:</p>
+<ul>
+<li>Composite scoring reduces false positives while maintaining sensitivity</li>
+<li>Presets cover common use cases</li>
+<li>API and CLI fully support new features</li>
+<li>Documentation complete</li>
+</ul>
 <hr/>
 <h2 id="phase-3-performance-optimization">Phase 3: Performance Optimization<a class="headerlink" href="#phase-3-performance-optimization" title="Permanent link">¶</a></h2>
 <p><strong>Duration</strong>: 1-2 weeks<br/>
@@ -2729,13 +2871,17 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <h3 id="tasks_2">Tasks<a class="headerlink" href="#tasks_2" title="Permanent link">¶</a></h3>
 <h4 id="31-caching-variability-statistics">3.1 Caching Variability Statistics<a class="headerlink" href="#31-caching-variability-statistics" title="Permanent link">¶</a></h4>
 <p><strong>Effort</strong>: 3-4 days<br/>
-<strong>File Locations</strong>:
-- Implementation: <code>src/dsa110_contimg/photometry/caching.py</code> (new file)
-- Integration points:
-  - <code>src/dsa110_contimg/photometry/ese_pipeline.py</code> (update <code>update_variability_stats_for_source()</code>)
-  - <code>src/dsa110_contimg/photometry/ese_detection.py</code> (update <code>_recompute_variability_stats()</code>)
-- Tests: <code>tests/unit/photometry/test_caching.py</code> (new file)
-- Configuration: <code>config/ese_detection.yaml</code> (add caching section)</p>
+<strong>File Locations</strong>:</p>
+<ul>
+<li>Implementation: <code>src/dsa110_contimg/photometry/caching.py</code> (new file)</li>
+<li>Integration points:</li>
+<li><code>src/dsa110_contimg/photometry/ese_pipeline.py</code> (update
+    <code>update_variability_stats_for_source()</code>)</li>
+<li><code>src/dsa110_contimg/photometry/ese_detection.py</code> (update
+    <code>_recompute_variability_stats()</code>)</li>
+<li>Tests: <code>tests/unit/photometry/test_caching.py</code> (new file)</li>
+<li>Configuration: <code>config/ese_detection.yaml</code> (add caching section)</li>
+</ul>
 <p><strong>Task Breakdown</strong>:</p>
 <ol>
 <li><strong>Design Cache Architecture</strong> (3-4 hours)</li>
@@ -2762,8 +2908,9 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <li>
 <p><strong>Implement <code>VariabilityStatsCache</code> Data Class</strong> (2-3 hours)</p>
 </li>
-<li>[ ] Create <code>@dataclass</code> in <code>caching.py</code>:
-     <div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
+<li>
+<p>[ ] Create <code>@dataclass</code> in <code>caching.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">VariabilityStatsCache</span><span class="p">:</span>
     <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">stats</span><span class="p">:</span> <span class="nb">dict</span>
@@ -2776,8 +2923,11 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 
     <span class="k">def</span><span class="w"> </span><span class="nf">matches_photometry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_photometry_timestamp</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Check if cache matches current photometry state."""</span>
-</code></pre></div></li>
-<li>[ ] Implement <code>is_valid()</code>:<ul>
+</code></pre></div>
+</li>
+<li>
+<p>[ ] Implement <code>is_valid()</code>:</p>
+<ul>
 <li>[ ] Check age: <code>time.time() - self.cache_timestamp &lt; max_age_seconds</code></li>
 <li>[ ] Return boolean</li>
 </ul>
@@ -2785,15 +2935,17 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <li>
 <p>[ ] Implement <code>matches_photometry()</code>:</p>
 <ul>
-<li>[ ] Compare timestamps: <code>abs(self.photometry_timestamp - current_photometry_timestamp) &lt; 1.0</code></li>
+<li>[ ] Compare timestamps:
+       <code>abs(self.photometry_timestamp - current_photometry_timestamp) &lt; 1.0</code></li>
 <li>[ ] Return boolean</li>
 </ul>
 </li>
 <li>
 <p><strong>Implement <code>VariabilityStatsCacheManager</code> Class</strong> (4-5 hours)</p>
 </li>
-<li>[ ] Create class in <code>caching.py</code>:
-     <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">VariabilityStatsCacheManager</span><span class="p">:</span>
+<li>
+<p>[ ] Create class in <code>caching.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">VariabilityStatsCacheManager</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"memory"</span><span class="p">,</span> <span class="n">max_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span> <span class="n">default_ttl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3600.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Initialize cache manager."""</span>
 
@@ -2808,8 +2960,11 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 
     <span class="k">def</span><span class="w"> </span><span class="nf">invalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Invalidate cache for a source."""</span>
-</code></pre></div></li>
-<li>[ ] Implement memory backend:<ul>
+</code></pre></div>
+</li>
+<li>
+<p>[ ] Implement memory backend:</p>
+<ul>
 <li>[ ] Use dict: <code>self.cache: Dict[str, VariabilityStatsCache] = {}</code></li>
 <li>[ ] Implement LRU eviction when at capacity</li>
 </ul>
@@ -2831,7 +2986,8 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 </li>
 <li>[ ] Update <code>update_variability_stats_for_source()</code> in <code>ese_pipeline.py</code>:<ul>
 <li>[ ] Get cache manager: <code>cache_manager = get_cache_manager()</code></li>
-<li>[ ] Check cache: <code>cached_stats = cache_manager.get(source_id, current_photometry_timestamp)</code></li>
+<li>[ ] Check cache:
+       <code>cached_stats = cache_manager.get(source_id, current_photometry_timestamp)</code></li>
 <li>[ ] If cache hit: Return cached stats, skip computation</li>
 <li>[ ] If cache miss: Compute stats, cache results</li>
 </ul>
@@ -2854,10 +3010,10 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <li>[ ] Update <code>config/ese_detection.yaml</code>:
      <div class="highlight"><pre><span></span><code><span class="nt">ese_detection</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">caching</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">backend</span><span class="p">:</span><span class="w"> </span><span class="s">"memory"</span><span class="w">  </span><span class="c1"># or "redis", "file"</span>
+<span class="w">    </span><span class="nt">backend</span><span class="p">:</span><span class="w"> </span><span class="s">"memory"</span><span class="w"> </span><span class="c1"># or "redis", "file"</span>
 <span class="w">    </span><span class="nt">max_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10000</span>
-<span class="w">    </span><span class="nt">default_ttl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3600.0</span><span class="w">  </span><span class="c1"># seconds</span>
-<span class="w">    </span><span class="nt">redis_host</span><span class="p">:</span><span class="w"> </span><span class="s">"localhost"</span><span class="w">  </span><span class="c1"># if using Redis</span>
+<span class="w">    </span><span class="nt">default_ttl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3600.0</span><span class="w"> </span><span class="c1"># seconds</span>
+<span class="w">    </span><span class="nt">redis_host</span><span class="p">:</span><span class="w"> </span><span class="s">"localhost"</span><span class="w"> </span><span class="c1"># if using Redis</span>
 <span class="w">    </span><span class="nt">redis_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6379</span>
 </code></pre></div></li>
 <li>
@@ -2951,29 +3107,39 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 </li>
 <li>[ ] Integrate with existing monitoring system</li>
 </ol>
-<p><strong>Deliverables Checklist</strong>:
-- [ ] <code>caching.py</code> created with <code>VariabilityStatsCache</code> and <code>VariabilityStatsCacheManager</code>
-- [ ] Cache integration in variability stats computation
-- [ ] Configuration system updated
-- [ ] Test suite created (<code>test_caching.py</code>)
-- [ ] Monitoring/metrics added
-- [ ] All tests passing</p>
-<p><strong>Acceptance Criteria</strong> (All Must Pass):
-- [ ] <strong>Cache Hit Rate</strong>: Cache hit rate &gt; 80% for stable sources (measured in tests)
-- [ ] <strong>Performance</strong>: 10-100x speedup for cached sources (measured in smoke tests)
-- [ ] <strong>Cache Invalidation</strong>: Cache invalidation works correctly (tested)
-- [ ] <strong>Memory Usage</strong>: Memory usage within limits (max_size enforced)
-- [ ] <strong>Test Coverage</strong>: <code>pytest --cov=dsa110_contimg/photometry/caching</code> shows &gt; 95% coverage
-- [ ] <strong>Backward Compatibility</strong>: System works without cache (cache disabled)</p>
-<p><strong>Code Review Checklist</strong>:
-- [ ] Cache key generation is deterministic
-- [ ] Cache invalidation handles all cases
-- [ ] LRU eviction works correctly
-- [ ] Memory backend is thread-safe (if needed)
-- [ ] Error handling for cache failures
-- [ ] Type hints complete
-- [ ] Docstrings comprehensive</p>
-<p><strong>Verification Commands</strong>:
+<p><strong>Deliverables Checklist</strong>:</p>
+<ul>
+<li>[ ] <code>caching.py</code> created with <code>VariabilityStatsCache</code> and
+      <code>VariabilityStatsCacheManager</code></li>
+<li>[ ] Cache integration in variability stats computation</li>
+<li>[ ] Configuration system updated</li>
+<li>[ ] Test suite created (<code>test_caching.py</code>)</li>
+<li>[ ] Monitoring/metrics added</li>
+<li>[ ] All tests passing</li>
+</ul>
+<p><strong>Acceptance Criteria</strong> (All Must Pass):</p>
+<ul>
+<li>[ ] <strong>Cache Hit Rate</strong>: Cache hit rate &gt; 80% for stable sources (measured in
+      tests)</li>
+<li>[ ] <strong>Performance</strong>: 10-100x speedup for cached sources (measured in smoke
+      tests)</li>
+<li>[ ] <strong>Cache Invalidation</strong>: Cache invalidation works correctly (tested)</li>
+<li>[ ] <strong>Memory Usage</strong>: Memory usage within limits (max_size enforced)</li>
+<li>[ ] <strong>Test Coverage</strong>: <code>pytest --cov=dsa110_contimg/photometry/caching</code>
+      shows &gt; 95% coverage</li>
+<li>[ ] <strong>Backward Compatibility</strong>: System works without cache (cache disabled)</li>
+</ul>
+<p><strong>Code Review Checklist</strong>:</p>
+<ul>
+<li>[ ] Cache key generation is deterministic</li>
+<li>[ ] Cache invalidation handles all cases</li>
+<li>[ ] LRU eviction works correctly</li>
+<li>[ ] Memory backend is thread-safe (if needed)</li>
+<li>[ ] Error handling for cache failures</li>
+<li>[ ] Type hints complete</li>
+<li>[ ] Docstrings comprehensive</li>
+</ul>
+<p><strong>Verification Commands</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Run unit tests (should complete in &lt; 200ms)</span>
 /opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/photometry/test_caching.py::TestVariabilityStatsCacheManager<span class="w"> </span>-v<span class="w"> </span>--tb<span class="o">=</span>short<span class="w"> </span>--durations<span class="o">=</span><span class="m">0</span>
 
@@ -2991,22 +3157,28 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 
 <span class="c1"># Fast failure mode (stop on first failure)</span>
 /opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/photometry/test_caching.py<span class="w"> </span>-x<span class="w"> </span>-v
-</code></pre></div></p>
-<p><strong>Performance Benchmarks</strong>:
-- Cache hit: &lt; 1ms per lookup
-- Cache miss: &lt; 2ms per lookup (includes computation)
-- Cache set: &lt; 1ms per entry
-- Cache invalidation: &lt; 1ms per source
-- Memory overhead: &lt; 1KB per cached entry</p>
+</code></pre></div>
+<p><strong>Performance Benchmarks</strong>:</p>
+<ul>
+<li>Cache hit: &lt; 1ms per lookup</li>
+<li>Cache miss: &lt; 2ms per lookup (includes computation)</li>
+<li>Cache set: &lt; 1ms per entry</li>
+<li>Cache invalidation: &lt; 1ms per source</li>
+<li>Memory overhead: &lt; 1KB per cached entry</li>
+</ul>
 <h4 id="32-parallel-processing">3.2 Parallel Processing<a class="headerlink" href="#32-parallel-processing" title="Permanent link">¶</a></h4>
 <p><strong>Effort</strong>: 3-4 days<br/>
-<strong>File Locations</strong>:
-- Implementation: <code>src/dsa110_contimg/photometry/parallel.py</code> (new file)
-- Integration points:
-  - <code>src/dsa110_contimg/photometry/ese_detection.py</code> (update <code>detect_ese_candidates()</code>)
-  - <code>src/dsa110_contimg/api/job_adapters.py</code> (update <code>run_batch_ese_detect_job()</code>)
-- Tests: <code>tests/unit/photometry/test_parallel.py</code> (new file)
-- Configuration: <code>config/ese_detection.yaml</code> (add parallel section)</p>
+<strong>File Locations</strong>:</p>
+<ul>
+<li>Implementation: <code>src/dsa110_contimg/photometry/parallel.py</code> (new file)</li>
+<li>Integration points:</li>
+<li><code>src/dsa110_contimg/photometry/ese_detection.py</code> (update
+    <code>detect_ese_candidates()</code>)</li>
+<li><code>src/dsa110_contimg/api/job_adapters.py</code> (update
+    <code>run_batch_ese_detect_job()</code>)</li>
+<li>Tests: <code>tests/unit/photometry/test_parallel.py</code> (new file)</li>
+<li>Configuration: <code>config/ese_detection.yaml</code> (add parallel section)</li>
+</ul>
 <p><strong>Task Breakdown</strong>:</p>
 <ol>
 <li><strong>Design Parallel Processing Architecture</strong> (3-4 hours)</li>
@@ -3033,7 +3205,8 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <p><strong>Implement Batch Processing Functions</strong> (4-5 hours)</p>
 </li>
 <li>[ ] Create <code>src/dsa110_contimg/photometry/parallel.py</code></li>
-<li>[ ] Function: <code>process_source_batch(source_ids: List[str], products_db: Path, batch_size: int = 100) -&gt; List[dict]</code>:<ul>
+<li>[ ] Function:
+         <code>process_source_batch(source_ids: List[str], products_db: Path, batch_size: int = 100) -&gt; List[dict]</code>:<ul>
 <li>[ ] Split source_ids into batches</li>
 <li>[ ] Create worker pool</li>
 <li>[ ] Process batches in parallel</li>
@@ -3041,7 +3214,8 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <li>[ ] Return flattened results</li>
 </ul>
 </li>
-<li>[ ] Function: <code>process_single_batch(source_ids: List[str], products_db: Path) -&gt; List[dict]</code>:<ul>
+<li>[ ] Function:
+         <code>process_single_batch(source_ids: List[str], products_db: Path) -&gt; List[dict]</code>:<ul>
 <li>[ ] Create database connection for this worker</li>
 <li>[ ] Process each source_id</li>
 <li>[ ] Return results</li>
@@ -3102,9 +3276,9 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
      <div class="highlight"><pre><span></span><code><span class="nt">ese_detection</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">parallel</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">    </span><span class="nt">max_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span><span class="w">  </span><span class="c1"># null = auto-detect (min(cpu_count(), 8))</span>
+<span class="w">    </span><span class="nt">max_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span><span class="w"> </span><span class="c1"># null = auto-detect (min(cpu_count(), 8))</span>
 <span class="w">    </span><span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
-<span class="w">    </span><span class="nt">connection_timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30.0</span><span class="w">  </span><span class="c1"># seconds</span>
+<span class="w">    </span><span class="nt">connection_timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30.0</span><span class="w"> </span><span class="c1"># seconds</span>
 </code></pre></div></li>
 <li>
 <p>[ ] Create config loader: <code>load_parallel_config() -&gt; dict</code></p>
@@ -3191,7 +3365,8 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 </ul>
 </li>
 <li>
-<p>[ ] <strong>Total test execution time</strong>: &lt; 20 seconds (unit + smoke + concurrency + performance)</p>
+<p>[ ] <strong>Total test execution time</strong>: &lt; 20 seconds (unit + smoke +
+         concurrency + performance)</p>
 </li>
 <li>
 <p><strong>Add Monitoring</strong> (1-2 hours)</p>
@@ -3205,30 +3380,40 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 </li>
 <li>[ ] Integrate with existing monitoring system</li>
 </ol>
-<p><strong>Deliverables Checklist</strong>:
-- [ ] <code>parallel.py</code> created with parallel processing functions
-- [ ] Database concurrency handling (WAL mode, connection pooling)
-- [ ] Integration with detection pipeline
-- [ ] Configuration system updated
-- [ ] Test suite created (<code>test_parallel.py</code>)
-- [ ] Monitoring/metrics added
-- [ ] All tests passing</p>
-<p><strong>Acceptance Criteria</strong> (All Must Pass):
-- [ ] <strong>Speedup</strong>: Near-linear speedup up to CPU count (measured in performance tests)
-- [ ] <strong>Scalability</strong>: Handles 100K+ sources efficiently (tested with large source count)
-- [ ] <strong>Correctness</strong>: No race conditions or data corruption (tested in concurrency tests)
-- [ ] <strong>Configurability</strong>: Worker count configurable (tested)
-- [ ] <strong>Backward Compatibility</strong>: Sequential processing still works (tested)
-- [ ] <strong>Test Coverage</strong>: <code>pytest --cov=dsa110_contimg/photometry/parallel</code> shows &gt; 95% coverage</p>
-<p><strong>Code Review Checklist</strong>:
-- [ ] Worker pool sizing is correct
-- [ ] Database connections are properly managed (no leaks)
-- [ ] Error handling for worker failures
-- [ ] No race conditions in shared state
-- [ ] WAL mode is properly enabled
-- [ ] Type hints complete
-- [ ] Docstrings comprehensive</p>
-<p><strong>Verification Commands</strong>:
+<p><strong>Deliverables Checklist</strong>:</p>
+<ul>
+<li>[ ] <code>parallel.py</code> created with parallel processing functions</li>
+<li>[ ] Database concurrency handling (WAL mode, connection pooling)</li>
+<li>[ ] Integration with detection pipeline</li>
+<li>[ ] Configuration system updated</li>
+<li>[ ] Test suite created (<code>test_parallel.py</code>)</li>
+<li>[ ] Monitoring/metrics added</li>
+<li>[ ] All tests passing</li>
+</ul>
+<p><strong>Acceptance Criteria</strong> (All Must Pass):</p>
+<ul>
+<li>[ ] <strong>Speedup</strong>: Near-linear speedup up to CPU count (measured in performance
+      tests)</li>
+<li>[ ] <strong>Scalability</strong>: Handles 100K+ sources efficiently (tested with large
+      source count)</li>
+<li>[ ] <strong>Correctness</strong>: No race conditions or data corruption (tested in
+      concurrency tests)</li>
+<li>[ ] <strong>Configurability</strong>: Worker count configurable (tested)</li>
+<li>[ ] <strong>Backward Compatibility</strong>: Sequential processing still works (tested)</li>
+<li>[ ] <strong>Test Coverage</strong>: <code>pytest --cov=dsa110_contimg/photometry/parallel</code>
+      shows &gt; 95% coverage</li>
+</ul>
+<p><strong>Code Review Checklist</strong>:</p>
+<ul>
+<li>[ ] Worker pool sizing is correct</li>
+<li>[ ] Database connections are properly managed (no leaks)</li>
+<li>[ ] Error handling for worker failures</li>
+<li>[ ] No race conditions in shared state</li>
+<li>[ ] WAL mode is properly enabled</li>
+<li>[ ] Type hints complete</li>
+<li>[ ] Docstrings comprehensive</li>
+</ul>
+<p><strong>Verification Commands</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Run unit tests (should complete in &lt; 300ms)</span>
 /opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/photometry/test_parallel.py::TestParallelProcessing<span class="w"> </span>-v<span class="w"> </span>--tb<span class="o">=</span>short<span class="w"> </span>--durations<span class="o">=</span><span class="m">0</span>
 
@@ -3249,28 +3434,36 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 
 <span class="c1"># Fast failure mode (stop on first failure)</span>
 /opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/photometry/test_parallel.py<span class="w"> </span>-x<span class="w"> </span>-v
-</code></pre></div></p>
-<p><strong>Performance Benchmarks</strong>:
-- Parallel processing: Near-linear speedup up to CPU count
-- Batch processing: &lt; 100ms per batch of 100 sources
-- Database operations: No significant overhead from WAL mode
-- Memory usage: &lt; 10MB per worker</p>
+</code></pre></div>
+<p><strong>Performance Benchmarks</strong>:</p>
+<ul>
+<li>Parallel processing: Near-linear speedup up to CPU count</li>
+<li>Batch processing: &lt; 100ms per batch of 100 sources</li>
+<li>Database operations: No significant overhead from WAL mode</li>
+<li>Memory usage: &lt; 10MB per worker</li>
+</ul>
 <h3 id="phase-3-summary">Phase 3 Summary<a class="headerlink" href="#phase-3-summary" title="Permanent link">¶</a></h3>
-<p><strong>Key Outcomes</strong>:
-- Significant performance improvements (10-100x speedup with caching)
-- Scalability for large source catalogs (100K+ sources)
-- Efficient resource utilization
-- Production-ready performance</p>
-<p><strong>Risks &amp; Mitigation</strong>:
-- Risk: Cache invalidation bugs causing stale data
-- Mitigation: Comprehensive tests and timestamp-based validation
-- Risk: Database concurrency issues
-- Mitigation: WAL mode and proper locking</p>
-<p><strong>Success Metrics</strong>:
-- Cache hit rate &gt; 80%
-- 10-100x speedup for cached operations
-- Near-linear parallel speedup
-- Handles 100K+ sources efficiently</p>
+<p><strong>Key Outcomes</strong>:</p>
+<ul>
+<li>Significant performance improvements (10-100x speedup with caching)</li>
+<li>Scalability for large source catalogs (100K+ sources)</li>
+<li>Efficient resource utilization</li>
+<li>Production-ready performance</li>
+</ul>
+<p><strong>Risks &amp; Mitigation</strong>:</p>
+<ul>
+<li>Risk: Cache invalidation bugs causing stale data</li>
+<li>Mitigation: Comprehensive tests and timestamp-based validation</li>
+<li>Risk: Database concurrency issues</li>
+<li>Mitigation: WAL mode and proper locking</li>
+</ul>
+<p><strong>Success Metrics</strong>:</p>
+<ul>
+<li>Cache hit rate &gt; 80%</li>
+<li>10-100x speedup for cached operations</li>
+<li>Near-linear parallel speedup</li>
+<li>Handles 100K+ sources efficiently</li>
+</ul>
 <hr/>
 <h2 id="phase-4-advanced-analysis">Phase 4: Advanced Analysis<a class="headerlink" href="#phase-4-advanced-analysis" title="Permanent link">¶</a></h2>
 <p><strong>Duration</strong>: 2-3 weeks<br/>
@@ -3286,15 +3479,19 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <h3 id="tasks_3">Tasks<a class="headerlink" href="#tasks_3" title="Permanent link">¶</a></h3>
 <h4 id="41-multi-frequency-analysis">4.1 Multi-Frequency Analysis<a class="headerlink" href="#41-multi-frequency-analysis" title="Permanent link">¶</a></h4>
 <p><strong>Effort</strong>: 5-6 days<br/>
-<strong>File Locations</strong>:
-- Implementation: <code>src/dsa110_contimg/photometry/multi_frequency.py</code> (new file)
-- Database schema: <code>src/dsa110_contimg/database/schema_evolution.py</code> (add migrations)
-- Integration points:
-  - <code>src/dsa110_contimg/photometry/ese_detection.py</code> (add multi-frequency option)
-  - <code>src/dsa110_contimg/api/models.py</code> (update job params)
-  - <code>src/dsa110_contimg/photometry/cli.py</code> (add multi-frequency flag)
-- Tests: <code>tests/unit/photometry/test_multi_frequency.py</code> (new file)
-- Documentation: <code>docs/concepts/multi_frequency_analysis.md</code> (new file)</p>
+<strong>File Locations</strong>:</p>
+<ul>
+<li>Implementation: <code>src/dsa110_contimg/photometry/multi_frequency.py</code> (new file)</li>
+<li>Database schema: <code>src/dsa110_contimg/database/schema_evolution.py</code> (add
+  migrations)</li>
+<li>Integration points:</li>
+<li><code>src/dsa110_contimg/photometry/ese_detection.py</code> (add multi-frequency
+    option)</li>
+<li><code>src/dsa110_contimg/api/models.py</code> (update job params)</li>
+<li><code>src/dsa110_contimg/photometry/cli.py</code> (add multi-frequency flag)</li>
+<li>Tests: <code>tests/unit/photometry/test_multi_frequency.py</code> (new file)</li>
+<li>Documentation: <code>docs/concepts/multi_frequency_analysis.md</code> (new file)</li>
+</ul>
 <p><strong>Task Breakdown</strong>:</p>
 <ol>
 <li><strong>Design Multi-Frequency Analysis Architecture</strong> (4-5 hours)</li>
@@ -3346,7 +3543,8 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <p><strong>Implement Frequency Correlation Analysis</strong> (5-6 hours)</p>
 </li>
 <li>[ ] Create <code>src/dsa110_contimg/photometry/multi_frequency.py</code></li>
-<li>[ ] Function: <code>detect_ese_multi_frequency(source_id: str, frequencies: List[float], products_db: Path) -&gt; dict</code>:<ul>
+<li>[ ] Function:
+         <code>detect_ese_multi_frequency(source_id: str, frequencies: List[float], products_db: Path) -&gt; dict</code>:<ul>
 <li>[ ] Get flux measurements at each frequency</li>
 <li>[ ] Compute variability at each frequency</li>
 <li>[ ] Analyze frequency correlation</li>
@@ -3355,7 +3553,8 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 </ul>
 </li>
 <li>
-<p>[ ] Function: <code>analyze_frequency_correlation(variability_by_freq: dict, frequencies: List[float]) -&gt; dict</code>:</p>
+<p>[ ] Function:
+         <code>analyze_frequency_correlation(variability_by_freq: dict, frequencies: List[float]) -&gt; dict</code>:</p>
 <ul>
 <li>[ ] Extract sigma deviations for each frequency</li>
 <li>[ ] Calculate correlation strength</li>
@@ -3408,13 +3607,15 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <li>[ ] Test class: <code>TestMultiFrequencyAnalysis</code></li>
 <li>[ ] <strong>Unit Test Checklist</strong>:<ul>
 <li>[ ] Core functionality tests (3-7 cases)</li>
-<li>[ ] Edge case tests (single frequency, missing frequencies, no correlation)</li>
+<li>[ ] Edge case tests (single frequency, missing frequencies, no
+       correlation)</li>
 <li>[ ] Error handling tests (invalid input, exceptions)</li>
 <li>[ ] Smoke test for integration</li>
 </ul>
 </li>
 <li>[ ] <strong>Unit tests</strong> (execution time target: &lt; 300ms total):<ul>
-<li>[ ] <code>test_frequency_correlation_correlated()</code> - Verify correlation detection</li>
+<li>[ ] <code>test_frequency_correlation_correlated()</code> - Verify correlation
+       detection</li>
 <li>[ ] Input: High variability at multiple frequencies</li>
 <li>[ ] Expected: Correlation detected, strength &gt; 0.5</li>
 <li>[ ] Execution time: &lt; 50ms</li>
@@ -3422,11 +3623,13 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <li>[ ] Input: Variability at one frequency only</li>
 <li>[ ] Expected: No correlation detected</li>
 <li>[ ] Execution time: &lt; 30ms</li>
-<li>[ ] <code>test_composite_significance_calculation()</code> - Verify composite significance</li>
+<li>[ ] <code>test_composite_significance_calculation()</code> - Verify composite
+       significance</li>
 <li>[ ] Input: Base significance 5.0, correlation strength 0.8</li>
 <li>[ ] Expected: Composite significance ≈ 7.0 (5.0 * 1.4)</li>
 <li>[ ] Execution time: &lt; 20ms</li>
-<li>[ ] <code>test_detect_ese_multi_frequency()</code> - Verify multi-frequency detection</li>
+<li>[ ] <code>test_detect_ese_multi_frequency()</code> - Verify multi-frequency
+       detection</li>
 <li>[ ] Input: Source with measurements at 3 frequencies</li>
 <li>[ ] Expected: Detection result with frequency analysis</li>
 <li>[ ] Execution time: &lt; 100ms</li>
@@ -3471,29 +3674,41 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 </li>
 <li>[ ] Update API documentation</li>
 </ol>
-<p><strong>Deliverables Checklist</strong>:
-- [ ] <code>multi_frequency.py</code> created with analysis functions
-- [ ] Database schema extended (migrations added)
-- [ ] Integration with detection pipeline
-- [ ] Updated API models and CLI
-- [ ] Test suite created (<code>test_multi_frequency.py</code>)
-- [ ] Documentation created
-- [ ] All tests passing</p>
-<p><strong>Acceptance Criteria</strong> (All Must Pass):
-- [ ] <strong>Frequency Correlation</strong>: Frequency correlation correctly identified (tested)
-- [ ] <strong>Composite Significance</strong>: Composite significance calculated correctly (tested)
-- [ ] <strong>Database Schema</strong>: Database schema supports multi-frequency data (tested)
-- [ ] <strong>API Integration</strong>: API endpoints support multi-frequency analysis (tested)
-- [ ] <strong>CLI Integration</strong>: CLI supports multi-frequency analysis (tested)
-- [ ] <strong>Test Coverage</strong>: <code>pytest --cov=dsa110_contimg/photometry/multi_frequency</code> shows &gt; 95% coverage</p>
-<p><strong>Code Review Checklist</strong>:
-- [ ] Frequency correlation algorithm is correct
-- [ ] Composite significance calculation matches specification
-- [ ] Database migrations are reversible
-- [ ] Error handling for missing frequencies
-- [ ] Type hints complete
-- [ ] Docstrings comprehensive</p>
-<p><strong>Verification Commands</strong>:
+<p><strong>Deliverables Checklist</strong>:</p>
+<ul>
+<li>[ ] <code>multi_frequency.py</code> created with analysis functions</li>
+<li>[ ] Database schema extended (migrations added)</li>
+<li>[ ] Integration with detection pipeline</li>
+<li>[ ] Updated API models and CLI</li>
+<li>[ ] Test suite created (<code>test_multi_frequency.py</code>)</li>
+<li>[ ] Documentation created</li>
+<li>[ ] All tests passing</li>
+</ul>
+<p><strong>Acceptance Criteria</strong> (All Must Pass):</p>
+<ul>
+<li>[ ] <strong>Frequency Correlation</strong>: Frequency correlation correctly identified
+      (tested)</li>
+<li>[ ] <strong>Composite Significance</strong>: Composite significance calculated correctly
+      (tested)</li>
+<li>[ ] <strong>Database Schema</strong>: Database schema supports multi-frequency data
+      (tested)</li>
+<li>[ ] <strong>API Integration</strong>: API endpoints support multi-frequency analysis
+      (tested)</li>
+<li>[ ] <strong>CLI Integration</strong>: CLI supports multi-frequency analysis (tested)</li>
+<li>[ ] <strong>Test Coverage</strong>:
+      <code>pytest --cov=dsa110_contimg/photometry/multi_frequency</code> shows &gt; 95%
+      coverage</li>
+</ul>
+<p><strong>Code Review Checklist</strong>:</p>
+<ul>
+<li>[ ] Frequency correlation algorithm is correct</li>
+<li>[ ] Composite significance calculation matches specification</li>
+<li>[ ] Database migrations are reversible</li>
+<li>[ ] Error handling for missing frequencies</li>
+<li>[ ] Type hints complete</li>
+<li>[ ] Docstrings comprehensive</li>
+</ul>
+<p><strong>Verification Commands</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Run unit tests (should complete in &lt; 300ms)</span>
 /opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/photometry/test_multi_frequency.py::TestMultiFrequencyAnalysis<span class="w"> </span>-v<span class="w"> </span>--tb<span class="o">=</span>short<span class="w"> </span>--durations<span class="o">=</span><span class="m">0</span>
 
@@ -3517,22 +3732,28 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <span class="c1"># Test CLI</span>
 /opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.photometry.cli<span class="w"> </span>ese-detect<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--multi-frequency<span class="w"> </span>--frequencies<span class="w"> </span><span class="m">1000</span>.0,1500.0,2000.0
-</code></pre></div></p>
-<p><strong>Performance Benchmarks</strong>:
-- Multi-frequency detection: &lt; 100ms per source (with 3 frequencies)
-- Frequency correlation analysis: &lt; 10ms per analysis
-- Database queries: &lt; 50ms per frequency query</p>
+</code></pre></div>
+<p><strong>Performance Benchmarks</strong>:</p>
+<ul>
+<li>Multi-frequency detection: &lt; 100ms per source (with 3 frequencies)</li>
+<li>Frequency correlation analysis: &lt; 10ms per analysis</li>
+<li>Database queries: &lt; 50ms per frequency query</li>
+</ul>
 <h4 id="42-multi-observable-correlation">4.2 Multi-Observable Correlation<a class="headerlink" href="#42-multi-observable-correlation" title="Permanent link">¶</a></h4>
 <p><strong>Effort</strong>: 5-6 days<br/>
-<strong>File Locations</strong>:
-- Implementation: <code>src/dsa110_contimg/photometry/multi_observable.py</code> (new file)
-- Database schema: <code>src/dsa110_contimg/database/schema_evolution.py</code> (add tables if needed)
-- Integration points:
-  - <code>src/dsa110_contimg/photometry/ese_detection.py</code> (add multi-observable option)
-  - <code>src/dsa110_contimg/api/models.py</code> (update job params)
-  - <code>src/dsa110_contimg/photometry/cli.py</code> (add multi-observable flag)
-- Tests: <code>tests/unit/photometry/test_multi_observable.py</code> (new file)
-- Documentation: <code>docs/concepts/multi_observable_analysis.md</code> (new file)</p>
+<strong>File Locations</strong>:</p>
+<ul>
+<li>Implementation: <code>src/dsa110_contimg/photometry/multi_observable.py</code> (new file)</li>
+<li>Database schema: <code>src/dsa110_contimg/database/schema_evolution.py</code> (add tables
+  if needed)</li>
+<li>Integration points:</li>
+<li><code>src/dsa110_contimg/photometry/ese_detection.py</code> (add multi-observable
+    option)</li>
+<li><code>src/dsa110_contimg/api/models.py</code> (update job params)</li>
+<li><code>src/dsa110_contimg/photometry/cli.py</code> (add multi-observable flag)</li>
+<li>Tests: <code>tests/unit/photometry/test_multi_observable.py</code> (new file)</li>
+<li>Documentation: <code>docs/concepts/multi_observable_analysis.md</code> (new file)</li>
+</ul>
 <p><strong>Task Breakdown</strong>:</p>
 <ol>
 <li><strong>Design Multi-Observable Analysis Architecture</strong> (4-5 hours)</li>
@@ -3562,25 +3783,29 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <p><strong>Implement Observable Analysis Functions</strong> (5-6 hours)</p>
 </li>
 <li>[ ] Create <code>src/dsa110_contimg/photometry/multi_observable.py</code></li>
-<li>[ ] Function: <code>analyze_flux_variability()</code> (update existing or create wrapper):<ul>
+<li>[ ] Function: <code>analyze_flux_variability()</code> (update existing or create
+         wrapper):<ul>
 <li>[ ] Use existing flux variability analysis</li>
 <li>[ ] Return variability metrics</li>
 </ul>
 </li>
-<li>[ ] Function: <code>analyze_scintillation_variability(source_id: str, products_db: Path) -&gt; dict</code>:<ul>
+<li>[ ] Function:
+         <code>analyze_scintillation_variability(source_id: str, products_db: Path) -&gt; dict</code>:<ul>
 <li>[ ] Get scintillation bandwidth measurements</li>
 <li>[ ] Calculate variability metrics</li>
 <li>[ ] Return variability result</li>
 </ul>
 </li>
-<li>[ ] Function: <code>analyze_dm_variability(source_id: str, products_db: Path) -&gt; dict</code>:<ul>
+<li>[ ] Function:
+         <code>analyze_dm_variability(source_id: str, products_db: Path) -&gt; dict</code>:<ul>
 <li>[ ] Get DM measurements (for pulsars)</li>
 <li>[ ] Calculate variability metrics</li>
 <li>[ ] Return variability result</li>
 </ul>
 </li>
 <li>
-<p>[ ] Function: <code>analyze_scintillation_timescale(source_id: str, products_db: Path) -&gt; dict</code>:</p>
+<p>[ ] Function:
+         <code>analyze_scintillation_timescale(source_id: str, products_db: Path) -&gt; dict</code>:</p>
 <ul>
 <li>[ ] Get scintillation timescale measurements</li>
 <li>[ ] Calculate variability metrics</li>
@@ -3590,7 +3815,8 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <li>
 <p><strong>Implement Correlation Analysis</strong> (4-5 hours)</p>
 </li>
-<li>[ ] Function: <code>calculate_observable_correlation(observable_results: dict) -&gt; dict</code>:<ul>
+<li>[ ] Function:
+         <code>calculate_observable_correlation(observable_results: dict) -&gt; dict</code>:<ul>
 <li>[ ] Extract variability indicators from each observable</li>
 <li>[ ] Check for temporal correlation</li>
 <li>[ ] Calculate correlation strength (0.0 to 1.0)</li>
@@ -3609,7 +3835,8 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <li>
 <p><strong>Integrate with Detection Pipeline</strong> (3-4 hours)</p>
 </li>
-<li>[ ] Function: <code>detect_ese_multi_observable(source_id: str, observables: dict, products_db: Path) -&gt; dict</code>:<ul>
+<li>[ ] Function:
+         <code>detect_ese_multi_observable(source_id: str, observables: dict, products_db: Path) -&gt; dict</code>:<ul>
 <li>[ ] Analyze each observable</li>
 <li>[ ] Calculate correlation</li>
 <li>[ ] Compute composite significance</li>
@@ -3665,13 +3892,15 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <li>[ ] Test class: <code>TestMultiObservableAnalysis</code></li>
 <li>[ ] <strong>Unit Test Checklist</strong>:<ul>
 <li>[ ] Core functionality tests (3-7 cases)</li>
-<li>[ ] Edge case tests (missing observables, single observable, no correlation)</li>
+<li>[ ] Edge case tests (missing observables, single observable, no
+       correlation)</li>
 <li>[ ] Error handling tests (invalid input, exceptions)</li>
 <li>[ ] Smoke test for integration</li>
 </ul>
 </li>
 <li>[ ] <strong>Unit tests</strong> (execution time target: &lt; 400ms total):<ul>
-<li>[ ] <code>test_analyze_scintillation_variability()</code> - Verify scintillation analysis</li>
+<li>[ ] <code>test_analyze_scintillation_variability()</code> - Verify scintillation
+       analysis</li>
 <li>[ ] Input: Scintillation bandwidth measurements</li>
 <li>[ ] Expected: Variability metrics calculated</li>
 <li>[ ] Execution time: &lt; 50ms</li>
@@ -3679,19 +3908,23 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <li>[ ] Input: DM measurements</li>
 <li>[ ] Expected: Variability metrics calculated</li>
 <li>[ ] Execution time: &lt; 50ms</li>
-<li>[ ] <code>test_observable_correlation_correlated()</code> - Verify correlation detection</li>
+<li>[ ] <code>test_observable_correlation_correlated()</code> - Verify correlation
+       detection</li>
 <li>[ ] Input: High variability in multiple observables</li>
 <li>[ ] Expected: Correlation detected, strength &gt; 0.5</li>
 <li>[ ] Execution time: &lt; 50ms</li>
-<li>[ ] <code>test_observable_correlation_not_correlated()</code> - Verify no correlation</li>
+<li>[ ] <code>test_observable_correlation_not_correlated()</code> - Verify no
+       correlation</li>
 <li>[ ] Input: Variability in one observable only</li>
 <li>[ ] Expected: No correlation detected</li>
 <li>[ ] Execution time: &lt; 30ms</li>
-<li>[ ] <code>test_composite_significance_with_correlation()</code> - Verify composite significance</li>
+<li>[ ] <code>test_composite_significance_with_correlation()</code> - Verify composite
+       significance</li>
 <li>[ ] Input: Base significance 5.0, correlation strength 0.8</li>
 <li>[ ] Expected: Composite significance ≈ 6.2 (5.0 * 1.24)</li>
 <li>[ ] Execution time: &lt; 20ms</li>
-<li>[ ] <code>test_detect_ese_multi_observable()</code> - Verify multi-observable detection</li>
+<li>[ ] <code>test_detect_ese_multi_observable()</code> - Verify multi-observable
+       detection</li>
 <li>[ ] Input: Source with flux and scintillation data</li>
 <li>[ ] Expected: Detection result with correlation analysis</li>
 <li>[ ] Execution time: &lt; 100ms</li>
@@ -3731,29 +3964,39 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 </li>
 <li>[ ] Update API documentation</li>
 </ol>
-<p><strong>Deliverables Checklist</strong>:
-- [ ] <code>multi_observable.py</code> created with analysis functions
-- [ ] Database schema extended (if needed)
-- [ ] Integration with detection pipeline
-- [ ] Updated API models and CLI
-- [ ] Test suite created (<code>test_multi_observable.py</code>)
-- [ ] Documentation created
-- [ ] All tests passing</p>
-<p><strong>Acceptance Criteria</strong> (All Must Pass):
-- [ ] <strong>Multiple Observables</strong>: Multiple observables analyzed correctly (tested)
-- [ ] <strong>Correlation</strong>: Correlation correctly identified (tested)
-- [ ] <strong>Composite Significance</strong>: Composite significance includes correlation boost (tested)
-- [ ] <strong>API Integration</strong>: API endpoints support multi-observable analysis (tested)
-- [ ] <strong>CLI Integration</strong>: CLI supports multi-observable analysis (tested)
-- [ ] <strong>Test Coverage</strong>: <code>pytest --cov=dsa110_contimg/photometry/multi_observable</code> shows &gt; 95% coverage</p>
-<p><strong>Code Review Checklist</strong>:
-- [ ] Observable analysis functions are correct
-- [ ] Correlation algorithm is sound
-- [ ] Composite significance calculation matches specification
-- [ ] Error handling for missing observables
-- [ ] Type hints complete
-- [ ] Docstrings comprehensive</p>
-<p><strong>Verification Commands</strong>:
+<p><strong>Deliverables Checklist</strong>:</p>
+<ul>
+<li>[ ] <code>multi_observable.py</code> created with analysis functions</li>
+<li>[ ] Database schema extended (if needed)</li>
+<li>[ ] Integration with detection pipeline</li>
+<li>[ ] Updated API models and CLI</li>
+<li>[ ] Test suite created (<code>test_multi_observable.py</code>)</li>
+<li>[ ] Documentation created</li>
+<li>[ ] All tests passing</li>
+</ul>
+<p><strong>Acceptance Criteria</strong> (All Must Pass):</p>
+<ul>
+<li>[ ] <strong>Multiple Observables</strong>: Multiple observables analyzed correctly (tested)</li>
+<li>[ ] <strong>Correlation</strong>: Correlation correctly identified (tested)</li>
+<li>[ ] <strong>Composite Significance</strong>: Composite significance includes correlation
+      boost (tested)</li>
+<li>[ ] <strong>API Integration</strong>: API endpoints support multi-observable analysis
+      (tested)</li>
+<li>[ ] <strong>CLI Integration</strong>: CLI supports multi-observable analysis (tested)</li>
+<li>[ ] <strong>Test Coverage</strong>:
+      <code>pytest --cov=dsa110_contimg/photometry/multi_observable</code> shows &gt; 95%
+      coverage</li>
+</ul>
+<p><strong>Code Review Checklist</strong>:</p>
+<ul>
+<li>[ ] Observable analysis functions are correct</li>
+<li>[ ] Correlation algorithm is sound</li>
+<li>[ ] Composite significance calculation matches specification</li>
+<li>[ ] Error handling for missing observables</li>
+<li>[ ] Type hints complete</li>
+<li>[ ] Docstrings comprehensive</li>
+</ul>
+<p><strong>Verification Commands</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Run unit tests (should complete in &lt; 400ms)</span>
 /opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/photometry/test_multi_observable.py::TestMultiObservableAnalysis<span class="w"> </span>-v<span class="w"> </span>--tb<span class="o">=</span>short<span class="w"> </span>--durations<span class="o">=</span><span class="m">0</span>
 
@@ -3777,27 +4020,35 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <span class="c1"># Test CLI</span>
 /opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.photometry.cli<span class="w"> </span>ese-detect<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--multi-observable<span class="w"> </span>--observables<span class="w"> </span>flux,scintillation
-</code></pre></div></p>
-<p><strong>Performance Benchmarks</strong>:
-- Multi-observable detection: &lt; 150ms per source (with 2-3 observables)
-- Observable correlation analysis: &lt; 20ms per analysis
-- Database queries: &lt; 50ms per observable query</p>
+</code></pre></div>
+<p><strong>Performance Benchmarks</strong>:</p>
+<ul>
+<li>Multi-observable detection: &lt; 150ms per source (with 2-3 observables)</li>
+<li>Observable correlation analysis: &lt; 20ms per analysis</li>
+<li>Database queries: &lt; 50ms per observable query</li>
+</ul>
 <h3 id="phase-4-summary">Phase 4 Summary<a class="headerlink" href="#phase-4-summary" title="Permanent link">¶</a></h3>
-<p><strong>Key Outcomes</strong>:
-- Advanced scientific capabilities (multi-frequency, multi-observable)
-- Enhanced detection confidence through correlation
-- Support for complex ESE analysis scenarios
-- Foundation for future research capabilities</p>
-<p><strong>Risks &amp; Mitigation</strong>:
-- Risk: Limited availability of multi-frequency/multi-observable data
-- Mitigation: Graceful degradation when data unavailable
-- Risk: Complex correlation algorithms may need tuning
-- Mitigation: Validation framework and iterative improvement</p>
-<p><strong>Success Metrics</strong>:
-- Multi-frequency correlation correctly identified
-- Multi-observable correlation correctly identified
-- Enhanced confidence for correlated variability
-- Documentation complete</p>
+<p><strong>Key Outcomes</strong>:</p>
+<ul>
+<li>Advanced scientific capabilities (multi-frequency, multi-observable)</li>
+<li>Enhanced detection confidence through correlation</li>
+<li>Support for complex ESE analysis scenarios</li>
+<li>Foundation for future research capabilities</li>
+</ul>
+<p><strong>Risks &amp; Mitigation</strong>:</p>
+<ul>
+<li>Risk: Limited availability of multi-frequency/multi-observable data</li>
+<li>Mitigation: Graceful degradation when data unavailable</li>
+<li>Risk: Complex correlation algorithms may need tuning</li>
+<li>Mitigation: Validation framework and iterative improvement</li>
+</ul>
+<p><strong>Success Metrics</strong>:</p>
+<ul>
+<li>Multi-frequency correlation correctly identified</li>
+<li>Multi-observable correlation correctly identified</li>
+<li>Enhanced confidence for correlated variability</li>
+<li>Documentation complete</li>
+</ul>
 <hr/>
 <h2 id="implementation-strategy">Implementation Strategy<a class="headerlink" href="#implementation-strategy" title="Permanent link">¶</a></h2>
 <h3 id="recommended-approach">Recommended Approach<a class="headerlink" href="#recommended-approach" title="Permanent link">¶</a></h3>
@@ -3978,87 +4229,117 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 </ul>
 <hr/>
 <h2 id="document-improvements-summary">Document Improvements Summary<a class="headerlink" href="#document-improvements-summary" title="Permanent link">¶</a></h2>
-<p>This document has been enhanced with the following improvements to increase implementation precision and quality:</p>
+<p>This document has been enhanced with the following improvements to increase
+implementation precision and quality:</p>
 <h3 id="1-general-implementation-guidelines-section">1. <strong>General Implementation Guidelines Section</strong><a class="headerlink" href="#1-general-implementation-guidelines-section" title="Permanent link">¶</a></h3>
 <ul>
 <li>Pre-implementation checklist (read specs, set up environment, create branch)</li>
-<li>During-implementation best practices (TDD, integration verification, documentation)</li>
-<li>Code quality standards (type hints, docstrings, error handling, testing, style)</li>
+<li>During-implementation best practices (TDD, integration verification,
+  documentation)</li>
+<li>Code quality standards (type hints, docstrings, error handling, testing,
+  style)</li>
 <li><strong>Unit and Smoke Testing Strategy</strong> (comprehensive testing guidelines)</li>
 <li>Pre-PR verification checklist (enhanced with unit/smoke test requirements)</li>
 <li>Common pitfalls to avoid</li>
 </ul>
 <h3 id="2-enhanced-task-breakdowns">2. <strong>Enhanced Task Breakdowns</strong><a class="headerlink" href="#2-enhanced-task-breakdowns" title="Permanent link">¶</a></h3>
-<p>Each major task now includes:
-   - <strong>File Locations</strong>: Exact file paths for implementation, tests, and integration points
-   - <strong>Task Breakdown</strong>: Step-by-step subtasks with time estimates
-   - <strong>Detailed Specifications</strong>: Function signatures, algorithm details, expected behaviors
-   - <strong>Deliverables Checklist</strong>: Comprehensive list of all deliverables
-   - <strong>Acceptance Criteria</strong>: Measurable, testable criteria (all must pass)
-   - <strong>Code Review Checklist</strong>: Specific items for reviewers to check
-   - <strong>Verification Commands</strong>: Exact commands to run for verification
-   - <strong>Performance Benchmarks</strong>: Specific performance targets where applicable
-   - <strong>Rollback Procedures</strong>: Steps to revert if issues are found</p>
+<p>Each major task now includes:</p>
+<ul>
+<li><strong>File Locations</strong>: Exact file paths for implementation, tests, and
+  integration points</li>
+<li><strong>Task Breakdown</strong>: Step-by-step subtasks with time estimates</li>
+<li><strong>Detailed Specifications</strong>: Function signatures, algorithm details, expected
+  behaviors</li>
+<li><strong>Deliverables Checklist</strong>: Comprehensive list of all deliverables</li>
+<li><strong>Acceptance Criteria</strong>: Measurable, testable criteria (all must pass)</li>
+<li><strong>Code Review Checklist</strong>: Specific items for reviewers to check</li>
+<li><strong>Verification Commands</strong>: Exact commands to run for verification</li>
+<li><strong>Performance Benchmarks</strong>: Specific performance targets where applicable</li>
+<li><strong>Rollback Procedures</strong>: Steps to revert if issues are found</li>
+</ul>
 <h3 id="3-specific-improvements-by-task">3. <strong>Specific Improvements by Task</strong><a class="headerlink" href="#3-specific-improvements-by-task" title="Permanent link">¶</a></h3>
-<p><strong>Task 1.1 (Sigma Deviation)</strong>:
-   - Exact function signature specification
-   - Detailed input validation requirements
-   - Specific test cases with expected outputs
-   - Verification commands using <code>grep</code> to check for code duplication
-   - Manual verification steps with known test values</p>
-<p><strong>Task 1.2 (Validation Test Suite)</strong>:
-   - Detailed test infrastructure requirements
-   - Specific test cases with input/output specifications
-   - Performance test thresholds (e.g., &lt; 60 seconds for 10K sources)
-   - Test coverage targets (&gt; 90%)
-   - Verification commands for different test categories</p>
-<p><strong>Task 2.1 (Multi-Metric Scoring)</strong>:
-   - Complete algorithm specification with formulas
-   - Default weight values and normalization strategies
-   - Confidence level thresholds
-   - Configuration file structure (YAML example)
-   - Integration points with exact function names and parameters
-   - Validation framework requirements
-   - Performance benchmarks (&lt; 1ms per candidate, &lt; 5% overhead)
-   - <strong>Unit and smoke test requirements</strong> with execution time targets</p>
+<p><strong>Task 1.1 (Sigma Deviation)</strong>:</p>
+<ul>
+<li>Exact function signature specification</li>
+<li>Detailed input validation requirements</li>
+<li>Specific test cases with expected outputs</li>
+<li>Verification commands using <code>grep</code> to check for code duplication</li>
+<li>Manual verification steps with known test values</li>
+</ul>
+<p><strong>Task 1.2 (Validation Test Suite)</strong>:</p>
+<ul>
+<li>Detailed test infrastructure requirements</li>
+<li>Specific test cases with input/output specifications</li>
+<li>Performance test thresholds (e.g., &lt; 60 seconds for 10K sources)</li>
+<li>Test coverage targets (&gt; 90%)</li>
+<li>Verification commands for different test categories</li>
+</ul>
+<p><strong>Task 2.1 (Multi-Metric Scoring)</strong>:</p>
+<ul>
+<li>Complete algorithm specification with formulas</li>
+<li>Default weight values and normalization strategies</li>
+<li>Confidence level thresholds</li>
+<li>Configuration file structure (YAML example)</li>
+<li>Integration points with exact function names and parameters</li>
+<li>Validation framework requirements</li>
+<li>Performance benchmarks (&lt; 1ms per candidate, &lt; 5% overhead)</li>
+<li><strong>Unit and smoke test requirements</strong> with execution time targets</li>
+</ul>
 <h3 id="4-unit-and-smoke-test-integration">4. <strong>Unit and Smoke Test Integration</strong><a class="headerlink" href="#4-unit-and-smoke-test-integration" title="Permanent link">¶</a></h3>
-<p><strong>Comprehensive Testing Strategy</strong>:
-   - <strong>Unit Test Guidelines</strong>: Speed-focused (&lt; 100ms per test, &lt; 30 seconds total suite)
-   - <strong>Smoke Test Guidelines</strong>: Critical path validation (&lt; 5 seconds per test, &lt; 2 minutes total)
-   - <strong>Test Checklists</strong>: Integrated into each task (3-7 core tests, edge cases, error handling, smoke test)
-   - <strong>Execution Time Targets</strong>: Specific targets for each test category
-   - <strong>Fast Failure</strong>: Immediate error detection with <code>-x</code> flag
-   - <strong>Test Structure</strong>: Arrange-Act-Assert pattern with clear documentation</p>
-<p><strong>Integration Points</strong>:
-   - Task 1.1: 10 unit tests + 1 smoke test (&lt; 100ms total)
-   - Task 1.2: Unit tests for all metrics + smoke tests (&lt; 200ms unit, &lt; 2 seconds smoke)
-   - Task 2.1: 8 unit tests + 2 smoke tests + 2 validation tests (&lt; 4 seconds total)
-   - Task 2.2: 9 unit tests + 3 smoke tests (&lt; 1.5 seconds total)
-   - Task 3.1: 8 unit tests + 2 smoke tests + 1 performance test (&lt; 8 seconds total)
-   - Task 3.2: 8 unit tests + 2 smoke tests + 2 concurrency tests + 2 performance tests (&lt; 20 seconds total)
-   - Task 4.1: 7 unit tests + 2 smoke tests (&lt; 4 seconds total)
-   - Task 4.2: 8 unit tests + 2 smoke tests (&lt; 4 seconds total)
-   - All tasks include verification commands with execution time checks</p>
+<p><strong>Comprehensive Testing Strategy</strong>:</p>
+<ul>
+<li><strong>Unit Test Guidelines</strong>: Speed-focused (&lt; 100ms per test, &lt; 30 seconds total
+  suite)</li>
+<li><strong>Smoke Test Guidelines</strong>: Critical path validation (&lt; 5 seconds per test, &lt; 2
+  minutes total)</li>
+<li><strong>Test Checklists</strong>: Integrated into each task (3-7 core tests, edge cases,
+  error handling, smoke test)</li>
+<li><strong>Execution Time Targets</strong>: Specific targets for each test category</li>
+<li><strong>Fast Failure</strong>: Immediate error detection with <code>-x</code> flag</li>
+<li><strong>Test Structure</strong>: Arrange-Act-Assert pattern with clear documentation</li>
+</ul>
+<p><strong>Integration Points</strong>:</p>
+<ul>
+<li>Task 1.1: 10 unit tests + 1 smoke test (&lt; 100ms total)</li>
+<li>Task 1.2: Unit tests for all metrics + smoke tests (&lt; 200ms unit, &lt; 2 seconds
+  smoke)</li>
+<li>Task 2.1: 8 unit tests + 2 smoke tests + 2 validation tests (&lt; 4 seconds
+  total)</li>
+<li>Task 2.2: 9 unit tests + 3 smoke tests (&lt; 1.5 seconds total)</li>
+<li>Task 3.1: 8 unit tests + 2 smoke tests + 1 performance test (&lt; 8 seconds
+  total)</li>
+<li>Task 3.2: 8 unit tests + 2 smoke tests + 2 concurrency tests + 2 performance
+  tests (&lt; 20 seconds total)</li>
+<li>Task 4.1: 7 unit tests + 2 smoke tests (&lt; 4 seconds total)</li>
+<li>Task 4.2: 8 unit tests + 2 smoke tests (&lt; 4 seconds total)</li>
+<li>All tasks include verification commands with execution time checks</li>
+</ul>
 <h3 id="5-benefits-of-these-improvements">5. <strong>Benefits of These Improvements</strong><a class="headerlink" href="#5-benefits-of-these-improvements" title="Permanent link">¶</a></h3>
 <ul>
-<li><strong>Reduced Ambiguity</strong>: Exact file paths, function signatures, and expected behaviors eliminate guesswork</li>
-<li><strong>Faster Onboarding</strong>: New developers can start immediately with clear specifications</li>
+<li><strong>Reduced Ambiguity</strong>: Exact file paths, function signatures, and expected
+  behaviors eliminate guesswork</li>
+<li><strong>Faster Onboarding</strong>: New developers can start immediately with clear
+  specifications</li>
 <li><strong>Better Quality</strong>: Comprehensive checklists ensure nothing is missed</li>
-<li><strong>Easier Verification</strong>: Specific commands and criteria make validation straightforward</li>
+<li><strong>Easier Verification</strong>: Specific commands and criteria make validation
+  straightforward</li>
 <li><strong>Risk Mitigation</strong>: Rollback procedures and common pitfalls help avoid issues</li>
-<li><strong>Consistent Implementation</strong>: Detailed specifications ensure consistent results across developers</li>
+<li><strong>Consistent Implementation</strong>: Detailed specifications ensure consistent
+  results across developers</li>
 </ul>
 <h3 id="6-how-to-use-this-document">6. <strong>How to Use This Document</strong><a class="headerlink" href="#6-how-to-use-this-document" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong>Before Starting</strong>: Read "General Implementation Guidelines" and "Unit and Smoke Testing Strategy" sections</li>
-<li><strong>For Each Task</strong>: Follow the task breakdown in order, including unit/smoke test requirements</li>
-<li><strong>During Implementation</strong>: <ul>
+<li><strong>Before Starting</strong>: Read "General Implementation Guidelines" and "Unit and
+    Smoke Testing Strategy" sections</li>
+<li><strong>For Each Task</strong>: Follow the task breakdown in order, including unit/smoke
+    test requirements</li>
+<li><strong>During Implementation</strong>:<ul>
 <li>Write unit tests first (TDD approach)</li>
 <li>Run tests frequently to catch issues early</li>
 <li>Verify execution times meet targets</li>
 </ul>
 </li>
-<li><strong>Before PR</strong>: <ul>
+<li><strong>Before PR</strong>:<ul>
 <li>Complete verification checklist (including unit/smoke test requirements)</li>
 <li>Run all verification commands</li>
 <li>Ensure test execution times meet targets</li>
@@ -4067,12 +4348,14 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <li><strong>If Issues</strong>: Follow rollback procedures and document problems</li>
 </ol>
 <h3 id="7-future-enhancements">7. <strong>Future Enhancements</strong><a class="headerlink" href="#7-future-enhancements" title="Permanent link">¶</a></h3>
-<p>Additional improvements that could be made:
-   - Add more detailed examples for Phase 3 and Phase 4 tasks
-   - Include diagrams for complex algorithms
-   - Add troubleshooting guides for common issues
-   - Create implementation templates for common patterns
-   - Add progress tracking templates</p>
+<p>Additional improvements that could be made:</p>
+<ul>
+<li>Add more detailed examples for Phase 3 and Phase 4 tasks</li>
+<li>Include diagrams for complex algorithms</li>
+<li>Add troubleshooting guides for common issues</li>
+<li>Create implementation templates for common patterns</li>
+<li>Add progress tracking templates</li>
+</ul>
 <hr/>
 <p><strong>Last Updated</strong>: 2025-11-12<br/>
 <strong>Version</strong>: 2.0 (Enhanced with detailed specifications)</p>
@@ -4100,7 +4383,7 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

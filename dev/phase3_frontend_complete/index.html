@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1154,51 +1156,69 @@
 <h2 id="frontend-implementation-summary">Frontend Implementation Summary<a class="headerlink" href="#frontend-implementation-summary" title="Permanent link">¶</a></h2>
 <h3 id="1-typescript-types">1. TypeScript Types ✅<a class="headerlink" href="#1-typescript-types" title="Permanent link">¶</a></h3>
 <p><strong>File:</strong> <code>frontend/src/api/types.ts</code></p>
-<p><strong>Added:</strong>
-- <code>EventStreamItem</code> - Event stream item interface
-- <code>EventStatistics</code> - Event statistics interface
-- <code>EventType</code> - Event type interface
-- <code>EventTypesResponse</code> - Event types response interface
-- <code>CacheStatistics</code> - Cache statistics interface
-- <code>CacheKeyInfo</code> - Cache key info interface
-- <code>CacheKeysResponse</code> - Cache keys response interface
-- <code>CacheKeyDetail</code> - Cache key detail interface
-- <code>CachePerformance</code> - Cache performance interface</p>
+<p><strong>Added:</strong></p>
+<ul>
+<li><code>EventStreamItem</code> - Event stream item interface</li>
+<li><code>EventStatistics</code> - Event statistics interface</li>
+<li><code>EventType</code> - Event type interface</li>
+<li><code>EventTypesResponse</code> - Event types response interface</li>
+<li><code>CacheStatistics</code> - Cache statistics interface</li>
+<li><code>CacheKeyInfo</code> - Cache key info interface</li>
+<li><code>CacheKeysResponse</code> - Cache keys response interface</li>
+<li><code>CacheKeyDetail</code> - Cache key detail interface</li>
+<li><code>CachePerformance</code> - Cache performance interface</li>
+</ul>
 <h3 id="2-react-query-hooks">2. React Query Hooks ✅<a class="headerlink" href="#2-react-query-hooks" title="Permanent link">¶</a></h3>
 <p><strong>File:</strong> <code>frontend/src/api/queries.ts</code></p>
-<p><strong>Added Event Hooks:</strong>
-- <code>useEventStream()</code> - Fetch event stream with filtering
-- <code>useEventStatistics()</code> - Fetch event statistics
-- <code>useEventTypes()</code> - Fetch available event types</p>
-<p><strong>Added Cache Hooks:</strong>
-- <code>useCacheStatistics()</code> - Fetch cache statistics
-- <code>useCacheKeys()</code> - List cache keys with filtering
-- <code>useCacheKey()</code> - Get cache key details
-- <code>useCachePerformance()</code> - Fetch cache performance metrics</p>
+<p><strong>Added Event Hooks:</strong></p>
+<ul>
+<li><code>useEventStream()</code> - Fetch event stream with filtering</li>
+<li><code>useEventStatistics()</code> - Fetch event statistics</li>
+<li><code>useEventTypes()</code> - Fetch available event types</li>
+</ul>
+<p><strong>Added Cache Hooks:</strong></p>
+<ul>
+<li><code>useCacheStatistics()</code> - Fetch cache statistics</li>
+<li><code>useCacheKeys()</code> - List cache keys with filtering</li>
+<li><code>useCacheKey()</code> - Get cache key details</li>
+<li><code>useCachePerformance()</code> - Fetch cache performance metrics</li>
+</ul>
 <h3 id="3-react-components">3. React Components ✅<a class="headerlink" href="#3-react-components" title="Permanent link">¶</a></h3>
-<p><strong>Events Components (<code>frontend/src/components/Events/</code>):</strong>
-- <code>EventStream.tsx</code> - Real-time event stream viewer with filtering
-- <code>EventStats.tsx</code> - Event statistics dashboard
-- <code>index.ts</code> - Component exports</p>
-<p><strong>Cache Components (<code>frontend/src/components/Cache/</code>):</strong>
-- <code>CacheStats.tsx</code> - Cache statistics display
-- <code>CacheKeys.tsx</code> - Cache keys table with search/filter and delete functionality
-- <code>CachePerformance.tsx</code> - Cache performance visualization
-- <code>index.ts</code> - Component exports</p>
+<p><strong>Events Components (<code>frontend/src/components/Events/</code>):</strong></p>
+<ul>
+<li><code>EventStream.tsx</code> - Real-time event stream viewer with filtering</li>
+<li><code>EventStats.tsx</code> - Event statistics dashboard</li>
+<li><code>index.ts</code> - Component exports</li>
+</ul>
+<p><strong>Cache Components (<code>frontend/src/components/Cache/</code>):</strong></p>
+<ul>
+<li><code>CacheStats.tsx</code> - Cache statistics display</li>
+<li><code>CacheKeys.tsx</code> - Cache keys table with search/filter and delete functionality</li>
+<li><code>CachePerformance.tsx</code> - Cache performance visualization</li>
+<li><code>index.ts</code> - Component exports</li>
+</ul>
 <h3 id="4-pages">4. Pages ✅<a class="headerlink" href="#4-pages" title="Permanent link">¶</a></h3>
-<p><strong>Events Page (<code>frontend/src/pages/EventsPage.tsx</code>):</strong>
-- Tabbed interface with Event Stream and Statistics tabs
-- Real-time updates every 5 seconds</p>
-<p><strong>Cache Page (<code>frontend/src/pages/CachePage.tsx</code>):</strong>
-- Tabbed interface with Statistics, Keys, and Performance tabs
-- Clear cache functionality with confirmation dialog</p>
+<p><strong>Events Page (<code>frontend/src/pages/EventsPage.tsx</code>):</strong></p>
+<ul>
+<li>Tabbed interface with Event Stream and Statistics tabs</li>
+<li>Real-time updates every 5 seconds</li>
+</ul>
+<p><strong>Cache Page (<code>frontend/src/pages/CachePage.tsx</code>):</strong></p>
+<ul>
+<li>Tabbed interface with Statistics, Keys, and Performance tabs</li>
+<li>Clear cache functionality with confirmation dialog</li>
+</ul>
 <h3 id="5-navigation-integration">5. Navigation Integration ✅<a class="headerlink" href="#5-navigation-integration" title="Permanent link">¶</a></h3>
-<p><strong>Files Modified:</strong>
-- <code>frontend/src/App.tsx</code> - Added routes for <code>/events</code> and <code>/cache</code>
-- <code>frontend/src/components/Navigation.tsx</code> - Added navigation links with icons</p>
-<p><strong>Navigation Items Added:</strong>
-- Events (EventNote icon) - <code>/events</code>
-- Cache (Cached icon) - <code>/cache</code></p>
+<p><strong>Files Modified:</strong></p>
+<ul>
+<li><code>frontend/src/App.tsx</code> - Added routes for <code>/events</code> and <code>/cache</code></li>
+<li><code>frontend/src/components/Navigation.tsx</code> - Added navigation links with icons</li>
+</ul>
+<p><strong>Navigation Items Added:</strong></p>
+<ul>
+<li>Events (EventNote icon) - <code>/events</code></li>
+<li>Cache (Cached icon) - <code>/cache</code></li>
+</ul>
 <h2 id="features-implemented">Features Implemented<a class="headerlink" href="#features-implemented" title="Permanent link">¶</a></h2>
 <h3 id="event-bus-monitor">Event Bus Monitor<a class="headerlink" href="#event-bus-monitor" title="Permanent link">¶</a></h3>
 <ul>
@@ -1251,7 +1271,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

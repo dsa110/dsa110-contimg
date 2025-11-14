@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1182,54 +1184,72 @@
 <article class="md-content__inner md-typeset">
 <h1 id="bash-shell-sourcing-behavior">Bash Shell Sourcing Behavior<a class="headerlink" href="#bash-shell-sourcing-behavior" title="Permanent link">¶</a></h1>
 <h2 id="key-fact-non-interactive-shells-source-nothing-by-default">Key Fact: Non-Interactive Shells Source NOTHING by Default<a class="headerlink" href="#key-fact-non-interactive-shells-source-nothing-by-default" title="Permanent link">¶</a></h2>
-<p><strong>Non-interactive shells</strong> (like <code>bash -c 'command'</code>) do <strong>NOT</strong> source:
-- ❌ <code>~/.bashrc</code>
-- ❌ <code>~/.bash_profile</code>
-- ❌ <code>~/.profile</code>
-- ❌ <code>/etc/bash.bashrc</code>
-- ❌ <code>/etc/profile</code></p>
+<p><strong>Non-interactive shells</strong> (like <code>bash -c 'command'</code>) do <strong>NOT</strong> source:</p>
+<ul>
+<li>❌ <code>~/.bashrc</code></li>
+<li>❌ <code>~/.bash_profile</code></li>
+<li>❌ <code>~/.profile</code></li>
+<li>❌ <code>/etc/bash.bashrc</code></li>
+<li>❌ <code>/etc/profile</code></li>
+</ul>
 <p>They <strong>ONLY</strong> source the file specified by <code>BASH_ENV</code> (if <code>BASH_ENV</code> is set).</p>
 <h2 id="shell-types-and-what-they-source">Shell Types and What They Source<a class="headerlink" href="#shell-types-and-what-they-source" title="Permanent link">¶</a></h2>
 <h3 id="interactive-login-shell">Interactive Login Shell<a class="headerlink" href="#interactive-login-shell" title="Permanent link">¶</a></h3>
 <p><strong>Example:</strong> <code>bash --login</code> or SSH session</p>
-<p>Sources (in order):
-1. <code>/etc/profile</code>
-2. <code>~/.bash_profile</code> OR <code>~/.bash_login</code> OR <code>~/.profile</code> (first one found)
-3. <code>~/.bashrc</code> (if sourced by one of the above)</p>
+<p>Sources (in order):</p>
+<ol>
+<li><code>/etc/profile</code></li>
+<li><code>~/.bash_profile</code> OR <code>~/.bash_login</code> OR <code>~/.profile</code> (first one found)</li>
+<li><code>~/.bashrc</code> (if sourced by one of the above)</li>
+</ol>
 <h3 id="interactive-non-login-shell">Interactive Non-Login Shell<a class="headerlink" href="#interactive-non-login-shell" title="Permanent link">¶</a></h3>
 <p><strong>Example:</strong> Terminal window, <code>bash</code> command</p>
-<p>Sources:
-1. <code>~/.bashrc</code>
-2. <code>/etc/bash.bashrc</code> (if <code>~/.bashrc</code> doesn't exist)</p>
+<p>Sources:</p>
+<ol>
+<li><code>~/.bashrc</code></li>
+<li><code>/etc/bash.bashrc</code> (if <code>~/.bashrc</code> doesn't exist)</li>
+</ol>
 <h3 id="non-interactive-shell">Non-Interactive Shell<a class="headerlink" href="#non-interactive-shell" title="Permanent link">¶</a></h3>
 <p><strong>Example:</strong> <code>bash -c 'command'</code>, scripts</p>
-<p>Sources:
-1. <strong>ONLY</strong> the file specified by <code>BASH_ENV</code> (if set)
-2. <strong>NOTHING</strong> if <code>BASH_ENV</code> is not set</p>
+<p>Sources:</p>
+<ol>
+<li><strong>ONLY</strong> the file specified by <code>BASH_ENV</code> (if set)</li>
+<li><strong>NOTHING</strong> if <code>BASH_ENV</code> is not set</li>
+</ol>
 <h2 id="implications-for-error-detection">Implications for Error Detection<a class="headerlink" href="#implications-for-error-detection" title="Permanent link">¶</a></h2>
 <h3 id="the-problem">The Problem<a class="headerlink" href="#the-problem" title="Permanent link">¶</a></h3>
-<p>For error detection to work in non-interactive shells (agentic sessions), <code>BASH_ENV</code> must be:
-1. <strong>Set in the environment</strong> before bash starts
-2. <strong>Exported</strong> so child processes inherit it</p>
+<p>For error detection to work in non-interactive shells (agentic sessions),
+<code>BASH_ENV</code> must be:</p>
+<ol>
+<li><strong>Set in the environment</strong> before bash starts</li>
+<li><strong>Exported</strong> so child processes inherit it</li>
+</ol>
 <h3 id="why-profile-helps-but-isnt-perfect">Why ~/.profile Helps (But Isn't Perfect)<a class="headerlink" href="#why-profile-helps-but-isnt-perfect" title="Permanent link">¶</a></h3>
-<p>Setting <code>BASH_ENV</code> in <code>~/.profile</code>:
-- ✅ Works for <strong>login shells</strong> (SSH, <code>bash --login</code>)
-- ✅ Exports to child processes
-- ❌ <strong>Doesn't work</strong> if the session isn't a login shell</p>
+<p>Setting <code>BASH_ENV</code> in <code>~/.profile</code>:</p>
+<ul>
+<li>✅ Works for <strong>login shells</strong> (SSH, <code>bash --login</code>)</li>
+<li>✅ Exports to child processes</li>
+<li>❌ <strong>Doesn't work</strong> if the session isn't a login shell</li>
+</ul>
 <h3 id="why-bashrc-helps-but-isnt-perfect">Why ~/.bashrc Helps (But Isn't Perfect)<a class="headerlink" href="#why-bashrc-helps-but-isnt-perfect" title="Permanent link">¶</a></h3>
-<p>Setting <code>BASH_ENV</code> in <code>~/.bashrc</code>:
-- ✅ Works for <strong>interactive shells</strong>
-- ✅ Exports to child processes
-- ❌ <strong>Doesn't work</strong> for non-interactive shells (they don't source <code>~/.bashrc</code>)</p>
+<p>Setting <code>BASH_ENV</code> in <code>~/.bashrc</code>:</p>
+<ul>
+<li>✅ Works for <strong>interactive shells</strong></li>
+<li>✅ Exports to child processes</li>
+<li>❌ <strong>Doesn't work</strong> for non-interactive shells (they don't source <code>~/.bashrc</code>)</li>
+</ul>
 <h3 id="the-solution-agent-setup-script">The Solution: Agent Setup Script<a class="headerlink" href="#the-solution-agent-setup-script" title="Permanent link">¶</a></h3>
-<p>The <strong>most reliable</strong> approach is to have agents explicitly source the setup script:</p>
+<p>The <strong>most reliable</strong> approach is to have agents explicitly source the setup
+script:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">source</span><span class="w"> </span>/data/dsa110-contimg/scripts/agent-setup.sh
 </code></pre></div>
-<p>This:
-1. Sets <code>BASH_ENV</code> in the current environment
-2. Exports it to child processes
-3. Enables error detection immediately
-4. Works regardless of shell type</p>
+<p>This:</p>
+<ol>
+<li>Sets <code>BASH_ENV</code> in the current environment</li>
+<li>Exports it to child processes</li>
+<li>Enables error detection immediately</li>
+<li>Works regardless of shell type</li>
+</ol>
 <h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">¶</a></h2>
 <h3 id="test-1-non-interactive-without-bash_env">Test 1: Non-Interactive Without BASH_ENV<a class="headerlink" href="#test-1-non-interactive-without-bash_env" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>$<span class="w"> </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s1">'echo $AUTO_ERROR_DETECTION'</span>
@@ -1250,12 +1270,16 @@ $<span class="w"> </span>bash<span class="w"> </span>-c<span class="w"> </span><
 <span class="c1"># BASH_ENV is set, so child shells get error detection</span>
 </code></pre></div>
 <h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
-<p><strong>Non-interactive shells source nothing by default</strong> - they only source <code>BASH_ENV</code> if it's set.</p>
-<p>To make error detection deterministic:
-1. <strong>Best:</strong> Agents source <code>agent-setup.sh</code> at session start
-2. <strong>Fallback:</strong> <code>BASH_ENV</code> set in <code>~/.profile</code> (for login shells)
-3. <strong>Fallback:</strong> <code>BASH_ENV</code> set in <code>~/.bashrc</code> (for interactive shells)</p>
-<p>But the <strong>only</strong> way to guarantee it works in <strong>all</strong> non-interactive shells is to ensure <code>BASH_ENV</code> is set in the environment before bash starts.</p>
+<p><strong>Non-interactive shells source nothing by default</strong> - they only source
+<code>BASH_ENV</code> if it's set.</p>
+<p>To make error detection deterministic:</p>
+<ol>
+<li><strong>Best:</strong> Agents source <code>agent-setup.sh</code> at session start</li>
+<li><strong>Fallback:</strong> <code>BASH_ENV</code> set in <code>~/.profile</code> (for login shells)</li>
+<li><strong>Fallback:</strong> <code>BASH_ENV</code> set in <code>~/.bashrc</code> (for interactive shells)</li>
+</ol>
+<p>But the <strong>only</strong> way to guarantee it works in <strong>all</strong> non-interactive shells is
+to ensure <code>BASH_ENV</code> is set in the environment before bash starts.</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1280,7 +1304,7 @@ $<span class="w"> </span>bash<span class="w"> </span>-c<span class="w"> </span><
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

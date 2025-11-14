@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1544,14 +1546,24 @@
 <article class="md-content__inner md-typeset">
 <h1 id="enhancement-recommendations-from-good-to-excellent">Enhancement Recommendations: From Good to Excellent<a class="headerlink" href="#enhancement-recommendations-from-good-to-excellent" title="Permanent link">¶</a></h1>
 <h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">¶</a></h2>
-<p>This document outlines specific recommendations to elevate the five implemented components (ESE Detection, Calibration Solving, Photometry Normalization, Automated Photometry, Automated ESE Detection) from "good" to "excellent" in the context of a production radio astronomy pipeline.</p>
-<p><strong>Key Themes:</strong>
-1. <strong>Observability &amp; Monitoring</strong> - Comprehensive metrics, tracing, and alerting
-2. <strong>Resilience &amp; Reliability</strong> - Error recovery, circuit breakers, graceful degradation
-3. <strong>Performance &amp; Scalability</strong> - Caching, parallelization, resource optimization
-4. <strong>Data Quality &amp; Validation</strong> - Input validation, output verification, consistency checks
-5. <strong>Operational Excellence</strong> - Configuration management, deployment strategies, documentation
-6. <strong>Integration &amp; Workflow</strong> - Event-driven architecture, state management, dependency tracking</p>
+<p>This document outlines specific recommendations to elevate the five implemented
+components (ESE Detection, Calibration Solving, Photometry Normalization,
+Automated Photometry, Automated ESE Detection) from "good" to "excellent" in the
+context of a production radio astronomy pipeline.</p>
+<p><strong>Key Themes:</strong></p>
+<ol>
+<li><strong>Observability &amp; Monitoring</strong> - Comprehensive metrics, tracing, and alerting</li>
+<li><strong>Resilience &amp; Reliability</strong> - Error recovery, circuit breakers, graceful
+   degradation</li>
+<li><strong>Performance &amp; Scalability</strong> - Caching, parallelization, resource
+   optimization</li>
+<li><strong>Data Quality &amp; Validation</strong> - Input validation, output verification,
+   consistency checks</li>
+<li><strong>Operational Excellence</strong> - Configuration management, deployment strategies,
+   documentation</li>
+<li><strong>Integration &amp; Workflow</strong> - Event-driven architecture, state management,
+   dependency tracking</li>
+</ol>
 <hr/>
 <h2 id="1-ese-detection-cliapi">1. ESE Detection CLI/API<a class="headerlink" href="#1-ese-detection-cliapi" title="Permanent link">¶</a></h2>
 <h3 id="current-state-good">Current State: Good<a class="headerlink" href="#current-state-good" title="Permanent link">¶</a></h3>
@@ -1563,7 +1575,7 @@
 </ul>
 <h3 id="enhancements-to-excellence">Enhancements to Excellence<a class="headerlink" href="#enhancements-to-excellence" title="Permanent link">¶</a></h3>
 <h4 id="11-observability-monitoring">1.1 Observability &amp; Monitoring<a class="headerlink" href="#11-observability-monitoring" title="Permanent link">¶</a></h4>
-<p><strong>Add Structured Metrics:</strong>
+<p><strong>Add Structured Metrics:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># src/dsa110_contimg/photometry/metrics.py</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">prometheus_client</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span><span class="p">,</span> <span class="n">Histogram</span><span class="p">,</span> <span class="n">Gauge</span>
 
@@ -1590,12 +1602,14 @@
     <span class="s1">'Time to compute variability statistics'</span><span class="p">,</span>
     <span class="p">[</span><span class="s1">'source_count'</span><span class="p">]</span>
 <span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Add Distributed Tracing:</strong>
-- Integrate OpenTelemetry spans for ESE detection workflow
-- Track: database queries, variability computation, candidate detection
-- Correlate with photometry measurements via trace context</p>
-<p><strong>Add Health Checks:</strong>
+</code></pre></div>
+<p><strong>Add Distributed Tracing:</strong></p>
+<ul>
+<li>Integrate OpenTelemetry spans for ESE detection workflow</li>
+<li>Track: database queries, variability computation, candidate detection</li>
+<li>Correlate with photometry measurements via trace context</li>
+</ul>
+<p><strong>Add Health Checks:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># src/dsa110_contimg/api/health.py</span>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/health/ese-detection"</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">ese_detection_health</span><span class="p">():</span>
@@ -1607,9 +1621,9 @@
         <span class="s2">"recent_detection_success"</span><span class="p">:</span> <span class="n">check_recent_detection_success</span><span class="p">(),</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="p">{</span><span class="s2">"status"</span><span class="p">:</span> <span class="s2">"healthy"</span> <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">checks</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="k">else</span> <span class="s2">"degraded"</span><span class="p">,</span> <span class="s2">"checks"</span><span class="p">:</span> <span class="n">checks</span><span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <h4 id="12-resilience-reliability">1.2 Resilience &amp; Reliability<a class="headerlink" href="#12-resilience-reliability" title="Permanent link">¶</a></h4>
-<p><strong>Add Circuit Breaker:</strong>
+<p><strong>Add Circuit Breaker:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># src/dsa110_contimg/photometry/circuit_breaker.py</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">circuitbreaker</span><span class="w"> </span><span class="kn">import</span> <span class="n">circuit</span>
 
@@ -1618,17 +1632,21 @@
 <span class="w">    </span><span class="sd">"""ESE detection with circuit breaker protection."""</span>
     <span class="c1"># Prevents cascading failures if database is overloaded</span>
     <span class="k">return</span> <span class="n">detect_ese_candidates</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Add Rate Limiting:</strong>
-- Protect against API abuse
-- Configurable per-user/per-IP limits
-- Queue-based processing for batch jobs</p>
-<p><strong>Add Graceful Degradation:</strong>
-- If variability stats computation fails, use cached values
-- If database is unavailable, queue requests for later processing
-- Return partial results if batch processing partially fails</p>
+</code></pre></div>
+<p><strong>Add Rate Limiting:</strong></p>
+<ul>
+<li>Protect against API abuse</li>
+<li>Configurable per-user/per-IP limits</li>
+<li>Queue-based processing for batch jobs</li>
+</ul>
+<p><strong>Add Graceful Degradation:</strong></p>
+<ul>
+<li>If variability stats computation fails, use cached values</li>
+<li>If database is unavailable, queue requests for later processing</li>
+<li>Return partial results if batch processing partially fails</li>
+</ul>
 <h4 id="13-performance-scalability">1.3 Performance &amp; Scalability<a class="headerlink" href="#13-performance-scalability" title="Permanent link">¶</a></h4>
-<p><strong>Add Caching Layer:</strong>
+<p><strong>Add Caching Layer:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Cache variability stats for frequently queried sources</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cachetools</span><span class="w"> </span><span class="kn">import</span> <span class="n">TTLCache</span>
@@ -1640,16 +1658,20 @@
     <span class="k">if</span> <span class="n">source_id</span> <span class="ow">in</span> <span class="n">variability_cache</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">variability_cache</span><span class="p">[</span><span class="n">source_id</span><span class="p">]</span>
     <span class="c1"># ... compute and cache</span>
-</code></pre></div></p>
-<p><strong>Add Parallel Processing:</strong>
-- Parallelize variability stats computation for batch operations
-- Use multiprocessing.Pool for CPU-bound calculations
-- Async database queries where possible</p>
-<p><strong>Add Incremental Updates:</strong>
-- Only recompute variability stats for sources with new measurements
-- Track last_computed timestamp to avoid redundant work</p>
+</code></pre></div>
+<p><strong>Add Parallel Processing:</strong></p>
+<ul>
+<li>Parallelize variability stats computation for batch operations</li>
+<li>Use multiprocessing.Pool for CPU-bound calculations</li>
+<li>Async database queries where possible</li>
+</ul>
+<p><strong>Add Incremental Updates:</strong></p>
+<ul>
+<li>Only recompute variability stats for sources with new measurements</li>
+<li>Track last_computed timestamp to avoid redundant work</li>
+</ul>
 <h4 id="14-data-quality-validation">1.4 Data Quality &amp; Validation<a class="headerlink" href="#14-data-quality-validation" title="Permanent link">¶</a></h4>
-<p><strong>Add Input Validation:</strong>
+<p><strong>Add Input Validation:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">validator</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">ESEDetectJobParams</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
@@ -1660,17 +1682,21 @@
         <span class="k">if</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="mi">20</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'min_sigma must be between 0 and 20'</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">v</span>
-</code></pre></div></p>
-<p><strong>Add Output Verification:</strong>
-- Validate ESE candidate records before insertion
-- Check for duplicate candidates
-- Verify statistical significance calculations</p>
-<p><strong>Add Data Consistency Checks:</strong>
-- Verify variability_stats are consistent with photometry table
-- Detect and flag orphaned records
-- Periodic integrity checks</p>
+</code></pre></div>
+<p><strong>Add Output Verification:</strong></p>
+<ul>
+<li>Validate ESE candidate records before insertion</li>
+<li>Check for duplicate candidates</li>
+<li>Verify statistical significance calculations</li>
+</ul>
+<p><strong>Add Data Consistency Checks:</strong></p>
+<ul>
+<li>Verify variability_stats are consistent with photometry table</li>
+<li>Detect and flag orphaned records</li>
+<li>Periodic integrity checks</li>
+</ul>
 <h4 id="15-operational-excellence">1.5 Operational Excellence<a class="headerlink" href="#15-operational-excellence" title="Permanent link">¶</a></h4>
-<p><strong>Add Configuration Management:</strong>
+<p><strong>Add Configuration Management:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># config/ese_detection.yaml</span>
 <span class="n">ese_detection</span><span class="p">:</span>
   <span class="n">default_min_sigma</span><span class="p">:</span> <span class="mf">5.0</span>
@@ -1681,12 +1707,14 @@
     <span class="n">recovery_timeout</span><span class="p">:</span> <span class="mi">60</span>
   <span class="n">rate_limiting</span><span class="p">:</span>
     <span class="n">requests_per_minute</span><span class="p">:</span> <span class="mi">100</span>
-</code></pre></div></p>
-<p><strong>Add Deployment Strategies:</strong>
-- Blue-green deployment for API updates
-- Feature flags for gradual rollout
-- A/B testing for detection algorithm improvements</p>
-<p><strong>Add Comprehensive Logging:</strong>
+</code></pre></div>
+<p><strong>Add Deployment Strategies:</strong></p>
+<ul>
+<li>Blue-green deployment for API updates</li>
+<li>Feature flags for gradual rollout</li>
+<li>A/B testing for detection algorithm improvements</li>
+</ul>
+<p><strong>Add Comprehensive Logging:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">structlog</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">structlog</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span>
@@ -1698,7 +1726,7 @@
     <span class="n">min_sigma</span><span class="o">=</span><span class="n">min_sigma</span><span class="p">,</span>
     <span class="n">variability_stats_updated</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <hr/>
 <h2 id="2-calibration-solving-in-streaming">2. Calibration Solving in Streaming<a class="headerlink" href="#2-calibration-solving-in-streaming" title="Permanent link">¶</a></h2>
 <h3 id="current-state-good_1">Current State: Good<a class="headerlink" href="#current-state-good_1" title="Permanent link">¶</a></h3>
@@ -1710,7 +1738,7 @@
 </ul>
 <h3 id="enhancements-to-excellence_1">Enhancements to Excellence<a class="headerlink" href="#enhancements-to-excellence_1" title="Permanent link">¶</a></h3>
 <h4 id="21-observability-monitoring">2.1 Observability &amp; Monitoring<a class="headerlink" href="#21-observability-monitoring" title="Permanent link">¶</a></h4>
-<p><strong>Add Calibration Metrics:</strong>
+<p><strong>Add Calibration Metrics:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="n">calibration_solve_attempts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span>
     <span class="s1">'calibration_solve_attempts_total'</span><span class="p">,</span>
     <span class="s1">'Total calibration solve attempts'</span><span class="p">,</span>
@@ -1734,17 +1762,21 @@
     <span class="s1">'Quality score of calibration solution'</span><span class="p">,</span>
     <span class="p">[</span><span class="s1">'calibrator_name'</span><span class="p">,</span> <span class="s1">'table_type'</span><span class="p">]</span>
 <span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Add Calibration Quality Monitoring:</strong>
-- Track solution quality metrics (SNR, flagging fraction, residual errors)
-- Alert on quality degradation
-- Historical quality trends</p>
-<p><strong>Add Resource Monitoring:</strong>
-- Track CPU/memory usage during calibration solves
-- Monitor disk I/O for calibration table writes
-- Alert on resource exhaustion</p>
+</code></pre></div>
+<p><strong>Add Calibration Quality Monitoring:</strong></p>
+<ul>
+<li>Track solution quality metrics (SNR, flagging fraction, residual errors)</li>
+<li>Alert on quality degradation</li>
+<li>Historical quality trends</li>
+</ul>
+<p><strong>Add Resource Monitoring:</strong></p>
+<ul>
+<li>Track CPU/memory usage during calibration solves</li>
+<li>Monitor disk I/O for calibration table writes</li>
+<li>Alert on resource exhaustion</li>
+</ul>
 <h4 id="22-resilience-reliability">2.2 Resilience &amp; Reliability<a class="headerlink" href="#22-resilience-reliability" title="Permanent link">¶</a></h4>
-<p><strong>Add Retry Logic with Exponential Backoff:</strong>
+<p><strong>Add Retry Logic with Exponential Backoff:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">tenacity</span><span class="w"> </span><span class="kn">import</span> <span class="n">retry</span><span class="p">,</span> <span class="n">stop_after_attempt</span><span class="p">,</span> <span class="n">wait_exponential</span>
 
 <span class="nd">@retry</span><span class="p">(</span>
@@ -1755,34 +1787,46 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">solve_calibration_with_retry</span><span class="p">(</span><span class="n">ms_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Calibration solve with automatic retry."""</span>
     <span class="k">return</span> <span class="n">solve_calibration_for_ms</span><span class="p">(</span><span class="n">ms_path</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Add Calibration Table Validation:</strong>
-- Verify calibration tables are valid before registration
-- Check table integrity (non-empty, correct structure)
-- Validate solution quality meets thresholds</p>
-<p><strong>Add Fallback Strategies:</strong>
-- If calibration solve fails, use nearest valid calibration table
-- If no valid table available, flag MS for manual review
-- Queue failed calibrations for retry with different parameters</p>
-<p><strong>Add Dead Letter Queue:</strong>
-- Store failed calibration attempts for analysis
-- Enable manual intervention for persistent failures
-- Track failure patterns</p>
+</code></pre></div>
+<p><strong>Add Calibration Table Validation:</strong></p>
+<ul>
+<li>Verify calibration tables are valid before registration</li>
+<li>Check table integrity (non-empty, correct structure)</li>
+<li>Validate solution quality meets thresholds</li>
+</ul>
+<p><strong>Add Fallback Strategies:</strong></p>
+<ul>
+<li>If calibration solve fails, use nearest valid calibration table</li>
+<li>If no valid table available, flag MS for manual review</li>
+<li>Queue failed calibrations for retry with different parameters</li>
+</ul>
+<p><strong>Add Dead Letter Queue:</strong></p>
+<ul>
+<li>Store failed calibration attempts for analysis</li>
+<li>Enable manual intervention for persistent failures</li>
+<li>Track failure patterns</li>
+</ul>
 <h4 id="23-performance-scalability">2.3 Performance &amp; Scalability<a class="headerlink" href="#23-performance-scalability" title="Permanent link">¶</a></h4>
-<p><strong>Add Calibration Table Caching:</strong>
-- Cache frequently-used calibration tables in memory
-- Pre-load calibration tables for upcoming observations
-- Cache calibration table lookups</p>
-<p><strong>Add Parallel Calibration Solving:</strong>
-- Solve multiple calibration tables concurrently
-- Use process pool for CPU-bound CASA tasks
-- Queue management for calibration solve requests</p>
-<p><strong>Add Incremental Calibration Updates:</strong>
-- Only solve calibration if tables are stale (&gt;24 hours)
-- Update calibration tables incrementally
-- Skip solving if valid tables exist</p>
+<p><strong>Add Calibration Table Caching:</strong></p>
+<ul>
+<li>Cache frequently-used calibration tables in memory</li>
+<li>Pre-load calibration tables for upcoming observations</li>
+<li>Cache calibration table lookups</li>
+</ul>
+<p><strong>Add Parallel Calibration Solving:</strong></p>
+<ul>
+<li>Solve multiple calibration tables concurrently</li>
+<li>Use process pool for CPU-bound CASA tasks</li>
+<li>Queue management for calibration solve requests</li>
+</ul>
+<p><strong>Add Incremental Calibration Updates:</strong></p>
+<ul>
+<li>Only solve calibration if tables are stale (&gt;24 hours)</li>
+<li>Update calibration tables incrementally</li>
+<li>Skip solving if valid tables exist</li>
+</ul>
 <h4 id="24-data-quality-validation">2.4 Data Quality &amp; Validation<a class="headerlink" href="#24-data-quality-validation" title="Permanent link">¶</a></h4>
-<p><strong>Add Calibration Quality Checks:</strong>
+<p><strong>Add Calibration Quality Checks:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_calibration_quality</span><span class="p">(</span><span class="n">cal_table_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CalibrationQuality</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Validate calibration table quality."""</span>
     <span class="n">checks</span> <span class="o">=</span> <span class="p">{</span>
@@ -1792,28 +1836,38 @@
         <span class="s2">"solution_converged"</span><span class="p">:</span> <span class="n">check_convergence</span><span class="p">(</span><span class="n">cal_table_path</span><span class="p">),</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">CalibrationQuality</span><span class="p">(</span><span class="o">**</span><span class="n">checks</span><span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Add Calibration Consistency Checks:</strong>
-- Verify calibration tables are consistent across time
-- Detect calibration jumps/drifts
-- Flag anomalous calibration solutions</p>
-<p><strong>Add Pre-Solve Validation:</strong>
-- Validate MS file before attempting calibration solve
-- Check for required fields (MODEL_DATA, etc.)
-- Verify calibrator source is present</p>
+</code></pre></div>
+<p><strong>Add Calibration Consistency Checks:</strong></p>
+<ul>
+<li>Verify calibration tables are consistent across time</li>
+<li>Detect calibration jumps/drifts</li>
+<li>Flag anomalous calibration solutions</li>
+</ul>
+<p><strong>Add Pre-Solve Validation:</strong></p>
+<ul>
+<li>Validate MS file before attempting calibration solve</li>
+<li>Check for required fields (MODEL_DATA, etc.)</li>
+<li>Verify calibrator source is present</li>
+</ul>
 <h4 id="25-operational-excellence">2.5 Operational Excellence<a class="headerlink" href="#25-operational-excellence" title="Permanent link">¶</a></h4>
-<p><strong>Add Calibration Scheduling:</strong>
-- Schedule calibration solves based on observation cadence
-- Prioritize calibrations for time-critical observations
-- Background calibration solve queue</p>
-<p><strong>Add Calibration Table Lifecycle Management:</strong>
-- Automatic cleanup of stale calibration tables
-- Archive old calibration tables
-- Retention policies based on usage</p>
-<p><strong>Add Calibration Parameter Tuning:</strong>
-- A/B testing for calibration parameters
-- Machine learning for optimal parameter selection
-- Historical analysis of parameter effectiveness</p>
+<p><strong>Add Calibration Scheduling:</strong></p>
+<ul>
+<li>Schedule calibration solves based on observation cadence</li>
+<li>Prioritize calibrations for time-critical observations</li>
+<li>Background calibration solve queue</li>
+</ul>
+<p><strong>Add Calibration Table Lifecycle Management:</strong></p>
+<ul>
+<li>Automatic cleanup of stale calibration tables</li>
+<li>Archive old calibration tables</li>
+<li>Retention policies based on usage</li>
+</ul>
+<p><strong>Add Calibration Parameter Tuning:</strong></p>
+<ul>
+<li>A/B testing for calibration parameters</li>
+<li>Machine learning for optimal parameter selection</li>
+<li>Historical analysis of parameter effectiveness</li>
+</ul>
 <hr/>
 <h2 id="3-photometry-normalization-endpoint">3. Photometry Normalization Endpoint<a class="headerlink" href="#3-photometry-normalization-endpoint" title="Permanent link">¶</a></h2>
 <h3 id="current-state-good_2">Current State: Good<a class="headerlink" href="#current-state-good_2" title="Permanent link">¶</a></h3>
@@ -1824,7 +1878,7 @@
 </ul>
 <h3 id="enhancements-to-excellence_2">Enhancements to Excellence<a class="headerlink" href="#enhancements-to-excellence_2" title="Permanent link">¶</a></h3>
 <h4 id="31-observability-monitoring">3.1 Observability &amp; Monitoring<a class="headerlink" href="#31-observability-monitoring" title="Permanent link">¶</a></h4>
-<p><strong>Add Normalization Metrics:</strong>
+<p><strong>Add Normalization Metrics:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="n">photometry_normalization_requests</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span>
     <span class="s1">'photometry_normalization_requests_total'</span><span class="p">,</span>
     <span class="s1">'Total normalization requests'</span><span class="p">,</span>
@@ -1848,56 +1902,78 @@
     <span class="s1">'RMS of normalization correction'</span><span class="p">,</span>
     <span class="n">buckets</span><span class="o">=</span><span class="p">[</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">]</span>
 <span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Add Reference Source Quality Monitoring:</strong>
-- Track reference source availability by field
-- Monitor reference source SNR distribution
-- Alert on insufficient reference sources</p>
-<p><strong>Add Normalization Accuracy Tracking:</strong>
-- Compare normalized vs. expected fluxes
-- Track normalization residuals
-- Historical accuracy trends</p>
+</code></pre></div>
+<p><strong>Add Reference Source Quality Monitoring:</strong></p>
+<ul>
+<li>Track reference source availability by field</li>
+<li>Monitor reference source SNR distribution</li>
+<li>Alert on insufficient reference sources</li>
+</ul>
+<p><strong>Add Normalization Accuracy Tracking:</strong></p>
+<ul>
+<li>Compare normalized vs. expected fluxes</li>
+<li>Track normalization residuals</li>
+<li>Historical accuracy trends</li>
+</ul>
 <h4 id="32-resilience-reliability">3.2 Resilience &amp; Reliability<a class="headerlink" href="#32-resilience-reliability" title="Permanent link">¶</a></h4>
-<p><strong>Add Reference Source Fallback:</strong>
-- If insufficient reference sources, use catalog fluxes
-- Fallback to broader field of view if needed
-- Use cached reference sources if query fails</p>
-<p><strong>Add Normalization Validation:</strong>
-- Validate correction factors are reasonable (0.5-2.0)
-- Check for outliers in reference measurements
-- Flag suspicious normalizations</p>
-<p><strong>Add Caching for Reference Sources:</strong>
-- Cache reference source queries by field center
-- TTL-based cache invalidation
-- Pre-load reference sources for common fields</p>
+<p><strong>Add Reference Source Fallback:</strong></p>
+<ul>
+<li>If insufficient reference sources, use catalog fluxes</li>
+<li>Fallback to broader field of view if needed</li>
+<li>Use cached reference sources if query fails</li>
+</ul>
+<p><strong>Add Normalization Validation:</strong></p>
+<ul>
+<li>Validate correction factors are reasonable (0.5-2.0)</li>
+<li>Check for outliers in reference measurements</li>
+<li>Flag suspicious normalizations</li>
+</ul>
+<p><strong>Add Caching for Reference Sources:</strong></p>
+<ul>
+<li>Cache reference source queries by field center</li>
+<li>TTL-based cache invalidation</li>
+<li>Pre-load reference sources for common fields</li>
+</ul>
 <h4 id="33-performance-scalability">3.3 Performance &amp; Scalability<a class="headerlink" href="#33-performance-scalability" title="Permanent link">¶</a></h4>
-<p><strong>Add Batch Normalization:</strong>
-- Support batch normalization requests
-- Parallel reference source queries
-- Optimized ensemble correction computation</p>
-<p><strong>Add Reference Source Pre-computation:</strong>
-- Pre-compute reference source lists for common fields
-- Background job to update reference source cache
-- Incremental updates as new sources are discovered</p>
-<p><strong>Add Normalization Result Caching:</strong>
-- Cache normalization results for identical inputs
-- Reduce redundant computations
-- TTL-based cache invalidation</p>
+<p><strong>Add Batch Normalization:</strong></p>
+<ul>
+<li>Support batch normalization requests</li>
+<li>Parallel reference source queries</li>
+<li>Optimized ensemble correction computation</li>
+</ul>
+<p><strong>Add Reference Source Pre-computation:</strong></p>
+<ul>
+<li>Pre-compute reference source lists for common fields</li>
+<li>Background job to update reference source cache</li>
+<li>Incremental updates as new sources are discovered</li>
+</ul>
+<p><strong>Add Normalization Result Caching:</strong></p>
+<ul>
+<li>Cache normalization results for identical inputs</li>
+<li>Reduce redundant computations</li>
+<li>TTL-based cache invalidation</li>
+</ul>
 <h4 id="34-data-quality-validation">3.4 Data Quality &amp; Validation<a class="headerlink" href="#34-data-quality-validation" title="Permanent link">¶</a></h4>
-<p><strong>Add Reference Source Quality Filtering:</strong>
-- Filter out variable reference sources
-- Remove outliers from ensemble
-- Weight reference sources by quality</p>
-<p><strong>Add Normalization Uncertainty Propagation:</strong>
-- Proper error propagation through normalization
-- Account for reference source uncertainties
-- Statistical validation of correction factors</p>
-<p><strong>Add Cross-Validation:</strong>
-- Validate normalization against independent measurements
-- Compare with catalog fluxes
-- Track normalization consistency over time</p>
+<p><strong>Add Reference Source Quality Filtering:</strong></p>
+<ul>
+<li>Filter out variable reference sources</li>
+<li>Remove outliers from ensemble</li>
+<li>Weight reference sources by quality</li>
+</ul>
+<p><strong>Add Normalization Uncertainty Propagation:</strong></p>
+<ul>
+<li>Proper error propagation through normalization</li>
+<li>Account for reference source uncertainties</li>
+<li>Statistical validation of correction factors</li>
+</ul>
+<p><strong>Add Cross-Validation:</strong></p>
+<ul>
+<li>Validate normalization against independent measurements</li>
+<li>Compare with catalog fluxes</li>
+<li>Track normalization consistency over time</li>
+</ul>
 <h4 id="35-operational-excellence">3.5 Operational Excellence<a class="headerlink" href="#35-operational-excellence" title="Permanent link">¶</a></h4>
-<p><strong>Add Normalization Configuration:</strong>
+<p><strong>Add Normalization Configuration:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># config/photometry_normalization.yaml</span>
 <span class="n">normalization</span><span class="p">:</span>
   <span class="n">default_fov_radius_deg</span><span class="p">:</span> <span class="mf">1.5</span>
@@ -1906,15 +1982,19 @@
   <span class="n">max_deviation_sigma</span><span class="p">:</span> <span class="mf">3.0</span>
   <span class="n">cache_ttl_seconds</span><span class="p">:</span> <span class="mi">3600</span>
   <span class="n">reference_source_refresh_hours</span><span class="p">:</span> <span class="mi">24</span>
-</code></pre></div></p>
-<p><strong>Add Normalization Quality Reports:</strong>
-- Generate quality reports for normalization operations
-- Track normalization effectiveness
-- Identify fields with poor normalization quality</p>
-<p><strong>Add A/B Testing:</strong>
-- Test different normalization algorithms
-- Compare ensemble vs. single-source normalization
-- Track performance metrics</p>
+</code></pre></div>
+<p><strong>Add Normalization Quality Reports:</strong></p>
+<ul>
+<li>Generate quality reports for normalization operations</li>
+<li>Track normalization effectiveness</li>
+<li>Identify fields with poor normalization quality</li>
+</ul>
+<p><strong>Add A/B Testing:</strong></p>
+<ul>
+<li>Test different normalization algorithms</li>
+<li>Compare ensemble vs. single-source normalization</li>
+<li>Track performance metrics</li>
+</ul>
 <hr/>
 <h2 id="4-automated-photometry-pipeline">4. Automated Photometry Pipeline<a class="headerlink" href="#4-automated-photometry-pipeline" title="Permanent link">¶</a></h2>
 <h3 id="current-state-good_3">Current State: Good<a class="headerlink" href="#current-state-good_3" title="Permanent link">¶</a></h3>
@@ -1926,7 +2006,7 @@
 </ul>
 <h3 id="enhancements-to-excellence_3">Enhancements to Excellence<a class="headerlink" href="#enhancements-to-excellence_3" title="Permanent link">¶</a></h3>
 <h4 id="41-observability-monitoring">4.1 Observability &amp; Monitoring<a class="headerlink" href="#41-observability-monitoring" title="Permanent link">¶</a></h4>
-<p><strong>Add Photometry Pipeline Metrics:</strong>
+<p><strong>Add Photometry Pipeline Metrics:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="n">photometry_pipeline_stage_duration</span> <span class="o">=</span> <span class="n">Histogram</span><span class="p">(</span>
     <span class="s1">'photometry_pipeline_stage_duration_seconds'</span><span class="p">,</span>
     <span class="s1">'Duration of photometry pipeline stages'</span><span class="p">,</span>
@@ -1949,17 +2029,21 @@
     <span class="s1">'photometry_pipeline_throughput_sources_per_hour'</span><span class="p">,</span>
     <span class="s1">'Photometry pipeline throughput'</span><span class="p">,</span>
 <span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Add Pipeline Stage Monitoring:</strong>
-- Track stage execution times
-- Monitor stage success/failure rates
-- Alert on stage failures</p>
-<p><strong>Add Resource Usage Tracking:</strong>
-- Track CPU/memory usage per stage
-- Monitor disk I/O for image access
-- Alert on resource exhaustion</p>
+</code></pre></div>
+<p><strong>Add Pipeline Stage Monitoring:</strong></p>
+<ul>
+<li>Track stage execution times</li>
+<li>Monitor stage success/failure rates</li>
+<li>Alert on stage failures</li>
+</ul>
+<p><strong>Add Resource Usage Tracking:</strong></p>
+<ul>
+<li>Track CPU/memory usage per stage</li>
+<li>Monitor disk I/O for image access</li>
+<li>Alert on resource exhaustion</li>
+</ul>
 <h4 id="42-resilience-reliability">4.2 Resilience &amp; Reliability<a class="headerlink" href="#42-resilience-reliability" title="Permanent link">¶</a></h4>
-<p><strong>Add Stage-Level Retry Logic:</strong>
+<p><strong>Add Stage-Level Retry Logic:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Each pipeline stage should have configurable retry policy</span>
 <span class="n">photometry_stage_retry_policy</span> <span class="o">=</span> <span class="n">RetryPolicy</span><span class="p">(</span>
     <span class="n">max_attempts</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
@@ -1967,38 +2051,52 @@
     <span class="n">retryable_errors</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">RuntimeError</span><span class="p">)),</span>
     <span class="n">continue_on_failure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Add Checkpointing:</strong>
-- Save pipeline state after each stage
-- Enable resume from checkpoint on failure
-- Periodic checkpoint creation</p>
-<p><strong>Add Graceful Degradation:</strong>
-- If adaptive binning fails, fall back to forced photometry
-- If normalization fails, use raw fluxes
-- Continue pipeline with partial results</p>
-<p><strong>Add Dead Letter Queue:</strong>
-- Store failed photometry measurements
-- Enable manual review and retry
-- Track failure patterns</p>
+</code></pre></div>
+<p><strong>Add Checkpointing:</strong></p>
+<ul>
+<li>Save pipeline state after each stage</li>
+<li>Enable resume from checkpoint on failure</li>
+<li>Periodic checkpoint creation</li>
+</ul>
+<p><strong>Add Graceful Degradation:</strong></p>
+<ul>
+<li>If adaptive binning fails, fall back to forced photometry</li>
+<li>If normalization fails, use raw fluxes</li>
+<li>Continue pipeline with partial results</li>
+</ul>
+<p><strong>Add Dead Letter Queue:</strong></p>
+<ul>
+<li>Store failed photometry measurements</li>
+<li>Enable manual review and retry</li>
+<li>Track failure patterns</li>
+</ul>
 <h4 id="43-performance-scalability">4.3 Performance &amp; Scalability<a class="headerlink" href="#43-performance-scalability" title="Permanent link">¶</a></h4>
-<p><strong>Add Parallel Stage Execution:</strong>
-- Execute independent stages in parallel
-- Use process pool for CPU-bound operations
-- Async I/O for file operations</p>
-<p><strong>Add Batch Processing Optimization:</strong>
-- Optimize batch size based on available resources
-- Parallel processing of multiple sources
-- Efficient database batch inserts</p>
-<p><strong>Add Caching:</strong>
-- Cache image metadata (WCS, header info)
-- Cache catalog queries
-- Cache photometry results for identical inputs</p>
-<p><strong>Add Resource Pool Management:</strong>
-- Limit concurrent photometry operations
-- Queue management for resource-intensive operations
-- Priority-based scheduling</p>
+<p><strong>Add Parallel Stage Execution:</strong></p>
+<ul>
+<li>Execute independent stages in parallel</li>
+<li>Use process pool for CPU-bound operations</li>
+<li>Async I/O for file operations</li>
+</ul>
+<p><strong>Add Batch Processing Optimization:</strong></p>
+<ul>
+<li>Optimize batch size based on available resources</li>
+<li>Parallel processing of multiple sources</li>
+<li>Efficient database batch inserts</li>
+</ul>
+<p><strong>Add Caching:</strong></p>
+<ul>
+<li>Cache image metadata (WCS, header info)</li>
+<li>Cache catalog queries</li>
+<li>Cache photometry results for identical inputs</li>
+</ul>
+<p><strong>Add Resource Pool Management:</strong></p>
+<ul>
+<li>Limit concurrent photometry operations</li>
+<li>Queue management for resource-intensive operations</li>
+<li>Priority-based scheduling</li>
+</ul>
 <h4 id="44-data-quality-validation">4.4 Data Quality &amp; Validation<a class="headerlink" href="#44-data-quality-validation" title="Permanent link">¶</a></h4>
-<p><strong>Add Measurement Validation:</strong>
+<p><strong>Add Measurement Validation:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_photometry_measurement</span><span class="p">(</span><span class="n">measurement</span><span class="p">:</span> <span class="n">PhotometryResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ValidationResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Validate photometry measurement quality."""</span>
     <span class="n">checks</span> <span class="o">=</span> <span class="p">{</span>
@@ -2008,17 +2106,21 @@
         <span class="s2">"rms_reasonable"</span><span class="p">:</span> <span class="n">measurement</span><span class="o">.</span><span class="n">local_rms_jy</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">ValidationResult</span><span class="p">(</span><span class="o">**</span><span class="n">checks</span><span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Add Cross-Method Validation:</strong>
-- Compare forced vs. Aegean measurements
-- Flag discrepancies
-- Use consensus for critical measurements</p>
-<p><strong>Add Historical Consistency Checks:</strong>
-- Compare with previous measurements
-- Detect measurement anomalies
-- Track measurement quality trends</p>
+</code></pre></div>
+<p><strong>Add Cross-Method Validation:</strong></p>
+<ul>
+<li>Compare forced vs. Aegean measurements</li>
+<li>Flag discrepancies</li>
+<li>Use consensus for critical measurements</li>
+</ul>
+<p><strong>Add Historical Consistency Checks:</strong></p>
+<ul>
+<li>Compare with previous measurements</li>
+<li>Detect measurement anomalies</li>
+<li>Track measurement quality trends</li>
+</ul>
 <h4 id="45-operational-excellence">4.5 Operational Excellence<a class="headerlink" href="#45-operational-excellence" title="Permanent link">¶</a></h4>
-<p><strong>Add Pipeline Configuration Management:</strong>
+<p><strong>Add Pipeline Configuration Management:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># config/photometry_pipeline.yaml</span>
 <span class="n">photometry_pipeline</span><span class="p">:</span>
   <span class="n">stages</span><span class="p">:</span>
@@ -2041,16 +2143,20 @@
   <span class="n">resource_limits</span><span class="p">:</span>
     <span class="n">max_concurrent_operations</span><span class="p">:</span> <span class="mi">10</span>
     <span class="n">memory_limit_mb</span><span class="p">:</span> <span class="mi">8192</span>
-</code></pre></div></p>
-<p><strong>Add Pipeline Orchestration:</strong>
-- Workflow engine for complex pipelines
-- Dependency management
-- Conditional stage execution</p>
-<p><strong>Add Pipeline Monitoring Dashboard:</strong>
-- Real-time pipeline status
-- Stage execution timelines
-- Resource usage graphs
-- Error rate tracking</p>
+</code></pre></div>
+<p><strong>Add Pipeline Orchestration:</strong></p>
+<ul>
+<li>Workflow engine for complex pipelines</li>
+<li>Dependency management</li>
+<li>Conditional stage execution</li>
+</ul>
+<p><strong>Add Pipeline Monitoring Dashboard:</strong></p>
+<ul>
+<li>Real-time pipeline status</li>
+<li>Stage execution timelines</li>
+<li>Resource usage graphs</li>
+<li>Error rate tracking</li>
+</ul>
 <hr/>
 <h2 id="5-automated-ese-detection-pipeline">5. Automated ESE Detection Pipeline<a class="headerlink" href="#5-automated-ese-detection-pipeline" title="Permanent link">¶</a></h2>
 <h3 id="current-state-good_4">Current State: Good<a class="headerlink" href="#current-state-good_4" title="Permanent link">¶</a></h3>
@@ -2062,7 +2168,7 @@
 </ul>
 <h3 id="enhancements-to-excellence_4">Enhancements to Excellence<a class="headerlink" href="#enhancements-to-excellence_4" title="Permanent link">¶</a></h3>
 <h4 id="51-observability-monitoring">5.1 Observability &amp; Monitoring<a class="headerlink" href="#51-observability-monitoring" title="Permanent link">¶</a></h4>
-<p><strong>Add ESE Detection Pipeline Metrics:</strong>
+<p><strong>Add ESE Detection Pipeline Metrics:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="n">ese_detection_pipeline_runs</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span>
     <span class="s1">'ese_detection_pipeline_runs_total'</span><span class="p">,</span>
     <span class="s1">'Total ESE detection pipeline runs'</span><span class="p">,</span>
@@ -2086,47 +2192,65 @@
     <span class="s1">'End-to-end ESE detection pipeline latency'</span><span class="p">,</span>
     <span class="p">[</span><span class="s1">'source_count'</span><span class="p">]</span>
 <span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Add ESE Candidate Tracking:</strong>
-- Track candidate lifecycle (detected → confirmed → rejected)
-- Monitor candidate significance evolution
-- Alert on new high-significance candidates</p>
-<p><strong>Add Variability Stats Quality Monitoring:</strong>
-- Track variability stats computation accuracy
-- Monitor stats update frequency
-- Alert on stale variability stats</p>
+</code></pre></div>
+<p><strong>Add ESE Candidate Tracking:</strong></p>
+<ul>
+<li>Track candidate lifecycle (detected → confirmed → rejected)</li>
+<li>Monitor candidate significance evolution</li>
+<li>Alert on new high-significance candidates</li>
+</ul>
+<p><strong>Add Variability Stats Quality Monitoring:</strong></p>
+<ul>
+<li>Track variability stats computation accuracy</li>
+<li>Monitor stats update frequency</li>
+<li>Alert on stale variability stats</li>
+</ul>
 <h4 id="52-resilience-reliability">5.2 Resilience &amp; Reliability<a class="headerlink" href="#52-resilience-reliability" title="Permanent link">¶</a></h4>
-<p><strong>Add Incremental Variability Stats Updates:</strong>
-- Only update stats for sources with new measurements
-- Track last update timestamp
-- Skip redundant computations</p>
-<p><strong>Add Variability Stats Validation:</strong>
-- Validate computed statistics are reasonable
-- Check for statistical anomalies
-- Flag suspicious variability patterns</p>
-<p><strong>Add ESE Detection Failure Recovery:</strong>
-- Retry failed variability stats updates
-- Queue failed detections for retry
-- Manual intervention queue</p>
-<p><strong>Add Data Consistency Checks:</strong>
-- Verify variability stats match photometry data
-- Detect orphaned records
-- Periodic integrity checks</p>
+<p><strong>Add Incremental Variability Stats Updates:</strong></p>
+<ul>
+<li>Only update stats for sources with new measurements</li>
+<li>Track last update timestamp</li>
+<li>Skip redundant computations</li>
+</ul>
+<p><strong>Add Variability Stats Validation:</strong></p>
+<ul>
+<li>Validate computed statistics are reasonable</li>
+<li>Check for statistical anomalies</li>
+<li>Flag suspicious variability patterns</li>
+</ul>
+<p><strong>Add ESE Detection Failure Recovery:</strong></p>
+<ul>
+<li>Retry failed variability stats updates</li>
+<li>Queue failed detections for retry</li>
+<li>Manual intervention queue</li>
+</ul>
+<p><strong>Add Data Consistency Checks:</strong></p>
+<ul>
+<li>Verify variability stats match photometry data</li>
+<li>Detect orphaned records</li>
+<li>Periodic integrity checks</li>
+</ul>
 <h4 id="53-performance-scalability">5.3 Performance &amp; Scalability<a class="headerlink" href="#53-performance-scalability" title="Permanent link">¶</a></h4>
-<p><strong>Add Batch Variability Stats Updates:</strong>
-- Process multiple sources in batch
-- Optimize database queries
-- Parallel computation where possible</p>
-<p><strong>Add Variability Stats Caching:</strong>
-- Cache frequently-accessed variability stats
-- Reduce database load
-- Faster ESE detection queries</p>
-<p><strong>Add Incremental ESE Detection:</strong>
-- Only check sources with updated stats
-- Skip sources without new measurements
-- Optimize detection queries</p>
+<p><strong>Add Batch Variability Stats Updates:</strong></p>
+<ul>
+<li>Process multiple sources in batch</li>
+<li>Optimize database queries</li>
+<li>Parallel computation where possible</li>
+</ul>
+<p><strong>Add Variability Stats Caching:</strong></p>
+<ul>
+<li>Cache frequently-accessed variability stats</li>
+<li>Reduce database load</li>
+<li>Faster ESE detection queries</li>
+</ul>
+<p><strong>Add Incremental ESE Detection:</strong></p>
+<ul>
+<li>Only check sources with updated stats</li>
+<li>Skip sources without new measurements</li>
+<li>Optimize detection queries</li>
+</ul>
 <h4 id="54-data-quality-validation">5.4 Data Quality &amp; Validation<a class="headerlink" href="#54-data-quality-validation" title="Permanent link">¶</a></h4>
-<p><strong>Add Variability Stats Quality Checks:</strong>
+<p><strong>Add Variability Stats Quality Checks:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_variability_stats</span><span class="p">(</span><span class="n">stats</span><span class="p">:</span> <span class="n">VariabilityStats</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ValidationResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Validate variability statistics quality."""</span>
     <span class="n">checks</span> <span class="o">=</span> <span class="p">{</span>
@@ -2136,17 +2260,21 @@
         <span class="s2">"eta_metric_reasonable"</span><span class="p">:</span> <span class="n">stats</span><span class="o">.</span><span class="n">eta_metric</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">stats</span><span class="o">.</span><span class="n">eta_metric</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">ValidationResult</span><span class="p">(</span><span class="o">**</span><span class="n">checks</span><span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Add ESE Candidate Validation:</strong>
-- Verify candidate significance is accurate
-- Check for false positives
-- Validate candidate metadata</p>
-<p><strong>Add Cross-Validation:</strong>
-- Compare with manual ESE detections
-- Validate against known ESE events
-- Track detection accuracy</p>
+</code></pre></div>
+<p><strong>Add ESE Candidate Validation:</strong></p>
+<ul>
+<li>Verify candidate significance is accurate</li>
+<li>Check for false positives</li>
+<li>Validate candidate metadata</li>
+</ul>
+<p><strong>Add Cross-Validation:</strong></p>
+<ul>
+<li>Compare with manual ESE detections</li>
+<li>Validate against known ESE events</li>
+<li>Track detection accuracy</li>
+</ul>
 <h4 id="55-operational-excellence">5.5 Operational Excellence<a class="headerlink" href="#55-operational-excellence" title="Permanent link">¶</a></h4>
-<p><strong>Add ESE Detection Configuration:</strong>
+<p><strong>Add ESE Detection Configuration:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># config/ese_detection_pipeline.yaml</span>
 <span class="n">ese_detection_pipeline</span><span class="p">:</span>
   <span class="n">auto_detect_enabled</span><span class="p">:</span> <span class="n">true</span>
@@ -2162,19 +2290,23 @@
   <span class="n">alerts</span><span class="p">:</span>
     <span class="n">high_significance_threshold</span><span class="p">:</span> <span class="mf">7.0</span>
     <span class="n">notification_channels</span><span class="p">:</span> <span class="p">[</span><span class="s2">"email"</span><span class="p">,</span> <span class="s2">"slack"</span><span class="p">]</span>
-</code></pre></div></p>
-<p><strong>Add ESE Detection Scheduling:</strong>
-- Schedule periodic ESE detection runs
-- Prioritize high-significance sources
-- Background processing for low-priority sources</p>
-<p><strong>Add ESE Candidate Management:</strong>
-- Candidate review workflow
-- Confirmation/rejection tracking
-- Historical candidate database</p>
+</code></pre></div>
+<p><strong>Add ESE Detection Scheduling:</strong></p>
+<ul>
+<li>Schedule periodic ESE detection runs</li>
+<li>Prioritize high-significance sources</li>
+<li>Background processing for low-priority sources</li>
+</ul>
+<p><strong>Add ESE Candidate Management:</strong></p>
+<ul>
+<li>Candidate review workflow</li>
+<li>Confirmation/rejection tracking</li>
+<li>Historical candidate database</li>
+</ul>
 <hr/>
 <h2 id="cross-cutting-enhancements">Cross-Cutting Enhancements<a class="headerlink" href="#cross-cutting-enhancements" title="Permanent link">¶</a></h2>
 <h3 id="1-event-driven-architecture">1. Event-Driven Architecture<a class="headerlink" href="#1-event-driven-architecture" title="Permanent link">¶</a></h3>
-<p><strong>Add Event Bus:</strong>
+<p><strong>Add Event Bus:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># src/dsa110_contimg/events/event_bus.py</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
 
@@ -2189,20 +2321,24 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">subscribe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Subscribe to event type."""</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_subscribers</span><span class="p">[</span><span class="n">event_type</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Event Types:</strong>
-- <code>PhotometryMeasurementCompleted</code>
-- <code>ESECandidateDetected</code>
-- <code>CalibrationSolved</code>
-- <code>NormalizationCompleted</code>
-- <code>PipelineStageCompleted</code></p>
-<p><strong>Benefits:</strong>
-- Decoupled components
-- Real-time notifications
-- Event sourcing for audit trail
-- Easy integration with external systems</p>
+</code></pre></div>
+<p><strong>Event Types:</strong></p>
+<ul>
+<li><code>PhotometryMeasurementCompleted</code></li>
+<li><code>ESECandidateDetected</code></li>
+<li><code>CalibrationSolved</code></li>
+<li><code>NormalizationCompleted</code></li>
+<li><code>PipelineStageCompleted</code></li>
+</ul>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Decoupled components</li>
+<li>Real-time notifications</li>
+<li>Event sourcing for audit trail</li>
+<li>Easy integration with external systems</li>
+</ul>
 <h3 id="2-distributed-tracing">2. Distributed Tracing<a class="headerlink" href="#2-distributed-tracing" title="Permanent link">¶</a></h3>
-<p><strong>Add OpenTelemetry Integration:</strong>
+<p><strong>Add OpenTelemetry Integration:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">opentelemetry</span><span class="w"> </span><span class="kn">import</span> <span class="n">trace</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">opentelemetry.sdk.trace</span><span class="w"> </span><span class="kn">import</span> <span class="n">TracerProvider</span>
 
@@ -2214,14 +2350,16 @@
         <span class="n">update_variability_stats</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">tracer</span><span class="o">.</span><span class="n">start_as_current_span</span><span class="p">(</span><span class="s2">"candidate_detection"</span><span class="p">):</span>
         <span class="n">detect_candidates</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Benefits:</strong>
-- End-to-end request tracing
-- Performance bottleneck identification
-- Dependency visualization
-- Debugging complex workflows</p>
+</code></pre></div>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>End-to-end request tracing</li>
+<li>Performance bottleneck identification</li>
+<li>Dependency visualization</li>
+<li>Debugging complex workflows</li>
+</ul>
 <h3 id="3-configuration-management">3. Configuration Management<a class="headerlink" href="#3-configuration-management" title="Permanent link">¶</a></h3>
-<p><strong>Add Centralized Configuration:</strong>
+<p><strong>Add Centralized Configuration:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># config/pipeline.yaml</span>
 <span class="n">pipeline</span><span class="p">:</span>
   <span class="n">components</span><span class="p">:</span>
@@ -2234,14 +2372,16 @@
     <span class="n">photometry</span><span class="p">:</span>
       <span class="n">enabled</span><span class="p">:</span> <span class="n">true</span>
       <span class="n">config</span><span class="p">:</span> <span class="s2">"config/photometry.yaml"</span>
-</code></pre></div></p>
-<p><strong>Benefits:</strong>
-- Single source of truth
-- Environment-specific configs
-- Dynamic configuration updates
-- Configuration validation</p>
+</code></pre></div>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Single source of truth</li>
+<li>Environment-specific configs</li>
+<li>Dynamic configuration updates</li>
+<li>Configuration validation</li>
+</ul>
 <h3 id="4-health-checks-readiness-probes">4. Health Checks &amp; Readiness Probes<a class="headerlink" href="#4-health-checks-readiness-probes" title="Permanent link">¶</a></h3>
-<p><strong>Add Comprehensive Health Checks:</strong>
+<p><strong>Add Comprehensive Health Checks:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/health/readiness"</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">readiness_check</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">"""Readiness check for all components."""</span>
@@ -2253,14 +2393,16 @@
         <span class="s2">"memory"</span><span class="p">:</span> <span class="n">check_memory_availability</span><span class="p">(),</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="p">{</span><span class="s2">"status"</span><span class="p">:</span> <span class="s2">"ready"</span> <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">checks</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="k">else</span> <span class="s2">"not_ready"</span><span class="p">,</span> <span class="s2">"checks"</span><span class="p">:</span> <span class="n">checks</span><span class="p">}</span>
-</code></pre></div></p>
-<p><strong>Benefits:</strong>
-- Kubernetes readiness probes
-- Load balancer health checks
-- Dependency monitoring
-- Graceful shutdown</p>
+</code></pre></div>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Kubernetes readiness probes</li>
+<li>Load balancer health checks</li>
+<li>Dependency monitoring</li>
+<li>Graceful shutdown</li>
+</ul>
 <h3 id="5-alerting-notifications">5. Alerting &amp; Notifications<a class="headerlink" href="#5-alerting-notifications" title="Permanent link">¶</a></h3>
-<p><strong>Add Alert Manager:</strong>
+<p><strong>Add Alert Manager:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># src/dsa110_contimg/alerts/alert_manager.py</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">AlertManager</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Manages alerts and notifications."""</span>
@@ -2271,15 +2413,17 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_send_email</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_send_slack</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_send_pagerduty</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Alert Types:</strong>
-- High-significance ESE candidates
-- Calibration quality degradation
-- Pipeline failures
-- Resource exhaustion
-- Data quality issues</p>
+</code></pre></div>
+<p><strong>Alert Types:</strong></p>
+<ul>
+<li>High-significance ESE candidates</li>
+<li>Calibration quality degradation</li>
+<li>Pipeline failures</li>
+<li>Resource exhaustion</li>
+<li>Data quality issues</li>
+</ul>
 <h3 id="6-performance-optimization">6. Performance Optimization<a class="headerlink" href="#6-performance-optimization" title="Permanent link">¶</a></h3>
-<p><strong>Add Profiling:</strong>
+<p><strong>Add Profiling:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cProfile</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pstats</span>
 
@@ -2295,28 +2439,36 @@
         <span class="n">stats</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span>
     <span class="k">return</span> <span class="n">wrapper</span>
-</code></pre></div></p>
-<p><strong>Benefits:</strong>
-- Identify performance bottlenecks
-- Optimize critical paths
-- Resource usage optimization</p>
+</code></pre></div>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Identify performance bottlenecks</li>
+<li>Optimize critical paths</li>
+<li>Resource usage optimization</li>
+</ul>
 <h3 id="7-testing-quality-assurance">7. Testing &amp; Quality Assurance<a class="headerlink" href="#7-testing-quality-assurance" title="Permanent link">¶</a></h3>
-<p><strong>Add Integration Tests:</strong>
-- End-to-end pipeline tests
-- Component integration tests
-- Performance regression tests
-- Load testing</p>
-<p><strong>Add Chaos Engineering:</strong>
-- Simulate failures
-- Test resilience
-- Validate recovery procedures</p>
+<p><strong>Add Integration Tests:</strong></p>
+<ul>
+<li>End-to-end pipeline tests</li>
+<li>Component integration tests</li>
+<li>Performance regression tests</li>
+<li>Load testing</li>
+</ul>
+<p><strong>Add Chaos Engineering:</strong></p>
+<ul>
+<li>Simulate failures</li>
+<li>Test resilience</li>
+<li>Validate recovery procedures</li>
+</ul>
 <h3 id="8-documentation-runbooks">8. Documentation &amp; Runbooks<a class="headerlink" href="#8-documentation-runbooks" title="Permanent link">¶</a></h3>
-<p><strong>Add Comprehensive Documentation:</strong>
-- API documentation (OpenAPI/Swagger)
-- Pipeline architecture diagrams
-- Operational runbooks
-- Troubleshooting guides
-- Performance tuning guides</p>
+<p><strong>Add Comprehensive Documentation:</strong></p>
+<ul>
+<li>API documentation (OpenAPI/Swagger)</li>
+<li>Pipeline architecture diagrams</li>
+<li>Operational runbooks</li>
+<li>Troubleshooting guides</li>
+<li>Performance tuning guides</li>
+</ul>
 <hr/>
 <h2 id="implementation-priority">Implementation Priority<a class="headerlink" href="#implementation-priority" title="Permanent link">¶</a></h2>
 <h3 id="phase-1-critical-weeks-1-4">Phase 1: Critical (Weeks 1-4)<a class="headerlink" href="#phase-1-critical-weeks-1-4" title="Permanent link">¶</a></h3>
@@ -2375,12 +2527,17 @@
 </ul>
 <hr/>
 <h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
-<p>These enhancements transform the pipeline from "good" (functional, tested) to "excellent" (production-ready, observable, resilient, performant). The key is incremental implementation, starting with observability and reliability, then optimizing for performance and scalability.</p>
-<p>The most critical improvements are:
-1. <strong>Comprehensive observability</strong> - You can't improve what you can't measure
-2. <strong>Resilience patterns</strong> - Production systems must handle failures gracefully
-3. <strong>Performance optimization</strong> - Scale to handle increasing data volumes
-4. <strong>Operational excellence</strong> - Make the system easy to operate and maintain</p>
+<p>These enhancements transform the pipeline from "good" (functional, tested) to
+"excellent" (production-ready, observable, resilient, performant). The key is
+incremental implementation, starting with observability and reliability, then
+optimizing for performance and scalability.</p>
+<p>The most critical improvements are:</p>
+<ol>
+<li><strong>Comprehensive observability</strong> - You can't improve what you can't measure</li>
+<li><strong>Resilience patterns</strong> - Production systems must handle failures gracefully</li>
+<li><strong>Performance optimization</strong> - Scale to handle increasing data volumes</li>
+<li><strong>Operational excellence</strong> - Make the system easy to operate and maintain</li>
+</ol>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -2405,7 +2562,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

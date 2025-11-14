@@ -23,11 +23,13 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#reference-api">
+<a class="md-skip" href="#reference-api-verified">
           Skip to content
         </a>
 </div>
 <div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
 </div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
@@ -794,11 +796,326 @@
 <ul class="md-nav__list" data-md-scrollfix="">
 <li class="md-nav__item md-nav__item--active">
 <input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
 <a class="md-nav__link md-nav__link--active" href="./">
 <span class="md-ellipsis">
     Endpoints
   </span>
 </a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#alerts">
+<span class="md-ellipsis">
+      alerts
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch">
+<span class="md-ellipsis">
+      batch
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#calibrator_matches">
+<span class="md-ellipsis">
+      calibrator_matches
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#caltables">
+<span class="md-ellipsis">
+      caltables
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#catalog">
+<span class="md-ellipsis">
+      catalog
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#clear">
+<span class="md-ellipsis">
+      clear
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data">
+<span class="md-ellipsis">
+      data
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ese">
+<span class="md-ellipsis">
+      ese
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#groups">
+<span class="md-ellipsis">
+      groups
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#health">
+<span class="md-ellipsis">
+      health
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#images">
+<span class="md-ellipsis">
+      images
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#jobs">
+<span class="md-ellipsis">
+      jobs
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#keys">
+<span class="md-ellipsis">
+      keys
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#legacy">
+<span class="md-ellipsis">
+      legacy
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#metrics">
+<span class="md-ellipsis">
+      metrics
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#monitoring">
+<span class="md-ellipsis">
+      monitoring
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#mosaics">
+<span class="md-ellipsis">
+      mosaics
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ms">
+<span class="md-ellipsis">
+      ms
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ms_index">
+<span class="md-ellipsis">
+      ms_index
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#observation_timeline">
+<span class="md-ellipsis">
+      observation_timeline
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#operations">
+<span class="md-ellipsis">
+      operations
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance">
+<span class="md-ellipsis">
+      performance
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#photometry">
+<span class="md-ellipsis">
+      photometry
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pipeline">
+<span class="md-ellipsis">
+      pipeline
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#plots">
+<span class="md-ellipsis">
+      plots
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pointing-monitor">
+<span class="md-ellipsis">
+      pointing-monitor
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pointing_history">
+<span class="md-ellipsis">
+      pointing_history
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#products">
+<span class="md-ellipsis">
+      products
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#qa">
+<span class="md-ellipsis">
+      qa
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#regions">
+<span class="md-ellipsis">
+      regions
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#reprocess">
+<span class="md-ellipsis">
+      reprocess
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#sources">
+<span class="md-ellipsis">
+      sources
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#sse">
+<span class="md-ellipsis">
+      sse
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stats">
+<span class="md-ellipsis">
+      stats
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#status">
+<span class="md-ellipsis">
+      status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stream">
+<span class="md-ellipsis">
+      stream
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#streaming">
+<span class="md-ellipsis">
+      streaming
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test">
+<span class="md-ellipsis">
+      test
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#thumbnails">
+<span class="md-ellipsis">
+      thumbnails
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#types">
+<span class="md-ellipsis">
+      types
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ui">
+<span class="md-ellipsis">
+      ui
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#uvh5">
+<span class="md-ellipsis">
+      uvh5
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ws">
+<span class="md-ellipsis">
+      ws
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 <li class="md-nav__item md-nav__item--nested">
 <input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
@@ -1054,23 +1371,590 @@
 <div class="md-sidebar__scrollwrap">
 <div class="md-sidebar__inner">
 <nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#alerts">
+<span class="md-ellipsis">
+      alerts
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch">
+<span class="md-ellipsis">
+      batch
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#calibrator_matches">
+<span class="md-ellipsis">
+      calibrator_matches
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#caltables">
+<span class="md-ellipsis">
+      caltables
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#catalog">
+<span class="md-ellipsis">
+      catalog
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#clear">
+<span class="md-ellipsis">
+      clear
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data">
+<span class="md-ellipsis">
+      data
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ese">
+<span class="md-ellipsis">
+      ese
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#groups">
+<span class="md-ellipsis">
+      groups
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#health">
+<span class="md-ellipsis">
+      health
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#images">
+<span class="md-ellipsis">
+      images
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#jobs">
+<span class="md-ellipsis">
+      jobs
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#keys">
+<span class="md-ellipsis">
+      keys
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#legacy">
+<span class="md-ellipsis">
+      legacy
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#metrics">
+<span class="md-ellipsis">
+      metrics
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#monitoring">
+<span class="md-ellipsis">
+      monitoring
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#mosaics">
+<span class="md-ellipsis">
+      mosaics
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ms">
+<span class="md-ellipsis">
+      ms
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ms_index">
+<span class="md-ellipsis">
+      ms_index
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#observation_timeline">
+<span class="md-ellipsis">
+      observation_timeline
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#operations">
+<span class="md-ellipsis">
+      operations
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance">
+<span class="md-ellipsis">
+      performance
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#photometry">
+<span class="md-ellipsis">
+      photometry
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pipeline">
+<span class="md-ellipsis">
+      pipeline
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#plots">
+<span class="md-ellipsis">
+      plots
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pointing-monitor">
+<span class="md-ellipsis">
+      pointing-monitor
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pointing_history">
+<span class="md-ellipsis">
+      pointing_history
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#products">
+<span class="md-ellipsis">
+      products
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#qa">
+<span class="md-ellipsis">
+      qa
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#regions">
+<span class="md-ellipsis">
+      regions
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#reprocess">
+<span class="md-ellipsis">
+      reprocess
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#sources">
+<span class="md-ellipsis">
+      sources
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#sse">
+<span class="md-ellipsis">
+      sse
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stats">
+<span class="md-ellipsis">
+      stats
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#status">
+<span class="md-ellipsis">
+      status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stream">
+<span class="md-ellipsis">
+      stream
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#streaming">
+<span class="md-ellipsis">
+      streaming
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test">
+<span class="md-ellipsis">
+      test
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#thumbnails">
+<span class="md-ellipsis">
+      thumbnails
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#types">
+<span class="md-ellipsis">
+      types
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ui">
+<span class="md-ellipsis">
+      ui
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#uvh5">
+<span class="md-ellipsis">
+      uvh5
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ws">
+<span class="md-ellipsis">
+      ws
+    </span>
+</a>
+</li>
+</ul>
 </nav>
 </div>
 </div>
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="reference-api">Reference: API<a class="headerlink" href="#reference-api" title="Permanent link">¶</a></h1>
+<h1 id="reference-api-verified">Reference: API (Verified)<a class="headerlink" href="#reference-api-verified" title="Permanent link">¶</a></h1>
+<h2 id="alerts">alerts<a class="headerlink" href="#alerts" title="Permanent link">¶</a></h2>
 <ul>
-<li><code>/api/status</code> – queue stats + recent groups</li>
-<li><code>/api/products</code> – recent images</li>
-<li><code>/api/calibrator_matches</code> – recent calibrator matches (limit, matched_only)</li>
-<li><code>/api/ms_index</code> – filter ms_index by stage/status</li>
-<li><code>/api/reprocess/{group_id}</code> – set a group back to pending</li>
-<li><code>/api/qa</code> – recent QA artifacts (DB-backed or filesystem fallback)</li>
-<li><code>/api/qa/file/{group}/{name}</code> – serve a specific QA artifact</li>
-<li><code>/api/metrics/system</code> – current system metrics snapshot</li>
-<li><code>/api/metrics/system/history</code> – last N system metrics samples</li>
+<li><code>/api/alerts/history</code></li>
+</ul>
+<h2 id="batch">batch<a class="headerlink" href="#batch" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/batch</code></li>
+<li><code>/api/batch/apply</code></li>
+<li><code>/api/batch/calibrate</code></li>
+<li><code>/api/batch/convert</code></li>
+<li><code>/api/batch/ese-detect</code></li>
+<li><code>/api/batch/image</code></li>
+<li><code>/api/batch/photometry</code></li>
+<li><code>/api/batch/publish</code></li>
+<li><code>/api/batch/{batch_id}</code></li>
+<li><code>/api/batch/{batch_id}/cancel</code></li>
+</ul>
+<h2 id="calibrator_matches">calibrator_matches<a class="headerlink" href="#calibrator_matches" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/calibrator_matches</code></li>
+</ul>
+<h2 id="caltables">caltables<a class="headerlink" href="#caltables" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/caltables</code></li>
+</ul>
+<h2 id="catalog">catalog<a class="headerlink" href="#catalog" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/catalog/overlay</code></li>
+</ul>
+<h2 id="clear">clear<a class="headerlink" href="#clear" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/clear</code></li>
+</ul>
+<h2 id="data">data<a class="headerlink" href="#data" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/data</code></li>
+<li><code>/api/data/{data_id:path}</code></li>
+<li><code>/api/data/{data_id:path}/auto-publish/disable</code></li>
+<li><code>/api/data/{data_id:path}/auto-publish/enable</code></li>
+<li><code>/api/data/{data_id:path}/auto-publish/status</code></li>
+<li><code>/api/data/{data_id:path}/finalize</code></li>
+<li><code>/api/data/{data_id:path}/lineage</code></li>
+<li><code>/api/data/{data_id:path}/publish</code></li>
+</ul>
+<h2 id="ese">ese<a class="headerlink" href="#ese" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/ese/candidates</code></li>
+<li><code>/api/ese/candidates/{source_id}/external_catalogs</code></li>
+<li><code>/api/ese/candidates/{source_id}/lightcurve</code></li>
+<li><code>/api/ese/candidates/{source_id}/postage_stamps</code></li>
+<li><code>/api/ese/candidates/{source_id}/variability</code></li>
+</ul>
+<h2 id="groups">groups<a class="headerlink" href="#groups" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/groups/{group_id}</code></li>
+</ul>
+<h2 id="health">health<a class="headerlink" href="#health" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/health</code></li>
+</ul>
+<h2 id="images">images<a class="headerlink" href="#images" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/images</code></li>
+<li><code>/api/images/{image_id}</code></li>
+<li><code>/api/images/{image_id}/fit</code></li>
+<li><code>/api/images/{image_id}/fits</code></li>
+<li><code>/api/images/{image_id}/measurements</code></li>
+<li><code>/api/images/{image_id}/profile</code></li>
+</ul>
+<h2 id="jobs">jobs<a class="headerlink" href="#jobs" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/jobs</code></li>
+<li><code>/api/jobs/apply</code></li>
+<li><code>/api/jobs/calibrate</code></li>
+<li><code>/api/jobs/convert</code></li>
+<li><code>/api/jobs/ese-detect</code></li>
+<li><code>/api/jobs/healthz</code></li>
+<li><code>/api/jobs/id/{job_id}</code></li>
+<li><code>/api/jobs/id/{job_id}/logs</code></li>
+<li><code>/api/jobs/image</code></li>
+<li><code>/api/jobs/workflow</code></li>
+</ul>
+<h2 id="keys">keys<a class="headerlink" href="#keys" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/keys</code></li>
+<li><code>/api/keys/{key:path}</code></li>
+</ul>
+<h2 id="legacy">legacy<a class="headerlink" href="#legacy" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/legacy/sources/search</code></li>
+<li><code>/api/legacy/sources/{source_id}</code></li>
+<li><code>/api/legacy/sources/{source_id}/detections</code></li>
+<li><code>/api/legacy/sources/{source_id}/external_catalogs</code></li>
+<li><code>/api/legacy/sources/{source_id}/lightcurve</code></li>
+<li><code>/api/legacy/sources/{source_id}/postage_stamps</code></li>
+<li><code>/api/legacy/sources/{source_id}/variability</code></li>
+</ul>
+<h2 id="metrics">metrics<a class="headerlink" href="#metrics" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/metrics/system</code></li>
+<li><code>/api/metrics/system/history</code></li>
+</ul>
+<h2 id="monitoring">monitoring<a class="headerlink" href="#monitoring" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/monitoring/publish/failed</code></li>
+<li><code>/api/monitoring/publish/retry-all</code></li>
+<li><code>/api/monitoring/publish/retry/{data_id:path}</code></li>
+<li><code>/api/monitoring/publish/status</code></li>
+</ul>
+<h2 id="mosaics">mosaics<a class="headerlink" href="#mosaics" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/mosaics/create</code></li>
+<li><code>/api/mosaics/query</code></li>
+<li><code>/api/mosaics/{mosaic_id}</code></li>
+<li><code>/api/mosaics/{mosaic_id}/fits</code></li>
+</ul>
+<h2 id="ms">ms<a class="headerlink" href="#ms" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/ms</code></li>
+<li><code>/api/ms/discover</code></li>
+<li><code>/api/ms/{ms_path:path}/calibrator-matches</code></li>
+<li><code>/api/ms/{ms_path:path}/existing-caltables</code></li>
+<li><code>/api/ms/{ms_path:path}/metadata</code></li>
+<li><code>/api/ms/{ms_path:path}/validate-caltable</code></li>
+</ul>
+<h2 id="ms_index">ms_index<a class="headerlink" href="#ms_index" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/ms_index</code></li>
+</ul>
+<h2 id="observation_timeline">observation_timeline<a class="headerlink" href="#observation_timeline" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/observation_timeline</code></li>
+<li><code>/api/observation_timeline/plot</code></li>
+</ul>
+<h2 id="operations">operations<a class="headerlink" href="#operations" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/operations/circuit-breakers</code></li>
+<li><code>/api/operations/circuit-breakers/{name}</code></li>
+<li><code>/api/operations/circuit-breakers/{name}/reset</code></li>
+<li><code>/api/operations/dlq/items</code></li>
+<li><code>/api/operations/dlq/items/{item_id}</code></li>
+<li><code>/api/operations/dlq/items/{item_id}/fail</code></li>
+<li><code>/api/operations/dlq/items/{item_id}/resolve</code></li>
+<li><code>/api/operations/dlq/items/{item_id}/retry</code></li>
+<li><code>/api/operations/dlq/stats</code></li>
+</ul>
+<h2 id="performance">performance<a class="headerlink" href="#performance" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/performance</code></li>
+</ul>
+<h2 id="photometry">photometry<a class="headerlink" href="#photometry" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/photometry/measure</code></li>
+<li><code>/api/photometry/measure-batch</code></li>
+<li><code>/api/photometry/normalize</code></li>
+</ul>
+<h2 id="pipeline">pipeline<a class="headerlink" href="#pipeline" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/pipeline/dependency-graph</code></li>
+<li><code>/api/pipeline/executions</code></li>
+<li><code>/api/pipeline/executions/active</code></li>
+<li><code>/api/pipeline/executions/{execution_id}</code></li>
+<li><code>/api/pipeline/executions/{execution_id}/stages</code></li>
+<li><code>/api/pipeline/metrics/summary</code></li>
+<li><code>/api/pipeline/stages/metrics</code></li>
+<li><code>/api/pipeline/stages/{stage_name}/metrics</code></li>
+</ul>
+<h2 id="plots">plots<a class="headerlink" href="#plots" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/plots/caltable/{caltable_path:path}</code></li>
+</ul>
+<h2 id="pointing-monitor">pointing-monitor<a class="headerlink" href="#pointing-monitor" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/pointing-monitor/status</code></li>
+</ul>
+<h2 id="pointing_history">pointing_history<a class="headerlink" href="#pointing_history" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/pointing_history</code></li>
+</ul>
+<h2 id="products">products<a class="headerlink" href="#products" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/products</code></li>
+</ul>
+<h2 id="qa">qa<a class="headerlink" href="#qa" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/qa</code></li>
+<li><code>/api/qa/calibration/{ms_path:path}</code></li>
+<li><code>/api/qa/calibration/{ms_path:path}/bandpass-plots</code></li>
+<li><code>/api/qa/calibration/{ms_path:path}/bandpass-plots/{filename}</code></li>
+<li><code>/api/qa/calibration/{ms_path:path}/caltable-completeness</code></li>
+<li><code>/api/qa/calibration/{ms_path:path}/spw-plot</code></li>
+<li><code>/api/qa/file/{group}/{name}</code></li>
+<li><code>/api/qa/image/{ms_path:path}</code></li>
+<li><code>/api/qa/images/{image_id}/catalog-overlay</code></li>
+<li><code>/api/qa/images/{image_id}/catalog-validation</code></li>
+<li><code>/api/qa/images/{image_id}/catalog-validation/run</code></li>
+<li><code>/api/qa/images/{image_id}/validation-report.html</code></li>
+<li><code>/api/qa/images/{image_id}/validation-report/generate</code></li>
+<li><code>/api/qa/thumbs</code></li>
+<li><code>/api/qa/{ms_path:path}</code></li>
+</ul>
+<h2 id="regions">regions<a class="headerlink" href="#regions" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/regions</code></li>
+<li><code>/api/regions/{region_id}</code></li>
+<li><code>/api/regions/{region_id}/statistics</code></li>
+</ul>
+<h2 id="reprocess">reprocess<a class="headerlink" href="#reprocess" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/reprocess/{group_id}</code></li>
+</ul>
+<h2 id="sources">sources<a class="headerlink" href="#sources" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/sources/search</code></li>
+<li><code>/api/sources/{source_id}</code></li>
+<li><code>/api/sources/{source_id}/detections</code></li>
+<li><code>/api/sources/{source_id}/external_catalogs</code></li>
+<li><code>/api/sources/{source_id}/lightcurve</code></li>
+<li><code>/api/sources/{source_id}/postage_stamps</code></li>
+<li><code>/api/sources/{source_id}/variability</code></li>
+</ul>
+<h2 id="sse">sse<a class="headerlink" href="#sse" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/sse/status</code></li>
+</ul>
+<h2 id="stats">stats<a class="headerlink" href="#stats" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/stats</code></li>
+</ul>
+<h2 id="status">status<a class="headerlink" href="#status" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/status</code></li>
+</ul>
+<h2 id="stream">stream<a class="headerlink" href="#stream" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/stream</code></li>
+</ul>
+<h2 id="streaming">streaming<a class="headerlink" href="#streaming" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/streaming/config</code></li>
+<li><code>/api/streaming/health</code></li>
+<li><code>/api/streaming/metrics</code></li>
+<li><code>/api/streaming/restart</code></li>
+<li><code>/api/streaming/start</code></li>
+<li><code>/api/streaming/status</code></li>
+<li><code>/api/streaming/stop</code></li>
+</ul>
+<h2 id="test">test<a class="headerlink" href="#test" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/test/streaming/broadcast</code></li>
+</ul>
+<h2 id="thumbnails">thumbnails<a class="headerlink" href="#thumbnails" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/thumbnails/{ms_path:path}.png</code></li>
+</ul>
+<h2 id="types">types<a class="headerlink" href="#types" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/types</code></li>
+</ul>
+<h2 id="ui">ui<a class="headerlink" href="#ui" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/ui/calibrators</code></li>
+</ul>
+<h2 id="uvh5">uvh5<a class="headerlink" href="#uvh5" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/uvh5</code></li>
+</ul>
+<h2 id="ws">ws<a class="headerlink" href="#ws" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>/api/ws/status</code></li>
 </ul>
 </article>
 </div>
@@ -1096,7 +1980,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

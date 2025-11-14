@@ -1,0 +1,1936 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/operations/port_audit_report/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Port Usage and Assignment Audit Report - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#port-usage-and-assignment-audit-report">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Port Usage and Assignment Audit Report
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#executive-summary">
+<span class="md-ellipsis">
+      Executive Summary
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-assignments-by-service">
+<span class="md-ellipsis">
+      Port Assignments by Service
+    </span>
+</a>
+<nav aria-label="Port Assignments by Service" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#primary-application-services">
+<span class="md-ellipsis">
+      Primary Application Services
+    </span>
+</a>
+<nav aria-label="Primary Application Services" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-8000-backend-api-fastapi">
+<span class="md-ellipsis">
+      Port 8000: Backend API (FastAPI)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-8010-alternative-api-port">
+<span class="md-ellipsis">
+      Port 8010: Alternative API Port
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-5173-frontend-development-server-vite">
+<span class="md-ellipsis">
+      Port 5173: Frontend Development Server (Vite)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-5174-frontend-dev-container-host-mapping">
+<span class="md-ellipsis">
+      Port 5174: Frontend Dev Container (Host Mapping)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-3000-production-dashboard-static-serve">
+<span class="md-ellipsis">
+      Port 3000: Production Dashboard (Static Serve)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-3210-dashboard-service-script-managed">
+<span class="md-ellipsis">
+      Port 3210: Dashboard Service (Script-Managed)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#documentation-and-development-tools">
+<span class="md-ellipsis">
+      Documentation and Development Tools
+    </span>
+</a>
+<nav aria-label="Documentation and Development Tools" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-8001-mkdocs-documentation-server">
+<span class="md-ellipsis">
+      Port 8001: MkDocs Documentation Server
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#docker-and-container-services">
+<span class="md-ellipsis">
+      Docker and Container Services
+    </span>
+</a>
+<nav aria-label="Docker and Container Services" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-8080-pipeline-service-docker">
+<span class="md-ellipsis">
+      Port 8080: Pipeline Service (Docker)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#browser-mcp-and-development-tools">
+<span class="md-ellipsis">
+      Browser MCP and Development Tools
+    </span>
+</a>
+<nav aria-label="Browser MCP and Development Tools" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-3111-browser-mcp-http-server">
+<span class="md-ellipsis">
+      Port 3111: Browser MCP HTTP Server
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-9009-browser-mcp-websocket-server">
+<span class="md-ellipsis">
+      Port 9009: Browser MCP WebSocket Server
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-9222-chrome-remote-debugging">
+<span class="md-ellipsis">
+      Port 9222: Chrome Remote Debugging
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#optionalexternal-services">
+<span class="md-ellipsis">
+      Optional/External Services
+    </span>
+</a>
+<nav aria-label="Optional/External Services" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-6379-redis-optional">
+<span class="md-ellipsis">
+      Port 6379: Redis (Optional)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#reservedunused-ports">
+<span class="md-ellipsis">
+      Reserved/Unused Ports
+    </span>
+</a>
+<nav aria-label="Reserved/Unused Ports" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-8111">
+<span class="md-ellipsis">
+      Port 8111
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-9090">
+<span class="md-ellipsis">
+      Port 9090
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-ranges">
+<span class="md-ellipsis">
+      Port Ranges
+    </span>
+</a>
+<nav aria-label="Port Ranges" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#dynamic-port-allocation-ranges">
+<span class="md-ellipsis">
+      Dynamic Port Allocation Ranges
+    </span>
+</a>
+<nav aria-label="Dynamic Port Allocation Ranges" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#dashboard-port-range-3210-3220">
+<span class="md-ellipsis">
+      Dashboard Port Range: 3210-3220
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#cors-allowed-origins-multiple-ports">
+<span class="md-ellipsis">
+      CORS Allowed Origins (Multiple Ports)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-sources-summary">
+<span class="md-ellipsis">
+      Configuration Sources Summary
+    </span>
+</a>
+<nav aria-label="Configuration Sources Summary" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#environment-variables">
+<span class="md-ellipsis">
+      Environment Variables
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-files">
+<span class="md-ellipsis">
+      Configuration Files
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-conflicts-and-issues">
+<span class="md-ellipsis">
+      Port Conflicts and Issues
+    </span>
+</a>
+<nav aria-label="Port Conflicts and Issues" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#identified-conflicts">
+<span class="md-ellipsis">
+      Identified Conflicts
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#potential-issues">
+<span class="md-ellipsis">
+      Potential Issues
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#recommendations">
+<span class="md-ellipsis">
+      Recommendations
+    </span>
+</a>
+<nav aria-label="Recommendations" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#immediate-actions">
+<span class="md-ellipsis">
+      Immediate Actions
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#long-term-improvements">
+<span class="md-ellipsis">
+      Long-Term Improvements
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-assignment-matrix">
+<span class="md-ellipsis">
+      Port Assignment Matrix
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#testing-and-validation">
+<span class="md-ellipsis">
+      Testing and Validation
+    </span>
+</a>
+<nav aria-label="Testing and Validation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#port-availability-checks">
+<span class="md-ellipsis">
+      Port Availability Checks
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#service-health-checks">
+<span class="md-ellipsis">
+      Service Health Checks
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-documentation">
+<span class="md-ellipsis">
+      Related Documentation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="port-usage-and-assignment-audit-report">Port Usage and Assignment Audit Report<a class="headerlink" href="#port-usage-and-assignment-audit-report" title="Permanent link">¶</a></h1>
+<p><strong>Date:</strong> 2025-01-27<br/>
+<strong>Project:</strong> DSA-110 Continuum Imaging Pipeline<br/>
+<strong>Audit Scope:</strong> All port assignments across the pipeline infrastructure</p>
+<hr/>
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">¶</a></h2>
+<p>This audit identifies all port assignments across the DSA-110 pipeline,
+including:</p>
+<ul>
+<li>Primary services (API, frontend, dashboard)</li>
+<li>Development servers</li>
+<li>Docker containers</li>
+<li>Documentation servers</li>
+<li>External dependencies (Redis, databases)</li>
+<li>Browser MCP services</li>
+<li>Monitoring and observability tools</li>
+</ul>
+<p><strong>Key Findings:</strong></p>
+<ul>
+<li>15+ distinct ports identified</li>
+<li>Some port conflicts documented</li>
+<li>Multiple configuration sources need consolidation</li>
+<li>Port ranges reserved for dynamic allocation</li>
+</ul>
+<hr/>
+<h2 id="port-assignments-by-service">Port Assignments by Service<a class="headerlink" href="#port-assignments-by-service" title="Permanent link">¶</a></h2>
+<h3 id="primary-application-services">Primary Application Services<a class="headerlink" href="#primary-application-services" title="Permanent link">¶</a></h3>
+<h4 id="port-8000-backend-api-fastapi">Port 8000: Backend API (FastAPI)<a class="headerlink" href="#port-8000-backend-api-fastapi" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Service:</strong> DSA-110 API Server</li>
+<li><strong>Protocol:</strong> HTTP/HTTPS</li>
+<li><strong>Configuration Sources:</strong></li>
+<li><code>ops/systemd/contimg.env</code>: <code>CONTIMG_API_PORT=8000</code></li>
+<li><code>docker-compose.yml</code>: <code>"8000:8000"</code></li>
+<li><code>scripts/manage-services.sh</code>: <code>API_PORT="${CONTIMG_API_PORT:-8000}"</code></li>
+<li><code>src/dsa110_contimg/api/__init__.py</code>: uvicorn command <code>--port 8000</code></li>
+<li><strong>Status:</strong> Primary port for API</li>
+<li><strong>CORS Origins:</strong> Configured in <code>src/dsa110_contimg/api/routes.py</code> (lines
+  284-301)</li>
+<li><strong>Health Check:</strong> <code>http://localhost:8000/api/status</code></li>
+<li><strong>Notes:</strong></li>
+<li>Default port, configurable via <code>CONTIMG_API_PORT</code> environment variable</li>
+<li>Used in both Docker and native deployments</li>
+</ul>
+<h4 id="port-8010-alternative-api-port">Port 8010: Alternative API Port<a class="headerlink" href="#port-8010-alternative-api-port" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Service:</strong> Alternative backend API (fallback)</li>
+<li><strong>Protocol:</strong> HTTP/HTTPS</li>
+<li><strong>Configuration Sources:</strong></li>
+<li><code>README.md</code>: Mentioned as alternative port</li>
+<li><code>docs/operations/port-management.md</code>: Listed as reserved</li>
+<li><strong>Status:</strong> Reserved but not actively used</li>
+<li><strong>Notes:</strong> Documented as alternative if port 8000 is unavailable</li>
+</ul>
+<h4 id="port-5173-frontend-development-server-vite">Port 5173: Frontend Development Server (Vite)<a class="headerlink" href="#port-5173-frontend-development-server-vite" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Service:</strong> React/Vite development server</li>
+<li><strong>Protocol:</strong> HTTP/HTTPS, WebSocket (for HMR)</li>
+<li><strong>Configuration Sources:</strong></li>
+<li><code>frontend/vite.config.ts</code>: <code>server.port: 5173</code></li>
+<li><code>docker-compose.yml</code>: <code>"5174:5173"</code> (host:container mapping for dev
+    container)</li>
+<li><code>scripts/manage-services.sh</code>: Not explicitly configured (uses Vite default)</li>
+<li><strong>Status:</strong> Primary development port</li>
+<li><strong>API Proxy:</strong> Proxies <code>/api/*</code> to <code>http://127.0.0.1:8000</code></li>
+<li><strong>WebSocket:</strong> Enabled for Hot Module Replacement (HMR)</li>
+<li><strong>Notes:</strong></li>
+<li>Default Vite port</li>
+<li>Multiple instances detected in environment analysis (potential conflict)</li>
+<li>Docker dev container maps to host port 5174 to avoid conflicts</li>
+</ul>
+<h4 id="port-5174-frontend-dev-container-host-mapping">Port 5174: Frontend Dev Container (Host Mapping)<a class="headerlink" href="#port-5174-frontend-dev-container-host-mapping" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Service:</strong> Docker containerized frontend dev server</li>
+<li><strong>Protocol:</strong> HTTP/HTTPS</li>
+<li><strong>Configuration Sources:</strong></li>
+<li><code>docker-compose.yml</code>: <code>"5174:5173"</code> (host:container)</li>
+<li><strong>Status:</strong> Docker-specific port mapping</li>
+<li><strong>Notes:</strong> Used to avoid conflict with local dev server on 5173</li>
+</ul>
+<h4 id="port-3000-production-dashboard-static-serve">Port 3000: Production Dashboard (Static Serve)<a class="headerlink" href="#port-3000-production-dashboard-static-serve" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Service:</strong> Production React dashboard (served via <code>serve</code>)</li>
+<li><strong>Protocol:</strong> HTTP/HTTPS</li>
+<li><strong>Configuration Sources:</strong></li>
+<li><code>docker-compose.yml</code>: <code>"3000:3000"</code> (dashboard service)</li>
+<li><code>docs/operations/port-management.md</code>: Listed as reserved</li>
+<li><code>scripts/manage-services.sh</code>: Not used (uses 3210 range instead)</li>
+<li><strong>Status:</strong> Used in Docker Compose for production dashboard</li>
+<li><strong>Notes:</strong></li>
+<li>Currently in use by Grafana (Docker container <code>docker-grafana-1</code>) -
+    <strong>CONFLICT</strong></li>
+<li>Not related to DSA-110 dashboard per environment analysis</li>
+<li>Production dashboard uses <code>serve -s /app/build -l 3000</code></li>
+</ul>
+<h4 id="port-3210-dashboard-service-script-managed">Port 3210: Dashboard Service (Script-Managed)<a class="headerlink" href="#port-3210-dashboard-service-script-managed" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Service:</strong> Dashboard served via <code>manage-services.sh</code></li>
+<li><strong>Protocol:</strong> HTTP/HTTPS</li>
+<li><strong>Configuration Sources:</strong></li>
+<li><code>scripts/manage-services.sh</code>:
+    <code>DASHBOARD_PORT="${CONTIMG_DASHBOARD_PORT:-3210}"</code></li>
+<li><code>scripts/manage-services.sh</code>: Fallback range <code>3210-3220</code> (lines 47-55)</li>
+<li><strong>Status:</strong> Default for script-managed dashboard</li>
+<li><strong>Notes:</strong></li>
+<li>Script automatically finds free port in range 3210-3220 if 3210 is occupied</li>
+<li>Used when running dashboard via <code>manage-services.sh</code> script</li>
+</ul>
+<h3 id="documentation-and-development-tools">Documentation and Development Tools<a class="headerlink" href="#documentation-and-development-tools" title="Permanent link">¶</a></h3>
+<h4 id="port-8001-mkdocs-documentation-server">Port 8001: MkDocs Documentation Server<a class="headerlink" href="#port-8001-mkdocs-documentation-server" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Service:</strong> MkDocs development server</li>
+<li><strong>Protocol:</strong> HTTP/HTTPS</li>
+<li><strong>Configuration Sources:</strong></li>
+<li><code>mkdocs.yml</code>: <code>dev_addr: 127.0.0.1:8001</code></li>
+<li><code>scripts/manage-services.sh</code>: <code>DOCS_PORT="${CONTIMG_DOCS_PORT:-8001}"</code></li>
+<li><strong>Status:</strong> Active documentation server port</li>
+<li><strong>Notes:</strong> Used for local documentation development and preview</li>
+</ul>
+<h3 id="docker-and-container-services">Docker and Container Services<a class="headerlink" href="#docker-and-container-services" title="Permanent link">¶</a></h3>
+<h4 id="port-8080-pipeline-service-docker">Port 8080: Pipeline Service (Docker)<a class="headerlink" href="#port-8080-pipeline-service-docker" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Service:</strong> DSA-110 Pipeline (Docker container)</li>
+<li><strong>Protocol:</strong> HTTP/HTTPS (assumed)</li>
+<li><strong>Configuration Sources:</strong></li>
+<li>Environment analysis report: Docker container <code>dsa110-pipeline</code></li>
+<li><strong>Status:</strong> In use</li>
+<li><strong>Notes:</strong> Related to pipeline, not dashboard API</li>
+</ul>
+<h3 id="browser-mcp-and-development-tools">Browser MCP and Development Tools<a class="headerlink" href="#browser-mcp-and-development-tools" title="Permanent link">¶</a></h3>
+<h4 id="port-3111-browser-mcp-http-server">Port 3111: Browser MCP HTTP Server<a class="headerlink" href="#port-3111-browser-mcp-http-server" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Service:</strong> Browser MCP server (HTTP endpoint)</li>
+<li><strong>Protocol:</strong> HTTP (JSON-RPC)</li>
+<li><strong>Configuration Sources:</strong></li>
+<li><code>docs/concepts/browser_mcp_chrome_remote_desktop_architecture.md</code>: Port 3111</li>
+<li><code>.cursor/mcp.json</code>: Configurable in MCP configuration</li>
+<li><strong>Status:</strong> Used for Cursor IDE integration</li>
+<li><strong>Notes:</strong></li>
+<li>Receives MCP protocol requests from Cursor</li>
+<li>Streamable HTTP transport</li>
+<li>Process:
+    <code>/opt/miniforge/envs/casa6/bin/node dist/index.js --http --port 3111</code></li>
+</ul>
+<h4 id="port-9009-browser-mcp-websocket-server">Port 9009: Browser MCP WebSocket Server<a class="headerlink" href="#port-9009-browser-mcp-websocket-server" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Service:</strong> Browser MCP WebSocket server</li>
+<li><strong>Protocol:</strong> WebSocket</li>
+<li><strong>Configuration Sources:</strong></li>
+<li><code>docs/concepts/browser_mcp_chrome_remote_desktop_architecture.md</code>: Port 9009
+    (hardcoded)</li>
+<li>Browser MCP extension: Hardcoded in extension background script</li>
+<li><strong>Status:</strong> Critical - must be port 9009</li>
+<li><strong>Notes:</strong></li>
+<li><strong>CRITICAL:</strong> Port 9009 is hardcoded in Browser MCP extension</li>
+<li>Server MUST listen on 9009, not configurable</li>
+<li>Used for browser extension connection</li>
+<li>Connection: <code>ws://localhost:9009</code></li>
+</ul>
+<h4 id="port-9222-chrome-remote-debugging">Port 9222: Chrome Remote Debugging<a class="headerlink" href="#port-9222-chrome-remote-debugging" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Service:</strong> Chrome DevTools Protocol</li>
+<li><strong>Protocol:</strong> HTTP/WebSocket</li>
+<li><strong>Configuration Sources:</strong></li>
+<li><code>scripts/test_with_chrome.sh</code>: <code>--remote-debugging-port=9222</code></li>
+<li><strong>Status:</strong> Used for browser automation testing</li>
+<li><strong>Notes:</strong> Chrome DevTools Protocol for remote debugging</li>
+</ul>
+<h3 id="optionalexternal-services">Optional/External Services<a class="headerlink" href="#optionalexternal-services" title="Permanent link">¶</a></h3>
+<h4 id="port-6379-redis-optional">Port 6379: Redis (Optional)<a class="headerlink" href="#port-6379-redis-optional" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Service:</strong> Redis cache backend</li>
+<li><strong>Protocol:</strong> Redis protocol</li>
+<li><strong>Configuration Sources:</strong></li>
+<li><code>src/dsa110_contimg/pipeline/caching.py</code>: Default <code>port: int = 6379</code></li>
+<li>Environment variable: <code>REDIS_PORT=6379</code> (default)</li>
+<li><code>docs/dev/implementation_summary.md</code>: <code>export REDIS_PORT=6379</code></li>
+<li><strong>Status:</strong> Optional dependency</li>
+<li><strong>Notes:</strong></li>
+<li>Only used if Redis backend is enabled</li>
+<li>Default Redis port</li>
+<li>Configurable via <code>REDIS_HOST</code> and <code>REDIS_PORT</code> environment variables</li>
+</ul>
+<h3 id="reservedunused-ports">Reserved/Unused Ports<a class="headerlink" href="#reservedunused-ports" title="Permanent link">¶</a></h3>
+<h4 id="port-8111">Port 8111<a class="headerlink" href="#port-8111" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Status:</strong> Available (not configured)</li>
+<li><strong>Notes:</strong> Mentioned in environment analysis as available</li>
+</ul>
+<h4 id="port-9090">Port 9090<a class="headerlink" href="#port-9090" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Status:</strong> Available (not configured)</li>
+<li><strong>Notes:</strong> Mentioned in environment analysis as available</li>
+</ul>
+<hr/>
+<h2 id="port-ranges">Port Ranges<a class="headerlink" href="#port-ranges" title="Permanent link">¶</a></h2>
+<h3 id="dynamic-port-allocation-ranges">Dynamic Port Allocation Ranges<a class="headerlink" href="#dynamic-port-allocation-ranges" title="Permanent link">¶</a></h3>
+<h4 id="dashboard-port-range-3210-3220">Dashboard Port Range: 3210-3220<a class="headerlink" href="#dashboard-port-range-3210-3220" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose:</strong> Fallback ports for dashboard service</li>
+<li><strong>Configuration:</strong> <code>scripts/manage-services.sh</code> (line 47)</li>
+<li><strong>Usage:</strong> Automatically finds first free port in this range if default 3210
+  is occupied</li>
+<li><strong>Candidates:</strong> <code>3210 3211 3212 3213 3214 3215 3216 3217 3218 3219 3220</code></li>
+</ul>
+<h4 id="cors-allowed-origins-multiple-ports">CORS Allowed Origins (Multiple Ports)<a class="headerlink" href="#cors-allowed-origins-multiple-ports" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Configuration:</strong> <code>src/dsa110_contimg/api/routes.py</code> (lines 284-301)</li>
+<li><strong>Ports Allowed:</strong></li>
+<li><code>5173</code> (frontend dev)</li>
+<li><code>5174</code> (docker dev)</li>
+<li><code>3000</code>, <code>3001</code>, <code>3002</code>, <code>3210</code> (various dashboard configs)</li>
+<li><strong>Notes:</strong> Regex pattern also allows any port on localhost/127.0.0.1/lxd110h17</li>
+</ul>
+<hr/>
+<h2 id="configuration-sources-summary">Configuration Sources Summary<a class="headerlink" href="#configuration-sources-summary" title="Permanent link">¶</a></h2>
+<h3 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>CONTIMG_API_PORT</code> → Port 8000 (default)</li>
+<li><code>CONTIMG_DASHBOARD_PORT</code> → Port 3210 (default)</li>
+<li><code>CONTIMG_DOCS_PORT</code> → Port 8001 (default)</li>
+<li><code>REDIS_HOST</code> → localhost (default)</li>
+<li><code>REDIS_PORT</code> → 6379 (default)</li>
+</ul>
+<h3 id="configuration-files">Configuration Files<a class="headerlink" href="#configuration-files" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong><code>ops/systemd/contimg.env</code></strong>: API port (8000)</li>
+<li><strong><code>frontend/vite.config.ts</code></strong>: Frontend dev port (5173)</li>
+<li><strong><code>docker-compose.yml</code></strong>: Container port mappings</li>
+<li><strong><code>mkdocs.yml</code></strong>: Docs server port (8001)</li>
+<li><strong><code>scripts/manage-services.sh</code></strong>: Service management ports</li>
+<li><strong><code>src/dsa110_contimg/api/routes.py</code></strong>: CORS allowed origins</li>
+</ol>
+<hr/>
+<h2 id="port-conflicts-and-issues">Port Conflicts and Issues<a class="headerlink" href="#port-conflicts-and-issues" title="Permanent link">¶</a></h2>
+<h3 id="identified-conflicts">Identified Conflicts<a class="headerlink" href="#identified-conflicts" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Port 3000: Grafana vs Dashboard</strong></li>
+<li><strong>Issue:</strong> Port 3000 is used by Grafana (Docker container)</li>
+<li><strong>Impact:</strong> Production dashboard in Docker Compose may conflict</li>
+<li>
+<p><strong>Resolution:</strong></p>
+<ul>
+<li>Docker Compose dashboard service uses 3000</li>
+<li>Script-managed dashboard uses 3210 range</li>
+<li>Grafana is external service (not part of DSA-110)</li>
+</ul>
+</li>
+<li>
+<p><strong>Port 5173: Multiple Vite Instances</strong></p>
+</li>
+<li><strong>Issue:</strong> Multiple Vite processes detected on port 5173</li>
+<li><strong>Impact:</strong> Potential resource waste, unclear which instance is active</li>
+<li><strong>Resolution:</strong><ul>
+<li>Docker dev container uses port 5174 on host</li>
+<li>Should consolidate local dev instances</li>
+</ul>
+</li>
+</ol>
+<h3 id="potential-issues">Potential Issues<a class="headerlink" href="#potential-issues" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Port Documentation Inconsistency</strong></li>
+<li><code>docs/operations/port-management.md</code> lists port 3000 as reserved for
+     dashboard</li>
+<li>Actual usage shows Grafana on 3000, dashboard uses 3210 range</li>
+<li>
+<p>Documentation needs update</p>
+</li>
+<li>
+<p><strong>Hardcoded Ports in Code</strong></p>
+</li>
+<li>Browser MCP WebSocket port 9009 is hardcoded in extension</li>
+<li>Some test scripts hardcode ports (e.g., <code>localhost:8000</code>, <code>localhost:5173</code>)</li>
+<li>
+<p>Consider making more ports configurable</p>
+</li>
+<li>
+<p><strong>CORS Configuration Complexity</strong></p>
+</li>
+<li>Multiple hardcoded origins in <code>routes.py</code></li>
+<li>Regex pattern provides flexibility but may be too permissive</li>
+<li>Consider environment-based CORS configuration</li>
+</ol>
+<hr/>
+<h2 id="recommendations">Recommendations<a class="headerlink" href="#recommendations" title="Permanent link">¶</a></h2>
+<h3 id="immediate-actions">Immediate Actions<a class="headerlink" href="#immediate-actions" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Update Port Documentation</strong></li>
+<li>Update <code>docs/operations/port-management.md</code> to reflect actual usage</li>
+<li>Document Grafana conflict on port 3000</li>
+<li>
+<p>Clarify port 3210 range usage</p>
+</li>
+<li>
+<p><strong>Consolidate Frontend Instances</strong></p>
+</li>
+<li>Investigate why multiple Vite instances are running</li>
+<li>
+<p>Ensure only one dev server instance per environment</p>
+</li>
+<li>
+<p><strong>Standardize Port Configuration</strong></p>
+</li>
+<li>Create single source of truth for port assignments</li>
+<li>Consider <code>config/ports.yaml</code> or similar centralized config</li>
+</ol>
+<h3 id="long-term-improvements">Long-Term Improvements<a class="headerlink" href="#long-term-improvements" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Environment-Based Port Configuration</strong></li>
+<li>Use environment variables consistently across all services</li>
+<li>Provide <code>.env.example</code> with all port assignments</li>
+<li>
+<p>Document port requirements in README</p>
+</li>
+<li>
+<p><strong>Port Conflict Detection</strong></p>
+</li>
+<li>Add port conflict checks to startup scripts</li>
+<li>Provide clear error messages when ports are in use</li>
+<li>
+<p>Auto-fallback to alternative ports where appropriate</p>
+</li>
+<li>
+<p><strong>Service Discovery</strong></p>
+</li>
+<li>Consider service discovery for dynamic port allocation</li>
+<li>Use consistent naming for service endpoints</li>
+<li>
+<p>Document service dependencies</p>
+</li>
+<li>
+<p><strong>Monitoring and Observability</strong></p>
+</li>
+<li>Add port usage monitoring</li>
+<li>Track port conflicts in logs</li>
+<li>Alert on unexpected port usage</li>
+</ol>
+<hr/>
+<h2 id="port-assignment-matrix">Port Assignment Matrix<a class="headerlink" href="#port-assignment-matrix" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Service</th>
+<th>Protocol</th>
+<th>Configurable</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8000</td>
+<td>Backend API</td>
+<td>HTTP</td>
+<td>Yes (env)</td>
+<td>Active</td>
+<td>Primary API port</td>
+</tr>
+<tr>
+<td>8010</td>
+<td>Alternative API</td>
+<td>HTTP</td>
+<td>Yes</td>
+<td>Reserved</td>
+<td>Fallback port</td>
+</tr>
+<tr>
+<td>5173</td>
+<td>Frontend Dev</td>
+<td>HTTP/WS</td>
+<td>No (hardcoded)</td>
+<td>Active</td>
+<td>Vite default</td>
+</tr>
+<tr>
+<td>5174</td>
+<td>Frontend Dev (Docker)</td>
+<td>HTTP/WS</td>
+<td>No</td>
+<td>Active</td>
+<td>Host mapping</td>
+</tr>
+<tr>
+<td>3000</td>
+<td>Dashboard (Docker)</td>
+<td>HTTP</td>
+<td>No</td>
+<td>Conflict</td>
+<td>Used by Grafana</td>
+</tr>
+<tr>
+<td>3210</td>
+<td>Dashboard (Script)</td>
+<td>HTTP</td>
+<td>Yes (env)</td>
+<td>Active</td>
+<td>Default, auto-fallback range</td>
+</tr>
+<tr>
+<td>8001</td>
+<td>MkDocs</td>
+<td>HTTP</td>
+<td>Yes (env)</td>
+<td>Active</td>
+<td>Documentation server</td>
+</tr>
+<tr>
+<td>8080</td>
+<td>Pipeline (Docker)</td>
+<td>HTTP</td>
+<td>Unknown</td>
+<td>Active</td>
+<td>External service</td>
+</tr>
+<tr>
+<td>3111</td>
+<td>Browser MCP HTTP</td>
+<td>HTTP</td>
+<td>Yes</td>
+<td>Active</td>
+<td>MCP server</td>
+</tr>
+<tr>
+<td>9009</td>
+<td>Browser MCP WS</td>
+<td>WebSocket</td>
+<td>No (hardcoded)</td>
+<td>Active</td>
+<td>Extension requirement</td>
+</tr>
+<tr>
+<td>9222</td>
+<td>Chrome Debugging</td>
+<td>HTTP/WS</td>
+<td>Yes</td>
+<td>Optional</td>
+<td>Testing only</td>
+</tr>
+<tr>
+<td>6379</td>
+<td>Redis</td>
+<td>Redis</td>
+<td>Yes (env)</td>
+<td>Optional</td>
+<td>Cache backend</td>
+</tr>
+<tr>
+<td>8111</td>
+<td>Unused</td>
+<td>-</td>
+<td>-</td>
+<td>Available</td>
+<td>Not configured</td>
+</tr>
+<tr>
+<td>9090</td>
+<td>Unused</td>
+<td>-</td>
+<td>-</td>
+<td>Available</td>
+<td>Not configured</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h2 id="testing-and-validation">Testing and Validation<a class="headerlink" href="#testing-and-validation" title="Permanent link">¶</a></h2>
+<h3 id="port-availability-checks">Port Availability Checks<a class="headerlink" href="#port-availability-checks" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check all DSA-110 ports</span>
+<span class="k">for</span><span class="w"> </span>port<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="m">8000</span><span class="w"> </span><span class="m">8010</span><span class="w"> </span><span class="m">5173</span><span class="w"> </span><span class="m">5174</span><span class="w"> </span><span class="m">3000</span><span class="w"> </span><span class="m">3210</span><span class="w"> </span><span class="m">8001</span><span class="w"> </span><span class="m">3111</span><span class="w"> </span><span class="m">9009</span><span class="w"> </span><span class="m">6379</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span>lsof<span class="w"> </span>-Pi<span class="w"> </span>:<span class="nv">$port</span><span class="w"> </span>-sTCP:LISTEN<span class="w"> </span>-t<span class="w"> </span>&gt;/dev/null<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"Port </span><span class="nv">$port</span><span class="s2">: IN USE"</span>
+<span class="w">        </span>lsof<span class="w"> </span>-i<span class="w"> </span>:<span class="nv">$port</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"Port </span><span class="nv">$port</span><span class="s2">: FREE"</span>
+<span class="w">    </span><span class="k">fi</span>
+<span class="k">done</span>
+</code></pre></div>
+<h3 id="service-health-checks">Service Health Checks<a class="headerlink" href="#service-health-checks" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># API</span>
+curl<span class="w"> </span>http://localhost:8000/api/status
+
+<span class="c1"># Frontend Dev</span>
+curl<span class="w"> </span>http://localhost:5173
+
+<span class="c1"># Dashboard</span>
+curl<span class="w"> </span>http://localhost:3210
+
+<span class="c1"># Docs</span>
+curl<span class="w"> </span>http://localhost:8001
+
+<span class="c1"># Browser MCP</span>
+curl<span class="w"> </span>http://localhost:3111/mcp
+</code></pre></div>
+<hr/>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>docs/operations/port-management.md</code> - Port management guide</li>
+<li><code>docs/development/ENVIRONMENT_ANALYSIS_REPORT.md</code> - Environment analysis</li>
+<li><code>docs/concepts/browser_mcp_chrome_remote_desktop_architecture.md</code> - MCP
+  architecture</li>
+<li><code>scripts/manage-services.sh</code> - Service management script</li>
+</ul>
+<hr/>
+<p><strong>Report Generated:</strong> 2025-01-27<br/>
+<strong>Next Review:</strong> When port assignments change or conflicts are reported</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

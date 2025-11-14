@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1161,44 +1163,63 @@
 <article class="md-content__inner md-typeset">
 <h1 id="phase-3-advanced-monitoring-implementation-plan">Phase 3: Advanced Monitoring Implementation Plan<a class="headerlink" href="#phase-3-advanced-monitoring-implementation-plan" title="Permanent link">¶</a></h1>
 <h2 id="goal">Goal<a class="headerlink" href="#goal" title="Permanent link">¶</a></h2>
-<p>Implement web-based interfaces for Event Bus Monitor and Cache Statistics to provide real-time visibility into system events and caching performance.</p>
+<p>Implement web-based interfaces for Event Bus Monitor and Cache Statistics to
+provide real-time visibility into system events and caching performance.</p>
 <h2 id="modules-to-implement">Modules to Implement<a class="headerlink" href="#modules-to-implement" title="Permanent link">¶</a></h2>
 <h3 id="1-event-bus-monitor">1. Event Bus Monitor<a class="headerlink" href="#1-event-bus-monitor" title="Permanent link">¶</a></h3>
-<p><strong>Backend API Endpoints (<code>src/dsa110_contimg/api/routers/events.py</code>)</strong>:
-- <code>GET /api/events/stream</code>: Get recent events (with filtering by event type, component, time range)
-- <code>GET /api/events/stats</code>: Get event statistics (counts by type, rate over time)
-- <code>GET /api/events/types</code>: Get list of available event types
-- <code>POST /api/events/subscribe</code>: WebSocket endpoint for real-time event streaming (optional, future enhancement)</p>
-<p><strong>Frontend Components (<code>frontend/src/components/Events/</code>)</strong>:
-- <code>EventStream.tsx</code>: Real-time event stream viewer with filtering
-- <code>EventStats.tsx</code>: Event statistics dashboard
-- <code>EventFilter.tsx</code>: Filtering controls (event type, time range, component)</p>
-<p><strong>Frontend Page (<code>frontend/src/pages/EventsPage.tsx</code>)</strong>:
-- Main page integrating EventStream and EventStats components
-- Real-time updates via polling (or WebSocket if implemented)</p>
+<p><strong>Backend API Endpoints (<code>src/dsa110_contimg/api/routers/events.py</code>)</strong>:</p>
+<ul>
+<li><code>GET /api/events/stream</code>: Get recent events (with filtering by event type,
+  component, time range)</li>
+<li><code>GET /api/events/stats</code>: Get event statistics (counts by type, rate over time)</li>
+<li><code>GET /api/events/types</code>: Get list of available event types</li>
+<li><code>POST /api/events/subscribe</code>: WebSocket endpoint for real-time event streaming
+  (optional, future enhancement)</li>
+</ul>
+<p><strong>Frontend Components (<code>frontend/src/components/Events/</code>)</strong>:</p>
+<ul>
+<li><code>EventStream.tsx</code>: Real-time event stream viewer with filtering</li>
+<li><code>EventStats.tsx</code>: Event statistics dashboard</li>
+<li><code>EventFilter.tsx</code>: Filtering controls (event type, time range, component)</li>
+</ul>
+<p><strong>Frontend Page (<code>frontend/src/pages/EventsPage.tsx</code>)</strong>:</p>
+<ul>
+<li>Main page integrating EventStream and EventStats components</li>
+<li>Real-time updates via polling (or WebSocket if implemented)</li>
+</ul>
 <h3 id="2-cache-statistics-monitor">2. Cache Statistics Monitor<a class="headerlink" href="#2-cache-statistics-monitor" title="Permanent link">¶</a></h3>
-<p><strong>Backend API Endpoints (<code>src/dsa110_contimg/api/routers/cache.py</code>)</strong>:
-- <code>GET /api/cache/stats</code>: Get cache statistics (hit rate, miss rate, size, TTL info)
-- <code>GET /api/cache/keys</code>: List cache keys (with filtering, pagination)
-- <code>GET /api/cache/keys/{key}</code>: Get details for a specific cache key
-- <code>DELETE /api/cache/keys/{key}</code>: Delete a specific cache key
-- <code>DELETE /api/cache/clear</code>: Clear all cache
-- <code>GET /api/cache/performance</code>: Get cache performance metrics (hit/miss rates over time)</p>
-<p><strong>Frontend Components (<code>frontend/src/components/Cache/</code>)</strong>:
-- <code>CacheStats.tsx</code>: Display cache statistics (hit rate, size, etc.)
-- <code>CacheKeys.tsx</code>: Table of cache keys with search/filter
-- <code>CachePerformance.tsx</code>: Performance charts (hit rate over time)</p>
-<p><strong>Frontend Page (<code>frontend/src/pages/CachePage.tsx</code>)</strong>:
-- Main page integrating CacheStats, CacheKeys, and CachePerformance components</p>
+<p><strong>Backend API Endpoints (<code>src/dsa110_contimg/api/routers/cache.py</code>)</strong>:</p>
+<ul>
+<li><code>GET /api/cache/stats</code>: Get cache statistics (hit rate, miss rate, size, TTL
+  info)</li>
+<li><code>GET /api/cache/keys</code>: List cache keys (with filtering, pagination)</li>
+<li><code>GET /api/cache/keys/{key}</code>: Get details for a specific cache key</li>
+<li><code>DELETE /api/cache/keys/{key}</code>: Delete a specific cache key</li>
+<li><code>DELETE /api/cache/clear</code>: Clear all cache</li>
+<li><code>GET /api/cache/performance</code>: Get cache performance metrics (hit/miss rates
+  over time)</li>
+</ul>
+<p><strong>Frontend Components (<code>frontend/src/components/Cache/</code>)</strong>:</p>
+<ul>
+<li><code>CacheStats.tsx</code>: Display cache statistics (hit rate, size, etc.)</li>
+<li><code>CacheKeys.tsx</code>: Table of cache keys with search/filter</li>
+<li><code>CachePerformance.tsx</code>: Performance charts (hit rate over time)</li>
+</ul>
+<p><strong>Frontend Page (<code>frontend/src/pages/CachePage.tsx</code>)</strong>:</p>
+<ul>
+<li>Main page integrating CacheStats, CacheKeys, and CachePerformance components</li>
+</ul>
 <h2 id="data-sources">Data Sources<a class="headerlink" href="#data-sources" title="Permanent link">¶</a></h2>
 <h3 id="event-bus">Event Bus<a class="headerlink" href="#event-bus" title="Permanent link">¶</a></h3>
 <ul>
-<li><code>src/dsa110_contimg/pipeline/event_bus.py</code>: <code>EventBus</code> class with event history</li>
+<li><code>src/dsa110_contimg/pipeline/event_bus.py</code>: <code>EventBus</code> class with event
+  history</li>
 <li>Need to add event history storage to EventBus for monitoring</li>
 </ul>
 <h3 id="cache">Cache<a class="headerlink" href="#cache" title="Permanent link">¶</a></h3>
 <ul>
-<li><code>src/dsa110_contimg/pipeline/caching.py</code>: <code>CacheBackend</code> interface with <code>InMemoryCache</code> and <code>RedisCache</code> implementations</li>
+<li><code>src/dsa110_contimg/pipeline/caching.py</code>: <code>CacheBackend</code> interface with
+  <code>InMemoryCache</code> and <code>RedisCache</code> implementations</li>
 <li>Need to add statistics tracking to cache backends</li>
 </ul>
 <h2 id="implementation-details">Implementation Details<a class="headerlink" href="#implementation-details" title="Permanent link">¶</a></h2>
@@ -1264,7 +1285,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1122,10 +1124,12 @@
 <article class="md-content__inner md-typeset">
 <h1 id="auto-error-detection-in-non-interactive-shells">Auto Error Detection in Non-Interactive Shells<a class="headerlink" href="#auto-error-detection-in-non-interactive-shells" title="Permanent link">¶</a></h1>
 <h2 id="solution-implemented">Solution Implemented<a class="headerlink" href="#solution-implemented" title="Permanent link">¶</a></h2>
-<p>Auto error detection has been moved <strong>before</strong> the interactive shell check in <code>~/.bashrc</code>, so it now works in both interactive and non-interactive shells.</p>
+<p>Auto error detection has been moved <strong>before</strong> the interactive shell check in
+<code>~/.bashrc</code>, so it now works in both interactive and non-interactive shells.</p>
 <h3 id="what-changed">What Changed<a class="headerlink" href="#what-changed" title="Permanent link">¶</a></h3>
-<p>The auto error detection block was moved from line ~261 (after the interactive check) to line 6 (before the interactive check):</p>
-<p><strong>Before:</strong>
+<p>The auto error detection block was moved from line ~261 (after the interactive
+check) to line 6 (before the interactive check):</p>
+<p><strong>Before:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># If not running interactively, don't do anything</span>
 <span class="k">case</span><span class="w"> </span><span class="nv">$-</span><span class="w"> </span><span class="k">in</span>
 <span class="w">    </span>*i*<span class="o">)</span><span class="w"> </span><span class="p">;;</span>
@@ -1138,8 +1142,8 @@
 <span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">"/data/dsa110-contimg/scripts/auto-error-detection.sh"</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
 <span class="w">    </span><span class="nb">source</span><span class="w"> </span><span class="s2">"/data/dsa110-contimg/scripts/auto-error-detection.sh"</span>
 <span class="k">fi</span>
-</code></pre></div></p>
-<p><strong>After:</strong>
+</code></pre></div>
+<p><strong>After:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Auto Error Detection - Load BEFORE interactive check so it works in non-interactive shells too</span>
 <span class="c1"># This ensures error detection works for automated scripts, CI/CD, and manual commands</span>
 <span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">"/data/dsa110-contimg/scripts/auto-error-detection.sh"</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
@@ -1151,7 +1155,7 @@
 <span class="w">    </span>*i*<span class="o">)</span><span class="w"> </span><span class="p">;;</span>
 <span class="w">      </span>*<span class="o">)</span><span class="w"> </span><span class="k">return</span><span class="p">;;</span>
 <span class="k">esac</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h2>
 <h3 id="non-interactive-shell-now-works">Non-Interactive Shell (Now Works!)<a class="headerlink" href="#non-interactive-shell-now-works" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>$<span class="w"> </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s1">'source ~/.bashrc &gt;/dev/null 2&gt;&amp;1; echo $AUTO_ERROR_DETECTION'</span>
@@ -1202,7 +1206,7 @@ bash<span class="w"> </span>-c<span class="w"> </span><span class="s1">'cd /data
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

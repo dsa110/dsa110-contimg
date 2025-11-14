@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1248,53 +1250,74 @@
 <strong>Status</strong>: Complete<br/>
 <strong>Priority</strong>: High (Scientific Reproducibility Requirement)</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>Implemented complete provenance tracking for calibration tables in the calibration registry. This enhancement enables full reproducibility by capturing source MS paths, solver commands, CASA versions, calibration parameters, and quality metrics for all calibration tables.</p>
+<p>Implemented complete provenance tracking for calibration tables in the
+calibration registry. This enhancement enables full reproducibility by capturing
+source MS paths, solver commands, CASA versions, calibration parameters, and
+quality metrics for all calibration tables.</p>
 <h2 id="problem-statement">Problem Statement<a class="headerlink" href="#problem-statement" title="Permanent link">¶</a></h2>
-<p>The calibration registry previously lacked provenance information, making it difficult to:
-- Reproduce calibration results
-- Track which MS files generated which calibration tables
-- Understand calibration parameters used
-- Analyze quality metrics across calibration runs
-- Perform impact analysis when calibration tables change</p>
+<p>The calibration registry previously lacked provenance information, making it
+difficult to:</p>
+<ul>
+<li>Reproduce calibration results</li>
+<li>Track which MS files generated which calibration tables</li>
+<li>Understand calibration parameters used</li>
+<li>Analyze quality metrics across calibration runs</li>
+<li>Perform impact analysis when calibration tables change</li>
+</ul>
 <h2 id="solution">Solution<a class="headerlink" href="#solution" title="Permanent link">¶</a></h2>
-<p>Added comprehensive provenance tracking that captures:
-1. <strong>Source MS Path</strong>: Input measurement set that generated the caltable
-2. <strong>Solver Command</strong>: Full CASA command executed
-3. <strong>Solver Version</strong>: CASA version used (e.g., "6.7.2")
-4. <strong>Solver Parameters</strong>: All calibration parameters as JSON
-5. <strong>Quality Metrics</strong>: SNR statistics, flagged fraction, antenna/SPW counts</p>
+<p>Added comprehensive provenance tracking that captures:</p>
+<ol>
+<li><strong>Source MS Path</strong>: Input measurement set that generated the caltable</li>
+<li><strong>Solver Command</strong>: Full CASA command executed</li>
+<li><strong>Solver Version</strong>: CASA version used (e.g., "6.7.2")</li>
+<li><strong>Solver Parameters</strong>: All calibration parameters as JSON</li>
+<li><strong>Quality Metrics</strong>: SNR statistics, flagged fraction, antenna/SPW counts</li>
+</ol>
 <h2 id="implementation-details">Implementation Details<a class="headerlink" href="#implementation-details" title="Permanent link">¶</a></h2>
 <h3 id="database-schema-changes">Database Schema Changes<a class="headerlink" href="#database-schema-changes" title="Permanent link">¶</a></h3>
 <p><strong>File</strong>: <code>src/dsa110_contimg/database/registry.py</code></p>
-<p>Added five new columns to <code>caltables</code> table:
-- <code>source_ms_path TEXT</code> - Input MS that generated this caltable
-- <code>solver_command TEXT</code> - Full CASA command executed
-- <code>solver_version TEXT</code> - CASA version used
-- <code>solver_params TEXT</code> - JSON: all calibration parameters
-- <code>quality_metrics TEXT</code> - JSON: SNR, flagged_fraction, etc.</p>
-<p><strong>Migration</strong>: Automatic schema migration via <code>_migrate_schema()</code> function that adds columns to existing databases without data loss.</p>
-<p><strong>Index</strong>: Added <code>idx_caltables_source</code> index on <code>source_ms_path</code> for efficient queries.</p>
+<p>Added five new columns to <code>caltables</code> table:</p>
+<ul>
+<li><code>source_ms_path TEXT</code> - Input MS that generated this caltable</li>
+<li><code>solver_command TEXT</code> - Full CASA command executed</li>
+<li><code>solver_version TEXT</code> - CASA version used</li>
+<li><code>solver_params TEXT</code> - JSON: all calibration parameters</li>
+<li><code>quality_metrics TEXT</code> - JSON: SNR, flagged_fraction, etc.</li>
+</ul>
+<p><strong>Migration</strong>: Automatic schema migration via <code>_migrate_schema()</code> function that
+adds columns to existing databases without data loss.</p>
+<p><strong>Index</strong>: Added <code>idx_caltables_source</code> index on <code>source_ms_path</code> for efficient
+queries.</p>
 <h3 id="new-module-provenance-tracking">New Module: Provenance Tracking<a class="headerlink" href="#new-module-provenance-tracking" title="Permanent link">¶</a></h3>
 <p><strong>File</strong>: <code>src/dsa110_contimg/database/provenance.py</code></p>
-<p>New module providing:
-- <code>track_calibration_provenance()</code> - Store provenance for a caltable
-- <code>query_caltables_by_source()</code> - Query all caltables from a specific MS
-- <code>get_caltable_provenance()</code> - Get full provenance for a single caltable
-- <code>impact_analysis()</code> - Find MS paths affected by caltable changes
-- <code>CalTable</code> dataclass - Represents caltable with provenance</p>
+<p>New module providing:</p>
+<ul>
+<li><code>track_calibration_provenance()</code> - Store provenance for a caltable</li>
+<li><code>query_caltables_by_source()</code> - Query all caltables from a specific MS</li>
+<li><code>get_caltable_provenance()</code> - Get full provenance for a single caltable</li>
+<li><code>impact_analysis()</code> - Find MS paths affected by caltable changes</li>
+<li><code>CalTable</code> dataclass - Represents caltable with provenance</li>
+</ul>
 <h3 id="calibration-function-integration">Calibration Function Integration<a class="headerlink" href="#calibration-function-integration" title="Permanent link">¶</a></h3>
 <p><strong>File</strong>: <code>src/dsa110_contimg/calibration/calibration.py</code></p>
-<p>Added helper functions:
-- <code>_get_casa_version()</code> - Detect CASA version (handles string/list/tuple formats)
-- <code>_build_command_string()</code> - Build human-readable command strings
-- <code>_extract_quality_metrics()</code> - Extract SNR, flagged fraction, antenna counts
-- <code>_track_calibration_provenance()</code> - Track provenance after successful solve</p>
-<p><strong>Integration Points</strong>: Provenance tracking automatically called after successful solves in:
-- <code>solve_delay()</code> - Slow and fast delay solves
-- <code>solve_prebandpass_phase()</code> - Pre-bandpass phase solve
-- <code>solve_bandpass()</code> - Bandpass solve
-- <code>solve_gains()</code> - Phase-only and short-timescale gain solves</p>
-<p><strong>Error Handling</strong>: Provenance tracking failures are non-blocking - calibration continues even if provenance tracking fails.</p>
+<p>Added helper functions:</p>
+<ul>
+<li><code>_get_casa_version()</code> - Detect CASA version (handles string/list/tuple
+  formats)</li>
+<li><code>_build_command_string()</code> - Build human-readable command strings</li>
+<li><code>_extract_quality_metrics()</code> - Extract SNR, flagged fraction, antenna counts</li>
+<li><code>_track_calibration_provenance()</code> - Track provenance after successful solve</li>
+</ul>
+<p><strong>Integration Points</strong>: Provenance tracking automatically called after
+successful solves in:</p>
+<ul>
+<li><code>solve_delay()</code> - Slow and fast delay solves</li>
+<li><code>solve_prebandpass_phase()</code> - Pre-bandpass phase solve</li>
+<li><code>solve_bandpass()</code> - Bandpass solve</li>
+<li><code>solve_gains()</code> - Phase-only and short-timescale gain solves</li>
+</ul>
+<p><strong>Error Handling</strong>: Provenance tracking failures are non-blocking - calibration
+continues even if provenance tracking fails.</p>
 <h2 id="usage-examples">Usage Examples<a class="headerlink" href="#usage-examples" title="Permanent link">¶</a></h2>
 <h3 id="query-calibration-tables-by-source-ms">Query Calibration Tables by Source MS<a class="headerlink" href="#query-calibration-tables-by-source-ms" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.database.provenance</span><span class="w"> </span><span class="kn">import</span> <span class="n">query_caltables_by_source</span>
@@ -1349,17 +1372,21 @@
 </code></pre></div>
 <h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">¶</a></h2>
 <h3 id="unit-tests">Unit Tests<a class="headerlink" href="#unit-tests" title="Permanent link">¶</a></h3>
-<p><strong>Files</strong>:
-- <code>tests/unit/database/test_calibration_provenance.py</code> (14 tests)
-- <code>tests/unit/calibration/test_calibration_provenance_helpers.py</code> (14 tests)
-- <code>tests/unit/calibration/test_calibration_provenance_smoke.py</code> (7 tests)</p>
-<p><strong>Coverage</strong>:
-- Database schema migration
-- Provenance tracking functions
-- CASA version detection
-- Command string building
-- Quality metrics extraction
-- End-to-end integration workflows</p>
+<p><strong>Files</strong>:</p>
+<ul>
+<li><code>tests/unit/database/test_calibration_provenance.py</code> (14 tests)</li>
+<li><code>tests/unit/calibration/test_calibration_provenance_helpers.py</code> (14 tests)</li>
+<li><code>tests/unit/calibration/test_calibration_provenance_smoke.py</code> (7 tests)</li>
+</ul>
+<p><strong>Coverage</strong>:</p>
+<ul>
+<li>Database schema migration</li>
+<li>Provenance tracking functions</li>
+<li>CASA version detection</li>
+<li>Command string building</li>
+<li>Quality metrics extraction</li>
+<li>End-to-end integration workflows</li>
+</ul>
 <p><strong>Results</strong>: All 35 tests passing in &lt; 1.2 seconds</p>
 <h3 id="test-execution">Test Execution<a class="headerlink" href="#test-execution" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Run all provenance tests</span>
@@ -1375,7 +1402,8 @@
 <span class="w">    </span>-v
 </code></pre></div>
 <h2 id="database-migration">Database Migration<a class="headerlink" href="#database-migration" title="Permanent link">¶</a></h2>
-<p>Existing calibration registry databases are automatically migrated when accessed:</p>
+<p>Existing calibration registry databases are automatically migrated when
+accessed:</p>
 <ol>
 <li><code>ensure_db()</code> checks for existing columns</li>
 <li><code>_migrate_schema()</code> adds missing provenance columns</li>
@@ -1411,12 +1439,15 @@
 <li>New provenance is captured automatically for new calibrations</li>
 </ul>
 <h2 id="future-enhancements">Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">¶</a></h2>
-<p>Potential improvements:
-1. Track which MS files actually used which calibration tables (applycal tracking)
-2. Version control for calibration parameters
-3. Automated quality metric analysis and alerts
-4. Provenance visualization in dashboard
-5. Export provenance reports for publications</p>
+<p>Potential improvements:</p>
+<ol>
+<li>Track which MS files actually used which calibration tables (applycal
+   tracking)</li>
+<li>Version control for calibration parameters</li>
+<li>Automated quality metric analysis and alerts</li>
+<li>Provenance visualization in dashboard</li>
+<li>Export provenance reports for publications</li>
+</ol>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
 <ul>
 <li>Database Schema: <code>docs/reference/database_schema.md</code></li>
@@ -1429,8 +1460,10 @@
 <li><code>src/dsa110_contimg/database/provenance.py</code> - New module (created)</li>
 <li><code>src/dsa110_contimg/calibration/calibration.py</code> - Integration, helpers</li>
 <li><code>tests/unit/database/test_calibration_provenance.py</code> - Unit tests (created)</li>
-<li><code>tests/unit/calibration/test_calibration_provenance_helpers.py</code> - Helper tests (created)</li>
-<li><code>tests/unit/calibration/test_calibration_provenance_smoke.py</code> - Smoke tests (created)</li>
+<li><code>tests/unit/calibration/test_calibration_provenance_helpers.py</code> - Helper
+   tests (created)</li>
+<li><code>tests/unit/calibration/test_calibration_provenance_smoke.py</code> - Smoke tests
+   (created)</li>
 </ol>
 <h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h2>
 <p>To verify the implementation:</p>
@@ -1456,12 +1489,16 @@ sqlite3<span class="w"> </span>/data/dsa110-contimg/state/cal_registry.sqlite3<s
 <span class="s2">"</span>
 </code></pre></div>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
-<p>Complete provenance tracking is now implemented and automatically captures:
-- Source MS paths
-- CASA commands and versions
-- Calibration parameters
-- Quality metrics</p>
-<p>This enables full scientific reproducibility and facilitates calibration analysis and debugging. The implementation is backward-compatible, non-blocking, and includes comprehensive test coverage.</p>
+<p>Complete provenance tracking is now implemented and automatically captures:</p>
+<ul>
+<li>Source MS paths</li>
+<li>CASA commands and versions</li>
+<li>Calibration parameters</li>
+<li>Quality metrics</li>
+</ul>
+<p>This enables full scientific reproducibility and facilitates calibration
+analysis and debugging. The implementation is backward-compatible, non-blocking,
+and includes comprehensive test coverage.</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1486,7 +1523,7 @@ sqlite3<span class="w"> </span>/data/dsa110-contimg/state/cal_registry.sqlite3<s
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

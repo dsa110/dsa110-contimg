@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1399,16 +1401,20 @@
 <article class="md-content__inner md-typeset">
 <h1 id="cost-free-critical-improvements-monetary-cost-analysis">Cost-Free Critical Improvements (Monetary Cost Analysis)<a class="headerlink" href="#cost-free-critical-improvements-monetary-cost-analysis" title="Permanent link">¶</a></h1>
 <h2 id="analysis-what-is-cost-free">Analysis: What is "Cost-Free"?<a class="headerlink" href="#analysis-what-is-cost-free" title="Permanent link">¶</a></h2>
-<p><strong>Cost-free</strong> means:
-- ✅ <strong>$0 monetary cost</strong> - No paid services, subscriptions, or licenses
-- ✅ <strong>Open-source tools</strong> - Prometheus, Grafana, Jaeger, etc. (all free)
-- ✅ <strong>Free-tier services</strong> - If available (but prefer self-hosted)
-- ✅ <strong>Self-hosted solutions</strong> - Run on existing infrastructure
-- ✅ <strong>Open-source dependencies</strong> - Python packages (pip install, no cost)</p>
-<p><strong>NOT cost-free:</strong>
-- ❌ Paid cloud services (AWS RDS, managed Prometheus, etc.)
-- ❌ Commercial licenses
-- ❌ Subscription services</p>
+<p><strong>Cost-free</strong> means:</p>
+<ul>
+<li>✅ <strong>$0 monetary cost</strong> - No paid services, subscriptions, or licenses</li>
+<li>✅ <strong>Open-source tools</strong> - Prometheus, Grafana, Jaeger, etc. (all free)</li>
+<li>✅ <strong>Free-tier services</strong> - If available (but prefer self-hosted)</li>
+<li>✅ <strong>Self-hosted solutions</strong> - Run on existing infrastructure</li>
+<li>✅ <strong>Open-source dependencies</strong> - Python packages (pip install, no cost)</li>
+</ul>
+<p><strong>NOT cost-free:</strong></p>
+<ul>
+<li>❌ Paid cloud services (AWS RDS, managed Prometheus, etc.)</li>
+<li>❌ Commercial licenses</li>
+<li>❌ Subscription services</li>
+</ul>
 <hr/>
 <h2 id="entirely-cost-free-improvements">✅ ENTIRELY COST-FREE Improvements<a class="headerlink" href="#entirely-cost-free-improvements" title="Permanent link">¶</a></h2>
 <h3 id="1-observability-monitoring">1. Observability &amp; Monitoring<a class="headerlink" href="#1-observability-monitoring" title="Permanent link">¶</a></h3>
@@ -1823,32 +1829,41 @@ pip<span class="w"> </span>install<span class="w"> </span>kafka-python<span clas
 <hr/>
 <h2 id="cost-free-implementation-plan">💰 Cost-Free Implementation Plan<a class="headerlink" href="#cost-free-implementation-plan" title="Permanent link">¶</a></h2>
 <h3 id="phase-1-monitoring-week-1">Phase 1: Monitoring (Week 1)<a class="headerlink" href="#phase-1-monitoring-week-1" title="Permanent link">¶</a></h3>
-<p><strong>Cost: $0</strong>
-- Install Prometheus (self-hosted)
-- Install Grafana (self-hosted)
-- Add <code>prometheus-client</code> to Python code
-- Create dashboards</p>
+<p><strong>Cost: $0</strong></p>
+<ul>
+<li>Install Prometheus (self-hosted)</li>
+<li>Install Grafana (self-hosted)</li>
+<li>Add <code>prometheus-client</code> to Python code</li>
+<li>Create dashboards</li>
+</ul>
 <p><strong>Infrastructure:</strong> 2 Docker containers or 2 systemd services</p>
 <h3 id="phase-2-resilience-week-2">Phase 2: Resilience (Week 2)<a class="headerlink" href="#phase-2-resilience-week-2" title="Permanent link">¶</a></h3>
-<p><strong>Cost: $0</strong>
-- Install <code>circuitbreaker</code> package
-- Install <code>tenacity</code> package
-- Implement retry logic
-- Add circuit breakers</p>
+<p><strong>Cost: $0</strong></p>
+<ul>
+<li>Install <code>circuitbreaker</code> package</li>
+<li>Install <code>tenacity</code> package</li>
+<li>Implement retry logic</li>
+<li>Add circuit breakers</li>
+</ul>
 <p><strong>Infrastructure:</strong> None (pure code)</p>
 <h3 id="phase-3-performance-week-3">Phase 3: Performance (Week 3)<a class="headerlink" href="#phase-3-performance-week-3" title="Permanent link">¶</a></h3>
-<p><strong>Cost: $0</strong>
-- Option A: Install Redis (self-hosted) + <code>redis</code> package
-- Option B: Use <code>functools.lru_cache</code> (no infrastructure)
-- Implement parallel processing
-- Add incremental updates</p>
-<p><strong>Infrastructure:</strong> 1 Docker container (if using Redis) or None (if using lru_cache)</p>
+<p><strong>Cost: $0</strong></p>
+<ul>
+<li>Option A: Install Redis (self-hosted) + <code>redis</code> package</li>
+<li>Option B: Use <code>functools.lru_cache</code> (no infrastructure)</li>
+<li>Implement parallel processing</li>
+<li>Add incremental updates</li>
+</ul>
+<p><strong>Infrastructure:</strong> 1 Docker container (if using Redis) or None (if using
+lru_cache)</p>
 <h3 id="phase-4-operational-week-4">Phase 4: Operational (Week 4)<a class="headerlink" href="#phase-4-operational-week-4" title="Permanent link">¶</a></h3>
-<p><strong>Cost: $0</strong>
-- Install Prometheus Alertmanager (self-hosted)
-- Configure email alerts (if SMTP available)
-- Add health checks
-- Implement event bus (pure code or RabbitMQ)</p>
+<p><strong>Cost: $0</strong></p>
+<ul>
+<li>Install Prometheus Alertmanager (self-hosted)</li>
+<li>Configure email alerts (if SMTP available)</li>
+<li>Add health checks</li>
+<li>Implement event bus (pure code or RabbitMQ)</li>
+</ul>
 <p><strong>Infrastructure:</strong> 1 Docker container (Alertmanager) + optional RabbitMQ</p>
 <hr/>
 <h2 id="scaling-considerations-still-free">📈 Scaling Considerations (Still Free)<a class="headerlink" href="#scaling-considerations-still-free" title="Permanent link">¶</a></h2>
@@ -1886,11 +1901,15 @@ pip<span class="w"> </span>install<span class="w"> </span>kafka-python<span clas
 <li>✅ <strong>Self-hosted infrastructure</strong> (runs on existing servers)</li>
 <li>✅ <strong>Pure code solutions</strong> (no infrastructure needed)</li>
 </ol>
-<p><strong>The only costs are:</strong>
-- Server resources (CPU, RAM, disk) - which you already have
-- Developer time - which is the same regardless of tool choice
-- <strong>No monetary cost for software, licenses, or services</strong></p>
-<p><strong>Recommendation:</strong> Implement the full observability stack (Prometheus + Grafana + Jaeger) and all resilience patterns immediately. They're all free and provide massive value.</p>
+<p><strong>The only costs are:</strong></p>
+<ul>
+<li>Server resources (CPU, RAM, disk) - which you already have</li>
+<li>Developer time - which is the same regardless of tool choice</li>
+<li><strong>No monetary cost for software, licenses, or services</strong></li>
+</ul>
+<p><strong>Recommendation:</strong> Implement the full observability stack (Prometheus +
+Grafana + Jaeger) and all resilience patterns immediately. They're all free and
+provide massive value.</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1915,7 +1934,7 @@ pip<span class="w"> </span>install<span class="w"> </span>kafka-python<span clas
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

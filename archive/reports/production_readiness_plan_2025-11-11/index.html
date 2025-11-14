@@ -1,0 +1,1541 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/archive/reports/production_readiness_plan_2025-11-11/" rel="canonical"/>
+<link href="../../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Production Readiness Plan - DSA-110 Continuum Imaging Pipeline - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#production-readiness-plan-dsa-110-continuum-imaging-pipeline">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Production Readiness Plan - DSA-110 Continuum Imaging Pipeline
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#executive-summary">
+<span class="md-ellipsis">
+      Executive Summary
+    </span>
+</a>
+<nav aria-label="Executive Summary" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-status">
+<span class="md-ellipsis">
+      Current Status
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#production-readiness-assessment">
+<span class="md-ellipsis">
+      Production Readiness Assessment
+    </span>
+</a>
+<nav aria-label="Production Readiness Assessment" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#critical-path-end-to-end-autonomous-operation">
+<span class="md-ellipsis">
+      Critical Path: End-to-End Autonomous Operation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#remaining-enhancements">
+<span class="md-ellipsis">
+      Remaining Enhancements
+    </span>
+</a>
+<nav aria-label="Remaining Enhancements" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-error-recovery-for-failed-publishes">
+<span class="md-ellipsis">
+      1. Error Recovery for Failed Publishes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-concurrent-access-race-condition-prevention">
+<span class="md-ellipsis">
+      2. Concurrent Access Race Condition Prevention
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-enhanced-path-validation">
+<span class="md-ellipsis">
+      3. Enhanced Path Validation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#production-readiness-checklist">
+<span class="md-ellipsis">
+      Production Readiness Checklist
+    </span>
+</a>
+<nav aria-label="Production Readiness Checklist" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#critical-requirements-must-have">
+<span class="md-ellipsis">
+      Critical Requirements (Must Have)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#recommended-enhancements-should-have">
+<span class="md-ellipsis">
+      Recommended Enhancements (Should Have)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#nice-to-have-could-have">
+<span class="md-ellipsis">
+      Nice to Have (Could Have)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#testing-plan">
+<span class="md-ellipsis">
+      Testing Plan
+    </span>
+</a>
+<nav aria-label="Testing Plan" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pre-production-testing">
+<span class="md-ellipsis">
+      Pre-Production Testing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#production-monitoring">
+<span class="md-ellipsis">
+      Production Monitoring
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#risk-assessment">
+<span class="md-ellipsis">
+      Risk Assessment
+    </span>
+</a>
+<nav aria-label="Risk Assessment" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#high-risk-mitigated">
+<span class="md-ellipsis">
+      High Risk (Mitigated)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#medium-risk-acceptable">
+<span class="md-ellipsis">
+      Medium Risk (Acceptable)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#low-risk">
+<span class="md-ellipsis">
+      Low Risk
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#deployment-recommendation">
+<span class="md-ellipsis">
+      Deployment Recommendation
+    </span>
+</a>
+<nav aria-label="Deployment Recommendation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-1-current-state-ready-for-production">
+<span class="md-ellipsis">
+      Phase 1: Current State (READY FOR PRODUCTION)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-2-enhanced-robustness-completed">
+<span class="md-ellipsis">
+      Phase 2: Enhanced Robustness (COMPLETED)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-3-monitoring-operations-recommended">
+<span class="md-ellipsis">
+      Phase 3: Monitoring &amp; Operations (RECOMMENDED)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-documentation">
+<span class="md-ellipsis">
+      Related Documentation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#conclusion">
+<span class="md-ellipsis">
+      Conclusion
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-3-monitoring-operations-completed">
+<span class="md-ellipsis">
+      Phase 3: Monitoring &amp; Operations (COMPLETED)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="production-readiness-plan-dsa-110-continuum-imaging-pipeline">Production Readiness Plan - DSA-110 Continuum Imaging Pipeline<a class="headerlink" href="#production-readiness-plan-dsa-110-continuum-imaging-pipeline" title="Permanent link">¶</a></h1>
+<p><strong>Date:</strong> 2025-11-11<br/>
+<strong>Status:</strong> In Progress<br/>
+<strong>Goal:</strong> Bring pipeline to full production readiness for autonomous end-to-end operation</p>
+<hr/>
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">¶</a></h2>
+<p>The DSA-110 Continuum Imaging Pipeline has <strong>5 critical safeguards implemented</strong> and is ready for autonomous operation with <strong>medium-priority enhancements</strong> recommended for production robustness.</p>
+<h3 id="current-status">Current Status<a class="headerlink" href="#current-status" title="Permanent link">¶</a></h3>
+<p><strong>Critical Safeguards (Implemented):</strong>
+1. ✅ Group ID collision prevention
+2. ✅ Total time span validation
+3. ✅ MS files stage validation
+4. ✅ Calibration table existence validation
+5. ✅ Image file existence validation</p>
+<p><strong>Medium-Priority Enhancements (Implemented):</strong>
+1. ✅ Error recovery for failed publishes (retry tracking, attempt counter, error logging)
+2. ✅ Concurrent access race condition prevention (SELECT FOR UPDATE locking)
+3. ✅ Enhanced path validation (validate_path_safe helper)</p>
+<hr/>
+<h2 id="production-readiness-assessment">Production Readiness Assessment<a class="headerlink" href="#production-readiness-assessment" title="Permanent link">¶</a></h2>
+<h3 id="critical-path-end-to-end-autonomous-operation">Critical Path: End-to-End Autonomous Operation<a class="headerlink" href="#critical-path-end-to-end-autonomous-operation" title="Permanent link">¶</a></h3>
+<p><strong>Flow:</strong> UVH5 → Conversion → Calibration → Imaging → Mosaic → Publishing</p>
+<p><strong>Status:</strong> ✅ <strong>READY</strong> - All critical safeguards in place</p>
+<p><strong>Confidence Level:</strong> High - Safeguards prevent all identified failure modes from first test run</p>
+<hr/>
+<h2 id="remaining-enhancements">Remaining Enhancements<a class="headerlink" href="#remaining-enhancements" title="Permanent link">¶</a></h2>
+<h3 id="1-error-recovery-for-failed-publishes">1. Error Recovery for Failed Publishes<a class="headerlink" href="#1-error-recovery-for-failed-publishes" title="Permanent link">¶</a></h3>
+<p><strong>Current State:</strong>
+- <code>trigger_auto_publish()</code> returns <code>False</code> on failure
+- Failed publishes leave mosaics in staging with <code>status='staging'</code>
+- No automatic retry mechanism
+- Manual recovery available via API</p>
+<p><strong>Impact:</strong> Medium
+- Mosaics stay in staging if publish fails (disk full, permissions, network error)
+- Storage waste in staging area
+- Requires manual intervention</p>
+<p><strong>Recommended Implementation:</strong>
+1. Add <code>publish_attempts</code> counter to <code>data_registry</code> schema
+2. Add <code>publish_error</code> field to store error messages
+3. Add retry logic with exponential backoff (max 3 attempts)
+4. Add cleanup job to retry failed publishes periodically
+5. Add monitoring/alerting for persistent failures</p>
+<p><strong>Priority:</strong> Medium (manual recovery available)</p>
+<hr/>
+<h3 id="2-concurrent-access-race-condition-prevention">2. Concurrent Access Race Condition Prevention<a class="headerlink" href="#2-concurrent-access-race-condition-prevention" title="Permanent link">¶</a></h3>
+<p><strong>Current State:</strong>
+- <code>trigger_auto_publish()</code> checks <code>status='staging'</code> before publishing
+- No database-level locking (SELECT FOR UPDATE)
+- Small race condition window between check and update
+- Unique constraint on <code>data_id</code> provides some protection</p>
+<p><strong>Impact:</strong> Medium
+- Multiple processes could attempt to publish same mosaic simultaneously
+- File system conflicts possible
+- Database inconsistencies possible</p>
+<p><strong>Recommended Implementation:</strong>
+1. Add <code>SELECT FOR UPDATE</code> locking in <code>trigger_auto_publish()</code>
+2. Add <code>publishing</code> status to prevent concurrent attempts
+3. Use atomic transaction for check → move → update
+4. Add retry logic with backoff if lock acquisition fails</p>
+<p><strong>Priority:</strong> Medium (database constraint provides protection)</p>
+<hr/>
+<h3 id="3-enhanced-path-validation">3. Enhanced Path Validation<a class="headerlink" href="#3-enhanced-path-validation" title="Permanent link">¶</a></h3>
+<p><strong>Current State:</strong>
+- Basic path validation exists in <code>trigger_auto_publish()</code>
+- Checks <code>stage_path</code> is within <code>/stage/dsa110-contimg/</code>
+- Checks <code>published_path</code> is within <code>/data/dsa110-contimg/products/</code>
+- <code>validate_path_safe()</code> helper exists but not used consistently</p>
+<p><strong>Impact:</strong> Medium
+- Security improvement (path traversal prevention)
+- Data integrity improvement</p>
+<p><strong>Recommended Implementation:</strong>
+1. Use <code>validate_path_safe()</code> helper consistently
+2. Add path validation before all file move operations
+3. Add unit tests for path validation edge cases</p>
+<p><strong>Priority:</strong> Medium (basic validation exists)</p>
+<hr/>
+<h2 id="production-readiness-checklist">Production Readiness Checklist<a class="headerlink" href="#production-readiness-checklist" title="Permanent link">¶</a></h2>
+<h3 id="critical-requirements-must-have">Critical Requirements (Must Have)<a class="headerlink" href="#critical-requirements-must-have" title="Permanent link">¶</a></h3>
+<ul>
+<li>[x] Group ID collision prevention</li>
+<li>[x] Time span validation (total span &lt; 60 minutes)</li>
+<li>[x] MS files stage validation (only imaged/done)</li>
+<li>[x] Calibration table existence validation</li>
+<li>[x] Image file existence validation</li>
+<li>[x] Mosaic registration in data_registry</li>
+<li>[x] Mosaic finalization workflow</li>
+<li>[x] Auto-publish trigger mechanism</li>
+<li>[x] Path validation (basic)</li>
+</ul>
+<h3 id="recommended-enhancements-should-have">Recommended Enhancements (Should Have)<a class="headerlink" href="#recommended-enhancements-should-have" title="Permanent link">¶</a></h3>
+<ul>
+<li>[x] Error recovery with retry logic (attempt tracking implemented)</li>
+<li>[x] Database-level locking for concurrent access (SELECT FOR UPDATE)</li>
+<li>[x] Enhanced path validation using helper (validate_path_safe)</li>
+<li>[ ] Monitoring/alerting for failed publishes (recommended for Phase 2)</li>
+<li>[ ] Manual recovery API endpoint (recommended for Phase 2)</li>
+<li>[x] Publish attempt tracking (implemented)</li>
+</ul>
+<h3 id="nice-to-have-could-have">Nice to Have (Could Have)<a class="headerlink" href="#nice-to-have-could-have" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] Duplicate group detection enhancements</li>
+<li>[ ] MS file usage tracking</li>
+<li>[ ] Advanced monitoring dashboard</li>
+</ul>
+<hr/>
+<h2 id="testing-plan">Testing Plan<a class="headerlink" href="#testing-plan" title="Permanent link">¶</a></h2>
+<h3 id="pre-production-testing">Pre-Production Testing<a class="headerlink" href="#pre-production-testing" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Group ID Collision Test</strong></li>
+<li>Create multiple groups rapidly (&lt; 1 second apart)</li>
+<li>Verify no collisions occur</li>
+<li>
+<p>Verify collision detection works if forced</p>
+</li>
+<li>
+<p><strong>Time Span Validation Test</strong></p>
+</li>
+<li>Test with 10 sequential files (should pass)</li>
+<li>Test with large gap between files (should fail)</li>
+<li>Test with exactly 60-minute span (should pass)</li>
+<li>
+<p>Test with 61-minute span (should fail)</p>
+</li>
+<li>
+<p><strong>Stage Validation Test</strong></p>
+</li>
+<li>Test group formation with only converted MS files (should not form group)</li>
+<li>
+<p>Test group formation with imaged MS files (should form group)</p>
+</li>
+<li>
+<p><strong>Calibration Table Validation Test</strong></p>
+</li>
+<li>Test with missing calibration tables (should skip, not crash)</li>
+<li>
+<p>Test with invalid table structure (should skip, not crash)</p>
+</li>
+<li>
+<p><strong>Image File Validation Test</strong></p>
+</li>
+<li>Test with missing images (should fail gracefully)</li>
+<li>
+<p>Test with all images present (should proceed)</p>
+</li>
+<li>
+<p><strong>Publish Failure Recovery Test</strong></p>
+</li>
+<li>Simulate disk full error</li>
+<li>Verify mosaic stays in staging</li>
+<li>Verify manual recovery works</li>
+<li>(Future: Verify retry logic works)</li>
+</ol>
+<h3 id="production-monitoring">Production Monitoring<a class="headerlink" href="#production-monitoring" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Key Metrics to Monitor</strong></li>
+<li>Group formation success rate</li>
+<li>Mosaic creation success rate</li>
+<li>Publish success rate</li>
+<li>Failed publish count</li>
+<li>
+<p>Average time per mosaic</p>
+</li>
+<li>
+<p><strong>Alerts to Configure</strong></p>
+</li>
+<li>Failed publishes &gt; 5 in 1 hour</li>
+<li>Mosaics stuck in staging &gt; 24 hours</li>
+<li>Group formation failures &gt; 10% rate</li>
+</ol>
+<hr/>
+<h2 id="risk-assessment">Risk Assessment<a class="headerlink" href="#risk-assessment" title="Permanent link">¶</a></h2>
+<h3 id="high-risk-mitigated">High Risk (Mitigated)<a class="headerlink" href="#high-risk-mitigated" title="Permanent link">¶</a></h3>
+<ul>
+<li>✅ Group ID collisions → <strong>MITIGATED</strong> (SHA256 hash + microsecond timestamp)</li>
+<li>✅ Non-contiguous observations → <strong>MITIGATED</strong> (total time span validation)</li>
+<li>✅ Missing calibration tables → <strong>MITIGATED</strong> (existence validation)</li>
+<li>✅ Missing images → <strong>MITIGATED</strong> (file existence validation)</li>
+</ul>
+<h3 id="medium-risk-acceptable">Medium Risk (Acceptable)<a class="headerlink" href="#medium-risk-acceptable" title="Permanent link">¶</a></h3>
+<ul>
+<li>⚠️ Failed publishes → <strong>ACCEPTABLE</strong> (manual recovery available, retry logic recommended)</li>
+<li>⚠️ Concurrent access → <strong>ACCEPTABLE</strong> (database constraint provides protection, locking recommended)</li>
+<li>⚠️ Path traversal → <strong>ACCEPTABLE</strong> (basic validation exists, enhanced validation recommended)</li>
+</ul>
+<h3 id="low-risk">Low Risk<a class="headerlink" href="#low-risk" title="Permanent link">¶</a></h3>
+<ul>
+<li>Duplicate groups → <strong>ACCEPTABLE</strong> (current safeguards prevent most issues)</li>
+</ul>
+<hr/>
+<h2 id="deployment-recommendation">Deployment Recommendation<a class="headerlink" href="#deployment-recommendation" title="Permanent link">¶</a></h2>
+<h3 id="phase-1-current-state-ready-for-production">Phase 1: Current State (READY FOR PRODUCTION)<a class="headerlink" href="#phase-1-current-state-ready-for-production" title="Permanent link">¶</a></h3>
+<p><strong>Status:</strong> ✅ Ready to deploy</p>
+<p><strong>Confidence:</strong> High - All critical safeguards implemented</p>
+<p><strong>Monitoring:</strong> Monitor for failed publishes and concurrent access issues</p>
+<h3 id="phase-2-enhanced-robustness-completed">Phase 2: Enhanced Robustness (COMPLETED)<a class="headerlink" href="#phase-2-enhanced-robustness-completed" title="Permanent link">¶</a></h3>
+<p><strong>Timeline:</strong> Completed 2025-11-11</p>
+<p><strong>Enhancements:</strong>
+1. ✅ Error recovery with retry logic (attempt tracking implemented)
+2. ✅ Database-level locking (SELECT FOR UPDATE implemented)
+3. ✅ Enhanced path validation (validate_path_safe implemented)</p>
+<p><strong>Status:</strong> All medium-priority enhancements implemented</p>
+<h3 id="phase-3-monitoring-operations-recommended">Phase 3: Monitoring &amp; Operations (RECOMMENDED)<a class="headerlink" href="#phase-3-monitoring-operations-recommended" title="Permanent link">¶</a></h3>
+<p><strong>Timeline:</strong> 1-2 weeks after Phase 2</p>
+<p><strong>Enhancements:</strong>
+1. Monitoring/alerting for failed publishes
+2. Manual recovery API endpoint
+3. Cleanup job to retry failed publishes periodically
+4. Monitoring dashboard for publish status</p>
+<p><strong>Priority:</strong> Low - Current safeguards provide sufficient protection</p>
+<hr/>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Safeguards Implemented:</strong> <code>docs/reports/safeguards_implemented_2025-11-10.md</code></li>
+<li><strong>Additional Safeguards Needed:</strong> <code>docs/reports/additional_safeguards_needed_2025-11-10.md</code></li>
+<li><strong>Streaming Test Run Review:</strong> <code>docs/reports/streaming_test_run_review_2025-11-10.md</code></li>
+</ul>
+<hr/>
+<h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
+<p>The DSA-110 Continuum Imaging Pipeline is <strong>production-ready</strong> with all critical safeguards implemented. The remaining enhancements are <strong>recommended but not required</strong> for initial production deployment. The system can operate autonomously with manual intervention available for edge cases.</p>
+<p><strong>Recommendation:</strong> Deploy to production with current safeguards, monitor for 1-2 weeks, then implement Phase 2 enhancements based on observed failure patterns.</p>
+<hr/>
+<p><strong>Status:</strong> Production Ready (all critical, medium-priority, and monitoring enhancements complete)<br/>
+<strong>Next Steps:</strong> Deploy to production using deployment checklist, monitor using new endpoints and scripts</p>
+<hr/>
+<h2 id="phase-3-monitoring-operations-completed">Phase 3: Monitoring &amp; Operations (COMPLETED)<a class="headerlink" href="#phase-3-monitoring-operations-completed" title="Permanent link">¶</a></h2>
+<p><strong>Timeline:</strong> Completed 2025-11-11</p>
+<p><strong>Enhancements:</strong>
+1. ✅ Monitoring API endpoints (<code>/api/monitoring/publish/*</code>)
+2. ✅ Manual recovery API endpoints (retry failed publishes)
+3. ✅ Monitoring script (<code>scripts/monitor_publish_status.py</code>)
+4. ✅ Production validation script (<code>scripts/validate_production_setup.sh</code>)
+5. ✅ Deployment checklist and documentation</p>
+<p><strong>Status:</strong> All monitoring and operations infrastructure implemented</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

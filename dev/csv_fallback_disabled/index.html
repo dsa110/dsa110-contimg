@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1182,7 +1184,9 @@
 <article class="md-content__inner md-typeset">
 <h1 id="csv-fallback-disabled-sqlite-required">CSV Fallback Disabled - SQLite Required<a class="headerlink" href="#csv-fallback-disabled-sqlite-required" title="Permanent link">¶</a></h1>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
-<p>CSV fallback has been disabled by default. All catalog queries now require SQLite databases. CSV infrastructure remains available but must be explicitly enabled via <code>use_csv_fallback=True</code> parameter.</p>
+<p>CSV fallback has been disabled by default. All catalog queries now require
+SQLite databases. CSV infrastructure remains available but must be explicitly
+enabled via <code>use_csv_fallback=True</code> parameter.</p>
 <h2 id="changes-made">Changes Made<a class="headerlink" href="#changes-made" title="Permanent link">¶</a></h2>
 <h3 id="default-behavior">Default Behavior<a class="headerlink" href="#default-behavior" title="Permanent link">¶</a></h3>
 <ul>
@@ -1221,30 +1225,30 @@
 <h2 id="user-notification">User Notification<a class="headerlink" href="#user-notification" title="Permanent link">¶</a></h2>
 <p>When SQLite fails and CSV fallback is disabled, users see:</p>
 <ol>
-<li>
-<p><strong>Error log message</strong>:
-   <div class="highlight"><pre><span></span><code>ERROR: SQLite query failed (...). SQLite database required. 
+<li><strong>Error log message</strong>:</li>
+</ol>
+<div class="highlight"><pre><span></span><code>ERROR: SQLite query failed (...). SQLite database required.
 CSV fallback is available but disabled. Set use_csv_fallback=True to enable CSV fallback.
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Print statement</strong>:
-   <div class="highlight"><pre><span></span><code>Note: CSV catalog is available as an alternative. 
+</code></pre></div>
+<ol>
+<li><strong>Print statement</strong>:
+   <div class="highlight"><pre><span></span><code>Note: CSV catalog is available as an alternative.
 Set use_csv_fallback=True to enable CSV fallback (slower, ~1s vs ~0.01s).
-</code></pre></div></p>
-</li>
+</code></pre></div></li>
 </ol>
 <h2 id="rationale">Rationale<a class="headerlink" href="#rationale" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Egalitarian Approach</strong>: All catalogs (NVSS, RAX, VLASS) now rely equally on SQLite databases</li>
+<li><strong>Egalitarian Approach</strong>: All catalogs (NVSS, RAX, VLASS) now rely equally on
+   SQLite databases</li>
 <li><strong>Performance</strong>: Encourages use of optimized SQLite databases (~170× faster)</li>
 <li><strong>Explicit Control</strong>: Users must explicitly opt-in to CSV fallback</li>
 <li><strong>Infrastructure Preservation</strong>: CSV code remains available for emergency use</li>
 </ol>
 <h2 id="migration-guide">Migration Guide<a class="headerlink" href="#migration-guide" title="Permanent link">¶</a></h2>
 <h3 id="for-code-using-catalog-queries">For Code Using Catalog Queries<a class="headerlink" href="#for-code-using-catalog-queries" title="Permanent link">¶</a></h3>
-<p><strong>No changes needed</strong> - existing code continues to work, but will return empty DataFrames if SQLite databases are unavailable.</p>
-<p><strong>To enable CSV fallback</strong> (if needed):
+<p><strong>No changes needed</strong> - existing code continues to work, but will return empty
+DataFrames if SQLite databases are unavailable.</p>
+<p><strong>To enable CSV fallback</strong> (if needed):</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.calibration.catalogs</span><span class="w"> </span><span class="kn">import</span> <span class="n">query_nvss_sources</span>
 
 <span class="c1"># Enable CSV fallback explicitly</span>
@@ -1254,7 +1258,7 @@ Set use_csv_fallback=True to enable CSV fallback (slower, ~1s vs ~0.01s).
     <span class="n">radius_deg</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
     <span class="n">use_csv_fallback</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># Explicitly enable CSV fallback</span>
 <span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="for-building-sqlite-databases">For Building SQLite Databases<a class="headerlink" href="#for-building-sqlite-databases" title="Permanent link">¶</a></h3>
 <p>Ensure SQLite databases are built for commonly used declination strips:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># NVSS</span>
@@ -1271,14 +1275,18 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.catalog.b
 </code></pre></div>
 <h2 id="impact">Impact<a class="headerlink" href="#impact" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong>Breaking Change</strong>: Code that relied on automatic CSV fallback will now return empty DataFrames when SQLite databases are unavailable</li>
+<li><strong>Breaking Change</strong>: Code that relied on automatic CSV fallback will now
+  return empty DataFrames when SQLite databases are unavailable</li>
 <li><strong>Performance</strong>: Encourages optimal performance by requiring SQLite databases</li>
-<li><strong>Consistency</strong>: All catalogs now have equal treatment (SQLite-first, CSV opt-in)</li>
+<li><strong>Consistency</strong>: All catalogs now have equal treatment (SQLite-first, CSV
+  opt-in)</li>
 </ul>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
 <ul>
-<li><a href="../catalog_migration_to_sqlite/">Catalog Migration to SQLite</a> - Migration from CSV to SQLite-first architecture</li>
-<li><a href="../catalog_logging_migration/">Catalog Logging Migration</a> - Logging improvements for fallback notifications</li>
+<li><a href="../catalog_migration_to_sqlite/">Catalog Migration to SQLite</a> - Migration from
+  CSV to SQLite-first architecture</li>
+<li><a href="../catalog_logging_migration/">Catalog Logging Migration</a> - Logging
+  improvements for fallback notifications</li>
 </ul>
 </article>
 </div>
@@ -1304,7 +1312,7 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.catalog.b
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

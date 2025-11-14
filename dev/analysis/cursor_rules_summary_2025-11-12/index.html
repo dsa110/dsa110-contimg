@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1335,250 +1337,314 @@
 <h3 id="1-codacymdc-45kb-81-lines">1. <code>codacy.mdc</code> (4.5KB, 81 lines)<a class="headerlink" href="#1-codacymdc-45kb-81-lines" title="Permanent link">¶</a></h3>
 <p><strong>Type:</strong> Conditional (<code>alwaysApply: false</code>)<br/>
 <strong>Purpose:</strong> Codacy code quality and security analysis integration</p>
-<p><strong>Key Requirements:</strong>
-- Run <code>codacy_cli_analyze</code> after ANY file edit
-- Use provider: <code>gh</code>, organization: <code>dsa110</code>, repository: <code>dsa110-contimg</code>
-- Run Trivy security checks after dependency changes
-- Handle 404 errors by offering repository setup</p>
-<p><strong>Critical Actions:</strong>
-- IMMEDIATELY analyze edited files
-- Propose fixes for any issues found
-- Never wait for user to ask for analysis</p>
+<p><strong>Key Requirements:</strong></p>
+<ul>
+<li>Run <code>codacy_cli_analyze</code> after ANY file edit</li>
+<li>Use provider: <code>gh</code>, organization: <code>dsa110</code>, repository: <code>dsa110-contimg</code></li>
+<li>Run Trivy security checks after dependency changes</li>
+<li>Handle 404 errors by offering repository setup</li>
+</ul>
+<p><strong>Critical Actions:</strong></p>
+<ul>
+<li>IMMEDIATELY analyze edited files</li>
+<li>Propose fixes for any issues found</li>
+<li>Never wait for user to ask for analysis</li>
+</ul>
 <hr/>
 <h3 id="2-coding-best-practicesmdc-67kb-293-lines">2. <code>coding-best-practices.mdc</code> (6.7KB, 293 lines)<a class="headerlink" href="#2-coding-best-practicesmdc-67kb-293-lines" title="Permanent link">¶</a></h3>
 <p><strong>Type:</strong> Conditional (<code>alwaysApply: false</code>)<br/>
 <strong>Purpose:</strong> Common pitfalls to avoid when writing code</p>
-<p><strong>8 Key Areas:</strong>
-1. <strong>API Signature Mismatches</strong> - Always inspect signatures first
-2. <strong>Environment Variables</strong> - Variables in <code>.bashrc</code> not auto-exported
-3. <strong>Async/Await Handling</strong> - Check if function is async before calling
-4. <strong>Type Mismatches</strong> - Use enums not strings, verify types
-5. <strong>Syntax Errors</strong> - Avoid backslashes in f-strings
-6. <strong>Missing Dependencies</strong> - Verify imports work, check Python environment
-7. <strong>Configuration Mismatches</strong> - Verify dimensions, group IDs, API keys
-8. <strong>Documentation Gaps</strong> - Inspect actual code/signatures</p>
+<p><strong>8 Key Areas:</strong></p>
+<ol>
+<li><strong>API Signature Mismatches</strong> - Always inspect signatures first</li>
+<li><strong>Environment Variables</strong> - Variables in <code>.bashrc</code> not auto-exported</li>
+<li><strong>Async/Await Handling</strong> - Check if function is async before calling</li>
+<li><strong>Type Mismatches</strong> - Use enums not strings, verify types</li>
+<li><strong>Syntax Errors</strong> - Avoid backslashes in f-strings</li>
+<li><strong>Missing Dependencies</strong> - Verify imports work, check Python environment</li>
+<li><strong>Configuration Mismatches</strong> - Verify dimensions, group IDs, API keys</li>
+<li><strong>Documentation Gaps</strong> - Inspect actual code/signatures</li>
+</ol>
 <p><strong>Workflow:</strong> Inspect → Verify → Check → Test → Read errors</p>
 <hr/>
 <h3 id="3-output-suppressionmdc-32kb-81-lines">3. <code>output-suppression.mdc</code> (3.2KB, 81 lines)<a class="headerlink" href="#3-output-suppressionmdc-32kb-81-lines" title="Permanent link">¶</a></h3>
 <p><strong>Type:</strong> Always Apply (<code>alwaysApply: true</code>)<br/>
 <strong>Purpose:</strong> NEVER suppress command output</p>
-<p><strong>7 Rules:</strong>
-1. Never use <code>2&gt;/dev/null</code>, <code>&gt;/dev/null</code>, <code>&amp;&gt;/dev/null</code>
-2. Never filter output with <code>grep -v</code> unless requested
-3. Never truncate with <code>head</code>/<code>tail</code> unless requested
-4. Preserve all output streams (stdout and stderr)
-5. ALWAYS use unbuffered output (<code>stdbuf -oL -eL</code>, <code>python -u</code>)
-6. ALWAYS log simultaneously (<code>tee</code>)
-7. Preserve full complexity (no simplification)</p>
+<p><strong>7 Rules:</strong></p>
+<ol>
+<li>Never use <code>2&gt;/dev/null</code>, <code>&gt;/dev/null</code>, <code>&amp;&gt;/dev/null</code></li>
+<li>Never filter output with <code>grep -v</code> unless requested</li>
+<li>Never truncate with <code>head</code>/<code>tail</code> unless requested</li>
+<li>Preserve all output streams (stdout and stderr)</li>
+<li>ALWAYS use unbuffered output (<code>stdbuf -oL -eL</code>, <code>python -u</code>)</li>
+<li>ALWAYS log simultaneously (<code>tee</code>)</li>
+<li>Preserve full complexity (no simplification)</li>
+</ol>
 <p><strong>Rationale:</strong> Users need complete information to diagnose issues</p>
 <hr/>
 <h3 id="4-frontend-focusmdc-831b-31-lines">4. <code>frontend-focus.mdc</code> (831B, 31 lines)<a class="headerlink" href="#4-frontend-focusmdc-831b-31-lines" title="Permanent link">¶</a></h3>
 <p><strong>Type:</strong> Always Apply (<code>alwaysApply: true</code>)<br/>
 <strong>Purpose:</strong> Frontend development guidelines</p>
-<p><strong>Key Rules:</strong>
-- Frontend code: <code>frontend/src/</code>
-- Backend is READ-ONLY (reference only)
-- Tests: <code>frontend/src/**/__tests__/</code>
-- DO reference backend for API contracts
-- DON'T modify backend when working on frontend
-- DO generate TypeScript types from Python schemas</p>
+<p><strong>Key Rules:</strong></p>
+<ul>
+<li>Frontend code: <code>frontend/src/</code></li>
+<li>Backend is READ-ONLY (reference only)</li>
+<li>Tests: <code>frontend/src/**/__tests__/</code></li>
+<li>DO reference backend for API contracts</li>
+<li>DON'T modify backend when working on frontend</li>
+<li>DO generate TypeScript types from Python schemas</li>
+</ul>
 <hr/>
 <h3 id="5-radio-conventionsmdc-733b-34-lines">5. <code>radio-conventions.mdc</code> (733B, 34 lines)<a class="headerlink" href="#5-radio-conventionsmdc-733b-34-lines" title="Permanent link">¶</a></h3>
 <p><strong>Type:</strong> Conditional (<code>alwaysApply: false</code>)<br/>
 <strong>Purpose:</strong> Radio astronomy calculations and conventions</p>
-<p><strong>Key Rules:</strong>
-- <strong>MJD Calculations:</strong> NEVER create custom conversion, use existing utilities
-- <strong>Calibration Types:</strong> Valid CASA types only (K, BA, BP, GA, GP, 2G)
-- <strong>Source Naming:</strong> NVSS convention <code>NVSS Jhhmmss.s+ddmmss</code>
-- DON'T create fake source IDs for examples</p>
+<p><strong>Key Rules:</strong></p>
+<ul>
+<li><strong>MJD Calculations:</strong> NEVER create custom conversion, use existing utilities</li>
+<li><strong>Calibration Types:</strong> Valid CASA types only (K, BA, BP, GA, GP, 2G)</li>
+<li><strong>Source Naming:</strong> NVSS convention <code>NVSS Jhhmmss.s+ddmmss</code></li>
+<li>DON'T create fake source IDs for examples</li>
+</ul>
 <hr/>
 <h3 id="6-dashboard-existing-architecturemdc-27kb-72-lines">6. <code>dashboard-existing-architecture.mdc</code> (2.7KB, 72 lines)<a class="headerlink" href="#6-dashboard-existing-architecturemdc-27kb-72-lines" title="Permanent link">¶</a></h3>
 <p><strong>Type:</strong> Always Apply (<code>alwaysApply: true</code>)<br/>
 <strong>Purpose:</strong> DSA-110 Dashboard architecture constraints</p>
-<p><strong>CRITICAL:</strong> This is an EXISTING codebase
-- React 18 + TypeScript + Material-UI v6 (DO NOT CHANGE)
-- DO NOT suggest Blueprint UI, Plotly, or other libraries
-- DO NOT redesign architecture
-- CHECK package.json before suggesting dependencies</p>
-<p><strong>Tech Stack:</strong>
-- React 18 (functional components + hooks)
-- TypeScript (strict mode)
-- Material-UI v6
-- React Router v6
-- React Query
-- Axios
-- WebSocket client</p>
-<p><strong>Existing Pages:</strong>
-- ✅ Dashboard, Control, Streaming, QA, Data Browser (fully implemented)
-- 🔄 Sky View, Sources (partial)
-- 📋 Observing, Health (not implemented)</p>
+<p><strong>CRITICAL:</strong> This is an EXISTING codebase</p>
+<ul>
+<li>React 18 + TypeScript + Material-UI v6 (DO NOT CHANGE)</li>
+<li>DO NOT suggest Blueprint UI, Plotly, or other libraries</li>
+<li>DO NOT redesign architecture</li>
+<li>CHECK package.json before suggesting dependencies</li>
+</ul>
+<p><strong>Tech Stack:</strong></p>
+<ul>
+<li>React 18 (functional components + hooks)</li>
+<li>TypeScript (strict mode)</li>
+<li>Material-UI v6</li>
+<li>React Router v6</li>
+<li>React Query</li>
+<li>Axios</li>
+<li>WebSocket client</li>
+</ul>
+<p><strong>Existing Pages:</strong></p>
+<ul>
+<li>✅ Dashboard, Control, Streaming, QA, Data Browser (fully implemented)</li>
+<li>🔄 Sky View, Sources (partial)</li>
+<li>📋 Observing, Health (not implemented)</li>
+</ul>
 <p><strong>Database Tables:</strong> Already exist in SQLite (DO NOT create schemas)</p>
 <hr/>
 <h3 id="7-documentation-locationmdc-25kb-97-lines">7. <code>documentation-location.mdc</code> (2.5KB, 97 lines)<a class="headerlink" href="#7-documentation-locationmdc-25kb-97-lines" title="Permanent link">¶</a></h3>
 <p><strong>Type:</strong> Always Apply (<code>alwaysApply: true</code>)<br/>
 <strong>Purpose:</strong> Where to put documentation files</p>
-<p><strong>Decision Tree:</strong>
-- End users → <code>docs/how-to/</code>, <code>docs/concepts/</code>, <code>docs/reference/</code>, <code>docs/tutorials/</code>
-- Status updates → <code>internal/docs/dev/status/YYYY-MM/</code>
-- Investigations → <code>internal/docs/dev/analysis/</code>
-- Agent notes → <code>internal/docs/dev/notes/</code>
-- Historical → <code>docs/archive/</code></p>
+<p><strong>Decision Tree:</strong></p>
+<ul>
+<li>End users → <code>docs/how-to/</code>, <code>docs/concepts/</code>, <code>docs/reference/</code>,
+  <code>docs/tutorials/</code></li>
+<li>Status updates → <code>internal/docs/dev/status/YYYY-MM/</code></li>
+<li>Investigations → <code>internal/docs/dev/analysis/</code></li>
+<li>Agent notes → <code>internal/docs/dev/notes/</code></li>
+<li>Historical → <code>docs/archive/</code></li>
+</ul>
 <p><strong>File Naming:</strong> ALWAYS lowercase with underscores</p>
-<p><strong>Enforcement:</strong>
-- Move root files immediately to <code>docs/</code>
-- Use migration script: <code>scripts/migrate_docs.sh</code></p>
+<p><strong>Enforcement:</strong></p>
+<ul>
+<li>Move root files immediately to <code>docs/</code></li>
+<li>Use migration script: <code>scripts/migrate_docs.sh</code></li>
+</ul>
 <hr/>
 <h3 id="8-data-provenance-verificationmdc-33kb-85-lines">8. <code>data-provenance-verification.mdc</code> (3.3KB, 85 lines)<a class="headerlink" href="#8-data-provenance-verificationmdc-33kb-85-lines" title="Permanent link">¶</a></h3>
 <p><strong>Type:</strong> Always Apply (<code>alwaysApply: true</code>)<br/>
 <strong>Purpose:</strong> Verify data source before making claims</p>
 <p><strong>CRITICAL:</strong> Never assume test/synthetic data is real observational data</p>
-<p><strong>Verification Checklist:</strong>
-1. <strong>File Location:</strong> Check full path (not just filename)
-2. <strong>FITS Header Metadata:</strong> Must have <code>DATE-OBS</code> or <code>DATE</code> field
-3. <strong>File Naming:</strong> <code>test_*</code> files are TEST DATA
-4. <strong>Code Context:</strong> Check if generated by test code</p>
-<p><strong>When in Doubt:</strong>
-- ASK explicitly
-- VERIFY location, metadata, generation code
-- QUALIFY with "appears to be", "likely", "verified as"
-- DOCUMENT in comments/tests</p>
-<p><strong>Note:</strong> Duplicate file exists (<code>data-provenance-verification.md</code>) - should be consolidated</p>
+<p><strong>Verification Checklist:</strong></p>
+<ol>
+<li><strong>File Location:</strong> Check full path (not just filename)</li>
+<li><strong>FITS Header Metadata:</strong> Must have <code>DATE-OBS</code> or <code>DATE</code> field</li>
+<li><strong>File Naming:</strong> <code>test_*</code> files are TEST DATA</li>
+<li><strong>Code Context:</strong> Check if generated by test code</li>
+</ol>
+<p><strong>When in Doubt:</strong></p>
+<ul>
+<li>ASK explicitly</li>
+<li>VERIFY location, metadata, generation code</li>
+<li>QUALIFY with "appears to be", "likely", "verified as"</li>
+<li>DOCUMENT in comments/tests</li>
+</ul>
+<p><strong>Note:</strong> Duplicate file exists (<code>data-provenance-verification.md</code>) - should be
+consolidated</p>
 <hr/>
 <h3 id="9-critical-requirementsmdc-16kb-42-lines">9. <code>critical-requirements.mdc</code> (1.6KB, 42 lines)<a class="headerlink" href="#9-critical-requirementsmdc-16kb-42-lines" title="Permanent link">¶</a></h3>
 <p><strong>Type:</strong> Always Apply (<code>alwaysApply: true</code>)<br/>
 <strong>Purpose:</strong> Codebase and documentation organizational layout</p>
-<p><strong>CRITICAL:</strong> Before creating files, check <code>docs/concepts/DIRECTORY_ARCHITECTURE.md</code></p>
-<p><strong>Key Principles:</strong>
-- Code: <code>/data/dsa110-contimg/</code>
-- Data: <code>/stage/dsa110-contimg/</code> (SSD) or <code>/data/</code> (HDD)
-- Docs: <code>/data/dsa110-contimg/docs/</code> structure
-- State DBs: <code>/data/dsa110-contimg/state/</code>
-- Temp staging: <code>/dev/shm/</code> (tmpfs)</p>
-<p><strong>Before creating files:</strong>
-1. Check <code>DIRECTORY_ARCHITECTURE.md</code>
-2. Check <code>DOCUMENTATION_QUICK_REFERENCE.md</code>
-3. Follow naming conventions</p>
+<p><strong>CRITICAL:</strong> Before creating files, check
+<code>docs/concepts/DIRECTORY_ARCHITECTURE.md</code></p>
+<p><strong>Key Principles:</strong></p>
+<ul>
+<li>Code: <code>/data/dsa110-contimg/</code></li>
+<li>Data: <code>/stage/dsa110-contimg/</code> (SSD) or <code>/data/</code> (HDD)</li>
+<li>Docs: <code>/data/dsa110-contimg/docs/</code> structure</li>
+<li>State DBs: <code>/data/dsa110-contimg/state/</code></li>
+<li>Temp staging: <code>/dev/shm/</code> (tmpfs)</li>
+</ul>
+<p><strong>Before creating files:</strong></p>
+<ol>
+<li>Check <code>DIRECTORY_ARCHITECTURE.md</code></li>
+<li>Check <code>DOCUMENTATION_QUICK_REFERENCE.md</code></li>
+<li>Follow naming conventions</li>
+</ol>
 <hr/>
 <h3 id="10-critical-requirements-shortmdc-596b-19-lines">10. <code>critical-requirements-short.mdc</code> (596B, 19 lines)<a class="headerlink" href="#10-critical-requirements-shortmdc-596b-19-lines" title="Permanent link">¶</a></h3>
 <p><strong>Type:</strong> Always Apply (<code>alwaysApply: true</code>)<br/>
 <strong>Purpose:</strong> Quick reference for codebase organization</p>
-<p><strong>Key Paths:</strong>
-- Root: <code>/data/dsa110-contimg/</code>
-- Data: <code>/stage/dsa110-contimg/</code>
-- Docs: <code>/data/dsa110-contimg/docs/</code>
-- State DBs: <code>/data/dsa110-contimg/state/</code></p>
+<p><strong>Key Paths:</strong></p>
+<ul>
+<li>Root: <code>/data/dsa110-contimg/</code></li>
+<li>Data: <code>/stage/dsa110-contimg/</code></li>
+<li>Docs: <code>/data/dsa110-contimg/docs/</code></li>
+<li>State DBs: <code>/data/dsa110-contimg/state/</code></li>
+</ul>
 <p><strong>Details:</strong> See <code>docs/concepts/DIRECTORY_ARCHITECTURE.md</code><br/>
 <strong>Full details:</strong> <code>.cursor/rules/critical-requirements.mdc</code></p>
 <hr/>
 <h3 id="11-codexmdc-20kb-225-lines">11. <code>codex.mdc</code> (20KB, 225 lines)<a class="headerlink" href="#11-codexmdc-20kb-225-lines" title="Permanent link">¶</a></h3>
 <p><strong>Type:</strong> Conditional (<code>alwaysApply: false</code>)<br/>
 <strong>Purpose:</strong> Codex execution plans (ExecPlans) for multi-hour problem solving</p>
-<p><strong>Key Concepts:</strong>
-- ExecPlans are self-contained, living documents
-- Must enable complete novice to implement end-to-end
-- Must produce demonstrably working behavior
-- Must define every term of art in plain language</p>
-<p><strong>Required Sections:</strong>
-- Purpose / Big Picture
-- Progress (with checkboxes and timestamps)
-- Surprises &amp; Discoveries
-- Decision Log
-- Outcomes &amp; Retrospective
-- Context and Orientation
-- Plan of Work
-- Concrete Steps
-- Validation and Acceptance
-- Idempotence and Recovery
-- Artifacts and Notes
-- Interfaces and Dependencies</p>
+<p><strong>Key Concepts:</strong></p>
+<ul>
+<li>ExecPlans are self-contained, living documents</li>
+<li>Must enable complete novice to implement end-to-end</li>
+<li>Must produce demonstrably working behavior</li>
+<li>Must define every term of art in plain language</li>
+</ul>
+<p><strong>Required Sections:</strong></p>
+<ul>
+<li>Purpose / Big Picture</li>
+<li>Progress (with checkboxes and timestamps)</li>
+<li>Surprises &amp; Discoveries</li>
+<li>Decision Log</li>
+<li>Outcomes &amp; Retrospective</li>
+<li>Context and Orientation</li>
+<li>Plan of Work</li>
+<li>Concrete Steps</li>
+<li>Validation and Acceptance</li>
+<li>Idempotence and Recovery</li>
+<li>Artifacts and Notes</li>
+<li>Interfaces and Dependencies</li>
+</ul>
 <p><strong>Codex CLI:</strong> Documents commands, arguments, and options</p>
 <hr/>
 <h3 id="12-data-provenance-verificationmd-33kb-82-lines">12. <code>data-provenance-verification.md</code> (3.3KB, 82 lines)<a class="headerlink" href="#12-data-provenance-verificationmd-33kb-82-lines" title="Permanent link">¶</a></h3>
 <p><strong>Type:</strong> Duplicate<br/>
 <strong>Purpose:</strong> Same as <code>.mdc</code> version</p>
-<p><strong>Note:</strong> This appears to be a duplicate of <code>data-provenance-verification.mdc</code>. Should be removed or consolidated.</p>
+<p><strong>Note:</strong> This appears to be a duplicate of <code>data-provenance-verification.mdc</code>.
+Should be removed or consolidated.</p>
 <hr/>
 <h3 id="13-dsa110-agent-workflowmdc-24kb-32-lines">13. <code>dsa110-agent-workflow.mdc</code> (2.4KB, 32 lines)<a class="headerlink" href="#13-dsa110-agent-workflowmdc-24kb-32-lines" title="Permanent link">¶</a></h3>
 <p><strong>Type:</strong> Always Apply (<code>alwaysApply: true</code>)<br/>
 <strong>Purpose:</strong> Combined-Memory Learning Loop workflow</p>
 <p><strong>Mandatory 3-Step Workflow:</strong></p>
-<p><strong>Step A: Knowledge Retrieval (Consult the Graph)</strong>
-1. Query Graphiti first (<code>search_memory_facts</code> or <code>search_nodes</code>)
-2. Formulate relevant query
-3. Incorporate findings into plan</p>
-<p><strong>Step B: Analysis and Development (Use the Tools)</strong>
-1. Utilize Serena and other tools
-2. Execute the task</p>
-<p><strong>Step C: Knowledge Synthesis and Ingestion (Feed the Graph)</strong>
-1. Summarize new knowledge
-2. Structure as JSON payload
-3. Ingest into Graphiti (<code>add_memory</code> with <code>source='json'</code>)
-4. Verify ingestion (optional)</p>
+<p><strong>Step A: Knowledge Retrieval (Consult the Graph)</strong></p>
+<ol>
+<li>Query Graphiti first (<code>search_memory_facts</code> or <code>search_nodes</code>)</li>
+<li>Formulate relevant query</li>
+<li>Incorporate findings into plan</li>
+</ol>
+<p><strong>Step B: Analysis and Development (Use the Tools)</strong></p>
+<ol>
+<li>Utilize Serena and other tools</li>
+<li>Execute the task</li>
+</ol>
+<p><strong>Step C: Knowledge Synthesis and Ingestion (Feed the Graph)</strong></p>
+<ol>
+<li>Summarize new knowledge</li>
+<li>Structure as JSON payload</li>
+<li>Ingest into Graphiti (<code>add_memory</code> with <code>source='json'</code>)</li>
+<li>Verify ingestion (optional)</li>
+</ol>
 <p><strong>Rationale:</strong> Ensures continuous learning and knowledge retention</p>
 <hr/>
 <h2 id="graphiti-subdirectory-rules">Graphiti Subdirectory Rules<a class="headerlink" href="#graphiti-subdirectory-rules" title="Permanent link">¶</a></h2>
 <h3 id="14-graphitigraphiti-dsa110-contimg-schemamdc-14kb-262-lines">14. <code>graphiti/graphiti-dsa110-contimg-schema.mdc</code> (14KB, 262 lines)<a class="headerlink" href="#14-graphitigraphiti-dsa110-contimg-schemamdc-14kb-262-lines" title="Permanent link">¶</a></h3>
 <p><strong>Type:</strong> Conditional (<code>alwaysApply: false</code>)<br/>
 <strong>Purpose:</strong> Project-specific knowledge graph schema</p>
-<p><strong>Defined Entities:</strong>
-- Project, Module, File, FileType, Documentation, Script
-- DataSample, Configuration, Test
-- Dataset, Run, Artifact
-- Paper, Procedure, Preference</p>
-<p><strong>Defined Relationships:</strong>
-- <code>CONTAINS_MODULE</code>, <code>CONTAINS_FILE</code>, <code>REFERENCES_FILE</code>
-- <code>USES_CONFIGURATION</code>, <code>PROCESSES_DATA_SAMPLE</code>
-- <code>DOCUMENTS</code>, <code>HAS_TYPE</code>, <code>GENERATES_FILE</code>
-- <code>CONSUMES</code>, <code>PRODUCES</code>, <code>EXECUTES</code></p>
+<p><strong>Defined Entities:</strong></p>
+<ul>
+<li>Project, Module, File, FileType, Documentation, Script</li>
+<li>DataSample, Configuration, Test</li>
+<li>Dataset, Run, Artifact</li>
+<li>Paper, Procedure, Preference</li>
+</ul>
+<p><strong>Defined Relationships:</strong></p>
+<ul>
+<li><code>CONTAINS_MODULE</code>, <code>CONTAINS_FILE</code>, <code>REFERENCES_FILE</code></li>
+<li><code>USES_CONFIGURATION</code>, <code>PROCESSES_DATA_SAMPLE</code></li>
+<li><code>DOCUMENTS</code>, <code>HAS_TYPE</code>, <code>GENERATES_FILE</code></li>
+<li><code>CONSUMES</code>, <code>PRODUCES</code>, <code>EXECUTES</code></li>
+</ul>
 <p><strong>Extraction Rules:</strong> Detailed guidelines for each entity and relationship</p>
 <hr/>
 <h3 id="15-graphitigraphiti-micro-memory-guardmdc-626b-14-lines">15. <code>graphiti/graphiti-micro-memory-guard.mdc</code> (626B, 14 lines)<a class="headerlink" href="#15-graphitigraphiti-micro-memory-guardmdc-626b-14-lines" title="Permanent link">¶</a></h3>
 <p><strong>Type:</strong> Always Apply (<code>alwaysApply: true</code>)<br/>
 <strong>Purpose:</strong> Minimal always-on memory guard</p>
-<p><strong>Rule:</strong> If and only if task involves long-term context:
-- Search existing memory/graph first
-- Save new facts at the end
-- Otherwise, ignore and proceed normally</p>
-<p><strong>When Applicable:</strong>
-- Preferences, procedures, requirements
-- Data lineage, run metadata
-- Knowledge graph updates</p>
-<p><strong>Tool Preferences:</strong>
-- <code>search_nodes</code> for Preferences/Procedures/Requirements
-- <code>search_facts</code> for lineage (CONSUMES/PRODUCES/INFORMED_BY/DEPENDS_ON)
-- <code>add_episode</code> for task-level events</p>
+<p><strong>Rule:</strong> If and only if task involves long-term context:</p>
+<ul>
+<li>Search existing memory/graph first</li>
+<li>Save new facts at the end</li>
+<li>Otherwise, ignore and proceed normally</li>
+</ul>
+<p><strong>When Applicable:</strong></p>
+<ul>
+<li>Preferences, procedures, requirements</li>
+<li>Data lineage, run metadata</li>
+<li>Knowledge graph updates</li>
+</ul>
+<p><strong>Tool Preferences:</strong></p>
+<ul>
+<li><code>search_nodes</code> for Preferences/Procedures/Requirements</li>
+<li><code>search_facts</code> for lineage (CONSUMES/PRODUCES/INFORMED_BY/DEPENDS_ON)</li>
+<li><code>add_episode</code> for task-level events</li>
+</ul>
 <hr/>
 <h3 id="16-graphitigraphiti-mcp-core-rulesmdc-99kb-122-lines">16. <code>graphiti/graphiti-mcp-core-rules.mdc</code> (9.9KB, 122 lines)<a class="headerlink" href="#16-graphitigraphiti-mcp-core-rulesmdc-99kb-122-lines" title="Permanent link">¶</a></h3>
 <p><strong>Type:</strong> Always Apply (<code>alwaysApply: true</code>)<br/>
 <strong>Purpose:</strong> Core Graphiti MCP tools guide</p>
-<p><strong>Three Rule Types:</strong>
-1. Core rules (this file) - General tool usage
-2. Project-specific schema - Unique entities/relationships
-3. Schema maintenance - Update process</p>
-<p><strong>Key Principles:</strong>
-- Entity extraction: Structured patterns, maintain integrity
-- Agent memory: Search first, save new info, respect preferences
-- Best practices: Search before suggesting, use JSON for structured data
-- Codebase organization: Flat structures, semantic naming</p>
-<p><strong>Tool Usage:</strong>
-- Search before starting tasks
-- Capture requirements immediately
-- Document procedures clearly
-- Record factual relationships</p>
+<p><strong>Three Rule Types:</strong></p>
+<ol>
+<li>Core rules (this file) - General tool usage</li>
+<li>Project-specific schema - Unique entities/relationships</li>
+<li>Schema maintenance - Update process</li>
+</ol>
+<p><strong>Key Principles:</strong></p>
+<ul>
+<li>Entity extraction: Structured patterns, maintain integrity</li>
+<li>Agent memory: Search first, save new info, respect preferences</li>
+<li>Best practices: Search before suggesting, use JSON for structured data</li>
+<li>Codebase organization: Flat structures, semantic naming</li>
+</ul>
+<p><strong>Tool Usage:</strong></p>
+<ul>
+<li>Search before starting tasks</li>
+<li>Capture requirements immediately</li>
+<li>Document procedures clearly</li>
+<li>Record factual relationships</li>
+</ul>
 <hr/>
 <h3 id="17-graphitigraphiti-knowledge-graph-maintenancemdc-48kb-66-lines">17. <code>graphiti/graphiti-knowledge-graph-maintenance.mdc</code> (4.8KB, 66 lines)<a class="headerlink" href="#17-graphitigraphiti-knowledge-graph-maintenancemdc-48kb-66-lines" title="Permanent link">¶</a></h3>
 <p><strong>Type:</strong> Always Apply (<code>alwaysApply: true</code>)<br/>
 <strong>Purpose:</strong> Rules for maintaining project-specific schema</p>
-<p><strong>Key Rules:</strong>
-1. Project schema is single source of truth
-2. Consult schema before defining new entities
-3. Verify consistency before adding facts
-4. Schema evolution process:
-   - Identify need
-   - Consult existing schema
-   - Propose update with justification
-   - Await outcome
-   - Proceed based on outcome</p>
+<p><strong>Key Rules:</strong></p>
+<ol>
+<li>Project schema is single source of truth</li>
+<li>Consult schema before defining new entities</li>
+<li>Verify consistency before adding facts</li>
+<li>Schema evolution process:</li>
+<li>Identify need</li>
+<li>Consult existing schema</li>
+<li>Propose update with justification</li>
+<li>Await outcome</li>
+<li>Proceed based on outcome</li>
+</ol>
 <p><strong>Justification Required:</strong> Link to user request or conversation context</p>
 <hr/>
 <h2 id="rule-categories">Rule Categories<a class="headerlink" href="#rule-categories" title="Permanent link">¶</a></h2>
@@ -1639,8 +1705,10 @@
 <h2 id="recommendations">Recommendations<a class="headerlink" href="#recommendations" title="Permanent link">¶</a></h2>
 <h3 id="immediate-actions">Immediate Actions<a class="headerlink" href="#immediate-actions" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong>Remove Duplicate:</strong> Delete <code>data-provenance-verification.md</code> (keep <code>.mdc</code> version)</li>
-<li><strong>Consolidate:</strong> Consider merging <code>critical-requirements.mdc</code> and <code>critical-requirements-short.mdc</code></li>
+<li><strong>Remove Duplicate:</strong> Delete <code>data-provenance-verification.md</code> (keep <code>.mdc</code>
+   version)</li>
+<li><strong>Consolidate:</strong> Consider merging <code>critical-requirements.mdc</code> and
+   <code>critical-requirements-short.mdc</code></li>
 <li><strong>Document:</strong> Create index/quick reference for all rules</li>
 </ol>
 <h3 id="long-term-improvements">Long-Term Improvements<a class="headerlink" href="#long-term-improvements" title="Permanent link">¶</a></h3>
@@ -1652,15 +1720,19 @@
 </ol>
 <hr/>
 <h2 id="rule-dependencies">Rule Dependencies<a class="headerlink" href="#rule-dependencies" title="Permanent link">¶</a></h2>
-<p><strong>Referenced Documents:</strong>
-- <code>docs/concepts/DIRECTORY_ARCHITECTURE.md</code> (critical-requirements)
-- <code>docs/DOCUMENTATION_QUICK_REFERENCE.md</code> (documentation-location)
-- <code>scripts/migrate_docs.sh</code> (documentation-location)
-- <code>docs/reference/mcp-tools.md</code> (mentioned in MEMORY.md)</p>
-<p><strong>Cross-References:</strong>
-- Graphiti rules reference each other (core → schema → maintenance)
-- Critical requirements reference documentation location
-- Frontend focus references dashboard architecture</p>
+<p><strong>Referenced Documents:</strong></p>
+<ul>
+<li><code>docs/concepts/DIRECTORY_ARCHITECTURE.md</code> (critical-requirements)</li>
+<li><code>docs/DOCUMENTATION_QUICK_REFERENCE.md</code> (documentation-location)</li>
+<li><code>scripts/migrate_docs.sh</code> (documentation-location)</li>
+<li><code>docs/reference/mcp-tools.md</code> (mentioned in MEMORY.md)</li>
+</ul>
+<p><strong>Cross-References:</strong></p>
+<ul>
+<li>Graphiti rules reference each other (core → schema → maintenance)</li>
+<li>Critical requirements reference documentation location</li>
+<li>Frontend focus references dashboard architecture</li>
+</ul>
 <hr/>
 <h2 id="summary-statistics">Summary Statistics<a class="headerlink" href="#summary-statistics" title="Permanent link">¶</a></h2>
 <ul>
@@ -1698,7 +1770,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

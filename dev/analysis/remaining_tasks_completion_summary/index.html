@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1173,107 +1175,147 @@
 <p><strong>Date:</strong> 2025-11-12<br/>
 <strong>Status:</strong> All remaining tasks completed</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>Completed implementation of the remaining tasks from the development roadmap:
-- Stage 3: Coordinated Group Imaging in Streaming Converter
-- Stage 5: Unified QA CLI
-- Stages 4-6: Mosaic/QA/Publishing in Streaming Converter
-- Stage 8: End-to-End Integration Testing</p>
+<p>Completed implementation of the remaining tasks from the development roadmap:</p>
+<ul>
+<li>Stage 3: Coordinated Group Imaging in Streaming Converter</li>
+<li>Stage 5: Unified QA CLI</li>
+<li>Stages 4-6: Mosaic/QA/Publishing in Streaming Converter</li>
+<li>Stage 8: End-to-End Integration Testing</li>
+</ul>
 <h2 id="completed-tasks">Completed Tasks<a class="headerlink" href="#completed-tasks" title="Permanent link">¶</a></h2>
 <h3 id="stage-3-coordinated-group-imaging-in-streaming-converter">Stage 3: Coordinated Group Imaging in Streaming Converter<a class="headerlink" href="#stage-3-coordinated-group-imaging-in-streaming-converter" title="Permanent link">¶</a></h3>
 <p><strong>Status:</strong> ✅ Complete</p>
-<p><strong>Implementation:</strong>
-- Added <code>check_for_complete_group()</code> function to detect complete groups (10 MS files) within ±25 minute time window
-- Added <code>trigger_group_mosaic_creation()</code> function to create mosaics from complete groups
-- Integrated group detection into <code>_worker_loop()</code> after individual MS imaging completes
-- Added command-line arguments:
-  - <code>--enable-group-imaging</code> - Enable group detection
-  - <code>--enable-mosaic-creation</code> - Enable automatic mosaic creation
-  - <code>--enable-auto-qa</code> - Enable automatic QA validation
-  - <code>--enable-auto-publish</code> - Enable automatic publishing</p>
-<p><strong>Files Modified:</strong>
-- <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code></p>
-<p><strong>Key Functions:</strong>
+<p><strong>Implementation:</strong></p>
+<ul>
+<li>Added <code>check_for_complete_group()</code> function to detect complete groups (10 MS
+  files) within ±25 minute time window</li>
+<li>Added <code>trigger_group_mosaic_creation()</code> function to create mosaics from
+  complete groups</li>
+<li>Integrated group detection into <code>_worker_loop()</code> after individual MS imaging
+  completes</li>
+<li>Added command-line arguments:</li>
+<li><code>--enable-group-imaging</code> - Enable group detection</li>
+<li><code>--enable-mosaic-creation</code> - Enable automatic mosaic creation</li>
+<li><code>--enable-auto-qa</code> - Enable automatic QA validation</li>
+<li><code>--enable-auto-publish</code> - Enable automatic publishing</li>
+</ul>
+<p><strong>Files Modified:</strong></p>
+<ul>
+<li><code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code></li>
+</ul>
+<p><strong>Key Functions:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="n">check_for_complete_group</span><span class="p">(</span><span class="n">ms_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">products_db_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">time_window_minutes</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">25.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
 <span class="n">trigger_group_mosaic_creation</span><span class="p">(</span><span class="n">group_ms_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">products_db_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="stages-4-6-mosaicqapublishing-in-streaming-converter">Stages 4-6: Mosaic/QA/Publishing in Streaming Converter<a class="headerlink" href="#stages-4-6-mosaicqapublishing-in-streaming-converter" title="Permanent link">¶</a></h3>
 <p><strong>Status:</strong> ✅ Complete</p>
-<p><strong>Implementation:</strong>
-- Integrated mosaic creation trigger after group detection
-- Integrated QA/validation via <code>data_registry.finalize_data()</code>
-- Integrated automatic publishing via <code>data_registry.trigger_auto_publish()</code>
-- All features are configurable via command-line flags</p>
-<p><strong>Workflow:</strong>
-1. After imaging individual MS → Check for complete group
-2. If complete group found → Trigger mosaic creation
-3. After mosaic creation → Register in data registry and trigger QA
-4. After QA passes → Automatic publishing (if enabled)</p>
-<p><strong>Integration Points:</strong>
-- Uses <code>MosaicOrchestrator</code> for mosaic creation
-- Uses <code>data_registry</code> for QA and publishing coordination
-- All operations are logged and error-handled gracefully</p>
+<p><strong>Implementation:</strong></p>
+<ul>
+<li>Integrated mosaic creation trigger after group detection</li>
+<li>Integrated QA/validation via <code>data_registry.finalize_data()</code></li>
+<li>Integrated automatic publishing via <code>data_registry.trigger_auto_publish()</code></li>
+<li>All features are configurable via command-line flags</li>
+</ul>
+<p><strong>Workflow:</strong></p>
+<ol>
+<li>After imaging individual MS → Check for complete group</li>
+<li>If complete group found → Trigger mosaic creation</li>
+<li>After mosaic creation → Register in data registry and trigger QA</li>
+<li>After QA passes → Automatic publishing (if enabled)</li>
+</ol>
+<p><strong>Integration Points:</strong></p>
+<ul>
+<li>Uses <code>MosaicOrchestrator</code> for mosaic creation</li>
+<li>Uses <code>data_registry</code> for QA and publishing coordination</li>
+<li>All operations are logged and error-handled gracefully</li>
+</ul>
 <h3 id="stage-5-unified-qa-cli">Stage 5: Unified QA CLI<a class="headerlink" href="#stage-5-unified-qa-cli" title="Permanent link">¶</a></h3>
 <p><strong>Status:</strong> ✅ Complete</p>
-<p><strong>Implementation:</strong>
-- Created unified QA CLI at <code>src/dsa110_contimg/qa/cli.py</code>
-- Consolidates QA functionality from across the pipeline:
-  - Calibration QA (MS validation, caltable validation)
-  - Image QA (catalog-based flux scale validation)
-  - Mosaic QA (tile quality, consistency checks)
-  - Comprehensive QA reports</p>
-<p><strong>Subcommands:</strong>
-- <code>calibration &lt;ms_path&gt;</code> - Run calibration QA on MS
-- <code>image &lt;image_path&gt;</code> - Run image QA on FITS image
-- <code>mosaic &lt;mosaic_id&gt;</code> - Run mosaic QA on mosaic
-- <code>report &lt;data_id&gt;</code> - Generate comprehensive QA report</p>
-<p><strong>Features:</strong>
-- Wraps existing QA functions from <code>qa/</code>, <code>calibration/cli_qa.py</code>, <code>mosaic/validation.py</code>
-- Supports JSON output for programmatic access
-- Configurable validation options (catalogs, SNR thresholds, etc.)
-- Comprehensive error handling and logging</p>
-<p><strong>Files Created:</strong>
-- <code>src/dsa110_contimg/qa/cli.py</code></p>
+<p><strong>Implementation:</strong></p>
+<ul>
+<li>Created unified QA CLI at <code>src/dsa110_contimg/qa/cli.py</code></li>
+<li>Consolidates QA functionality from across the pipeline:</li>
+<li>Calibration QA (MS validation, caltable validation)</li>
+<li>Image QA (catalog-based flux scale validation)</li>
+<li>Mosaic QA (tile quality, consistency checks)</li>
+<li>Comprehensive QA reports</li>
+</ul>
+<p><strong>Subcommands:</strong></p>
+<ul>
+<li><code>calibration &lt;ms_path&gt;</code> - Run calibration QA on MS</li>
+<li><code>image &lt;image_path&gt;</code> - Run image QA on FITS image</li>
+<li><code>mosaic &lt;mosaic_id&gt;</code> - Run mosaic QA on mosaic</li>
+<li><code>report &lt;data_id&gt;</code> - Generate comprehensive QA report</li>
+</ul>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Wraps existing QA functions from <code>qa/</code>, <code>calibration/cli_qa.py</code>,
+  <code>mosaic/validation.py</code></li>
+<li>Supports JSON output for programmatic access</li>
+<li>Configurable validation options (catalogs, SNR thresholds, etc.)</li>
+<li>Comprehensive error handling and logging</li>
+</ul>
+<p><strong>Files Created:</strong></p>
+<ul>
+<li><code>src/dsa110_contimg/qa/cli.py</code></li>
+</ul>
 <h3 id="stage-8-end-to-end-integration-testing">Stage 8: End-to-End Integration Testing<a class="headerlink" href="#stage-8-end-to-end-integration-testing" title="Permanent link">¶</a></h3>
 <p><strong>Status:</strong> ✅ Complete</p>
-<p><strong>Implementation:</strong>
-- Created comprehensive integration test suite at <code>tests/integration/test_end_to_end_batch_workflow.py</code>
-- Tests complete workflow: Batch conversion → Mosaic creation → QA → Publishing
-- Uses mocked CASA/WSClean dependencies for fast execution
-- Validates orchestration logic and database state management</p>
-<p><strong>Test Classes:</strong>
-- <code>TestBatchConversionWorkflow</code> - Batch conversion job creation and execution
-- <code>TestMosaicCreationWorkflow</code> - Mosaic creation from MS groups
-- <code>TestQAAndPublishingWorkflow</code> - QA registration and publishing
-- <code>TestStreamingConverterGroupDetection</code> - Group detection logic
-- <code>TestEndToEndWorkflow</code> - Complete end-to-end workflow integration</p>
-<p><strong>Test Coverage:</strong>
-- Batch job creation and database operations
-- Group detection logic (10 MS files within time window)
-- Mosaic creation workflow
-- Data registry integration
-- QA and publishing coordination</p>
-<p><strong>Files Created:</strong>
-- <code>tests/integration/test_end_to_end_batch_workflow.py</code></p>
+<p><strong>Implementation:</strong></p>
+<ul>
+<li>Created comprehensive integration test suite at
+  <code>tests/integration/test_end_to_end_batch_workflow.py</code></li>
+<li>Tests complete workflow: Batch conversion → Mosaic creation → QA → Publishing</li>
+<li>Uses mocked CASA/WSClean dependencies for fast execution</li>
+<li>Validates orchestration logic and database state management</li>
+</ul>
+<p><strong>Test Classes:</strong></p>
+<ul>
+<li><code>TestBatchConversionWorkflow</code> - Batch conversion job creation and execution</li>
+<li><code>TestMosaicCreationWorkflow</code> - Mosaic creation from MS groups</li>
+<li><code>TestQAAndPublishingWorkflow</code> - QA registration and publishing</li>
+<li><code>TestStreamingConverterGroupDetection</code> - Group detection logic</li>
+<li><code>TestEndToEndWorkflow</code> - Complete end-to-end workflow integration</li>
+</ul>
+<p><strong>Test Coverage:</strong></p>
+<ul>
+<li>Batch job creation and database operations</li>
+<li>Group detection logic (10 MS files within time window)</li>
+<li>Mosaic creation workflow</li>
+<li>Data registry integration</li>
+<li>QA and publishing coordination</li>
+</ul>
+<p><strong>Files Created:</strong></p>
+<ul>
+<li><code>tests/integration/test_end_to_end_batch_workflow.py</code></li>
+</ul>
 <h2 id="technical-details">Technical Details<a class="headerlink" href="#technical-details" title="Permanent link">¶</a></h2>
 <h3 id="group-detection-algorithm">Group Detection Algorithm<a class="headerlink" href="#group-detection-algorithm" title="Permanent link">¶</a></h3>
-<p>The group detection logic queries the <code>ms_index</code> table for MS files that:
-1. Are within ±25 minutes of the current MS's <code>mid_mjd</code>
-2. Have <code>stage = 'imaged'</code> and <code>status = 'done'</code>
-3. Are ordered chronologically by <code>mid_mjd</code></p>
-<p>A complete group is defined as 10 MS files (representing 50 minutes of observation time).</p>
+<p>The group detection logic queries the <code>ms_index</code> table for MS files that:</p>
+<ol>
+<li>Are within ±25 minutes of the current MS's <code>mid_mjd</code></li>
+<li>Have <code>stage = 'imaged'</code> and <code>status = 'done'</code></li>
+<li>Are ordered chronologically by <code>mid_mjd</code></li>
+</ol>
+<p>A complete group is defined as 10 MS files (representing 50 minutes of
+observation time).</p>
 <h3 id="mosaic-creation-integration">Mosaic Creation Integration<a class="headerlink" href="#mosaic-creation-integration" title="Permanent link">¶</a></h3>
-<p>The streaming converter uses <code>MosaicOrchestrator</code> to:
-1. Form a group from MS paths (<code>_form_group_from_ms_paths()</code>)
-2. Process the group through full workflow (<code>_process_group_workflow()</code>)
-   - Calibration solving
-   - Calibration application
-   - Imaging
-   - Mosaic creation</p>
+<p>The streaming converter uses <code>MosaicOrchestrator</code> to:</p>
+<ol>
+<li>Form a group from MS paths (<code>_form_group_from_ms_paths()</code>)</li>
+<li>Process the group through full workflow (<code>_process_group_workflow()</code>)</li>
+<li>Calibration solving</li>
+<li>Calibration application</li>
+<li>Imaging</li>
+<li>Mosaic creation</li>
+</ol>
 <h3 id="qa-and-publishing-integration">QA and Publishing Integration<a class="headerlink" href="#qa-and-publishing-integration" title="Permanent link">¶</a></h3>
-<p>After mosaic creation:
-1. Mosaic is registered in <code>data_registry</code> via <code>finalize_data()</code>
-2. QA validation is automatically triggered
-3. If <code>auto_publish=True</code>, publishing is triggered automatically after QA passes</p>
+<p>After mosaic creation:</p>
+<ol>
+<li>Mosaic is registered in <code>data_registry</code> via <code>finalize_data()</code></li>
+<li>QA validation is automatically triggered</li>
+<li>If <code>auto_publish=True</code>, publishing is triggered automatically after QA passes</li>
+</ol>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">¶</a></h2>
 <p>All new features are opt-in via command-line flags:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Enable group imaging and mosaic creation</span>
@@ -1286,10 +1328,10 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.conversio
 <span class="w">    </span>--enable-auto-publish
 </code></pre></div>
 <h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">¶</a></h2>
-<p>Run integration tests:
+<p>Run integration tests:</p>
 <div class="highlight"><pre><span></span><code>/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/test_end_to_end_batch_workflow.py<span class="w"> </span>-v
-</code></pre></div></p>
-<p>Run unified QA CLI:
+</code></pre></div>
+<p>Run unified QA CLI:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Calibration QA</span>
 python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.qa.cli<span class="w"> </span>calibration<span class="w"> </span>--ms-path<span class="w"> </span>/stage/ms/observation.ms
 
@@ -1301,19 +1343,22 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.qa.cli<sp
 
 <span class="c1"># Comprehensive report</span>
 python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.qa.cli<span class="w"> </span>report<span class="w"> </span>--data-id<span class="w"> </span>mosaic_2025-11-12_10-00-00
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
 <ul>
 <li><a href="development_roadmap.md">Development Roadmap</a> - Original implementation plan</li>
-<li><a href="../batch_mode_development_assessment/">Batch Mode Development Assessment</a> - Feature assessment</li>
+<li><a href="../batch_mode_development_assessment/">Batch Mode Development Assessment</a> -
+  Feature assessment</li>
 <li><a href="../unit_test_suite_summary/">Unit Test Suite Summary</a> - Unit test coverage</li>
 </ul>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
 <ol>
 <li><strong>Production Testing:</strong> Test with real observational data</li>
-<li><strong>Performance Optimization:</strong> Monitor group detection and mosaic creation performance</li>
+<li><strong>Performance Optimization:</strong> Monitor group detection and mosaic creation
+   performance</li>
 <li><strong>Error Recovery:</strong> Enhance error handling and recovery mechanisms</li>
-<li><strong>Monitoring:</strong> Add metrics and monitoring for group detection and mosaic creation rates</li>
+<li><strong>Monitoring:</strong> Add metrics and monitoring for group detection and mosaic
+   creation rates</li>
 <li><strong>Documentation:</strong> Add user guides for streaming converter configuration</li>
 </ol>
 </article>
@@ -1340,7 +1385,7 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.qa.cli<sp
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

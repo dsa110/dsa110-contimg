@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1175,15 +1177,19 @@
 <article class="md-content__inner md-typeset">
 <h1 id="catalog-query-tests-update">Catalog Query Tests Update<a class="headerlink" href="#catalog-query-tests-update" title="Permanent link">¶</a></h1>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
-<p>Updated unit and smoke tests to cover the new <code>use_csv_fallback</code> parameter behavior. Tests are intelligently placed in appropriate test files.</p>
+<p>Updated unit and smoke tests to cover the new <code>use_csv_fallback</code> parameter
+behavior. Tests are intelligently placed in appropriate test files.</p>
 <h2 id="test-organization">Test Organization<a class="headerlink" href="#test-organization" title="Permanent link">¶</a></h2>
 <h3 id="unit-tests-testsunitcalibration">Unit Tests (<code>tests/unit/calibration/</code>)<a class="headerlink" href="#unit-tests-testsunitcalibration" title="Permanent link">¶</a></h3>
 <ol>
 <li><strong><code>test_query_nvss_sources.py</code></strong> (Updated)</li>
-<li><code>TestQueryNVSSSourcesCSVFallback</code> - Tests CSV fallback when <code>use_csv_fallback=True</code></li>
-<li><code>TestQueryNVSSSourcesNoFallback</code> - Tests default behavior when <code>use_csv_fallback=False</code></li>
+<li><code>TestQueryNVSSSourcesCSVFallback</code> - Tests CSV fallback when
+     <code>use_csv_fallback=True</code></li>
+<li><code>TestQueryNVSSSourcesNoFallback</code> - Tests default behavior when
+     <code>use_csv_fallback=False</code></li>
 <li>
-<p><code>TestQueryNVSSSourcesSmoke</code> - Smoke tests including CSV fallback disabled by default</p>
+<p><code>TestQueryNVSSSourcesSmoke</code> - Smoke tests including CSV fallback disabled
+     by default</p>
 </li>
 <li>
 <p><strong><code>test_query_rax_sources.py</code></strong> (New)</p>
@@ -1242,11 +1248,13 @@ pytest<span class="w"> </span>tests/unit/calibration/test_query_nvss_sources.py:
 pytest<span class="w"> </span>tests/unit/calibration/test_query_nvss_sources.py::TestQueryNVSSSourcesSmoke<span class="w"> </span>-v
 </code></pre></div>
 <h2 id="test-results">Test Results<a class="headerlink" href="#test-results" title="Permanent link">¶</a></h2>
-<p>All tests pass successfully:
-- ✅ 27 NVSS tests (including 3 new no-fallback tests)
-- ✅ 6 RAX tests (new file)
-- ✅ 6 VLASS tests (new file)
-- ✅ Total: 39 catalog query tests</p>
+<p>All tests pass successfully:</p>
+<ul>
+<li>✅ 27 NVSS tests (including 3 new no-fallback tests)</li>
+<li>✅ 6 RAX tests (new file)</li>
+<li>✅ 6 VLASS tests (new file)</li>
+<li>✅ Total: 39 catalog query tests</li>
+</ul>
 <h2 id="key-test-patterns">Key Test Patterns<a class="headerlink" href="#key-test-patterns" title="Permanent link">¶</a></h2>
 <h3 id="mocking-sqlite-failures">Mocking SQLite Failures<a class="headerlink" href="#mocking-sqlite-failures" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="nd">@patch</span><span class="p">(</span><span class="s2">"sqlite3.connect"</span><span class="p">)</span>
@@ -1269,7 +1277,8 @@ pytest<span class="w"> </span>tests/unit/calibration/test_query_nvss_sources.py:
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
 <ul>
 <li><a href="../csv_fallback_disabled/">CSV Fallback Disabled</a> - Implementation details</li>
-<li><a href="../catalog_logging_migration/">Catalog Logging Migration</a> - Logging improvements</li>
+<li><a href="../catalog_logging_migration/">Catalog Logging Migration</a> - Logging
+  improvements</li>
 </ul>
 </article>
 </div>
@@ -1295,7 +1304,7 @@ pytest<span class="w"> </span>tests/unit/calibration/test_query_nvss_sources.py:
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

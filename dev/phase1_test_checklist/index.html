@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1317,28 +1319,21 @@
 <nav aria-label="Test Execution Log" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#date-_____">
+<a class="md-nav__link" href="#date-___">
 <span class="md-ellipsis">
-      Date: _____
+      Date: **___**
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#tester-_____">
+<a class="md-nav__link" href="#tester-___">
 <span class="md-ellipsis">
-      Tester: _____
+      Tester: **___**
     </span>
 </a>
 </li>
 </ul>
 </nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#notes">
-<span class="md-ellipsis">
-      Notes:
-    </span>
-</a>
 </li>
 </ul>
 </nav>
@@ -1379,19 +1374,24 @@
 <ul>
 <li>[ ] <code>GET /api/operations/dlq/items</code> - Returns list of DLQ items</li>
 <li>[ ] Returns array of items</li>
-<li>[ ] Each item has required fields: <code>id</code>, <code>component</code>, <code>operation</code>, <code>error_type</code>, <code>error_message</code>, <code>context</code>, <code>created_at</code>, <code>retry_count</code>, <code>status</code></li>
+<li>[ ] Each item has required fields: <code>id</code>, <code>component</code>, <code>operation</code>,
+        <code>error_type</code>, <code>error_message</code>, <code>context</code>, <code>created_at</code>, <code>retry_count</code>,
+        <code>status</code></li>
 <li>[ ] Default limit is 100</li>
 <li>[ ] <code>GET /api/operations/dlq/items?limit=10</code> - Respects limit parameter</li>
 <li>[ ] <code>GET /api/operations/dlq/items?offset=5</code> - Respects offset parameter</li>
-<li>[ ] <code>GET /api/operations/dlq/items?component=ese_detection</code> - Filters by component</li>
+<li>[ ] <code>GET /api/operations/dlq/items?component=ese_detection</code> - Filters by
+        component</li>
 <li>[ ] <code>GET /api/operations/dlq/items?status=pending</code> - Filters by status</li>
-<li>[ ] <code>GET /api/operations/dlq/items?component=ese_detection&amp;status=pending&amp;limit=5</code> - Multiple filters work together</li>
+<li>[ ] <code>GET /api/operations/dlq/items?component=ese_detection&amp;status=pending&amp;limit=5</code> -
+        Multiple filters work together</li>
 </ul>
 <h4 id="item-detail-endpoint">Item Detail Endpoint<a class="headerlink" href="#item-detail-endpoint" title="Permanent link">¶</a></h4>
 <ul>
 <li>[ ] <code>GET /api/operations/dlq/items/{item_id}</code> - Returns specific item</li>
 <li>[ ] Returns complete item details</li>
-<li>[ ] <code>GET /api/operations/dlq/items/99999</code> - Returns 404 for non-existent item</li>
+<li>[ ] <code>GET /api/operations/dlq/items/99999</code> - Returns 404 for non-existent
+        item</li>
 </ul>
 <h4 id="item-actions">Item Actions<a class="headerlink" href="#item-actions" title="Permanent link">¶</a></h4>
 <ul>
@@ -1399,7 +1399,8 @@
 <li>[ ] Request body accepts optional <code>note</code> field</li>
 <li>[ ] Returns success response</li>
 <li>[ ] Item status changes to "retrying"</li>
-<li>[ ] <code>POST /api/operations/dlq/items/{item_id}/resolve</code> - Marks item as resolved</li>
+<li>[ ] <code>POST /api/operations/dlq/items/{item_id}/resolve</code> - Marks item as
+      resolved</li>
 <li>[ ] Request body accepts optional <code>note</code> field</li>
 <li>[ ] Returns success response</li>
 <li>[ ] Item status changes to "resolved"</li>
@@ -1413,20 +1414,26 @@
 <h4 id="list-circuit-breakers">List Circuit Breakers<a class="headerlink" href="#list-circuit-breakers" title="Permanent link">¶</a></h4>
 <ul>
 <li>[ ] <code>GET /api/operations/circuit-breakers</code> - Returns all circuit breakers</li>
-<li>[ ] Returns array with 3 circuit breakers: <code>ese_detection</code>, <code>calibration_solve</code>, <code>photometry</code></li>
-<li>[ ] Each breaker has: <code>name</code>, <code>state</code>, <code>failure_count</code>, <code>last_failure_time</code>, <code>recovery_timeout</code></li>
+<li>[ ] Returns array with 3 circuit breakers: <code>ese_detection</code>,
+        <code>calibration_solve</code>, <code>photometry</code></li>
+<li>[ ] Each breaker has: <code>name</code>, <code>state</code>, <code>failure_count</code>, <code>last_failure_time</code>,
+        <code>recovery_timeout</code></li>
 <li>[ ] State values are: "closed", "open", or "half_open"</li>
 </ul>
 <h4 id="individual-circuit-breaker">Individual Circuit Breaker<a class="headerlink" href="#individual-circuit-breaker" title="Permanent link">¶</a></h4>
 <ul>
-<li>[ ] <code>GET /api/operations/circuit-breakers/ese_detection</code> - Returns ese_detection breaker</li>
-<li>[ ] <code>GET /api/operations/circuit-breakers/calibration_solve</code> - Returns calibration_solve breaker</li>
-<li>[ ] <code>GET /api/operations/circuit-breakers/photometry</code> - Returns photometry breaker</li>
+<li>[ ] <code>GET /api/operations/circuit-breakers/ese_detection</code> - Returns
+      ese_detection breaker</li>
+<li>[ ] <code>GET /api/operations/circuit-breakers/calibration_solve</code> - Returns
+      calibration_solve breaker</li>
+<li>[ ] <code>GET /api/operations/circuit-breakers/photometry</code> - Returns photometry
+      breaker</li>
 <li>[ ] <code>GET /api/operations/circuit-breakers/invalid_name</code> - Returns 404</li>
 </ul>
 <h4 id="reset-circuit-breaker">Reset Circuit Breaker<a class="headerlink" href="#reset-circuit-breaker" title="Permanent link">¶</a></h4>
 <ul>
-<li>[ ] <code>POST /api/operations/circuit-breakers/ese_detection/reset</code> - Resets circuit breaker</li>
+<li>[ ] <code>POST /api/operations/circuit-breakers/ese_detection/reset</code> - Resets
+      circuit breaker</li>
 <li>[ ] Returns success response</li>
 <li>[ ] Circuit breaker state changes to "closed"</li>
 <li>[ ] Failure count resets to 0</li>
@@ -1563,22 +1570,29 @@
 <li>[ ] Focus indicators visible</li>
 </ul>
 <h2 id="test-execution-log">Test Execution Log<a class="headerlink" href="#test-execution-log" title="Permanent link">¶</a></h2>
-<h3 id="date-_____">Date: <strong><em>_</em></strong>____<a class="headerlink" href="#date-_____" title="Permanent link">¶</a></h3>
-<h3 id="tester-_____">Tester: <strong><em>_</em></strong>____<a class="headerlink" href="#tester-_____" title="Permanent link">¶</a></h3>
-<p><strong>Backend API Tests:</strong>
-- Passed: ___ / ___
-- Failed: ___ / ___</p>
-<p><strong>Frontend Tests:</strong>
-- Passed: ___ / ___
-- Failed: ___ / ___</p>
-<p><strong>Integration Tests:</strong>
-- Passed: ___ / ___
-- Failed: ___ / ___</p>
-<p><strong>Issues Found:</strong>
-1. 
-2. 
-3. </p>
-<h2 id="notes"><strong>Notes:</strong><a class="headerlink" href="#notes" title="Permanent link">¶</a></h2>
+<h3 id="date-___">Date: *<strong>*___**</strong><a class="headerlink" href="#date-___" title="Permanent link">¶</a></h3>
+<h3 id="tester-___">Tester: *<strong>*___**</strong><a class="headerlink" href="#tester-___" title="Permanent link">¶</a></h3>
+<p><strong>Backend API Tests:</strong></p>
+<ul>
+<li>Passed: <strong><em> / </em></strong></li>
+<li>Failed: <strong><em> / </em></strong></li>
+</ul>
+<p><strong>Frontend Tests:</strong></p>
+<ul>
+<li>Passed: <strong><em> / </em></strong></li>
+<li>Failed: <strong><em> / </em></strong></li>
+</ul>
+<p><strong>Integration Tests:</strong></p>
+<ul>
+<li>Passed: <strong><em> / </em></strong></li>
+<li>Failed: <strong><em> / </em></strong></li>
+</ul>
+<p><strong>Issues Found:</strong></p>
+<p>1.
+2.
+3.</p>
+<p><strong>Notes:</strong></p>
+<p>-</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1603,7 +1617,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

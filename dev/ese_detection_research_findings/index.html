@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1193,19 +1195,23 @@
 <article class="md-content__inner md-typeset">
 <h1 id="ese-detection-research-findings-and-implementation-review">ESE Detection Research Findings and Implementation Review<a class="headerlink" href="#ese-detection-research-findings-and-implementation-review" title="Permanent link">¶</a></h1>
 <h2 id="date-2025-11-12">Date: 2025-11-12<a class="headerlink" href="#date-2025-11-12" title="Permanent link">¶</a></h2>
-<p>This document summarizes research findings on ESE detection methods and the critical review of our implementation.</p>
+<p>This document summarizes research findings on ESE detection methods and the
+critical review of our implementation.</p>
 <h2 id="research-summary">Research Summary<a class="headerlink" href="#research-summary" title="Permanent link">¶</a></h2>
 <h3 id="literature-review-via-perplexity">Literature Review (via Perplexity)<a class="headerlink" href="#literature-review-via-perplexity" title="Permanent link">¶</a></h3>
-<p><strong>Key Sources</strong>:
-1. Real-time detection of an extreme scattering event (2016) - Science
-2. An Extreme Scattering Event Toward PSR J2313+4253 (2025) - arXiv
-3. VAST Tools variability metrics documentation
-4. Radio astronomy variability detection best practices</p>
+<p><strong>Key Sources</strong>:</p>
+<ol>
+<li>Real-time detection of an extreme scattering event (2016) - Science</li>
+<li>An Extreme Scattering Event Toward PSR J2313+4253 (2025) - arXiv</li>
+<li>VAST Tools variability metrics documentation</li>
+<li>Radio astronomy variability detection best practices</li>
+</ol>
 <h3 id="standard-practices">Standard Practices<a class="headerlink" href="#standard-practices" title="Permanent link">¶</a></h3>
 <ol>
 <li><strong>Sigma Thresholds</strong>:</li>
 <li><strong>3σ</strong>: Common for initial detection (0.3% false positive rate)</li>
-<li><strong>5σ</strong>: Gold standard for definitive discovery (0.00006% false positive rate)</li>
+<li><strong>5σ</strong>: Gold standard for definitive discovery (0.00006% false positive
+     rate)</li>
 <li>
 <p>Our default: <strong>5.0σ</strong> ✓ (Conservative, appropriate for production)</p>
 </li>
@@ -1214,7 +1220,8 @@
 </li>
 <li><strong>Chi-squared test</strong>: Standard for testing constant flux model ✓</li>
 <li><strong>Eta metric</strong>: Weighted variance metric (from VAST Tools) ✓</li>
-<li><strong>Multiple observables</strong>: ESEs show correlated changes in flux, scintillation bandwidth, and DM</li>
+<li><strong>Multiple observables</strong>: ESEs show correlated changes in flux,
+     scintillation bandwidth, and DM</li>
 <li>
 <p>Our implementation: Uses chi-squared and eta metrics ✓</p>
 </li>
@@ -1223,14 +1230,18 @@
 </li>
 <li>Real-time detection increasingly important ✓</li>
 <li>Post-processing light curve analysis ✓</li>
-<li>Our implementation: Both automated (real-time) and manual (post-processing) ✓</li>
+<li>Our implementation: Both automated (real-time) and manual (post-processing)
+     ✓</li>
 </ol>
 <h2 id="critical-issues-identified-and-fixed">Critical Issues Identified and Fixed<a class="headerlink" href="#critical-issues-identified-and-fixed" title="Permanent link">¶</a></h2>
 <h3 id="fixed-inconsistent-sigma-deviation-calculation">✅ FIXED: Inconsistent Sigma Deviation Calculation<a class="headerlink" href="#fixed-inconsistent-sigma-deviation-calculation" title="Permanent link">¶</a></h3>
-<p><strong>Problem</strong>: Two different formulas existed for <code>sigma_deviation</code>:
-- <code>ese_pipeline.py</code>: Correct formula (max deviation from mean / std)
-- <code>ese_detection.py</code>: Incorrect formula (std / (mean / sqrt(n)))</p>
-<p><strong>Fix Applied</strong>: Updated <code>ese_detection.py</code> to use the same correct formula as <code>ese_pipeline.py</code></p>
+<p><strong>Problem</strong>: Two different formulas existed for <code>sigma_deviation</code>:</p>
+<ul>
+<li><code>ese_pipeline.py</code>: Correct formula (max deviation from mean / std)</li>
+<li><code>ese_detection.py</code>: Incorrect formula (std / (mean / sqrt(n)))</li>
+</ul>
+<p><strong>Fix Applied</strong>: Updated <code>ese_detection.py</code> to use the same correct formula as
+<code>ese_pipeline.py</code></p>
 <p><strong>Status</strong>: ✅ Fixed (2025-11-12)</p>
 <h2 id="implementation-assessment">Implementation Assessment<a class="headerlink" href="#implementation-assessment" title="Permanent link">¶</a></h2>
 <h3 id="strengths">Strengths<a class="headerlink" href="#strengths" title="Permanent link">¶</a></h3>
@@ -1243,7 +1254,7 @@
 </ol>
 <h3 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong>Single-Frequency Analysis</strong>: </li>
+<li><strong>Single-Frequency Analysis</strong>:</li>
 <li>ESEs show frequency-dependent variability</li>
 <li>We only analyze single-frequency flux</li>
 <li>
@@ -1252,7 +1263,8 @@
 <li>
 <p><strong>No Multi-Observable Correlation</strong>:</p>
 </li>
-<li>Research shows ESEs have correlated changes in flux, scintillation bandwidth, and DM</li>
+<li>Research shows ESEs have correlated changes in flux, scintillation
+     bandwidth, and DM</li>
 <li>We only use flux variability</li>
 <li>
 <p>Future enhancement opportunity</p>
@@ -1358,13 +1370,18 @@
 <li>Automated follow-up triggers</li>
 </ol>
 <h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
-<p>Our ESE detection implementation is <strong>well-designed and follows best practices</strong> for variability analysis. The critical bug (inconsistent sigma_deviation calculation) has been <strong>fixed</strong>. </p>
-<p>The implementation is:
-- ✅ Statistically sound (uses standard metrics)
-- ✅ Conservatively tuned (5.0σ threshold)
-- ✅ Well-integrated (automated pipeline)
-- ✅ Properly documented</p>
-<p><strong>Limitations are acceptable</strong> given current observational capabilities and represent opportunities for future enhancement rather than critical flaws.</p>
+<p>Our ESE detection implementation is <strong>well-designed and follows best practices</strong>
+for variability analysis. The critical bug (inconsistent sigma_deviation
+calculation) has been <strong>fixed</strong>.</p>
+<p>The implementation is:</p>
+<ul>
+<li>✅ Statistically sound (uses standard metrics)</li>
+<li>✅ Conservatively tuned (5.0σ threshold)</li>
+<li>✅ Well-integrated (automated pipeline)</li>
+<li>✅ Properly documented</li>
+</ul>
+<p><strong>Limitations are acceptable</strong> given current observational capabilities and
+represent opportunities for future enhancement rather than critical flaws.</p>
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">¶</a></h2>
 <ol>
 <li>Real-time detection of an extreme scattering event (2016) - Science</li>
@@ -1416,7 +1433,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

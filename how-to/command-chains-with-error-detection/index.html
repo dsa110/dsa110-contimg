@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1142,13 +1144,15 @@
 <p>When you run command chains with <code>&amp;&amp;</code>:</p>
 <div class="highlight"><pre><span></span><code>command1<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>command2<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>command3
 </code></pre></div>
-<p><strong>Only explicitly wrapped commands are wrapped:</strong>
-- ✅ <code>python</code>, <code>python3</code> - Wrapped
-- ✅ <code>pytest</code> - Wrapped<br/>
-- ✅ <code>make</code> - Wrapped
-- ✅ <code>npm</code>, <code>node</code> - Wrapped (if in frontend directory)
-- ❌ <code>./script.sh</code> - <strong>NOT wrapped</strong>
-- ❌ <code>cd</code>, <code>echo</code>, etc. - <strong>NOT wrapped</strong> (by design - these are builtins)</p>
+<p><strong>Only explicitly wrapped commands are wrapped:</strong></p>
+<ul>
+<li>✅ <code>python</code>, <code>python3</code> - Wrapped</li>
+<li>✅ <code>pytest</code> - Wrapped</li>
+<li>✅ <code>make</code> - Wrapped</li>
+<li>✅ <code>npm</code>, <code>node</code> - Wrapped (if in frontend directory)</li>
+<li>❌ <code>./script.sh</code> - <strong>NOT wrapped</strong></li>
+<li>❌ <code>cd</code>, <code>echo</code>, etc. - <strong>NOT wrapped</strong> (by design - these are builtins)</li>
+</ul>
 <h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">¶</a></h2>
 <div class="highlight"><pre><span></span><code><span class="c1"># Only python3 is wrapped, echo is not</span>
 <span class="nb">echo</span><span class="w"> </span><span class="s2">"Starting"</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>python3<span class="w"> </span>script.py<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"Done"</span>
@@ -1157,15 +1161,20 @@
 <span class="nb">cd</span><span class="w"> </span>/path<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>pytest<span class="w"> </span>tests/<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>build
 </code></pre></div>
 <h2 id="why-this-limitation">Why This Limitation?<a class="headerlink" href="#why-this-limitation" title="Permanent link">¶</a></h2>
-<p>Bash evaluates each command in a chain separately. The auto-error-detection system works by:</p>
+<p>Bash evaluates each command in a chain separately. The auto-error-detection
+system works by:</p>
 <ol>
-<li><strong>Function wrappers</strong> - Overrides specific commands (<code>python</code>, <code>pytest</code>, etc.)</li>
-<li><strong>command_not_found_handle</strong> - Only catches commands that don't exist (not useful for existing scripts)</li>
+<li><strong>Function wrappers</strong> - Overrides specific commands (<code>python</code>, <code>pytest</code>,
+   etc.)</li>
+<li><strong>command_not_found_handle</strong> - Only catches commands that don't exist (not
+   useful for existing scripts)</li>
 </ol>
-<p>To wrap <strong>all</strong> commands in chains would require:
-- Overriding the <code>command</code> builtin (very invasive)
-- Using DEBUG trap (can cause performance issues)
-- Parsing command lines (complex and error-prone)</p>
+<p>To wrap <strong>all</strong> commands in chains would require:</p>
+<ul>
+<li>Overriding the <code>command</code> builtin (very invasive)</li>
+<li>Using DEBUG trap (can cause performance issues)</li>
+<li>Parsing command lines (complex and error-prone)</li>
+</ul>
 <h2 id="solutions">Solutions<a class="headerlink" href="#solutions" title="Permanent link">¶</a></h2>
 <h3 id="option-1-explicitly-wrap-scripts">Option 1: Explicitly Wrap Scripts<a class="headerlink" href="#option-1-explicitly-wrap-scripts" title="Permanent link">¶</a></h3>
 <p>Add wrapper functions for scripts you use frequently:</p>
@@ -1196,25 +1205,32 @@ run-with-error-detection.py<span class="w"> </span>./script.sh<span class="w"> <
 </code></pre></div>
 <p><strong>Warning:</strong> This is more aggressive and may have side effects.</p>
 <h2 id="best-practice">Best Practice<a class="headerlink" href="#best-practice" title="Permanent link">¶</a></h2>
-<p>For command chains, wrap the <strong>entire chain</strong> if you want error detection on all parts:</p>
+<p>For command chains, wrap the <strong>entire chain</strong> if you want error detection on all
+parts:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Wrap entire chain</span>
 run-with-error-detection.py<span class="w"> </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s1">'cd /path &amp;&amp; ./script.sh &amp;&amp; python test.py &amp;&amp; make build'</span>
 </code></pre></div>
-<p>This ensures:
-- ✅ All commands are monitored
-- ✅ Error detection works for all parts
-- ✅ Chain stops immediately on error
-- ✅ Consistent behavior</p>
+<p>This ensures:</p>
+<ul>
+<li>✅ All commands are monitored</li>
+<li>✅ Error detection works for all parts</li>
+<li>✅ Chain stops immediately on error</li>
+<li>✅ Consistent behavior</li>
+</ul>
 <h2 id="current-status">Current Status<a class="headerlink" href="#current-status" title="Permanent link">¶</a></h2>
-<p><strong>What's wrapped automatically:</strong>
-- <code>python</code>, <code>python3</code>
-- <code>pytest</code>
-- <code>make</code>
-- <code>npm</code>, <code>node</code> (if in frontend directory)</p>
-<p><strong>What's NOT wrapped automatically:</strong>
-- Scripts (<code>./script.sh</code>, <code>scripts/script.sh</code>)
-- Built-in commands (<code>cd</code>, <code>echo</code>, etc.)
-- Other executables not in the wrapper list</p>
+<p><strong>What's wrapped automatically:</strong></p>
+<ul>
+<li><code>python</code>, <code>python3</code></li>
+<li><code>pytest</code></li>
+<li><code>make</code></li>
+<li><code>npm</code>, <code>node</code> (if in frontend directory)</li>
+</ul>
+<p><strong>What's NOT wrapped automatically:</strong></p>
+<ul>
+<li>Scripts (<code>./script.sh</code>, <code>scripts/script.sh</code>)</li>
+<li>Built-in commands (<code>cd</code>, <code>echo</code>, etc.)</li>
+<li>Other executables not in the wrapper list</li>
+</ul>
 <p><strong>Recommendation:</strong> For command chains with scripts, wrap the entire chain:</p>
 <div class="highlight"><pre><span></span><code>run-with-error-detection.py<span class="w"> </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s1">'your &amp;&amp; command &amp;&amp; chain'</span>
 </code></pre></div>
@@ -1242,7 +1258,7 @@ run-with-error-detection.py<span class="w"> </span>bash<span class="w"> </span>-
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

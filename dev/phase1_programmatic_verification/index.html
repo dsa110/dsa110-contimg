@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1146,7 +1148,9 @@
 <article class="md-content__inner md-typeset">
 <h1 id="phase-1-programmatic-verification-summary">Phase 1 Programmatic Verification Summary<a class="headerlink" href="#phase-1-programmatic-verification-summary" title="Permanent link">¶</a></h1>
 <h2 id="status-all-backend-apis-verified">Status: ✅ All Backend APIs Verified<a class="headerlink" href="#status-all-backend-apis-verified" title="Permanent link">¶</a></h2>
-<p>Since browser extension connection is required for interactive testing, I've verified all backend APIs programmatically. All endpoints are working correctly and ready for frontend integration.</p>
+<p>Since browser extension connection is required for interactive testing, I've
+verified all backend APIs programmatically. All endpoints are working correctly
+and ready for frontend integration.</p>
 <h2 id="verified-components">Verified Components<a class="headerlink" href="#verified-components" title="Permanent link">¶</a></h2>
 <h3 id="1-backend-api-endpoints">1. Backend API Endpoints ✅<a class="headerlink" href="#1-backend-api-endpoints" title="Permanent link">¶</a></h3>
 <p><strong>All endpoints tested and working:</strong></p>
@@ -1217,27 +1221,35 @@
 </tbody>
 </table>
 <h3 id="2-frontend-code-verification">2. Frontend Code Verification ✅<a class="headerlink" href="#2-frontend-code-verification" title="Permanent link">¶</a></h3>
-<p><strong>TypeScript Compilation:</strong>
-- ✅ <code>npm run type-check</code> passes (Operations-related code)
-- ✅ All imports correct
-- ✅ All types properly defined</p>
-<p><strong>Routes Configuration:</strong>
-- ✅ <code>/operations</code> route configured in <code>App.tsx</code>
-- ✅ <code>OperationsPage</code> component imported
-- ✅ Navigation link added to <code>Navigation.tsx</code></p>
-<p><strong>React Query Hooks:</strong>
-- ✅ <code>useDLQStats()</code> - Configured with 10s interval
-- ✅ <code>useDLQItems()</code> - Configured with 30s interval
-- ✅ <code>useCircuitBreakers()</code> - Configured with 5s interval
-- ✅ <code>useHealthSummary()</code> - Configured with 10s interval</p>
-<p><strong>Components:</strong>
-- ✅ <code>DeadLetterQueueTable</code> - Created and exported
-- ✅ <code>DeadLetterQueueStats</code> - Created and exported
-- ✅ <code>CircuitBreakerStatus</code> - Created and exported
-- ✅ <code>OperationsPage</code> - Created with tabs
-- ✅ <code>HealthPage</code> - Enhanced with Operations Health tab</p>
+<p><strong>TypeScript Compilation:</strong></p>
+<ul>
+<li>✅ <code>npm run type-check</code> passes (Operations-related code)</li>
+<li>✅ All imports correct</li>
+<li>✅ All types properly defined</li>
+</ul>
+<p><strong>Routes Configuration:</strong></p>
+<ul>
+<li>✅ <code>/operations</code> route configured in <code>App.tsx</code></li>
+<li>✅ <code>OperationsPage</code> component imported</li>
+<li>✅ Navigation link added to <code>Navigation.tsx</code></li>
+</ul>
+<p><strong>React Query Hooks:</strong></p>
+<ul>
+<li>✅ <code>useDLQStats()</code> - Configured with 10s interval</li>
+<li>✅ <code>useDLQItems()</code> - Configured with 30s interval</li>
+<li>✅ <code>useCircuitBreakers()</code> - Configured with 5s interval</li>
+<li>✅ <code>useHealthSummary()</code> - Configured with 10s interval</li>
+</ul>
+<p><strong>Components:</strong></p>
+<ul>
+<li>✅ <code>DeadLetterQueueTable</code> - Created and exported</li>
+<li>✅ <code>DeadLetterQueueStats</code> - Created and exported</li>
+<li>✅ <code>CircuitBreakerStatus</code> - Created and exported</li>
+<li>✅ <code>OperationsPage</code> - Created with tabs</li>
+<li>✅ <code>HealthPage</code> - Enhanced with Operations Health tab</li>
+</ul>
 <h3 id="3-data-structure-verification">3. Data Structure Verification ✅<a class="headerlink" href="#3-data-structure-verification" title="Permanent link">¶</a></h3>
-<p><strong>DLQ Stats Response:</strong>
+<p><strong>DLQ Stats Response:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"total"</span><span class="p">:</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"pending"</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span>
@@ -1245,8 +1257,8 @@
 <span class="w">  </span><span class="nt">"resolved"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"failed"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
 <span class="p">}</span>
-</code></pre></div></p>
-<p><strong>DLQ Item Response:</strong>
+</code></pre></div>
+<p><strong>DLQ Item Response:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"component"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calibration_solve"</span><span class="p">,</span>
@@ -1260,8 +1272,8 @@
 <span class="w">  </span><span class="nt">"resolved_at"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"resolution_note"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
 <span class="p">}</span>
-</code></pre></div></p>
-<p><strong>Circuit Breaker Response:</strong>
+</code></pre></div>
+<p><strong>Circuit Breaker Response:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"circuit_breakers"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="p">{</span>
@@ -1274,8 +1286,8 @@
 <span class="w">    </span><span class="err">...</span>
 <span class="w">  </span><span class="p">]</span>
 <span class="p">}</span>
-</code></pre></div></p>
-<p><strong>Health Summary Response:</strong>
+</code></pre></div>
+<p><strong>Health Summary Response:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"degraded"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mf">1762998207.6748192</span><span class="p">,</span>
@@ -1289,7 +1301,7 @@
 <span class="w">    </span><span class="nt">"failed"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="4-auto-refresh-configuration">4. Auto-Refresh Configuration ✅<a class="headerlink" href="#4-auto-refresh-configuration" title="Permanent link">¶</a></h3>
 <p><strong>Verified in <code>frontend/src/api/queries.ts</code>:</strong></p>
 <table>
@@ -1374,13 +1386,10 @@
 <li>Test interactions</li>
 </ol>
 <h2 id="whats-ready">What's Ready<a class="headerlink" href="#whats-ready" title="Permanent link">¶</a></h2>
-<p>✅ <strong>Backend APIs:</strong> All endpoints tested and working
-✅ <strong>Frontend Code:</strong> All components created and configured
-✅ <strong>TypeScript:</strong> All type checks pass
-✅ <strong>Routes:</strong> All routes configured
-✅ <strong>Navigation:</strong> Links added
-✅ <strong>Auto-Refresh:</strong> Configured correctly
-✅ <strong>Test Data:</strong> Available for testing</p>
+<p>✅ <strong>Backend APIs:</strong> All endpoints tested and working ✅ <strong>Frontend Code:</strong> All
+components created and configured ✅ <strong>TypeScript:</strong> All type checks pass ✅
+<strong>Routes:</strong> All routes configured ✅ <strong>Navigation:</strong> Links added ✅
+<strong>Auto-Refresh:</strong> Configured correctly ✅ <strong>Test Data:</strong> Available for testing</p>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
 <ol>
 <li><strong>Connect browser extension</strong> (if you want interactive testing)</li>
@@ -1393,7 +1402,10 @@
 </ol>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
 <p><strong>Phase 1 Status: ✅ COMPLETE</strong></p>
-<p>All backend APIs are verified and working. All frontend code is created and configured correctly. The system is ready for browser-based UI testing once the browser extension is connected, or can be tested manually using the provided guides.</p>
+<p>All backend APIs are verified and working. All frontend code is created and
+configured correctly. The system is ready for browser-based UI testing once the
+browser extension is connected, or can be tested manually using the provided
+guides.</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1418,7 +1430,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1122,38 +1124,50 @@
 <h2 id="backend-enhancements">Backend Enhancements<a class="headerlink" href="#backend-enhancements" title="Permanent link">¶</a></h2>
 <h3 id="1-eventbus-enhancements">1. EventBus Enhancements ✅<a class="headerlink" href="#1-eventbus-enhancements" title="Permanent link">¶</a></h3>
 <p><strong>File:</strong> <code>src/dsa110_contimg/pipeline/event_bus.py</code></p>
-<p><strong>Added:</strong>
-- Statistics tracking (<code>_event_counts</code>, <code>_total_events</code>)
-- <code>get_history()</code> method with filtering (event_type, limit, since timestamp)
-- <code>get_statistics()</code> method returning:
-  - Total events
-  - Events in history
-  - Events per type
-  - Events in last minute/hour
-  - Subscriber counts</p>
+<p><strong>Added:</strong></p>
+<ul>
+<li>Statistics tracking (<code>_event_counts</code>, <code>_total_events</code>)</li>
+<li><code>get_history()</code> method with filtering (event_type, limit, since timestamp)</li>
+<li><code>get_statistics()</code> method returning:</li>
+<li>Total events</li>
+<li>Events in history</li>
+<li>Events per type</li>
+<li>Events in last minute/hour</li>
+<li>Subscriber counts</li>
+</ul>
 <h3 id="2-cachebackend-enhancements">2. CacheBackend Enhancements ✅<a class="headerlink" href="#2-cachebackend-enhancements" title="Permanent link">¶</a></h3>
 <p><strong>File:</strong> <code>src/dsa110_contimg/pipeline/caching.py</code></p>
-<p><strong>Added to InMemoryCache:</strong>
-- Statistics tracking (<code>_hits</code>, <code>_misses</code>, <code>_sets</code>, <code>_deletes</code>)
-- <code>get_statistics()</code> method
-- <code>list_keys()</code> method with pattern filtering</p>
-<p><strong>Added to RedisCache:</strong>
-- <code>get_statistics()</code> method using Redis INFO
-- <code>list_keys()</code> method using Redis SCAN</p>
-<p><strong>Updated CacheBackend interface:</strong>
-- Added abstract methods for <code>get_statistics()</code> and <code>list_keys()</code></p>
+<p><strong>Added to InMemoryCache:</strong></p>
+<ul>
+<li>Statistics tracking (<code>_hits</code>, <code>_misses</code>, <code>_sets</code>, <code>_deletes</code>)</li>
+<li><code>get_statistics()</code> method</li>
+<li><code>list_keys()</code> method with pattern filtering</li>
+</ul>
+<p><strong>Added to RedisCache:</strong></p>
+<ul>
+<li><code>get_statistics()</code> method using Redis INFO</li>
+<li><code>list_keys()</code> method using Redis SCAN</li>
+</ul>
+<p><strong>Updated CacheBackend interface:</strong></p>
+<ul>
+<li>Added abstract methods for <code>get_statistics()</code> and <code>list_keys()</code></li>
+</ul>
 <h3 id="3-api-endpoints">3. API Endpoints ✅<a class="headerlink" href="#3-api-endpoints" title="Permanent link">¶</a></h3>
-<p><strong>Events API (<code>src/dsa110_contimg/api/routers/events.py</code>):</strong>
-- <code>GET /api/events/stream</code> - Get recent events with filtering
-- <code>GET /api/events/stats</code> - Get event statistics
-- <code>GET /api/events/types</code> - Get available event types</p>
-<p><strong>Cache API (<code>src/dsa110_contimg/api/routers/cache.py</code>):</strong>
-- <code>GET /api/cache/stats</code> - Get cache statistics
-- <code>GET /api/cache/keys</code> - List cache keys with filtering
-- <code>GET /api/cache/keys/{key}</code> - Get cache key details
-- <code>DELETE /api/cache/keys/{key}</code> - Delete cache key
-- <code>DELETE /api/cache/clear</code> - Clear all cache
-- <code>GET /api/cache/performance</code> - Get performance metrics</p>
+<p><strong>Events API (<code>src/dsa110_contimg/api/routers/events.py</code>):</strong></p>
+<ul>
+<li><code>GET /api/events/stream</code> - Get recent events with filtering</li>
+<li><code>GET /api/events/stats</code> - Get event statistics</li>
+<li><code>GET /api/events/types</code> - Get available event types</li>
+</ul>
+<p><strong>Cache API (<code>src/dsa110_contimg/api/routers/cache.py</code>):</strong></p>
+<ul>
+<li><code>GET /api/cache/stats</code> - Get cache statistics</li>
+<li><code>GET /api/cache/keys</code> - List cache keys with filtering</li>
+<li><code>GET /api/cache/keys/{key}</code> - Get cache key details</li>
+<li><code>DELETE /api/cache/keys/{key}</code> - Delete cache key</li>
+<li><code>DELETE /api/cache/clear</code> - Clear all cache</li>
+<li><code>GET /api/cache/performance</code> - Get performance metrics</li>
+</ul>
 <h3 id="4-router-registration">4. Router Registration ✅<a class="headerlink" href="#4-router-registration" title="Permanent link">¶</a></h3>
 <p><strong>File:</strong> <code>src/dsa110_contimg/api/routes.py</code></p>
 <ul>
@@ -1193,7 +1207,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

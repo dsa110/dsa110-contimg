@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1253,7 +1255,8 @@
 <article class="md-content__inner md-typeset">
 <h1 id="automated-ese-detection-pipeline-implementation-summary">Automated ESE Detection Pipeline Implementation Summary<a class="headerlink" href="#automated-ese-detection-pipeline-implementation-summary" title="Permanent link">¶</a></h1>
 <h2 id="status-complete-0-100">Status: Complete (0% → 100%)<a class="headerlink" href="#status-complete-0-100" title="Permanent link">¶</a></h2>
-<p>All components for automated ESE detection after photometry measurements have been implemented.</p>
+<p>All components for automated ESE detection after photometry measurements have
+been implemented.</p>
 <h2 id="implementation-overview">Implementation Overview<a class="headerlink" href="#implementation-overview" title="Permanent link">¶</a></h2>
 <h3 id="1-automatic-variability-stats-computation">1. Automatic Variability Stats Computation<a class="headerlink" href="#1-automatic-variability-stats-computation" title="Permanent link">¶</a></h3>
 <ul>
@@ -1262,7 +1265,8 @@
 <li><strong>Function</strong>: <code>update_variability_stats_for_source()</code></li>
 <li><strong>Functionality</strong>:</li>
 <li>Queries photometry table for source measurements</li>
-<li>Computes variability statistics (mean, std, chi2_nu, sigma_deviation, eta_metric)</li>
+<li>Computes variability statistics (mean, std, chi2_nu, sigma_deviation,
+    eta_metric)</li>
 <li>Updates <code>variability_stats</code> table with latest statistics</li>
 <li>Handles idempotent updates (ON CONFLICT DO UPDATE)</li>
 </ul>
@@ -1271,7 +1275,8 @@
 <li><strong>Status</strong>: Complete</li>
 <li><strong>Location</strong>: <code>src/dsa110_contimg/photometry/ese_pipeline.py</code></li>
 <li><strong>Functions</strong>:</li>
-<li><code>auto_detect_ese_for_new_measurements()</code>: Single-source detection after new measurement</li>
+<li><code>auto_detect_ese_for_new_measurements()</code>: Single-source detection after new
+    measurement</li>
 <li><code>auto_detect_ese_after_photometry()</code>: Batch detection for multiple sources</li>
 <li><strong>Functionality</strong>:</li>
 <li>Automatically updates variability stats</li>
@@ -1343,10 +1348,12 @@ If qualified: Flag in ese_candidates table
 Log detected candidate
 </code></pre></div>
 <h2 id="source-id-generation">Source ID Generation<a class="headerlink" href="#source-id-generation" title="Permanent link">¶</a></h2>
-<p>Sources are identified using IAU-style coordinate-based IDs:
-- Format: <code>JHHMMSS+DDMMSS</code> (e.g., <code>J120000+450000</code>)
-- Generated from RA/Dec coordinates rounded to nearest arcsecond
-- Ensures consistent identification across measurements</p>
+<p>Sources are identified using IAU-style coordinate-based IDs:</p>
+<ul>
+<li>Format: <code>JHHMMSS+DDMMSS</code> (e.g., <code>J120000+450000</code>)</li>
+<li>Generated from RA/Dec coordinates rounded to nearest arcsecond</li>
+<li>Ensures consistent identification across measurements</li>
+</ul>
 <h2 id="database-schema">Database Schema<a class="headerlink" href="#database-schema" title="Permanent link">¶</a></h2>
 <h3 id="photometry-table">photometry table<a class="headerlink" href="#photometry-table" title="Permanent link">¶</a></h3>
 <ul>
@@ -1366,7 +1373,8 @@ Log detected candidate
 </ul>
 <h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong>Missing tables</strong>: Gracefully handles missing photometry/variability_stats tables</li>
+<li><strong>Missing tables</strong>: Gracefully handles missing photometry/variability_stats
+  tables</li>
 <li><strong>Failed updates</strong>: Logs warnings but continues processing</li>
 <li><strong>ESE detection failures</strong>: Non-fatal, logged but doesn't stop photometry job</li>
 <li><strong>Database errors</strong>: Caught and logged, doesn't affect main photometry flow</li>
@@ -1374,9 +1382,12 @@ Log detected candidate
 <h2 id="performance-considerations">Performance Considerations<a class="headerlink" href="#performance-considerations" title="Permanent link">¶</a></h2>
 <ul>
 <li><strong>Incremental updates</strong>: Only updates variability stats for measured sources</li>
-<li><strong>Single-source optimization</strong>: <code>auto_detect_ese_for_new_measurements()</code> optimized for single-source updates</li>
-<li><strong>Batch processing</strong>: <code>auto_detect_ese_after_photometry()</code> handles multiple sources efficiently</li>
-<li><strong>Non-blocking</strong>: ESE detection runs asynchronously, doesn't block photometry measurements</li>
+<li><strong>Single-source optimization</strong>: <code>auto_detect_ese_for_new_measurements()</code>
+  optimized for single-source updates</li>
+<li><strong>Batch processing</strong>: <code>auto_detect_ese_after_photometry()</code> handles multiple
+  sources efficiently</li>
+<li><strong>Non-blocking</strong>: ESE detection runs asynchronously, doesn't block photometry
+  measurements</li>
 </ul>
 <h2 id="test-coverage">Test Coverage<a class="headerlink" href="#test-coverage" title="Permanent link">¶</a></h2>
 <h3 id="unit-tests-created">Unit Tests Created<a class="headerlink" href="#unit-tests-created" title="Permanent link">¶</a></h3>
@@ -1404,24 +1415,29 @@ Log detected candidate
 <h3 id="ese-pipeline-module">ESE Pipeline Module<a class="headerlink" href="#ese-pipeline-module" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>File</strong>: <code>src/dsa110_contimg/photometry/ese_pipeline.py</code></li>
-<li><strong>Functions</strong>: </li>
+<li><strong>Functions</strong>:</li>
 <li><code>update_variability_stats_for_source()</code></li>
 <li><code>auto_detect_ese_for_new_measurements()</code></li>
 <li><code>auto_detect_ese_after_photometry()</code></li>
 </ul>
 <h2 id="future-enhancements">Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">¶</a></h2>
-<p>Potential improvements:
-1. Configurable batch size for variability stats updates
-2. Caching of variability stats to reduce database queries
-3. Parallel processing for multiple sources
-4. Real-time alerts for high-significance candidates
-5. Integration with monitoring/alerting systems</p>
+<p>Potential improvements:</p>
+<ol>
+<li>Configurable batch size for variability stats updates</li>
+<li>Caching of variability stats to reduce database queries</li>
+<li>Parallel processing for multiple sources</li>
+<li>Real-time alerts for high-significance candidates</li>
+<li>Integration with monitoring/alerting systems</li>
+</ol>
 <h2 id="status-complete">Status: Complete<a class="headerlink" href="#status-complete" title="Permanent link">¶</a></h2>
-<p>All automated ESE detection pipeline components are implemented, tested, and integrated with the photometry pipeline. The system automatically:
-- Stores photometry measurements with source IDs
-- Computes variability statistics
-- Detects and flags ESE candidates
-- Logs detected candidates for review</p>
+<p>All automated ESE detection pipeline components are implemented, tested, and
+integrated with the photometry pipeline. The system automatically:</p>
+<ul>
+<li>Stores photometry measurements with source IDs</li>
+<li>Computes variability statistics</li>
+<li>Detects and flags ESE candidates</li>
+<li>Logs detected candidates for review</li>
+</ul>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1446,7 +1462,7 @@ Log detected candidate
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

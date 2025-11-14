@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1299,85 +1301,113 @@
 <strong>Phase:</strong> Workflow Navigation Improvements</p>
 <hr/>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
-<p>Implemented workflow-optimized navigation features to improve user experience and reduce context switching. The implementation includes context-aware navigation, unified workspace mode, command palette, and workflow breadcrumbs.</p>
+<p>Implemented workflow-optimized navigation features to improve user experience
+and reduce context switching. The implementation includes context-aware
+navigation, unified workspace mode, command palette, and workflow breadcrumbs.</p>
 <hr/>
 <h2 id="components-implemented">Components Implemented<a class="headerlink" href="#components-implemented" title="Permanent link">¶</a></h2>
 <h3 id="1-workflow-context-contextsworkflowcontexttsx">1. Workflow Context (<code>contexts/WorkflowContext.tsx</code>)<a class="headerlink" href="#1-workflow-context-contextsworkflowcontexttsx" title="Permanent link">¶</a></h3>
-<p><strong>Purpose:</strong> Manages workflow state and provides context-aware navigation suggestions.</p>
-<p><strong>Features:</strong>
-- Automatically detects workflow type based on current page
-- Generates breadcrumbs from URL path
-- Provides suggested next steps based on navigation rules
-- Tracks current workflow state (monitoring, discovery, investigation, debugging, analysis, control)</p>
-<p><strong>Workflow Detection:</strong>
-- <code>/dashboard</code> → <code>monitoring</code>
-- <code>/sources</code> or <code>/sources/:id</code> → <code>investigation</code>
-- <code>/data</code> or <code>/qa</code> → <code>analysis</code>
-- <code>/operations</code> or <code>/health</code> → <code>debugging</code>
-- <code>/control</code> → <code>control</code></p>
-<p><strong>Usage:</strong>
-<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useWorkflow</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'../contexts/WorkflowContext'</span><span class="p">;</span>
+<p><strong>Purpose:</strong> Manages workflow state and provides context-aware navigation
+suggestions.</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Automatically detects workflow type based on current page</li>
+<li>Generates breadcrumbs from URL path</li>
+<li>Provides suggested next steps based on navigation rules</li>
+<li>Tracks current workflow state (monitoring, discovery, investigation,
+  debugging, analysis, control)</li>
+</ul>
+<p><strong>Workflow Detection:</strong></p>
+<ul>
+<li><code>/dashboard</code> → <code>monitoring</code></li>
+<li><code>/sources</code> or <code>/sources/:id</code> → <code>investigation</code></li>
+<li><code>/data</code> or <code>/qa</code> → <code>analysis</code></li>
+<li><code>/operations</code> or <code>/health</code> → <code>debugging</code></li>
+<li><code>/control</code> → <code>control</code></li>
+</ul>
+<p><strong>Usage:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useWorkflow</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">"../contexts/WorkflowContext"</span><span class="p">;</span>
 
 <span class="kd">function</span><span class="w"> </span><span class="nx">MyComponent</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">currentWorkflow</span><span class="p">,</span><span class="w"> </span><span class="nx">suggestedNextSteps</span><span class="p">,</span><span class="w"> </span><span class="nx">breadcrumbs</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useWorkflow</span><span class="p">();</span>
 <span class="w">  </span><span class="c1">// Use workflow context...</span>
 <span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="2-workflow-breadcrumbs-componentsworkflowbreadcrumbstsx">2. Workflow Breadcrumbs (<code>components/WorkflowBreadcrumbs.tsx</code>)<a class="headerlink" href="#2-workflow-breadcrumbs-componentsworkflowbreadcrumbstsx" title="Permanent link">¶</a></h3>
 <p><strong>Purpose:</strong> Shows current navigation path with clickable breadcrumbs.</p>
-<p><strong>Features:</strong>
-- Automatically generated from URL path
-- Clickable navigation to parent pages
-- Shows current workflow type as chip
-- Only displays when not on dashboard (reduces clutter)</p>
-<p><strong>Visual:</strong>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Automatically generated from URL path</li>
+<li>Clickable navigation to parent pages</li>
+<li>Shows current workflow type as chip</li>
+<li>Only displays when not on dashboard (reduces clutter)</li>
+</ul>
+<p><strong>Visual:</strong></p>
 <div class="highlight"><pre><span></span><code>Dashboard &gt; Sources &gt; NVSS J1234+5678  [Investigation]
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="3-command-palette-componentscommandpalettetsx">3. Command Palette (<code>components/CommandPalette.tsx</code>)<a class="headerlink" href="#3-command-palette-componentscommandpalettetsx" title="Permanent link">¶</a></h3>
-<p><strong>Purpose:</strong> Quick access to all pages, actions, and workflows via Cmd+K / Ctrl+K.</p>
-<p><strong>Features:</strong>
-- Fuzzy search across all pages and actions
-- Keyboard navigation (↑↓ arrows, Enter to select, Esc to close)
-- Groups commands by category (Pages, Actions, Workflows)
-- Shows suggested next steps
-- Displays workflow templates</p>
-<p><strong>Keyboard Shortcuts:</strong>
-- <code>Cmd+K</code> / <code>Ctrl+K</code> - Open command palette
-- <code>↑</code> / <code>↓</code> - Navigate results
-- <code>Enter</code> - Select command
-- <code>Esc</code> - Close palette</p>
-<p><strong>Command Categories:</strong>
-- <strong>Pages</strong> - All navigation pages (Dashboard, Sources, Data, etc.)
-- <strong>Suggested Actions</strong> - Context-aware suggestions
-- <strong>Workflows</strong> - Pre-defined workflow templates</p>
-<p><strong>Workflow Templates:</strong>
-1. <strong>ESE Discovery Investigation</strong> - Dashboard → Sources → QA → Data Browser
-2. <strong>Pipeline Debugging</strong> - Dashboard → Operations → Control → Health
-3. <strong>Data Exploration</strong> - Sky View → Sources → Data Browser → QA</p>
+<p><strong>Purpose:</strong> Quick access to all pages, actions, and workflows via Cmd+K /
+Ctrl+K.</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Fuzzy search across all pages and actions</li>
+<li>Keyboard navigation (↑↓ arrows, Enter to select, Esc to close)</li>
+<li>Groups commands by category (Pages, Actions, Workflows)</li>
+<li>Shows suggested next steps</li>
+<li>Displays workflow templates</li>
+</ul>
+<p><strong>Keyboard Shortcuts:</strong></p>
+<ul>
+<li><code>Cmd+K</code> / <code>Ctrl+K</code> - Open command palette</li>
+<li><code>↑</code> / <code>↓</code> - Navigate results</li>
+<li><code>Enter</code> - Select command</li>
+<li><code>Esc</code> - Close palette</li>
+</ul>
+<p><strong>Command Categories:</strong></p>
+<ul>
+<li><strong>Pages</strong> - All navigation pages (Dashboard, Sources, Data, etc.)</li>
+<li><strong>Suggested Actions</strong> - Context-aware suggestions</li>
+<li><strong>Workflows</strong> - Pre-defined workflow templates</li>
+</ul>
+<p><strong>Workflow Templates:</strong></p>
+<ol>
+<li><strong>ESE Discovery Investigation</strong> - Dashboard → Sources → QA → Data Browser</li>
+<li><strong>Pipeline Debugging</strong> - Dashboard → Operations → Control → Health</li>
+<li><strong>Data Exploration</strong> - Sky View → Sources → Data Browser → QA</li>
+</ol>
 <h3 id="4-context-aware-navigation-componentscontextawarenavigationtsx">4. Context-Aware Navigation (<code>components/ContextAwareNavigation.tsx</code>)<a class="headerlink" href="#4-context-aware-navigation-componentscontextawarenavigationtsx" title="Permanent link">¶</a></h3>
-<p><strong>Purpose:</strong> Shows suggested next steps and quick actions based on current workflow.</p>
-<p><strong>Features:</strong>
-- Displays suggested navigation steps
-- Shows quick action buttons
-- Only appears when suggestions are available
-- Adapts to current workflow context</p>
-<p><strong>Example:</strong>
-When on Dashboard with discovery workflow:
-- Suggested: "View Sources", "Check QA"
-- Quick Actions: "View ESE Candidates"</p>
+<p><strong>Purpose:</strong> Shows suggested next steps and quick actions based on current
+workflow.</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Displays suggested navigation steps</li>
+<li>Shows quick action buttons</li>
+<li>Only appears when suggestions are available</li>
+<li>Adapts to current workflow context</li>
+</ul>
+<p><strong>Example:</strong> When on Dashboard with discovery workflow:</p>
+<ul>
+<li>Suggested: "View Sources", "Check QA"</li>
+<li>Quick Actions: "View ESE Candidates"</li>
+</ul>
 <h3 id="5-unified-workspace-componentsunifiedworkspacetsx">5. Unified Workspace (<code>components/UnifiedWorkspace.tsx</code>)<a class="headerlink" href="#5-unified-workspace-componentsunifiedworkspacetsx" title="Permanent link">¶</a></h3>
-<p><strong>Purpose:</strong> Multi-pane layout for viewing multiple related views simultaneously.</p>
-<p><strong>Features:</strong>
-- <strong>Split Horizontal</strong> - Side-by-side views
-- <strong>Split Vertical</strong> - Stacked views
-- <strong>Grid/Tabs</strong> - Tabbed interface for multiple views
-- <strong>Fullscreen Mode</strong> - Expand any view to fullscreen
-- <strong>Closable Views</strong> - Remove views from workspace</p>
-<p><strong>Use Cases:</strong>
-- ESE Investigation: Source details + Light curve + Image viewer
-- Pipeline Debug: DLQ + Error logs + System metrics
-- Data Analysis: Multiple images side-by-side</p>
-<p><strong>Usage:</strong>
+<p><strong>Purpose:</strong> Multi-pane layout for viewing multiple related views
+simultaneously.</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Split Horizontal</strong> - Side-by-side views</li>
+<li><strong>Split Vertical</strong> - Stacked views</li>
+<li><strong>Grid/Tabs</strong> - Tabbed interface for multiple views</li>
+<li><strong>Fullscreen Mode</strong> - Expand any view to fullscreen</li>
+<li><strong>Closable Views</strong> - Remove views from workspace</li>
+</ul>
+<p><strong>Use Cases:</strong></p>
+<ul>
+<li>ESE Investigation: Source details + Light curve + Image viewer</li>
+<li>Pipeline Debug: DLQ + Error logs + System metrics</li>
+<li>Data Analysis: Multiple images side-by-side</li>
+</ul>
+<p><strong>Usage:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="nx">UnifiedWorkspace</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">WorkspaceView</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'../components/UnifiedWorkspace'</span><span class="p">;</span>
 
 <span class="kd">const</span><span class="w"> </span><span class="nx">views</span><span class="o">:</span><span class="w"> </span><span class="kt">WorkspaceView</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
@@ -1396,13 +1426,15 @@ When on Dashboard with discovery workflow:
 <span class="p">];</span>
 
 <span class="o">&lt;</span><span class="nx">UnifiedWorkspace</span><span class="w"> </span><span class="nx">views</span><span class="o">=</span><span class="p">{</span><span class="nx">views</span><span class="p">}</span><span class="w"> </span><span class="nx">defaultLayout</span><span class="o">=</span><span class="s2">"split-horizontal"</span><span class="w"> </span><span class="o">/&gt;</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="6-command-palette-hook-hooksusecommandpalettets">6. Command Palette Hook (<code>hooks/useCommandPalette.ts</code>)<a class="headerlink" href="#6-command-palette-hook-hooksusecommandpalettets" title="Permanent link">¶</a></h3>
 <p><strong>Purpose:</strong> Manages command palette open/close state with keyboard shortcuts.</p>
-<p><strong>Features:</strong>
-- Global keyboard shortcut handling (Cmd+K / Ctrl+K)
-- Escape key to close
-- State management for open/close</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Global keyboard shortcut handling (Cmd+K / Ctrl+K)</li>
+<li>Escape key to close</li>
+<li>State management for open/close</li>
+</ul>
 <hr/>
 <h2 id="integration">Integration<a class="headerlink" href="#integration" title="Permanent link">¶</a></h2>
 <h3 id="updated-components">Updated Components<a class="headerlink" href="#updated-components" title="Permanent link">¶</a></h3>
@@ -1554,7 +1586,8 @@ When on Dashboard with discovery workflow:
 <li><code>frontend/src/contexts/WorkflowContext.tsx</code> - Workflow context provider</li>
 <li><code>frontend/src/components/WorkflowBreadcrumbs.tsx</code> - Breadcrumbs component</li>
 <li><code>frontend/src/components/CommandPalette.tsx</code> - Command palette component</li>
-<li><code>frontend/src/components/ContextAwareNavigation.tsx</code> - Context-aware suggestions</li>
+<li><code>frontend/src/components/ContextAwareNavigation.tsx</code> - Context-aware
+   suggestions</li>
 <li><code>frontend/src/components/UnifiedWorkspace.tsx</code> - Multi-pane workspace</li>
 <li><code>frontend/src/hooks/useCommandPalette.ts</code> - Command palette hook</li>
 </ol>
@@ -1570,7 +1603,8 @@ When on Dashboard with discovery workflow:
 <li><strong>Enhance Suggestions</strong> - Add more navigation rules based on user feedback</li>
 <li><strong>Add More Workflows</strong> - Create additional workflow templates</li>
 <li><strong>User Testing</strong> - Gather feedback from radio astronomers</li>
-<li><strong>Performance Optimization</strong> - Optimize command palette search for large datasets</li>
+<li><strong>Performance Optimization</strong> - Optimize command palette search for large
+   datasets</li>
 <li><strong>Accessibility</strong> - Ensure keyboard navigation works for all users</li>
 </ol>
 <hr/>
@@ -1604,7 +1638,7 @@ When on Dashboard with discovery workflow:
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

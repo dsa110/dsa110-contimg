@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1232,68 +1234,93 @@
 <article class="md-content__inner md-typeset">
 <h1 id="critical-path-summary-pre-flight-checklist-for-create_mosaic_centeredpy">Critical Path Summary: Pre-Flight Checklist for <code>create_mosaic_centered.py</code><a class="headerlink" href="#critical-path-summary-pre-flight-checklist-for-create_mosaic_centeredpy" title="Permanent link">¶</a></h1>
 <p><strong>Date:</strong> 2025-11-12<br/>
-<strong>Purpose:</strong> Identify what must be completed before <code>create_mosaic_centered.py</code> can reliably accomplish its goal</p>
+<strong>Purpose:</strong> Identify what must be completed before <code>create_mosaic_centered.py</code>
+can reliably accomplish its goal</p>
 <hr/>
 <h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">¶</a></h2>
-<p><strong>Current Status:</strong> <code>create_mosaic_centered.py</code> relies on <code>MosaicOrchestrator</code>, which internally uses Stages 1-6. While the orchestrator logic exists, several gaps prevent reliable production use.</p>
-<p><strong>Critical Blockers:</strong>
-1. <strong>No API exposure</strong> - Orchestrator only accessible via CLI scripts
-2. <strong>No error recovery</strong> - Failures require manual intervention
-3. <strong>No monitoring</strong> - Limited visibility into orchestrator workflow status
-4. <strong>Incomplete automation</strong> - Stages 7-8 (photometry, ESE detection) not integrated</p>
+<p><strong>Current Status:</strong> <code>create_mosaic_centered.py</code> relies on <code>MosaicOrchestrator</code>,
+which internally uses Stages 1-6. While the orchestrator logic exists, several
+gaps prevent reliable production use.</p>
+<p><strong>Critical Blockers:</strong></p>
+<ol>
+<li><strong>No API exposure</strong> - Orchestrator only accessible via CLI scripts</li>
+<li><strong>No error recovery</strong> - Failures require manual intervention</li>
+<li><strong>No monitoring</strong> - Limited visibility into orchestrator workflow status</li>
+<li><strong>Incomplete automation</strong> - Stages 7-8 (photometry, ESE detection) not
+   integrated</li>
+</ol>
 <p><strong>Recommendation:</strong> Complete Phase 1 Priority 1 items before production use.</p>
 <hr/>
 <h2 id="critical-path-items-must-complete-before-production">Critical Path Items (Must Complete Before Production)<a class="headerlink" href="#critical-path-items-must-complete-before-production" title="Permanent link">¶</a></h2>
 <h3 id="1-mosaic-creation-api-exposure-blocker">1. Mosaic Creation API Exposure ⚠️ <strong>BLOCKER</strong><a class="headerlink" href="#1-mosaic-creation-api-exposure-blocker" title="Permanent link">¶</a></h3>
-<p><strong>Why Critical:</strong>
-- <code>create_mosaic_centered.py</code> is CLI-only, limiting programmatic access
-- No way to monitor or manage orchestrator workflows via API
-- Cannot integrate with frontend dashboard or other automation systems</p>
-<p><strong>What's Needed:</strong>
-- <code>POST /api/mosaics/create</code> endpoint
-- Background job adapter for orchestrator
-- Job status tracking and SSE log streaming</p>
+<p><strong>Why Critical:</strong></p>
+<ul>
+<li><code>create_mosaic_centered.py</code> is CLI-only, limiting programmatic access</li>
+<li>No way to monitor or manage orchestrator workflows via API</li>
+<li>Cannot integrate with frontend dashboard or other automation systems</li>
+</ul>
+<p><strong>What's Needed:</strong></p>
+<ul>
+<li><code>POST /api/mosaics/create</code> endpoint</li>
+<li>Background job adapter for orchestrator</li>
+<li>Job status tracking and SSE log streaming</li>
+</ul>
 <p><strong>Impact if Missing:</strong> High - Blocks programmatic access, limits observability</p>
 <p><strong>Estimated Effort:</strong> 2-3 days</p>
 <hr/>
 <h3 id="2-error-handling-and-recovery-blocker">2. Error Handling and Recovery ⚠️ <strong>BLOCKER</strong><a class="headerlink" href="#2-error-handling-and-recovery-blocker" title="Permanent link">¶</a></h3>
-<p><strong>Why Critical:</strong>
-- Orchestrator workflows can fail at any stage (conversion, calibration, imaging, mosaic)
-- No retry logic or recovery mechanisms
-- Failures require manual investigation and restart</p>
-<p><strong>What's Needed:</strong>
-- Retry logic with exponential backoff
-- State tracking in <code>mosaic_groups</code> table (error messages, retry counts)
-- Recovery mechanisms (resume from last successful stage)
-- Error reporting and alerting</p>
-<p><strong>Impact if Missing:</strong> High - Production workflows will fail silently or require constant manual intervention</p>
+<p><strong>Why Critical:</strong></p>
+<ul>
+<li>Orchestrator workflows can fail at any stage (conversion, calibration,
+  imaging, mosaic)</li>
+<li>No retry logic or recovery mechanisms</li>
+<li>Failures require manual investigation and restart</li>
+</ul>
+<p><strong>What's Needed:</strong></p>
+<ul>
+<li>Retry logic with exponential backoff</li>
+<li>State tracking in <code>mosaic_groups</code> table (error messages, retry counts)</li>
+<li>Recovery mechanisms (resume from last successful stage)</li>
+<li>Error reporting and alerting</li>
+</ul>
+<p><strong>Impact if Missing:</strong> High - Production workflows will fail silently or require
+constant manual intervention</p>
 <p><strong>Estimated Effort:</strong> 3-4 days</p>
 <hr/>
 <h3 id="3-monitoring-and-observability-high-priority">3. Monitoring and Observability ⚠️ <strong>HIGH PRIORITY</strong><a class="headerlink" href="#3-monitoring-and-observability-high-priority" title="Permanent link">¶</a></h3>
-<p><strong>Why Critical:</strong>
-- No visibility into orchestrator workflow progress
-- Cannot track success/failure rates
-- Difficult to debug issues in production</p>
-<p><strong>What's Needed:</strong>
-- Workflow status endpoints (<code>GET /api/mosaics/{group_id}/status</code>)
-- Progress tracking (which stage is currently executing)
-- Log aggregation and search
-- Metrics collection (time per stage, success rates)</p>
-<p><strong>Impact if Missing:</strong> Medium-High - Limits operational visibility and debugging capability</p>
+<p><strong>Why Critical:</strong></p>
+<ul>
+<li>No visibility into orchestrator workflow progress</li>
+<li>Cannot track success/failure rates</li>
+<li>Difficult to debug issues in production</li>
+</ul>
+<p><strong>What's Needed:</strong></p>
+<ul>
+<li>Workflow status endpoints (<code>GET /api/mosaics/{group_id}/status</code>)</li>
+<li>Progress tracking (which stage is currently executing)</li>
+<li>Log aggregation and search</li>
+<li>Metrics collection (time per stage, success rates)</li>
+</ul>
+<p><strong>Impact if Missing:</strong> Medium-High - Limits operational visibility and debugging
+capability</p>
 <p><strong>Estimated Effort:</strong> 2-3 days</p>
 <hr/>
 <h2 id="important-but-not-blocking">Important but Not Blocking<a class="headerlink" href="#important-but-not-blocking" title="Permanent link">¶</a></h2>
 <h3 id="4-batch-conversion-api">4. Batch Conversion API<a class="headerlink" href="#4-batch-conversion-api" title="Permanent link">¶</a></h3>
-<p><strong>Why Important:</strong>
-- Enables efficient processing of multiple time windows
-- Complements orchestrator workflow</p>
+<p><strong>Why Important:</strong></p>
+<ul>
+<li>Enables efficient processing of multiple time windows</li>
+<li>Complements orchestrator workflow</li>
+</ul>
 <p><strong>Impact if Missing:</strong> Medium - Can work around with individual jobs</p>
 <p><strong>Estimated Effort:</strong> 1-2 days</p>
 <hr/>
 <h3 id="5-publishing-cli">5. Publishing CLI<a class="headerlink" href="#5-publishing-cli" title="Permanent link">¶</a></h3>
-<p><strong>Why Important:</strong>
-- Enables manual control and debugging
-- Useful for troubleshooting failed publishes</p>
+<p><strong>Why Important:</strong></p>
+<ul>
+<li>Enables manual control and debugging</li>
+<li>Useful for troubleshooting failed publishes</li>
+</ul>
 <p><strong>Impact if Missing:</strong> Low - API endpoints exist, CLI is convenience</p>
 <p><strong>Estimated Effort:</strong> 1-2 days</p>
 <hr/>
@@ -1339,7 +1366,8 @@
 <h2 id="risk-assessment">Risk Assessment<a class="headerlink" href="#risk-assessment" title="Permanent link">¶</a></h2>
 <h3 id="high-risk">High Risk:<a class="headerlink" href="#high-risk" title="Permanent link">¶</a></h3>
 <ul>
-<li><strong>Orchestrator failures in production</strong> - Mitigated by error handling and monitoring</li>
+<li><strong>Orchestrator failures in production</strong> - Mitigated by error handling and
+  monitoring</li>
 <li><strong>Database concurrency issues</strong> - Mitigated by proper locking and WAL mode</li>
 </ul>
 <h3 id="medium-risk">Medium Risk:<a class="headerlink" href="#medium-risk" title="Permanent link">¶</a></h3>
@@ -1349,12 +1377,14 @@
 </ul>
 <hr/>
 <h2 id="success-criteria">Success Criteria<a class="headerlink" href="#success-criteria" title="Permanent link">¶</a></h2>
-<p><strong>Production-Ready When:</strong>
-1. ✅ Mosaic Creation API functional and tested
-2. ✅ Error handling prevents silent failures
-3. ✅ Monitoring provides visibility into workflow status
-4. ✅ Integration tests pass for end-to-end workflow
-5. ✅ <code>create_mosaic_centered.py</code> can be called via API with confidence</p>
+<p><strong>Production-Ready When:</strong></p>
+<ol>
+<li>✅ Mosaic Creation API functional and tested</li>
+<li>✅ Error handling prevents silent failures</li>
+<li>✅ Monitoring provides visibility into workflow status</li>
+<li>✅ Integration tests pass for end-to-end workflow</li>
+<li>✅ <code>create_mosaic_centered.py</code> can be called via API with confidence</li>
+</ol>
 <hr/>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
 <ol>
@@ -1368,8 +1398,10 @@
 <h2 id="related-documents">Related Documents<a class="headerlink" href="#related-documents" title="Permanent link">¶</a></h2>
 <ul>
 <li><strong>Full Roadmap:</strong> <code>docs/dev/analysis/development_roadmap.md</code></li>
-<li><strong>Batch Mode Assessment:</strong> <code>docs/dev/analysis/batch_mode_development_assessment.md</code></li>
-<li><strong>Automation Assessment:</strong> <code>docs/dev/analysis/automation_assessment_justification.md</code></li>
+<li><strong>Batch Mode Assessment:</strong>
+<code>docs/dev/analysis/batch_mode_development_assessment.md</code></li>
+<li><strong>Automation Assessment:</strong>
+<code>docs/dev/analysis/automation_assessment_justification.md</code></li>
 <li><strong>Architecture:</strong> <code>docs/concepts/streaming_vs_orchestrator.md</code></li>
 </ul>
 </article>
@@ -1396,7 +1428,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

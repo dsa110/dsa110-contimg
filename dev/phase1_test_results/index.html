@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1211,9 +1213,8 @@
 <article class="md-content__inner md-typeset">
 <h1 id="phase-1-testing-results">Phase 1 Testing Results<a class="headerlink" href="#phase-1-testing-results" title="Permanent link">¶</a></h1>
 <h2 id="test-execution-summary">Test Execution Summary<a class="headerlink" href="#test-execution-summary" title="Permanent link">¶</a></h2>
-<p><strong>Date:</strong> $(date)
-<strong>Tester:</strong> Automated Test Suite
-<strong>Backend URL:</strong> http://localhost:8000</p>
+<p><strong>Date:</strong> $(date) <strong>Tester:</strong> Automated Test Suite <strong>Backend URL:</strong>
+http://localhost:8000</p>
 <h2 id="1-backend-api-testing">1. Backend API Testing<a class="headerlink" href="#1-backend-api-testing" title="Permanent link">¶</a></h2>
 <h3 id="test-scripts-created">Test Scripts Created<a class="headerlink" href="#test-scripts-created" title="Permanent link">¶</a></h3>
 <ol>
@@ -1221,7 +1222,8 @@
 <li>Status: ✓ Working</li>
 <li>Created 3 test items successfully</li>
 <li>
-<p>Items: ese_detection.detect_candidates, calibration_solve.solve_gain, photometry.measure_flux</p>
+<p>Items: ese_detection.detect_candidates, calibration_solve.solve_gain,
+     photometry.measure_flux</p>
 </li>
 <li>
 <p><strong><code>scripts/test_api_endpoints.sh</code></strong> - Bash script to test all API endpoints</p>
@@ -1235,8 +1237,10 @@
 <ul>
 <li>[x] <code>GET /health/liveness</code> - Backend is running</li>
 <li>[x] <code>GET /api/health/summary</code> - Returns comprehensive health summary</li>
-<li>Status: "degraded" (expected - disk_space check failing due to missing /stage directory)</li>
-<li>Contains all required fields: status, timestamp, checks, circuit_breakers, dlq_stats</li>
+<li>Status: "degraded" (expected - disk_space check failing due to missing
+    /stage directory)</li>
+<li>Contains all required fields: status, timestamp, checks, circuit_breakers,
+    dlq_stats</li>
 <li>DLQ stats: total=3, pending=3 (matches created test items)</li>
 <li>Circuit breakers: 3 breakers, all in "closed" state</li>
 </ul>
@@ -1254,7 +1258,8 @@
 <p>[x] <code>GET /api/operations/dlq/items</code> - Returns list of items</p>
 </li>
 <li>Returns array of 3 items</li>
-<li>Each item has: id, component, operation, error_type, error_message, context, created_at, retry_count, status</li>
+<li>Each item has: id, component, operation, error_type, error_message, context,
+    created_at, retry_count, status</li>
 <li>Filtering by component works</li>
 <li>Filtering by status works</li>
 <li>
@@ -1288,7 +1293,8 @@
 <p>Returns 404 for invalid names</p>
 </li>
 <li>
-<p>[ ] <code>POST /api/operations/circuit-breakers/{name}/reset</code> - Needs manual testing</p>
+<p>[ ] <code>POST /api/operations/circuit-breakers/{name}/reset</code> - Needs manual
+      testing</p>
 </li>
 </ul>
 <h3 id="error-handling-tests">Error Handling Tests<a class="headerlink" href="#error-handling-tests" title="Permanent link">¶</a></h3>
@@ -1308,7 +1314,8 @@
 <li>Operation: detect_candidates</li>
 <li>Error: RuntimeError("Test error: ESE detection failed")</li>
 <li>
-<p>Context: {min_sigma: 5.0, source_id: "test_source_001", image_id: "test_image_001"}</p>
+<p>Context: {min_sigma: 5.0, source_id: "test_source_001", image_id:
+     "test_image_001"}</p>
 </li>
 <li>
 <p><strong>Item ID 2:</strong></p>
@@ -1340,11 +1347,13 @@
 <li>[x] <code>scripts/test_dlq_endpoints.py</code> - No issues found</li>
 <li>[x] <code>scripts/test_api_endpoints.sh</code> - No issues found</li>
 <li>[x] <code>src/dsa110_contimg/pipeline/__init__.py</code> - Fixed StageResult import issue</li>
-<li>[x] <code>src/dsa110_contimg/pipeline/event_bus.py</code> - Fixed dataclass field ordering issue</li>
+<li>[x] <code>src/dsa110_contimg/pipeline/event_bus.py</code> - Fixed dataclass field
+      ordering issue</li>
 </ul>
 <h3 id="issues-fixed">Issues Fixed<a class="headerlink" href="#issues-fixed" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong>Import Error:</strong> Removed non-existent <code>StageResult</code> from <code>pipeline/__init__.py</code></li>
+<li><strong>Import Error:</strong> Removed non-existent <code>StageResult</code> from
+   <code>pipeline/__init__.py</code></li>
 <li><strong>Dataclass Error:</strong> Fixed field ordering in <code>event_bus.py</code> child classes</li>
 <li>Removed optional fields from parent <code>PipelineEvent</code> class</li>
 <li>Added optional fields to each child class individually</li>
@@ -1388,8 +1397,8 @@
 </ol>
 <h2 id="test-checklist-status">Test Checklist Status<a class="headerlink" href="#test-checklist-status" title="Permanent link">¶</a></h2>
 <p>See <code>docs/dev/phase1_test_checklist.md</code> for complete checklist.</p>
-<p><strong>Completed:</strong> ~60%
-<strong>Remaining:</strong> Frontend testing, POST endpoint testing, error scenarios</p>
+<p><strong>Completed:</strong> ~60% <strong>Remaining:</strong> Frontend testing, POST endpoint testing,
+error scenarios</p>
 <h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">¶</a></h2>
 <ul>
 <li>Backend is running and responding correctly</li>
@@ -1399,9 +1408,13 @@
 <li>DLQ stats match created test items</li>
 <li>Circuit breakers all in healthy "closed" state</li>
 </ul>
-<p><strong>Known Issues:</strong>
-- Disk space check failing (expected - <code>/stage/dsa110-contimg</code> directory doesn't exist in test environment)
-- Health status shows "degraded" due to disk space check (not critical for testing)</p>
+<p><strong>Known Issues:</strong></p>
+<ul>
+<li>Disk space check failing (expected - <code>/stage/dsa110-contimg</code> directory doesn't
+  exist in test environment)</li>
+<li>Health status shows "degraded" due to disk space check (not critical for
+  testing)</li>
+</ul>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1426,7 +1439,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

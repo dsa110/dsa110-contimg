@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1203,37 +1205,47 @@
 <article class="md-content__inner md-typeset">
 <h1 id="output-handling-validation">Output Handling Validation<a class="headerlink" href="#output-handling-validation" title="Permanent link">¶</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>This project enforces strict rules about output handling to ensure errors are never suppressed. All scripts must follow the output suppression rules defined in <code>.cursor/rules/output-suppression.mdc</code>.</p>
+<p>This project enforces strict rules about output handling to ensure errors are
+never suppressed. All scripts must follow the output suppression rules defined
+in <code>.cursor/rules/output-suppression.mdc</code>.</p>
 <h2 id="rules-summary">Rules Summary<a class="headerlink" href="#rules-summary" title="Permanent link">¶</a></h2>
 <ol>
 <li><strong>NEVER suppress output</strong>: No <code>2&gt;/dev/null</code>, <code>&gt;/dev/null</code>, <code>&amp;&gt;/dev/null</code></li>
-<li><strong><code>2&gt;&amp;1</code> is ALLOWED</strong> when combining streams (e.g., <code>command 2&gt;&amp;1 | tee logfile.log</code>)</li>
-<li><strong><code>2&gt;&amp;1</code> is FORBIDDEN</strong> when used for suppression (e.g., <code>command 2&gt;&amp;1 &gt; /dev/null</code>)</li>
-<li><strong>Exceptions must be documented</strong> with comments explaining why suppression is acceptable</li>
+<li><strong><code>2&gt;&amp;1</code> is ALLOWED</strong> when combining streams (e.g.,
+   <code>command 2&gt;&amp;1 | tee logfile.log</code>)</li>
+<li><strong><code>2&gt;&amp;1</code> is FORBIDDEN</strong> when used for suppression (e.g.,
+   <code>command 2&gt;&amp;1 &gt; /dev/null</code>)</li>
+<li><strong>Exceptions must be documented</strong> with comments explaining why suppression is
+   acceptable</li>
 </ol>
 <h2 id="validation-methods">Validation Methods<a class="headerlink" href="#validation-methods" title="Permanent link">¶</a></h2>
 <h3 id="1-pre-commit-hook">1. Pre-commit Hook<a class="headerlink" href="#1-pre-commit-hook" title="Permanent link">¶</a></h3>
-<p>A Git pre-commit hook automatically validates output handling before each commit:</p>
+<p>A Git pre-commit hook automatically validates output handling before each
+commit:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># The hook runs automatically on commit</span>
 git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">"Your message"</span>
 <span class="c1"># If violations are found, commit is blocked</span>
 </code></pre></div>
 <p><strong>Location</strong>: <code>.git/hooks/pre-commit</code></p>
-<p><strong>Bypass</strong> (not recommended):
+<p><strong>Bypass</strong> (not recommended):</p>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>commit<span class="w"> </span>--no-verify
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="2-manual-validation">2. Manual Validation<a class="headerlink" href="#2-manual-validation" title="Permanent link">¶</a></h3>
 <p>Run the validation script manually:</p>
 <div class="highlight"><pre><span></span><code>./scripts/validate-output-handling.sh
 </code></pre></div>
-<p><strong>Exit codes</strong>:
-- <code>0</code>: No violations found
-- <code>1</code>: Violations detected</p>
+<p><strong>Exit codes</strong>:</p>
+<ul>
+<li><code>0</code>: No violations found</li>
+<li><code>1</code>: Violations detected</li>
+</ul>
 <h3 id="3-cicd-validation">3. CI/CD Validation<a class="headerlink" href="#3-cicd-validation" title="Permanent link">¶</a></h3>
-<p>GitHub Actions automatically validates output handling on:
-- Push to <code>main</code> or <code>dev</code> branches
-- Pull requests targeting <code>main</code> or <code>dev</code>
-- Changes to <code>scripts/**</code> or <code>.cursor/rules/output-suppression.mdc</code></p>
+<p>GitHub Actions automatically validates output handling on:</p>
+<ul>
+<li>Push to <code>main</code> or <code>dev</code> branches</li>
+<li>Pull requests targeting <code>main</code> or <code>dev</code></li>
+<li>Changes to <code>scripts/**</code> or <code>.cursor/rules/output-suppression.mdc</code></li>
+</ul>
 <p><strong>Workflow</strong>: <code>.github/workflows/output-handling-validation.yml</code></p>
 <h2 id="documenting-exceptions">Documenting Exceptions<a class="headerlink" href="#documenting-exceptions" title="Permanent link">¶</a></h2>
 <p>If you need to suppress output (rare exceptions), document it with a comment:</p>
@@ -1247,10 +1259,12 @@ rm<span class="w"> </span>-rf<span class="w"> </span>node_modules<span class="w"
 <span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"Warning: Cleanup failed, continuing..."</span>
 <span class="o">}</span>
 </code></pre></div>
-<p><strong>Exception keywords</strong> recognized by validator:
-- <code># Note:</code>
-- <code># exception</code>
-- <code># acceptable</code></p>
+<p><strong>Exception keywords</strong> recognized by validator:</p>
+<ul>
+<li><code># Note:</code></li>
+<li><code># exception</code></li>
+<li><code># acceptable</code></li>
+</ul>
 <h2 id="common-patterns">Common Patterns<a class="headerlink" href="#common-patterns" title="Permanent link">¶</a></h2>
 <h3 id="correct-combining-streams">✅ Correct: Combining Streams<a class="headerlink" href="#correct-combining-streams" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Combining stdout and stderr for logging</span>
@@ -1274,7 +1288,8 @@ rm<span class="w"> </span>-rf<span class="w"> </span>node_modules<span class="w"
 <h2 id="fixing-violations">Fixing Violations<a class="headerlink" href="#fixing-violations" title="Permanent link">¶</a></h2>
 <ol>
 <li><strong>Review the violation</strong>: Check what the validator found</li>
-<li><strong>Determine if exception is needed</strong>: Most violations can be fixed by removing suppression</li>
+<li><strong>Determine if exception is needed</strong>: Most violations can be fixed by
+   removing suppression</li>
 <li><strong>If exception is needed</strong>: Add a comment explaining why</li>
 <li><strong>Re-run validation</strong>: <code>./scripts/validate-output-handling.sh</code></li>
 </ol>
@@ -1300,8 +1315,10 @@ rm<span class="w"> </span>-rf<span class="w"> </span>node_modules<span class="w"
 </code></pre></div>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
 <ul>
-<li><a href="../.cursor/rules/output-suppression.mdc">Output Suppression Rules</a> - Full rule specification</li>
-<li><a href="../scripts/README-error-detection.md">Error Detection Wrapper</a> - Error detection wrapper documentation</li>
+<li><a href="../.cursor/rules/output-suppression.mdc">Output Suppression Rules</a> - Full
+  rule specification</li>
+<li><a href="../scripts/README-error-detection.md">Error Detection Wrapper</a> - Error
+  detection wrapper documentation</li>
 </ul>
 </article>
 </div>
@@ -1327,7 +1344,7 @@ rm<span class="w"> </span>-rf<span class="w"> </span>node_modules<span class="w"
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href=".." title="DSA-110 Continuum Imaging Pipeline">
@@ -1057,108 +1059,30 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#quick-start-guides">
+<a class="md-nav__link" href="#quick-start">
 <span class="md-ellipsis">
-      Quick Start Guides
+      Quick Start
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#core-workflows">
+<a class="md-nav__link" href="#essential-reading">
 <span class="md-ellipsis">
-      Core Workflows
-    </span>
-</a>
-<nav aria-label="Core Workflows" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#conversion">
-<span class="md-ellipsis">
-      Conversion
+      Essential Reading
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#calibration">
+<a class="md-nav__link" href="#other-guides">
 <span class="md-ellipsis">
-      Calibration
+      Other Guides
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#imaging">
+<a class="md-nav__link" href="#getting-help">
 <span class="md-ellipsis">
-      Imaging
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#quality-assurance">
-<span class="md-ellipsis">
-      Quality Assurance
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#advanced-topics">
-<span class="md-ellipsis">
-      Advanced Topics
-    </span>
-</a>
-<nav aria-label="Advanced Topics" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#streaming">
-<span class="md-ellipsis">
-      Streaming
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#frontend-dashboard">
-<span class="md-ellipsis">
-      Frontend &amp; Dashboard
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#utilities">
-<span class="md-ellipsis">
-      Utilities
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#pyradiosky">
-<span class="md-ellipsis">
-      PyRadioSky
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#linear-integration">
-<span class="md-ellipsis">
-      Linear Integration
-    </span>
-</a>
-</li>
-</ul>
-</nav>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#testing-troubleshooting">
-<span class="md-ellipsis">
-      Testing &amp; Troubleshooting
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#quick-links">
-<span class="md-ellipsis">
-      Quick Links
+      Getting Help
     </span>
 </a>
 </li>
@@ -1170,87 +1094,57 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="how-to-guides">How-To Guides<a class="headerlink" href="#how-to-guides" title="Permanent link">¶</a></h1>
-<p><strong>Purpose:</strong> Task-oriented guides for completing specific procedures<br/>
-<strong>Audience:</strong> Users and operators</p>
-<hr/>
-<h2 id="quick-start-guides">Quick Start Guides<a class="headerlink" href="#quick-start-guides" title="Permanent link">¶</a></h2>
+<p>This directory contains step-by-step guides for common tasks.</p>
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">¶</a></h2>
+<p><strong>New to the project?</strong> Start here:</p>
+<ol>
+<li><strong>Quick Setup</strong> (Automated)</li>
+</ol>
+<div class="highlight"><pre><span></span><code>./scripts/quick-start.sh
+</code></pre></div>
+<p>This automates everything! See <code>AUTOMATION_GUIDE.md</code> for details.</p>
+<ol>
+<li><strong>Manual Setup</strong>
+<div class="highlight"><pre><span></span><code><span class="nb">source</span><span class="w"> </span>scripts/developer-setup.sh
+./scripts/auto-fix-common-issues.sh
+</code></pre></div></li>
+</ol>
+<h2 id="essential-reading">Essential Reading<a class="headerlink" href="#essential-reading" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong><a href="quickstart/">Quick Start</a></strong> - General pipeline quickstart (Docker/systemd setup)</li>
-<li><strong><a href="quickstart_dashboard/">Dashboard Quick Start</a></strong> - Dashboard setup and usage</li>
-<li><strong><a href="LINEAR_SETUP_QUICKSTART/">Linear Integration Quick Start</a></strong> - Linear issue tracking integration</li>
-<li><strong><a href="remote-access-tools/">Remote Access Tools</a></strong> - SSH, Chrome Remote Desktop, and Cursor Browser tool setup</li>
+<li><strong><a href="CRITICAL_HANDOVER_WARNINGS/">CRITICAL_HANDOVER_WARNINGS.md</a></strong> - ⚠️ READ
+  FIRST</li>
+<li>Common pitfalls and how to avoid them</li>
+<li>
+<p>Critical warnings for new developers</p>
+</li>
+<li>
+<p><strong><a href="AUTOMATION_GUIDE/">AUTOMATION_GUIDE.md</a></strong> - 🚀 Automation Overview</p>
+</li>
+<li>What's automated and how it works</li>
+<li>
+<p>Setup workflows and troubleshooting</p>
+</li>
+<li>
+<p><strong><a href="QUICK_REFERENCE_CARD/">QUICK_REFERENCE_CARD.md</a></strong> - 📋 Quick Reference</p>
+</li>
+<li>One-page cheat sheet</li>
+<li>Most common commands</li>
 </ul>
-<h2 id="core-workflows">Core Workflows<a class="headerlink" href="#core-workflows" title="Permanent link">¶</a></h2>
-<h3 id="conversion">Conversion<a class="headerlink" href="#conversion" title="Permanent link">¶</a></h3>
+<h2 id="other-guides">Other Guides<a class="headerlink" href="#other-guides" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong><a href="uvh5_to_ms_conversion/">UVH5 to MS Conversion</a></strong> - Convert UVH5 files to CASA Measurement Sets</li>
-<li><strong><a href="build-vp-from-h5/">Build VP from HDF5</a></strong> - Build visibility prediction tables from HDF5</li>
+<li><code>agentic-session-setup.md</code> - Setting up error detection</li>
+<li><code>adding-new-tests.md</code> - How to add new tests</li>
+<li><code>PRETTIER_ENVIRONMENT_SPECIFIC.md</code> - Prettier configuration</li>
+<li><code>PRETTIER_WARNINGS.md</code> - Prettier troubleshooting</li>
 </ul>
-<h3 id="calibration">Calibration<a class="headerlink" href="#calibration" title="Permanent link">¶</a></h3>
-<ul>
-<li><strong><a href="CALIBRATION_DETAILED_PROCEDURE/">Calibration Detailed Procedure</a></strong> - Complete calibration workflow</li>
-<li><strong><a href="FIND_CALIBRATOR_TRANSIT_DATA/">Find Calibrator Transit Data</a></strong> - Locate calibrator transit data</li>
-<li><strong><a href="IMAGE_0834_TRANSIT_5MIN/">Image 0834 Transit (5 min)</a></strong> - Example: Image 5-minute calibrator transit</li>
-</ul>
-<h3 id="imaging">Imaging<a class="headerlink" href="#imaging" title="Permanent link">¶</a></h3>
-<ul>
-<li><strong><a href="mosaic/">Mosaic</a></strong> - Create mosaics from multiple images</li>
-<li><strong><a href="quicklook/">Quicklook</a></strong> - Generate quick-look images</li>
-<li><strong><a href="SKYMODEL_IMAGING/">SkyModel Imaging</a></strong> - Image using sky models</li>
-<li><strong><a href="SKYMODEL_IMAGE_EXPECTATIONS/">SkyModel Image Expectations</a></strong> - What to expect from sky model images</li>
-</ul>
-<h3 id="quality-assurance">Quality Assurance<a class="headerlink" href="#quality-assurance" title="Permanent link">¶</a></h3>
-<ul>
-<li><strong><a href="QUALITY_ASSURANCE_SETUP/">Quality Assurance Setup</a></strong> - Set up QA monitoring</li>
-<li><strong><a href="PARAMETER_OPTIMIZATION_GUIDE/">Parameter Optimization Guide</a></strong> - Optimize pipeline parameters</li>
-</ul>
-<h2 id="advanced-topics">Advanced Topics<a class="headerlink" href="#advanced-topics" title="Permanent link">¶</a></h2>
-<h3 id="streaming">Streaming<a class="headerlink" href="#streaming" title="Permanent link">¶</a></h3>
-<ul>
-<li><strong><a href="streaming_converter_guide/">Streaming Converter Guide</a></strong> - Streaming converter usage</li>
-<li><strong><a href="streaming-control/">Streaming Control</a></strong> - Control streaming pipeline</li>
-<li><strong><a href="streaming-troubleshooting/">Streaming Troubleshooting</a></strong> - Troubleshoot streaming issues</li>
-</ul>
-<h3 id="frontend-dashboard">Frontend &amp; Dashboard<a class="headerlink" href="#frontend-dashboard" title="Permanent link">¶</a></h3>
-<ul>
-<li><strong><a href="dashboard-development/">Dashboard Development</a></strong> - Develop dashboard features</li>
-<li><strong><a href="control-panel-quickstart/">Control Panel Quickstart</a></strong> - Control panel setup</li>
-<li><strong><a href="frontend-initial-setup/">Frontend Initial Setup</a></strong> - Frontend development setup</li>
-<li><strong><a href="js9_casa_analysis/">JS9 CASA Analysis</a></strong> - Use CASA analysis tasks in JS9 viewer</li>
-</ul>
-<h3 id="utilities">Utilities<a class="headerlink" href="#utilities" title="Permanent link">¶</a></h3>
-<ul>
-<li><strong><a href="downsampling_guide/">Downsampling Guide</a></strong> - Downsample data for testing</li>
-<li><strong><a href="reprocess/">Reprocess</a></strong> - Reprocess existing data</li>
-<li><strong><a href="USING_ORCHESTRATOR_CLI/">Using Orchestrator CLI</a></strong> - Use the orchestrator command-line interface</li>
-</ul>
-<h3 id="pyradiosky">PyRadioSky<a class="headerlink" href="#pyradiosky" title="Permanent link">¶</a></h3>
-<ul>
-<li><strong><a href="PYRADIOSKY_GUIDE/">PyRadioSky Guide</a></strong> - Using PyRadioSky for sky models</li>
-<li><strong><a href="PYRADIOSKY_BENEFITS/">PyRadioSky Benefits</a></strong> - Benefits of using PyRadioSky</li>
-</ul>
-<h3 id="linear-integration">Linear Integration<a class="headerlink" href="#linear-integration" title="Permanent link">¶</a></h3>
-<ul>
-<li><strong><a href="LINEAR_INTEGRATION/">Linear Integration</a></strong> - Integrate with Linear issue tracking</li>
-</ul>
-<h2 id="testing-troubleshooting">Testing &amp; Troubleshooting<a class="headerlink" href="#testing-troubleshooting" title="Permanent link">¶</a></h2>
-<ul>
-<li><strong><a href="TESTING_INDEX/">Testing Index</a></strong> - Overview of all testing guides</li>
-<li><strong><a href="PIPELINE_TESTING_GUIDE/">Pipeline Testing Guide</a></strong> - Test the pipeline</li>
-<li><strong><a href="TESTING_INDEX/">Testing Guide</a></strong> - Testing procedures and strategies</li>
-<li><strong><a href="TEST_FLAG_SUBCOMMAND/">Test Flag Subcommand</a></strong> - Test flagging functionality</li>
-<li><strong><a href="troubleshooting/">Troubleshooting</a></strong> - Common issues and solutions</li>
-</ul>
-<hr/>
-<h2 id="quick-links">Quick Links<a class="headerlink" href="#quick-links" title="Permanent link">¶</a></h2>
-<ul>
-<li><a href="../concepts/">Concepts</a> - Understand how the pipeline works</li>
-<li><a href="../tutorials/">Tutorials</a> - Step-by-step tutorials</li>
-<li><a href="../reference/">Reference Documentation</a> - API, CLI, schema reference</li>
-<li><a href="../">Main Documentation Index</a></li>
-</ul>
-<hr/>
-<p><strong>Last Updated:</strong> 2025-11-12</p>
+<h2 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">¶</a></h2>
+<p>If you encounter issues:</p>
+<ol>
+<li>Run <code>./scripts/validate-environment.sh</code></li>
+<li>Run <code>./scripts/auto-fix-common-issues.sh</code></li>
+<li>Check the relevant guide above</li>
+<li>See <code>docs/concepts/</code> for conceptual documentation</li>
+</ol>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1275,7 +1169,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

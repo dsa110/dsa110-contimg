@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1216,13 +1218,16 @@
 <ol>
 <li><strong><code>test_query_nvss_sources.py</code></strong> (Updated)</li>
 <li><code>TestQueryNVSSSourcesSQLite</code> - SQLite query tests (5 tests)</li>
-<li><code>TestQueryNVSSSourcesCSVFallback</code> - CSV fallback when <code>use_csv_fallback=True</code> (3 tests)</li>
-<li><code>TestQueryNVSSSourcesNoFallback</code> - Default behavior when <code>use_csv_fallback=False</code> (3 tests) ✨ NEW</li>
+<li><code>TestQueryNVSSSourcesCSVFallback</code> - CSV fallback when
+     <code>use_csv_fallback=True</code> (3 tests)</li>
+<li><code>TestQueryNVSSSourcesNoFallback</code> - Default behavior when
+     <code>use_csv_fallback=False</code> (3 tests) ✨ NEW</li>
 <li><code>TestQueryNVSSSourcesErrorHandling</code> - Error handling tests (5 tests)</li>
 <li><code>TestQueryNVSSSourcesReturnFormat</code> - Return format validation (3 tests)</li>
 <li><code>TestQueryNVSSSourcesIntegration</code> - Integration tests (1 test)</li>
 <li>
-<p><code>TestQueryNVSSSourcesSmoke</code> - Smoke tests including CSV fallback disabled (7 tests)</p>
+<p><code>TestQueryNVSSSourcesSmoke</code> - Smoke tests including CSV fallback disabled
+     (7 tests)</p>
 </li>
 <li>
 <p><strong><code>test_query_rax_sources.py</code></strong> (New)</p>
@@ -1323,7 +1328,7 @@ pytest<span class="w"> </span>tests/unit/calibration/test_query_*_sources.py<spa
 <h3 id="unit-tests-testsunitcalibration_1">Unit Tests (<code>tests/unit/calibration/</code>)<a class="headerlink" href="#unit-tests-testsunitcalibration_1" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>Location</strong>: <code>tests/unit/calibration/test_query_*_sources.py</code></li>
-<li><strong>Rationale</strong>: </li>
+<li><strong>Rationale</strong>:</li>
 <li>Tests are unit-level (isolated, mocked dependencies)</li>
 <li>Tests specific calibration catalog functions</li>
 <li>Fast execution (&lt;1s per test file)</li>
@@ -1331,7 +1336,8 @@ pytest<span class="w"> </span>tests/unit/calibration/test_query_*_sources.py<spa
 </ul>
 <h3 id="smoke-tests-within-unit-test-files">Smoke Tests (within unit test files)<a class="headerlink" href="#smoke-tests-within-unit-test-files" title="Permanent link">¶</a></h3>
 <ul>
-<li><strong>Location</strong>: <code>TestQueryNVSSSourcesSmoke</code> class in <code>test_query_nvss_sources.py</code></li>
+<li><strong>Location</strong>: <code>TestQueryNVSSSourcesSmoke</code> class in
+  <code>test_query_nvss_sources.py</code></li>
 <li><strong>Rationale</strong>:</li>
 <li>End-to-end validation of real-world scenarios</li>
 <li>May use actual databases if available</li>
@@ -1341,7 +1347,8 @@ pytest<span class="w"> </span>tests/unit/calibration/test_query_*_sources.py<spa
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
 <ul>
 <li><a href="../csv_fallback_disabled/">CSV Fallback Disabled</a> - Implementation details</li>
-<li><a href="../catalog_logging_migration/">Catalog Logging Migration</a> - Logging improvements</li>
+<li><a href="../catalog_logging_migration/">Catalog Logging Migration</a> - Logging
+  improvements</li>
 <li><a href="../catalog_tests_update/">Catalog Tests Update</a> - Detailed test update notes</li>
 </ul>
 </article>
@@ -1368,7 +1375,7 @@ pytest<span class="w"> </span>tests/unit/calibration/test_query_*_sources.py<spa
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

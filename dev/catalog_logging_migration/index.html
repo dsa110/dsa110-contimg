@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1139,20 +1141,20 @@
 <article class="md-content__inner md-typeset">
 <h1 id="catalog-query-logging-migration">Catalog Query Logging Migration<a class="headerlink" href="#catalog-query-logging-migration" title="Permanent link">¶</a></h1>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
-<p>Migrated catalog query fallback notifications from <code>warnings.warn()</code> to <code>logger.warning()</code> for better consistency with the rest of the pipeline and improved visibility in production environments.</p>
+<p>Migrated catalog query fallback notifications from <code>warnings.warn()</code> to
+<code>logger.warning()</code> for better consistency with the rest of the pipeline and
+improved visibility in production environments.</p>
 <h2 id="changes-made">Changes Made<a class="headerlink" href="#changes-made" title="Permanent link">¶</a></h2>
 <h3 id="file-srcdsa110_contimgcalibrationcatalogspy">File: <code>src/dsa110_contimg/calibration/catalogs.py</code><a class="headerlink" href="#file-srcdsa110_contimgcalibrationcatalogspy" title="Permanent link">¶</a></h3>
 <ol>
-<li>
-<p><strong>Added logging import and logger setup</strong>:
-   <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<li><strong>Added logging import and logger setup</strong>:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="o">...</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Replaced 4 instances of <code>warnings.warn()</code> with <code>logger.warning()</code></strong>:</p>
-</li>
+</code></pre></div>
+<ol>
+<li><strong>Replaced 4 instances of <code>warnings.warn()</code> with <code>logger.warning()</code></strong>:</li>
 <li><code>query_nvss_sources()</code> - SQLite fallback warning</li>
 <li><code>query_rax_sources()</code> - SQLite fallback warning</li>
 <li><code>query_vlass_sources()</code> - SQLite fallback warning</li>
@@ -1175,9 +1177,11 @@
 </code></pre></div>
 <h2 id="benefits">Benefits<a class="headerlink" href="#benefits" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Consistency</strong>: Matches the logging pattern used throughout the rest of the pipeline</li>
+<li><strong>Consistency</strong>: Matches the logging pattern used throughout the rest of the
+   pipeline</li>
 <li><strong>Visibility</strong>: Automatically captured in log files and production monitoring</li>
-<li><strong>Configurability</strong>: Can be filtered/configured via standard logging configuration</li>
+<li><strong>Configurability</strong>: Can be filtered/configured via standard logging
+   configuration</li>
 <li><strong>Production-Ready</strong>: Better integration with logging infrastructure</li>
 </ol>
 <h2 id="notification-locations">Notification Locations<a class="headerlink" href="#notification-locations" title="Permanent link">¶</a></h2>
@@ -1215,8 +1219,10 @@
 </ul>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
 <ul>
-<li><a href="../fallback_notification_analysis/">Fallback Notification Analysis</a> - Analysis of fallback notification mechanisms</li>
-<li><a href="../catalog_migration_to_sqlite/">Catalog Migration to SQLite</a> - Migration from CSV to SQLite-first architecture</li>
+<li><a href="../fallback_notification_analysis/">Fallback Notification Analysis</a> - Analysis
+  of fallback notification mechanisms</li>
+<li><a href="../catalog_migration_to_sqlite/">Catalog Migration to SQLite</a> - Migration from
+  CSV to SQLite-first architecture</li>
 </ul>
 </article>
 </div>
@@ -1242,7 +1248,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

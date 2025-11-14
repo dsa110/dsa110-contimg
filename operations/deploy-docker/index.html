@@ -23,11 +23,13 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#deploy-with-docker-compose">
+<a class="md-skip" href="#moved">
           Skip to content
         </a>
 </div>
 <div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
 </div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
@@ -1094,19 +1096,15 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="deploy-with-docker-compose">Deploy with Docker Compose<a class="headerlink" href="#deploy-with-docker-compose" title="Permanent link">¶</a></h1>
-<ul>
-<li>Copy <code>.env</code>: <code>cp ops/docker/.env.example ops/docker/.env</code>; edit absolute paths and UID/GID</li>
-<li>Build: <code>make compose-build</code></li>
-<li>Up: <code>make compose-up</code></li>
-<li>Logs: <code>make compose-logs SERVICE=stream</code></li>
-<li>Optional scheduler: <code>make compose-up-scheduler</code></li>
-</ul>
+<h1 id="moved">Moved<a class="headerlink" href="#moved" title="Permanent link">¶</a></h1>
+<p>See <code>docs/how-to/streaming.md</code> (Deployment section).</p>
 <h2 id="environment-env">Environment (.env)<a class="headerlink" href="#environment-env" title="Permanent link">¶</a></h2>
 <ul>
-<li>Paths: <code>REPO_ROOT</code>, <code>CONTIMG_INPUT_DIR</code>, <code>CONTIMG_OUTPUT_DIR</code>, <code>CONTIMG_SCRATCH_DIR</code>, <code>CONTIMG_STATE_DIR</code></li>
+<li>Paths: <code>REPO_ROOT</code>, <code>CONTIMG_INPUT_DIR</code>, <code>CONTIMG_OUTPUT_DIR</code>,
+  <code>CONTIMG_SCRATCH_DIR</code>, <code>CONTIMG_STATE_DIR</code></li>
 <li>DBs: <code>CONTIMG_QUEUE_DB</code>, <code>CONTIMG_REGISTRY_DB</code>, <code>CONTIMG_PRODUCTS_DB</code></li>
-<li>Service: <code>CONTIMG_API_PORT</code>, <code>CONTIMG_LOG_LEVEL</code>, <code>CONTIMG_EXPECTED_SUBBANDS</code>, <code>CONTIMG_CHUNK_MINUTES</code>, <code>CONTIMG_MONITOR_INTERVAL</code></li>
+<li>Service: <code>CONTIMG_API_PORT</code>, <code>CONTIMG_LOG_LEVEL</code>, <code>CONTIMG_EXPECTED_SUBBANDS</code>,
+  <code>CONTIMG_CHUNK_MINUTES</code>, <code>CONTIMG_MONITOR_INTERVAL</code></li>
 <li>User mapping: <code>UID</code>, <code>GID</code></li>
 <li>Optional: <code>HDF5_USE_FILE_LOCKING=FALSE</code>, <code>OMP_NUM_THREADS</code>, <code>MKL_NUM_THREADS</code></li>
 </ul>
@@ -1134,7 +1132,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

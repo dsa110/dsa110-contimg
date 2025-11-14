@@ -1,0 +1,1756 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/archive/analysis/PHASE2_LIMITATIONS_ROADMAP/" rel="canonical"/>
+<link href="../../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Phase 2 Limitations - Roadmap and Implementation Plan - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#phase-2-limitations-roadmap-and-implementation-plan">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Phase 2 Limitations - Roadmap and Implementation Plan
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#priority-1-region-mask-creation-high-priority-completed">
+<span class="md-ellipsis">
+      Priority 1: Region Mask Creation (HIGH PRIORITY) ✅ COMPLETED
+    </span>
+</a>
+<nav aria-label="Priority 1: Region Mask Creation (HIGH PRIORITY) ✅ COMPLETED" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-status">
+<span class="md-ellipsis">
+      Current Status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#value">
+<span class="md-ellipsis">
+      Value
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#effort">
+<span class="md-ellipsis">
+      Effort
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-status">
+<span class="md-ellipsis">
+      Implementation Status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-plan">
+<span class="md-ellipsis">
+      Implementation Plan
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#priority-2-moffat-rotation-support-deferred">
+<span class="md-ellipsis">
+      Priority 2: Moffat Rotation Support (DEFERRED)
+    </span>
+</a>
+<nav aria-label="Priority 2: Moffat Rotation Support (DEFERRED)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-status_1">
+<span class="md-ellipsis">
+      Current Status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#value_1">
+<span class="md-ellipsis">
+      Value
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#effort_1">
+<span class="md-ellipsis">
+      Effort
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#decision-rationale">
+<span class="md-ellipsis">
+      Decision Rationale
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-options">
+<span class="md-ellipsis">
+      Implementation Options
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#priority-3-residual-visualization-deferred">
+<span class="md-ellipsis">
+      Priority 3: Residual Visualization (DEFERRED)
+    </span>
+</a>
+<nav aria-label="Priority 3: Residual Visualization (DEFERRED)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-status_2">
+<span class="md-ellipsis">
+      Current Status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#value_2">
+<span class="md-ellipsis">
+      Value
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#effort_2">
+<span class="md-ellipsis">
+      Effort
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#decision-rationale_1">
+<span class="md-ellipsis">
+      Decision Rationale
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-plan_1">
+<span class="md-ellipsis">
+      Implementation Plan
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#priority-4-parameter-locking-low-priority">
+<span class="md-ellipsis">
+      Priority 4: Parameter Locking (LOW PRIORITY)
+    </span>
+</a>
+<nav aria-label="Priority 4: Parameter Locking (LOW PRIORITY)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-status_3">
+<span class="md-ellipsis">
+      Current Status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#value_3">
+<span class="md-ellipsis">
+      Value
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#effort_3">
+<span class="md-ellipsis">
+      Effort
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-plan_2">
+<span class="md-ellipsis">
+      Implementation Plan
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#priority-5-multiple-source-fitting-low-priority">
+<span class="md-ellipsis">
+      Priority 5: Multiple Source Fitting (LOW PRIORITY)
+    </span>
+</a>
+<nav aria-label="Priority 5: Multiple Source Fitting (LOW PRIORITY)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-status_4">
+<span class="md-ellipsis">
+      Current Status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#value_4">
+<span class="md-ellipsis">
+      Value
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#effort_4">
+<span class="md-ellipsis">
+      Effort
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-plan_3">
+<span class="md-ellipsis">
+      Implementation Plan
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#recommended-implementation-order">
+<span class="md-ellipsis">
+      Recommended Implementation Order
+    </span>
+</a>
+<nav aria-label="Recommended Implementation Order" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#immediate-next-sprint">
+<span class="md-ellipsis">
+      Immediate (Next Sprint)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#deferred-after-core-validation">
+<span class="md-ellipsis">
+      Deferred (After Core Validation)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#medium-term-future-sprints">
+<span class="md-ellipsis">
+      Medium-term (Future Sprints)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#long-term-future-phase">
+<span class="md-ellipsis">
+      Long-term (Future Phase)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#quick-win-region-mask-integration">
+<span class="md-ellipsis">
+      Quick Win: Region Mask Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#summary">
+<span class="md-ellipsis">
+      Summary
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="phase-2-limitations-roadmap-and-implementation-plan">Phase 2 Limitations - Roadmap and Implementation Plan<a class="headerlink" href="#phase-2-limitations-roadmap-and-implementation-plan" title="Permanent link">¶</a></h1>
+<p><strong>Date:</strong> 2025-01-27<br/>
+<strong>Status:</strong> Planning<br/>
+<strong>Reference:</strong> <code>docs/analysis/PHASE2_WEEKS6-7_COMPLETION.md</code></p>
+<hr/>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>This document outlines a prioritized plan for addressing the known limitations in Phase 2 (Image Fitting) implementation. Each limitation is analyzed for value, effort, and implementation approach.</p>
+<hr/>
+<h2 id="priority-1-region-mask-creation-high-priority-completed">Priority 1: Region Mask Creation (HIGH PRIORITY) ✅ COMPLETED<a class="headerlink" href="#priority-1-region-mask-creation-high-priority-completed" title="Permanent link">¶</a></h2>
+<h3 id="current-status">Current Status<a class="headerlink" href="#current-status" title="Permanent link">¶</a></h3>
+<ul>
+<li>✅ <code>create_region_mask()</code> function exists in <code>regions.py</code></li>
+<li>✅ Integrated into fitting API</li>
+<li>✅ Fitting endpoint now properly creates and uses region masks</li>
+<li>✅ Supports circle and rectangle regions</li>
+<li>⚠️ Polygon regions not yet supported (returns empty mask)</li>
+</ul>
+<h3 id="value">Value<a class="headerlink" href="#value" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>HIGH</strong> - Users expect region constraints to work</li>
+<li>Essential for accurate source fitting</li>
+<li>Already partially implemented (just needs integration)</li>
+</ul>
+<h3 id="effort">Effort<a class="headerlink" href="#effort" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>LOW-MEDIUM</strong> - ~2-4 hours</li>
+<li>Leverage existing <code>create_region_mask()</code> function</li>
+<li>Minimal changes needed</li>
+</ul>
+<h3 id="implementation-status">Implementation Status<a class="headerlink" href="#implementation-status" title="Permanent link">¶</a></h3>
+<ul>
+<li>✅ Completed on 2025-01-27</li>
+<li>✅ Region mask creation integrated into <code>/api/images/{id}/fit</code> endpoint</li>
+<li>✅ Supports circle and rectangle regions</li>
+<li>✅ Proper error handling and validation</li>
+<li>See <code>docs/analysis/PRIORITY1_COMPLETION.md</code> for details</li>
+</ul>
+<h3 id="implementation-plan">Implementation Plan<a class="headerlink" href="#implementation-plan" title="Permanent link">¶</a></h3>
+<p><strong>Step 1: Integrate Region Mask into Fitting API</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># In routes.py, modify fit_image() endpoint:</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.utils.regions</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_region_mask</span>
+
+<span class="k">if</span> <span class="n">region_id</span><span class="p">:</span>
+    <span class="c1"># ... existing region lookup code ...</span>
+
+    <span class="c1"># Create mask from region</span>
+    <span class="k">with</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fits_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">hdul</span><span class="p">:</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">hdul</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
+        <span class="n">data_shape</span> <span class="o">=</span> <span class="n">hdul</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># Get 2D shape</span>
+
+        <span class="n">region_mask</span> <span class="o">=</span> <span class="n">create_region_mask</span><span class="p">(</span>
+            <span class="n">shape</span><span class="o">=</span><span class="n">data_shape</span><span class="p">,</span>
+            <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+            <span class="n">wcs</span><span class="o">=</span><span class="n">wcs</span><span class="p">,</span>
+            <span class="n">header</span><span class="o">=</span><span class="n">header</span>
+        <span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Step 2: Handle Polygon Regions</strong>
+- Check if <code>create_region_mask</code> handles polygon regions
+- If not, add polygon mask creation using <code>shapely</code> or manual pixel checking</p>
+<p><strong>Step 3: Test</strong>
+- Test with circle regions
+- Test with rectangle regions
+- Test with polygon regions (if supported)
+- Verify mask is applied correctly in fitting</p>
+<p><strong>Files to Modify:</strong>
+- <code>src/dsa110_contimg/api/routes.py</code> - Integrate mask creation
+- <code>src/dsa110_contimg/utils/regions.py</code> - Enhance if needed (polygon support)</p>
+<p><strong>Estimated Time:</strong> 2-4 hours</p>
+<hr/>
+<h2 id="priority-2-moffat-rotation-support-deferred">Priority 2: Moffat Rotation Support (DEFERRED)<a class="headerlink" href="#priority-2-moffat-rotation-support-deferred" title="Permanent link">¶</a></h2>
+<h3 id="current-status_1">Current Status<a class="headerlink" href="#current-status_1" title="Permanent link">¶</a></h3>
+<ul>
+<li>⚠️ <code>astropy.modeling.Moffat2D</code> doesn't support rotation directly</li>
+<li>⚠️ Currently uses circular Moffat (no position angle)</li>
+<li>⚠️ Less accurate for elliptical sources</li>
+<li>✅ <strong>Decision: Deferred</strong> - To be added after validating more fundamental stages</li>
+</ul>
+<h3 id="value_1">Value<a class="headerlink" href="#value_1" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>MEDIUM</strong> - Improves accuracy for elliptical sources</li>
+<li>Gaussian already supports rotation, so this is parity</li>
+<li>Less critical since Gaussian works well for most cases</li>
+<li><strong>Note:</strong> Beams are highly elliptical (~3.2:1 ratio), but Gaussian handles this</li>
+</ul>
+<h3 id="effort_1">Effort<a class="headerlink" href="#effort_1" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>MEDIUM-HIGH</strong> - ~4-8 hours</li>
+<li>Requires custom model or coordinate transformation</li>
+<li>More complex than region masks</li>
+</ul>
+<h3 id="decision-rationale">Decision Rationale<a class="headerlink" href="#decision-rationale" title="Permanent link">¶</a></h3>
+<ul>
+<li>Focus on core functionality first</li>
+<li>Validate fundamental stages before adding polish</li>
+<li>Gaussian already works for elliptical sources</li>
+<li>Can be added later when needed</li>
+</ul>
+<h3 id="implementation-options">Implementation Options<a class="headerlink" href="#implementation-options" title="Permanent link">¶</a></h3>
+<p><strong>Option A: Rotated Coordinate System (Recommended)</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Transform coordinates before fitting</span>
+<span class="c1"># Rotate coordinate system by PA, fit circular Moffat, rotate back</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fit_2d_moffat_rotated</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>
+    <span class="c1"># 1. Rotate coordinates by initial PA guess</span>
+    <span class="c1"># 2. Fit circular Moffat in rotated space</span>
+    <span class="c1"># 3. Transform parameters back</span>
+    <span class="c1"># 4. Refine fit with rotation parameter</span>
+</code></pre></div></p>
+<p><strong>Option B: Custom Rotated Moffat Model</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create custom model using CompoundModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.modeling</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompoundModel</span>
+<span class="c1"># Combine Moffat2D with rotation transformation</span>
+</code></pre></div></p>
+<p><strong>Option C: Use scipy.optimize Directly</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Define rotated Moffat function manually</span>
+<span class="c1"># Use scipy.optimize.curve_fit with full parameter control</span>
+</code></pre></div></p>
+<p><strong>Recommended Approach:</strong> Option A (rotated coordinate system)
+- Leverages existing astropy models
+- More stable than custom models
+- Easier to debug</p>
+<p><strong>Files to Modify:</strong>
+- <code>src/dsa110_contimg/utils/fitting.py</code> - Add rotated Moffat fitting</p>
+<p><strong>Estimated Time:</strong> 4-8 hours</p>
+<hr/>
+<h2 id="priority-3-residual-visualization-deferred">Priority 3: Residual Visualization (DEFERRED)<a class="headerlink" href="#priority-3-residual-visualization-deferred" title="Permanent link">¶</a></h2>
+<h3 id="current-status_2">Current Status<a class="headerlink" href="#current-status_2" title="Permanent link">¶</a></h3>
+<ul>
+<li>✅ Residual statistics calculated (mean, std, max)</li>
+<li>⚠️ No visual residual image overlay</li>
+<li>⚠️ Users can't see where fit fails</li>
+<li>✅ <strong>Decision: Deferred</strong> - To be added after validating more fundamental stages</li>
+</ul>
+<h3 id="value_2">Value<a class="headerlink" href="#value_2" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>MEDIUM</strong> - Helps users assess fit quality visually</li>
+<li>Useful for debugging poor fits</li>
+<li>Nice-to-have feature</li>
+</ul>
+<h3 id="effort_2">Effort<a class="headerlink" href="#effort_2" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>MEDIUM</strong> - ~4-6 hours</li>
+<li>Need to serve residual image or calculate client-side</li>
+<li>JS9 overlay integration</li>
+</ul>
+<h3 id="decision-rationale_1">Decision Rationale<a class="headerlink" href="#decision-rationale_1" title="Permanent link">¶</a></h3>
+<ul>
+<li>Focus on core functionality first</li>
+<li>Validate fundamental stages before adding polish</li>
+<li>Residual statistics already available (mean, std, max)</li>
+<li>Can be added later when needed</li>
+</ul>
+<h3 id="implementation-plan_1">Implementation Plan<a class="headerlink" href="#implementation-plan_1" title="Permanent link">¶</a></h3>
+<p><strong>Step 1: Calculate Residual Image</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># In fitting.py, already calculated:</span>
+<span class="n">residuals</span> <span class="o">=</span> <span class="n">data</span> <span class="o">-</span> <span class="n">fitted_values</span>
+
+<span class="c1"># Add to return:</span>
+<span class="k">return</span> <span class="p">{</span>
+    <span class="o">...</span>
+    <span class="s2">"residuals_image"</span><span class="p">:</span> <span class="n">residuals</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>  <span class="c1"># Or save as FITS</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<p><strong>Step 2: Serve Residual Image</strong>
+- Option A: Return residual data in API response (large payload)
+- Option B: Save residual as temporary FITS, serve via endpoint
+- Option C: Calculate client-side from fit parameters (complex)</p>
+<p><strong>Step 3: Display in Frontend</strong>
+<div class="highlight"><pre><span></span><code><span class="c1">// In FittingVisualization.tsx</span>
+<span class="c1">// Add residual image overlay toggle</span>
+<span class="c1">// Use JS9 to display residual as colormap overlay</span>
+</code></pre></div></p>
+<p><strong>Recommended Approach:</strong> Option B (temporary FITS file)
+- Efficient for large images
+- Reuses existing FITS serving infrastructure
+- Clean separation of concerns</p>
+<p><strong>Files to Modify:</strong>
+- <code>src/dsa110_contimg/utils/fitting.py</code> - Return residual image path
+- <code>src/dsa110_contimg/api/routes.py</code> - Serve residual FITS
+- <code>frontend/src/components/Sky/FittingVisualization.tsx</code> - Add residual overlay</p>
+<p><strong>Estimated Time:</strong> 4-6 hours</p>
+<hr/>
+<h2 id="priority-4-parameter-locking-low-priority">Priority 4: Parameter Locking (LOW PRIORITY)<a class="headerlink" href="#priority-4-parameter-locking-low-priority" title="Permanent link">¶</a></h2>
+<h3 id="current-status_3">Current Status<a class="headerlink" href="#current-status_3" title="Permanent link">¶</a></h3>
+<ul>
+<li>⚠️ All parameters are free to vary</li>
+<li>⚠️ No way to fix certain parameters</li>
+<li>⚠️ Users might want to fix known values (e.g., known position)</li>
+</ul>
+<h3 id="value_3">Value<a class="headerlink" href="#value_3" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>LOW-MEDIUM</strong> - Power-user feature</li>
+<li>Useful for constrained fitting scenarios</li>
+<li>Not essential for basic use cases</li>
+</ul>
+<h3 id="effort_3">Effort<a class="headerlink" href="#effort_3" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>MEDIUM</strong> - ~6-8 hours</li>
+<li>Requires UI changes + fitting logic modifications</li>
+<li>Need to handle parameter bounds/constraints</li>
+</ul>
+<h3 id="implementation-plan_2">Implementation Plan<a class="headerlink" href="#implementation-plan_2" title="Permanent link">¶</a></h3>
+<p><strong>Step 1: Add Parameter Locking to API</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># In routes.py</span>
+<span class="n">locked_parameters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+<span class="c1"># In fitting.py</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fit_2d_gaussian</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">locked_params</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># Set parameter bounds to fixed values</span>
+    <span class="k">if</span> <span class="n">locked_params</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">'amplitude'</span> <span class="ow">in</span> <span class="n">locked_params</span><span class="p">:</span>
+            <span class="n">gaussian_model</span><span class="o">.</span><span class="n">amplitude</span><span class="o">.</span><span class="n">fixed</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">gaussian_model</span><span class="o">.</span><span class="n">amplitude</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">locked_params</span><span class="p">[</span><span class="s1">'amplitude'</span><span class="p">]</span>
+        <span class="c1"># ... etc</span>
+</code></pre></div></p>
+<p><strong>Step 2: Add UI Controls</strong>
+<div class="highlight"><pre><span></span><code><span class="c1">// In ImageFittingTool.tsx</span>
+<span class="c1">// Add checkboxes/inputs for each parameter</span>
+<span class="c1">// Allow users to lock and set values</span>
+</code></pre></div></p>
+<p><strong>Step 3: Update Fitting Logic</strong>
+- Modify astropy model to use <code>fixed=True</code> for locked parameters
+- Ensure locked parameters aren't varied during fitting</p>
+<p><strong>Files to Modify:</strong>
+- <code>src/dsa110_contimg/utils/fitting.py</code> - Add parameter locking
+- <code>src/dsa110_contimg/api/routes.py</code> - Accept locked parameters
+- <code>frontend/src/components/Sky/ImageFittingTool.tsx</code> - Add UI controls</p>
+<p><strong>Estimated Time:</strong> 6-8 hours</p>
+<hr/>
+<h2 id="priority-5-multiple-source-fitting-low-priority">Priority 5: Multiple Source Fitting (LOW PRIORITY)<a class="headerlink" href="#priority-5-multiple-source-fitting-low-priority" title="Permanent link">¶</a></h2>
+<h3 id="current-status_4">Current Status<a class="headerlink" href="#current-status_4" title="Permanent link">¶</a></h3>
+<ul>
+<li>⚠️ Only single source fitting supported</li>
+<li>⚠️ No way to fit multiple sources simultaneously</li>
+<li>⚠️ Users must fit sources one at a time</li>
+</ul>
+<h3 id="value_4">Value<a class="headerlink" href="#value_4" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>LOW</strong> - Advanced feature</li>
+<li>Useful for blended sources</li>
+<li>Can be worked around with sequential fitting</li>
+</ul>
+<h3 id="effort_4">Effort<a class="headerlink" href="#effort_4" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>HIGH</strong> - ~16-24 hours</li>
+<li>Requires significant refactoring</li>
+<li>Complex initial guess for multiple sources</li>
+<li>UI changes for managing multiple fits</li>
+</ul>
+<h3 id="implementation-plan_3">Implementation Plan<a class="headerlink" href="#implementation-plan_3" title="Permanent link">¶</a></h3>
+<p><strong>Phase 1: Backend Support</strong>
+- Modify fitting functions to accept multiple initial guesses
+- Use compound models (sum of Gaussians/Moffats)
+- Handle parameter correlation</p>
+<p><strong>Phase 2: Initial Guess</strong>
+- Implement source detection (peak finding)
+- Automatic multi-source detection
+- Or manual source selection</p>
+<p><strong>Phase 3: Frontend</strong>
+- UI for selecting multiple sources
+- Display multiple fit overlays
+- Manage multiple fit results</p>
+<p><strong>Recommended Approach:</strong> Defer to Phase 3 or later
+- High complexity
+- Can be worked around with sequential fitting
+- Better to stabilize single-source fitting first</p>
+<p><strong>Estimated Time:</strong> 16-24 hours (deferred)</p>
+<hr/>
+<h2 id="recommended-implementation-order">Recommended Implementation Order<a class="headerlink" href="#recommended-implementation-order" title="Permanent link">¶</a></h2>
+<h3 id="immediate-next-sprint">Immediate (Next Sprint)<a class="headerlink" href="#immediate-next-sprint" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Priority 1: Region Mask Creation</strong> (2-4 hours)</li>
+<li>High value, low effort</li>
+<li>Users expect this to work</li>
+<li>Leverages existing code</li>
+</ol>
+<h3 id="deferred-after-core-validation">Deferred (After Core Validation)<a class="headerlink" href="#deferred-after-core-validation" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Priority 2: Moffat Rotation</strong> (4-8 hours)</li>
+<li>Medium value, medium-high effort</li>
+<li>Improves model accuracy</li>
+<li>Parity with Gaussian</li>
+<li>
+<p><strong>Deferred:</strong> To be added after validating more fundamental stages</p>
+</li>
+<li>
+<p><strong>Priority 3: Residual Visualization</strong> (4-6 hours)</p>
+</li>
+<li>Medium value, medium effort</li>
+<li>Improves user experience</li>
+<li>Helps with fit quality assessment</li>
+<li><strong>Deferred:</strong> To be added after validating more fundamental stages</li>
+</ol>
+<h3 id="medium-term-future-sprints">Medium-term (Future Sprints)<a class="headerlink" href="#medium-term-future-sprints" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Priority 4: Parameter Locking</strong> (6-8 hours)</li>
+<li>Low-medium value, medium effort</li>
+<li>Power-user feature</li>
+<li>Can be added when needed</li>
+</ol>
+<h3 id="long-term-future-phase">Long-term (Future Phase)<a class="headerlink" href="#long-term-future-phase" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Priority 5: Multiple Source Fitting</strong> (16-24 hours)</li>
+<li>Low value, high effort</li>
+<li>Advanced feature</li>
+<li>Defer until core features are stable</li>
+</ol>
+<hr/>
+<h2 id="quick-win-region-mask-integration">Quick Win: Region Mask Integration<a class="headerlink" href="#quick-win-region-mask-integration" title="Permanent link">¶</a></h2>
+<p>Since <code>create_region_mask()</code> already exists, this can be implemented quickly:</p>
+<p><strong>Implementation Steps:</strong>
+1. Import <code>create_region_mask</code> in <code>routes.py</code>
+2. Call it when <code>region_id</code> is provided
+3. Pass mask to fitting functions
+4. Test with circle and rectangle regions</p>
+<p><strong>Estimated Time:</strong> 2-4 hours<br/>
+<strong>Impact:</strong> HIGH - Users expect this to work<br/>
+<strong>Risk:</strong> LOW - Leverages existing, tested code</p>
+<hr/>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Priority</th>
+<th>Feature</th>
+<th>Value</th>
+<th>Effort</th>
+<th>Status</th>
+<th>ETA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Region Mask</td>
+<td>HIGH</td>
+<td>LOW-MED</td>
+<td>✅ COMPLETE</td>
+<td>Done</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Moffat Rotation</td>
+<td>MED</td>
+<td>MED-HIGH</td>
+<td>🔄 DEFERRED</td>
+<td>After validation</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Residual Viz</td>
+<td>MED</td>
+<td>MED</td>
+<td>🔄 DEFERRED</td>
+<td>After validation</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Parameter Lock</td>
+<td>LOW-MED</td>
+<td>MED</td>
+<td>Deferred</td>
+<td>6-8h</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Multi-Source</td>
+<td>LOW</td>
+<td>HIGH</td>
+<td>Deferred</td>
+<td>16-24h</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total Estimated Effort:</strong> 16-30 hours for priorities 1-3<br/>
+<strong>Completed:</strong> Priority 1 (Region Mask) ✅</p>
+<hr/>
+<p><strong>Next Action:</strong> 
+- ✅ Priority 1 (Region Mask) complete and verified
+- 🔄 Priority 2 (Moffat Rotation) deferred - to be added after validating more fundamental stages
+- 🔄 Priority 3 (Residual Visualization) deferred - to be added after validating more fundamental stages
+- 📋 <strong>Focus: Validate core functionality</strong> - Test Phase 2 features (Spatial Profiler, Image Fitting) with real data</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

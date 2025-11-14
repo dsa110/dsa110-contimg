@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1324,7 +1326,9 @@
 <article class="md-content__inner md-typeset">
 <h1 id="ese-detection-guide">ESE Detection Guide<a class="headerlink" href="#ese-detection-guide" title="Permanent link">¶</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>Extreme Scattering Events (ESE) are transient phenomena where radio sources show significant flux variability (&gt;5σ). This guide covers how to use the ESE detection system in the DSA-110 pipeline.</p>
+<p>Extreme Scattering Events (ESE) are transient phenomena where radio sources show
+significant flux variability (&gt;5σ). This guide covers how to use the ESE
+detection system in the DSA-110 pipeline.</p>
 <h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">¶</a></h2>
 <ul>
 <li><a href="#quick-start">Quick Start</a></li>
@@ -1357,7 +1361,8 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.photometr
 </code></pre></div>
 <h3 id="options">Options<a class="headerlink" href="#options" title="Permanent link">¶</a></h3>
 <ul>
-<li><code>--products-db PATH</code>: Path to products database (default: <code>state/products.sqlite3</code>)</li>
+<li><code>--products-db PATH</code>: Path to products database (default:
+  <code>state/products.sqlite3</code>)</li>
 <li><code>--min-sigma FLOAT</code>: Minimum sigma deviation threshold (default: 5.0)</li>
 <li><code>--source-id STRING</code>: Optional specific source ID to check</li>
 <li><code>--recompute</code>: Recompute variability statistics before detection</li>
@@ -1384,13 +1389,15 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.photometr
 <span class="w">  </span>--products-db<span class="w"> </span>/path/to/products.sqlite3
 </code></pre></div>
 <h3 id="output-format">Output Format<a class="headerlink" href="#output-format" title="Permanent link">¶</a></h3>
-<p>The CLI outputs JSON with:
-- <code>products_db</code>: Database path used
-- <code>min_sigma</code>: Threshold used
-- <code>source_id</code>: Source checked (if specified)
-- <code>recompute</code>: Whether stats were recomputed
-- <code>candidates_found</code>: Number of candidates detected
-- <code>candidates</code>: List of candidate dictionaries</p>
+<p>The CLI outputs JSON with:</p>
+<ul>
+<li><code>products_db</code>: Database path used</li>
+<li><code>min_sigma</code>: Threshold used</li>
+<li><code>source_id</code>: Source checked (if specified)</li>
+<li><code>recompute</code>: Whether stats were recomputed</li>
+<li><code>candidates_found</code>: Number of candidates detected</li>
+<li><code>candidates</code>: List of candidate dictionaries</li>
+</ul>
 <p>Example output:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"products_db"</span><span class="p">:</span><span class="w"> </span><span class="s2">"state/products.sqlite3"</span><span class="p">,</span>
@@ -1417,7 +1424,7 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.photometr
 <h2 id="api-usage">API Usage<a class="headerlink" href="#api-usage" title="Permanent link">¶</a></h2>
 <h3 id="single-ese-detection-job">Single ESE Detection Job<a class="headerlink" href="#single-ese-detection-job" title="Permanent link">¶</a></h3>
 <p><strong>Endpoint</strong>: <code>POST /api/jobs/ese-detect</code></p>
-<p><strong>Request Body</strong>:
+<p><strong>Request Body</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">"min_sigma"</span><span class="p">:</span><span class="w"> </span><span class="mf">5.0</span><span class="p">,</span>
@@ -1425,9 +1432,9 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.photometr
 <span class="w">    </span><span class="nt">"recompute"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <p><strong>Response</strong>: Job object with status and ID</p>
-<p><strong>Example</strong>:
+<p><strong>Example</strong>:</p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/jobs/ese-detect<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s1">'{</span>
@@ -1437,13 +1444,13 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.photometr
 <span class="s1">      "recompute": false</span>
 <span class="s1">    }</span>
 <span class="s1">  }'</span>
-</code></pre></div></p>
-<p><strong>Check Job Status</strong>:
+</code></pre></div>
+<p><strong>Check Job Status</strong>:</p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/api/jobs/<span class="o">{</span>job_id<span class="o">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="batch-ese-detection-job">Batch ESE Detection Job<a class="headerlink" href="#batch-ese-detection-job" title="Permanent link">¶</a></h3>
 <p><strong>Endpoint</strong>: <code>POST /api/batch/ese-detect</code></p>
-<p><strong>Request Body</strong>:
+<p><strong>Request Body</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"job_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ese-detect"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1452,9 +1459,9 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.photometr
 <span class="w">    </span><span class="nt">"source_ids"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"J120000+450000"</span><span class="p">,</span><span class="w"> </span><span class="s2">"J121000+460000"</span><span class="p">]</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <p><strong>Response</strong>: BatchJob object with status and ID</p>
-<p><strong>Example</strong>:
+<p><strong>Example</strong>:</p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/batch/ese-detect<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s1">'{</span>
@@ -1465,12 +1472,13 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.photometr
 <span class="s1">      "source_ids": ["J120000+450000"]</span>
 <span class="s1">    }</span>
 <span class="s1">  }'</span>
-</code></pre></div></p>
-<p><strong>Check Batch Status</strong>:
+</code></pre></div>
+<p><strong>Check Batch Status</strong>:</p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/api/batch/<span class="o">{</span>batch_id<span class="o">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="automated-detection">Automated Detection<a class="headerlink" href="#automated-detection" title="Permanent link">¶</a></h2>
-<p>ESE detection is automatically triggered after photometry measurements when enabled.</p>
+<p>ESE detection is automatically triggered after photometry measurements when
+enabled.</p>
 <h3 id="enabling-auto-detection">Enabling Auto-Detection<a class="headerlink" href="#enabling-auto-detection" title="Permanent link">¶</a></h3>
 <p>Auto-detection is enabled by default. Configure via photometry job parameters:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
@@ -1511,7 +1519,8 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.photometr
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">¶</a></h2>
 <h3 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">¶</a></h3>
 <ul>
-<li><code>PIPELINE_PRODUCTS_DB</code>: Path to products database (default: <code>state/products.sqlite3</code>)</li>
+<li><code>PIPELINE_PRODUCTS_DB</code>: Path to products database (default:
+  <code>state/products.sqlite3</code>)</li>
 <li><code>MASTER_SOURCES_DB</code>: Path to master sources database (for source ID lookup)</li>
 </ul>
 <h3 id="threshold-selection">Threshold Selection<a class="headerlink" href="#threshold-selection" title="Permanent link">¶</a></h3>
@@ -1521,10 +1530,12 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.photometr
 <li><strong>7.0+ sigma</strong>: Very high confidence candidates</li>
 </ul>
 <h3 id="source-id-format">Source ID Format<a class="headerlink" href="#source-id-format" title="Permanent link">¶</a></h3>
-<p>Sources use IAU-style coordinate-based IDs:
-- Format: <code>JHHMMSS+DDMMSS</code> (e.g., <code>J120000+450000</code>)
-- Generated from RA/Dec coordinates rounded to nearest arcsecond
-- Ensures consistent identification across measurements</p>
+<p>Sources use IAU-style coordinate-based IDs:</p>
+<ul>
+<li>Format: <code>JHHMMSS+DDMMSS</code> (e.g., <code>J120000+450000</code>)</li>
+<li>Generated from RA/Dec coordinates rounded to nearest arcsecond</li>
+<li>Ensures consistent identification across measurements</li>
+</ul>
 <h2 id="understanding-results">Understanding Results<a class="headerlink" href="#understanding-results" title="Permanent link">¶</a></h2>
 <h3 id="ese-candidate-fields">ESE Candidate Fields<a class="headerlink" href="#ese-candidate-fields" title="Permanent link">¶</a></h3>
 <ul>
@@ -1562,25 +1573,30 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.photometr
 <span class="p">)</span>
 </code></pre></div>
 <h3 id="database-tables">Database Tables<a class="headerlink" href="#database-tables" title="Permanent link">¶</a></h3>
-<p><strong>ese_candidates</strong>:
-- <code>source_id</code>: Source identifier
-- <code>flagged_at</code>: Timestamp when flagged
-- <code>flagged_by</code>: Who/what flagged it (usually 'auto')
-- <code>significance</code>: Sigma deviation
-- <code>flag_type</code>: Type of flag (usually 'auto')
-- <code>status</code>: 'active', 'investigated', 'dismissed'</p>
-<p><strong>variability_stats</strong>:
-- <code>source_id</code>: Source identifier
-- <code>sigma_deviation</code>: Key metric for ESE detection
-- <code>n_obs</code>: Number of observations
-- <code>mean_flux_mjy</code>, <code>std_flux_mjy</code>: Flux statistics
-- <code>chi2_nu</code>: Chi-squared metric
-- <code>eta_metric</code>: Eta variability metric</p>
+<p><strong>ese_candidates</strong>:</p>
+<ul>
+<li><code>source_id</code>: Source identifier</li>
+<li><code>flagged_at</code>: Timestamp when flagged</li>
+<li><code>flagged_by</code>: Who/what flagged it (usually 'auto')</li>
+<li><code>significance</code>: Sigma deviation</li>
+<li><code>flag_type</code>: Type of flag (usually 'auto')</li>
+<li><code>status</code>: 'active', 'investigated', 'dismissed'</li>
+</ul>
+<p><strong>variability_stats</strong>:</p>
+<ul>
+<li><code>source_id</code>: Source identifier</li>
+<li><code>sigma_deviation</code>: Key metric for ESE detection</li>
+<li><code>n_obs</code>: Number of observations</li>
+<li><code>mean_flux_mjy</code>, <code>std_flux_mjy</code>: Flux statistics</li>
+<li><code>chi2_nu</code>: Chi-squared metric</li>
+<li><code>eta_metric</code>: Eta variability metric</li>
+</ul>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
 <h3 id="no-candidates-detected">No Candidates Detected<a class="headerlink" href="#no-candidates-detected" title="Permanent link">¶</a></h3>
 <ul>
 <li>Check that photometry measurements exist: <code>SELECT COUNT(*) FROM photometry</code></li>
-<li>Verify variability stats are computed: <code>SELECT COUNT(*) FROM variability_stats</code></li>
+<li>Verify variability stats are computed:
+  <code>SELECT COUNT(*) FROM variability_stats</code></li>
 <li>Check threshold: Try lowering <code>min_sigma</code> to 3.0 for testing</li>
 </ul>
 <h3 id="missing-variability-stats">Missing Variability Stats<a class="headerlink" href="#missing-variability-stats" title="Permanent link">¶</a></h3>
@@ -1630,7 +1646,7 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.photometr
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

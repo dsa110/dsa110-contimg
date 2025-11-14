@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1252,7 +1254,8 @@
 <li><strong>File</strong>: <code>src/dsa110_contimg/photometry/ese_detection.py</code></li>
 <li><strong>Function</strong>: <code>detect_ese_candidates()</code></li>
 <li><strong>Algorithm</strong>:</li>
-<li>Query <code>variability_stats</code> table for sources with <code>sigma_deviation &gt;= min_sigma</code></li>
+<li>Query <code>variability_stats</code> table for sources with
+     <code>sigma_deviation &gt;= min_sigma</code></li>
 <li>Insert/update records in <code>ese_candidates</code> table</li>
 <li>Support for recomputing variability statistics from photometry measurements</li>
 </ul>
@@ -1378,7 +1381,8 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <span class="s1">  }'</span>
 </code></pre></div>
 <h2 id="status-complete">Status: Complete<a class="headerlink" href="#status-complete" title="Permanent link">¶</a></h2>
-<p>All features implemented and tested. Ready for integration testing and production use.</p>
+<p>All features implemented and tested. Ready for integration testing and
+production use.</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1403,7 +1407,7 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1273,14 +1275,17 @@
 <p><strong>Circuit Breakers</strong> (<code>/api/operations/circuit-breakers/*</code>)</p>
 </li>
 <li><code>GET /api/operations/circuit-breakers</code> - List all circuit breaker states</li>
-<li><code>GET /api/operations/circuit-breakers/{name}</code> - Get specific circuit breaker</li>
+<li><code>GET /api/operations/circuit-breakers/{name}</code> - Get specific circuit
+     breaker</li>
 <li>
-<p><code>POST /api/operations/circuit-breakers/{name}/reset</code> - Reset circuit breaker</p>
+<p><code>POST /api/operations/circuit-breakers/{name}/reset</code> - Reset circuit
+     breaker</p>
 </li>
 <li>
 <p><strong>Enhanced Health Checks</strong> (<code>/health/*</code>)</p>
 </li>
-<li><code>GET /api/health/summary</code> - Comprehensive health summary with DLQ stats and circuit breakers</li>
+<li><code>GET /api/health/summary</code> - Comprehensive health summary with DLQ stats and
+     circuit breakers</li>
 </ol>
 <h4 id="files-created">Files Created:<a class="headerlink" href="#files-created" title="Permanent link">¶</a></h4>
 <ul>
@@ -1296,15 +1301,18 @@
 <h4 id="components-created">Components Created:<a class="headerlink" href="#components-created" title="Permanent link">¶</a></h4>
 <ol>
 <li><strong>Dead Letter Queue Components</strong></li>
-<li><code>frontend/src/components/DeadLetterQueue/DeadLetterQueueTable.tsx</code> - Table with retry/resolve actions</li>
-<li><code>frontend/src/components/DeadLetterQueue/DeadLetterQueueStats.tsx</code> - Statistics display</li>
+<li><code>frontend/src/components/DeadLetterQueue/DeadLetterQueueTable.tsx</code> - Table
+     with retry/resolve actions</li>
+<li><code>frontend/src/components/DeadLetterQueue/DeadLetterQueueStats.tsx</code> -
+     Statistics display</li>
 <li>
 <p><code>frontend/src/components/DeadLetterQueue/index.ts</code> - Exports</p>
 </li>
 <li>
 <p><strong>Circuit Breaker Components</strong></p>
 </li>
-<li><code>frontend/src/components/CircuitBreaker/CircuitBreakerStatus.tsx</code> - Status display with reset</li>
+<li><code>frontend/src/components/CircuitBreaker/CircuitBreakerStatus.tsx</code> - Status
+     display with reset</li>
 <li><code>frontend/src/components/CircuitBreaker/index.ts</code> - Exports</li>
 </ol>
 <h4 id="pages-created">Pages Created:<a class="headerlink" href="#pages-created" title="Permanent link">¶</a></h4>
@@ -1405,7 +1413,8 @@
 </ol>
 <hr/>
 <h2 id="known-issues">Known Issues<a class="headerlink" href="#known-issues" title="Permanent link">¶</a></h2>
-<p>None currently identified. All components follow existing patterns and use established libraries.</p>
+<p>None currently identified. All components follow existing patterns and use
+established libraries.</p>
 <hr/>
 <h2 id="cost-analysis">Cost Analysis<a class="headerlink" href="#cost-analysis" title="Permanent link">¶</a></h2>
 <p><strong>Total Cost: $0</strong></p>
@@ -1441,7 +1450,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

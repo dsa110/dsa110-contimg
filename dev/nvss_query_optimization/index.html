@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1214,16 +1216,20 @@
 <article class="md-content__inner md-typeset">
 <h1 id="nvss-catalog-query-performance-optimization">NVSS Catalog Query Performance Optimization<a class="headerlink" href="#nvss-catalog-query-performance-optimization" title="Permanent link">¶</a></h1>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
-<p>Optimized NVSS catalog queries by migrating from CSV-based loading to SQLite databases with spatial indexing. This provides a <strong>170× performance improvement</strong> (1.2s → 7ms per query).</p>
+<p>Optimized NVSS catalog queries by migrating from CSV-based loading to SQLite
+databases with spatial indexing. This provides a <strong>170× performance
+improvement</strong> (1.2s → 7ms per query).</p>
 <h2 id="changes-made">Changes Made<a class="headerlink" href="#changes-made" title="Permanent link">¶</a></h2>
 <h3 id="1-added-query_nvss_sources-function">1. Added <code>query_nvss_sources()</code> Function<a class="headerlink" href="#1-added-query_nvss_sources-function" title="Permanent link">¶</a></h3>
 <p><strong>File:</strong> <code>src/dsa110_contimg/calibration/catalogs.py</code></p>
-<p>Added a new function <code>query_nvss_sources()</code> that:
-- Prioritizes SQLite databases (auto-resolved by declination strip)
-- Falls back to CSV if SQLite database not available
-- Uses spatial indexing for fast queries
-- Returns standardized DataFrame with <code>ra_deg</code>, <code>dec_deg</code>, <code>flux_mjy</code> columns</p>
-<p><strong>Function Signature:</strong>
+<p>Added a new function <code>query_nvss_sources()</code> that:</p>
+<ul>
+<li>Prioritizes SQLite databases (auto-resolved by declination strip)</li>
+<li>Falls back to CSV if SQLite database not available</li>
+<li>Uses spatial indexing for fast queries</li>
+<li>Returns standardized DataFrame with <code>ra_deg</code>, <code>dec_deg</code>, <code>flux_mjy</code> columns</li>
+</ul>
+<p><strong>Function Signature:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">query_nvss_sources</span><span class="p">(</span>
     <span class="n">ra_deg</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">dec_deg</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -1232,43 +1238,52 @@
     <span class="n">max_sources</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">catalog_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="2-updated-pipeline-code">2. Updated Pipeline Code<a class="headerlink" href="#2-updated-pipeline-code" title="Permanent link">¶</a></h3>
 <p><strong>File:</strong> <code>src/dsa110_contimg/pipeline/stages_impl.py</code></p>
-<p>Replaced CSV-based query logic with optimized SQLite query:
-- Removed: <code>read_nvss_catalog()</code> → full CSV load → in-memory filtering
-- Added: <code>query_nvss_sources()</code> → SQLite query → fast spatial search</p>
-<p><strong>Before:</strong>
+<p>Replaced CSV-based query logic with optimized SQLite query:</p>
+<ul>
+<li>Removed: <code>read_nvss_catalog()</code> → full CSV load → in-memory filtering</li>
+<li>Added: <code>query_nvss_sources()</code> → SQLite query → fast spatial search</li>
+</ul>
+<p><strong>Before:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="n">df</span> <span class="o">=</span> <span class="n">read_nvss_catalog</span><span class="p">()</span>  <span class="c1"># Loads entire 188k row CSV (~50MB)</span>
 <span class="c1"># ... manual filtering with SkyCoord separation calculations</span>
-</code></pre></div></p>
-<p><strong>After:</strong>
+</code></pre></div>
+<p><strong>After:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="n">df</span> <span class="o">=</span> <span class="n">query_nvss_sources</span><span class="p">(</span>
     <span class="n">ra_deg</span><span class="o">=</span><span class="n">ra_deg</span><span class="p">,</span>
     <span class="n">dec_deg</span><span class="o">=</span><span class="n">dec_deg</span><span class="p">,</span>
     <span class="n">radius_deg</span><span class="o">=</span><span class="n">max_radius_deg</span><span class="p">,</span>
     <span class="n">min_flux_mjy</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">photometry</span><span class="o">.</span><span class="n">min_flux_mjy</span><span class="p">,</span>
 <span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="performance-results">Performance Results<a class="headerlink" href="#performance-results" title="Permanent link">¶</a></h2>
 <h3 id="benchmark-results">Benchmark Results<a class="headerlink" href="#benchmark-results" title="Permanent link">¶</a></h3>
-<p><strong>Test Configuration:</strong>
-- Center: RA=83.5°, Dec=54.6°
-- Radius: 1.0 deg
-- Min flux: 10.0 mJy
-- Database: <code>nvss_dec+54.6.sqlite3</code> (129k sources)</p>
-<p><strong>SQLite Performance (warm cache):</strong>
-- Mean: <strong>7.15 ms</strong> per query
-- Median: 7.38 ms
-- Min: 6.04 ms
-- Max: 7.71 ms</p>
-<p><strong>CSV Performance (baseline):</strong>
-- Mean: <strong>~1200 ms</strong> per query (cold cache)
-- Mean: <strong>~800 ms</strong> per query (warm cache)</p>
+<p><strong>Test Configuration:</strong></p>
+<ul>
+<li>Center: RA=83.5°, Dec=54.6°</li>
+<li>Radius: 1.0 deg</li>
+<li>Min flux: 10.0 mJy</li>
+<li>Database: <code>nvss_dec+54.6.sqlite3</code> (129k sources)</li>
+</ul>
+<p><strong>SQLite Performance (warm cache):</strong></p>
+<ul>
+<li>Mean: <strong>7.15 ms</strong> per query</li>
+<li>Median: 7.38 ms</li>
+<li>Min: 6.04 ms</li>
+<li>Max: 7.71 ms</li>
+</ul>
+<p><strong>CSV Performance (baseline):</strong></p>
+<ul>
+<li>Mean: <strong>~1200 ms</strong> per query (cold cache)</li>
+<li>Mean: <strong>~800 ms</strong> per query (warm cache)</li>
+</ul>
 <p><strong>Speedup:</strong> <strong>~170× faster</strong> with SQLite</p>
 <h2 id="database-structure">Database Structure<a class="headerlink" href="#database-structure" title="Permanent link">¶</a></h2>
-<p>SQLite databases are created per declination strip using <code>build_nvss_strip_db()</code>:</p>
-<p><strong>Table Schema:</strong>
+<p>SQLite databases are created per declination strip using
+<code>build_nvss_strip_db()</code>:</p>
+<p><strong>Table Schema:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">sources</span><span class="w"> </span><span class="p">(</span>
 <span class="w">    </span><span class="n">source_id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
 <span class="w">    </span><span class="n">ra_deg</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
@@ -1276,11 +1291,14 @@
 <span class="w">    </span><span class="n">flux_mjy</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
 <span class="w">    </span><span class="k">UNIQUE</span><span class="p">(</span><span class="n">ra_deg</span><span class="p">,</span><span class="w"> </span><span class="n">dec_deg</span><span class="p">)</span>
 <span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Indexes:</strong>
-- <code>idx_radec</code>: Composite index on <code>(ra_deg, dec_deg)</code> - optimal for spatial queries
-- <code>idx_dec</code>: Index on <code>dec_deg</code> - for declination filtering
-- <code>idx_flux</code>: Index on <code>flux_mjy</code> - for flux-based filtering</p>
+</code></pre></div>
+<p><strong>Indexes:</strong></p>
+<ul>
+<li><code>idx_radec</code>: Composite index on <code>(ra_deg, dec_deg)</code> - optimal for spatial
+  queries</li>
+<li><code>idx_dec</code>: Index on <code>dec_deg</code> - for declination filtering</li>
+<li><code>idx_flux</code>: Index on <code>flux_mjy</code> - for flux-based filtering</li>
+</ul>
 <h2 id="query-strategy">Query Strategy<a class="headerlink" href="#query-strategy" title="Permanent link">¶</a></h2>
 <p>The optimized query uses a two-stage approach:</p>
 <ol>
@@ -1297,7 +1315,8 @@
 <li>Filters to exact <code>radius_deg</code> circle</li>
 <li>Re-applies flux and limit constraints</li>
 </ol>
-<p>This approach balances speed (indexed SQL queries) with accuracy (exact angular separation).</p>
+<p>This approach balances speed (indexed SQL queries) with accuracy (exact angular
+separation).</p>
 <h2 id="migration-path">Migration Path<a class="headerlink" href="#migration-path" title="Permanent link">¶</a></h2>
 <h3 id="building-sqlite-databases">Building SQLite Databases<a class="headerlink" href="#building-sqlite-databases" title="Permanent link">¶</a></h3>
 <p>For each declination strip, build a SQLite database:</p>
@@ -1307,13 +1326,18 @@
 <span class="w">    </span>--output<span class="w"> </span>state/catalogs/nvss_dec+54.6.sqlite3
 </code></pre></div>
 <h3 id="existing-databases">Existing Databases<a class="headerlink" href="#existing-databases" title="Permanent link">¶</a></h3>
-<p>Current SQLite databases:
-- <code>/data/dsa110-contimg/state/catalogs/nvss_dec+54.6.sqlite3</code> (17MB, 129k sources)</p>
+<p>Current SQLite databases:</p>
+<ul>
+<li><code>/data/dsa110-contimg/state/catalogs/nvss_dec+54.6.sqlite3</code> (17MB, 129k
+  sources)</li>
+</ul>
 <h3 id="backward-compatibility">Backward Compatibility<a class="headerlink" href="#backward-compatibility" title="Permanent link">¶</a></h3>
-<p>The function maintains backward compatibility:
-- If SQLite database not found, automatically falls back to CSV
-- CSV fallback uses same function signature and return format
-- No breaking changes to existing code</p>
+<p>The function maintains backward compatibility:</p>
+<ul>
+<li>If SQLite database not found, automatically falls back to CSV</li>
+<li>CSV fallback uses same function signature and return format</li>
+<li>No breaking changes to existing code</li>
+</ul>
 <h2 id="usage-examples">Usage Examples<a class="headerlink" href="#usage-examples" title="Permanent link">¶</a></h2>
 <h3 id="basic-query">Basic Query<a class="headerlink" href="#basic-query" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.calibration.catalogs</span><span class="w"> </span><span class="kn">import</span> <span class="n">query_nvss_sources</span>
@@ -1344,10 +1368,13 @@
 </code></pre></div>
 <h2 id="future-improvements">Future Improvements<a class="headerlink" href="#future-improvements" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Additional Declination Strips</strong>: Build SQLite databases for other declination ranges as needed</li>
-<li><strong>Query Optimization</strong>: Consider using R-tree indexes for even faster spatial queries</li>
+<li><strong>Additional Declination Strips</strong>: Build SQLite databases for other
+   declination ranges as needed</li>
+<li><strong>Query Optimization</strong>: Consider using R-tree indexes for even faster spatial
+   queries</li>
 <li><strong>Caching</strong>: Add query result caching for frequently accessed fields</li>
-<li><strong>Parallel Queries</strong>: Support batch queries for multiple fields simultaneously</li>
+<li><strong>Parallel Queries</strong>: Support batch queries for multiple fields
+   simultaneously</li>
 </ol>
 <h2 id="related-files">Related Files<a class="headerlink" href="#related-files" title="Permanent link">¶</a></h2>
 <ul>
@@ -1385,7 +1412,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

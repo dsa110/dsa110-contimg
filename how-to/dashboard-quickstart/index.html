@@ -23,11 +23,13 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#dsa-110-pipeline-dashboard">
+<a class="md-skip" href="#moved">
           Skip to content
         </a>
 </div>
 <div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
 </div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
@@ -691,36 +693,11 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#overview">
-<span class="md-ellipsis">
-      Overview
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#quick-start">
-<span class="md-ellipsis">
-      Quick Start
-    </span>
-</a>
-<nav aria-label="Quick Start" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#starting-the-dashboard">
-<span class="md-ellipsis">
-      Starting the Dashboard
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
 <a class="md-nav__link" href="#accessing-the-dashboard">
 <span class="md-ellipsis">
       Accessing the Dashboard
     </span>
 </a>
-</li>
-</ul>
-</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#features">
@@ -1351,36 +1328,11 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#overview">
-<span class="md-ellipsis">
-      Overview
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#quick-start">
-<span class="md-ellipsis">
-      Quick Start
-    </span>
-</a>
-<nav aria-label="Quick Start" class="md-nav">
-<ul class="md-nav__list">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#starting-the-dashboard">
-<span class="md-ellipsis">
-      Starting the Dashboard
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
 <a class="md-nav__link" href="#accessing-the-dashboard">
 <span class="md-ellipsis">
       Accessing the Dashboard
     </span>
 </a>
-</li>
-</ul>
-</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#features">
@@ -1634,21 +1586,8 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="dsa-110-pipeline-dashboard">DSA-110 Pipeline Dashboard<a class="headerlink" href="#dsa-110-pipeline-dashboard" title="Permanent link">¶</a></h1>
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>The DSA-110 Pipeline Dashboard is a modern React-based web interface for monitoring the continuum imaging pipeline in real-time. It provides comprehensive views of pipeline health, data quality, source monitoring, and extreme scattering event (ESE) detection.</p>
-<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">¶</a></h2>
-<h3 id="starting-the-dashboard">Starting the Dashboard<a class="headerlink" href="#starting-the-dashboard" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># Terminal 1: Start the backend API</span>
-<span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg
-conda<span class="w"> </span>activate<span class="w"> </span>casa6
-uvicorn<span class="w"> </span>dsa110_contimg.api:app<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span><span class="w"> </span>--reload
-
-<span class="c1"># Terminal 2: Start the frontend</span>
-<span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
-conda<span class="w"> </span>activate<span class="w"> </span>casa6
-npm<span class="w"> </span>run<span class="w"> </span>dev<span class="w"> </span>--<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">5173</span>
-</code></pre></div>
+<h1 id="moved">Moved<a class="headerlink" href="#moved" title="Permanent link">¶</a></h1>
+<p>See <code>docs/how-to/dashboard.md</code>.</p>
 <h3 id="accessing-the-dashboard">Accessing the Dashboard<a class="headerlink" href="#accessing-the-dashboard" title="Permanent link">¶</a></h3>
 <p>Open your browser to:</p>
 <div class="highlight"><pre><span></span><code>http://localhost:5173
@@ -1657,10 +1596,12 @@ npm<span class="w"> </span>run<span class="w"> </span>dev<span class="w"> </span
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">¶</a></h2>
 <h3 id="1-dashboard-main-page">1. Dashboard (Main Page)<a class="headerlink" href="#1-dashboard-main-page" title="Permanent link">¶</a></h3>
 <p><strong>URL:</strong> <code>/dashboard</code></p>
-<p>The main dashboard provides an at-a-glance view of pipeline health and system status:</p>
+<p>The main dashboard provides an at-a-glance view of pipeline health and system
+status:</p>
 <ul>
 <li><strong>Pipeline Status Panel</strong></li>
-<li>Queue statistics (total, pending, in-progress, completed, failed, collecting)</li>
+<li>Queue statistics (total, pending, in-progress, completed, failed,
+    collecting)</li>
 <li>Active calibration sets</li>
 <li>
 <p>Recent observations table with group IDs and processing state</p>
@@ -1798,7 +1739,8 @@ npm<span class="w"> </span>run<span class="w"> </span>dev<span class="w"> </span
 <li><strong>API Framework:</strong> FastAPI</li>
 <li><strong>CORS:</strong> Enabled for localhost development</li>
 <li><strong>Endpoints:</strong> RESTful JSON API</li>
-<li><strong>Database:</strong> SQLite3 (ingest.sqlite3, products.sqlite3, master_sources.sqlite3)</li>
+<li><strong>Database:</strong> SQLite3 (ingest.sqlite3, products.sqlite3,
+  master_sources.sqlite3)</li>
 </ul>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">¶</a></h2>
 <div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
@@ -1846,11 +1788,13 @@ npm<span class="w"> </span>run<span class="w"> </span>dev<span class="w"> </span
 <ol>
 <li><strong>React Query</strong> manages data fetching and caching</li>
 <li><strong>Polling interval:</strong> 10s for pipeline status, system metrics, ESE candidates</li>
-<li><strong>On-demand queries:</strong> Triggered by user actions (search, time range selection)</li>
+<li><strong>On-demand queries:</strong> Triggered by user actions (search, time range
+   selection)</li>
 <li><strong>Automatic retry:</strong> 1 retry on failure, no refetch on window focus</li>
 </ol>
 <h3 id="api-data-models">API Data Models<a class="headerlink" href="#api-data-models" title="Permanent link">¶</a></h3>
-<p>See <a href="../../reference/dashboard_backend_api/">API Reference</a> for detailed endpoint documentation.</p>
+<p>See <a href="../../reference/dashboard_backend_api/">API Reference</a> for detailed endpoint
+documentation.</p>
 <h2 id="development">Development<a class="headerlink" href="#development" title="Permanent link">¶</a></h2>
 <h3 id="project-structure">Project Structure<a class="headerlink" href="#project-structure" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>frontend/
@@ -1878,8 +1822,8 @@ npm<span class="w"> </span>run<span class="w"> </span>dev<span class="w"> </span
 </code></pre></div>
 <h3 id="adding-a-new-page">Adding a New Page<a class="headerlink" href="#adding-a-new-page" title="Permanent link">¶</a></h3>
 <ol>
-<li>
-<p><strong>Create page component:</strong>
+<li><strong>Create page component:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="c1">// src/pages/NewPage.tsx</span>
 <span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">NewPage</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
@@ -1890,55 +1834,51 @@ npm<span class="w"> </span>run<span class="w"> </span>dev<span class="w"> </span
 <span class="w">    </span><span class="o">&lt;</span><span class="err">/Container&gt;</span>
 <span class="w">  </span><span class="p">);</span>
 <span class="p">}</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Add route in App.tsx:</strong>
+</code></pre></div>
+<ol>
+<li><strong>Add route in App.tsx:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="nx">NewPage</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'./pages/NewPage'</span><span class="p">;</span>
 
 <span class="c1">// In Routes:</span>
 <span class="o">&lt;</span><span class="nx">Route</span><span class="w"> </span><span class="nx">path</span><span class="o">=</span><span class="s2">"/new"</span><span class="w"> </span><span class="nx">element</span><span class="o">=</span><span class="p">{</span><span class="o">&lt;</span><span class="nx">NewPage</span><span class="w"> </span><span class="o">/&gt;</span><span class="p">}</span><span class="w"> </span><span class="o">/&gt;</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Add navigation link:</strong>
+</code></pre></div>
+<ol>
+<li><strong>Add navigation link:</strong>
 <div class="highlight"><pre><span></span><code><span class="c1">// In Navigation.tsx</span>
 <span class="o">&lt;</span><span class="nx">Button</span><span class="w"> </span><span class="nx">component</span><span class="o">=</span><span class="p">{</span><span class="nx">NavLink</span><span class="p">}</span><span class="w"> </span><span class="nx">to</span><span class="o">=</span><span class="s2">"/new"</span><span class="o">&gt;</span>
 <span class="w">  </span><span class="nx">New</span><span class="w"> </span><span class="nx">Feature</span>
 <span class="o">&lt;</span><span class="err">/Button&gt;</span>
-</code></pre></div></p>
-</li>
+</code></pre></div></li>
 </ol>
 <h3 id="adding-a-new-api-endpoint">Adding a New API Endpoint<a class="headerlink" href="#adding-a-new-api-endpoint" title="Permanent link">¶</a></h3>
 <ol>
-<li>
-<p><strong>Define TypeScript interface:</strong>
+<li><strong>Define TypeScript interface:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="c1">// src/api/types.ts</span>
 <span class="k">export</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="nx">NewData</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
 <span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
 <span class="p">}</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Create React Query hook:</strong>
+</code></pre></div>
+<ol>
+<li><strong>Create React Query hook:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="c1">// src/api/queries.ts</span>
 <span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">useNewData</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">useQuery</span><span class="p">({</span>
-<span class="w">    </span><span class="nx">queryKey</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">'newdata'</span><span class="p">],</span>
+<span class="w">    </span><span class="nx">queryKey</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"newdata"</span><span class="p">],</span>
 <span class="w">    </span><span class="nx">queryFn</span><span class="o">:</span><span class="w"> </span><span class="kt">async</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">apiClient</span><span class="p">.</span><span class="nx">get</span><span class="o">&lt;</span><span class="nx">NewData</span><span class="p">[]</span><span class="o">&gt;</span><span class="p">(</span><span class="s1">'/new'</span><span class="p">);</span>
+<span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">apiClient</span><span class="p">.</span><span class="nx">get</span><span class="o">&lt;</span><span class="nx">NewData</span><span class="p">[]</span><span class="o">&gt;</span><span class="p">(</span><span class="s2">"/new"</span><span class="p">);</span>
 <span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">data</span><span class="p">;</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">  </span><span class="p">});</span>
 <span class="p">}</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Use in component:</strong>
+</code></pre></div>
+<ol>
+<li><strong>Use in component:</strong>
 <div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="p">,</span><span class="w"> </span><span class="nx">isLoading</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useNewData</span><span class="p">();</span>
-</code></pre></div></p>
-</li>
+</code></pre></div></li>
 </ol>
 <h3 id="building-for-production">Building for Production<a class="headerlink" href="#building-for-production" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
@@ -1965,35 +1905,33 @@ npm<span class="w"> </span>run<span class="w"> </span>build
 <span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="nx">defineConfig</span><span class="p">({</span>
 <span class="w">  </span><span class="nx">server</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nx">proxy</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="s1">'/api'</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nx">target</span><span class="o">:</span><span class="w"> </span><span class="s1">'http://localhost:8000'</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">"/api"</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">target</span><span class="o">:</span><span class="w"> </span><span class="s2">"http://localhost:8000"</span><span class="p">,</span>
 <span class="w">        </span><span class="nx">changeOrigin</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span>
-<span class="w">      </span><span class="p">}</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">})</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="p">});</span>
 </code></pre></div>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
 <h3 id="dashboard-not-loading">Dashboard Not Loading<a class="headerlink" href="#dashboard-not-loading" title="Permanent link">¶</a></h3>
 <ol>
-<li>
-<p><strong>Check both services are running:</strong>
+<li><strong>Check both services are running:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code>ps<span class="w"> </span>aux<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">"node.*vite|uvicorn.*dsa110"</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Test backend API:</strong>
+</code></pre></div>
+<ol>
+<li><strong>Test backend API:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/api/status
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Test frontend:</strong>
+</code></pre></div>
+<ol>
+<li><strong>Test frontend:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:5173
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Check browser console (F12) for errors</strong></p>
-</li>
+</code></pre></div>
+<ol>
+<li><strong>Check browser console (F12) for errors</strong></li>
 </ol>
 <h3 id="cors-errors">CORS Errors<a class="headerlink" href="#cors-errors" title="Permanent link">¶</a></h3>
 <p>If you see CORS errors in the browser console:</p>
@@ -2028,7 +1966,8 @@ node<span class="w"> </span>--version
 <li><strong>Update data models</strong> if schema differs from mock data</li>
 <li><strong>Test with real pipeline data</strong></li>
 </ol>
-<p>See <a href="../../reference/dashboard_backend_api/">Connecting Real Data</a> for detailed API details and wiring notes.</p>
+<p>See <a href="../../reference/dashboard_backend_api/">Connecting Real Data</a> for detailed
+API details and wiring notes.</p>
 <h3 id="phase-2-features">Phase 2 Features<a class="headerlink" href="#phase-2-features" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>Slack Alerting:</strong> Webhook integration for ESE candidate notifications</li>
@@ -2040,8 +1979,10 @@ node<span class="w"> </span>--version
 <h3 id="fits-viewer-integration">FITS Viewer Integration<a class="headerlink" href="#fits-viewer-integration" title="Permanent link">¶</a></h3>
 <p>To integrate JS9 or Aladin Lite:</p>
 <ol>
-<li><strong>JS9:</strong> See <a href="https://js9.si.edu/js9/help/install.html">JS9 Integration Guide</a></li>
-<li><strong>Aladin Lite:</strong> See <a href="https://aladin.cds.unistra.fr/AladinLite/doc/">Aladin Lite API</a></li>
+<li><strong>JS9:</strong> See
+   <a href="https://js9.si.edu/js9/help/install.html">JS9 Integration Guide</a></li>
+<li><strong>Aladin Lite:</strong> See
+   <a href="https://aladin.cds.unistra.fr/AladinLite/doc/">Aladin Lite API</a></li>
 </ol>
 <p>Placeholder is ready in <code>src/pages/SkyViewPage.tsx</code>.</p>
 <h2 id="support">Support<a class="headerlink" href="#support" title="Permanent link">¶</a></h2>
@@ -2075,7 +2016,7 @@ node<span class="w"> </span>--version
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

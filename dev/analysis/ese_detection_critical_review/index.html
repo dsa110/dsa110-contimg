@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1246,14 +1248,16 @@
 <article class="md-content__inner md-typeset">
 <h1 id="ese-detection-implementation-critical-review">ESE Detection Implementation Critical Review<a class="headerlink" href="#ese-detection-implementation-critical-review" title="Permanent link">¶</a></h1>
 <h2 id="date-2025-11-12">Date: 2025-11-12<a class="headerlink" href="#date-2025-11-12" title="Permanent link">¶</a></h2>
-<p>This document provides a critical review of the ESE detection implementation based on scientific literature and best practices.</p>
+<p>This document provides a critical review of the ESE detection implementation
+based on scientific literature and best practices.</p>
 <h2 id="research-findings">Research Findings<a class="headerlink" href="#research-findings" title="Permanent link">¶</a></h2>
 <h3 id="standard-practices-in-ese-detection">Standard Practices in ESE Detection<a class="headerlink" href="#standard-practices-in-ese-detection" title="Permanent link">¶</a></h3>
 <p>Based on literature review (Perplexity search):</p>
 <ol>
 <li><strong>Sigma Thresholds</strong>:</li>
 <li><strong>3σ</strong>: Common for initial detection (0.3% false positive rate)</li>
-<li><strong>5σ</strong>: Gold standard for definitive discovery (0.00006% false positive rate)</li>
+<li><strong>5σ</strong>: Gold standard for definitive discovery (0.00006% false positive
+     rate)</li>
 <li>
 <p>Our default: <strong>5.0σ</strong> (conservative, appropriate for production)</p>
 </li>
@@ -1262,7 +1266,8 @@
 </li>
 <li><strong>Chi-squared test</strong>: Standard for testing constant flux model</li>
 <li><strong>Eta metric</strong>: Weighted variance metric (from VAST Tools)</li>
-<li><strong>Multiple observables</strong>: ESEs show correlated changes in flux, scintillation bandwidth, and DM</li>
+<li><strong>Multiple observables</strong>: ESEs show correlated changes in flux,
+     scintillation bandwidth, and DM</li>
 <li>
 <p>Our implementation: Uses chi-squared and eta metrics ✓</p>
 </li>
@@ -1271,94 +1276,121 @@
 </li>
 <li>Real-time detection increasingly important</li>
 <li>Post-processing light curve analysis</li>
-<li>Our implementation: Both automated (real-time) and manual (post-processing) ✓</li>
+<li>Our implementation: Both automated (real-time) and manual (post-processing)
+     ✓</li>
 </ol>
 <h2 id="critical-issues-found">Critical Issues Found<a class="headerlink" href="#critical-issues-found" title="Permanent link">¶</a></h2>
 <h3 id="fixed-inconsistent-sigma-deviation-calculation">✅ FIXED: Inconsistent Sigma Deviation Calculation<a class="headerlink" href="#fixed-inconsistent-sigma-deviation-calculation" title="Permanent link">¶</a></h3>
-<p><strong>Issue</strong>: Two different formulas for <code>sigma_deviation</code> existed in the codebase (FIXED 2025-11-12):</p>
+<p><strong>Issue</strong>: Two different formulas for <code>sigma_deviation</code> existed in the codebase
+(FIXED 2025-11-12):</p>
 <ol>
-<li>
-<p><strong>In <code>ese_pipeline.py</code> (lines 130-134)</strong>:
+<li><strong>In <code>ese_pipeline.py</code> (lines 130-134)</strong>:</li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="n">sigma_deviation</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">max_flux_mjy</span> <span class="o">-</span> <span class="n">mean_flux_mjy</span><span class="p">)</span> <span class="o">/</span> <span class="n">std_flux_mjy</span>
 <span class="n">sigma_deviation</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
     <span class="n">sigma_deviation</span><span class="p">,</span>
     <span class="nb">abs</span><span class="p">(</span><span class="n">min_flux_mjy</span> <span class="o">-</span> <span class="n">mean_flux_mjy</span><span class="p">)</span> <span class="o">/</span> <span class="n">std_flux_mjy</span>
 <span class="p">)</span>
 </code></pre></div>
-This calculates: <strong>max deviation from mean in units of standard deviation</strong> ✓ (Correct)</p>
-</li>
-<li>
-<p><strong>In <code>ese_detection.py</code> (lines 275-280)</strong> - <strong>FIXED</strong>:
+<p>This calculates: <strong>max deviation from mean in units of standard deviation</strong> ✓
+(Correct)</p>
+<ol>
+<li><strong>In <code>ese_detection.py</code> (lines 275-280)</strong> - <strong>FIXED</strong>:</li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="n">sigma_deviation</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">max_flux</span> <span class="o">-</span> <span class="n">mean_flux</span><span class="p">)</span> <span class="o">/</span> <span class="n">std_flux</span>
 <span class="n">sigma_deviation</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
     <span class="n">sigma_deviation</span><span class="p">,</span>
     <span class="nb">abs</span><span class="p">(</span><span class="n">min_flux</span> <span class="o">-</span> <span class="n">mean_flux</span><span class="p">)</span> <span class="o">/</span> <span class="n">std_flux</span>
 <span class="p">)</span>
 </code></pre></div>
-Now calculates: <strong>max deviation from mean in units of standard deviation</strong> ✓ (Correct - Fixed)</p>
-</li>
-</ol>
+<p>Now calculates: <strong>max deviation from mean in units of standard deviation</strong> ✓
+(Correct - Fixed)</p>
 <p><strong>Status</strong>: ✅ <strong>FIXED</strong> - Both implementations now use consistent formula</p>
-<p><strong>Impact</strong>: 
-- Automatic and manual detection now produce consistent results
-- Formula correctly represents variability significance
-- Both paths use the same statistical measure</p>
-<p><strong>Future Recommendation</strong>: 
-- Consider extracting to shared function to prevent future inconsistencies
-- Add unit tests to verify consistency</p>
+<p><strong>Impact</strong>:</p>
+<ul>
+<li>Automatic and manual detection now produce consistent results</li>
+<li>Formula correctly represents variability significance</li>
+<li>Both paths use the same statistical measure</li>
+</ul>
+<p><strong>Future Recommendation</strong>:</p>
+<ul>
+<li>Consider extracting to shared function to prevent future inconsistencies</li>
+<li>Add unit tests to verify consistency</li>
+</ul>
 <h3 id="moderate-missing-frequency-dependent-analysis">⚠️ MODERATE: Missing Frequency-Dependent Analysis<a class="headerlink" href="#moderate-missing-frequency-dependent-analysis" title="Permanent link">¶</a></h3>
-<p><strong>Issue</strong>: ESEs show frequency-dependent variability, but we only analyze single-frequency flux.</p>
-<p><strong>Research Finding</strong>: 
-- ESEs manifest as frequency-dependent changes in flux density
-- Correlated changes in scintillation bandwidth and DM (for pulsars)
-- Our implementation only considers flux variability</p>
-<p><strong>Impact</strong>: 
-- May miss ESEs that show frequency-dependent signatures
-- Cannot distinguish ESEs from other variability sources</p>
-<p><strong>Recommendation</strong>: 
-- Document this limitation
-- Consider multi-frequency analysis in future enhancements
-- For now, acceptable given single-frequency observations</p>
+<p><strong>Issue</strong>: ESEs show frequency-dependent variability, but we only analyze
+single-frequency flux.</p>
+<p><strong>Research Finding</strong>:</p>
+<ul>
+<li>ESEs manifest as frequency-dependent changes in flux density</li>
+<li>Correlated changes in scintillation bandwidth and DM (for pulsars)</li>
+<li>Our implementation only considers flux variability</li>
+</ul>
+<p><strong>Impact</strong>:</p>
+<ul>
+<li>May miss ESEs that show frequency-dependent signatures</li>
+<li>Cannot distinguish ESEs from other variability sources</li>
+</ul>
+<p><strong>Recommendation</strong>:</p>
+<ul>
+<li>Document this limitation</li>
+<li>Consider multi-frequency analysis in future enhancements</li>
+<li>For now, acceptable given single-frequency observations</li>
+</ul>
 <h3 id="moderate-threshold-selection">⚠️ MODERATE: Threshold Selection<a class="headerlink" href="#moderate-threshold-selection" title="Permanent link">¶</a></h3>
 <p><strong>Issue</strong>: Default threshold of 5.0σ may be too conservative.</p>
-<p><strong>Research Finding</strong>:
-- 3σ common for initial detection (0.3% false positive)
-- 5σ for definitive discovery (0.00006% false positive)
-- Our default: 5.0σ</p>
-<p><strong>Impact</strong>:
-- Very low false positive rate (good)
-- May miss some real ESEs (sensitivity trade-off)
-- Appropriate for production use</p>
-<p><strong>Recommendation</strong>:
-- Keep 5.0σ as default (conservative, appropriate)
-- Document that 3.0σ can be used for initial screening
-- Consider making threshold configurable per use case</p>
+<p><strong>Research Finding</strong>:</p>
+<ul>
+<li>3σ common for initial detection (0.3% false positive)</li>
+<li>5σ for definitive discovery (0.00006% false positive)</li>
+<li>Our default: 5.0σ</li>
+</ul>
+<p><strong>Impact</strong>:</p>
+<ul>
+<li>Very low false positive rate (good)</li>
+<li>May miss some real ESEs (sensitivity trade-off)</li>
+<li>Appropriate for production use</li>
+</ul>
+<p><strong>Recommendation</strong>:</p>
+<ul>
+<li>Keep 5.0σ as default (conservative, appropriate)</li>
+<li>Document that 3.0σ can be used for initial screening</li>
+<li>Consider making threshold configurable per use case</li>
+</ul>
 <h3 id="moderate-chi-squared-calculation-verification">⚠️ MODERATE: Chi-Squared Calculation Verification<a class="headerlink" href="#moderate-chi-squared-calculation-verification" title="Permanent link">¶</a></h3>
 <p><strong>Issue</strong>: Need to verify chi-squared calculation matches standard practice.</p>
-<p><strong>Current Implementation</strong> (<code>ese_pipeline.py</code> lines 111-115):
+<p><strong>Current Implementation</strong> (<code>ese_pipeline.py</code> lines 111-115):</p>
 <div class="highlight"><pre><span></span><code><span class="n">chi2</span> <span class="o">=</span> <span class="p">((</span><span class="n">normalized_flux</span> <span class="o">-</span> <span class="n">normalized_flux</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="n">normalized_err</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 <span class="n">chi2_nu</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">chi2</span> <span class="o">/</span> <span class="p">(</span><span class="n">n_obs</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="k">if</span> <span class="n">n_obs</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mf">0.0</span>
-</code></pre></div></p>
-<p><strong>Analysis</strong>:
-- Formula appears correct: Σ((obs - mean)² / err²) / (n-1)
-- Tests constant flux model
-- Matches standard practice ✓</p>
-<p><strong>Recommendation</strong>: 
-- Keep as-is, appears correct
-- Add unit tests to verify against known values</p>
+</code></pre></div>
+<p><strong>Analysis</strong>:</p>
+<ul>
+<li>Formula appears correct: Σ((obs - mean)² / err²) / (n-1)</li>
+<li>Tests constant flux model</li>
+<li>Matches standard practice ✓</li>
+</ul>
+<p><strong>Recommendation</strong>:</p>
+<ul>
+<li>Keep as-is, appears correct</li>
+<li>Add unit tests to verify against known values</li>
+</ul>
 <h3 id="good-eta-metric-implementation">✅ GOOD: Eta Metric Implementation<a class="headerlink" href="#good-eta-metric-implementation" title="Permanent link">¶</a></h3>
 <p><strong>Issue</strong>: Verify eta metric matches VAST Tools implementation.</p>
-<p><strong>Current Implementation</strong> (<code>variability.py</code>):
+<p><strong>Current Implementation</strong> (<code>variability.py</code>):</p>
 <div class="highlight"><pre><span></span><code><span class="n">eta</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span>
     <span class="p">(</span><span class="n">weights</span> <span class="o">*</span> <span class="n">fluxes</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">-</span> <span class="p">((</span><span class="n">weights</span> <span class="o">*</span> <span class="n">fluxes</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">weights</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
 <span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Analysis</strong>:
-- Matches VAST Tools formula ✓
-- Properly weighted by measurement errors ✓
-- Well-documented ✓</p>
-<p><strong>Recommendation</strong>: 
-- Keep as-is, implementation is correct</p>
+</code></pre></div>
+<p><strong>Analysis</strong>:</p>
+<ul>
+<li>Matches VAST Tools formula ✓</li>
+<li>Properly weighted by measurement errors ✓</li>
+<li>Well-documented ✓</li>
+</ul>
+<p><strong>Recommendation</strong>:</p>
+<ul>
+<li>Keep as-is, implementation is correct</li>
+</ul>
 <h2 id="implementation-strengths">Implementation Strengths<a class="headerlink" href="#implementation-strengths" title="Permanent link">¶</a></h2>
 <h3 id="automated-pipeline-integration">✅ Automated Pipeline Integration<a class="headerlink" href="#automated-pipeline-integration" title="Permanent link">¶</a></h3>
 <ul>
@@ -1448,12 +1480,17 @@ Now calculates: <strong>max deviation from mean in units of standard deviation</
 <li>⚠️ Single-frequency limitation</li>
 </ul>
 <h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
-<p>The ESE detection implementation is <strong>generally sound</strong> with good architecture and integration. However, there is a <strong>critical bug</strong> in the sigma_deviation calculation that must be fixed immediately. The inconsistency between automatic and manual detection paths will lead to incorrect results.</p>
-<p><strong>Priority Actions</strong>:
-1. Fix sigma_deviation calculation inconsistency (CRITICAL)
-2. Add validation tests (HIGH)
-3. Document limitations (MEDIUM)
-4. Consider multi-metric scoring (LOW)</p>
+<p>The ESE detection implementation is <strong>generally sound</strong> with good architecture
+and integration. However, there is a <strong>critical bug</strong> in the sigma_deviation
+calculation that must be fixed immediately. The inconsistency between automatic
+and manual detection paths will lead to incorrect results.</p>
+<p><strong>Priority Actions</strong>:</p>
+<ol>
+<li>Fix sigma_deviation calculation inconsistency (CRITICAL)</li>
+<li>Add validation tests (HIGH)</li>
+<li>Document limitations (MEDIUM)</li>
+<li>Consider multi-metric scoring (LOW)</li>
+</ol>
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">¶</a></h2>
 <ol>
 <li>Real-time detection of an extreme scattering event (2016) - Science</li>
@@ -1485,7 +1522,7 @@ Now calculates: <strong>max deviation from mean in units of standard deviation</
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

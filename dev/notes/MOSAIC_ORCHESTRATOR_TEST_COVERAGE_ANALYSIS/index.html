@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1531,10 +1533,13 @@
 <article class="md-content__inner md-typeset">
 <h1 id="mosaic-orchestrator-test-coverage-analysis">Mosaic Orchestrator Test Coverage Analysis<a class="headerlink" href="#mosaic-orchestrator-test-coverage-analysis" title="Permanent link">¶</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>This document cross-references potential error scenarios identified in the execution workflow with existing unit tests to identify:
-1. <strong>Coverage gaps</strong>: Error scenarios without unit tests
-2. <strong>Ineffective tests</strong>: Tests that don't properly validate error handling
-3. <strong>Missing test scenarios</strong>: Critical paths that need additional testing</p>
+<p>This document cross-references potential error scenarios identified in the
+execution workflow with existing unit tests to identify:</p>
+<ol>
+<li><strong>Coverage gaps</strong>: Error scenarios without unit tests</li>
+<li><strong>Ineffective tests</strong>: Tests that don't properly validate error handling</li>
+<li><strong>Missing test scenarios</strong>: Critical paths that need additional testing</li>
+</ol>
 <h2 id="phase-by-phase-analysis">Phase-by-Phase Analysis<a class="headerlink" href="#phase-by-phase-analysis" title="Permanent link">¶</a></h2>
 <h3 id="phase-1-initialization">PHASE 1: Initialization<a class="headerlink" href="#phase-1-initialization" title="Permanent link">¶</a></h3>
 <h4 id="potential-errors">Potential Errors:<a class="headerlink" href="#potential-errors" title="Permanent link">¶</a></h4>
@@ -1546,14 +1551,16 @@
 </ul>
 <h4 id="existing-tests">Existing Tests:<a class="headerlink" href="#existing-tests" title="Permanent link">¶</a></h4>
 <ul>
-<li>✅ <strong>test_mosaic_orchestrator.py</strong>: <code>orchestrator</code> fixture creates orchestrator with temp databases</li>
+<li>✅ <strong>test_mosaic_orchestrator.py</strong>: <code>orchestrator</code> fixture creates
+  orchestrator with temp databases</li>
 <li>❌ <strong>NO TEST</strong>: Database connection failures</li>
 <li>❌ <strong>NO TEST</strong>: Calibrator service initialization failures</li>
 <li>❌ <strong>NO TEST</strong>: Missing environment variables</li>
 <li>❌ <strong>NO TEST</strong>: StreamingMosaicManager initialization failures</li>
 </ul>
 <h4 id="coverage-gap">Coverage Gap:<a class="headerlink" href="#coverage-gap" title="Permanent link">¶</a></h4>
-<p><strong>Missing</strong>: Tests for initialization failures. Current tests assume successful initialization.</p>
+<p><strong>Missing</strong>: Tests for initialization failures. Current tests assume successful
+initialization.</p>
 <hr/>
 <h3 id="phase-2-transit-window-discovery">PHASE 2: Transit Window Discovery<a class="headerlink" href="#phase-2-transit-window-discovery" title="Permanent link">¶</a></h3>
 <h4 id="potential-errors_1">Potential Errors:<a class="headerlink" href="#potential-errors_1" title="Permanent link">¶</a></h4>
@@ -1565,17 +1572,25 @@
 </ul>
 <h4 id="existing-tests_1">Existing Tests:<a class="headerlink" href="#existing-tests_1" title="Permanent link">¶</a></h4>
 <ul>
-<li>✅ <strong>test_mosaic_orchestrator.py</strong>: <code>test_find_earliest_incomplete_window_extracts_dec</code> - Tests successful Dec extraction</li>
-<li>✅ <strong>test_mosaic_orchestrator.py</strong>: <code>test_find_earliest_incomplete_window_no_dec</code> - Tests missing Dec handling</li>
-<li>✅ <strong>test_mosaic_orchestrator.py</strong>: <code>test_find_earliest_incomplete_window_no_bp_calibrator</code> - Tests missing BP calibrator</li>
-<li>❌ <strong>NO TEST</strong>: <code>find_transit_centered_window</code> method (used by <code>create_mosaic_centered_on_calibrator</code>)</li>
+<li>✅ <strong>test_mosaic_orchestrator.py</strong>:
+  <code>test_find_earliest_incomplete_window_extracts_dec</code> - Tests successful Dec
+  extraction</li>
+<li>✅ <strong>test_mosaic_orchestrator.py</strong>:
+  <code>test_find_earliest_incomplete_window_no_dec</code> - Tests missing Dec handling</li>
+<li>✅ <strong>test_mosaic_orchestrator.py</strong>:
+  <code>test_find_earliest_incomplete_window_no_bp_calibrator</code> - Tests missing BP
+  calibrator</li>
+<li>❌ <strong>NO TEST</strong>: <code>find_transit_centered_window</code> method (used by
+  <code>create_mosaic_centered_on_calibrator</code>)</li>
 <li>❌ <strong>NO TEST</strong>: No transits found scenario</li>
 <li>❌ <strong>NO TEST</strong>: Calibrator name mismatch</li>
 <li>❌ <strong>NO TEST</strong>: Database connection errors during transit lookup</li>
 <li>❌ <strong>NO TEST</strong>: Invalid transit time calculation</li>
 </ul>
 <h4 id="coverage-gap_1">Coverage Gap:<a class="headerlink" href="#coverage-gap_1" title="Permanent link">¶</a></h4>
-<p><strong>CRITICAL</strong>: <code>find_transit_centered_window</code> is NOT tested, but it's the core method used by <code>create_mosaic_centered_on_calibrator</code>. Only <code>find_earliest_incomplete_window</code> is tested.</p>
+<p><strong>CRITICAL</strong>: <code>find_transit_centered_window</code> is NOT tested, but it's the core
+method used by <code>create_mosaic_centered_on_calibrator</code>. Only
+<code>find_earliest_incomplete_window</code> is tested.</p>
 <hr/>
 <h3 id="phase-3-ms-file-availability-conversion">PHASE 3: MS File Availability &amp; Conversion<a class="headerlink" href="#phase-3-ms-file-availability-conversion" title="Permanent link">¶</a></h3>
 <h4 id="potential-errors_2">Potential Errors:<a class="headerlink" href="#potential-errors_2" title="Permanent link">¶</a></h4>
@@ -1590,11 +1605,18 @@
 </ul>
 <h4 id="existing-tests_2">Existing Tests:<a class="headerlink" href="#existing-tests_2" title="Permanent link">¶</a></h4>
 <ul>
-<li>✅ <strong>test_mosaic_orchestrator.py</strong>: <code>test_trigger_hdf5_conversion_success</code> - Tests successful conversion trigger (mocked)</li>
-<li>✅ <strong>test_mosaic_orchestrator.py</strong>: <code>test_trigger_hdf5_conversion_failure</code> - Tests conversion failure handling (mocked)</li>
-<li>✅ <strong>test_mosaic_orchestrator.py</strong>: <code>test_ensure_ms_files_in_window_existing_files</code> - Tests returning existing files</li>
-<li>✅ <strong>test_mosaic_orchestrator.py</strong>: <code>test_ensure_ms_files_in_window_triggers_conversion</code> - Tests conversion triggering</li>
-<li>✅ <strong>test_products_pointing.py</strong>: Multiple tests for pointing extraction and logging</li>
+<li>✅ <strong>test_mosaic_orchestrator.py</strong>: <code>test_trigger_hdf5_conversion_success</code> -
+  Tests successful conversion trigger (mocked)</li>
+<li>✅ <strong>test_mosaic_orchestrator.py</strong>: <code>test_trigger_hdf5_conversion_failure</code> -
+  Tests conversion failure handling (mocked)</li>
+<li>✅ <strong>test_mosaic_orchestrator.py</strong>:
+  <code>test_ensure_ms_files_in_window_existing_files</code> - Tests returning existing
+  files</li>
+<li>✅ <strong>test_mosaic_orchestrator.py</strong>:
+  <code>test_ensure_ms_files_in_window_triggers_conversion</code> - Tests conversion
+  triggering</li>
+<li>✅ <strong>test_products_pointing.py</strong>: Multiple tests for pointing extraction and
+  logging</li>
 <li>❌ <strong>NO TEST</strong>: HDF5 file corruption scenarios</li>
 <li>❌ <strong>NO TEST</strong>: Disk space issues</li>
 <li>❌ <strong>NO TEST</strong>: Import errors for hdf5_orchestrator</li>
@@ -1603,7 +1625,9 @@
 <li>❌ <strong>NO TEST</strong>: Conversion timeout scenarios</li>
 </ul>
 <h4 id="coverage-gap_2">Coverage Gap:<a class="headerlink" href="#coverage-gap_2" title="Permanent link">¶</a></h4>
-<p><strong>Partial</strong>: Conversion triggering is tested, but edge cases (corruption, disk space, import errors) are not. Pointing extraction is tested separately but not integrated with conversion workflow.</p>
+<p><strong>Partial</strong>: Conversion triggering is tested, but edge cases (corruption, disk
+space, import errors) are not. Pointing extraction is tested separately but not
+integrated with conversion workflow.</p>
 <hr/>
 <h3 id="phase-4-group-formation">PHASE 4: Group Formation<a class="headerlink" href="#phase-4-group-formation" title="Permanent link">¶</a></h3>
 <h4 id="potential-errors_3">Potential Errors:<a class="headerlink" href="#potential-errors_3" title="Permanent link">¶</a></h4>
@@ -1616,7 +1640,9 @@
 </ul>
 <h4 id="existing-tests_3">Existing Tests:<a class="headerlink" href="#existing-tests_3" title="Permanent link">¶</a></h4>
 <ul>
-<li>✅ <strong>test_mosaic_orchestrator.py</strong>: <code>test_create_mosaic_default_behavior_workflow</code> - Mocks <code>_form_group_from_ms_paths</code> (doesn't test actual implementation)</li>
+<li>✅ <strong>test_mosaic_orchestrator.py</strong>:
+  <code>test_create_mosaic_default_behavior_workflow</code> - Mocks
+  <code>_form_group_from_ms_paths</code> (doesn't test actual implementation)</li>
 <li>❌ <strong>NO TEST</strong>: Direct testing of <code>_form_group_from_ms_paths</code> method</li>
 <li>❌ <strong>NO TEST</strong>: Database lock scenarios</li>
 <li>❌ <strong>NO TEST</strong>: Invalid MS paths</li>
@@ -1625,7 +1651,8 @@
 <li>❌ <strong>NO TEST</strong>: Data registry registration failures</li>
 </ul>
 <h4 id="coverage-gap_3">Coverage Gap:<a class="headerlink" href="#coverage-gap_3" title="Permanent link">¶</a></h4>
-<p><strong>CRITICAL</strong>: <code>_form_group_from_ms_paths</code> is mocked but never directly tested. No error handling tests exist.</p>
+<p><strong>CRITICAL</strong>: <code>_form_group_from_ms_paths</code> is mocked but never directly tested.
+No error handling tests exist.</p>
 <hr/>
 <h3 id="phase-5-calibration-solving">PHASE 5: Calibration Solving<a class="headerlink" href="#phase-5-calibration-solving" title="Permanent link">¶</a></h3>
 <h4 id="potential-errors_4">Potential Errors:<a class="headerlink" href="#potential-errors_4" title="Permanent link">¶</a></h4>
@@ -1640,7 +1667,9 @@
 <h4 id="existing-tests_4">Existing Tests:<a class="headerlink" href="#existing-tests_4" title="Permanent link">¶</a></h4>
 <ul>
 <li>✅ <strong>test_calibration_comprehensive.py</strong>: Multiple calibration workflow tests</li>
-<li>✅ <strong>test_mosaic_orchestrator.py</strong>: <code>test_find_earliest_incomplete_window_no_bp_calibrator</code> - Tests BP calibrator lookup failure</li>
+<li>✅ <strong>test_mosaic_orchestrator.py</strong>:
+  <code>test_find_earliest_incomplete_window_no_bp_calibrator</code> - Tests BP calibrator
+  lookup failure</li>
 <li>❌ <strong>NO TEST</strong>: <code>solve_calibration_for_group</code> method (StreamingMosaicManager)</li>
 <li>❌ <strong>NO TEST</strong>: Calibration MS file corruption</li>
 <li>❌ <strong>NO TEST</strong>: CASA task failures (bandpass, gaincal)</li>
@@ -1649,7 +1678,9 @@
 <li>❌ <strong>NO TEST</strong>: Calibration table registration failures</li>
 </ul>
 <h4 id="coverage-gap_4">Coverage Gap:<a class="headerlink" href="#coverage-gap_4" title="Permanent link">¶</a></h4>
-<p><strong>CRITICAL</strong>: <code>solve_calibration_for_group</code> is NOT tested. Calibration comprehensive tests exist but don't cover StreamingMosaicManager's calibration solving workflow.</p>
+<p><strong>CRITICAL</strong>: <code>solve_calibration_for_group</code> is NOT tested. Calibration
+comprehensive tests exist but don't cover StreamingMosaicManager's calibration
+solving workflow.</p>
 <hr/>
 <h3 id="phase-6-calibration-application">PHASE 6: Calibration Application<a class="headerlink" href="#phase-6-calibration-application" title="Permanent link">¶</a></h3>
 <h4 id="potential-errors_5">Potential Errors:<a class="headerlink" href="#potential-errors_5" title="Permanent link">¶</a></h4>
@@ -1668,7 +1699,8 @@
 <li>❌ <strong>NO TEST</strong>: Database update failures</li>
 </ul>
 <h4 id="coverage-gap_5">Coverage Gap:<a class="headerlink" href="#coverage-gap_5" title="Permanent link">¶</a></h4>
-<p><strong>CRITICAL</strong>: <code>apply_calibration_to_group</code> is NOT tested at all. No error handling tests exist.</p>
+<p><strong>CRITICAL</strong>: <code>apply_calibration_to_group</code> is NOT tested at all. No error
+handling tests exist.</p>
 <hr/>
 <h3 id="phase-7-imaging">PHASE 7: Imaging<a class="headerlink" href="#phase-7-imaging" title="Permanent link">¶</a></h3>
 <h4 id="potential-errors_6">Potential Errors:<a class="headerlink" href="#potential-errors_6" title="Permanent link">¶</a></h4>
@@ -1682,8 +1714,10 @@
 <h4 id="existing-tests_6">Existing Tests:<a class="headerlink" href="#existing-tests_6" title="Permanent link">¶</a></h4>
 <ul>
 <li>✅ <strong>test_imaging_mocked.py</strong>: Multiple imaging tests with mocked WSClean</li>
-<li>✅ <strong>test_imaging_mocked.py</strong>: <code>test_wsclean_command_structure</code> - Tests WSClean command</li>
-<li>✅ <strong>test_imaging_mocked.py</strong>: <code>test_wsclean_development_tier_memory</code> - Tests memory handling</li>
+<li>✅ <strong>test_imaging_mocked.py</strong>: <code>test_wsclean_command_structure</code> - Tests
+  WSClean command</li>
+<li>✅ <strong>test_imaging_mocked.py</strong>: <code>test_wsclean_development_tier_memory</code> - Tests
+  memory handling</li>
 <li>❌ <strong>NO TEST</strong>: <code>image_group</code> method (StreamingMosaicManager)</li>
 <li>❌ <strong>NO TEST</strong>: WSClean not found scenarios</li>
 <li>❌ <strong>NO TEST</strong>: Disk space issues</li>
@@ -1691,7 +1725,8 @@
 <li>❌ <strong>NO TEST</strong>: Existing image detection failures</li>
 </ul>
 <h4 id="coverage-gap_6">Coverage Gap:<a class="headerlink" href="#coverage-gap_6" title="Permanent link">¶</a></h4>
-<p><strong>Partial</strong>: Imaging logic is tested, but <code>image_group</code> workflow method is not. Error handling for group imaging is missing.</p>
+<p><strong>Partial</strong>: Imaging logic is tested, but <code>image_group</code> workflow method is not.
+Error handling for group imaging is missing.</p>
 <hr/>
 <h3 id="phase-8-mosaic-creation">PHASE 8: Mosaic Creation<a class="headerlink" href="#phase-8-mosaic-creation" title="Permanent link">¶</a></h3>
 <h4 id="potential-errors_7">Potential Errors:<a class="headerlink" href="#potential-errors_7" title="Permanent link">¶</a></h4>
@@ -1715,7 +1750,8 @@
 <li>❌ <strong>NO TEST</strong>: Chronological validation failures</li>
 </ul>
 <h4 id="coverage-gap_7">Coverage Gap:<a class="headerlink" href="#coverage-gap_7" title="Permanent link">¶</a></h4>
-<p><strong>CRITICAL</strong>: <code>create_mosaic</code> method is NOT tested. Mosaic components are tested separately but not the full workflow.</p>
+<p><strong>CRITICAL</strong>: <code>create_mosaic</code> method is NOT tested. Mosaic components are tested
+separately but not the full workflow.</p>
 <hr/>
 <h3 id="phase-9-validation-qa">PHASE 9: Validation &amp; QA<a class="headerlink" href="#phase-9-validation-qa" title="Permanent link">¶</a></h3>
 <h4 id="potential-errors_8">Potential Errors:<a class="headerlink" href="#potential-errors_8" title="Permanent link">¶</a></h4>
@@ -1733,7 +1769,8 @@
 <li>❌ <strong>NO TEST</strong>: Database update failures during QA</li>
 </ul>
 <h4 id="coverage-gap_8">Coverage Gap:<a class="headerlink" href="#coverage-gap_8" title="Permanent link">¶</a></h4>
-<p><strong>Partial</strong>: QA functionality is tested, but timeout and database update failure scenarios are not.</p>
+<p><strong>Partial</strong>: QA functionality is tested, but timeout and database update failure
+scenarios are not.</p>
 <hr/>
 <h3 id="phase-10-publishing">PHASE 10: Publishing<a class="headerlink" href="#phase-10-publishing" title="Permanent link">¶</a></h3>
 <h4 id="potential-errors_9">Potential Errors:<a class="headerlink" href="#potential-errors_9" title="Permanent link">¶</a></h4>
@@ -1745,17 +1782,22 @@
 </ul>
 <h4 id="existing-tests_9">Existing Tests:<a class="headerlink" href="#existing-tests_9" title="Permanent link">¶</a></h4>
 <ul>
-<li>✅ <strong>test_data_registry_publish.py</strong>: <code>test_trigger_auto_publish_checks_max_attempts</code> - Tests max attempts</li>
-<li>✅ <strong>test_data_registry_publish.py</strong>: <code>test_trigger_auto_publish_sets_publishing_status</code> - Tests status setting</li>
-<li>✅ <strong>test_data_registry_publish.py</strong>: <code>test_trigger_auto_publish_prevents_concurrent_access</code> - Tests concurrency</li>
-<li>✅ <strong>test_data_registry_publish.py</strong>: <code>test_successful_publish_clears_attempts</code> - Tests successful publish</li>
+<li>✅ <strong>test_data_registry_publish.py</strong>:
+  <code>test_trigger_auto_publish_checks_max_attempts</code> - Tests max attempts</li>
+<li>✅ <strong>test_data_registry_publish.py</strong>:
+  <code>test_trigger_auto_publish_sets_publishing_status</code> - Tests status setting</li>
+<li>✅ <strong>test_data_registry_publish.py</strong>:
+  <code>test_trigger_auto_publish_prevents_concurrent_access</code> - Tests concurrency</li>
+<li>✅ <strong>test_data_registry_publish.py</strong>:
+  <code>test_successful_publish_clears_attempts</code> - Tests successful publish</li>
 <li>❌ <strong>NO TEST</strong>: File move permission errors</li>
 <li>❌ <strong>NO TEST</strong>: Target directory missing</li>
 <li>❌ <strong>NO TEST</strong>: Disk space failures</li>
 <li>❌ <strong>NO TEST</strong>: Database update failures during publish</li>
 </ul>
 <h4 id="coverage-gap_9">Coverage Gap:<a class="headerlink" href="#coverage-gap_9" title="Permanent link">¶</a></h4>
-<p><strong>Partial</strong>: Publishing logic is tested, but file system error scenarios (permissions, disk space, missing directories) are not.</p>
+<p><strong>Partial</strong>: Publishing logic is tested, but file system error scenarios
+(permissions, disk space, missing directories) are not.</p>
 <hr/>
 <h3 id="phase-11-wait-for-publication">PHASE 11: Wait for Publication<a class="headerlink" href="#phase-11-wait-for-publication" title="Permanent link">¶</a></h3>
 <h4 id="potential-errors_10">Potential Errors:<a class="headerlink" href="#potential-errors_10" title="Permanent link">¶</a></h4>
@@ -1766,14 +1808,17 @@
 </ul>
 <h4 id="existing-tests_10">Existing Tests:<a class="headerlink" href="#existing-tests_10" title="Permanent link">¶</a></h4>
 <ul>
-<li>✅ <strong>test_mosaic_orchestrator.py</strong>: <code>test_create_mosaic_default_behavior_workflow</code> - Mocks <code>wait_for_published</code> (doesn't test actual implementation)</li>
+<li>✅ <strong>test_mosaic_orchestrator.py</strong>:
+  <code>test_create_mosaic_default_behavior_workflow</code> - Mocks <code>wait_for_published</code>
+  (doesn't test actual implementation)</li>
 <li>❌ <strong>NO TEST</strong>: Direct testing of <code>wait_for_published</code> method</li>
 <li>❌ <strong>NO TEST</strong>: Timeout scenarios</li>
 <li>❌ <strong>NO TEST</strong>: File exists but status not updated</li>
 <li>❌ <strong>NO TEST</strong>: Database query failures during polling</li>
 </ul>
 <h4 id="coverage-gap_10">Coverage Gap:<a class="headerlink" href="#coverage-gap_10" title="Permanent link">¶</a></h4>
-<p><strong>CRITICAL</strong>: <code>wait_for_published</code> is mocked but never directly tested. No timeout or polling error tests exist.</p>
+<p><strong>CRITICAL</strong>: <code>wait_for_published</code> is mocked but never directly tested. No
+timeout or polling error tests exist.</p>
 <hr/>
 <h3 id="phase-12-completion">PHASE 12: Completion<a class="headerlink" href="#phase-12-completion" title="Permanent link">¶</a></h3>
 <h4 id="potential-errors_11">Potential Errors:<a class="headerlink" href="#potential-errors_11" title="Permanent link">¶</a></h4>
@@ -1783,9 +1828,12 @@
 </ul>
 <h4 id="existing-tests_11">Existing Tests:<a class="headerlink" href="#existing-tests_11" title="Permanent link">¶</a></h4>
 <ul>
-<li>✅ <strong>test_mosaic_orchestrator.py</strong>: <code>test_create_mosaic_default_behavior_workflow</code> - Tests return value</li>
-<li>✅ <strong>test_mosaic_orchestrator.py</strong>: <code>test_create_mosaic_default_behavior_no_window</code> - Tests None return</li>
-<li>✅ <strong>test_mosaic_orchestrator.py</strong>: <code>test_create_mosaic_default_behavior_insufficient_ms</code> - Tests failure return</li>
+<li>✅ <strong>test_mosaic_orchestrator.py</strong>:
+  <code>test_create_mosaic_default_behavior_workflow</code> - Tests return value</li>
+<li>✅ <strong>test_mosaic_orchestrator.py</strong>:
+  <code>test_create_mosaic_default_behavior_no_window</code> - Tests None return</li>
+<li>✅ <strong>test_mosaic_orchestrator.py</strong>:
+  <code>test_create_mosaic_default_behavior_insufficient_ms</code> - Tests failure return</li>
 <li>✅ <strong>Coverage</strong>: Return value handling is tested</li>
 </ul>
 <h4 id="coverage-gap_11">Coverage Gap:<a class="headerlink" href="#coverage-gap_11" title="Permanent link">¶</a></h4>
@@ -1794,12 +1842,15 @@
 <h2 id="summary-critical-missing-tests">Summary: Critical Missing Tests<a class="headerlink" href="#summary-critical-missing-tests" title="Permanent link">¶</a></h2>
 <h3 id="high-priority-critical-workflow-methods-not-tested">High Priority (Critical Workflow Methods Not Tested):<a class="headerlink" href="#high-priority-critical-workflow-methods-not-tested" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong><code>find_transit_centered_window</code></strong> - Core method for calibrator-centered mosaics</li>
+<li><strong><code>find_transit_centered_window</code></strong> - Core method for calibrator-centered
+   mosaics</li>
 <li><strong><code>_form_group_from_ms_paths</code></strong> - Group formation logic</li>
 <li><strong><code>_process_group_workflow</code></strong> - Full workflow orchestration</li>
 <li><strong><code>wait_for_published</code></strong> - Publication polling logic</li>
-<li><strong><code>solve_calibration_for_group</code></strong> (StreamingMosaicManager) - Calibration solving</li>
-<li><strong><code>apply_calibration_to_group</code></strong> (StreamingMosaicManager) - Calibration application</li>
+<li><strong><code>solve_calibration_for_group</code></strong> (StreamingMosaicManager) - Calibration
+   solving</li>
+<li><strong><code>apply_calibration_to_group</code></strong> (StreamingMosaicManager) - Calibration
+   application</li>
 <li><strong><code>image_group</code></strong> (StreamingMosaicManager) - Group imaging workflow</li>
 <li><strong><code>create_mosaic</code></strong> (StreamingMosaicManager) - Mosaic creation workflow</li>
 </ol>
@@ -1858,10 +1909,13 @@
 </ol>
 <h3 id="test-effectiveness-issues">Test Effectiveness Issues:<a class="headerlink" href="#test-effectiveness-issues" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong>Over-mocking</strong>: Many tests mock entire workflows instead of testing actual implementations</li>
-<li>Example: <code>test_create_mosaic_default_behavior_workflow</code> mocks all internal methods</li>
+<li><strong>Over-mocking</strong>: Many tests mock entire workflows instead of testing actual
+   implementations</li>
+<li>Example: <code>test_create_mosaic_default_behavior_workflow</code> mocks all internal
+     methods</li>
 <li>
-<p><strong>Fix</strong>: Add integration tests that test actual implementations with mocked external dependencies</p>
+<p><strong>Fix</strong>: Add integration tests that test actual implementations with mocked
+     external dependencies</p>
 </li>
 <li>
 <p><strong>Missing error path testing</strong>: Most tests only test success paths</p>
@@ -1870,16 +1924,19 @@
 <p><strong>Fix</strong>: Add tests for each error scenario identified above</p>
 </li>
 <li>
-<p><strong>Incomplete coverage</strong>: Critical methods like <code>find_transit_centered_window</code> are not tested</p>
+<p><strong>Incomplete coverage</strong>: Critical methods like <code>find_transit_centered_window</code>
+   are not tested</p>
 </li>
 <li><strong>Fix</strong>: Add tests for all public methods in MosaicOrchestrator</li>
 </ol>
 <h3 id="testing-strategy">Testing Strategy:<a class="headerlink" href="#testing-strategy" title="Permanent link">¶</a></h3>
 <ol>
 <li><strong>Unit tests</strong>: Test individual methods with mocked dependencies</li>
-<li><strong>Integration tests</strong>: Test method chains with mocked external systems (CASA, file system)</li>
+<li><strong>Integration tests</strong>: Test method chains with mocked external systems (CASA,
+   file system)</li>
 <li><strong>Error injection tests</strong>: Test error handling with injected failures</li>
-<li><strong>End-to-end tests</strong>: Test full workflow with synthetic data (already exists in integration tests)</li>
+<li><strong>End-to-end tests</strong>: Test full workflow with synthetic data (already exists
+   in integration tests)</li>
 </ol>
 </article>
 </div>
@@ -1905,7 +1962,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

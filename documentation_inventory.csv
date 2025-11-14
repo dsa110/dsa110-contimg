@@ -1,0 +1,1114 @@
+path,last_commit,first_line,recommended_action,reason
+TECHNICAL_DEBT.md,untracked,# Technical Debt - Anti-Pattern Catalog,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+UNIT_TEST_STATUS.md,untracked,# Unit Test Status Report,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+DEPLOYMENT_STATUS.md,untracked,# Deployment Status Report,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+DEPLOYMENT_PLAN.md,untracked,# Browser Testing & Production Deployment Plan,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+CONTEXT_SUMMARY.md,untracked,# Context Summary - JS9 Refactoring Project,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+EDGE_CASE_ERROR_DETECTION.md,untracked,# Edge Case Error Detection - Silent Failures & Missed Errors,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+ERROR_RECOGNITION_GUIDE.md,untracked,# Error Recognition Guide - How Errors Are Detected,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+ERROR_DETECTION_TOOLS.md,untracked,# Third-Party Error Detection Tools,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+ERROR_DETECTION_FRAMEWORK.md,untracked,# Comprehensive Error Detection Framework,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+EXECUTION_PROTOCOL.md,untracked,# Execution Protocol - Browser Testing & Deployment,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+EXECUTION_PLAN_CLARIFICATION.md,untracked,# Execution Plan Clarification,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+IMPLEMENTATION_STATUS.md,untracked,# Error Detection Framework - Implementation Status,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+ANTI_PATTERN_IMPLEMENTATION_STATUS.md,untracked,# Anti-Pattern Handling - Implementation Status,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+ANTI_PATTERN_HANDLING.md,untracked,# Anti-Pattern Handling - Current State & Improvements,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+MISTAKE_LOG.md,untracked,# Mistake Log - Browser Testing & Deployment,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+MEMORY.md,2025-10-29,# DSA-110 Continuum Imaging Pipeline - Codebase Understanding,keep,Primary entry point or memory file.
+README.md,2025-11-11,# DSA-110 Continuum Imaging Pipeline,keep,Primary entry point or memory file.
+docs/AUTOMATED_TESTING_STRATEGY.md,2025-11-06,# Automated Testing Strategy for Frontend,keep,Default keep until manual review.
+docs/CODE_REVIEW_ANALYSIS.md,2025-11-09,# Code Review Analysis: Software Developer & Radio Astronomer Perspectives,keep,Default keep until manual review.
+docs/SYNTHETIC_DATA_GENERATION.md,2025-11-06,# Synthetic Data Generation Capabilities,keep,Default keep until manual review.
+docs/TEST_AGENT_PYTHON_ENV.md,2025-11-12,# Test Prompt for New Agent,keep,Default keep until manual review.
+docs/changelog/CALIBRATION_IMPROVEMENTS_2024.md,2025-11-07,# Calibration Improvements - November 2024,keep,Default keep until manual review.
+docs/changelog/PYRADIOSKY_DEFAULT_UPDATE.md,2025-11-07,# pyradiosky Now Default for Sky Model Construction,keep,Default keep until manual review.
+docs/changelog/2025-11-06-model-py-optimization.md,2025-11-07,# Model.py Optimization - 2025-11-06,keep,Default keep until manual review.
+docs/testing/TEST_EXECUTION_SUMMARY.md,2025-11-09,# Test Execution Summary,keep,Default keep until manual review.
+docs/testing/MS_LOCKING_IMPLEMENTATION.md,2025-11-09,# MS Access Serialization Implementation,keep,Default keep until manual review.
+docs/testing/VERIFICATION_RESULTS.md,2025-11-09,# Test Infrastructure Verification Results,keep,Default keep until manual review.
+tests/README_CALIBRATION_TESTING.md,2025-11-04,# Comprehensive Calibration Testing Guide,keep,Code-adjacent documentation supporting module owners.
+frontend/ZERO_BYPASS_IMPLEMENTATION.md,2025-11-12,# Zero Bypass Prevention Implementation,keep,Code-adjacent documentation supporting module owners.
+frontend/UNIT_TEST_STATUS.md,2025-11-12,# Unit Test Suite Status,keep,Code-adjacent documentation supporting module owners.
+frontend/TEST_RESULTS_SKYVIEW.md,2025-11-06,# SkyView Test Results,keep,Code-adjacent documentation supporting module owners.
+frontend/TESTING.md,2025-10-30,# Frontend Testing with Docker,keep,Code-adjacent documentation supporting module owners.
+frontend/docs/hot-reload-verification.md,2025-11-12,# Hot Reload Verification,keep,Code-adjacent documentation supporting module owners.
+frontend/docs/testing-strategy.md,2025-11-11,# Combined Testing Strategy: Playwright + Cursor Browser Tools,keep,Code-adjacent documentation supporting module owners.
+frontend/docs/testing-execution-report.md,2025-11-11,# Testing Strategy Execution Report,keep,Code-adjacent documentation supporting module owners.
+frontend/docs/playwright-docker-setup.md,2025-11-11,# Playwright in Docker Setup,keep,Code-adjacent documentation supporting module owners.
+frontend/docs/health-check-fix.md,2025-11-12,# Docker Health Check Fix,keep,Code-adjacent documentation supporting module owners.
+internal/docs/development/SAFEGUARD_INTEGRATION_QUICK_REF.md,2025-11-09,# Safeguard Integration Quick Reference,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/development/SAFEGUARD_INTEGRATION_PLAN.md,2025-11-09,# Safeguard Integration Plan,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/development/SAFEGUARD_INTEGRATION_LOCATIONS.md,2025-11-11,# Safeguard Integration Locations,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/development/SAFEGUARD_INTEGRATION_EXPANDED.md,2025-11-09,# Expanded Safeguard Integration Plan,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/development/SAFEGUARD_IMPLEMENTATION_STATUS.md,2025-11-09,# Safeguard Implementation Status,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/development/SAFEGUARD_CRITICAL_REVIEW.md,2025-11-09,# Safeguard Implementation Critical Review,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/development/RUNTIME_SAFEGUARDS_USAGE.md,2025-11-09,# Runtime Safeguards Usage Guide,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/development/COMMON_PITFALLS_AND_SAFEGUARDS.md,2025-11-09,# Common Pitfalls and Safeguards,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/chat/cursor_ingest_data_and_construct_mosaic.md,2025-11-09,# Ingest data and construct mosaic,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/chat/cursor_confirm_correct_staging_area_for.md,2025-11-09,# Confirm correct staging area for data,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/chat/cursor_1028.md,2025-11-09,# Run mosaic pipeline test for 0834 transit,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/README.md,2025-11-09,# Development Documentation,archive,Internal development notes; keep separate from publishable docs.
+frontend/tests/e2e/TEST_EXECUTION_SUCCESS.md,2025-11-12,# E2E Test Execution Success Report,keep,Code-adjacent documentation supporting module owners.
+frontend/tests/e2e/README.md,2025-11-12,# E2E Testing Guide,keep,Code-adjacent documentation supporting module owners.
+frontend/tests/e2e/NEXT_STEPS.md,2025-11-12,# Next Steps for Dashboard Testing,keep,Code-adjacent documentation supporting module owners.
+frontend/tests/e2e/IMPLEMENTATION_SUMMARY.md,2025-11-12,# E2E Testing Implementation Summary,keep,Code-adjacent documentation supporting module owners.
+internal/docs/dev/status/README.md,2025-11-09,# Status Reports,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/analysis/time_validation_strategy.md,2025-11-09,# TIME Validation Strategy,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/analysis/time_investigation_report.md,2025-11-09,# TIME and TIME_RANGE Investigation Report,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/analysis/time_handling_issues.md,2025-11-09,# TIME Handling Issues in MS Generation Procedures,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/analysis/README.md,2025-11-09,# Analysis Reports,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/analysis/ra_calculation_issue.md,2025-11-09,# Issue: Incorrect RA Assignment to Fields in MS Files,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/analysis/js9_refactoring_summary.md,2025-11-12,# JS9 Refactoring Summary,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/analysis/js9_refactoring_progress.md,2025-11-12,# JS9 Refactoring Progress,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/analysis/js9_phase3_proposal.md,2025-11-12,# JS9 Phase 3: Abstraction Layer Proposal,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/analysis/js9_phase3a_progress.md,2025-11-12,# Phase 3a: Component Splitting - Progress,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/analysis/js9_phase3a_plan.md,2025-11-12,# Phase 3a: Component Splitting Plan,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/analysis/js9_phase2_integration.md,2025-11-12,# JS9 Phase 2: Context Provider Integration,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/analysis/js9_phase2_complete.md,2025-11-12,# JS9 Phase 2: Complete Implementation Summary,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/analysis/js9_architecture_analysis.md,2025-11-12,# JS9 Integration Architecture Analysis,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/analysis/duplicate_time_investigation.md,2025-11-09,# Duplicate TIME Values Investigation Report,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/analysis/database_transaction_safety.md,2025-11-09,# Database Transaction Safety Review,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/analysis/bug_report.md,2025-11-09,# Comprehensive Bug Report,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/history/README.md,2025-11-09,# Development History,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/notes/README.md,2025-11-09,# Development Notes,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/notes/pyuvdata_usage_analysis.md,2025-11-09,# pyuvdata Usage Analysis in DSA110-contimg Pipeline,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/notes/architecture_optimization_recommendations.md,2025-11-09,# Architecture Optimization Recommendations for dsa110_contimg,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/notes/architectural_elegance_brainstorm.md,2025-11-09,# Architectural Elegance: Large-Scale Improvements,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/status/2025-01/dashboard_endpoint_test_results.md,2025-11-09,# Dashboard Endpoint Test Results,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/status/2025-01/dashboard_real_data_implementation.md,2025-11-09,# Dashboard Real Data Implementation,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/status/2025-01/endpoint_test_summary.md,2025-11-09,Dashboard Endpoint Testing - Complete Summary,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/status/2025-01/code_quality_improvements_summary.md,2025-11-09,# Code Quality Improvements Summary,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/status/2025-01/validation_demonstration.md,2025-11-09,# TIME Validation Demonstration,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/status/2025-01/test_results.md,2025-11-09,# Dashboard Functionality Test Results,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/status/2025-01/testing_summary.md,2025-11-09,# Comprehensive Testing Summary,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/status/2025-01/skyview_troubleshooting.md,2025-11-09,# SkyView Troubleshooting Guide,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/status/2025-01/skyview_test_results.md,2025-11-09,# SkyView Testing Results,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/status/2025-01/skyview_sprint1_complete.md,2025-11-09,# SkyView Sprint 1 (Foundation) - Implementation Complete,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/status/2025-01/skyview_image_display_verification.md,2025-11-09,# SkyView Image Display Verification,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/status/2025-01/roadmap_status_summary.md,2025-11-09,# Broader Roadmap Status Summary,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/dev/status/2025-01/endpoint_verification_complete.md,2025-11-09,# Complete Endpoint Verification Report,archive,Internal development notes; keep separate from publishable docs.
+frontend/tests/e2e/combined-testing-strategy.md,2025-11-12,# Combined Testing Strategy: Playwright + Cursor Browser + chrome-devtools,keep,Code-adjacent documentation supporting module owners.
+frontend/tests/playwright/BROWSER_TESTING_GUIDE.md,2025-11-12,# Browser Testing & Integration Validation Guide,keep,Code-adjacent documentation supporting module owners.
+internal/docs/graphiti/graphiti-guardrails.md,2025-11-09,# Graphiti Guardrails & Protocol,archive,Internal development notes; keep separate from publishable docs.
+internal/docs/graphiti/graphiti-dsa110-contimg-schema.md,2025-11-09,# Graphiti Schema: dsa110-contimg Project,archive,Internal development notes; keep separate from publishable docs.
+frontend/SKYVIEW_ANALYSIS.md,2025-11-11,# Sky View Page (`/sky`) - Implementation Analysis,keep,Code-adjacent documentation supporting module owners.
+frontend/SKYMAP_IMPLEMENTATION.md,2025-11-11,# Interactive Sky Map Implementation,keep,Code-adjacent documentation supporting module owners.
+frontend/README.md,2025-10-29,# DSA-110 Continuum Pipeline - Frontend,keep,Code-adjacent documentation supporting module owners.
+frontend/README-DEV-SERVER.md,2025-11-10,# Running the Dev Server Persistently,keep,Code-adjacent documentation supporting module owners.
+frontend/PREVENTION_EFFECTIVENESS_ANALYSIS.md,2025-11-12,# Prevention Strategy Effectiveness Analysis,keep,Code-adjacent documentation supporting module owners.
+frontend/NODE_VERSION_SAFEGUARDS.md,2025-11-12,# Node.js v16 Compatibility Issue - Prevention Safeguards,keep,Code-adjacent documentation supporting module owners.
+frontend/NODE_VERSION_REQUIREMENT.md,2025-11-12,# Node.js Version Requirement for Frontend Tests,keep,Code-adjacent documentation supporting module owners.
+frontend/ISSUE_CHARACTERIZATION.md,2025-11-12,# Issue Characterization: Node.js v16 Compatibility,keep,Code-adjacent documentation supporting module owners.
+frontend/IMAGE_GALLERY_FILTERS_IMPLEMENTATION.md,2025-11-11,# Image Gallery Filters Implementation,keep,Code-adjacent documentation supporting module owners.
+frontend/FRONTEND_CODEBASE_ANALYSIS.md,2025-11-11,# DSA-110 Dashboard Frontend Codebase Analysis,keep,Code-adjacent documentation supporting module owners.
+frontend/FRONTEND_ANALYSIS_SUMMARY.md,2025-11-11,# DSA-110 Dashboard Frontend Analysis Summary,keep,Code-adjacent documentation supporting module owners.
+tests/utils/README.md,2025-11-03,# Test Utilities,keep,Code-adjacent documentation supporting module owners.
+tests/unit/UNIT_TEST_CHECKLIST.md,2025-11-10,# Unit Test Suite Checklist,keep,Code-adjacent documentation supporting module owners.
+tests/unit/unit.md,2025-11-12,# Unit Test Suite Guide,keep,Code-adjacent documentation supporting module owners.
+tests/unit/README_MOSAIC_TESTS.md,2025-11-10,# Mosaic Unit Tests,keep,Code-adjacent documentation supporting module owners.
+tests/unit/README_MOCKING_EXAMPLES.md,2025-11-06,# Unit Test Examples with Mocking,keep,Code-adjacent documentation supporting module owners.
+frontend/DEBUGGING.md,2025-10-30,# Frontend Debugging Guide,keep,Code-adjacent documentation supporting module owners.
+frontend/BETTER_DEBUGGING.md,2025-10-30,# Better Debugging Approach for React State Management,keep,Code-adjacent documentation supporting module owners.
+tests/README.md,2025-11-06,# Test Suite Organization,keep,Code-adjacent documentation supporting module owners.
+tests/PIPELINE_TESTING_STRATEGY.md,2025-11-07,# Pipeline Framework Testing Strategy,keep,Code-adjacent documentation supporting module owners.
+docs/testing/unit_test_suite_summary.md,2025-11-11,# Unit Test Suite Summary - Monitoring & Recovery Features,keep,Default keep until manual review.
+docs/testing/TEST_EXECUTION_LOG.md,2025-11-09,# Test Execution Log,keep,Default keep until manual review.
+docs/testing/TEST_APPROACHES_ANALYSIS.md,2025-11-09,# 5 Approaches to Solve Remaining 6 Tests - Analysis,keep,Default keep until manual review.
+docs/testing/SYSTEM_ANALYSIS.md,2025-11-09,# System Analysis: Testing Infrastructure,keep,Default keep until manual review.
+docs/testing/STREAMING_TESTS_COMPLETION.md,2025-11-09,# Streaming Tests Completion Report,keep,Default keep until manual review.
+docs/testing/SCIENCE_MS_INVENTORY.md,2025-11-09,# Science MS Files Inventory,keep,Default keep until manual review.
+docs/testing/REVISED_STRATEGY.md,2025-11-09,# Revised Testing Strategy,keep,Default keep until manual review.
+docs/testing/REMAINING_TESTS_STATUS.md,2025-11-09,# Remaining Tests Status,keep,Default keep until manual review.
+docs/testing/REMAINING_TESTS_ANALYSIS.md,2025-11-09,# Analysis of Remaining 6 Tests,keep,Default keep until manual review.
+docs/testing/READY_TO_USE.md,2025-11-09,# Testing Infrastructure - Ready to Use,keep,Default keep until manual review.
+docs/testing/README.md,2025-11-12,# Testing Documentation,keep,Default keep until manual review.
+docs/testing/QUICK_START.md,2025-11-12,# Quick Start: Testing Guide,keep,Default keep until manual review.
+docs/testing/PROXY_ISSUE_NOTES.md,2025-11-09,# Vite Proxy Issue - Data Detail Tests,keep,Default keep until manual review.
+docs/testing/PROGRESS_UPDATE.md,2025-11-09,# Test Execution Progress Update,keep,Default keep until manual review.
+docs/testing/PRACTICAL_APPROACH.md,2025-11-09,# Practical Testing Approach,keep,Default keep until manual review.
+docs/testing/PHASE1_WIDER_BINS_TEST_RESULTS.md,2025-11-09,# Phase 1: Wider Bins Adaptive Binning Test Results,keep,Default keep until manual review.
+docs/testing/PHASE1_TESTING_RESULTS.md,2025-11-09,# Phase 1 (Adaptive Binning) Testing Results,keep,Default keep until manual review.
+docs/testing/PHASE1_MULTIPLE_SOURCES_TEST_RESULTS.md,2025-11-09,# Phase 1: Multiple Sources Adaptive Binning Test Results,keep,Default keep until manual review.
+docs/testing/PHASE1_16SPW_TEST_RESULTS.md,2025-11-09,# Phase 1: 16-SPW Adaptive Binning Test Results,keep,Default keep until manual review.
+docs/testing/MOSAIC_PIECEWISE_TESTING.md,2025-11-09,# Piecewise Mosaic Testing Strategy,keep,Default keep until manual review.
+docs/testing/MIDPOINT_SUMMARY.md,2025-11-09,# Test Execution - Midpoint Summary,keep,Default keep until manual review.
+docs/testing/MERMAID_TESTING_SUMMARY.md,2025-11-09,# Mermaid Diagram Testing - Implementation Summary,keep,Default keep until manual review.
+docs/testing/MERMAID_SPECIAL_CHARACTERS_SOLUTION.md,2025-11-09,# Mermaid Special Characters Solution,keep,Default keep until manual review.
+docs/testing/MERMAID_DIAGRAM_TESTING_STRATEGY.md,2025-11-09,# Mermaid Diagram Visual Testing Strategy,keep,Default keep until manual review.
+docs/testing/IMPLEMENTATION_SUMMARY.md,2025-11-12,# Testing Implementation Summary,keep,Default keep until manual review.
+docs/testing/FINAL_TEST_REPORT.md,2025-11-09,# Final Test Execution Report,keep,Default keep until manual review.
+docs/testing/FINAL_EXECUTION_REPORT.md,2025-11-09,# Final Test Execution Report,keep,Default keep until manual review.
+docs/testing/EXECUTION_COMPLETE.md,2025-11-09,# Test Execution - Status Report,keep,Default keep until manual review.
+docs/testing/DOCKER_TESTING_GUIDE.md,2025-11-12,# Docker-Based Testing Guide,keep,Default keep until manual review.
+docs/testing/DEMONSTRATION.md,2025-11-09,# Testing Demonstration - Proof It Works,keep,Default keep until manual review.
+docs/testing/DATA_DETAIL_TESTING_STATUS.md,2025-11-09,# Data Detail Page Testing Status,keep,Default keep until manual review.
+docs/testing/CURRENT_STATUS.md,2025-11-09,# Testing Infrastructure - Current Status,keep,Default keep until manual review.
+docs/testing/COMPREHENSIVE_TESTING_PLAN.md,2025-11-09,# Comprehensive Testing Plan for DSA-110 Continuum Imaging Dashboard,keep,Default keep until manual review.
+docs/testing/COMPLETION_SUMMARY.md,2025-11-09,# Test Execution Completion Summary,keep,Default keep until manual review.
+tests/scripts/README.md,2025-11-09,# Test Scripts,keep,Code-adjacent documentation supporting module owners.
+tests/science/README_SCIENCE_FIRST_TESTING.md,2025-11-04,# Science-First Testing Strategy,keep,Code-adjacent documentation supporting module owners.
+tests/science/HOW_TO_USE_SCIENCE_TESTS.md,2025-11-09,# How to Use Science-First Tests,keep,Code-adjacent documentation supporting module owners.
+docs/RADIOPADRE_VS_VAST_TOOLS_COMPARISON.md,2025-11-10,# RadioPadre vs VAST Tools Feature Comparison,keep,Default keep until manual review.
+docs/RADIOPADRE_EVALUATION.md,2025-11-12,# RadioPadre Evaluation for dsa110-contimg,keep,Default keep until manual review.
+docs/QUICK_START_WARNINGS.md,untracked,# ⚠️ CRITICAL WARNINGS - Quick Reference,keep,Default keep until manual review.
+docs/QA_VISUALIZATION_USER_GUIDE.md,2025-11-09,# QA Visualization Framework - User Guide,consolidate,Merge QA visualization docs into single guide + API reference.
+docs/QA_VISUALIZATION_USAGE.md,2025-11-09,# QA Visualization Framework - Usage Guide,consolidate,Merge QA visualization docs into single guide + API reference.
+docs/QA_VISUALIZATION_QUICK_START.md,2025-11-09,# QA Visualization Framework - Quick Start,consolidate,Merge QA visualization docs into single guide + API reference.
+docs/QA_VISUALIZATION_IMPLEMENTATION_STATUS.md,2025-11-09,# QA Visualization Framework - Implementation Status,consolidate,Merge QA visualization docs into single guide + API reference.
+docs/QA_VISUALIZATION_ENDPOINT_TESTS.md,2025-11-09,# QA Visualization Endpoint Tests,consolidate,Merge QA visualization docs into single guide + API reference.
+docs/QA_VISUALIZATION_DESIGN.md,2025-11-09,# In-House QA Visualization Framework Design,consolidate,Merge QA visualization docs into single guide + API reference.
+docs/QA_VISUALIZATION_DASHBOARD_TESTING.md,2025-11-09,# QA Visualization Dashboard - Testing Guide,consolidate,Merge QA visualization docs into single guide + API reference.
+docs/QA_VISUALIZATION_DASHBOARD_SUMMARY.md,2025-11-09,# QA Visualization Framework - Dashboard Integration Summary,consolidate,Merge QA visualization docs into single guide + API reference.
+docs/QA_VISUALIZATION_DASHBOARD_INTEGRATION.md,2025-11-09,# QA Visualization Framework - Dashboard Integration,consolidate,Merge QA visualization docs into single guide + API reference.
+docs/QA_VISUALIZATION_ACCESS.md,2025-11-09,# QA Visualization Framework - Access Guide,consolidate,Merge QA visualization docs into single guide + API reference.
+docs/archive/status_reports/DOCKER_CONFIG_VERIFICATION.md,2025-11-12,# Docker Configuration Verification Results,archive,Historical doc under docs/archive.
+docs/archive/status_reports/DOCKER_CONFIG_UPDATE.md,2025-11-12,# Docker Configuration Update - Products Database,archive,Historical doc under docs/archive.
+tests/integration/README_OPTIMIZATION.md,2025-11-11,# Integration Test Optimization Guide,keep,Code-adjacent documentation supporting module owners.
+docs/archive/2025-01/ARCHIVAL_NOTE.md,2025-11-12,# Dashboard Documentation Archival Note,archive,Historical doc under docs/archive.
+tests/e2e/README.md,2025-11-09,# End-to-End Testing Guide,keep,Code-adjacent documentation supporting module owners.
+tests/docs/README.md,2025-11-09,# Documentation Testing,keep,Code-adjacent documentation supporting module owners.
+docs/operations/deploy-systemd.md,2025-11-06,# Deploy with systemd,keep,User-facing documentation section.
+docs/operations/frontend_dev_port_migration.md,untracked,# Frontend Dev Server Port Migration: 5173 → 3210,keep,User-facing documentation section.
+docs/operations/frontend_dev_fix_summary.md,untracked,# Frontend Dev Server Fix Summary,keep,User-facing documentation section.
+docs/operations/MISSING_PORT_SAFEGUARDS.md,untracked,# Missing Port Organization Safeguards,keep,User-facing documentation section.
+docs/operations/deploy-docker.md,2025-11-06,# Deploy with Docker Compose,keep,User-facing documentation section.
+docs/operations/CASA_LOG_DAEMON_PROTECTION_SUMMARY.md,2025-11-09,# CASA Log Daemon Protection Summary,keep,User-facing documentation section.
+docs/operations/CASA_LOG_DAEMON_MONITORING.md,2025-11-09,# CASA Log Daemon Monitoring and Health Checks,keep,User-facing documentation section.
+docs/operations/CASA_LOG_DAEMON_FIXES.md,2025-11-09,# CASA Log Daemon Fixes - November 2025,keep,User-facing documentation section.
+docs/operations/automatic_duplicate_prevention.md,untracked,# Automatic and Proactive Duplicate Prevention,keep,User-facing documentation section.
+docs/operations/api_server.md,2025-11-09,# API Server Configuration,keep,User-facing documentation section.
+docs/operations/API_RESTART_GUIDE.md,2025-11-09,# API Restart and Troubleshooting Guide,keep,User-facing documentation section.
+docs/operations/PORT_ENFORCEMENT_SUMMARY.md,untracked,# Port Organization System - Enforcement Summary,keep,User-facing documentation section.
+docs/index.md,2025-11-12,# DSA-110 Continuum Imaging Pipeline,keep,User-facing documentation section.
+docs/operations/pm2_daemon_explanation.md,untracked,# PM2 Daemon Explanation,keep,User-facing documentation section.
+docs/IMPLEMENTATION_CHECKLIST.md,2025-11-09,# Zero-Corner-Cut Implementation Checklist,keep,Default keep until manual review.
+docs/operations/vite_respawning_fix.md,untracked,# Fixing Vite Process Respawning,keep,User-facing documentation section.
+docs/operations/systemd-migration.md,2025-11-06,# Systemd Service Migration Note,keep,User-facing documentation section.
+docs/operations/starting_dashboard_safely.md,untracked,# Starting Dashboard Safely - Exactly One Instance,keep,User-facing documentation section.
+docs/operations/service_restart_fix.md,2025-11-06,# Service Restart Fix - Process Tree Killing,keep,User-facing documentation section.
+docs/operations/refant_quick_reference.md,2025-11-06,# Quick Reference: Outrigger Refant Selection,keep,User-facing documentation section.
+docs/operations/README.md,2025-11-09,# Operations Documentation,keep,User-facing documentation section.
+docs/operations/production_deployment_summary.md,2025-11-11,# Production Deployment Summary - DSA-110 Continuum Imaging Pipeline,keep,User-facing documentation section.
+docs/operations/production_deployment_checklist.md,2025-11-11,# Production Deployment Checklist - DSA-110 Continuum Imaging Pipeline,keep,User-facing documentation section.
+docs/operations/PROACTIVE_PREVENTION_SUMMARY.md,untracked,# Proactive Duplicate Prevention - Implementation Summary,keep,User-facing documentation section.
+docs/operations/port_usage_unknown_ports.md,untracked,# Unknown Port Usage Analysis,keep,User-facing documentation section.
+docs/operations/port_unknown_ports_resolution.md,untracked,# Unknown Ports Resolution,keep,User-facing documentation section.
+docs/operations/PORT_SYSTEM_SUMMARY.md,untracked,# Port Organization System - Summary,keep,User-facing documentation section.
+docs/operations/port_system_implementation_guide.md,untracked,# Port Organization System - Implementation Guide,keep,User-facing documentation section.
+docs/operations/PORT_SYSTEM_ENFORCEMENT.md,untracked,# Port Organization System - Enforcement,keep,User-facing documentation section.
+docs/operations/port_safeguards_analysis.md,untracked,# Port Organization System - Safeguards Analysis,keep,User-facing documentation section.
+docs/operations/port_organization_recommendations.md,untracked,# Port Organization System Recommendations,keep,User-facing documentation section.
+docs/operations/port_duplicate_vite_explanation.md,untracked,# Why Duplicate Vite Instances Keep Appearing,keep,User-facing documentation section.
+docs/operations/port_duplicate_detection_fix.md,untracked,# Port Duplicate Detection - Fix Applied,keep,User-facing documentation section.
+docs/operations/port_audit_report.md,untracked,# Port Usage and Assignment Audit Report,keep,User-facing documentation section.
+docs/operations/PORT_ASSIGNMENTS_QUICK_REFERENCE.md,untracked,# Port Assignments Quick Reference,keep,User-facing documentation section.
+docs/operations/port-management.md,2025-11-06,# Port Management for DSA-110 Services,keep,User-facing documentation section.
+docs/operations/pm2_warning_expected.md,untracked,# PM2 Warning - Expected Behavior,keep,User-facing documentation section.
+docs/operations/pm2_respawning_issue.md,untracked,# PM2 Process Respawning Issue,keep,User-facing documentation section.
+docs/known-issues/image-metadata-population.md,2025-11-12,# Image Metadata Not Populated,keep,User-facing documentation section.
+docs/EXTERNAL_TOOLS_EVALUATION.md,2025-11-09,# External Tools Evaluation Framework,keep,Default keep until manual review.
+docs/WORKSPACE_RULES_CONFIGURATION.md,2025-11-12,# Workspace Rules Configuration,keep,Default keep until manual review.
+docs/WORKSPACE_RULES_CONCISE.md,2025-11-09,# Workspace Rules: Concise Version for Always-Applied Rules,keep,Default keep until manual review.
+docs/user_guide_qa_visualization.md,2025-11-10,# QA Visualization Features - User Guide,keep,Default keep until manual review.
+docs/TODO.md,2025-11-09,# Development Setup TODO List,keep,Default keep until manual review.
+docs/SKYVIEW_IMPLEMENTATION_PLAN.md,2025-11-06,# SkyView Implementation Plan,keep,Default keep until manual review.
+archive/legacy/README.md,2025-11-12,# Legacy Code Archive,archive,Legacy material already quarantined in archive/.
+docs/implementation/potential_issues_and_fixes.md,2025-11-09,# Potential Issues and Fixes for High-Priority Implementations,keep,User-facing documentation section.
+docs/implementation/scratch_to_stage_migration.md,2025-11-09,# Scratch to Stage Migration Summary,keep,User-facing documentation section.
+docs/implementation/potential_failure_points.md,2025-11-09,# Potential Failure Points Analysis,keep,User-facing documentation section.
+docs/implementation/high_priority_improvements_summary.md,2025-11-09,# High-Priority Improvements Implementation Summary,keep,User-facing documentation section.
+docs/implementation/high_priority_improvements.md,2025-11-09,# High-Priority Improvements Implementation Plan,keep,User-facing documentation section.
+docs/implementation/data_registry_implementation.md,2025-11-09,# Data Registry Implementation Summary,keep,User-facing documentation section.
+docs/how-to/mosaic_quickstart.md,2025-11-09,---,keep,User-facing documentation section.
+docs/how-to/persistent-dashboard.md,2025-11-09,# Running the Dashboard Persistently on HPC,keep,User-facing documentation section.
+docs/how-to/PARAMETER_OPTIMIZATION_GUIDE.md,2025-11-06,# AOFlagger Parameter Optimization Guide,keep,User-facing documentation section.
+docs/how-to/output-handling-validation.md,untracked,# Output Handling Validation,keep,User-facing documentation section.
+docs/how-to/PIPELINE_TESTING_GUIDE.md,2025-11-06,# Pipeline Testing Guide,keep,User-facing documentation section.
+docs/how-to/ms_organization.md,2025-11-09,# MS File Organization,keep,User-facing documentation section.
+docs/tutorials/HDF5_TO_MS_TUTORIAL.md,2025-11-09,# HDF5-to-MS Conversion: User Tutorial,keep,User-facing documentation section.
+docs/how-to/mosaic.md,2025-11-06,# How-To: Build a Nightly Mosaic,keep,User-facing documentation section.
+docs/tutorials/convert-standalone.md,2025-10-13,# Tutorial: Convert UVH5 → MS (Standalone),keep,User-facing documentation section.
+docs/how-to/pointing-monitor-deployment.md,2025-11-12,# Pointing Monitor Deployment Guide,keep,User-facing documentation section.
+docs/how-to/migration_guide.md,2025-11-12,# Pipeline Migration Guide,keep,User-facing documentation section.
+docs/tutorials/calibrate-apply.md,2025-11-03,# Tutorial: Calibrate + Apply,keep,User-facing documentation section.
+docs/how-to/masking-guide.md,2025-11-12,# NVSS Masking Guide,keep,User-facing documentation section.
+docs/how-to/MAINTENANCE_SCHEDULE.md,untracked,# Maintenance Schedule: Output Suppression Prevention,keep,User-facing documentation section.
+docs/how-to/LINEAR_SETUP_QUICKSTART.md,2025-11-06,# Linear Integration - Quick Start,keep,User-facing documentation section.
+docs/how-to/pointing-visualization-usage.md,2025-11-09,# Pointing Visualization - User Guide,keep,User-facing documentation section.
+docs/how-to/workflow_troubleshooting_summary.md,2025-11-12,# Workflow Troubleshooting Summary,keep,User-facing documentation section.
+docs/how-to/pointing-visualization.md,2025-11-09,# Pointing Visualization Feature,keep,User-facing documentation section.
+docs/how-to/warning-detection.md,untracked,# Warning Detection and Termination,keep,User-facing documentation section.
+docs/how-to/PRETTIER_CRITICAL_ISSUES.md,untracked,# Prettier Integration - Critical Issues for This Machine,consolidate,Combine Prettier troubleshooting docs into one definitive guide.
+docs/how-to/VULNERABILITIES_FOR_NON_DETAIL_ORIENTED_DEVELOPERS.md,untracked,# Vulnerabilities for Non-Detail-Oriented Developers,keep,User-facing documentation section.
+docs/how-to/verify-auto-error-detection.md,untracked,# Verify Auto Error Detection Setup,keep,User-facing documentation section.
+docs/how-to/validation_guide.md,2025-11-12,# DSA-110 Validation Guide,keep,User-facing documentation section.
+docs/how-to/PRETTIER_ENVIRONMENT_SPECIFIC.md,untracked,# Prettier Integration - Environment-Specific Warnings,consolidate,Combine Prettier troubleshooting docs into one definitive guide.
+docs/how-to/uvh5_to_ms_conversion.md,2025-11-09,# DSA-110 UVH5 to CASA Measurement Set Converter,keep,User-facing documentation section.
+docs/troubleshooting/frontend-restart-needed.md,2025-11-09,# Frontend Restart Instructions,keep,Default keep until manual review.
+docs/how-to/PRETTIER_FIXES_APPLIED.md,untracked,# Prettier Integration - Permanent Fixes Applied,consolidate,Combine Prettier troubleshooting docs into one definitive guide.
+docs/how-to/USING_ORCHESTRATOR_CLI.md,2025-11-09,# Using the Conversion Orchestrator CLI,keep,User-facing documentation section.
+docs/how-to/using-pytest-safely.md,untracked,# Using Pytest Safely: Preventing 2>&1 Redirection Errors,keep,User-facing documentation section.
+docs/how-to/prettier_setup.md,untracked,# Prettier Setup and Usage,keep,User-facing documentation section.
+docs/how-to/truly-automatic-error-detection.md,untracked,# Truly Automatic Error Detection - The Reality,keep,User-facing documentation section.
+docs/how-to/PRETTIER_WARNINGS.md,untracked,# Prettier Integration - Important Warnings for Developers,consolidate,Combine Prettier troubleshooting docs into one definitive guide.
+docs/how-to/troubleshooting.md,2025-11-12,# Troubleshooting Guide for Pipeline Stages,keep,User-facing documentation section.
+docs/how-to/TROUBLESHOOTING_QUICK_REFERENCE.md,untracked,# Troubleshooting Quick Reference,keep,User-facing documentation section.
+docs/how-to/PYRADIOSKY_BENEFITS.md,2025-11-07,# pyradiosky Benefits Summary,keep,User-facing documentation section.
+docs/how-to/trigger_github_pages_deployment.md,2025-11-12,# How to Trigger GitHub Pages Deployment,keep,User-facing documentation section.
+docs/how-to/TEST_FLAG_SUBCOMMAND.md,2025-11-06,# Testing the Flag Subcommand,keep,User-facing documentation section.
+docs/how-to/TESTING_INDEX.md,2025-11-12,# Testing Documentation Index,keep,User-facing documentation section.
+docs/how-to/testing_crossmatch_stage_with_synthetic_data.md,untracked,# Testing CrossMatchStage with Synthetic Data,keep,User-facing documentation section.
+docs/how-to/testing.md,2025-11-12,# Testing Guide for Pipeline Stages,keep,User-facing documentation section.
+docs/how-to/TEAM_TRAINING_OUTPUT_SUPPRESSION.md,untracked,# Team Training: Output Suppression Prevention,keep,User-facing documentation section.
+docs/how-to/system-wide-error-detection-verification.md,untracked,# System-Wide Error Detection Verification,keep,User-facing documentation section.
+docs/how-to/system-wide-error-detection-setup.md,untracked,# System-Wide Error Detection Setup,keep,User-facing documentation section.
+docs/how-to/streaming_converter_guide.md,2025-11-09,# DSA-110 Streaming Converter,keep,User-facing documentation section.
+docs/how-to/streaming-troubleshooting.md,2025-11-09,# Streaming Service Troubleshooting Guide,keep,User-facing documentation section.
+docs/how-to/streaming-control.md,2025-11-07,# Streaming Service Control,keep,User-facing documentation section.
+docs/how-to/SKYMODEL_IMAGING.md,2025-11-07,# Sky Model Image Generation,keep,User-facing documentation section.
+docs/how-to/SKYMODEL_IMAGE_EXPECTATIONS.md,2025-11-07,# Sky Model Image Expectations,keep,User-facing documentation section.
+docs/how-to/reprocess.md,2025-11-06,# How-To: Reprocess a Group,keep,User-facing documentation section.
+docs/how-to/remote-access-tools.md,2025-11-12,# Remote Access Tools Guide,keep,User-facing documentation section.
+docs/how-to/REMAINING_GAPS_FIXED.md,untracked,# Remaining Gaps - Implementation Summary,keep,User-facing documentation section.
+docs/how-to/PYRADIOSKY_GUIDE.md,2025-11-07,# pyradiosky Guide: Sky Model Management,keep,User-facing documentation section.
+docs/how-to/dashboard_deployment.md,2025-11-12,# DSA-110 Dashboard: Deployment & Operations,keep,User-facing documentation section.
+docs/how-to/dashboard-quickstart.md,2025-11-12,# DSA-110 Pipeline Dashboard,keep,User-facing documentation section.
+docs/how-to/dashboard_development_workflow.md,2025-11-12,# DSA-110 Dashboard: Development Workflow & Setup,keep,User-facing documentation section.
+docs/how-to/dashboard-development.md,2025-11-12,# Dashboard Development Guide,keep,User-facing documentation section.
+docs/how-to/QUALITY_ASSURANCE_SETUP.md,2025-11-12,# Quality Assurance & Alerting Setup Guide,keep,User-facing documentation section.
+docs/how-to/CRITICAL_HANDOVER_WARNINGS.md,untracked,# Critical Handover Warnings,keep,User-facing documentation section.
+docs/how-to/create_pipeline_stage.md,2025-11-12,# How to Create a New Pipeline Stage,keep,User-facing documentation section.
+docs/how-to/cross-matching-guide.md,2025-11-10,# Cross-Matching Guide,keep,User-facing documentation section.
+docs/how-to/control-panel-quickstart.md,2025-11-09,# Control Panel Quick Start Guide,keep,User-facing documentation section.
+docs/how-to/quicklook.md,2025-11-09,# Quick-Look Pipeline (sub-minute),keep,User-facing documentation section.
+docs/how-to/CALIBRATION_DETAILED_PROCEDURE.md,2025-11-09,# Detailed Calibration Procedure,keep,User-facing documentation section.
+docs/how-to/command-chains-with-error-detection.md,untracked,# Command Chains with Error Detection,keep,User-facing documentation section.
+docs/how-to/quickstart.md,2025-11-09,# Quick Start,keep,User-facing documentation section.
+docs/how-to/build-vp-from-h5.md,2025-11-09,## Build a CASA Voltage Pattern (VP) table from the DSA-110 H5 beam,keep,User-facing documentation section.
+docs/how-to/BUILD_60MIN_MOSAIC_0834.md,2025-11-09,# How-To: Build a 60-Minute Mosaic Around VLA Calibrator 0834+555,keep,User-facing documentation section.
+docs/how-to/build-first-rax-catalogs.md,2025-11-10,# Building FIRST and RAX SQLite Catalogs,keep,User-facing documentation section.
+docs/how-to/quickstart_dashboard.md,2025-11-12,# Dashboard Quick Start,keep,User-facing documentation section.
+docs/how-to/bash-shell-sourcing-behavior.md,untracked,# Bash Shell Sourcing Behavior,keep,User-facing documentation section.
+docs/how-to/AUTOMATION_SETUP_QUICKSTART.md,untracked,# Quick Start: Automated Protections Setup,keep,User-facing documentation section.
+docs/how-to/AUTOMATION_GUIDE.md,untracked,# Automation Guide - Preventing Common Mistakes,keep,User-facing documentation section.
+docs/how-to/AUTOMATED_PROTECTIONS.md,untracked,# Automated Protections Against Common Mistakes,keep,User-facing documentation section.
+docs/how-to/AUTOMATED_GOTCHA_PREVENTION.md,untracked,# Automated Gotcha Prevention,keep,User-facing documentation section.
+docs/how-to/auto-error-detection-non-interactive.md,untracked,# Auto Error Detection in Non-Interactive Shells,keep,User-facing documentation section.
+docs/how-to/BLACK_PYLINT_PRE_COMMIT_HANDOVER.md,untracked,# Black & Pylint Pre-commit Hooks - Developer Handover Guide,keep,User-facing documentation section.
+docs/how-to/agentic-session-setup.md,untracked,# Agentic Session Setup for Error Detection,keep,User-facing documentation section.
+docs/how-to/adding-new-tests.md,untracked,# Adding New Tests - Organization Guide,keep,User-facing documentation section.
+docs/how-to/ADDITIONAL_AUTOMATED_CHECKS.md,untracked,# Additional Automated Checks and Fixes,keep,User-facing documentation section.
+docs/how-to/immediate-error-termination.md,untracked,# Immediate Error Termination,keep,User-facing documentation section.
+docs/how-to/dashboard_testing.md,2025-11-12,# DSA-110 Dashboard: Testing & Quality Assurance,keep,User-facing documentation section.
+docs/how-to/js9_casa_analysis.md,2025-11-12,# JS9 CASA Analysis Plugin,keep,User-facing documentation section.
+docs/how-to/LINEAR_INTEGRATION.md,2025-11-06,# Linear Integration for TODO.md,keep,User-facing documentation section.
+docs/how-to/INSTALL_AEGEAN.md,2025-11-09,# Installing Aegean for DSA-110 Pipeline,keep,User-facing documentation section.
+docs/how-to/IMAGE_0834_TRANSIT_5MIN.md,2025-11-09,# Steps to Produce a 5-Minute Image of 0834+555 Transit,keep,User-facing documentation section.
+docs/how-to/README.md,2025-11-12,# How-To Guides,keep,User-facing documentation section.
+docs/how-to/github_pages_walkthrough.md,2025-11-12,# GitHub Pages Setup Walkthrough,keep,User-facing documentation section.
+docs/how-to/github_pages_troubleshooting.md,2025-11-12,# GitHub Pages Troubleshooting Guide,keep,User-facing documentation section.
+docs/how-to/full-path-commands-error-detection.md,untracked,# Full Path Commands and Error Detection,keep,User-facing documentation section.
+docs/how-to/frontend-initial-setup.md,2025-11-09,# DSA-110 Front-End: Next Steps & Implementation Guide,keep,User-facing documentation section.
+docs/how-to/FIND_CALIBRATOR_TRANSIT_DATA.md,2025-11-10,# Finding Calibrator Transit Data with HDF5 File Lists,keep,User-facing documentation section.
+docs/how-to/FINAL_PROTECTIONS_ADDED.md,untracked,# Final Protections Added,keep,User-facing documentation section.
+docs/tutorials/streaming.md,2025-10-29,# Tutorial: End-to-End Streaming,keep,User-facing documentation section.
+docs/how-to/FAST_TESTING.md,2025-11-09,"# Fast, Targeted Testing",keep,User-facing documentation section.
+docs/tutorials/simulation-tutorial.md,2025-11-12,# DSA-110 Synthetic UVH5 Generator,keep,User-facing documentation section.
+docs/how-to/ese_detection_guide.md,untracked,# ESE Detection Guide,keep,User-facing documentation section.
+docs/how-to/ese_detection_advanced_features.md,untracked,# ESE Detection Advanced Features,keep,User-facing documentation section.
+archive/legacy/ms_utils/README.md,2025-11-12,Legacy MS Utilities (Archived),archive,Legacy material already quarantined in archive/.
+docs/how-to/enable-auto-error-detection.md,untracked,# Enable Auto Error Detection,keep,User-facing documentation section.
+docs/how-to/downsampling_guide.md,2025-11-06,# UVH5 Downsampling Guide,keep,User-facing documentation section.
+docs/how-to/DEVELOPER_HANDOVER_WARNINGS.md,untracked,# Developer Handover: Critical Warnings and Gotchas,consolidate,Keep a single developer handoff doc; drop duplicates.
+docs/how-to/DEVELOPER_HANDOFF_WARNINGS.md,untracked,# Developer Handoff - Critical Warnings and Gotchas,consolidate,Keep a single developer handoff doc; drop duplicates.
+docs/how-to/deterministic-error-detection.md,untracked,# Deterministic Error Detection for Agentic Sessions,keep,User-facing documentation section.
+docs/how-to/QUICK_REFERENCE_WARNINGS.md,untracked,# Quick Reference - Critical Warnings,keep,User-facing documentation section.
+docs/how-to/QUICK_REFERENCE_CARD.md,untracked,# Quick Reference Card - Critical Commands,keep,User-facing documentation section.
+archive/legacy/docs/CURRENT_SETUP_RECOMMENDATION.md,2025-11-12,# Current AOFlagger Setup Recommendation,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/CRITICAL_ISSUE_TEMPLATE_DEPENDENCY.md,2025-11-12,# CRITICAL ISSUE: Template UVH5 File Dependency,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/control-panel-INDEX.md,2025-11-12,# Control Panel Documentation Index,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/CODE_REVIEW_2025.md,2025-11-12,# DSA-110 Continuum Imaging Pipeline - Code Review,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/CLI_IMPROVEMENTS_PHASE3_COMPLETE.md,2025-11-12,# Phase 3 Implementation Complete ✓,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/CLI_IMPROVEMENTS_PHASE2_COMPLETE.md,2025-11-12,# Phase 2 Implementation Complete ✓,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/CLI_IMPROVEMENTS_PHASE1_COMPLETE.md,2025-11-12,# Phase 1 Implementation Complete ✓,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/CLI_IMPROVEMENTS_EXPERT_INSIGHTS.md,2025-11-12,# CLI Improvements Plan - Expert Analysis Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/CLI_IMPROVEMENTS_ASSESSMENT.md,2025-11-12,# CLI Improvements Plan - Quality Assessment,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/CLI_IMPROVEMENTS.md,2025-11-12,# CLI Architecture Improvements,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/CALIBRATION_ENHANCEMENTS_SUMMARY.md,2025-11-12,# Calibration Procedure Enhancements - Implementation Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/CALIBRATION_ENHANCEMENTS.md,2025-11-12,# Calibration Procedure Enhancements,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/CALIBRATION_CLI_IMPROVEMENTS.md,2025-11-12,# Calibration CLI Improvements - Implementation Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/CALIBRATION_CLI_CONFUSION_ANALYSIS.md,2025-11-12,# Calibration CLI Confusion Analysis,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/BANDPASS_CALIBRATION_FIXES.md,2025-11-12,# How Bandpass Calibration Issues Were Overcome,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/alldir_structure_template.md,2025-11-12,/data/dsa110/,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/CONVERSION_FEATURE.md,2025-11-12,# Control Panel: UVH5 → MS Conversion Feature,archive,Legacy material already quarantined in archive/.
+archive/chats/cursor_chats/cursor_streamtest_251110a.md,2025-11-12,# Modes of operation for @dsa110_contimg,archive,Legacy material already quarantined in archive/.
+archive/chats/cursor_chats/cursor_review_previous_chat_contents.md,2025-11-12,# Review previous chat contents,archive,Legacy material already quarantined in archive/.
+archive/chats/cursor_chats/cursor_diagnostic_testing_plan_for_casa.md,2025-11-12,# Diagnostic testing plan for CASA measurement sets,archive,Legacy material already quarantined in archive/.
+archive/chats/cursor_chats/cursor_calibration_plan_for_casa_measur.md,2025-11-12,# Calibration plan for CASA measurement sets,archive,Legacy material already quarantined in archive/.
+archive/legacy/utils/data/README.md,2025-11-12,# Archived Data Files,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/legacy-overview.md,2025-11-12,"""""""",archive,Legacy material already quarantined in archive/.
+archive/legacy/conversion_pipeline/README_legacy_conversion.md,2025-10-09,# HDF5 to Measurement Set Conversion Module,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/USABILITY_REVIEW.md,2025-11-12,# Usability Review: DSA-110 Continuum Imaging Pipeline,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/TEST_NEW_PIPELINE.md,2025-11-12,# Testing the New Pipeline Framework,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/REDUNDANCY_ANALYSIS.md,2025-11-12,# Redundancy Analysis Report,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/PROJECT_REVIEW.md,2025-11-12,# DSA-110 Continuum Imaging Pipeline - Comprehensive Review,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/PRIORITY_FEATURES_SESSION_SUMMARY.md,2025-11-12,# Priority Features Implementation - Session Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/PRIORITY_FEATURES_IMPLEMENTATION.md,2025-11-12,# Priority Features Implementation Plan,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/pipeline_structure_template.md,2025-11-12,/data/dsa110-contimg/pipeline/                 # Pipeline code repository,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/PHASE1_SUMMARY.md,2025-11-12,# Simulation Module Phase 1 Implementation Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/OPS_REDUNDANCY_ANALYSIS.md,2025-11-12,# Redundancy Analysis: ops/ Directory,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/OPEN_QUESTIONS_ANSWERS.md,2025-11-12,# Open Questions - Phase Scatter Debugging (COMPREHENSIVE),archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/frontend_setup_complete.md,2025-11-12,# DSA-110 Frontend Setup - Complete ✓,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/FIND_TRANSIT_LOGGING_EXPLANATION.md,2025-11-12,# Why Transit Finding Only Shows Failed Days,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/DOCUMENTATION_CLEANUP.md,2025-11-12,# Documentation Cleanup Recommendations,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/dev_notes.md,2025-11-12,# Usable functions & classes from dsacalib,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/dashboard_structure_template.md,2025-11-12,/var/www/contimg_dashboard/                  # Web dashboard,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/handbook/index.md,2025-11-12,---,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/ALTERNATIVE_RFI_FLAGGING_METHODS.md,2025-11-12,# Alternative RFI Flagging Methods,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/BANDPASS_CALIBRATION_PARAMETERS_REVIEW.md,2025-11-12,# Bandpass Calibration Parameters Review,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/ARCHITECTURAL_COMPATIBILITY_ANALYSIS.md,2025-11-12,# Architectural Compatibility Analysis: Service Layer Proposal,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/BANDPASS_CALIBRATION_PERFORMANCE_ISSUE.md,2025-11-12,# Bandpass Calibration Performance Issue,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports_2/PIPELINE_ROBUSTNESS_ANALYSIS.md,2025-11-12,# Pipeline Robustness Analysis & Recommendations,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/ADDITIONAL_OPTIMIZATION_OPPORTUNITIES.md,2025-11-12,# Additional Pipeline Optimization Opportunities,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/BANDPASS_OUTPUT_WITHOUT_FLAGGING.md,2025-11-12,# Bandpass Output Without Flagging - Explanation,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/ADDITIONAL_CACHING_STRATEGIES.md,2025-11-12,# Additional Caching Strategies for Mosaicking Pipeline,archive,Legacy material already quarantined in archive/.
+archive/legacy/conversion_pipeline/conversion/MIGRATION_GUIDE.md,2025-10-09,# Migration Guide: Unified HDF5 Converter,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/BANDPASS_SOLVE_CRITICAL_FAILURE.md,2025-11-12,# Bandpass Solve Critical Failure: Low SNR Solutions,archive,Legacy material already quarantined in archive/.
+archive/legacy/conversion_pipeline/conversion/COMPARISON_WITH_DSACALIB.md,2025-10-09,# Comparison: Pipeline Conversion Scripts vs. dsa110-calib,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reviews/MS_GENERATION_REVIEW.md,2025-11-12,# MS Generation Stage Review,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reviews/MS_GENERATION_REFACTORING_COMPLETE.md,2025-11-12,# MS Generation Refactoring Complete ✓,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reviews/CALIBRATION_STAGE_REVIEW.md,2025-11-12,# Calibration Stage Review,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reviews/CALIBRATION_IMPROVEMENTS_COMPLETE.md,2025-11-12,# Calibration Stage Improvements - Implementation Complete,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/SPW_PROCESSING_ORDER_ANALYSIS.md,2025-11-12,# SPW Processing Order Analysis,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/SPW_MERGING_REVIEW_PERPLEXITY.md,2025-11-12,# SPW Merging Implementation Review (Perplexity Verification),archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/SPW_MERGING_OUTPUT_STRUCTURE.md,2025-11-12,# SPW Merging Output MS Structure,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/SPW_MERGING_ANALYSIS.md,2025-11-12,# SPW Merging Analysis: Producing 1 SPW Instead of 16,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/SPW_COMBINE_BEHAVIOR_EXPLANATION.md,2025-11-12,# SPW Combine Behavior Explanation,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/SETJY_FT_PHASE_CENTER_BUG.md,2025-11-12,# CASA setjy/ft() Phase Center Bug - Confirmed via Web Review,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/SAFEGUARDS_IMPLEMENTED.md,2025-11-12,# User Safeguards Implementation Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/ROOT_CAUSE_HIGH_FLAGGING_RATE.md,2025-11-12,# Root Cause: High Flagging Rate (15-35% vs Expected 2-3 Solutions),archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/RFI_FLAGGING_PARAMETERS_JUSTIFICATION.md,2025-11-12,# RFI Flagging Parameters Justification,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/REFANT_VALIDATION_FAILURE_BEHAVIOR.md,2025-11-12,# Refant Validation Failure Behavior,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/RECOMMENDED_CODE_CHANGES.md,2025-11-12,# Recommended Code Changes Based on CASA Best Practices Review,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/REBUILD_CASA6_ENVIRONMENT.md,2025-11-12,# Rebuilding the CASA6 Conda Environment,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/RA_CALCULATION_PRECISION.md,2025-11-12,# RA Calculation Precision Analysis,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FT_WORKING_SOLUTION_FINAL.md,2025-11-12,# Making ft() Work Correctly: Final Solution,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FT_WORKING_SOLUTION_DESIGN.md,2025-11-12,# Making ft() Work Correctly: Solution Design,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FT_USAGE_IN_BANDPASS_WORKFLOW.md,2025-11-12,# ft() Usage in Bandpass Calibration Workflow,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FT_PHASE_DIR_CLAIM_VERIFICATION.md,2025-11-12,# ft() PHASE_DIR Claim Verification,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/migration/LEGACY_CLEANUP_PLAN.md,2025-11-12,# Legacy Code Cleanup Plan,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/migration/LEGACY_DEPRECATION_PLAN.md,2025-11-12,# Legacy Code Deprecation Plan,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/migration/MIGRATION_PHASE1_COMPLETE.md,2025-11-12,# Documentation Consolidation - Phase 1 Complete,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/migration/LEGACY_CLEANUP_COMPLETE.md,2025-11-12,# Legacy Code Cleanup - Complete ✅,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FT_PHASE_DIR_CLAIM_RECONCILIATION.md,2025-11-12,# ft() PHASE_DIR Claim Reconciliation,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/migration/MIGRATION_PHASE2_COMPLETE.md,2025-11-12,# Documentation Consolidation - Phase 2 Complete,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FT_PHASE_CENTER_TEST_RESULTS.md,2025-11-12,# ft() Phase Center Test Results - Corrected Scenario,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FT_PHASE_CENTER_INVESTIGATION_RESULTS.md,2025-11-12,# ft() Phase Center Investigation Results,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FT_PHASE_CENTER_FIX.md,2025-11-12,# ft() Phase Center Bug Fix,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FT_MULTI_FIELD_PHASE_CENTER_ISSUE.md,2025-11-12,# ft() Multi-Field Phase Center Issue - Corrected Understanding,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FT_DOCUMENTATION_VERIFICATION.md,2025-11-12,# ft() CASA Documentation Verification,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FT_BROKEN_MESSAGE_CLARIFICATION.md,2025-11-12,"# ft() ""Broken"" Message Clarification",archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FORCED_PHOTOMETRY_STATUS_AND_PLAN.md,2025-11-12,# Forced Photometry Pipeline: Status & ESE Detection Strategy,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FINAL_STATUS_SUMMARY.md,2025-11-12,# Phase Scatter Debugging - Final Status Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FINAL_PROOF_COMPLETENESS_AND_QUALITY.md,2025-11-12,# Final Proof: Implementation Completeness and Bandpass Solution Quality,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FINAL_PRECONDITION_CHECK_REVIEW.md,2025-11-12,"# Final Precondition Check Review - ""Measure Twice, Cut Once""",archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/EXISTING_TABLES_FEATURE_STATUS.md,2025-11-12,# Existing Calibration Tables Feature - Implementation Status,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/ESE_LITERATURE_SUMMARY.md,2025-11-12,# ESE Detection: Literature Summary & Algorithm Design,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/ELEGANT_CALIBRATOR_MS_DESIGN.md,2025-11-12,# Elegant Calibrator MS Generation Design,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/EDGE_CASE_DOCUMENTATION.md,2025-11-12,# Edge Case Documentation: setjy Without Rephasing,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/DSA110_SUBBAND_UPDATE_SUMMARY.md,2025-11-12,# DSA-110 Subband Structure Update Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/DSA110_K_CAL_NEED_ASSESSMENT.md,2025-11-12,# DSA-110 Specific Reasons NOT to Skip K-Calibration,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/QUICK_REFERENCE.md,2025-11-12,# Quick Reference Guide - Implementation Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/QA_VALIDATION_FIXES.md,2025-11-12,# QA Validation Fixes - 2025-11-02,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/qa_integration_complete.md,2025-11-12,# QA Integration Complete - Production Ready,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/cursor-chats/cursor_chat_design_calibration_procedure_251106b.md,2025-11-12,# Identify MS files with VLA calibrator,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PYUVDATA_3.2.4_COMPATIBILITY_SUMMARY.md,2025-11-12,# PyUVData 3.2.4 Compatibility Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PROOF_OF_COMPLETENESS_AND_QUALITY.md,2025-11-12,# Proof of Implementation Completeness and Bandpass Solution Quality,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PROFESSIONAL_REVIEW_MOSAICKING_PIPELINE.md,2025-11-12,# Professional Radio Astronomy Pipeline Review: End-to-End Through Mosaicking,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/cursor-chats/cursor_chat_optimized_refactor_251106a.md,2025-11-12,# Optimize architecture for rigor and usability,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PRIORITY_FEATURES_PROGRESS.md,2025-11-12,# Priority Features - Implementation Progress,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PRIORITY1_PRECONDITION_CHECKS_IMPLEMENTED.md,2025-11-12,# Priority 1 Precondition Checks Implementation Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PRIORITY1_PRECONDITION_CHECKS_IMPLEMENTATION.md,2025-11-12,# Priority 1 Precondition Checks Implementation,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/cursor-chats/cursor_chat_prepare_streaming_251106c.md,2025-11-12,# Review rules and memories in cursor,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PRE_CALIBRATION_PRECONDITION_REVIEW.md,2025-11-12,"# Pre-Calibration Precondition Review - ""Measure Twice, Cut Once""",archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PREBP_PHASE_SOLVE_LOW_SNR_ANALYSIS.md,2025-11-12,# Why Pre-Bandpass Phase Solve Also Shows Low SNR,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/POTENTIAL_CRITICAL_ISSUES_REVIEW.md,2025-11-12,# Potential Critical Issues Review,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/cursor-chats/cursor_chat_setup_dashboard_251106d.md,2025-11-12,# cursor_chat_setup_dashboard_251106d,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PLAN_VIABILITY_ASSESSMENT.md,2025-11-12,# Plan Viability Assessment: Granular 60-Minute Mosaic Generation,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PIPELINE_WORKFLOW_PRECONDITION_REVIEW.md,2025-11-12,"# Pipeline Workflow Review - ""Measure Twice, Cut Once""",archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PIPELINE_TOP_LEVEL_ANALYSIS.md,2025-11-12,# DSA-110 Continuum Imaging Pipeline - Top-Level Project Analysis,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PIPELINE_STATE_ANALYSIS.md,2025-11-12,# DSA-110 Continuum Imaging Pipeline - Current State Analysis,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PIPELINE_REVIEW_MEASURE_TWICE.md,2025-11-12,"# End-to-End Pipeline Review: ""Measure Twice, Cut Once"" Analysis",archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PIPELINE_ENHANCEMENT_SUMMARY.md,2025-11-12,# Pipeline Enhancement Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CALIBRATION_RUN_SUMMARY.md,2025-11-12,# Calibration Run Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CALIBRATION_REVIEW_PERPLEXITY.md,2025-11-12,# Calibration Workflow Review: Perplexity Analysis,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CALIBRATION_RERUN_OPTIMIZATION.md,2025-11-12,# Calibration Re-run Optimization Guide,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CALIBRATION_PERFORMANCE_ISSUE_2025-11-03.md,2025-11-12,# Calibration Performance Issue: K-Calibration Taking >15 Minutes,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CALIBRATION_FEATURES_COMPLETE.md,2025-11-12,# DSA-110 Calibration Features - Complete Implementation,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CALIBRATION_CLI_COMPREHENSIVE_REVIEW.md,2025-11-12,# Calibration CLI Comprehensive Review,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CALIBRATION_APPLICATION_SERVICE_IMPLEMENTATION.md,2025-11-12,# CalibrationApplicationService Implementation Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MS_PHASING_DURING_CONVERSION.md,2025-11-12,# MS Phasing During Conversion,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/memory.md,2025-11-12,## VP table construction (DSA-110),archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FT_WORKING_SOLUTION_IMPLEMENTATION.md,2025-11-12,# Making ft() Work Correctly: Implementation Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/dp3_test_results.md,2025-11-12,# DP3 Test Results,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PHOTOMETRY_SESSION_SUMMARY_2025_10_24.md,2025-11-12,# Forced Photometry Normalization: Session Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/casa_wsclean_modeldata_incompatibility.md,2025-11-12,# CASA ft() and WSClean MODEL_DATA Incompatibility,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CALIBRATION_SERVICES_ARCHITECTURE.md,2025-11-12,# Calibration Service Architecture,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/test_artifacts_index.md,2025-11-12,# Test Artifacts Index,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/RADIO_ASTRONOMY_IMPROVEMENTS.md,2025-11-12,# Radio Astronomy Workflow Improvements Needed,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/testing_final_status.md,2025-11-12,# Final Testing Status - Database Populated & All Tests Passing,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/TESTING_COMPLETE_SUMMARY.md,2025-11-12,# Complete Testing Summary - DSA-110 Pipeline Enhancements,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/SUPPRESS_CASA_TABLE_MESSAGES.md,2025-11-12,# How to Suppress CASA Table Open Messages,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/STREAMING_AUTOMATION_AUDIT.md,2025-11-12,# DSA-110 Streaming Pipeline: Automation Audit & Recommendations,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/TEST_FRAMEWORK_BOTTLENECKS.md,2025-11-12,# Test Framework Bottleneck Analysis,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MODEL_DATA_PHASE_STRUCTURE_FINAL_FIX.md,2025-11-12,# MODEL_DATA Phase Structure - Final Fix,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/METHODS_TO_ARCHIVE_OR_DEPRECATE.md,2025-11-12,# Methods to Archive or Deprecate - Faulty Methods Analysis,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CONTINUOUS_PIPELINE_ROADMAP.md,2025-11-12,# Continuum Pipeline: Toward Continuous Operations,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CONVERSION_FEATURE_COMPLETE.md,2025-11-12,# UVH5 → MS Conversion Feature - Implementation Complete,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CONSEQUENCES_OF_SKIPPING_K_CALIBRATION.md,2025-11-12,# Consequences of Not Performing K-Calibration (Delay Calibration),archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CONVERSION_PROCESS_SUMMARY.md,2025-11-12,# DSA-110 UVH5 → CASA Measurement Set (Current Process),archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/COMPREHENSIVE_PRECONDITION_REVIEW.md,2025-11-12,"# Final Comprehensive Precondition Review - ""Measure Twice, Cut Once""",archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/COMPLETE_PROJECT_REVIEW.md,2025-11-12,"# Complete Project Review: Rules, Memories, and Pipeline Scope",archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CONVERSION_ROBUSTNESS_IMPROVEMENTS.md,2025-11-12,# Conversion Pipeline Robustness Improvements,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/COMBINE_SPW_VALIDATION.md,2025-11-12,# Validation of `--combine-spw` Option,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/COMBINE_SPW_SPWMAP_FIX.md,2025-11-12,# Critical Fix: spwmap Required for combine_spw Bandpass Tables,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CORRECTED_APPROACH_E2E_TESTING.md,2025-11-12,# Corrected Approach: End-to-End Testing Using Actual Pipeline Components,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CODE_ORGANIZATION_AUDIT.md,2025-11-12,# Code Organization Audit - Misorganized Functions,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CLEAR_PATH_TO_BANDPASS_SUCCESS.md,2025-11-12,# Clear Path to Successful Bandpass Solve,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MS_PHASING_DEFAULT_BEHAVIOR.md,2025-11-12,# MS Phasing Default Behavior,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CRITICAL_K_CALIBRATION_ISSUES.md,2025-11-12,# Critical K-Calibration Issues Discovered - 2025-11-02,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/DETAILED_TESTING_PLAN_0834_TRANSIT.md,2025-11-12,# Detailed Testing Plan: 0834 Transit End-to-End Pipeline Test,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/DOCS_AUDIT.md,2025-11-12,# Documentation Audit (2025-10-23),archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MS_PHASING_CRITICAL_ISSUE.md,2025-11-12,# Critical MS Phasing Issue Identified,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/DEBUGGING_SESSION_SUMMARY.md,2025-11-12,# Phase Scatter Debugging Session - Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MOSAIC_WORKFLOW_GENERALIZATION.md,2025-11-12,# Generalization Analysis: Mosaic Workflow Stages,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/dp3_integration_plan.md,2025-11-12,# DP3 Integration Plan: Sky Model Seeding & Calibration Application,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/TEST_RESULTS_COMPREHENSIVE.md,2025-11-12,# Comprehensive Test Results - DSA-110 Pipeline Enhancements,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MOSAIC_0834_TRANSIT_ANALYSIS.md,2025-11-12,# Creating Hour-Long Mosaic for Most Recent 0834 Transit,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/test_wsclean_outputs_overview.md,2025-11-12,# Overview of Output Files in `/scratch/dsa110-contimg/test_wsclean/`,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MOSAIC_0834_TESTING_STRATEGY_REVISED.md,2025-11-12,# Corrected Testing Strategy: Use Actual Pipeline Components,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MOSAIC_0834_TESTING_STRATEGY_ARCHIVE.md,2025-11-12,# Testing Strategy: Successful Mosaic for 0834 Transit,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/TIME_DEPENDENT_PHASE_CENTER_FIX.md,2025-11-12,# Time-Dependent Phase Center Fix,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MOSAICKING_REVIEW_GAPS.md,2025-11-12,# Mosaicking Implementation Review - Gaps Analysis,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/TOP_3_FEATURES_COMPLETE.md,2025-11-12,# Top 3 Feature Recommendations - ✅ COMPLETE,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MOSAICKING_REMAINING_WORK.md,2025-11-12,# Remaining Work to Complete Mosaicking Implementation,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MOSAICKING_ENHANCEMENTS_IMPLEMENTATION.md,2025-11-12,# Mosaicking Enhancements Implementation,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/TOP_3_FEATURES_STATUS.md,2025-11-12,# Top 3 Feature Recommendations - Implementation Status,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MODEL_DATA_PHASE_STRUCTURE_ROOT_CAUSE.md,2025-11-12,# MODEL_DATA Phase Structure Root Cause Analysis,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MODEL_DATA_PHASE_STRUCTURE_ISSUE.md,2025-11-12,# MODEL_DATA Phase Structure Issue,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MODEL_DATA_PHASE_STRUCTURE_INVESTIGATION.md,2025-11-12,# MODEL_DATA Phase Structure Investigation,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/TRANSIT_IDENTIFICATION_EXPLANATION.md,2025-11-12,# How I Identified the 0834 Transit,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/URGENT_FIX_CONTROLPAGE.md,2025-11-12,# URGENT: ControlPage.tsx File Corrupted,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/WHAT_DETERMINES_BASELINE_FLAGGING.md,2025-11-12,"# What Determines if a Baseline is ""Affected"" in Bandpass Calibration?",archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/NEXT_STEPS.md,2025-11-12,# Next Steps - Post-Integration,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/NEXT_STEPS_PRODUCTION.md,2025-11-12,# Next Steps for Production Deployment,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/wsclean_vs_tclean_comparison.md,2025-11-12,# WSClean vs tclean Comparison for DSA-110 Imaging,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/WHY_FT_CAUSES_PHASE_SCATTER.md,2025-11-12,# Why ft() Wrong Phase Center Causes 102° Phase Scatter,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/NO_REPHASE_IMPLEMENTATION_SUMMARY.md,2025-11-12,# No-Rephase Calibration Implementation Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/WHY_FIXVIS_NOT_PHASESHIFT_ONLY.md,2025-11-12,# Why We Use fixvis + phaseshift Instead of phaseshift Only,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/NO_REPHASE_WORKFLOW.md,2025-11-12,# No-Rephase Calibration Workflow,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/NVSS_FT_USAGE_ANALYSIS.md,2025-11-12,# NVSS ft() Usage Analysis: Why We Still Need ft() for Multi-Component Models,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/WHAT_IF_NO_REPHASE.md,2025-11-12,# What If We Don't Rephase? Would That Solve the Problem?,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/WEB_INVESTIGATION_COMPREHENSIVE_FINDINGS.md,2025-11-12,# Comprehensive Web Investigation Findings: setjy/ft() Phase Center Issues,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/UVW_VERIFICATION_REMOVED.md,2025-11-12,# UVW Verification Method Removed,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/UVW_VERIFICATION_MATHEMATICAL_CONFIRMATION.md,2025-11-12,# UVW Verification Mathematical Confirmation,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/UVW_VERIFICATION_ANALYSIS.md,2025-11-12,# UVW Transformation Verification Analysis,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/UVW_MISALIGNMENT_FIX.md,2025-11-12,# Fix: UVW Misalignment Detection and Correction,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/UVW_MEAN_INTERPRETATION_ERROR.md,2025-11-12,# UVW Mean Value Interpretation Error,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/UVW_COORDINATE_HANDLING_REVIEW.md,2025-11-12,# UVW Coordinate Handling Review,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/USER_SAFEGUARDS_PROPOSAL.md,2025-11-12,# User Safeguards Proposal: Preventing First-Time User Mistakes,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CASA_TABLE_OPEN_MESSAGES.md,2025-11-12,# CASA Table Open Messages Explained,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CASA_FUNCTION_BEHAVIOR_100_PERCENT_VERIFIED.md,2025-11-12,# CASA Function Behavior: 100% Verified Understanding,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CASA_DELAY_CALIBRATION_CRASH_ANALYSIS.md,2025-11-12,# CASA Delay Calibration Crash Analysis,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CASA_COMPLIANCE_VERIFICATION.md,2025-11-12,"# CASA Compliance Verification: MS Generation, Rephasing, and Calibration",archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CASA_BEST_PRACTICES_REVIEW.md,2025-11-12,# CASA Best Practices Review - DSA-110 Continuum Imaging Pipeline,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CASA_BANDPASS_OUTPUT_RESOLVED.md,2025-11-12,# CASA Bandpass Output - Resolved,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CASA_BANDPASS_OUTPUT_MYSTERY.md,2025-11-12,# CASA Bandpass Output Format Mystery,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CASA_BANDPASS_OUTPUT_EXPLANATION.md,2025-11-12,# CASA Bandpass Output Explanation,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CASA_BANDPASS_OUTPUT_DECODED.md,2025-11-12,# CASA Bandpass Output Format - Decoded,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CASA_100_PERCENT_CONFIDENCE_SUMMARY.md,2025-11-12,# CASA Function Understanding: 100% Confidence Achieved,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CALIBRATOR_MS_SERVICE_IMPLEMENTATION.md,2025-11-12,# Calibrator MS Generator Service - Implementation Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CALIBRATOR_MS_ELEGANCE_IMPROVEMENTS.md,2025-11-12,# Further Elegance Improvements for CalibratorMSGenerator,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CALIBRATOR_IDENTIFICATION_VALIDATION.md,2025-11-12,# Calibrator Identification Techniques Validation,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CALIBRATION_VALIDATION_RESULTS.md,2025-11-12,# Calibration Validation Results,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/CALIBRATION_STAGES_PRECONDITION_REVIEW.md,2025-11-12,"# Calibration Stages Precondition Review - ""Measure Twice, Cut Once""",archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MEDIUM_PRIORITY_PRECONDITION_CHECKS_IMPLEMENTATION.md,2025-11-12,# Medium Priority Precondition Checks Implementation,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MEASURE_TWICE_CUT_ONCE_RISK_ANALYSIS.md,2025-11-12,"# ""Measure Twice, Cut Once"" Risk Analysis",archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MANUAL_MODEL_DATA_VERIFICATION.md,2025-11-12,# Manual MODEL_DATA Calculation Verification,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/MANUAL_CALCULATION_CORRECTNESS_ASSESSMENT.md,2025-11-12,# Manual Calculation Correctness Assessment,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/WORKFLOW.md,2025-11-12,# 1. Ingest and Stage,archive,Legacy material already quarantined in archive/.
+archive/legacy/calibration/qa.py.README.md,2025-11-12,# Archived: calibration/qa.py,archive,Legacy material already quarantined in archive/.
+archive/legacy/calibration/imaging.py.README.md,2025-11-12,# Archived: calibration/imaging.py,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/docs/antenna_position_swapping_guide.md,2025-11-12,# Antenna Position Swapping Guide,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/docs/ISRA_2017.md,2025-11-12,\section*{A. Richard Thompson James M. Moran George W. Swenson Jr.},archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/docs/REFERENCE_SCRIPTS_COMPARISON.md,2025-11-12,# Comparison: Our Script vs DSA-110 Reference Scripts,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/docs/FORCE_PHASE_EXPLAINED.md,2025-11-12,# Understanding `force_phase` in pyuvdata.write_ms(),archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/test_data/test_files_summary.md,2025-11-12,# Test MS Files Organization Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/test_data/README.md,2025-11-12,# Test Data Directory,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/manual/dsa110_beam_offaxis_diagnostics.md,2025-11-12,## DSA-110 beam: off-axis diagnostics,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/docs/technical/PYUVDATA_PHASE_CENTER_BUG.md,2025-11-12,# PyUVData Phase Center Bug Analysis,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/docs/organization/README.md,2025-11-12,# Organization Documentation,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/docs/organization/directory_structure.md,2025-11-12,# DSA-110 Pipeline - Directory Organization Guide,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/docs/architecture/README.md,2025-11-12,# Architecture Documentation,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/docs/architecture/phase3_features.md,2025-11-12,cd # DSA-110 Pipeline - Phase 3 Advanced Features,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/docs/services/README.md,2025-11-12,# DSA-110 Pipeline Services,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/docs/development/ms_creation/README.md,2025-11-12,# MS Creation Documentation,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/docs/development/ms_creation/issues_and_fixes.md,2025-11-12,# Unified MS Creation - Issues and Fixes,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/K_CAL_VLBI_VS_CONNECTED_ARRAYS.md,2025-11-12,# K-Calibration: VLBI vs Connected-Element Arrays,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/K_CAL_PERFORMANCE_INVESTIGATION.md,2025-11-12,# K-Calibration Performance Investigation,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/K_CALIBRATION_NEED_REASSESSMENT.md,2025-11-12,# K-Calibration Need Reassessment for DSA-110,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/IS_IT_SAFE_TO_SKIP_REPHASE.md,2025-11-12,# Is It Safe to Use --skip-rephase?,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/INTEGRATION_STATUS.md,2025-11-12,# Integration Status - What's Active vs. What Needs Integration,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/INTEGRATION_COMPLETE.md,2025-11-12,# Integration Complete - Performance Tracking and Enhanced Error Context,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/implementation_summary.md,2025-11-12,# Control Panel Implementation Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/IMPLEMENTATION_SUMMARY.md,2025-11-12,# Comprehensive Implementation Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/IMPLEMENTATION_REVIEW_PRIORITY1.md,2025-11-12,# Implementation Review: Priority 1 Calibration Precondition Checks,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/IMPLEMENTATION_PROOF_STATUS.md,2025-11-12,# Implementation Completeness and Quality Proof - Status Report,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/IMPLEMENTATION_COMPLETENESS_FIX.md,2025-11-12,# Implementation Completeness Fix,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/HOW_TO_REPHASE_TO_MERIDIAN.md,2025-11-12,# How to Rephase MS Back to Meridian,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/HOW_TO_PROVE_COMPLETENESS_AND_QUALITY.md,2025-11-12,# How to Prove Implementation Completeness and Bandpass Quality,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/HOW_TO_GET_ALL_BANDPASS_OUTPUT.md,2025-11-12,# How to Get All Bandpass Channel Output,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/HOW_MANUAL_CALCULATION_INTRODUCES_SKYMODEL.md,2025-11-12,# How Manual Calculation Introduces the Calibrator Skymodel,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FUTURE_IMPROVEMENTS_STATUS.md,2025-11-12,# Future Improvements Implementation Status,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/FUTURE_IMPROVEMENTS_IF_TIME_PERMITTED.md,2025-11-12,# Future Improvements (If Time Wasn't a Constraint),archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PHOTOMETRY_IMPLEMENTATION_SUMMARY_2025_10_24.md,2025-11-12,# Forced Photometry Normalization: Implementation Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PHASING_OPERATIONS_REVIEW.md,2025-11-12,# Phasing Operations Review - DSA-110 Continuum Imaging Pipeline,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PHASING_FIX_VERIFICATION.md,2025-11-12,# MS Phasing Fix Verification,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PHASE_WRAPPING_VERIFICATION.md,2025-11-12,# Phase Wrapping Verification in ft() Test,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PHASE_SCATTER_ROOT_CAUSE_ANALYSIS.md,2025-11-12,# Phase Scatter Root Cause Analysis,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PHASE_SCATTER_INVESTIGATION_RESULTS.md,2025-11-12,# Investigation Results: 100.1° Phase Scatter in Bandpass Calibration,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PHASE_SCATTER_INVESTIGATION_PLAN.md,2025-11-12,# Investigation Plan: 100.1° Phase Scatter in Bandpass Calibration,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PHASE_SCATTER_FINAL_SOLUTION.md,2025-11-12,# Most Efficient Path to Fix 100.1° Phase Scatter - FINAL SOLUTION,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PHASE_SCATTER_FINAL_DIAGNOSIS.md,2025-11-12,# Phase Scatter Final Diagnosis,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PHASE_CENTER_FIX_SOLUTION_PATH.md,2025-11-12,# Most Efficient Path to Fix 100.1° Phase Scatter,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PHASESHIFT_LARGE_SHIFT_LIMITATION.md,2025-11-12,# phaseshift Large Phase Shift Limitation,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PHASE1_EXECUTION_RESULTS_REVISED.md,2025-11-12,# Phase 1 Execution Results: REVISED STRATEGY,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PHASE1_EXECUTION_RESULTS.md,2025-11-12,# Phase 1 Execution Results: Pre-Flight Checks & Data Discovery,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PB_WEIGHTED_MOSAIC_IMPLEMENTATION.md,2025-11-12,# Full Primary Beam-Weighted Mosaic Combination Implementation,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/PB_WEIGHTED_MOSAIC_COMPLETE.md,2025-11-12,# Full Primary Beam-Weighted Mosaic Combination - Implementation Complete,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/OUTRIGGER_REFANT_IMPLEMENTATION.md,2025-11-12,# Outrigger Reference Antenna Selection - Implementation Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/OPTIMIZATION_STRATEGIES.md,2025-11-12,# Mosaicking Pipeline Optimization Strategies,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/OPTIMIZATION_IMPLEMENTATION_SUMMARY.md,2025-11-12,# Optimization and Usability Implementation Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/OPTIMIZATION_IMPLEMENTATION_COMPLETE.md,2025-11-12,# Additional Optimization Implementation Summary,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/OPTIMIZATION_AND_USABILITY_REVIEW.md,2025-11-12,# Optimization and User-Friendliness Review,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/OPEN_QUESTIONS_IMPLEMENTATION_STATUS.md,2025-11-12,# Open Questions - Implementation Status Update,archive,Legacy material already quarantined in archive/.
+archive/legacy/docs/reports/OPEN_QUESTIONS.md,2025-11-12,# Open Questions - Phase Scatter Debugging,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/REORGANIZATION_PLAN.md,2025-11-12,# DSA-110 Pipeline Reorganization Plan,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/README.md,2025-11-12,# DSA-110 Continuum Imaging Pipeline,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/PERFORMANCE_OPTIMIZATION.md,2025-11-12,# MS Conversion Performance Optimization Results,archive,Legacy material already quarantined in archive/.
+archive/legacy/api/README.md,2025-11-12,# Legacy Job Runner Archive,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/sandbox/optimization_analysis.md,2025-11-12,# MS Conversion Speed Optimization Analysis,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/refpipes/LibRA/README.md,2025-11-12,# LibRA,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/refpipes/LibRA/frameworks/README.md,2025-11-12,# Description,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/refpipes/LibRA/doc/AlgoArch/README.md,2025-11-12,# Algorithm Architecture [!UNDER CONSTRUCTION!],archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/refpipes/LibRA/ardg/spack_repo/ardg/README.md,2025-11-12,# ARDG Spack Repository,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/refpipes/LibRA/src/NOT_IN_USE/atnf/rpfits/README.md,2025-11-12,This directory contains a subset of the files that make up the RPFITS,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/refpipes/LibRA/libra-python/README.md,2025-11-12,# LibRA Python Package,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/refpipes/LibRA/scripts/container_recipes/README.md,2025-11-12,[![Podman Image CI](https://github.com/ARDG-NRAO/libra-containers/actions/workflows/docker-img.yml/badge.svg)](https://github.com/ARDG-NRAO/libra-containers/actions/workflows/docker-img.yml),archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/refpipes/ska-ost-low-uv-main/docs/src/uvx.md,2025-11-12,## UVX: A visibility data model with xarray and HDF5,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/refpipes/ska-ost-low-uv-main/docs/src/postx.md,2025-11-12,# `postx`: Post-correlation beamforming utilities,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/refpipes/ska-ost-low-uv-main/docs/src/development.md,2025-11-12,# Development Guide,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/refpipes/ska-ost-low-uv-main/docs/src/conversion.md,2025-11-12,# `aa_uv` command-line utility,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/refpipes/ska-ost-low-uv-main/src/ska_ost_low_uv/tests/test-data/aavs2_2x500ms/README.md,2025-11-12,### AAVS2 2x 500ms integration data,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/refpipes/ska-ost-low-uv-main/src/ska_ost_low_uv/tests/test-data/aavs2_1x1000ms/README.md,2025-11-12,### AAVS2 1s integration data,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/refpipes/ska-ost-low-uv-main/src/ska_ost_low_uv/config/README.md,2025-11-12,## Configuration files for UV Data creation,archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/refpipes/ska-ost-low-uv-main/README.md,2025-11-12,[![readthedocs](https://app.readthedocs.org/projects/ska-ost-low-uv/badge/)](https://ska-ost-low-uv.readthedocs.io/en/latest/index.html),archive,Legacy material already quarantined in archive/.
+archive/legacy/CLOSET_dsa110-contimg/refpipes/ska-ost-low-uv-main/CHANGELOG.md,2025-11-12,# Version History,archive,Legacy material already quarantined in archive/.
+docs/scientific_ui_templates.md,2025-11-10,# Scientific Web UI Templates & Patterns,keep,Default keep until manual review.
+docs/DOCUMENTATION_QUICK_REFERENCE.md,2025-11-09,# Documentation Quick Reference Guide,keep,Default keep until manual review.
+docs/DOCUMENTATION_CONSOLIDATION_STRATEGY.md,2025-11-12,# Documentation Consolidation Strategy,keep,Default keep until manual review.
+docs/DOCUMENTATION_AUDIT_SUMMARY.md,2025-11-12,# Documentation Audit Summary,keep,Default keep until manual review.
+docs/DEVELOPMENT_ROADMAP.md,2025-11-09,# Development Roadmap: Zero-Corner-Cut Setup,keep,Default keep until manual review.
+docs/reference/image_filters_implementation_status.md,2025-11-12,# Image Filters Implementation Status,keep,User-facing documentation section.
+docs/reference/image_filters_backend_implementation.md,2025-11-12,# Image Filters Backend Implementation,keep,User-facing documentation section.
+docs/reference/html_reports_in_pipeline.md,2025-11-12,# HTML Reports Generated in the Pipeline,keep,User-facing documentation section.
+docs/reference/FIRST_DECLINATION_COVERAGE.md,2025-11-10,# FIRST Survey Declination Coverage,keep,User-facing documentation section.
+docs/reference/EXTERNAL_CROSS_MATCHING_TOOLS_SURVEY.md,2025-11-10,# External Cross-Matching Tools Survey,keep,User-facing documentation section.
+docs/reference/env.md,2025-11-09,# Reference: Environment Variables,keep,User-facing documentation section.
+docs/reference/documentation_improvements_summary.md,2025-11-12,# Documentation Improvements Summary,keep,User-facing documentation section.
+docs/reference/docker-client.md,2025-11-12,# Docker Client Reference,keep,User-facing documentation section.
+docs/reference/image_filters_manual_testing_guide.md,2025-11-11,# Image Filters - Manual Testing Quick Guide,keep,User-facing documentation section.
+docs/reference/developer_guide.md,2025-11-09,# Developer Guide for dsa110_contimg,keep,User-facing documentation section.
+docs/reference/database_schema.md,2025-11-09,# DSA-110 Continuum Pipeline: Database Schema,keep,User-facing documentation section.
+docs/reference/image_filters_test_report.md,2025-11-12,# Image Filtering Implementation - Test Results,keep,User-facing documentation section.
+docs/reference/dashboard_pages_and_features.md,2025-11-12,# DSA-110 Dashboard: Pages & Features Reference,keep,User-facing documentation section.
+docs/reference/image_filters_test_results.md,2025-11-12,# Image Filtering Test Results,keep,User-facing documentation section.
+docs/reference/js9_casa_analysis_api.md,2025-11-12,# JS9 CASA Analysis API Reference,keep,User-facing documentation section.
+docs/reference/dashboard_implementation_status.md,2025-11-12,# DSA-110 Dashboard: Implementation Status Summary,keep,User-facing documentation section.
+docs/reference/LINEARMOSAIC_PARAMETERS.md,2025-11-10,# CASA linearmosaic Parameters,keep,User-facing documentation section.
+docs/reference/dashboard_documentation_verification.md,2025-11-12,# Dashboard Documentation Verification Report,keep,User-facing documentation section.
+docs/reference/dashboard_backend_api.md,2025-11-12,# DSA-110 Dashboard: Backend API & Integration,keep,User-facing documentation section.
+docs/reference/CURRENT_CALIBRATION_PROCEDURE.md,2025-11-12,# Current Default Calibration Procedure,keep,User-facing documentation section.
+docs/reference/mcp-tools.md,2025-11-12,# MCP Server Tools Reference,keep,User-facing documentation section.
+docs/reference/CRITICAL_PYTHON_ENVIRONMENT.md,2025-11-09,# CRITICAL: Python Environment Requirements,keep,User-facing documentation section.
+docs/reference/coverage_improvement_plan.md,2025-11-12,# Test Coverage Improvement Plan,keep,User-facing documentation section.
+docs/reference/control-panel-cheatsheet.md,2025-11-06,# Control Panel Quick Reference Card,keep,User-facing documentation section.
+docs/reference/cli.md,2025-11-09,# Reference: CLI,keep,User-facing documentation section.
+docs/reference/CATALOG_USAGE_GUIDE.md,2025-11-10,# Radio Catalog Usage Guide for DSA-110 Pipeline,keep,User-facing documentation section.
+docs/reference/CATALOG_CROSS_MATCHING_GUIDE.md,2025-11-10,# Catalog Cross-Matching Guide for DSA-110,keep,User-facing documentation section.
+docs/reference/CATALOG_DOCUMENTATION_INDEX.md,2025-11-10,# Radio Catalog Documentation Index,keep,User-facing documentation section.
+docs/reference/calibration-overview.md,2025-11-12,# Calibration Reference,keep,User-facing documentation section.
+docs/reference/backend_integration_snippets.md,2025-11-06,# Backend Integration Code Snippets,keep,User-facing documentation section.
+docs/reference/API_TESTING_SUMMARY.md,2025-11-12,# API Testing Results and Issue Analysis Summary,keep,User-facing documentation section.
+docs/reference/API_TEST_COMMANDS.md,2025-11-12,# API Test Commands - Quick Reference,keep,User-facing documentation section.
+docs/reference/API_TESTING_COMPLETE.md,2025-11-12,# API Testing - Complete Summary,keep,User-facing documentation section.
+docs/reference/api_reference.md,2025-11-12,# Pipeline API Reference,keep,User-facing documentation section.
+docs/reference/api_reference_generated.md,2025-11-12,# Pipeline API Reference,keep,User-facing documentation section.
+docs/reference/api-endpoints.md,2025-11-06,# Reference: API,keep,User-facing documentation section.
+docs/reference/EXISTING_CROSS_MATCHING_TOOLS.md,2025-11-10,# Existing Cross-Matching Tools in DSA-110 Pipeline,keep,User-facing documentation section.
+docs/reports/PROJECT_REVIEW_2025-01.md,2025-11-12,# DSA-110 Continuum Imaging Pipeline - Project Review,archive,Status/analysis docs better suited for internal archive.
+docs/reports/GITHUB_ACTIONS_FIX_2025-11-09.md,2025-11-09,# GitHub Actions Test Failures - Resolution Summary,archive,Status/analysis docs better suited for internal archive.
+docs/reports/production_readiness_plan_2025-11-11.md,2025-11-11,# Production Readiness Plan - DSA-110 Continuum Imaging Pipeline,archive,Status/analysis docs better suited for internal archive.
+docs/reports/POINTING_VISUALIZATION_TEST.md,2025-11-09,# Pointing Visualization Testing Report,archive,Status/analysis docs better suited for internal archive.
+docs/reports/POINTING_MONITOR_DEPLOYMENT_TEST.md,2025-11-09,# Pointing Monitor Deployment Test Report,archive,Status/analysis docs better suited for internal archive.
+docs/reports/POINTING_MONITORING_REVIEW.md,2025-11-12,# Pointing Monitoring Review - DSA-110 Continuum Imaging Pipeline,archive,Status/analysis docs better suited for internal archive.
+docs/reports/PHASE3_CONSOLIDATION_COMPLETE.md,2025-11-12,# Phase 3 Consolidation - Complete,archive,Status/analysis docs better suited for internal archive.
+docs/reports/PHASE3_CONSOLIDATION_PROPOSAL.md,2025-11-12,# Phase 3 Consolidation Proposal,archive,Status/analysis docs better suited for internal archive.
+docs/reports/PIPELINE_DOCUMENTATION_REVIEW_2025-01.md,2025-11-12,# Pipeline Documentation Review,archive,Status/analysis docs better suited for internal archive.
+docs/reports/PHASE2_CONSOLIDATION_COMPLETE.md,2025-11-12,# Phase 2 Consolidation - Complete,archive,Status/analysis docs better suited for internal archive.
+docs/reports/PHASE1_CONSOLIDATION_COMPLETE.md,2025-11-12,# Phase 1 Consolidation - Complete,archive,Status/analysis docs better suited for internal archive.
+docs/reports/NEXT_STEPS_STATUS.md,2025-11-12,# Next Steps Status Report,archive,Status/analysis docs better suited for internal archive.
+docs/reports/NEXT_STEPS_COMPLETE.md,2025-11-12,# Next Steps Completion Report,archive,Status/analysis docs better suited for internal archive.
+docs/reports/MKDOCS_CONSOLIDATION_PROPOSAL.md,2025-11-12,# MkDocs Navigation Consolidation Proposal,archive,Status/analysis docs better suited for internal archive.
+docs/reports/MERMAID_IMPROVEMENTS_COMPLETE.md,2025-11-12,# Mermaid Diagrams Visual Improvements - Complete,archive,Status/analysis docs better suited for internal archive.
+docs/reports/MKDOCS_REVIEW_2025-01.md,2025-11-12,# MkDocs Documentation Review,archive,Status/analysis docs better suited for internal archive.
+docs/reports/MEDIUM_PRIORITY_FIXES_SUMMARY.md,2025-11-12,# Medium Priority Fixes Applied,archive,Status/analysis docs better suited for internal archive.
+docs/reports/MERMAID_DIAGRAMS_EVALUATION.md,2025-11-12,# Mermaid Diagrams Evaluation,archive,Status/analysis docs better suited for internal archive.
+docs/reports/IMMEDIATE_ACTION_PLAN.md,2025-11-12,# Immediate Action Plan - Workflow Status Verification,archive,Status/analysis docs better suited for internal archive.
+docs/reports/ISSUES_AUDIT_FINAL_2025-01.md,2025-11-12,# Complete Issues Audit - Final Assessment,archive,Status/analysis docs better suited for internal archive.
+docs/reports/GITHUB_PAGES_SETUP.md,2025-11-12,# GitHub Pages Setup Complete,archive,Status/analysis docs better suited for internal archive.
+docs/reports/WORK_SUMMARY_2025-01.md,2025-11-12,# Work Summary - January 2025,archive,Status/analysis docs better suited for internal archive.
+docs/reports/UNIT_TEST_SUMMARY_2025-01.md,2025-11-12,# Unit Test Summary - Code Quality Improvements,archive,Status/analysis docs better suited for internal archive.
+docs/reports/WORKFLOW_FAILURES_ANALYSIS.md,2025-11-12,# GitHub Actions Workflow Failures Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/reports/WORKFLOW_FIXES_APPLIED.md,2025-11-12,# Workflow Fixes Applied,archive,Status/analysis docs better suited for internal archive.
+docs/reports/streaming_test_run_review_2025-11-10.md,2025-11-10,"# Streaming Test Run Review - November 10, 2025",archive,Status/analysis docs better suited for internal archive.
+docs/reports/safeguards_implemented_2025-11-10.md,2025-11-10,# Safeguards Implemented - Streaming Test Run Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/reports/FIXES_APPLIED_SUMMARY.md,2025-11-12,# Security and Reliability Fixes Applied,archive,Status/analysis docs better suited for internal archive.
+docs/reports/REASSESSED_ISSUES_PRIORITY.md,2025-11-12,# Reassessed Issues Priority Report,archive,Status/analysis docs better suited for internal archive.
+docs/reports/enhancements_implemented_2025-11-11.md,2025-11-10,# Production Enhancements Implemented - 2025-11-11,archive,Status/analysis docs better suited for internal archive.
+docs/reports/DEEP_DIVE_ISSUES_REPORT.md,2025-11-12,# Deep Dive Issues Report - DSA-110 Continuum Imaging Pipeline,archive,Status/analysis docs better suited for internal archive.
+docs/reports/CODE_QUALITY_WORK_COMPLETED.md,2025-11-12,# Code Quality Improvements - Work Completed,archive,Status/analysis docs better suited for internal archive.
+docs/reports/CODE_QUALITY_PROGRESS_REPORT.md,2025-11-12,# Code Quality Improvements - Progress Report,archive,Status/analysis docs better suited for internal archive.
+docs/reports/CODE_QUALITY_LOW_PRIORITY_COMPLETED.md,2025-11-12,# Code Quality Improvements - Low Priority Work Completed,archive,Status/analysis docs better suited for internal archive.
+docs/reports/COMPLETION_SUMMARY.md,2025-11-12,# Completion Summary - All Issues Addressed,archive,Status/analysis docs better suited for internal archive.
+docs/reports/CODE_QUALITY_IMPROVEMENTS_GUIDE.md,2025-11-12,# Code Quality Improvements Guide,archive,Status/analysis docs better suited for internal archive.
+docs/reports/CODE_QUALITY_IMPROVEMENTS_2025-01.md,2025-11-12,# Code Quality Improvements - January 2025,archive,Status/analysis docs better suited for internal archive.
+docs/reports/CODE_QUALITY_FINAL_SUMMARY.md,2025-11-12,# Code Quality Improvements - Final Summary,archive,Status/analysis docs better suited for internal archive.
+docs/reports/CODE_QUALITY_COMPLETION_SUMMARY.md,2025-11-12,# Code Quality Improvements - Completion Summary,archive,Status/analysis docs better suited for internal archive.
+docs/reports/CASA_MPI_EVALUATION.md,2025-11-12,# CASA-mpi Evaluation for DSA-110 Continuum Imaging Pipeline,archive,Status/analysis docs better suited for internal archive.
+docs/reports/additional_safeguards_needed_2025-11-10.md,2025-11-10,# Additional Safeguards Needed - Streaming Test Run Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/dashboard_ui_recommendations.md,2025-11-10,# Dashboard UI Development Recommendations,keep,Default keep until manual review.
+docs/dashboard_integration_plan.md,2025-11-10,# Dashboard Integration Plan - QA Visualization Features,keep,Default keep until manual review.
+docs/DASHBOARD_FRONTEND_CONSOLIDATED_OUTLINE.md,2025-11-12,# DSA-110 Dashboard & Frontend: Consolidated Documentation Outline,keep,Default keep until manual review.
+docs/DASHBOARD_DOCUMENTATION_MASTER_INDEX.md,2025-11-12,# DSA-110 Dashboard Documentation: Master Index,keep,Default keep until manual review.
+docs/reference/VAST_PIPELINE_CROSS_MATCHING_INTEGRATION.md,2025-11-10,# VAST Pipeline Cross-Matching Integration Guide,keep,User-facing documentation section.
+docs/reference/validation_api.md,2025-11-12,# Validation API Reference,keep,User-facing documentation section.
+docs/reference/TEST_EXECUTION_REPORT.md,2025-11-12,# Test Execution Report,keep,User-facing documentation section.
+docs/reference/test_coverage_analysis.md,2025-11-12,# Test Coverage Analysis,keep,User-facing documentation section.
+docs/reference/streaming-api.md,2025-11-09,# Streaming Service API Reference,keep,User-facing documentation section.
+docs/reference/README.md,2025-11-12,# Reference Documentation,keep,User-facing documentation section.
+docs/reference/RADIO_SURVEY_CATALOG_COMPARISON.md,2025-11-10,"# Radio Survey Catalog Comparison: NVSS, FIRST, and RACS",keep,User-facing documentation section.
+archive/legacy/CLOSET_dsa110-contimg/refpipes/ska-ost-low-uv-main/scripts/uv-config-from-mccs-yaml/README.md,2025-11-12,# UV-config-from-tmdata,archive,Legacy material already quarantined in archive/.
+docs/configuration.md,2025-11-12,# Configuration Reference,keep,Default keep until manual review.
+docs/CASA6_ENVIRONMENT_GUIDE.md,2025-11-09,# casa6 Conda Environment Guide,keep,Default keep until manual review.
+docs/AGENT_SAFEGUARDS_COMPLETE.md,2025-11-12,# Documentation Consolidation - Documentation Safeguards Complete,keep,Default keep until manual review.
+docs/AGENT_INFORMATION_RELIABILITY.md,2025-11-12,# Most Reliable Way to Get Critical Information to AI Agents,keep,Default keep until manual review.
+docs/development/ENVIRONMENT_ANALYSIS_REPORT.md,2025-11-12,# Development Environment Analysis Report,archive,Status/analysis docs better suited for internal archive.
+docs/development/DEVELOPMENT_SETUP.md,2025-11-12,# DSA-110 Dashboard Development Setup,archive,Status/analysis docs better suited for internal archive.
+docker/cubical_experimental/VERIFICATION.md,2025-11-06,# Final Verification Report,keep,Code-adjacent documentation supporting module owners.
+docker/cubical_experimental/VALIDATION_REPORT.md,2025-11-06,# Docker Build & Validation Report,keep,Code-adjacent documentation supporting module owners.
+docker/cubical_experimental/TODO.md,2025-11-07,# Remaining Tasks,keep,Code-adjacent documentation supporting module owners.
+docker/cubical_experimental/README.md,2025-11-06,# CubiCal Docker Environment,keep,Code-adjacent documentation supporting module owners.
+docker/cubical_experimental/QUICKSTART.md,2025-11-06,# CubiCal Docker - Quick Start,keep,Code-adjacent documentation supporting module owners.
+docker/cubical_experimental/QUARTICAL_TEST_STATUS.md,2025-11-07,# QuartiCal Testing Status,keep,Code-adjacent documentation supporting module owners.
+docker/cubical_experimental/QUARTICAL_SUCCESS.md,2025-11-07,# QuartiCal Installation - SUCCESS ✅,keep,Code-adjacent documentation supporting module owners.
+docker/cubical_experimental/QUARTICAL_SETUP.md,2025-11-07,# QuartiCal Setup,keep,Code-adjacent documentation supporting module owners.
+docker/cubical_experimental/QUARTICAL_INSTALLED.md,2025-11-07,# QuartiCal Installation - SUCCESS,keep,Code-adjacent documentation supporting module owners.
+docker/cubical_experimental/PYTHON_VERSION_NOTES.md,2025-11-07,# Python Version Configuration,keep,Code-adjacent documentation supporting module owners.
+docker/cubical_experimental/PROGRESS_SUMMARY.md,2025-11-07,# Progress Summary,keep,Code-adjacent documentation supporting module owners.
+docker/cubical_experimental/INSTALLATION_ISSUES.md,2025-11-07,# CubiCal Installation Issues,keep,Code-adjacent documentation supporting module owners.
+docker/cubical_experimental/FINAL_STATUS.md,2025-11-07,# Final Status Report,keep,Code-adjacent documentation supporting module owners.
+docker/cubical_experimental/CURRENT_STATUS.md,2025-11-07,# Current Status Summary,keep,Code-adjacent documentation supporting module owners.
+docker/cubical_experimental/CUBICAL_INSTALLATION_BLOCKER.md,2025-11-07,# CubiCal Installation Blocker,keep,Code-adjacent documentation supporting module owners.
+docker/cubical_experimental/CLEANUP_STATUS.md,2025-11-06,# Cleanup Status,keep,Code-adjacent documentation supporting module owners.
+docker/cubical_experimental/CASA_CALIBRATION_STATUS.md,2025-11-07,# CASA Calibration Status,keep,Code-adjacent documentation supporting module owners.
+docker/cubical_experimental/BUILD_STATUS.md,2025-11-06,# Docker Build Status,keep,Code-adjacent documentation supporting module owners.
+README-AUTO-ERROR-DETECTION.md,untracked,# Auto Error Detection,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+README-AGENTIC-SESSIONS.md,untracked,# Agentic Session Setup - Error Detection,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+QUALITY_PRINCIPLES.md,untracked,# Quality Principles - Error Detection Framework,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+docs/dev/VERIFICATION_COMPLETE.md,2025-11-12,# Test Fix Verification - Status Report,archive,Status/analysis docs better suited for internal archive.
+docs/dev/VAST_VISUALIZATION_FEATURES_MISSING.md,2025-11-10,# VAST Tools Visualization Features Not Yet Adopted,archive,Status/analysis docs better suited for internal archive.
+docs/dev/VAST_VISUALIZATION_FEATURES_IMPLEMENTED.md,2025-11-10,# VAST Tools Visualization Features - Implementation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/VAST_LIKE_MOSAICKING_IMPLEMENTATION.md,2025-11-12,# VAST-Like Mosaicking Implementation,archive,Status/analysis docs better suited for internal archive.
+docs/dev/VAST_IMREGRID_ANALYSIS.md,2025-11-09,# VAST Use of imregrid - Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/dev/UNIT_TESTS_SYNTHETIC_DATA_SUMMARY.md,untracked,# Unit Test Suite for Synthetic Data Generation - Implementation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_verification_status.md,2025-11-12,# Test Verification Status,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_verification_results.md,2025-11-12,# Test Verification Results,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_verification_plan.md,2025-11-12,# Test Verification Plan,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_status_summary.md,2025-11-12,# Test Status Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_optimization_summary.md,2025-11-11,# Test Optimization Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_optimization_strategies.md,2025-11-11,# Test Optimization Strategies,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_optimization_implementation.md,2025-11-11,# Test Optimization Implementation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_investigation_complete.md,2025-11-12,# Test Investigation Complete,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_fixes_summary.md,2025-11-12,# Test Fixes Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_fixes_final_summary.md,2025-11-12,# Test Fixes - Final Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_fixes_complete.md,2025-11-12,# Test Fixes Complete - All Skipped Steps Resolved,archive,Status/analysis docs better suited for internal archive.
+docs/dev/TEST_FIXES_COMPLETE.md,2025-11-12,# Test Fixes Complete - Final Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_fixes_applied.md,2025-11-12,# Test Fixes Applied,archive,Status/analysis docs better suited for internal archive.
+docs/dev/MOSAIC_PB_CORRECTION_FIX.md,2025-11-10,# Mosaic Primary Beam Correction Fix,archive,Status/analysis docs better suited for internal archive.
+docs/dev/MAINTENANCE_COMPLETE.md,untracked,# Maintenance Complete: Output Suppression Prevention System,archive,Status/analysis docs better suited for internal archive.
+docs/dev/LINMOS_LINEARMOSAIC_ANALYSIS.md,2025-11-09,# linmos vs linearmosaic Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/reference/optimizations/PROFILING_GUIDE.md,2025-11-06,# Profiling Guide for Performance Optimization,keep,User-facing documentation section.
+docs/dev/LINEMOSAIC_TESTING.md,2025-11-09,# linearmosaic Implementation Testing,archive,Status/analysis docs better suited for internal archive.
+docs/reference/optimizations/OPTIMIZATION_API.md,2025-11-06,# Optimization API Documentation,keep,User-facing documentation section.
+docs/dev/LINEMOSAIC_IMPLEMENTATION.md,2025-11-09,# linearmosaic Implementation - Primary Mosaicking Method,archive,Status/analysis docs better suited for internal archive.
+docs/dev/integration_examples.md,untracked,# Integration Examples: Cost-Free Improvements,archive,Status/analysis docs better suited for internal archive.
+docs/dev/INCOMPLETE_IMPLEMENTATIONS.md,2025-11-10,# Incomplete Implementations Status,archive,Status/analysis docs better suited for internal archive.
+docs/dev/IMREGRID_FUNDAMENTAL_FIX.md,2025-11-09,# Fundamental Fix for imregrid RuntimeError,archive,Status/analysis docs better suited for internal archive.
+docs/dev/IMREGRID_ERRORS_ANALYSIS.md,2025-11-09,# imregrid Error Analysis and Fixes,archive,Status/analysis docs better suited for internal archive.
+docs/dev/implementation_summary.md,untracked,# Implementation Summary: Cost-Free Critical Improvements,archive,Status/analysis docs better suited for internal archive.
+docs/dev/implementation_plan.md,untracked,# Implementation Plan: Cost-Free Critical Improvements,archive,Status/analysis docs better suited for internal archive.
+docs/dev/IMPLEMENTATION_COMPLETE.md,untracked,# ✅ Implementation Complete: Cost-Free Critical Improvements,archive,Status/analysis docs better suited for internal archive.
+docs/dev/IMCOMBINE_INVESTIGATION.md,2025-11-09,# imcombine Investigation - CASA Version History,archive,Status/analysis docs better suited for internal archive.
+docs/dev/GETTING_TO_7_OF_7_PREVENTED.md,untracked,# Getting to 7/7 Issues Completely Prevented,archive,Status/analysis docs better suited for internal archive.
+docs/dev/FULL_IMPLEMENTATION_COMPLETE.md,untracked,# Full Implementation Complete: 7/7 Issues 100% Prevented,archive,Status/analysis docs better suited for internal archive.
+docs/dev/frontend_verification_summary.md,untracked,# Frontend API Integration Verification Summary,archive,Status/analysis docs better suited for internal archive.
+docs/contributing/index.md,2025-11-09,# Contributing: Internal Decision Capture,keep,Default keep until manual review.
+docs/dev/FITS_TO_PNG_OPTIMIZATION.md,2025-11-10,# FITS-to-PNG Conversion Optimization,archive,Status/analysis docs better suited for internal archive.
+docs/dev/FIRST_RAX_CATALOG_CONVERSION.md,2025-11-10,# FIRST and RAX Catalog SQLite Conversion,archive,Status/analysis docs better suited for internal archive.
+docs/concepts/mcp_browser_server_setup.md,2025-11-12,# Browser MCP Server Setup and Troubleshooting,keep,User-facing documentation section.
+docs/concepts/pipeline_overview.md,2025-11-12,# Pipeline Visuals,keep,User-facing documentation section.
+docs/concepts/performance_considerations.md,2025-11-12,# Performance Considerations for Pipeline Stages,keep,User-facing documentation section.
+docs/concepts/modules.md,2025-11-09,# Module Interconnections,keep,User-facing documentation section.
+docs/concepts/index.md,2025-11-06,# Concepts,keep,User-facing documentation section.
+docs/concepts/frontend_design.md,2025-10-29,# DSA-110 Continuum Imaging Pipeline: Front-End Design Strategy,keep,User-facing documentation section.
+docs/concepts/pipeline_patterns.md,2025-11-12,# Pipeline Stage Patterns and Anti-Patterns,keep,User-facing documentation section.
+docs/concepts/ese_detection_architecture.md,untracked,# ESE Detection Architecture,keep,User-facing documentation section.
+docs/concepts/environment_dependency_enforcement.md,2025-11-12,# Environment Dependency Enforcement Framework,keep,User-facing documentation section.
+docs/concepts/DIRECTORY_ARCHITECTURE.md,2025-11-10,# DSA-110 Directory Architecture,keep,User-facing documentation section.
+docs/concepts/DIAGRAM_REVIEW_FINDINGS.md,2025-11-09,# Mermaid Diagram Workflow Review Findings,keep,User-facing documentation section.
+docs/concepts/pipeline_production_features.md,2025-11-12,# Pipeline Production Features,keep,User-facing documentation section.
+docs/concepts/dashboard_vision_and_design.md,2025-11-12,"# DSA-110 Dashboard: Vision, Philosophy & Design Principles",keep,User-facing documentation section.
+docs/concepts/dashboard_state_management.md,2025-11-12,# DSA-110 Dashboard: State Management & Real-Time Updates,keep,User-facing documentation section.
+docs/concepts/pipeline_stage_architecture.md,2025-11-12,# Pipeline Stage Architecture,keep,User-facing documentation section.
+docs/concepts/dashboard_mockups.md,2025-10-29,# DSA-110 Dashboard UI Mockups,keep,User-facing documentation section.
+docs/concepts/dashboard_future_roadmap.md,2025-11-12,# DSA-110 Dashboard: Future Enhancements & Roadmap,keep,User-facing documentation section.
+docs/dev/VISUALIZATION_METHODS_COMPARISON.md,2025-11-10,# Visualization Methods Comparison: VAST Tools vs DSA-110,archive,Status/analysis docs better suited for internal archive.
+docs/dev/WARNINGS_CHECKIN.md,2025-11-09,# Warnings and Errors Check-in,archive,Status/analysis docs better suited for internal archive.
+docs/dev/WARNINGS_STATUS.md,2025-11-09,# Warnings Encountered During Testing - Status,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/ANALYSIS_WORKSPACE_TOOLS.md,2025-11-12,# Analysis Workspace: Complementary Tools & Libraries,archive,Status/analysis docs better suited for internal archive.
+docs/dev/web_interface_analysis.md,untracked,# Web Interface Analysis: Observability Modules,archive,Status/analysis docs better suited for internal archive.
+docs/dev/workflow_navigation_implementation.md,untracked,# Workflow-Optimized Navigation Implementation,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/API_ENDPOINTS_IMPLEMENTED.md,2025-11-10,# API Endpoints Implementation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/csv_fallback_disabled.md,untracked,# CSV Fallback Disabled - SQLite Required,archive,Status/analysis docs better suited for internal archive.
+docs/dev/EXTERNAL_CATALOG_AND_ESE_INTEGRATION_COMPLETE.md,2025-11-10,# External Catalog Module and ESE Integration - Complete,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/calibrator-detection-investigation.md,2025-11-09,# Calibrator Detection Investigation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase2_implementation_summary.md,untracked,# Phase 2 Implementation Summary: Pipeline Stage Monitoring Dashboard,archive,Status/analysis docs better suited for internal archive.
+docs/dev/RAX_RACS_NAMING_CLARIFICATION.md,2025-11-10,# RAX vs RACS Naming Clarification,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_failure_tracking.md,2025-11-12,# Test Failure Tracking,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/CARTA_PHASE2_TODO.md,2025-11-09,# CARTA Integration - Phase 2 TODO (Working Document),archive,Status/analysis docs better suited for internal archive.
+docs/analysis/COMMAND_LINE_TEST_RESULTS.md,2025-11-10,# Command Line Testing Results,archive,Status/analysis docs better suited for internal archive.
+docs/concepts/streaming-architecture.md,2025-11-07,# Streaming Service Architecture,keep,User-facing documentation section.
+docs/analysis/CORE_VALIDATION_PLAN.md,2025-11-11,# Core Functionality Validation Plan,archive,Status/analysis docs better suited for internal archive.
+docs/dev/catalog_tests_update.md,untracked,# Catalog Query Tests Update,archive,Status/analysis docs better suited for internal archive.
+docs/dev/catalog_tests_summary.md,untracked,# Catalog Query Tests - Summary,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/CRITICAL_MOSAIC_REGRIDDING_ISSUE.md,2025-11-09,# Critical Mosaic Regridding Issue,archive,Status/analysis docs better suited for internal archive.
+docs/concepts/STREAMING_MOSAIC_WORKFLOW.md,2025-11-09,# Streaming Mosaic Generation Workflow,keep,User-facing documentation section.
+docs/dev/catalog_query_implementation_complete.md,untracked,# Catalog Query Implementation - Complete,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/DASHBOARD_FRONTEND_DOCUMENTATION_INDEX_COMPLETE.md,2025-11-12,# Complete Dashboard & Frontend Documentation Index,archive,Status/analysis docs better suited for internal archive.
+docs/dev/CROSS_MATCHING_DUPLICATE_HANDLING.md,2025-11-10,# Cross-Matching Duplicate Handling Implementation,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/DASHBOARD_OVERVIEW_DETAILED.md,2025-11-12,# DSA-110 Continuum Imaging Pipeline - Comprehensive Dashboard Overview,archive,Status/analysis docs better suited for internal archive.
+docs/dev/CROSS_MATCHING_IMPLEMENTATION.md,2025-11-10,# Cross-Matching Implementation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/concepts/TEST_ORGANIZATION_ENFORCEMENT.md,untracked,# Test Organization Enforcement System,keep,User-facing documentation section.
+docs/dev/CROSS_MATCHING_INTEGRATION_COMPLETE.md,2025-11-10,# Cross-Matching Integration Complete,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/DASHBOARD_REVIEW.md,2025-11-12,# DSA-110 Pipeline Dashboard - Comprehensive Review,archive,Status/analysis docs better suited for internal archive.
+docs/dev/CROSS_MATCHING_NEXT_STEPS_COMPLETE.md,2025-11-10,# Cross-Matching Next Steps - Implementation Complete,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/DASHBOARD_OVERVIEW.md,2025-11-12,# DSA-110 Continuum Imaging Pipeline - Dashboard Overview,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/DEEP_STUDY_COMPREHENSIVE.md,2025-11-12,# DSA-110 Continuum Imaging Pipeline - Comprehensive Deep Study,archive,Status/analysis docs better suited for internal archive.
+docs/dev/NEXT_STEPS_TEST_VERIFICATION.md,2025-11-12,# Next Steps: Test Verification,archive,Status/analysis docs better suited for internal archive.
+docs/dev/CROSS_MATCHING_TESTS_SUMMARY.md,2025-11-10,# Cross-Matching Unit Tests Summary,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/DEEP_STUDY_2025_01_XX.md,2025-11-12,# DSA-110 Continuum Imaging Pipeline - Deep Study Summary,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/DASHBOARD_TEMPLATE_RECOMMENDATIONS.md,2025-11-12,# Dashboard Template Recommendations for DSA-110 Pipeline,archive,Status/analysis docs better suited for internal archive.
+docs/dev/CROSS_MATCHING_STREAMING_INTEGRATION.md,2025-11-10,# Cross-Matching Integration in Streaming Mode,archive,Status/analysis docs better suited for internal archive.
+docs/dev/CROSSMATCH_STAGE_FULLY_TESTABLE_SOLUTION.md,untracked,# CrossMatchStage Fully Testable Solution,archive,Status/analysis docs better suited for internal archive.
+docs/dev/CRITICAL_REVIEW_SYNTHETIC_DATA_RADIO_ASTRONOMY.md,untracked,# Critical Review: Synthetic Data Generation from Radio Astronomy Perspective,archive,Status/analysis docs better suited for internal archive.
+docs/concepts/TEST_ORGANIZATION.md,untracked,# Test Organization Strategy,keep,User-facing documentation section.
+docs/analysis/DASHBOARD_FRONTEND_DOCUMENTATION_INDEX.md,2025-11-12,# Dashboard & Frontend Documentation Index,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/DEEP_STUDY_SUMMARY.md,2025-11-12,# Deep Study Summary: DSA-110 Continuum Imaging Pipeline,archive,Status/analysis docs better suited for internal archive.
+docs/dev/nvss_query_optimization.md,untracked,# NVSS Catalog Query Performance Optimization,archive,Status/analysis docs better suited for internal archive.
+docs/dev/OPTIMIZATION_COMPLETE.md,2025-11-11,# Test Optimization Implementation - Complete,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/docker-networking-fix.md,2025-11-09,# Docker Networking Fix - Complete ✅,archive,Status/analysis docs better suited for internal archive.
+docs/dev/OUTPUT_SUPPRESSION_EXCEPTIONS.md,untracked,# Output Suppression Exceptions,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/documentation-improvement-plan.md,2025-11-07,# Documentation Improvement Plan,archive,Status/analysis docs better suited for internal archive.
+docs/dev/OUTPUT_SUPPRESSION_TO_100_PERCENT.md,untracked,# Getting Output Suppression to 100% Prevention,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/rephase_concat_analysis.md,2025-11-06,# Rephasing + Concatenation Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase1_browser_testing_complete.md,untracked,# Phase 1 Browser Testing - Complete ✅,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/rephase_concat_recommendation.md,2025-11-06,# Rephasing + Concatenation: Recommendation,archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase1_completion_summary.md,untracked,# Phase 1 Implementation - Complete Summary,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/RUNTIME_TESTING_RESULTS.md,2025-11-10,# Runtime Testing Results,archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase1_next_steps_detailed.md,untracked,# Phase 1 Next Steps - Detailed Guide,archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase1_programmatic_verification.md,untracked,# Phase 1 Programmatic Verification Summary,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/streaming-docs-assessment.md,2025-11-07,# Streaming Documentation Assessment,archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase1_test_checklist.md,untracked,# Phase 1 Testing Checklist,archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase1_test_results.md,untracked,# Phase 1 Testing Results,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/SYNTHETIC_DATA_CONFIDENCE_ASSESSMENT.md,untracked,# Synthetic Data Generation/Analysis/Testing Suite: Confidence Assessment,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/STRUCTURE_DOCUMENTATION_ORGANIZATION_STUDY.md,2025-11-10,"# Deep Study: Structure, Documentation, and Organizational Layout",archive,Status/analysis docs better suited for internal archive.
+docs/analysis/RUNTIME_TESTING_SUMMARY.md,2025-11-10,# Runtime Testing Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase1_implementation_status.md,untracked,# Phase 1 Implementation Status,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/RESIDUAL_VISUALIZATION_DEFERRED.md,2025-11-09,# Residual Visualization - Deferred Decision,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/SYNTHETIC_DATA_PIPELINE_STAGE_COVERAGE.md,untracked,# Synthetic Data Pipeline Stage Coverage Assessment,archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase2_testing_summary.md,untracked,# Phase 2 Testing Summary: Pipeline Stage Monitoring Dashboard,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/SYNTHETIC_DATA_REPRESENTATIVENESS.md,untracked,"# Synthetic Data Representativeness: Can We Trust ""Works on Synthetic = Works on Real""?",archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase3_backend_complete.md,untracked,# Phase 3 Backend Implementation Complete,archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase3_complete.md,untracked,# Phase 3 Implementation Complete,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/testing_results.md,2025-11-11,# Testing Results Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase3_frontend_complete.md,untracked,# Phase 3 Frontend Implementation Complete,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/TIMEOUT_STRATEGY_IMPLEMENTATION.md,2025-11-09,# Timeout Strategy Implementation,archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase2_implementation_plan.md,untracked,# Phase 2: Pipeline Stage Monitoring Dashboard,archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase1_browser_testing_summary.md,untracked,# Phase 1 Browser Testing Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase1_backend_testing_complete.md,untracked,# Phase 1 Backend API Testing - Complete,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/TESTING_COMPLETE.md,2025-11-10,# Testing Complete ✅,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/UNANTICIPATED_ISSUES.md,2025-11-12,# Unanticipated Issues: Trial and Error Discoveries,archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase3_implementation_plan.md,untracked,# Phase 3: Advanced Monitoring Implementation Plan,archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase3_testing_summary.md,untracked,# Phase 3 Testing Summary,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/FINAL_TESTING_SUMMARY.md,2025-11-06,# Final Testing Summary: pyradiosky + DP3 Integration,archive,Status/analysis docs better suited for internal archive.
+docs/dev/phase3_ui_testing_complete.md,untracked,# Phase 3 UI Testing Complete,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/FINAL_TEST_RESULTS.md,2025-11-10,# Final Command Line Test Results,archive,Status/analysis docs better suited for internal archive.
+docs/dev/PYTEST_REDIRECTION_FIX.md,untracked,# Pytest Redirection Error Fix,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/FINAL_RECOMMENDATION.md,2025-11-06,# Final Recommendation: pyradiosky Integration,archive,Status/analysis docs better suited for internal archive.
+docs/dev/PYTHON_WARNING_SUPPRESSION_SETUP.md,2025-11-09,# Python Warning Suppression Setup,archive,Status/analysis docs better suited for internal archive.
+docs/dev/qa_fast_validation_implementation.md,2025-11-12,# Fast Validation Implementation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/qa_phase4_status.md,2025-11-12,# QA System Phase 4: Integration and Testing Status,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/FORCED_PHOTOMETRY_TESTS.md,2025-11-10,# Forced Photometry Unit Tests,archive,Status/analysis docs better suited for internal archive.
+docs/dev/qa_refactoring_plan.md,2025-11-12,# QA System Refactoring Plan - Phase 3,archive,Status/analysis docs better suited for internal archive.
+docs/dev/qa_refactoring_progress.md,2025-11-12,# QA System Refactoring Progress,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/FORCED_PHOTOMETRY_ENHANCEMENTS.md,2025-11-10,# Forced Photometry Enhancements - Implementation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/FIXES_VERIFICATION_REPORT.md,2025-11-12,# Mosaic Fixes Verification Report,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/unanticipated_issues_verification.md,2025-11-12,# Unanticipated Issues: Code Verification and Documentation Status,archive,Status/analysis docs better suited for internal archive.
+docs/dev/CONDA_ENVIRONMENT_WARNINGS.md,2025-11-09,# Conda Environment Warning Suppression,archive,Status/analysis docs better suited for internal archive.
+docs/examples/real_world_examples.md,2025-11-12,# Real-World Pipeline Examples,keep,User-facing documentation section.
+docs/analysis/DASHBOARD_DESIGN_IMPROVEMENTS.md,untracked,# Dashboard Web Design Improvements,archive,Status/analysis docs better suited for internal archive.
+docs/concepts/streaming_vs_orchestrator.md,untracked,# Distinction: Streaming Converter vs Mosaic Orchestrator,keep,User-facing documentation section.
+docs/analysis/IMPLEMENTATION_PHASE2.md,untracked,# Implementation Phase 2 - Visual Improvements & UX Enhancements,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/IMPLEMENTATION_PHASE10.md,untracked,"# Implementation Phase 10 - Final Polish: Collapsible Sections, Typography Cleanup, Table Enhancements",archive,Status/analysis docs better suited for internal archive.
+docs/dev/ci_cd_e2e_integration.md,2025-11-11,# CI/CD E2E Test Integration,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/IMPLEMENTATION_PHASE3.md,untracked,"# Implementation Phase 3 - Typography, Tables, and Component Enhancements",archive,Status/analysis docs better suited for internal archive.
+docs/dev/qa_system_implementation_complete.md,2025-11-12,# QA System Implementation - Complete Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/qa_system_implementation_plan.md,2025-11-12,# QA System Implementation Plan,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/CURSOR_CHAT_DEVELOPMENT_HISTORY.md,2025-11-12,# Development History: Cursor Chat Exports Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/CRITICAL_REVIEW_SYNTHETIC_DATA.md,untracked,# Critical Review: Synthetic Data Generation and Use Capabilities,archive,Status/analysis docs better suited for internal archive.
+docs/dev/qa_system_implementation_status.md,2025-11-12,# QA System Implementation Status,archive,Status/analysis docs better suited for internal archive.
+docs/dev/catalog_migration_to_sqlite.md,untracked,# Catalog Migration to SQLite-First Architecture,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/CARTA_PHASE1_TODO.md,2025-11-12,# CARTA Integration - Phase 1 TODO (Working Document),archive,Status/analysis docs better suited for internal archive.
+docs/dev/qa_validation_performance_strategy.md,2025-11-12,# QA Validation Performance Strategy: Sub-60-Second Goal,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/CARTA_PHASE1_COMPLETION.md,2025-11-12,# CARTA Integration - Phase 1 Completion Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/QUICK_START_100_PERCENT_CONFIDENCE.md,untracked,# Quick Start: Reaching 100% Confidence,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/IMPLEMENTATION_PHASE4.md,untracked,# Implementation Phase 4 - Additional Component Enhancements,archive,Status/analysis docs better suited for internal archive.
+docs/dev/QUICK_WINS_IMPLEMENTATION_SUMMARY.md,untracked,# Quick Wins Implementation Summary: Pipeline Testing → 100%,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/IMPLEMENTATION_PHASE7.md,untracked,# Implementation Phase 7 - Cross-Tab Linking & Spacing Standardization,archive,Status/analysis docs better suited for internal archive.
+docs/dev/e2e_testing_docker.md,2025-11-12,# E2E Testing with Docker,archive,Status/analysis docs better suited for internal archive.
+docs/dev/DECLINATION_CHANGE_DETECTION.md,2025-11-10,# Declination Change Detection,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/IMPLEMENTATION_PHASE8.md,untracked,# Implementation Phase 8 - Unified Workspace Mode & Unified Search,archive,Status/analysis docs better suited for internal archive.
+docs/dev/ese_automated_pipeline_summary.md,untracked,# Automated ESE Detection Pipeline Implementation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/ENFORCEMENT_SUMMARY.md,untracked,# Pytest 2>&1 Error Enforcement Summary,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/IMPLEMENTATION_PRIORITIES.md,2025-11-10,# Implementation Priorities: VAST-Inspired Dashboard,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/IMPLEMENTATION_PHASE9.md,untracked,"# Implementation Phase 9 - Confirmation Dialogs, Visual Flourishes, and Collapsible Sections",archive,Status/analysis docs better suited for internal archive.
+docs/dev/ENHANCED_SYNTHETIC_DATA_FEATURES.md,untracked,# Enhanced Synthetic Data Generation Features,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/IMPLEMENTATION_STATUS.md,untracked,# Dashboard Implementation Status,archive,Status/analysis docs better suited for internal archive.
+docs/dev/ENHANCED_SYNTHETIC_DATA_IMPLEMENTATION_SUMMARY.md,untracked,# Enhanced Synthetic Data Implementation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/e2e_testing_complete.md,2025-11-11,# E2E Testing - Complete Implementation ✅,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/IMPLEMENTATION_PHASE6.md,untracked,# Implementation Phase 6 - Cache & Events Component Enhancements + Typography,archive,Status/analysis docs better suited for internal archive.
+docs/dev/docker_e2e_setup_complete.md,2025-11-11,# Docker E2E Test Setup - Complete ✅,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/IMPLEMENTATION_SUMMARY.md,untracked,# Implementation Summary - Visual Design Redesign & Page Consolidation,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/IMPLEMENTATION_PHASE5.md,untracked,# Implementation Phase 5 - Pipeline Component Enhancements,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/CARTA_INTEGRATION_TODO.md,2025-11-12,# CARTA Integration TODO List,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/MASKING_EFFICIENCY_ANALYSIS.md,2025-11-09,# Masking Efficiency Analysis: Masked vs Unmasked Imaging,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/MASKED_IMAGING_ANALYSIS.md,2025-11-09,# Masked Imaging Analysis for DSA-110 Continuum Imaging,archive,Status/analysis docs better suited for internal archive.
+docs/dev/catalog_logging_migration.md,untracked,# Catalog Query Logging Migration,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/MASKING_IMPLEMENTATION_COMPLETE.md,2025-11-09,# Masking Implementation - Completion Summary,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/CARTA_INTEGRATION_ASSESSMENT.md,2025-11-12,# CARTA Integration Assessment for DSA-110 Pipeline,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/BUGFIXES_SEMANTIC_HTML.md,untracked,# Bug Fixes: Semantic HTML and React State Management,archive,Status/analysis docs better suited for internal archive.
+docs/dev/MOSAIC_PB_FIX_AND_OPTIMIZATION_SUMMARY.md,2025-11-10,# Mosaic PB Correction Fix and PNG Optimization - Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/catalog_implementation_comparison.md,untracked,# Catalog Implementation Comparison: NVSS vs VLASS vs RACS/RAX,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/ANTICIPATORY_DASHBOARD_IMPLEMENTATION.md,2025-11-10,# Anticipatory Dashboard Implementation Plan,archive,Status/analysis docs better suited for internal archive.
+docs/concepts/pipeline_workflow_visualization.md,2025-11-12,# DSA-110 Continuum Imaging Pipeline: Complete Workflow Visualization,keep,User-facing documentation section.
+docs/concepts/dashboard_frontend_architecture.md,2025-11-12,# DSA-110 Dashboard: Frontend Architecture & Implementation,keep,User-facing documentation section.
+docs/concepts/dashboard_error_handling.md,2025-11-12,# DSA-110 Dashboard: Error Handling & Resilience,keep,User-facing documentation section.
+docs/concepts/dashboard_architecture.md,2025-11-12,# DSA-110 Dashboard: System Architecture & Technology Stack,keep,User-facing documentation section.
+docs/concepts/browser_mcp_diagnostics.md,2025-11-12,# Browser MCP Diagnostics Guide,keep,User-facing documentation section.
+docs/concepts/browser_mcp_connection_troubleshooting.md,2025-11-12,# Browser MCP Connection Troubleshooting Guide,keep,User-facing documentation section.
+docs/concepts/dashboard_data_models.md,2025-11-12,# DSA-110 Dashboard: Data Models & Database Schema,keep,User-facing documentation section.
+docs/concepts/browser_mcp_chrome_remote_desktop_architecture.md,2025-11-12,# Browser MCP + Chrome Remote Desktop Architecture,keep,User-facing documentation section.
+docs/concepts/architecture.md,2025-11-12,# Concepts: Architecture,keep,User-facing documentation section.
+docs/concepts/APPLYING_DEPENDENCY_ENFORCEMENT.md,2025-11-12,# Applying Dependency Enforcement Framework,keep,User-facing documentation section.
+docs/concepts/aoflagger.md,2025-11-06,# AOFlagger Strategy Files for DSA-110,keep,User-facing documentation section.
+docs/analysis/VALIDATION_FOCUS_SUMMARY.md,2025-11-09,# Validation Focus Summary,archive,Status/analysis docs better suited for internal archive.
+docs/concepts/anti_patterns_reference.md,2025-11-12,# Anti-Patterns: Standard Concept Reference,keep,User-facing documentation section.
+docs/concepts/GLOSSARY.md,2025-11-06,# Definition: Tile,keep,User-facing documentation section.
+docs/bugfixes/processpool-pickling-fix.md,2025-11-11,# ProcessPoolExecutor Pickling Error Fix,keep,Default keep until manual review.
+docs/concepts/control-panel.md,2025-11-06,# DSA-110 Control Panel,keep,User-facing documentation section.
+docs/dev/fallback_notification_analysis.md,untracked,# Fallback Notification Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/VALIDATION_ISSUES.md,2025-11-09,# Validation Issues and Solutions,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_failures_known_issues.md,2025-11-12,# Known Test Failures and Limitations,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/VALIDATION_LEARNINGS.md,2025-11-11,# Validation Learnings and Next Steps,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_failures_casanalysis_investigation.md,2025-11-12,# CASAnalysisPlugin Test Failures - Investigation,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_failures_casanalysis_fixes.md,2025-11-12,# CASAnalysisPlugin Test Fixes - Complete,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_execution_summary.md,2025-11-12,# Test Execution Summary,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/VAST_ARCHITECTURE_ANALYSIS.md,2025-11-10,# VAST Architecture Deep Dive Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/dev/TEMPLATE_FREE_VS_TEMPLATE_MODE.md,untracked,# Template-Free vs Template-Based Generation: Format Compatibility,archive,Status/analysis docs better suited for internal archive.
+docs/dev/test_execution_results.md,2025-11-11,# Test Execution Results,archive,Status/analysis docs better suited for internal archive.
+docs/dev/SYNTHETIC_TILES_FLAGGED.md,2025-11-12,# Synthetic Tiles Flagged in Database,archive,Status/analysis docs better suited for internal archive.
+docs/dev/SYNTHETIC_DATA_PATH_CONFIGURATION.md,2025-11-12,# Synthetic Data Path Configuration,archive,Status/analysis docs better suited for internal archive.
+docs/dev/SYNTHETIC_DATA_FIXES_IMPLEMENTED.md,untracked,# Synthetic Data Generation Fixes - Implementation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/SWIGPY_WARNINGS_SUPPRESSION.md,2025-11-09,# SwigPy Deprecation Warnings - Suppression Guide,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/VAST_MOSAIC_AND_ANALYSIS_WORKFLOW.md,2025-11-12,# VAST Mosaic Creation and Analysis Workflow,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/VAST_FORCED_PHOTOMETRY_ANALYSIS.md,2025-11-10,# VAST Forced Photometry Utilities Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/VAST_PIPELINE_IMAGING_WORKFLOW.md,2025-11-12,# VAST Pipeline Imaging Workflow Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/VAST_DSA110_IMAGING_COMPARISON.md,2025-11-12,# VAST Pipeline vs DSA-110 Imaging Comparison,archive,Status/analysis docs better suited for internal archive.
+docs/dev/SWIGPY_INVESTIGATION_SUMMARY.md,2025-11-09,# SwigPy Deprecation Warnings Investigation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/STREAMING_MOSAIC_PNG_GENERATION.md,2025-11-10,# Automatic PNG Visualization Generation in Streaming Mosaic Pipeline,archive,Status/analysis docs better suited for internal archive.
+docs/dev/SHELL_PROFILE_SETUP.md,2025-11-09,# Shell Profile Setup for Persistent Warning Suppression,archive,Status/analysis docs better suited for internal archive.
+docs/dev/ROADMAP_TO_100_PERCENT_CONFIDENCE.md,untracked,# Roadmap to 100% Confidence in Synthetic Data Suite,archive,Status/analysis docs better suited for internal archive.
+docs/dev/REGISTRY_UPDATED.md,2025-11-12,# Registry Updated with Real Data,archive,Status/analysis docs better suited for internal archive.
+docs/dev/REAL_TILES_FOR_TESTING.md,2025-11-12,# Real Tiles Found in Registry for Testing,archive,Status/analysis docs better suited for internal archive.
+docs/dev/REAL_DATA_SEARCH_RESULTS.md,2025-11-12,# Real Data Search Results,archive,Status/analysis docs better suited for internal archive.
+docs/dev/REAL_DATA_FOUND_IN_STAGE.md,2025-11-12,# Real Data Found in /stage/,archive,Status/analysis docs better suited for internal archive.
+docs/dev/CATALOG_DB_POPULATION_TIMING.md,2025-11-10,# Catalog Database Population Timing in Pipeline Workflow,archive,Status/analysis docs better suited for internal archive.
+docs/dev/CASA_WARNINGS_FIXES_IMPLEMENTED.md,2025-11-09,# CASA Warnings Fixes - Implementation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/CASA_WARNINGS_ANALYSIS.md,2025-11-09,# CASA Warnings Analysis and Fixes,archive,Status/analysis docs better suited for internal archive.
+docs/dev/CASA_SYSTEMATIC_FIXES_COMPLETE.md,2025-11-09,# CASA API Systematic Fixes - Complete,archive,Status/analysis docs better suited for internal archive.
+docs/dev/ese_detection_complete_documentation_summary.md,untracked,# ESE Detection Complete Documentation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/CASA_SEGFAULT_TEST_RESULTS.md,2025-11-09,# CASA Segfault Prevention - Test Results,archive,Status/analysis docs better suited for internal archive.
+docs/dev/CASA_SEGFAULT_ROOT_CAUSE.md,2025-11-09,# CASA6 Segfault Root Cause Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/dev/ese_detection_comprehensive_improvements.md,untracked,# ESE Detection Comprehensive Improvement Plan,archive,Status/analysis docs better suited for internal archive.
+docs/dev/CASA_SEGFAULT_HANDLING.md,2025-11-09,# CASA6 Segfault Handling Guide,archive,Status/analysis docs better suited for internal archive.
+docs/dev/ese_detection_documentation_index.md,untracked,# ESE Detection Documentation Index,archive,Status/analysis docs better suited for internal archive.
+docs/dev/CASA_API_FIXES_NEEDED.md,2025-11-09,# CASA API Fixes Needed Across Codebase,archive,Status/analysis docs better suited for internal archive.
+docs/dev/ese_detection_future_improvements.md,untracked,# ESE Detection Future Improvements,archive,Status/analysis docs better suited for internal archive.
+docs/dev/casa6_test_execution.md,2025-11-11,# Casa6 Test Execution Guide,archive,Status/analysis docs better suited for internal archive.
+docs/dev/calibration_provenance_tracking_implementation.md,untracked,# Calibration Provenance Tracking Implementation,archive,Status/analysis docs better suited for internal archive.
+docs/dev/ese_detection_implementation_phases.md,untracked,# ESE Detection Improvements - Implementation Phases,archive,Status/analysis docs better suited for internal archive.
+docs/dev/calibration_provenance_risk_analysis.md,untracked,# Calibration Provenance Tracking - Risk Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/dev/ese_detection_implementation_summary.md,untracked,# ESE Detection Implementation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/browser_testing_guide.md,untracked,# Browser Testing Guide for Phase 1,archive,Status/analysis docs better suited for internal archive.
+docs/dev/ese_detection_research_findings.md,untracked,# ESE Detection Research Findings and Implementation Review,archive,Status/analysis docs better suited for internal archive.
+docs/dev/AUTOMATIC_CATALOG_SETUP_IMPLEMENTATION.md,2025-11-10,# Automatic Catalog Setup Implementation,archive,Status/analysis docs better suited for internal archive.
+docs/design/data_product_organization.md,2025-11-09,# Data Product Organization Design,keep,Default keep until manual review.
+docs/analysis/DOCUMENTATION_FIXES_APPLIED.md,2025-11-10,# Documentation Fixes Applied,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/FIELD_MAPPING_COMPLETE.md,2025-11-10,# Field Mapping Updates Complete ✅,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/WSCLEAN_USAGE_ANALYSIS.md,2025-11-09,# WSClean Usage Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/WABIFAT_VERIFICATION_RESULTS.md,2025-11-12,# WABIFAT Compatibility Verification Results,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/MASKING_TOGGLE_IMPLEMENTATION_PLAN.md,2025-11-09,# Masking Toggle Implementation Plan,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/MOFFAT_ROTATION_VALUE.md,2025-11-09,# Moffat Rotation: Value Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/MOSAIC_ISSUES_ANALYSIS.md,2025-11-12,# Mosaic Creation Issues Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/MOSAIC_STATUS_EXPLANATION.md,2025-11-09,# Mosaic Status Explanation,archive,Status/analysis docs better suited for internal archive.
+docs/contributing/archive/CONTRIBUTING_TODO.md,2025-11-12,# Contributing to TODO.md,keep,Default keep until manual review.
+docs/contributing/archive/rules.md,2025-11-12,<CRITICAL_INSTRUCTIONS>,keep,Default keep until manual review.
+docs/analysis/next-steps-final-status.md,2025-11-09,# Next Steps Execution - Final Status,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/next-steps-execution-summary.md,2025-11-09,# Next Steps Execution Summary,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/NAVIGATION_REDESIGN_PLAN.md,untracked,# Navigation Bar Redesign Plan,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/MOSAIC_FIXES_SUMMARY.md,2025-11-12,# Mosaic Creation Fixes - Complete Summary,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/MOSAIC_BUILD_TEST_RESULTS.md,2025-11-09,# Mosaic Build Test Results,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/MOFFAT_ROTATION_UNRESOLVED_SOURCES.md,2025-11-09,# Moffat Rotation for Unresolved Compact Sources,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/MOFFAT_ROTATION_ESE_SCIENCE.md,2025-11-09,# Moffat Rotation and ESE Science Goals,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/MOFFAT_ROTATION_DEFERRED.md,2025-11-09,# Moffat Rotation - Deferred Decision,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/model_py_review.md,2025-11-07,# Model.py Code Review,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/model_py_implementation.md,2025-11-12,# Model.py Implementation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/dsa110-beam-assets-analysis.md,2025-11-09,# DSA-110 Beam Model Assets Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/dp3_polarization_limitation.md,2025-11-06,# DP3 Polarization Limitation,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/dp3_multi_field_solutions.md,2025-11-06,# DP3 Multi-Field MS Solutions,archive,Status/analysis docs better suited for internal archive.
+docs/concepts/science/photometry_normalization.md,2025-11-06,# Forced Photometry Normalization,keep,User-facing documentation section.
+docs/dev/notes/TEST_FIXTURE_OPTIMIZATION.md,untracked,# Test Fixture Optimization for Mosaic Orchestrator Tests,archive,Status/analysis docs better suited for internal archive.
+docs/dev/notes/VISUALIZATION_IMPLEMENTATION.md,2025-11-11,# Enhanced Visualization Implementation,archive,Status/analysis docs better suited for internal archive.
+docs/dev/notes/TODO.md,2025-11-12,# TODO - DSA-110 Continuum Imaging Pipeline,archive,Status/analysis docs better suited for internal archive.
+docs/dev/analysis/automation_assessment_justification.md,untracked,# Systematic Justification: Streaming Mode Pipeline Automation Assessment,archive,Status/analysis docs better suited for internal archive.
+docs/dev/analysis/unaddressed_tasks_review.md,untracked,# Unaddressed Tasks Review,archive,Status/analysis docs better suited for internal archive.
+docs/dev/analysis/unit_test_suite_summary.md,untracked,# Unit Test Suite Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/analysis/unit_tests_remaining_tasks_summary.md,untracked,# Unit Test Suite Summary - Remaining Tasks,archive,Status/analysis docs better suited for internal archive.
+docs/dev/analysis/remaining_tasks_completion_summary.md,untracked,# Remaining Tasks Completion Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/analysis/qa_system_audit.md,2025-11-12,# QA System Software Developer Audit,archive,Status/analysis docs better suited for internal archive.
+docs/dev/analysis/plan_confidence_assessment.md,untracked,# Plan Confidence Assessment - Final Review,archive,Status/analysis docs better suited for internal archive.
+docs/dev/analysis/photometry_automation_roadmap.md,untracked,# Photometry Automation Roadmap,archive,Status/analysis docs better suited for internal archive.
+src/dsa110_contimg/WORKFLOW_THOUGHT_EXPERIMENT.md,2025-11-10,# Complete Workflow Thought Experiment: HDF5 → Published Mosaic,keep,Code-adjacent documentation supporting module owners.
+docs/dev/analysis/photometry_automation_implementation_review.md,untracked,# Photometry Automation Implementation Review,archive,Status/analysis docs better suited for internal archive.
+docs/dev/analysis/photometry_automation_assessment.md,untracked,# Automated Photometry Pipeline Assessment,archive,Status/analysis docs better suited for internal archive.
+docs/dev/analysis/js9_features_usability_assessment.md,2025-11-11,# JS9 Features Usability Assessment,archive,Status/analysis docs better suited for internal archive.
+docs/dev/analysis/implementation_readiness_assessment.md,untracked,# Implementation Readiness Assessment,archive,Status/analysis docs better suited for internal archive.
+docs/dev/analysis/ese_detection_critical_review.md,untracked,# ESE Detection Implementation Critical Review,archive,Status/analysis docs better suited for internal archive.
+docs/dev/analysis/enhancement_recommendations.md,untracked,# Enhancement Recommendations: From Good to Excellent,archive,Status/analysis docs better suited for internal archive.
+ops/systemd/INSTALL.md,2025-11-09,# Installing DSA-110 Services,keep,Code-adjacent documentation supporting module owners.
+src/dsa110_contimg/utils/NAMING_CONVENTIONS.md,2025-11-10,# Naming Conventions for DSA-110 Continuum Imaging Pipeline,keep,Code-adjacent documentation supporting module owners.
+ops/pipeline/HELPERS_README.md,2025-11-06,# Ops Pipeline Shared Helpers,keep,Code-adjacent documentation supporting module owners.
+src/dsa110_contimg/conversion/README.md,2025-11-10,# Conversion Module: UVH5 → Measurement Set,keep,Code-adjacent documentation supporting module owners.
+docs/dev/analysis/cursor_rules_summary_2025-11-12.md,untracked,# Cursor Rules Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/analysis/critical_path_summary.md,untracked,# Critical Path Summary: Pre-Flight Checklist for `create_mosaic_centered.py`,archive,Status/analysis docs better suited for internal archive.
+docs/dev/analysis/cost_free_improvements.md,untracked,# Cost-Free Critical Improvements (Monetary Cost Analysis),archive,Status/analysis docs better suited for internal archive.
+docs/dev/analysis/codebase_review_2025-11-12.md,untracked,# Codebase Review: DSA-110 Continuum Imaging Pipeline,archive,Status/analysis docs better suited for internal archive.
+docs/dev/analysis/batch_mode_development_assessment.md,untracked,# Manual/Batch Mode Pipeline Development Assessment - Systematic Justification,archive,Status/analysis docs better suited for internal archive.
+src/dsa110_contimg/FINAL_WORKFLOW_VERIFICATION.md,2025-11-10,# Final Workflow Verification: Complete End-to-End Trace,keep,Code-adjacent documentation supporting module owners.
+docs/dev/notes/PIPELINE_INTEGRATION.md,2025-11-11,# Pipeline Integration Implementation,archive,Status/analysis docs better suited for internal archive.
+docs/dev/notes/MOSAIC_ORCHESTRATOR_TEST_COVERAGE_ANALYSIS.md,untracked,# Mosaic Orchestrator Test Coverage Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/dev/notes/MOSAIC_ORCHESTRATOR_TASKS.md,2025-11-12,# Mosaic Orchestrator Development Tasks,archive,Status/analysis docs better suited for internal archive.
+docs/dev/notes/MOSAIC_ORCHESTRATOR_IMPLEMENTATION.md,2025-11-12,# Mosaic Orchestrator Implementation,archive,Status/analysis docs better suited for internal archive.
+src/dsa110_contimg/qa/visualization/js9/README.md,2025-11-09,# JS9 Integration for QA Visualization,keep,Code-adjacent documentation supporting module owners.
+docs/dev/notes/MEMORY.md,2025-11-12,# DSA-110 Continuum Imaging Pipeline - Codebase Understanding,archive,Status/analysis docs better suited for internal archive.
+docs/dev/notes/HTML_REPORT_IMPLEMENTATION.md,2025-11-11,# HTML Report Generation Implementation,archive,Status/analysis docs better suited for internal archive.
+docs/dev/notes/GRAPHITI_UPLOAD_LOG.md,2025-11-11,# Graphiti Knowledge Graph Upload Log,archive,Status/analysis docs better suited for internal archive.
+docs/dev/status/2025-01/recommended_next_steps_completed.md,2025-11-12,# Recommended Next Steps - Completion Summary,archive,Status/analysis docs better suited for internal archive.
+docs/dev/status/2025-01/codebase_audit_2025-01.md,2025-11-12,# Codebase Audit Report: DSA-110 Continuum Imaging Pipeline,archive,Status/analysis docs better suited for internal archive.
+docs/dev/notes/error_handling_improvements_2025-11-11.md,2025-11-11,# Error Handling & Logging Improvements,archive,Status/analysis docs better suited for internal archive.
+docs/dev/notes/DEEP_STUDY_ANALYSIS.md,2025-11-12,# Deep Study Analysis: DSA-110 Continuum Imaging Pipeline,archive,Status/analysis docs better suited for internal archive.
+docs/dev/notes/DEEP_STUDY.md,2025-11-11,# Deep Study: DSA-110 Continuum Imaging Pipeline,archive,Status/analysis docs better suited for internal archive.
+docs/dev/notes/COMPLETENESS_ANALYSIS_IMPLEMENTATION.md,2025-11-11,# Enhanced Source Counts Completeness Analysis Implementation,archive,Status/analysis docs better suited for internal archive.
+docs/dev/notes/ASKAP_VALIDATION_ASSESSMENT.md,2025-11-11,# ASKAP Continuum Validation Assessment,archive,Status/analysis docs better suited for internal archive.
+docs/dev/notes/AGENTS.md,2025-11-11,"# Agent Guide: Fast, Targeted Testing for DSA-110 Continuum Pipeline",archive,Status/analysis docs better suited for internal archive.
+docs/analysis/dp3_multi_field_recommendation.md,2025-11-06,# DP3 Multi-Field MS: Recommendation,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/dp3_multi_field_issue.md,2025-11-06,# DP3 Multi-Field MS Issue,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/DOCUMENTATION_ISSUES_FOUND.md,2025-11-10,# Documentation and Cursor Rules Issues Found,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/pyradiosky_vs_componentlist.md,2025-11-06,# Analysis: pyradiosky SkyModel vs Manual Component List Construction,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/pyradiosky_dp3_compatibility_check.md,2025-11-09,# Compatibility Check: pyradiosky + DP3 Integration,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/PRIORITY1_TEST_RESULTS.md,2025-11-11,# Priority 1: Region Mask Integration - Test Results,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/PRIORITY1_TESTING_STRATEGY.md,2025-11-09,# Priority 1 Testing Strategy - Revised Approach,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/PRIORITY1_COMPLETION.md,2025-11-09,# Priority 1: Region Mask Integration - Completion Summary,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/PRETTIER_INTEGRATION.md,untracked,# Prettier Integration Summary,consolidate,Combine Prettier troubleshooting docs into one definitive guide.
+docs/analysis/PIPELINE_DEEP_UNDERSTANDING.md,2025-11-12,# DSA-110 Continuum Imaging Pipeline - Deep Understanding,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/PHASE2_WEEKS6-7_COMPLETION.md,2025-11-09,"# Phase 2, Weeks 6-7: Image Fitting - Implementation Complete",archive,Status/analysis docs better suited for internal archive.
+docs/analysis/PHASE2_WEEK5_COMPLETION.md,2025-11-09,"# Phase 2, Week 5: Spatial Profiler - Implementation Complete",archive,Status/analysis docs better suited for internal archive.
+docs/analysis/PHASE2_LIMITATIONS_ROADMAP.md,2025-11-09,# Phase 2 Limitations - Roadmap and Implementation Plan,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/PHASE1_TESTING_GUIDE.md,2025-11-10,# Phase 1 Testing Guide,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/PHASE1_SUMMARY.md,2025-11-10,# Phase 1 Implementation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/PHASE1_IMPLEMENTATION_SUMMARY.md,2025-11-12,# Phase 1 Implementation Summary,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/PHASE1_IMPLEMENTATION_STATUS.md,2025-11-10,# Phase 1 Implementation Status,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/PHASE1_COMPLETE.md,2025-11-10,# Phase 1 Implementation Complete ✅,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/PAGE_CONSOLIDATION_PLAN.md,untracked,# Page Consolidation Plan,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/NEXT_STEPS_SUMMARY.md,2025-11-10,# Next Steps Summary,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/NEXT_STEPS_MOSAIC_FIXES.md,2025-11-12,# Next Steps: Mosaic Creation Fixes,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/VALIDATION_APPROACH.md,2025-11-09,# Validation Approach - Direct Testing,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/RADIOPADRE_B1.2.4_FEATURE_ANALYSIS.md,2025-11-12,# RadioPadre b1.2.4 Feature Analysis and Recommendations,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/NEXT_STEPS_COMPLETION.md,2025-11-12,# Next Steps Completion Report,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/WABIFAT_IMPLEMENTATION_STATUS.md,2025-11-12,# WABIFAT Techniques Implementation Status,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/WABIFAT_COMPATIBILITY_ASSESSMENT.md,2025-11-12,# WABIFAT Techniques Compatibility Assessment,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/WABIFAT_ANALYSIS.md,2025-11-12,# WABIFAT Tool Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/vp-table-usage-analysis.md,2025-11-09,# VP Table Usage Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/VISUAL_DESIGN_REDESIGN_PLAN.md,untracked,# Visual Design Redesign & Fix Plan,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/VISUAL_DESIGN_CRITIQUE.md,untracked,# Visual Design Critique - DSA-110 Dashboard Pages,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/VAST_TO_DSA110_SYNTHESIS.md,2025-11-10,# VAST to DSA-110 Synthesis: Practical Implementation Guide,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/VAST_TOOLS_REFERENCE_ANALYSIS.md,2025-11-12,# VAST Tools Reference Analysis,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/VAST_TOOLS_DSA110_DETAILED_COMPARISON.md,2025-11-12,# VAST Tools → DSA-110 Detailed Comparison and Adoption Plan,archive,Status/analysis docs better suited for internal archive.
+docs/analysis/VAST_TOOLS_ADOPTION_SUMMARY.md,2025-11-09,# VAST Tools Adoption Summary,archive,Status/analysis docs better suited for internal archive.
+src/dsa110_contimg/calibration/README.md,2025-11-09,## casa_cal: CASA 6.7 calibration helpers (no dsacalib),keep,Code-adjacent documentation supporting module owners.
+SELF_CORRECTION_DEMO.md,untracked,# Self-Correction Protocol - Live Demonstration,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+REORGANIZATION_PLAN.md,2025-10-04,# Root Directory Reorganization Plan,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+REFACTORING_CHECKLIST.md,untracked,# Refactoring Checklist - Anti-Pattern Resolution,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+REAL_WORLD_EDGE_CASES.md,untracked,# Real-World Edge Cases - Based on Actual Errors Encountered,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+README_PORT_SYSTEM.md,untracked,# Port Organization System,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+README_OBSERVABILITY.md,untracked,# Observability & Resilience Implementation,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+README_DUPLICATE_PREVENTION.md,untracked,# Automatic Duplicate Prevention,consolidate,Move root-level Markdown into docs/ per consolidation plan.
+src/dsa110_contimg/calibration/cubical_experimental/README.md,2025-11-09,# CubiCal Experimental Module,keep,Code-adjacent documentation supporting module owners.
+scripts/CASA_LOG_DAEMON_INOTIFY.md,2025-11-06,# CASA Log Daemon (inotifywait) - Deployment Guide,keep,Code-adjacent documentation supporting module owners.
+scripts/INVENTORY.md,2025-11-09,# Scripts Directory Inventory,keep,Code-adjacent documentation supporting module owners.
+scripts/INTEGRATION_GUIDE.md,2025-11-12,# Error Detection Framework - Integration Guide,keep,Code-adjacent documentation supporting module owners.
+scripts/TEST_SCRIPT_VERIFICATION.md,2025-11-03,# Test Script Verification Summary,keep,Code-adjacent documentation supporting module owners.
+scripts/README.md,2025-11-09,# Utility Scripts,keep,Code-adjacent documentation supporting module owners.
+scripts/README-error-detection.md,untracked,# Error Detection Wrapper,keep,Code-adjacent documentation supporting module owners.
+scripts/lib/__tests__/README.md,2025-11-12,# Error Detection Framework - Test Suite,keep,Code-adjacent documentation supporting module owners.

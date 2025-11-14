@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1455,7 +1457,7 @@ curl<span class="w"> </span>http://localhost:8000/api/health/summary<span class=
 <span class="c1"># }</span>
 </code></pre></div>
 <h4 id="step-13-test-dead-letter-queue-endpoints">Step 1.3: Test Dead Letter Queue Endpoints<a class="headerlink" href="#step-13-test-dead-letter-queue-endpoints" title="Permanent link">¶</a></h4>
-<p><strong>Get DLQ Statistics:</strong>
+<p><strong>Get DLQ Statistics:</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/api/operations/dlq/stats<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq
 
 <span class="c1"># Expected:</span>
@@ -1466,15 +1468,15 @@ curl<span class="w"> </span>http://localhost:8000/api/health/summary<span class=
 <span class="c1">#   "resolved": 0,</span>
 <span class="c1">#   "failed": 0</span>
 <span class="c1"># }</span>
-</code></pre></div></p>
-<p><strong>Get DLQ Items:</strong>
+</code></pre></div>
+<p><strong>Get DLQ Items:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Get all pending items</span>
 curl<span class="w"> </span><span class="s2">"http://localhost:8000/api/operations/dlq/items?status=pending&amp;limit=10"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq
 
 <span class="c1"># Filter by component</span>
 curl<span class="w"> </span><span class="s2">"http://localhost:8000/api/operations/dlq/items?component=ese_detection&amp;status=pending"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq
-</code></pre></div></p>
-<p><strong>Create Test DLQ Item (if needed):</strong>
+</code></pre></div>
+<p><strong>Create Test DLQ Item (if needed):</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Create a test script: test_dlq.py</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.pipeline.dead_letter_queue</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_dlq</span>
@@ -1487,23 +1489,23 @@ curl<span class="w"> </span><span class="s2">"http://localhost:8000/api/operatio
     <span class="n">context</span><span class="o">=</span><span class="p">{</span><span class="s2">"min_sigma"</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span> <span class="s2">"source_id"</span><span class="p">:</span> <span class="s2">"test_source"</span><span class="p">}</span>
 <span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Created DLQ item: </span><span class="si">{</span><span class="n">item_id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</code></pre></div></p>
-<p>Run it:
+</code></pre></div>
+<p>Run it:</p>
 <div class="highlight"><pre><span></span><code>/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>test_dlq.py
-</code></pre></div></p>
-<p><strong>Test Retry Action:</strong>
+</code></pre></div>
+<p><strong>Test Retry Action:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Replace {item_id} with actual ID from previous step</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">"http://localhost:8000/api/operations/dlq/items/1/retry"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"note": "Manual retry test"}'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq
-</code></pre></div></p>
-<p><strong>Test Resolve Action:</strong>
+</code></pre></div>
+<p><strong>Test Resolve Action:</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">"http://localhost:8000/api/operations/dlq/items/1/resolve"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"note": "Manually resolved"}'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq
-</code></pre></div></p>
+</code></pre></div>
 <h4 id="step-14-test-circuit-breaker-endpoints">Step 1.4: Test Circuit Breaker Endpoints<a class="headerlink" href="#step-14-test-circuit-breaker-endpoints" title="Permanent link">¶</a></h4>
-<p><strong>Get All Circuit Breakers:</strong>
+<p><strong>Get All Circuit Breakers:</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/api/operations/circuit-breakers<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq
 
 <span class="c1"># Expected:</span>
@@ -1518,21 +1520,21 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <span class="c1">#     ...</span>
 <span class="c1">#   ]</span>
 <span class="c1"># }</span>
-</code></pre></div></p>
-<p><strong>Get Specific Circuit Breaker:</strong>
+</code></pre></div>
+<p><strong>Get Specific Circuit Breaker:</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/api/operations/circuit-breakers/ese_detection<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq
-</code></pre></div></p>
-<p><strong>Test Reset (if circuit is open):</strong>
+</code></pre></div>
+<p><strong>Test Reset (if circuit is open):</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">"http://localhost:8000/api/operations/circuit-breakers/ese_detection/reset"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq
-</code></pre></div></p>
+</code></pre></div>
 <h4 id="step-15-test-error-handling">Step 1.5: Test Error Handling<a class="headerlink" href="#step-15-test-error-handling" title="Permanent link">¶</a></h4>
-<p><strong>Test Invalid Endpoints:</strong>
+<p><strong>Test Invalid Endpoints:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Should return 404</span>
 curl<span class="w"> </span>http://localhost:8000/api/operations/dlq/items/99999<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq
 
 <span class="c1"># Should return 404</span>
 curl<span class="w"> </span>http://localhost:8000/api/operations/circuit-breakers/invalid_name<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="frontend-testing">Frontend Testing<a class="headerlink" href="#frontend-testing" title="Permanent link">¶</a></h3>
 <h4 id="step-16-start-frontend-development-server">Step 1.6: Start Frontend Development Server<a class="headerlink" href="#step-16-start-frontend-development-server" title="Permanent link">¶</a></h4>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
@@ -1579,64 +1581,68 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 <hr/>
 <h2 id="2-fix-any-typescriptlinting-errors">2. Fix Any TypeScript/Linting Errors<a class="headerlink" href="#2-fix-any-typescriptlinting-errors" title="Permanent link">¶</a></h2>
 <h3 id="step-21-check-typescript-errors">Step 2.1: Check TypeScript Errors<a class="headerlink" href="#step-21-check-typescript-errors" title="Permanent link">¶</a></h3>
-<p><strong>Run TypeScript Compiler:</strong>
+<p><strong>Run TypeScript Compiler:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
 
 <span class="c1"># Check for TypeScript errors</span>
 npm<span class="w"> </span>run<span class="w"> </span>type-check
 <span class="c1"># OR</span>
 npx<span class="w"> </span>tsc<span class="w"> </span>--noEmit
-</code></pre></div></p>
-<p><strong>Common Issues to Look For:</strong>
-- Missing type imports
-- Type mismatches
-- Undefined properties
-- Missing optional chaining</p>
+</code></pre></div>
+<p><strong>Common Issues to Look For:</strong></p>
+<ul>
+<li>Missing type imports</li>
+<li>Type mismatches</li>
+<li>Undefined properties</li>
+<li>Missing optional chaining</li>
+</ul>
 <h3 id="step-22-check-linting-errors">Step 2.2: Check Linting Errors<a class="headerlink" href="#step-22-check-linting-errors" title="Permanent link">¶</a></h3>
-<p><strong>Run ESLint:</strong>
+<p><strong>Run ESLint:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
 
 <span class="c1"># Run linter</span>
 npm<span class="w"> </span>run<span class="w"> </span>lint
 <span class="c1"># OR</span>
 npx<span class="w"> </span>eslint<span class="w"> </span>src<span class="w"> </span>--ext<span class="w"> </span>.ts,.tsx
-</code></pre></div></p>
-<p><strong>Common Issues:</strong>
-- Unused imports
-- Missing dependencies in useEffect
-- Console.log statements (if linting rules disallow)
-- Missing prop types</p>
+</code></pre></div>
+<p><strong>Common Issues:</strong></p>
+<ul>
+<li>Unused imports</li>
+<li>Missing dependencies in useEffect</li>
+<li>Console.log statements (if linting rules disallow)</li>
+<li>Missing prop types</li>
+</ul>
 <h3 id="step-23-fix-common-typescript-issues">Step 2.3: Fix Common TypeScript Issues<a class="headerlink" href="#step-23-fix-common-typescript-issues" title="Permanent link">¶</a></h3>
-<p><strong>Issue: Missing Import</strong>
+<p><strong>Issue: Missing Import</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1">// Error: Cannot find name 'DLQItem'</span>
 <span class="c1">// Fix: Add import</span>
-<span class="k">import</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">DLQItem</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'../api/types'</span><span class="p">;</span>
-</code></pre></div></p>
-<p><strong>Issue: Type Mismatch</strong>
+<span class="k">import</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">DLQItem</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">"../api/types"</span><span class="p">;</span>
+</code></pre></div>
+<p><strong>Issue: Type Mismatch</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1">// Error: Type 'string' is not assignable to type 'DLQItem'</span>
 <span class="c1">// Fix: Ensure correct type casting</span>
 <span class="kd">const</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="kt">DLQItem</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">data</span><span class="p">;</span>
-</code></pre></div></p>
-<p><strong>Issue: Optional Property Access</strong>
+</code></pre></div>
+<p><strong>Issue: Optional Property Access</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1">// Error: Object is possibly 'undefined'</span>
 <span class="c1">// Fix: Add optional chaining</span>
-<span class="kd">const</span><span class="w"> </span><span class="nx">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">healthSummary</span><span class="o">?</span><span class="p">.</span><span class="nx">status</span><span class="w"> </span><span class="o">??</span><span class="w"> </span><span class="s1">'unknown'</span><span class="p">;</span>
-</code></pre></div></p>
+<span class="kd">const</span><span class="w"> </span><span class="nx">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">healthSummary</span><span class="o">?</span><span class="p">.</span><span class="nx">status</span><span class="w"> </span><span class="o">??</span><span class="w"> </span><span class="s2">"unknown"</span><span class="p">;</span>
+</code></pre></div>
 <h3 id="step-24-fix-common-linting-issues">Step 2.4: Fix Common Linting Issues<a class="headerlink" href="#step-24-fix-common-linting-issues" title="Permanent link">¶</a></h3>
-<p><strong>Issue: Unused Variable</strong>
+<p><strong>Issue: Unused Variable</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1">// Error: 'variable' is assigned a value but never used</span>
 <span class="c1">// Fix: Remove or prefix with underscore</span>
 <span class="kd">const</span><span class="w"> </span><span class="nx">_unusedVariable</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">value</span><span class="p">;</span>
-</code></pre></div></p>
-<p><strong>Issue: Missing Dependency</strong>
+</code></pre></div>
+<p><strong>Issue: Missing Dependency</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1">// Error: React Hook useEffect has missing dependency</span>
 <span class="c1">// Fix: Add to dependency array or use useCallback</span>
 <span class="nx">useEffect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nx">refetch</span><span class="p">();</span>
 <span class="p">},</span><span class="w"> </span><span class="p">[</span><span class="nx">refetch</span><span class="p">]);</span><span class="w"> </span><span class="c1">// Add missing dependency</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="step-25-verify-fixes">Step 2.5: Verify Fixes<a class="headerlink" href="#step-25-verify-fixes" title="Permanent link">¶</a></h3>
-<p><strong>Run All Checks:</strong>
+<p><strong>Run All Checks:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
 
 <span class="c1"># Type check</span>
@@ -1647,7 +1653,7 @@ npm<span class="w"> </span>run<span class="w"> </span>lint
 
 <span class="c1"># Build check (if applicable)</span>
 npm<span class="w"> </span>run<span class="w"> </span>build
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="fix-checklist">Fix Checklist<a class="headerlink" href="#fix-checklist" title="Permanent link">¶</a></h3>
 <ul>
 <li>[ ] No TypeScript errors</li>
@@ -1660,21 +1666,23 @@ npm<span class="w"> </span>run<span class="w"> </span>build
 <hr/>
 <h2 id="3-add-navigation-links-to-the-operations-page">3. Add Navigation Links to the Operations Page<a class="headerlink" href="#3-add-navigation-links-to-the-operations-page" title="Permanent link">¶</a></h2>
 <h3 id="step-31-find-navigation-component">Step 3.1: Find Navigation Component<a class="headerlink" href="#step-31-find-navigation-component" title="Permanent link">¶</a></h3>
-<p><strong>Locate Navigation/Sidebar:</strong>
+<p><strong>Locate Navigation/Sidebar:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Search for navigation components</span>
 <span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
 find<span class="w"> </span>src<span class="w"> </span>-name<span class="w"> </span><span class="s2">"*nav*"</span><span class="w"> </span>-o<span class="w"> </span>-name<span class="w"> </span><span class="s2">"*menu*"</span><span class="w"> </span>-o<span class="w"> </span>-name<span class="w"> </span><span class="s2">"*sidebar*"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-10
 
 <span class="c1"># Check App.tsx for navigation structure</span>
 grep<span class="w"> </span>-n<span class="w"> </span><span class="s2">"nav\|menu\|sidebar"</span><span class="w"> </span>src/App.tsx
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="step-32-identify-navigation-pattern">Step 3.2: Identify Navigation Pattern<a class="headerlink" href="#step-32-identify-navigation-pattern" title="Permanent link">¶</a></h3>
-<p><strong>Common Patterns:</strong>
-1. <strong>Sidebar Navigation</strong> - Usually in a separate component
-2. <strong>Top Navigation Bar</strong> - Header component
-3. <strong>Drawer Menu</strong> - Material-UI Drawer component
-4. <strong>Breadcrumbs</strong> - For hierarchical navigation</p>
-<p><strong>Check Existing Routes:</strong>
+<p><strong>Common Patterns:</strong></p>
+<ol>
+<li><strong>Sidebar Navigation</strong> - Usually in a separate component</li>
+<li><strong>Top Navigation Bar</strong> - Header component</li>
+<li><strong>Drawer Menu</strong> - Material-UI Drawer component</li>
+<li><strong>Breadcrumbs</strong> - For hierarchical navigation</li>
+</ol>
+<p><strong>Check Existing Routes:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1">// Look for existing navigation items in App.tsx or navigation component</span>
 <span class="c1">// Example patterns:</span>
 <span class="o">-</span><span class="w"> </span><span class="nx">Dashboard</span>
@@ -1682,12 +1690,12 @@ grep<span class="w"> </span>-n<span class="w"> </span><span class="s2">"nav\|men
 <span class="o">-</span><span class="w"> </span><span class="nx">Health</span>
 <span class="o">-</span><span class="w"> </span><span class="nx">QA</span>
 <span class="o">-</span><span class="w"> </span><span class="nx">Data</span><span class="w"> </span><span class="nx">Browser</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="step-33-add-operations-link">Step 3.3: Add Operations Link<a class="headerlink" href="#step-33-add-operations-link" title="Permanent link">¶</a></h3>
 <p><strong>Exact Code for Navigation.tsx:</strong></p>
 <ol>
-<li>
-<p><strong>Add Icon Import</strong> (if not already imported):
+<li><strong>Add Icon Import</strong> (if not already imported):</li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="c1">// In frontend/src/components/Navigation.tsx</span>
 <span class="k">import</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nx">Dashboard</span><span class="p">,</span>
@@ -1700,39 +1708,37 @@ grep<span class="w"> </span>-n<span class="w"> </span><span class="s2">"nav\|men
 <span class="w">  </span><span class="nx">Storage</span><span class="p">,</span>
 <span class="w">  </span><span class="nx">Assessment</span><span class="p">,</span>
 <span class="w">  </span><span class="nx">Build</span><span class="p">,</span><span class="w"> </span><span class="c1">// ADD THIS - or use Settings if already imported</span>
-<span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@mui/icons-material'</span><span class="p">;</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Add to navItems Array:</strong>
+<span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">"@mui/icons-material"</span><span class="p">;</span>
+</code></pre></div>
+<ol>
+<li><strong>Add to navItems Array:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="c1">// Find the navItems array (around line 20-30)</span>
 <span class="kd">const</span><span class="w"> </span><span class="nx">navItems</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
-<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s1">'/dashboard'</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Dashboard'</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Dashboard</span><span class="w"> </span><span class="p">},</span>
-<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s1">'/control'</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Control'</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Settings</span><span class="w"> </span><span class="p">},</span>
-<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s1">'/streaming'</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Streaming'</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">PlayArrow</span><span class="w"> </span><span class="p">},</span>
-<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s1">'/data'</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Data'</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Storage</span><span class="w"> </span><span class="p">},</span>
-<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s1">'/qa'</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'QA Visualization'</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Assessment</span><span class="w"> </span><span class="p">},</span>
-<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s1">'/mosaics'</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Mosaics'</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Image</span><span class="w"> </span><span class="p">},</span>
-<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s1">'/sources'</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Sources'</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">TableChart</span><span class="w"> </span><span class="p">},</span>
-<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s1">'/sky'</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Sky View'</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Public</span><span class="w"> </span><span class="p">},</span>
-<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s1">'/observing'</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Observing'</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Public</span><span class="w"> </span><span class="p">},</span>
-<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s1">'/health'</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Health'</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Assessment</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">"/dashboard"</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">"Dashboard"</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Dashboard</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">"/control"</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">"Control"</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Settings</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">"/streaming"</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">"Streaming"</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">PlayArrow</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">"/data"</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">"Data"</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Storage</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">"/qa"</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">"QA Visualization"</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Assessment</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">"/mosaics"</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">"Mosaics"</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Image</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">"/sources"</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">"Sources"</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">TableChart</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">"/sky"</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">"Sky View"</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Public</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">"/observing"</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">"Observing"</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Public</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">"/health"</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">"Health"</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Assessment</span><span class="w"> </span><span class="p">},</span>
 <span class="w">  </span><span class="c1">// ADD THIS LINE:</span>
-<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s1">'/operations'</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s1">'Operations'</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Build</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">"/operations"</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">"Operations"</span><span class="p">,</span><span class="w"> </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="kt">Build</span><span class="w"> </span><span class="p">},</span>
 <span class="p">];</span>
-</code></pre></div></p>
-</li>
-</ol>
+</code></pre></div>
 <p><strong>File Location:</strong> <code>frontend/src/components/Navigation.tsx</code></p>
-<p><strong>If Using Top Navigation:</strong>
+<p><strong>If Using Top Navigation:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1">// Find the navigation menu items</span>
 <span class="o">&lt;</span><span class="nx">MenuItem</span><span class="w"> </span><span class="nx">component</span><span class="o">=</span><span class="p">{</span><span class="nx">Link</span><span class="p">}</span><span class="w"> </span><span class="nx">to</span><span class="o">=</span><span class="s2">"/dashboard"</span><span class="o">&gt;</span><span class="nx">Dashboard</span><span class="o">&lt;</span><span class="err">/MenuItem&gt;</span>
 <span class="o">&lt;</span><span class="nx">MenuItem</span><span class="w"> </span><span class="nx">component</span><span class="o">=</span><span class="p">{</span><span class="nx">Link</span><span class="p">}</span><span class="w"> </span><span class="nx">to</span><span class="o">=</span><span class="s2">"/control"</span><span class="o">&gt;</span><span class="nx">Control</span><span class="o">&lt;</span><span class="err">/MenuItem&gt;</span>
 <span class="o">&lt;</span><span class="nx">MenuItem</span><span class="w"> </span><span class="nx">component</span><span class="o">=</span><span class="p">{</span><span class="nx">Link</span><span class="p">}</span><span class="w"> </span><span class="nx">to</span><span class="o">=</span><span class="s2">"/health"</span><span class="o">&gt;</span><span class="nx">Health</span><span class="o">&lt;</span><span class="err">/MenuItem&gt;</span>
 <span class="p">{</span><span class="cm">/* ADD THIS: */</span><span class="p">}</span>
 <span class="o">&lt;</span><span class="nx">MenuItem</span><span class="w"> </span><span class="nx">component</span><span class="o">=</span><span class="p">{</span><span class="nx">Link</span><span class="p">}</span><span class="w"> </span><span class="nx">to</span><span class="o">=</span><span class="s2">"/operations"</span><span class="o">&gt;</span><span class="nx">Operations</span><span class="o">&lt;</span><span class="err">/MenuItem&gt;</span>
-</code></pre></div></p>
-<p><strong>If Using Material-UI List:</strong>
+</code></pre></div>
+<p><strong>If Using Material-UI List:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="o">&lt;</span><span class="nx">ListItem</span><span class="w"> </span><span class="nx">button</span><span class="w"> </span><span class="nx">component</span><span class="o">=</span><span class="p">{</span><span class="nx">Link</span><span class="p">}</span><span class="w"> </span><span class="nx">to</span><span class="o">=</span><span class="s2">"/dashboard"</span><span class="o">&gt;</span>
 <span class="w">  </span><span class="o">&lt;</span><span class="nx">ListItemIcon</span><span class="o">&gt;&lt;</span><span class="nx">DashboardIcon</span><span class="w"> </span><span class="o">/&gt;&lt;</span><span class="err">/ListItemIcon&gt;</span>
 <span class="w">  </span><span class="o">&lt;</span><span class="nx">ListItemText</span><span class="w"> </span><span class="nx">primary</span><span class="o">=</span><span class="s2">"Dashboard"</span><span class="w"> </span><span class="o">/&gt;</span>
@@ -1742,27 +1748,29 @@ grep<span class="w"> </span>-n<span class="w"> </span><span class="s2">"nav\|men
 <span class="w">  </span><span class="o">&lt;</span><span class="nx">ListItemIcon</span><span class="o">&gt;&lt;</span><span class="nx">SettingsIcon</span><span class="w"> </span><span class="o">/&gt;&lt;</span><span class="err">/ListItemIcon&gt;</span>
 <span class="w">  </span><span class="o">&lt;</span><span class="nx">ListItemText</span><span class="w"> </span><span class="nx">primary</span><span class="o">=</span><span class="s2">"Operations"</span><span class="w"> </span><span class="o">/&gt;</span>
 <span class="o">&lt;</span><span class="err">/ListItemItem&gt;</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="step-34-add-icon-if-needed">Step 3.4: Add Icon (if needed)<a class="headerlink" href="#step-34-add-icon-if-needed" title="Permanent link">¶</a></h3>
-<p><strong>Import Material-UI Icon:</strong>
+<p><strong>Import Material-UI Icon:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nx">Settings</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">SettingsIcon</span><span class="p">,</span>
 <span class="w">  </span><span class="c1">// OR</span>
 <span class="w">  </span><span class="nx">Build</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">BuildIcon</span><span class="p">,</span>
 <span class="w">  </span><span class="c1">// OR</span>
 <span class="w">  </span><span class="nx">Engineering</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">EngineeringIcon</span><span class="p">,</span>
-<span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@mui/icons-material'</span><span class="p">;</span>
-</code></pre></div></p>
+<span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">"@mui/icons-material"</span><span class="p">;</span>
+</code></pre></div>
 <h3 id="step-35-verify-navigation">Step 3.5: Verify Navigation<a class="headerlink" href="#step-35-verify-navigation" title="Permanent link">¶</a></h3>
-<p><strong>Test Steps:</strong>
-1. Start frontend dev server
-2. Check navigation menu/sidebar
-3. Click "Operations" link
-4. Verify it navigates to <code>/operations</code>
-5. Verify Operations page loads correctly
-6. Check that active route is highlighted (if applicable)</p>
+<p><strong>Test Steps:</strong></p>
+<ol>
+<li>Start frontend dev server</li>
+<li>Check navigation menu/sidebar</li>
+<li>Click "Operations" link</li>
+<li>Verify it navigates to <code>/operations</code></li>
+<li>Verify Operations page loads correctly</li>
+<li>Check that active route is highlighted (if applicable)</li>
+</ol>
 <h3 id="step-36-add-to-health-page-optional">Step 3.6: Add to Health Page (Optional)<a class="headerlink" href="#step-36-add-to-health-page-optional" title="Permanent link">¶</a></h3>
-<p><strong>Add Quick Link in Health Page:</strong>
+<p><strong>Add Quick Link in Health Page:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1">// In HealthPage.tsx, add a link to Operations page</span>
 <span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Link</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'react-router-dom'</span><span class="p">;</span>
 
@@ -1771,7 +1779,7 @@ grep<span class="w"> </span>-n<span class="w"> </span><span class="s2">"nav\|men
 <span class="w">  </span><span class="nx">For</span><span class="w"> </span><span class="nx">detailed</span><span class="w"> </span><span class="nx">operations</span><span class="w"> </span><span class="nx">management</span><span class="p">,</span><span class="w"> </span><span class="nx">visit</span><span class="w"> </span><span class="nx">the</span><span class="p">{</span><span class="s1">' '</span><span class="p">}</span>
 <span class="w">  </span><span class="o">&lt;</span><span class="nx">Link</span><span class="w"> </span><span class="nx">to</span><span class="o">=</span><span class="s2">"/operations"</span><span class="o">&gt;</span><span class="nx">Operations</span><span class="w"> </span><span class="nx">Page</span><span class="o">&lt;</span><span class="err">/Link&gt;</span>
 <span class="o">&lt;</span><span class="err">/Alert&gt;</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="navigation-checklist">Navigation Checklist<a class="headerlink" href="#navigation-checklist" title="Permanent link">¶</a></h3>
 <ul>
 <li>[ ] Found navigation component/structure</li>
@@ -1785,7 +1793,7 @@ grep<span class="w"> </span>-n<span class="w"> </span><span class="s2">"nav\|men
 <hr/>
 <h2 id="4-test-real-time-updates">4. Test Real-Time Updates<a class="headerlink" href="#4-test-real-time-updates" title="Permanent link">¶</a></h2>
 <h3 id="step-41-verify-auto-refresh-configuration">Step 4.1: Verify Auto-Refresh Configuration<a class="headerlink" href="#step-41-verify-auto-refresh-configuration" title="Permanent link">¶</a></h3>
-<p><strong>Check Query Refresh Intervals:</strong>
+<p><strong>Check Query Refresh Intervals:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1">// In frontend/src/api/queries.ts, verify:</span>
 <span class="nx">useDLQStats</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nx">refetchInterval</span><span class="o">:</span><span class="w"> </span><span class="kt">10000</span><span class="p">,</span><span class="w"> </span><span class="c1">// 10 seconds</span>
@@ -1798,83 +1806,107 @@ grep<span class="w"> </span>-n<span class="w"> </span><span class="s2">"nav\|men
 <span class="nx">useHealthSummary</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nx">refetchInterval</span><span class="o">:</span><span class="w"> </span><span class="kt">10000</span><span class="p">,</span><span class="w"> </span><span class="c1">// 10 seconds</span>
 <span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="step-42-test-dlq-stats-auto-refresh">Step 4.2: Test DLQ Stats Auto-Refresh<a class="headerlink" href="#step-42-test-dlq-stats-auto-refresh" title="Permanent link">¶</a></h3>
-<p><strong>Test Steps:</strong>
-1. Open Operations page (<code>/operations</code>)
-2. Note current DLQ stats values
-3. Create a new DLQ item (using test script from Step 1.3)
-4. Wait 10-15 seconds
-5. Verify stats update automatically without page refresh</p>
-<p><strong>Expected Behavior:</strong>
-- Stats card updates automatically
-- No page reload required
-- Smooth transition (no flicker)</p>
+<p><strong>Test Steps:</strong></p>
+<ol>
+<li>Open Operations page (<code>/operations</code>)</li>
+<li>Note current DLQ stats values</li>
+<li>Create a new DLQ item (using test script from Step 1.3)</li>
+<li>Wait 10-15 seconds</li>
+<li>Verify stats update automatically without page refresh</li>
+</ol>
+<p><strong>Expected Behavior:</strong></p>
+<ul>
+<li>Stats card updates automatically</li>
+<li>No page reload required</li>
+<li>Smooth transition (no flicker)</li>
+</ul>
 <h3 id="step-43-test-circuit-breaker-auto-refresh">Step 4.3: Test Circuit Breaker Auto-Refresh<a class="headerlink" href="#step-43-test-circuit-breaker-auto-refresh" title="Permanent link">¶</a></h3>
-<p><strong>Test Steps:</strong>
-1. Open Operations page, Circuit Breakers tab
-2. Note current circuit breaker states
-3. Manually trigger a circuit breaker failure (if possible) OR
-4. Wait and observe refresh (should refresh every 5 seconds)
-5. Verify states update automatically</p>
-<p><strong>Expected Behavior:</strong>
-- Circuit breaker cards update every 5 seconds
-- State changes are reflected immediately
-- Failure counts update correctly</p>
+<p><strong>Test Steps:</strong></p>
+<ol>
+<li>Open Operations page, Circuit Breakers tab</li>
+<li>Note current circuit breaker states</li>
+<li>Manually trigger a circuit breaker failure (if possible) OR</li>
+<li>Wait and observe refresh (should refresh every 5 seconds)</li>
+<li>Verify states update automatically</li>
+</ol>
+<p><strong>Expected Behavior:</strong></p>
+<ul>
+<li>Circuit breaker cards update every 5 seconds</li>
+<li>State changes are reflected immediately</li>
+<li>Failure counts update correctly</li>
+</ul>
 <h3 id="step-44-test-dlq-table-auto-refresh">Step 4.4: Test DLQ Table Auto-Refresh<a class="headerlink" href="#step-44-test-dlq-table-auto-refresh" title="Permanent link">¶</a></h3>
-<p><strong>Test Steps:</strong>
-1. Open Operations page, Dead Letter Queue tab
-2. Note current items in table
-3. Create a new DLQ item
-4. Wait 30 seconds (refresh interval)
-5. Verify new item appears in table automatically</p>
-<p><strong>Expected Behavior:</strong>
-- Table updates every 30 seconds
-- New items appear automatically
-- Status changes are reflected</p>
+<p><strong>Test Steps:</strong></p>
+<ol>
+<li>Open Operations page, Dead Letter Queue tab</li>
+<li>Note current items in table</li>
+<li>Create a new DLQ item</li>
+<li>Wait 30 seconds (refresh interval)</li>
+<li>Verify new item appears in table automatically</li>
+</ol>
+<p><strong>Expected Behavior:</strong></p>
+<ul>
+<li>Table updates every 30 seconds</li>
+<li>New items appear automatically</li>
+<li>Status changes are reflected</li>
+</ul>
 <h3 id="step-45-test-health-summary-auto-refresh">Step 4.5: Test Health Summary Auto-Refresh<a class="headerlink" href="#step-45-test-health-summary-auto-refresh" title="Permanent link">¶</a></h3>
-<p><strong>Test Steps:</strong>
-1. Open Health page, Operations Health tab
-2. Note current health status
-3. Create a DLQ item or open a circuit breaker
-4. Wait 10-15 seconds
-5. Verify health summary updates automatically</p>
-<p><strong>Expected Behavior:</strong>
-- Overall status updates
-- DLQ stats update
-- Circuit breaker status updates
-- Health checks remain current</p>
+<p><strong>Test Steps:</strong></p>
+<ol>
+<li>Open Health page, Operations Health tab</li>
+<li>Note current health status</li>
+<li>Create a DLQ item or open a circuit breaker</li>
+<li>Wait 10-15 seconds</li>
+<li>Verify health summary updates automatically</li>
+</ol>
+<p><strong>Expected Behavior:</strong></p>
+<ul>
+<li>Overall status updates</li>
+<li>DLQ stats update</li>
+<li>Circuit breaker status updates</li>
+<li>Health checks remain current</li>
+</ul>
 <h3 id="step-46-test-websocket-integration-if-applicable">Step 4.6: Test WebSocket Integration (if applicable)<a class="headerlink" href="#step-46-test-websocket-integration-if-applicable" title="Permanent link">¶</a></h3>
-<p><strong>Check WebSocket Usage:</strong>
+<p><strong>Check WebSocket Usage:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1">// Some queries may use WebSocket for real-time updates</span>
 <span class="c1">// Check if useRealtimeQuery is used for operations endpoints</span>
-</code></pre></div></p>
-<p><strong>If WebSocket is Used:</strong>
-1. Open browser DevTools → Network → WS tab
-2. Verify WebSocket connection is established
-3. Trigger an event (create DLQ item, open circuit breaker)
-4. Verify WebSocket message is received
-5. Verify UI updates immediately</p>
+</code></pre></div>
+<p><strong>If WebSocket is Used:</strong></p>
+<ol>
+<li>Open browser DevTools → Network → WS tab</li>
+<li>Verify WebSocket connection is established</li>
+<li>Trigger an event (create DLQ item, open circuit breaker)</li>
+<li>Verify WebSocket message is received</li>
+<li>Verify UI updates immediately</li>
+</ol>
 <h3 id="step-47-test-manual-refresh">Step 4.7: Test Manual Refresh<a class="headerlink" href="#step-47-test-manual-refresh" title="Permanent link">¶</a></h3>
-<p><strong>Test Refresh Buttons:</strong>
-1. Click refresh icon on Circuit Breaker Status component
-2. Verify data refreshes immediately
-3. Click refresh on DLQ Stats (if available)
-4. Verify manual refresh works</p>
+<p><strong>Test Refresh Buttons:</strong></p>
+<ol>
+<li>Click refresh icon on Circuit Breaker Status component</li>
+<li>Verify data refreshes immediately</li>
+<li>Click refresh on DLQ Stats (if available)</li>
+<li>Verify manual refresh works</li>
+</ol>
 <h3 id="step-48-test-multiple-tabs">Step 4.8: Test Multiple Tabs<a class="headerlink" href="#step-48-test-multiple-tabs" title="Permanent link">¶</a></h3>
-<p><strong>Test Concurrent Updates:</strong>
-1. Open Operations page in Tab 1
-2. Open Health page Operations Health tab in Tab 2
-3. Create a DLQ item
-4. Verify both tabs update independently
-5. Verify no conflicts or race conditions</p>
+<p><strong>Test Concurrent Updates:</strong></p>
+<ol>
+<li>Open Operations page in Tab 1</li>
+<li>Open Health page Operations Health tab in Tab 2</li>
+<li>Create a DLQ item</li>
+<li>Verify both tabs update independently</li>
+<li>Verify no conflicts or race conditions</li>
+</ol>
 <h3 id="step-49-test-error-handling-during-refresh">Step 4.9: Test Error Handling During Refresh<a class="headerlink" href="#step-49-test-error-handling-during-refresh" title="Permanent link">¶</a></h3>
-<p><strong>Test Network Errors:</strong>
-1. Stop backend server
-2. Wait for refresh interval
-3. Verify error handling (should show error state, not crash)
-4. Restart backend server
-5. Verify recovery (should resume updates)</p>
+<p><strong>Test Network Errors:</strong></p>
+<ol>
+<li>Stop backend server</li>
+<li>Wait for refresh interval</li>
+<li>Verify error handling (should show error state, not crash)</li>
+<li>Restart backend server</li>
+<li>Verify recovery (should resume updates)</li>
+</ol>
 <h3 id="real-time-updates-checklist">Real-Time Updates Checklist<a class="headerlink" href="#real-time-updates-checklist" title="Permanent link">¶</a></h3>
 <ul>
 <li>[ ] DLQ stats auto-refresh works (10s interval)</li>
@@ -1914,25 +1946,29 @@ grep<span class="w"> </span>-n<span class="w"> </span><span class="s2">"nav\|men
 <hr/>
 <h2 id="troubleshooting-guide">Troubleshooting Guide<a class="headerlink" href="#troubleshooting-guide" title="Permanent link">¶</a></h2>
 <h3 id="issue-endpoints-return-404">Issue: Endpoints Return 404<a class="headerlink" href="#issue-endpoints-return-404" title="Permanent link">¶</a></h3>
-<p><strong>Solution:</strong> Verify router is included in <code>routes.py</code>:
+<p><strong>Solution:</strong> Verify router is included in <code>routes.py</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">operations_router</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">"/api"</span><span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="issue-typescript-errors">Issue: TypeScript Errors<a class="headerlink" href="#issue-typescript-errors" title="Permanent link">¶</a></h3>
-<p><strong>Solution:</strong> Check imports and type definitions match backend response structure</p>
+<p><strong>Solution:</strong> Check imports and type definitions match backend response
+structure</p>
 <h3 id="issue-auto-refresh-not-working">Issue: Auto-Refresh Not Working<a class="headerlink" href="#issue-auto-refresh-not-working" title="Permanent link">¶</a></h3>
-<p><strong>Solution:</strong> 
-1. Check <code>refetchInterval</code> values
-2. Verify React Query is configured correctly
-3. Check browser console for errors
-4. Verify backend is responding</p>
+<p><strong>Solution:</strong></p>
+<ol>
+<li>Check <code>refetchInterval</code> values</li>
+<li>Verify React Query is configured correctly</li>
+<li>Check browser console for errors</li>
+<li>Verify backend is responding</li>
+</ol>
 <h3 id="issue-navigation-link-not-working">Issue: Navigation Link Not Working<a class="headerlink" href="#issue-navigation-link-not-working" title="Permanent link">¶</a></h3>
-<p><strong>Solution:</strong>
-1. Verify route is defined in <code>App.tsx</code>
-2. Check Link component import
-3. Verify path matches route definition</p>
+<p><strong>Solution:</strong></p>
+<ol>
+<li>Verify route is defined in <code>App.tsx</code></li>
+<li>Check Link component import</li>
+<li>Verify path matches route definition</li>
+</ol>
 <hr/>
-<p><strong>Status</strong>: Ready for Testing
-<strong>Estimated Time</strong>: 2-4 hours for complete testing</p>
+<p><strong>Status</strong>: Ready for Testing <strong>Estimated Time</strong>: 2-4 hours for complete testing</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1957,7 +1993,7 @@ grep<span class="w"> </span>-n<span class="w"> </span><span class="s2">"nav\|men
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

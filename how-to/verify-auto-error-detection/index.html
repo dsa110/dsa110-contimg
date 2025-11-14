@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1172,54 +1174,50 @@ python3<span class="w"> </span>-c<span class="w"> </span><span class="s1">'raise
 <h3 id="not-enabled-after-reload">Not Enabled After Reload<a class="headerlink" href="#not-enabled-after-reload" title="Permanent link">¶</a></h3>
 <p>If <code>AUTO_ERROR_DETECTION</code> is not set after reloading:</p>
 <ol>
-<li>
-<p>Check if script exists:
-   <div class="highlight"><pre><span></span><code>ls<span class="w"> </span>-l<span class="w"> </span>/data/dsa110-contimg/scripts/auto-error-detection.sh
-</code></pre></div></p>
-</li>
-<li>
-<p>Check if wrapper exists:
-   <div class="highlight"><pre><span></span><code>ls<span class="w"> </span>-l<span class="w"> </span>/data/dsa110-contimg/scripts/run-with-error-detection.py
-</code></pre></div></p>
-</li>
-<li>
-<p>Manually source to see errors:
+<li>Check if script exists:</li>
+</ol>
+<div class="highlight"><pre><span></span><code>ls<span class="w"> </span>-l<span class="w"> </span>/data/dsa110-contimg/scripts/auto-error-detection.sh
+</code></pre></div>
+<ol>
+<li>Check if wrapper exists:</li>
+</ol>
+<div class="highlight"><pre><span></span><code>ls<span class="w"> </span>-l<span class="w"> </span>/data/dsa110-contimg/scripts/run-with-error-detection.py
+</code></pre></div>
+<ol>
+<li>Manually source to see errors:
    <div class="highlight"><pre><span></span><code><span class="nb">source</span><span class="w"> </span>/data/dsa110-contimg/scripts/auto-error-detection.sh
-</code></pre></div></p>
-</li>
+</code></pre></div></li>
 </ol>
 <h3 id="commands-not-being-wrapped">Commands Not Being Wrapped<a class="headerlink" href="#commands-not-being-wrapped" title="Permanent link">¶</a></h3>
 <p>If commands aren't being wrapped:</p>
 <ol>
-<li>
-<p>Check if functions are defined:
-   <div class="highlight"><pre><span></span><code><span class="nb">type</span><span class="w"> </span>pytest
+<li>Check if functions are defined:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="nb">type</span><span class="w"> </span>pytest
 <span class="nb">type</span><span class="w"> </span>python
-</code></pre></div></p>
-</li>
-<li>
-<p>Check if AUTO_WRAP_COMMANDS is set:
-   <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="si">${</span><span class="nv">AUTO_WRAP_COMMANDS</span><span class="k">:-</span><span class="nv">not</span><span class="p"> set</span><span class="si">}</span>
-</code></pre></div></p>
-</li>
-<li>
-<p>Re-enable:
+</code></pre></div>
+<ol>
+<li>Check if AUTO_WRAP_COMMANDS is set:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="si">${</span><span class="nv">AUTO_WRAP_COMMANDS</span><span class="k">:-</span><span class="nv">not</span><span class="p"> set</span><span class="si">}</span>
+</code></pre></div>
+<ol>
+<li>Re-enable:
    <div class="highlight"><pre><span></span><code><span class="nb">source</span><span class="w"> </span>/data/dsa110-contimg/scripts/auto-error-detection.sh
-</code></pre></div></p>
-</li>
+</code></pre></div></li>
 </ol>
 <h2 id="disable">Disable<a class="headerlink" href="#disable" title="Permanent link">¶</a></h2>
 <h3 id="temporarily">Temporarily<a class="headerlink" href="#temporarily" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="nb">unset</span><span class="w"> </span>AUTO_ERROR_DETECTION
 </code></pre></div>
 <h3 id="permanently">Permanently<a class="headerlink" href="#permanently" title="Permanent link">¶</a></h3>
-<p>Remove these lines from <code>~/.bashrc</code>:
+<p>Remove these lines from <code>~/.bashrc</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Auto Error Detection (added by setup-auto-error-detection.sh)</span>
 <span class="c1"># Automatically wraps commands with error detection</span>
 <span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">"/data/dsa110-contimg/scripts/auto-error-detection.sh"</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
 <span class="w">    </span><span class="nb">source</span><span class="w"> </span><span class="s2">"/data/dsa110-contimg/scripts/auto-error-detection.sh"</span>
 <span class="k">fi</span>
-</code></pre></div></p>
+</code></pre></div>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1244,7 +1242,7 @@ python3<span class="w"> </span>-c<span class="w"> </span><span class="s1">'raise
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

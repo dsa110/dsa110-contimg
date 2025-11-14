@@ -28,6 +28,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="." title="DSA-110 Continuum Imaging Pipeline">
@@ -161,9 +163,9 @@
 <nav aria-label="Key Features" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#streaming-service-control">
+<a class="md-nav__link" href="#streaming">
 <span class="md-ellipsis">
-      Streaming Service Control
+      Streaming
     </span>
 </a>
 </li>
@@ -1141,9 +1143,9 @@
 <nav aria-label="Key Features" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#streaming-service-control">
+<a class="md-nav__link" href="#streaming">
 <span class="md-ellipsis">
-      Streaming Service Control
+      Streaming
     </span>
 </a>
 </li>
@@ -1172,43 +1174,65 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="dsa-110-continuum-imaging-pipeline">DSA-110 Continuum Imaging Pipeline<a class="headerlink" href="#dsa-110-continuum-imaging-pipeline" title="Permanent link">¶</a></h1>
-<p>Welcome. This pipeline turns incoming UVH5 subband data into calibrated, quick-look continuum images and exposes a monitoring API.</p>
-<p>This documentation is organized to help you understand and use the pipeline effectively.</p>
+<p>Welcome. This pipeline turns incoming UVH5 subband data into calibrated,
+quick-look continuum images and exposes a monitoring API.</p>
+<p>!!! info "Package Information" This documentation is for
+<strong>{{ config.extra.package_name }}</strong> version <strong>{{ config.extra.version }}</strong>.
+{% if config.extra.description %} {{ config.extra.description }} {% endif %}</p>
+<p>This documentation is organized to help you understand and use the pipeline
+effectively.</p>
 <h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong><a href="DOCUMENTATION_QUICK_REFERENCE/">Documentation Guide</a></strong>: Guide to documentation organization and location.</li>
+<li><strong><a href="DOCUMENTATION_QUICK_REFERENCE/">Documentation Guide</a></strong>: Guide to
+  documentation organization and location.</li>
 <li><strong><a href="how-to/quickstart/">Quick Start Guide</a></strong>: Get up and running quickly.</li>
-<li><strong><a href="how-to/mosaic_quickstart/">Mosaic Quickstart</a></strong>: Plan and build a basic sky mosaic.</li>
-<li><strong><a href="how-to/dashboard-development/">Dashboard Development</a></strong>: Set up the development environment.</li>
+<li><strong><a href="how-to/mosaic_quickstart/">Mosaic Quickstart</a></strong>: Plan and build a basic
+  sky mosaic.</li>
+<li><strong><a href="how-to/dashboard-development/">Dashboard Development</a></strong>: Set up the
+  development environment.</li>
 </ul>
 <h2 id="documentation-sections">Documentation Sections<a class="headerlink" href="#documentation-sections" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong><a href="concepts/">Concepts</a></strong>: Understand the high-level architecture and design.</li>
+<li><strong><a href="concepts/">Concepts</a></strong>: Understand the high-level architecture and
+  design.</li>
 <li><strong><a href="tutorials/">Tutorials</a></strong>: Follow step-by-step guides for common tasks.</li>
 <li><strong><a href="how-to/">How-To Guides</a></strong>: Find instructions for specific procedures.</li>
 <li><strong><a href="reference/">Reference</a></strong>: API documentation and technical references.</li>
 <li><strong><a href="operations/">Operations</a></strong>: Deployment and operational procedures.</li>
 </ul>
 <h2 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">¶</a></h2>
-<h3 id="streaming-service-control">Streaming Service Control<a class="headerlink" href="#streaming-service-control" title="Permanent link">¶</a></h3>
+<h3 id="streaming">Streaming<a class="headerlink" href="#streaming" title="Permanent link">¶</a></h3>
 <ul>
-<li><strong><a href="how-to/streaming-control/">Streaming Control Guide</a></strong>: Control the streaming service via dashboard</li>
-<li><strong><a href="how-to/streaming-troubleshooting/">Streaming Troubleshooting Guide</a></strong>: Comprehensive troubleshooting procedures</li>
-<li><strong><a href="reference/streaming-api/">Streaming API Reference</a></strong>: Complete API documentation</li>
-<li><strong><a href="concepts/streaming-architecture/">Streaming Architecture</a></strong>: System architecture and design</li>
+<li><strong><a href="how-to/streaming/">Streaming Guide</a></strong>: Control, deploy, troubleshoot, and
+  run standalone conversions</li>
+<li><strong><a href="reference/streaming-api/">Streaming API Reference</a></strong>: Complete API
+  documentation</li>
+<li><strong><a href="concepts/streaming-architecture/">Streaming Architecture</a></strong>: System
+  architecture and design</li>
 </ul>
 <h3 id="dashboard">Dashboard<a class="headerlink" href="#dashboard" title="Permanent link">¶</a></h3>
 <ul>
-<li><strong><a href="reference/dashboard_backend_api/">Dashboard API Reference</a></strong>: Complete API documentation</li>
-<li><strong><a href="how-to/control-panel-quickstart/">Control Panel Guide</a></strong>: Using the control panel</li>
+<li><strong><a href="how-to/dashboard/">Dashboard Guide</a></strong>: Quick start, development,
+  deployment, and testing</li>
+<li><strong><a href="reference/dashboard_backend_api/">Dashboard API Reference</a></strong>: Complete
+  API documentation</li>
+<li><strong><a href="how-to/control-panel-quickstart/">Control Panel Guide</a></strong>: Using the
+  control panel</li>
 <li><strong><a href="SKYVIEW_IMPLEMENTATION_PLAN/">Sky View</a></strong>: Image viewing and analysis</li>
+<li><strong><a href="QA_VISUALIZATION_QUICK_START/">QA Visualization Quick Start</a></strong>: FITS
+  viewing, CASA browsing, QA notebooks</li>
+<li><strong><a href="QA_VISUALIZATION_USAGE/">QA Visualization Usage Guide</a></strong>: Full usage and
+  integration examples</li>
 </ul>
 <h3 id="pipeline-operations">Pipeline Operations<a class="headerlink" href="#pipeline-operations" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong><a href="operations/deploy-docker/">Docker Deployment</a></strong>: Deploy with Docker</li>
-<li><strong><a href="operations/deploy-systemd/">Systemd Deployment</a></strong>: Deploy as system service</li>
-<li><strong><a href="operations/CASA_LOG_DAEMON_PROTECTION_SUMMARY/">CASA Log Daemon</a></strong>: Automated log file management and monitoring</li>
-<li><strong><a href="how-to/streaming_converter_guide/">Streaming Converter</a></strong>: Streaming converter architecture</li>
+<li><strong><a href="operations/deploy-systemd/">Systemd Deployment</a></strong>: Deploy as system
+  service</li>
+<li><strong><a href="operations/CASA_LOG_DAEMON_PROTECTION_SUMMARY/">CASA Log Daemon</a></strong>:
+  Automated log file management and monitoring</li>
+<li><strong><a href="how-to/streaming_converter_guide/">Streaming Converter</a></strong>: Streaming
+  converter architecture</li>
 </ul>
 </article>
 </div>
@@ -1234,7 +1258,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": ".", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": ".", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

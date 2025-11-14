@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1153,28 +1155,38 @@
 <article class="md-content__inner md-typeset">
 <h1 id="full-path-commands-and-error-detection">Full Path Commands and Error Detection<a class="headerlink" href="#full-path-commands-and-error-detection" title="Permanent link">¶</a></h1>
 <h2 id="question">Question<a class="headerlink" href="#question" title="Permanent link">¶</a></h2>
-<p><strong>Will error detection run if the command is run from <code>/opt/miniforge/envs/casa6/bin/python</code>?</strong></p>
+<p><strong>Will error detection run if the command is run from
+<code>/opt/miniforge/envs/casa6/bin/python</code>?</strong></p>
 <h2 id="answer">Answer<a class="headerlink" href="#answer" title="Permanent link">¶</a></h2>
-<p><strong>Yes, error detection WILL run</strong> when using full paths like <code>/opt/miniforge/envs/casa6/bin/python</code>.</p>
+<p><strong>Yes, error detection WILL run</strong> when using full paths like
+<code>/opt/miniforge/envs/casa6/bin/python</code>.</p>
 <h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">¶</a></h2>
-<p>The auto-error-detection system uses a <strong>DEBUG trap</strong> to intercept commands before they execute. When it detects a full path to a Python executable (e.g., <code>/opt/miniforge/envs/casa6/bin/python</code>), it wraps the command with error detection.</p>
+<p>The auto-error-detection system uses a <strong>DEBUG trap</strong> to intercept commands
+before they execute. When it detects a full path to a Python executable (e.g.,
+<code>/opt/miniforge/envs/casa6/bin/python</code>), it wraps the command with error
+detection.</p>
 <h2 id="current-behavior">Current Behavior<a class="headerlink" href="#current-behavior" title="Permanent link">¶</a></h2>
-<p>When you run:
+<p>When you run:</p>
 <div class="highlight"><pre><span></span><code>/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"print('test')"</span>
-</code></pre></div></p>
-<p>The DEBUG trap:
-1. Detects the full path to Python executable
-2. Wraps it with error detection
-3. Executes the command through the wrapper</p>
-<p><strong>Note:</strong> There may be duplicate output because bash still executes the original command after the trap. This is a known limitation of DEBUG traps.</p>
+</code></pre></div>
+<p>The DEBUG trap:</p>
+<ol>
+<li>Detects the full path to Python executable</li>
+<li>Wraps it with error detection</li>
+<li>Executes the command through the wrapper</li>
+</ol>
+<p><strong>Note:</strong> There may be duplicate output because bash still executes the original
+command after the trap. This is a known limitation of DEBUG traps.</p>
 <h2 id="supported-full-paths">Supported Full Paths<a class="headerlink" href="#supported-full-paths" title="Permanent link">¶</a></h2>
-<p>The system detects and wraps:
-- <code>/opt/miniforge/envs/casa6/bin/python</code>
-- <code>/opt/miniforge/envs/casa6/bin/python3</code>
-- <code>/usr/bin/python</code>
-- <code>/usr/bin/python3</code>
-- Any path containing <code>/python</code> or <code>/python3</code>
-- Any path containing <code>/pytest</code></p>
+<p>The system detects and wraps:</p>
+<ul>
+<li><code>/opt/miniforge/envs/casa6/bin/python</code></li>
+<li><code>/opt/miniforge/envs/casa6/bin/python3</code></li>
+<li><code>/usr/bin/python</code></li>
+<li><code>/usr/bin/python3</code></li>
+<li>Any path containing <code>/python</code> or <code>/python3</code></li>
+<li>Any path containing <code>/pytest</code></li>
+</ul>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">¶</a></h2>
 <h3 id="success-case">Success Case<a class="headerlink" href="#success-case" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>$<span class="w"> </span>/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"print('test')"</span>
@@ -1201,29 +1213,37 @@ Exception:<span class="w"> </span>error
 <span class="c1"># Use:</span>
 python<span class="w"> </span>script.py<span class="w">  </span><span class="c1"># If python points to casa6/bin/python</span>
 </code></pre></div>
-<p>The function wrapper approach (for <code>python</code>, <code>python3</code>, <code>pytest</code>) avoids the duplicate output issue.</p>
+<p>The function wrapper approach (for <code>python</code>, <code>python3</code>, <code>pytest</code>) avoids the
+duplicate output issue.</p>
 <h2 id="technical-details">Technical Details<a class="headerlink" href="#technical-details" title="Permanent link">¶</a></h2>
-<p>The DEBUG trap:
-- Runs before each command execution
-- Checks if the command matches Python executable patterns
-- Wraps matching commands with error detection
-- Uses <code>extdebug</code> mode to enable trap functionality</p>
+<p>The DEBUG trap:</p>
+<ul>
+<li>Runs before each command execution</li>
+<li>Checks if the command matches Python executable patterns</li>
+<li>Wraps matching commands with error detection</li>
+<li>Uses <code>extdebug</code> mode to enable trap functionality</li>
+</ul>
 <h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">¶</a></h2>
 <ol>
 <li>
-<p><strong>Duplicate Output</strong>: DEBUG traps can't prevent bash from executing the original command, so output may appear twice.</p>
+<p><strong>Duplicate Output</strong>: DEBUG traps can't prevent bash from executing the
+   original command, so output may appear twice.</p>
 </li>
 <li>
-<p><strong>Performance</strong>: DEBUG traps run for every command, which can have a small performance impact.</p>
+<p><strong>Performance</strong>: DEBUG traps run for every command, which can have a small
+   performance impact.</p>
 </li>
 <li>
-<p><strong>Complex Commands</strong>: Very complex command lines may not be fully parsed by the trap handler.</p>
+<p><strong>Complex Commands</strong>: Very complex command lines may not be fully parsed by
+   the trap handler.</p>
 </li>
 </ol>
 <h2 id="recommendation">Recommendation<a class="headerlink" href="#recommendation" title="Permanent link">¶</a></h2>
-<p><strong>For best results, use command names instead of full paths:</strong>
-- <code>python</code> instead of <code>/opt/miniforge/envs/casa6/bin/python</code>
-- <code>pytest</code> instead of <code>/opt/miniforge/envs/casa6/bin/pytest</code></p>
+<p><strong>For best results, use command names instead of full paths:</strong></p>
+<ul>
+<li><code>python</code> instead of <code>/opt/miniforge/envs/casa6/bin/python</code></li>
+<li><code>pytest</code> instead of <code>/opt/miniforge/envs/casa6/bin/pytest</code></li>
+</ul>
 <p>This avoids the duplicate output issue and is cleaner.</p>
 </article>
 </div>
@@ -1249,7 +1269,7 @@ python<span class="w"> </span>script.py<span class="w">  </span><span class="c1"
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

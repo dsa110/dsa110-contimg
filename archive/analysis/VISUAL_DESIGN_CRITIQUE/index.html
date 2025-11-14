@@ -1,0 +1,2251 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/archive/analysis/VISUAL_DESIGN_CRITIQUE/" rel="canonical"/>
+<link href="../../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Visual Design Critique - DSA-110 Dashboard Pages - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#visual-design-critique-dsa-110-dashboard-pages">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Visual Design Critique - DSA-110 Dashboard Pages
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overall-design-assessment">
+<span class="md-ellipsis">
+      Overall Design Assessment
+    </span>
+</a>
+<nav aria-label="Overall Design Assessment" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#strengths">
+<span class="md-ellipsis">
+      Strengths
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#areas-for-improvement">
+<span class="md-ellipsis">
+      Areas for Improvement
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#page-by-page-critique">
+<span class="md-ellipsis">
+      Page-by-Page Critique
+    </span>
+</a>
+<nav aria-label="Page-by-Page Critique" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-dashboard-page-dashboard">
+<span class="md-ellipsis">
+      1. Dashboard Page (/dashboard)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-sources-page-sources">
+<span class="md-ellipsis">
+      2. Sources Page (/sources)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-data-browser-page-data">
+<span class="md-ellipsis">
+      3. Data Browser Page (/data)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-operations-page-operations">
+<span class="md-ellipsis">
+      4. Operations Page (/operations)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-health-page-health">
+<span class="md-ellipsis">
+      5. Health Page (/health)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#6-pipeline-page-pipeline">
+<span class="md-ellipsis">
+      6. Pipeline Page (/pipeline)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#7-control-page-control">
+<span class="md-ellipsis">
+      7. Control Page (/control)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#8-qa-visualization-page-qa">
+<span class="md-ellipsis">
+      8. QA Visualization Page (/qa)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#9-streaming-page-streaming">
+<span class="md-ellipsis">
+      9. Streaming Page (/streaming)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#10-events-page-events">
+<span class="md-ellipsis">
+      10. Events Page (/events)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#11-cache-page-cache">
+<span class="md-ellipsis">
+      11. Cache Page (/cache)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#cross-page-issues">
+<span class="md-ellipsis">
+      Cross-Page Issues
+    </span>
+</a>
+<nav aria-label="Cross-Page Issues" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-navigation-bar">
+<span class="md-ellipsis">
+      1. Navigation Bar
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-breadcrumbs">
+<span class="md-ellipsis">
+      2. Breadcrumbs
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-workflow-chips">
+<span class="md-ellipsis">
+      3. Workflow Chips
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-loading-states">
+<span class="md-ellipsis">
+      4. Loading States
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-empty-states">
+<span class="md-ellipsis">
+      5. Empty States
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#6-color-usage">
+<span class="md-ellipsis">
+      6. Color Usage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#7-typography-hierarchy">
+<span class="md-ellipsis">
+      7. Typography Hierarchy
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#8-spacing-and-padding">
+<span class="md-ellipsis">
+      8. Spacing and Padding
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#9-table-design">
+<span class="md-ellipsis">
+      9. Table Design
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#10-button-styling">
+<span class="md-ellipsis">
+      10. Button Styling
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#priority-recommendations">
+<span class="md-ellipsis">
+      Priority Recommendations
+    </span>
+</a>
+<nav aria-label="Priority Recommendations" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#high-priority-immediate-impact">
+<span class="md-ellipsis">
+      High Priority (Immediate Impact)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#medium-priority-significant-improvement">
+<span class="md-ellipsis">
+      Medium Priority (Significant Improvement)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#low-priority-polish">
+<span class="md-ellipsis">
+      Low Priority (Polish)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#design-system-recommendations">
+<span class="md-ellipsis">
+      Design System Recommendations
+    </span>
+</a>
+<nav aria-label="Design System Recommendations" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#color-palette">
+<span class="md-ellipsis">
+      Color Palette
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#spacing-scale">
+<span class="md-ellipsis">
+      Spacing Scale
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#typography-scale">
+<span class="md-ellipsis">
+      Typography Scale
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#component-patterns">
+<span class="md-ellipsis">
+      Component Patterns
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#conclusion">
+<span class="md-ellipsis">
+      Conclusion
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="visual-design-critique-dsa-110-dashboard-pages">Visual Design Critique - DSA-110 Dashboard Pages<a class="headerlink" href="#visual-design-critique-dsa-110-dashboard-pages" title="Permanent link">¶</a></h1>
+<p><strong>Date:</strong> 2025-11-13<br/>
+<strong>Reviewer:</strong> AI Assistant<br/>
+<strong>Method:</strong> Systematic page-by-page review via browser inspection</p>
+<hr/>
+<h2 id="overall-design-assessment">Overall Design Assessment<a class="headerlink" href="#overall-design-assessment" title="Permanent link">¶</a></h2>
+<h3 id="strengths">Strengths<a class="headerlink" href="#strengths" title="Permanent link">¶</a></h3>
+<ul>
+<li>Consistent dark theme throughout</li>
+<li>Clear navigation structure</li>
+<li>Good use of Material-UI components</li>
+<li>Functional layout with logical information grouping</li>
+</ul>
+<h3 id="areas-for-improvement">Areas for Improvement<a class="headerlink" href="#areas-for-improvement" title="Permanent link">¶</a></h3>
+<ul>
+<li>Visual hierarchy could be stronger</li>
+<li>Some pages lack visual polish</li>
+<li>Inconsistent spacing and padding</li>
+<li>Limited use of color for status indication</li>
+<li>Some information density issues</li>
+</ul>
+<hr/>
+<h2 id="page-by-page-critique">Page-by-Page Critique<a class="headerlink" href="#page-by-page-critique" title="Permanent link">¶</a></h2>
+<h3 id="1-dashboard-page-dashboard">1. Dashboard Page (<code>/dashboard</code>)<a class="headerlink" href="#1-dashboard-page-dashboard" title="Permanent link">¶</a></h3>
+<p><strong>Visual Elements:</strong></p>
+<ul>
+<li>Top navigation bar with 14 links (potentially overwhelming)</li>
+<li>Breadcrumbs showing "Dashboard &gt; dashboard" (redundant)</li>
+<li>"Monitoring" workflow chip</li>
+<li>Multiple information panels in grid layout</li>
+<li>Large pointing visualization graph</li>
+<li>ESE candidates table</li>
+</ul>
+<p><strong>Strengths:</strong></p>
+<ul>
+<li>Clean panel-based layout</li>
+<li>Good separation of information types</li>
+<li>Interactive Plotly graph for pointing visualization</li>
+<li>Clear typography hierarchy</li>
+</ul>
+<p><strong>Issues:</strong></p>
+<ol>
+<li><strong>Navigation Bar Overcrowding</strong></li>
+<li>14 navigation links in a single row is too many</li>
+<li>On smaller screens, links will wrap or become cramped</li>
+<li>
+<p><strong>Recommendation:</strong> Consider grouping related pages or using a dropdown
+     menu</p>
+</li>
+<li>
+<p><strong>Redundant Breadcrumbs</strong></p>
+</li>
+<li>Shows "Dashboard &gt; dashboard" which is redundant</li>
+<li>
+<p><strong>Recommendation:</strong> Hide breadcrumbs on top-level pages or show only when
+     there's a meaningful path</p>
+</li>
+<li>
+<p><strong>Panel Layout Inconsistency</strong></p>
+</li>
+<li>Top row: 2 panels (Pipeline Status, System Health)</li>
+<li>Middle: 1 panel (Recent Observations) - feels unbalanced</li>
+<li>Bottom: Large pointing graph and ESE table</li>
+<li>
+<p><strong>Recommendation:</strong> Use consistent grid system (e.g., 3-column for top row)</p>
+</li>
+<li>
+<p><strong>Status Indicators</strong></p>
+</li>
+<li>All metrics shown as plain text</li>
+<li>No color coding for health status (CPU, Memory, Disk)</li>
+<li>
+<p><strong>Recommendation:</strong> Add color indicators (green/yellow/red) for resource
+     usage thresholds</p>
+</li>
+<li>
+<p><strong>Empty State</strong></p>
+</li>
+<li>"No recent observations" is just text</li>
+<li>
+<p><strong>Recommendation:</strong> Add an icon or illustration to make empty states more
+     visually engaging</p>
+</li>
+<li>
+<p><strong>ESE Table</strong></p>
+</li>
+<li>Plain table without visual emphasis on high σ values</li>
+<li>
+<p><strong>Recommendation:</strong> Add color coding (e.g., red for &gt;8σ, orange for 6-8σ)</p>
+</li>
+<li>
+<p><strong>Information Density</strong></p>
+</li>
+<li>A lot of information on one page</li>
+<li><strong>Recommendation:</strong> Consider collapsible sections or tabs for different
+     views</li>
+</ol>
+<hr/>
+<h3 id="2-sources-page-sources">2. Sources Page (<code>/sources</code>)<a class="headerlink" href="#2-sources-page-sources" title="Permanent link">¶</a></h3>
+<p><strong>Visual Elements:</strong></p>
+<ul>
+<li>Simple search interface</li>
+<li>"Investigation" workflow chip</li>
+<li>Breadcrumbs: "Dashboard &gt; Sources"</li>
+<li>Search bar with advanced filters option</li>
+</ul>
+<p><strong>Strengths:</strong></p>
+<ul>
+<li>Clean, focused interface</li>
+<li>Clear purpose (source search)</li>
+<li>Good use of workflow context</li>
+</ul>
+<p><strong>Issues:</strong></p>
+<ol>
+<li><strong>Empty State</strong></li>
+<li>Very sparse page with just a search box</li>
+<li>Large empty area below search</li>
+<li>
+<p><strong>Recommendation:</strong> Add helpful content:</p>
+<ul>
+<li>Recent searches</li>
+<li>Popular sources</li>
+<li>Quick links to common searches</li>
+<li>Example searches or tips</li>
+</ul>
+</li>
+<li>
+<p><strong>Search UX</strong></p>
+</li>
+<li>Search button is disabled until input</li>
+<li>No visual feedback on what to search for</li>
+<li>
+<p><strong>Recommendation:</strong></p>
+<ul>
+<li>Enable search on Enter key</li>
+<li>Add placeholder examples</li>
+<li>Show search history or suggestions</li>
+</ul>
+</li>
+<li>
+<p><strong>Visual Interest</strong></p>
+</li>
+<li>Page feels empty and uninviting</li>
+<li><strong>Recommendation:</strong> Add visual elements:<ul>
+<li>Statistics cards (total sources, recent additions)</li>
+<li>Quick filters (ESE candidates, high variability)</li>
+<li>Recent activity feed</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h3 id="3-data-browser-page-data">3. Data Browser Page (<code>/data</code>)<a class="headerlink" href="#3-data-browser-page-data" title="Permanent link">¶</a></h3>
+<p><strong>Visual Elements:</strong></p>
+<ul>
+<li>Tabbed interface (Staging/Published)</li>
+<li>Data type filter dropdown</li>
+<li>Loading state with spinner</li>
+<li>"Analysis" workflow chip</li>
+</ul>
+<p><strong>Strengths:</strong></p>
+<ul>
+<li>Clear tab structure</li>
+<li>Good filtering options</li>
+<li>Consistent with other pages</li>
+</ul>
+<p><strong>Issues:</strong></p>
+<ol>
+<li><strong>Loading State</strong></li>
+<li>Just a spinner, no skeleton loader</li>
+<li>
+<p><strong>Recommendation:</strong> Use skeleton screens to show expected layout</p>
+</li>
+<li>
+<p><strong>Empty State</strong></p>
+</li>
+<li>When no data, just shows empty table</li>
+<li>
+<p><strong>Recommendation:</strong> Add helpful empty state:</p>
+<ul>
+<li>Icon or illustration</li>
+<li>Message explaining what data should appear</li>
+<li>Links to create/import data</li>
+</ul>
+</li>
+<li>
+<p><strong>Information Hierarchy</strong></p>
+</li>
+<li>Title is level 4, could be more prominent</li>
+<li><strong>Recommendation:</strong> Use larger heading or add visual weight</li>
+</ol>
+<hr/>
+<h3 id="4-operations-page-operations">4. Operations Page (<code>/operations</code>)<a class="headerlink" href="#4-operations-page-operations" title="Permanent link">¶</a></h3>
+<p><strong>Visual Elements:</strong></p>
+<ul>
+<li>Tabbed interface (DLQ, Circuit Breakers)</li>
+<li>Statistics cards with icons</li>
+<li>Large table with many columns</li>
+<li>Filter dropdowns</li>
+<li>"Debugging" workflow chip</li>
+</ul>
+<p><strong>Strengths:</strong></p>
+<ul>
+<li>Good use of statistics cards with icons</li>
+<li>Clear table structure</li>
+<li>Effective use of status chips (pending, etc.)</li>
+<li>Good information density</li>
+</ul>
+<p><strong>Issues:</strong></p>
+<ol>
+<li><strong>Table Width</strong></li>
+<li>Many columns (9 columns) - may require horizontal scrolling</li>
+<li>
+<p><strong>Recommendation:</strong></p>
+<ul>
+<li>Make some columns collapsible</li>
+<li>Use responsive column hiding</li>
+<li>Consider column grouping</li>
+</ul>
+</li>
+<li>
+<p><strong>Error Type Visualization</strong></p>
+</li>
+<li>Error types shown as plain grey chips</li>
+<li>
+<p><strong>Recommendation:</strong> Color-code by severity:</p>
+<ul>
+<li>Red for critical errors (RuntimeError, ValueError)</li>
+<li>Orange for warnings</li>
+<li>Yellow for recoverable errors</li>
+</ul>
+</li>
+<li>
+<p><strong>Action Buttons</strong></p>
+</li>
+<li>4 action buttons per row (View, Retry, Resolve, Mark as Failed)</li>
+<li>
+<p><strong>Recommendation:</strong></p>
+<ul>
+<li>Use icon buttons with tooltips</li>
+<li>Group actions in dropdown menu</li>
+<li>Show primary action prominently</li>
+</ul>
+</li>
+<li>
+<p><strong>Statistics Cards</strong></p>
+</li>
+<li>Good use of icons, but could be more visually distinct</li>
+<li><strong>Recommendation:</strong> Add color coding:<ul>
+<li>Red for high pending count</li>
+<li>Green for resolved</li>
+<li>Yellow for retrying</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h3 id="5-health-page-health">5. Health Page (<code>/health</code>)<a class="headerlink" href="#5-health-page-health" title="Permanent link">¶</a></h3>
+<p><strong>Visual Elements:</strong></p>
+<ul>
+<li>Tabbed interface (4 tabs)</li>
+<li>Error boundary displayed (dayjs not defined error)</li>
+<li>"Debugging" workflow chip</li>
+</ul>
+<p><strong>Strengths:</strong></p>
+<ul>
+<li>Good error handling display</li>
+<li>Clear error messages</li>
+</ul>
+<p><strong>Issues:</strong></p>
+<ol>
+<li><strong>Critical Bug</strong></li>
+<li>Page has JavaScript error (dayjs not defined)</li>
+<li>
+<p><strong>Recommendation:</strong> Fix import/dependency issue immediately</p>
+</li>
+<li>
+<p><strong>Error Display</strong></p>
+</li>
+<li>Full stack trace shown in production view</li>
+<li>
+<p><strong>Recommendation:</strong></p>
+<ul>
+<li>Hide stack traces in production</li>
+<li>Show user-friendly error messages</li>
+<li>Provide recovery actions</li>
+</ul>
+</li>
+<li>
+<p><strong>Layout When Working</strong></p>
+</li>
+<li>Need to see actual health page content</li>
+<li><strong>Recommendation:</strong> Fix error first, then review layout</li>
+</ol>
+<hr/>
+<h3 id="6-pipeline-page-pipeline">6. Pipeline Page (<code>/pipeline</code>)<a class="headerlink" href="#6-pipeline-page-pipeline" title="Permanent link">¶</a></h3>
+<p><strong>Visual Elements:</strong></p>
+<ul>
+<li>Pipeline summary cards</li>
+<li>Tabbed interface (4 tabs)</li>
+<li>Execution details with stage table</li>
+<li>Status chips (completed, running)</li>
+<li>"Monitoring" workflow chip</li>
+</ul>
+<p><strong>Strengths:</strong></p>
+<ul>
+<li>Excellent use of color for status (green/blue/red)</li>
+<li>Clear summary metrics</li>
+<li>Good visual hierarchy</li>
+<li>Effective use of progress indicators</li>
+</ul>
+<p><strong>Issues:</strong></p>
+<ol>
+<li><strong>Summary Cards</strong></li>
+<li>All cards same size, but some metrics more important</li>
+<li>
+<p><strong>Recommendation:</strong></p>
+<ul>
+<li>Make critical metrics (Failed, Success Rate) larger</li>
+<li>Add visual emphasis for low success rate (5.9%)</li>
+</ul>
+</li>
+<li>
+<p><strong>Success Rate Display</strong></p>
+</li>
+<li>5.9% success rate is very low but not visually alarming</li>
+<li>
+<p><strong>Recommendation:</strong></p>
+<ul>
+<li>Add warning/error styling for low success rates</li>
+<li>Use color coding (red for &lt;50%, yellow for 50-80%, green for &gt;80%)</li>
+</ul>
+</li>
+<li>
+<p><strong>Execution Duration</strong></p>
+</li>
+<li>"1037.3 minutes" is hard to read</li>
+<li>
+<p><strong>Recommendation:</strong> Format as "17.3 hours" or "1.0 days"</p>
+</li>
+<li>
+<p><strong>Stage Table</strong></p>
+</li>
+<li>Good, but could show more detail</li>
+<li><strong>Recommendation:</strong><ul>
+<li>Add progress bars for running stages</li>
+<li>Show estimated time remaining</li>
+<li>Add expandable details</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h3 id="7-control-page-control">7. Control Page (<code>/control</code>)<a class="headerlink" href="#7-control-page-control" title="Permanent link">¶</a></h3>
+<p><strong>Visual Elements:</strong></p>
+<ul>
+<li>Complex layout with multiple sections</li>
+<li>Measurement Sets table</li>
+<li>Quick Pipeline Workflow section</li>
+<li>Tabbed interface for pipeline stages</li>
+<li>Recent Jobs sidebar</li>
+<li>Job Logs section</li>
+</ul>
+<p><strong>Strengths:</strong></p>
+<ul>
+<li>Comprehensive control interface</li>
+<li>Good organization of related functions</li>
+<li>Clear action buttons</li>
+</ul>
+<p><strong>Issues:</strong></p>
+<ol>
+<li><strong>Layout Complexity</strong></li>
+<li>Many sections competing for attention</li>
+<li>
+<p><strong>Recommendation:</strong></p>
+<ul>
+<li>Use collapsible sections</li>
+<li>Better visual separation between sections</li>
+<li>Consider wizard-style workflow for complex operations</li>
+</ul>
+</li>
+<li>
+<p><strong>Table Information Density</strong></p>
+</li>
+<li>Quality and Size columns are empty (showing "-")</li>
+<li>
+<p><strong>Recommendation:</strong></p>
+<ul>
+<li>Hide empty columns or show "N/A" with tooltip</li>
+<li>Only show columns with data</li>
+</ul>
+</li>
+<li>
+<p><strong>Status Column</strong></p>
+</li>
+<li>Some rows have "Cal" and "Img" buttons, others blank</li>
+<li>
+<p><strong>Recommendation:</strong></p>
+<ul>
+<li>Consistent status display</li>
+<li>Use icons or chips for all statuses</li>
+<li>Clear visual indication of completion status</li>
+</ul>
+</li>
+<li>
+<p><strong>Form Layout</strong></p>
+</li>
+<li>Many input fields in Quick Pipeline Workflow</li>
+<li>
+<p><strong>Recommendation:</strong></p>
+<ul>
+<li>Group related fields</li>
+<li>Use better spacing</li>
+<li>Add field validation feedback</li>
+</ul>
+</li>
+<li>
+<p><strong>Recent Jobs Sidebar</strong></p>
+</li>
+<li>Job types truncated ("ese-d", "calibra", "workfl")</li>
+<li><strong>Recommendation:</strong><ul>
+<li>Use full names or tooltips</li>
+<li>Add status indicators</li>
+<li>Make clickable to view details</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h3 id="8-qa-visualization-page-qa">8. QA Visualization Page (<code>/qa</code>)<a class="headerlink" href="#8-qa-visualization-page-qa" title="Permanent link">¶</a></h3>
+<p><strong>Visual Elements:</strong></p>
+<ul>
+<li>Tabbed interface (4 tabs)</li>
+<li>Directory browser with breadcrumbs</li>
+<li>Path input and filter options</li>
+<li>Loading spinner</li>
+<li>"Analysis" workflow chip</li>
+</ul>
+<p><strong>Strengths:</strong></p>
+<ul>
+<li>Good tab organization</li>
+<li>Clear directory navigation</li>
+<li>Useful filter options</li>
+</ul>
+<p><strong>Issues:</strong></p>
+<ol>
+<li><strong>Loading State</strong></li>
+<li>Just spinner, no skeleton</li>
+<li>
+<p><strong>Recommendation:</strong> Show expected file list structure while loading</p>
+</li>
+<li>
+<p><strong>Empty Input Fields</strong></p>
+</li>
+<li>Large input fields take up space</li>
+<li>
+<p><strong>Recommendation:</strong></p>
+<ul>
+<li>Make inputs more compact</li>
+<li>Add helpful placeholder text</li>
+<li>Show recent paths or favorites</li>
+</ul>
+</li>
+<li>
+<p><strong>Redundant Titles</strong></p>
+</li>
+<li>"Directory Browser" appears twice (tab and section)</li>
+<li>
+<p><strong>Recommendation:</strong> Remove redundant section title</p>
+</li>
+<li>
+<p><strong>Visual Feedback</strong></p>
+</li>
+<li>No indication of what will appear when loaded</li>
+<li><strong>Recommendation:</strong> Add preview or example of file list structure</li>
+</ol>
+<hr/>
+<h3 id="9-streaming-page-streaming">9. Streaming Page (<code>/streaming</code>)<a class="headerlink" href="#9-streaming-page-streaming" title="Permanent link">¶</a></h3>
+<p><strong>Visual Elements:</strong></p>
+<ul>
+<li>Service status panel</li>
+<li>Resource usage panel (empty)</li>
+<li>Queue statistics</li>
+<li>Configuration display</li>
+<li>Control buttons (Configure, Start)</li>
+</ul>
+<p><strong>Strengths:</strong></p>
+<ul>
+<li>Clear status indication</li>
+<li>Good configuration display</li>
+<li>Logical grouping</li>
+</ul>
+<p><strong>Issues:</strong></p>
+<ol>
+<li><strong>Empty Resource Usage Panel</strong></li>
+<li>Panel exists but is empty when service stopped</li>
+<li>
+<p><strong>Recommendation:</strong></p>
+<ul>
+<li>Show placeholder or "N/A" message</li>
+<li>Hide panel when not applicable</li>
+<li>Show historical data if available</li>
+</ul>
+</li>
+<li>
+<p><strong>Status Indicator</strong></p>
+</li>
+<li>"Stopped" shown as grey chip with exclamation</li>
+<li>
+<p><strong>Recommendation:</strong></p>
+<ul>
+<li>Use red color for stopped state</li>
+<li>Green for running</li>
+<li>More prominent status display</li>
+</ul>
+</li>
+<li>
+<p><strong>Visual Hierarchy</strong></p>
+</li>
+<li>All panels same size/weight</li>
+<li><strong>Recommendation:</strong><ul>
+<li>Make service status more prominent</li>
+<li>Use larger status indicator</li>
+<li>Add visual emphasis for stopped state</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h3 id="10-events-page-events">10. Events Page (<code>/events</code>)<a class="headerlink" href="#10-events-page-events" title="Permanent link">¶</a></h3>
+<p><strong>Visual Elements:</strong></p>
+<ul>
+<li>Tabbed interface (Event Stream, Statistics)</li>
+<li>Filter controls (Event Type, Limit, Since)</li>
+<li>Empty table with "No events found"</li>
+<li>"Monitoring" workflow chip</li>
+</ul>
+<p><strong>Strengths:</strong></p>
+<ul>
+<li>Clean interface</li>
+<li>Good filtering options</li>
+<li>Clear table structure</li>
+</ul>
+<p><strong>Issues:</strong></p>
+<ol>
+<li><strong>Empty State</strong></li>
+<li>Just "No events found" text</li>
+<li>
+<p><strong>Recommendation:</strong></p>
+<ul>
+<li>Add icon or illustration</li>
+<li>Explain what events are</li>
+<li>Show example events or help text</li>
+</ul>
+</li>
+<li>
+<p><strong>Filter Layout</strong></p>
+</li>
+<li>Filters in horizontal row</li>
+<li>
+<p><strong>Recommendation:</strong></p>
+<ul>
+<li>Better spacing between filters</li>
+<li>Add "Clear Filters" button</li>
+<li>Show active filter count</li>
+</ul>
+</li>
+<li>
+<p><strong>Visual Interest</strong></p>
+</li>
+<li>Page feels empty</li>
+<li><strong>Recommendation:</strong><ul>
+<li>Add statistics summary even when no events</li>
+<li>Show event type distribution</li>
+<li>Add refresh indicator</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h3 id="11-cache-page-cache">11. Cache Page (<code>/cache</code>)<a class="headerlink" href="#11-cache-page-cache" title="Permanent link">¶</a></h3>
+<p><strong>Visual Elements:</strong></p>
+<ul>
+<li>Tabbed interface (Statistics, Keys, Performance)</li>
+<li>Statistics cards</li>
+<li>Performance metrics with progress bars</li>
+<li>Operations list</li>
+<li>"Clear All Cache" button</li>
+</ul>
+<p><strong>Strengths:</strong></p>
+<ul>
+<li>Good card-based layout</li>
+<li>Clear metrics display</li>
+<li>Useful performance indicators</li>
+</ul>
+<p><strong>Issues:</strong></p>
+<ol>
+<li><strong>Progress Bar Colors</strong></li>
+<li>Red bars for 0% values (misleading)</li>
+<li>
+<p><strong>Recommendation:</strong></p>
+<ul>
+<li>Use grey/neutral for zero values</li>
+<li>Green for good performance (&gt;80% hit rate)</li>
+<li>Yellow for moderate (50-80%)</li>
+<li>Red only for poor (&lt;50%)</li>
+</ul>
+</li>
+<li>
+<p><strong>Statistics Cards</strong></p>
+</li>
+<li>All showing zero, but no context</li>
+<li>
+<p><strong>Recommendation:</strong></p>
+<ul>
+<li>Add "Last Activity" timestamp</li>
+<li>Show trend indicators</li>
+<li>Add comparison to previous period</li>
+</ul>
+</li>
+<li>
+<p><strong>Clear Cache Button</strong></p>
+</li>
+<li>Prominent but potentially dangerous</li>
+<li><strong>Recommendation:</strong><ul>
+<li>Add confirmation dialog</li>
+<li>Move to less prominent location</li>
+<li>Add warning icon</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="cross-page-issues">Cross-Page Issues<a class="headerlink" href="#cross-page-issues" title="Permanent link">¶</a></h2>
+<h3 id="1-navigation-bar">1. Navigation Bar<a class="headerlink" href="#1-navigation-bar" title="Permanent link">¶</a></h3>
+<p><strong>Issue:</strong> 14 navigation links in single row</p>
+<ul>
+<li>Too many links for comfortable navigation</li>
+<li>Will wrap on smaller screens</li>
+<li>No visual grouping</li>
+</ul>
+<p><strong>Recommendations:</strong></p>
+<ul>
+<li>Group related pages (Monitoring: Dashboard, Pipeline, Health)</li>
+<li>Use dropdown menus for less-used pages</li>
+<li>Consider a "More" menu for secondary pages</li>
+<li>Add icons-only mode for compact view</li>
+</ul>
+<h3 id="2-breadcrumbs">2. Breadcrumbs<a class="headerlink" href="#2-breadcrumbs" title="Permanent link">¶</a></h3>
+<p><strong>Issue:</strong> Redundant on top-level pages</p>
+<ul>
+<li>Shows "Dashboard &gt; dashboard" (redundant)</li>
+<li>Shows "Dashboard &gt; Sources" (could be simplified)</li>
+</ul>
+<p><strong>Recommendations:</strong></p>
+<ul>
+<li>Hide breadcrumbs on top-level pages</li>
+<li>Only show when depth &gt; 1</li>
+<li>Make breadcrumbs more visually distinct</li>
+</ul>
+<h3 id="3-workflow-chips">3. Workflow Chips<a class="headerlink" href="#3-workflow-chips" title="Permanent link">¶</a></h3>
+<p><strong>Issue:</strong> Inconsistent placement and styling</p>
+<ul>
+<li>Sometimes in navigation bar, sometimes below breadcrumbs</li>
+<li>Color and size vary</li>
+</ul>
+<p><strong>Recommendations:</strong></p>
+<ul>
+<li>Consistent placement (always below breadcrumbs)</li>
+<li>Standardized styling</li>
+<li>Add tooltip explaining workflow context</li>
+</ul>
+<h3 id="4-loading-states">4. Loading States<a class="headerlink" href="#4-loading-states" title="Permanent link">¶</a></h3>
+<p><strong>Issue:</strong> Inconsistent loading indicators</p>
+<ul>
+<li>Some pages use spinners, some use progress bars</li>
+<li>No skeleton loaders</li>
+</ul>
+<p><strong>Recommendations:</strong></p>
+<ul>
+<li>Use skeleton loaders for better perceived performance</li>
+<li>Standardize loading indicator style</li>
+<li>Show loading progress when available</li>
+</ul>
+<h3 id="5-empty-states">5. Empty States<a class="headerlink" href="#5-empty-states" title="Permanent link">¶</a></h3>
+<p><strong>Issue:</strong> Plain text "No X found" messages</p>
+<ul>
+<li>Not visually engaging</li>
+<li>No guidance on what to do next</li>
+</ul>
+<p><strong>Recommendations:</strong></p>
+<ul>
+<li>Add icons or illustrations</li>
+<li>Provide helpful next steps</li>
+<li>Show examples or tips</li>
+<li>Add links to related actions</li>
+</ul>
+<h3 id="6-color-usage">6. Color Usage<a class="headerlink" href="#6-color-usage" title="Permanent link">¶</a></h3>
+<p><strong>Issue:</strong> Limited use of color for status indication</p>
+<ul>
+<li>Most metrics are plain text</li>
+<li>No color coding for health/status</li>
+</ul>
+<p><strong>Recommendations:</strong></p>
+<ul>
+<li>Color-code all status indicators:</li>
+<li>Green: Good/Healthy/Completed</li>
+<li>Yellow: Warning/Degraded/In Progress</li>
+<li>Red: Error/Failed/Critical</li>
+<li>Use color for metric thresholds</li>
+<li>Add color to ESE σ values</li>
+</ul>
+<h3 id="7-typography-hierarchy">7. Typography Hierarchy<a class="headerlink" href="#7-typography-hierarchy" title="Permanent link">¶</a></h3>
+<p><strong>Issue:</strong> Inconsistent heading levels</p>
+<ul>
+<li>Some pages use h1, others h3, h4</li>
+<li>No clear visual hierarchy</li>
+</ul>
+<p><strong>Recommendations:</strong></p>
+<ul>
+<li>Standardize heading levels:</li>
+<li>h1: Page title</li>
+<li>h2: Major sections</li>
+<li>h3: Subsections</li>
+<li>Use consistent font sizes and weights</li>
+<li>Add more visual distinction between levels</li>
+</ul>
+<h3 id="8-spacing-and-padding">8. Spacing and Padding<a class="headerlink" href="#8-spacing-and-padding" title="Permanent link">¶</a></h3>
+<p><strong>Issue:</strong> Inconsistent spacing</p>
+<ul>
+<li>Some sections cramped, others too spacious</li>
+<li>No consistent grid system</li>
+</ul>
+<p><strong>Recommendations:</strong></p>
+<ul>
+<li>Use consistent spacing scale (8px base)</li>
+<li>Implement proper grid system</li>
+<li>Add consistent padding to all panels</li>
+<li>Use Material-UI spacing utilities consistently</li>
+</ul>
+<h3 id="9-table-design">9. Table Design<a class="headerlink" href="#9-table-design" title="Permanent link">¶</a></h3>
+<p><strong>Issue:</strong> Plain tables without visual polish</p>
+<ul>
+<li>No row hover effects</li>
+<li>No alternating row colors</li>
+<li>Limited visual hierarchy</li>
+</ul>
+<p><strong>Recommendations:</strong></p>
+<ul>
+<li>Add hover effects to table rows</li>
+<li>Use subtle alternating row colors</li>
+<li>Make important columns stand out</li>
+<li>Add sorting indicators</li>
+<li>Improve column resizing</li>
+</ul>
+<h3 id="10-button-styling">10. Button Styling<a class="headerlink" href="#10-button-styling" title="Permanent link">¶</a></h3>
+<p><strong>Issue:</strong> Inconsistent button styles</p>
+<ul>
+<li>Mix of text buttons, outlined, contained</li>
+<li>No clear primary/secondary distinction</li>
+</ul>
+<p><strong>Recommendations:</strong></p>
+<ul>
+<li>Establish button hierarchy:</li>
+<li>Primary: Contained, blue</li>
+<li>Secondary: Outlined</li>
+<li>Tertiary: Text</li>
+<li>Use consistent sizing</li>
+<li>Add loading states to action buttons</li>
+</ul>
+<hr/>
+<h2 id="priority-recommendations">Priority Recommendations<a class="headerlink" href="#priority-recommendations" title="Permanent link">¶</a></h2>
+<h3 id="high-priority-immediate-impact">High Priority (Immediate Impact)<a class="headerlink" href="#high-priority-immediate-impact" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Fix Health Page Error</strong></li>
+<li>Critical: Page is broken (dayjs not defined)</li>
+<li>
+<p>Impact: Users cannot access health monitoring</p>
+</li>
+<li>
+<p><strong>Improve Navigation Bar</strong></p>
+</li>
+<li>Too many links (14) - group or use dropdowns</li>
+<li>
+<p>Impact: Better usability, especially on smaller screens</p>
+</li>
+<li>
+<p><strong>Add Color Coding</strong></p>
+</li>
+<li>Status indicators, health metrics, ESE values</li>
+<li>
+<p>Impact: Immediate visual feedback and better UX</p>
+</li>
+<li>
+<p><strong>Improve Empty States</strong></p>
+</li>
+<li>Add icons, helpful messages, next steps</li>
+<li>Impact: Better user guidance and engagement</li>
+</ol>
+<h3 id="medium-priority-significant-improvement">Medium Priority (Significant Improvement)<a class="headerlink" href="#medium-priority-significant-improvement" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Standardize Loading States</strong></li>
+<li>Use skeleton loaders consistently</li>
+<li>
+<p>Impact: Better perceived performance</p>
+</li>
+<li>
+<p><strong>Enhance Table Design</strong></p>
+</li>
+<li>Hover effects, alternating rows, better spacing</li>
+<li>
+<p>Impact: Improved readability and polish</p>
+</li>
+<li>
+<p><strong>Improve Typography Hierarchy</strong></p>
+</li>
+<li>Consistent heading levels and sizes</li>
+<li>
+<p>Impact: Better information hierarchy</p>
+</li>
+<li>
+<p><strong>Optimize Information Density</strong></p>
+</li>
+<li>Better use of space, collapsible sections</li>
+<li>Impact: Less overwhelming, more scannable</li>
+</ol>
+<h3 id="low-priority-polish">Low Priority (Polish)<a class="headerlink" href="#low-priority-polish" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Add Visual Flourishes</strong></li>
+<li>Icons, illustrations, micro-interactions</li>
+<li>
+<p>Impact: More polished, professional appearance</p>
+</li>
+<li>
+<p><strong>Enhance Error Messages</strong></p>
+<ul>
+<li>User-friendly messages, recovery actions</li>
+<li>Impact: Better error handling UX</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="design-system-recommendations">Design System Recommendations<a class="headerlink" href="#design-system-recommendations" title="Permanent link">¶</a></h2>
+<h3 id="color-palette">Color Palette<a class="headerlink" href="#color-palette" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Status Colors:</strong></li>
+<li>Success/Healthy: <code>#4caf50</code> (Green)</li>
+<li>Warning/Degraded: <code>#ff9800</code> (Orange)</li>
+<li>Error/Critical: <code>#f44336</code> (Red)</li>
+<li>Info/Neutral: <code>#2196f3</code> (Blue)</li>
+<li>In Progress: <code>#2196f3</code> (Blue)</li>
+</ul>
+<h3 id="spacing-scale">Spacing Scale<a class="headerlink" href="#spacing-scale" title="Permanent link">¶</a></h3>
+<ul>
+<li>Use 8px base unit</li>
+<li>Consistent padding: 16px, 24px, 32px</li>
+<li>Consistent gaps: 8px, 16px, 24px</li>
+</ul>
+<h3 id="typography-scale">Typography Scale<a class="headerlink" href="#typography-scale" title="Permanent link">¶</a></h3>
+<ul>
+<li>Page Title: 32px, bold</li>
+<li>Section Title: 24px, semibold</li>
+<li>Subsection: 18px, medium</li>
+<li>Body: 14px, regular</li>
+<li>Caption: 12px, regular</li>
+</ul>
+<h3 id="component-patterns">Component Patterns<a class="headerlink" href="#component-patterns" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Cards:</strong> Consistent padding (16px), border radius (8px)</li>
+<li><strong>Tables:</strong> Hover effects, alternating rows, clear headers</li>
+<li><strong>Buttons:</strong> Consistent sizing (small: 32px, medium: 40px, large: 48px)</li>
+<li><strong>Forms:</strong> Consistent label placement, validation feedback</li>
+</ul>
+<hr/>
+<h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
+<p>The dashboard has a solid foundation with consistent dark theme and Material-UI
+components. The main areas for improvement are:</p>
+<ol>
+<li><strong>Visual Hierarchy</strong> - Better use of typography and spacing</li>
+<li><strong>Color Coding</strong> - More use of color for status and feedback</li>
+<li><strong>Information Density</strong> - Better organization and use of space</li>
+<li><strong>Empty States</strong> - More engaging and helpful empty states</li>
+<li><strong>Navigation</strong> - Simplify and organize navigation bar</li>
+<li><strong>Consistency</strong> - Standardize patterns across all pages</li>
+</ol>
+<p>The workflow-optimized navigation features (breadcrumbs, command palette,
+workflow chips) are working well and add value. The main focus should be on
+visual polish and consistency.</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

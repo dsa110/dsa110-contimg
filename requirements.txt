@@ -11,3 +11,5 @@ mkdocstrings>=0.25.0
 mkdocstrings-python>=1.18.0  # Updated for griffe.collections compatibility
 mkdocs-autorefs>=0.5.0
 griffe>=1.0.0,<2.0.0
+# Required for generate_mkdocs_config.py
+pyyaml>=6.0

@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1333,25 +1335,36 @@
 <article class="md-content__inner md-typeset">
 <h1 id="ese-detection-comprehensive-improvement-plan">ESE Detection Comprehensive Improvement Plan<a class="headerlink" href="#ese-detection-comprehensive-improvement-plan" title="Permanent link">¶</a></h1>
 <h2 id="date-2025-11-12">Date: 2025-11-12<a class="headerlink" href="#date-2025-11-12" title="Permanent link">¶</a></h2>
-<p>This document provides detailed technical specifications, scientific reasoning, and implementation guidance for all identified ESE detection improvements. All items are treated as equally high priority with deep technical analysis.</p>
+<p>This document provides detailed technical specifications, scientific reasoning,
+and implementation guidance for all identified ESE detection improvements. All
+items are treated as equally high priority with deep technical analysis.</p>
 <hr/>
 <h2 id="1-code-quality-architecture-improvements">1. Code Quality &amp; Architecture Improvements<a class="headerlink" href="#1-code-quality-architecture-improvements" title="Permanent link">¶</a></h2>
 <h3 id="11-extract-shared-sigma-deviation-function">1.1 Extract Shared Sigma Deviation Function<a class="headerlink" href="#11-extract-shared-sigma-deviation-function" title="Permanent link">¶</a></h3>
 <h4 id="scientific-rationale">Scientific Rationale<a class="headerlink" href="#scientific-rationale" title="Permanent link">¶</a></h4>
-<p>The sigma deviation metric is fundamental to ESE detection, representing how many standard deviations the maximum flux deviation is from the mean. This is a standard statistical measure in variability analysis, and consistency is critical for:</p>
+<p>The sigma deviation metric is fundamental to ESE detection, representing how
+many standard deviations the maximum flux deviation is from the mean. This is a
+standard statistical measure in variability analysis, and consistency is
+critical for:</p>
 <ul>
-<li><strong>Reproducibility</strong>: Same input data must produce identical results regardless of code path</li>
-<li><strong>Scientific validity</strong>: Inconsistent calculations invalidate comparisons between automatic and manual detection</li>
-<li><strong>Maintainability</strong>: Single source of truth reduces bugs and simplifies testing</li>
+<li><strong>Reproducibility</strong>: Same input data must produce identical results regardless
+  of code path</li>
+<li><strong>Scientific validity</strong>: Inconsistent calculations invalidate comparisons
+  between automatic and manual detection</li>
+<li><strong>Maintainability</strong>: Single source of truth reduces bugs and simplifies
+  testing</li>
 </ul>
 <h4 id="current-problem">Current Problem<a class="headerlink" href="#current-problem" title="Permanent link">¶</a></h4>
-<p>Two implementations exist with identical intent but potential for divergence:
-- <code>ese_pipeline.py</code>: Used in automated detection
-- <code>ese_detection.py</code>: Used in manual/recompute operations</p>
-<p>Even though currently fixed to be identical, code duplication violates DRY (Don't Repeat Yourself) principle and creates maintenance risk.</p>
+<p>Two implementations exist with identical intent but potential for divergence:</p>
+<ul>
+<li><code>ese_pipeline.py</code>: Used in automated detection</li>
+<li><code>ese_detection.py</code>: Used in manual/recompute operations</li>
+</ul>
+<p>Even though currently fixed to be identical, code duplication violates DRY
+(Don't Repeat Yourself) principle and creates maintenance risk.</p>
 <h4 id="technical-specification">Technical Specification<a class="headerlink" href="#technical-specification" title="Permanent link">¶</a></h4>
 <p><strong>Location</strong>: <code>src/dsa110_contimg/photometry/variability.py</code></p>
-<p><strong>Function Signature</strong>:
+<p><strong>Function Signature</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_sigma_deviation</span><span class="p">(</span>
     <span class="n">fluxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="n">mean_flux</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1399,7 +1412,7 @@
 <span class="sd">        &gt;&gt;&gt; calculate_sigma_deviation(fluxes)</span>
 <span class="sd">        1.414  # Maximum deviation is 2.0, std is ~1.414</span>
 <span class="sd">    """</span>
-</code></pre></div></p>
+</code></pre></div>
 <p><strong>Implementation Details</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_sigma_deviation</span><span class="p">(</span>
     <span class="n">fluxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -1444,8 +1457,8 @@
 </code></pre></div>
 <p><strong>Integration Points</strong>:</p>
 <ol>
-<li>
-<p><strong>Update <code>ese_pipeline.py</code></strong>:
+<li><strong>Update <code>ese_pipeline.py</code></strong>:</li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.photometry.variability</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_sigma_deviation</span>
 
 <span class="c1"># Replace inline calculation with:</span>
@@ -1454,17 +1467,15 @@
     <span class="n">mean_flux</span><span class="o">=</span><span class="n">mean_flux_mjy</span><span class="p">,</span>
     <span class="n">std_flux</span><span class="o">=</span><span class="n">std_flux_mjy</span>
 <span class="p">)</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Update <code>ese_detection.py</code></strong>:
+</code></pre></div>
+<ol>
+<li><strong>Update <code>ese_detection.py</code></strong>:</li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.photometry.variability</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_sigma_deviation</span>
 
 <span class="c1"># Replace inline calculation with:</span>
 <span class="n">sigma_deviation</span> <span class="o">=</span> <span class="n">calculate_sigma_deviation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fluxes</span><span class="p">))</span>
-</code></pre></div></p>
-</li>
-</ol>
+</code></pre></div>
 <p><strong>Testing Requirements</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">TestCalculateSigmaDeviation</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Comprehensive tests for sigma deviation calculation."""</span>
@@ -1522,25 +1533,31 @@
         <span class="n">result</span> <span class="o">=</span> <span class="n">calculate_sigma_deviation</span><span class="p">(</span><span class="n">fluxes</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">result</span> <span class="o">&gt;</span> <span class="mf">10.0</span>  <span class="c1"># Should detect large deviation</span>
 </code></pre></div>
-<p><strong>Benefits</strong>:
-- Single source of truth eliminates inconsistencies
-- Easier to optimize and maintain
-- Comprehensive testing ensures correctness
-- Reusable across codebase
-- Clear documentation of mathematical definition</p>
+<p><strong>Benefits</strong>:</p>
+<ul>
+<li>Single source of truth eliminates inconsistencies</li>
+<li>Easier to optimize and maintain</li>
+<li>Comprehensive testing ensures correctness</li>
+<li>Reusable across codebase</li>
+<li>Clear documentation of mathematical definition</li>
+</ul>
 <hr/>
 <h3 id="12-comprehensive-validation-test-suite">1.2 Comprehensive Validation Test Suite<a class="headerlink" href="#12-comprehensive-validation-test-suite" title="Permanent link">¶</a></h3>
 <h4 id="scientific-rationale_1">Scientific Rationale<a class="headerlink" href="#scientific-rationale_1" title="Permanent link">¶</a></h4>
-<p>Statistical calculations must be validated against known values to ensure correctness. Errors in variability metrics propagate through the entire detection pipeline, potentially causing:</p>
+<p>Statistical calculations must be validated against known values to ensure
+correctness. Errors in variability metrics propagate through the entire
+detection pipeline, potentially causing:</p>
 <ul>
 <li><strong>False positives</strong>: Incorrectly flagging normal sources as ESE candidates</li>
 <li><strong>False negatives</strong>: Missing real ESE events</li>
 <li><strong>Scientific invalidity</strong>: Published results based on incorrect calculations</li>
 </ul>
-<p>Validation tests serve as:
-- Regression prevention: Catch bugs introduced by future changes
-- Documentation: Tests serve as executable specifications
-- Confidence: Verify implementation matches mathematical definitions</p>
+<p>Validation tests serve as:</p>
+<ul>
+<li>Regression prevention: Catch bugs introduced by future changes</li>
+<li>Documentation: Tests serve as executable specifications</li>
+<li>Confidence: Verify implementation matches mathematical definitions</li>
+</ul>
 <h4 id="test-categories">Test Categories<a class="headerlink" href="#test-categories" title="Permanent link">¶</a></h4>
 <p><strong>1. Unit Tests for Individual Metrics</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">TestVariabilityMetrics</span><span class="p">:</span>
@@ -1659,7 +1676,7 @@
 <span class="w">        </span><span class="sd">"""Test with zero variance measurements."""</span>
         <span class="n">db_path</span> <span class="o">=</span> <span class="n">create_test_db</span><span class="p">()</span>
         <span class="n">add_photometry_measurements</span><span class="p">(</span>
-            <span class="n">db_path</span><span class="p">,</span> <span class="s2">"TEST"</span><span class="p">,</span> 
+            <span class="n">db_path</span><span class="p">,</span> <span class="s2">"TEST"</span><span class="p">,</span>
             <span class="n">fluxes</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
             <span class="n">errors</span><span class="o">=</span><span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">]</span>
         <span class="p">)</span>
@@ -1726,24 +1743,32 @@
 <h2 id="2-enhanced-detection-algorithms">2. Enhanced Detection Algorithms<a class="headerlink" href="#2-enhanced-detection-algorithms" title="Permanent link">¶</a></h2>
 <h3 id="21-multi-metric-scoring-system">2.1 Multi-Metric Scoring System<a class="headerlink" href="#21-multi-metric-scoring-system" title="Permanent link">¶</a></h3>
 <h4 id="scientific-rationale_2">Scientific Rationale<a class="headerlink" href="#scientific-rationale_2" title="Permanent link">¶</a></h4>
-<p>Single-metric thresholds are vulnerable to:
-- <strong>Noise</strong>: Single outlier can trigger false positive
-- <strong>Incomplete information</strong>: Ignores complementary variability indicators
-- <strong>Context loss</strong>: Doesn't consider measurement quality or quantity</p>
-<p>Multi-metric scoring provides:
-- <strong>Robustness</strong>: Multiple independent indicators reduce false positives
-- <strong>Confidence</strong>: Higher confidence when multiple metrics agree
-- <strong>Ranking</strong>: Better candidate prioritization for follow-up</p>
+<p>Single-metric thresholds are vulnerable to:</p>
+<ul>
+<li><strong>Noise</strong>: Single outlier can trigger false positive</li>
+<li><strong>Incomplete information</strong>: Ignores complementary variability indicators</li>
+<li><strong>Context loss</strong>: Doesn't consider measurement quality or quantity</li>
+</ul>
+<p>Multi-metric scoring provides:</p>
+<ul>
+<li><strong>Robustness</strong>: Multiple independent indicators reduce false positives</li>
+<li><strong>Confidence</strong>: Higher confidence when multiple metrics agree</li>
+<li><strong>Ranking</strong>: Better candidate prioritization for follow-up</li>
+</ul>
 <h4 id="theoretical-foundation">Theoretical Foundation<a class="headerlink" href="#theoretical-foundation" title="Permanent link">¶</a></h4>
-<p><strong>Information Theory Perspective</strong>:
-- Each metric provides independent information about variability
-- Combining metrics increases information content
-- Weighted combination maximizes signal-to-noise ratio</p>
-<p><strong>Statistical Perspective</strong>:
-- Chi-squared tests constant flux model (goodness of fit)
-- Eta metric measures weighted variance (accounting for errors)
-- Sigma deviation measures extreme outliers (ESE signature)
-- Observation count affects confidence (more observations = more reliable)</p>
+<p><strong>Information Theory Perspective</strong>:</p>
+<ul>
+<li>Each metric provides independent information about variability</li>
+<li>Combining metrics increases information content</li>
+<li>Weighted combination maximizes signal-to-noise ratio</li>
+</ul>
+<p><strong>Statistical Perspective</strong>:</p>
+<ul>
+<li>Chi-squared tests constant flux model (goodness of fit)</li>
+<li>Eta metric measures weighted variance (accounting for errors)</li>
+<li>Sigma deviation measures extreme outliers (ESE signature)</li>
+<li>Observation count affects confidence (more observations = more reliable)</li>
+</ul>
 <h4 id="algorithm-design">Algorithm Design<a class="headerlink" href="#algorithm-design" title="Permanent link">¶</a></h4>
 <p><strong>Scoring Function</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_ese_composite_score</span><span class="p">(</span>
@@ -1958,12 +1983,14 @@
     <span class="c1"># Tune weights to maximize separation between ESE and non-ESE</span>
     <span class="c1"># Optimize threshold to minimize false positives/negatives</span>
 </code></pre></div>
-<p><strong>Benefits</strong>:
-- More robust detection (multiple independent indicators)
-- Better candidate ranking (composite score)
-- Configurable sensitivity (adjustable weights)
-- Human-readable explanations (transparency)
-- Backward compatible (can disable composite scoring)</p>
+<p><strong>Benefits</strong>:</p>
+<ul>
+<li>More robust detection (multiple independent indicators)</li>
+<li>Better candidate ranking (composite score)</li>
+<li>Configurable sensitivity (adjustable weights)</li>
+<li>Human-readable explanations (transparency)</li>
+<li>Backward compatible (can disable composite scoring)</li>
+</ul>
 <hr/>
 <h3 id="22-configurable-threshold-presets">2.2 Configurable Threshold Presets<a class="headerlink" href="#22-configurable-threshold-presets" title="Permanent link">¶</a></h3>
 <h4 id="scientific-rationale_3">Scientific Rationale<a class="headerlink" href="#scientific-rationale_3" title="Permanent link">¶</a></h4>
@@ -1976,14 +2003,20 @@
 </ul>
 <p>Fixed thresholds don't accommodate these needs.</p>
 <h4 id="threshold-selection-theory">Threshold Selection Theory<a class="headerlink" href="#threshold-selection-theory" title="Permanent link">¶</a></h4>
-<p><strong>False Positive Rate</strong>:
-- 3σ: ~0.3% false positive rate
-- 4σ: ~0.006% false positive rate
-- 5σ: ~0.00006% false positive rate
-- 6σ: ~0.0000002% false positive rate</p>
-<p><strong>Sensitivity vs Specificity Trade-off</strong>:
-- Lower threshold: More candidates (higher sensitivity), more false positives (lower specificity)
-- Higher threshold: Fewer candidates (lower sensitivity), fewer false positives (higher specificity)</p>
+<p><strong>False Positive Rate</strong>:</p>
+<ul>
+<li>3σ: ~0.3% false positive rate</li>
+<li>4σ: ~0.006% false positive rate</li>
+<li>5σ: ~0.00006% false positive rate</li>
+<li>6σ: ~0.0000002% false positive rate</li>
+</ul>
+<p><strong>Sensitivity vs Specificity Trade-off</strong>:</p>
+<ul>
+<li>Lower threshold: More candidates (higher sensitivity), more false positives
+  (lower specificity)</li>
+<li>Higher threshold: Fewer candidates (lower sensitivity), fewer false positives
+  (higher specificity)</li>
+</ul>
 <p><strong>Use Case Mapping</strong>:</p>
 <table>
 <thead>
@@ -2138,21 +2171,25 @@
 <div class="highlight"><pre><span></span><code><span class="gu">## Threshold Selection Guide</span>
 
 <span class="gu">### Conservative (5.0σ) - Default</span>
+
 <span class="k">-</span><span class="w"> </span><span class="gs">**Use for**</span>: Production monitoring, automated alerts
 <span class="k">-</span><span class="w"> </span><span class="gs">**False positive rate**</span>: ~0.00006%
 <span class="k">-</span><span class="w"> </span><span class="gs">**When to use**</span>: When false positives are costly
 
 <span class="gu">### Moderate (4.0σ)</span>
+
 <span class="k">-</span><span class="w"> </span><span class="gs">**Use for**</span>: Follow-up analysis, detailed investigation
 <span class="k">-</span><span class="w"> </span><span class="gs">**False positive rate**</span>: ~0.006%
 <span class="k">-</span><span class="w"> </span><span class="gs">**When to use**</span>: Balanced sensitivity/specificity needed
 
 <span class="gu">### Sensitive (3.0σ)</span>
+
 <span class="k">-</span><span class="w"> </span><span class="gs">**Use for**</span>: Initial screening, exploratory analysis
 <span class="k">-</span><span class="w"> </span><span class="gs">**False positive rate**</span>: ~0.3%
 <span class="k">-</span><span class="w"> </span><span class="gs">**When to use**</span>: When you want to catch more candidates for manual review
 
 <span class="gu">### Very Sensitive (2.5σ)</span>
+
 <span class="k">-</span><span class="w"> </span><span class="gs">**Use for**</span>: Research exploration
 <span class="k">-</span><span class="w"> </span><span class="gs">**False positive rate**</span>: ~1.2%
 <span class="k">-</span><span class="w"> </span><span class="gs">**When to use**</span>: When extensive validation is possible
@@ -2161,17 +2198,23 @@
 <h2 id="3-performance-optimizations">3. Performance Optimizations<a class="headerlink" href="#3-performance-optimizations" title="Permanent link">¶</a></h2>
 <h3 id="31-caching-variability-statistics">3.1 Caching Variability Statistics<a class="headerlink" href="#31-caching-variability-statistics" title="Permanent link">¶</a></h3>
 <h4 id="scientific-rationale_4">Scientific Rationale<a class="headerlink" href="#scientific-rationale_4" title="Permanent link">¶</a></h4>
-<p>Variability statistics are expensive to compute:
-- Require reading all photometry measurements for a source
-- Statistical calculations (mean, std, chi-squared, etc.)
-- Database queries for each source</p>
-<p>However, statistics don't change unless:
-- New photometry measurements added
-- Existing measurements modified/deleted</p>
-<p>Caching provides:
-- <strong>Performance</strong>: Avoid recomputation for unchanged sources
-- <strong>Scalability</strong>: Handle larger source catalogs efficiently
-- <strong>Resource efficiency</strong>: Reduce database load</p>
+<p>Variability statistics are expensive to compute:</p>
+<ul>
+<li>Require reading all photometry measurements for a source</li>
+<li>Statistical calculations (mean, std, chi-squared, etc.)</li>
+<li>Database queries for each source</li>
+</ul>
+<p>However, statistics don't change unless:</p>
+<ul>
+<li>New photometry measurements added</li>
+<li>Existing measurements modified/deleted</li>
+</ul>
+<p>Caching provides:</p>
+<ul>
+<li><strong>Performance</strong>: Avoid recomputation for unchanged sources</li>
+<li><strong>Scalability</strong>: Handle larger source catalogs efficiently</li>
+<li><strong>Resource efficiency</strong>: Reduce database load</li>
+</ul>
 <h4 id="cache-design">Cache Design<a class="headerlink" href="#cache-design" title="Permanent link">¶</a></h4>
 <p><strong>Cache Strategy</strong>: Time-based invalidation with manual refresh</p>
 <p><strong>Cache Key</strong>: <code>source_id</code> + <code>last_photometry_timestamp</code></p>
@@ -2364,14 +2407,18 @@
 <hr/>
 <h3 id="32-parallel-processing">3.2 Parallel Processing<a class="headerlink" href="#32-parallel-processing" title="Permanent link">¶</a></h3>
 <h4 id="scientific-rationale_5">Scientific Rationale<a class="headerlink" href="#scientific-rationale_5" title="Permanent link">¶</a></h4>
-<p>ESE detection is embarrassingly parallel:
-- Each source processed independently
-- No dependencies between sources
-- Stateless computation</p>
-<p>Parallelization provides:
-- <strong>Speed</strong>: Process multiple sources simultaneously
-- <strong>Resource utilization</strong>: Better CPU/memory usage
-- <strong>Scalability</strong>: Handle larger catalogs efficiently</p>
+<p>ESE detection is embarrassingly parallel:</p>
+<ul>
+<li>Each source processed independently</li>
+<li>No dependencies between sources</li>
+<li>Stateless computation</li>
+</ul>
+<p>Parallelization provides:</p>
+<ul>
+<li><strong>Speed</strong>: Process multiple sources simultaneously</li>
+<li><strong>Resource utilization</strong>: Better CPU/memory usage</li>
+<li><strong>Scalability</strong>: Handle larger catalogs efficiently</li>
+</ul>
 <h4 id="implementation_1">Implementation<a class="headerlink" href="#implementation_1" title="Permanent link">¶</a></h4>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pool</span><span class="p">,</span> <span class="n">cpu_count</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
@@ -2475,14 +2522,18 @@
 <hr/>
 <h2 id="4-multi-frequency-analysis">4. Multi-Frequency Analysis<a class="headerlink" href="#4-multi-frequency-analysis" title="Permanent link">¶</a></h2>
 <h4 id="scientific-rationale_6">Scientific Rationale<a class="headerlink" href="#scientific-rationale_6" title="Permanent link">¶</a></h4>
-<p>ESEs show frequency-dependent variability:
-- <strong>Plasma lensing</strong>: Frequency-dependent refractive index
-- <strong>Scintillation</strong>: Frequency-dependent scattering
-- <strong>Correlation</strong>: Variability correlated across frequencies</p>
-<p>Single-frequency analysis misses:
-- Frequency-dependent signatures
-- Enhanced detection confidence from correlation
-- Physical interpretation of ESE mechanism</p>
+<p>ESEs show frequency-dependent variability:</p>
+<ul>
+<li><strong>Plasma lensing</strong>: Frequency-dependent refractive index</li>
+<li><strong>Scintillation</strong>: Frequency-dependent scattering</li>
+<li><strong>Correlation</strong>: Variability correlated across frequencies</li>
+</ul>
+<p>Single-frequency analysis misses:</p>
+<ul>
+<li>Frequency-dependent signatures</li>
+<li>Enhanced detection confidence from correlation</li>
+<li>Physical interpretation of ESE mechanism</li>
+</ul>
 <h4 id="implementation_2">Implementation<a class="headerlink" href="#implementation_2" title="Permanent link">¶</a></h4>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">detect_ese_multi_frequency</span><span class="p">(</span>
     <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -2611,7 +2662,7 @@
 <span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">photometry</span><span class="w"> </span><span class="k">ADD</span><span class="w"> </span><span class="k">COLUMN</span><span class="w"> </span><span class="n">frequency_mhz</span><span class="w"> </span><span class="nb">REAL</span><span class="p">;</span>
 
 <span class="c1">-- Create index for frequency queries</span>
-<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">idx_photometry_frequency</span><span class="w"> </span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">idx_photometry_frequency</span>
 <span class="k">ON</span><span class="w"> </span><span class="n">photometry</span><span class="p">(</span><span class="n">source_id</span><span class="p">,</span><span class="w"> </span><span class="n">frequency_mhz</span><span class="p">,</span><span class="w"> </span><span class="n">measured_at</span><span class="p">);</span>
 
 <span class="c1">-- Multi-frequency variability stats</span>
@@ -2628,15 +2679,19 @@
 <hr/>
 <h2 id="5-multi-observable-correlation">5. Multi-Observable Correlation<a class="headerlink" href="#5-multi-observable-correlation" title="Permanent link">¶</a></h2>
 <h4 id="scientific-rationale_7">Scientific Rationale<a class="headerlink" href="#scientific-rationale_7" title="Permanent link">¶</a></h4>
-<p>ESEs manifest in multiple observables:
-- <strong>Flux density</strong>: Primary indicator (what we currently use)
-- <strong>Scintillation bandwidth</strong>: Frequency-dependent scattering
-- <strong>Dispersion measure</strong>: Electron density variations (for pulsars)
-- <strong>Scintillation timescale</strong>: Temporal variations</p>
-<p>Correlated changes across observables:
-- <strong>Higher confidence</strong>: Multiple independent indicators
-- <strong>Physical interpretation</strong>: Constrains ESE mechanism
-- <strong>False positive reduction</strong>: Intrinsic variability unlikely to correlate</p>
+<p>ESEs manifest in multiple observables:</p>
+<ul>
+<li><strong>Flux density</strong>: Primary indicator (what we currently use)</li>
+<li><strong>Scintillation bandwidth</strong>: Frequency-dependent scattering</li>
+<li><strong>Dispersion measure</strong>: Electron density variations (for pulsars)</li>
+<li><strong>Scintillation timescale</strong>: Temporal variations</li>
+</ul>
+<p>Correlated changes across observables:</p>
+<ul>
+<li><strong>Higher confidence</strong>: Multiple independent indicators</li>
+<li><strong>Physical interpretation</strong>: Constrains ESE mechanism</li>
+<li><strong>False positive reduction</strong>: Intrinsic variability unlikely to correlate</li>
+</ul>
 <h4 id="implementation_3">Implementation<a class="headerlink" href="#implementation_3" title="Permanent link">¶</a></h4>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">detect_ese_multi_observable</span><span class="p">(</span>
     <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -2715,7 +2770,8 @@
 <li><strong>Performance considerations</strong> and optimizations</li>
 <li><strong>Integration points</strong> with existing code</li>
 </ol>
-<p>All improvements are treated as equally high priority with equal depth of analysis, providing a complete roadmap for enhancing the ESE detection system.</p>
+<p>All improvements are treated as equally high priority with equal depth of
+analysis, providing a complete roadmap for enhancing the ESE detection system.</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -2740,7 +2796,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

@@ -1,0 +1,2007 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/archive/analysis/DASHBOARD_REVIEW/" rel="canonical"/>
+<link href="../../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>DSA-110 Pipeline Dashboard - Comprehensive Review - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#dsa-110-pipeline-dashboard-comprehensive-review">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              DSA-110 Pipeline Dashboard - Comprehensive Review
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#executive-summary">
+<span class="md-ellipsis">
+      Executive Summary
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-architecture-overview">
+<span class="md-ellipsis">
+      1. Architecture Overview
+    </span>
+</a>
+<nav aria-label="1. Architecture Overview" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#11-frontend-architecture">
+<span class="md-ellipsis">
+      1.1 Frontend Architecture
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#12-backend-architecture">
+<span class="md-ellipsis">
+      1.2 Backend Architecture
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-core-dashboard-features">
+<span class="md-ellipsis">
+      2. Core Dashboard Features
+    </span>
+</a>
+<nav aria-label="2. Core Dashboard Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#21-dashboard-page-dashboardpagetsx">
+<span class="md-ellipsis">
+      2.1 Dashboard Page (DashboardPage.tsx)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#22-streaming-service-control-page-streamingpagetsx">
+<span class="md-ellipsis">
+      2.2 Streaming Service Control Page (StreamingPage.tsx)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-real-time-updates-architecture">
+<span class="md-ellipsis">
+      3. Real-Time Updates Architecture
+    </span>
+</a>
+<nav aria-label="3. Real-Time Updates Architecture" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#31-websocketsse-implementation">
+<span class="md-ellipsis">
+      3.1 WebSocket/SSE Implementation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#32-react-query-integration">
+<span class="md-ellipsis">
+      3.2 React Query Integration
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-error-handling-resilience">
+<span class="md-ellipsis">
+      4. Error Handling &amp; Resilience
+    </span>
+</a>
+<nav aria-label="4. Error Handling &amp; Resilience" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#41-api-client-error-handling-clientts">
+<span class="md-ellipsis">
+      4.1 API Client Error Handling (client.ts)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#42-react-query-error-handling-apptsx">
+<span class="md-ellipsis">
+      4.2 React Query Error Handling (App.tsx)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#43-error-boundary-errorboundarytsx">
+<span class="md-ellipsis">
+      4.3 Error Boundary (ErrorBoundary.tsx)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-state-management">
+<span class="md-ellipsis">
+      5. State Management
+    </span>
+</a>
+<nav aria-label="5. State Management" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#51-react-query-usage">
+<span class="md-ellipsis">
+      5.1 React Query Usage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#52-local-state-management">
+<span class="md-ellipsis">
+      5.2 Local State Management
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#6-performance-considerations">
+<span class="md-ellipsis">
+      6. Performance Considerations
+    </span>
+</a>
+<nav aria-label="6. Performance Considerations" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#61-frontend-performance">
+<span class="md-ellipsis">
+      6.1 Frontend Performance
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#62-backend-performance">
+<span class="md-ellipsis">
+      6.2 Backend Performance
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#7-security-considerations">
+<span class="md-ellipsis">
+      7. Security Considerations
+    </span>
+</a>
+<nav aria-label="7. Security Considerations" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#71-current-security-measures">
+<span class="md-ellipsis">
+      7.1 Current Security Measures
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#8-testing-coverage">
+<span class="md-ellipsis">
+      8. Testing Coverage
+    </span>
+</a>
+<nav aria-label="8. Testing Coverage" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#81-current-testing">
+<span class="md-ellipsis">
+      8.1 Current Testing
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#9-documentation">
+<span class="md-ellipsis">
+      9. Documentation
+    </span>
+</a>
+<nav aria-label="9. Documentation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#91-code-documentation">
+<span class="md-ellipsis">
+      9.1 Code Documentation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#10-specific-code-issues">
+<span class="md-ellipsis">
+      10. Specific Code Issues
+    </span>
+</a>
+<nav aria-label="10. Specific Code Issues" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#101-dashboardpagetsx">
+<span class="md-ellipsis">
+      10.1 DashboardPage.tsx
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#102-streamingpagetsx">
+<span class="md-ellipsis">
+      10.2 StreamingPage.tsx
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#103-api-client-clientts">
+<span class="md-ellipsis">
+      10.3 API Client (client.ts)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#11-recommendations">
+<span class="md-ellipsis">
+      11. Recommendations
+    </span>
+</a>
+<nav aria-label="11. Recommendations" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#111-high-priority">
+<span class="md-ellipsis">
+      11.1 High Priority
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#112-medium-priority">
+<span class="md-ellipsis">
+      11.2 Medium Priority
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#113-low-priority">
+<span class="md-ellipsis">
+      11.3 Low Priority
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#12-conclusion">
+<span class="md-ellipsis">
+      12. Conclusion
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#appendix-file-inventory">
+<span class="md-ellipsis">
+      Appendix: File Inventory
+    </span>
+</a>
+<nav aria-label="Appendix: File Inventory" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#frontend-core-files">
+<span class="md-ellipsis">
+      Frontend Core Files
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#backend-core-files">
+<span class="md-ellipsis">
+      Backend Core Files
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#components">
+<span class="md-ellipsis">
+      Components
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="dsa-110-pipeline-dashboard-comprehensive-review">DSA-110 Pipeline Dashboard - Comprehensive Review<a class="headerlink" href="#dsa-110-pipeline-dashboard-comprehensive-review" title="Permanent link">¶</a></h1>
+<p><strong>Date:</strong> 2025-11-12<br/>
+<strong>Focus:</strong> Dashboard architecture, monitoring capabilities, and pipeline control</p>
+<hr/>
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">¶</a></h2>
+<p>The DSA-110 Continuum Imaging Pipeline Dashboard is a modern React-based web interface for monitoring and controlling the continuum imaging pipeline. The dashboard provides real-time status updates, system health metrics, ESE (Extreme Scattering Event) candidate detection, and comprehensive control capabilities for the streaming service.</p>
+<p><strong>Overall Assessment:</strong> The dashboard demonstrates solid architecture with good separation of concerns, robust error handling, and comprehensive monitoring capabilities. However, there are opportunities for improvement in testing coverage, performance optimization, and documentation.</p>
+<hr/>
+<h2 id="1-architecture-overview">1. Architecture Overview<a class="headerlink" href="#1-architecture-overview" title="Permanent link">¶</a></h2>
+<h3 id="11-frontend-architecture">1.1 Frontend Architecture<a class="headerlink" href="#11-frontend-architecture" title="Permanent link">¶</a></h3>
+<p><strong>Technology Stack:</strong>
+- <strong>Framework:</strong> React 18 + TypeScript
+- <strong>Build Tool:</strong> Vite 7
+- <strong>UI Library:</strong> Material-UI (MUI) v6
+- <strong>State Management:</strong> TanStack React Query (for API state)
+- <strong>Routing:</strong> React Router v6
+- <strong>Visualization:</strong> Plotly.js, D3.js
+- <strong>HTTP Client:</strong> Axios with interceptors</p>
+<p><strong>Strengths:</strong>
+- Modern, well-maintained technology stack
+- TypeScript provides type safety throughout
+- React Query handles caching, refetching, and state synchronization elegantly
+- Clear separation between API layer, components, and pages</p>
+<p><strong>Structure:</strong>
+<div class="highlight"><pre><span></span><code>frontend/src/
+├── api/              # API client, queries, types, WebSocket
+├── components/       # Reusable React components
+├── pages/           # Page-level components
+├── contexts/        # React contexts (notifications)
+├── hooks/           # Custom React hooks
+├── theme/           # MUI theme configuration
+└── utils/           # Utility functions
+</code></pre></div></p>
+<h3 id="12-backend-architecture">1.2 Backend Architecture<a class="headerlink" href="#12-backend-architecture" title="Permanent link">¶</a></h3>
+<p><strong>Technology Stack:</strong>
+- <strong>Framework:</strong> FastAPI (Python)
+- <strong>Real-time:</strong> WebSocket + Server-Sent Events (SSE)
+- <strong>Database:</strong> SQLite (queue, calibration registry, products)
+- <strong>Background Tasks:</strong> asyncio for status broadcasting</p>
+<p><strong>API Structure:</strong>
+- RESTful endpoints for CRUD operations
+- WebSocket endpoint (<code>/api/ws/status</code>) for real-time updates
+- SSE endpoint (<code>/api/sse/status</code>) as fallback
+- Background broadcaster updates connected clients every 10 seconds</p>
+<hr/>
+<h2 id="2-core-dashboard-features">2. Core Dashboard Features<a class="headerlink" href="#2-core-dashboard-features" title="Permanent link">¶</a></h2>
+<h3 id="21-dashboard-page-dashboardpagetsx">2.1 Dashboard Page (<code>DashboardPage.tsx</code>)<a class="headerlink" href="#21-dashboard-page-dashboardpagetsx" title="Permanent link">¶</a></h3>
+<p><strong>Components:</strong>
+1. <strong>Pipeline Status Panel</strong>
+   - Queue statistics (total, pending, in_progress, completed, failed, collecting)
+   - Active calibration sets count
+   - Recent observations table (last 10 groups)</p>
+<ol>
+<li><strong>System Health Panel</strong></li>
+<li>CPU usage percentage</li>
+<li>Memory usage percentage</li>
+<li>Disk usage percentage</li>
+<li>System load (1-minute average)</li>
+<li>
+<p>Last update timestamp</p>
+</li>
+<li>
+<p><strong>Pointing Visualization</strong></p>
+</li>
+<li>Live sky map showing telescope pointing position</li>
+<li>Historical trail (configurable days, default 7)</li>
+<li>Current RA/Dec coordinates</li>
+<li>
+<p>Monitor status indicators</p>
+</li>
+<li>
+<p><strong>ESE Candidates Panel</strong></p>
+</li>
+<li>Real-time variability alerts with 5σ threshold</li>
+<li>Source ID, σ deviation, flux values</li>
+<li>Status indicators (active, resolved, false_positive)</li>
+<li>Auto-refresh every 10 seconds</li>
+</ol>
+<p><strong>Strengths:</strong>
+- Clean, organized layout with responsive design
+- Real-time updates via WebSocket/SSE with polling fallback
+- Clear visual indicators for status</p>
+<p><strong>Issues Identified:</strong></p>
+<ol>
+<li><strong>Recent Observations Table</strong> (lines 140-163)</li>
+<li>Uses raw HTML <code>&lt;table&gt;</code> instead of MUI Table components</li>
+<li>Inconsistent with rest of UI design</li>
+<li>No sorting or filtering capabilities</li>
+<li>
+<p>Limited to 10 entries with no pagination</p>
+</li>
+<li>
+<p><strong>Error Handling</strong></p>
+</li>
+<li>Basic error display but no retry mechanism at component level</li>
+<li>
+<p>Error messages could be more actionable</p>
+</li>
+<li>
+<p><strong>Loading States</strong></p>
+</li>
+<li>Simple CircularProgress, could be more informative</li>
+<li>No skeleton loaders for better UX</li>
+</ol>
+<h3 id="22-streaming-service-control-page-streamingpagetsx">2.2 Streaming Service Control Page (<code>StreamingPage.tsx</code>)<a class="headerlink" href="#22-streaming-service-control-page-streamingpagetsx" title="Permanent link">¶</a></h3>
+<p><strong>Features:</strong>
+- Start/Stop/Restart streaming service
+- Real-time status monitoring (PID, uptime, CPU, memory)
+- Queue statistics display
+- Configuration management dialog
+- Health status indicators</p>
+<p><strong>Strengths:</strong>
+- Comprehensive control interface
+- Real-time metrics display
+- Configuration can be updated without restarting service</p>
+<p><strong>Issues Identified:</strong></p>
+<ol>
+<li><strong>Configuration Dialog</strong> (lines 387-505)</li>
+<li>No validation of input values</li>
+<li>No confirmation before applying changes</li>
+<li>
+<p>Missing error handling for invalid configurations</p>
+</li>
+<li>
+<p><strong>Error Handling</strong></p>
+</li>
+<li>Uses <code>alert()</code> for error messages (lines 83, 94, 106, 127)</li>
+<li>
+<p>Should use MUI Snackbar/Alert components for consistency</p>
+</li>
+<li>
+<p><strong>State Management</strong></p>
+</li>
+<li>Local state for dialog could be better managed</li>
+<li>No optimistic updates for better UX</li>
+</ol>
+<hr/>
+<h2 id="3-real-time-updates-architecture">3. Real-Time Updates Architecture<a class="headerlink" href="#3-real-time-updates-architecture" title="Permanent link">¶</a></h2>
+<h3 id="31-websocketsse-implementation">3.1 WebSocket/SSE Implementation<a class="headerlink" href="#31-websocketsse-implementation" title="Permanent link">¶</a></h3>
+<p><strong>Frontend (<code>websocket.ts</code>):</strong>
+- WebSocket client with automatic reconnection
+- Exponential backoff for reconnection attempts
+- SSE fallback support
+- Ping/pong keepalive mechanism</p>
+<p><strong>Backend (<code>routes.py</code>):</strong>
+- WebSocket endpoint: <code>/api/ws/status</code>
+- SSE endpoint: <code>/api/sse/status</code>
+- Background broadcaster updates every 10 seconds
+- Broadcasts: pipeline_status, metrics, ese_candidates</p>
+<p><strong>Strengths:</strong>
+- Dual transport mechanism (WebSocket + SSE)
+- Automatic reconnection with exponential backoff
+- Graceful fallback to polling if WebSocket unavailable</p>
+<p><strong>Issues Identified:</strong></p>
+<ol>
+<li><strong>WebSocket Manager</strong> (<code>websocket_manager.py</code> - not reviewed in detail)</li>
+<li>Need to verify proper cleanup on disconnect</li>
+<li>
+<p>Should handle connection limits</p>
+</li>
+<li>
+<p><strong>Polling Fallback</strong> (<code>queries.ts</code> lines 60-102)</p>
+</li>
+<li><code>useRealtimeQuery</code> hook falls back to polling</li>
+<li>Polling interval is 10 seconds (configurable)</li>
+<li>
+<p>Could be optimized based on connection state</p>
+</li>
+<li>
+<p><strong>Message Handling</strong></p>
+</li>
+<li>No message queuing for offline scenarios</li>
+<li>No message deduplication</li>
+</ol>
+<h3 id="32-react-query-integration">3.2 React Query Integration<a class="headerlink" href="#32-react-query-integration" title="Permanent link">¶</a></h3>
+<p><strong>Implementation (<code>queries.ts</code>):</strong>
+- Custom <code>useRealtimeQuery</code> hook combines WebSocket with React Query
+- Automatic cache invalidation on WebSocket updates
+- Polling fallback when WebSocket unavailable</p>
+<p><strong>Strengths:</strong>
+- Seamless integration with React Query
+- Automatic cache updates from WebSocket messages
+- Consistent API with other queries</p>
+<p><strong>Potential Improvements:</strong>
+- Could add optimistic updates for mutations
+- Could implement query prefetching for better performance</p>
+<hr/>
+<h2 id="4-error-handling-resilience">4. Error Handling &amp; Resilience<a class="headerlink" href="#4-error-handling-resilience" title="Permanent link">¶</a></h2>
+<h3 id="41-api-client-error-handling-clientts">4.1 API Client Error Handling (<code>client.ts</code>)<a class="headerlink" href="#41-api-client-error-handling-clientts" title="Permanent link">¶</a></h3>
+<p><strong>Features:</strong>
+- Circuit breaker pattern (5 failures threshold, 30s reset timeout)
+- Retry logic with exponential backoff (max 3 retries)
+- Error classification (network, timeout, server, client)
+- User-friendly error messages</p>
+<p><strong>Strengths:</strong>
+- Comprehensive error handling
+- Circuit breaker prevents cascading failures
+- Retry logic handles transient failures</p>
+<p><strong>Issues Identified:</strong></p>
+<ol>
+<li><strong>Circuit Breaker Configuration</strong></li>
+<li>Fixed thresholds may not be optimal for all scenarios</li>
+<li>
+<p>No metrics/observability for circuit breaker state</p>
+</li>
+<li>
+<p><strong>Error Messages</strong></p>
+</li>
+<li>Some error messages could be more specific</li>
+<li>No context about what operation failed</li>
+</ol>
+<h3 id="42-react-query-error-handling-apptsx">4.2 React Query Error Handling (<code>App.tsx</code>)<a class="headerlink" href="#42-react-query-error-handling-apptsx" title="Permanent link">¶</a></h3>
+<p><strong>Configuration:</strong>
+- Retry up to 3 times for retryable errors
+- Exponential backoff (1s, 2s, 4s)
+- Error classification via <code>isRetryableError</code></p>
+<p><strong>Strengths:</strong>
+- Consistent retry strategy
+- Respects error classification</p>
+<p><strong>Potential Improvements:</strong>
+- Could add retry indicators in UI
+- Could show retry count to users</p>
+<h3 id="43-error-boundary-errorboundarytsx">4.3 Error Boundary (<code>ErrorBoundary.tsx</code>)<a class="headerlink" href="#43-error-boundary-errorboundarytsx" title="Permanent link">¶</a></h3>
+<p><strong>Features:</strong>
+- Catches React component errors
+- Provides recovery options (Try Again, Go Home)
+- Shows error details in development mode</p>
+<p><strong>Strengths:</strong>
+- Prevents entire app from crashing
+- User-friendly error display</p>
+<p><strong>Potential Improvements:</strong>
+- Could add error reporting/logging
+- Could provide more context about error location</p>
+<hr/>
+<h2 id="5-state-management">5. State Management<a class="headerlink" href="#5-state-management" title="Permanent link">¶</a></h2>
+<h3 id="51-react-query-usage">5.1 React Query Usage<a class="headerlink" href="#51-react-query-usage" title="Permanent link">¶</a></h3>
+<p><strong>Pattern:</strong>
+- All API data fetched via React Query hooks
+- Automatic caching and refetching
+- Optimistic updates for mutations (where applicable)</p>
+<p><strong>Strengths:</strong>
+- Centralized state management for server state
+- Automatic cache invalidation
+- Built-in loading and error states</p>
+<p><strong>Query Hooks Reviewed:</strong>
+- <code>usePipelineStatus()</code> - 10s polling/WebSocket
+- <code>useSystemMetrics()</code> - 10s polling/WebSocket
+- <code>useESECandidates()</code> - 10s polling/WebSocket
+- <code>useStreamingStatus()</code> - 5s polling
+- <code>useMSList()</code> - 30s polling
+- <code>useJobs()</code> - 5s polling</p>
+<p><strong>Potential Issues:</strong></p>
+<ol>
+<li><strong>Polling Intervals</strong></li>
+<li>Some queries poll very frequently (5s)</li>
+<li>Could cause unnecessary load on backend</li>
+<li>
+<p>Should consider WebSocket for high-frequency updates</p>
+</li>
+<li>
+<p><strong>Cache Invalidation</strong></p>
+</li>
+<li>Some mutations invalidate entire query keys</li>
+<li>Could be more granular for better performance</li>
+</ol>
+<h3 id="52-local-state-management">5.2 Local State Management<a class="headerlink" href="#52-local-state-management" title="Permanent link">¶</a></h3>
+<p><strong>Pattern:</strong>
+- React <code>useState</code> for component-local state
+- React Context for notifications</p>
+<p><strong>Strengths:</strong>
+- Simple and appropriate for local state
+- Notification context provides global notification system</p>
+<p><strong>Potential Improvements:</strong>
+- Could use Zustand or Jotai for more complex shared state
+- Current approach is sufficient for current needs</p>
+<hr/>
+<h2 id="6-performance-considerations">6. Performance Considerations<a class="headerlink" href="#6-performance-considerations" title="Permanent link">¶</a></h2>
+<h3 id="61-frontend-performance">6.1 Frontend Performance<a class="headerlink" href="#61-frontend-performance" title="Permanent link">¶</a></h3>
+<p><strong>Strengths:</strong>
+- Vite provides fast build and HMR
+- React Query caching reduces unnecessary requests
+- Code splitting via React Router</p>
+<p><strong>Potential Issues:</strong></p>
+<ol>
+<li><strong>Large Data Sets</strong></li>
+<li>Recent observations table shows all data (limited to 10)</li>
+<li>No virtualization for large lists</li>
+<li>
+<p>Pointing history could be large (7 days default)</p>
+</li>
+<li>
+<p><strong>Re-renders</strong></p>
+</li>
+<li>Some components may re-render unnecessarily</li>
+<li>
+<p>Could benefit from React.memo in some cases</p>
+</li>
+<li>
+<p><strong>Bundle Size</strong></p>
+</li>
+<li>Plotly.js is large (~2MB)</li>
+<li>Could use dynamic imports for less-used features</li>
+</ol>
+<h3 id="62-backend-performance">6.2 Backend Performance<a class="headerlink" href="#62-backend-performance" title="Permanent link">¶</a></h3>
+<p><strong>Potential Issues:</strong></p>
+<ol>
+<li><strong>Database Queries</strong></li>
+<li>Queue stats fetched every 10 seconds</li>
+<li>Recent groups query may not be optimized</li>
+<li>
+<p>No query result caching visible</p>
+</li>
+<li>
+<p><strong>WebSocket Broadcasting</strong></p>
+</li>
+<li>Broadcasts to all connected clients every 10s</li>
+<li>
+<p>Could be optimized to only send when data changes</p>
+</li>
+<li>
+<p><strong>System Metrics</strong></p>
+</li>
+<li>System metrics fetched synchronously</li>
+<li>Could be cached for short periods</li>
+</ol>
+<hr/>
+<h2 id="7-security-considerations">7. Security Considerations<a class="headerlink" href="#7-security-considerations" title="Permanent link">¶</a></h2>
+<h3 id="71-current-security-measures">7.1 Current Security Measures<a class="headerlink" href="#71-current-security-measures" title="Permanent link">¶</a></h3>
+<p><strong>Strengths:</strong>
+- CORS middleware configured
+- No authentication currently (internal tool)
+- Input validation via Pydantic models</p>
+<p><strong>Potential Issues:</strong></p>
+<ol>
+<li><strong>No Authentication</strong></li>
+<li>Dashboard is accessible to anyone on network</li>
+<li>Streaming service control has no access control</li>
+<li>
+<p>Should add authentication for production use</p>
+</li>
+<li>
+<p><strong>Input Validation</strong></p>
+</li>
+<li>Frontend validation missing in some forms</li>
+<li>
+<p>Backend validation exists but could be stricter</p>
+</li>
+<li>
+<p><strong>Error Messages</strong></p>
+</li>
+<li>Some error messages may leak internal details</li>
+<li>Should sanitize error messages in production</li>
+</ol>
+<hr/>
+<h2 id="8-testing-coverage">8. Testing Coverage<a class="headerlink" href="#8-testing-coverage" title="Permanent link">¶</a></h2>
+<h3 id="81-current-testing">8.1 Current Testing<a class="headerlink" href="#81-current-testing" title="Permanent link">¶</a></h3>
+<p><strong>Files Found:</strong>
+- <code>MSTable.test.tsx</code>
+- <code>ImageBrowser.test.tsx</code>
+- <code>useSelectionState.test.tsx</code>
+- <code>ControlPage.test.tsx</code></p>
+<p><strong>Issues Identified:</strong></p>
+<ol>
+<li><strong>Limited Test Coverage</strong></li>
+<li>Only a few components have tests</li>
+<li>No tests for API hooks</li>
+<li>No tests for error handling</li>
+<li>
+<p>No integration tests</p>
+</li>
+<li>
+<p><strong>Missing Test Types</strong></p>
+</li>
+<li>No E2E tests (Playwright config exists but no tests found)</li>
+<li>No API endpoint tests</li>
+<li>No WebSocket tests</li>
+</ol>
+<p><strong>Recommendations:</strong>
+- Add unit tests for critical components
+- Add integration tests for API hooks
+- Add E2E tests for critical user flows
+- Add API endpoint tests</p>
+<hr/>
+<h2 id="9-documentation">9. Documentation<a class="headerlink" href="#9-documentation" title="Permanent link">¶</a></h2>
+<h3 id="91-code-documentation">9.1 Code Documentation<a class="headerlink" href="#91-code-documentation" title="Permanent link">¶</a></h3>
+<p><strong>Strengths:</strong>
+- TypeScript types provide good documentation
+- Some JSDoc comments in API hooks
+- README files exist</p>
+<p><strong>Issues Identified:</strong></p>
+<ol>
+<li><strong>Incomplete Documentation</strong></li>
+<li>Many components lack JSDoc comments</li>
+<li>API hooks could have more examples</li>
+<li>
+<p>Complex logic lacks inline comments</p>
+</li>
+<li>
+<p><strong>API Documentation</strong></p>
+</li>
+<li>No OpenAPI/Swagger documentation visible</li>
+<li>Endpoint documentation exists in markdown but may be outdated</li>
+</ol>
+<p><strong>Recommendations:</strong>
+- Add JSDoc comments to all exported functions/components
+- Generate OpenAPI docs from FastAPI
+- Keep API documentation in sync with code</p>
+<hr/>
+<h2 id="10-specific-code-issues">10. Specific Code Issues<a class="headerlink" href="#10-specific-code-issues" title="Permanent link">¶</a></h2>
+<h3 id="101-dashboardpagetsx">10.1 DashboardPage.tsx<a class="headerlink" href="#101-dashboardpagetsx" title="Permanent link">¶</a></h3>
+<p><strong>Issue 1: Raw HTML Table</strong> (lines 140-163)
+<div class="highlight"><pre><span></span><code><span class="c1">// Current: Raw HTML table</span>
+<span class="o">&lt;</span><span class="nx">table</span><span class="w"> </span><span class="nx">style</span><span class="o">=</span><span class="p">{{</span><span class="w"> </span><span class="nx">width</span><span class="o">:</span><span class="w"> </span><span class="s1">'100%'</span><span class="p">,</span><span class="w"> </span><span class="nx">borderCollapse</span><span class="o">:</span><span class="w"> </span><span class="s1">'collapse'</span><span class="w"> </span><span class="p">}}</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="o">&lt;</span><span class="err">/table&gt;</span>
+
+<span class="c1">// Recommendation: Use MUI Table</span>
+<span class="o">&lt;</span><span class="nx">TableContainer</span><span class="w"> </span><span class="nx">component</span><span class="o">=</span><span class="p">{</span><span class="nx">Paper</span><span class="p">}</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="nx">Table</span><span class="o">&gt;</span>
+<span class="w">    </span><span class="c1">// ...</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="err">/Table&gt;</span>
+<span class="o">&lt;</span><span class="err">/TableContainer&gt;</span>
+</code></pre></div></p>
+<p><strong>Issue 2: Hardcoded Limit</strong> (line 150)
+<div class="highlight"><pre><span></span><code><span class="c1">// Current: Hardcoded limit</span>
+<span class="p">{</span><span class="nx">status</span><span class="p">.</span><span class="nx">recent_groups</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">10</span><span class="p">).</span><span class="nx">map</span><span class="p">(...)}</span>
+
+<span class="c1">// Recommendation: Make configurable or add pagination</span>
+</code></pre></div></p>
+<p><strong>Issue 3: Status Summary Alert</strong> (lines 180-183)
+<div class="highlight"><pre><span></span><code><span class="c1">// Current: Hardcoded version string</span>
+<span class="o">&lt;</span><span class="nx">Alert</span><span class="w"> </span><span class="nx">severity</span><span class="o">=</span><span class="s2">"success"</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="nx">DSA</span><span class="o">-</span><span class="mf">110</span><span class="w"> </span><span class="nx">Frontend</span><span class="w"> </span><span class="nx">v0</span><span class="mf">.2.0</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nx">Enhanced</span><span class="w"> </span><span class="nx">dashboard</span><span class="p">...</span>
+<span class="o">&lt;</span><span class="err">/Alert&gt;</span>
+
+<span class="c1">// Recommendation: Remove or make dynamic</span>
+</code></pre></div></p>
+<h3 id="102-streamingpagetsx">10.2 StreamingPage.tsx<a class="headerlink" href="#102-streamingpagetsx" title="Permanent link">¶</a></h3>
+<p><strong>Issue 1: Alert Usage</strong> (multiple locations)
+<div class="highlight"><pre><span></span><code><span class="c1">// Current: Browser alert()</span>
+<span class="nx">alert</span><span class="p">(</span><span class="sb">`Failed to start: </span><span class="si">${</span><span class="nx">data</span><span class="p">.</span><span class="nx">message</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+
+<span class="c1">// Recommendation: Use MUI Snackbar</span>
+</code></pre></div></p>
+<p><strong>Issue 2: Missing Validation</strong>
+<div class="highlight"><pre><span></span><code><span class="c1">// Current: No validation before save</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">handleSaveConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">editedConfig</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">updateConfigMutation</span><span class="p">.</span><span class="nx">mutate</span><span class="p">(</span><span class="nx">editedConfig</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">};</span>
+
+<span class="c1">// Recommendation: Add validation</span>
+</code></pre></div></p>
+<h3 id="103-api-client-clientts">10.3 API Client (<code>client.ts</code>)<a class="headerlink" href="#103-api-client-clientts" title="Permanent link">¶</a></h3>
+<p><strong>Issue 1: Base URL Logic</strong> (lines 13-15)
+<div class="highlight"><pre><span></span><code><span class="c1">// Current: Complex base URL logic</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">API_BASE_URL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="ow">typeof</span><span class="w"> </span><span class="nb">window</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="s1">'undefined'</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">pathname</span><span class="p">.</span><span class="nx">startsWith</span><span class="p">(</span><span class="s1">'/ui'</span><span class="p">))</span><span class="w"> </span>
+<span class="w">  </span><span class="o">?</span><span class="w"> </span><span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">origin</span><span class="w"> </span>
+<span class="w">  </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="k">import</span><span class="p">.</span><span class="nx">meta</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">DEV</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s1">'http://127.0.0.1:8000'</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s1">''</span><span class="p">);</span>
+
+<span class="c1">// Recommendation: Simplify and document</span>
+</code></pre></div></p>
+<p><strong>Issue 2: Circuit Breaker State</strong>
+- No way to monitor circuit breaker state
+- No UI indicator when circuit breaker is open</p>
+<hr/>
+<h2 id="11-recommendations">11. Recommendations<a class="headerlink" href="#11-recommendations" title="Permanent link">¶</a></h2>
+<h3 id="111-high-priority">11.1 High Priority<a class="headerlink" href="#111-high-priority" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Add Authentication</strong></li>
+<li>Implement authentication for production use</li>
+<li>
+<p>Add role-based access control for streaming service control</p>
+</li>
+<li>
+<p><strong>Improve Error Handling</strong></p>
+</li>
+<li>Replace <code>alert()</code> calls with MUI Snackbar</li>
+<li>Add error boundaries for critical sections</li>
+<li>
+<p>Improve error messages with actionable guidance</p>
+</li>
+<li>
+<p><strong>Add Input Validation</strong></p>
+</li>
+<li>Validate form inputs before submission</li>
+<li>Show validation errors inline</li>
+<li>
+<p>Prevent invalid configurations</p>
+</li>
+<li>
+<p><strong>Improve Testing</strong></p>
+</li>
+<li>Add unit tests for critical components</li>
+<li>Add integration tests for API hooks</li>
+<li>Add E2E tests for critical user flows</li>
+</ol>
+<h3 id="112-medium-priority">11.2 Medium Priority<a class="headerlink" href="#112-medium-priority" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Performance Optimization</strong></li>
+<li>Add virtualization for large lists</li>
+<li>Optimize re-renders with React.memo</li>
+<li>
+<p>Implement query result caching on backend</p>
+</li>
+<li>
+<p><strong>UI/UX Improvements</strong></p>
+</li>
+<li>Replace raw HTML tables with MUI components</li>
+<li>Add skeleton loaders for better loading states</li>
+<li>Add pagination for large data sets</li>
+<li>
+<p>Improve mobile responsiveness</p>
+</li>
+<li>
+<p><strong>Documentation</strong></p>
+</li>
+<li>Add JSDoc comments to all exported functions</li>
+<li>Generate OpenAPI documentation</li>
+<li>
+<p>Keep API docs in sync with code</p>
+</li>
+<li>
+<p><strong>Monitoring &amp; Observability</strong></p>
+</li>
+<li>Add metrics for API call success/failure rates</li>
+<li>Monitor WebSocket connection health</li>
+<li>Add performance monitoring</li>
+</ol>
+<h3 id="113-low-priority">11.3 Low Priority<a class="headerlink" href="#113-low-priority" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Code Quality</strong></li>
+<li>Refactor complex components into smaller pieces</li>
+<li>Extract reusable logic into custom hooks</li>
+<li>
+<p>Standardize error handling patterns</p>
+</li>
+<li>
+<p><strong>Features</strong></p>
+</li>
+<li>Add export functionality for data tables</li>
+<li>Add filtering and sorting for tables</li>
+<li>Add keyboard shortcuts for common actions</li>
+</ol>
+<hr/>
+<h2 id="12-conclusion">12. Conclusion<a class="headerlink" href="#12-conclusion" title="Permanent link">¶</a></h2>
+<p>The DSA-110 Pipeline Dashboard is a well-architected monitoring and control interface with solid foundations. The use of modern technologies, comprehensive error handling, and real-time updates provide a good user experience.</p>
+<p><strong>Key Strengths:</strong>
+- Modern, maintainable technology stack
+- Comprehensive monitoring capabilities
+- Robust error handling and resilience
+- Real-time updates via WebSocket/SSE</p>
+<p><strong>Key Areas for Improvement:</strong>
+- Testing coverage (critical)
+- Authentication and security (critical for production)
+- UI/UX polish (tables, error messages, loading states)
+- Performance optimization (large data sets, re-renders)</p>
+<p><strong>Overall Grade: B+</strong></p>
+<p>The dashboard is production-ready for internal use but needs authentication and improved testing before broader deployment. The architecture is sound and can support future enhancements.</p>
+<hr/>
+<h2 id="appendix-file-inventory">Appendix: File Inventory<a class="headerlink" href="#appendix-file-inventory" title="Permanent link">¶</a></h2>
+<h3 id="frontend-core-files">Frontend Core Files<a class="headerlink" href="#frontend-core-files" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>frontend/src/pages/DashboardPage.tsx</code> - Main dashboard page</li>
+<li><code>frontend/src/pages/StreamingPage.tsx</code> - Streaming service control</li>
+<li><code>frontend/src/api/queries.ts</code> - React Query hooks (1500+ lines)</li>
+<li><code>frontend/src/api/client.ts</code> - Axios client with interceptors</li>
+<li><code>frontend/src/api/websocket.ts</code> - WebSocket/SSE client</li>
+<li><code>frontend/src/api/types.ts</code> - TypeScript type definitions (790 lines)</li>
+<li><code>frontend/src/App.tsx</code> - Main app component with routing</li>
+</ul>
+<h3 id="backend-core-files">Backend Core Files<a class="headerlink" href="#backend-core-files" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>src/dsa110_contimg/api/routes.py</code> - FastAPI routes (5000+ lines)</li>
+<li><code>src/dsa110_contimg/api/models.py</code> - Pydantic models</li>
+<li><code>src/dsa110_contimg/api/streaming_service.py</code> - Streaming service manager</li>
+<li><code>src/dsa110_contimg/api/websocket_manager.py</code> - WebSocket manager (not reviewed)</li>
+</ul>
+<h3 id="components">Components<a class="headerlink" href="#components" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>frontend/src/components/ESECandidatesPanel.tsx</code> - ESE detection panel</li>
+<li><code>frontend/src/components/PointingVisualization.tsx</code> - Pointing map</li>
+<li><code>frontend/src/components/ErrorBoundary.tsx</code> - Error boundary component</li>
+</ul>
+<hr/>
+<p><strong>Review Completed:</strong> 2025-11-12<br/>
+<strong>Next Review:</strong> Recommended in 3-6 months or after major changes</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

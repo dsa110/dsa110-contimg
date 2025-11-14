@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1150,7 +1152,8 @@
 <article class="md-content__inner md-typeset">
 <h1 id="warning-detection-and-termination">Warning Detection and Termination<a class="headerlink" href="#warning-detection-and-termination" title="Permanent link">¶</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>The error detection system now <strong>also terminates commands when warning messages are detected</strong>, not just errors.</p>
+<p>The error detection system now <strong>also terminates commands when warning messages
+are detected</strong>, not just errors.</p>
 <h2 id="what-triggers-termination">What Triggers Termination<a class="headerlink" href="#what-triggers-termination" title="Permanent link">¶</a></h2>
 <h3 id="error-patterns-existing">Error Patterns (Existing)<a class="headerlink" href="#error-patterns-existing" title="Permanent link">¶</a></h3>
 <ul>
@@ -1161,21 +1164,30 @@
 </ul>
 <h3 id="warning-patterns-new">Warning Patterns (New)<a class="headerlink" href="#warning-patterns-new" title="Permanent link">¶</a></h3>
 <ul>
-<li><strong>Deprecation warnings</strong>: <code>DeprecationWarning</code>, <code>PendingDeprecationWarning</code>, <code>FutureWarning</code></li>
+<li><strong>Deprecation warnings</strong>: <code>DeprecationWarning</code>, <code>PendingDeprecationWarning</code>,
+  <code>FutureWarning</code></li>
 <li><strong>Test warnings</strong>: <code>WARNING.*test.*skipped</code>, <code>WARNING.*test.*failed</code></li>
-<li><strong>Database warnings</strong>: <code>WARNING.*database</code>, <code>WARNING.*table</code>, <code>WARNING.*column</code>, <code>WARNING.*schema</code></li>
+<li><strong>Database warnings</strong>: <code>WARNING.*database</code>, <code>WARNING.*table</code>,
+  <code>WARNING.*column</code>, <code>WARNING.*schema</code></li>
 <li><strong>CASA warnings</strong>: <code>WARNING.*SEVERE</code>, <code>WARNING.*Exception</code></li>
 <li><strong>Build warnings</strong>: <code>WARNING.*build</code>, <code>WARNING.*compilation</code></li>
-<li><strong>System warnings</strong>: <code>WARNING.*Permission</code>, <code>WARNING.*Access</code>, <code>WARNING.*denied</code></li>
-<li><strong>Critical warnings</strong>: <code>WARNING.*CRITICAL</code>, <code>WARNING.*FATAL</code>, <code>WARNING.*Error</code>, <code>WARNING.*Failed</code></li>
-<li><strong>Data quality warnings</strong>: <code>WARNING.*invalid</code>, <code>WARNING.*corrupt</code>, <code>WARNING.*missing</code>, <code>WARNING.*not found</code></li>
-<li><strong>Configuration warnings</strong>: <code>WARNING.*config</code>, <code>WARNING.*setting</code>, <code>WARNING.*parameter</code></li>
+<li><strong>System warnings</strong>: <code>WARNING.*Permission</code>, <code>WARNING.*Access</code>,
+  <code>WARNING.*denied</code></li>
+<li><strong>Critical warnings</strong>: <code>WARNING.*CRITICAL</code>, <code>WARNING.*FATAL</code>,
+  <code>WARNING.*Error</code>, <code>WARNING.*Failed</code></li>
+<li><strong>Data quality warnings</strong>: <code>WARNING.*invalid</code>, <code>WARNING.*corrupt</code>,
+  <code>WARNING.*missing</code>, <code>WARNING.*not found</code></li>
+<li><strong>Configuration warnings</strong>: <code>WARNING.*config</code>, <code>WARNING.*setting</code>,
+  <code>WARNING.*parameter</code></li>
 </ul>
 <h2 id="behavior">Behavior<a class="headerlink" href="#behavior" title="Permanent link">¶</a></h2>
-<p>When a warning pattern is detected:
-1. <strong>Immediate termination</strong>: Command is killed immediately (same as error detection)
-2. <strong>Error reported</strong>: Warning is reported as an error condition
-3. <strong>Exit code</strong>: Process exits with code 1</p>
+<p>When a warning pattern is detected:</p>
+<ol>
+<li><strong>Immediate termination</strong>: Command is killed immediately (same as error
+   detection)</li>
+<li><strong>Error reported</strong>: Warning is reported as an error condition</li>
+<li><strong>Exit code</strong>: Process exits with code 1</li>
+</ol>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">¶</a></h2>
 <h3 id="deprecation-warning">Deprecation Warning<a class="headerlink" href="#deprecation-warning" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>$<span class="w"> </span>python<span class="w"> </span>script.py
@@ -1190,25 +1202,34 @@ WARNING:<span class="w"> </span><span class="nb">test</span><span class="w"> </s
 <span class="o">[</span>ERROR-DETECTION<span class="o">]</span><span class="w"> </span>Terminating<span class="w"> </span><span class="nb">command</span><span class="w"> </span>immediately<span class="w"> </span>due<span class="w"> </span>to<span class="w"> </span>warning...
 </code></pre></div>
 <h2 id="rationale">Rationale<a class="headerlink" href="#rationale" title="Permanent link">¶</a></h2>
-<p>Warnings often indicate:
-- <strong>Serious issues</strong> that need immediate attention
-- <strong>Deprecated features</strong> that will break in future versions
-- <strong>Data quality problems</strong> that could lead to incorrect results
-- <strong>Configuration issues</strong> that prevent proper operation</p>
-<p>By terminating on warnings, we ensure:
-- <strong>Early detection</strong> of problems
-- <strong>Prevention</strong> of incorrect results
-- <strong>Consistency</strong> in error handling</p>
+<p>Warnings often indicate:</p>
+<ul>
+<li><strong>Serious issues</strong> that need immediate attention</li>
+<li><strong>Deprecated features</strong> that will break in future versions</li>
+<li><strong>Data quality problems</strong> that could lead to incorrect results</li>
+<li><strong>Configuration issues</strong> that prevent proper operation</li>
+</ul>
+<p>By terminating on warnings, we ensure:</p>
+<ul>
+<li><strong>Early detection</strong> of problems</li>
+<li><strong>Prevention</strong> of incorrect results</li>
+<li><strong>Consistency</strong> in error handling</li>
+</ul>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">¶</a></h2>
-<p>Warning detection is <strong>always enabled</strong> when using the error detection wrapper. There is no option to disable it separately from error detection.</p>
+<p>Warning detection is <strong>always enabled</strong> when using the error detection wrapper.
+There is no option to disable it separately from error detection.</p>
 <h2 id="false-positives">False Positives<a class="headerlink" href="#false-positives" title="Permanent link">¶</a></h2>
-<p>The system uses the same false positive detection as error patterns:
-- Excludes comments and documentation
-- Excludes function/class definitions
-- Excludes safe contexts</p>
-<p>If you encounter false positives, you can:
-1. Adjust the warning patterns in <code>scripts/run-with-error-detection.py</code>
-2. Use <code>SKIP_ERROR_DETECTION=1</code> to bypass detection for specific commands</p>
+<p>The system uses the same false positive detection as error patterns:</p>
+<ul>
+<li>Excludes comments and documentation</li>
+<li>Excludes function/class definitions</li>
+<li>Excludes safe contexts</li>
+</ul>
+<p>If you encounter false positives, you can:</p>
+<ol>
+<li>Adjust the warning patterns in <code>scripts/run-with-error-detection.py</code></li>
+<li>Use <code>SKIP_ERROR_DETECTION=1</code> to bypass detection for specific commands</li>
+</ol>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1233,7 +1254,7 @@ WARNING:<span class="w"> </span><span class="nb">test</span><span class="w"> </s
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

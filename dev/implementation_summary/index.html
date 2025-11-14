@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1414,7 +1416,8 @@
 <article class="md-content__inner md-typeset">
 <h1 id="implementation-summary-cost-free-critical-improvements">Implementation Summary: Cost-Free Critical Improvements<a class="headerlink" href="#implementation-summary-cost-free-critical-improvements" title="Permanent link">¶</a></h1>
 <h2 id="status-phase-1-complete">Status: ✅ Phase 1 Complete<a class="headerlink" href="#status-phase-1-complete" title="Permanent link">¶</a></h2>
-<p>All foundational modules for cost-free critical improvements have been implemented.</p>
+<p>All foundational modules for cost-free critical improvements have been
+implemented.</p>
 <hr/>
 <h2 id="implemented-modules">Implemented Modules<a class="headerlink" href="#implemented-modules" title="Permanent link">¶</a></h2>
 <h3 id="1-observability-monitoring">1. Observability &amp; Monitoring ✅<a class="headerlink" href="#1-observability-monitoring" title="Permanent link">¶</a></h3>
@@ -1641,26 +1644,30 @@ curl<span class="w"> </span>http://localhost:8000/metrics
 <h3 id="prometheus-configuration">Prometheus Configuration<a class="headerlink" href="#prometheus-configuration" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># prometheus.yml</span>
 <span class="nt">scrape_configs</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">job_name</span><span class="p">:</span><span class="w"> </span><span class="s">'dsa110-pipeline'</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">job_name</span><span class="p">:</span><span class="w"> </span><span class="s">"dsa110-pipeline"</span>
 <span class="w">    </span><span class="nt">scrape_interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15s</span>
 <span class="w">    </span><span class="nt">static_configs</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">targets</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">'localhost:8000'</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">targets</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"localhost:8000"</span><span class="p p-Indicator">]</span>
 </code></pre></div>
 <h3 id="grafana-dashboard">Grafana Dashboard<a class="headerlink" href="#grafana-dashboard" title="Permanent link">¶</a></h3>
-<p>Import Prometheus data source and create dashboards for:
-- ESE detection metrics
-- Calibration metrics
-- Photometry metrics
-- Pipeline stage metrics
-- System health</p>
+<p>Import Prometheus data source and create dashboards for:</p>
+<ul>
+<li>ESE detection metrics</li>
+<li>Calibration metrics</li>
+<li>Photometry metrics</li>
+<li>Pipeline stage metrics</li>
+<li>System health</li>
+</ul>
 <hr/>
 <h2 id="cost-analysis">Cost Analysis<a class="headerlink" href="#cost-analysis" title="Permanent link">¶</a></h2>
 <p><strong>Total Cost: $0</strong></p>
-<p>All improvements use:
-- ✅ Open-source tools (Prometheus, Grafana, Jaeger)
-- ✅ Free Python packages (pip install)
-- ✅ Self-hosted infrastructure (existing servers)
-- ✅ SQLite for persistence (already in use)</p>
+<p>All improvements use:</p>
+<ul>
+<li>✅ Open-source tools (Prometheus, Grafana, Jaeger)</li>
+<li>✅ Free Python packages (pip install)</li>
+<li>✅ Self-hosted infrastructure (existing servers)</li>
+<li>✅ SQLite for persistence (already in use)</li>
+</ul>
 <p><strong>No paid services, subscriptions, or licenses required.</strong></p>
 <hr/>
 <h2 id="benefits">Benefits<a class="headerlink" href="#benefits" title="Permanent link">¶</a></h2>
@@ -1678,11 +1685,14 @@ curl<span class="w"> </span>http://localhost:8000/metrics
 <li><strong>Implementation Plan</strong>: <code>docs/dev/implementation_plan.md</code></li>
 <li><strong>Integration Examples</strong>: <code>docs/dev/integration_examples.md</code></li>
 <li><strong>Cost Analysis</strong>: <code>docs/dev/analysis/cost_free_improvements.md</code></li>
-<li><strong>Enhancement Recommendations</strong>: <code>docs/dev/analysis/enhancement_recommendations.md</code></li>
+<li><strong>Enhancement Recommendations</strong>:
+  <code>docs/dev/analysis/enhancement_recommendations.md</code></li>
 </ul>
 <hr/>
 <h2 id="status-ready-for-integration">Status: Ready for Integration<a class="headerlink" href="#status-ready-for-integration" title="Permanent link">¶</a></h2>
-<p>All foundational modules are complete and ready for integration into existing pipeline components. The next phase involves integrating these modules into the actual pipeline code.</p>
+<p>All foundational modules are complete and ready for integration into existing
+pipeline components. The next phase involves integrating these modules into the
+actual pipeline code.</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1707,7 +1717,7 @@ curl<span class="w"> </span>http://localhost:8000/metrics
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1199,69 +1201,87 @@
 <p><strong>Date:</strong> 2025-01-28</p>
 <h2 id="backend-api-endpoint-tests">Backend API Endpoint Tests<a class="headerlink" href="#backend-api-endpoint-tests" title="Permanent link">¶</a></h2>
 <h3 id="event-bus-endpoints">Event Bus Endpoints ✅<a class="headerlink" href="#event-bus-endpoints" title="Permanent link">¶</a></h3>
-<p><strong>1. GET /api/events/stats</strong>
-- <strong>Status:</strong> ✅ Working
-- <strong>Response:</strong> Returns event statistics including:
-  - <code>total_events</code>: Total events published
-  - <code>events_in_history</code>: Events in history buffer
-  - <code>events_per_type</code>: Count per event type
-  - <code>events_last_minute</code>: Events in last minute
-  - <code>events_last_hour</code>: Events in last hour
-  - <code>subscribers</code>: Subscriber counts per type
-  - <code>event_types</code>: List of available event types</p>
-<p><strong>2. GET /api/events/stream</strong>
-- <strong>Status:</strong> ✅ Working
-- <strong>Query Parameters:</strong>
-  - <code>event_type</code> (optional): Filter by event type
-  - <code>limit</code> (default: 100): Maximum events to return
-  - <code>since_minutes</code> (optional): Only events from last N minutes
-- <strong>Response:</strong> Array of event objects with <code>timestamp_iso</code> field</p>
-<p><strong>3. GET /api/events/types</strong>
-- <strong>Status:</strong> ✅ Working
-- <strong>Response:</strong> List of available event types with <code>value</code> and <code>name</code> fields</p>
+<p><strong>1. GET /api/events/stats</strong></p>
+<ul>
+<li><strong>Status:</strong> ✅ Working</li>
+<li><strong>Response:</strong> Returns event statistics including:</li>
+<li><code>total_events</code>: Total events published</li>
+<li><code>events_in_history</code>: Events in history buffer</li>
+<li><code>events_per_type</code>: Count per event type</li>
+<li><code>events_last_minute</code>: Events in last minute</li>
+<li><code>events_last_hour</code>: Events in last hour</li>
+<li><code>subscribers</code>: Subscriber counts per type</li>
+<li><code>event_types</code>: List of available event types</li>
+</ul>
+<p><strong>2. GET /api/events/stream</strong></p>
+<ul>
+<li><strong>Status:</strong> ✅ Working</li>
+<li><strong>Query Parameters:</strong></li>
+<li><code>event_type</code> (optional): Filter by event type</li>
+<li><code>limit</code> (default: 100): Maximum events to return</li>
+<li><code>since_minutes</code> (optional): Only events from last N minutes</li>
+<li><strong>Response:</strong> Array of event objects with <code>timestamp_iso</code> field</li>
+</ul>
+<p><strong>3. GET /api/events/types</strong></p>
+<ul>
+<li><strong>Status:</strong> ✅ Working</li>
+<li><strong>Response:</strong> List of available event types with <code>value</code> and <code>name</code> fields</li>
+</ul>
 <h3 id="cache-endpoints">Cache Endpoints ✅<a class="headerlink" href="#cache-endpoints" title="Permanent link">¶</a></h3>
-<p><strong>1. GET /api/cache/stats</strong>
-- <strong>Status:</strong> ✅ Working
-- <strong>Response:</strong> Cache statistics including:
-  - <code>backend_type</code>: Cache backend type (InMemoryCache or RedisCache)
-  - <code>total_keys</code>: Total cache keys
-  - <code>active_keys</code>: Active (non-expired) keys
-  - <code>hits</code>: Cache hits
-  - <code>misses</code>: Cache misses
-  - <code>sets</code>: Cache sets
-  - <code>deletes</code>: Cache deletes
-  - <code>hit_rate</code>: Hit rate percentage
-  - <code>miss_rate</code>: Miss rate percentage
-  - <code>total_requests</code>: Total cache requests</p>
-<p><strong>2. GET /api/cache/keys</strong>
-- <strong>Status:</strong> ✅ Working
-- <strong>Query Parameters:</strong>
-  - <code>pattern</code> (optional): Filter keys by pattern (supports wildcards)
-  - <code>limit</code> (default: 100): Maximum keys to return
-- <strong>Response:</strong> Object with <code>keys</code> array and <code>total</code> count
-  - Each key includes: <code>key</code>, <code>exists</code>, <code>has_value</code></p>
-<p><strong>3. GET /api/cache/keys/{key}</strong>
-- <strong>Status:</strong> ✅ Working (not tested with real key)
-- <strong>Response:</strong> Key details including:
-  - <code>key</code>: Key name
-  - <code>value</code>: Cached value
-  - <code>value_type</code>: Type of value
-  - <code>value_size</code>: Size in bytes</p>
-<p><strong>4. DELETE /api/cache/keys/{key}</strong>
-- <strong>Status:</strong> ✅ Working (not tested with real key)
-- <strong>Response:</strong> Success message</p>
-<p><strong>5. DELETE /api/cache/clear</strong>
-- <strong>Status:</strong> ✅ Working (not tested)
-- <strong>Response:</strong> Success message</p>
-<p><strong>6. GET /api/cache/performance</strong>
-- <strong>Status:</strong> ✅ Working
-- <strong>Response:</strong> Performance metrics:
-  - <code>hit_rate</code>: Hit rate percentage
-  - <code>miss_rate</code>: Miss rate percentage
-  - <code>total_requests</code>: Total requests
-  - <code>hits</code>: Number of hits
-  - <code>misses</code>: Number of misses
-  - <code>backend_type</code>: Cache backend type</p>
+<p><strong>1. GET /api/cache/stats</strong></p>
+<ul>
+<li><strong>Status:</strong> ✅ Working</li>
+<li><strong>Response:</strong> Cache statistics including:</li>
+<li><code>backend_type</code>: Cache backend type (InMemoryCache or RedisCache)</li>
+<li><code>total_keys</code>: Total cache keys</li>
+<li><code>active_keys</code>: Active (non-expired) keys</li>
+<li><code>hits</code>: Cache hits</li>
+<li><code>misses</code>: Cache misses</li>
+<li><code>sets</code>: Cache sets</li>
+<li><code>deletes</code>: Cache deletes</li>
+<li><code>hit_rate</code>: Hit rate percentage</li>
+<li><code>miss_rate</code>: Miss rate percentage</li>
+<li><code>total_requests</code>: Total cache requests</li>
+</ul>
+<p><strong>2. GET /api/cache/keys</strong></p>
+<ul>
+<li><strong>Status:</strong> ✅ Working</li>
+<li><strong>Query Parameters:</strong></li>
+<li><code>pattern</code> (optional): Filter keys by pattern (supports wildcards)</li>
+<li><code>limit</code> (default: 100): Maximum keys to return</li>
+<li><strong>Response:</strong> Object with <code>keys</code> array and <code>total</code> count</li>
+<li>Each key includes: <code>key</code>, <code>exists</code>, <code>has_value</code></li>
+</ul>
+<p><strong>3. GET /api/cache/keys/{key}</strong></p>
+<ul>
+<li><strong>Status:</strong> ✅ Working (not tested with real key)</li>
+<li><strong>Response:</strong> Key details including:</li>
+<li><code>key</code>: Key name</li>
+<li><code>value</code>: Cached value</li>
+<li><code>value_type</code>: Type of value</li>
+<li><code>value_size</code>: Size in bytes</li>
+</ul>
+<p><strong>4. DELETE /api/cache/keys/{key}</strong></p>
+<ul>
+<li><strong>Status:</strong> ✅ Working (not tested with real key)</li>
+<li><strong>Response:</strong> Success message</li>
+</ul>
+<p><strong>5. DELETE /api/cache/clear</strong></p>
+<ul>
+<li><strong>Status:</strong> ✅ Working (not tested)</li>
+<li><strong>Response:</strong> Success message</li>
+</ul>
+<p><strong>6. GET /api/cache/performance</strong></p>
+<ul>
+<li><strong>Status:</strong> ✅ Working</li>
+<li><strong>Response:</strong> Performance metrics:</li>
+<li><code>hit_rate</code>: Hit rate percentage</li>
+<li><code>miss_rate</code>: Miss rate percentage</li>
+<li><code>total_requests</code>: Total requests</li>
+<li><code>hits</code>: Number of hits</li>
+<li><code>misses</code>: Number of misses</li>
+<li><code>backend_type</code>: Cache backend type</li>
+</ul>
 <h2 id="backend-functionality-tests">Backend Functionality Tests ✅<a class="headerlink" href="#backend-functionality-tests" title="Permanent link">¶</a></h2>
 <h3 id="event-bus-tests">Event Bus Tests<a class="headerlink" href="#event-bus-tests" title="Permanent link">¶</a></h3>
 <ul>
@@ -1288,7 +1308,8 @@
 <h3 id="react-query-hooks">React Query Hooks ✅<a class="headerlink" href="#react-query-hooks" title="Permanent link">¶</a></h3>
 <ul>
 <li>Event hooks: <code>useEventStream</code>, <code>useEventStatistics</code>, <code>useEventTypes</code></li>
-<li>Cache hooks: <code>useCacheStatistics</code>, <code>useCacheKeys</code>, <code>useCacheKey</code>, <code>useCachePerformance</code></li>
+<li>Cache hooks: <code>useCacheStatistics</code>, <code>useCacheKeys</code>, <code>useCacheKey</code>,
+  <code>useCachePerformance</code></li>
 </ul>
 <h3 id="react-components">React Components ✅<a class="headerlink" href="#react-components" title="Permanent link">¶</a></h3>
 <ul>
@@ -1307,22 +1328,22 @@
 </ul>
 <h2 id="known-issues">Known Issues<a class="headerlink" href="#known-issues" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Frontend Server:</strong> Not currently running (needs <code>npm start</code> or <code>npm run dev</code>)</li>
-<li><strong>TypeScript Errors:</strong> Pre-existing TypeScript errors in <code>queries.ts</code> related to missing type definitions (not Phase 3 related)</li>
+<li><strong>Frontend Server:</strong> Not currently running (needs <code>npm start</code> or
+   <code>npm run dev</code>)</li>
+<li><strong>TypeScript Errors:</strong> Pre-existing TypeScript errors in <code>queries.ts</code> related
+   to missing type definitions (not Phase 3 related)</li>
 </ol>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
 <ol>
-<li>
-<p><strong>Start Frontend Server:</strong>
+<li><strong>Start Frontend Server:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>frontend
 npm<span class="w"> </span>start
 <span class="c1"># or</span>
 npm<span class="w"> </span>run<span class="w"> </span>dev
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Test Frontend UI:</strong></p>
-</li>
+</code></pre></div>
+<ol>
+<li><strong>Test Frontend UI:</strong></li>
 <li>Navigate to <code>/events</code> page</li>
 <li>Navigate to <code>/cache</code> page</li>
 <li>Test filtering and search functionality</li>
@@ -1353,10 +1374,10 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 <li><code>scripts/test_phase3_api.sh</code> - API endpoint tests (curl-based)</li>
 </ul>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
-<p>✅ <strong>Backend API:</strong> All endpoints working correctly
-✅ <strong>Backend Functionality:</strong> Event bus and cache operations tested and working
-✅ <strong>Frontend Code:</strong> All components, hooks, and pages implemented
-⏳ <strong>Frontend Testing:</strong> Pending frontend server startup</p>
+<p>✅ <strong>Backend API:</strong> All endpoints working correctly ✅ <strong>Backend
+Functionality:</strong> Event bus and cache operations tested and working ✅ <strong>Frontend
+Code:</strong> All components, hooks, and pages implemented ⏳ <strong>Frontend Testing:</strong>
+Pending frontend server startup</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1381,7 +1402,7 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

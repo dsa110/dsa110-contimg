@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1336,75 +1338,96 @@
 <article class="md-content__inner md-typeset">
 <h1 id="implementation-readiness-assessment">Implementation Readiness Assessment<a class="headerlink" href="#implementation-readiness-assessment" title="Permanent link">¶</a></h1>
 <p><strong>Date:</strong> 2025-11-12<br/>
-<strong>Purpose:</strong> Categorize roadmap tasks by implementation readiness - what can be done directly vs what requires investigation</p>
+<strong>Purpose:</strong> Categorize roadmap tasks by implementation readiness - what can be
+done directly vs what requires investigation</p>
 <hr/>
 <h2 id="assessment-criteria">Assessment Criteria<a class="headerlink" href="#assessment-criteria" title="Permanent link">¶</a></h2>
-<p><strong>✅ KNOW HOW TO IMPLEMENT:</strong> Clear patterns exist in codebase, similar implementations present, straightforward integration<br/>
-<strong>⚠️ NEEDS INVESTIGATION:</strong> Domain knowledge required, complex integration, unclear patterns, or dependencies need exploration</p>
+<p><strong>✅ KNOW HOW TO IMPLEMENT:</strong> Clear patterns exist in codebase, similar
+implementations present, straightforward integration<br/>
+<strong>⚠️ NEEDS INVESTIGATION:</strong> Domain knowledge required, complex integration,
+unclear patterns, or dependencies need exploration</p>
 <hr/>
 <h2 id="phase-1-complete-batch-mode-development">Phase 1: Complete Batch Mode Development<a class="headerlink" href="#phase-1-complete-batch-mode-development" title="Permanent link">¶</a></h2>
 <h3 id="priority-1-critical-gaps">Priority 1: Critical Gaps<a class="headerlink" href="#priority-1-critical-gaps" title="Permanent link">¶</a></h3>
 <h4 id="11-stage-4-mosaic-creation-api-exposure">1.1 Stage 4: Mosaic Creation API Exposure<a class="headerlink" href="#11-stage-4-mosaic-creation-api-exposure" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>KNOW HOW TO IMPLEMENT</strong> (with minor investigation)</p>
 <p><strong>Confidence:</strong> High (90%)</p>
-<p><strong>What I Know:</strong>
-- FastAPI router pattern exists (<code>src/dsa110_contimg/api/routers/mosaics.py</code>)
-- Job adapter pattern exists (<code>src/dsa110_contimg/api/job_adapters.py</code>)
-- <code>MosaicOrchestrator.create_mosaic_centered_on_calibrator()</code> exists and works
-- Job database schema exists (<code>database/jobs.py</code>)
-- SSE log streaming pattern exists (seen in other endpoints)</p>
-<p><strong>Implementation Pattern:</strong>
+<p><strong>What I Know:</strong></p>
+<ul>
+<li>FastAPI router pattern exists (<code>src/dsa110_contimg/api/routers/mosaics.py</code>)</li>
+<li>Job adapter pattern exists (<code>src/dsa110_contimg/api/job_adapters.py</code>)</li>
+<li><code>MosaicOrchestrator.create_mosaic_centered_on_calibrator()</code> exists and works</li>
+<li>Job database schema exists (<code>database/jobs.py</code>)</li>
+<li>SSE log streaming pattern exists (seen in other endpoints)</li>
+</ul>
+<p><strong>Implementation Pattern:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Follow existing job adapter pattern:</span>
 <span class="c1"># 1. Create endpoint in routers/mosaics.py</span>
 <span class="c1"># 2. Create job adapter function in job_adapters.py</span>
 <span class="c1"># 3. Use existing job creation/status tracking</span>
 <span class="c1"># 4. Wrap orchestrator call with error handling</span>
-</code></pre></div></p>
-<p><strong>What Needs Investigation:</strong>
-- ⚠️ <strong>Job status tracking details:</strong> Need to verify how job status updates work during long-running orchestrator workflows
-- ⚠️ <strong>SSE log streaming:</strong> Need to check if orchestrator supports log streaming or if we need to wrap it
-- ⚠️ <strong>Error propagation:</strong> Need to understand how orchestrator errors should be reported to API</p>
+</code></pre></div>
+<p><strong>What Needs Investigation:</strong></p>
+<ul>
+<li>⚠️ <strong>Job status tracking details:</strong> Need to verify how job status updates work
+  during long-running orchestrator workflows</li>
+<li>⚠️ <strong>SSE log streaming:</strong> Need to check if orchestrator supports log streaming
+  or if we need to wrap it</li>
+<li>⚠️ <strong>Error propagation:</strong> Need to understand how orchestrator errors should be
+  reported to API</li>
+</ul>
 <p><strong>Estimated Investigation Time:</strong> 2-4 hours<br/>
 <strong>Estimated Implementation Time:</strong> 1.5-2 days</p>
 <hr/>
 <h4 id="12-stage-1-batch-conversion-api">1.2 Stage 1: Batch Conversion API<a class="headerlink" href="#12-stage-1-batch-conversion-api" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>KNOW HOW TO IMPLEMENT</strong></p>
 <p><strong>Confidence:</strong> Very High (95%)</p>
-<p><strong>What I Know:</strong>
-- Batch job pattern exists (<code>src/dsa110_contimg/api/batch_jobs.py</code>)
-- Conversion job adapter exists (<code>run_convert_job()</code> in <code>job_adapters.py</code>)
-- Batch endpoints exist for calibration/imaging
-- Time window handling is straightforward</p>
-<p><strong>Implementation Pattern:</strong>
+<p><strong>What I Know:</strong></p>
+<ul>
+<li>Batch job pattern exists (<code>src/dsa110_contimg/api/batch_jobs.py</code>)</li>
+<li>Conversion job adapter exists (<code>run_convert_job()</code> in <code>job_adapters.py</code>)</li>
+<li>Batch endpoints exist for calibration/imaging</li>
+<li>Time window handling is straightforward</li>
+</ul>
+<p><strong>Implementation Pattern:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Follow existing batch job pattern:</span>
 <span class="c1"># 1. Create POST /api/batch/convert endpoint</span>
 <span class="c1"># 2. Create batch job record</span>
 <span class="c1"># 3. Create individual conversion jobs for each time window</span>
 <span class="c1"># 4. Track batch status</span>
-</code></pre></div></p>
-<p><strong>What Needs Investigation:</strong>
-- ✅ <strong>Minimal</strong> - Pattern is clear from existing batch implementations</p>
+</code></pre></div>
+<p><strong>What Needs Investigation:</strong></p>
+<ul>
+<li>✅ <strong>Minimal</strong> - Pattern is clear from existing batch implementations</li>
+</ul>
 <p><strong>Estimated Investigation Time:</strong> 1 hour<br/>
 <strong>Estimated Implementation Time:</strong> 1 day</p>
 <hr/>
 <h4 id="13-stage-6-publishing-cli">1.3 Stage 6: Publishing CLI<a class="headerlink" href="#13-stage-6-publishing-cli" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>KNOW HOW TO IMPLEMENT</strong></p>
 <p><strong>Confidence:</strong> High (85%)</p>
-<p><strong>What I Know:</strong>
-- CLI pattern exists (<code>calibration/cli.py</code>, <code>conversion/cli.py</code>)
-- <code>data_registry.py</code> has functions: <code>publish_data_manual()</code>, <code>get_data()</code>, <code>trigger_auto_publish()</code>
-- Database schema is clear (<code>data_registry</code> table)
-- argparse pattern is standard</p>
-<p><strong>Implementation Pattern:</strong>
+<p><strong>What I Know:</strong></p>
+<ul>
+<li>CLI pattern exists (<code>calibration/cli.py</code>, <code>conversion/cli.py</code>)</li>
+<li><code>data_registry.py</code> has functions: <code>publish_data_manual()</code>, <code>get_data()</code>,
+  <code>trigger_auto_publish()</code></li>
+<li>Database schema is clear (<code>data_registry</code> table)</li>
+<li>argparse pattern is standard</li>
+</ul>
+<p><strong>Implementation Pattern:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Follow existing CLI pattern:</span>
 <span class="c1"># 1. Create database/cli.py with argparse subcommands</span>
 <span class="c1"># 2. Import data_registry functions</span>
 <span class="c1"># 3. Add subcommands: publish, status, retry, list</span>
 <span class="c1"># 4. Use existing database connection patterns</span>
-</code></pre></div></p>
-<p><strong>What Needs Investigation:</strong>
-- ⚠️ <strong>Error handling:</strong> Need to understand what errors <code>publish_data_manual()</code> can raise
-- ⚠️ <strong>Retry logic:</strong> Need to understand what "retry" means in context of publishing (re-attempt move operation?)</p>
+</code></pre></div>
+<p><strong>What Needs Investigation:</strong></p>
+<ul>
+<li>⚠️ <strong>Error handling:</strong> Need to understand what errors <code>publish_data_manual()</code>
+  can raise</li>
+<li>⚠️ <strong>Retry logic:</strong> Need to understand what "retry" means in context of
+  publishing (re-attempt move operation?)</li>
+</ul>
 <p><strong>Estimated Investigation Time:</strong> 2-3 hours<br/>
 <strong>Estimated Implementation Time:</strong> 1 day</p>
 <hr/>
@@ -1412,57 +1435,79 @@
 <h4 id="14-stage-5-unified-qa-cli">1.4 Stage 5: Unified QA CLI<a class="headerlink" href="#14-stage-5-unified-qa-cli" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>KNOW HOW TO IMPLEMENT</strong> (with investigation)</p>
 <p><strong>Confidence:</strong> Medium-High (75%)</p>
-<p><strong>What I Know:</strong>
-- CLI pattern exists
-- QA functions exist in multiple modules (<code>calibration/cli_qa.py</code>, <code>imaging/cli.py</code>, <code>mosaic/cli.py</code>)
-- argparse subcommand pattern is standard</p>
-<p><strong>What Needs Investigation:</strong>
-- ⚠️ <strong>QA function locations:</strong> Need to find all QA functions across modules
-- ⚠️ <strong>QA function signatures:</strong> Need to understand input/output formats
-- ⚠️ <strong>QA report format:</strong> Need to understand what "comprehensive QA report" means</p>
+<p><strong>What I Know:</strong></p>
+<ul>
+<li>CLI pattern exists</li>
+<li>QA functions exist in multiple modules (<code>calibration/cli_qa.py</code>,
+  <code>imaging/cli.py</code>, <code>mosaic/cli.py</code>)</li>
+<li>argparse subcommand pattern is standard</li>
+</ul>
+<p><strong>What Needs Investigation:</strong></p>
+<ul>
+<li>⚠️ <strong>QA function locations:</strong> Need to find all QA functions across modules</li>
+<li>⚠️ <strong>QA function signatures:</strong> Need to understand input/output formats</li>
+<li>⚠️ <strong>QA report format:</strong> Need to understand what "comprehensive QA report"
+  means</li>
+</ul>
 <p><strong>Estimated Investigation Time:</strong> 4-6 hours<br/>
 <strong>Estimated Implementation Time:</strong> 1.5 days</p>
 <hr/>
 <h4 id="15-stage-7-photometry-api-execution-endpoints">1.5 Stage 7: Photometry API Execution Endpoints<a class="headerlink" href="#15-stage-7-photometry-api-execution-endpoints" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>KNOW HOW TO IMPLEMENT</strong></p>
 <p><strong>Confidence:</strong> High (85%)</p>
-<p><strong>What I Know:</strong>
-- Photometry CLI exists (<code>photometry/cli.py</code>)
-- Functions: <code>cmd_peak()</code>, <code>cmd_peak_many()</code>, normalization functions exist
-- API router pattern exists (<code>api/routers/photometry.py</code>)
-- Job adapter pattern exists</p>
-<p><strong>Implementation Pattern:</strong>
+<p><strong>What I Know:</strong></p>
+<ul>
+<li>Photometry CLI exists (<code>photometry/cli.py</code>)</li>
+<li>Functions: <code>cmd_peak()</code>, <code>cmd_peak_many()</code>, normalization functions exist</li>
+<li>API router pattern exists (<code>api/routers/photometry.py</code>)</li>
+<li>Job adapter pattern exists</li>
+</ul>
+<p><strong>Implementation Pattern:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Wrap CLI functions:</span>
 <span class="c1"># 1. Create POST /api/photometry/measure endpoint</span>
 <span class="c1"># 2. Extract parameters from request</span>
 <span class="c1"># 3. Call cmd_peak() or cmd_peak_many()</span>
 <span class="c1"># 4. Return results as JSON</span>
-</code></pre></div></p>
-<p><strong>What Needs Investigation:</strong>
-- ⚠️ <strong>Normalization API:</strong> Need to understand normalization function signature
-- ⚠️ <strong>Batch photometry:</strong> Need to understand how to batch multiple measurements</p>
+</code></pre></div>
+<p><strong>What Needs Investigation:</strong></p>
+<ul>
+<li>⚠️ <strong>Normalization API:</strong> Need to understand normalization function signature</li>
+<li>⚠️ <strong>Batch photometry:</strong> Need to understand how to batch multiple measurements</li>
+</ul>
 <p><strong>Estimated Investigation Time:</strong> 2-3 hours<br/>
 <strong>Estimated Implementation Time:</strong> 1.5-2 days</p>
 <hr/>
 <h4 id="16-stage-8-ese-detection-cli-and-execution">1.6 Stage 8: ESE Detection CLI and Execution<a class="headerlink" href="#16-stage-8-ese-detection-cli-and-execution" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ⚠️ <strong>NEEDS INVESTIGATION</strong></p>
 <p><strong>Confidence:</strong> Medium (60%)</p>
-<p><strong>What I Know:</strong>
-- Variability stats computation exists (<code>photometry/source.py::calc_variability_metrics()</code>)
-- <code>ese_candidates</code> table exists in database schema
-- <code>variability_stats</code> table exists
-- Photometry timeseries table exists</p>
-<p><strong>What Needs Investigation:</strong>
-- ⚠️ <strong>ESE Detection Logic:</strong> Need to understand exact criteria for flagging ESE candidates
-- ⚠️ <strong>Variability Stats Computation:</strong> Need to understand how <code>calc_variability_metrics()</code> works and when to call it
-- ⚠️ <strong>Pipeline Integration:</strong> Need to understand how to connect photometry → variability stats → ESE detection
-- ⚠️ <strong>Database Schema:</strong> Need to verify exact schema of <code>ese_candidates</code> and <code>variability_stats</code> tables
-- ⚠️ <strong>Significance Threshold:</strong> Need to understand what "significance &gt;= 5.0" means (sigma? chi-squared? custom metric?)</p>
-<p><strong>Critical Questions:</strong>
-1. What exactly is the ESE detection algorithm?
-2. How is variability_stats computed? Per-source? Per-epoch?
-3. What triggers ESE detection? After each photometry measurement? Batch?
-4. What are the exact database fields and types?</p>
+<p><strong>What I Know:</strong></p>
+<ul>
+<li>Variability stats computation exists
+  (<code>photometry/source.py::calc_variability_metrics()</code>)</li>
+<li><code>ese_candidates</code> table exists in database schema</li>
+<li><code>variability_stats</code> table exists</li>
+<li>Photometry timeseries table exists</li>
+</ul>
+<p><strong>What Needs Investigation:</strong></p>
+<ul>
+<li>⚠️ <strong>ESE Detection Logic:</strong> Need to understand exact criteria for flagging ESE
+  candidates</li>
+<li>⚠️ <strong>Variability Stats Computation:</strong> Need to understand how
+  <code>calc_variability_metrics()</code> works and when to call it</li>
+<li>⚠️ <strong>Pipeline Integration:</strong> Need to understand how to connect photometry →
+  variability stats → ESE detection</li>
+<li>⚠️ <strong>Database Schema:</strong> Need to verify exact schema of <code>ese_candidates</code> and
+  <code>variability_stats</code> tables</li>
+<li>⚠️ <strong>Significance Threshold:</strong> Need to understand what "significance &gt;= 5.0"
+  means (sigma? chi-squared? custom metric?)</li>
+</ul>
+<p><strong>Critical Questions:</strong></p>
+<ol>
+<li>What exactly is the ESE detection algorithm?</li>
+<li>How is variability_stats computed? Per-source? Per-epoch?</li>
+<li>What triggers ESE detection? After each photometry measurement? Batch?</li>
+<li>What are the exact database fields and types?</li>
+</ol>
 <p><strong>Estimated Investigation Time:</strong> 1-2 days<br/>
 <strong>Estimated Implementation Time:</strong> 2-3 days</p>
 <hr/>
@@ -1471,53 +1516,83 @@
 <h4 id="21-stage-2-calibration-solving-in-streaming-converter">2.1 Stage 2: Calibration Solving in Streaming Converter<a class="headerlink" href="#21-stage-2-calibration-solving-in-streaming-converter" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ⚠️ <strong>NEEDS INVESTIGATION</strong></p>
 <p><strong>Confidence:</strong> Medium (65%)</p>
-<p><strong>What I Know:</strong>
-- Calibration solving exists in orchestrator (<code>StreamingMosaicManager.solve_calibration_for_group()</code>)
-- Calibration functions exist (<code>calibration/calibration.py</code>: <code>solve_bandpass()</code>, <code>solve_gains()</code>)
-- Streaming converter structure exists (<code>conversion/streaming/streaming_converter.py</code>)
-- Calibration application logic exists (Lines 850-890)</p>
-<p><strong>What Needs Investigation:</strong>
-- ⚠️ <strong>Calibrator Detection:</strong> Need to understand how to detect if MS contains calibrator
-- ⚠️ <strong>Single MS Calibration:</strong> Orchestrator solves for groups, need to adapt for single MS
-- ⚠️ <strong>BP Calibrator Selection:</strong> Need to understand how <code>get_bandpass_calibrator_for_dec()</code> works
-- ⚠️ <strong>Calibration Registry:</strong> Need to understand how calibration tables are registered and retrieved
-- ⚠️ <strong>Error Handling:</strong> Need to understand what happens if calibration solving fails mid-stream</p>
-<p><strong>Critical Questions:</strong>
-1. How do we detect if an MS file contains a calibrator?
-2. Can we solve calibration for a single MS, or do we need multiple MS files?
-3. What's the relationship between BP calibrator and gain calibrator?
-4. How do we handle calibration solving failures in streaming mode?</p>
+<p><strong>What I Know:</strong></p>
+<ul>
+<li>Calibration solving exists in orchestrator
+  (<code>StreamingMosaicManager.solve_calibration_for_group()</code>)</li>
+<li>Calibration functions exist (<code>calibration/calibration.py</code>: <code>solve_bandpass()</code>,
+  <code>solve_gains()</code>)</li>
+<li>Streaming converter structure exists
+  (<code>conversion/streaming/streaming_converter.py</code>)</li>
+<li>Calibration application logic exists (Lines 850-890)</li>
+</ul>
+<p><strong>What Needs Investigation:</strong></p>
+<ul>
+<li>⚠️ <strong>Calibrator Detection:</strong> Need to understand how to detect if MS contains
+  calibrator</li>
+<li>⚠️ <strong>Single MS Calibration:</strong> Orchestrator solves for groups, need to adapt
+  for single MS</li>
+<li>⚠️ <strong>BP Calibrator Selection:</strong> Need to understand how
+  <code>get_bandpass_calibrator_for_dec()</code> works</li>
+<li>⚠️ <strong>Calibration Registry:</strong> Need to understand how calibration tables are
+  registered and retrieved</li>
+<li>⚠️ <strong>Error Handling:</strong> Need to understand what happens if calibration solving
+  fails mid-stream</li>
+</ul>
+<p><strong>Critical Questions:</strong></p>
+<ol>
+<li>How do we detect if an MS file contains a calibrator?</li>
+<li>Can we solve calibration for a single MS, or do we need multiple MS files?</li>
+<li>What's the relationship between BP calibrator and gain calibrator?</li>
+<li>How do we handle calibration solving failures in streaming mode?</li>
+</ol>
 <p><strong>Estimated Investigation Time:</strong> 1-2 days<br/>
 <strong>Estimated Implementation Time:</strong> 2-3 days</p>
 <hr/>
 <h4 id="22-stage-3-coordinated-group-imaging-in-streaming-converter">2.2 Stage 3: Coordinated Group Imaging in Streaming Converter<a class="headerlink" href="#22-stage-3-coordinated-group-imaging-in-streaming-converter" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>KNOW HOW TO IMPLEMENT</strong> (with investigation)</p>
 <p><strong>Confidence:</strong> Medium-High (75%)</p>
-<p><strong>What I Know:</strong>
-- Group detection logic exists in orchestrator (<code>find_transit_centered_window()</code>)
-- <code>ms_index</code> table tracks MS files with timestamps
-- Imaging logic exists (<code>imaging/cli.py</code>)
-- Mosaic creation logic exists (<code>mosaic/streaming_mosaic.py</code>)</p>
-<p><strong>What Needs Investigation:</strong>
-- ⚠️ <strong>Group Detection Query:</strong> Need to understand exact query for finding complete groups
-- ⚠️ <strong>Time Window Logic:</strong> Need to understand how to determine "same time window" (±25 minutes?)
-- ⚠️ <strong>Group Size:</strong> Need to verify what "complete group" means (10 MS files? configurable?)</p>
+<p><strong>What I Know:</strong></p>
+<ul>
+<li>Group detection logic exists in orchestrator
+  (<code>find_transit_centered_window()</code>)</li>
+<li><code>ms_index</code> table tracks MS files with timestamps</li>
+<li>Imaging logic exists (<code>imaging/cli.py</code>)</li>
+<li>Mosaic creation logic exists (<code>mosaic/streaming_mosaic.py</code>)</li>
+</ul>
+<p><strong>What Needs Investigation:</strong></p>
+<ul>
+<li>⚠️ <strong>Group Detection Query:</strong> Need to understand exact query for finding
+  complete groups</li>
+<li>⚠️ <strong>Time Window Logic:</strong> Need to understand how to determine "same time
+  window" (±25 minutes?)</li>
+<li>⚠️ <strong>Group Size:</strong> Need to verify what "complete group" means (10 MS files?
+  configurable?)</li>
+</ul>
 <p><strong>Estimated Investigation Time:</strong> 3-4 hours<br/>
 <strong>Estimated Implementation Time:</strong> 1.5-2 days</p>
 <hr/>
 <h4 id="23-stages-4-6-mosaic-creation-qa-publishing-in-streaming-converter">2.3 Stages 4-6: Mosaic Creation, QA, Publishing in Streaming Converter<a class="headerlink" href="#23-stages-4-6-mosaic-creation-qa-publishing-in-streaming-converter" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>KNOW HOW TO IMPLEMENT</strong> (with investigation)</p>
 <p><strong>Confidence:</strong> Medium-High (80%)</p>
-<p><strong>What I Know:</strong>
-- Mosaic creation logic exists (<code>MosaicOrchestrator</code>, <code>StreamingMosaicManager</code>)
-- QA/validation logic exists (<code>data_registry.finalize_data()</code>)
-- Publishing logic exists (<code>data_registry.trigger_auto_publish()</code>)
-- Streaming converter structure exists</p>
-<p><strong>What Needs Investigation:</strong>
-- ⚠️ <strong>Integration Points:</strong> Need to understand where exactly to trigger mosaic creation in streaming converter
-- ⚠️ <strong>Error Handling:</strong> Need to understand how to handle failures in mosaic creation during streaming
-- ⚠️ <strong>State Management:</strong> Need to understand how to track mosaic creation status in streaming mode
-- ⚠️ <strong>Configuration:</strong> Need to understand how to make this configurable (flags, settings)</p>
+<p><strong>What I Know:</strong></p>
+<ul>
+<li>Mosaic creation logic exists (<code>MosaicOrchestrator</code>, <code>StreamingMosaicManager</code>)</li>
+<li>QA/validation logic exists (<code>data_registry.finalize_data()</code>)</li>
+<li>Publishing logic exists (<code>data_registry.trigger_auto_publish()</code>)</li>
+<li>Streaming converter structure exists</li>
+</ul>
+<p><strong>What Needs Investigation:</strong></p>
+<ul>
+<li>⚠️ <strong>Integration Points:</strong> Need to understand where exactly to trigger mosaic
+  creation in streaming converter</li>
+<li>⚠️ <strong>Error Handling:</strong> Need to understand how to handle failures in mosaic
+  creation during streaming</li>
+<li>⚠️ <strong>State Management:</strong> Need to understand how to track mosaic creation
+  status in streaming mode</li>
+<li>⚠️ <strong>Configuration:</strong> Need to understand how to make this configurable (flags,
+  settings)</li>
+</ul>
 <p><strong>Estimated Investigation Time:</strong> 4-6 hours<br/>
 <strong>Estimated Implementation Time:</strong> 2-3 days</p>
 <hr/>
@@ -1525,42 +1600,67 @@
 <h4 id="24-stage-7-automated-photometry-pipeline">2.4 Stage 7: Automated Photometry Pipeline<a class="headerlink" href="#24-stage-7-automated-photometry-pipeline" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ⚠️ <strong>NEEDS INVESTIGATION</strong></p>
 <p><strong>Confidence:</strong> Medium (65%)</p>
-<p><strong>What I Know:</strong>
-- Photometry CLI exists (<code>photometry/cli.py</code>)
-- Source catalog exists (<code>master_sources.sqlite3</code>)
-- Image creation triggers exist (after imaging stage)</p>
-<p><strong>What Needs Investigation:</strong>
-- ⚠️ <strong>Source Selection:</strong> Need to understand how to query <code>master_sources.sqlite3</code> for sources in image field
-- ⚠️ <strong>Field Coverage:</strong> Need to understand how to determine which sources are in image field (WCS? radius?)
-- ⚠️ <strong>Trigger Points:</strong> Need to understand exactly when to trigger photometry (after each image? after mosaic?)
-- ⚠️ <strong>Normalization Logic:</strong> Need to understand when normalization should be triggered (always? conditional?)
-- ⚠️ <strong>Performance:</strong> Need to understand if photometry on all sources is feasible (may be slow)</p>
-<p><strong>Critical Questions:</strong>
-1. How do we query sources in image field? WCS-based? Catalog query?
-2. Should photometry run after every image or only after mosaics?
-3. What's the performance impact of photometry on all sources?
-4. When should normalization run? After every photometry? Batch?</p>
+<p><strong>What I Know:</strong></p>
+<ul>
+<li>Photometry CLI exists (<code>photometry/cli.py</code>)</li>
+<li>Source catalog exists (<code>master_sources.sqlite3</code>)</li>
+<li>Image creation triggers exist (after imaging stage)</li>
+</ul>
+<p><strong>What Needs Investigation:</strong></p>
+<ul>
+<li>⚠️ <strong>Source Selection:</strong> Need to understand how to query
+  <code>master_sources.sqlite3</code> for sources in image field</li>
+<li>⚠️ <strong>Field Coverage:</strong> Need to understand how to determine which sources are
+  in image field (WCS? radius?)</li>
+<li>⚠️ <strong>Trigger Points:</strong> Need to understand exactly when to trigger photometry
+  (after each image? after mosaic?)</li>
+<li>⚠️ <strong>Normalization Logic:</strong> Need to understand when normalization should be
+  triggered (always? conditional?)</li>
+<li>⚠️ <strong>Performance:</strong> Need to understand if photometry on all sources is
+  feasible (may be slow)</li>
+</ul>
+<p><strong>Critical Questions:</strong></p>
+<ol>
+<li>How do we query sources in image field? WCS-based? Catalog query?</li>
+<li>Should photometry run after every image or only after mosaics?</li>
+<li>What's the performance impact of photometry on all sources?</li>
+<li>When should normalization run? After every photometry? Batch?</li>
+</ol>
 <p><strong>Estimated Investigation Time:</strong> 1-2 days<br/>
 <strong>Estimated Implementation Time:</strong> 2-3 days</p>
 <hr/>
 <h4 id="25-stage-8-automated-ese-detection-pipeline">2.5 Stage 8: Automated ESE Detection Pipeline<a class="headerlink" href="#25-stage-8-automated-ese-detection-pipeline" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ⚠️ <strong>NEEDS INVESTIGATION</strong></p>
 <p><strong>Confidence:</strong> Low-Medium (50%)</p>
-<p><strong>What I Know:</strong>
-- Variability stats computation exists (<code>photometry/source.py::calc_variability_metrics()</code>)
-- ESE candidate flagging logic needs to be created
-- Database tables exist (<code>ese_candidates</code>, <code>variability_stats</code>)</p>
-<p><strong>What Needs Investigation:</strong>
-- ⚠️ <strong>Variability Stats Computation:</strong> Need to understand exactly how <code>calc_variability_metrics()</code> works
-- ⚠️ <strong>ESE Detection Algorithm:</strong> Need to understand exact criteria for flagging ESE candidates
-- ⚠️ <strong>Trigger Logic:</strong> Need to understand when to compute variability stats (after each photometry? batch?)
-- ⚠️ <strong>Database Schema:</strong> Need to verify exact schema and understand relationships
-- ⚠️ <strong>Performance:</strong> Need to understand if computing variability stats for all sources is feasible</p>
-<p><strong>Critical Questions:</strong>
-1. What exactly is the ESE detection algorithm? (significance &gt;= 5.0 - but what metric?)
-2. How is variability_stats computed? Per-source? Per-epoch? Batch?
-3. When should variability stats be computed? After each photometry measurement? Periodic batch?
-4. What's the performance impact of computing variability stats for all sources?</p>
+<p><strong>What I Know:</strong></p>
+<ul>
+<li>Variability stats computation exists
+  (<code>photometry/source.py::calc_variability_metrics()</code>)</li>
+<li>ESE candidate flagging logic needs to be created</li>
+<li>Database tables exist (<code>ese_candidates</code>, <code>variability_stats</code>)</li>
+</ul>
+<p><strong>What Needs Investigation:</strong></p>
+<ul>
+<li>⚠️ <strong>Variability Stats Computation:</strong> Need to understand exactly how
+  <code>calc_variability_metrics()</code> works</li>
+<li>⚠️ <strong>ESE Detection Algorithm:</strong> Need to understand exact criteria for flagging
+  ESE candidates</li>
+<li>⚠️ <strong>Trigger Logic:</strong> Need to understand when to compute variability stats
+  (after each photometry? batch?)</li>
+<li>⚠️ <strong>Database Schema:</strong> Need to verify exact schema and understand
+  relationships</li>
+<li>⚠️ <strong>Performance:</strong> Need to understand if computing variability stats for all
+  sources is feasible</li>
+</ul>
+<p><strong>Critical Questions:</strong></p>
+<ol>
+<li>What exactly is the ESE detection algorithm? (significance &gt;= 5.0 - but what
+   metric?)</li>
+<li>How is variability_stats computed? Per-source? Per-epoch? Batch?</li>
+<li>When should variability stats be computed? After each photometry measurement?
+   Periodic batch?</li>
+<li>What's the performance impact of computing variability stats for all sources?</li>
+</ol>
 <p><strong>Estimated Investigation Time:</strong> 2-3 days<br/>
 <strong>Estimated Implementation Time:</strong> 3-4 days</p>
 <hr/>
@@ -1568,35 +1668,53 @@
 <h3 id="31-error-handling-and-recovery">3.1 Error Handling and Recovery<a class="headerlink" href="#31-error-handling-and-recovery" title="Permanent link">¶</a></h3>
 <p><strong>Status:</strong> ⚠️ <strong>NEEDS INVESTIGATION</strong></p>
 <p><strong>Confidence:</strong> Medium (60%)</p>
-<p><strong>What I Know:</strong>
-- Orchestrator structure exists (<code>mosaic/orchestrator.py</code>)
-- Database schema exists (<code>mosaic_groups</code> table)
-- Error handling patterns exist in codebase</p>
-<p><strong>What Needs Investigation:</strong>
-- ⚠️ <strong>Failure Modes:</strong> Need to understand all possible failure modes in orchestrator
-- ⚠️ <strong>State Tracking:</strong> Need to understand how to track partial failures in <code>mosaic_groups</code> table
-- ⚠️ <strong>Retry Logic:</strong> Need to understand what "retry" means for each stage (re-run? resume?)
-- ⚠️ <strong>Recovery Mechanisms:</strong> Need to understand how to resume from last successful stage
-- ⚠️ <strong>Error Reporting:</strong> Need to understand how errors should be reported and logged</p>
-<p><strong>Critical Questions:</strong>
-1. What are all possible failure modes in orchestrator workflow?
-2. How do we track partial failures? What state information do we need?
-3. What does "retry" mean for each stage? Re-run from scratch? Resume?
-4. How do we determine "last successful stage" for recovery?</p>
+<p><strong>What I Know:</strong></p>
+<ul>
+<li>Orchestrator structure exists (<code>mosaic/orchestrator.py</code>)</li>
+<li>Database schema exists (<code>mosaic_groups</code> table)</li>
+<li>Error handling patterns exist in codebase</li>
+</ul>
+<p><strong>What Needs Investigation:</strong></p>
+<ul>
+<li>⚠️ <strong>Failure Modes:</strong> Need to understand all possible failure modes in
+  orchestrator</li>
+<li>⚠️ <strong>State Tracking:</strong> Need to understand how to track partial failures in
+  <code>mosaic_groups</code> table</li>
+<li>⚠️ <strong>Retry Logic:</strong> Need to understand what "retry" means for each stage
+  (re-run? resume?)</li>
+<li>⚠️ <strong>Recovery Mechanisms:</strong> Need to understand how to resume from last
+  successful stage</li>
+<li>⚠️ <strong>Error Reporting:</strong> Need to understand how errors should be reported and
+  logged</li>
+</ul>
+<p><strong>Critical Questions:</strong></p>
+<ol>
+<li>What are all possible failure modes in orchestrator workflow?</li>
+<li>How do we track partial failures? What state information do we need?</li>
+<li>What does "retry" mean for each stage? Re-run from scratch? Resume?</li>
+<li>How do we determine "last successful stage" for recovery?</li>
+</ol>
 <p><strong>Estimated Investigation Time:</strong> 1-2 days<br/>
 <strong>Estimated Implementation Time:</strong> 3-4 days</p>
 <hr/>
 <h3 id="32-end-to-end-integration-testing">3.2 End-to-End Integration Testing<a class="headerlink" href="#32-end-to-end-integration-testing" title="Permanent link">¶</a></h3>
 <p><strong>Status:</strong> ✅ <strong>KNOW HOW TO IMPLEMENT</strong> (with investigation)</p>
 <p><strong>Confidence:</strong> Medium-High (75%)</p>
-<p><strong>What I Know:</strong>
-- Test infrastructure exists (<code>tests/integration/</code>)
-- Synthetic data generation exists (<code>tests/integration/test_forced_photometry_simulation.py</code>)
-- pytest patterns exist</p>
-<p><strong>What Needs Investigation:</strong>
-- ⚠️ <strong>Test Data:</strong> Need to understand how to generate synthetic HDF5/MS files for testing
-- ⚠️ <strong>Test Scenarios:</strong> Need to understand what scenarios to test (success, partial failure, etc.)
-- ⚠️ <strong>Performance Benchmarks:</strong> Need to understand what metrics to track</p>
+<p><strong>What I Know:</strong></p>
+<ul>
+<li>Test infrastructure exists (<code>tests/integration/</code>)</li>
+<li>Synthetic data generation exists
+  (<code>tests/integration/test_forced_photometry_simulation.py</code>)</li>
+<li>pytest patterns exist</li>
+</ul>
+<p><strong>What Needs Investigation:</strong></p>
+<ul>
+<li>⚠️ <strong>Test Data:</strong> Need to understand how to generate synthetic HDF5/MS files
+  for testing</li>
+<li>⚠️ <strong>Test Scenarios:</strong> Need to understand what scenarios to test (success,
+  partial failure, etc.)</li>
+<li>⚠️ <strong>Performance Benchmarks:</strong> Need to understand what metrics to track</li>
+</ul>
 <p><strong>Estimated Investigation Time:</strong> 1 day<br/>
 <strong>Estimated Implementation Time:</strong> 2-3 days</p>
 <hr/>
@@ -1680,8 +1798,10 @@
 <hr/>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Start with High-Confidence Tasks:</strong> Implement Stage 1, 4, 6, 7 API endpoints while investigating ESE detection</li>
-<li><strong>Parallel Investigation:</strong> Run ESE detection and calibration solving investigations in parallel</li>
+<li><strong>Start with High-Confidence Tasks:</strong> Implement Stage 1, 4, 6, 7 API
+   endpoints while investigating ESE detection</li>
+<li><strong>Parallel Investigation:</strong> Run ESE detection and calibration solving
+   investigations in parallel</li>
 <li><strong>Incremental Implementation:</strong> Implement as investigation completes</li>
 <li><strong>Test Early:</strong> Create integration tests as features are implemented</li>
 </ol>
@@ -1689,7 +1809,9 @@
 <h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
 <p><strong>Ready to Implement:</strong> ~60% of roadmap tasks (8 of 13 major tasks)<br/>
 <strong>Needs Investigation:</strong> ~40% of roadmap tasks (5 of 13 major tasks)</p>
-<p><strong>Recommendation:</strong> Start with high-confidence tasks (API endpoints, CLI tools) while running investigations in parallel for complex domain logic (ESE detection, calibration solving, error handling).</p>
+<p><strong>Recommendation:</strong> Start with high-confidence tasks (API endpoints, CLI tools)
+while running investigations in parallel for complex domain logic (ESE
+detection, calibration solving, error handling).</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1714,7 +1836,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

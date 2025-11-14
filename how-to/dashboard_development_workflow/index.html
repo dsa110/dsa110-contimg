@@ -23,11 +23,13 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#dsa-110-dashboard-development-workflow-setup">
+<a class="md-skip" href="#moved">
           Skip to content
         </a>
 </div>
 <div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
 </div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
@@ -1662,10 +1664,8 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="dsa-110-dashboard-development-workflow-setup">DSA-110 Dashboard: Development Workflow &amp; Setup<a class="headerlink" href="#dsa-110-dashboard-development-workflow-setup" title="Permanent link">¶</a></h1>
-<p><strong>Date:</strong> 2025-11-12<br/>
-<strong>Status:</strong> Consolidated development workflow documentation<br/>
-<strong>Audience:</strong> Frontend developers, new contributors</p>
+<h1 id="moved">Moved<a class="headerlink" href="#moved" title="Permanent link">¶</a></h1>
+<p>See <code>docs/how-to/dashboard.md</code>.</p>
 <hr/>
 <h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">¶</a></h2>
 <ol>
@@ -1702,24 +1702,24 @@ git<span class="w"> </span>clone<span class="w"> </span>&lt;repository-url&gt;
 <span class="nb">cd</span><span class="w"> </span>frontend
 </code></pre></div>
 <h3 id="step-2-install-dependencies">Step 2: Install Dependencies<a class="headerlink" href="#step-2-install-dependencies" title="Permanent link">¶</a></h3>
-<p><strong>Using casa6 conda environment (recommended):</strong>
+<p><strong>Using casa6 conda environment (recommended):</strong></p>
 <div class="highlight"><pre><span></span><code>conda<span class="w"> </span>activate<span class="w"> </span>casa6
 npm<span class="w"> </span>install
-</code></pre></div></p>
-<p><strong>Using Docker (alternative):</strong>
+</code></pre></div>
+<p><strong>Using Docker (alternative):</strong></p>
 <div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">:/app"</span><span class="w"> </span>-w<span class="w"> </span>/app<span class="w"> </span>node:22<span class="w"> </span>npm<span class="w"> </span>install
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="step-3-start-development-servers">Step 3: Start Development Servers<a class="headerlink" href="#step-3-start-development-servers" title="Permanent link">¶</a></h3>
-<p><strong>Terminal 1 - Backend API:</strong>
+<p><strong>Terminal 1 - Backend API:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg
 conda<span class="w"> </span>activate<span class="w"> </span>casa6
 uvicorn<span class="w"> </span>dsa110_contimg.api.server:app<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span><span class="w"> </span>--reload
-</code></pre></div></p>
-<p><strong>Terminal 2 - Frontend Dev Server:</strong>
+</code></pre></div>
+<p><strong>Terminal 2 - Frontend Dev Server:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
 conda<span class="w"> </span>activate<span class="w"> </span>casa6
 npm<span class="w"> </span>run<span class="w"> </span>dev<span class="w"> </span>--<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">5173</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="step-4-verify-setup">Step 4: Verify Setup<a class="headerlink" href="#step-4-verify-setup" title="Permanent link">¶</a></h3>
 <ol>
 <li>Open <code>http://localhost:5173</code> in browser</li>
@@ -1786,14 +1786,16 @@ npm<span class="w"> </span>run<span class="w"> </span>build
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>.
 git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">"feat: add new feature"</span>
 </code></pre></div>
-<p><strong>Commit Message Format:</strong>
-- <code>feat:</code> - New feature
-- <code>fix:</code> - Bug fix
-- <code>docs:</code> - Documentation
-- <code>style:</code> - Formatting
-- <code>refactor:</code> - Code refactoring
-- <code>test:</code> - Tests
-- <code>chore:</code> - Build/tooling</p>
+<p><strong>Commit Message Format:</strong></p>
+<ul>
+<li><code>feat:</code> - New feature</li>
+<li><code>fix:</code> - Bug fix</li>
+<li><code>docs:</code> - Documentation</li>
+<li><code>style:</code> - Formatting</li>
+<li><code>refactor:</code> - Code refactoring</li>
+<li><code>test:</code> - Tests</li>
+<li><code>chore:</code> - Build/tooling</li>
+</ul>
 <h3 id="5-push-and-create-pr">5. Push and Create PR<a class="headerlink" href="#5-push-and-create-pr" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature/new-feature-name
 <span class="c1"># Create PR on GitHub</span>
@@ -1801,7 +1803,7 @@ git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </sp
 <hr/>
 <h2 id="code-style-standards">Code Style &amp; Standards<a class="headerlink" href="#code-style-standards" title="Permanent link">¶</a></h2>
 <h3 id="typescript">TypeScript<a class="headerlink" href="#typescript" title="Permanent link">¶</a></h3>
-<p><strong>Use TypeScript for all new code:</strong>
+<p><strong>Use TypeScript for all new code:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1">// Good</span>
 <span class="kd">interface</span><span class="w"> </span><span class="nx">Props</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">PipelineStatus</span><span class="p">;</span>
@@ -1810,9 +1812,9 @@ git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </sp
 
 <span class="c1">// Bad</span>
 <span class="kd">const</span><span class="w"> </span><span class="nx">Component</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">props</span><span class="o">:</span><span class="w"> </span><span class="kt">any</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="component-structure">Component Structure<a class="headerlink" href="#component-structure" title="Permanent link">¶</a></h3>
-<p><strong>Standard Component Pattern:</strong>
+<p><strong>Standard Component Pattern:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useState</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'react'</span><span class="p">;</span>
 <span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useQuery</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@tanstack/react-query'</span><span class="p">;</span>
 <span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Box</span><span class="p">,</span><span class="w"> </span><span class="nx">Typography</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@mui/material'</span><span class="p">;</span>
@@ -1836,7 +1838,7 @@ git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </sp
 <span class="w">    </span><span class="o">&lt;</span><span class="err">/Box&gt;</span>
 <span class="w">  </span><span class="p">);</span>
 <span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="naming-conventions">Naming Conventions<a class="headerlink" href="#naming-conventions" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>Components:</strong> PascalCase (<code>DashboardPage.tsx</code>)</li>
@@ -1847,98 +1849,102 @@ git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </sp
 <hr/>
 <h2 id="debugging">Debugging<a class="headerlink" href="#debugging" title="Permanent link">¶</a></h2>
 <h3 id="react-devtools">React DevTools<a class="headerlink" href="#react-devtools" title="Permanent link">¶</a></h3>
-<p><strong>Install Browser Extension:</strong>
-- Chrome: React Developer Tools
-- Firefox: React Developer Tools</p>
-<p><strong>Features:</strong>
-- Component tree inspection
-- Props and state viewing
-- Performance profiling</p>
+<p><strong>Install Browser Extension:</strong></p>
+<ul>
+<li>Chrome: React Developer Tools</li>
+<li>Firefox: React Developer Tools</li>
+</ul>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Component tree inspection</li>
+<li>Props and state viewing</li>
+<li>Performance profiling</li>
+</ul>
 <h3 id="react-query-devtools">React Query DevTools<a class="headerlink" href="#react-query-devtools" title="Permanent link">¶</a></h3>
-<p><strong>Built-in DevTools (dev mode only):</strong>
-- Query cache inspection
-- Query status monitoring
-- Cache invalidation testing</p>
+<p><strong>Built-in DevTools (dev mode only):</strong></p>
+<ul>
+<li>Query cache inspection</li>
+<li>Query status monitoring</li>
+<li>Cache invalidation testing</li>
+</ul>
 <h3 id="browser-console">Browser Console<a class="headerlink" href="#browser-console" title="Permanent link">¶</a></h3>
-<p><strong>Common Debugging:</strong>
+<p><strong>Common Debugging:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1">// Log query data</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'Query data:'</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">);</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"Query data:"</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">);</span>
 
 <span class="c1">// Log errors</span>
-<span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s1">'Error:'</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="p">);</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s2">"Error:"</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="p">);</span>
 
 <span class="c1">// Log WebSocket messages</span>
-<span class="nx">wsClient</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">'message'</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'WS message:'</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">);</span>
+<span class="nx">wsClient</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">"message"</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"WS message:"</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">);</span>
 <span class="p">});</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="network-tab">Network Tab<a class="headerlink" href="#network-tab" title="Permanent link">¶</a></h3>
-<p><strong>Check API Calls:</strong>
-- Open browser DevTools → Network tab
-- Filter by "Fetch/XHR"
-- Inspect request/response
-- Check for errors (4xx, 5xx)</p>
+<p><strong>Check API Calls:</strong></p>
+<ul>
+<li>Open browser DevTools → Network tab</li>
+<li>Filter by "Fetch/XHR"</li>
+<li>Inspect request/response</li>
+<li>Check for errors (4xx, 5xx)</li>
+</ul>
 <hr/>
 <h2 id="common-tasks">Common Tasks<a class="headerlink" href="#common-tasks" title="Permanent link">¶</a></h2>
 <h3 id="adding-a-new-page">Adding a New Page<a class="headerlink" href="#adding-a-new-page" title="Permanent link">¶</a></h3>
 <ol>
-<li>
-<p><strong>Create Page Component:</strong>
+<li><strong>Create Page Component:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="c1">// src/pages/NewPage.tsx</span>
 <span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">NewPage</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">Box</span><span class="o">&gt;</span><span class="nx">New</span><span class="w"> </span><span class="nx">Page</span><span class="o">&lt;</span><span class="err">/Box&gt;;</span>
 <span class="p">}</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Add Route:</strong>
+</code></pre></div>
+<ol>
+<li><strong>Add Route:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="c1">// src/App.tsx</span>
 <span class="k">import</span><span class="w"> </span><span class="nx">NewPage</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'./pages/NewPage'</span><span class="p">;</span>
 
 <span class="o">&lt;</span><span class="nx">Route</span><span class="w"> </span><span class="nx">path</span><span class="o">=</span><span class="s2">"/new-page"</span><span class="w"> </span><span class="nx">element</span><span class="o">=</span><span class="p">{</span><span class="o">&lt;</span><span class="nx">NewPage</span><span class="w"> </span><span class="o">/&gt;</span><span class="p">}</span><span class="w"> </span><span class="o">/&gt;</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Add Navigation Link:</strong>
+</code></pre></div>
+<ol>
+<li><strong>Add Navigation Link:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="c1">// src/components/Navigation.tsx</span>
 <span class="o">&lt;</span><span class="nx">MenuItem</span><span class="w"> </span><span class="nx">component</span><span class="o">=</span><span class="p">{</span><span class="nx">Link</span><span class="p">}</span><span class="w"> </span><span class="nx">to</span><span class="o">=</span><span class="s2">"/new-page"</span><span class="o">&gt;</span>
 <span class="w">  </span><span class="nx">New</span><span class="w"> </span><span class="nx">Page</span>
 <span class="o">&lt;</span><span class="err">/MenuItem&gt;</span>
-</code></pre></div></p>
-</li>
-</ol>
+</code></pre></div>
 <h3 id="adding-a-new-api-hook">Adding a New API Hook<a class="headerlink" href="#adding-a-new-api-hook" title="Permanent link">¶</a></h3>
 <ol>
-<li>
-<p><strong>Define Type:</strong>
+<li><strong>Define Type:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="c1">// src/api/types.ts</span>
 <span class="k">export</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="nx">NewResource</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
 <span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
 <span class="p">}</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Create Hook:</strong>
+</code></pre></div>
+<ol>
+<li><strong>Create Hook:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="c1">// src/api/queries.ts</span>
 <span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">useNewResource</span><span class="p">(</span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">useQuery</span><span class="p">({</span>
-<span class="w">    </span><span class="nx">queryKey</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">'resource'</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">],</span>
+<span class="w">    </span><span class="nx">queryKey</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"resource"</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">],</span>
 <span class="w">    </span><span class="nx">queryFn</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">apiClient</span><span class="p">.</span><span class="nx">get</span><span class="o">&lt;</span><span class="nx">NewResource</span><span class="o">&gt;</span><span class="p">(</span><span class="sb">`/resource/</span><span class="si">${</span><span class="nx">id</span><span class="si">}</span><span class="sb">`</span><span class="p">),</span>
 <span class="w">  </span><span class="p">});</span>
 <span class="p">}</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Use in Component:</strong>
-<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useNewResource</span><span class="p">(</span><span class="s1">'123'</span><span class="p">);</span>
-</code></pre></div></p>
-</li>
+</code></pre></div>
+<ol>
+<li><strong>Use in Component:</strong></li>
 </ol>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useNewResource</span><span class="p">(</span><span class="s2">"123"</span><span class="p">);</span>
+</code></pre></div>
 <h3 id="adding-a-new-component">Adding a New Component<a class="headerlink" href="#adding-a-new-component" title="Permanent link">¶</a></h3>
 <ol>
-<li>
-<p><strong>Create Component:</strong>
+<li><strong>Create Component:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="c1">// src/components/NewComponent.tsx</span>
 <span class="kd">interface</span><span class="w"> </span><span class="nx">Props</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">DataType</span><span class="p">;</span>
@@ -1947,63 +1953,66 @@ git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </sp
 <span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">NewComponent</span><span class="p">({</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="p">}</span><span class="o">:</span><span class="w"> </span><span class="nx">Props</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">Box</span><span class="o">&gt;</span><span class="p">{</span><span class="cm">/* Component JSX */</span><span class="p">}</span><span class="o">&lt;</span><span class="err">/Box&gt;;</span>
 <span class="p">}</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Export from index (if needed):</strong>
-<div class="highlight"><pre><span></span><code><span class="c1">// src/components/index.ts</span>
-<span class="k">export</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">NewComponent</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'./NewComponent'</span><span class="p">;</span>
-</code></pre></div></p>
-</li>
+</code></pre></div>
+<ol>
+<li><strong>Export from index (if needed):</strong></li>
 </ol>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/components/index.ts</span>
+<span class="k">export</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">NewComponent</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">"./NewComponent"</span><span class="p">;</span>
+</code></pre></div>
 <hr/>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
 <h3 id="api-connection-issues">API Connection Issues<a class="headerlink" href="#api-connection-issues" title="Permanent link">¶</a></h3>
 <p><strong>Problem:</strong> Frontend can't connect to backend</p>
-<p><strong>Solutions:</strong>
-1. Check backend is running: <code>curl http://localhost:8000/api/status</code>
-2. Check CORS settings in FastAPI backend
-3. Verify <code>.env.development</code> has correct <code>VITE_API_URL</code>
-4. Check browser console for CORS errors</p>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Check backend is running: <code>curl http://localhost:8000/api/status</code></li>
+<li>Check CORS settings in FastAPI backend</li>
+<li>Verify <code>.env.development</code> has correct <code>VITE_API_URL</code></li>
+<li>Check browser console for CORS errors</li>
+</ol>
 <h3 id="typescript-errors">TypeScript Errors<a class="headerlink" href="#typescript-errors" title="Permanent link">¶</a></h3>
 <p><strong>Problem:</strong> TypeScript compilation errors</p>
-<p><strong>Solutions:</strong>
+<p><strong>Solutions:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Run type checking</span>
 npm<span class="w"> </span>run<span class="w"> </span>type-check
 
 <span class="c1"># Check specific file</span>
 npx<span class="w"> </span>tsc<span class="w"> </span>--noEmit<span class="w"> </span>src/pages/DashboardPage.tsx
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="build-errors">Build Errors<a class="headerlink" href="#build-errors" title="Permanent link">¶</a></h3>
 <p><strong>Problem:</strong> Production build fails</p>
-<p><strong>Solutions:</strong>
+<p><strong>Solutions:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Clean build</span>
 rm<span class="w"> </span>-rf<span class="w"> </span>dist<span class="w"> </span>node_modules/.vite
 npm<span class="w"> </span>run<span class="w"> </span>build
 
 <span class="c1"># Check for missing dependencies</span>
 npm<span class="w"> </span>install
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="hot-reload-not-working">Hot Reload Not Working<a class="headerlink" href="#hot-reload-not-working" title="Permanent link">¶</a></h3>
 <p><strong>Problem:</strong> Changes not reflected in browser</p>
-<p><strong>Solutions:</strong>
-1. Check Vite dev server is running
-2. Hard refresh browser (Ctrl+Shift+R)
-3. Restart dev server
-4. Clear browser cache</p>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Check Vite dev server is running</li>
+<li>Hard refresh browser (Ctrl+Shift+R)</li>
+<li>Restart dev server</li>
+<li>Clear browser cache</li>
+</ol>
 <h3 id="port-already-in-use">Port Already in Use<a class="headerlink" href="#port-already-in-use" title="Permanent link">¶</a></h3>
 <p><strong>Problem:</strong> Port 5173 already in use</p>
-<p><strong>Solutions:</strong>
+<p><strong>Solutions:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Use different port</span>
 npm<span class="w"> </span>run<span class="w"> </span>dev<span class="w"> </span>--<span class="w"> </span>--port<span class="w"> </span><span class="m">3000</span>
 
 <span class="c1"># Or kill process using port</span>
 lsof<span class="w"> </span>-ti:5173<span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span><span class="nb">kill</span>
-</code></pre></div></p>
+</code></pre></div>
 <hr/>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">¶</a></h2>
 <ul>
-<li><a href="../../concepts/dashboard_frontend_architecture/">Frontend Architecture</a> - Architecture details</li>
+<li><a href="../../concepts/dashboard_frontend_architecture/">Frontend Architecture</a> -
+  Architecture details</li>
 <li><a href="../dashboard_testing/">Testing Guide</a> - Testing setup</li>
 <li><a href="../dashboard_deployment/">Deployment Guide</a> - Deployment steps</li>
 </ul>
@@ -2031,7 +2040,7 @@ lsof<span class="w"> </span>-ti:5173<span class="w"> </span><span class="p">|</s
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

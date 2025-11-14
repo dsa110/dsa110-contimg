@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1323,10 +1325,10 @@
 <h2 id="phase-1-backend-api-testing">Phase 1: Backend API Testing<a class="headerlink" href="#phase-1-backend-api-testing" title="Permanent link">¶</a></h2>
 <h3 id="server-status">Server Status<a class="headerlink" href="#server-status" title="Permanent link">¶</a></h3>
 <p><strong>Status:</strong> ⚠️ <strong>SERVER NOT RUNNING</strong></p>
-<p><strong>Instructions to start server:</strong>
+<p><strong>Instructions to start server:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg
 <span class="nv">PYTHONPATH</span><span class="o">=</span>/data/dsa110-contimg/src<span class="w"> </span>/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>uvicorn<span class="w"> </span>dsa110_contimg.api:app<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span>
-</code></pre></div></p>
+</code></pre></div>
 <p><strong>Manual testing commands (run after server starts):</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Test working filters (SQL-level)</span>
 curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">"http://localhost:8000/api/images?noise_max=0.001&amp;limit=5"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">'.total, .items | length'</span>
@@ -1343,18 +1345,21 @@ curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">"http://l
 curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">"http://localhost:8000/api/images?dec_min=-100&amp;dec_max=200&amp;limit=5"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">'.total'</span>
 curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">"http://localhost:8000/api/images?noise_max=-1&amp;limit=5"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">'.total'</span>
 </code></pre></div>
-<p><strong>Expected Results:</strong>
-- Working filters: Fast response (&lt;200ms), accurate results
-- Experimental filters: Slower response (1-5s acceptable), may have pagination issues
-- Edge cases: No crashes, graceful handling</p>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>Working filters: Fast response (&lt;200ms), accurate results</li>
+<li>Experimental filters: Slower response (1-5s acceptable), may have pagination
+  issues</li>
+<li>Edge cases: No crashes, graceful handling</li>
+</ul>
 <hr/>
 <h2 id="phase-2-frontend-ui-testing">Phase 2: Frontend UI Testing<a class="headerlink" href="#phase-2-frontend-ui-testing" title="Permanent link">¶</a></h2>
 <h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">¶</a></h3>
 <p><strong>Status:</strong> ⚠️ <strong>REQUIRES MANUAL TESTING</strong></p>
-<p><strong>Instructions to start frontend:</strong>
+<p><strong>Instructions to start frontend:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
 npm<span class="w"> </span>run<span class="w"> </span>dev
-</code></pre></div></p>
+</code></pre></div>
 <p><strong>Manual Testing Checklist:</strong></p>
 <ol>
 <li><strong>Navigation</strong> ⏳</li>
@@ -1378,7 +1383,8 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 <li>[ ] Expand/collapse icon toggles advanced filters</li>
 <li>[ ] Smooth animation on expand/collapse</li>
 <li>
-<p>[ ] All controls visible: date pickers, slider, text input, checkbox, clear button</p>
+<p>[ ] All controls visible: date pickers, slider, text input, checkbox, clear
+         button</p>
 </li>
 <li>
 <p><strong>Date Range Filtering</strong> ⏳</p>
@@ -1466,17 +1472,20 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 <ul>
 <li>✅ Comprehensive docstring explaining working vs experimental filters</li>
 <li>✅ Query parameters have <code>EXPERIMENTAL</code> labels where appropriate</li>
-<li>✅ Post-filtering logic implemented for <code>dec_min</code>/<code>dec_max</code> and <code>has_calibrator</code></li>
+<li>✅ Post-filtering logic implemented for <code>dec_min</code>/<code>dec_max</code> and
+  <code>has_calibrator</code></li>
 <li>✅ SQL queries use parameterized <code>?</code> placeholders (12 instances verified)</li>
 <li>✅ No SQL injection vulnerabilities (all queries parameterized)</li>
 <li>✅ Error handling for FITS file reading (try/except blocks)</li>
 <li>✅ Type hints use modern <code>|</code> syntax (not <code>Union</code>)</li>
 <li>✅ Python syntax check: PASSED</li>
 </ul>
-<p><strong>Security Check:</strong> ✅ <strong>SQL INJECTION SAFE</strong>
-- All WHERE clauses use parameterized queries
-- No f-string SQL construction (except for safe table/column names)
-- User input properly escaped via parameter binding</p>
+<p><strong>Security Check:</strong> ✅ <strong>SQL INJECTION SAFE</strong></p>
+<ul>
+<li>All WHERE clauses use parameterized queries</li>
+<li>No f-string SQL construction (except for safe table/column names)</li>
+<li>User input properly escaped via parameter binding</li>
+</ul>
 <p><strong>Code Quality Score:</strong> 10/10</p>
 <h3 id="documentation-image_filters_implementation_statusmd">Documentation (<code>image_filters_implementation_status.md</code>)<a class="headerlink" href="#documentation-image_filters_implementation_statusmd" title="Permanent link">¶</a></h3>
 <p><strong>Status:</strong> ✅ <strong>COMPLETE</strong></p>
@@ -1493,26 +1502,32 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 <h2 id="phase-4-integration-testing">Phase 4: Integration Testing<a class="headerlink" href="#phase-4-integration-testing" title="Permanent link">¶</a></h2>
 <h3 id="scenario-1-data-scientist-looking-for-high-quality-recent-images">Scenario 1: Data Scientist Looking for High-Quality Recent Images<a class="headerlink" href="#scenario-1-data-scientist-looking-for-high-quality-recent-images" title="Permanent link">¶</a></h3>
 <p><strong>Status:</strong> ⏳ <strong>PENDING MANUAL TEST</strong></p>
-<p><strong>Steps:</strong>
-1. Set <code>start_date</code> to 7 days ago
-2. Set <code>noise_max</code> to 0.0005 (0.5 mJy)
-3. Verify filtered images are recent and low-noise
-4. Copy URL and open in new tab - should restore filters</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Set <code>start_date</code> to 7 days ago</li>
+<li>Set <code>noise_max</code> to 0.0005 (0.5 mJy)</li>
+<li>Verify filtered images are recent and low-noise</li>
+<li>Copy URL and open in new tab - should restore filters</li>
+</ol>
 <p><strong>Expected:</strong> Fast filtering, accurate results, URL persistence</p>
 <h3 id="scenario-2-observer-checking-calibrator-observations">Scenario 2: Observer Checking Calibrator Observations<a class="headerlink" href="#scenario-2-observer-checking-calibrator-observations" title="Permanent link">¶</a></h3>
 <p><strong>Status:</strong> ⏳ <strong>PENDING MANUAL TEST</strong></p>
-<p><strong>Steps:</strong>
-1. Check "Has Calibrator Detected" checkbox
-2. Set declination range (e.g., 30° to 60°)
-3. Verify results show calibrator-like observations
-4. Note: May be slow due to FITS reading (documented)</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Check "Has Calibrator Detected" checkbox</li>
+<li>Set declination range (e.g., 30° to 60°)</li>
+<li>Verify results show calibrator-like observations</li>
+<li>Note: May be slow due to FITS reading (documented)</li>
+</ol>
 <p><strong>Expected:</strong> Functional but slower, may have false positives</p>
 <h3 id="scenario-3-user-clearing-all-filters">Scenario 3: User Clearing All Filters<a class="headerlink" href="#scenario-3-user-clearing-all-filters" title="Permanent link">¶</a></h3>
 <p><strong>Status:</strong> ⏳ <strong>PENDING MANUAL TEST</strong></p>
-<p><strong>Steps:</strong>
-1. Set multiple filters
-2. Click "Clear All Filters"
-3. Verify all filters reset and images show full list</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Set multiple filters</li>
+<li>Click "Clear All Filters"</li>
+<li>Verify all filters reset and images show full list</li>
+</ol>
 <p><strong>Expected:</strong> All filters reset, URL clears, full image list displayed</p>
 <hr/>
 <h2 id="phase-5-documentation-verification">Phase 5: Documentation Verification<a class="headerlink" href="#phase-5-documentation-verification" title="Permanent link">¶</a></h2>
@@ -1556,10 +1571,12 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 <h2 id="recommendations">Recommendations<a class="headerlink" href="#recommendations" title="Permanent link">¶</a></h2>
 <h3 id="immediate-before-commit">Immediate (Before Commit)<a class="headerlink" href="#immediate-before-commit" title="Permanent link">¶</a></h3>
 <p><strong>None</strong> - Code quality checks passed, documentation complete.</p>
-<p><strong>Action Required:</strong>
-- ✅ Run manual API tests (start server, run curl commands)
-- ✅ Run manual UI tests (start frontend, test in browser)
-- ✅ Verify experimental filters work (even if slow)</p>
+<p><strong>Action Required:</strong></p>
+<ul>
+<li>✅ Run manual API tests (start server, run curl commands)</li>
+<li>✅ Run manual UI tests (start frontend, test in browser)</li>
+<li>✅ Verify experimental filters work (even if slow)</li>
+</ul>
 <h3 id="short-term-this-week">Short-Term (This Week)<a class="headerlink" href="#short-term-this-week" title="Permanent link">¶</a></h3>
 <ol>
 <li><strong>Monitor Performance</strong></li>
@@ -1577,16 +1594,14 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 </ol>
 <h3 id="long-term-next-sprint">Long-Term (Next Sprint)<a class="headerlink" href="#long-term-next-sprint" title="Permanent link">¶</a></h3>
 <ol>
-<li>
-<p><strong>Database Schema Enhancement</strong>
+<li><strong>Database Schema Enhancement</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">images</span><span class="w"> </span><span class="k">ADD</span><span class="w"> </span><span class="k">COLUMN</span><span class="w"> </span><span class="n">center_ra_deg</span><span class="w"> </span><span class="nb">REAL</span><span class="p">;</span>
 <span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">images</span><span class="w"> </span><span class="k">ADD</span><span class="w"> </span><span class="k">COLUMN</span><span class="w"> </span><span class="n">center_dec_deg</span><span class="w"> </span><span class="nb">REAL</span><span class="p">;</span>
 <span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">images</span><span class="w"> </span><span class="k">ADD</span><span class="w"> </span><span class="k">COLUMN</span><span class="w"> </span><span class="n">has_calibrator</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Data Backfill</strong></p>
-</li>
+</code></pre></div>
+<ol>
+<li><strong>Data Backfill</strong></li>
 <li>Extract coordinates from existing FITS files</li>
 <li>Populate <code>center_ra_deg</code> and <code>center_dec_deg</code> columns</li>
 <li>
@@ -1614,16 +1629,20 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 </ul>
 <h3 id="verdict">Verdict<a class="headerlink" href="#verdict" title="Permanent link">¶</a></h3>
 <p><strong>Status:</strong> ⚠️ <strong>CONDITIONALLY READY TO COMMIT</strong></p>
-<p><strong>Reasoning:</strong>
-- Code quality is excellent (10/10)
-- Security is verified (SQL injection safe)
-- Documentation is complete
-- <strong>Manual testing required</strong> to verify runtime behavior</p>
-<p><strong>Recommendation:</strong>
-1. Start API server and run curl tests
-2. Start frontend and test in browser
-3. If manual tests pass → <strong>READY TO COMMIT</strong>
-4. If issues found → Fix and retest</p>
+<p><strong>Reasoning:</strong></p>
+<ul>
+<li>Code quality is excellent (10/10)</li>
+<li>Security is verified (SQL injection safe)</li>
+<li>Documentation is complete</li>
+<li><strong>Manual testing required</strong> to verify runtime behavior</li>
+</ul>
+<p><strong>Recommendation:</strong></p>
+<ol>
+<li>Start API server and run curl tests</li>
+<li>Start frontend and test in browser</li>
+<li>If manual tests pass → <strong>READY TO COMMIT</strong></li>
+<li>If issues found → Fix and retest</li>
+</ol>
 <hr/>
 <h2 id="test-summary">Test Summary<a class="headerlink" href="#test-summary" title="Permanent link">¶</a></h2>
 <table>
@@ -1670,15 +1689,13 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 <hr/>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
 <ol>
-<li>
-<p><strong>Start API Server:</strong>
+<li><strong>Start API Server:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg
 <span class="nv">PYTHONPATH</span><span class="o">=</span>/data/dsa110-contimg/src<span class="w"> </span>/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>uvicorn<span class="w"> </span>dsa110_contimg.api:app<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Run API Tests:</strong></p>
-</li>
+</code></pre></div>
+<ol>
+<li><strong>Run API Tests:</strong></li>
 <li>Execute curl commands from Phase 1</li>
 <li>Verify working filters respond quickly</li>
 <li>Verify experimental filters work (even if slow)</li>
@@ -1686,14 +1703,14 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 <p>Verify edge cases handled gracefully</p>
 </li>
 <li>
-<p><strong>Start Frontend:</strong>
+<p><strong>Start Frontend:</strong></p>
+</li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
 npm<span class="w"> </span>run<span class="w"> </span>dev
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Run UI Tests:</strong></p>
-</li>
+</code></pre></div>
+<ol>
+<li><strong>Run UI Tests:</strong></li>
 <li>Complete manual testing checklist from Phase 2</li>
 <li>Verify all filters work correctly</li>
 <li>Verify URL synchronization</li>
@@ -1721,7 +1738,7 @@ Frontend:
 - useCallback optimizations
 
 Backend:
-- New /api/routers/images.py module
+- New src/dsa110_contimg/api/routers/images.py module
 - Refactored from monolithic routes.py
 - Working filters: start_date, end_date, noise_max (SQL-level)
 - Experimental filters: dec_min/max, has_calibrator (post-processing)
@@ -1771,7 +1788,7 @@ Next steps:
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

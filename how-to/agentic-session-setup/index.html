@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1132,25 +1134,32 @@
 <article class="md-content__inner md-typeset">
 <h1 id="agentic-session-setup-for-error-detection">Agentic Session Setup for Error Detection<a class="headerlink" href="#agentic-session-setup-for-error-detection" title="Permanent link">¶</a></h1>
 <h2 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">¶</a></h2>
-<p>In fresh agentic sessions, error detection may not be enabled because:
-- <code>~/.bashrc</code> is not sourced for non-interactive shells
-- <code>BASH_ENV</code> may not be set in the environment
-- Login shells may not source <code>~/.profile</code> in all cases</p>
+<p>In fresh agentic sessions, error detection may not be enabled because:</p>
+<ul>
+<li><code>~/.bashrc</code> is not sourced for non-interactive shells</li>
+<li><code>BASH_ENV</code> may not be set in the environment</li>
+<li>Login shells may not source <code>~/.profile</code> in all cases</li>
+</ul>
 <h2 id="solution-agent-setup-script">Solution: Agent Setup Script<a class="headerlink" href="#solution-agent-setup-script" title="Permanent link">¶</a></h2>
-<p>Source the agent setup script at the start of any agentic session to ensure error detection is <strong>always</strong> enabled.</p>
+<p>Source the agent setup script at the start of any agentic session to ensure
+error detection is <strong>always</strong> enabled.</p>
 <h3 id="quick-setup">Quick Setup<a class="headerlink" href="#quick-setup" title="Permanent link">¶</a></h3>
 <p>At the start of any agentic session, run:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">source</span><span class="w"> </span>/data/dsa110-contimg/scripts/agent-setup.sh
 </code></pre></div>
-<p>This will:
-1. Set <code>BASH_ENV</code> if not already set
-2. Enable auto error detection
-3. Verify the setup</p>
+<p>This will:</p>
+<ol>
+<li>Set <code>BASH_ENV</code> if not already set</li>
+<li>Enable auto error detection</li>
+<li>Verify the setup</li>
+</ol>
 <h3 id="what-the-script-does">What the Script Does<a class="headerlink" href="#what-the-script-does" title="Permanent link">¶</a></h3>
-<p>The <code>agent-setup.sh</code> script:
-- Sets <code>BASH_ENV</code> to point to the error detection environment script
-- Sources the auto-error-detection script to enable wrapping
-- Provides verification output</p>
+<p>The <code>agent-setup.sh</code> script:</p>
+<ul>
+<li>Sets <code>BASH_ENV</code> to point to the error detection environment script</li>
+<li>Sources the auto-error-detection script to enable wrapping</li>
+<li>Provides verification output</li>
+</ul>
 <h3 id="usage-in-agentic-sessions">Usage in Agentic Sessions<a class="headerlink" href="#usage-in-agentic-sessions" title="Permanent link">¶</a></h3>
 <p><strong>For AI agents or automated scripts:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># At the start of the session</span>
@@ -1180,24 +1189,30 @@ $<span class="w"> </span><span class="nb">type</span><span class="w"> </span>pyt
 pytest<span class="w"> </span>is<span class="w"> </span>a<span class="w"> </span><span class="k">function</span>
 </code></pre></div>
 <h3 id="why-this-is-needed">Why This Is Needed<a class="headerlink" href="#why-this-is-needed" title="Permanent link">¶</a></h3>
-<p>Even though we set <code>BASH_ENV</code> in <code>~/.profile</code> and <code>~/.bashrc</code>:
-- Non-interactive shells don't source <code>~/.bashrc</code>
-- Login shells may not always source <code>~/.profile</code> in all environments
-- Agentic sessions may start with a clean environment</p>
-<p>The agent setup script ensures error detection is enabled <strong>regardless</strong> of shell type or profile sourcing.</p>
+<p>Even though we set <code>BASH_ENV</code> in <code>~/.profile</code> and <code>~/.bashrc</code>:</p>
+<ul>
+<li>Non-interactive shells don't source <code>~/.bashrc</code></li>
+<li>Login shells may not always source <code>~/.profile</code> in all environments</li>
+<li>Agentic sessions may start with a clean environment</li>
+</ul>
+<p>The agent setup script ensures error detection is enabled <strong>regardless</strong> of
+shell type or profile sourcing.</p>
 <h3 id="best-practice">Best Practice<a class="headerlink" href="#best-practice" title="Permanent link">¶</a></h3>
-<p><strong>For maximum determinism</strong>, always source the agent setup script at the start of agentic sessions:</p>
+<p><strong>For maximum determinism</strong>, always source the agent setup script at the start
+of agentic sessions:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Always do this first</span>
 <span class="nb">source</span><span class="w"> </span>/data/dsa110-contimg/scripts/agent-setup.sh
 
 <span class="c1"># Then run your commands</span>
 pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 </code></pre></div>
-<p>This guarantees error detection is enabled, regardless of:
-- Shell type (interactive/non-interactive)
-- Login status
-- Profile file sourcing
-- Environment variables</p>
+<p>This guarantees error detection is enabled, regardless of:</p>
+<ul>
+<li>Shell type (interactive/non-interactive)</li>
+<li>Login status</li>
+<li>Profile file sourcing</li>
+<li>Environment variables</li>
+</ul>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1222,7 +1237,7 @@ pytest<span class="w"> </span>tests/<span class="w"> </span>-v
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

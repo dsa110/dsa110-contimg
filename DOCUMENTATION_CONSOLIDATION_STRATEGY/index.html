@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href=".." title="DSA-110 Continuum Imaging Pipeline">
@@ -1072,9 +1074,9 @@
 <nav aria-label="Current State Analysis" class="md-nav">
 <ul class="md-nav__list">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#file-distribution">
+<a class="md-nav__link" href="#file-distribution-as-of-audit">
 <span class="md-ellipsis">
-      File Distribution
+      File Distribution (as of audit)
     </span>
 </a>
 </li>
@@ -1160,6 +1162,13 @@
 <a class="md-nav__link" href="#phase-4-consolidate-duplicate-content-priority-medium">
 <span class="md-ellipsis">
       Phase 4: Consolidate Duplicate Content (Priority: Medium)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-5-archive-time-bound-analysisreports-completed">
+<span class="md-ellipsis">
+      Phase 5: Archive Time-Bound Analysis/Reports (Completed)
     </span>
 </a>
 </li>
@@ -1395,31 +1404,45 @@
 <article class="md-content__inner md-typeset">
 <h1 id="documentation-consolidation-strategy">Documentation Consolidation Strategy<a class="headerlink" href="#documentation-consolidation-strategy" title="Permanent link">¶</a></h1>
 <p><strong>Date:</strong> 2025-11-12<br/>
-<strong>Status:</strong> Proposed<br/>
-<strong>Purpose:</strong> Unify and organize 179+ markdown documentation files into a maintainable, discoverable structure</p>
+<strong>Status:</strong> In Progress<br/>
+<strong>Purpose:</strong> Unify and organize 1,113 markdown documentation files into a
+maintainable, discoverable structure</p>
 <hr/>
 <h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">¶</a></h2>
-<p>The codebase currently has <strong>179 markdown files</strong> scattered across root directories, source code directories, and various subdirectories. While the <code>docs/</code> directory has good structure, many files remain in root (<code>/data/dsa110-contimg/*.md</code>), source directories (<code>src/dsa110_contimg/*.md</code>), and other locations. This document proposes a systematic approach to consolidate, organize, and maintain documentation based on industry best practices.</p>
+<p>The codebase currently has <strong>179 markdown files</strong> scattered across root
+directories, source code directories, and various subdirectories. While the
+<code>docs/</code> directory has good structure, many files remain in root
+(<code>/data/dsa110-contimg/*.md</code>), source directories (<code>src/dsa110_contimg/*.md</code>),
+and other locations. This document proposes a systematic approach to
+consolidate, organize, and maintain documentation based on industry best
+practices.</p>
 <hr/>
 <h2 id="current-state-analysis">Current State Analysis<a class="headerlink" href="#current-state-analysis" title="Permanent link">¶</a></h2>
-<h3 id="file-distribution">File Distribution<a class="headerlink" href="#file-distribution" title="Permanent link">¶</a></h3>
+<h3 id="file-distribution-as-of-audit">File Distribution (as of audit)<a class="headerlink" href="#file-distribution-as-of-audit" title="Permanent link">¶</a></h3>
 <ul>
-<li><strong>Root directory:</strong> ~30 files (e.g., <code>README.md</code>, <code>DEVELOPER_GUIDE.md</code>, <code>BUG_REPORT.md</code>, <code>TIME_INVESTIGATION_REPORT.md</code>)</li>
-<li><strong>docs/ directory:</strong> ~120 files (well-organized but could be improved)</li>
-<li><strong>Source directories:</strong> ~10 files (e.g., <code>src/dsa110_contimg/RA_CALCULATION_ISSUE.md</code>)</li>
-<li><strong>Scripts directory:</strong> ~5 files</li>
-<li><strong>Tests directory:</strong> ~8 files</li>
-<li><strong>Frontend directory:</strong> ~5 files</li>
-<li><strong>Docker directory:</strong> ~20 files (mostly status/experimental)</li>
+<li><strong>Root directory:</strong> 27 files (keep: <code>README.md</code>, <code>MEMORY.md</code>)</li>
+<li><strong>docs/ directory:</strong> 668 files (298 keep, 353 archive, 17 consolidate)</li>
+<li><strong>archive/</strong>: 293 files (legacy, already segregated)</li>
+<li><strong>internal/</strong>: 49 files (dev notes/status)</li>
+<li><strong>frontend/</strong>: 28 files (keep)</li>
+<li><strong>docker/</strong>: 18 files (keep)</li>
+<li><strong>tests/</strong>: 14 files (keep)</li>
+<li><strong>src/</strong>: 7 files (module READMEs; keep)</li>
+<li><strong>ops/</strong>: 2 files (keep)</li>
 </ul>
 <h3 id="issues-identified">Issues Identified<a class="headerlink" href="#issues-identified" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong>Root directory clutter:</strong> Many status reports, investigation reports, and test results in root</li>
+<li><strong>Root directory clutter:</strong> Many status reports, investigation reports, and
+   test results in root</li>
 <li><strong>Duplicate information:</strong> Same concepts documented in multiple places</li>
-<li><strong>Temporal files:</strong> Status reports, test results, and investigation reports that should be archived</li>
-<li><strong>Inconsistent naming:</strong> Mix of UPPERCASE, lowercase, and mixed-case filenames</li>
-<li><strong>Missing entry points:</strong> No clear navigation structure for finding information</li>
-<li><strong>Agent notes mixed with user docs:</strong> Development notes scattered with user-facing documentation</li>
+<li><strong>Temporal files:</strong> Status reports, test results, and investigation reports
+   that should be archived</li>
+<li><strong>Inconsistent naming:</strong> Mix of UPPERCASE, lowercase, and mixed-case
+   filenames</li>
+<li><strong>Missing entry points:</strong> No clear navigation structure for finding
+   information</li>
+<li><strong>Agent notes mixed with user docs:</strong> Development notes scattered with
+   user-facing documentation</li>
 </ol>
 <hr/>
 <h2 id="strategy-three-tier-documentation-architecture">Strategy: Three-Tier Documentation Architecture<a class="headerlink" href="#strategy-three-tier-documentation-architecture" title="Permanent link">¶</a></h2>
@@ -1428,10 +1451,12 @@
 <p><strong>Purpose:</strong> Documentation for users, developers, and operators<br/>
 <strong>Structure:</strong> Organized by purpose (how-to, concepts, reference, tutorials)</p>
 <h3 id="tier-2-development-notes-internaldocsdev">Tier 2: Development Notes (<code>internal/docs/dev/</code>)<a class="headerlink" href="#tier-2-development-notes-internaldocsdev" title="Permanent link">¶</a></h3>
-<p><strong>Purpose:</strong> Agent notes, investigation reports, status updates, development history<br/>
+<p><strong>Purpose:</strong> Agent notes, investigation reports, status updates, development
+history<br/>
 <strong>Structure:</strong> Organized by topic and date</p>
 <h3 id="tier-3-archive-docsarchive">Tier 3: Archive (<code>docs/archive/</code>)<a class="headerlink" href="#tier-3-archive-docsarchive" title="Permanent link">¶</a></h3>
-<p><strong>Purpose:</strong> Historical status reports, completed investigations, deprecated information<br/>
+<p><strong>Purpose:</strong> Historical status reports, completed investigations, deprecated
+information<br/>
 <strong>Structure:</strong> Organized by date and topic</p>
 <hr/>
 <h2 id="proposed-directory-structure">Proposed Directory Structure<a class="headerlink" href="#proposed-directory-structure" title="Permanent link">¶</a></h2>
@@ -1516,69 +1541,112 @@
 <hr/>
 <h2 id="consolidation-plan">Consolidation Plan<a class="headerlink" href="#consolidation-plan" title="Permanent link">¶</a></h2>
 <h3 id="phase-1-root-directory-cleanup-priority-high">Phase 1: Root Directory Cleanup (Priority: High)<a class="headerlink" href="#phase-1-root-directory-cleanup-priority-high" title="Permanent link">¶</a></h3>
-<p><strong>Move to <code>internal/docs/dev/status/</code>:</strong>
-- <code>DASHBOARD_ENDPOINT_TEST_RESULTS.md</code>
-- <code>DASHBOARD_REAL_DATA_IMPLEMENTATION.md</code>
-- <code>DASHBOARD_TBD_STATUS.md</code>
-- <code>ENDPOINT_TEST_SUMMARY.md</code>
-- <code>ENDPOINT_VERIFICATION_COMPLETE.md</code>
-- <code>SKYVIEW_IMAGE_DISPLAY_VERIFICATION.md</code>
-- <code>SKYVIEW_SPRINT1_COMPLETE.md</code>
-- <code>SKYVIEW_TEST_RESULTS.md</code>
-- <code>SKYVIEW_TROUBLESHOOTING.md</code>
-- <code>TESTING_SUMMARY.md</code>
-- <code>TEST_RESULTS.md</code>
-- <code>VALIDATION_DEMONSTRATION.md</code></p>
-<p><strong>Move to <code>internal/docs/dev/analysis/</code>:</strong>
-- <code>TIME_INVESTIGATION_REPORT.md</code>
-- <code>TIME_VALIDATION_STRATEGY.md</code>
-- <code>DUPLICATE_TIME_INVESTIGATION.md</code>
-- <code>BUG_REPORT.md</code> (if still relevant)</p>
-<p><strong>Move to <code>internal/docs/dev/notes/</code>:</strong>
-- <code>ARCHITECTURAL_ELEGANCE_BRAINSTORM.md</code>
-- <code>ARCHITECTURE_OPTIMIZATION_RECOMMENDATIONS.md</code>
-- <code>PYUVDATA_USAGE_ANALYSIS.md</code></p>
-<p><strong>Move to <code>docs/reference/</code>:</strong>
-- <code>DEVELOPER_GUIDE.md</code> → <code>docs/reference/developer_guide.md</code></p>
-<p><strong>Keep in root:</strong>
-- <code>README.md</code> (main project README)
-- <code>MEMORY.md</code> (agent memory file - special case)
-- <code>TODO.md</code> (if actively used)</p>
-<p><strong>Archive:</strong>
-- <code>DOCKER_CONFIG_UPDATE.md</code> → <code>docs/archive/</code> (if completed)
-- <code>DOCKER_CONFIG_VERIFICATION.md</code> → <code>docs/archive/</code> (if completed)</p>
+<p><strong>Move to <code>internal/docs/dev/status/</code>:</strong></p>
+<ul>
+<li><code>DASHBOARD_ENDPOINT_TEST_RESULTS.md</code></li>
+<li><code>DASHBOARD_REAL_DATA_IMPLEMENTATION.md</code></li>
+<li><code>DASHBOARD_TBD_STATUS.md</code></li>
+<li><code>ENDPOINT_TEST_SUMMARY.md</code></li>
+<li><code>ENDPOINT_VERIFICATION_COMPLETE.md</code></li>
+<li><code>SKYVIEW_IMAGE_DISPLAY_VERIFICATION.md</code></li>
+<li><code>SKYVIEW_SPRINT1_COMPLETE.md</code></li>
+<li><code>SKYVIEW_TEST_RESULTS.md</code></li>
+<li><code>SKYVIEW_TROUBLESHOOTING.md</code></li>
+<li><code>TESTING_SUMMARY.md</code></li>
+<li><code>TEST_RESULTS.md</code></li>
+<li><code>VALIDATION_DEMONSTRATION.md</code></li>
+</ul>
+<p><strong>Move to <code>internal/docs/dev/analysis/</code>:</strong></p>
+<ul>
+<li><code>TIME_INVESTIGATION_REPORT.md</code></li>
+<li><code>TIME_VALIDATION_STRATEGY.md</code></li>
+<li><code>DUPLICATE_TIME_INVESTIGATION.md</code></li>
+<li><code>BUG_REPORT.md</code> (if still relevant)</li>
+</ul>
+<p><strong>Move to <code>internal/docs/dev/notes/</code>:</strong></p>
+<ul>
+<li><code>ARCHITECTURAL_ELEGANCE_BRAINSTORM.md</code></li>
+<li><code>ARCHITECTURE_OPTIMIZATION_RECOMMENDATIONS.md</code></li>
+<li><code>PYUVDATA_USAGE_ANALYSIS.md</code></li>
+</ul>
+<p><strong>Move to <code>docs/reference/</code>:</strong></p>
+<ul>
+<li><code>DEVELOPER_GUIDE.md</code> → <code>docs/reference/developer_guide.md</code></li>
+</ul>
+<p><strong>Keep in root:</strong></p>
+<ul>
+<li><code>README.md</code> (main project README)</li>
+<li><code>MEMORY.md</code> (agent memory file - special case)</li>
+<li><code>TODO.md</code> (if actively used)</li>
+</ul>
+<p><strong>Archive:</strong></p>
+<ul>
+<li><code>DOCKER_CONFIG_UPDATE.md</code> → <code>docs/archive/</code> (if completed)</li>
+<li><code>DOCKER_CONFIG_VERIFICATION.md</code> → <code>docs/archive/</code> (if completed)</li>
+</ul>
 <h3 id="phase-2-source-directory-cleanup-priority-high">Phase 2: Source Directory Cleanup (Priority: High)<a class="headerlink" href="#phase-2-source-directory-cleanup-priority-high" title="Permanent link">¶</a></h3>
-<p><strong>Move to <code>internal/docs/dev/analysis/</code>:</strong>
-- <code>src/dsa110_contimg/RA_CALCULATION_ISSUE.md</code>
-- <code>src/dsa110_contimg/TIME_HANDLING_ISSUES.md</code></p>
-<p><strong>Keep in source directories:</strong>
-- Module-level <code>README.md</code> files (e.g., <code>src/dsa110_contimg/calibration/README.md</code>)
-  - These provide context for code navigation</p>
+<p><strong>Move to <code>internal/docs/dev/analysis/</code>:</strong></p>
+<ul>
+<li><code>src/dsa110_contimg/RA_CALCULATION_ISSUE.md</code></li>
+<li><code>src/dsa110_contimg/TIME_HANDLING_ISSUES.md</code></li>
+</ul>
+<p><strong>Keep in source directories:</strong></p>
+<ul>
+<li>Module-level <code>README.md</code> files (e.g.,
+  <code>src/dsa110_contimg/calibration/README.md</code>)</li>
+<li>These provide context for code navigation</li>
+</ul>
 <h3 id="phase-3-docker-directory-cleanup-priority-medium">Phase 3: Docker Directory Cleanup (Priority: Medium)<a class="headerlink" href="#phase-3-docker-directory-cleanup-priority-medium" title="Permanent link">¶</a></h3>
-<p><strong>Move to <code>internal/docs/dev/status/experimental/</code>:</strong>
-- All <code>docker/cubical_experimental/*.md</code> status files
-- Keep only <code>docker/cubical_experimental/README.md</code> in place</p>
+<p><strong>Move to <code>internal/docs/dev/status/experimental/</code>:</strong></p>
+<ul>
+<li>All <code>docker/cubical_experimental/*.md</code> status files</li>
+<li>Keep only <code>docker/cubical_experimental/README.md</code> in place</li>
+</ul>
 <h3 id="phase-4-consolidate-duplicate-content-priority-medium">Phase 4: Consolidate Duplicate Content (Priority: Medium)<a class="headerlink" href="#phase-4-consolidate-duplicate-content-priority-medium" title="Permanent link">¶</a></h3>
-<p><strong>Review and merge:</strong>
-- Multiple calibration procedure documents
-- Multiple testing strategy documents
-- Multiple quickstart guides</p>
-<p><strong>Create single source of truth:</strong>
-- <code>docs/how-to/calibration/detailed_procedure.md</code> (merge all calibration docs)
-- <code>docs/how-to/quickstart.md</code> (merge all quickstart variants)
-- <code>docs/concepts/testing_strategy.md</code> (merge testing documents)</p>
+<p><strong>Review and merge (Progress):</strong></p>
+<ul>
+<li>QA Visualization: Kept Quick Start, Usage, and Design; archived seven
+  dashboard/testing/status variants to <code>docs/archive/qa_visualization/</code>.</li>
+<li>Prettier: Created <code>docs/how-to/PRETTIER_TROUBLESHOOTING.md</code>; archived
+  environment-specific and applied-fixes docs to <code>docs/archive/prettier/</code>;
+  converted <code>PRETTIER_WARNINGS.md</code> to a redirect.</li>
+<li>Developer Handoff: Kept <code>DEVELOPER_HANDOFF_WARNINGS.md</code>; converted
+  <code>DEVELOPER_HANDOVER_WARNINGS.md</code> to a redirect.</li>
+</ul>
+<p>Remaining merges:</p>
+<ul>
+<li>Consolidate multiple calibration/testing procedure variants under a single
+  canonical guide per topic.</li>
+<li>Collapse remaining quickstarts that duplicate handbook content.</li>
+</ul>
+<h3 id="phase-5-archive-time-bound-analysisreports-completed">Phase 5: Archive Time-Bound Analysis/Reports (Completed)<a class="headerlink" href="#phase-5-archive-time-bound-analysisreports-completed" title="Permanent link">¶</a></h3>
+<ul>
+<li>Moved <code>docs/analysis/</code> → <code>docs/archive/analysis/</code> (126 files)</li>
+<li>Moved <code>docs/reports/</code> → <code>docs/archive/reports/</code> (41 files)</li>
+<li>Moved <code>docs/dev/</code> → <code>internal/docs/dev/imported/</code> (182 files)</li>
+</ul>
+<p><strong>Create single source of truth:</strong></p>
+<ul>
+<li><code>docs/how-to/calibration/detailed_procedure.md</code> (merge all calibration docs)</li>
+<li><code>docs/how-to/quickstart.md</code> (merge all quickstart variants)</li>
+<li><code>docs/concepts/testing_strategy.md</code> (merge testing documents)</li>
+</ul>
 <h3 id="phase-5-improve-navigation-priority-high">Phase 5: Improve Navigation (Priority: High)<a class="headerlink" href="#phase-5-improve-navigation-priority-high" title="Permanent link">¶</a></h3>
-<p><strong>Create entry point READMEs:</strong>
-- <code>docs/README.md</code> - Main documentation index
-- <code>docs/concepts/README.md</code> - Concepts overview
-- <code>docs/how-to/README.md</code> - How-to guides index
-- <code>docs/reference/README.md</code> - Reference documentation index
-- <code>internal/docs/dev/README.md</code> - Development notes index
-- <code>docs/archive/README.md</code> - Archive index</p>
-<p><strong>Add cross-references:</strong>
-- Link related documents
-- Add "See also" sections
-- Create topic-based navigation</p>
+<p><strong>Create entry point READMEs:</strong></p>
+<ul>
+<li><code>docs/README.md</code> - Main documentation index</li>
+<li><code>docs/concepts/README.md</code> - Concepts overview</li>
+<li><code>docs/how-to/README.md</code> - How-to guides index</li>
+<li><code>docs/reference/README.md</code> - Reference documentation index</li>
+<li><code>internal/docs/dev/README.md</code> - Development notes index</li>
+<li><code>docs/archive/README.md</code> - Archive index</li>
+</ul>
+<p><strong>Add cross-references:</strong></p>
+<ul>
+<li>Link related documents</li>
+<li>Add "See also" sections</li>
+<li>Create topic-based navigation</li>
+</ul>
 <hr/>
 <h2 id="file-naming-conventions">File Naming Conventions<a class="headerlink" href="#file-naming-conventions" title="Permanent link">¶</a></h2>
 <h3 id="standardize-to-lowercase-with-underscores">Standardize to lowercase with underscores:<a class="headerlink" href="#standardize-to-lowercase-with-underscores" title="Permanent link">¶</a></h3>
@@ -1595,7 +1663,8 @@
 <li><strong>Concepts:</strong> <code>concept_name.md</code> (e.g., <code>pipeline_overview.md</code>)</li>
 <li><strong>How-to guides:</strong> <code>task_name.md</code> (e.g., <code>calibrate_ms.md</code>)</li>
 <li><strong>Reference:</strong> <code>component_name.md</code> (e.g., <code>api_endpoints.md</code>)</li>
-<li><strong>Status reports:</strong> <code>YYYY-MM-DD_component_status.md</code> (e.g., <code>2025-01-15_dashboard_status.md</code>)</li>
+<li><strong>Status reports:</strong> <code>YYYY-MM-DD_component_status.md</code> (e.g.,
+  <code>2025-01-15_dashboard_status.md</code>)</li>
 <li><strong>Analysis:</strong> <code>topic_analysis.md</code> (e.g., <code>time_handling_analysis.md</code>)</li>
 </ul>
 <hr/>
@@ -1653,11 +1722,13 @@ mv<span class="w"> </span>DEVELOPER_GUIDE.md<span class="w"> </span>docs/referen
 mv<span class="w"> </span>src/dsa110_contimg/TIME_HANDLING_ISSUES.md<span class="w"> </span>internal/docs/dev/analysis/
 </code></pre></div>
 <h3 id="step-4-create-entry-point-readmes">Step 4: Create Entry Point READMEs<a class="headerlink" href="#step-4-create-entry-point-readmes" title="Permanent link">¶</a></h3>
-<p>Create <code>README.md</code> files in each major directory with:
-- Purpose statement
-- List of documents
-- Navigation links
-- Last updated date</p>
+<p>Create <code>README.md</code> files in each major directory with:</p>
+<ul>
+<li>Purpose statement</li>
+<li>List of documents</li>
+<li>Navigation links</li>
+<li>Last updated date</li>
+</ul>
 <h3 id="step-5-update-cross-references">Step 5: Update Cross-References<a class="headerlink" href="#step-5-update-cross-references" title="Permanent link">¶</a></h3>
 <ul>
 <li>Update links in moved files</li>
@@ -1766,12 +1837,14 @@ mv<span class="w"> </span>src/dsa110_contimg/TIME_HANDLING_ISSUES.md<span class=
 <li>Tag-based organization</li>
 </ol>
 <h3 id="automation-scripts">Automation Scripts<a class="headerlink" href="#automation-scripts" title="Permanent link">¶</a></h3>
-<p>Create scripts for:
-- Moving files to correct locations
-- Renaming files (UPPERCASE → lowercase)
-- Generating entry point READMEs
-- Checking for broken links
-- Archiving old status reports</p>
+<p>Create scripts for:</p>
+<ul>
+<li>Moving files to correct locations</li>
+<li>Renaming files (UPPERCASE → lowercase)</li>
+<li>Generating entry point READMEs</li>
+<li>Checking for broken links</li>
+<li>Archiving old status reports</li>
+</ul>
 <hr/>
 <h2 id="success-metrics">Success Metrics<a class="headerlink" href="#success-metrics" title="Permanent link">¶</a></h2>
 <h3 id="immediate-after-consolidation">Immediate (After Consolidation)<a class="headerlink" href="#immediate-after-consolidation" title="Permanent link">¶</a></h3>
@@ -1813,11 +1886,13 @@ mv<span class="w"> </span>src/dsa110_contimg/TIME_HANDLING_ISSUES.md<span class=
 </ul>
 <hr/>
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">¶</a></h2>
-<p>Based on industry best practices from:
-- Markdown Documentation Best Practices (IBM)
-- Microsoft Engineering Playbook
-- GitBook Documentation Structure Guide
-- CommonMark Markdown Specification</p>
+<p>Based on industry best practices from:</p>
+<ul>
+<li>Markdown Documentation Best Practices (IBM)</li>
+<li>Microsoft Engineering Playbook</li>
+<li>GitBook Documentation Structure Guide</li>
+<li>CommonMark Markdown Specification</li>
+</ul>
 <hr/>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
 <ol>
@@ -1851,7 +1926,7 @@ mv<span class="w"> </span>src/dsa110_contimg/TIME_HANDLING_ISSUES.md<span class=
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

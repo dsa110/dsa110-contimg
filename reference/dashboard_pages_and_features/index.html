@@ -29,6 +29,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -2276,7 +2278,8 @@
 <h2 id="implementation-status-legend">Implementation Status Legend<a class="headerlink" href="#implementation-status-legend" title="Permanent link">¶</a></h2>
 <ul>
 <li>✅ <strong>Implemented</strong> - Feature is fully implemented and working</li>
-<li>🔄 <strong>Partially Implemented</strong> - Feature exists but may be incomplete or in progress</li>
+<li>🔄 <strong>Partially Implemented</strong> - Feature exists but may be incomplete or in
+  progress</li>
 <li>📋 <strong>Planned</strong> - Feature is planned but not yet implemented</li>
 <li>💡 <strong>Future</strong> - Feature is in backlog or future consideration</li>
 </ul>
@@ -2302,60 +2305,78 @@
 <h3 id="features">Features<a class="headerlink" href="#features" title="Permanent link">¶</a></h3>
 <h4 id="pipeline-status-panel">Pipeline Status Panel<a class="headerlink" href="#pipeline-status-panel" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
-<p><strong>Queue Statistics:</strong>
-- Total groups in queue
-- Pending groups (ready for processing)
-- In-progress groups (currently processing)
-- Completed groups (successfully processed)
-- Failed groups (errors occurred)
-- Collecting groups (waiting for all subbands)</p>
-<p><strong>Calibration Sets:</strong>
-- Active calibration sets count
-- Calibration set details (set name, tables, valid MJD range)
-- Last update timestamp
-- Number of targets per set</p>
-<p><strong>Recent Observations Table:</strong>
-- Last 20 observation groups
-- Group ID (normalized timestamp)
-- Processing state
-- Subband counts (present/expected)
-- Calibrator detection status
-- Timestamps (received, last update)</p>
+<p><strong>Queue Statistics:</strong></p>
+<ul>
+<li>Total groups in queue</li>
+<li>Pending groups (ready for processing)</li>
+<li>In-progress groups (currently processing)</li>
+<li>Completed groups (successfully processed)</li>
+<li>Failed groups (errors occurred)</li>
+<li>Collecting groups (waiting for all subbands)</li>
+</ul>
+<p><strong>Calibration Sets:</strong></p>
+<ul>
+<li>Active calibration sets count</li>
+<li>Calibration set details (set name, tables, valid MJD range)</li>
+<li>Last update timestamp</li>
+<li>Number of targets per set</li>
+</ul>
+<p><strong>Recent Observations Table:</strong></p>
+<ul>
+<li>Last 20 observation groups</li>
+<li>Group ID (normalized timestamp)</li>
+<li>Processing state</li>
+<li>Subband counts (present/expected)</li>
+<li>Calibrator detection status</li>
+<li>Timestamps (received, last update)</li>
+</ul>
 <h4 id="system-health-panel">System Health Panel<a class="headerlink" href="#system-health-panel" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
-<p><strong>Resource Metrics:</strong>
-- CPU usage percentage (with threshold indicators)
-- Memory usage percentage
-- Disk usage percentage
-- System load averages (1, 5, 15 minutes)</p>
-<p><strong>Real-Time Updates:</strong>
-- Last update timestamp
-- Current metrics display (no historical chart - see Health page for trends)
-- Basic status indicators</p>
+<p><strong>Resource Metrics:</strong></p>
+<ul>
+<li>CPU usage percentage (with threshold indicators)</li>
+<li>Memory usage percentage</li>
+<li>Disk usage percentage</li>
+<li>System load averages (1, 5, 15 minutes)</li>
+</ul>
+<p><strong>Real-Time Updates:</strong></p>
+<ul>
+<li>Last update timestamp</li>
+<li>Current metrics display (no historical chart - see Health page for trends)</li>
+<li>Basic status indicators</li>
+</ul>
 <h4 id="ese-candidates-panel">ESE Candidates Panel<a class="headerlink" href="#ese-candidates-panel" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
-<p><strong>Real-Time Variability Alerts:</strong>
-- Auto-flagged sources with &gt;5σ variability
-- Source ID (NVSS naming convention)
-- Maximum σ deviation
-- Current flux vs. baseline flux
-- Status indicators (active, resolved, false_positive)
-- Last detection timestamp
-- Auto-refresh every 10 seconds</p>
-<p><strong>Alert Display:</strong>
-- Auto-flagged sources with &gt;5σ variability
-- Click to navigate to source detail page</p>
+<p><strong>Real-Time Variability Alerts:</strong></p>
+<ul>
+<li>Auto-flagged sources with &gt;5σ variability</li>
+<li>Source ID (NVSS naming convention)</li>
+<li>Maximum σ deviation</li>
+<li>Current flux vs. baseline flux</li>
+<li>Status indicators (active, resolved, false_positive)</li>
+<li>Last detection timestamp</li>
+<li>Auto-refresh every 10 seconds</li>
+</ul>
+<p><strong>Alert Display:</strong></p>
+<ul>
+<li>Auto-flagged sources with &gt;5σ variability</li>
+<li>Click to navigate to source detail page</li>
+</ul>
 <h4 id="pointing-visualization">Pointing Visualization<a class="headerlink" href="#pointing-visualization" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
-<p><strong>Interactive Sky Map:</strong>
-- Current telescope pointing position (RA/Dec)
-- Historical pointing trail (configurable days, default 7)
-- Color-coded by time
-- Click to view observation details</p>
-<p><strong>Display Options:</strong>
-- Show/hide historical trail
-- Adjust trail duration (1 day, 7 days, 30 days)
-- Zoom and pan controls</p>
+<p><strong>Interactive Sky Map:</strong></p>
+<ul>
+<li>Current telescope pointing position (RA/Dec)</li>
+<li>Historical pointing trail (configurable days, default 7)</li>
+<li>Color-coded by time</li>
+<li>Click to view observation details</li>
+</ul>
+<p><strong>Display Options:</strong></p>
+<ul>
+<li>Show/hide historical trail</li>
+<li>Adjust trail duration (1 day, 7 days, 30 days)</li>
+<li>Zoom and pan controls</li>
+</ul>
 <h3 id="api-endpoints-used">API Endpoints Used<a class="headerlink" href="#api-endpoints-used" title="Permanent link">¶</a></h3>
 <ul>
 <li><code>GET /api/status</code> - Pipeline queue statistics</li>
@@ -2364,15 +2385,19 @@
 <li><code>GET /api/pointing_history</code> - Telescope pointing history</li>
 </ul>
 <h3 id="user-workflows">User Workflows<a class="headerlink" href="#user-workflows" title="Permanent link">¶</a></h3>
-<p><strong>Normal Operation:</strong>
-1. User opens dashboard
-2. Sees pipeline status at a glance
-3. Monitors ESE candidates panel for alerts
-4. Checks system health metrics</p>
-<p><strong>Alert Investigation:</strong>
-1. ESE candidate appears in panel
-2. User clicks "View Source"
-3. Navigates to Sources page for detailed investigation</p>
+<p><strong>Normal Operation:</strong></p>
+<ol>
+<li>User opens dashboard</li>
+<li>Sees pipeline status at a glance</li>
+<li>Monitors ESE candidates panel for alerts</li>
+<li>Checks system health metrics</li>
+</ol>
+<p><strong>Alert Investigation:</strong></p>
+<ol>
+<li>ESE candidate appears in panel</li>
+<li>User clicks "View Source"</li>
+<li>Navigates to Sources page for detailed investigation</li>
+</ol>
 <hr/>
 <h2 id="sky-view-page-sky">Sky View Page (<code>/sky</code>)<a class="headerlink" href="#sky-view-page-sky" title="Permanent link">¶</a></h2>
 <p><strong>URL:</strong> <code>/sky</code><br/>
@@ -2382,74 +2407,91 @@
 <h3 id="features_1">Features<a class="headerlink" href="#features_1" title="Permanent link">¶</a></h3>
 <h4 id="interactive-sky-map">Interactive Sky Map<a class="headerlink" href="#interactive-sky-map" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
-<p><strong>Coverage Visualization:</strong>
-- Observed fields (color-coded by observation time)
-- Source density heatmap
-- Calibrator positions
-- Current/upcoming telescope pointing</p>
-<p><strong>Interactive Features:</strong>
-- Click field → show observation details
-- Zoom and pan controls
-- Time range filtering
-- Declination range filtering</p>
+<p><strong>Coverage Visualization:</strong></p>
+<ul>
+<li>Observed fields (color-coded by observation time)</li>
+<li>Source density heatmap</li>
+<li>Calibrator positions</li>
+<li>Current/upcoming telescope pointing</li>
+</ul>
+<p><strong>Interactive Features:</strong></p>
+<ul>
+<li>Click field → show observation details</li>
+<li>Zoom and pan controls</li>
+<li>Time range filtering</li>
+<li>Declination range filtering</li>
+</ul>
 <h4 id="image-gallery">Image Gallery<a class="headerlink" href="#image-gallery" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
-<p><strong>Grid View:</strong>
-- Thumbnail grid (4-6 images per row, responsive)
-- Each thumbnail shows:
-  - Observation timestamp
-  - Field ID
-  - Noise level
-  - Source count
-  - Calibrator status</p>
-<p><strong>Filters:</strong>
-- Date range (start/end UTC)
-- Declination range
-- Quality threshold (noise level)
-- Primary-beam corrected flag
-- Calibrator detected flag
-- Search by field ID or coordinates</p>
-<p><strong>Pagination:</strong>
-- Configurable items per page
-- Page navigation controls
-- Total count display</p>
+<p><strong>Grid View:</strong></p>
+<ul>
+<li>Thumbnail grid (4-6 images per row, responsive)</li>
+<li>Each thumbnail shows:</li>
+<li>Observation timestamp</li>
+<li>Field ID</li>
+<li>Noise level</li>
+<li>Source count</li>
+<li>Calibrator status</li>
+</ul>
+<p><strong>Filters:</strong></p>
+<ul>
+<li>Date range (start/end UTC)</li>
+<li>Declination range</li>
+<li>Quality threshold (noise level)</li>
+<li>Primary-beam corrected flag</li>
+<li>Calibrator detected flag</li>
+<li>Search by field ID or coordinates</li>
+</ul>
+<p><strong>Pagination:</strong></p>
+<ul>
+<li>Configurable items per page</li>
+<li>Page navigation controls</li>
+<li>Total count display</li>
+</ul>
 <h4 id="image-detail-view">Image Detail View<a class="headerlink" href="#image-detail-view" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
-<p><strong>Full-Resolution Display:</strong>
-- Large image viewer (JS9 integration)
-- Zoom and pan controls
-- Colormap selection
-- Scaling options (linear, log, sqrt)
-- Grid overlay toggle
-- Catalog overlay toggle</p>
-<p><strong>Metadata Panel:</strong>
-- Observation details (date, MJD, integration time)
-- Pointing center (RA/Dec)
-- Field size
-- Image quality metrics:
-  - Noise level (mJy/beam)
-  - Synthesized beam (major, minor, PA)
-  - Noise/thermal ratio
-  - Dynamic range
-- Frequency information (center, bandwidth)
-- Source statistics:
-  - Detected sources count
-  - NVSS matches count
-  - Variable sources count
-- Calibration information:
-  - Calibrator name
-  - Separation from pointing center
-  - Measured vs. expected flux
-  - Calibration tables used</p>
-<p><strong>Actions:</strong>
-- Download FITS file
-- View source list
-- Catalog overlay toggle
-- Region tools (create/edit regions)
-- Profile tool
-- Image fitting tool
-- Photometry plugin</p>
-<p><strong>Note:</strong> Mosaic Builder functionality is available on the separate Mosaic Gallery page (<code>/mosaics</code>), not on Sky View page.</p>
+<p><strong>Full-Resolution Display:</strong></p>
+<ul>
+<li>Large image viewer (JS9 integration)</li>
+<li>Zoom and pan controls</li>
+<li>Colormap selection</li>
+<li>Scaling options (linear, log, sqrt)</li>
+<li>Grid overlay toggle</li>
+<li>Catalog overlay toggle</li>
+</ul>
+<p><strong>Metadata Panel:</strong></p>
+<ul>
+<li>Observation details (date, MJD, integration time)</li>
+<li>Pointing center (RA/Dec)</li>
+<li>Field size</li>
+<li>Image quality metrics:</li>
+<li>Noise level (mJy/beam)</li>
+<li>Synthesized beam (major, minor, PA)</li>
+<li>Noise/thermal ratio</li>
+<li>Dynamic range</li>
+<li>Frequency information (center, bandwidth)</li>
+<li>Source statistics:</li>
+<li>Detected sources count</li>
+<li>NVSS matches count</li>
+<li>Variable sources count</li>
+<li>Calibration information:</li>
+<li>Calibrator name</li>
+<li>Separation from pointing center</li>
+<li>Measured vs. expected flux</li>
+<li>Calibration tables used</li>
+</ul>
+<p><strong>Actions:</strong></p>
+<ul>
+<li>Download FITS file</li>
+<li>View source list</li>
+<li>Catalog overlay toggle</li>
+<li>Region tools (create/edit regions)</li>
+<li>Profile tool</li>
+<li>Image fitting tool</li>
+<li>Photometry plugin</li>
+</ul>
+<p><strong>Note:</strong> Mosaic Builder functionality is available on the separate Mosaic
+Gallery page (<code>/mosaics</code>), not on Sky View page.</p>
 <h3 id="api-endpoints-used_1">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_1" title="Permanent link">¶</a></h3>
 <ul>
 <li><code>GET /api/images</code> - List images with filters (via ImageBrowser component)</li>
@@ -2457,18 +2499,22 @@
 <li><code>GET /api/pointing_history</code> - Pointing history (for SkyMap component)</li>
 </ul>
 <h3 id="user-workflows_1">User Workflows<a class="headerlink" href="#user-workflows_1" title="Permanent link">¶</a></h3>
-<p><strong>Image Exploration:</strong>
-1. User navigates to Sky View
-2. Filters images by date range or quality
-3. Clicks thumbnail to view full image
-4. Examines image with JS9 viewer
-5. Downloads FITS file for analysis</p>
-<p><strong>Image Analysis:</strong>
-1. User selects image from browser
-2. Views image in JS9 viewer
-3. Uses region tools, profile tool, or fitting tool
-4. Toggles catalog overlay if needed
-5. Examines image metadata</p>
+<p><strong>Image Exploration:</strong></p>
+<ol>
+<li>User navigates to Sky View</li>
+<li>Filters images by date range or quality</li>
+<li>Clicks thumbnail to view full image</li>
+<li>Examines image with JS9 viewer</li>
+<li>Downloads FITS file for analysis</li>
+</ol>
+<p><strong>Image Analysis:</strong></p>
+<ol>
+<li>User selects image from browser</li>
+<li>Views image in JS9 viewer</li>
+<li>Uses region tools, profile tool, or fitting tool</li>
+<li>Toggles catalog overlay if needed</li>
+<li>Examines image metadata</li>
+</ol>
 <hr/>
 <h2 id="sources-page-sources">Sources Page (<code>/sources</code>)<a class="headerlink" href="#sources-page-sources" title="Permanent link">¶</a></h2>
 <p><strong>URL:</strong> <code>/sources</code><br/>
@@ -2478,82 +2524,111 @@
 <h3 id="features_2">Features<a class="headerlink" href="#features_2" title="Permanent link">¶</a></h3>
 <h4 id="source-search-filters">Source Search &amp; Filters<a class="headerlink" href="#source-search-filters" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
-<p><strong>Quick Search:</strong>
-- Search by NVSS ID (e.g., <code>NVSS J123456.7+420312</code>)
-- Enter key to search</p>
-<p><strong>Advanced Filters (Collapsible):</strong>
-- Variability threshold slider (0-10σ)
-- Declination range slider (-90° to +90°)
-- ESE candidates only checkbox</p>
-<p><strong>Filter Management:</strong>
-- Active filter count chip
-- Clear all filters button
-- Show/hide advanced filters toggle</p>
+<p><strong>Quick Search:</strong></p>
+<ul>
+<li>Search by NVSS ID (e.g., <code>NVSS J123456.7+420312</code>)</li>
+<li>Enter key to search</li>
+</ul>
+<p><strong>Advanced Filters (Collapsible):</strong></p>
+<ul>
+<li>Variability threshold slider (0-10σ)</li>
+<li>Declination range slider (-90° to +90°)</li>
+<li>ESE candidates only checkbox</li>
+</ul>
+<p><strong>Filter Management:</strong></p>
+<ul>
+<li>Active filter count chip</li>
+<li>Clear all filters button</li>
+<li>Show/hide advanced filters toggle</li>
+</ul>
 <h4 id="source-table-ag-grid">Source Table (AG Grid)<a class="headerlink" href="#source-table-ag-grid" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
-<p><strong>High-Performance Table:</strong>
-- Handles 10,000+ rows efficiently
-- Virtual scrolling
-- Sortable columns
-- Filterable columns
-- Pagination (configurable page size)</p>
-<p><strong>Columns:</strong>
-- Source ID (NVSS naming, monospace font)
-- RA/Dec coordinates (J2000)
-- NVSS flux (mJy)
-- Latest flux (mJy)
-- Variability metrics:
-  - σ deviation (highlight if &gt;5)
-  - χ²/ν (reduced chi-squared)
-- Observation count
-- Trend sparkline (last 20 observations)
-- Variability indicator (✓/⚠/✗)</p>
-<p><strong>Table Features:</strong>
-- Clickable source IDs (navigate to detail page)
-- Sortable columns
-- Filterable columns
-- Pagination (20 items per page)</p>
+<p><strong>High-Performance Table:</strong></p>
+<ul>
+<li>Handles 10,000+ rows efficiently</li>
+<li>Virtual scrolling</li>
+<li>Sortable columns</li>
+<li>Filterable columns</li>
+<li>Pagination (configurable page size)</li>
+</ul>
+<p><strong>Columns:</strong></p>
+<ul>
+<li>Source ID (NVSS naming, monospace font)</li>
+<li>RA/Dec coordinates (J2000)</li>
+<li>NVSS flux (mJy)</li>
+<li>Latest flux (mJy)</li>
+<li>Variability metrics:</li>
+<li>σ deviation (highlight if &gt;5)</li>
+<li>χ²/ν (reduced chi-squared)</li>
+<li>Observation count</li>
+<li>Trend sparkline (last 20 observations)</li>
+<li>Variability indicator (✓/⚠/✗)</li>
+</ul>
+<p><strong>Table Features:</strong></p>
+<ul>
+<li>Clickable source IDs (navigate to detail page)</li>
+<li>Sortable columns</li>
+<li>Filterable columns</li>
+<li>Pagination (20 items per page)</li>
+</ul>
 <h4 id="source-detail-view">Source Detail View<a class="headerlink" href="#source-detail-view" title="Permanent link">¶</a></h4>
-<p><strong>Status:</strong> ✅ <strong>Implemented</strong> (Basic detail view with metadata and detections table)</p>
-<p><strong>Source Details Panel:</strong>
-- Source name/ID
-- RA/Dec coordinates (formatted HH:MM:SS and decimal)
-- Flux statistics (mean, std, max SNR if available)
-- Variability metrics (v, η if available)
-- ESE probability chip (if &gt;0)
-- New source chip (if applicable)
-- Measurement counts (total, forced)
-- External links (SIMBAD, NED)</p>
-<p><strong>Sky Visualization:</strong>
-- Aladin Lite placeholder (not yet implemented)</p>
-<p><strong>Comments &amp; Annotations:</strong>
-- Placeholder section (not yet implemented)</p>
-<p><strong>Light Curve:</strong>
-- Collapsible section (placeholder, not yet implemented)</p>
-<p><strong>Detections Table:</strong>
-- GenericTable component
-- Columns: Name, RA, Dec, Peak Flux, Integrated Flux, SNR, Forced flag, Date
-- Clickable rows (navigate to image detail page)
-- Searchable and exportable</p>
-<p><strong>Note:</strong> Light curve visualization, Aladin Lite sky view, and comments system are placeholders and not yet fully implemented.</p>
+<p><strong>Status:</strong> ✅ <strong>Implemented</strong> (Basic detail view with metadata and detections
+table)</p>
+<p><strong>Source Details Panel:</strong></p>
+<ul>
+<li>Source name/ID</li>
+<li>RA/Dec coordinates (formatted HH:MM:SS and decimal)</li>
+<li>Flux statistics (mean, std, max SNR if available)</li>
+<li>Variability metrics (v, η if available)</li>
+<li>ESE probability chip (if &gt;0)</li>
+<li>New source chip (if applicable)</li>
+<li>Measurement counts (total, forced)</li>
+<li>External links (SIMBAD, NED)</li>
+</ul>
+<p><strong>Sky Visualization:</strong></p>
+<ul>
+<li>Aladin Lite placeholder (not yet implemented)</li>
+</ul>
+<p><strong>Comments &amp; Annotations:</strong></p>
+<ul>
+<li>Placeholder section (not yet implemented)</li>
+</ul>
+<p><strong>Light Curve:</strong></p>
+<ul>
+<li>Collapsible section (placeholder, not yet implemented)</li>
+</ul>
+<p><strong>Detections Table:</strong></p>
+<ul>
+<li>GenericTable component</li>
+<li>Columns: Name, RA, Dec, Peak Flux, Integrated Flux, SNR, Forced flag, Date</li>
+<li>Clickable rows (navigate to image detail page)</li>
+<li>Searchable and exportable</li>
+</ul>
+<p><strong>Note:</strong> Light curve visualization, Aladin Lite sky view, and comments system
+are placeholders and not yet fully implemented.</p>
 <h3 id="api-endpoints-used_2">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_2" title="Permanent link">¶</a></h3>
 <ul>
-<li><code>POST /api/sources/search</code> - Search sources</li>
+<li><code>POST /api/legacy/sources/search</code> - Search sources (legacy endpoint)</li>
 <li><code>GET /api/sources/{sourceId}</code> - Get source details</li>
-<li><code>GET /api/sources/{sourceId}/detections</code> - Get source detections (for detail page table)</li>
+<li><code>GET /api/sources/{sourceId}/detections</code> - Get source detections (for detail
+  page table)</li>
 </ul>
 <h3 id="user-workflows_2">User Workflows<a class="headerlink" href="#user-workflows_2" title="Permanent link">¶</a></h3>
-<p><strong>Source Investigation:</strong>
-1. User searches for source by NVSS ID (or uses advanced filters)
-2. Views source in table
-3. Clicks source ID to navigate to detail page
-4. Examines source metadata and detections table
-5. Clicks detection row to view associated image</p>
-<p><strong>ESE Candidate Review:</strong>
-1. User views ESE candidates on Dashboard
-2. Clicks candidate to navigate to source detail page
-3. Reviews source metadata and detections
-4. Examines variability statistics in table</p>
+<p><strong>Source Investigation:</strong></p>
+<ol>
+<li>User searches for source by NVSS ID (or uses advanced filters)</li>
+<li>Views source in table</li>
+<li>Clicks source ID to navigate to detail page</li>
+<li>Examines source metadata and detections table</li>
+<li>Clicks detection row to view associated image</li>
+</ol>
+<p><strong>ESE Candidate Review:</strong></p>
+<ol>
+<li>User views ESE candidates on Dashboard</li>
+<li>Clicks candidate to navigate to source detail page</li>
+<li>Reviews source metadata and detections</li>
+<li>Examines variability statistics in table</li>
+</ol>
 <hr/>
 <h2 id="observing-page-observing">Observing Page (<code>/observing</code>)<a class="headerlink" href="#observing-page-observing" title="Permanent link">¶</a></h2>
 <p><strong>URL:</strong> <code>/observing</code><br/>
@@ -2562,49 +2637,65 @@
 <strong>Refresh Rate:</strong> 10 seconds (auto-refresh)</p>
 <h3 id="features_3">Features<a class="headerlink" href="#features_3" title="Permanent link">¶</a></h3>
 <h4 id="current-status-panel">Current Status Panel<a class="headerlink" href="#current-status-panel" title="Permanent link">¶</a></h4>
-<p><strong>Telescope Pointing:</strong>
-- Current RA/Dec coordinates (from most recent pointing history entry)
-- Last update timestamp
-- Pipeline status chips (pending, in-progress, completed counts)</p>
-<p><strong>Note:</strong> LST, Alt/Az, Parallactic angle, Antenna status, and Observing mode features are not yet implemented.</p>
+<p><strong>Telescope Pointing:</strong></p>
+<ul>
+<li>Current RA/Dec coordinates (from most recent pointing history entry)</li>
+<li>Last update timestamp</li>
+<li>Pipeline status chips (pending, in-progress, completed counts)</li>
+</ul>
+<p><strong>Note:</strong> LST, Alt/Az, Parallactic angle, Antenna status, and Observing mode
+features are not yet implemented.</p>
 <h4 id="pointing-history-visualization">Pointing History Visualization<a class="headerlink" href="#pointing-history-visualization" title="Permanent link">¶</a></h4>
-<p><strong>Sky Map Display:</strong>
-- Pointing centers over last 7 days (fixed)
-- Color-coded by time
-- Uses PointingVisualization component
-- Historical trail display</p>
-<p><strong>Note:</strong> Time range selection, declination strip overlay, and click-to-view details are not yet implemented.</p>
+<p><strong>Sky Map Display:</strong></p>
+<ul>
+<li>Pointing centers over last 7 days (fixed)</li>
+<li>Color-coded by time</li>
+<li>Uses PointingVisualization component</li>
+<li>Historical trail display</li>
+</ul>
+<p><strong>Note:</strong> Time range selection, declination strip overlay, and click-to-view
+details are not yet implemented.</p>
 <h4 id="calibrator-tracking">Calibrator Tracking<a class="headerlink" href="#calibrator-tracking" title="Permanent link">¶</a></h4>
-<p><strong>Active Calibrators (Recent):</strong>
-- Calibrator name
-- RA/Dec coordinates
-- Flux (mJy)
-- Separation from pointing center (°)
-- Last seen timestamp
-- Table display (top 10 matches)</p>
-<p><strong>Calibrator Flux vs Time:</strong>
-- Time-series plot (Plotly.js)
-- Multiple calibrators overlaid
-- Shows flux measurements over time
-- Conditional display (only shown if multiple measurements exist)</p>
-<p><strong>Note:</strong> Elevation-dependent effects, expected flux markers, and Calibrator Plan (upcoming transits) are not yet implemented.</p>
+<p><strong>Active Calibrators (Recent):</strong></p>
+<ul>
+<li>Calibrator name</li>
+<li>RA/Dec coordinates</li>
+<li>Flux (mJy)</li>
+<li>Separation from pointing center (°)</li>
+<li>Last seen timestamp</li>
+<li>Table display (top 10 matches)</li>
+</ul>
+<p><strong>Calibrator Flux vs Time:</strong></p>
+<ul>
+<li>Time-series plot (Plotly.js)</li>
+<li>Multiple calibrators overlaid</li>
+<li>Shows flux measurements over time</li>
+<li>Conditional display (only shown if multiple measurements exist)</li>
+</ul>
+<p><strong>Note:</strong> Elevation-dependent effects, expected flux markers, and Calibrator
+Plan (upcoming transits) are not yet implemented.</p>
 <h3 id="api-endpoints-used_3">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_3" title="Permanent link">¶</a></h3>
 <ul>
-<li><code>GET /api/pointing_history</code> - Pointing history (used to derive current pointing)</li>
+<li><code>GET /api/pointing_history</code> - Pointing history (used to derive current
+  pointing)</li>
 <li><code>GET /api/calibrator_matches</code> - Calibrator detection history</li>
 <li><code>GET /api/status</code> - Pipeline status</li>
 </ul>
 <h3 id="user-workflows_3">User Workflows<a class="headerlink" href="#user-workflows_3" title="Permanent link">¶</a></h3>
-<p><strong>Monitoring Telescope Status:</strong>
-1. User opens Observing page
-2. Checks current pointing (RA/Dec from most recent history)
-3. Reviews pipeline status chips
-4. Views calibrator tracking table
-5. Examines calibrator flux vs time plot (if data available)</p>
-<p><strong>Pointing History Analysis:</strong>
-1. User views pointing history visualization (7-day trail)
-2. Examines pointing patterns on sky map
-3. Reviews calibrator matches in table</p>
+<p><strong>Monitoring Telescope Status:</strong></p>
+<ol>
+<li>User opens Observing page</li>
+<li>Checks current pointing (RA/Dec from most recent history)</li>
+<li>Reviews pipeline status chips</li>
+<li>Views calibrator tracking table</li>
+<li>Examines calibrator flux vs time plot (if data available)</li>
+</ol>
+<p><strong>Pointing History Analysis:</strong></p>
+<ol>
+<li>User views pointing history visualization (7-day trail)</li>
+<li>Examines pointing patterns on sky map</li>
+<li>Reviews calibrator matches in table</li>
+</ol>
 <hr/>
 <h2 id="health-page-health">Health Page (<code>/health</code>)<a class="headerlink" href="#health-page-health" title="Permanent link">¶</a></h2>
 <p><strong>URL:</strong> <code>/health</code><br/>
@@ -2613,45 +2704,65 @@
 <strong>Refresh Rate:</strong> 10 seconds (auto-refresh)</p>
 <h3 id="features_4">Features<a class="headerlink" href="#features_4" title="Permanent link">¶</a></h3>
 <h4 id="system-monitoring">System Monitoring<a class="headerlink" href="#system-monitoring" title="Permanent link">¶</a></h4>
-<p><strong>Current Metrics (Metric Cards):</strong>
-- CPU usage percentage (with progress bar and thresholds)
-- Memory usage percentage (with progress bar and thresholds)
-- Disk usage percentage (with progress bar and thresholds)
-- Load average (1m) display</p>
-<p><strong>Resource Usage Plot:</strong>
-- Basic plot showing current CPU and Memory % (single data point, not historical)
-- Plotly.js visualization</p>
-<p><strong>Detailed Metrics:</strong>
-- Memory details (total, used in GB)
-- Disk details (total, used, available in GB)
-- Load averages (1m, 5m, 15m)</p>
-<p><strong>Note:</strong> Historical metrics plots (last 6 hours), average/peak values, and color-coded zones are not yet implemented.</p>
+<p><strong>Current Metrics (Metric Cards):</strong></p>
+<ul>
+<li>CPU usage percentage (with progress bar and thresholds)</li>
+<li>Memory usage percentage (with progress bar and thresholds)</li>
+<li>Disk usage percentage (with progress bar and thresholds)</li>
+<li>Load average (1m) display</li>
+</ul>
+<p><strong>Resource Usage Plot:</strong></p>
+<ul>
+<li>Basic plot showing current CPU and Memory % (single data point, not
+  historical)</li>
+<li>Plotly.js visualization</li>
+</ul>
+<p><strong>Detailed Metrics:</strong></p>
+<ul>
+<li>Memory details (total, used in GB)</li>
+<li>Disk details (total, used, available in GB)</li>
+<li>Load averages (1m, 5m, 15m)</li>
+</ul>
+<p><strong>Note:</strong> Historical metrics plots (last 6 hours), average/peak values, and
+color-coded zones are not yet implemented.</p>
 <h4 id="processing-queue-status">Processing Queue Status<a class="headerlink" href="#processing-queue-status" title="Permanent link">¶</a></h4>
-<p><strong>Queue Statistics:</strong>
-- Total groups
-- Pending groups
-- In-progress groups
-- Failed groups
-- Completed groups (last 24 hours)</p>
-<p><strong>State Distribution:</strong>
-- Visual bar chart
-- Percentage breakdown
-- Color-coded by state</p>
-<p><strong>Recent Groups Table:</strong>
-- Group ID
-- Processing state (with color-coded chips)
-- Subband counts (present/expected)
-- Top 10 recent groups displayed</p>
+<p><strong>Queue Statistics:</strong></p>
+<ul>
+<li>Total groups</li>
+<li>Pending groups</li>
+<li>In-progress groups</li>
+<li>Failed groups</li>
+<li>Completed groups (last 24 hours)</li>
+</ul>
+<p><strong>State Distribution:</strong></p>
+<ul>
+<li>Visual bar chart</li>
+<li>Percentage breakdown</li>
+<li>Color-coded by state</li>
+</ul>
+<p><strong>Recent Groups Table:</strong></p>
+<ul>
+<li>Group ID</li>
+<li>Processing state (with color-coded chips)</li>
+<li>Subband counts (present/expected)</li>
+<li>Top 10 recent groups displayed</li>
+</ul>
 <h4 id="qa-diagnostics-tab">QA Diagnostics Tab<a class="headerlink" href="#qa-diagnostics-tab" title="Permanent link">¶</a></h4>
-<p><strong>ESE Candidates Table:</strong>
-- Source ID
-- Max σ deviation
-- Status (active/resolved/false_positive)
-- Last detection timestamp
-- Top 10 candidates displayed</p>
-<p><strong>Link to QA Visualization:</strong>
-- Alert with link to <code>/qa</code> page for full QA diagnostics</p>
-<p><strong>Note:</strong> Calibration Registry, Data Quality Metrics, Performance Metrics, and QA Diagnostic Gallery features are not yet implemented on this page. See QA Visualization page for QA features.</p>
+<p><strong>ESE Candidates Table:</strong></p>
+<ul>
+<li>Source ID</li>
+<li>Max σ deviation</li>
+<li>Status (active/resolved/false_positive)</li>
+<li>Last detection timestamp</li>
+<li>Top 10 candidates displayed</li>
+</ul>
+<p><strong>Link to QA Visualization:</strong></p>
+<ul>
+<li>Alert with link to <code>/qa</code> page for full QA diagnostics</li>
+</ul>
+<p><strong>Note:</strong> Calibration Registry, Data Quality Metrics, Performance Metrics, and
+QA Diagnostic Gallery features are not yet implemented on this page. See QA
+Visualization page for QA features.</p>
 <h3 id="api-endpoints-used_4">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_4" title="Permanent link">¶</a></h3>
 <ul>
 <li><code>GET /api/metrics/system</code> - System metrics</li>
@@ -2659,18 +2770,22 @@
 <li><code>GET /api/ese/candidates</code> - ESE candidates</li>
 </ul>
 <h3 id="user-workflows_4">User Workflows<a class="headerlink" href="#user-workflows_4" title="Permanent link">¶</a></h3>
-<p><strong>System Health Monitoring:</strong>
-1. User opens Health page
-2. Reviews resource usage trends
-3. Checks queue statistics
-4. Examines data quality metrics
-5. Identifies potential issues</p>
-<p><strong>Diagnostic Investigation:</strong>
-1. User notices elevated metrics
-2. Reviews QA diagnostic gallery
-3. Examines failed groups
-4. Checks calibration registry
-5. Takes corrective action</p>
+<p><strong>System Health Monitoring:</strong></p>
+<ol>
+<li>User opens Health page</li>
+<li>Reviews resource usage trends</li>
+<li>Checks queue statistics</li>
+<li>Examines data quality metrics</li>
+<li>Identifies potential issues</li>
+</ol>
+<p><strong>Diagnostic Investigation:</strong></p>
+<ol>
+<li>User notices elevated metrics</li>
+<li>Reviews QA diagnostic gallery</li>
+<li>Examines failed groups</li>
+<li>Checks calibration registry</li>
+<li>Takes corrective action</li>
+</ol>
 <hr/>
 <h2 id="control-page-control">Control Page (<code>/control</code>)<a class="headerlink" href="#control-page-control" title="Permanent link">¶</a></h2>
 <p><strong>URL:</strong> <code>/control</code><br/>
@@ -2679,76 +2794,100 @@
 <strong>Refresh Rate:</strong> 5 seconds (for job status)</p>
 <h3 id="features_5">Features<a class="headerlink" href="#features_5" title="Permanent link">¶</a></h3>
 <h4 id="job-submission-forms">Job Submission Forms<a class="headerlink" href="#job-submission-forms" title="Permanent link">¶</a></h4>
-<p><strong>Convert Job:</strong>
-- Select UVH5 files or group ID
-- Output directory
-- Configuration options</p>
-<p><strong>Calibrate Job:</strong>
-- Select Measurement Set
-- Reference antenna (default: "103")
-- Solve bandpass (yes/no)
-- Solve gains (yes/no)
-- Gain solution interval
-- Gain calibration mode (ap, apcal)
-- Auto-detect fields
-- Minimum primary beam threshold</p>
-<p><strong>Apply Job:</strong>
-- Select Measurement Set
-- Select calibration tables (K, BP, G)
-- Apply options</p>
-<p><strong>Image Job:</strong>
-- Select Measurement Set
-- Imaging parameters:
-  - Gridder (wgridder, standard)
-  - Cell size
-  - Image size
-  - Weighting (natural, uniform, robust)
-  - Deconvolution algorithm
-  - Iteration limits</p>
-<p><strong>Workflow Job:</strong>
-- End-to-end pipeline execution
-- Convert → Calibrate → Apply → Image
-- Configuration for each stage</p>
+<p><strong>Convert Job:</strong></p>
+<ul>
+<li>Select UVH5 files or group ID</li>
+<li>Output directory</li>
+<li>Configuration options</li>
+</ul>
+<p><strong>Calibrate Job:</strong></p>
+<ul>
+<li>Select Measurement Set</li>
+<li>Reference antenna (default: "103")</li>
+<li>Solve bandpass (yes/no)</li>
+<li>Solve gains (yes/no)</li>
+<li>Gain solution interval</li>
+<li>Gain calibration mode (ap, apcal)</li>
+<li>Auto-detect fields</li>
+<li>Minimum primary beam threshold</li>
+</ul>
+<p><strong>Apply Job:</strong></p>
+<ul>
+<li>Select Measurement Set</li>
+<li>Select calibration tables (K, BP, G)</li>
+<li>Apply options</li>
+</ul>
+<p><strong>Image Job:</strong></p>
+<ul>
+<li>Select Measurement Set</li>
+<li>Imaging parameters:</li>
+<li>Gridder (wgridder, standard)</li>
+<li>Cell size</li>
+<li>Image size</li>
+<li>Weighting (natural, uniform, robust)</li>
+<li>Deconvolution algorithm</li>
+<li>Iteration limits</li>
+</ul>
+<p><strong>Workflow Job:</strong></p>
+<ul>
+<li>End-to-end pipeline execution</li>
+<li>Convert → Calibrate → Apply → Image</li>
+<li>Configuration for each stage</li>
+</ul>
 <h4 id="ms-browser">MS Browser<a class="headerlink" href="#ms-browser" title="Permanent link">¶</a></h4>
-<p><strong>Measurement Set List:</strong>
-- Available Measurement Sets
-- Filter by path, date, state
-- Sortable columns
-- Select MS for job submission</p>
-<p><strong>MS Details:</strong>
-- Path
-- Processing stage
-- Timestamps (created, updated)
-- Calibration status
-- Image status</p>
+<p><strong>Measurement Set List:</strong></p>
+<ul>
+<li>Available Measurement Sets</li>
+<li>Filter by path, date, state</li>
+<li>Sortable columns</li>
+<li>Select MS for job submission</li>
+</ul>
+<p><strong>MS Details:</strong></p>
+<ul>
+<li>Path</li>
+<li>Processing stage</li>
+<li>Timestamps (created, updated)</li>
+<li>Calibration status</li>
+<li>Image status</li>
+</ul>
 <h4 id="job-management">Job Management<a class="headerlink" href="#job-management" title="Permanent link">¶</a></h4>
-<p><strong>Job List:</strong>
-- Recent jobs (with status filter)
-- Job type, status, MS path
-- Created, started, finished timestamps
-- Actions (View Details, View Logs, Cancel)</p>
-<p><strong>Job Details:</strong>
-- Job parameters
-- Status history
-- Logs (live streaming via SSE)
-- Artifacts (output files)
-- Error messages (if failed)</p>
-<p><strong>Live Log Streaming:</strong>
-- Server-Sent Events (SSE) for real-time logs
-- Auto-scroll to latest
-- Filter log levels
-- Export logs</p>
+<p><strong>Job List:</strong></p>
+<ul>
+<li>Recent jobs (with status filter)</li>
+<li>Job type, status, MS path</li>
+<li>Created, started, finished timestamps</li>
+<li>Actions (View Details, View Logs, Cancel)</li>
+</ul>
+<p><strong>Job Details:</strong></p>
+<ul>
+<li>Job parameters</li>
+<li>Status history</li>
+<li>Logs (live streaming via SSE)</li>
+<li>Artifacts (output files)</li>
+<li>Error messages (if failed)</li>
+</ul>
+<p><strong>Live Log Streaming:</strong></p>
+<ul>
+<li>Server-Sent Events (SSE) for real-time logs</li>
+<li>Auto-scroll to latest</li>
+<li>Filter log levels</li>
+<li>Export logs</li>
+</ul>
 <h4 id="calibration-qa-display">Calibration QA Display<a class="headerlink" href="#calibration-qa-display" title="Permanent link">¶</a></h4>
-<p><strong>Calibration Quality Metrics:</strong>
-- K-table SNR
-- Bandpass RMS
-- Gain solution quality
-- Bandpass plots
-- Gain solution plots</p>
-<p><strong>QA Visualization:</strong>
-- Interactive plots
-- Quality indicators
-- Comparison with expected values</p>
+<p><strong>Calibration Quality Metrics:</strong></p>
+<ul>
+<li>K-table SNR</li>
+<li>Bandpass RMS</li>
+<li>Gain solution quality</li>
+<li>Bandpass plots</li>
+<li>Gain solution plots</li>
+</ul>
+<p><strong>QA Visualization:</strong></p>
+<ul>
+<li>Interactive plots</li>
+<li>Quality indicators</li>
+<li>Comparison with expected values</li>
+</ul>
 <h3 id="api-endpoints-used_5">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_5" title="Permanent link">¶</a></h3>
 <ul>
 <li><code>GET /api/ms</code> - List Measurement Sets</li>
@@ -2758,24 +2897,28 @@
 <li><code>POST /api/jobs/image</code> - Create imaging job</li>
 <li><code>POST /api/jobs/workflow</code> - Create workflow job</li>
 <li><code>GET /api/jobs</code> - List jobs</li>
-<li><code>GET /api/jobs/{job_id}</code> - Get job details</li>
-<li><code>GET /api/jobs/{job_id}/logs</code> - Stream job logs</li>
+<li><code>GET /api/jobs/id/{job_id}</code> - Get job details</li>
+<li><code>GET /api/jobs/id/{job_id}/logs</code> - Stream job logs</li>
 <li><code>GET /api/calibration/qa</code> - Get calibration QA</li>
 </ul>
 <h3 id="user-workflows_5">User Workflows<a class="headerlink" href="#user-workflows_5" title="Permanent link">¶</a></h3>
-<p><strong>Manual Calibration:</strong>
-1. User selects Measurement Set
-2. Configures calibration parameters
-3. Submits calibration job
-4. Monitors job progress
-5. Reviews calibration QA
-6. Applies calibration if quality is good</p>
-<p><strong>Reprocessing:</strong>
-1. User identifies failed observation
-2. Selects Measurement Set
-3. Submits workflow job
-4. Monitors end-to-end processing
-5. Reviews results</p>
+<p><strong>Manual Calibration:</strong></p>
+<ol>
+<li>User selects Measurement Set</li>
+<li>Configures calibration parameters</li>
+<li>Submits calibration job</li>
+<li>Monitors job progress</li>
+<li>Reviews calibration QA</li>
+<li>Applies calibration if quality is good</li>
+</ol>
+<p><strong>Reprocessing:</strong></p>
+<ol>
+<li>User identifies failed observation</li>
+<li>Selects Measurement Set</li>
+<li>Submits workflow job</li>
+<li>Monitors end-to-end processing</li>
+<li>Reviews results</li>
+</ol>
 <hr/>
 <h2 id="streaming-page-streaming">Streaming Page (<code>/streaming</code>)<a class="headerlink" href="#streaming-page-streaming" title="Permanent link">¶</a></h2>
 <p><strong>URL:</strong> <code>/streaming</code><br/>
@@ -2784,47 +2927,62 @@
 <strong>Refresh Rate:</strong> 5 seconds (auto-refresh)</p>
 <h3 id="features_6">Features<a class="headerlink" href="#features_6" title="Permanent link">¶</a></h3>
 <h4 id="service-control">Service Control<a class="headerlink" href="#service-control" title="Permanent link">¶</a></h4>
-<p><strong>Service Status:</strong>
-- Running/Stopped/Error state
-- Process ID (PID)
-- Started timestamp
-- Uptime (formatted)
-- Error message (if any)</p>
-<p><strong>Control Buttons:</strong>
-- Start service
-- Stop service
-- Restart service
-- Update configuration</p>
+<p><strong>Service Status:</strong></p>
+<ul>
+<li>Running/Stopped/Error state</li>
+<li>Process ID (PID)</li>
+<li>Started timestamp</li>
+<li>Uptime (formatted)</li>
+<li>Error message (if any)</li>
+</ul>
+<p><strong>Control Buttons:</strong></p>
+<ul>
+<li>Start service</li>
+<li>Stop service</li>
+<li>Restart service</li>
+<li>Update configuration</li>
+</ul>
 <h4 id="real-time-status">Real-Time Status<a class="headerlink" href="#real-time-status" title="Permanent link">¶</a></h4>
-<p><strong>Service Status:</strong>
-- Running/Stopped state (with chip indicator)
-- Health status chip (if healthy)
-- Process ID (PID)
-- Started timestamp
-- Uptime (formatted: hours, minutes, seconds)</p>
-<p><strong>Resource Usage:</strong>
-- CPU percentage (with progress bar and color coding)
-- Memory usage (MB, with progress bar)
-- Real-time updates (5s refresh)</p>
+<p><strong>Service Status:</strong></p>
+<ul>
+<li>Running/Stopped state (with chip indicator)</li>
+<li>Health status chip (if healthy)</li>
+<li>Process ID (PID)</li>
+<li>Started timestamp</li>
+<li>Uptime (formatted: hours, minutes, seconds)</li>
+</ul>
+<p><strong>Resource Usage:</strong></p>
+<ul>
+<li>CPU percentage (with progress bar and color coding)</li>
+<li>Memory usage (MB, with progress bar)</li>
+<li>Real-time updates (5s refresh)</li>
+</ul>
 <h4 id="queue-statistics">Queue Statistics<a class="headerlink" href="#queue-statistics" title="Permanent link">¶</a></h4>
-<p><strong>Queue Metrics:</strong>
-- Total groups processed
-- Groups processed in last hour
-- Average processing time per group
-- Current queue depth (if available from status)</p>
-<p><strong>Note:</strong> Detailed processing rate metrics and throughput breakdown are not yet fully implemented.</p>
+<p><strong>Queue Metrics:</strong></p>
+<ul>
+<li>Total groups processed</li>
+<li>Groups processed in last hour</li>
+<li>Average processing time per group</li>
+<li>Current queue depth (if available from status)</li>
+</ul>
+<p><strong>Note:</strong> Detailed processing rate metrics and throughput breakdown are not yet
+fully implemented.</p>
 <h4 id="configuration-management">Configuration Management<a class="headerlink" href="#configuration-management" title="Permanent link">¶</a></h4>
-<p><strong>Current Configuration:</strong>
-- Input directory
-- Output directory
-- Max workers
-- Expected subbands
-- Other settings</p>
-<p><strong>Configuration Editor:</strong>
-- Dialog-based configuration editor
-- Edit configuration values
-- Save configuration (updates via API)
-- Configuration displayed in dialog form</p>
+<p><strong>Current Configuration:</strong></p>
+<ul>
+<li>Input directory</li>
+<li>Output directory</li>
+<li>Max workers</li>
+<li>Expected subbands</li>
+<li>Other settings</li>
+</ul>
+<p><strong>Configuration Editor:</strong></p>
+<ul>
+<li>Dialog-based configuration editor</li>
+<li>Edit configuration values</li>
+<li>Save configuration (updates via API)</li>
+<li>Configuration displayed in dialog form</li>
+</ul>
 <h3 id="api-endpoints-used_6">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_6" title="Permanent link">¶</a></h3>
 <ul>
 <li><code>GET /api/streaming/status</code> - Service status</li>
@@ -2837,18 +2995,22 @@
 <li><code>GET /api/streaming/metrics</code> - Processing metrics</li>
 </ul>
 <h3 id="user-workflows_6">User Workflows<a class="headerlink" href="#user-workflows_6" title="Permanent link">¶</a></h3>
-<p><strong>Starting Streaming Service:</strong>
-1. User navigates to Streaming page
-2. Reviews current configuration
-3. Clicks "Start" button
-4. Monitors service status
-5. Reviews queue statistics</p>
-<p><strong>Updating Configuration:</strong>
-1. User clicks "Edit Configuration"
-2. Modifies configuration values
-3. Validates changes
-4. Saves configuration
-5. Restarts service if needed</p>
+<p><strong>Starting Streaming Service:</strong></p>
+<ol>
+<li>User navigates to Streaming page</li>
+<li>Reviews current configuration</li>
+<li>Clicks "Start" button</li>
+<li>Monitors service status</li>
+<li>Reviews queue statistics</li>
+</ol>
+<p><strong>Updating Configuration:</strong></p>
+<ol>
+<li>User clicks "Edit Configuration"</li>
+<li>Modifies configuration values</li>
+<li>Validates changes</li>
+<li>Saves configuration</li>
+<li>Restarts service if needed</li>
+</ol>
 <hr/>
 <h2 id="qa-visualization-page-qa">QA Visualization Page (<code>/qa</code>)<a class="headerlink" href="#qa-visualization-page-qa" title="Permanent link">¶</a></h2>
 <p><strong>URL:</strong> <code>/qa</code><br/>
@@ -2857,72 +3019,86 @@
 <strong>Refresh Rate:</strong> On-demand (user-triggered)</p>
 <h3 id="features_7">Features<a class="headerlink" href="#features_7" title="Permanent link">¶</a></h3>
 <h4 id="directory-browser">Directory Browser<a class="headerlink" href="#directory-browser" title="Permanent link">¶</a></h4>
-<p><strong>File Tree Navigation:</strong>
-- Browse QA artifact directories
-- Expand/collapse folders
-- Filter by file type (FITS, images, logs, tables)
-- Search functionality
-- File metadata (size, modified time)</p>
-<p><strong>File Actions:</strong>
-- View FITS file
-- View CASA table
-- Download file
-- Generate notebook</p>
+<p><strong>File Tree Navigation:</strong></p>
+<ul>
+<li>Browse QA artifact directories</li>
+<li>Expand/collapse folders</li>
+<li>Filter by file type (FITS, images, logs, tables)</li>
+<li>Search functionality</li>
+<li>File metadata (size, modified time)</li>
+</ul>
+<p><strong>File Actions:</strong></p>
+<ul>
+<li>View FITS file</li>
+<li>View CASA table</li>
+<li>Download file</li>
+<li>Generate notebook</li>
+</ul>
 <h4 id="fits-viewer">FITS Viewer<a class="headerlink" href="#fits-viewer" title="Permanent link">¶</a></h4>
-<p><strong>JS9 Integration:</strong>
-- Load FITS files
-- Scale controls (linear, log, sqrt)
-- Colormap selection
-- Zoom and pan
-- Coordinate display (RA/Dec, pixel)
-- Image statistics</p>
+<p><strong>JS9 Integration:</strong></p>
+<ul>
+<li>Load FITS files</li>
+<li>Scale controls (linear, log, sqrt)</li>
+<li>Colormap selection</li>
+<li>Zoom and pan</li>
+<li>Coordinate display (RA/Dec, pixel)</li>
+<li>Image statistics</li>
+</ul>
 <p><strong>Note:</strong> Dual Window Mode (side-by-side comparison) is not yet implemented.</p>
 <h4 id="casa-table-viewer">CASA Table Viewer<a class="headerlink" href="#casa-table-viewer" title="Permanent link">¶</a></h4>
-<p><strong>Table Browser:</strong>
-- Browse Measurement Set tables
-- Column selection
-- Filtering and sorting
-- Subtable navigation
-- Data export (CSV)</p>
-<p><strong>Table Types:</strong>
-- MAIN table (visibilities)
-- ANTENNA table
-- FIELD table
-- SPECTRAL_WINDOW table
-- POLARIZATION table
-- Other subtables</p>
+<p><strong>Table Browser:</strong></p>
+<ul>
+<li>Browse Measurement Set tables</li>
+<li>Column selection</li>
+<li>Filtering and sorting</li>
+<li>Subtable navigation</li>
+<li>Data export (CSV)</li>
+</ul>
+<p><strong>Table Types:</strong></p>
+<ul>
+<li>MAIN table (visibilities)</li>
+<li>ANTENNA table</li>
+<li>FIELD table</li>
+<li>SPECTRAL_WINDOW table</li>
+<li>POLARIZATION table</li>
+<li>Other subtables</li>
+</ul>
 <h4 id="qa-notebook-generator">QA Notebook Generator<a class="headerlink" href="#qa-notebook-generator" title="Permanent link">¶</a></h4>
-<p><strong>Automated Report Generation:</strong>
-- Generate Jupyter notebooks for QA analysis
-- Customizable templates
-- Include relevant plots and data
-- Export notebook file</p>
-<p><strong>Notebook Templates:</strong>
-- Calibration QA
-- Image QA
-- Source detection QA
-- Custom analysis</p>
+<p><strong>Automated Report Generation:</strong></p>
+<ul>
+<li>Generate Jupyter notebooks for QA analysis</li>
+<li>Customizable templates</li>
+<li>Include relevant plots and data</li>
+<li>Export notebook file</li>
+</ul>
+<p><strong>Notebook Templates:</strong></p>
+<ul>
+<li>Calibration QA</li>
+<li>Image QA</li>
+<li>Source detection QA</li>
+<li>Custom analysis</li>
+</ul>
 <h3 id="api-endpoints-used_7">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_7" title="Permanent link">¶</a></h3>
 <ul>
-<li><code>GET /api/visualization/browse</code> - Browse QA directory</li>
-<li><code>GET /api/visualization/fits/view</code> - View FITS file</li>
-<li><code>GET /api/visualization/casa/table</code> - Browse CASA table</li>
-<li><code>POST /api/visualization/qa/run</code> - Run QA analysis</li>
-<li><code>GET /api/visualization/qa/notebook</code> - Generate QA notebook</li>
+<li>Note: Visualization endpoints are not exposed by the current backend.</li>
 </ul>
 <h3 id="user-workflows_7">User Workflows<a class="headerlink" href="#user-workflows_7" title="Permanent link">¶</a></h3>
-<p><strong>QA Review:</strong>
-1. User navigates to QA page
-2. Browses QA directory
-3. Views FITS files with JS9
-4. Examines CASA tables
-5. Generates QA notebook for detailed analysis</p>
-<p><strong>Diagnostic Investigation:</strong>
-1. User identifies quality issue
-2. Navigates to QA page
-3. Locates relevant QA artifacts
-4. Examines plots and tables
-5. Generates diagnostic report</p>
+<p><strong>QA Review:</strong></p>
+<ol>
+<li>User navigates to QA page</li>
+<li>Browses QA directory</li>
+<li>Views FITS files with JS9</li>
+<li>Examines CASA tables</li>
+<li>Generates QA notebook for detailed analysis</li>
+</ol>
+<p><strong>Diagnostic Investigation:</strong></p>
+<ol>
+<li>User identifies quality issue</li>
+<li>Navigates to QA page</li>
+<li>Locates relevant QA artifacts</li>
+<li>Examines plots and tables</li>
+<li>Generates diagnostic report</li>
+</ol>
 <hr/>
 <h2 id="data-browser-page-data">Data Browser Page (<code>/data</code>)<a class="headerlink" href="#data-browser-page-data" title="Permanent link">¶</a></h2>
 <p><strong>URL:</strong> <code>/data</code><br/>
@@ -2931,81 +3107,107 @@
 <strong>Refresh Rate:</strong> On-demand (user-triggered)</p>
 <h3 id="features_8">Features<a class="headerlink" href="#features_8" title="Permanent link">¶</a></h3>
 <h4 id="data-product-browser">Data Product Browser<a class="headerlink" href="#data-product-browser" title="Permanent link">¶</a></h4>
-<p><strong>Product Types:</strong>
-- Images (FITS files)
-- Mosaics (combined images)
-- Catalogs (source lists)
-- Measurement Sets</p>
-<p><strong>Filters:</strong>
-- Date range
-- Product type
-- Quality threshold
-- Search functionality</p>
-<p><strong>Product Details:</strong>
-- Metadata display
-- File paths
-- Processing history
-- Related products</p>
-<p><strong>Note:</strong> Data Lineage Graph visualization is not yet implemented. Data detail pages (<code>/data/:type/:id</code>) may provide lineage information.</p>
+<p><strong>Product Types:</strong></p>
+<ul>
+<li>Images (FITS files)</li>
+<li>Mosaics (combined images)</li>
+<li>Catalogs (source lists)</li>
+<li>Measurement Sets</li>
+</ul>
+<p><strong>Filters:</strong></p>
+<ul>
+<li>Date range</li>
+<li>Product type</li>
+<li>Quality threshold</li>
+<li>Search functionality</li>
+</ul>
+<p><strong>Product Details:</strong></p>
+<ul>
+<li>Metadata display</li>
+<li>File paths</li>
+<li>Processing history</li>
+<li>Related products</li>
+</ul>
+<p><strong>Note:</strong> Data Lineage Graph visualization is not yet implemented. Data detail
+pages (<code>/data/:type/:id</code>) may provide lineage information.</p>
 <h3 id="api-endpoints-used_8">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_8" title="Permanent link">¶</a></h3>
 <ul>
 <li><code>GET /api/data</code> - List data instances (with type and status filters)</li>
 <li><code>GET /api/data/{type}/{id}</code> - Get data instance details (via detail page)</li>
 </ul>
 <h3 id="user-workflows_8">User Workflows<a class="headerlink" href="#user-workflows_8" title="Permanent link">¶</a></h3>
-<p><strong>Product Exploration:</strong>
-1. User navigates to Data Browser
-2. Filters products by type or date
-3. Views product details
-4. Examines data lineage
-5. Downloads products</p>
+<p><strong>Product Exploration:</strong></p>
+<ol>
+<li>User navigates to Data Browser</li>
+<li>Filters products by type or date</li>
+<li>Views product details</li>
+<li>Examines data lineage</li>
+<li>Downloads products</li>
+</ol>
 <hr/>
 <h2 id="common-features-across-pages">Common Features Across Pages<a class="headerlink" href="#common-features-across-pages" title="Permanent link">¶</a></h2>
 <h3 id="navigation">Navigation<a class="headerlink" href="#navigation" title="Permanent link">¶</a></h3>
-<p><strong>Top Navigation Bar:</strong>
-- Logo and title
-- Page links (Dashboard, Sky, Sources, etc.)
-- Settings menu (future)
-- User menu (future)</p>
-<p><strong>Breadcrumbs:</strong>
-- Page hierarchy
-- Quick navigation
-- Current page indicator</p>
+<p><strong>Top Navigation Bar:</strong></p>
+<ul>
+<li>Logo and title</li>
+<li>Page links (Dashboard, Sky, Sources, etc.)</li>
+<li>Settings menu (future)</li>
+<li>User menu (future)</li>
+</ul>
+<p><strong>Breadcrumbs:</strong></p>
+<ul>
+<li>Page hierarchy</li>
+<li>Quick navigation</li>
+<li>Current page indicator</li>
+</ul>
 <h3 id="real-time-updates">Real-Time Updates<a class="headerlink" href="#real-time-updates" title="Permanent link">¶</a></h3>
-<p><strong>Update Mechanisms:</strong>
-- WebSocket (primary)
-- HTTP polling (fallback)
-- Server-Sent Events (for logs)</p>
-<p><strong>Update Intervals:</strong>
-- Critical data: 10 seconds
-- Job status: 5 seconds
-- On-demand: User-triggered</p>
+<p><strong>Update Mechanisms:</strong></p>
+<ul>
+<li>WebSocket (primary)</li>
+<li>HTTP polling (fallback)</li>
+<li>Server-Sent Events (for logs)</li>
+</ul>
+<p><strong>Update Intervals:</strong></p>
+<ul>
+<li>Critical data: 10 seconds</li>
+<li>Job status: 5 seconds</li>
+<li>On-demand: User-triggered</li>
+</ul>
 <h3 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">¶</a></h3>
-<p><strong>Error Display:</strong>
-- User-friendly error messages
-- Retry buttons
-- Error details (in development mode)
-- Error boundaries for component errors</p>
+<p><strong>Error Display:</strong></p>
+<ul>
+<li>User-friendly error messages</li>
+<li>Retry buttons</li>
+<li>Error details (in development mode)</li>
+<li>Error boundaries for component errors</li>
+</ul>
 <h3 id="loading-states">Loading States<a class="headerlink" href="#loading-states" title="Permanent link">¶</a></h3>
-<p><strong>Loading Indicators:</strong>
-- Circular progress for data loading
-- Skeleton loaders for better UX
-- Progress bars for long operations
-- Status messages</p>
+<p><strong>Loading Indicators:</strong></p>
+<ul>
+<li>Circular progress for data loading</li>
+<li>Skeleton loaders for better UX</li>
+<li>Progress bars for long operations</li>
+<li>Status messages</li>
+</ul>
 <h3 id="export-functionality">Export Functionality<a class="headerlink" href="#export-functionality" title="Permanent link">¶</a></h3>
-<p><strong>Export Options:</strong>
-- CSV export for tables
-- JSON export for data
-- PNG export for images
-- FITS download for images
-- PDF export for reports (future)</p>
+<p><strong>Export Options:</strong></p>
+<ul>
+<li>CSV export for tables</li>
+<li>JSON export for data</li>
+<li>PNG export for images</li>
+<li>FITS download for images</li>
+<li>PDF export for reports (future)</li>
+</ul>
 <hr/>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong><a href="../../how-to/dashboard-quickstart/">Dashboard Quick Start</a></strong> - Getting started guide</li>
+<li><strong><a href="../../how-to/dashboard-quickstart/">Dashboard Quick Start</a></strong> - Getting
+  started guide</li>
 <li><strong><a href="../dashboard_backend_api/">API Reference</a></strong> - API endpoint documentation</li>
-<li><strong><a href="../../concepts/dashboard_architecture/">Dashboard Architecture</a></strong> - System architecture</li>
-<li><strong><a href="../../concepts/dashboard_vision_and_design/">Dashboard Vision &amp; Design</a></strong> - Design principles</li>
+<li><strong><a href="../../concepts/dashboard_architecture/">Dashboard Architecture</a></strong> - System
+  architecture</li>
+<li><strong><a href="../../concepts/dashboard_vision_and_design/">Dashboard Vision &amp; Design</a></strong> -
+  Design principles</li>
 </ul>
 <hr/>
 <p><strong>Last Updated:</strong> 2025-11-12<br/>
@@ -3034,7 +3236,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

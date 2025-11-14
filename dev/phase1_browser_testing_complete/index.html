@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1180,50 +1182,63 @@
 <p>Chrome via Cursor Browser Automation</p>
 <h2 id="test-results-summary">Test Results Summary<a class="headerlink" href="#test-results-summary" title="Permanent link">¶</a></h2>
 <h3 id="operations-page-operations">✅ Operations Page (<code>/operations</code>)<a class="headerlink" href="#operations-page-operations" title="Permanent link">¶</a></h3>
-<p><strong>Page Load:</strong>
-- ✅ Page loads successfully
-- ✅ Title: "DSA-110 Continuum Imaging Pipeline"
-- ✅ No console errors
-- ✅ All components render correctly</p>
-<p><strong>Navigation:</strong>
-- ✅ "Operations" link appears in navigation bar
-- ✅ Link is clickable and navigates correctly
-- ✅ Active route highlighting works</p>
-<p><strong>Dead Letter Queue Tab:</strong>
-- ✅ DLQ Stats card displays correctly
-  - Total: 7
-  - Pending: 6
-  - Retrying: 0
-  - Resolved: 1
-  - Failed: 0
-- ✅ DLQ Table displays 6 pending items
-- ✅ Table columns: ID, Component, Operation, Error Type, Error Message, Retry Count, Created At, Status, Actions
-- ✅ Each row has action buttons: View Details, Retry, Resolve, Mark as Failed
-- ✅ Filter dropdowns work (Component, Status)
-- ✅ Dates formatted correctly using date-fns</p>
-<p><strong>Circuit Breakers Tab:</strong>
-- ✅ Tab switching works correctly
-- ✅ Circuit Breaker Status component displays
-- ✅ All 3 circuit breakers shown:
-  - ESE DETECTION: CLOSED, Failure Count: 0, Recovery Timeout: 60s
-  - CALIBRATION SOLVE: CLOSED, Failure Count: 0, Recovery Timeout: 300s
-  - PHOTOMETRY: CLOSED, Failure Count: 0, Recovery Timeout: 30s
-- ✅ Refresh button present
-- ✅ Status indicators show "CLOSED" state correctly
-- ✅ Alert messages display: "Circuit breaker is CLOSED. Normal operation."</p>
-<p><strong>Network Requests:</strong>
-- ✅ API endpoints are being called:
-  - <code>/api/operations/dlq/stats</code>
-  - <code>/api/operations/dlq/items</code>
-  - <code>/api/operations/circuit-breakers</code>
-- ✅ date-fns module loaded successfully
-- ✅ All React Query dependencies loaded</p>
+<p><strong>Page Load:</strong></p>
+<ul>
+<li>✅ Page loads successfully</li>
+<li>✅ Title: "DSA-110 Continuum Imaging Pipeline"</li>
+<li>✅ No console errors</li>
+<li>✅ All components render correctly</li>
+</ul>
+<p><strong>Navigation:</strong></p>
+<ul>
+<li>✅ "Operations" link appears in navigation bar</li>
+<li>✅ Link is clickable and navigates correctly</li>
+<li>✅ Active route highlighting works</li>
+</ul>
+<p><strong>Dead Letter Queue Tab:</strong></p>
+<ul>
+<li>✅ DLQ Stats card displays correctly</li>
+<li>Total: 7</li>
+<li>Pending: 6</li>
+<li>Retrying: 0</li>
+<li>Resolved: 1</li>
+<li>Failed: 0</li>
+<li>✅ DLQ Table displays 6 pending items</li>
+<li>✅ Table columns: ID, Component, Operation, Error Type, Error Message, Retry
+  Count, Created At, Status, Actions</li>
+<li>✅ Each row has action buttons: View Details, Retry, Resolve, Mark as Failed</li>
+<li>✅ Filter dropdowns work (Component, Status)</li>
+<li>✅ Dates formatted correctly using date-fns</li>
+</ul>
+<p><strong>Circuit Breakers Tab:</strong></p>
+<ul>
+<li>✅ Tab switching works correctly</li>
+<li>✅ Circuit Breaker Status component displays</li>
+<li>✅ All 3 circuit breakers shown:</li>
+<li>ESE DETECTION: CLOSED, Failure Count: 0, Recovery Timeout: 60s</li>
+<li>CALIBRATION SOLVE: CLOSED, Failure Count: 0, Recovery Timeout: 300s</li>
+<li>PHOTOMETRY: CLOSED, Failure Count: 0, Recovery Timeout: 30s</li>
+<li>✅ Refresh button present</li>
+<li>✅ Status indicators show "CLOSED" state correctly</li>
+<li>✅ Alert messages display: "Circuit breaker is CLOSED. Normal operation."</li>
+</ul>
+<p><strong>Network Requests:</strong></p>
+<ul>
+<li>✅ API endpoints are being called:</li>
+<li><code>/api/operations/dlq/stats</code></li>
+<li><code>/api/operations/dlq/items</code></li>
+<li><code>/api/operations/circuit-breakers</code></li>
+<li>✅ date-fns module loaded successfully</li>
+<li>✅ All React Query dependencies loaded</li>
+</ul>
 <h2 id="issues-found-and-resolved">Issues Found and Resolved<a class="headerlink" href="#issues-found-and-resolved" title="Permanent link">¶</a></h2>
 <h3 id="issue-1-missing-date-fns-dependency">Issue 1: Missing date-fns dependency<a class="headerlink" href="#issue-1-missing-date-fns-dependency" title="Permanent link">¶</a></h3>
-<p><strong>Status:</strong> ✅ RESOLVED
-- <strong>Problem:</strong> <code>date-fns</code> package was missing, causing import error
-- <strong>Solution:</strong> Installed <code>date-fns</code> via <code>npm install date-fns</code>
-- <strong>Verification:</strong> Module now loads correctly in network requests</p>
+<p><strong>Status:</strong> ✅ RESOLVED</p>
+<ul>
+<li><strong>Problem:</strong> <code>date-fns</code> package was missing, causing import error</li>
+<li><strong>Solution:</strong> Installed <code>date-fns</code> via <code>npm install date-fns</code></li>
+<li><strong>Verification:</strong> Module now loads correctly in network requests</li>
+</ul>
 <h2 id="components-verified">Components Verified<a class="headerlink" href="#components-verified" title="Permanent link">¶</a></h2>
 <h3 id="deadletterqueuetable">DeadLetterQueueTable<a class="headerlink" href="#deadletterqueuetable" title="Permanent link">¶</a></h3>
 <ul>
@@ -1252,37 +1267,47 @@
 <li>✅ Layout correct</li>
 </ul>
 <h2 id="auto-refresh-verification">Auto-Refresh Verification<a class="headerlink" href="#auto-refresh-verification" title="Permanent link">¶</a></h2>
-<p><strong>Configured Intervals:</strong>
-- DLQ Stats: 10 seconds ✅
-- Circuit Breakers: 5 seconds ✅
-- DLQ Items: 30 seconds ✅</p>
-<p><strong>Network Activity:</strong>
-- ✅ API requests are being made
-- ✅ React Query is working
-- ✅ Auto-refresh configured correctly</p>
+<p><strong>Configured Intervals:</strong></p>
+<ul>
+<li>DLQ Stats: 10 seconds ✅</li>
+<li>Circuit Breakers: 5 seconds ✅</li>
+<li>DLQ Items: 30 seconds ✅</li>
+</ul>
+<p><strong>Network Activity:</strong></p>
+<ul>
+<li>✅ API requests are being made</li>
+<li>✅ React Query is working</li>
+<li>✅ Auto-refresh configured correctly</li>
+</ul>
 <h2 id="test-data-verified">Test Data Verified<a class="headerlink" href="#test-data-verified" title="Permanent link">¶</a></h2>
-<p><strong>DLQ Items Displayed:</strong>
-1. ID 2: calibration_solve.solve_gain (ValueError) - pending
-2. ID 3: photometry.measure_flux (KeyError) - pending
-3. ID 4: ese_detection.detect_candidates (RuntimeError) - pending
-4. ID 5: calibration_solve.solve_gain (ValueError) - pending
-5. ID 6: photometry.measure_flux (KeyError) - pending
-6. ID 7: test_component.test_operation (RuntimeError) - pending</p>
-<p><strong>Circuit Breakers:</strong>
-- All 3 breakers in CLOSED state
-- Failure counts at 0
-- Recovery timeouts configured correctly</p>
+<p><strong>DLQ Items Displayed:</strong></p>
+<ol>
+<li>ID 2: calibration_solve.solve_gain (ValueError) - pending</li>
+<li>ID 3: photometry.measure_flux (KeyError) - pending</li>
+<li>ID 4: ese_detection.detect_candidates (RuntimeError) - pending</li>
+<li>ID 5: calibration_solve.solve_gain (ValueError) - pending</li>
+<li>ID 6: photometry.measure_flux (KeyError) - pending</li>
+<li>ID 7: test_component.test_operation (RuntimeError) - pending</li>
+</ol>
+<p><strong>Circuit Breakers:</strong></p>
+<ul>
+<li>All 3 breakers in CLOSED state</li>
+<li>Failure counts at 0</li>
+<li>Recovery timeouts configured correctly</li>
+</ul>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
 <p><strong>Phase 1 Browser Testing: ✅ COMPLETE</strong></p>
-<p>All components are working correctly:
-- ✅ Navigation link added and working
-- ✅ DLQ Stats display correctly
-- ✅ DLQ Table displays items with actions
-- ✅ Circuit Breaker status displays correctly
-- ✅ Tab switching works
-- ✅ Auto-refresh configured
-- ✅ No console errors
-- ✅ All API endpoints accessible</p>
+<p>All components are working correctly:</p>
+<ul>
+<li>✅ Navigation link added and working</li>
+<li>✅ DLQ Stats display correctly</li>
+<li>✅ DLQ Table displays items with actions</li>
+<li>✅ Circuit Breaker status displays correctly</li>
+<li>✅ Tab switching works</li>
+<li>✅ Auto-refresh configured</li>
+<li>✅ No console errors</li>
+<li>✅ All API endpoints accessible</li>
+</ul>
 <p>The Operations page is fully functional and ready for use!</p>
 </article>
 </div>
@@ -1308,7 +1333,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

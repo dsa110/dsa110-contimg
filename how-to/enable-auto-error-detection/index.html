@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1257,7 +1259,10 @@
 <article class="md-content__inner md-typeset">
 <h1 id="enable-auto-error-detection">Enable Auto Error Detection<a class="headerlink" href="#enable-auto-error-detection" title="Permanent link">¶</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>Auto error detection automatically wraps all commands with error detection, ensuring errors are never ignored. This enforces the <a href="../.cursor/rules/error-acknowledgment.mdc">Error Acknowledgment Rule</a> at the shell level.</p>
+<p>Auto error detection automatically wraps all commands with error detection,
+ensuring errors are never ignored. This enforces the
+<a href="../.cursor/rules/error-acknowledgment.mdc">Error Acknowledgment Rule</a> at the
+shell level.</p>
 <h2 id="quick-setup">Quick Setup<a class="headerlink" href="#quick-setup" title="Permanent link">¶</a></h2>
 <h3 id="option-1-automatic-setup-recommended">Option 1: Automatic Setup (Recommended)<a class="headerlink" href="#option-1-automatic-setup-recommended" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Run the setup script</span>
@@ -1273,9 +1278,9 @@
 <span class="w">    </span><span class="nb">source</span><span class="w"> </span>/data/dsa110-contimg/scripts/auto-error-detection.sh
 <span class="k">fi</span>
 </code></pre></div>
-<p>Then reload:
+<p>Then reload:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">source</span><span class="w"> </span>~/.bashrc<span class="w">  </span><span class="c1"># or ~/.zshrc</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">¶</a></h2>
 <h3 id="automatic-wrapping">Automatic Wrapping<a class="headerlink" href="#automatic-wrapping" title="Permanent link">¶</a></h3>
 <p>When enabled, common commands are automatically wrapped:</p>
@@ -1325,7 +1330,8 @@ make<span class="w"> </span>build
 <ul>
 <li><code>AUTO_ERROR_DETECTION</code>: Set to <code>1</code> when enabled (auto-set by script)</li>
 <li><code>SKIP_ERROR_DETECTION</code>: Set to <code>1</code> to skip for next command</li>
-<li><code>ERROR_DETECTION_WRAPPER</code>: Path to wrapper script (default: <code>scripts/run-with-error-detection.py</code>)</li>
+<li><code>ERROR_DETECTION_WRAPPER</code>: Path to wrapper script (default:
+  <code>scripts/run-with-error-detection.py</code>)</li>
 <li><code>AUTO_WRAP_COMMANDS</code>: Set to <code>1</code> to wrap common commands (default: <code>1</code>)</li>
 </ul>
 <h3 id="custom-wrapper">Custom Wrapper<a class="headerlink" href="#custom-wrapper" title="Permanent link">¶</a></h3>
@@ -1379,18 +1385,23 @@ ls<span class="w"> </span>-l<span class="w"> </span>scripts/run-with-error-detec
 <span class="nb">source</span><span class="w"> </span>scripts/auto-error-detection.sh
 </code></pre></div>
 <h3 id="performance-impact">Performance Impact<a class="headerlink" href="#performance-impact" title="Permanent link">¶</a></h3>
-<p>The wrapper adds minimal overhead:
-- Real-time monitoring: ~0.1ms per line
-- Error detection: ~1ms per line
-- Total overhead: &lt;5% for most commands</p>
-<p>For very high-frequency commands, you can skip detection:
+<p>The wrapper adds minimal overhead:</p>
+<ul>
+<li>Real-time monitoring: ~0.1ms per line</li>
+<li>Error detection: ~1ms per line</li>
+<li>Total overhead: &lt;5% for most commands</li>
+</ul>
+<p>For very high-frequency commands, you can skip detection:</p>
 <div class="highlight"><pre><span></span><code><span class="nv">SKIP_ERROR_DETECTION</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>high_frequency_command
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
 <ul>
-<li><a href="../scripts/README-error-detection.md">Error Detection Wrapper</a> - Wrapper documentation</li>
-<li><a href="../immediate-error-termination/">Immediate Error Termination</a> - How immediate kill works</li>
-<li><a href="../.cursor/rules/error-acknowledgment.mdc">Error Acknowledgment Rule</a> - The rule being enforced</li>
+<li><a href="../scripts/README-error-detection.md">Error Detection Wrapper</a> - Wrapper
+  documentation</li>
+<li><a href="../immediate-error-termination/">Immediate Error Termination</a> - How
+  immediate kill works</li>
+<li><a href="../.cursor/rules/error-acknowledgment.mdc">Error Acknowledgment Rule</a> - The
+  rule being enforced</li>
 </ul>
 </article>
 </div>
@@ -1416,7 +1427,7 @@ ls<span class="w"> </span>-l<span class="w"> </span>scripts/run-with-error-detec
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

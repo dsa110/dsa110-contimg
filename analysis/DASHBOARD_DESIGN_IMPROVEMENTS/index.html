@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1361,22 +1363,38 @@
 <strong>Audience:</strong> Frontend developers, UX designers, product managers</p>
 <hr/>
 <h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">¶</a></h2>
-<p>This document proposes significant improvements to the DSA-110 dashboard web design, focusing on:
-1. <strong>Workflow-Optimized Navigation</strong> - Context-aware navigation that adapts to user tasks
-2. <strong>Anticipatory UX Enhancements</strong> - Proactive data loading and action suggestions
-3. <strong>Pipeline-Aware Interface</strong> - UI that reflects the autonomous pipeline's state and workflow
-4. <strong>Science-First Improvements</strong> - Direct access to discoveries and scientific insights
-5. <strong>Unified Workspace Concept</strong> - Single-pane workflows that eliminate context switching</p>
+<p>This document proposes significant improvements to the DSA-110 dashboard web
+design, focusing on:</p>
+<ol>
+<li><strong>Workflow-Optimized Navigation</strong> - Context-aware navigation that adapts to
+   user tasks</li>
+<li><strong>Anticipatory UX Enhancements</strong> - Proactive data loading and action
+   suggestions</li>
+<li><strong>Pipeline-Aware Interface</strong> - UI that reflects the autonomous pipeline's
+   state and workflow</li>
+<li><strong>Science-First Improvements</strong> - Direct access to discoveries and scientific
+   insights</li>
+<li><strong>Unified Workspace Concept</strong> - Single-pane workflows that eliminate context
+   switching</li>
+</ol>
 <hr/>
 <h2 id="1-workflow-optimized-navigation">1. Workflow-Optimized Navigation<a class="headerlink" href="#1-workflow-optimized-navigation" title="Permanent link">¶</a></h2>
 <h3 id="11-context-aware-navigation-bar">1.1 Context-Aware Navigation Bar<a class="headerlink" href="#11-context-aware-navigation-bar" title="Permanent link">¶</a></h3>
 <p><strong>Current State:</strong> Static navigation bar with fixed links to all pages.</p>
-<p><strong>Problem:</strong> Users must navigate between multiple pages to complete a single workflow (e.g., investigating an ESE candidate requires Dashboard → Sources → QA → Data Browser).</p>
-<p><strong>Improvement:</strong> Dynamic navigation that adapts to current context and suggests next steps.</p>
+<p><strong>Problem:</strong> Users must navigate between multiple pages to complete a single
+workflow (e.g., investigating an ESE candidate requires Dashboard → Sources → QA
+→ Data Browser).</p>
+<p><strong>Improvement:</strong> Dynamic navigation that adapts to current context and suggests
+next steps.</p>
 <p><strong>Implementation:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1">// Context-aware navigation component</span>
 <span class="kd">interface</span><span class="w"> </span><span class="nx">NavigationContext</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nx">currentWorkflow</span><span class="o">:</span><span class="w"> </span><span class="s1">'monitoring'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'discovery'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'investigation'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'debugging'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'analysis'</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">currentWorkflow</span><span class="o">:</span>
+<span class="w">    </span><span class="o">|</span><span class="w"> </span><span class="s2">"monitoring"</span>
+<span class="w">    </span><span class="o">|</span><span class="w"> </span><span class="s2">"discovery"</span>
+<span class="w">    </span><span class="o">|</span><span class="w"> </span><span class="s2">"investigation"</span>
+<span class="w">    </span><span class="o">|</span><span class="w"> </span><span class="s2">"debugging"</span>
+<span class="w">    </span><span class="o">|</span><span class="w"> </span><span class="s2">"analysis"</span><span class="p">;</span>
 <span class="w">  </span><span class="nx">suggestedNextSteps</span><span class="o">:</span><span class="w"> </span><span class="kt">NavigationItem</span><span class="p">[];</span>
 <span class="w">  </span><span class="nx">quickActions</span><span class="o">:</span><span class="w"> </span><span class="kt">QuickAction</span><span class="p">[];</span>
 <span class="p">}</span>
@@ -1387,24 +1405,41 @@
 <span class="c1">// - Active alerts or discoveries</span>
 <span class="c1">// - User's recent actions</span>
 </code></pre></div>
-<p><strong>Features:</strong>
-- <strong>Workflow Breadcrumbs</strong> - Show current workflow path (e.g., "Dashboard &gt; ESE Alert &gt; Source Investigation")
-- <strong>Next Step Suggestions</strong> - Highlight likely next pages based on current context
-- <strong>Quick Actions Panel</strong> - Floating action panel with context-relevant shortcuts
-- <strong>Recent Pages</strong> - Quick access to recently visited pages
-- <strong>Workflow Templates</strong> - Pre-defined navigation paths for common workflows</p>
-<p><strong>Example Workflows:</strong>
-1. <strong>ESE Discovery Flow:</strong> Dashboard (alert) → Sources (details) → QA (validation) → Data Browser (images)
-2. <strong>Pipeline Debug Flow:</strong> Dashboard (error) → Operations (DLQ) → Control (manual intervention) → Health (metrics)
-3. <strong>Data Exploration Flow:</strong> Sky View (coverage) → Sources (catalog) → Data Browser (images) → QA (quality)</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Workflow Breadcrumbs</strong> - Show current workflow path (e.g., "Dashboard &gt; ESE
+  Alert &gt; Source Investigation")</li>
+<li><strong>Next Step Suggestions</strong> - Highlight likely next pages based on current
+  context</li>
+<li><strong>Quick Actions Panel</strong> - Floating action panel with context-relevant
+  shortcuts</li>
+<li><strong>Recent Pages</strong> - Quick access to recently visited pages</li>
+<li><strong>Workflow Templates</strong> - Pre-defined navigation paths for common workflows</li>
+</ul>
+<p><strong>Example Workflows:</strong></p>
+<ol>
+<li><strong>ESE Discovery Flow:</strong> Dashboard (alert) → Sources (details) → QA
+   (validation) → Data Browser (images)</li>
+<li><strong>Pipeline Debug Flow:</strong> Dashboard (error) → Operations (DLQ) → Control
+   (manual intervention) → Health (metrics)</li>
+<li><strong>Data Exploration Flow:</strong> Sky View (coverage) → Sources (catalog) → Data
+   Browser (images) → QA (quality)</li>
+</ol>
 <h3 id="12-unified-workspace-mode">1.2 Unified Workspace Mode<a class="headerlink" href="#12-unified-workspace-mode" title="Permanent link">¶</a></h3>
-<p><strong>Current State:</strong> Each page is separate, requiring navigation to switch contexts.</p>
-<p><strong>Problem:</strong> Scientists need to see multiple related views simultaneously (e.g., source light curve + image + calibration status).</p>
+<p><strong>Current State:</strong> Each page is separate, requiring navigation to switch
+contexts.</p>
+<p><strong>Problem:</strong> Scientists need to see multiple related views simultaneously (e.g.,
+source light curve + image + calibration status).</p>
 <p><strong>Improvement:</strong> Unified workspace that allows multiple views in a single pane.</p>
 <p><strong>Implementation:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kd">interface</span><span class="w"> </span><span class="nx">WorkspaceView</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
-<span class="w">  </span><span class="kr">type</span><span class="o">:</span><span class="w"> </span><span class="s1">'source-detail'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'image-viewer'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'light-curve'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'calibration-status'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'qa-panel'</span><span class="p">;</span>
+<span class="w">  </span><span class="kr">type</span><span class="o">:</span>
+<span class="w">    </span><span class="o">|</span><span class="w"> </span><span class="s2">"source-detail"</span>
+<span class="w">    </span><span class="o">|</span><span class="w"> </span><span class="s2">"image-viewer"</span>
+<span class="w">    </span><span class="o">|</span><span class="w"> </span><span class="s2">"light-curve"</span>
+<span class="w">    </span><span class="o">|</span><span class="w"> </span><span class="s2">"calibration-status"</span>
+<span class="w">    </span><span class="o">|</span><span class="w"> </span><span class="s2">"qa-panel"</span><span class="p">;</span>
 <span class="w">  </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">unknown</span><span class="p">;</span>
 <span class="w">  </span><span class="nx">position</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">x</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span><span class="w"> </span><span class="nx">y</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span><span class="w"> </span><span class="nx">width</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span><span class="w"> </span><span class="nx">height</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="w"> </span><span class="p">};</span>
 <span class="w">  </span><span class="nx">linkedViews</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">[];</span><span class="w"> </span><span class="c1">// IDs of related views</span>
@@ -1412,17 +1447,19 @@
 
 <span class="kd">interface</span><span class="w"> </span><span class="nx">UnifiedWorkspace</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nx">views</span><span class="o">:</span><span class="w"> </span><span class="kt">WorkspaceView</span><span class="p">[];</span>
-<span class="w">  </span><span class="nx">layout</span><span class="o">:</span><span class="w"> </span><span class="s1">'grid'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'split-horizontal'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'split-vertical'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'custom'</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">layout</span><span class="o">:</span><span class="w"> </span><span class="s2">"grid"</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">"split-horizontal"</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">"split-vertical"</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">"custom"</span><span class="p">;</span>
 <span class="w">  </span><span class="nx">focus</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w"> </span><span class="c1">// Currently focused view ID</span>
 <span class="p">}</span>
 </code></pre></div>
-<p><strong>Features:</strong>
-- <strong>Multi-Pane Layout</strong> - Split screen with related views side-by-side
-- <strong>Linked Views</strong> - Changes in one view automatically update related views
-- <strong>Workspace Templates</strong> - Pre-configured layouts for common workflows
-- <strong>Save/Load Workspaces</strong> - Save investigation layouts for later
-- <strong>Focus Mode</strong> - Expand one view to full screen temporarily</p>
-<p><strong>Example:</strong> ESE candidate investigation workspace:
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Multi-Pane Layout</strong> - Split screen with related views side-by-side</li>
+<li><strong>Linked Views</strong> - Changes in one view automatically update related views</li>
+<li><strong>Workspace Templates</strong> - Pre-configured layouts for common workflows</li>
+<li><strong>Save/Load Workspaces</strong> - Save investigation layouts for later</li>
+<li><strong>Focus Mode</strong> - Expand one view to full screen temporarily</li>
+</ul>
+<p><strong>Example:</strong> ESE candidate investigation workspace:</p>
 <div class="highlight"><pre><span></span><code>┌─────────────────────┬─────────────────────┐
 │ Source Details     │ Light Curve Plot    │
 │ (NVSS J1234+5678)  │ (Time Series)       │
@@ -1430,23 +1467,29 @@
 │ Latest Image       │ Calibration Status  │
 │ (FITS Viewer)      │ (Quality Metrics)   │
 └─────────────────────┴─────────────────────┘
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="13-command-palette-quick-actions">1.3 Command Palette / Quick Actions<a class="headerlink" href="#13-command-palette-quick-actions" title="Permanent link">¶</a></h3>
 <p><strong>Current State:</strong> Actions are scattered across pages and menus.</p>
 <p><strong>Problem:</strong> Common actions require multiple clicks and navigation.</p>
-<p><strong>Improvement:</strong> Global command palette (Cmd+K / Ctrl+K) for quick access to all actions.</p>
-<p><strong>Features:</strong>
-- <strong>Fuzzy Search</strong> - Type to find pages, actions, sources, images
-- <strong>Keyboard Shortcuts</strong> - All actions accessible via keyboard
-- <strong>Recent Actions</strong> - Quick access to recently used commands
-- <strong>Context-Aware Suggestions</strong> - Show relevant actions based on current page/state
-- <strong>Action Chaining</strong> - Execute multiple actions in sequence</p>
-<p><strong>Example Commands:</strong>
-- <code>&gt; view source NVSS J1234+5678</code>
-- <code>&gt; retry failed calibration</code>
-- <code>&gt; show images from last 6 hours</code>
-- <code>&gt; export ESE candidates to CSV</code>
-- <code>&gt; open workspace: ESE investigation</code></p>
+<p><strong>Improvement:</strong> Global command palette (Cmd+K / Ctrl+K) for quick access to all
+actions.</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Fuzzy Search</strong> - Type to find pages, actions, sources, images</li>
+<li><strong>Keyboard Shortcuts</strong> - All actions accessible via keyboard</li>
+<li><strong>Recent Actions</strong> - Quick access to recently used commands</li>
+<li><strong>Context-Aware Suggestions</strong> - Show relevant actions based on current
+  page/state</li>
+<li><strong>Action Chaining</strong> - Execute multiple actions in sequence</li>
+</ul>
+<p><strong>Example Commands:</strong></p>
+<ul>
+<li><code>&gt; view source NVSS J1234+5678</code></li>
+<li><code>&gt; retry failed calibration</code></li>
+<li><code>&gt; show images from last 6 hours</code></li>
+<li><code>&gt; export ESE candidates to CSV</code></li>
+<li><code>&gt; open workspace: ESE investigation</code></li>
+</ul>
 <hr/>
 <h2 id="2-anticipatory-ux-enhancements">2. Anticipatory UX Enhancements<a class="headerlink" href="#2-anticipatory-ux-enhancements" title="Permanent link">¶</a></h2>
 <h3 id="21-predictive-data-loading">2.1 Predictive Data Loading<a class="headerlink" href="#21-predictive-data-loading" title="Permanent link">¶</a></h3>
@@ -1471,12 +1514,17 @@
 <span class="w">  </span><span class="p">};</span>
 <span class="p">}</span>
 </code></pre></div>
-<p><strong>Features:</strong>
-- <strong>Hover Pre-loading</strong> - Load data when user hovers over clickable elements
-- <strong>Alert Pre-loading</strong> - When ESE alert appears, pre-load source details, images, QA data
-- <strong>Workflow Pre-loading</strong> - Pre-load next likely pages in current workflow
-- <strong>Background Refresh</strong> - Keep data fresh in background for recently viewed pages
-- <strong>Smart Caching</strong> - Cache frequently accessed data with intelligent invalidation</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Hover Pre-loading</strong> - Load data when user hovers over clickable elements</li>
+<li><strong>Alert Pre-loading</strong> - When ESE alert appears, pre-load source details,
+  images, QA data</li>
+<li><strong>Workflow Pre-loading</strong> - Pre-load next likely pages in current workflow</li>
+<li><strong>Background Refresh</strong> - Keep data fresh in background for recently viewed
+  pages</li>
+<li><strong>Smart Caching</strong> - Cache frequently accessed data with intelligent
+  invalidation</li>
+</ul>
 <h3 id="22-proactive-action-suggestions">2.2 Proactive Action Suggestions<a class="headerlink" href="#22-proactive-action-suggestions" title="Permanent link">¶</a></h3>
 <p><strong>Current State:</strong> Users must discover actions themselves.</p>
 <p><strong>Problem:</strong> Users may not know what actions are available or what to do next.</p>
@@ -1487,51 +1535,80 @@
 <span class="w">  </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
 <span class="w">  </span><span class="nx">description</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
 <span class="w">  </span><span class="nx">action</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span>
-<span class="w">  </span><span class="nx">priority</span><span class="o">:</span><span class="w"> </span><span class="s1">'high'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'medium'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'low'</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">priority</span><span class="o">:</span><span class="w"> </span><span class="s2">"high"</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">"medium"</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">"low"</span><span class="p">;</span>
 <span class="w">  </span><span class="nx">context</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nx">trigger</span><span class="o">:</span><span class="w"> </span><span class="s1">'alert'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'state-change'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'user-action'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'time-based'</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">trigger</span><span class="o">:</span><span class="w"> </span><span class="s2">"alert"</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">"state-change"</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">"user-action"</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">"time-based"</span><span class="p">;</span>
 <span class="w">    </span><span class="nx">conditions</span><span class="o">:</span><span class="w"> </span><span class="kt">Record</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">unknown</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="w">  </span><span class="p">};</span>
 <span class="w">  </span><span class="nx">dismissible</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div>
-<p><strong>Features:</strong>
-- <strong>Alert-Based Suggestions</strong> - When ESE alert appears: "View source details", "Check calibration", "Export light curve"
-- <strong>State-Based Suggestions</strong> - When pipeline error: "Check DLQ", "View logs", "Retry failed job"
-- <strong>Workflow Suggestions</strong> - "You viewed this source, would you like to see its images?"
-- <strong>Time-Based Suggestions</strong> - "No calibration update in 2 hours, check telescope pointing?"
-- <strong>Dismissible Notifications</strong> - Users can dismiss suggestions, but they reappear if still relevant</p>
-<p><strong>Example Suggestions:</strong>
-- <strong>ESE Alert:</strong> "3 new ESE candidates detected. [View Sources][Export List] [Check Calibration]"
-- <strong>Failed Job:</strong> "Calibration failed for group 2025-1024-1328. [View Error][Retry] [Check DLQ]"
-- <strong>Low Disk Space:</strong> "Disk usage at 85%. [View Storage][Archive Old Data] [Clean Cache]"</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Alert-Based Suggestions</strong> - When ESE alert appears: "View source details",
+  "Check calibration", "Export light curve"</li>
+<li><strong>State-Based Suggestions</strong> - When pipeline error: "Check DLQ", "View logs",
+  "Retry failed job"</li>
+<li><strong>Workflow Suggestions</strong> - "You viewed this source, would you like to see its
+  images?"</li>
+<li><strong>Time-Based Suggestions</strong> - "No calibration update in 2 hours, check
+  telescope pointing?"</li>
+<li><strong>Dismissible Notifications</strong> - Users can dismiss suggestions, but they
+  reappear if still relevant</li>
+</ul>
+<p><strong>Example Suggestions:</strong></p>
+<ul>
+<li><strong>ESE Alert:</strong> "3 new ESE candidates detected. [View Sources][Export List]
+  [Check Calibration]"</li>
+<li><strong>Failed Job:</strong> "Calibration failed for group 2025-1024-1328. [View Error]
+  [Retry][Check DLQ]"</li>
+<li><strong>Low Disk Space:</strong> "Disk usage at 85%. [View Storage][Archive Old Data]
+  [Clean Cache]"</li>
+</ul>
 <h3 id="23-smart-notifications-alerts">2.3 Smart Notifications &amp; Alerts<a class="headerlink" href="#23-smart-notifications-alerts" title="Permanent link">¶</a></h3>
 <p><strong>Current State:</strong> Alerts appear in panels, but may be missed.</p>
-<p><strong>Problem:</strong> Critical alerts can be overlooked, especially when user is focused on another task.</p>
-<p><strong>Improvement:</strong> Intelligent notification system that prioritizes and surfaces alerts appropriately.</p>
-<p><strong>Features:</strong>
-- <strong>Alert Priority System</strong> - Critical alerts interrupt workflow, informational alerts stay in sidebar
-- <strong>Alert Grouping</strong> - Group related alerts (e.g., "3 ESE candidates in same field")
-- <strong>Alert Actions</strong> - Quick actions directly from notification (e.g., "View Source" button in notification)
-- <strong>Do Not Disturb Mode</strong> - User can silence non-critical alerts during focused work
-- <strong>Alert History</strong> - Timeline of all alerts with ability to revisit dismissed alerts
-- <strong>Smart Dismissal</strong> - Alerts auto-dismiss when resolved, but can be manually dismissed</p>
-<p><strong>Alert Types:</strong>
-1. <strong>Critical</strong> - Pipeline stopped, disk full, critical calibration failure (interrupt workflow)
-2. <strong>High</strong> - ESE candidates, failed jobs, system warnings (persistent notification)
-3. <strong>Medium</strong> - Calibration updates, new images, status changes (sidebar notification)
-4. <strong>Low</strong> - Informational updates, routine status (minimal notification)</p>
+<p><strong>Problem:</strong> Critical alerts can be overlooked, especially when user is focused
+on another task.</p>
+<p><strong>Improvement:</strong> Intelligent notification system that prioritizes and surfaces
+alerts appropriately.</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Alert Priority System</strong> - Critical alerts interrupt workflow, informational
+  alerts stay in sidebar</li>
+<li><strong>Alert Grouping</strong> - Group related alerts (e.g., "3 ESE candidates in same
+  field")</li>
+<li><strong>Alert Actions</strong> - Quick actions directly from notification (e.g., "View
+  Source" button in notification)</li>
+<li><strong>Do Not Disturb Mode</strong> - User can silence non-critical alerts during focused
+  work</li>
+<li><strong>Alert History</strong> - Timeline of all alerts with ability to revisit dismissed
+  alerts</li>
+<li><strong>Smart Dismissal</strong> - Alerts auto-dismiss when resolved, but can be manually
+  dismissed</li>
+</ul>
+<p><strong>Alert Types:</strong></p>
+<ol>
+<li><strong>Critical</strong> - Pipeline stopped, disk full, critical calibration failure
+   (interrupt workflow)</li>
+<li><strong>High</strong> - ESE candidates, failed jobs, system warnings (persistent
+   notification)</li>
+<li><strong>Medium</strong> - Calibration updates, new images, status changes (sidebar
+   notification)</li>
+<li><strong>Low</strong> - Informational updates, routine status (minimal notification)</li>
+</ol>
 <hr/>
 <h2 id="3-pipeline-aware-interface">3. Pipeline-Aware Interface<a class="headerlink" href="#3-pipeline-aware-interface" title="Permanent link">¶</a></h2>
 <h3 id="31-pipeline-stage-visualization">3.1 Pipeline Stage Visualization<a class="headerlink" href="#31-pipeline-stage-visualization" title="Permanent link">¶</a></h3>
 <p><strong>Current State:</strong> Pipeline status shown as text/numbers in panels.</p>
-<p><strong>Problem:</strong> Difficult to understand pipeline flow and where data is in the process.</p>
-<p><strong>Improvement:</strong> Visual pipeline stage diagram showing data flow and current state.</p>
+<p><strong>Problem:</strong> Difficult to understand pipeline flow and where data is in the
+process.</p>
+<p><strong>Improvement:</strong> Visual pipeline stage diagram showing data flow and current
+state.</p>
 <p><strong>Implementation:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kd">interface</span><span class="w"> </span><span class="nx">PipelineStage</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
 <span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
-<span class="w">  </span><span class="nx">status</span><span class="o">:</span><span class="w"> </span><span class="s1">'waiting'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'in-progress'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'completed'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'failed'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'skipped'</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">status</span><span class="o">:</span><span class="w"> </span><span class="s2">"waiting"</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">"in-progress"</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">"completed"</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">"failed"</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">"skipped"</span><span class="p">;</span>
 <span class="w">  </span><span class="nx">currentItem</span><span class="o">?:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
 <span class="w">    </span><span class="nx">progress</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span><span class="w"> </span><span class="c1">// 0-100</span>
@@ -1556,72 +1633,97 @@
 <span class="w">  </span><span class="nx">flow</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nx">from</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
 <span class="w">    </span><span class="nx">to</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
-<span class="w">    </span><span class="nx">status</span><span class="o">:</span><span class="w"> </span><span class="s1">'active'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'blocked'</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">'idle'</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">status</span><span class="o">:</span><span class="w"> </span><span class="s2">"active"</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">"blocked"</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">"idle"</span><span class="p">;</span>
 <span class="w">  </span><span class="p">}[];</span>
 <span class="p">}</span>
 </code></pre></div>
-<p><strong>Features:</strong>
-- <strong>Visual Flow Diagram</strong> - Horizontal pipeline showing: Collect → Convert → Calibrate → Image → QA → Mosaic
-- <strong>Current Position Indicators</strong> - Highlight where each observation group is in the pipeline
-- <strong>Stage Details</strong> - Click stage to see details, queue, metrics
-- <strong>Bottleneck Detection</strong> - Highlight stages that are slowing down the pipeline
-- <strong>Historical Trends</strong> - Show how long data spends in each stage over time
-- <strong>Interactive</strong> - Click observation group to see its path through pipeline</p>
-<p><strong>Visual Example:</strong>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Visual Flow Diagram</strong> - Horizontal pipeline showing: Collect → Convert →
+  Calibrate → Image → QA → Mosaic</li>
+<li><strong>Current Position Indicators</strong> - Highlight where each observation group is in
+  the pipeline</li>
+<li><strong>Stage Details</strong> - Click stage to see details, queue, metrics</li>
+<li><strong>Bottleneck Detection</strong> - Highlight stages that are slowing down the pipeline</li>
+<li><strong>Historical Trends</strong> - Show how long data spends in each stage over time</li>
+<li><strong>Interactive</strong> - Click observation group to see its path through pipeline</li>
+</ul>
+<p><strong>Visual Example:</strong></p>
 <div class="highlight"><pre><span></span><code>┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
 │ Collect  │ → │ Convert  │ → │Calibrate │ → │  Image   │ → │   QA     │
 │  [2]     │   │  [1]     │   │   [3]    │   │   [0]    │   │   [5]    │
 │ ⚠ Slow   │   │ ✓ Normal │   │ ✓ Normal │   │ ✓ Normal │   │ ✓ Normal │
 └──────────┘   └──────────┘   └──────────┘   └──────────┘   └──────────┘
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="32-autonomous-vs-manual-mode-indicators">3.2 Autonomous vs Manual Mode Indicators<a class="headerlink" href="#32-autonomous-vs-manual-mode-indicators" title="Permanent link">¶</a></h3>
-<p><strong>Current State:</strong> No clear indication when pipeline is in autonomous vs manual mode.</p>
-<p><strong>Problem:</strong> Users may not realize they've taken manual control or that autonomous mode has resumed.</p>
+<p><strong>Current State:</strong> No clear indication when pipeline is in autonomous vs manual
+mode.</p>
+<p><strong>Problem:</strong> Users may not realize they've taken manual control or that
+autonomous mode has resumed.</p>
 <p><strong>Improvement:</strong> Clear visual indicators and mode transitions.</p>
-<p><strong>Features:</strong>
-- <strong>Mode Badge</strong> - Prominent badge showing "AUTONOMOUS" or "MANUAL CONTROL"
-- <strong>Mode Transition Animations</strong> - Smooth transition when switching modes
-- <strong>Manual Override Warnings</strong> - Clear warning when taking manual control
-- <strong>Auto-Resume Prompt</strong> - Ask user if they want to resume autonomous mode
-- <strong>Mode History</strong> - Timeline showing when mode switched and why
-- <strong>Mode-Specific UI</strong> - Different UI elements available in manual vs autonomous mode</p>
-<p><strong>Visual Indicators:</strong>
-- <strong>Autonomous Mode:</strong> Green badge, minimal control UI, "Pipeline running autonomously"
-- <strong>Manual Mode:</strong> Orange badge, full control UI, "Manual control active - [Resume Autonomous]"</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Mode Badge</strong> - Prominent badge showing "AUTONOMOUS" or "MANUAL CONTROL"</li>
+<li><strong>Mode Transition Animations</strong> - Smooth transition when switching modes</li>
+<li><strong>Manual Override Warnings</strong> - Clear warning when taking manual control</li>
+<li><strong>Auto-Resume Prompt</strong> - Ask user if they want to resume autonomous mode</li>
+<li><strong>Mode History</strong> - Timeline showing when mode switched and why</li>
+<li><strong>Mode-Specific UI</strong> - Different UI elements available in manual vs autonomous
+  mode</li>
+</ul>
+<p><strong>Visual Indicators:</strong></p>
+<ul>
+<li><strong>Autonomous Mode:</strong> Green badge, minimal control UI, "Pipeline running
+  autonomously"</li>
+<li><strong>Manual Mode:</strong> Orange badge, full control UI, "Manual control active -
+  [Resume Autonomous]"</li>
+</ul>
 <h3 id="33-real-time-pipeline-activity-feed">3.3 Real-Time Pipeline Activity Feed<a class="headerlink" href="#33-real-time-pipeline-activity-feed" title="Permanent link">¶</a></h3>
 <p><strong>Current State:</strong> Recent observations table shows static list.</p>
-<p><strong>Problem:</strong> Difficult to see pipeline activity in real-time and understand what's happening now.</p>
+<p><strong>Problem:</strong> Difficult to see pipeline activity in real-time and understand
+what's happening now.</p>
 <p><strong>Improvement:</strong> Live activity feed showing pipeline events as they happen.</p>
-<p><strong>Features:</strong>
-- <strong>Event Stream</strong> - Real-time feed of pipeline events (new observation, calibration complete, image created, etc.)
-- <strong>Event Filtering</strong> - Filter by event type, stage, source, time range
-- <strong>Event Details</strong> - Expand event to see details, related data, actions
-- <strong>Event Grouping</strong> - Group related events (e.g., all events for one observation group)
-- <strong>Timeline View</strong> - Visual timeline showing events over time
-- <strong>Search</strong> - Search events by observation ID, source, field name, etc.</p>
-<p><strong>Event Types:</strong>
-- Observation received
-- Subband conversion started/completed
-- Calibration solved/applied
-- Image created
-- QA completed
-- ESE candidate detected
-- Error occurred
-- Manual intervention</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Event Stream</strong> - Real-time feed of pipeline events (new observation,
+  calibration complete, image created, etc.)</li>
+<li><strong>Event Filtering</strong> - Filter by event type, stage, source, time range</li>
+<li><strong>Event Details</strong> - Expand event to see details, related data, actions</li>
+<li><strong>Event Grouping</strong> - Group related events (e.g., all events for one
+  observation group)</li>
+<li><strong>Timeline View</strong> - Visual timeline showing events over time</li>
+<li><strong>Search</strong> - Search events by observation ID, source, field name, etc.</li>
+</ul>
+<p><strong>Event Types:</strong></p>
+<ul>
+<li>Observation received</li>
+<li>Subband conversion started/completed</li>
+<li>Calibration solved/applied</li>
+<li>Image created</li>
+<li>QA completed</li>
+<li>ESE candidate detected</li>
+<li>Error occurred</li>
+<li>Manual intervention</li>
+</ul>
 <hr/>
 <h2 id="4-science-first-improvements">4. Science-First Improvements<a class="headerlink" href="#4-science-first-improvements" title="Permanent link">¶</a></h2>
 <h3 id="41-discovery-focused-dashboard">4.1 Discovery-Focused Dashboard<a class="headerlink" href="#41-discovery-focused-dashboard" title="Permanent link">¶</a></h3>
 <p><strong>Current State:</strong> Dashboard shows technical metrics and status.</p>
 <p><strong>Problem:</strong> Scientific discoveries (ESE candidates) are buried in panels.</p>
 <p><strong>Improvement:</strong> Make discoveries the primary focus when they occur.</p>
-<p><strong>Features:</strong>
-- <strong>Discovery Banner</strong> - Large, prominent banner when new ESE candidate detected
-- <strong>Discovery Dashboard Mode</strong> - Switch to "Discovery Mode" that highlights scientific findings
-- <strong>Discovery Timeline</strong> - Timeline of all discoveries with ability to compare
-- <strong>Discovery Details Panel</strong> - Expandable panel with full discovery context
-- <strong>Discovery Actions</strong> - Quick actions: "Investigate", "Export", "Share", "Mark as False Positive"
-- <strong>Discovery Notifications</strong> - Push notifications (if enabled) for new discoveries</p>
-<p><strong>Discovery Mode Layout:</strong>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Discovery Banner</strong> - Large, prominent banner when new ESE candidate detected</li>
+<li><strong>Discovery Dashboard Mode</strong> - Switch to "Discovery Mode" that highlights
+  scientific findings</li>
+<li><strong>Discovery Timeline</strong> - Timeline of all discoveries with ability to compare</li>
+<li><strong>Discovery Details Panel</strong> - Expandable panel with full discovery context</li>
+<li><strong>Discovery Actions</strong> - Quick actions: "Investigate", "Export", "Share", "Mark
+  as False Positive"</li>
+<li><strong>Discovery Notifications</strong> - Push notifications (if enabled) for new
+  discoveries</li>
+</ul>
+<p><strong>Discovery Mode Layout:</strong></p>
 <div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
 │  🎯 NEW DISCOVERY: NVSS J1234+5678                          │
 │  Extreme Scattering Event Detected (5.2σ)                   │
@@ -1631,20 +1733,27 @@
 │ Light Curve         │ Latest Image                         │
 │ [Interactive Plot]  │ [FITS Viewer]                        │
 └─────────────────────┴───────────────────────────────────────┘
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="42-enhanced-source-investigation-workflow">4.2 Enhanced Source Investigation Workflow<a class="headerlink" href="#42-enhanced-source-investigation-workflow" title="Permanent link">¶</a></h3>
 <p><strong>Current State:</strong> Source details spread across multiple pages.</p>
-<p><strong>Problem:</strong> Investigating a source requires navigating between Sources, QA, Data Browser pages.</p>
-<p><strong>Improvement:</strong> Unified source investigation interface with all relevant data in one place.</p>
-<p><strong>Features:</strong>
-- <strong>Source Detail Page</strong> - Comprehensive page with all source information
-- <strong>Tabbed Interface</strong> - Tabs for: Overview, Light Curve, Images, Calibration, QA, Catalog Info
-- <strong>Related Sources</strong> - Show nearby sources, similar sources, sources in same field
-- <strong>Comparison Tools</strong> - Compare light curves, images, calibration across time
-- <strong>Export Tools</strong> - Export light curve data, images, source info in various formats
-- <strong>Annotation Tools</strong> - Add notes, tags, flags to sources
-- <strong>Share Links</strong> - Generate shareable links to specific source views</p>
-<p><strong>Source Investigation Layout:</strong>
+<p><strong>Problem:</strong> Investigating a source requires navigating between Sources, QA,
+Data Browser pages.</p>
+<p><strong>Improvement:</strong> Unified source investigation interface with all relevant data
+in one place.</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Source Detail Page</strong> - Comprehensive page with all source information</li>
+<li><strong>Tabbed Interface</strong> - Tabs for: Overview, Light Curve, Images, Calibration,
+  QA, Catalog Info</li>
+<li><strong>Related Sources</strong> - Show nearby sources, similar sources, sources in same
+  field</li>
+<li><strong>Comparison Tools</strong> - Compare light curves, images, calibration across time</li>
+<li><strong>Export Tools</strong> - Export light curve data, images, source info in various
+  formats</li>
+<li><strong>Annotation Tools</strong> - Add notes, tags, flags to sources</li>
+<li><strong>Share Links</strong> - Generate shareable links to specific source views</li>
+</ul>
+<p><strong>Source Investigation Layout:</strong></p>
 <div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
 │ NVSS J1234+5678                    [Flag] [Export] [Share] │
 │ RA: 12h34m56.7s  Dec: +56°78'90"                            │
@@ -1658,115 +1767,141 @@
 │  [Image Gallery with Thumbnails]                             │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="43-scientific-data-export-sharing">4.3 Scientific Data Export &amp; Sharing<a class="headerlink" href="#43-scientific-data-export-sharing" title="Permanent link">¶</a></h3>
 <p><strong>Current State:</strong> Limited export capabilities.</p>
-<p><strong>Problem:</strong> Scientists need to export data in various formats for analysis and sharing.</p>
-<p><strong>Improvement:</strong> Comprehensive export system with format options and sharing capabilities.</p>
-<p><strong>Features:</strong>
-- <strong>Format Options</strong> - CSV, JSON, FITS, VOTable, PDF reports
-- <strong>Customizable Exports</strong> - Select which fields/data to include
-- <strong>Batch Export</strong> - Export multiple sources, images, observations at once
-- <strong>Export Templates</strong> - Save export configurations for reuse
-- <strong>Share Links</strong> - Generate shareable links that load specific views/data
-- <strong>Export History</strong> - Track what was exported and when
-- <strong>API Access</strong> - Programmatic access to exported data</p>
-<p><strong>Export Options:</strong>
-- Source catalog (CSV, VOTable)
-- Light curve data (CSV, JSON)
-- Images (FITS, PNG, PDF)
-- QA reports (PDF, HTML)
-- Observation metadata (JSON, CSV)</p>
+<p><strong>Problem:</strong> Scientists need to export data in various formats for analysis and
+sharing.</p>
+<p><strong>Improvement:</strong> Comprehensive export system with format options and sharing
+capabilities.</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Format Options</strong> - CSV, JSON, FITS, VOTable, PDF reports</li>
+<li><strong>Customizable Exports</strong> - Select which fields/data to include</li>
+<li><strong>Batch Export</strong> - Export multiple sources, images, observations at once</li>
+<li><strong>Export Templates</strong> - Save export configurations for reuse</li>
+<li><strong>Share Links</strong> - Generate shareable links that load specific views/data</li>
+<li><strong>Export History</strong> - Track what was exported and when</li>
+<li><strong>API Access</strong> - Programmatic access to exported data</li>
+</ul>
+<p><strong>Export Options:</strong></p>
+<ul>
+<li>Source catalog (CSV, VOTable)</li>
+<li>Light curve data (CSV, JSON)</li>
+<li>Images (FITS, PNG, PDF)</li>
+<li>QA reports (PDF, HTML)</li>
+<li>Observation metadata (JSON, CSV)</li>
+</ul>
 <hr/>
 <h2 id="5-enhanced-user-experience">5. Enhanced User Experience<a class="headerlink" href="#5-enhanced-user-experience" title="Permanent link">¶</a></h2>
 <h3 id="51-improved-loading-states-skeleton-screens">5.1 Improved Loading States &amp; Skeleton Screens<a class="headerlink" href="#51-improved-loading-states-skeleton-screens" title="Permanent link">¶</a></h3>
 <p><strong>Current State:</strong> Simple loading spinners.</p>
 <p><strong>Problem:</strong> Users don't know what's loading or how long it will take.</p>
 <p><strong>Improvement:</strong> Informative loading states with progress indicators.</p>
-<p><strong>Features:</strong>
-- <strong>Skeleton Screens</strong> - Show page structure while loading
-- <strong>Progress Indicators</strong> - Show loading progress when available
-- <strong>Loading Messages</strong> - Explain what's being loaded
-- <strong>Estimated Time</strong> - Show estimated time remaining
-- <strong>Cancel Option</strong> - Allow users to cancel long-running loads
-- <strong>Optimistic Updates</strong> - Show expected results immediately, update when real data arrives</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Skeleton Screens</strong> - Show page structure while loading</li>
+<li><strong>Progress Indicators</strong> - Show loading progress when available</li>
+<li><strong>Loading Messages</strong> - Explain what's being loaded</li>
+<li><strong>Estimated Time</strong> - Show estimated time remaining</li>
+<li><strong>Cancel Option</strong> - Allow users to cancel long-running loads</li>
+<li><strong>Optimistic Updates</strong> - Show expected results immediately, update when real
+  data arrives</li>
+</ul>
 <h3 id="52-better-error-handling-recovery">5.2 Better Error Handling &amp; Recovery<a class="headerlink" href="#52-better-error-handling-recovery" title="Permanent link">¶</a></h3>
 <p><strong>Current State:</strong> Basic error messages, limited recovery options.</p>
 <p><strong>Problem:</strong> Errors are frustrating and don't guide users to solutions.</p>
 <p><strong>Improvement:</strong> Actionable error messages with recovery suggestions.</p>
-<p><strong>Features:</strong>
-- <strong>Error Context</strong> - Explain what went wrong and why
-- <strong>Recovery Actions</strong> - Suggest actions to fix the error
-- <strong>Error Details</strong> - Expandable error details for debugging
-- <strong>Retry Mechanisms</strong> - Automatic retry with exponential backoff
-- <strong>Error Reporting</strong> - Easy way to report errors with context
-- <strong>Error History</strong> - Track errors over time to identify patterns</p>
-<p><strong>Error Types:</strong>
-- <strong>Network Errors</strong> - "Connection lost. [Retry][Check Status]"
-- <strong>Data Errors</strong> - "Invalid data format. [View Details][Report Issue]"
-- <strong>Permission Errors</strong> - "Access denied. [Request Access][Contact Admin]"
-- <strong>Pipeline Errors</strong> - "Calibration failed. [View Logs][Retry] [Check DLQ]"</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Error Context</strong> - Explain what went wrong and why</li>
+<li><strong>Recovery Actions</strong> - Suggest actions to fix the error</li>
+<li><strong>Error Details</strong> - Expandable error details for debugging</li>
+<li><strong>Retry Mechanisms</strong> - Automatic retry with exponential backoff</li>
+<li><strong>Error Reporting</strong> - Easy way to report errors with context</li>
+<li><strong>Error History</strong> - Track errors over time to identify patterns</li>
+</ul>
+<p><strong>Error Types:</strong></p>
+<ul>
+<li><strong>Network Errors</strong> - "Connection lost. [Retry][Check Status]"</li>
+<li><strong>Data Errors</strong> - "Invalid data format. [View Details][Report Issue]"</li>
+<li><strong>Permission Errors</strong> - "Access denied. [Request Access][Contact Admin]"</li>
+<li><strong>Pipeline Errors</strong> - "Calibration failed. [View Logs][Retry] [Check DLQ]"</li>
+</ul>
 <h3 id="53-keyboard-shortcuts-accessibility">5.3 Keyboard Shortcuts &amp; Accessibility<a class="headerlink" href="#53-keyboard-shortcuts-accessibility" title="Permanent link">¶</a></h3>
 <p><strong>Current State:</strong> Limited keyboard navigation.</p>
 <p><strong>Problem:</strong> Power users want keyboard shortcuts for efficiency.</p>
 <p><strong>Improvement:</strong> Comprehensive keyboard shortcuts and accessibility features.</p>
-<p><strong>Features:</strong>
-- <strong>Global Shortcuts</strong> - Cmd+K (command palette), Cmd+/ (shortcuts help)
-- <strong>Page-Specific Shortcuts</strong> - Different shortcuts for each page
-- <strong>Shortcut Hints</strong> - Show available shortcuts in tooltips
-- <strong>Keyboard Navigation</strong> - Full keyboard navigation for all UI elements
-- <strong>Screen Reader Support</strong> - Proper ARIA labels and descriptions
-- <strong>High Contrast Mode</strong> - Option for high contrast display
-- <strong>Font Size Controls</strong> - Adjustable font sizes</p>
-<p><strong>Common Shortcuts:</strong>
-- <code>g d</code> - Go to Dashboard
-- <code>g s</code> - Go to Sources
-- <code>g q</code> - Go to QA
-- <code>g c</code> - Go to Control
-- <code>/</code> - Search
-- <code>?</code> - Show shortcuts
-- <code>Esc</code> - Close modals/panels</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Global Shortcuts</strong> - Cmd+K (command palette), Cmd+/ (shortcuts help)</li>
+<li><strong>Page-Specific Shortcuts</strong> - Different shortcuts for each page</li>
+<li><strong>Shortcut Hints</strong> - Show available shortcuts in tooltips</li>
+<li><strong>Keyboard Navigation</strong> - Full keyboard navigation for all UI elements</li>
+<li><strong>Screen Reader Support</strong> - Proper ARIA labels and descriptions</li>
+<li><strong>High Contrast Mode</strong> - Option for high contrast display</li>
+<li><strong>Font Size Controls</strong> - Adjustable font sizes</li>
+</ul>
+<p><strong>Common Shortcuts:</strong></p>
+<ul>
+<li><code>g d</code> - Go to Dashboard</li>
+<li><code>g s</code> - Go to Sources</li>
+<li><code>g q</code> - Go to QA</li>
+<li><code>g c</code> - Go to Control</li>
+<li><code>/</code> - Search</li>
+<li><code>?</code> - Show shortcuts</li>
+<li><code>Esc</code> - Close modals/panels</li>
+</ul>
 <h3 id="54-personalization-preferences">5.4 Personalization &amp; Preferences<a class="headerlink" href="#54-personalization-preferences" title="Permanent link">¶</a></h3>
 <p><strong>Current State:</strong> No user preferences or personalization.</p>
 <p><strong>Problem:</strong> Different users have different needs and workflows.</p>
 <p><strong>Improvement:</strong> User preferences and customizable interface.</p>
-<p><strong>Features:</strong>
-- <strong>Dashboard Layout</strong> - Customize which panels appear and their order
-- <strong>Default Views</strong> - Set default time ranges, filters, views
-- <strong>Notification Preferences</strong> - Choose which alerts to receive
-- <strong>Theme Options</strong> - Light/dark theme, color schemes
-- <strong>Workspace Templates</strong> - Save and load custom workspace layouts
-- <strong>Quick Actions</strong> - Customize quick action buttons
-- <strong>Export Templates</strong> - Save export configurations</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Dashboard Layout</strong> - Customize which panels appear and their order</li>
+<li><strong>Default Views</strong> - Set default time ranges, filters, views</li>
+<li><strong>Notification Preferences</strong> - Choose which alerts to receive</li>
+<li><strong>Theme Options</strong> - Light/dark theme, color schemes</li>
+<li><strong>Workspace Templates</strong> - Save and load custom workspace layouts</li>
+<li><strong>Quick Actions</strong> - Customize quick action buttons</li>
+<li><strong>Export Templates</strong> - Save export configurations</li>
+</ul>
 <hr/>
 <h2 id="6-performance-technical-improvements">6. Performance &amp; Technical Improvements<a class="headerlink" href="#6-performance-technical-improvements" title="Permanent link">¶</a></h2>
 <h3 id="61-optimistic-updates">6.1 Optimistic Updates<a class="headerlink" href="#61-optimistic-updates" title="Permanent link">¶</a></h3>
 <p><strong>Current State:</strong> UI updates only after server response.</p>
 <p><strong>Problem:</strong> Actions feel slow, even when they're fast.</p>
 <p><strong>Improvement:</strong> Update UI immediately, rollback if action fails.</p>
-<p><strong>Features:</strong>
-- <strong>Instant Feedback</strong> - UI updates immediately on user action
-- <strong>Rollback on Failure</strong> - Revert changes if action fails
-- <strong>Loading Indicators</strong> - Show that action is in progress
-- <strong>Success Confirmation</strong> - Confirm when action completes</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Instant Feedback</strong> - UI updates immediately on user action</li>
+<li><strong>Rollback on Failure</strong> - Revert changes if action fails</li>
+<li><strong>Loading Indicators</strong> - Show that action is in progress</li>
+<li><strong>Success Confirmation</strong> - Confirm when action completes</li>
+</ul>
 <h3 id="62-virtual-scrolling-for-large-lists">6.2 Virtual Scrolling for Large Lists<a class="headerlink" href="#62-virtual-scrolling-for-large-lists" title="Permanent link">¶</a></h3>
 <p><strong>Current State:</strong> All items loaded and rendered at once.</p>
-<p><strong>Problem:</strong> Performance degrades with large lists (thousands of sources, images).</p>
+<p><strong>Problem:</strong> Performance degrades with large lists (thousands of sources,
+images).</p>
 <p><strong>Improvement:</strong> Virtual scrolling to render only visible items.</p>
-<p><strong>Features:</strong>
-- <strong>Virtual Lists</strong> - Only render visible items
-- <strong>Infinite Scroll</strong> - Load more items as user scrolls
-- <strong>Search Integration</strong> - Virtual scrolling works with search/filter
-- <strong>Smooth Scrolling</strong> - Smooth scroll performance</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Virtual Lists</strong> - Only render visible items</li>
+<li><strong>Infinite Scroll</strong> - Load more items as user scrolls</li>
+<li><strong>Search Integration</strong> - Virtual scrolling works with search/filter</li>
+<li><strong>Smooth Scrolling</strong> - Smooth scroll performance</li>
+</ul>
 <h3 id="63-data-caching-offline-support">6.3 Data Caching &amp; Offline Support<a class="headerlink" href="#63-data-caching-offline-support" title="Permanent link">¶</a></h3>
 <p><strong>Current State:</strong> Data fetched on demand, no offline support.</p>
 <p><strong>Problem:</strong> Users lose access when network is unavailable.</p>
 <p><strong>Improvement:</strong> Cache data locally and support offline viewing.</p>
-<p><strong>Features:</strong>
-- <strong>Local Caching</strong> - Cache frequently accessed data
-- <strong>Offline Viewing</strong> - View cached data when offline
-- <strong>Sync Indicators</strong> - Show when data is cached vs fresh
-- <strong>Cache Management</strong> - User control over cache size and contents</p>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>Local Caching</strong> - Cache frequently accessed data</li>
+<li><strong>Offline Viewing</strong> - View cached data when offline</li>
+<li><strong>Sync Indicators</strong> - Show when data is cached vs fresh</li>
+<li><strong>Cache Management</strong> - User control over cache size and contents</li>
+</ul>
 <hr/>
 <h2 id="7-implementation-priority">7. Implementation Priority<a class="headerlink" href="#7-implementation-priority" title="Permanent link">¶</a></h2>
 <h3 id="phase-1-high-impact-quick-wins-2-4-weeks">Phase 1: High Impact, Quick Wins (2-4 weeks)<a class="headerlink" href="#phase-1-high-impact-quick-wins-2-4-weeks" title="Permanent link">¶</a></h3>
@@ -1804,7 +1939,8 @@
 <h2 id="8-success-metrics">8. Success Metrics<a class="headerlink" href="#8-success-metrics" title="Permanent link">¶</a></h2>
 <h3 id="user-experience-metrics">User Experience Metrics<a class="headerlink" href="#user-experience-metrics" title="Permanent link">¶</a></h3>
 <ul>
-<li><strong>Time to Complete Workflow</strong> - Measure time for common workflows (ESE investigation, pipeline debugging)</li>
+<li><strong>Time to Complete Workflow</strong> - Measure time for common workflows (ESE
+  investigation, pipeline debugging)</li>
 <li><strong>Page Navigation Count</strong> - Reduce number of page navigations per workflow</li>
 <li><strong>Error Recovery Time</strong> - Time from error to resolution</li>
 <li><strong>User Satisfaction</strong> - Surveys and feedback</li>
@@ -1824,13 +1960,16 @@
 </ul>
 <hr/>
 <h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
-<p>These improvements focus on:
-1. <strong>Reducing cognitive load</strong> - Less navigation, more context
-2. <strong>Anticipating needs</strong> - Proactive loading and suggestions
-3. <strong>Supporting workflows</strong> - Unified workspaces and streamlined paths
-4. <strong>Enhancing discovery</strong> - Science-first approach to interface design
-5. <strong>Improving performance</strong> - Faster, more responsive interface</p>
-<p>The goal is to make the dashboard feel like a natural extension of the scientist's workflow, anticipating needs and eliminating friction.</p>
+<p>These improvements focus on:</p>
+<ol>
+<li><strong>Reducing cognitive load</strong> - Less navigation, more context</li>
+<li><strong>Anticipating needs</strong> - Proactive loading and suggestions</li>
+<li><strong>Supporting workflows</strong> - Unified workspaces and streamlined paths</li>
+<li><strong>Enhancing discovery</strong> - Science-first approach to interface design</li>
+<li><strong>Improving performance</strong> - Faster, more responsive interface</li>
+</ol>
+<p>The goal is to make the dashboard feel like a natural extension of the
+scientist's workflow, anticipating needs and eliminating friction.</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1855,7 +1994,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

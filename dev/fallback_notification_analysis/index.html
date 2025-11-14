@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1176,7 +1178,8 @@
 <h1 id="fallback-notification-analysis">Fallback Notification Analysis<a class="headerlink" href="#fallback-notification-analysis" title="Permanent link">¶</a></h1>
 <h2 id="current-state">Current State<a class="headerlink" href="#current-state" title="Permanent link">¶</a></h2>
 <h3 id="catalog-query-fallbacks">Catalog Query Fallbacks<a class="headerlink" href="#catalog-query-fallbacks" title="Permanent link">¶</a></h3>
-<p>When SQLite databases are unavailable and the system falls back to CSV, users are notified via Python's <code>warnings.warn()</code>:</p>
+<p>When SQLite databases are unavailable and the system falls back to CSV, users
+are notified via Python's <code>warnings.warn()</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
     <span class="sa">f</span><span class="s2">"SQLite query failed (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">), falling back to CSV. "</span>
     <span class="sa">f</span><span class="s2">"This will be slower (~1s vs ~0.01s)."</span><span class="p">,</span>
@@ -1184,13 +1187,15 @@
 <span class="p">)</span>
 </code></pre></div>
 <h3 id="notification-mechanism">Notification Mechanism<a class="headerlink" href="#notification-mechanism" title="Permanent link">¶</a></h3>
-<p><strong>Current Implementation:</strong>
-- Uses Python's standard <code>warnings.warn()</code> module
-- Warnings are printed to <code>stderr</code> by default
-- Format: <code>&lt;filename&gt;:&lt;line&gt;: UserWarning: &lt;message&gt;</code>
-- Example output:
+<p><strong>Current Implementation:</strong></p>
+<ul>
+<li>Uses Python's standard <code>warnings.warn()</code> module</li>
+<li>Warnings are printed to <code>stderr</code> by default</li>
+<li>Format: <code>&lt;filename&gt;:&lt;line&gt;: UserWarning: &lt;message&gt;</code></li>
+<li>Example output:
   <div class="highlight"><pre><span></span><code>/path/to/file.py:1147: UserWarning: SQLite query failed (...), falling back to CSV. This will be slower (~1s vs ~0.01s).
-</code></pre></div></p>
+</code></pre></div></li>
+</ul>
 <h3 id="issues-with-current-approach">Issues with Current Approach<a class="headerlink" href="#issues-with-current-approach" title="Permanent link">¶</a></h3>
 <ol>
 <li><strong>Visibility</strong>: Warnings may be missed if:</li>
@@ -1201,7 +1206,8 @@
 <p>User is not monitoring stderr</p>
 </li>
 <li>
-<p><strong>No Logging Integration</strong>: Warnings are not automatically captured by the logging system unless explicitly configured</p>
+<p><strong>No Logging Integration</strong>: Warnings are not automatically captured by the
+   logging system unless explicitly configured</p>
 </li>
 <li>
 <p><strong>No Structured Tracking</strong>: Cannot easily track:</p>
@@ -1212,7 +1218,8 @@
 <p>Performance impact of fallbacks</p>
 </li>
 <li>
-<p><strong>Inconsistent with Rest of Pipeline</strong>: Most of the pipeline uses <code>logger.warning()</code> for warnings, but catalog fallbacks use <code>warnings.warn()</code></p>
+<p><strong>Inconsistent with Rest of Pipeline</strong>: Most of the pipeline uses
+   <code>logger.warning()</code> for warnings, but catalog fallbacks use <code>warnings.warn()</code></p>
 </li>
 </ol>
 <h2 id="comparison-with-other-pipeline-warnings">Comparison with Other Pipeline Warnings<a class="headerlink" href="#comparison-with-other-pipeline-warnings" title="Permanent link">¶</a></h2>
@@ -1242,19 +1249,23 @@
     <span class="p">)</span>
     <span class="c1"># Fallback to CSV</span>
 </code></pre></div>
-<p><strong>Benefits:</strong>
-- Consistent with rest of pipeline
-- Automatically captured in log files
-- Can be filtered/configured via logging config
-- Better visibility in production environments</p>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Consistent with rest of pipeline</li>
+<li>Automatically captured in log files</li>
+<li>Can be filtered/configured via logging config</li>
+<li>Better visibility in production environments</li>
+</ul>
 <h3 id="option-2-hybrid-approach">Option 2: Hybrid Approach<a class="headerlink" href="#option-2-hybrid-approach" title="Permanent link">¶</a></h3>
 <p>Use both logging and warnings:</p>
 <div class="highlight"><pre><span></span><code><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"SQLite query failed, falling back to CSV"</span><span class="p">)</span>
 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"Performance degradation: using CSV fallback"</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
 </code></pre></div>
-<p><strong>Benefits:</strong>
-- Logging for production monitoring
-- Warnings for immediate user feedback</p>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Logging for production monitoring</li>
+<li>Warnings for immediate user feedback</li>
+</ul>
 <h3 id="option-3-structured-fallback-tracking">Option 3: Structured Fallback Tracking<a class="headerlink" href="#option-3-structured-fallback-tracking" title="Permanent link">¶</a></h3>
 <p>Add metrics/telemetry for fallback events:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.utils.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">record_fallback</span>
@@ -1279,7 +1290,8 @@
 </ol>
 <h2 id="action-items">Action Items<a class="headerlink" href="#action-items" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Immediate</strong>: Replace <code>warnings.warn()</code> with <code>logger.warning()</code> in catalog query functions</li>
+<li><strong>Immediate</strong>: Replace <code>warnings.warn()</code> with <code>logger.warning()</code> in catalog
+   query functions</li>
 <li><strong>Short-term</strong>: Ensure logging configuration captures warnings</li>
 <li><strong>Long-term</strong>: Add structured fallback tracking/metrics</li>
 </ol>
@@ -1296,10 +1308,12 @@
     <span class="n">catalog_path</span><span class="o">=</span><span class="s2">"/nonexistent/path.sqlite3"</span>
 <span class="p">)</span>
 </code></pre></div>
-<p>Expected behavior:
-- Warning should appear in logs
-- Function should still return results (from CSV)
-- Performance should be slower (~1s vs ~7ms)</p>
+<p>Expected behavior:</p>
+<ul>
+<li>Warning should appear in logs</li>
+<li>Function should still return results (from CSV)</li>
+<li>Performance should be slower (~1s vs ~7ms)</li>
+</ul>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1324,7 +1338,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

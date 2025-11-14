@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1319,14 +1321,20 @@
 <p><strong>Status</strong>: 0% → Needs investigation and implementation</p>
 <p><strong>Date</strong>: 2025-01-15</p>
 <h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">¶</a></h2>
-<p>The photometry infrastructure exists (API endpoints, batch jobs, database functions), but <strong>automatic photometry is not triggered</strong> after imaging or mosaic creation in either streaming or orchestrator modes. This assessment identifies what exists and what needs to be implemented.</p>
+<p>The photometry infrastructure exists (API endpoints, batch jobs, database
+functions), but <strong>automatic photometry is not triggered</strong> after imaging or
+mosaic creation in either streaming or orchestrator modes. This assessment
+identifies what exists and what needs to be implemented.</p>
 <h2 id="current-state-analysis">Current State Analysis<a class="headerlink" href="#current-state-analysis" title="Permanent link">¶</a></h2>
 <h3 id="what-exists-infrastructure">What EXISTS (Infrastructure)<a class="headerlink" href="#what-exists-infrastructure" title="Permanent link">¶</a></h3>
 <h4 id="1-photometry-functions">1. Photometry Functions<a class="headerlink" href="#1-photometry-functions" title="Permanent link">¶</a></h4>
 <ul>
-<li><strong>Forced Photometry</strong>: <code>dsa110_contimg.photometry.forced.measure_forced_peak()</code></li>
-<li><strong>Adaptive Photometry</strong>: <code>dsa110_contimg.photometry.adaptive_photometry.AdaptivePhotometryStage</code></li>
-<li><strong>Normalization</strong>: <code>dsa110_contimg.photometry.normalize.normalize_measurement()</code></li>
+<li><strong>Forced Photometry</strong>:
+  <code>dsa110_contimg.photometry.forced.measure_forced_peak()</code></li>
+<li><strong>Adaptive Photometry</strong>:
+  <code>dsa110_contimg.photometry.adaptive_photometry.AdaptivePhotometryStage</code></li>
+<li><strong>Normalization</strong>:
+  <code>dsa110_contimg.photometry.normalize.normalize_measurement()</code></li>
 </ul>
 <h4 id="2-api-endpoints">2. API Endpoints<a class="headerlink" href="#2-api-endpoints" title="Permanent link">¶</a></h4>
 <ul>
@@ -1337,69 +1345,88 @@
 </ul>
 <h4 id="3-database-functions">3. Database Functions<a class="headerlink" href="#3-database-functions" title="Permanent link">¶</a></h4>
 <ul>
-<li><code>dsa110_contimg.database.products.photometry_insert()</code> - Insert photometry into products DB</li>
+<li><code>dsa110_contimg.database.products.photometry_insert()</code> - Insert photometry
+  into products DB</li>
 <li><code>photometry</code> table exists in products database</li>
 </ul>
 <h4 id="4-batch-job-infrastructure">4. Batch Job Infrastructure<a class="headerlink" href="#4-batch-job-infrastructure" title="Permanent link">¶</a></h4>
 <ul>
-<li><code>dsa110_contimg.api.batch_jobs.create_batch_photometry_job()</code> - Create batch photometry job</li>
-<li><code>dsa110_contimg.api.job_adapters.run_batch_photometry_job()</code> - Execute batch photometry job</li>
+<li><code>dsa110_contimg.api.batch_jobs.create_batch_photometry_job()</code> - Create batch
+  photometry job</li>
+<li><code>dsa110_contimg.api.job_adapters.run_batch_photometry_job()</code> - Execute batch
+  photometry job</li>
 <li><code>batch_jobs</code> and <code>batch_job_items</code> tables exist</li>
 </ul>
 <h3 id="what-is-missing-automation">What is MISSING (Automation)<a class="headerlink" href="#what-is-missing-automation" title="Permanent link">¶</a></h3>
 <h4 id="1-automatic-photometry-after-imaging">1. Automatic Photometry After Imaging<a class="headerlink" href="#1-automatic-photometry-after-imaging" title="Permanent link">¶</a></h4>
 <p><strong>Location</strong>: <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code></p>
-<p><strong>Current State</strong>:
-- After <code>image_ms()</code> completes, no photometry is triggered
-- Individual MS files are imaged but photometry is not performed</p>
-<p><strong>Required</strong>:
-- Detect when imaging completes successfully
-- Query catalog for sources in field (NVSS or master sources)
-- Trigger photometry measurement on the new FITS image
-- Store results in products database</p>
+<p><strong>Current State</strong>:</p>
+<ul>
+<li>After <code>image_ms()</code> completes, no photometry is triggered</li>
+<li>Individual MS files are imaged but photometry is not performed</li>
+</ul>
+<p><strong>Required</strong>:</p>
+<ul>
+<li>Detect when imaging completes successfully</li>
+<li>Query catalog for sources in field (NVSS or master sources)</li>
+<li>Trigger photometry measurement on the new FITS image</li>
+<li>Store results in products database</li>
+</ul>
 <h4 id="2-automatic-photometry-after-mosaic-creation">2. Automatic Photometry After Mosaic Creation<a class="headerlink" href="#2-automatic-photometry-after-mosaic-creation" title="Permanent link">¶</a></h4>
 <p><strong>Location</strong>: <code>src/dsa110_contimg/mosaic/orchestrator.py</code></p>
-<p><strong>Current State</strong>:
-- Mosaics are created via <code>_process_group_workflow()</code>
-- No photometry is triggered after mosaic completion</p>
-<p><strong>Required</strong>:
-- After mosaic FITS file is created, trigger photometry
-- Query catalog for sources in mosaic field
-- Perform batch photometry on all sources
-- Store results in products database
-- Link photometry to mosaic data_id in data registry</p>
+<p><strong>Current State</strong>:</p>
+<ul>
+<li>Mosaics are created via <code>_process_group_workflow()</code></li>
+<li>No photometry is triggered after mosaic completion</li>
+</ul>
+<p><strong>Required</strong>:</p>
+<ul>
+<li>After mosaic FITS file is created, trigger photometry</li>
+<li>Query catalog for sources in mosaic field</li>
+<li>Perform batch photometry on all sources</li>
+<li>Store results in products database</li>
+<li>Link photometry to mosaic data_id in data registry</li>
+</ul>
 <h4 id="3-integration-with-data-registry">3. Integration with Data Registry<a class="headerlink" href="#3-integration-with-data-registry" title="Permanent link">¶</a></h4>
 <p><strong>Location</strong>: <code>src/dsa110_contimg/database/data_registry.py</code></p>
-<p><strong>Current State</strong>:
-- <code>finalize_data()</code> and <code>trigger_auto_publish()</code> exist
-- No photometry-related fields or triggers</p>
-<p><strong>Required</strong>:
-- Track photometry status per data product (image/mosaic)
-- Link photometry results to data_id
-- Include photometry status in QA validation
-- Auto-trigger photometry when data is finalized</p>
+<p><strong>Current State</strong>:</p>
+<ul>
+<li><code>finalize_data()</code> and <code>trigger_auto_publish()</code> exist</li>
+<li>No photometry-related fields or triggers</li>
+</ul>
+<p><strong>Required</strong>:</p>
+<ul>
+<li>Track photometry status per data product (image/mosaic)</li>
+<li>Link photometry results to data_id</li>
+<li>Include photometry status in QA validation</li>
+<li>Auto-trigger photometry when data is finalized</li>
+</ul>
 <h4 id="4-batch-photometry-processing-automation">4. Batch Photometry Processing Automation<a class="headerlink" href="#4-batch-photometry-processing-automation" title="Permanent link">¶</a></h4>
-<p><strong>Current State</strong>:
-- Batch photometry jobs can be created via API
-- No automatic batch job creation after imaging/mosaic</p>
-<p><strong>Required</strong>:
-- Automatically create batch photometry jobs for:
-  - Newly imaged FITS files
-  - Newly created mosaics
-- Query master sources catalog for coordinates
-- Configure batch job parameters (normalization, method, etc.)
-- Monitor batch job completion</p>
+<p><strong>Current State</strong>:</p>
+<ul>
+<li>Batch photometry jobs can be created via API</li>
+<li>No automatic batch job creation after imaging/mosaic</li>
+</ul>
+<p><strong>Required</strong>:</p>
+<ul>
+<li>Automatically create batch photometry jobs for:</li>
+<li>Newly imaged FITS files</li>
+<li>Newly created mosaics</li>
+<li>Query master sources catalog for coordinates</li>
+<li>Configure batch job parameters (normalization, method, etc.)</li>
+<li>Monitor batch job completion</li>
+</ul>
 <h2 id="detailed-gap-analysis">Detailed Gap Analysis<a class="headerlink" href="#detailed-gap-analysis" title="Permanent link">¶</a></h2>
 <h3 id="gap-1-streaming-converter-integration">Gap 1: Streaming Converter Integration<a class="headerlink" href="#gap-1-streaming-converter-integration" title="Permanent link">¶</a></h3>
 <p><strong>File</strong>: <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code></p>
-<p><strong>Current Workflow</strong>:
+<p><strong>Current Workflow</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># After imaging completes:</span>
 <span class="k">if</span> <span class="n">enable_imaging</span><span class="p">:</span>
     <span class="n">image_ms</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
     <span class="c1"># Update artifacts in products DB</span>
     <span class="c1"># NO PHOTOMETRY HERE</span>
-</code></pre></div></p>
-<p><strong>Required Workflow</strong>:
+</code></pre></div>
+<p><strong>Required Workflow</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># After imaging completes:</span>
 <span class="k">if</span> <span class="n">enable_imaging</span><span class="p">:</span>
     <span class="n">image_ms</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
@@ -1410,19 +1437,22 @@
         <span class="n">sources</span> <span class="o">=</span> <span class="n">query_sources_for_image</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
         <span class="c1"># Trigger photometry</span>
         <span class="n">trigger_photometry_for_image</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="n">sources</span><span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Missing Functions</strong>:
-- <code>query_sources_for_image(image_path: Path) -&gt; List[Source]</code>
-- <code>trigger_photometry_for_image(image_path: Path, sources: List[Source]) -&gt; str</code> (returns job_id)</p>
+</code></pre></div>
+<p><strong>Missing Functions</strong>:</p>
+<ul>
+<li><code>query_sources_for_image(image_path: Path) -&gt; List[Source]</code></li>
+<li><code>trigger_photometry_for_image(image_path: Path, sources: List[Source]) -&gt; str</code>
+  (returns job_id)</li>
+</ul>
 <h3 id="gap-2-mosaic-orchestrator-integration">Gap 2: Mosaic Orchestrator Integration<a class="headerlink" href="#gap-2-mosaic-orchestrator-integration" title="Permanent link">¶</a></h3>
 <p><strong>File</strong>: <code>src/dsa110_contimg/mosaic/orchestrator.py</code></p>
-<p><strong>Current Workflow</strong>:
+<p><strong>Current Workflow</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Phase 10: Create mosaic</span>
 <span class="n">mosaic_path</span> <span class="o">=</span> <span class="n">create_mosaic</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 <span class="c1"># Phase 11: Validate and publish</span>
 <span class="c1"># NO PHOTOMETRY HERE</span>
-</code></pre></div></p>
-<p><strong>Required Workflow</strong>:
+</code></pre></div>
+<p><strong>Required Workflow</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Phase 10: Create mosaic</span>
 <span class="n">mosaic_path</span> <span class="o">=</span> <span class="n">create_mosaic</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 
@@ -1433,30 +1463,40 @@
     <span class="c1"># Wait for completion or continue asynchronously</span>
 
 <span class="c1"># Phase 11: Validate and publish</span>
-</code></pre></div></p>
-<p><strong>Missing Functions</strong>:
-- <code>query_sources_for_mosaic(mosaic_path: Path) -&gt; List[Source]</code>
-- <code>trigger_photometry_for_mosaic(mosaic_path: Path, sources: List[Source]) -&gt; str</code></p>
+</code></pre></div>
+<p><strong>Missing Functions</strong>:</p>
+<ul>
+<li><code>query_sources_for_mosaic(mosaic_path: Path) -&gt; List[Source]</code></li>
+<li><code>trigger_photometry_for_mosaic(mosaic_path: Path, sources: List[Source]) -&gt; str</code></li>
+</ul>
 <h3 id="gap-3-data-registry-integration">Gap 3: Data Registry Integration<a class="headerlink" href="#gap-3-data-registry-integration" title="Permanent link">¶</a></h3>
 <p><strong>File</strong>: <code>src/dsa110_contimg/database/data_registry.py</code></p>
-<p><strong>Current Schema</strong>:
-- <code>data_registry</code> table tracks: <code>data_id</code>, <code>data_type</code>, <code>status</code>, <code>qa_status</code>, <code>validation_status</code>
-- No photometry-related fields</p>
-<p><strong>Required Schema</strong>:
+<p><strong>Current Schema</strong>:</p>
+<ul>
+<li><code>data_registry</code> table tracks: <code>data_id</code>, <code>data_type</code>, <code>status</code>, <code>qa_status</code>,
+  <code>validation_status</code></li>
+<li>No photometry-related fields</li>
+</ul>
+<p><strong>Required Schema</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">data_registry</span><span class="w"> </span><span class="k">ADD</span><span class="w"> </span><span class="k">COLUMN</span><span class="w"> </span><span class="n">photometry_status</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">NULL</span><span class="p">;</span>
 <span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">data_registry</span><span class="w"> </span><span class="k">ADD</span><span class="w"> </span><span class="k">COLUMN</span><span class="w"> </span><span class="n">photometry_job_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">NULL</span><span class="p">;</span>
-</code></pre></div></p>
-<p><strong>Required Functions</strong>:
-- <code>update_photometry_status(data_id: str, status: str, job_id: Optional[str])</code>
-- <code>get_photometry_status(data_id: str) -&gt; Optional[str]</code>
-- <code>link_photometry_to_data(data_id: str, photometry_job_id: str)</code></p>
+</code></pre></div>
+<p><strong>Required Functions</strong>:</p>
+<ul>
+<li><code>update_photometry_status(data_id: str, status: str, job_id: Optional[str])</code></li>
+<li><code>get_photometry_status(data_id: str) -&gt; Optional[str]</code></li>
+<li><code>link_photometry_to_data(data_id: str, photometry_job_id: str)</code></li>
+</ul>
 <h3 id="gap-4-source-query-functions">Gap 4: Source Query Functions<a class="headerlink" href="#gap-4-source-query-functions" title="Permanent link">¶</a></h3>
 <p><strong>Missing Module</strong>: <code>src/dsa110_contimg/photometry/sources.py</code> (or similar)</p>
-<p><strong>Required Functions</strong>:
-- <code>query_sources_for_image(image_path: Path, catalog: str = "nvss", radius_deg: float = 0.5) -&gt; List[Source]</code>
-- <code>query_sources_for_mosaic(mosaic_path: Path, catalog: str = "nvss", radius_deg: float = 1.0) -&gt; List[Source]</code>
-- <code>get_field_center_from_fits(fits_path: Path) -&gt; Tuple[float, float]</code> (RA, Dec)</p>
-<p><strong>Note</strong>: These may exist in <code>dsa110_contimg.catalog</code> or <code>dsa110_contimg.photometry.source</code> - needs verification.</p>
+<p><strong>Required Functions</strong>:</p>
+<ul>
+<li><code>query_sources_for_image(image_path: Path, catalog: str = "nvss", radius_deg: float = 0.5) -&gt; List[Source]</code></li>
+<li><code>query_sources_for_mosaic(mosaic_path: Path, catalog: str = "nvss", radius_deg: float = 1.0) -&gt; List[Source]</code></li>
+<li><code>get_field_center_from_fits(fits_path: Path) -&gt; Tuple[float, float]</code> (RA, Dec)</li>
+</ul>
+<p><strong>Note</strong>: These may exist in <code>dsa110_contimg.catalog</code> or
+<code>dsa110_contimg.photometry.source</code> - needs verification.</p>
 <h2 id="implementation-plan">Implementation Plan<a class="headerlink" href="#implementation-plan" title="Permanent link">¶</a></h2>
 <h3 id="phase-1-source-query-functions-foundation">Phase 1: Source Query Functions (Foundation)<a class="headerlink" href="#phase-1-source-query-functions-foundation" title="Permanent link">¶</a></h3>
 <ol>
@@ -1525,10 +1565,13 @@
 </code></pre></div>
 <h2 id="success-criteria">Success Criteria<a class="headerlink" href="#success-criteria" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>After imaging</strong>: Photometry is automatically triggered for newly imaged FITS files</li>
-<li><strong>After mosaic</strong>: Photometry is automatically triggered for newly created mosaics</li>
+<li><strong>After imaging</strong>: Photometry is automatically triggered for newly imaged
+   FITS files</li>
+<li><strong>After mosaic</strong>: Photometry is automatically triggered for newly created
+   mosaics</li>
 <li><strong>Data registry</strong>: Photometry status is tracked and linked to data products</li>
-<li><strong>Batch processing</strong>: Batch photometry jobs are created and monitored automatically</li>
+<li><strong>Batch processing</strong>: Batch photometry jobs are created and monitored
+   automatically</li>
 <li><strong>Database</strong>: Photometry results are stored and queryable via products DB</li>
 </ol>
 <h2 id="estimated-effort">Estimated Effort<a class="headerlink" href="#estimated-effort" title="Permanent link">¶</a></h2>
@@ -1574,7 +1617,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

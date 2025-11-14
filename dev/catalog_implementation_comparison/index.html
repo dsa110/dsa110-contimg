@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1158,62 +1160,86 @@
 <h1 id="catalog-implementation-comparison-nvss-vs-vlass-vs-racsrax">Catalog Implementation Comparison: NVSS vs VLASS vs RACS/RAX<a class="headerlink" href="#catalog-implementation-comparison-nvss-vs-vlass-vs-racsrax" title="Permanent link">¶</a></h1>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
 <p><strong>No, VLASS and RACS (RAX) are NOT implemented equivalently to NVSS.</strong></p>
-<p>NVSS has the most complete implementation with dedicated optimized query functions, while VLASS and RAX have partial implementations.</p>
+<p>NVSS has the most complete implementation with dedicated optimized query
+functions, while VLASS and RAX have partial implementations.</p>
 <h2 id="implementation-status">Implementation Status<a class="headerlink" href="#implementation-status" title="Permanent link">¶</a></h2>
 <h3 id="nvss-most-complete">NVSS (Most Complete)<a class="headerlink" href="#nvss-most-complete" title="Permanent link">¶</a></h3>
-<p><strong>Query Functions:</strong>
-- ✅ <code>query_nvss_sources()</code> in <code>calibration/catalogs.py</code> - <strong>Optimized SQLite query function</strong>
-- ✅ <code>query_sources(catalog_type="nvss")</code> in <code>catalog/query.py</code> - Generic query interface
-- ✅ CSV fallback support</p>
-<p><strong>Database Builders:</strong>
-- ✅ <code>build_nvss_strip_db()</code> in <code>catalog/builders.py</code>
-- ✅ SQLite databases with spatial indexing
-- ✅ Per-declination strip databases</p>
-<p><strong>Performance:</strong>
-- ✅ <strong>170× faster</strong> with SQLite (7ms vs 1200ms)
-- ✅ Optimized spatial queries with indexes
-- ✅ Production databases available</p>
-<p><strong>Usage:</strong>
+<p><strong>Query Functions:</strong></p>
+<ul>
+<li>✅ <code>query_nvss_sources()</code> in <code>calibration/catalogs.py</code> - <strong>Optimized SQLite
+  query function</strong></li>
+<li>✅ <code>query_sources(catalog_type="nvss")</code> in <code>catalog/query.py</code> - Generic query
+  interface</li>
+<li>✅ CSV fallback support</li>
+</ul>
+<p><strong>Database Builders:</strong></p>
+<ul>
+<li>✅ <code>build_nvss_strip_db()</code> in <code>catalog/builders.py</code></li>
+<li>✅ SQLite databases with spatial indexing</li>
+<li>✅ Per-declination strip databases</li>
+</ul>
+<p><strong>Performance:</strong></p>
+<ul>
+<li>✅ <strong>170× faster</strong> with SQLite (7ms vs 1200ms)</li>
+<li>✅ Optimized spatial queries with indexes</li>
+<li>✅ Production databases available</li>
+</ul>
+<p><strong>Usage:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.calibration.catalogs</span><span class="w"> </span><span class="kn">import</span> <span class="n">query_nvss_sources</span>
 
 <span class="c1"># Fast SQLite query (auto-falls back to CSV)</span>
 <span class="n">df</span> <span class="o">=</span> <span class="n">query_nvss_sources</span><span class="p">(</span><span class="n">ra_deg</span><span class="o">=</span><span class="mf">83.5</span><span class="p">,</span> <span class="n">dec_deg</span><span class="o">=</span><span class="mf">54.6</span><span class="p">,</span> <span class="n">radius_deg</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">min_flux_mjy</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="racsrax-partially-implemented">RACS/RAX (Partially Implemented)<a class="headerlink" href="#racsrax-partially-implemented" title="Permanent link">¶</a></h3>
-<p><strong>Query Functions:</strong>
-- ❌ <strong>NO dedicated <code>query_rax_sources()</code> function</strong>
-- ✅ <code>query_sources(catalog_type="rax")</code> in <code>catalog/query.py</code> - Generic query interface only
-- ⚠️ No CSV fallback (SQLite only)</p>
-<p><strong>Database Builders:</strong>
-- ✅ <code>build_rax_strip_db()</code> in <code>catalog/builders.py</code>
-- ✅ SQLite databases with spatial indexing
-- ✅ Per-declination strip databases</p>
-<p><strong>Performance:</strong>
-- ✅ Fast SQLite queries (similar to NVSS)
-- ⚠️ No CSV fallback (fails if SQLite DB not found)</p>
-<p><strong>Usage:</strong>
+<p><strong>Query Functions:</strong></p>
+<ul>
+<li>❌ <strong>NO dedicated <code>query_rax_sources()</code> function</strong></li>
+<li>✅ <code>query_sources(catalog_type="rax")</code> in <code>catalog/query.py</code> - Generic query
+  interface only</li>
+<li>⚠️ No CSV fallback (SQLite only)</li>
+</ul>
+<p><strong>Database Builders:</strong></p>
+<ul>
+<li>✅ <code>build_rax_strip_db()</code> in <code>catalog/builders.py</code></li>
+<li>✅ SQLite databases with spatial indexing</li>
+<li>✅ Per-declination strip databases</li>
+</ul>
+<p><strong>Performance:</strong></p>
+<ul>
+<li>✅ Fast SQLite queries (similar to NVSS)</li>
+<li>⚠️ No CSV fallback (fails if SQLite DB not found)</li>
+</ul>
+<p><strong>Usage:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.catalog.query</span><span class="w"> </span><span class="kn">import</span> <span class="n">query_sources</span>
 
 <span class="c1"># Generic query interface (no dedicated function)</span>
 <span class="n">df</span> <span class="o">=</span> <span class="n">query_sources</span><span class="p">(</span><span class="n">catalog_type</span><span class="o">=</span><span class="s2">"rax"</span><span class="p">,</span> <span class="n">ra_deg</span><span class="o">=</span><span class="mf">83.5</span><span class="p">,</span> <span class="n">dec_deg</span><span class="o">=</span><span class="mf">54.6</span><span class="p">,</span> <span class="n">radius_deg</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Missing:</strong>
-- Dedicated <code>query_rax_sources()</code> function in <code>calibration/catalogs.py</code>
-- CSV fallback support
-- Equivalent optimization to NVSS</p>
+</code></pre></div>
+<p><strong>Missing:</strong></p>
+<ul>
+<li>Dedicated <code>query_rax_sources()</code> function in <code>calibration/catalogs.py</code></li>
+<li>CSV fallback support</li>
+<li>Equivalent optimization to NVSS</li>
+</ul>
 <h3 id="vlass-minimal-implementation">VLASS (Minimal Implementation)<a class="headerlink" href="#vlass-minimal-implementation" title="Permanent link">¶</a></h3>
-<p><strong>Query Functions:</strong>
-- ❌ <strong>NO dedicated query function</strong>
-- ❌ <strong>NOT supported in <code>query_sources()</code> generic interface</strong>
-- ❌ No SQLite query support</p>
-<p><strong>Database Builders:</strong>
-- ❌ <strong>NO <code>build_vlass_strip_db()</code> function</strong>
-- ❌ No SQLite databases</p>
-<p><strong>Usage:</strong>
-- ⚠️ Only used in master catalog crossmatching (<code>build_master.py</code>)
-- ⚠️ Must provide CSV/FITS file path directly
-- ⚠️ No optimized query interface</p>
-<p><strong>Current Usage:</strong>
+<p><strong>Query Functions:</strong></p>
+<ul>
+<li>❌ <strong>NO dedicated query function</strong></li>
+<li>❌ <strong>NOT supported in <code>query_sources()</code> generic interface</strong></li>
+<li>❌ No SQLite query support</li>
+</ul>
+<p><strong>Database Builders:</strong></p>
+<ul>
+<li>❌ <strong>NO <code>build_vlass_strip_db()</code> function</strong></li>
+<li>❌ No SQLite databases</li>
+</ul>
+<p><strong>Usage:</strong></p>
+<ul>
+<li>⚠️ Only used in master catalog crossmatching (<code>build_master.py</code>)</li>
+<li>⚠️ Must provide CSV/FITS file path directly</li>
+<li>⚠️ No optimized query interface</li>
+</ul>
+<p><strong>Current Usage:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Only available in master catalog builder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.catalog.build_master</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_master_catalog</span>
 
@@ -1223,13 +1249,15 @@
     <span class="n">vlass_path</span><span class="o">=</span><span class="s2">"/path/to/vlass.csv"</span><span class="p">,</span>  <span class="c1"># Must provide path</span>
     <span class="o">...</span>
 <span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Missing:</strong>
-- Dedicated query function
-- SQLite database builder
-- Query interface support
-- CSV fallback
-- All optimization features</p>
+</code></pre></div>
+<p><strong>Missing:</strong></p>
+<ul>
+<li>Dedicated query function</li>
+<li>SQLite database builder</li>
+<li>Query interface support</li>
+<li>CSV fallback</li>
+<li>All optimization features</li>
+</ul>
 <h2 id="detailed-comparison-table">Detailed Comparison Table<a class="headerlink" href="#detailed-comparison-table" title="Permanent link">¶</a></h2>
 <table>
 <thead>
@@ -1295,8 +1323,8 @@
 <h3 id="for-raxracs">For RAX/RACS<a class="headerlink" href="#for-raxracs" title="Permanent link">¶</a></h3>
 <p>To make RAX equivalent to NVSS:</p>
 <ol>
-<li>
-<p><strong>Add dedicated query function:</strong>
+<li><strong>Add dedicated query function:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">query_rax_sources</span><span class="p">(</span>
     <span class="n">ra_deg</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">dec_deg</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -1307,8 +1335,8 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Query RAX catalog (equivalent to query_nvss_sources)."""</span>
     <span class="c1"># Similar implementation to query_nvss_sources()</span>
-</code></pre></div></p>
-</li>
+</code></pre></div>
+<ol>
 <li>
 <p><strong>Add CSV fallback support</strong> in <code>query_sources()</code> for RAX</p>
 </li>
@@ -1319,8 +1347,8 @@
 <h3 id="for-vlass">For VLASS<a class="headerlink" href="#for-vlass" title="Permanent link">¶</a></h3>
 <p>To make VLASS equivalent to NVSS:</p>
 <ol>
-<li>
-<p><strong>Add SQLite builder:</strong>
+<li><strong>Add SQLite builder:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">build_vlass_strip_db</span><span class="p">(</span>
     <span class="n">dec_center</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">dec_range</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
@@ -1328,34 +1356,36 @@
     <span class="o">...</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Build SQLite database for VLASS sources."""</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Add query support</strong> in <code>query_sources()</code>:
-   <div class="highlight"><pre><span></span><code><span class="k">elif</span> <span class="n">catalog_type</span> <span class="o">==</span> <span class="s2">"vlass"</span><span class="p">:</span>
+</code></pre></div>
+<ol>
+<li><strong>Add query support</strong> in <code>query_sources()</code>:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="k">elif</span> <span class="n">catalog_type</span> <span class="o">==</span> <span class="s2">"vlass"</span><span class="p">:</span>
     <span class="c1"># VLASS catalog schema</span>
     <span class="o">...</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Add dedicated query function</strong> (optional but recommended):
-   <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">query_vlass_sources</span><span class="p">(</span><span class="o">...</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+</code></pre></div>
+<ol>
+<li><strong>Add dedicated query function</strong> (optional but recommended):</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">query_vlass_sources</span><span class="p">(</span><span class="o">...</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Query VLASS catalog."""</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Add CSV fallback</strong> support</p>
-</li>
+</code></pre></div>
+<ol>
+<li><strong>Add CSV fallback</strong> support</li>
 </ol>
 <h2 id="current-production-status">Current Production Status<a class="headerlink" href="#current-production-status" title="Permanent link">¶</a></h2>
-<p><strong>Available SQLite Databases:</strong>
-- ✅ <code>nvss_dec+54.6.sqlite3</code> (17MB, 129k sources)
-- ❌ No RAX databases (must build)
-- ❌ No VLASS databases</p>
-<p><strong>Usage in Pipeline:</strong>
-- NVSS: ✅ Used extensively for validation, seeding, photometry
-- RAX: ⚠️ Supported but requires database building
-- VLASS: ⚠️ Only used in master catalog crossmatching</p>
+<p><strong>Available SQLite Databases:</strong></p>
+<ul>
+<li>✅ <code>nvss_dec+54.6.sqlite3</code> (17MB, 129k sources)</li>
+<li>❌ No RAX databases (must build)</li>
+<li>❌ No VLASS databases</li>
+</ul>
+<p><strong>Usage in Pipeline:</strong></p>
+<ul>
+<li>NVSS: ✅ Used extensively for validation, seeding, photometry</li>
+<li>RAX: ⚠️ Supported but requires database building</li>
+<li>VLASS: ⚠️ Only used in master catalog crossmatching</li>
+</ul>
 <h2 id="related-files">Related Files<a class="headerlink" href="#related-files" title="Permanent link">¶</a></h2>
 <ul>
 <li><strong>NVSS Implementation:</strong></li>
@@ -1379,8 +1409,12 @@
 <li>No query functions or SQLite builders</li>
 </ul>
 <h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
-<p>NVSS has the most complete and optimized implementation. RAX has partial support (SQLite builder, generic query), but lacks the dedicated optimized query function and CSV fallback. VLASS has minimal support and is only used for crossmatching in the master catalog builder.</p>
-<p>To achieve feature parity, RAX needs a dedicated query function and CSV fallback, while VLASS needs a complete implementation from scratch.</p>
+<p>NVSS has the most complete and optimized implementation. RAX has partial support
+(SQLite builder, generic query), but lacks the dedicated optimized query
+function and CSV fallback. VLASS has minimal support and is only used for
+crossmatching in the master catalog builder.</p>
+<p>To achieve feature parity, RAX needs a dedicated query function and CSV
+fallback, while VLASS needs a complete implementation from scratch.</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1405,7 +1439,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1171,17 +1173,23 @@
 <article class="md-content__inner md-typeset">
 <h1 id="deterministic-error-detection-for-agentic-sessions">Deterministic Error Detection for Agentic Sessions<a class="headerlink" href="#deterministic-error-detection-for-agentic-sessions" title="Permanent link">¶</a></h1>
 <h2 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">¶</a></h2>
-<p>In agentic/automated sessions (like AI agent terminal commands), shells are often non-interactive and non-login, which means:
-- <code>~/.bashrc</code> is <strong>not</strong> sourced by default
-- <code>BASH_ENV</code> may not be set
-- Error detection may not be enabled
-- Commands run without error detection wrapper</p>
+<p>In agentic/automated sessions (like AI agent terminal commands), shells are
+often non-interactive and non-login, which means:</p>
+<ul>
+<li><code>~/.bashrc</code> is <strong>not</strong> sourced by default</li>
+<li><code>BASH_ENV</code> may not be set</li>
+<li>Error detection may not be enabled</li>
+<li>Commands run without error detection wrapper</li>
+</ul>
 <h2 id="solution-bash_env-in-profile">Solution: BASH_ENV in ~/.profile<a class="headerlink" href="#solution-bash_env-in-profile" title="Permanent link">¶</a></h2>
-<p>We set <code>BASH_ENV</code> in <code>~/.profile</code>, which is sourced for <strong>login shells</strong>. This ensures error detection is <strong>always</strong> enabled, even in fresh agentic sessions.</p>
+<p>We set <code>BASH_ENV</code> in <code>~/.profile</code>, which is sourced for <strong>login shells</strong>. This
+ensures error detection is <strong>always</strong> enabled, even in fresh agentic sessions.</p>
 <h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong>BASH_ENV Script</strong>: <code>/data/dsa110-contimg/scripts/auto-error-detection-env.sh</code></li>
-<li>Automatically sourced by bash for non-interactive shells when <code>BASH_ENV</code> is set</li>
+<li><strong>BASH_ENV Script</strong>:
+   <code>/data/dsa110-contimg/scripts/auto-error-detection-env.sh</code></li>
+<li>Automatically sourced by bash for non-interactive shells when <code>BASH_ENV</code> is
+     set</li>
 <li>
 <p>Sources the auto-error-detection script silently</p>
 </li>
@@ -1203,11 +1211,13 @@
 <p>Run the setup script:</p>
 <div class="highlight"><pre><span></span><code>./scripts/setup-auto-error-detection.sh
 </code></pre></div>
-<p>This will:
-1. Create <code>scripts/auto-error-detection-env.sh</code> (BASH_ENV script)
-2. Add auto-error-detection to <code>~/.bashrc</code> (for interactive shells)
-3. <strong>Set <code>BASH_ENV</code> in <code>~/.profile</code></strong> (for login shells/agentic sessions)
-4. Set <code>BASH_ENV</code> in <code>~/.bashrc</code> (redundancy)</p>
+<p>This will:</p>
+<ol>
+<li>Create <code>scripts/auto-error-detection-env.sh</code> (BASH_ENV script)</li>
+<li>Add auto-error-detection to <code>~/.bashrc</code> (for interactive shells)</li>
+<li><strong>Set <code>BASH_ENV</code> in <code>~/.profile</code></strong> (for login shells/agentic sessions)</li>
+<li>Set <code>BASH_ENV</code> in <code>~/.bashrc</code> (redundancy)</li>
+</ol>
 <h3 id="why-profile">Why ~/.profile?<a class="headerlink" href="#why-profile" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>Login shells</strong> source <code>~/.profile</code> (or <code>~/.bash_profile</code> if it exists)</li>
@@ -1215,7 +1225,8 @@
 <li><strong>CI/CD pipelines</strong> may use login shells</li>
 <li><strong>System services</strong> may use login shells</li>
 </ul>
-<p>Setting <code>BASH_ENV</code> in <code>~/.profile</code> ensures it's available for all these scenarios.</p>
+<p>Setting <code>BASH_ENV</code> in <code>~/.profile</code> ensures it's available for all these
+scenarios.</p>
 <h3 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h3>
 <h4 id="fresh-agentic-session-login-shell">Fresh Agentic Session (Login Shell)<a class="headerlink" href="#fresh-agentic-session-login-shell" title="Permanent link">¶</a></h4>
 <div class="highlight"><pre><span></span><code><span class="c1"># Simulate fresh agentic session</span>
@@ -1242,14 +1253,18 @@ $<span class="w"> </span><span class="nb">type</span><span class="w"> </span>pyt
 pytest<span class="w"> </span>is<span class="w"> </span>a<span class="w"> </span><span class="k">function</span>
 </code></pre></div>
 <h3 id="how-bash_env-works">How BASH_ENV Works<a class="headerlink" href="#how-bash_env-works" title="Permanent link">¶</a></h3>
-<p>When bash starts a non-interactive shell (<code>bash -c 'command'</code>), it:
-1. Checks if <code>BASH_ENV</code> environment variable is set
-2. Sources the file specified by <code>BASH_ENV</code>
-3. This happens <strong>before</strong> executing the command</p>
-<p>By setting <code>BASH_ENV</code> in <code>~/.profile</code>, it's:
-- Exported to all child processes
-- Available even in non-interactive shells
-- Persistent across sessions (if <code>~/.profile</code> is sourced)</p>
+<p>When bash starts a non-interactive shell (<code>bash -c 'command'</code>), it:</p>
+<ol>
+<li>Checks if <code>BASH_ENV</code> environment variable is set</li>
+<li>Sources the file specified by <code>BASH_ENV</code></li>
+<li>This happens <strong>before</strong> executing the command</li>
+</ol>
+<p>By setting <code>BASH_ENV</code> in <code>~/.profile</code>, it's:</p>
+<ul>
+<li>Exported to all child processes</li>
+<li>Available even in non-interactive shells</li>
+<li>Persistent across sessions (if <code>~/.profile</code> is sourced)</li>
+</ul>
 <h3 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">¶</a></h3>
 <p>Test that it works in agentic sessions:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Simulate fresh agentic session (login shell)</span>
@@ -1266,11 +1281,14 @@ bash<span class="w"> </span>-l<span class="w"> </span>-c<span class="w"> </span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">BASH_ENV</span><span class="o">=</span><span class="s2">"/data/dsa110-contimg/scripts/auto-error-detection-env.sh"</span>
 </code></pre></div>
 <h3 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">¶</a></h3>
-<p><strong>Note</strong>: If an agentic session starts as a <strong>non-login, non-interactive shell</strong> AND <code>BASH_ENV</code> is not set in the environment, error detection won't be enabled. However:</p>
+<p><strong>Note</strong>: If an agentic session starts as a <strong>non-login, non-interactive shell</strong>
+AND <code>BASH_ENV</code> is not set in the environment, error detection won't be enabled.
+However:</p>
 <ul>
 <li>Most agentic sessions use login shells (<code>bash -l</code>)</li>
 <li>CI/CD systems often set environment variables</li>
-<li>The setup script provides redundancy by setting it in both <code>~/.profile</code> and <code>~/.bashrc</code></li>
+<li>The setup script provides redundancy by setting it in both <code>~/.profile</code> and
+  <code>~/.bashrc</code></li>
 </ul>
 <h3 id="benefits">Benefits<a class="headerlink" href="#benefits" title="Permanent link">¶</a></h3>
 <ul>
@@ -1305,7 +1323,7 @@ bash<span class="w"> </span>-l<span class="w"> </span>-c<span class="w"> </span>
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

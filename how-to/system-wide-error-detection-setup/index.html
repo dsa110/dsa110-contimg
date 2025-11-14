@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1171,22 +1173,27 @@
 <article class="md-content__inner md-typeset">
 <h1 id="system-wide-error-detection-setup">System-Wide Error Detection Setup<a class="headerlink" href="#system-wide-error-detection-setup" title="Permanent link">¶</a></h1>
 <h2 id="completed-system-wide-configuration">✅ COMPLETED: System-Wide Configuration<a class="headerlink" href="#completed-system-wide-configuration" title="Permanent link">¶</a></h2>
-<p>Error detection is now configured system-wide and works automatically for all users and all shell types.</p>
+<p>Error detection is now configured system-wide and works automatically for all
+users and all shell types.</p>
 <h2 id="what-was-configured">What Was Configured<a class="headerlink" href="#what-was-configured" title="Permanent link">¶</a></h2>
 <h3 id="1-etcenvironment-system-wide-environment-variables">1. <code>/etc/environment</code> (System-Wide Environment Variables)<a class="headerlink" href="#1-etcenvironment-system-wide-environment-variables" title="Permanent link">¶</a></h3>
-<p>Added:
+<p>Added:</p>
 <div class="highlight"><pre><span></span><code>BASH_ENV="/data/dsa110-contimg/scripts/auto-error-detection-env.sh"
-</code></pre></div></p>
-<p><strong>How it works:</strong>
-- <code>/etc/environment</code> is read by PAM (Pluggable Authentication Modules) at login
-- Environment variables are set for all processes
-- Works for all users and all shell types</p>
+</code></pre></div>
+<p><strong>How it works:</strong></p>
+<ul>
+<li><code>/etc/environment</code> is read by PAM (Pluggable Authentication Modules) at login</li>
+<li>Environment variables are set for all processes</li>
+<li>Works for all users and all shell types</li>
+</ul>
 <h3 id="2-etcprofilederror-detectionsh-login-shell-scripts">2. <code>/etc/profile.d/error-detection.sh</code> (Login Shell Scripts)<a class="headerlink" href="#2-etcprofilederror-detectionsh-login-shell-scripts" title="Permanent link">¶</a></h3>
 <p>Created script that exports <code>BASH_ENV</code> for login shells.</p>
-<p><strong>How it works:</strong>
-- Sourced by login shells (SSH, <code>bash --login</code>)
-- Provides redundancy with <code>/etc/environment</code>
-- Ensures <code>BASH_ENV</code> is exported to child processes</p>
+<p><strong>How it works:</strong></p>
+<ul>
+<li>Sourced by login shells (SSH, <code>bash --login</code>)</li>
+<li>Provides redundancy with <code>/etc/environment</code></li>
+<li>Ensures <code>BASH_ENV</code> is exported to child processes</li>
+</ul>
 <h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h2>
 <h3 id="test-1-new-user-session">Test 1: New User Session<a class="headerlink" href="#test-1-new-user-session" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>$<span class="w"> </span>sudo<span class="w"> </span>-u<span class="w"> </span>ubuntu<span class="w"> </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s1">'echo $BASH_ENV'</span>
@@ -1221,18 +1228,21 @@ $<span class="w"> </span>sudo<span class="w"> </span>-u<span class="w"> </span>u
 <ul>
 <li>✅ <strong>Automatic</strong>: No agent action required</li>
 <li>✅ <strong>System-Wide</strong>: Works for all users</li>
-<li>✅ <strong>All Shell Types</strong>: Works for interactive, non-interactive, login, non-login</li>
+<li>✅ <strong>All Shell Types</strong>: Works for interactive, non-interactive, login,
+  non-login</li>
 <li>✅ <strong>Persistent</strong>: Survives reboots</li>
 <li>✅ <strong>Deterministic</strong>: Always enabled in fresh sessions</li>
 </ul>
 <h2 id="current-status">Current Status<a class="headerlink" href="#current-status" title="Permanent link">¶</a></h2>
-<p><strong>Error detection is now AUTOMATIC for:</strong>
-- ✅ All users (system-wide)
-- ✅ All shell types (interactive, non-interactive, login, non-login)
-- ✅ Agentic sessions (no setup required)
-- ✅ CI/CD pipelines (if they start new sessions)
-- ✅ SSH sessions
-- ✅ Automated scripts</p>
+<p><strong>Error detection is now AUTOMATIC for:</strong></p>
+<ul>
+<li>✅ All users (system-wide)</li>
+<li>✅ All shell types (interactive, non-interactive, login, non-login)</li>
+<li>✅ Agentic sessions (no setup required)</li>
+<li>✅ CI/CD pipelines (if they start new sessions)</li>
+<li>✅ SSH sessions</li>
+<li>✅ Automated scripts</li>
+</ul>
 <h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">¶</a></h2>
 <p>Test that it works in a completely fresh session:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># As different user (simulates fresh agentic session)</span>
@@ -1275,7 +1285,7 @@ sudo<span class="w"> </span>rm<span class="w"> </span>/etc/profile.d/error-detec
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

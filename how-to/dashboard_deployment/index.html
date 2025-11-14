@@ -8,7 +8,7 @@
 <link href="http://code.deepsynoptic.org/dsa110-contimg/how-to/dashboard_deployment/" rel="canonical"/>
 <link href="../../assets/images/favicon.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
-<title>DSA-110 Dashboard: Deployment &amp; Operations - DSA-110 Continuum Imaging Pipeline</title>
+<title>Moved - DSA-110 Continuum Imaging Pipeline</title>
 <link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
@@ -21,11 +21,13 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#dsa-110-dashboard-deployment-operations">
+<a class="md-skip" href="#moved">
           Skip to content
         </a>
 </div>
 <div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
 </div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
@@ -45,7 +47,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              DSA-110 Dashboard: Deployment &amp; Operations
+              Moved
             
           </span>
 </div>
@@ -1298,10 +1300,8 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="dsa-110-dashboard-deployment-operations">DSA-110 Dashboard: Deployment &amp; Operations<a class="headerlink" href="#dsa-110-dashboard-deployment-operations" title="Permanent link">¶</a></h1>
-<p><strong>Date:</strong> 2025-11-12<br/>
-<strong>Status:</strong> Consolidated deployment documentation<br/>
-<strong>Audience:</strong> DevOps engineers, system administrators</p>
+<h1 id="moved">Moved<a class="headerlink" href="#moved" title="Permanent link">¶</a></h1>
+<p>See <code>docs/how-to/dashboard.md</code> (Deployment section).</p>
 <hr/>
 <h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">¶</a></h2>
 <ol>
@@ -1341,35 +1341,39 @@
 <hr/>
 <h2 id="build-process">Build Process<a class="headerlink" href="#build-process" title="Permanent link">¶</a></h2>
 <h3 id="production-build">Production Build<a class="headerlink" href="#production-build" title="Permanent link">¶</a></h3>
-<p><strong>Build Command:</strong>
+<p><strong>Build Command:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
 conda<span class="w"> </span>activate<span class="w"> </span>casa6
 npm<span class="w"> </span>run<span class="w"> </span>build
-</code></pre></div></p>
-<p><strong>Output:</strong>
-- Build artifacts in <code>dist/</code> directory
-- Optimized, minified JavaScript
-- Optimized CSS
-- Static assets</p>
-<p><strong>Build Features:</strong>
-- Code splitting
-- Tree shaking
-- Minification
-- Asset optimization
-- Source maps (optional)</p>
+</code></pre></div>
+<p><strong>Output:</strong></p>
+<ul>
+<li>Build artifacts in <code>dist/</code> directory</li>
+<li>Optimized, minified JavaScript</li>
+<li>Optimized CSS</li>
+<li>Static assets</li>
+</ul>
+<p><strong>Build Features:</strong></p>
+<ul>
+<li>Code splitting</li>
+<li>Tree shaking</li>
+<li>Minification</li>
+<li>Asset optimization</li>
+<li>Source maps (optional)</li>
+</ul>
 <h3 id="build-verification">Build Verification<a class="headerlink" href="#build-verification" title="Permanent link">¶</a></h3>
-<p><strong>Preview Build:</strong>
+<p><strong>Preview Build:</strong></p>
 <div class="highlight"><pre><span></span><code>npm<span class="w"> </span>run<span class="w"> </span>preview
 <span class="c1"># Available at http://localhost:4173</span>
-</code></pre></div></p>
-<p><strong>Check Build Output:</strong>
+</code></pre></div>
+<p><strong>Check Build Output:</strong></p>
 <div class="highlight"><pre><span></span><code>ls<span class="w"> </span>-lh<span class="w"> </span>dist/
 <span class="c1"># Should see: index.html, assets/, etc.</span>
-</code></pre></div></p>
+</code></pre></div>
 <hr/>
 <h2 id="docker-deployment">Docker Deployment<a class="headerlink" href="#docker-deployment" title="Permanent link">¶</a></h2>
 <h3 id="docker-compose">Docker Compose<a class="headerlink" href="#docker-compose" title="Permanent link">¶</a></h3>
-<p><strong>Configuration (<code>docker-compose.yml</code>):</strong>
+<p><strong>Configuration (<code>docker-compose.yml</code>):</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">api</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">continuumdevs/dsa110-api:latest</span>
@@ -1391,20 +1395,20 @@ npm<span class="w"> </span>run<span class="w"> </span>build
 <span class="w">    </span><span class="nt">depends_on</span><span class="p">:</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">api</span>
 <span class="w">    </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
-</code></pre></div></p>
-<p><strong>Deploy:</strong>
+</code></pre></div>
+<p><strong>Deploy:</strong></p>
 <div class="highlight"><pre><span></span><code>docker-compose<span class="w"> </span>up<span class="w"> </span>-d
-</code></pre></div></p>
-<p><strong>Check Status:</strong>
+</code></pre></div>
+<p><strong>Check Status:</strong></p>
 <div class="highlight"><pre><span></span><code>docker-compose<span class="w"> </span>ps
 docker-compose<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>dashboard
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="docker-image-build">Docker Image Build<a class="headerlink" href="#docker-image-build" title="Permanent link">¶</a></h3>
-<p><strong>Build Frontend Image:</strong>
+<p><strong>Build Frontend Image:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>frontend
 docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>dsa110-dashboard:latest<span class="w"> </span>-f<span class="w"> </span>Dockerfile.prod<span class="w"> </span>.
-</code></pre></div></p>
-<p><strong>Dockerfile.prod:</strong>
+</code></pre></div>
+<p><strong>Dockerfile.prod:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">FROM</span><span class="w"> </span><span class="s">node:22-alpine</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s">builder</span>
 <span class="k">WORKDIR</span><span class="w"> </span><span class="s">/app</span>
 <span class="k">COPY</span><span class="w"> </span>package*.json<span class="w"> </span>./
@@ -1417,11 +1421,11 @@ docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </
 <span class="k">COPY</span><span class="w"> </span>nginx.conf<span class="w"> </span>/etc/nginx/conf.d/default.conf
 <span class="k">EXPOSE</span><span class="w"> </span><span class="s">80</span>
 <span class="k">CMD</span><span class="w"> </span><span class="p">[</span><span class="s2">"nginx"</span><span class="p">,</span><span class="w"> </span><span class="s2">"-g"</span><span class="p">,</span><span class="w"> </span><span class="s2">"daemon off;"</span><span class="p">]</span>
-</code></pre></div></p>
+</code></pre></div>
 <hr/>
 <h2 id="systemd-deployment">Systemd Deployment<a class="headerlink" href="#systemd-deployment" title="Permanent link">¶</a></h2>
 <h3 id="api-service">API Service<a class="headerlink" href="#api-service" title="Permanent link">¶</a></h3>
-<p><strong>Service File (<code>contimg-api.service</code>):</strong>
+<p><strong>Service File (<code>contimg-api.service</code>):</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">[Unit]</span>
 <span class="na">Description</span><span class="o">=</span><span class="s">DSA-110 Continuum Pipeline API</span>
 <span class="na">After</span><span class="o">=</span><span class="s">network.target</span>
@@ -1437,14 +1441,14 @@ docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </
 
 <span class="k">[Install]</span>
 <span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
-</code></pre></div></p>
-<p><strong>Install:</strong>
+</code></pre></div>
+<p><strong>Install:</strong></p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>cp<span class="w"> </span>ops/systemd/contimg-api.service<span class="w"> </span>/etc/systemd/system/
 sudo<span class="w"> </span>systemctl<span class="w"> </span>daemon-reload
 sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>contimg-api.service
 sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>contimg-api.service
-</code></pre></div></p>
-<p><strong>Manage:</strong>
+</code></pre></div>
+<p><strong>Manage:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Status</span>
 sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>contimg-api.service
 
@@ -1453,9 +1457,9 @@ sudo<span class="w"> </span>journalctl<span class="w"> </span>-u<span class="w">
 
 <span class="c1"># Restart</span>
 sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>contimg-api.service
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="dashboard-service-optional">Dashboard Service (Optional)<a class="headerlink" href="#dashboard-service-optional" title="Permanent link">¶</a></h3>
-<p><strong>If serving separately:</strong>
+<p><strong>If serving separately:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Build frontend</span>
 <span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
 npm<span class="w"> </span>run<span class="w"> </span>build
@@ -1465,8 +1469,8 @@ sudo<span class="w"> </span>npm<span class="w"> </span>install<span class="w"> <
 
 <span class="c1"># Create service</span>
 sudo<span class="w"> </span>nano<span class="w"> </span>/etc/systemd/system/dsa110-dashboard.service
-</code></pre></div></p>
-<p><strong>Service File:</strong>
+</code></pre></div>
+<p><strong>Service File:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">[Unit]</span>
 <span class="na">Description</span><span class="o">=</span><span class="s">DSA-110 Dashboard</span>
 <span class="na">After</span><span class="o">=</span><span class="s">network.target</span>
@@ -1480,25 +1484,29 @@ sudo<span class="w"> </span>nano<span class="w"> </span>/etc/systemd/system/dsa1
 
 <span class="k">[Install]</span>
 <span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
-</code></pre></div></p>
+</code></pre></div>
 <hr/>
 <h2 id="static-file-serving">Static File Serving<a class="headerlink" href="#static-file-serving" title="Permanent link">¶</a></h2>
 <h3 id="fastapi-static-mount-recommended">FastAPI Static Mount (Recommended)<a class="headerlink" href="#fastapi-static-mount-recommended" title="Permanent link">¶</a></h3>
-<p><strong>Integrated with Backend:</strong>
+<p><strong>Integrated with Backend:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># In api/routes.py</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.staticfiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">StaticFiles</span>
 
 <span class="n">app</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s2">"/ui"</span><span class="p">,</span> <span class="n">StaticFiles</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="s2">"frontend/dist"</span><span class="p">,</span> <span class="n">html</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s2">"ui"</span><span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Access:</strong>
-- Frontend: <code>http://localhost:8000/ui</code>
-- API: <code>http://localhost:8000/api</code></p>
-<p><strong>Benefits:</strong>
-- Single service to manage
-- Same port for frontend and API
-- Simplified deployment</p>
+</code></pre></div>
+<p><strong>Access:</strong></p>
+<ul>
+<li>Frontend: <code>http://localhost:8000/ui</code></li>
+<li>API: <code>http://localhost:8000/api</code></li>
+</ul>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Single service to manage</li>
+<li>Same port for frontend and API</li>
+<li>Simplified deployment</li>
+</ul>
 <h3 id="nginx-reverse-proxy">Nginx Reverse Proxy<a class="headerlink" href="#nginx-reverse-proxy" title="Permanent link">¶</a></h3>
-<p><strong>Configuration (<code>nginx.conf</code>):</strong>
+<p><strong>Configuration (<code>nginx.conf</code>):</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">server</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="kn">listen</span><span class="w"> </span><span class="mi">80</span><span class="p">;</span>
 <span class="w">    </span><span class="kn">server_name</span><span class="w"> </span><span class="s">dsa110-pipeline.caltech.edu</span><span class="p">;</span>
@@ -1521,74 +1529,82 @@ sudo<span class="w"> </span>nano<span class="w"> </span>/etc/systemd/system/dsa1
 <span class="w">        </span><span class="kn">return</span><span class="w"> </span><span class="mi">301</span><span class="w"> </span><span class="s">/ui</span><span class="p">;</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <hr/>
 <h2 id="environment-configuration">Environment Configuration<a class="headerlink" href="#environment-configuration" title="Permanent link">¶</a></h2>
 <h3 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">¶</a></h3>
-<p><strong>Development (<code>.env.development</code>):</strong>
+<p><strong>Development (<code>.env.development</code>):</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nv">VITE_API_URL</span><span class="o">=</span>http://localhost:8000
 <span class="nv">VITE_WS_URL</span><span class="o">=</span>ws://localhost:8000
-</code></pre></div></p>
-<p><strong>Production (<code>.env.production</code>):</strong>
+</code></pre></div>
+<p><strong>Production (<code>.env.production</code>):</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nv">VITE_API_URL</span><span class="o">=</span>https://dsa110-pipeline.caltech.edu/api
 <span class="nv">VITE_WS_URL</span><span class="o">=</span>wss://dsa110-pipeline.caltech.edu/api/ws
-</code></pre></div></p>
-<p><strong>Build-Time Variables:</strong>
-- Variables prefixed with <code>VITE_</code> are embedded at build time
-- Must rebuild frontend after changing environment variables</p>
+</code></pre></div>
+<p><strong>Build-Time Variables:</strong></p>
+<ul>
+<li>Variables prefixed with <code>VITE_</code> are embedded at build time</li>
+<li>Must rebuild frontend after changing environment variables</li>
+</ul>
 <h3 id="configuration-files">Configuration Files<a class="headerlink" href="#configuration-files" title="Permanent link">¶</a></h3>
-<p><strong>Backend Configuration:</strong>
-- <code>ops/systemd/contimg.env</code> - Environment variables for systemd
-- <code>.env</code> - Local development environment</p>
+<p><strong>Backend Configuration:</strong></p>
+<ul>
+<li><code>ops/systemd/contimg.env</code> - Environment variables for systemd</li>
+<li><code>.env</code> - Local development environment</li>
+</ul>
 <hr/>
 <h2 id="monitoring-health-checks">Monitoring &amp; Health Checks<a class="headerlink" href="#monitoring-health-checks" title="Permanent link">¶</a></h2>
 <h3 id="health-check-endpoints">Health Check Endpoints<a class="headerlink" href="#health-check-endpoints" title="Permanent link">¶</a></h3>
-<p><strong>API Health:</strong>
+<p><strong>API Health:</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/api/status
-</code></pre></div></p>
-<p><strong>Frontend Health:</strong>
+</code></pre></div>
+<p><strong>Frontend Health:</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:3000/
 <span class="c1"># Should return HTML</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="monitoring-scripts">Monitoring Scripts<a class="headerlink" href="#monitoring-scripts" title="Permanent link">¶</a></h3>
-<p><strong>Check Services:</strong>
+<p><strong>Check Services:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check API</span>
 curl<span class="w"> </span>-f<span class="w"> </span>http://localhost:8000/api/status<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"API down"</span>
 
 <span class="c1"># Check Frontend</span>
 curl<span class="w"> </span>-f<span class="w"> </span>http://localhost:3000/<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"Frontend down"</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="log-monitoring">Log Monitoring<a class="headerlink" href="#log-monitoring" title="Permanent link">¶</a></h3>
-<p><strong>Systemd Logs:</strong>
+<p><strong>Systemd Logs:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Follow logs</span>
 sudo<span class="w"> </span>journalctl<span class="w"> </span>-u<span class="w"> </span>contimg-api.service<span class="w"> </span>-f
 
 <span class="c1"># Last 100 lines</span>
 sudo<span class="w"> </span>journalctl<span class="w"> </span>-u<span class="w"> </span>contimg-api.service<span class="w"> </span>-n<span class="w"> </span><span class="m">100</span>
-</code></pre></div></p>
-<p><strong>Docker Logs:</strong>
+</code></pre></div>
+<p><strong>Docker Logs:</strong></p>
 <div class="highlight"><pre><span></span><code>docker-compose<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>api
 docker-compose<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>dashboard
-</code></pre></div></p>
+</code></pre></div>
 <hr/>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
 <h3 id="build-failures">Build Failures<a class="headerlink" href="#build-failures" title="Permanent link">¶</a></h3>
 <p><strong>Problem:</strong> Build fails with errors</p>
-<p><strong>Solutions:</strong>
-1. Check Node.js version: <code>node --version</code> (should be v22+)
-2. Clean install: <code>rm -rf node_modules &amp;&amp; npm install</code>
-3. Check for TypeScript errors: <code>npm run type-check</code>
-4. Check disk space: <code>df -h</code></p>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Check Node.js version: <code>node --version</code> (should be v22+)</li>
+<li>Clean install: <code>rm -rf node_modules &amp;&amp; npm install</code></li>
+<li>Check for TypeScript errors: <code>npm run type-check</code></li>
+<li>Check disk space: <code>df -h</code></li>
+</ol>
 <h3 id="service-wont-start">Service Won't Start<a class="headerlink" href="#service-wont-start" title="Permanent link">¶</a></h3>
 <p><strong>Problem:</strong> Systemd service fails to start</p>
-<p><strong>Solutions:</strong>
-1. Check service status: <code>sudo systemctl status contimg-api.service</code>
-2. Check logs: <code>sudo journalctl -u contimg-api.service</code>
-3. Verify paths in service file
-4. Check permissions: <code>ls -l /data/dsa110-contimg</code></p>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Check service status: <code>sudo systemctl status contimg-api.service</code></li>
+<li>Check logs: <code>sudo journalctl -u contimg-api.service</code></li>
+<li>Verify paths in service file</li>
+<li>Check permissions: <code>ls -l /data/dsa110-contimg</code></li>
+</ol>
 <h3 id="port-conflicts">Port Conflicts<a class="headerlink" href="#port-conflicts" title="Permanent link">¶</a></h3>
 <p><strong>Problem:</strong> Port already in use</p>
-<p><strong>Solutions:</strong>
+<p><strong>Solutions:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Find process using port</span>
 lsof<span class="w"> </span>-i<span class="w"> </span>:8000
 
@@ -1596,18 +1612,21 @@ lsof<span class="w"> </span>-i<span class="w"> </span>:8000
 <span class="nb">kill</span><span class="w"> </span>-9<span class="w"> </span>&lt;PID&gt;
 
 <span class="c1"># Or change port in service file</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="frontend-not-loading">Frontend Not Loading<a class="headerlink" href="#frontend-not-loading" title="Permanent link">¶</a></h3>
 <p><strong>Problem:</strong> Frontend shows blank page or errors</p>
-<p><strong>Solutions:</strong>
-1. Check browser console for errors
-2. Verify API URL in environment variables
-3. Check CORS settings in backend
-4. Verify build output exists: <code>ls -l dist/</code></p>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Check browser console for errors</li>
+<li>Verify API URL in environment variables</li>
+<li>Check CORS settings in backend</li>
+<li>Verify build output exists: <code>ls -l dist/</code></li>
+</ol>
 <hr/>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">¶</a></h2>
 <ul>
-<li><a href="../dashboard_development_workflow/">Development Workflow</a> - Development setup</li>
+<li><a href="../dashboard_development_workflow/">Development Workflow</a> - Development
+  setup</li>
 <li><a href="../../concepts/dashboard_architecture/">Architecture</a> - System architecture</li>
 <li><a href="../../reference/dashboard_backend_api/">Backend API</a> - API documentation</li>
 </ul>
@@ -1635,7 +1654,7 @@ lsof<span class="w"> </span>-i<span class="w"> </span>:8000
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

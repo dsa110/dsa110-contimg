@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1250,55 +1252,66 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="ese-detection-documentation-index">ESE Detection Documentation Index<a class="headerlink" href="#ese-detection-documentation-index" title="Permanent link">¶</a></h1>
-<p>This document provides an index of all documentation related to ESE (Extreme Scattering Event) detection implementation.</p>
+<p>This document provides an index of all documentation related to ESE (Extreme
+Scattering Event) detection implementation.</p>
 <h2 id="user-guides">User Guides<a class="headerlink" href="#user-guides" title="Permanent link">¶</a></h2>
 <h3 id="ese-detection-guide"><a href="../../how-to/ese_detection_guide.md">ESE Detection Guide</a><a class="headerlink" href="#ese-detection-guide" title="Permanent link">¶</a></h3>
 <p><strong>Location</strong>: <code>docs/how-to/ese_detection_guide.md</code></p>
-<p>Comprehensive user guide covering:
-- Quick start instructions
-- CLI usage with examples
-- API usage (single and batch jobs)
-- Automated detection configuration
-- Understanding results and troubleshooting</p>
+<p>Comprehensive user guide covering:</p>
+<ul>
+<li>Quick start instructions</li>
+<li>CLI usage with examples</li>
+<li>API usage (single and batch jobs)</li>
+<li>Automated detection configuration</li>
+<li>Understanding results and troubleshooting</li>
+</ul>
 <p><strong>Audience</strong>: End users, operators, developers</p>
 <h2 id="architecture-documentation">Architecture Documentation<a class="headerlink" href="#architecture-documentation" title="Permanent link">¶</a></h2>
 <h3 id="ese-detection-architecture"><a href="../../concepts/ese_detection_architecture.md">ESE Detection Architecture</a><a class="headerlink" href="#ese-detection-architecture" title="Permanent link">¶</a></h3>
 <p><strong>Location</strong>: <code>docs/concepts/ese_detection_architecture.md</code></p>
-<p>Technical architecture documentation covering:
-- System components and modules
-- Data flow diagrams
-- Database schema
-- Variability metrics
-- Source ID generation
-- Performance considerations
-- Testing strategy</p>
+<p>Technical architecture documentation covering:</p>
+<ul>
+<li>System components and modules</li>
+<li>Data flow diagrams</li>
+<li>Database schema</li>
+<li>Variability metrics</li>
+<li>Source ID generation</li>
+<li>Performance considerations</li>
+<li>Testing strategy</li>
+</ul>
 <p><strong>Audience</strong>: Developers, architects, maintainers</p>
 <h2 id="implementation-summaries">Implementation Summaries<a class="headerlink" href="#implementation-summaries" title="Permanent link">¶</a></h2>
 <h3 id="ese-detection-implementation-summary"><a href="../ese_detection_implementation_summary.md">ESE Detection Implementation Summary</a><a class="headerlink" href="#ese-detection-implementation-summary" title="Permanent link">¶</a></h3>
 <p><strong>Location</strong>: <code>docs/dev/ese_detection_implementation_summary.md</code></p>
-<p>Summary of CLI and API implementation:
-- Feature confirmation checklist
-- Implementation details
-- Test coverage
-- Usage examples
-- Status: Complete</p>
+<p>Summary of CLI and API implementation:</p>
+<ul>
+<li>Feature confirmation checklist</li>
+<li>Implementation details</li>
+<li>Test coverage</li>
+<li>Usage examples</li>
+<li>Status: Complete</li>
+</ul>
 <p><strong>Audience</strong>: Developers, project managers</p>
 <h3 id="automated-ese-detection-pipeline-summary"><a href="../ese_automated_pipeline_summary.md">Automated ESE Detection Pipeline Summary</a><a class="headerlink" href="#automated-ese-detection-pipeline-summary" title="Permanent link">¶</a></h3>
 <p><strong>Location</strong>: <code>docs/dev/ese_automated_pipeline_summary.md</code></p>
-<p>Summary of automated pipeline integration:
-- Automatic variability stats computation
-- Automatic ESE candidate detection
-- Photometry pipeline integration
-- Configuration options
-- Data flow
-- Status: Complete</p>
+<p>Summary of automated pipeline integration:</p>
+<ul>
+<li>Automatic variability stats computation</li>
+<li>Automatic ESE candidate detection</li>
+<li>Photometry pipeline integration</li>
+<li>Configuration options</li>
+<li>Data flow</li>
+<li>Status: Complete</li>
+</ul>
 <p><strong>Audience</strong>: Developers, project managers</p>
 <h2 id="task-tracking">Task Tracking<a class="headerlink" href="#task-tracking" title="Permanent link">¶</a></h2>
 <h3 id="unaddressed-tasks-review"><a href="../analysis/unaddressed_tasks_review.md">Unaddressed Tasks Review</a><a class="headerlink" href="#unaddressed-tasks-review" title="Permanent link">¶</a></h3>
 <p><strong>Location</strong>: <code>docs/dev/analysis/unaddressed_tasks_review.md</code></p>
-<p>Updated to reflect completion:
-- Stage 8: ESE Detection CLI and Execution (100% complete)
-- Stage 8: Automated ESE Detection Pipeline (100% complete)</p>
+<p>Updated to reflect completion:</p>
+<ul>
+<li>Stage 8: ESE Detection CLI and Execution (100% complete)</li>
+<li>Stage 8: Automated ESE Detection Pipeline (100% complete)</li>
+</ul>
 <p><strong>Audience</strong>: Project managers, developers</p>
 <h2 id="code-documentation">Code Documentation<a class="headerlink" href="#code-documentation" title="Permanent link">¶</a></h2>
 <h3 id="core-modules">Core Modules<a class="headerlink" href="#core-modules" title="Permanent link">¶</a></h3>
@@ -1313,7 +1326,8 @@
 <p><strong>Pipeline Integration Module</strong></p>
 </li>
 <li>File: <code>src/dsa110_contimg/photometry/ese_pipeline.py</code></li>
-<li>Functions: <code>update_variability_stats_for_source()</code>, <code>auto_detect_ese_for_new_measurements()</code></li>
+<li>Functions: <code>update_variability_stats_for_source()</code>,
+     <code>auto_detect_ese_for_new_measurements()</code></li>
 <li>
 <p>Documentation: Inline docstrings</p>
 </li>
@@ -1408,9 +1422,11 @@ POST<span class="w"> </span>/api/batch/ese-detect
 </code></pre></div>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
 <ul>
-<li><a href="../../how-to/photometry_guide.md">Photometry Guide</a> - Photometry measurement procedures</li>
+<li><a href="../../how-to/photometry_guide.md">Photometry Guide</a> - Photometry measurement
+  procedures</li>
 <li><a href="../../reference/database_schema.md">Database Schema</a> - Database structure</li>
-<li><a href="../../reference/api_reference_generated.md">API Reference</a> - Complete API documentation</li>
+<li><a href="../../reference/api_reference_generated.md">API Reference</a> - Complete API
+  documentation</li>
 </ul>
 <h2 id="documentation-maintenance">Documentation Maintenance<a class="headerlink" href="#documentation-maintenance" title="Permanent link">¶</a></h2>
 <h3 id="last-updated">Last Updated<a class="headerlink" href="#last-updated" title="Permanent link">¶</a></h3>
@@ -1426,10 +1442,14 @@ POST<span class="w"> </span>/api/batch/ese-detect
 <li>Review architecture docs when making significant changes</li>
 </ul>
 <h2 id="contact">Contact<a class="headerlink" href="#contact" title="Permanent link">¶</a></h2>
-<p>For questions or issues with ESE detection:
-- Check user guide first: <a href="../../how-to/ese_detection_guide.md">ESE Detection Guide</a>
-- Review architecture: <a href="../../concepts/ese_detection_architecture.md">ESE Detection Architecture</a>
-- Check implementation summaries for technical details</p>
+<p>For questions or issues with ESE detection:</p>
+<ul>
+<li>Check user guide first:
+  <a href="../../how-to/ese_detection_guide.md">ESE Detection Guide</a></li>
+<li>Review architecture:
+  <a href="../../concepts/ese_detection_architecture.md">ESE Detection Architecture</a></li>
+<li>Check implementation summaries for technical details</li>
+</ul>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1454,7 +1474,7 @@ POST<span class="w"> </span>/api/batch/ese-detect
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

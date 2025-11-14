@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1189,17 +1191,26 @@
 <article class="md-content__inner md-typeset">
 <h1 id="validation-api-reference">Validation API Reference<a class="headerlink" href="#validation-api-reference" title="Permanent link">¶</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>The DSA-110 Continuum Imaging Pipeline provides comprehensive validation endpoints for assessing image quality, astrometry, flux scale, source completeness, photometry, variability, mosaics, streaming, and database consistency. All endpoints are prefixed with <code>/api/qa/images/{image_id}</code>.</p>
-<p><strong>Note:</strong> The validation system uses a centralized configuration system. See <a href="../../how-to/validation_guide/">Validation Guide</a> for details on using the configuration system in Python.</p>
+<p>The DSA-110 Continuum Imaging Pipeline provides comprehensive validation
+endpoints for assessing image quality, astrometry, flux scale, source
+completeness, photometry, variability, mosaics, streaming, and database
+consistency. All endpoints are prefixed with the base path
+api/qa/images/{image_id}.</p>
+<p><strong>Note:</strong> The validation system uses a centralized configuration system. See
+<a href="../../how-to/validation_guide/">Validation Guide</a> for details on using the
+configuration system in Python.</p>
 <h2 id="endpoints">Endpoints<a class="headerlink" href="#endpoints" title="Permanent link">¶</a></h2>
 <h3 id="get-catalog-validation-results">Get Catalog Validation Results<a class="headerlink" href="#get-catalog-validation-results" title="Permanent link">¶</a></h3>
 <p><strong>GET</strong> <code>/api/qa/images/{image_id}/catalog-validation</code></p>
 <p>Retrieve validation results for an image (cached if available).</p>
-<p><strong>Parameters:</strong>
-- <code>image_id</code> (path): Image ID (integer) or image path (string)
-- <code>catalog</code> (query, default: "nvss"): Reference catalog ("nvss" or "vlass")
-- <code>validation_type</code> (query, default: "all"): Validation type ("astrometry", "flux_scale", "source_counts", or "all")</p>
-<p><strong>Response:</strong>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>image_id</code> (path): Image ID (integer) or image path (string)</li>
+<li><code>catalog</code> (query, default: "nvss"): Reference catalog ("nvss" or "vlass")</li>
+<li><code>validation_type</code> (query, default: "all"): Validation type ("astrometry",
+  "flux_scale", "source_counts", or "all")</li>
+</ul>
+<p><strong>Response:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"astrometry"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">"validation_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"astrometry"</span><span class="p">,</span>
@@ -1233,82 +1244,93 @@
 <span class="w">    </span><span class="nt">"has_warnings"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div></p>
-<p><strong>Example:</strong>
+</code></pre></div>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span><span class="s2">"http://localhost:8000/api/qa/images/123/catalog-validation?catalog=nvss&amp;validation_type=all"</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="run-catalog-validation">Run Catalog Validation<a class="headerlink" href="#run-catalog-validation" title="Permanent link">¶</a></h3>
 <p><strong>POST</strong> <code>/api/qa/images/{image_id}/catalog-validation/run</code></p>
 <p>Run validation tests for an image and return results.</p>
-<p><strong>Parameters:</strong>
-- <code>image_id</code> (path): Image ID (integer) or image path (string)
-- <code>catalog</code> (query, default: "nvss"): Reference catalog ("nvss" or "vlass")
-- <code>validation_types</code> (body, default: ["astrometry", "flux_scale", "source_counts"]): List of validation types to run</p>
-<p><strong>Request Body:</strong>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>image_id</code> (path): Image ID (integer) or image path (string)</li>
+<li><code>catalog</code> (query, default: "nvss"): Reference catalog ("nvss" or "vlass")</li>
+<li><code>validation_types</code> (body, default: ["astrometry", "flux_scale",
+  "source_counts"]): List of validation types to run</li>
+</ul>
+<p><strong>Request Body:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"catalog"</span><span class="p">:</span><span class="w"> </span><span class="s2">"nvss"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"validation_types"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"astrometry"</span><span class="p">,</span><span class="w"> </span><span class="s2">"flux_scale"</span><span class="p">,</span><span class="w"> </span><span class="s2">"source_counts"</span><span class="p">]</span>
 <span class="p">}</span>
-</code></pre></div></p>
-<p><strong>Response:</strong>
-Same as GET endpoint above.</p>
-<p><strong>Example:</strong>
+</code></pre></div>
+<p><strong>Response:</strong> Same as GET endpoint above.</p>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">"http://localhost:8000/api/qa/images/123/catalog-validation/run"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"catalog": "nvss", "validation_types": ["astrometry", "flux_scale"]}'</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="get-html-validation-report">Get HTML Validation Report<a class="headerlink" href="#get-html-validation-report" title="Permanent link">¶</a></h3>
 <p><strong>GET</strong> <code>/api/qa/images/{image_id}/validation-report.html</code></p>
 <p>Generate and return HTML validation report.</p>
-<p><strong>Parameters:</strong>
-- <code>image_id</code> (path): Image ID (integer) or image path (string)
-- <code>catalog</code> (query, default: "nvss"): Reference catalog ("nvss" or "vlass")
-- <code>validation_types</code> (query, default: ["astrometry", "flux_scale", "source_counts"]): List of validation types to include
-- <code>save_to_file</code> (query, default: false): Whether to save HTML report to file in QA directory</p>
-<p><strong>Response:</strong>
-HTML content (Content-Type: text/html)</p>
-<p><strong>Example:</strong>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>image_id</code> (path): Image ID (integer) or image path (string)</li>
+<li><code>catalog</code> (query, default: "nvss"): Reference catalog ("nvss" or "vlass")</li>
+<li><code>validation_types</code> (query, default: ["astrometry", "flux_scale",
+  "source_counts"]): List of validation types to include</li>
+<li><code>save_to_file</code> (query, default: false): Whether to save HTML report to file in
+  QA directory</li>
+</ul>
+<p><strong>Response:</strong> HTML content (Content-Type: text/html)</p>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Get HTML report (returns HTML directly)</span>
 curl<span class="w"> </span><span class="s2">"http://localhost:8000/api/qa/images/123/validation-report.html?catalog=nvss&amp;save_to_file=true"</span>
 
 <span class="c1"># Open in browser</span>
 open<span class="w"> </span><span class="s2">"http://localhost:8000/api/qa/images/123/validation-report.html?catalog=nvss"</span>
-</code></pre></div></p>
-<p><strong>Report Features:</strong>
-- Summary dashboard with overall status
-- Data type banner (test vs. real data)
-- Image visualization
-- Astrometry metrics and plots
-- Flux scale metrics and plots
-- Source counts completeness analysis
-- Enhanced visualizations:
-  - Spatial distribution plots
-  - Flux vs. offset correlation
-  - Validation summary dashboard</p>
+</code></pre></div>
+<p><strong>Report Features:</strong></p>
+<ul>
+<li>Summary dashboard with overall status</li>
+<li>Data type banner (test vs. real data)</li>
+<li>Image visualization</li>
+<li>Astrometry metrics and plots</li>
+<li>Flux scale metrics and plots</li>
+<li>Source counts completeness analysis</li>
+<li>Enhanced visualizations:</li>
+<li>Spatial distribution plots</li>
+<li>Flux vs. offset correlation</li>
+<li>Validation summary dashboard</li>
+</ul>
 <h3 id="generate-html-validation-report">Generate HTML Validation Report<a class="headerlink" href="#generate-html-validation-report" title="Permanent link">¶</a></h3>
 <p><strong>POST</strong> <code>/api/qa/images/{image_id}/validation-report/generate</code></p>
 <p>Generate HTML validation report and save to file.</p>
-<p><strong>Parameters:</strong>
-- <code>image_id</code> (path): Image ID (integer) or image path (string)
-- <code>catalog</code> (query, default: "nvss"): Reference catalog ("nvss" or "vlass")
-- <code>validation_types</code> (body, default: ["astrometry", "flux_scale", "source_counts"]): List of validation types to include
-- <code>output_path</code> (body, optional): Custom output path. If None, saves to QA directory.</p>
-<p><strong>Request Body:</strong>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>image_id</code> (path): Image ID (integer) or image path (string)</li>
+<li><code>catalog</code> (query, default: "nvss"): Reference catalog ("nvss" or "vlass")</li>
+<li><code>validation_types</code> (body, default: ["astrometry", "flux_scale",
+  "source_counts"]): List of validation types to include</li>
+<li><code>output_path</code> (body, optional): Custom output path. If None, saves to QA
+  directory.</li>
+</ul>
+<p><strong>Request Body:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"catalog"</span><span class="p">:</span><span class="w"> </span><span class="s2">"nvss"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"validation_types"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"astrometry"</span><span class="p">,</span><span class="w"> </span><span class="s2">"flux_scale"</span><span class="p">,</span><span class="w"> </span><span class="s2">"source_counts"</span><span class="p">],</span>
 <span class="w">  </span><span class="nt">"output_path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/path/to/custom/report.html"</span>
 <span class="p">}</span>
-</code></pre></div></p>
-<p><strong>Response:</strong>
+</code></pre></div>
+<p><strong>Response:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"success"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"report_path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/path/to/report.html"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"image_path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/path/to/image.fits"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"catalog"</span><span class="p">:</span><span class="w"> </span><span class="s2">"nvss"</span>
 <span class="p">}</span>
-</code></pre></div></p>
-<p><strong>Example:</strong>
+</code></pre></div>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">"http://localhost:8000/api/qa/images/123/validation-report/generate"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s1">'{</span>
@@ -1316,7 +1338,7 @@ open<span class="w"> </span><span class="s2">"http://localhost:8000/api/qa/image
 <span class="s1">    "validation_types": ["astrometry", "flux_scale", "source_counts"],</span>
 <span class="s1">    "output_path": "/data/reports/validation_123.html"</span>
 <span class="s1">  }'</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="validation-result-schema">Validation Result Schema<a class="headerlink" href="#validation-result-schema" title="Permanent link">¶</a></h2>
 <h3 id="astrometry-result">Astrometry Result<a class="headerlink" href="#astrometry-result" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
@@ -1384,17 +1406,17 @@ open<span class="w"> </span><span class="s2">"http://localhost:8000/api/qa/image
 <li><strong>404 Not Found</strong>: Image not found</li>
 <li><strong>500 Internal Server Error</strong>: Validation failed</li>
 </ul>
-<p>Error response format:
+<p>Error response format:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"detail"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Error message describing what went wrong"</span>
 <span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">¶</a></h2>
 <p>Validation parameters can be configured via:</p>
 <ol>
-<li>
-<p><strong>YAML Configuration File</strong> (recommended):
-   <div class="highlight"><pre><span></span><code><span class="nt">validation</span><span class="p">:</span>
+<li><strong>YAML Configuration File</strong> (recommended):</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="nt">validation</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">catalog</span><span class="p">:</span><span class="w"> </span><span class="s">"nvss"</span>
 <span class="w">  </span><span class="nt">validation_types</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"astrometry"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"flux_scale"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"source_counts"</span><span class="p p-Indicator">]</span>
@@ -1402,18 +1424,16 @@ open<span class="w"> </span><span class="s2">"http://localhost:8000/api/qa/image
 <span class="w">  </span><span class="nt">min_snr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0</span>
 <span class="w">  </span><span class="nt">search_radius_arcsec</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10.0</span>
 <span class="w">  </span><span class="nt">completeness_threshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.95</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Environment Variables</strong>:
-   <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PIPELINE_VALIDATION_ENABLED</span><span class="o">=</span><span class="nb">true</span>
+</code></pre></div>
+<ol>
+<li><strong>Environment Variables</strong>:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PIPELINE_VALIDATION_ENABLED</span><span class="o">=</span><span class="nb">true</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">PIPELINE_VALIDATION_CATALOG</span><span class="o">=</span>nvss
 <span class="nb">export</span><span class="w"> </span><span class="nv">PIPELINE_VALIDATION_MIN_SNR</span><span class="o">=</span><span class="m">5</span>.0
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>API Parameters</strong>: Override defaults per request</p>
-</li>
+</code></pre></div>
+<ol>
+<li><strong>API Parameters</strong>: Override defaults per request</li>
 </ol>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">¶</a></h2>
 <h3 id="complete-validation-workflow">Complete Validation Workflow<a class="headerlink" href="#complete-validation-workflow" title="Permanent link">¶</a></h3>
@@ -1485,7 +1505,7 @@ open<span class="w"> </span><span class="s2">"http://localhost:8000/api/qa/image
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

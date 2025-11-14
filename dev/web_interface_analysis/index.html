@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1310,48 +1312,57 @@
 <h3 id="high-priority-essential-for-operations">🔴 High Priority (Essential for Operations)<a class="headerlink" href="#high-priority-essential-for-operations" title="Permanent link">¶</a></h3>
 <h4 id="1-dead-letter-queue">1. <strong>Dead Letter Queue</strong> ⭐⭐⭐⭐⭐<a class="headerlink" href="#1-dead-letter-queue" title="Permanent link">¶</a></h4>
 <p><strong>Priority: CRITICAL</strong></p>
-<p><strong>Why:</strong> Operators need to:
-- View failed operations
-- Retry failed items
-- Mark items as resolved
-- Investigate error context
-- Monitor failure trends</p>
-<p><strong>Web Interface Features:</strong>
-- Table view of pending/retrying/failed items
-- Filter by component, operation, error type
-- View full error context and stack traces
-- One-click retry functionality
-- Bulk operations (retry all, mark resolved)
-- Statistics dashboard (failure rates by component)
-- Search and pagination</p>
+<p><strong>Why:</strong> Operators need to:</p>
+<ul>
+<li>View failed operations</li>
+<li>Retry failed items</li>
+<li>Mark items as resolved</li>
+<li>Investigate error context</li>
+<li>Monitor failure trends</li>
+</ul>
+<p><strong>Web Interface Features:</strong></p>
+<ul>
+<li>Table view of pending/retrying/failed items</li>
+<li>Filter by component, operation, error type</li>
+<li>View full error context and stack traces</li>
+<li>One-click retry functionality</li>
+<li>Bulk operations (retry all, mark resolved)</li>
+<li>Statistics dashboard (failure rates by component)</li>
+<li>Search and pagination</li>
+</ul>
 <p><strong>Current State:</strong> Only SQLite database, no UI</p>
-<p><strong>Integration:</strong> Add to existing dashboard under <code>/health</code> or new <code>/operations</code> section</p>
+<p><strong>Integration:</strong> Add to existing dashboard under <code>/health</code> or new <code>/operations</code>
+section</p>
 <hr/>
 <h4 id="2-health-checks-dashboard">2. <strong>Health Checks Dashboard</strong> ⭐⭐⭐⭐⭐<a class="headerlink" href="#2-health-checks-dashboard" title="Permanent link">¶</a></h4>
 <p><strong>Priority: HIGH</strong></p>
 <p><strong>Why:</strong> Real-time visibility into system health</p>
-<p><strong>Web Interface Features:</strong>
-- Visual status indicators (green/yellow/red)
-- Component health matrix
-- Historical health trends
-- Detailed check results
-- Alert status</p>
+<p><strong>Web Interface Features:</strong></p>
+<ul>
+<li>Visual status indicators (green/yellow/red)</li>
+<li>Component health matrix</li>
+<li>Historical health trends</li>
+<li>Detailed check results</li>
+<li>Alert status</li>
+</ul>
 <p><strong>Current State:</strong> Endpoints exist (<code>/health/*</code>), but no visual dashboard</p>
 <p><strong>Integration:</strong> Add to existing dashboard, likely <code>/health</code> page</p>
 <hr/>
 <h4 id="3-metrics-dashboard">3. <strong>Metrics Dashboard</strong> ⭐⭐⭐⭐⭐<a class="headerlink" href="#3-metrics-dashboard" title="Permanent link">¶</a></h4>
 <p><strong>Priority: HIGH</strong></p>
 <p><strong>Why:</strong> Prometheus metrics need visualization</p>
-<p><strong>Web Interface Features:</strong>
-- Grafana dashboards (standard Prometheus UI)
-- Custom dashboards for:
-  - ESE detection metrics
-  - Calibration metrics
-  - Photometry metrics
-  - Pipeline stage metrics
-  - System metrics
-- Real-time graphs
-- Alert visualization</p>
+<p><strong>Web Interface Features:</strong></p>
+<ul>
+<li>Grafana dashboards (standard Prometheus UI)</li>
+<li>Custom dashboards for:</li>
+<li>ESE detection metrics</li>
+<li>Calibration metrics</li>
+<li>Photometry metrics</li>
+<li>Pipeline stage metrics</li>
+<li>System metrics</li>
+<li>Real-time graphs</li>
+<li>Alert visualization</li>
+</ul>
 <p><strong>Current State:</strong> Metrics endpoint exists (<code>/metrics</code>), but needs Grafana setup</p>
 <p><strong>Integration:</strong> External Grafana instance, or embed Grafana panels in dashboard</p>
 <hr/>
@@ -1359,56 +1370,66 @@
 <h4 id="4-circuit-breaker-status">4. <strong>Circuit Breaker Status</strong> ⭐⭐⭐⭐<a class="headerlink" href="#4-circuit-breaker-status" title="Permanent link">¶</a></h4>
 <p><strong>Priority: MEDIUM</strong></p>
 <p><strong>Why:</strong> Monitor circuit breaker states to identify failing services</p>
-<p><strong>Web Interface Features:</strong>
-- Visual circuit state (CLOSED/OPEN/HALF_OPEN)
-- Failure counts and thresholds
-- Time until recovery
-- Historical state changes
-- Per-component circuit status</p>
+<p><strong>Web Interface Features:</strong></p>
+<ul>
+<li>Visual circuit state (CLOSED/OPEN/HALF_OPEN)</li>
+<li>Failure counts and thresholds</li>
+<li>Time until recovery</li>
+<li>Historical state changes</li>
+<li>Per-component circuit status</li>
+</ul>
 <p><strong>Integration:</strong> Add to health dashboard or new <code>/resilience</code> page</p>
 <hr/>
 <h4 id="5-event-bus-monitor">5. <strong>Event Bus Monitor</strong> ⭐⭐⭐⭐<a class="headerlink" href="#5-event-bus-monitor" title="Permanent link">¶</a></h4>
 <p><strong>Priority: MEDIUM</strong></p>
 <p><strong>Why:</strong> Monitor event stream and event history</p>
-<p><strong>Web Interface Features:</strong>
-- Real-time event stream (WebSocket)
-- Event history viewer
-- Filter by event type
-- Event statistics
-- Event replay</p>
+<p><strong>Web Interface Features:</strong></p>
+<ul>
+<li>Real-time event stream (WebSocket)</li>
+<li>Event history viewer</li>
+<li>Filter by event type</li>
+<li>Event statistics</li>
+<li>Event replay</li>
+</ul>
 <p><strong>Integration:</strong> New <code>/events</code> page or add to existing monitoring page</p>
 <hr/>
 <h4 id="6-cache-statistics">6. <strong>Cache Statistics</strong> ⭐⭐⭐<a class="headerlink" href="#6-cache-statistics" title="Permanent link">¶</a></h4>
 <p><strong>Priority: MEDIUM</strong></p>
 <p><strong>Why:</strong> Monitor cache performance and hit rates</p>
-<p><strong>Web Interface Features:</strong>
-- Cache hit/miss rates
-- Cache size and memory usage
-- TTL statistics
-- Cache key search
-- Cache invalidation controls</p>
+<p><strong>Web Interface Features:</strong></p>
+<ul>
+<li>Cache hit/miss rates</li>
+<li>Cache size and memory usage</li>
+<li>TTL statistics</li>
+<li>Cache key search</li>
+<li>Cache invalidation controls</li>
+</ul>
 <p><strong>Integration:</strong> Add to metrics dashboard or <code>/performance</code> page</p>
 <hr/>
 <h3 id="low-priority-nice-to-have">🟢 Low Priority (Nice to Have)<a class="headerlink" href="#low-priority-nice-to-have" title="Permanent link">¶</a></h3>
 <h4 id="7-structured-logging-viewer">7. <strong>Structured Logging Viewer</strong> ⭐⭐⭐<a class="headerlink" href="#7-structured-logging-viewer" title="Permanent link">¶</a></h4>
 <p><strong>Priority: LOW</strong></p>
 <p><strong>Why:</strong> View and search structured logs</p>
-<p><strong>Web Interface Features:</strong>
-- Log viewer with filtering
-- Search by correlation ID
-- Log level filtering
-- Time range selection
-- Export logs</p>
+<p><strong>Web Interface Features:</strong></p>
+<ul>
+<li>Log viewer with filtering</li>
+<li>Search by correlation ID</li>
+<li>Log level filtering</li>
+<li>Time range selection</li>
+<li>Export logs</li>
+</ul>
 <p><strong>Note:</strong> Better handled by dedicated log aggregation tools (Grafana Loki, ELK)</p>
 <p><strong>Integration:</strong> External tool or embed log viewer component</p>
 <hr/>
 <h4 id="8-retry-statistics">8. <strong>Retry Statistics</strong> ⭐⭐<a class="headerlink" href="#8-retry-statistics" title="Permanent link">¶</a></h4>
 <p><strong>Priority: LOW</strong></p>
 <p><strong>Why:</strong> Monitor retry patterns and success rates</p>
-<p><strong>Web Interface Features:</strong>
-- Retry success/failure rates
-- Retry attempt distributions
-- Component-specific retry stats</p>
+<p><strong>Web Interface Features:</strong></p>
+<ul>
+<li>Retry success/failure rates</li>
+<li>Retry attempt distributions</li>
+<li>Component-specific retry stats</li>
+</ul>
 <p><strong>Integration:</strong> Part of metrics dashboard</p>
 <hr/>
 <h2 id="recommended-implementation-order">Recommended Implementation Order<a class="headerlink" href="#recommended-implementation-order" title="Permanent link">¶</a></h2>
@@ -1500,20 +1521,22 @@ POST /api/cache/clear           # Clear all cache
 </ul>
 <hr/>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
-<p><strong>Must Have:</strong>
-1. Dead Letter Queue UI (critical for operations)
-2. Health Checks Dashboard (real-time visibility)
-3. Metrics Dashboard (Grafana integration)</p>
-<p><strong>Should Have:</strong>
-4. Circuit Breaker Status (resilience monitoring)
-5. Event Bus Monitor (event stream visualization)</p>
-<p><strong>Nice to Have:</strong>
-6. Cache Statistics (performance monitoring)
-7. Log Viewer (better handled by external tools)</p>
-<p><strong>Total Estimated Effort:</strong>
-- Phase 1: 1-2 weeks
-- Phase 2: 1 week
-- Phase 3: 1 week</p>
+<p><strong>Must Have:</strong></p>
+<ol>
+<li>Dead Letter Queue UI (critical for operations)</li>
+<li>Health Checks Dashboard (real-time visibility)</li>
+<li>Metrics Dashboard (Grafana integration)</li>
+</ol>
+<p><strong>Should Have:</strong> 4. Circuit Breaker Status (resilience monitoring) 5. Event Bus
+Monitor (event stream visualization)</p>
+<p><strong>Nice to Have:</strong> 6. Cache Statistics (performance monitoring) 7. Log Viewer
+(better handled by external tools)</p>
+<p><strong>Total Estimated Effort:</strong></p>
+<ul>
+<li>Phase 1: 1-2 weeks</li>
+<li>Phase 2: 1 week</li>
+<li>Phase 3: 1 week</li>
+</ul>
 <p><strong>Total Cost: $0</strong> (uses existing infrastructure)</p>
 </article>
 </div>
@@ -1539,7 +1562,7 @@ POST /api/cache/clear           # Clear all cache
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

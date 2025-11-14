@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1232,13 +1234,16 @@
 <article class="md-content__inner md-typeset">
 <h1 id="phase-2-pipeline-stage-monitoring-dashboard">Phase 2: Pipeline Stage Monitoring Dashboard<a class="headerlink" href="#phase-2-pipeline-stage-monitoring-dashboard" title="Permanent link">¶</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>Phase 2 focuses on creating a comprehensive monitoring dashboard for pipeline stage execution, providing real-time visibility into:
-- Active pipeline executions
-- Stage-by-stage status and metrics
-- Historical pipeline runs
-- Stage execution times and resource usage
-- Dependency graph visualization
-- Prometheus metrics integration</p>
+<p>Phase 2 focuses on creating a comprehensive monitoring dashboard for pipeline
+stage execution, providing real-time visibility into:</p>
+<ul>
+<li>Active pipeline executions</li>
+<li>Stage-by-stage status and metrics</li>
+<li>Historical pipeline runs</li>
+<li>Stage execution times and resource usage</li>
+<li>Dependency graph visualization</li>
+<li>Prometheus metrics integration</li>
+</ul>
 <h2 id="components">Components<a class="headerlink" href="#components" title="Permanent link">¶</a></h2>
 <h3 id="backend-api-endpoints">Backend API Endpoints<a class="headerlink" href="#backend-api-endpoints" title="Permanent link">¶</a></h3>
 <h4 id="1-pipeline-execution-status">1. Pipeline Execution Status<a class="headerlink" href="#1-pipeline-execution-status" title="Permanent link">¶</a></h4>
@@ -1353,7 +1358,7 @@ GET  /api/pipeline/metrics/stages           # Get stage-specific metrics
 <h3 id="frontend">Frontend<a class="headerlink" href="#frontend" title="Permanent link">¶</a></h3>
 <ul>
 <li>Existing: React Query, Material-UI, WebSocket client</li>
-<li>New: </li>
+<li>New:</li>
 <li><code>recharts</code> or <code>@mui/x-charts</code> for visualizations</li>
 <li><code>react-flow</code> or <code>@mui/x-tree-view</code> for dependency graph</li>
 </ul>
@@ -1399,7 +1404,7 @@ GET  /api/pipeline/metrics/stages           # Get stage-specific metrics
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

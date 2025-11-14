@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1315,16 +1317,20 @@
 <article class="md-content__inner md-typeset">
 <h1 id="ese-detection-future-improvements">ESE Detection Future Improvements<a class="headerlink" href="#ese-detection-future-improvements" title="Permanent link">¶</a></h1>
 <h2 id="date-2025-11-12">Date: 2025-11-12<a class="headerlink" href="#date-2025-11-12" title="Permanent link">¶</a></h2>
-<p>This document catalogs all improvements identified during the critical review that were deferred for future implementation.</p>
+<p>This document catalogs all improvements identified during the critical review
+that were deferred for future implementation.</p>
 <h2 id="short-term-improvements-1-3-months">Short-Term Improvements (1-3 months)<a class="headerlink" href="#short-term-improvements-1-3-months" title="Permanent link">¶</a></h2>
 <h3 id="1-code-quality-testing">1. Code Quality &amp; Testing<a class="headerlink" href="#1-code-quality-testing" title="Permanent link">¶</a></h3>
 <h4 id="extract-shared-sigma-deviation-function">Extract Shared Sigma Deviation Function<a class="headerlink" href="#extract-shared-sigma-deviation-function" title="Permanent link">¶</a></h4>
 <p><strong>Priority</strong>: Medium<br/>
 <strong>Effort</strong>: 1-2 hours</p>
-<p><strong>Current State</strong>: 
-- Sigma deviation calculation duplicated in <code>ese_pipeline.py</code> and <code>ese_detection.py</code>
-- Risk of future inconsistencies</p>
-<p><strong>Improvement</strong>:
+<p><strong>Current State</strong>:</p>
+<ul>
+<li>Sigma deviation calculation duplicated in <code>ese_pipeline.py</code> and
+  <code>ese_detection.py</code></li>
+<li>Risk of future inconsistencies</li>
+</ul>
+<p><strong>Improvement</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Create shared function in variability.py</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">calculate_sigma_deviation</span><span class="p">(</span><span class="n">fluxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Calculate maximum sigma deviation from mean."""</span>
@@ -1337,27 +1343,33 @@
     <span class="n">max_dev</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">fluxes</span><span class="p">)</span> <span class="o">-</span> <span class="n">mean_flux</span><span class="p">)</span> <span class="o">/</span> <span class="n">std_flux</span>
     <span class="n">min_dev</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">fluxes</span><span class="p">)</span> <span class="o">-</span> <span class="n">mean_flux</span><span class="p">)</span> <span class="o">/</span> <span class="n">std_flux</span>
     <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_dev</span><span class="p">,</span> <span class="n">min_dev</span><span class="p">)</span>
-</code></pre></div></p>
-<p><strong>Benefits</strong>:
-- Single source of truth
-- Prevents future inconsistencies
-- Easier to test and maintain</p>
+</code></pre></div>
+<p><strong>Benefits</strong>:</p>
+<ul>
+<li>Single source of truth</li>
+<li>Prevents future inconsistencies</li>
+<li>Easier to test and maintain</li>
+</ul>
 <h4 id="add-validation-tests">Add Validation Tests<a class="headerlink" href="#add-validation-tests" title="Permanent link">¶</a></h4>
 <p><strong>Priority</strong>: High<br/>
 <strong>Effort</strong>: 2-4 hours</p>
-<p><strong>Current State</strong>: 
-- No unit tests verifying sigma_deviation calculation correctness
-- No tests for edge cases</p>
-<p><strong>Improvements Needed</strong>:
-- Test sigma_deviation against known values
-- Verify chi-squared calculation
-- Test edge cases:
-  - Single measurement
-  - Zero variance
-  - All measurements identical
-  - Missing error values
-  - Negative fluxes</p>
-<p><strong>Test Cases</strong>:
+<p><strong>Current State</strong>:</p>
+<ul>
+<li>No unit tests verifying sigma_deviation calculation correctness</li>
+<li>No tests for edge cases</li>
+</ul>
+<p><strong>Improvements Needed</strong>:</p>
+<ul>
+<li>Test sigma_deviation against known values</li>
+<li>Verify chi-squared calculation</li>
+<li>Test edge cases:</li>
+<li>Single measurement</li>
+<li>Zero variance</li>
+<li>All measurements identical</li>
+<li>Missing error values</li>
+<li>Negative fluxes</li>
+</ul>
+<p><strong>Test Cases</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_sigma_deviation_known_values</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">"""Test against manually calculated values."""</span>
     <span class="n">fluxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">])</span>
@@ -1372,15 +1384,17 @@
     <span class="k">assert</span> <span class="n">calculate_sigma_deviation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]))</span> <span class="o">==</span> <span class="mf">0.0</span>
     <span class="c1"># Negative fluxes</span>
     <span class="k">assert</span> <span class="n">calculate_sigma_deviation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]))</span> <span class="o">&gt;</span> <span class="mi">0</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="2-enhanced-detection-algorithms">2. Enhanced Detection Algorithms<a class="headerlink" href="#2-enhanced-detection-algorithms" title="Permanent link">¶</a></h3>
 <h4 id="multi-metric-scoring-system">Multi-Metric Scoring System<a class="headerlink" href="#multi-metric-scoring-system" title="Permanent link">¶</a></h4>
 <p><strong>Priority</strong>: Medium<br/>
 <strong>Effort</strong>: 1-2 days</p>
-<p><strong>Current State</strong>: 
-- Uses single metric (sigma_deviation) for threshold
-- Other metrics (chi2_nu, eta_metric) computed but not used in scoring</p>
-<p><strong>Improvement</strong>:
+<p><strong>Current State</strong>:</p>
+<ul>
+<li>Uses single metric (sigma_deviation) for threshold</li>
+<li>Other metrics (chi2_nu, eta_metric) computed but not used in scoring</li>
+</ul>
+<p><strong>Improvement</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_ese_score</span><span class="p">(</span>
     <span class="n">sigma_deviation</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">chi2_nu</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
@@ -1407,13 +1421,15 @@
         <span class="n">score</span> <span class="o">*=</span> <span class="mf">0.8</span>
 
     <span class="k">return</span> <span class="n">score</span>
-</code></pre></div></p>
-<p><strong>Benefits</strong>:
-- More robust detection
-- Reduces false positives
-- Better candidate ranking
-- Uses all available information</p>
-<p><strong>Configuration</strong>:
+</code></pre></div>
+<p><strong>Benefits</strong>:</p>
+<ul>
+<li>More robust detection</li>
+<li>Reduces false positives</li>
+<li>Better candidate ranking</li>
+<li>Uses all available information</li>
+</ul>
+<p><strong>Configuration</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
     <span class="s2">"ese_scoring"</span><span class="p">:</span> <span class="s2">"multi_metric"</span><span class="p">,</span>  <span class="c1"># or "sigma_only"</span>
     <span class="s2">"ese_score_threshold"</span><span class="p">:</span> <span class="mf">5.5</span><span class="p">,</span>    <span class="c1"># Combined score threshold</span>
@@ -1423,20 +1439,24 @@
         <span class="s2">"eta_metric"</span><span class="p">:</span> <span class="mf">0.3</span>
     <span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <h4 id="configurable-threshold-per-use-case">Configurable Threshold Per Use Case<a class="headerlink" href="#configurable-threshold-per-use-case" title="Permanent link">¶</a></h4>
 <p><strong>Priority</strong>: Low<br/>
 <strong>Effort</strong>: 1-2 hours</p>
-<p><strong>Current State</strong>: 
-- Fixed 5.0σ default threshold
-- Can be overridden but not easily configured per use case</p>
-<p><strong>Improvement</strong>:
-- Add threshold presets:
-  - "conservative": 5.0σ (default, production)
-  - "moderate": 4.0σ (balanced)
-  - "sensitive": 3.0σ (initial screening)
-  - "custom": user-specified value</p>
-<p><strong>Implementation</strong>:
+<p><strong>Current State</strong>:</p>
+<ul>
+<li>Fixed 5.0σ default threshold</li>
+<li>Can be overridden but not easily configured per use case</li>
+</ul>
+<p><strong>Improvement</strong>:</p>
+<ul>
+<li>Add threshold presets:</li>
+<li>"conservative": 5.0σ (default, production)</li>
+<li>"moderate": 4.0σ (balanced)</li>
+<li>"sensitive": 3.0σ (initial screening)</li>
+<li>"custom": user-specified value</li>
+</ul>
+<p><strong>Implementation</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="n">ESE_THRESHOLD_PRESETS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"conservative"</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span>
     <span class="s2">"moderate"</span><span class="p">:</span> <span class="mf">4.0</span><span class="p">,</span>
@@ -1448,33 +1468,41 @@
     <span class="k">if</span> <span class="n">custom</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">custom</span>
     <span class="k">return</span> <span class="n">ESE_THRESHOLD_PRESETS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">preset</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="3-documentation-enhancements">3. Documentation Enhancements<a class="headerlink" href="#3-documentation-enhancements" title="Permanent link">¶</a></h3>
 <h4 id="document-threshold-selection-guidelines">Document Threshold Selection Guidelines<a class="headerlink" href="#document-threshold-selection-guidelines" title="Permanent link">¶</a></h4>
 <p><strong>Priority</strong>: Low<br/>
 <strong>Effort</strong>: 1 hour</p>
-<p><strong>Current State</strong>: 
-- Threshold rationale mentioned but not detailed
-- No guidance on when to use different thresholds</p>
-<p><strong>Improvement</strong>:
-- Add section to user guide explaining:
-  - When to use 3σ vs 5σ
-  - False positive rate implications
-  - Sensitivity vs specificity trade-offs
-  - Examples of threshold selection</p>
+<p><strong>Current State</strong>:</p>
+<ul>
+<li>Threshold rationale mentioned but not detailed</li>
+<li>No guidance on when to use different thresholds</li>
+</ul>
+<p><strong>Improvement</strong>:</p>
+<ul>
+<li>Add section to user guide explaining:</li>
+<li>When to use 3σ vs 5σ</li>
+<li>False positive rate implications</li>
+<li>Sensitivity vs specificity trade-offs</li>
+<li>Examples of threshold selection</li>
+</ul>
 <h2 id="medium-term-improvements-3-6-months">Medium-Term Improvements (3-6 months)<a class="headerlink" href="#medium-term-improvements-3-6-months" title="Permanent link">¶</a></h2>
 <h3 id="4-performance-optimizations">4. Performance Optimizations<a class="headerlink" href="#4-performance-optimizations" title="Permanent link">¶</a></h3>
 <h4 id="caching-variability-statistics">Caching Variability Statistics<a class="headerlink" href="#caching-variability-statistics" title="Permanent link">¶</a></h4>
 <p><strong>Priority</strong>: Medium<br/>
 <strong>Effort</strong>: 2-3 days</p>
-<p><strong>Current State</strong>: 
-- Variability stats recomputed on every detection
-- Database queries for every source</p>
-<p><strong>Improvement</strong>:
-- Cache computed statistics in memory
-- Invalidate cache when new photometry added
-- Reduce database load for repeated queries</p>
-<p><strong>Implementation</strong>:
+<p><strong>Current State</strong>:</p>
+<ul>
+<li>Variability stats recomputed on every detection</li>
+<li>Database queries for every source</li>
+</ul>
+<p><strong>Improvement</strong>:</p>
+<ul>
+<li>Cache computed statistics in memory</li>
+<li>Invalidate cache when new photometry added</li>
+<li>Reduce database load for repeated queries</li>
+</ul>
+<p><strong>Implementation</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
 
@@ -1490,18 +1518,22 @@
         <span class="k">return</span> <span class="kc">None</span>
     <span class="c1"># Return cached value</span>
     <span class="o">...</span>
-</code></pre></div></p>
+</code></pre></div>
 <h4 id="parallel-processing-for-batch-operations">Parallel Processing for Batch Operations<a class="headerlink" href="#parallel-processing-for-batch-operations" title="Permanent link">¶</a></h4>
 <p><strong>Priority</strong>: Medium<br/>
 <strong>Effort</strong>: 3-5 days</p>
-<p><strong>Current State</strong>: 
-- Sequential processing of sources
-- No parallelization</p>
-<p><strong>Improvement</strong>:
-- Use multiprocessing for batch operations
-- Process multiple sources simultaneously
-- Configurable worker pool size</p>
-<p><strong>Implementation</strong>:
+<p><strong>Current State</strong>:</p>
+<ul>
+<li>Sequential processing of sources</li>
+<li>No parallelization</li>
+</ul>
+<p><strong>Improvement</strong>:</p>
+<ul>
+<li>Use multiprocessing for batch operations</li>
+<li>Process multiple sources simultaneously</li>
+<li>Configurable worker pool size</li>
+</ul>
+<p><strong>Implementation</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pool</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">process_sources_parallel</span><span class="p">(</span><span class="n">source_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">n_workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">):</span>
@@ -1509,19 +1541,23 @@
     <span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">n_workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
         <span class="n">results</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">update_variability_stats_for_source</span><span class="p">,</span> <span class="n">source_ids</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">results</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="5-enhanced-monitoring-alerting">5. Enhanced Monitoring &amp; Alerting<a class="headerlink" href="#5-enhanced-monitoring-alerting" title="Permanent link">¶</a></h3>
 <h4 id="real-time-alerting-for-high-significance-candidates">Real-Time Alerting for High-Significance Candidates<a class="headerlink" href="#real-time-alerting-for-high-significance-candidates" title="Permanent link">¶</a></h4>
 <p><strong>Priority</strong>: Medium<br/>
 <strong>Effort</strong>: 2-3 days</p>
-<p><strong>Current State</strong>: 
-- Candidates logged but no alerts
-- No integration with monitoring systems</p>
-<p><strong>Improvement</strong>:
-- Alert on candidates above configurable threshold (e.g., 7.0σ)
-- Integration with email/Slack/webhooks
-- Rate limiting to prevent alert spam</p>
-<p><strong>Configuration</strong>:
+<p><strong>Current State</strong>:</p>
+<ul>
+<li>Candidates logged but no alerts</li>
+<li>No integration with monitoring systems</li>
+</ul>
+<p><strong>Improvement</strong>:</p>
+<ul>
+<li>Alert on candidates above configurable threshold (e.g., 7.0σ)</li>
+<li>Integration with email/Slack/webhooks</li>
+<li>Rate limiting to prevent alert spam</li>
+</ul>
+<p><strong>Configuration</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
     <span class="s2">"ese_alerting"</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">"enabled"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
@@ -1530,20 +1566,24 @@
         <span class="s2">"rate_limit"</span><span class="p">:</span> <span class="s2">"1_per_hour_per_source"</span>
     <span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <h4 id="detection-successfailure-rate-tracking">Detection Success/Failure Rate Tracking<a class="headerlink" href="#detection-successfailure-rate-tracking" title="Permanent link">¶</a></h4>
 <p><strong>Priority</strong>: Low<br/>
 <strong>Effort</strong>: 1-2 days</p>
-<p><strong>Current State</strong>: 
-- No tracking of detection performance
-- No metrics on success/failure rates</p>
-<p><strong>Improvement</strong>:
-- Track detection statistics:
-  - Number of candidates detected
-  - Average significance
-  - Detection rate over time
-  - False positive rate (if follow-up data available)</p>
-<p><strong>Database Schema Addition</strong>:
+<p><strong>Current State</strong>:</p>
+<ul>
+<li>No tracking of detection performance</li>
+<li>No metrics on success/failure rates</li>
+</ul>
+<p><strong>Improvement</strong>:</p>
+<ul>
+<li>Track detection statistics:</li>
+<li>Number of candidates detected</li>
+<li>Average significance</li>
+<li>Detection rate over time</li>
+<li>False positive rate (if follow-up data available)</li>
+</ul>
+<p><strong>Database Schema Addition</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">ese_detection_stats</span><span class="w"> </span><span class="p">(</span>
 <span class="w">    </span><span class="nb">date</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
 <span class="w">    </span><span class="n">candidates_detected</span><span class="w"> </span><span class="nb">INTEGER</span><span class="p">,</span>
@@ -1551,23 +1591,29 @@
 <span class="w">    </span><span class="n">max_significance</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
 <span class="w">    </span><span class="n">sources_processed</span><span class="w"> </span><span class="nb">INTEGER</span>
 <span class="p">);</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="long-term-enhancements-6-months">Long-Term Enhancements (6+ months)<a class="headerlink" href="#long-term-enhancements-6-months" title="Permanent link">¶</a></h2>
 <h3 id="6-multi-frequency-analysis">6. Multi-Frequency Analysis<a class="headerlink" href="#6-multi-frequency-analysis" title="Permanent link">¶</a></h3>
 <p><strong>Priority</strong>: High (when multi-frequency data available)<br/>
 <strong>Effort</strong>: 1-2 weeks</p>
-<p><strong>Current State</strong>: 
-- Single-frequency flux analysis only
-- Cannot detect frequency-dependent ESE signatures</p>
-<p><strong>Improvement</strong>:
-- Analyze variability across multiple frequencies
-- Correlated frequency-dependent changes
-- Enhanced detection confidence</p>
-<p><strong>Requirements</strong>:
-- Multi-frequency photometry data
-- Frequency metadata in database
-- Cross-frequency correlation analysis</p>
-<p><strong>Implementation</strong>:
+<p><strong>Current State</strong>:</p>
+<ul>
+<li>Single-frequency flux analysis only</li>
+<li>Cannot detect frequency-dependent ESE signatures</li>
+</ul>
+<p><strong>Improvement</strong>:</p>
+<ul>
+<li>Analyze variability across multiple frequencies</li>
+<li>Correlated frequency-dependent changes</li>
+<li>Enhanced detection confidence</li>
+</ul>
+<p><strong>Requirements</strong>:</p>
+<ul>
+<li>Multi-frequency photometry data</li>
+<li>Frequency metadata in database</li>
+<li>Cross-frequency correlation analysis</li>
+</ul>
+<p><strong>Implementation</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">detect_ese_multi_frequency</span><span class="p">(</span>
     <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">frequencies</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
@@ -1590,23 +1636,28 @@
         <span class="s2">"correlation"</span><span class="p">:</span> <span class="n">correlation</span><span class="p">,</span>
         <span class="s2">"confidence_boost"</span><span class="p">:</span> <span class="n">confidence_boost</span>
     <span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="7-multi-observable-correlation">7. Multi-Observable Correlation<a class="headerlink" href="#7-multi-observable-correlation" title="Permanent link">¶</a></h3>
 <p><strong>Priority</strong>: High (when additional observables available)<br/>
 <strong>Effort</strong>: 1-2 weeks</p>
-<p><strong>Current State</strong>: 
-- Flux variability only
-- No scintillation bandwidth or DM analysis</p>
-<p><strong>Improvement</strong>:
-- Include scintillation bandwidth variations
-- Include DM variations (for pulsars)
-- Correlated multi-observable analysis</p>
-<p><strong>Research Finding</strong>: 
-ESEs show correlated changes in:
-- Flux density
-- Scintillation bandwidth
-- Dispersion measure (for pulsars)</p>
-<p><strong>Implementation</strong>:
+<p><strong>Current State</strong>:</p>
+<ul>
+<li>Flux variability only</li>
+<li>No scintillation bandwidth or DM analysis</li>
+</ul>
+<p><strong>Improvement</strong>:</p>
+<ul>
+<li>Include scintillation bandwidth variations</li>
+<li>Include DM variations (for pulsars)</li>
+<li>Correlated multi-observable analysis</li>
+</ul>
+<p><strong>Research Finding</strong>: ESEs show correlated changes in:</p>
+<ul>
+<li>Flux density</li>
+<li>Scintillation bandwidth</li>
+<li>Dispersion measure (for pulsars)</li>
+</ul>
+<p><strong>Implementation</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">detect_ese_multi_observable</span><span class="p">(</span>
     <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">flux_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span>
@@ -1639,41 +1690,53 @@ ESEs show correlated changes in:
         <span class="s2">"correlation_score"</span><span class="p">:</span> <span class="n">correlation_score</span><span class="p">,</span>
         <span class="s2">"multi_observable"</span><span class="p">:</span> <span class="n">scint_variability</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">dm_variability</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
     <span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="8-advanced-analysis-features">8. Advanced Analysis Features<a class="headerlink" href="#8-advanced-analysis-features" title="Permanent link">¶</a></h3>
 <h4 id="lightcurve-visualization">Lightcurve Visualization<a class="headerlink" href="#lightcurve-visualization" title="Permanent link">¶</a></h4>
 <p><strong>Priority</strong>: Low<br/>
 <strong>Effort</strong>: 3-5 days</p>
-<p><strong>Current State</strong>: 
-- No visualization tools
-- Users must query database manually</p>
-<p><strong>Improvement</strong>:
-- Generate lightcurve plots for ESE candidates
-- Show variability metrics visually
-- Export plots for reports</p>
+<p><strong>Current State</strong>:</p>
+<ul>
+<li>No visualization tools</li>
+<li>Users must query database manually</li>
+</ul>
+<p><strong>Improvement</strong>:</p>
+<ul>
+<li>Generate lightcurve plots for ESE candidates</li>
+<li>Show variability metrics visually</li>
+<li>Export plots for reports</li>
+</ul>
 <h4 id="candidate-ranking-prioritization">Candidate Ranking &amp; Prioritization<a class="headerlink" href="#candidate-ranking-prioritization" title="Permanent link">¶</a></h4>
 <p><strong>Priority</strong>: Medium<br/>
 <strong>Effort</strong>: 2-3 days</p>
-<p><strong>Current State</strong>: 
-- Simple threshold-based detection
-- No ranking or prioritization</p>
-<p><strong>Improvement</strong>:
-- Rank candidates by:
-  - Significance (sigma_deviation)
-  - Multi-metric score
-  - Observation count
-  - Recency
-- Prioritize for follow-up observations</p>
+<p><strong>Current State</strong>:</p>
+<ul>
+<li>Simple threshold-based detection</li>
+<li>No ranking or prioritization</li>
+</ul>
+<p><strong>Improvement</strong>:</p>
+<ul>
+<li>Rank candidates by:</li>
+<li>Significance (sigma_deviation)</li>
+<li>Multi-metric score</li>
+<li>Observation count</li>
+<li>Recency</li>
+<li>Prioritize for follow-up observations</li>
+</ul>
 <h4 id="follow-up-tracking">Follow-Up Tracking<a class="headerlink" href="#follow-up-tracking" title="Permanent link">¶</a></h4>
 <p><strong>Priority</strong>: Low<br/>
 <strong>Effort</strong>: 2-3 days</p>
-<p><strong>Current State</strong>: 
-- No tracking of candidate follow-up
-- No integration with observation scheduling</p>
-<p><strong>Improvement</strong>:
-- Track candidate investigation status
-- Schedule follow-up observations
-- Link to observation planning system</p>
+<p><strong>Current State</strong>:</p>
+<ul>
+<li>No tracking of candidate follow-up</li>
+<li>No integration with observation scheduling</li>
+</ul>
+<p><strong>Improvement</strong>:</p>
+<ul>
+<li>Track candidate investigation status</li>
+<li>Schedule follow-up observations</li>
+<li>Link to observation planning system</li>
+</ul>
 <h2 id="implementation-priority-summary">Implementation Priority Summary<a class="headerlink" href="#implementation-priority-summary" title="Permanent link">¶</a></h2>
 <h3 id="high-priority-implement-soon">High Priority (Implement Soon)<a class="headerlink" href="#high-priority-implement-soon" title="Permanent link">¶</a></h3>
 <ol>
@@ -1734,7 +1797,7 @@ ESEs show correlated changes in:
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

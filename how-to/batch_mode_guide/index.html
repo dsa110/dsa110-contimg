@@ -1,0 +1,1781 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/how-to/batch_mode_guide/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Running the DSA-110 Continuum Imaging Pipeline in Batch Mode - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#running-the-dsa-110-continuum-imaging-pipeline-in-batch-mode">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Running the DSA-110 Continuum Imaging Pipeline in Batch Mode
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-mode-capabilities-by-stage">
+<span class="md-ellipsis">
+      Batch Mode Capabilities by Stage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#method-1-cli-based-batch-processing">
+<span class="md-ellipsis">
+      Method 1: CLI-Based Batch Processing
+    </span>
+</a>
+<nav aria-label="Method 1: CLI-Based Batch Processing" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#conversion-uvh5-ms">
+<span class="md-ellipsis">
+      Conversion (UVH5 → MS)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#calibration">
+<span class="md-ellipsis">
+      Calibration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#imaging">
+<span class="md-ellipsis">
+      Imaging
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#mosaic-creation">
+<span class="md-ellipsis">
+      Mosaic Creation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#method-2-api-based-batch-processing">
+<span class="md-ellipsis">
+      Method 2: API-Based Batch Processing
+    </span>
+</a>
+<nav aria-label="Method 2: API-Based Batch Processing" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#setup">
+<span class="md-ellipsis">
+      Setup
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-calibration">
+<span class="md-ellipsis">
+      Batch Calibration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-calibration-application">
+<span class="md-ellipsis">
+      Batch Calibration Application
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-imaging">
+<span class="md-ellipsis">
+      Batch Imaging
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-ese-detection">
+<span class="md-ellipsis">
+      Batch ESE Detection
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#monitoring-batch-jobs">
+<span class="md-ellipsis">
+      Monitoring Batch Jobs
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#method-3-orchestrator-scripts-end-to-end-automation">
+<span class="md-ellipsis">
+      Method 3: Orchestrator Scripts (End-to-End Automation)
+    </span>
+</a>
+<nav aria-label="Method 3: Orchestrator Scripts (End-to-End Automation)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#mosaic-orchestrator">
+<span class="md-ellipsis">
+      Mosaic Orchestrator
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#best-practices">
+<span class="md-ellipsis">
+      Best Practices
+    </span>
+</a>
+<nav aria-label="Best Practices" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-resource-management">
+<span class="md-ellipsis">
+      1. Resource Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-error-handling">
+<span class="md-ellipsis">
+      2. Error Handling
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-time-windows">
+<span class="md-ellipsis">
+      3. Time Windows
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-database-management">
+<span class="md-ellipsis">
+      4. Database Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-monitoring">
+<span class="md-ellipsis">
+      5. Monitoring
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-workflows">
+<span class="md-ellipsis">
+      Example Workflows
+    </span>
+</a>
+<nav aria-label="Example Workflows" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#workflow-1-process-one-night-of-data">
+<span class="md-ellipsis">
+      Workflow 1: Process One Night of Data
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#workflow-2-reprocess-historical-data">
+<span class="md-ellipsis">
+      Workflow 2: Reprocess Historical Data
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#workflow-3-calibrator-transit-processing">
+<span class="md-ellipsis">
+      Workflow 3: Calibrator Transit Processing
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#troubleshooting">
+<span class="md-ellipsis">
+      Troubleshooting
+    </span>
+</a>
+<nav aria-label="Troubleshooting" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-jobs-stuck-in-pending">
+<span class="md-ellipsis">
+      Batch Jobs Stuck in "Pending"
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#individual-items-failing">
+<span class="md-ellipsis">
+      Individual Items Failing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#slow-batch-processing">
+<span class="md-ellipsis">
+      Slow Batch Processing
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-documentation">
+<span class="md-ellipsis">
+      Related Documentation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#summary">
+<span class="md-ellipsis">
+      Summary
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="running-the-dsa-110-continuum-imaging-pipeline-in-batch-mode">Running the DSA-110 Continuum Imaging Pipeline in Batch Mode<a class="headerlink" href="#running-the-dsa-110-continuum-imaging-pipeline-in-batch-mode" title="Permanent link">¶</a></h1>
+<p><strong>Purpose</strong>: This guide explains how to run the DSA-110 Continuum Imaging
+Pipeline in batch mode for processing multiple observations, time windows, or
+data files.</p>
+<p><strong>Location</strong>: <code>docs/how-to/batch_mode_guide.md</code><br/>
+<strong>Related</strong>:</p>
+<ul>
+<li><a href="../USING_ORCHESTRATOR_CLI/">Using the Orchestrator CLI</a></li>
+<li><a href="../../dev/analysis/batch_mode_development_assessment/">Batch Mode Development Assessment</a></li>
+</ul>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>Batch mode allows you to process multiple observations, time windows, or data
+files in a single operation. The pipeline supports batch processing through:</p>
+<ol>
+<li><strong>CLI Tools</strong>: Command-line interfaces for each pipeline stage</li>
+<li><strong>API Endpoints</strong>: REST API endpoints for programmatic batch job submission</li>
+<li><strong>Orchestrator Scripts</strong>: High-level automation scripts for end-to-end
+   workflows</li>
+</ol>
+<h2 id="batch-mode-capabilities-by-stage">Batch Mode Capabilities by Stage<a class="headerlink" href="#batch-mode-capabilities-by-stage" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>CLI Support</th>
+<th>API Support</th>
+<th>Batch Jobs</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Conversion</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<td>95%</td>
+</tr>
+<tr>
+<td>Calibration</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>Imaging</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>Mosaic</td>
+<td>✓</td>
+<td>Partial</td>
+<td>✗</td>
+<td>90%</td>
+</tr>
+<tr>
+<td>Photometry</td>
+<td>✓</td>
+<td>Partial</td>
+<td>✗</td>
+<td>85%</td>
+</tr>
+<tr>
+<td>ESE Detection</td>
+<td>✗</td>
+<td>Partial</td>
+<td>✗</td>
+<td>60%</td>
+</tr>
+</tbody>
+</table>
+<h2 id="method-1-cli-based-batch-processing">Method 1: CLI-Based Batch Processing<a class="headerlink" href="#method-1-cli-based-batch-processing" title="Permanent link">¶</a></h2>
+<h3 id="conversion-uvh5-ms">Conversion (UVH5 → MS)<a class="headerlink" href="#conversion-uvh5-ms" title="Permanent link">¶</a></h3>
+<p>Process multiple time windows using the orchestrator CLI:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Process all groups in a time window (batch processing)</span>
+python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.conversion.strategies.hdf5_orchestrator<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>/data/incoming<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>/stage/dsa110-contimg/ms<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="s2">"2025-10-30 00:00:00"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="s2">"2025-10-31 00:00:00"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--writer<span class="w"> </span>parallel-subband<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--stage-to-tmpfs
+</code></pre></div>
+<p><strong>What this does:</strong></p>
+<ul>
+<li>Discovers all subband groups in the specified time window</li>
+<li>Converts each complete group to MS format</li>
+<li>Organizes output: <code>ms/science/YYYY-MM-DD/&lt;timestamp&gt;.ms</code> or
+  <code>ms/calibrators/YYYY-MM-DD/&lt;timestamp&gt;.ms</code></li>
+</ul>
+<p><strong>Options:</strong></p>
+<ul>
+<li><code>--writer parallel-subband</code>: Use parallel subband writer (recommended)</li>
+<li><code>--stage-to-tmpfs</code>: Stage data to tmpfs for faster I/O</li>
+<li><code>--max-workers N</code>: Limit parallel workers (default: CPU count)</li>
+</ul>
+<h3 id="calibration">Calibration<a class="headerlink" href="#calibration" title="Permanent link">¶</a></h3>
+<p>Batch calibration via CLI requires iterating over MS files:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Find all MS files in a directory</span>
+<span class="nv">MS_FILES</span><span class="o">=</span><span class="k">$(</span>find<span class="w"> </span>/stage/dsa110-contimg/ms<span class="w"> </span>-name<span class="w"> </span><span class="s2">"*.ms"</span><span class="w"> </span>-type<span class="w"> </span>d<span class="k">)</span>
+
+<span class="c1"># Process each MS file</span>
+<span class="k">for</span><span class="w"> </span>ms<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="nv">$MS_FILES</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">    </span>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibration.cli<span class="w"> </span>calibrate<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span><span class="s2">"</span><span class="nv">$ms</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--cal-field<span class="w"> </span><span class="m">0834</span>+555<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--refant<span class="w"> </span><span class="m">103</span><span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--solve-bandpass<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--solve-gains
+<span class="k">done</span>
+</code></pre></div>
+<p><strong>Note</strong>: For true batch processing with job tracking, use the API endpoints
+(see Method 2).</p>
+<h3 id="imaging">Imaging<a class="headerlink" href="#imaging" title="Permanent link">¶</a></h3>
+<p>Similar to calibration, batch imaging via CLI requires iteration:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Find all calibrated MS files</span>
+<span class="nv">MS_FILES</span><span class="o">=</span><span class="k">$(</span>find<span class="w"> </span>/stage/dsa110-contimg/ms<span class="w"> </span>-name<span class="w"> </span><span class="s2">"*.ms"</span><span class="w"> </span>-type<span class="w"> </span>d<span class="k">)</span>
+
+<span class="c1"># Image each MS file</span>
+<span class="k">for</span><span class="w"> </span>ms<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="nv">$MS_FILES</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">    </span>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.imaging.cli<span class="w"> </span>image<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--ms<span class="w"> </span><span class="s2">"</span><span class="nv">$ms</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--imagename<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">ms</span><span class="si">}</span><span class="s2">.image"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--field<span class="w"> </span><span class="s2">""</span><span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--quality-tier<span class="w"> </span>standard
+<span class="k">done</span>
+</code></pre></div>
+<h3 id="mosaic-creation">Mosaic Creation<a class="headerlink" href="#mosaic-creation" title="Permanent link">¶</a></h3>
+<p>Mosaic CLI supports batch planning and building:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Plan a mosaic for a time range</span>
+python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.mosaic.cli<span class="w"> </span>plan<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--products-db<span class="w"> </span>state/products.sqlite3<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--name<span class="w"> </span>night_20251030<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--since<span class="w"> </span><span class="m">60300</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--until<span class="w"> </span><span class="m">60301</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--method<span class="w"> </span>weighted
+
+<span class="c1"># Build the mosaic</span>
+python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.mosaic.cli<span class="w"> </span>build<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--products-db<span class="w"> </span>state/products.sqlite3<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--name<span class="w"> </span>night_20251030<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output<span class="w"> </span>/stage/dsa110-contimg/mosaics/night_20251030.img
+</code></pre></div>
+<h2 id="method-2-api-based-batch-processing">Method 2: API-Based Batch Processing<a class="headerlink" href="#method-2-api-based-batch-processing" title="Permanent link">¶</a></h2>
+<p>The API provides batch job endpoints with automatic job tracking, status
+monitoring, and error handling.</p>
+<h3 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Start the API server</strong> (if not already running):</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg
+python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.api.main
+</code></pre></div>
+<p>The API runs on <code>http://localhost:8000</code> by default.</p>
+<ol>
+<li><strong>Verify API is running</strong>:</li>
+</ol>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/api/status
+</code></pre></div>
+<h3 id="batch-calibration">Batch Calibration<a class="headerlink" href="#batch-calibration" title="Permanent link">¶</a></h3>
+<p>Submit a batch calibration job:</p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/batch/calibrate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">'{</span>
+<span class="s1">    "ms_paths": [</span>
+<span class="s1">      "/stage/dsa110-contimg/ms/2025-10-30T13:00:00.ms",</span>
+<span class="s1">      "/stage/dsa110-contimg/ms/2025-10-30T14:00:00.ms",</span>
+<span class="s1">      "/stage/dsa110-contimg/ms/2025-10-30T15:00:00.ms"</span>
+<span class="s1">    ],</span>
+<span class="s1">    "parameters": {</span>
+<span class="s1">      "field": "",</span>
+<span class="s1">      "refant": "103",</span>
+<span class="s1">      "solve_bandpass": true,</span>
+<span class="s1">      "solve_gains": true,</span>
+<span class="s1">      "gain_solint": "inf",</span>
+<span class="s1">      "gain_calmode": "ap",</span>
+<span class="s1">      "auto_fields": true,</span>
+<span class="s1">      "min_pb": 0.5</span>
+<span class="s1">    }</span>
+<span class="s1">  }'</span>
+</code></pre></div>
+<p><strong>Response:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"batch_calibrate"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pending"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"total_items"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"completed_items"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"failed_items"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"created_at"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2025-10-30T13:00:00Z"</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>Check batch status:</strong></p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/api/batch/1
+</code></pre></div>
+<h3 id="batch-calibration-application">Batch Calibration Application<a class="headerlink" href="#batch-calibration-application" title="Permanent link">¶</a></h3>
+<p>Apply calibration tables to multiple MS files:</p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/batch/apply<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">'{</span>
+<span class="s1">    "ms_paths": [</span>
+<span class="s1">      "/stage/dsa110-contimg/ms/2025-10-30T13:00:00.ms",</span>
+<span class="s1">      "/stage/dsa110-contimg/ms/2025-10-30T14:00:00.ms"</span>
+<span class="s1">    ],</span>
+<span class="s1">    "caltable_paths": [</span>
+<span class="s1">      "/stage/dsa110-contimg/cal/2025-10-30T13:00:00.cal.K",</span>
+<span class="s1">      "/stage/dsa110-contimg/cal/2025-10-30T13:00:00.cal.BP",</span>
+<span class="s1">      "/stage/dsa110-contimg/cal/2025-10-30T13:00:00.cal.G"</span>
+<span class="s1">    ]</span>
+<span class="s1">  }'</span>
+</code></pre></div>
+<h3 id="batch-imaging">Batch Imaging<a class="headerlink" href="#batch-imaging" title="Permanent link">¶</a></h3>
+<p>Submit a batch imaging job:</p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/batch/image<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">'{</span>
+<span class="s1">    "ms_paths": [</span>
+<span class="s1">      "/stage/dsa110-contimg/ms/2025-10-30T13:00:00.ms",</span>
+<span class="s1">      "/stage/dsa110-contimg/ms/2025-10-30T14:00:00.ms"</span>
+<span class="s1">    ],</span>
+<span class="s1">    "parameters": {</span>
+<span class="s1">      "imsize": 2048,</span>
+<span class="s1">      "cell_arcsec": 1.5,</span>
+<span class="s1">      "niter": 1000,</span>
+<span class="s1">      "robust": 0.5,</span>
+<span class="s1">      "quality_tier": "standard",</span>
+<span class="s1">      "backend": "wsclean"</span>
+<span class="s1">    }</span>
+<span class="s1">  }'</span>
+</code></pre></div>
+<h3 id="batch-ese-detection">Batch ESE Detection<a class="headerlink" href="#batch-ese-detection" title="Permanent link">¶</a></h3>
+<p>Detect ESE candidates across multiple sources:</p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/batch/ese-detect<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">'{</span>
+<span class="s1">    "job_type": "ese-detect",</span>
+<span class="s1">    "params": {</span>
+<span class="s1">      "min_sigma": 5.0,</span>
+<span class="s1">      "recompute": false,</span>
+<span class="s1">      "source_ids": ["J120000+450000", "J121000+460000"],</span>
+<span class="s1">      "use_parallel": true</span>
+<span class="s1">    }</span>
+<span class="s1">  }'</span>
+</code></pre></div>
+<h3 id="monitoring-batch-jobs">Monitoring Batch Jobs<a class="headerlink" href="#monitoring-batch-jobs" title="Permanent link">¶</a></h3>
+<p><strong>List all batch jobs:</strong></p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/api/batch
+</code></pre></div>
+<p><strong>Get batch job details:</strong></p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/api/batch/<span class="o">{</span>batch_id<span class="o">}</span>
+</code></pre></div>
+<p><strong>Get batch job logs (SSE stream):</strong></p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/api/batch/<span class="o">{</span>batch_id<span class="o">}</span>/logs
+</code></pre></div>
+<h2 id="method-3-orchestrator-scripts-end-to-end-automation">Method 3: Orchestrator Scripts (End-to-End Automation)<a class="headerlink" href="#method-3-orchestrator-scripts-end-to-end-automation" title="Permanent link">¶</a></h2>
+<p>For complete workflow automation, use the mosaic orchestrator:</p>
+<h3 id="mosaic-orchestrator">Mosaic Orchestrator<a class="headerlink" href="#mosaic-orchestrator" title="Permanent link">¶</a></h3>
+<p>The <code>MosaicOrchestrator</code> provides full end-to-end automation from HDF5 data to
+published mosaic:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.mosaic.orchestrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">MosaicOrchestrator</span>
+
+<span class="n">orchestrator</span> <span class="o">=</span> <span class="n">MosaicOrchestrator</span><span class="p">(</span>
+    <span class="n">products_db</span><span class="o">=</span><span class="s2">"/data/dsa110-contimg/state/products.sqlite3"</span><span class="p">,</span>
+    <span class="n">cal_registry_db</span><span class="o">=</span><span class="s2">"/data/dsa110-contimg/state/cal_registry.sqlite3"</span>
+<span class="p">)</span>
+
+<span class="c1"># Create mosaic centered on calibrator transit</span>
+<span class="n">published_path</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">create_mosaic_centered_on_calibrator</span><span class="p">(</span>
+    <span class="n">calibrator_name</span><span class="o">=</span><span class="s2">"0834+555"</span><span class="p">,</span>
+    <span class="n">timespan_minutes</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+    <span class="n">wait_for_published</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">poll_interval_seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+    <span class="n">max_wait_hours</span><span class="o">=</span><span class="mi">24</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><strong>What this does:</strong></p>
+<ol>
+<li>Finds calibrator transit time</li>
+<li>Converts HDF5 to MS (if needed)</li>
+<li>Forms observation group</li>
+<li>Solves calibration</li>
+<li>Applies calibration</li>
+<li>Images all MS files</li>
+<li>Creates mosaic</li>
+<li>Waits for QA validation</li>
+<li>Waits for automatic publishing</li>
+</ol>
+<p><strong>CLI script:</strong></p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>scripts/create_mosaic_centered.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--calibrator<span class="w"> </span><span class="m">0834</span>+555<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--timespan-minutes<span class="w"> </span><span class="m">60</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--poll-interval<span class="w"> </span><span class="m">30</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--max-wait-hours<span class="w"> </span><span class="m">24</span>
+</code></pre></div>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">¶</a></h2>
+<h3 id="1-resource-management">1. Resource Management<a class="headerlink" href="#1-resource-management" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Limit parallel workers</strong>: Use <code>--max-workers</code> to avoid overwhelming the
+  system</li>
+<li><strong>Monitor disk space</strong>: Batch processing can generate large amounts of data</li>
+<li><strong>Use tmpfs staging</strong>: Enable <code>--stage-to-tmpfs</code> for faster I/O during
+  conversion</li>
+</ul>
+<h3 id="2-error-handling">2. Error Handling<a class="headerlink" href="#2-error-handling" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Check batch status regularly</strong>: Monitor batch jobs via API endpoints</li>
+<li><strong>Handle partial failures</strong>: Batch jobs continue processing even if individual
+  items fail</li>
+<li><strong>Review failed items</strong>: Use <code>GET /api/batch/{batch_id}</code> to see which items
+  failed and why</li>
+</ul>
+<h3 id="3-time-windows">3. Time Windows<a class="headerlink" href="#3-time-windows" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Use appropriate time ranges</strong>: Large time windows may take hours or days to
+  process</li>
+<li><strong>Break into smaller chunks</strong>: Process 1-2 hour windows for faster completion</li>
+<li><strong>Consider calibrator transits</strong>: Use calibrator-centered windows for better
+  calibration</li>
+</ul>
+<h3 id="4-database-management">4. Database Management<a class="headerlink" href="#4-database-management" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Use separate databases for testing</strong>: Don't mix production and test data</li>
+<li><strong>Backup databases</strong>: Regular backups of <code>products.sqlite3</code> and
+  <code>cal_registry.sqlite3</code></li>
+<li><strong>Monitor database size</strong>: Large batch jobs can create large databases</li>
+</ul>
+<h3 id="5-monitoring">5. Monitoring<a class="headerlink" href="#5-monitoring" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Use API endpoints</strong>: Check job status via <code>/api/batch/{batch_id}</code></li>
+<li><strong>Watch logs</strong>: Monitor SSE log streams for real-time progress</li>
+<li><strong>Set up alerts</strong>: Configure notifications for batch job completion/failure</li>
+</ul>
+<h2 id="example-workflows">Example Workflows<a class="headerlink" href="#example-workflows" title="Permanent link">¶</a></h2>
+<h3 id="workflow-1-process-one-night-of-data">Workflow 1: Process One Night of Data<a class="headerlink" href="#workflow-1-process-one-night-of-data" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Convert all data for the night</span>
+python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.conversion.strategies.hdf5_orchestrator<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>/data/incoming<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>/stage/dsa110-contimg/ms<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="s2">"2025-10-30 00:00:00"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="s2">"2025-10-31 00:00:00"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--writer<span class="w"> </span>parallel-subband<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--stage-to-tmpfs
+
+<span class="c1"># 2. Find all MS files</span>
+<span class="nv">MS_FILES</span><span class="o">=</span><span class="k">$(</span>find<span class="w"> </span>/stage/dsa110-contimg/ms/science/2025-10-30<span class="w"> </span>-name<span class="w"> </span><span class="s2">"*.ms"</span><span class="w"> </span>-type<span class="w"> </span>d<span class="k">)</span>
+
+<span class="c1"># 3. Batch calibrate via API</span>
+curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/batch/calibrate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s2">"{</span>
+<span class="s2">    \"ms_paths\": [</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$MS_FILES</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span><span class="s1">'s/ /","/g'</span><span class="k">)</span><span class="s2">],</span>
+<span class="s2">    \"parameters\": {</span>
+<span class="s2">      \"refant\": \"103\",</span>
+<span class="s2">      \"solve_bandpass\": true,</span>
+<span class="s2">      \"solve_gains\": true</span>
+<span class="s2">    }</span>
+<span class="s2">  }"</span>
+
+<span class="c1"># 4. Wait for calibration to complete, then batch image</span>
+curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/batch/image<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s2">"{</span>
+<span class="s2">    \"ms_paths\": [</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$MS_FILES</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sed<span class="w"> </span><span class="s1">'s/ /","/g'</span><span class="k">)</span><span class="s2">],</span>
+<span class="s2">    \"parameters\": {</span>
+<span class="s2">      \"quality_tier\": \"standard\"</span>
+<span class="s2">    }</span>
+<span class="s2">  }"</span>
+</code></pre></div>
+<h3 id="workflow-2-reprocess-historical-data">Workflow 2: Reprocess Historical Data<a class="headerlink" href="#workflow-2-reprocess-historical-data" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Process data from multiple days</span>
+<span class="k">for</span><span class="w"> </span>date<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="m">2025</span>-10-28<span class="w"> </span><span class="m">2025</span>-10-29<span class="w"> </span><span class="m">2025</span>-10-30<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">    </span>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.conversion.strategies.hdf5_orchestrator<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>/data/incoming<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>/stage/dsa110-contimg/ms<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span><span class="s2">"</span><span class="si">${</span><span class="nv">date</span><span class="si">}</span><span class="s2"> 00:00:00"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">        </span><span class="s2">"</span><span class="si">${</span><span class="nv">date</span><span class="si">}</span><span class="s2"> 23:59:59"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--writer<span class="w"> </span>parallel-subband
+<span class="k">done</span>
+</code></pre></div>
+<h3 id="workflow-3-calibrator-transit-processing">Workflow 3: Calibrator Transit Processing<a class="headerlink" href="#workflow-3-calibrator-transit-processing" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Process specific calibrator transit</span>
+python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.conversion.strategies.hdf5_orchestrator<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>/data/incoming<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>/stage/dsa110-contimg/ms<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--calibrator<span class="w"> </span><span class="m">0834</span>+555<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--transit-date<span class="w"> </span><span class="m">2025</span>-10-30<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--window-minutes<span class="w"> </span><span class="m">60</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--writer<span class="w"> </span>parallel-subband
+</code></pre></div>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
+<h3 id="batch-jobs-stuck-in-pending">Batch Jobs Stuck in "Pending"<a class="headerlink" href="#batch-jobs-stuck-in-pending" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Check API server</strong>: Ensure the API server is running</li>
+<li><strong>Check background tasks</strong>: Verify background task execution</li>
+<li><strong>Review logs</strong>: Check API server logs for errors</li>
+</ul>
+<h3 id="individual-items-failing">Individual Items Failing<a class="headerlink" href="#individual-items-failing" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Check error messages</strong>: Use <code>GET /api/batch/{batch_id}</code> to see error details</li>
+<li><strong>Verify input files</strong>: Ensure MS files exist and are accessible</li>
+<li><strong>Check disk space</strong>: Ensure sufficient disk space for outputs</li>
+</ul>
+<h3 id="slow-batch-processing">Slow Batch Processing<a class="headerlink" href="#slow-batch-processing" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Reduce parallel workers</strong>: Lower <code>--max-workers</code> if system is overloaded</li>
+<li><strong>Process smaller batches</strong>: Break large batches into smaller chunks</li>
+<li><strong>Use faster storage</strong>: Use SSD or tmpfs for intermediate files</li>
+</ul>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
+<ul>
+<li><a href="../USING_ORCHESTRATOR_CLI/">Using the Orchestrator CLI</a> - Conversion
+  orchestrator details</li>
+<li><a href="../../dev/analysis/batch_mode_development_assessment/">Batch Mode Development Assessment</a> -
+  Feature completeness</li>
+<li><a href="../../reference/dashboard_backend_api/">API Reference</a> - Complete API
+  documentation</li>
+<li><a href="../PIPELINE_TESTING_GUIDE/">Pipeline Testing Guide</a> - Testing batch workflows</li>
+</ul>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
+<p>Batch mode provides three main approaches:</p>
+<ol>
+<li><strong>CLI Tools</strong>: Direct command-line execution for each stage</li>
+<li><strong>API Endpoints</strong>: Programmatic batch job submission with tracking</li>
+<li><strong>Orchestrator Scripts</strong>: End-to-end automation for complete workflows</li>
+</ol>
+<p>Choose the method that best fits your workflow:</p>
+<ul>
+<li><strong>CLI</strong>: Simple scripts and one-off processing</li>
+<li><strong>API</strong>: Production systems with job tracking and monitoring</li>
+<li><strong>Orchestrator</strong>: Complete automation from raw data to published products</li>
+</ul>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

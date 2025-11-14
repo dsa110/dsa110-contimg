@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1189,20 +1191,25 @@
 <article class="md-content__inner md-typeset">
 <h1 id="immediate-error-termination">Immediate Error Termination<a class="headerlink" href="#immediate-error-termination" title="Permanent link">¶</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>The error detection wrappers support <strong>immediate termination</strong> of commands when errors are detected. This prevents wasted time and resources by killing processes as soon as an error pattern is found.</p>
+<p>The error detection wrappers support <strong>immediate termination</strong> of commands when
+errors are detected. This prevents wasted time and resources by killing
+processes as soon as an error pattern is found.</p>
 <h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">¶</a></h2>
 <h3 id="python-version-run-with-error-detectionpy">Python Version (<code>run-with-error-detection.py</code>)<a class="headerlink" href="#python-version-run-with-error-detectionpy" title="Permanent link">¶</a></h3>
 <p>Uses <strong>pexpect</strong> for real-time monitoring and aggressive process termination:</p>
 <ol>
-<li><strong>Real-time monitoring</strong>: Reads output character-by-character as it's produced</li>
-<li><strong>Immediate detection</strong>: Checks each line for error patterns as soon as it's complete</li>
-<li><strong>Multi-method termination</strong>: Uses multiple kill methods to ensure process dies:</li>
+<li><strong>Real-time monitoring</strong>: Reads output character-by-character as it's
+   produced</li>
+<li><strong>Immediate detection</strong>: Checks each line for error patterns as soon as it's
+   complete</li>
+<li><strong>Multi-method termination</strong>: Uses multiple kill methods to ensure process
+   dies:</li>
 <li><code>child.terminate(force=True)</code> - Graceful termination</li>
 <li><code>child.kill(signal.SIGKILL)</code> - Force kill</li>
 <li><code>os.killpg(pgid, SIGKILL)</code> - Kill process group</li>
 <li><code>os.kill(pid, SIGKILL)</code> - Direct PID kill</li>
 </ol>
-<p><strong>Example:</strong>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Error detected in line</span>
 <span class="n">error_result</span> <span class="o">=</span> <span class="n">detect_error_in_line</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">error_result</span><span class="p">:</span>
@@ -1213,21 +1220,22 @@
     <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">isalive</span><span class="p">():</span>
         <span class="n">os</span><span class="o">.</span><span class="n">killpg</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpgid</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">pid</span><span class="p">),</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIGKILL</span><span class="p">)</span>
     <span class="k">break</span>  <span class="c1"># Exit monitoring loop immediately</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="bash-version-run-with-error-detectionsh">Bash Version (<code>run-with-error-detection.sh</code>)<a class="headerlink" href="#bash-version-run-with-error-detectionsh" title="Permanent link">¶</a></h3>
 <p>Uses <strong>trap</strong> and <strong>signal handling</strong> for immediate termination:</p>
 <ol>
 <li><strong>Background execution</strong>: Runs command in background</li>
 <li><strong>Line-by-line monitoring</strong>: Reads output as it's produced</li>
-<li><strong>Signal-based kill</strong>: Uses <code>kill -TERM</code> then <code>kill -KILL</code> for immediate termination</li>
+<li><strong>Signal-based kill</strong>: Uses <code>kill -TERM</code> then <code>kill -KILL</code> for immediate
+   termination</li>
 </ol>
-<p><strong>Example:</strong>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Error detected</span>
 <span class="k">if</span><span class="w"> </span>check_line_for_errors<span class="w"> </span><span class="s2">"</span><span class="nv">$line</span><span class="s2">"</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
 <span class="w">    </span>kill_command<span class="w">  </span><span class="c1"># Sends TERM, then KILL if needed</span>
 <span class="w">    </span><span class="k">break</span>
 <span class="k">fi</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">¶</a></h2>
 <h3 id="python-version-recommended">Python Version (Recommended)<a class="headerlink" href="#python-version-recommended" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Basic usage - kills immediately on error</span>
@@ -1248,11 +1256,13 @@
 <li><strong>Process Group</strong> (<code>killpg</code>): Kills entire process tree</li>
 <li><strong>Direct PID</strong>: Last resort direct kill</li>
 </ol>
-<p>This ensures the process dies even if:
-- It ignores SIGTERM
-- It spawns child processes
-- It's in a process group
-- Normal termination fails</p>
+<p>This ensures the process dies even if:</p>
+<ul>
+<li>It ignores SIGTERM</li>
+<li>It spawns child processes</li>
+<li>It's in a process group</li>
+<li>Normal termination fails</li>
+</ul>
 <h2 id="benefits">Benefits<a class="headerlink" href="#benefits" title="Permanent link">¶</a></h2>
 <ol>
 <li><strong>Time savings</strong>: Don't wait for long-running commands to finish after error</li>
@@ -1290,15 +1300,20 @@ python<span class="w"> </span>process_data.py<span class="w"> </span>--input<spa
 </ul>
 <h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Subprocess handling</strong>: Some processes spawn children that may continue running</li>
-<li><strong>Signal handling</strong>: Processes that catch and ignore signals may not terminate</li>
+<li><strong>Subprocess handling</strong>: Some processes spawn children that may continue
+   running</li>
+<li><strong>Signal handling</strong>: Processes that catch and ignore signals may not
+   terminate</li>
 <li><strong>Process groups</strong>: Some processes may be in protected process groups</li>
 </ol>
-<p>The multi-method kill approach handles most of these cases, but some edge cases may require manual cleanup.</p>
+<p>The multi-method kill approach handles most of these cases, but some edge cases
+may require manual cleanup.</p>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
 <ul>
-<li><a href="../scripts/README-error-detection.md">Error Detection Wrapper</a> - Full error detection documentation</li>
-<li><a href="../.cursor/rules/output-suppression.mdc">Output Suppression Rules</a> - Output handling rules</li>
+<li><a href="../scripts/README-error-detection.md">Error Detection Wrapper</a> - Full error
+  detection documentation</li>
+<li><a href="../.cursor/rules/output-suppression.mdc">Output Suppression Rules</a> - Output
+  handling rules</li>
 </ul>
 </article>
 </div>
@@ -1324,7 +1339,7 @@ python<span class="w"> </span>process_data.py<span class="w"> </span>--input<spa
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1271,7 +1273,8 @@
 <article class="md-content__inner md-typeset">
 <h1 id="phase-1-backend-api-testing-complete">Phase 1 Backend API Testing - Complete<a class="headerlink" href="#phase-1-backend-api-testing-complete" title="Permanent link">¶</a></h1>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
-<p>All backend API endpoints have been successfully tested with real data. Test scripts created and executed successfully.</p>
+<p>All backend API endpoints have been successfully tested with real data. Test
+scripts created and executed successfully.</p>
 <h2 id="test-execution-date">Test Execution Date<a class="headerlink" href="#test-execution-date" title="Permanent link">¶</a></h2>
 <p>$(date)</p>
 <h2 id="test-results">Test Results<a class="headerlink" href="#test-results" title="Permanent link">¶</a></h2>
@@ -1297,11 +1300,13 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Health Summary Response:</strong>
-- Status: "degraded" (expected - disk_space check failing, not critical)
-- Contains: checks, circuit_breakers, dlq_stats, timestamp
-- DLQ stats correctly reflect test data
-- All 3 circuit breakers in "closed" state</p>
+<p><strong>Health Summary Response:</strong></p>
+<ul>
+<li>Status: "degraded" (expected - disk_space check failing, not critical)</li>
+<li>Contains: checks, circuit_breakers, dlq_stats, timestamp</li>
+<li>DLQ stats correctly reflect test data</li>
+<li>All 3 circuit breakers in "closed" state</li>
+</ul>
 <h3 id="dead-letter-queue-endpoints">✓ Dead Letter Queue Endpoints<a class="headerlink" href="#dead-letter-queue-endpoints" title="Permanent link">¶</a></h3>
 <table>
 <thead>
@@ -1359,12 +1364,14 @@
 </tr>
 </tbody>
 </table>
-<p><strong>DLQ Test Results:</strong>
-- Created 3 test items successfully
-- Stats: total=3, pending=2, retrying=0, resolved=1, failed=0 (after testing)
-- Retry action: Item 1 moved from "pending" to "retrying" ✓
-- Resolve action: Item 1 moved from "retrying" to "resolved" ✓
-- Stats update correctly after actions ✓</p>
+<p><strong>DLQ Test Results:</strong></p>
+<ul>
+<li>Created 3 test items successfully</li>
+<li>Stats: total=3, pending=2, retrying=0, resolved=1, failed=0 (after testing)</li>
+<li>Retry action: Item 1 moved from "pending" to "retrying" ✓</li>
+<li>Resolve action: Item 1 moved from "retrying" to "resolved" ✓</li>
+<li>Stats update correctly after actions ✓</li>
+</ul>
 <h3 id="circuit-breaker-endpoints">✓ Circuit Breaker Endpoints<a class="headerlink" href="#circuit-breaker-endpoints" title="Permanent link">¶</a></h3>
 <table>
 <thead>
@@ -1397,11 +1404,13 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Circuit Breaker Test Results:</strong>
-- All 3 breakers returned: ese_detection, calibration_solve, photometry
-- All breakers in "closed" state (healthy)
-- Reset endpoint works correctly
-- Invalid breaker name returns 404 ✓</p>
+<p><strong>Circuit Breaker Test Results:</strong></p>
+<ul>
+<li>All 3 breakers returned: ese_detection, calibration_solve, photometry</li>
+<li>All breakers in "closed" state (healthy)</li>
+<li>Reset endpoint works correctly</li>
+<li>Invalid breaker name returns 404 ✓</li>
+</ul>
 <h3 id="error-handling">✓ Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">¶</a></h3>
 <table>
 <thead>
@@ -1433,29 +1442,35 @@
 <h3 id="1-scriptstest_dlq_endpointspy">1. <code>scripts/test_dlq_endpoints.py</code><a class="headerlink" href="#1-scriptstest_dlq_endpointspy" title="Permanent link">¶</a></h3>
 <p><strong>Purpose:</strong> Create test DLQ items for testing</p>
 <p><strong>Status:</strong> ✓ Working perfectly</p>
-<p><strong>Usage:</strong>
+<p><strong>Usage:</strong></p>
 <div class="highlight"><pre><span></span><code>/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>scripts/test_dlq_endpoints.py
-</code></pre></div></p>
-<p><strong>Output:</strong>
-- Creates 3 test DLQ items
-- Displays initial and final stats
-- Shows created item IDs</p>
-<p><strong>Created Items:</strong>
-1. ese_detection.detect_candidates (RuntimeError)
-2. calibration_solve.solve_gain (ValueError)
-3. photometry.measure_flux (KeyError)</p>
+</code></pre></div>
+<p><strong>Output:</strong></p>
+<ul>
+<li>Creates 3 test DLQ items</li>
+<li>Displays initial and final stats</li>
+<li>Shows created item IDs</li>
+</ul>
+<p><strong>Created Items:</strong></p>
+<ol>
+<li>ese_detection.detect_candidates (RuntimeError)</li>
+<li>calibration_solve.solve_gain (ValueError)</li>
+<li>photometry.measure_flux (KeyError)</li>
+</ol>
 <h3 id="2-scriptstest_api_endpointssh">2. <code>scripts/test_api_endpoints.sh</code><a class="headerlink" href="#2-scriptstest_api_endpointssh" title="Permanent link">¶</a></h3>
 <p><strong>Purpose:</strong> Comprehensive API endpoint testing</p>
 <p><strong>Status:</strong> ✓ Created, functional</p>
-<p><strong>Usage:</strong>
+<p><strong>Usage:</strong></p>
 <div class="highlight"><pre><span></span><code>bash<span class="w"> </span>scripts/test_api_endpoints.sh
-</code></pre></div></p>
-<p><strong>Features:</strong>
-- Tests all DLQ endpoints
-- Tests all circuit breaker endpoints
-- Tests error handling
-- Color-coded output
-- Test summary with pass/fail counts</p>
+</code></pre></div>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Tests all DLQ endpoints</li>
+<li>Tests all circuit breaker endpoints</li>
+<li>Tests error handling</li>
+<li>Color-coded output</li>
+<li>Test summary with pass/fail counts</li>
+</ul>
 <h2 id="code-quality">Code Quality<a class="headerlink" href="#code-quality" title="Permanent link">¶</a></h2>
 <h3 id="issues-fixed">Issues Fixed<a class="headerlink" href="#issues-fixed" title="Permanent link">¶</a></h3>
 <ol>
@@ -1469,31 +1484,40 @@
 </li>
 <li>Removed optional fields from parent <code>PipelineEvent</code> class</li>
 <li>Added optional fields to each child class individually</li>
-<li>Fixed: <code>PhotometryMeasurementCompleted</code>, <code>ESECandidateDetected</code>, <code>CalibrationSolved</code></li>
+<li>Fixed: <code>PhotometryMeasurementCompleted</code>, <code>ESECandidateDetected</code>,
+     <code>CalibrationSolved</code></li>
 </ol>
 <h3 id="codacy-analysis">Codacy Analysis<a class="headerlink" href="#codacy-analysis" title="Permanent link">¶</a></h3>
-<p>All modified files pass Codacy analysis:
-- ✓ <code>scripts/test_dlq_endpoints.py</code>
-- ✓ <code>scripts/test_api_endpoints.sh</code>
-- ✓ <code>src/dsa110_contimg/pipeline/__init__.py</code>
-- ✓ <code>src/dsa110_contimg/pipeline/event_bus.py</code></p>
+<p>All modified files pass Codacy analysis:</p>
+<ul>
+<li>✓ <code>scripts/test_dlq_endpoints.py</code></li>
+<li>✓ <code>scripts/test_api_endpoints.sh</code></li>
+<li>✓ <code>src/dsa110_contimg/pipeline/__init__.py</code></li>
+<li>✓ <code>src/dsa110_contimg/pipeline/event_bus.py</code></li>
+</ul>
 <h2 id="test-data">Test Data<a class="headerlink" href="#test-data" title="Permanent link">¶</a></h2>
 <h3 id="created-test-items">Created Test Items<a class="headerlink" href="#created-test-items" title="Permanent link">¶</a></h3>
-<p><strong>Item 1:</strong> (Resolved during testing)
-- Component: ese_detection
-- Operation: detect_candidates
-- Status: resolved
-- Error: RuntimeError("Test error: ESE detection failed")</p>
-<p><strong>Item 2:</strong> (Pending)
-- Component: calibration_solve
-- Operation: solve_gain
-- Status: pending
-- Error: ValueError("Test error: Calibration solve failed")</p>
-<p><strong>Item 3:</strong> (Pending)
-- Component: photometry
-- Operation: measure_flux
-- Status: pending
-- Error: KeyError("Test error: Source not found")</p>
+<p><strong>Item 1:</strong> (Resolved during testing)</p>
+<ul>
+<li>Component: ese_detection</li>
+<li>Operation: detect_candidates</li>
+<li>Status: resolved</li>
+<li>Error: RuntimeError("Test error: ESE detection failed")</li>
+</ul>
+<p><strong>Item 2:</strong> (Pending)</p>
+<ul>
+<li>Component: calibration_solve</li>
+<li>Operation: solve_gain</li>
+<li>Status: pending</li>
+<li>Error: ValueError("Test error: Calibration solve failed")</li>
+</ul>
+<p><strong>Item 3:</strong> (Pending)</p>
+<ul>
+<li>Component: photometry</li>
+<li>Operation: measure_flux</li>
+<li>Status: pending</li>
+<li>Error: KeyError("Test error: Source not found")</li>
+</ul>
 <h2 id="verification-commands">Verification Commands<a class="headerlink" href="#verification-commands" title="Permanent link">¶</a></h2>
 <h3 id="quick-health-check">Quick Health Check<a class="headerlink" href="#quick-health-check" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:8000/api/health/summary<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">'.status, .dlq_stats'</span>
@@ -1541,9 +1565,13 @@
 <li>Test scripts are reusable for future testing</li>
 <li>Health summary correctly aggregates all components</li>
 </ul>
-<p><strong>Known Non-Critical Issues:</strong>
-- Disk space check failing (expected - <code>/stage/dsa110-contimg</code> doesn't exist in test environment)
-- Health status shows "degraded" due to disk space check (doesn't affect functionality)</p>
+<p><strong>Known Non-Critical Issues:</strong></p>
+<ul>
+<li>Disk space check failing (expected - <code>/stage/dsa110-contimg</code> doesn't exist in
+  test environment)</li>
+<li>Health status shows "degraded" due to disk space check (doesn't affect
+  functionality)</li>
+</ul>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1568,7 +1596,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

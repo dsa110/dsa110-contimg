@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1211,24 +1213,22 @@
 <h1 id="browser-testing-guide-for-phase-1">Browser Testing Guide for Phase 1<a class="headerlink" href="#browser-testing-guide-for-phase-1" title="Permanent link">¶</a></h1>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">¶</a></h2>
 <ol>
-<li>
-<p><strong>Backend Server Running:</strong>
+<li><strong>Backend Server Running:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check if running</span>
 curl<span class="w"> </span>http://localhost:8000/health/liveness
 
 <span class="c1"># If not running, start it (adjust command based on your setup)</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Frontend Dev Server Running:</strong>
+</code></pre></div>
+<ol>
+<li><strong>Frontend Dev Server Running:</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>frontend
 npm<span class="w"> </span>run<span class="w"> </span>dev
 <span class="c1"># Should be available at http://localhost:5173</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Browser Extension Connected:</strong></p>
-</li>
+</code></pre></div>
+<ol>
+<li><strong>Browser Extension Connected:</strong></li>
 <li>Click the Browser MCP extension icon in Chrome toolbar</li>
 <li>Click "Connect" button</li>
 <li>Extension should show "Connected" status</li>
@@ -1236,87 +1236,109 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 <h2 id="testing-steps">Testing Steps<a class="headerlink" href="#testing-steps" title="Permanent link">¶</a></h2>
 <h3 id="1-navigate-to-operations-page">1. Navigate to Operations Page<a class="headerlink" href="#1-navigate-to-operations-page" title="Permanent link">¶</a></h3>
 <p><strong>URL:</strong> <code>http://localhost:5173/operations</code></p>
-<p><strong>Expected:</strong>
-- Page loads without errors
-- Navigation bar shows "Operations" link (with Build icon)
-- Operations page displays with tabs:
-  - Dead Letter Queue tab
-  - Circuit Breakers tab</p>
+<p><strong>Expected:</strong></p>
+<ul>
+<li>Page loads without errors</li>
+<li>Navigation bar shows "Operations" link (with Build icon)</li>
+<li>Operations page displays with tabs:</li>
+<li>Dead Letter Queue tab</li>
+<li>Circuit Breakers tab</li>
+</ul>
 <h3 id="2-test-dead-letter-queue-tab">2. Test Dead Letter Queue Tab<a class="headerlink" href="#2-test-dead-letter-queue-tab" title="Permanent link">¶</a></h3>
-<p><strong>What to Check:</strong>
-- DLQ Stats card displays at top
-  - Shows: Total, Pending, Retrying, Resolved, Failed
-  - Numbers match backend API (<code>/api/operations/dlq/stats</code>)
-- DLQ Table displays items (if any exist)
-  - Columns: ID, Component, Operation, Error Message, Status, Actions
-  - Filter dropdowns work (Component, Status)
-  - Retry button works (if items exist)
-  - Resolve button works (if items exist)</p>
-<p><strong>Test Actions:</strong>
-1. Create a test DLQ item:
+<p><strong>What to Check:</strong></p>
+<ul>
+<li>DLQ Stats card displays at top</li>
+<li>Shows: Total, Pending, Retrying, Resolved, Failed</li>
+<li>Numbers match backend API (<code>/api/operations/dlq/stats</code>)</li>
+<li>DLQ Table displays items (if any exist)</li>
+<li>Columns: ID, Component, Operation, Error Message, Status, Actions</li>
+<li>Filter dropdowns work (Component, Status)</li>
+<li>Retry button works (if items exist)</li>
+<li>Resolve button works (if items exist)</li>
+</ul>
+<p><strong>Test Actions:</strong></p>
+<ol>
+<li>Create a test DLQ item:
    <div class="highlight"><pre><span></span><code>/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>scripts/test_dlq_endpoints.py
-</code></pre></div>
-2. Wait 10-30 seconds
-3. Verify item appears in table automatically
-4. Click "Retry" button
-5. Verify status changes to "retrying"
-6. Click "Resolve" button
-7. Verify item moves to resolved state</p>
+</code></pre></div></li>
+<li>Wait 10-30 seconds</li>
+<li>Verify item appears in table automatically</li>
+<li>Click "Retry" button</li>
+<li>Verify status changes to "retrying"</li>
+<li>Click "Resolve" button</li>
+<li>Verify item moves to resolved state</li>
+</ol>
 <h3 id="3-test-circuit-breakers-tab">3. Test Circuit Breakers Tab<a class="headerlink" href="#3-test-circuit-breakers-tab" title="Permanent link">¶</a></h3>
-<p><strong>What to Check:</strong>
-- Circuit Breaker Status component displays
-- Shows all 3 circuit breakers:
-  - ese_detection
-  - calibration_solve
-  - photometry
-- Each breaker shows:
-  - Name
-  - State (closed/open/half-open) with color coding
-  - Failure count
-  - Reset button</p>
-<p><strong>Test Actions:</strong>
-1. Click "Reset" button on a circuit breaker
-2. Verify state updates (should remain "closed" if already closed)
-3. Verify failure count resets to 0</p>
+<p><strong>What to Check:</strong></p>
+<ul>
+<li>Circuit Breaker Status component displays</li>
+<li>Shows all 3 circuit breakers:</li>
+<li>ese_detection</li>
+<li>calibration_solve</li>
+<li>photometry</li>
+<li>Each breaker shows:</li>
+<li>Name</li>
+<li>State (closed/open/half-open) with color coding</li>
+<li>Failure count</li>
+<li>Reset button</li>
+</ul>
+<p><strong>Test Actions:</strong></p>
+<ol>
+<li>Click "Reset" button on a circuit breaker</li>
+<li>Verify state updates (should remain "closed" if already closed)</li>
+<li>Verify failure count resets to 0</li>
+</ol>
 <h3 id="4-test-real-time-updates">4. Test Real-Time Updates<a class="headerlink" href="#4-test-real-time-updates" title="Permanent link">¶</a></h3>
-<p><strong>What to Check:</strong>
-- Open browser DevTools → Network tab
-- Observe automatic API calls:
-  - <code>/api/operations/dlq/stats</code> - Every 10 seconds
-  - <code>/api/operations/circuit-breakers</code> - Every 5 seconds
-  - <code>/api/operations/dlq/items</code> - Every 30 seconds</p>
-<p><strong>Test Actions:</strong>
-1. Note current DLQ stats
-2. Create new DLQ item via Python script
-3. Wait 10-15 seconds
-4. Verify stats update automatically (without page refresh)
-5. Verify new item appears in table automatically</p>
+<p><strong>What to Check:</strong></p>
+<ul>
+<li>Open browser DevTools → Network tab</li>
+<li>Observe automatic API calls:</li>
+<li><code>/api/operations/dlq/stats</code> - Every 10 seconds</li>
+<li><code>/api/operations/circuit-breakers</code> - Every 5 seconds</li>
+<li><code>/api/operations/dlq/items</code> - Every 30 seconds</li>
+</ul>
+<p><strong>Test Actions:</strong></p>
+<ol>
+<li>Note current DLQ stats</li>
+<li>Create new DLQ item via Python script</li>
+<li>Wait 10-15 seconds</li>
+<li>Verify stats update automatically (without page refresh)</li>
+<li>Verify new item appears in table automatically</li>
+</ol>
 <h3 id="5-test-navigation">5. Test Navigation<a class="headerlink" href="#5-test-navigation" title="Permanent link">¶</a></h3>
-<p><strong>What to Check:</strong>
-- Navigation bar shows "Operations" link
-- Link is clickable
-- Active route is highlighted
-- Mobile drawer menu includes Operations link</p>
-<p><strong>Test Actions:</strong>
-1. Click "Operations" in navigation
-2. Verify page navigates to <code>/operations</code>
-3. Click other navigation links
-4. Verify Operations link remains accessible</p>
+<p><strong>What to Check:</strong></p>
+<ul>
+<li>Navigation bar shows "Operations" link</li>
+<li>Link is clickable</li>
+<li>Active route is highlighted</li>
+<li>Mobile drawer menu includes Operations link</li>
+</ul>
+<p><strong>Test Actions:</strong></p>
+<ol>
+<li>Click "Operations" in navigation</li>
+<li>Verify page navigates to <code>/operations</code></li>
+<li>Click other navigation links</li>
+<li>Verify Operations link remains accessible</li>
+</ol>
 <h3 id="6-test-health-page-operations-health-tab">6. Test Health Page - Operations Health Tab<a class="headerlink" href="#6-test-health-page-operations-health-tab" title="Permanent link">¶</a></h3>
 <p><strong>URL:</strong> <code>http://localhost:5173/health</code></p>
-<p><strong>What to Check:</strong>
-- Health page loads
-- "Operations Health" tab exists
-- Tab displays:
-  - Overall status (healthy/degraded/unhealthy)
-  - Health checks list
-  - DLQ stats card
-  - Circuit breaker status</p>
-<p><strong>Test Actions:</strong>
-1. Navigate to <code>/health</code>
-2. Click "Operations Health" tab
-3. Verify all components display
-4. Verify data matches <code>/api/health/summary</code> endpoint</p>
+<p><strong>What to Check:</strong></p>
+<ul>
+<li>Health page loads</li>
+<li>"Operations Health" tab exists</li>
+<li>Tab displays:</li>
+<li>Overall status (healthy/degraded/unhealthy)</li>
+<li>Health checks list</li>
+<li>DLQ stats card</li>
+<li>Circuit breaker status</li>
+</ul>
+<p><strong>Test Actions:</strong></p>
+<ol>
+<li>Navigate to <code>/health</code></li>
+<li>Click "Operations Health" tab</li>
+<li>Verify all components display</li>
+<li>Verify data matches <code>/api/health/summary</code> endpoint</li>
+</ol>
 <h2 id="expected-behaviors">Expected Behaviors<a class="headerlink" href="#expected-behaviors" title="Permanent link">¶</a></h2>
 <h3 id="auto-refresh-intervals">Auto-Refresh Intervals<a class="headerlink" href="#auto-refresh-intervals" title="Permanent link">¶</a></h3>
 <table>
@@ -1351,19 +1373,25 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 </tbody>
 </table>
 <h3 id="color-coding">Color Coding<a class="headerlink" href="#color-coding" title="Permanent link">¶</a></h3>
-<p><strong>Circuit Breaker States:</strong>
-- Closed (healthy): Green
-- Open (unhealthy): Red
-- Half-open (recovering): Yellow</p>
-<p><strong>DLQ Item Status:</strong>
-- Pending: Default
-- Retrying: Warning (yellow/orange)
-- Resolved: Success (green)
-- Failed: Error (red)</p>
-<p><strong>Health Status:</strong>
-- Healthy: Green
-- Degraded: Yellow/Warning
-- Unhealthy: Red/Error</p>
+<p><strong>Circuit Breaker States:</strong></p>
+<ul>
+<li>Closed (healthy): Green</li>
+<li>Open (unhealthy): Red</li>
+<li>Half-open (recovering): Yellow</li>
+</ul>
+<p><strong>DLQ Item Status:</strong></p>
+<ul>
+<li>Pending: Default</li>
+<li>Retrying: Warning (yellow/orange)</li>
+<li>Resolved: Success (green)</li>
+<li>Failed: Error (red)</li>
+</ul>
+<p><strong>Health Status:</strong></p>
+<ul>
+<li>Healthy: Green</li>
+<li>Degraded: Yellow/Warning</li>
+<li>Unhealthy: Red/Error</li>
+</ul>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
 <h3 id="page-not-loading">Page Not Loading<a class="headerlink" href="#page-not-loading" title="Permanent link">¶</a></h3>
 <ul>
@@ -1374,7 +1402,8 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 <h3 id="data-not-appearing">Data Not Appearing<a class="headerlink" href="#data-not-appearing" title="Permanent link">¶</a></h3>
 <ul>
 <li>Check browser console for API errors</li>
-<li>Verify backend API is responding: <code>curl http://localhost:8000/api/operations/dlq/stats</code></li>
+<li>Verify backend API is responding:
+  <code>curl http://localhost:8000/api/operations/dlq/stats</code></li>
 <li>Check Network tab in DevTools for failed requests</li>
 </ul>
 <h3 id="auto-refresh-not-working">Auto-Refresh Not Working<a class="headerlink" href="#auto-refresh-not-working" title="Permanent link">¶</a></h3>
@@ -1419,7 +1448,8 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 <h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">¶</a></h2>
 <ul>
 <li>All auto-refresh intervals are configured in <code>frontend/src/api/queries.ts</code></li>
-<li>Backend endpoints are tested and working (see <code>docs/dev/phase1_backend_testing_complete.md</code>)</li>
+<li>Backend endpoints are tested and working (see
+  <code>docs/dev/phase1_backend_testing_complete.md</code>)</li>
 <li>Test data can be created using <code>scripts/test_dlq_endpoints.py</code></li>
 </ul>
 </article>
@@ -1446,7 +1476,7 @@ npm<span class="w"> </span>run<span class="w"> </span>dev
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

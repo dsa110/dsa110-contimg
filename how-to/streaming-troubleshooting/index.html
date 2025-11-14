@@ -8,7 +8,7 @@
 <link href="http://code.deepsynoptic.org/dsa110-contimg/how-to/streaming-troubleshooting/" rel="canonical"/>
 <link href="../../assets/images/favicon.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
-<title>Streaming Service Troubleshooting Guide - DSA-110 Continuum Imaging Pipeline</title>
+<title>Moved - DSA-110 Continuum Imaging Pipeline</title>
 <link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
@@ -21,11 +21,13 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#streaming-service-troubleshooting-guide">
+<a class="md-skip" href="#moved">
           Skip to content
         </a>
 </div>
 <div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
 </div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
@@ -45,7 +47,7 @@
 <div class="md-header__topic" data-md-component="header-topic">
 <span class="md-ellipsis">
             
-              Streaming Service Troubleshooting Guide
+              Moved
             
           </span>
 </div>
@@ -1057,13 +1059,6 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#overview">
-<span class="md-ellipsis">
-      Overview
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
 <a class="md-nav__link" href="#quick-diagnosis">
 <span class="md-ellipsis">
       Quick Diagnosis
@@ -1547,14 +1542,9 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="streaming-service-troubleshooting-guide">Streaming Service Troubleshooting Guide<a class="headerlink" href="#streaming-service-troubleshooting-guide" title="Permanent link">¶</a></h1>
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>This guide provides comprehensive troubleshooting procedures for the DSA-110 streaming service. Use this document to diagnose and resolve common issues.</p>
-<p><strong>Related Documentation:</strong>
-- <a href="../streaming-control/">Streaming Control Guide</a> - Basic usage and control
-- <a href="../../concepts/streaming-architecture/">Streaming Architecture</a> - System architecture
-- <a href="../../reference/streaming-api/">Streaming API Reference</a> - API documentation
-- <a href="../../reference/docker-client/">Docker Client Reference</a> - Docker integration</p>
+<h1 id="moved">Moved<a class="headerlink" href="#moved" title="Permanent link">¶</a></h1>
+<p>This content was consolidated into <code>docs/how-to/streaming.md</code> (Troubleshooting
+section).</p>
 <h2 id="quick-diagnosis">Quick Diagnosis<a class="headerlink" href="#quick-diagnosis" title="Permanent link">¶</a></h2>
 <h3 id="service-status-check">Service Status Check<a class="headerlink" href="#service-status-check" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check via API</span>
@@ -1617,31 +1607,31 @@ docker-compose<span class="w"> </span>logs<span class="w"> </span>stream<span cl
 <li>Error message: "Failed to start streaming service"</li>
 </ul>
 <h4 id="diagnosis-steps">Diagnosis Steps<a class="headerlink" href="#diagnosis-steps" title="Permanent link">¶</a></h4>
-<p><strong>Step 1: Check API Logs</strong>
+<p><strong>Step 1: Check API Logs</strong></p>
 <div class="highlight"><pre><span></span><code>docker-compose<span class="w"> </span>logs<span class="w"> </span>api<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s2">"streaming\|error"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-20
-</code></pre></div></p>
-<p><strong>Step 2: Check Configuration</strong>
+</code></pre></div>
+<p><strong>Step 2: Check Configuration</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Via API</span>
 curl<span class="w"> </span>http://localhost:8010/api/streaming/config
 
 <span class="c1"># Check config file</span>
 cat<span class="w"> </span>state/streaming_config.json
-</code></pre></div></p>
-<p><strong>Step 3: Verify Directories</strong>
+</code></pre></div>
+<p><strong>Step 3: Verify Directories</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check if directories exist and are accessible</span>
 ls<span class="w"> </span>-la<span class="w"> </span><span class="nv">$CONTIMG_INPUT_DIR</span>
 ls<span class="w"> </span>-la<span class="w"> </span><span class="nv">$CONTIMG_OUTPUT_DIR</span>
 ls<span class="w"> </span>-la<span class="w"> </span><span class="nv">$CONTIMG_SCRATCH_DIR</span>
-</code></pre></div></p>
-<p><strong>Step 4: Check Python Environment</strong>
+</code></pre></div>
+<p><strong>Step 4: Check Python Environment</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Verify CASA6 Python exists</span>
 ls<span class="w"> </span>-la<span class="w"> </span>/opt/miniforge/envs/casa6/bin/python
 
 <span class="c1"># Test Python import</span>
 /opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import casatasks; print('CASA OK')"</span>
-</code></pre></div></p>
+</code></pre></div>
 <h4 id="solutions">Solutions<a class="headerlink" href="#solutions" title="Permanent link">¶</a></h4>
-<p><strong>Issue: Configuration Error</strong>
+<p><strong>Issue: Configuration Error</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Reset to defaults via API</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
@@ -1651,15 +1641,15 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <span class="s1">    "expected_subbands": 16,</span>
 <span class="s1">    "chunk_duration": 5.0</span>
 <span class="s1">  }'</span>
-</code></pre></div></p>
-<p><strong>Issue: Missing Directories</strong>
+</code></pre></div>
+<p><strong>Issue: Missing Directories</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Create missing directories</span>
 mkdir<span class="w"> </span>-p<span class="w"> </span>/data/incoming
 mkdir<span class="w"> </span>-p<span class="w"> </span>/stage/dsa110-contimg/ms
 mkdir<span class="w"> </span>-p<span class="w"> </span>/stage/dsa110-contimg
 chmod<span class="w"> </span><span class="m">755</span><span class="w"> </span>/data/incoming<span class="w"> </span>/stage/dsa110-contimg/ms<span class="w"> </span>/stage/dsa110-contimg
-</code></pre></div></p>
-<p><strong>Issue: Python Not Found</strong>
+</code></pre></div>
+<p><strong>Issue: Python Not Found</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Verify CASA6 environment</span>
 conda<span class="w"> </span>activate<span class="w"> </span>casa6
 which<span class="w"> </span>python
@@ -1667,15 +1657,15 @@ python<span class="w"> </span>--version
 
 <span class="c1"># If missing, install CASA6 environment</span>
 <span class="c1"># (See CASA installation documentation)</span>
-</code></pre></div></p>
-<p><strong>Issue: Permission Denied</strong>
+</code></pre></div>
+<p><strong>Issue: Permission Denied</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check directory permissions</span>
 ls<span class="w"> </span>-ld<span class="w"> </span>/data/incoming<span class="w"> </span>/stage/dsa110-contimg
 
 <span class="c1"># Fix permissions (adjust UID/GID as needed)</span>
 sudo<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span><span class="nv">$USER</span>:<span class="nv">$USER</span><span class="w"> </span>/data/incoming
 sudo<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span><span class="nv">$USER</span>:<span class="nv">$USER</span><span class="w"> </span>/stage/dsa110-contimg
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="2-service-starts-but-stops-immediately">2. Service Starts But Stops Immediately<a class="headerlink" href="#2-service-starts-but-stops-immediately" title="Permanent link">¶</a></h3>
 <h4 id="symptoms_1">Symptoms<a class="headerlink" href="#symptoms_1" title="Permanent link">¶</a></h4>
 <ul>
@@ -1684,13 +1674,13 @@ sudo<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </sp
 <li>No error message in dashboard</li>
 </ul>
 <h4 id="diagnosis-steps_1">Diagnosis Steps<a class="headerlink" href="#diagnosis-steps_1" title="Permanent link">¶</a></h4>
-<p><strong>Step 1: Check Container Logs</strong>
+<p><strong>Step 1: Check Container Logs</strong></p>
 <div class="highlight"><pre><span></span><code>docker-compose<span class="w"> </span>logs<span class="w"> </span>stream<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-100
-</code></pre></div></p>
-<p><strong>Step 2: Check for Python Errors</strong>
+</code></pre></div>
+<p><strong>Step 2: Check for Python Errors</strong></p>
 <div class="highlight"><pre><span></span><code>docker-compose<span class="w"> </span>logs<span class="w"> </span>stream<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s2">"error\|exception\|traceback"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-20
-</code></pre></div></p>
-<p><strong>Step 3: Check System Resources</strong>
+</code></pre></div>
+<p><strong>Step 3: Check System Resources</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check disk space</span>
 df<span class="w"> </span>-h<span class="w"> </span>/data<span class="w"> </span>/scratch
 
@@ -1699,13 +1689,13 @@ free<span class="w"> </span>-h
 
 <span class="c1"># Check if process is being killed</span>
 dmesg<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-20
-</code></pre></div></p>
+</code></pre></div>
 <h4 id="solutions_1">Solutions<a class="headerlink" href="#solutions_1" title="Permanent link">¶</a></h4>
-<p><strong>Issue: Python Import Error</strong>
+<p><strong>Issue: Python Import Error</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Test imports manually</span>
 docker-compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>stream<span class="w"> </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import dsa110_contimg.conversion.streaming.streaming_converter"</span>
-</code></pre></div></p>
-<p><strong>Issue: Out of Disk Space</strong>
+</code></pre></div>
+<p><strong>Issue: Out of Disk Space</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check disk usage</span>
 df<span class="w"> </span>-h
 
@@ -1713,8 +1703,8 @@ df<span class="w"> </span>-h
 find<span class="w"> </span>/stage/dsa110-contimg<span class="w"> </span>-type<span class="w"> </span>f<span class="w"> </span>-mtime<span class="w"> </span>+30<span class="w"> </span>-delete
 
 <span class="c1"># Or increase disk space</span>
-</code></pre></div></p>
-<p><strong>Issue: Out of Memory (OOM Killer)</strong>
+</code></pre></div>
+<p><strong>Issue: Out of Memory (OOM Killer)</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check if OOM killer was involved</span>
 dmesg<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s2">"oom\|killed"</span>
 
@@ -1722,14 +1712,14 @@ dmesg<span class="w"> </span><span class="p">|</span><span class="w"> </span>gre
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"max_workers": 2}'</span>
-</code></pre></div></p>
-<p><strong>Issue: Database Locked</strong>
+</code></pre></div>
+<p><strong>Issue: Database Locked</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check for database locks</span>
 sqlite3<span class="w"> </span>state/ingest.sqlite3<span class="w"> </span><span class="s2">"SELECT * FROM sqlite_master WHERE type='table';"</span>
 
 <span class="c1"># If locked, may need to wait or restart</span>
 docker-compose<span class="w"> </span>restart<span class="w"> </span>stream
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="3-service-running-but-not-processing-files">3. Service Running But Not Processing Files<a class="headerlink" href="#3-service-running-but-not-processing-files" title="Permanent link">¶</a></h3>
 <h4 id="symptoms_2">Symptoms<a class="headerlink" href="#symptoms_2" title="Permanent link">¶</a></h4>
 <ul>
@@ -1738,26 +1728,26 @@ docker-compose<span class="w"> </span>restart<span class="w"> </span>stream
 <li>Queue shows items stuck in "pending" or "collecting"</li>
 </ul>
 <h4 id="diagnosis-steps_2">Diagnosis Steps<a class="headerlink" href="#diagnosis-steps_2" title="Permanent link">¶</a></h4>
-<p><strong>Step 1: Check Input Directory</strong>
+<p><strong>Step 1: Check Input Directory</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Verify files are arriving</span>
 ls<span class="w"> </span>-lh<span class="w"> </span>/data/incoming/*.hdf5<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-10
 
 <span class="c1"># Check file permissions</span>
 ls<span class="w"> </span>-l<span class="w"> </span>/data/incoming/*.hdf5<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-5
-</code></pre></div></p>
-<p><strong>Step 2: Check Queue Status</strong>
+</code></pre></div>
+<p><strong>Step 2: Check Queue Status</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Via API</span>
 curl<span class="w"> </span>http://localhost:8010/api/streaming/metrics
 
 <span class="c1"># Direct database query</span>
 sqlite3<span class="w"> </span>state/ingest.sqlite3<span class="w"> </span><span class="s2">"SELECT state, COUNT(*) FROM ingest_queue GROUP BY state;"</span>
-</code></pre></div></p>
-<p><strong>Step 3: Check Worker Status</strong>
+</code></pre></div>
+<p><strong>Step 3: Check Worker Status</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check if workers are active</span>
 docker-compose<span class="w"> </span>logs<span class="w"> </span>stream<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s2">"worker\|processing"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-20
-</code></pre></div></p>
+</code></pre></div>
 <h4 id="solutions_2">Solutions<a class="headerlink" href="#solutions_2" title="Permanent link">¶</a></h4>
-<p><strong>Issue: Files Not Arriving</strong>
+<p><strong>Issue: Files Not Arriving</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check if input directory is correct</span>
 curl<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.input_dir
 
@@ -1766,8 +1756,8 @@ ls<span class="w"> </span>-la<span class="w"> </span>/data/incoming/
 
 <span class="c1"># Check file naming pattern (should be *_sb??.hdf5)</span>
 ls<span class="w"> </span>/data/incoming/*_sb*.hdf5<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-5
-</code></pre></div></p>
-<p><strong>Issue: Wrong Expected Subbands</strong>
+</code></pre></div>
+<p><strong>Issue: Wrong Expected Subbands</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check current setting</span>
 curl<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.expected_subbands
 
@@ -1775,8 +1765,8 @@ curl<span class="w"> </span>http://localhost:8010/api/streaming/config<span clas
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"expected_subbands": 8}'</span>
-</code></pre></div></p>
-<p><strong>Issue: Queue Stuck</strong>
+</code></pre></div>
+<p><strong>Issue: Queue Stuck</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check queue state</span>
 sqlite3<span class="w"> </span>state/ingest.sqlite3<span class="w"> </span><span class="s2">"SELECT group_id, state, retry_count FROM ingest_queue WHERE state='in_progress';"</span>
 
@@ -1785,14 +1775,14 @@ sqlite3<span class="w"> </span>state/ingest.sqlite3<span class="w"> </span><span
 
 <span class="c1"># Restart service to clear locks</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/restart
-</code></pre></div></p>
-<p><strong>Issue: Permission Denied on Files</strong>
+</code></pre></div>
+<p><strong>Issue: Permission Denied on Files</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check file ownership</span>
 ls<span class="w"> </span>-l<span class="w"> </span>/data/incoming/*.hdf5<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-5
 
 <span class="c1"># Fix ownership if needed</span>
 sudo<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span><span class="nv">$USER</span>:<span class="nv">$USER</span><span class="w"> </span>/data/incoming/*.hdf5
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="4-high-cpu-usage">4. High CPU Usage<a class="headerlink" href="#4-high-cpu-usage" title="Permanent link">¶</a></h3>
 <h4 id="symptoms_3">Symptoms<a class="headerlink" href="#symptoms_3" title="Permanent link">¶</a></h4>
 <ul>
@@ -1801,21 +1791,21 @@ sudo<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </sp
 <li>Other services slow down</li>
 </ul>
 <h4 id="diagnosis-steps_3">Diagnosis Steps<a class="headerlink" href="#diagnosis-steps_3" title="Permanent link">¶</a></h4>
-<p><strong>Step 1: Check Current CPU Usage</strong>
+<p><strong>Step 1: Check Current CPU Usage</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Via API</span>
 curl<span class="w"> </span>http://localhost:8010/api/streaming/status<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.cpu_percent
 
 <span class="c1"># Via Docker</span>
 docker<span class="w"> </span>stats<span class="w"> </span>contimg-stream<span class="w"> </span>--no-stream
-</code></pre></div></p>
-<p><strong>Step 2: Check Worker Count</strong>
+</code></pre></div>
+<p><strong>Step 2: Check Worker Count</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.max_workers
-</code></pre></div></p>
-<p><strong>Step 3: Check Processing Rate</strong>
+</code></pre></div>
+<p><strong>Step 3: Check Processing Rate</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8010/api/streaming/metrics<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.processing_rate_per_hour
-</code></pre></div></p>
+</code></pre></div>
 <h4 id="solutions_3">Solutions<a class="headerlink" href="#solutions_3" title="Permanent link">¶</a></h4>
-<p><strong>Issue: Too Many Workers</strong>
+<p><strong>Issue: Too Many Workers</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Reduce worker count</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
@@ -1823,8 +1813,8 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 
 <span class="c1"># Restart to apply</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/restart
-</code></pre></div></p>
-<p><strong>Issue: Large Files</strong>
+</code></pre></div>
+<p><strong>Issue: Large Files</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check file sizes</span>
 ls<span class="w"> </span>-lh<span class="w"> </span>/data/incoming/*.hdf5<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">'{print $5}'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-h<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-5
 
@@ -1832,8 +1822,8 @@ ls<span class="w"> </span>-lh<span class="w"> </span>/data/incoming/*.hdf5<span 
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"chunk_duration": 10.0}'</span>
-</code></pre></div></p>
-<p><strong>Issue: CASA Processing Overhead</strong>
+</code></pre></div>
+<p><strong>Issue: CASA Processing Overhead</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check CASA thread settings</span>
 <span class="nb">echo</span><span class="w"> </span><span class="nv">$OMP_NUM_THREADS</span>
 <span class="nb">echo</span><span class="w"> </span><span class="nv">$MKL_NUM_THREADS</span>
@@ -1841,7 +1831,7 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <span class="c1"># Limit threads if too high</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">4</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">MKL_NUM_THREADS</span><span class="o">=</span><span class="m">4</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="5-high-memory-usage">5. High Memory Usage<a class="headerlink" href="#5-high-memory-usage" title="Permanent link">¶</a></h3>
 <h4 id="symptoms_4">Symptoms<a class="headerlink" href="#symptoms_4" title="Permanent link">¶</a></h4>
 <ul>
@@ -1850,39 +1840,39 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <li>Service crashes with out-of-memory</li>
 </ul>
 <h4 id="diagnosis-steps_4">Diagnosis Steps<a class="headerlink" href="#diagnosis-steps_4" title="Permanent link">¶</a></h4>
-<p><strong>Step 1: Check Memory Usage</strong>
+<p><strong>Step 1: Check Memory Usage</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Via API</span>
 curl<span class="w"> </span>http://localhost:8010/api/streaming/status<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.memory_mb
 
 <span class="c1"># Via Docker</span>
 docker<span class="w"> </span>stats<span class="w"> </span>contimg-stream<span class="w"> </span>--no-stream<span class="w"> </span>--format<span class="w"> </span><span class="s2">"{{.MemUsage}}"</span>
-</code></pre></div></p>
-<p><strong>Step 2: Check for Memory Leaks</strong>
+</code></pre></div>
+<p><strong>Step 2: Check for Memory Leaks</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Monitor memory over time</span>
 watch<span class="w"> </span>-n<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="s1">'docker stats contimg-stream --no-stream --format "{{.MemUsage}}"'</span>
-</code></pre></div></p>
-<p><strong>Step 3: Check File Sizes</strong>
+</code></pre></div>
+<p><strong>Step 3: Check File Sizes</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Large files consume more memory</span>
 du<span class="w"> </span>-sh<span class="w"> </span>/data/incoming/*.hdf5<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-h<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-5
-</code></pre></div></p>
+</code></pre></div>
 <h4 id="solutions_4">Solutions<a class="headerlink" href="#solutions_4" title="Permanent link">¶</a></h4>
-<p><strong>Issue: Large Files</strong>
+<p><strong>Issue: Large Files</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Process files in smaller batches</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"chunk_duration": 2.0, "max_workers": 1}'</span>
-</code></pre></div></p>
-<p><strong>Issue: Memory Leak</strong>
+</code></pre></div>
+<p><strong>Issue: Memory Leak</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Restart service periodically</span>
 <span class="c1"># Set up cron job or monitoring to restart every 24 hours</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/restart
-</code></pre></div></p>
-<p><strong>Issue: Too Many Concurrent Operations</strong>
+</code></pre></div>
+<p><strong>Issue: Too Many Concurrent Operations</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Reduce workers and processing rate</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"max_workers": 1, "worker_poll_interval": 10.0}'</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="6-queue-not-processing">6. Queue Not Processing<a class="headerlink" href="#6-queue-not-processing" title="Permanent link">¶</a></h3>
 <h4 id="symptoms_5">Symptoms<a class="headerlink" href="#symptoms_5" title="Permanent link">¶</a></h4>
 <ul>
@@ -1891,34 +1881,34 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <li>Workers appear idle</li>
 </ul>
 <h4 id="diagnosis-steps_5">Diagnosis Steps<a class="headerlink" href="#diagnosis-steps_5" title="Permanent link">¶</a></h4>
-<p><strong>Step 1: Check Queue State</strong>
+<p><strong>Step 1: Check Queue State</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Via API</span>
 curl<span class="w"> </span>http://localhost:8010/api/streaming/metrics<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.queue_stats
 
 <span class="c1"># Direct query</span>
 sqlite3<span class="w"> </span>state/ingest.sqlite3<span class="w"> </span><span class="s">&lt;&lt;EOF</span>
-<span class="s">SELECT state, COUNT(*) as count, </span>
+<span class="s">SELECT state, COUNT(*) as count,</span>
 <span class="s">       MIN(last_update) as oldest,</span>
 <span class="s">       MAX(last_update) as newest</span>
-<span class="s">FROM ingest_queue </span>
+<span class="s">FROM ingest_queue</span>
 <span class="s">GROUP BY state;</span>
 <span class="s">EOF</span>
-</code></pre></div></p>
-<p><strong>Step 2: Check for Stuck Items</strong>
+</code></pre></div>
+<p><strong>Step 2: Check for Stuck Items</strong></p>
 <div class="highlight"><pre><span></span><code>sqlite3<span class="w"> </span>state/ingest.sqlite3<span class="w"> </span><span class="s">&lt;&lt;EOF</span>
-<span class="s">SELECT group_id, state, retry_count, </span>
+<span class="s">SELECT group_id, state, retry_count,</span>
 <span class="s">       datetime(last_update, 'unixepoch') as last_update_time</span>
-<span class="s">FROM ingest_queue </span>
+<span class="s">FROM ingest_queue</span>
 <span class="s">WHERE state IN ('in_progress', 'pending')</span>
 <span class="s">ORDER BY last_update</span>
 <span class="s">LIMIT 10;</span>
 <span class="s">EOF</span>
-</code></pre></div></p>
-<p><strong>Step 3: Check Worker Logs</strong>
+</code></pre></div>
+<p><strong>Step 3: Check Worker Logs</strong></p>
 <div class="highlight"><pre><span></span><code>docker-compose<span class="w"> </span>logs<span class="w"> </span>stream<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s2">"worker\|acquire\|pending"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-30
-</code></pre></div></p>
+</code></pre></div>
 <h4 id="solutions_5">Solutions<a class="headerlink" href="#solutions_5" title="Permanent link">¶</a></h4>
-<p><strong>Issue: Database Locked</strong>
+<p><strong>Issue: Database Locked</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check for locks</span>
 sqlite3<span class="w"> </span>state/ingest.sqlite3<span class="w"> </span><span class="s2">"PRAGMA busy_timeout;"</span>
 
@@ -1927,26 +1917,26 @@ sqlite3<span class="w"> </span>state/ingest.sqlite3<span class="w"> </span><span
 
 <span class="c1"># Restart service to clear locks</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/restart
-</code></pre></div></p>
-<p><strong>Issue: Stuck in "in_progress"</strong>
+</code></pre></div>
+<p><strong>Issue: Stuck in "in_progress"</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Find items stuck for &gt;1 hour</span>
 sqlite3<span class="w"> </span>state/ingest.sqlite3<span class="w"> </span><span class="s">&lt;&lt;EOF</span>
 <span class="s">SELECT group_id, state, retry_count</span>
-<span class="s">FROM ingest_queue </span>
-<span class="s">WHERE state='in_progress' </span>
+<span class="s">FROM ingest_queue</span>
+<span class="s">WHERE state='in_progress'</span>
 <span class="s">  AND last_update &lt; (strftime('%s', 'now') - 3600);</span>
 <span class="s">EOF</span>
 
 <span class="c1"># Reset stuck items (use with caution)</span>
 sqlite3<span class="w"> </span>state/ingest.sqlite3<span class="w"> </span><span class="s">&lt;&lt;EOF</span>
-<span class="s">UPDATE ingest_queue </span>
+<span class="s">UPDATE ingest_queue</span>
 <span class="s">SET state='pending', retry_count=retry_count+1</span>
-<span class="s">WHERE state='in_progress' </span>
+<span class="s">WHERE state='in_progress'</span>
 <span class="s">  AND last_update &lt; (strftime('%s', 'now') - 3600)</span>
 <span class="s">  AND retry_count &lt; 5;</span>
 <span class="s">EOF</span>
-</code></pre></div></p>
-<p><strong>Issue: No Workers Available</strong>
+</code></pre></div>
+<p><strong>Issue: No Workers Available</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check worker configuration</span>
 curl<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.max_workers
 
@@ -1954,7 +1944,7 @@ curl<span class="w"> </span>http://localhost:8010/api/streaming/config<span clas
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"max_workers": 4}'</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="7-docker-related-issues">7. Docker-Related Issues<a class="headerlink" href="#7-docker-related-issues" title="Permanent link">¶</a></h3>
 <h4 id="symptoms_6">Symptoms<a class="headerlink" href="#symptoms_6" title="Permanent link">¶</a></h4>
 <ul>
@@ -1963,45 +1953,45 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 <li>Container status inconsistent</li>
 </ul>
 <h4 id="diagnosis-steps_6">Diagnosis Steps<a class="headerlink" href="#diagnosis-steps_6" title="Permanent link">¶</a></h4>
-<p><strong>Step 1: Check Docker Availability</strong>
+<p><strong>Step 1: Check Docker Availability</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check if Docker is running</span>
 docker<span class="w"> </span>ps
 
 <span class="c1"># Check if docker-compose is available</span>
 docker-compose<span class="w"> </span>--version
 docker<span class="w"> </span>compose<span class="w"> </span>version
-</code></pre></div></p>
-<p><strong>Step 2: Check Docker Socket</strong>
+</code></pre></div>
+<p><strong>Step 2: Check Docker Socket</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check if socket is accessible</span>
 ls<span class="w"> </span>-la<span class="w"> </span>/var/run/docker.sock
 
 <span class="c1"># Test Docker connection</span>
 docker<span class="w"> </span>info
-</code></pre></div></p>
-<p><strong>Step 3: Check Container Status</strong>
+</code></pre></div>
+<p><strong>Step 3: Check Container Status</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check container directly</span>
 docker<span class="w"> </span>ps<span class="w"> </span>-a<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>contimg-stream
 
 <span class="c1"># Inspect container</span>
 docker<span class="w"> </span>inspect<span class="w"> </span>contimg-stream<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">'.[0].State'</span>
-</code></pre></div></p>
+</code></pre></div>
 <h4 id="solutions_6">Solutions<a class="headerlink" href="#solutions_6" title="Permanent link">¶</a></h4>
-<p><strong>Issue: Docker Compose Not Available</strong>
+<p><strong>Issue: Docker Compose Not Available</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Install docker-compose if missing</span>
 sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>docker-compose
 
 <span class="c1"># Or use Docker Compose V2</span>
 docker<span class="w"> </span>compose<span class="w"> </span>ps
-</code></pre></div></p>
-<p><strong>Issue: Docker Socket Not Mounted</strong>
+</code></pre></div>
+<p><strong>Issue: Docker Socket Not Mounted</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Add to docker-compose.yml api service:</span>
 volumes:
 <span class="w">  </span>-<span class="w"> </span>/var/run/docker.sock:/var/run/docker.sock
 
 <span class="c1"># Restart API</span>
 docker-compose<span class="w"> </span>restart<span class="w"> </span>api
-</code></pre></div></p>
-<p><strong>Issue: Permission Denied on Socket</strong>
+</code></pre></div>
+<p><strong>Issue: Permission Denied on Socket</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Add user to docker group</span>
 sudo<span class="w"> </span>usermod<span class="w"> </span>-aG<span class="w"> </span>docker<span class="w"> </span><span class="nv">$USER</span>
 
@@ -2010,7 +2000,7 @@ newgrp<span class="w"> </span>docker
 
 <span class="c1"># Verify</span>
 docker<span class="w"> </span>ps
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="8-configuration-issues">8. Configuration Issues<a class="headerlink" href="#8-configuration-issues" title="Permanent link">¶</a></h3>
 <h4 id="symptoms_7">Symptoms<a class="headerlink" href="#symptoms_7" title="Permanent link">¶</a></h4>
 <ul>
@@ -2019,30 +2009,30 @@ docker<span class="w"> </span>ps
 <li>Settings reset after restart</li>
 </ul>
 <h4 id="diagnosis-steps_7">Diagnosis Steps<a class="headerlink" href="#diagnosis-steps_7" title="Permanent link">¶</a></h4>
-<p><strong>Step 1: Check Current Configuration</strong>
+<p><strong>Step 1: Check Current Configuration</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Via API</span>
 curl<span class="w"> </span>http://localhost:8010/api/streaming/config
 
 <span class="c1"># Check config file</span>
 cat<span class="w"> </span>state/streaming_config.json
-</code></pre></div></p>
-<p><strong>Step 2: Verify Configuration Persistence</strong>
+</code></pre></div>
+<p><strong>Step 2: Verify Configuration Persistence</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check file permissions</span>
 ls<span class="w"> </span>-la<span class="w"> </span>state/streaming_config.json
 
 <span class="c1"># Check if file is writable</span>
 <span class="nb">test</span><span class="w"> </span>-w<span class="w"> </span>state/streaming_config.json<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"Writable"</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"Not writable"</span>
-</code></pre></div></p>
+</code></pre></div>
 <h4 id="solutions_7">Solutions<a class="headerlink" href="#solutions_7" title="Permanent link">¶</a></h4>
-<p><strong>Issue: Config Not Saving</strong>
+<p><strong>Issue: Config Not Saving</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check directory permissions</span>
 ls<span class="w"> </span>-ld<span class="w"> </span>state/
 
 <span class="c1"># Fix permissions</span>
 chmod<span class="w"> </span><span class="m">755</span><span class="w"> </span>state/
 chmod<span class="w"> </span><span class="m">644</span><span class="w"> </span>state/streaming_config.json
-</code></pre></div></p>
-<p><strong>Issue: Config Not Applied</strong>
+</code></pre></div>
+<p><strong>Issue: Config Not Applied</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Restart service after config change</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
@@ -2050,14 +2040,14 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 
 <span class="c1"># Config update should auto-restart, but if not:</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/restart
-</code></pre></div></p>
-<p><strong>Issue: Environment Variables Override Config</strong>
+</code></pre></div>
+<p><strong>Issue: Environment Variables Override Config</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check environment variables</span>
 docker-compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>api<span class="w"> </span>env<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>CONTIMG
 
 <span class="c1"># Environment variables take precedence</span>
 <span class="c1"># Update .env file or docker-compose.yml</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="debugging-procedures">Debugging Procedures<a class="headerlink" href="#debugging-procedures" title="Permanent link">¶</a></h2>
 <h3 id="1-enable-debug-logging">1. Enable Debug Logging<a class="headerlink" href="#1-enable-debug-logging" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Update config to enable debug logging</span>
@@ -2072,7 +2062,7 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 docker-compose<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>stream
 </code></pre></div>
 <h3 id="2-check-logs">2. Check Logs<a class="headerlink" href="#2-check-logs" title="Permanent link">¶</a></h3>
-<p><strong>Streaming Service Logs</strong>
+<p><strong>Streaming Service Logs</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Recent logs</span>
 docker-compose<span class="w"> </span>logs<span class="w"> </span>stream<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-100
 
@@ -2084,22 +2074,22 @@ docker-compose<span class="w"> </span>logs<span class="w"> </span>stream<span cl
 
 <span class="c1"># Filter for specific group</span>
 docker-compose<span class="w"> </span>logs<span class="w"> </span>stream<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">"2025-11-06T14:00:00"</span>
-</code></pre></div></p>
-<p><strong>API Logs</strong>
+</code></pre></div>
+<p><strong>API Logs</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check API logs for streaming-related errors</span>
 docker-compose<span class="w"> </span>logs<span class="w"> </span>api<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s2">"streaming"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-50
-</code></pre></div></p>
-<p><strong>System Logs</strong>
+</code></pre></div>
+<p><strong>System Logs</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check system logs for OOM or other issues</span>
 dmesg<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-50
 journalctl<span class="w"> </span>-u<span class="w"> </span>docker<span class="w"> </span>-n<span class="w"> </span><span class="m">50</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="3-database-inspection">3. Database Inspection<a class="headerlink" href="#3-database-inspection" title="Permanent link">¶</a></h3>
-<p><strong>Check Queue State</strong>
+<p><strong>Check Queue State</strong></p>
 <div class="highlight"><pre><span></span><code>sqlite3<span class="w"> </span>state/ingest.sqlite3<span class="w"> </span><span class="s">&lt;&lt;EOF</span>
 <span class="s">.mode column</span>
 <span class="s">.headers on</span>
-<span class="s">SELECT </span>
+<span class="s">SELECT</span>
 <span class="s">    state,</span>
 <span class="s">    COUNT(*) as count,</span>
 <span class="s">    MIN(datetime(last_update, 'unixepoch')) as oldest,</span>
@@ -2107,10 +2097,10 @@ journalctl<span class="w"> </span>-u<span class="w"> </span>docker<span class="w
 <span class="s">FROM ingest_queue</span>
 <span class="s">GROUP BY state;</span>
 <span class="s">EOF</span>
-</code></pre></div></p>
-<p><strong>Find Problematic Groups</strong>
+</code></pre></div>
+<p><strong>Find Problematic Groups</strong></p>
 <div class="highlight"><pre><span></span><code>sqlite3<span class="w"> </span>state/ingest.sqlite3<span class="w"> </span><span class="s">&lt;&lt;EOF</span>
-<span class="s">SELECT </span>
+<span class="s">SELECT</span>
 <span class="s">    group_id,</span>
 <span class="s">    state,</span>
 <span class="s">    retry_count,</span>
@@ -2121,10 +2111,10 @@ journalctl<span class="w"> </span>-u<span class="w"> </span>docker<span class="w
 <span class="s">ORDER BY last_update DESC</span>
 <span class="s">LIMIT 10;</span>
 <span class="s">EOF</span>
-</code></pre></div></p>
-<p><strong>Check Processing History</strong>
+</code></pre></div>
+<p><strong>Check Processing History</strong></p>
 <div class="highlight"><pre><span></span><code>sqlite3<span class="w"> </span>state/ingest.sqlite3<span class="w"> </span><span class="s">&lt;&lt;EOF</span>
-<span class="s">SELECT </span>
+<span class="s">SELECT</span>
 <span class="s">    group_id,</span>
 <span class="s">    state,</span>
 <span class="s">    datetime(received_at, 'unixepoch') as received,</span>
@@ -2135,16 +2125,16 @@ journalctl<span class="w"> </span>-u<span class="w"> </span>docker<span class="w
 <span class="s">ORDER BY last_update DESC</span>
 <span class="s">LIMIT 10;</span>
 <span class="s">EOF</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="4-performance-profiling">4. Performance Profiling<a class="headerlink" href="#4-performance-profiling" title="Permanent link">¶</a></h3>
-<p><strong>Monitor Resource Usage</strong>
+<p><strong>Monitor Resource Usage</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Continuous monitoring</span>
 watch<span class="w"> </span>-n<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="s1">'docker stats contimg-stream --no-stream'</span>
 
 <span class="c1"># Log to file</span>
 docker<span class="w"> </span>stats<span class="w"> </span>contimg-stream<span class="w"> </span>--no-stream<span class="w"> </span>--format<span class="w"> </span><span class="s2">"table {{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}"</span><span class="w"> </span>&gt;<span class="w"> </span>/tmp/docker_stats.log
-</code></pre></div></p>
-<p><strong>Check Processing Rate</strong>
+</code></pre></div>
+<p><strong>Check Processing Rate</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Get current rate</span>
 curl<span class="w"> </span>http://localhost:8010/api/streaming/metrics<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.processing_rate_per_hour
 
@@ -2153,8 +2143,8 @@ curl<span class="w"> </span>http://localhost:8010/api/streaming/metrics<span cla
 <span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"</span><span class="k">$(</span>date<span class="k">)</span><span class="s2">: </span><span class="k">$(</span>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:8010/api/streaming/metrics<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">'.processing_rate_per_hour'</span><span class="k">)</span><span class="s2"> groups/hour"</span>
 <span class="w">  </span>sleep<span class="w"> </span><span class="m">60</span>
 <span class="k">done</span>
-</code></pre></div></p>
-<p><strong>Identify Bottlenecks</strong>
+</code></pre></div>
+<p><strong>Identify Bottlenecks</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check queue depth</span>
 curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:8010/api/streaming/metrics<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.queue_stats
 
@@ -2163,10 +2153,10 @@ iostat<span class="w"> </span>-x<span class="w"> </span><span class="m">1</span>
 
 <span class="c1"># Check network I/O (if reading from network storage)</span>
 iftop<span class="w"> </span>-i<span class="w"> </span>eth0
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="recovery-procedures">Recovery Procedures<a class="headerlink" href="#recovery-procedures" title="Permanent link">¶</a></h2>
 <h3 id="1-service-wont-start_1">1. Service Won't Start<a class="headerlink" href="#1-service-wont-start_1" title="Permanent link">¶</a></h3>
-<p><strong>Full Reset Procedure</strong>
+<p><strong>Full Reset Procedure</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># 1. Stop service</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/stop
 
@@ -2181,32 +2171,32 @@ mkdir<span class="w"> </span>-p<span class="w"> </span>/data/incoming<span class
 
 <span class="c1"># 5. Start with defaults</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/start
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="2-queue-stuck">2. Queue Stuck<a class="headerlink" href="#2-queue-stuck" title="Permanent link">¶</a></h3>
-<p><strong>Queue Recovery Procedure</strong>
+<p><strong>Queue Recovery Procedure</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># 1. Stop service</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/stop
 
 <span class="c1"># 2. Reset stuck items</span>
 sqlite3<span class="w"> </span>state/ingest.sqlite3<span class="w"> </span><span class="s">&lt;&lt;EOF</span>
 <span class="s">-- Reset items stuck in_progress for &gt;1 hour</span>
-<span class="s">UPDATE ingest_queue </span>
+<span class="s">UPDATE ingest_queue</span>
 <span class="s">SET state='pending', retry_count=retry_count+1</span>
-<span class="s">WHERE state='in_progress' </span>
+<span class="s">WHERE state='in_progress'</span>
 <span class="s">  AND last_update &lt; (strftime('%s', 'now') - 3600);</span>
 
 <span class="s">-- Reset failed items with low retry count</span>
-<span class="s">UPDATE ingest_queue </span>
+<span class="s">UPDATE ingest_queue</span>
 <span class="s">SET state='pending', retry_count=0</span>
-<span class="s">WHERE state='failed' </span>
+<span class="s">WHERE state='failed'</span>
 <span class="s">  AND retry_count &lt; 3;</span>
 <span class="s">EOF</span>
 
 <span class="c1"># 3. Restart service</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/start
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="3-database-corruption">3. Database Corruption<a class="headerlink" href="#3-database-corruption" title="Permanent link">¶</a></h3>
-<p><strong>Database Recovery</strong>
+<p><strong>Database Recovery</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># 1. Stop service</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/stop
 
@@ -2225,9 +2215,9 @@ mv<span class="w"> </span>state/ingest.sqlite3<span class="w"> </span>state/inge
 
 <span class="c1"># 6. Restart service</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/start
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="4-complete-service-reset">4. Complete Service Reset<a class="headerlink" href="#4-complete-service-reset" title="Permanent link">¶</a></h3>
-<p><strong>Nuclear Option (Use with Caution)</strong>
+<p><strong>Nuclear Option (Use with Caution)</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># 1. Stop service</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/stop
 
@@ -2243,14 +2233,16 @@ mv<span class="w"> </span>state/ingest.sqlite3<span class="w"> </span>state/inge
 
 <span class="c1"># 5. Start fresh</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/start
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="performance-tuning">Performance Tuning<a class="headerlink" href="#performance-tuning" title="Permanent link">¶</a></h2>
 <h3 id="1-optimize-worker-count">1. Optimize Worker Count<a class="headerlink" href="#1-optimize-worker-count" title="Permanent link">¶</a></h3>
-<p><strong>Rule of Thumb:</strong>
-- 1 worker per CPU core (if CPU-bound)
-- 1-2 workers if I/O-bound
-- Monitor CPU usage and adjust</p>
-<p><strong>Procedure:</strong>
+<p><strong>Rule of Thumb:</strong></p>
+<ul>
+<li>1 worker per CPU core (if CPU-bound)</li>
+<li>1-2 workers if I/O-bound</li>
+<li>Monitor CPU usage and adjust</li>
+</ul>
+<p><strong>Procedure:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Start with 2 workers</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
@@ -2262,101 +2254,99 @@ watch<span class="w"> </span>-n<span class="w"> </span><span class="m">60</span>
 <span class="c1"># Adjust based on CPU usage:</span>
 <span class="c1"># - If CPU &lt; 50%: Increase workers</span>
 <span class="c1"># - If CPU &gt; 80%: Decrease workers</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="2-optimize-polling-intervals">2. Optimize Polling Intervals<a class="headerlink" href="#2-optimize-polling-intervals" title="Permanent link">¶</a></h3>
-<p><strong>For High-Frequency Data:</strong>
+<p><strong>For High-Frequency Data:</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s1">'{</span>
 <span class="s1">    "poll_interval": 2.0,</span>
 <span class="s1">    "worker_poll_interval": 3.0</span>
 <span class="s1">  }'</span>
-</code></pre></div></p>
-<p><strong>For Low-Frequency Data:</strong>
+</code></pre></div>
+<p><strong>For Low-Frequency Data:</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s1">'{</span>
 <span class="s1">    "poll_interval": 10.0,</span>
 <span class="s1">    "worker_poll_interval": 15.0</span>
 <span class="s1">  }'</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="3-optimize-chunk-duration">3. Optimize Chunk Duration<a class="headerlink" href="#3-optimize-chunk-duration" title="Permanent link">¶</a></h3>
-<p><strong>For Large Files:</strong>
+<p><strong>For Large Files:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Increase chunk duration to process fewer files at once</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"chunk_duration": 10.0}'</span>
-</code></pre></div></p>
-<p><strong>For Small Files:</strong>
+</code></pre></div>
+<p><strong>For Small Files:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Decrease chunk duration for faster processing</span>
 curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"chunk_duration": 2.0}'</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="log-analysis">Log Analysis<a class="headerlink" href="#log-analysis" title="Permanent link">¶</a></h2>
 <h3 id="understanding-log-messages">Understanding Log Messages<a class="headerlink" href="#understanding-log-messages" title="Permanent link">¶</a></h3>
 <p><strong>Common Log Patterns:</strong></p>
-<p><div class="highlight"><pre><span></span><code>INFO: Worker acquired group 2025-11-06T14:00:00
+<div class="highlight"><pre><span></span><code>INFO: Worker acquired group 2025-11-06T14:00:00
 </code></pre></div>
-→ Worker picked up a group for processing</p>
-<p><div class="highlight"><pre><span></span><code>ERROR: Failed to process group 2025-11-06T14:00:00: Permission denied
+<p>→ Worker picked up a group for processing</p>
+<div class="highlight"><pre><span></span><code>ERROR: Failed to process group 2025-11-06T14:00:00: Permission denied
 </code></pre></div>
-→ File permission issue</p>
-<p><div class="highlight"><pre><span></span><code>WARNING: Group 2025-11-06T14:00:00 incomplete: 12/16 subbands
+<p>→ File permission issue</p>
+<div class="highlight"><pre><span></span><code>WARNING: Group 2025-11-06T14:00:00 incomplete: 12/16 subbands
 </code></pre></div>
-→ Missing subbands, waiting for more</p>
-<p><div class="highlight"><pre><span></span><code>INFO: Group 2025-11-06T14:00:00 completed in 125.3s
+<p>→ Missing subbands, waiting for more</p>
+<div class="highlight"><pre><span></span><code>INFO: Group 2025-11-06T14:00:00 completed in 125.3s
 </code></pre></div>
-→ Successful processing</p>
+<p>→ Successful processing</p>
 <h3 id="log-filtering">Log Filtering<a class="headerlink" href="#log-filtering" title="Permanent link">¶</a></h3>
-<p><strong>Find Errors:</strong>
+<p><strong>Find Errors:</strong></p>
 <div class="highlight"><pre><span></span><code>docker-compose<span class="w"> </span>logs<span class="w"> </span>stream<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">"ERROR|Exception|Traceback"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-50
-</code></pre></div></p>
-<p><strong>Find Specific Group:</strong>
+</code></pre></div>
+<p><strong>Find Specific Group:</strong></p>
 <div class="highlight"><pre><span></span><code>docker-compose<span class="w"> </span>logs<span class="w"> </span>stream<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">"2025-11-06T14:00:00"</span>
-</code></pre></div></p>
-<p><strong>Find Performance Issues:</strong>
+</code></pre></div>
+<p><strong>Find Performance Issues:</strong></p>
 <div class="highlight"><pre><span></span><code>docker-compose<span class="w"> </span>logs<span class="w"> </span>stream<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">"slow|timeout|took.*[0-9]{3,}s"</span>
-</code></pre></div></p>
-<p><strong>Find Worker Activity:</strong>
+</code></pre></div>
+<p><strong>Find Worker Activity:</strong></p>
 <div class="highlight"><pre><span></span><code>docker-compose<span class="w"> </span>logs<span class="w"> </span>stream<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">"worker|acquire|process"</span>
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">¶</a></h2>
 <h3 id="information-to-collect">Information to Collect<a class="headerlink" href="#information-to-collect" title="Permanent link">¶</a></h3>
 <p>When reporting issues, collect:</p>
 <ol>
-<li>
-<p><strong>Service Status</strong>
+<li><strong>Service Status</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8010/api/streaming/status<span class="w"> </span>&gt;<span class="w"> </span>status.json
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Configuration</strong>
+</code></pre></div>
+<ol>
+<li><strong>Configuration</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8010/api/streaming/config<span class="w"> </span>&gt;<span class="w"> </span>config.json
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Metrics</strong>
+</code></pre></div>
+<ol>
+<li><strong>Metrics</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8010/api/streaming/metrics<span class="w"> </span>&gt;<span class="w"> </span>metrics.json
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Recent Logs</strong>
+</code></pre></div>
+<ol>
+<li><strong>Recent Logs</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code>docker-compose<span class="w"> </span>logs<span class="w"> </span>stream<span class="w"> </span>--tail<span class="w"> </span><span class="m">200</span><span class="w"> </span>&gt;<span class="w"> </span>stream_logs.txt
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Queue State</strong>
+</code></pre></div>
+<ol>
+<li><strong>Queue State</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code>sqlite3<span class="w"> </span>state/ingest.sqlite3<span class="w"> </span><span class="s2">"SELECT * FROM ingest_queue WHERE state != 'completed' LIMIT 20;"</span><span class="w"> </span>&gt;<span class="w"> </span>queue_state.txt
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>System Information</strong>
+</code></pre></div>
+<ol>
+<li><strong>System Information</strong>
 <div class="highlight"><pre><span></span><code>docker<span class="w"> </span>info<span class="w"> </span>&gt;<span class="w"> </span>docker_info.txt
 df<span class="w"> </span>-h<span class="w"> </span>&gt;<span class="w"> </span>disk_usage.txt
 free<span class="w"> </span>-h<span class="w"> </span>&gt;<span class="w"> </span>memory_usage.txt
-</code></pre></div></p>
-</li>
+</code></pre></div></li>
 </ol>
 <h3 id="diagnostic-script">Diagnostic Script<a class="headerlink" href="#diagnostic-script" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="ch">#!/bin/bash</span>
@@ -2435,7 +2425,8 @@ tar<span class="w"> </span>-czf<span class="w"> </span><span class="s2">"</span>
 <ul>
 <li><a href="../streaming-control/">Streaming Control Guide</a> - Basic usage</li>
 <li><a href="../../reference/streaming-api/">Streaming API Reference</a> - API documentation</li>
-<li><a href="../../concepts/streaming-architecture/">Streaming Architecture</a> - System design</li>
+<li><a href="../../concepts/streaming-architecture/">Streaming Architecture</a> - System
+  design</li>
 <li><a href="../../operations/deploy-docker/">Docker Deployment</a> - Deployment guide</li>
 </ul>
 </article>
@@ -2462,7 +2453,7 @@ tar<span class="w"> </span>-czf<span class="w"> </span><span class="s2">"</span>
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

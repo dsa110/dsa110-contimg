@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1173,100 +1175,134 @@
 <p><strong>Date</strong>: 2025-01-27<br/>
 <strong>Review</strong>: Comparison of implementation plan vs. actual code changes</p>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
-<p>Overall implementation is <strong>95% complete</strong>. One minor issue identified in Phase 5 (batch job schema migration).</p>
+<p>Overall implementation is <strong>95% complete</strong>. One minor issue identified in Phase
+5 (batch job schema migration).</p>
 <hr/>
 <h2 id="phase-by-phase-review">Phase-by-Phase Review<a class="headerlink" href="#phase-by-phase-review" title="Permanent link">¶</a></h2>
 <h3 id="phase-1-foundation-source-query-helpers-complete">Phase 1: Foundation - Source Query Helpers ✅ COMPLETE<a class="headerlink" href="#phase-1-foundation-source-query-helpers-complete" title="Permanent link">¶</a></h3>
 <p><strong>Status</strong>: Fully implemented</p>
-<p><strong>Implemented</strong>:
-- ✅ <code>get_field_center_from_fits()</code> - Implemented in <code>src/dsa110_contimg/photometry/helpers.py</code>
-  - Uses <code>astropy.wcs.WCS</code> for extraction
-  - Falls back to CRVAL1/CRVAL2 as planned
-  - Handles edge cases (missing WCS, invalid coordinates)
-- ✅ <code>query_sources_for_fits()</code> - Implemented with all planned parameters
-- ✅ <code>query_sources_for_mosaic()</code> - Implemented with larger default radius (1.0 deg)
-- ✅ Unit tests in <code>tests/unit/photometry/test_helpers.py</code></p>
+<p><strong>Implemented</strong>:</p>
+<ul>
+<li>✅ <code>get_field_center_from_fits()</code> - Implemented in
+  <code>src/dsa110_contimg/photometry/helpers.py</code></li>
+<li>Uses <code>astropy.wcs.WCS</code> for extraction</li>
+<li>Falls back to CRVAL1/CRVAL2 as planned</li>
+<li>Handles edge cases (missing WCS, invalid coordinates)</li>
+<li>✅ <code>query_sources_for_fits()</code> - Implemented with all planned parameters</li>
+<li>✅ <code>query_sources_for_mosaic()</code> - Implemented with larger default radius (1.0
+  deg)</li>
+<li>✅ Unit tests in <code>tests/unit/photometry/test_helpers.py</code></li>
+</ul>
 <p><strong>Notes</strong>: Implementation matches plan exactly.</p>
 <hr/>
 <h3 id="phase-2-streaming-converter-integration-complete">Phase 2: Streaming Converter Integration ✅ COMPLETE<a class="headerlink" href="#phase-2-streaming-converter-integration-complete" title="Permanent link">¶</a></h3>
 <p><strong>Status</strong>: Fully implemented</p>
-<p><strong>Implemented</strong>:
-- ✅ All command-line flags added to <code>build_parser()</code>:
-  - <code>--enable-photometry</code>
-  - <code>--photometry-catalog</code> (default: "nvss")
-  - <code>--photometry-radius</code> (default: 0.5)
-  - <code>--photometry-normalize</code> (default: False)
-  - <code>--photometry-max-sources</code> (default: None)
-- ✅ <code>trigger_photometry_for_image()</code> function created
-  - Queries sources using <code>query_sources_for_fits()</code>
-  - Extracts coordinates correctly
-  - Creates batch job via <code>create_batch_photometry_job()</code>
-  - Returns batch job_id
-- ✅ Integrated into <code>_worker_loop()</code> after imaging completes
-- ✅ Links to data registry via <code>link_photometry_to_data()</code></p>
-<p><strong>Notes</strong>: Implementation matches plan. Function signature differs slightly (uses <code>args</code> instead of individual parameters), but this is a reasonable design choice.</p>
+<p><strong>Implemented</strong>:</p>
+<ul>
+<li>✅ All command-line flags added to <code>build_parser()</code>:</li>
+<li><code>--enable-photometry</code></li>
+<li><code>--photometry-catalog</code> (default: "nvss")</li>
+<li><code>--photometry-radius</code> (default: 0.5)</li>
+<li><code>--photometry-normalize</code> (default: False)</li>
+<li><code>--photometry-max-sources</code> (default: None)</li>
+<li>✅ <code>trigger_photometry_for_image()</code> function created</li>
+<li>Queries sources using <code>query_sources_for_fits()</code></li>
+<li>Extracts coordinates correctly</li>
+<li>Creates batch job via <code>create_batch_photometry_job()</code></li>
+<li>Returns batch job_id</li>
+<li>✅ Integrated into <code>_worker_loop()</code> after imaging completes</li>
+<li>✅ Links to data registry via <code>link_photometry_to_data()</code></li>
+</ul>
+<p><strong>Notes</strong>: Implementation matches plan. Function signature differs slightly
+(uses <code>args</code> instead of individual parameters), but this is a reasonable design
+choice.</p>
 <hr/>
 <h3 id="phase-3-mosaic-orchestrator-integration-complete">Phase 3: Mosaic Orchestrator Integration ✅ COMPLETE<a class="headerlink" href="#phase-3-mosaic-orchestrator-integration-complete" title="Permanent link">¶</a></h3>
 <p><strong>Status</strong>: Fully implemented</p>
-<p><strong>Implemented</strong>:
-- ✅ <code>enable_photometry: bool = False</code> parameter added to <code>MosaicOrchestrator.__init__()</code>
-- ✅ <code>photometry_config: Dict[str, Any]</code> parameter added with defaults
-- ✅ <code>_trigger_photometry_for_mosaic()</code> method created
-  - Queries sources using <code>query_sources_for_mosaic()</code>
-  - Creates batch job correctly
-  - Returns batch job_id
-- ✅ Integrated into <code>_process_group_workflow()</code> after mosaic creation
-- ✅ Links to data registry via <code>link_photometry_to_data()</code></p>
-<p><strong>Optional Enhancement</strong>:
-- ❌ <strong>MISSING</strong>: <code>photometry_job_id</code> column not added to <code>mosaic_groups</code> table
-  - Plan mentioned: "Optional Enhancement: Add <code>photometry_job_id</code> column to <code>mosaic_groups</code> table"
-  - Status: Not implemented (marked as optional, so acceptable)</p>
-<p><strong>Notes</strong>: Core functionality complete. Optional enhancement deferred (acceptable per plan).</p>
+<p><strong>Implemented</strong>:</p>
+<ul>
+<li>✅ <code>enable_photometry: bool = False</code> parameter added to
+  <code>MosaicOrchestrator.__init__()</code></li>
+<li>✅ <code>photometry_config: Dict[str, Any]</code> parameter added with defaults</li>
+<li>✅ <code>_trigger_photometry_for_mosaic()</code> method created</li>
+<li>Queries sources using <code>query_sources_for_mosaic()</code></li>
+<li>Creates batch job correctly</li>
+<li>Returns batch job_id</li>
+<li>✅ Integrated into <code>_process_group_workflow()</code> after mosaic creation</li>
+<li>✅ Links to data registry via <code>link_photometry_to_data()</code></li>
+</ul>
+<p><strong>Optional Enhancement</strong>:</p>
+<ul>
+<li>❌ <strong>MISSING</strong>: <code>photometry_job_id</code> column not added to <code>mosaic_groups</code> table</li>
+<li>Plan mentioned: "Optional Enhancement: Add <code>photometry_job_id</code> column to
+    <code>mosaic_groups</code> table"</li>
+<li>Status: Not implemented (marked as optional, so acceptable)</li>
+</ul>
+<p><strong>Notes</strong>: Core functionality complete. Optional enhancement deferred
+(acceptable per plan).</p>
 <hr/>
 <h3 id="phase-4-data-registry-integration-complete">Phase 4: Data Registry Integration ✅ COMPLETE<a class="headerlink" href="#phase-4-data-registry-integration-complete" title="Permanent link">¶</a></h3>
 <p><strong>Status</strong>: Fully implemented</p>
-<p><strong>Implemented</strong>:
-- ✅ Schema changes:
-  - <code>photometry_status TEXT DEFAULT NULL</code> column added
-  - <code>photometry_job_id TEXT DEFAULT NULL</code> column added
-  - Migration handled with try/except for existing tables
-- ✅ All three functions implemented:
-  - <code>update_photometry_status(conn, data_id, status, job_id=None) -&gt; bool</code>
-  - <code>get_photometry_status(conn, data_id) -&gt; Optional[Dict]</code>
-  - <code>link_photometry_to_data(conn, data_id, photometry_job_id) -&gt; bool</code>
-- ✅ Integration:
-  - Streaming converter calls <code>link_photometry_to_data()</code> after triggering
-  - Mosaic orchestrator calls <code>link_photometry_to_data()</code> after triggering</p>
+<p><strong>Implemented</strong>:</p>
+<ul>
+<li>✅ Schema changes:</li>
+<li><code>photometry_status TEXT DEFAULT NULL</code> column added</li>
+<li><code>photometry_job_id TEXT DEFAULT NULL</code> column added</li>
+<li>Migration handled with try/except for existing tables</li>
+<li>✅ All three functions implemented:</li>
+<li><code>update_photometry_status(conn, data_id, status, job_id=None) -&gt; bool</code></li>
+<li><code>get_photometry_status(conn, data_id) -&gt; Optional[Dict]</code></li>
+<li><code>link_photometry_to_data(conn, data_id, photometry_job_id) -&gt; bool</code></li>
+<li>✅ Integration:</li>
+<li>Streaming converter calls <code>link_photometry_to_data()</code> after triggering</li>
+<li>Mosaic orchestrator calls <code>link_photometry_to_data()</code> after triggering</li>
+</ul>
 <p><strong>Notes</strong>: Implementation matches plan exactly.</p>
 <hr/>
 <h3 id="phase-5-batch-job-status-monitoring-complete">Phase 5: Batch Job Status Monitoring ✅ COMPLETE<a class="headerlink" href="#phase-5-batch-job-status-monitoring-complete" title="Permanent link">¶</a></h3>
 <p><strong>Status</strong>: Fully implemented (schema migration added)</p>
-<p><strong>Implemented</strong>:
-- ✅ <code>create_batch_photometry_job()</code> accepts <code>data_id: Optional[str] = None</code> parameter
-- ✅ <code>data_id</code> stored in <code>batch_job_items</code> table when creating jobs
-- ✅ Schema migration added to ensure <code>data_id</code> column exists (handles both fresh tables and existing tables)
-- ✅ <code>run_batch_photometry_job()</code> updates data registry via <code>update_photometry_status()</code>
-- ✅ Status mapping: "done" → "completed", "failed" → "failed", others → "running"
-- ✅ Streaming converter passes <code>data_id</code> to <code>create_batch_photometry_job()</code>
-- ✅ Mosaic orchestrator passes <code>data_id</code> to <code>create_batch_photometry_job()</code></p>
-<p><strong>Fix Applied</strong> (2025-01-27):
-- ✅ Added schema migration in <code>create_batch_photometry_job()</code> to ensure <code>data_id</code> column exists
-- ✅ Migration handles both fresh table creation and existing tables gracefully</p>
-<p><strong>Notes</strong>: Implementation now matches plan completely. Schema migration ensures robustness.</p>
+<p><strong>Implemented</strong>:</p>
+<ul>
+<li>✅ <code>create_batch_photometry_job()</code> accepts <code>data_id: Optional[str] = None</code>
+  parameter</li>
+<li>✅ <code>data_id</code> stored in <code>batch_job_items</code> table when creating jobs</li>
+<li>✅ Schema migration added to ensure <code>data_id</code> column exists (handles both
+  fresh tables and existing tables)</li>
+<li>✅ <code>run_batch_photometry_job()</code> updates data registry via
+  <code>update_photometry_status()</code></li>
+<li>✅ Status mapping: "done" → "completed", "failed" → "failed", others →
+  "running"</li>
+<li>✅ Streaming converter passes <code>data_id</code> to <code>create_batch_photometry_job()</code></li>
+<li>✅ Mosaic orchestrator passes <code>data_id</code> to <code>create_batch_photometry_job()</code></li>
+</ul>
+<p><strong>Fix Applied</strong> (2025-01-27):</p>
+<ul>
+<li>✅ Added schema migration in <code>create_batch_photometry_job()</code> to ensure
+  <code>data_id</code> column exists</li>
+<li>✅ Migration handles both fresh table creation and existing tables gracefully</li>
+</ul>
+<p><strong>Notes</strong>: Implementation now matches plan completely. Schema migration ensures
+robustness.</p>
 <hr/>
 <h3 id="phase-6-testing-validation-complete">Phase 6: Testing &amp; Validation ✅ COMPLETE<a class="headerlink" href="#phase-6-testing-validation-complete" title="Permanent link">¶</a></h3>
 <p><strong>Status</strong>: Fully implemented</p>
-<p><strong>Implemented</strong>:
-- ✅ <code>tests/unit/photometry/test_helpers.py</code> - Unit tests for helper functions
-- ✅ <code>tests/integration/test_streaming_photometry.py</code> - Integration tests for streaming converter
-- ✅ <code>tests/integration/test_mosaic_photometry.py</code> - Integration tests for mosaic orchestrator
-- ✅ <code>tests/integration/test_photometry_automation_e2e.py</code> - End-to-end tests
-- ✅ All 21 tests passing</p>
-<p><strong>Test Coverage</strong>:
-- Helper functions: Valid FITS, missing WCS, empty catalog results ✅
-- Streaming: Photometry triggered, batch job created, registry updated ✅
-- Mosaic: Photometry triggered, batch job created, registry linked ✅
-- E2E: Complete workflows validated ✅</p>
+<p><strong>Implemented</strong>:</p>
+<ul>
+<li>✅ <code>tests/unit/photometry/test_helpers.py</code> - Unit tests for helper functions</li>
+<li>✅ <code>tests/integration/test_streaming_photometry.py</code> - Integration tests for
+  streaming converter</li>
+<li>✅ <code>tests/integration/test_mosaic_photometry.py</code> - Integration tests for
+  mosaic orchestrator</li>
+<li>✅ <code>tests/integration/test_photometry_automation_e2e.py</code> - End-to-end tests</li>
+<li>✅ All 21 tests passing</li>
+</ul>
+<p><strong>Test Coverage</strong>:</p>
+<ul>
+<li>Helper functions: Valid FITS, missing WCS, empty catalog results ✅</li>
+<li>Streaming: Photometry triggered, batch job created, registry updated ✅</li>
+<li>Mosaic: Photometry triggered, batch job created, registry linked ✅</li>
+<li>E2E: Complete workflows validated ✅</li>
+</ul>
 <p><strong>Notes</strong>: Comprehensive test coverage matches plan requirements.</p>
 <hr/>
 <h2 id="summary-of-issues">Summary of Issues<a class="headerlink" href="#summary-of-issues" title="Permanent link">¶</a></h2>
@@ -1276,20 +1312,27 @@
 <p>None (all fixed)</p>
 <h3 id="deferred-acceptable">Deferred (Acceptable)<a class="headerlink" href="#deferred-acceptable" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong>Phase 3</strong>: Optional <code>photometry_job_id</code> column in <code>mosaic_groups</code> table not implemented</li>
+<li><strong>Phase 3</strong>: Optional <code>photometry_job_id</code> column in <code>mosaic_groups</code> table not
+   implemented</li>
 <li><strong>Status</strong>: Marked as optional in plan, acceptable to defer</li>
 </ol>
 <hr/>
 <h2 id="recommendations">Recommendations<a class="headerlink" href="#recommendations" title="Permanent link">¶</a></h2>
 <ol>
 <li><strong>Consider Phase 3 Optional Enhancement</strong> (Future):</li>
-<li>If tracking photometry job IDs in <code>mosaic_groups</code> table is needed, add column and update logic</li>
+<li>If tracking photometry job IDs in <code>mosaic_groups</code> table is needed, add
+     column and update logic</li>
 </ol>
 <hr/>
 <h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
-<p><strong>Overall Status</strong>: ✅ <strong>100% Complete</strong> - All core functionality implemented, tested, and verified</p>
-<p>The implementation successfully achieves 100% automation of photometry pipeline as planned. All phases complete, all tests passing, and schema migration added for robustness. The only deferred item is an optional enhancement marked as such in the plan.</p>
-<p><strong>Recommendation</strong>: Mark as 100% complete. Optional Phase 3 enhancement can be added later if needed.</p>
+<p><strong>Overall Status</strong>: ✅ <strong>100% Complete</strong> - All core functionality implemented,
+tested, and verified</p>
+<p>The implementation successfully achieves 100% automation of photometry pipeline
+as planned. All phases complete, all tests passing, and schema migration added
+for robustness. The only deferred item is an optional enhancement marked as such
+in the plan.</p>
+<p><strong>Recommendation</strong>: Mark as 100% complete. Optional Phase 3 enhancement can be
+added later if needed.</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1314,7 +1357,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

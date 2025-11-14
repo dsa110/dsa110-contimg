@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1214,7 +1216,8 @@
 <li>
 <p><strong>Enhanced Health Summary</strong> (<code>src/dsa110_contimg/api/health.py</code>)</p>
 </li>
-<li><code>GET /api/health/summary</code> - Aggregated health with DLQ stats and circuit breakers</li>
+<li><code>GET /api/health/summary</code> - Aggregated health with DLQ stats and circuit
+    breakers</li>
 </ul>
 <h3 id="frontend-components">Frontend Components<a class="headerlink" href="#frontend-components" title="Permanent link">¶</a></h3>
 <ul>
@@ -1223,20 +1226,23 @@
 <p>Main operations management interface with tabs for DLQ and Circuit Breakers</p>
 </li>
 <li>
-<p><strong>DeadLetterQueueTable</strong> (<code>frontend/src/components/DeadLetterQueue/DeadLetterQueueTable.tsx</code>)</p>
+<p><strong>DeadLetterQueueTable</strong>
+  (<code>frontend/src/components/DeadLetterQueue/DeadLetterQueueTable.tsx</code>)</p>
 </li>
 <li>Table display with filtering, sorting, and action buttons</li>
 <li>
 <p>Auto-refresh every 30 seconds</p>
 </li>
 <li>
-<p><strong>DeadLetterQueueStats</strong> (<code>frontend/src/components/DeadLetterQueue/DeadLetterQueueStats.tsx</code>)</p>
+<p><strong>DeadLetterQueueStats</strong>
+  (<code>frontend/src/components/DeadLetterQueue/DeadLetterQueueStats.tsx</code>)</p>
 </li>
 <li>
 <p>Statistics card showing totals, pending, resolved, retrying, failed</p>
 </li>
 <li>
-<p><strong>CircuitBreakerStatus</strong> (<code>frontend/src/components/CircuitBreaker/CircuitBreakerStatus.tsx</code>)</p>
+<p><strong>CircuitBreakerStatus</strong>
+  (<code>frontend/src/components/CircuitBreaker/CircuitBreakerStatus.tsx</code>)</p>
 </li>
 <li>Status display for all circuit breakers with manual reset capability</li>
 <li>
@@ -1245,11 +1251,13 @@
 <li>
 <p><strong>HealthPage Enhancement</strong> (<code>frontend/src/pages/HealthPage.tsx</code>)</p>
 </li>
-<li>New "Operations Health" tab integrating health summary, DLQ stats, and circuit breakers</li>
+<li>New "Operations Health" tab integrating health summary, DLQ stats, and
+    circuit breakers</li>
 </ul>
 <h3 id="navigation">Navigation<a class="headerlink" href="#navigation" title="Permanent link">¶</a></h3>
 <ul>
-<li>Added "Operations" link to main navigation (<code>frontend/src/components/Navigation.tsx</code>)</li>
+<li>Added "Operations" link to main navigation
+  (<code>frontend/src/components/Navigation.tsx</code>)</li>
 <li>Route configured in <code>frontend/src/App.tsx</code> (<code>/operations</code>)</li>
 </ul>
 <h2 id="testing-results">Testing Results<a class="headerlink" href="#testing-results" title="Permanent link">¶</a></h2>
@@ -1350,7 +1358,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

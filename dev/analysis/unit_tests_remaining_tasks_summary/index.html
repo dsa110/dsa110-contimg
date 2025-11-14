@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1173,65 +1175,87 @@
 <p><strong>Date:</strong> 2025-11-12<br/>
 <strong>Status:</strong> Complete - All 23 unit tests passing</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>Created comprehensive unit test suite for the remaining tasks implementation:
-- Stage 3: Coordinated Group Imaging in Streaming Converter
-- Stages 4-6: Mosaic/QA/Publishing in Streaming Converter
-- Stage 5: Unified QA CLI
-- Stage 8: End-to-End Integration Testing (covered by integration tests)</p>
+<p>Created comprehensive unit test suite for the remaining tasks implementation:</p>
+<ul>
+<li>Stage 3: Coordinated Group Imaging in Streaming Converter</li>
+<li>Stages 4-6: Mosaic/QA/Publishing in Streaming Converter</li>
+<li>Stage 5: Unified QA CLI</li>
+<li>Stage 8: End-to-End Integration Testing (covered by integration tests)</li>
+</ul>
 <h2 id="test-files-created">Test Files Created<a class="headerlink" href="#test-files-created" title="Permanent link">¶</a></h2>
 <h3 id="1-testsunitconversionstreamingtest_group_detectionpy">1. <code>tests/unit/conversion/streaming/test_group_detection.py</code><a class="headerlink" href="#1-testsunitconversionstreamingtest_group_detectionpy" title="Permanent link">¶</a></h3>
 <p><strong>Purpose:</strong> Test group detection logic in streaming converter</p>
-<p><strong>Test Coverage:</strong>
-- <code>test_complete_group_detection</code> - Detection of complete group (10 MS files)
-- <code>test_incomplete_group_returns_none</code> - Incomplete group handling
-- <code>test_only_imaged_ms_included</code> - Filtering for imaged MS files only
-- <code>test_time_window_boundary</code> - Time window filtering
-- <code>test_missing_ms_returns_none</code> - Missing MS path handling
-- <code>test_null_mid_mjd_returns_none</code> - Null mid_mjd handling</p>
-<p><strong>Key Features:</strong>
-- Uses <code>ensure_products_db()</code> for proper database schema
-- Tests time window calculations (±25 minutes default, ±50 minutes for full group)
-- Validates database query logic
-- Fast execution with in-memory SQLite databases</p>
+<p><strong>Test Coverage:</strong></p>
+<ul>
+<li><code>test_complete_group_detection</code> - Detection of complete group (10 MS files)</li>
+<li><code>test_incomplete_group_returns_none</code> - Incomplete group handling</li>
+<li><code>test_only_imaged_ms_included</code> - Filtering for imaged MS files only</li>
+<li><code>test_time_window_boundary</code> - Time window filtering</li>
+<li><code>test_missing_ms_returns_none</code> - Missing MS path handling</li>
+<li><code>test_null_mid_mjd_returns_none</code> - Null mid_mjd handling</li>
+</ul>
+<p><strong>Key Features:</strong></p>
+<ul>
+<li>Uses <code>ensure_products_db()</code> for proper database schema</li>
+<li>Tests time window calculations (±25 minutes default, ±50 minutes for full
+  group)</li>
+<li>Validates database query logic</li>
+<li>Fast execution with in-memory SQLite databases</li>
+</ul>
 <p><strong>Test Results:</strong> 6/6 passing</p>
 <h3 id="2-testsunitconversionstreamingtest_mosaic_triggerpy">2. <code>tests/unit/conversion/streaming/test_mosaic_trigger.py</code><a class="headerlink" href="#2-testsunitconversionstreamingtest_mosaic_triggerpy" title="Permanent link">¶</a></h3>
 <p><strong>Purpose:</strong> Test mosaic creation trigger functionality</p>
-<p><strong>Test Coverage:</strong>
-- <code>test_successful_mosaic_creation</code> - Successful mosaic creation workflow
-- <code>test_group_formation_failure</code> - Group formation failure handling
-- <code>test_mosaic_workflow_failure</code> - Mosaic workflow failure handling
-- <code>test_group_id_generation_from_timestamp</code> - Group ID generation from MS timestamp
-- <code>test_group_id_fallback_to_hash</code> - Group ID fallback to hash
-- <code>test_exception_handling</code> - Exception handling in mosaic creation</p>
-<p><strong>Key Features:</strong>
-- Mocks <code>MosaicOrchestrator</code> to avoid actual execution
-- Tests error handling paths
-- Validates group ID generation logic
-- Fast execution with mocked dependencies</p>
+<p><strong>Test Coverage:</strong></p>
+<ul>
+<li><code>test_successful_mosaic_creation</code> - Successful mosaic creation workflow</li>
+<li><code>test_group_formation_failure</code> - Group formation failure handling</li>
+<li><code>test_mosaic_workflow_failure</code> - Mosaic workflow failure handling</li>
+<li><code>test_group_id_generation_from_timestamp</code> - Group ID generation from MS
+  timestamp</li>
+<li><code>test_group_id_fallback_to_hash</code> - Group ID fallback to hash</li>
+<li><code>test_exception_handling</code> - Exception handling in mosaic creation</li>
+</ul>
+<p><strong>Key Features:</strong></p>
+<ul>
+<li>Mocks <code>MosaicOrchestrator</code> to avoid actual execution</li>
+<li>Tests error handling paths</li>
+<li>Validates group ID generation logic</li>
+<li>Fast execution with mocked dependencies</li>
+</ul>
 <p><strong>Test Results:</strong> 6/6 passing</p>
 <h3 id="3-testsunitqatest_clipy">3. <code>tests/unit/qa/test_cli.py</code><a class="headerlink" href="#3-testsunitqatest_clipy" title="Permanent link">¶</a></h3>
 <p><strong>Purpose:</strong> Test unified QA CLI commands</p>
 <p><strong>Test Coverage:</strong></p>
-<p><strong>Calibration QA:</strong>
-- <code>test_calibration_qa_success</code> - Successful calibration QA execution
-- <code>test_calibration_qa_missing_ms</code> - Missing MS path handling
-- <code>test_calibration_qa_exception_handling</code> - Exception handling</p>
-<p><strong>Image QA:</strong>
-- <code>test_image_qa_success</code> - Successful image QA execution
-- <code>test_image_qa_missing_image</code> - Missing image path handling
-- <code>test_image_qa_with_issues</code> - QA with validation issues</p>
-<p><strong>Mosaic QA:</strong>
-- <code>test_mosaic_qa_success</code> - Successful mosaic QA execution
-- <code>test_mosaic_qa_not_found</code> - Non-existent mosaic handling</p>
-<p><strong>Report QA:</strong>
-- <code>test_report_qa_for_ms</code> - QA report for MS data
-- <code>test_report_qa_for_image</code> - QA report for image data
-- <code>test_report_qa_data_not_found</code> - Non-existent data handling</p>
-<p><strong>Key Features:</strong>
-- Mocks QA functions from their source modules
-- Tests all four CLI subcommands (calibration, image, mosaic, report)
-- Validates error handling and edge cases
-- Uses proper dataclass serialization (<code>asdict()</code> instead of <code>model_dump()</code>)</p>
+<p><strong>Calibration QA:</strong></p>
+<ul>
+<li><code>test_calibration_qa_success</code> - Successful calibration QA execution</li>
+<li><code>test_calibration_qa_missing_ms</code> - Missing MS path handling</li>
+<li><code>test_calibration_qa_exception_handling</code> - Exception handling</li>
+</ul>
+<p><strong>Image QA:</strong></p>
+<ul>
+<li><code>test_image_qa_success</code> - Successful image QA execution</li>
+<li><code>test_image_qa_missing_image</code> - Missing image path handling</li>
+<li><code>test_image_qa_with_issues</code> - QA with validation issues</li>
+</ul>
+<p><strong>Mosaic QA:</strong></p>
+<ul>
+<li><code>test_mosaic_qa_success</code> - Successful mosaic QA execution</li>
+<li><code>test_mosaic_qa_not_found</code> - Non-existent mosaic handling</li>
+</ul>
+<p><strong>Report QA:</strong></p>
+<ul>
+<li><code>test_report_qa_for_ms</code> - QA report for MS data</li>
+<li><code>test_report_qa_for_image</code> - QA report for image data</li>
+<li><code>test_report_qa_data_not_found</code> - Non-existent data handling</li>
+</ul>
+<p><strong>Key Features:</strong></p>
+<ul>
+<li>Mocks QA functions from their source modules</li>
+<li>Tests all four CLI subcommands (calibration, image, mosaic, report)</li>
+<li>Validates error handling and edge cases</li>
+<li>Uses proper dataclass serialization (<code>asdict()</code> instead of <code>model_dump()</code>)</li>
+</ul>
 <p><strong>Test Results:</strong> 11/11 passing</p>
 <h2 id="test-design-principles">Test Design Principles<a class="headerlink" href="#test-design-principles" title="Permanent link">¶</a></h2>
 <h3 id="1-fast-execution">1. Fast Execution<a class="headerlink" href="#1-fast-execution" title="Permanent link">¶</a></h3>
@@ -1269,22 +1293,26 @@
 </ul>
 <h2 id="issues-fixed-during-development">Issues Fixed During Development<a class="headerlink" href="#issues-fixed-during-development" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Database Schema:</strong> Used <code>ensure_products_db()</code> instead of manual table creation</li>
-<li><strong>Time Window Calculation:</strong> Adjusted time windows to account for MS file spacing (5 minutes apart)</li>
+<li><strong>Database Schema:</strong> Used <code>ensure_products_db()</code> instead of manual table
+   creation</li>
+<li><strong>Time Window Calculation:</strong> Adjusted time windows to account for MS file
+   spacing (5 minutes apart)</li>
 <li><strong>Mock Patches:</strong> Fixed patch paths to match actual import locations</li>
-<li><strong>Dataclass Serialization:</strong> Changed from <code>model_dump()</code> to <code>asdict()</code> for dataclass serialization</li>
-<li><strong>DataRecord Constructor:</strong> Added all required fields for DataRecord initialization</li>
+<li><strong>Dataclass Serialization:</strong> Changed from <code>model_dump()</code> to <code>asdict()</code> for
+   dataclass serialization</li>
+<li><strong>DataRecord Constructor:</strong> Added all required fields for DataRecord
+   initialization</li>
 </ol>
 <h2 id="test-execution">Test Execution<a class="headerlink" href="#test-execution" title="Permanent link">¶</a></h2>
-<p>Run all unit tests:
+<p>Run all unit tests:</p>
 <div class="highlight"><pre><span></span><code>/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/conversion/streaming/<span class="w"> </span>tests/unit/qa/test_cli.py<span class="w"> </span>-v
-</code></pre></div></p>
-<p>Run specific test file:
+</code></pre></div>
+<p>Run specific test file:</p>
 <div class="highlight"><pre><span></span><code>/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/conversion/streaming/test_group_detection.py<span class="w"> </span>-v
-</code></pre></div></p>
-<p>Run with coverage:
+</code></pre></div>
+<p>Run with coverage:</p>
 <div class="highlight"><pre><span></span><code>/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/conversion/streaming/<span class="w"> </span>tests/unit/qa/test_cli.py<span class="w"> </span>--cov<span class="o">=</span>dsa110_contimg.conversion.streaming<span class="w"> </span>--cov<span class="o">=</span>dsa110_contimg.qa.cli
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
 <ul>
 <li><strong>Total Tests:</strong> 23</li>
@@ -1294,7 +1322,8 @@
 <li><strong>Execution Time:</strong> &lt; 1 second per test</li>
 <li><strong>Status:</strong> ✅ Complete</li>
 </ul>
-<p>All unit tests are passing and provide comprehensive coverage of the newly implemented functionality.</p>
+<p>All unit tests are passing and provide comprehensive coverage of the newly
+implemented functionality.</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
@@ -1319,7 +1348,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

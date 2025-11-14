@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1185,7 +1187,9 @@
 <article class="md-content__inner md-typeset">
 <h1 id="catalog-migration-to-sqlite-first-architecture">Catalog Migration to SQLite-First Architecture<a class="headerlink" href="#catalog-migration-to-sqlite-first-architecture" title="Permanent link">¶</a></h1>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
-<p>Migrated all legacy CSV-direct catalog reading code to use SQLite-first query functions. All catalog queries now prioritize SQLite databases (~170× faster) with automatic CSV fallback.</p>
+<p>Migrated all legacy CSV-direct catalog reading code to use SQLite-first query
+functions. All catalog queries now prioritize SQLite databases (~170× faster)
+with automatic CSV fallback.</p>
 <h2 id="migration-date">Migration Date<a class="headerlink" href="#migration-date" title="Permanent link">¶</a></h2>
 <p>2025-01-XX</p>
 <h2 id="files-updated">Files Updated<a class="headerlink" href="#files-updated" title="Permanent link">¶</a></h2>
@@ -1197,11 +1201,12 @@
 </ul>
 <h3 id="2-srcdsa110_contimgimagingnvss_toolspy">2. <code>src/dsa110_contimg/imaging/nvss_tools.py</code><a class="headerlink" href="#2-srcdsa110_contimgimagingnvss_toolspy" title="Permanent link">¶</a></h3>
 <ul>
-<li><strong>Functions</strong>: </li>
-<li><code>create_nvss_mask()</code> </li>
+<li><strong>Functions</strong>:</li>
+<li><code>create_nvss_mask()</code></li>
 <li><code>create_nvss_fits_mask()</code></li>
 <li><code>create_nvss_overlay()</code></li>
-<li><strong>Change</strong>: Replaced <code>read_nvss_catalog()</code> → <code>query_nvss_sources()</code> (3 instances)</li>
+<li><strong>Change</strong>: Replaced <code>read_nvss_catalog()</code> → <code>query_nvss_sources()</code> (3
+  instances)</li>
 <li><strong>Impact</strong>: Faster NVSS mask and overlay generation</li>
 </ul>
 <h3 id="3-srcdsa110_contimgcalibrationskymodelspy">3. <code>src/dsa110_contimg/calibration/skymodels.py</code><a class="headerlink" href="#3-srcdsa110_contimgcalibrationskymodelspy" title="Permanent link">¶</a></h3>
@@ -1240,10 +1245,12 @@
 <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">"ra_deg"</span><span class="p">:</span> <span class="s2">"ra"</span><span class="p">,</span> <span class="s2">"dec_deg"</span><span class="p">:</span> <span class="s2">"dec"</span><span class="p">,</span> <span class="s2">"flux_mjy"</span><span class="p">:</span> <span class="s2">"flux_20_cm"</span><span class="p">})</span>
 </code></pre></div>
 <h2 id="column-name-mapping">Column Name Mapping<a class="headerlink" href="#column-name-mapping" title="Permanent link">¶</a></h2>
-<p>The new query functions return standardized columns:
-- <code>ra_deg</code> → <code>ra</code> (for backward compatibility)
-- <code>dec_deg</code> → <code>dec</code> (for backward compatibility)
-- <code>flux_mjy</code> → <code>flux_20_cm</code> (for backward compatibility)</p>
+<p>The new query functions return standardized columns:</p>
+<ul>
+<li><code>ra_deg</code> → <code>ra</code> (for backward compatibility)</li>
+<li><code>dec_deg</code> → <code>dec</code> (for backward compatibility)</li>
+<li><code>flux_mjy</code> → <code>flux_20_cm</code> (for backward compatibility)</li>
+</ul>
 <h2 id="performance-impact">Performance Impact<a class="headerlink" href="#performance-impact" title="Permanent link">¶</a></h2>
 <ul>
 <li><strong>Before</strong>: ~1200ms per query (CSV parsing + in-memory filtering)</li>
@@ -1257,21 +1264,28 @@
 <li>CSV fallback ensures functionality even if SQLite databases are unavailable</li>
 </ul>
 <h2 id="remaining-csv-direct-usage">Remaining CSV-Direct Usage<a class="headerlink" href="#remaining-csv-direct-usage" title="Permanent link">¶</a></h2>
-<p>The following files still use CSV-direct reading, but these are intentional:
-- <code>src/dsa110_contimg/calibration/catalogs.py</code> - Defines <code>read_nvss_catalog()</code> (used as fallback)
-- <code>src/dsa110_contimg/catalog/query.py</code> - Uses CSV fallback when SQLite unavailable
-- <code>src/dsa110_contimg/catalog/builders.py</code> - Uses CSV to build SQLite databases</p>
+<p>The following files still use CSV-direct reading, but these are intentional:</p>
+<ul>
+<li><code>src/dsa110_contimg/calibration/catalogs.py</code> - Defines <code>read_nvss_catalog()</code>
+  (used as fallback)</li>
+<li><code>src/dsa110_contimg/catalog/query.py</code> - Uses CSV fallback when SQLite
+  unavailable</li>
+<li><code>src/dsa110_contimg/catalog/builders.py</code> - Uses CSV to build SQLite databases</li>
+</ul>
 <h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">¶</a></h2>
-<p>All migrated files:
-- ✓ Compile successfully
-- ✓ Use SQLite-first query functions
-- ✓ Maintain backward compatibility
-- ✓ Include CSV fallback</p>
+<p>All migrated files:</p>
+<ul>
+<li>✓ Compile successfully</li>
+<li>✓ Use SQLite-first query functions</li>
+<li>✓ Maintain backward compatibility</li>
+<li>✓ Include CSV fallback</li>
+</ul>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
 <ol>
 <li>Monitor performance improvements in production</li>
 <li>Build SQLite databases for commonly used declination strips</li>
-<li>Consider deprecating <code>read_nvss_catalog()</code> for direct use (keep only for fallback)</li>
+<li>Consider deprecating <code>read_nvss_catalog()</code> for direct use (keep only for
+   fallback)</li>
 </ol>
 </article>
 </div>
@@ -1297,7 +1311,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

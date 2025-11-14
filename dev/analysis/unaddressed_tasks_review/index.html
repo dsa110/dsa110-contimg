@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1229,10 +1231,13 @@
 <article class="md-content__inner md-typeset">
 <h1 id="unaddressed-tasks-review">Unaddressed Tasks Review<a class="headerlink" href="#unaddressed-tasks-review" title="Permanent link">¶</a></h1>
 <p><strong>Date:</strong> 2025-11-12<br/>
-<strong>Purpose:</strong> Review development roadmap and identify tasks not yet addressed or incompletely addressed</p>
+<strong>Purpose:</strong> Review development roadmap and identify tasks not yet addressed or
+incompletely addressed</p>
 <hr/>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
-<p>After reviewing the development roadmap (<code>development_roadmap.md</code>) and comparing with completed work (<code>remaining_tasks_completion_summary.md</code>), the following tasks remain <strong>unaddressed</strong> or <strong>incompletely addressed</strong>:</p>
+<p>After reviewing the development roadmap (<code>development_roadmap.md</code>) and comparing
+with completed work (<code>remaining_tasks_completion_summary.md</code>), the following
+tasks remain <strong>unaddressed</strong> or <strong>incompletely addressed</strong>:</p>
 <hr/>
 <h2 id="phase-1-complete-batch-mode-development">Phase 1: Complete Batch Mode Development<a class="headerlink" href="#phase-1-complete-batch-mode-development" title="Permanent link">¶</a></h2>
 <h3 id="completed-tasks">✅ Completed Tasks<a class="headerlink" href="#completed-tasks" title="Permanent link">¶</a></h3>
@@ -1286,61 +1291,82 @@
 <h3 id="phase-1-batch-mode-development">Phase 1: Batch Mode Development<a class="headerlink" href="#phase-1-batch-mode-development" title="Permanent link">¶</a></h3>
 <h4 id="15-stage-7-photometry-api-execution-endpoints-current-85-target-100">1.5 Stage 7: Photometry API Execution Endpoints (Current: 85% → Target: 100%)<a class="headerlink" href="#15-stage-7-photometry-api-execution-endpoints-current-85-target-100" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ⚠️ <strong>PARTIALLY COMPLETE</strong></p>
-<p><strong>What Was Planned:</strong>
-1. ✅ <code>POST /api/photometry/measure</code> - Single forced photometry (COMPLETE)
-2. ✅ <code>POST /api/photometry/measure-batch</code> - Multiple coordinates (COMPLETE)
-3. ❌ <code>POST /api/photometry/normalize</code> - Normalization endpoint (NOT IMPLEMENTED)
-4. ❌ <code>POST /api/batch/photometry</code> - Batch photometry job endpoint (NOT IMPLEMENTED)</p>
-<p><strong>Gap Analysis:</strong>
-- Single and batch measurement endpoints exist
-- Normalization endpoint missing
-- Batch photometry job endpoint missing (different from measure-batch - this would be for processing multiple images/sources)</p>
-<p><strong>Remaining Work:</strong>
-- Add <code>POST /api/photometry/normalize</code> endpoint
-- Add <code>POST /api/batch/photometry</code> endpoint for batch processing
-- Create <code>run_batch_photometry_job()</code> adapter
-- Unit tests for normalization and batch endpoints</p>
+<p><strong>What Was Planned:</strong></p>
+<ol>
+<li>✅ <code>POST /api/photometry/measure</code> - Single forced photometry (COMPLETE)</li>
+<li>✅ <code>POST /api/photometry/measure-batch</code> - Multiple coordinates (COMPLETE)</li>
+<li>❌ <code>POST /api/photometry/normalize</code> - Normalization endpoint (NOT
+   IMPLEMENTED)</li>
+<li>❌ <code>POST /api/batch/photometry</code> - Batch photometry job endpoint (NOT
+   IMPLEMENTED)</li>
+</ol>
+<p><strong>Gap Analysis:</strong></p>
+<ul>
+<li>Single and batch measurement endpoints exist</li>
+<li>Normalization endpoint missing</li>
+<li>Batch photometry job endpoint missing (different from measure-batch - this
+  would be for processing multiple images/sources)</li>
+</ul>
+<p><strong>Remaining Work:</strong></p>
+<ul>
+<li>Add <code>POST /api/photometry/normalize</code> endpoint</li>
+<li>Add <code>POST /api/batch/photometry</code> endpoint for batch processing</li>
+<li>Create <code>run_batch_photometry_job()</code> adapter</li>
+<li>Unit tests for normalization and batch endpoints</li>
+</ul>
 <p><strong>Estimated Effort:</strong> 1-2 days</p>
 <hr/>
 <h4 id="16-stage-8-ese-detection-cli-and-execution-current-100-target-100">1.6 Stage 8: ESE Detection CLI and Execution (Current: 100% → Target: 100%)<a class="headerlink" href="#16-stage-8-ese-detection-cli-and-execution-current-100-target-100" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>COMPLETE</strong></p>
-<p><strong>What Was Planned:</strong>
-1. ✅ Create ESE Detection CLI subcommand
-2. ✅ Add <code>POST /api/jobs/ese-detect</code> endpoint
-3. ✅ Add <code>POST /api/batch/ese-detect</code> endpoint
-4. ✅ Connect to photometry pipeline for automatic detection</p>
-<p><strong>Implementation Summary:</strong>
-- ✅ CLI subcommand <code>ese-detect</code> in <code>photometry/cli.py</code>
-- ✅ API endpoints <code>POST /api/jobs/ese-detect</code> and <code>POST /api/batch/ese-detect</code>
-- ✅ Job adapters <code>run_ese_detect_job()</code> and <code>run_batch_ese_detect_job()</code>
-- ✅ Integration with photometry pipeline in <code>api/job_adapters.py</code>
-- ✅ Automatic ESE detection after photometry measurements
-- ✅ Comprehensive unit tests and smoke tests</p>
-<p><strong>Documentation:</strong>
-- <a href="../../../how-to/ese_detection_guide/">ESE Detection Guide</a>
-- <a href="../../../concepts/ese_detection_architecture/">ESE Detection Architecture</a>
-- <a href="../../ese_detection_implementation_summary/">Implementation Summary</a>
-- <a href="../../ese_automated_pipeline_summary/">Automated Pipeline Summary</a></p>
+<p><strong>What Was Planned:</strong></p>
+<ol>
+<li>✅ Create ESE Detection CLI subcommand</li>
+<li>✅ Add <code>POST /api/jobs/ese-detect</code> endpoint</li>
+<li>✅ Add <code>POST /api/batch/ese-detect</code> endpoint</li>
+<li>✅ Connect to photometry pipeline for automatic detection</li>
+</ol>
+<p><strong>Implementation Summary:</strong></p>
+<ul>
+<li>✅ CLI subcommand <code>ese-detect</code> in <code>photometry/cli.py</code></li>
+<li>✅ API endpoints <code>POST /api/jobs/ese-detect</code> and <code>POST /api/batch/ese-detect</code></li>
+<li>✅ Job adapters <code>run_ese_detect_job()</code> and <code>run_batch_ese_detect_job()</code></li>
+<li>✅ Integration with photometry pipeline in <code>api/job_adapters.py</code></li>
+<li>✅ Automatic ESE detection after photometry measurements</li>
+<li>✅ Comprehensive unit tests and smoke tests</li>
+</ul>
+<p><strong>Documentation:</strong></p>
+<ul>
+<li><a href="../../../how-to/ese_detection_guide/">ESE Detection Guide</a></li>
+<li><a href="../../../concepts/ese_detection_architecture/">ESE Detection Architecture</a></li>
+<li><a href="../../ese_detection_implementation_summary/">Implementation Summary</a></li>
+<li><a href="../../ese_automated_pipeline_summary/">Automated Pipeline Summary</a></li>
+</ul>
 <p><strong>Estimated Effort:</strong> 3-4 days (COMPLETED)</p>
 <hr/>
 <h3 id="phase-2-enhance-automation">Phase 2: Enhance Automation<a class="headerlink" href="#phase-2-enhance-automation" title="Permanent link">¶</a></h3>
 <h4 id="21-stage-2-calibration-solving-in-streaming-converter-current-50-target-100">2.1 Stage 2: Calibration Solving in Streaming Converter (Current: 50% → Target: 100%)<a class="headerlink" href="#21-stage-2-calibration-solving-in-streaming-converter-current-50-target-100" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ⚠️ <strong>PARTIALLY COMPLETE</strong></p>
-<p><strong>What Was Planned:</strong>
-1. ✅ Calibration application exists (applies existing calibration tables)
-2. ❌ Calibration solving logic missing (doesn't solve new calibration)
-3. ❌ Calibrator detection missing (<code>has_calibrator()</code> function)
-4. ❌ Calibration solving function missing (<code>solve_calibration_for_ms()</code>)</p>
-<p><strong>Gap Analysis:</strong>
-- Streaming converter can apply calibration from registry
-- Cannot solve new calibration if registry is empty
-- No logic to detect calibrator transits
-- No logic to solve calibration for individual MS files</p>
-<p><strong>Remaining Work:</strong>
-1. <strong>Add Calibration Solving to Streaming Converter:</strong>
-   - File: <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code>
-   - Location: After MS conversion, before calibration application
-   - Logic:
+<p><strong>What Was Planned:</strong></p>
+<ol>
+<li>✅ Calibration application exists (applies existing calibration tables)</li>
+<li>❌ Calibration solving logic missing (doesn't solve new calibration)</li>
+<li>❌ Calibrator detection missing (<code>has_calibrator()</code> function)</li>
+<li>❌ Calibration solving function missing (<code>solve_calibration_for_ms()</code>)</li>
+</ol>
+<p><strong>Gap Analysis:</strong></p>
+<ul>
+<li>Streaming converter can apply calibration from registry</li>
+<li>Cannot solve new calibration if registry is empty</li>
+<li>No logic to detect calibrator transits</li>
+<li>No logic to solve calibration for individual MS files</li>
+</ul>
+<p><strong>Remaining Work:</strong></p>
+<ol>
+<li><strong>Add Calibration Solving to Streaming Converter:</strong></li>
+<li>File: <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code></li>
+<li>Location: After MS conversion, before calibration application</li>
+<li>
+<p>Logic:
      <div class="highlight"><pre><span></span><code><span class="c1"># Check if calibration tables exist</span>
 <span class="n">applylist</span> <span class="o">=</span> <span class="n">get_active_applylist</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 <span class="k">if</span> <span class="ow">not</span> <span class="n">applylist</span><span class="p">:</span>
@@ -1350,8 +1376,10 @@
         <span class="k">if</span> <span class="n">bpcal_solved</span> <span class="ow">and</span> <span class="n">gaincal_solved</span><span class="p">:</span>
             <span class="n">applylist</span> <span class="o">=</span> <span class="n">get_active_applylist</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>  <span class="c1"># Refresh</span>
 </code></pre></div></p>
-<ol>
-<li><strong>Add Calibration MS Detection:</strong></li>
+</li>
+<li>
+<p><strong>Add Calibration MS Detection:</strong></p>
+</li>
 <li>Function: <code>has_calibrator(ms_path: str) -&gt; bool</code></li>
 <li>
 <p>Logic: Query MS for calibrator field, check if transit window matches</p>
@@ -1366,22 +1394,31 @@
 <hr/>
 <h4 id="24-stage-7-automated-photometry-pipeline-current-0-target-100">2.4 Stage 7: Automated Photometry Pipeline (Current: 0% → Target: 100%)<a class="headerlink" href="#24-stage-7-automated-photometry-pipeline-current-0-target-100" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ❌ <strong>NOT ADDRESSED</strong></p>
-<p><strong>What Was Planned:</strong>
-1. ❌ Automatic photometry after imaging/mosaic creation
-2. ❌ Integration with data registry for triggering
-3. ❌ Batch photometry processing</p>
-<p><strong>Gap Analysis:</strong>
-- Photometry can be executed manually via CLI/API
-- No automatic triggering after imaging or mosaic creation
-- No integration with data registry pipeline
-- No batch processing automation</p>
-<p><strong>Remaining Work:</strong>
-1. <strong>Add Automatic Photometry Trigger:</strong>
-   - File: <code>src/dsa110_contimg/database/data_registry.py</code> or <code>src/dsa110_contimg/qa/validation.py</code>
-   - Logic: After image/mosaic QA passes, trigger photometry measurement
-   - Integration: Use existing photometry API endpoints</p>
+<p><strong>What Was Planned:</strong></p>
 <ol>
-<li><strong>Add Photometry Pipeline Integration:</strong></li>
+<li>❌ Automatic photometry after imaging/mosaic creation</li>
+<li>❌ Integration with data registry for triggering</li>
+<li>❌ Batch photometry processing</li>
+</ol>
+<p><strong>Gap Analysis:</strong></p>
+<ul>
+<li>Photometry can be executed manually via CLI/API</li>
+<li>No automatic triggering after imaging or mosaic creation</li>
+<li>No integration with data registry pipeline</li>
+<li>No batch processing automation</li>
+</ul>
+<p><strong>Remaining Work:</strong></p>
+<ol>
+<li><strong>Add Automatic Photometry Trigger:</strong></li>
+<li>File: <code>src/dsa110_contimg/database/data_registry.py</code> or
+     <code>src/dsa110_contimg/qa/validation.py</code></li>
+<li>Logic: After image/mosaic QA passes, trigger photometry measurement</li>
+<li>
+<p>Integration: Use existing photometry API endpoints</p>
+</li>
+<li>
+<p><strong>Add Photometry Pipeline Integration:</strong></p>
+</li>
 <li>File: <code>src/dsa110_contimg/photometry/pipeline.py</code> (may need creation)</li>
 <li>
 <p>Logic:</p>
@@ -1402,42 +1439,57 @@
 <hr/>
 <h4 id="25-stage-8-automated-ese-detection-pipeline-current-100-target-100">2.5 Stage 8: Automated ESE Detection Pipeline (Current: 100% → Target: 100%)<a class="headerlink" href="#25-stage-8-automated-ese-detection-pipeline-current-100-target-100" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ✅ <strong>COMPLETE</strong></p>
-<p><strong>What Was Planned:</strong>
-1. ✅ Automatic ESE detection after photometry
-2. ✅ Integration with photometry pipeline
-3. ✅ Automated candidate flagging</p>
-<p><strong>Implementation Summary:</strong>
-- ✅ Automatic variability stats computation after photometry (<code>ese_pipeline.py</code>)
-- ✅ Automatic ESE detection trigger in <code>run_batch_photometry_job()</code>
-- ✅ Configurable auto-detection via <code>auto_detect_ese</code> parameter
-- ✅ Source ID generation from coordinates
-- ✅ Photometry storage with source_id and mjd
-- ✅ Comprehensive error handling and logging</p>
-<p><strong>Documentation:</strong>
-- <a href="../../../how-to/ese_detection_guide/">ESE Detection Guide</a>
-- <a href="../../../concepts/ese_detection_architecture/">ESE Detection Architecture</a>
-- <a href="../../ese_automated_pipeline_summary/">Automated Pipeline Summary</a></p>
+<p><strong>What Was Planned:</strong></p>
+<ol>
+<li>✅ Automatic ESE detection after photometry</li>
+<li>✅ Integration with photometry pipeline</li>
+<li>✅ Automated candidate flagging</li>
+</ol>
+<p><strong>Implementation Summary:</strong></p>
+<ul>
+<li>✅ Automatic variability stats computation after photometry
+  (<code>ese_pipeline.py</code>)</li>
+<li>✅ Automatic ESE detection trigger in <code>run_batch_photometry_job()</code></li>
+<li>✅ Configurable auto-detection via <code>auto_detect_ese</code> parameter</li>
+<li>✅ Source ID generation from coordinates</li>
+<li>✅ Photometry storage with source_id and mjd</li>
+<li>✅ Comprehensive error handling and logging</li>
+</ul>
+<p><strong>Documentation:</strong></p>
+<ul>
+<li><a href="../../../how-to/ese_detection_guide/">ESE Detection Guide</a></li>
+<li><a href="../../../concepts/ese_detection_architecture/">ESE Detection Architecture</a></li>
+<li><a href="../../ese_automated_pipeline_summary/">Automated Pipeline Summary</a></li>
+</ul>
 <p><strong>Estimated Effort:</strong> 2-3 days (COMPLETED)</p>
 <hr/>
 <h3 id="phase-3-validation-and-robustness">Phase 3: Validation and Robustness<a class="headerlink" href="#phase-3-validation-and-robustness" title="Permanent link">¶</a></h3>
 <h4 id="31-error-handling-and-recovery">3.1 Error Handling and Recovery<a class="headerlink" href="#31-error-handling-and-recovery" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ❌ <strong>NOT ADDRESSED</strong></p>
-<p><strong>What Was Planned:</strong>
-1. ❌ Retry logic in orchestrator
-2. ❌ Error recovery in streaming converter
-3. ❌ Monitoring and alerting</p>
-<p><strong>Gap Analysis:</strong>
-- Basic error handling exists (try/except blocks)
-- No retry logic with exponential backoff
-- No recovery from partial failures
-- No monitoring/alerting infrastructure</p>
-<p><strong>Remaining Work:</strong>
-1. <strong>Add Retry Logic to Orchestrator:</strong>
-   - File: <code>src/dsa110_contimg/mosaic/orchestrator.py</code>
-   - Logic: Retry failed stages with exponential backoff
-   - Configuration: Max retries, backoff multiplier</p>
+<p><strong>What Was Planned:</strong></p>
 <ol>
-<li><strong>Add Error Recovery to Streaming Converter:</strong></li>
+<li>❌ Retry logic in orchestrator</li>
+<li>❌ Error recovery in streaming converter</li>
+<li>❌ Monitoring and alerting</li>
+</ol>
+<p><strong>Gap Analysis:</strong></p>
+<ul>
+<li>Basic error handling exists (try/except blocks)</li>
+<li>No retry logic with exponential backoff</li>
+<li>No recovery from partial failures</li>
+<li>No monitoring/alerting infrastructure</li>
+</ul>
+<p><strong>Remaining Work:</strong></p>
+<ol>
+<li><strong>Add Retry Logic to Orchestrator:</strong></li>
+<li>File: <code>src/dsa110_contimg/mosaic/orchestrator.py</code></li>
+<li>Logic: Retry failed stages with exponential backoff</li>
+<li>
+<p>Configuration: Max retries, backoff multiplier</p>
+</li>
+<li>
+<p><strong>Add Error Recovery to Streaming Converter:</strong></p>
+</li>
 <li>File: <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py</code></li>
 <li>Logic: Handle partial failures, resume from last successful stage</li>
 <li>
@@ -1454,22 +1506,30 @@
 <hr/>
 <h4 id="32-end-to-end-integration-testing">3.2 End-to-End Integration Testing<a class="headerlink" href="#32-end-to-end-integration-testing" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ⚠️ <strong>PARTIALLY COMPLETE</strong></p>
-<p><strong>What Was Planned:</strong>
-1. ✅ Integration test suite created (<code>test_end_to_end_batch_workflow.py</code>)
-2. ❌ Performance benchmarks missing
-3. ❌ Partial failure recovery tests missing
-4. ❌ Streaming converter integration tests incomplete</p>
-<p><strong>Gap Analysis:</strong>
-- Basic integration tests exist
-- No performance benchmarks
-- No failure injection tests
-- Limited streaming converter integration coverage</p>
-<p><strong>Remaining Work:</strong>
-1. <strong>Create Performance Benchmarks:</strong>
-   - File: <code>tests/performance/benchmark_orchestrator.py</code>
-   - Metrics: Time per stage, resource usage, throughput</p>
+<p><strong>What Was Planned:</strong></p>
 <ol>
-<li><strong>Add Failure Injection Tests:</strong></li>
+<li>✅ Integration test suite created (<code>test_end_to_end_batch_workflow.py</code>)</li>
+<li>❌ Performance benchmarks missing</li>
+<li>❌ Partial failure recovery tests missing</li>
+<li>❌ Streaming converter integration tests incomplete</li>
+</ol>
+<p><strong>Gap Analysis:</strong></p>
+<ul>
+<li>Basic integration tests exist</li>
+<li>No performance benchmarks</li>
+<li>No failure injection tests</li>
+<li>Limited streaming converter integration coverage</li>
+</ul>
+<p><strong>Remaining Work:</strong></p>
+<ol>
+<li><strong>Create Performance Benchmarks:</strong></li>
+<li>File: <code>tests/performance/benchmark_orchestrator.py</code></li>
+<li>
+<p>Metrics: Time per stage, resource usage, throughput</p>
+</li>
+<li>
+<p><strong>Add Failure Injection Tests:</strong></p>
+</li>
 <li>Test partial failure recovery</li>
 <li>Test retry logic</li>
 <li>
@@ -1559,8 +1619,10 @@
 <h2 id="related-documents">Related Documents<a class="headerlink" href="#related-documents" title="Permanent link">¶</a></h2>
 <ul>
 <li><a href="development_roadmap.md">Development Roadmap</a> - Original implementation plan</li>
-<li><a href="../remaining_tasks_completion_summary/">Remaining Tasks Completion Summary</a> - Completed work summary</li>
-<li><a href="../batch_mode_development_assessment/">Batch Mode Development Assessment</a> - Feature assessment</li>
+<li><a href="../remaining_tasks_completion_summary/">Remaining Tasks Completion Summary</a> -
+  Completed work summary</li>
+<li><a href="../batch_mode_development_assessment/">Batch Mode Development Assessment</a> -
+  Feature assessment</li>
 </ul>
 </article>
 </div>
@@ -1586,7 +1648,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

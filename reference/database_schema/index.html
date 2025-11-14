@@ -29,6 +29,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1508,7 +1510,9 @@
 <article class="md-content__inner md-typeset">
 <h1 id="dsa-110-continuum-pipeline-database-schema">DSA-110 Continuum Pipeline: Database Schema<a class="headerlink" href="#dsa-110-continuum-pipeline-database-schema" title="Permanent link">¶</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>The pipeline uses SQLite databases for state management and product tracking. This document details the schema for all databases with a focus on frontend requirements.</p>
+<p>The pipeline uses SQLite databases for state management and product tracking.
+This document details the schema for all databases with a focus on frontend
+requirements.</p>
 <hr/>
 <h2 id="database-files">Database Files<a class="headerlink" href="#database-files" title="Permanent link">¶</a></h2>
 <table>
@@ -1599,7 +1603,8 @@
 <hr/>
 <h2 id="2-calibration-registry-cal_registrysqlite3">2. Calibration Registry (<code>cal_registry.sqlite3</code>)<a class="headerlink" href="#2-calibration-registry-cal_registrysqlite3" title="Permanent link">¶</a></h2>
 <h3 id="table-caltables">Table: <code>caltables</code><a class="headerlink" href="#table-caltables" title="Permanent link">¶</a></h3>
-<p>Tracks calibration tables and their validity ranges, with complete provenance tracking.</p>
+<p>Tracks calibration tables and their validity ranges, with complete provenance
+tracking.</p>
 <div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">caltables</span><span class="w"> </span><span class="p">(</span>
 <span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
 <span class="w">    </span><span class="n">set_name</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">                </span><span class="c1">-- e.g., 'bp_3c286_60238'</span>
@@ -1625,14 +1630,22 @@
 <span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">idx_caltables_valid</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">caltables</span><span class="p">(</span><span class="n">valid_start_mjd</span><span class="p">,</span><span class="w"> </span><span class="n">valid_end_mjd</span><span class="p">);</span>
 <span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">idx_caltables_source</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">caltables</span><span class="p">(</span><span class="n">source_ms_path</span><span class="p">);</span>
 </code></pre></div>
-<p><strong>Provenance Fields:</strong>
-- <code>source_ms_path</code>: Path to the input Measurement Set that generated this calibration table
-- <code>solver_command</code>: Human-readable CASA command string (e.g., <code>"gaincal(vis='...', caltable='...', ...)"</code>)
-- <code>solver_version</code>: CASA version string (e.g., <code>"6.7.2"</code>)
-- <code>solver_params</code>: JSON object containing all calibration parameters (e.g., <code>{"field": "0", "refant": "103", "gaintype": "K"}</code>)
-- <code>quality_metrics</code>: JSON object with quality statistics (e.g., <code>{"snr_mean": 10.5, "flagged_fraction": 0.1, "n_antennas": 10}</code>)</p>
-<p><strong>Migration</strong>: Existing databases are automatically migrated when accessed. Old entries will have NULL values for provenance fields.</p>
-<p><strong>See Also</strong>: <code>docs/dev/calibration_provenance_tracking_implementation.md</code> for complete documentation.</p>
+<p><strong>Provenance Fields:</strong></p>
+<ul>
+<li><code>source_ms_path</code>: Path to the input Measurement Set that generated this
+  calibration table</li>
+<li><code>solver_command</code>: Human-readable CASA command string (e.g.,
+  <code>"gaincal(vis='...', caltable='...', ...)"</code>)</li>
+<li><code>solver_version</code>: CASA version string (e.g., <code>"6.7.2"</code>)</li>
+<li><code>solver_params</code>: JSON object containing all calibration parameters (e.g.,
+  <code>{"field": "0", "refant": "103", "gaintype": "K"}</code>)</li>
+<li><code>quality_metrics</code>: JSON object with quality statistics (e.g.,
+  <code>{"snr_mean": 10.5, "flagged_fraction": 0.1, "n_antennas": 10}</code>)</li>
+</ul>
+<p><strong>Migration</strong>: Existing databases are automatically migrated when accessed. Old
+entries will have NULL values for provenance fields.</p>
+<p><strong>See Also</strong>: <code>docs/dev/calibration_provenance_tracking_implementation.md</code> for
+complete documentation.</p>
 <hr/>
 <h2 id="3-products-database-productssqlite3">3. Products Database (<code>products.sqlite3</code>)<a class="headerlink" href="#3-products-database-productssqlite3" title="Permanent link">¶</a></h2>
 <h3 id="table-ms_index">Table: <code>ms_index</code><a class="headerlink" href="#table-ms_index" title="Permanent link">¶</a></h3>
@@ -1981,7 +1994,7 @@
 <hr/>
 <h2 id="query-examples">Query Examples<a class="headerlink" href="#query-examples" title="Permanent link">¶</a></h2>
 <h3 id="get-ese-candidates-with-source-details">Get ESE Candidates with Source Details<a class="headerlink" href="#get-ese-candidates-with-source-details" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
 <span class="w">    </span><span class="n">e</span><span class="p">.</span><span class="n">source_id</span><span class="p">,</span>
 <span class="w">    </span><span class="n">v</span><span class="p">.</span><span class="n">ra_deg</span><span class="p">,</span>
 <span class="w">    </span><span class="n">v</span><span class="p">.</span><span class="n">dec_deg</span><span class="p">,</span>
@@ -2000,7 +2013,7 @@
 <span class="k">LIMIT</span><span class="w"> </span><span class="mi">50</span><span class="p">;</span>
 </code></pre></div>
 <h3 id="get-flux-timeseries-for-source">Get Flux Timeseries for Source<a class="headerlink" href="#get-flux-timeseries-for-source" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
 <span class="w">    </span><span class="n">mjd</span><span class="p">,</span>
 <span class="w">    </span><span class="n">peak_jyb</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1000</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">flux_mjy</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Convert Jy/beam to mJy</span>
 <span class="w">    </span><span class="n">peak_err_jyb</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1000</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">error_mjy</span><span class="p">,</span>
@@ -2013,7 +2026,7 @@
 <span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">mjd</span><span class="w"> </span><span class="k">ASC</span><span class="p">;</span>
 </code></pre></div>
 <h3 id="get-recent-mosaics">Get Recent Mosaics<a class="headerlink" href="#get-recent-mosaics" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
 <span class="w">    </span><span class="n">name</span><span class="p">,</span>
 <span class="w">    </span><span class="n">path</span><span class="p">,</span>
 <span class="w">    </span><span class="n">start_mjd</span><span class="p">,</span>
@@ -2055,7 +2068,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

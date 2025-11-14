@@ -29,6 +29,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1566,24 +1568,24 @@ conda<span class="w"> </span>activate<span class="w"> </span>casa6
 <span class="c1"># Start FastAPI server</span>
 uvicorn<span class="w"> </span>dsa110_contimg.api.server:app<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span><span class="w"> </span>--reload
 </code></pre></div>
-<p>Expected output:
+<p>Expected output:</p>
 <div class="highlight"><pre><span></span><code>INFO:     Started server process [12345]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="terminal-2-frontend">Terminal 2: Frontend<a class="headerlink" href="#terminal-2-frontend" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
 npm<span class="w"> </span>start
 </code></pre></div>
-<p>Expected output:
+<p>Expected output:</p>
 <div class="highlight"><pre><span></span><code>Compiled successfully!
 
 You can now view dsa110-dashboard in the browser.
 
   Local:            http://localhost:3000
   On Your Network:  http://192.168.x.x:3000
-</code></pre></div></p>
+</code></pre></div>
 <h2 id="accessing-the-control-panel">Accessing the Control Panel<a class="headerlink" href="#accessing-the-control-panel" title="Permanent link">¶</a></h2>
 <ol>
 <li>Open browser to <code>http://localhost:3000</code></li>
@@ -1597,7 +1599,8 @@ You can now view dsa110-dashboard in the browser.
 <ol>
 <li><strong>Select MS</strong>: Choose a calibrator MS from dropdown</li>
 <li>
-<p>Example: <code>/stage/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.ms</code></p>
+<p>Example:
+     <code>/stage/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.ms</code></p>
 </li>
 <li>
 <p><strong>Go to "Calibrate" tab</strong></p>
@@ -1613,8 +1616,10 @@ You can now view dsa110-dashboard in the browser.
 <p><strong>Click "Run Calibration"</strong></p>
 </li>
 <li>
-<p><strong>Watch logs stream</strong>:
-   <div class="highlight"><pre><span></span><code>Starting calibration...
+<p><strong>Watch logs stream</strong>:</p>
+</li>
+</ol>
+<div class="highlight"><pre><span></span><code>Starting calibration...
 Solving K (delay) calibration...
 K-solve complete: /scratch/.../2025-10-13T13:28:03.kcal
 Solving BP (bandpass) calibration...
@@ -1622,11 +1627,9 @@ BP-solve complete: /scratch/.../2025-10-13T13:28:03.bpcal
 Solving G (gain) calibration...
 G-solve complete: /scratch/.../2025-10-13T13:28:03.gpcal
 [Job done]
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Note the artifact paths</strong> (caltable locations) from logs</p>
-</li>
+</code></pre></div>
+<ol>
+<li><strong>Note the artifact paths</strong> (caltable locations) from logs</li>
 </ol>
 <h3 id="step-2-apply-calibration-to-target-ms">Step 2: Apply Calibration to Target MS<a class="headerlink" href="#step-2-apply-calibration-to-target-ms" title="Permanent link">¶</a></h3>
 <ol>
@@ -1637,12 +1640,14 @@ G-solve complete: /scratch/.../2025-10-13T13:28:03.gpcal
 <p><strong>Go to "Apply" tab</strong></p>
 </li>
 <li>
-<p><strong>Enter gaintable paths</strong> (copy from previous job artifacts):
-   <div class="highlight"><pre><span></span><code>/stage/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.kcal,
+<p><strong>Enter gaintable paths</strong> (copy from previous job artifacts):</p>
+</li>
+</ol>
+<div class="highlight"><pre><span></span><code>/stage/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.kcal,
 /stage/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.bpcal,
 /stage/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.gpcal
-</code></pre></div></p>
-</li>
+</code></pre></div>
+<ol>
 <li>
 <p><strong>Click "Apply Calibration"</strong></p>
 </li>
@@ -1675,19 +1680,19 @@ Apply complete
 <p><strong>Click "Run Imaging"</strong></p>
 </li>
 <li>
-<p><strong>Watch logs</strong>:
-   <div class="highlight"><pre><span></span><code>Imaging /scratch/.../target.ms -&gt; /scratch/images/target.img
+<p><strong>Watch logs</strong>:</p>
+</li>
+</ol>
+<div class="highlight"><pre><span></span><code>Imaging /scratch/.../target.ms -&gt; /scratch/images/target.img
 Auto-detecting cell size...
 Running tclean with wprojplanes=-1...
 tclean complete
 Registering VP table...
 Exporting FITS...
 [Job done]
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Check artifacts</strong>:</p>
-</li>
+</code></pre></div>
+<ol>
+<li><strong>Check artifacts</strong>:</li>
 <li><code>.image</code> - cleaned image</li>
 <li><code>.image.pbcor</code> - primary beam corrected</li>
 <li><code>.residual</code> - residual map</li>
@@ -1699,7 +1704,7 @@ Exporting FITS...
 <ul>
 <li><strong>ID</strong>: Unique job identifier</li>
 <li><strong>Type</strong>: calibrate, apply, or image</li>
-<li><strong>Status</strong>: </li>
+<li><strong>Status</strong>:</li>
 <li>🔵 pending - waiting to start</li>
 <li>🟢 running - in progress</li>
 <li>✓ done - completed successfully</li>
@@ -1716,19 +1721,21 @@ Exporting FITS...
 </ul>
 <h2 id="tips-tricks">Tips &amp; Tricks<a class="headerlink" href="#tips-tricks" title="Permanent link">¶</a></h2>
 <h3 id="finding-calibrator-mss">Finding Calibrator MSs<a class="headerlink" href="#finding-calibrator-mss" title="Permanent link">¶</a></h3>
-<p>Calibrators typically have:
-- Known source names (3C48, 3C286, etc.)
-- Higher flux (look for <code>has_calibrator=true</code> in queue)
-- Field names containing calibrator IDs</p>
+<p>Calibrators typically have:</p>
+<ul>
+<li>Known source names (3C48, 3C286, etc.)</li>
+<li>Higher flux (look for <code>has_calibrator=true</code> in queue)</li>
+<li>Field names containing calibrator IDs</li>
+</ul>
 <h3 id="discovering-existing-caltables">Discovering Existing Caltables<a class="headerlink" href="#discovering-existing-caltables" title="Permanent link">¶</a></h3>
-<p>Check the MS directory:
+<p>Check the MS directory:</p>
 <div class="highlight"><pre><span></span><code>ls<span class="w"> </span>/stage/dsa110-contimg/ms/range_*/2025-*/*cal
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="checking-job-status-from-cli">Checking Job Status from CLI<a class="headerlink" href="#checking-job-status-from-cli" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>sqlite3<span class="w"> </span>state/products.sqlite3<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span><span class="s2">"SELECT id, type, status, datetime(created_at, 'unixepoch') </span>
-<span class="s2">   FROM jobs </span>
-<span class="s2">   ORDER BY id DESC </span>
+<span class="w">  </span><span class="s2">"SELECT id, type, status, datetime(created_at, 'unixepoch')</span>
+<span class="s2">   FROM jobs</span>
+<span class="s2">   ORDER BY id DESC</span>
 <span class="s2">   LIMIT 5;"</span>
 </code></pre></div>
 <h3 id="viewing-full-logs">Viewing Full Logs<a class="headerlink" href="#viewing-full-logs" title="Permanent link">¶</a></h3>
@@ -1741,42 +1748,52 @@ Exporting FITS...
 </code></pre></div>
 <h2 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">¶</a></h2>
 <h3 id="no-ms-found-in-dropdown">"No MS found in dropdown"<a class="headerlink" href="#no-ms-found-in-dropdown" title="Permanent link">¶</a></h3>
-<p><strong>Solution</strong>: 
-1. Check that backend is connected to correct database
-2. Verify <code>ms_index</code> table has entries:
+<p><strong>Solution</strong>:</p>
+<ol>
+<li>Check that backend is connected to correct database</li>
+<li>Verify <code>ms_index</code> table has entries:
    <div class="highlight"><pre><span></span><code>sqlite3<span class="w"> </span>state/products.sqlite3<span class="w"> </span><span class="s2">"SELECT COUNT(*) FROM ms_index;"</span>
-</code></pre></div>
-3. If empty, run conversion pipeline to populate MS entries</p>
+</code></pre></div></li>
+<li>If empty, run conversion pipeline to populate MS entries</li>
+</ol>
 <h3 id="job-stuck-in-pending">"Job stuck in pending"<a class="headerlink" href="#job-stuck-in-pending" title="Permanent link">¶</a></h3>
-<p><strong>Solution</strong>:
-1. Check backend terminal for errors
-2. Verify <code>casa6</code> conda environment is available
-3. Ensure <code>PYTHONPATH</code> is set correctly
-4. Restart FastAPI server</p>
+<p><strong>Solution</strong>:</p>
+<ol>
+<li>Check backend terminal for errors</li>
+<li>Verify <code>casa6</code> conda environment is available</li>
+<li>Ensure <code>PYTHONPATH</code> is set correctly</li>
+<li>Restart FastAPI server</li>
+</ol>
 <h3 id="logs-not-streaming">"Logs not streaming"<a class="headerlink" href="#logs-not-streaming" title="Permanent link">¶</a></h3>
-<p><strong>Solution</strong>:
-1. Open browser DevTools → Network tab
-2. Look for <code>/api/jobs/{id}/logs</code> with type <code>eventsource</code>
-3. If connection fails, check CORS settings
-4. Verify job ID is valid</p>
+<p><strong>Solution</strong>:</p>
+<ol>
+<li>Open browser DevTools → Network tab</li>
+<li>Look for <code>/api/jobs/id/{job_id}/logs</code> with type <code>eventsource</code></li>
+<li>If connection fails, check CORS settings</li>
+<li>Verify job ID is valid</li>
+</ol>
 <h3 id="apply-fails-gaintables-not-found">"Apply fails: gaintables not found"<a class="headerlink" href="#apply-fails-gaintables-not-found" title="Permanent link">¶</a></h3>
-<p><strong>Solution</strong>:
-1. Verify gaintable paths are absolute (not relative)
-2. Check paths exist: <code>ls &lt;path_to_caltable&gt;</code>
-3. Ensure no extra spaces in comma-separated list
-4. Copy paths exactly from calibrate job artifacts</p>
+<p><strong>Solution</strong>:</p>
+<ol>
+<li>Verify gaintable paths are absolute (not relative)</li>
+<li>Check paths exist: <code>ls &lt;path_to_caltable&gt;</code></li>
+<li>Ensure no extra spaces in comma-separated list</li>
+<li>Copy paths exactly from calibrate job artifacts</li>
+</ol>
 <h3 id="image-produces-blank-output">"Image produces blank output"<a class="headerlink" href="#image-produces-blank-output" title="Permanent link">¶</a></h3>
-<p><strong>Solution</strong>:
-1. Verify CORRECTED_DATA exists:
+<p><strong>Solution</strong>:</p>
+<ol>
+<li>Verify CORRECTED_DATA exists:
    <div class="highlight"><pre><span></span><code>conda<span class="w"> </span>run<span class="w"> </span>-n<span class="w"> </span>casa6<span class="w"> </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"</span>
 <span class="s2">from casacore.tables import table</span>
 <span class="s2">t = table('/path/to/ms')</span>
 <span class="s2">print('CORRECTED_DATA' in t.colnames())</span>
 <span class="s2">t.close()</span>
 <span class="s2">"</span>
-</code></pre></div>
-2. If False, run apply step first
-3. Check that calibration was successful (logs show no errors)</p>
+</code></pre></div></li>
+<li>If False, run apply step first</li>
+<li>Check that calibration was successful (logs show no errors)</li>
+</ol>
 <h2 id="performance-expectations">Performance Expectations<a class="headerlink" href="#performance-expectations" title="Permanent link">¶</a></h2>
 <ul>
 <li><strong>Calibrate</strong>: 2-5 minutes (depends on MS size, solution intervals)</li>
@@ -1791,15 +1808,16 @@ Exporting FITS...
 </ul>
 <h3 id="apply-parameters">Apply Parameters<a class="headerlink" href="#apply-parameters" title="Permanent link">¶</a></h3>
 <ul>
-<li><code>gaintables</code>: Comma-separated list of absolute paths to <code>.kcal</code>, <code>.bpcal</code>, <code>.gpcal</code> files</li>
+<li><code>gaintables</code>: Comma-separated list of absolute paths to <code>.kcal</code>, <code>.bpcal</code>,
+  <code>.gpcal</code> files</li>
 </ul>
 <h3 id="image-parameters">Image Parameters<a class="headerlink" href="#image-parameters" title="Permanent link">¶</a></h3>
 <ul>
-<li><code>gridder</code>: </li>
+<li><code>gridder</code>:</li>
 <li><code>wproject</code> - w-term correction (recommended)</li>
 <li><code>standard</code> - simple FFT (fast, no w-correction)</li>
 <li><code>mosaic</code> - mosaic mode (for multi-pointing)</li>
-<li><code>wprojplanes</code>: </li>
+<li><code>wprojplanes</code>:</li>
 <li><code>-1</code> - auto-calculate</li>
 <li><code>0</code> - disable w-projection</li>
 <li><code>&gt;0</code> - specific number of planes (more = slower but more accurate)</li>
@@ -1808,13 +1826,15 @@ Exporting FITS...
 <li><code>data</code> - use DATA (raw visibilities)</li>
 </ul>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
-<p>After imaging completes:
-1. <strong>View images</strong>: Use CASA viewer or DS9
+<p>After imaging completes:</p>
+<ol>
+<li><strong>View images</strong>: Use CASA viewer or DS9
    <div class="highlight"><pre><span></span><code>casaviewer<span class="w"> </span>/scratch/images/target.img.image
-</code></pre></div>
-2. <strong>Run QA</strong>: Check noise, beam, source extraction
-3. <strong>Export</strong>: FITS files in same directory as <code>.image</code>
-4. <strong>Photometry</strong>: Run forced photometry on known sources</p>
+</code></pre></div></li>
+<li><strong>Run QA</strong>: Check noise, beam, source extraction</li>
+<li><strong>Export</strong>: FITS files in same directory as <code>.image</code></li>
+<li><strong>Photometry</strong>: Run forced photometry on known sources</li>
+</ol>
 <hr/>
 <p><strong>Questions?</strong> Check <code>CONTROL_PANEL_README.md</code> for detailed architecture docs.</p>
 </article>
@@ -1841,7 +1861,7 @@ Exporting FITS...
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

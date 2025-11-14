@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1367,59 +1369,82 @@
 <article class="md-content__inner md-typeset">
 <h1 id="ese-detection-architecture">ESE Detection Architecture<a class="headerlink" href="#ese-detection-architecture" title="Permanent link">¶</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>The ESE (Extreme Scattering Event) detection system automatically identifies radio sources with significant flux variability (&gt;5σ) by analyzing photometry measurements over time. This document describes the architecture and design decisions.</p>
+<p>The ESE (Extreme Scattering Event) detection system automatically identifies
+radio sources with significant flux variability (&gt;5σ) by analyzing photometry
+measurements over time. This document describes the architecture and design
+decisions.</p>
 <h2 id="system-components">System Components<a class="headerlink" href="#system-components" title="Permanent link">¶</a></h2>
 <h3 id="1-core-detection-module">1. Core Detection Module<a class="headerlink" href="#1-core-detection-module" title="Permanent link">¶</a></h3>
 <p><strong>File</strong>: <code>src/dsa110_contimg/photometry/ese_detection.py</code></p>
-<p><strong>Key Functions</strong>:
-- <code>detect_ese_candidates()</code>: Main detection function
-- <code>_recompute_variability_stats()</code>: Recompute statistics from photometry</p>
-<p><strong>Responsibilities</strong>:
-- Query variability statistics
-- Flag ESE candidates based on sigma threshold
-- Manage <code>ese_candidates</code> table</p>
+<p><strong>Key Functions</strong>:</p>
+<ul>
+<li><code>detect_ese_candidates()</code>: Main detection function</li>
+<li><code>_recompute_variability_stats()</code>: Recompute statistics from photometry</li>
+</ul>
+<p><strong>Responsibilities</strong>:</p>
+<ul>
+<li>Query variability statistics</li>
+<li>Flag ESE candidates based on sigma threshold</li>
+<li>Manage <code>ese_candidates</code> table</li>
+</ul>
 <h3 id="2-pipeline-integration-module">2. Pipeline Integration Module<a class="headerlink" href="#2-pipeline-integration-module" title="Permanent link">¶</a></h3>
 <p><strong>File</strong>: <code>src/dsa110_contimg/photometry/ese_pipeline.py</code></p>
-<p><strong>Key Functions</strong>:
-- <code>update_variability_stats_for_source()</code>: Update stats for single source
-- <code>auto_detect_ese_for_new_measurements()</code>: Single-source auto-detection
-- <code>auto_detect_ese_after_photometry()</code>: Batch auto-detection</p>
-<p><strong>Responsibilities</strong>:
-- Automatic variability stats computation
-- Automatic ESE candidate detection
-- Integration with photometry pipeline</p>
+<p><strong>Key Functions</strong>:</p>
+<ul>
+<li><code>update_variability_stats_for_source()</code>: Update stats for single source</li>
+<li><code>auto_detect_ese_for_new_measurements()</code>: Single-source auto-detection</li>
+<li><code>auto_detect_ese_after_photometry()</code>: Batch auto-detection</li>
+</ul>
+<p><strong>Responsibilities</strong>:</p>
+<ul>
+<li>Automatic variability stats computation</li>
+<li>Automatic ESE candidate detection</li>
+<li>Integration with photometry pipeline</li>
+</ul>
 <h3 id="3-cli-interface">3. CLI Interface<a class="headerlink" href="#3-cli-interface" title="Permanent link">¶</a></h3>
 <p><strong>File</strong>: <code>src/dsa110_contimg/photometry/cli.py</code></p>
 <p><strong>Command</strong>: <code>ese-detect</code></p>
-<p><strong>Responsibilities</strong>:
-- Command-line interface for ESE detection
-- Parameter parsing and validation
-- JSON output formatting</p>
+<p><strong>Responsibilities</strong>:</p>
+<ul>
+<li>Command-line interface for ESE detection</li>
+<li>Parameter parsing and validation</li>
+<li>JSON output formatting</li>
+</ul>
 <h3 id="4-api-endpoints">4. API Endpoints<a class="headerlink" href="#4-api-endpoints" title="Permanent link">¶</a></h3>
 <p><strong>File</strong>: <code>src/dsa110_contimg/api/routes.py</code></p>
-<p><strong>Endpoints</strong>:
-- <code>POST /api/jobs/ese-detect</code>: Single job endpoint
-- <code>POST /api/batch/ese-detect</code>: Batch job endpoint</p>
-<p><strong>Responsibilities</strong>:
-- REST API for ESE detection
-- Job creation and management
-- Background task execution</p>
+<p><strong>Endpoints</strong>:</p>
+<ul>
+<li><code>POST /api/jobs/ese-detect</code>: Single job endpoint</li>
+<li><code>POST /api/batch/ese-detect</code>: Batch job endpoint</li>
+</ul>
+<p><strong>Responsibilities</strong>:</p>
+<ul>
+<li>REST API for ESE detection</li>
+<li>Job creation and management</li>
+<li>Background task execution</li>
+</ul>
 <h3 id="5-job-adapters">5. Job Adapters<a class="headerlink" href="#5-job-adapters" title="Permanent link">¶</a></h3>
 <p><strong>File</strong>: <code>src/dsa110_contimg/api/job_adapters.py</code></p>
-<p><strong>Functions</strong>:
-- <code>run_ese_detect_job()</code>: Single job execution
-- <code>run_batch_ese_detect_job()</code>: Batch job execution</p>
-<p><strong>Responsibilities</strong>:
-- Job execution logic
-- Status updates
-- Error handling</p>
+<p><strong>Functions</strong>:</p>
+<ul>
+<li><code>run_ese_detect_job()</code>: Single job execution</li>
+<li><code>run_batch_ese_detect_job()</code>: Batch job execution</li>
+</ul>
+<p><strong>Responsibilities</strong>:</p>
+<ul>
+<li>Job execution logic</li>
+<li>Status updates</li>
+<li>Error handling</li>
+</ul>
 <h3 id="6-photometry-integration">6. Photometry Integration<a class="headerlink" href="#6-photometry-integration" title="Permanent link">¶</a></h3>
 <p><strong>File</strong>: <code>src/dsa110_contimg/api/job_adapters.py</code></p>
 <p><strong>Function</strong>: <code>run_batch_photometry_job()</code></p>
-<p><strong>Integration Points</strong>:
-- After photometry measurement storage
-- Automatic ESE detection trigger
-- Source ID generation</p>
+<p><strong>Integration Points</strong>:</p>
+<ul>
+<li>After photometry measurement storage</li>
+<li>Automatic ESE detection trigger</li>
+<li>Source ID generation</li>
+</ul>
 <h2 id="data-flow">Data Flow<a class="headerlink" href="#data-flow" title="Permanent link">¶</a></h2>
 <h3 id="manual-detection-flow">Manual Detection Flow<a class="headerlink" href="#manual-detection-flow" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>User Request (CLI/API)
@@ -1524,15 +1549,20 @@ Log detected candidate
 <h2 id="source-id-generation">Source ID Generation<a class="headerlink" href="#source-id-generation" title="Permanent link">¶</a></h2>
 <p>Sources are identified using IAU-style coordinate-based IDs:</p>
 <p><strong>Format</strong>: <code>JHHMMSS+DDMMSS</code></p>
-<p><strong>Generation</strong>:
-1. Round RA/Dec to nearest arcsecond
-2. Convert to hours/minutes/seconds format
-3. Format as <code>J{ra_h:02d}{ra_m:02d}{ra_s:02d}{dec_sign}{dec_d:02d}{dec_m:02d}{dec_s:02d}</code></p>
+<p><strong>Generation</strong>:</p>
+<ol>
+<li>Round RA/Dec to nearest arcsecond</li>
+<li>Convert to hours/minutes/seconds format</li>
+<li>Format as
+   <code>J{ra_h:02d}{ra_m:02d}{ra_s:02d}{dec_sign}{dec_d:02d}{dec_m:02d}{dec_s:02d}</code></li>
+</ol>
 <p><strong>Example</strong>: RA=120.0°, Dec=45.0° → <code>J120000+450000</code></p>
-<p><strong>Benefits</strong>:
-- Consistent identification across measurements
-- Human-readable format
-- No database lookup required</p>
+<p><strong>Benefits</strong>:</p>
+<ul>
+<li>Consistent identification across measurements</li>
+<li>Human-readable format</li>
+<li>No database lookup required</li>
+</ul>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">¶</a></h2>
 <h3 id="photometry-job-parameters">Photometry Job Parameters<a class="headerlink" href="#photometry-job-parameters" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
@@ -1606,7 +1636,8 @@ Log detected candidate
 <li><strong>Parallel Processing</strong>: Process multiple sources in parallel</li>
 <li><strong>Real-time Alerts</strong>: Alert on high-significance candidates</li>
 <li><strong>Monitoring</strong>: Track detection success/failure rates</li>
-<li><strong>Advanced Metrics</strong>: Additional variability metrics (e.g., structure function)</li>
+<li><strong>Advanced Metrics</strong>: Additional variability metrics (e.g., structure
+   function)</li>
 </ol>
 <h3 id="integration-opportunities">Integration Opportunities<a class="headerlink" href="#integration-opportunities" title="Permanent link">¶</a></h3>
 <ol>
@@ -1646,7 +1677,7 @@ Log detected candidate
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

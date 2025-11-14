@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1327,24 +1329,30 @@
 <p><strong>Date:</strong> 2025-01-28<br/>
 <strong>Phase:</strong> Phase 2 - Pipeline Stage Monitoring Dashboard</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>Phase 2 implements a comprehensive monitoring dashboard for pipeline stage execution, providing real-time visibility into active executions, historical runs, stage metrics, and dependency visualization.</p>
+<p>Phase 2 implements a comprehensive monitoring dashboard for pipeline stage
+execution, providing real-time visibility into active executions, historical
+runs, stage metrics, and dependency visualization.</p>
 <h2 id="implementation-summary">Implementation Summary<a class="headerlink" href="#implementation-summary" title="Permanent link">¶</a></h2>
 <h3 id="backend-components">Backend Components<a class="headerlink" href="#backend-components" title="Permanent link">¶</a></h3>
 <h4 id="1-pipeline-api-router-srcdsa110_contimgapirouterspipelinepy">1. Pipeline API Router (<code>src/dsa110_contimg/api/routers/pipeline.py</code>)<a class="headerlink" href="#1-pipeline-api-router-srcdsa110_contimgapirouterspipelinepy" title="Permanent link">¶</a></h4>
-<p><strong>Endpoints Created:</strong>
-- <code>GET /api/pipeline/executions</code> - List all pipeline executions with filtering
-- <code>GET /api/pipeline/executions/active</code> - Get currently active executions
-- <code>GET /api/pipeline/executions/{id}</code> - Get specific execution details
-- <code>GET /api/pipeline/executions/{id}/stages</code> - Get stage details for execution
-- <code>GET /api/pipeline/stages/metrics</code> - Get aggregated stage metrics
-- <code>GET /api/pipeline/stages/{name}/metrics</code> - Get metrics for specific stage
-- <code>GET /api/pipeline/dependency-graph</code> - Get pipeline dependency graph
-- <code>GET /api/pipeline/metrics/summary</code> - Get summary of key metrics</p>
-<p><strong>Features:</strong>
-- Integration with <code>StateRepository</code> for job state access
-- Stage metrics aggregation from execution history
-- Dependency graph generation
-- Filtering and pagination support</p>
+<p><strong>Endpoints Created:</strong></p>
+<ul>
+<li><code>GET /api/pipeline/executions</code> - List all pipeline executions with filtering</li>
+<li><code>GET /api/pipeline/executions/active</code> - Get currently active executions</li>
+<li><code>GET /api/pipeline/executions/{id}</code> - Get specific execution details</li>
+<li><code>GET /api/pipeline/executions/{id}/stages</code> - Get stage details for execution</li>
+<li><code>GET /api/pipeline/stages/metrics</code> - Get aggregated stage metrics</li>
+<li><code>GET /api/pipeline/stages/{name}/metrics</code> - Get metrics for specific stage</li>
+<li><code>GET /api/pipeline/dependency-graph</code> - Get pipeline dependency graph</li>
+<li><code>GET /api/pipeline/metrics/summary</code> - Get summary of key metrics</li>
+</ul>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Integration with <code>StateRepository</code> for job state access</li>
+<li>Stage metrics aggregation from execution history</li>
+<li>Dependency graph generation</li>
+<li>Filtering and pagination support</li>
+</ul>
 <h3 id="frontend-components">Frontend Components<a class="headerlink" href="#frontend-components" title="Permanent link">¶</a></h3>
 <h4 id="1-pipelinepage-frontendsrcpagespipelinepagetsx">1. PipelinePage (<code>frontend/src/pages/PipelinePage.tsx</code>)<a class="headerlink" href="#1-pipelinepage-frontendsrcpagespipelinepagetsx" title="Permanent link">¶</a></h4>
 <ul>
@@ -1530,8 +1538,10 @@
 </ul>
 <h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">¶</a></h2>
 <ul>
-<li>Dependency graph uses a simple hierarchical layout; can be enhanced with a proper graph visualization library (e.g., react-flow) in the future</li>
-<li>Stage metrics visualization uses Material-UI LinearProgress; can be enhanced with charts library for more detailed visualizations</li>
+<li>Dependency graph uses a simple hierarchical layout; can be enhanced with a
+  proper graph visualization library (e.g., react-flow) in the future</li>
+<li>Stage metrics visualization uses Material-UI LinearProgress; can be enhanced
+  with charts library for more detailed visualizations</li>
 <li>All refresh intervals are configurable via React Query options</li>
 <li>Backend endpoints support pagination and filtering for scalability</li>
 </ul>
@@ -1559,7 +1569,7 @@
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

@@ -27,6 +27,8 @@
 </div>
 <div data-md-component="announce">
 </div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
 <header class="md-header md-header--shadow" data-md-component="header">
 <nav aria-label="Header" class="md-header__inner md-grid">
 <a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
@@ -1257,22 +1259,31 @@
 <article class="md-content__inner md-typeset">
 <h1 id="codebase-review-dsa-110-continuum-imaging-pipeline">Codebase Review: DSA-110 Continuum Imaging Pipeline<a class="headerlink" href="#codebase-review-dsa-110-continuum-imaging-pipeline" title="Permanent link">¶</a></h1>
 <p><strong>Date:</strong> 2025-11-12<br/>
-<strong>Review Scope:</strong> Central codebase, Graphiti knowledge graph, MEMORY.md alignment</p>
+<strong>Review Scope:</strong> Central codebase, Graphiti knowledge graph, MEMORY.md
+alignment</p>
 <hr/>
 <h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">¶</a></h2>
-<p>This review examines the alignment between:
-1. <strong>Actual codebase</strong> (<code>src/dsa110_contimg/</code>)
-2. <strong>Graphiti knowledge graph</strong> (stored entities and relationships)
-3. <strong>MEMORY.md</strong> (documented lessons and principles)</p>
-<p><strong>Key Findings:</strong>
-- Codebase: <strong>247 Python files, ~98,674 lines</strong> - well-structured, production-ready
-- Graphiti: <strong>Limited coverage</strong> - mostly high-level entities, missing detailed pipeline knowledge
-- MEMORY.md: <strong>Comprehensive</strong> - 1,367 lines documenting architecture, lessons, and decisions
-- <strong>Gap:</strong> Graphiti knowledge graph needs enrichment with detailed pipeline information</p>
+<p>This review examines the alignment between:</p>
+<ol>
+<li><strong>Actual codebase</strong> (<code>src/dsa110_contimg/</code>)</li>
+<li><strong>Graphiti knowledge graph</strong> (stored entities and relationships)</li>
+<li><strong>MEMORY.md</strong> (documented lessons and principles)</li>
+</ol>
+<p><strong>Key Findings:</strong></p>
+<ul>
+<li>Codebase: <strong>247 Python files, ~98,674 lines</strong> - well-structured,
+  production-ready</li>
+<li>Graphiti: <strong>Limited coverage</strong> - mostly high-level entities, missing detailed
+  pipeline knowledge</li>
+<li>MEMORY.md: <strong>Comprehensive</strong> - 1,367 lines documenting architecture, lessons,
+  and decisions</li>
+<li><strong>Gap:</strong> Graphiti knowledge graph needs enrichment with detailed pipeline
+  information</li>
+</ul>
 <hr/>
 <h2 id="1-codebase-structure-analysis">1. Codebase Structure Analysis<a class="headerlink" href="#1-codebase-structure-analysis" title="Permanent link">¶</a></h2>
 <h3 id="11-module-organization">1.1 Module Organization<a class="headerlink" href="#11-module-organization" title="Permanent link">¶</a></h3>
-<p><strong>Core Modules (23 directories):</strong>
+<p><strong>Core Modules (23 directories):</strong></p>
 <div class="highlight"><pre><span></span><code>api/          - FastAPI REST endpoints (22 files)
 beam/         - Beam pattern handling
 calibration/  - CASA calibration (K/BP/G) - 18+ files
@@ -1287,66 +1298,85 @@ pointing/     - Pointing calculations
 qa/           - Quality assurance and validation
 simulation/   - Synthetic data generation
 utils/        - Shared utilities
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="12-key-file-sizes">1.2 Key File Sizes<a class="headerlink" href="#12-key-file-sizes" title="Permanent link">¶</a></h3>
-<p><strong>Largest/Most Complex Files:</strong>
-- <code>api/routes.py</code>: <strong>6,270 lines</strong> - Main FastAPI application
-- <code>conversion/strategies/hdf5_orchestrator.py</code>: <strong>1,786 lines</strong> - Core conversion logic
-- <code>calibration/calibration.py</code>: <strong>1,115 lines</strong> - Calibration implementation
-- <code>photometry/forced.py</code>: <strong>872 lines</strong> - Forced photometry
-- <code>imaging/cli.py</code>: <strong>450 lines</strong> - Imaging CLI</p>
+<p><strong>Largest/Most Complex Files:</strong></p>
+<ul>
+<li><code>api/routes.py</code>: <strong>6,270 lines</strong> - Main FastAPI application</li>
+<li><code>conversion/strategies/hdf5_orchestrator.py</code>: <strong>1,786 lines</strong> - Core
+  conversion logic</li>
+<li><code>calibration/calibration.py</code>: <strong>1,115 lines</strong> - Calibration implementation</li>
+<li><code>photometry/forced.py</code>: <strong>872 lines</strong> - Forced photometry</li>
+<li><code>imaging/cli.py</code>: <strong>450 lines</strong> - Imaging CLI</li>
+</ul>
 <p><strong>Total:</strong> ~98,674 lines across 247 Python files</p>
 <h3 id="13-pipeline-architecture">1.3 Pipeline Architecture<a class="headerlink" href="#13-pipeline-architecture" title="Permanent link">¶</a></h3>
-<p><strong>Pipeline Stages (from <code>pipeline/stages_impl.py</code>):</strong>
-1. <code>CatalogSetupStage</code> - NVSS catalog preparation
-2. <code>ConversionStage</code> - UVH5 → MS conversion
-3. <code>CalibrationSolveStage</code> - K/BP/G calibration solving
-4. <code>CalibrationStage</code> - Calibration application
-5. <code>ImagingStage</code> - tclean/WSClean imaging
-6. <code>OrganizationStage</code> - File organization
-7. <code>ValidationStage</code> - QA validation
-8. <code>CrossMatchStage</code> - Source crossmatching
-9. <code>AdaptivePhotometryStage</code> - Photometry measurement</p>
-<p><strong>Workflow Support:</strong>
-- <code>standard_imaging_workflow()</code> - Full pipeline
-- <code>quicklook_workflow()</code> - Fast preview mode
-- Declarative stage definitions with dependency resolution</p>
+<p><strong>Pipeline Stages (from <code>pipeline/stages_impl.py</code>):</strong></p>
+<ol>
+<li><code>CatalogSetupStage</code> - NVSS catalog preparation</li>
+<li><code>ConversionStage</code> - UVH5 → MS conversion</li>
+<li><code>CalibrationSolveStage</code> - K/BP/G calibration solving</li>
+<li><code>CalibrationStage</code> - Calibration application</li>
+<li><code>ImagingStage</code> - tclean/WSClean imaging</li>
+<li><code>OrganizationStage</code> - File organization</li>
+<li><code>ValidationStage</code> - QA validation</li>
+<li><code>CrossMatchStage</code> - Source crossmatching</li>
+<li><code>AdaptivePhotometryStage</code> - Photometry measurement</li>
+</ol>
+<p><strong>Workflow Support:</strong></p>
+<ul>
+<li><code>standard_imaging_workflow()</code> - Full pipeline</li>
+<li><code>quicklook_workflow()</code> - Fast preview mode</li>
+<li>Declarative stage definitions with dependency resolution</li>
+</ul>
 <h3 id="14-recent-activity-last-7-days">1.4 Recent Activity (Last 7 Days)<a class="headerlink" href="#14-recent-activity-last-7-days" title="Permanent link">¶</a></h3>
-<p><strong>Modified Files:</strong>
-- Multiple API files (routes, routers, models)
-- Conversion streaming components
-- Test infrastructure improvements
-- Documentation updates</p>
-<p><strong>Recent Commits:</strong>
-- Streaming test improvements
-- Test mocking fixes (matplotlib, casatasks)
-- Documentation workflow fixes
-- Formatting and import standardization</p>
+<p><strong>Modified Files:</strong></p>
+<ul>
+<li>Multiple API files (routes, routers, models)</li>
+<li>Conversion streaming components</li>
+<li>Test infrastructure improvements</li>
+<li>Documentation updates</li>
+</ul>
+<p><strong>Recent Commits:</strong></p>
+<ul>
+<li>Streaming test improvements</li>
+<li>Test mocking fixes (matplotlib, casatasks)</li>
+<li>Documentation workflow fixes</li>
+<li>Formatting and import standardization</li>
+</ul>
 <hr/>
 <h2 id="2-graphiti-knowledge-graph-analysis">2. Graphiti Knowledge Graph Analysis<a class="headerlink" href="#2-graphiti-knowledge-graph-analysis" title="Permanent link">¶</a></h2>
 <h3 id="21-current-graph-content">2.1 Current Graph Content<a class="headerlink" href="#21-current-graph-content" title="Permanent link">¶</a></h3>
-<p><strong>Entities Found:</strong>
-- <code>DSA-110 Continuum Imaging Pipeline</code> (Organization)
-- <code>PipelineStage</code> (Document/Entity)
-- <code>File processing stages</code> (Entity)
-- <code>Best Practices</code> (Topic)
-- <code>Integration</code> (Topic)
-- Various modules (<code>docs</code>, <code>src</code>, <code>database</code>)</p>
-<p><strong>Coverage Assessment:</strong>
-- <strong>High-level entities:</strong> ✓ Present
-- <strong>Detailed pipeline stages:</strong> ✗ Missing
-- <strong>Component relationships:</strong> ✗ Limited
-- <strong>Technical decisions:</strong> ✗ Not captured
-- <strong>Lessons learned:</strong> ✗ Not captured</p>
+<p><strong>Entities Found:</strong></p>
+<ul>
+<li><code>DSA-110 Continuum Imaging Pipeline</code> (Organization)</li>
+<li><code>PipelineStage</code> (Document/Entity)</li>
+<li><code>File processing stages</code> (Entity)</li>
+<li><code>Best Practices</code> (Topic)</li>
+<li><code>Integration</code> (Topic)</li>
+<li>Various modules (<code>docs</code>, <code>src</code>, <code>database</code>)</li>
+</ul>
+<p><strong>Coverage Assessment:</strong></p>
+<ul>
+<li><strong>High-level entities:</strong> ✓ Present</li>
+<li><strong>Detailed pipeline stages:</strong> ✗ Missing</li>
+<li><strong>Component relationships:</strong> ✗ Limited</li>
+<li><strong>Technical decisions:</strong> ✗ Not captured</li>
+<li><strong>Lessons learned:</strong> ✗ Not captured</li>
+</ul>
 <h3 id="22-gaps-identified">2.2 Gaps Identified<a class="headerlink" href="#22-gaps-identified" title="Permanent link">¶</a></h3>
-<p><strong>Missing from Graph:</strong>
-1. <strong>Pipeline Components:</strong>
-   - Conversion strategies (direct_subband, pyuvdata_monolithic)
-   - Calibration types (K, BP, G) and their usage
-   - Imaging backends (tclean vs WSClean)
-   - Photometry normalization algorithm</p>
+<p><strong>Missing from Graph:</strong></p>
 <ol>
-<li><strong>Technical Decisions:</strong></li>
+<li><strong>Pipeline Components:</strong></li>
+<li>Conversion strategies (direct_subband, pyuvdata_monolithic)</li>
+<li>Calibration types (K, BP, G) and their usage</li>
+<li>Imaging backends (tclean vs WSClean)</li>
+<li>
+<p>Photometry normalization algorithm</p>
+</li>
+<li>
+<p><strong>Technical Decisions:</strong></p>
+</li>
 <li>casa6 Python requirement</li>
 <li>K-calibration skipped by default</li>
 <li>Single shared phase center approach</li>
@@ -1380,46 +1410,59 @@ utils/        - Shared utilities
 <hr/>
 <h2 id="3-memorymd-analysis">3. MEMORY.md Analysis<a class="headerlink" href="#3-memorymd-analysis" title="Permanent link">¶</a></h2>
 <h3 id="31-content-structure">3.1 Content Structure<a class="headerlink" href="#31-content-structure" title="Permanent link">¶</a></h3>
-<p><strong>Sections (49 major headings):</strong>
-1. Executive Summary - Pipeline purpose and capabilities
-2. Pipeline Architecture - Core flow and components
-3. Key Technical Decisions - Critical choices
-4. ESE Detection Methodology - Scientific approach
-5. Deployment - Systemd, Docker, Frontend
-6. Codebase Structure - Organization
-7. Critical Lessons Learned - Important fixes
-8. Test Organization - Testing structure
-9. Documentation Organization - File placement rules
-10. Various specialized topics (mosaics, VAST tools, etc.)</p>
+<p><strong>Sections (49 major headings):</strong></p>
+<ol>
+<li>Executive Summary - Pipeline purpose and capabilities</li>
+<li>Pipeline Architecture - Core flow and components</li>
+<li>Key Technical Decisions - Critical choices</li>
+<li>ESE Detection Methodology - Scientific approach</li>
+<li>Deployment - Systemd, Docker, Frontend</li>
+<li>Codebase Structure - Organization</li>
+<li>Critical Lessons Learned - Important fixes</li>
+<li>Test Organization - Testing structure</li>
+<li>Documentation Organization - File placement rules</li>
+<li>Various specialized topics (mosaics, VAST tools, etc.)</li>
+</ol>
 <h3 id="32-strengths">3.2 Strengths<a class="headerlink" href="#32-strengths" title="Permanent link">¶</a></h3>
-<p><strong>Comprehensive Coverage:</strong>
-- ✓ Architecture documented in detail
-- ✓ Technical decisions explained with rationale
-- ✓ Critical bugs and fixes documented
-- ✓ Lessons learned from mistakes
-- ✓ Code quality status tracked
-- ✓ Recent additions (2025-11-11) up to date</p>
+<p><strong>Comprehensive Coverage:</strong></p>
+<ul>
+<li>✓ Architecture documented in detail</li>
+<li>✓ Technical decisions explained with rationale</li>
+<li>✓ Critical bugs and fixes documented</li>
+<li>✓ Lessons learned from mistakes</li>
+<li>✓ Code quality status tracked</li>
+<li>✓ Recent additions (2025-11-11) up to date</li>
+</ul>
 <h3 id="33-alignment-with-codebase">3.3 Alignment with Codebase<a class="headerlink" href="#33-alignment-with-codebase" title="Permanent link">¶</a></h3>
-<p><strong>Verified Matches:</strong>
-- ✓ Module structure matches actual directories
-- ✓ File sizes align (routes.py ~6K lines confirmed)
-- ✓ Pipeline stages match <code>stages_impl.py</code>
-- ✓ Database tables match schema
-- ✓ Entry points documented correctly</p>
-<p><strong>Minor Discrepancies:</strong>
-- MEMORY.md mentions "~50,000+ lines" but actual is ~98,674 lines (likely outdated estimate)
-- Some file paths may have changed (need verification)</p>
+<p><strong>Verified Matches:</strong></p>
+<ul>
+<li>✓ Module structure matches actual directories</li>
+<li>✓ File sizes align (routes.py ~6K lines confirmed)</li>
+<li>✓ Pipeline stages match <code>stages_impl.py</code></li>
+<li>✓ Database tables match schema</li>
+<li>✓ Entry points documented correctly</li>
+</ul>
+<p><strong>Minor Discrepancies:</strong></p>
+<ul>
+<li>MEMORY.md mentions "~50,000+ lines" but actual is ~98,674 lines (likely
+  outdated estimate)</li>
+<li>Some file paths may have changed (need verification)</li>
+</ul>
 <hr/>
 <h2 id="4-gap-analysis-graphiti-vs-memorymd">4. Gap Analysis: Graphiti vs MEMORY.md<a class="headerlink" href="#4-gap-analysis-graphiti-vs-memorymd" title="Permanent link">¶</a></h2>
 <h3 id="41-knowledge-graph-enrichment-opportunities">4.1 Knowledge Graph Enrichment Opportunities<a class="headerlink" href="#41-knowledge-graph-enrichment-opportunities" title="Permanent link">¶</a></h3>
-<p><strong>High Priority:</strong>
-1. <strong>Add Pipeline Components:</strong>
-   - Conversion strategies and their use cases
-   - Calibration workflow (K/BP/G)
-   - Imaging backends (tclean/WSClean selection)
-   - Photometry normalization algorithm</p>
+<p><strong>High Priority:</strong></p>
 <ol>
-<li><strong>Capture Technical Decisions:</strong></li>
+<li><strong>Add Pipeline Components:</strong></li>
+<li>Conversion strategies and their use cases</li>
+<li>Calibration workflow (K/BP/G)</li>
+<li>Imaging backends (tclean/WSClean selection)</li>
+<li>
+<p>Photometry normalization algorithm</p>
+</li>
+<li>
+<p><strong>Capture Technical Decisions:</strong></p>
+</li>
 <li>casa6 Python requirement (CRITICAL)</li>
 <li>K-calibration default behavior</li>
 <li>Phase center handling</li>
@@ -1434,29 +1477,36 @@ utils/        - Shared utilities
 <li>MS file permissions</li>
 <li>Phase center validation expectations</li>
 </ol>
-<p><strong>Medium Priority:</strong>
-4. <strong>Database Schema:</strong>
-   - Products DB structure
-   - Queue DB structure
-   - Cal registry DB structure</p>
-<ol>
-<li><strong>Workflow Procedures:</strong></li>
+<p><strong>Medium Priority:</strong> 4. <strong>Database Schema:</strong></p>
+<ul>
+<li>Products DB structure</li>
+<li>Queue DB structure</li>
+<li>
+<p>Cal registry DB structure</p>
+</li>
+<li>
+<p><strong>Workflow Procedures:</strong></p>
+</li>
 <li>Streaming conversion procedure</li>
 <li>Mosaic construction procedure</li>
 <li>ESE detection workflow</li>
-</ol>
+</ul>
 <h3 id="42-recommended-graphiti-updates">4.2 Recommended Graphiti Updates<a class="headerlink" href="#42-recommended-graphiti-updates" title="Permanent link">¶</a></h3>
-<p><strong>Entities to Add:</strong>
-- <code>PipelineComponent</code> - Individual pipeline stages
-- <code>TechnicalDecision</code> - Key architectural choices
-- <code>CriticalLesson</code> - Important lessons learned
-- <code>DatabaseSchema</code> - Database table structures
-- <code>WorkflowProcedure</code> - Step-by-step procedures</p>
-<p><strong>Relationships to Add:</strong>
-- <code>PipelineComponent --IMPLEMENTS--&gt; Procedure</code>
-- <code>TechnicalDecision --AFFECTS--&gt; PipelineComponent</code>
-- <code>CriticalLesson --RELATES_TO--&gt; PipelineComponent</code>
-- <code>WorkflowProcedure --USES--&gt; PipelineComponent</code></p>
+<p><strong>Entities to Add:</strong></p>
+<ul>
+<li><code>PipelineComponent</code> - Individual pipeline stages</li>
+<li><code>TechnicalDecision</code> - Key architectural choices</li>
+<li><code>CriticalLesson</code> - Important lessons learned</li>
+<li><code>DatabaseSchema</code> - Database table structures</li>
+<li><code>WorkflowProcedure</code> - Step-by-step procedures</li>
+</ul>
+<p><strong>Relationships to Add:</strong></p>
+<ul>
+<li><code>PipelineComponent --IMPLEMENTS--&gt; Procedure</code></li>
+<li><code>TechnicalDecision --AFFECTS--&gt; PipelineComponent</code></li>
+<li><code>CriticalLesson --RELATES_TO--&gt; PipelineComponent</code></li>
+<li><code>WorkflowProcedure --USES--&gt; PipelineComponent</code></li>
+</ul>
 <hr/>
 <h2 id="5-recommendations">5. Recommendations<a class="headerlink" href="#5-recommendations" title="Permanent link">¶</a></h2>
 <h3 id="51-immediate-actions">5.1 Immediate Actions<a class="headerlink" href="#51-immediate-actions" title="Permanent link">¶</a></h3>
@@ -1508,45 +1558,61 @@ utils/        - Shared utilities
 <hr/>
 <h2 id="6-codebase-health-assessment">6. Codebase Health Assessment<a class="headerlink" href="#6-codebase-health-assessment" title="Permanent link">¶</a></h2>
 <h3 id="61-strengths">6.1 Strengths<a class="headerlink" href="#61-strengths" title="Permanent link">¶</a></h3>
-<p><strong>Architecture:</strong>
-- ✓ Well-organized modular structure
-- ✓ Clear separation of concerns
-- ✓ Pipeline orchestration framework
-- ✓ Comprehensive API layer</p>
-<p><strong>Code Quality:</strong>
-- ✓ Type hints in many places
-- ✓ Error handling patterns
-- ✓ Logging infrastructure
-- ✓ Test organization</p>
-<p><strong>Documentation:</strong>
-- ✓ Comprehensive MEMORY.md
-- ✓ Module-level READMEs
-- ✓ API documentation
-- ✓ Inline code comments</p>
+<p><strong>Architecture:</strong></p>
+<ul>
+<li>✓ Well-organized modular structure</li>
+<li>✓ Clear separation of concerns</li>
+<li>✓ Pipeline orchestration framework</li>
+<li>✓ Comprehensive API layer</li>
+</ul>
+<p><strong>Code Quality:</strong></p>
+<ul>
+<li>✓ Type hints in many places</li>
+<li>✓ Error handling patterns</li>
+<li>✓ Logging infrastructure</li>
+<li>✓ Test organization</li>
+</ul>
+<p><strong>Documentation:</strong></p>
+<ul>
+<li>✓ Comprehensive MEMORY.md</li>
+<li>✓ Module-level READMEs</li>
+<li>✓ API documentation</li>
+<li>✓ Inline code comments</li>
+</ul>
 <h3 id="62-areas-for-improvement">6.2 Areas for Improvement<a class="headerlink" href="#62-areas-for-improvement" title="Permanent link">¶</a></h3>
-<p><strong>Code Quality (from MEMORY.md):</strong>
-- ⚠️ 579 print() statements remaining (7% complete)
-- ⚠️ 258 generic exceptions remaining (4% complete)
-- ⚠️ 101 <code># type: ignore</code> comments (5% complete)
-- ⚠️ 731 broad exception catches (HIGH priority)</p>
-<p><strong>Knowledge Graph:</strong>
-- ⚠️ Limited coverage of detailed pipeline knowledge
-- ⚠️ Missing technical decisions
-- ⚠️ Missing critical lessons</p>
-<p><strong>Documentation:</strong>
-- ⚠️ Some paths may be outdated
-- ⚠️ Line count estimates need updating</p>
+<p><strong>Code Quality (from MEMORY.md):</strong></p>
+<ul>
+<li>⚠️ 579 print() statements remaining (7% complete)</li>
+<li>⚠️ 258 generic exceptions remaining (4% complete)</li>
+<li>⚠️ 101 <code># type: ignore</code> comments (5% complete)</li>
+<li>⚠️ 731 broad exception catches (HIGH priority)</li>
+</ul>
+<p><strong>Knowledge Graph:</strong></p>
+<ul>
+<li>⚠️ Limited coverage of detailed pipeline knowledge</li>
+<li>⚠️ Missing technical decisions</li>
+<li>⚠️ Missing critical lessons</li>
+</ul>
+<p><strong>Documentation:</strong></p>
+<ul>
+<li>⚠️ Some paths may be outdated</li>
+<li>⚠️ Line count estimates need updating</li>
+</ul>
 <hr/>
 <h2 id="7-conclusion">7. Conclusion<a class="headerlink" href="#7-conclusion" title="Permanent link">¶</a></h2>
-<p><strong>Overall Assessment:</strong>
-- <strong>Codebase:</strong> Production-ready, well-structured, ~98K lines
-- <strong>MEMORY.md:</strong> Comprehensive, up-to-date, excellent reference
-- <strong>Graphiti:</strong> Needs enrichment with detailed pipeline knowledge</p>
-<p><strong>Priority Actions:</strong>
-1. Enrich Graphiti knowledge graph with pipeline components and decisions
-2. Update MEMORY.md line count estimates
-3. Create cross-references between Graphiti and MEMORY.md
-4. Continue code quality improvements (logging, error handling)</p>
+<p><strong>Overall Assessment:</strong></p>
+<ul>
+<li><strong>Codebase:</strong> Production-ready, well-structured, ~98K lines</li>
+<li><strong>MEMORY.md:</strong> Comprehensive, up-to-date, excellent reference</li>
+<li><strong>Graphiti:</strong> Needs enrichment with detailed pipeline knowledge</li>
+</ul>
+<p><strong>Priority Actions:</strong></p>
+<ol>
+<li>Enrich Graphiti knowledge graph with pipeline components and decisions</li>
+<li>Update MEMORY.md line count estimates</li>
+<li>Create cross-references between Graphiti and MEMORY.md</li>
+<li>Continue code quality improvements (logging, error handling)</li>
+</ol>
 <p><strong>Next Review:</strong> 2025-12-12 (monthly cadence recommended)</p>
 <hr/>
 <h2 id="appendix-key-statistics">Appendix: Key Statistics<a class="headerlink" href="#appendix-key-statistics" title="Permanent link">¶</a></h2>
@@ -1583,7 +1649,7 @@ utils/        - Shared utilities
 <div class="md-dialog" data-md-component="dialog">
 <div class="md-dialog__inner md-typeset"></div>
 </div>
-<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
 <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
 <script src="../../../javascripts/mathjax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
