@@ -1,54 +1,5 @@
 # DSA-110 Continuum Imaging Pipeline
 
-## 🚀 QUICK START (READ THIS FIRST!)
-
-**New to this project? Start here:**
-
-1. **Run the setup script:**
-
-   ```bash
-   ./scripts/setup-dev.sh
-   ```
-
-   This will:
-   - Set up git hooks
-   - Install dependencies
-   - Verify your environment
-   - Check for common issues
-
-2. **Verify your setup:**
-
-   ```bash
-   ./scripts/check-environment.sh
-   ```
-
-3. **Read the developer guide:**
-   - [`docs/how-to/DEVELOPER_HANDOFF_WARNINGS.md`](docs/how-to/DEVELOPER_HANDOFF_WARNINGS.md) -
-     Critical warnings
-   - [`docs/how-to/QUICK_REFERENCE_WARNINGS.md`](docs/how-to/QUICK_REFERENCE_WARNINGS.md) -
-     Quick reference
-
-**⚠️ CRITICAL:** Always use casa6 Python environment:
-
-```bash
-# WRONG
-python script.py
-
-# CORRECT
-/opt/miniforge/envs/casa6/bin/python script.py
-# Or use wrapper:
-./scripts/run-python.sh script.py
-```
-
----
-
-Note: Before creating any markdown documentation, see
-[`docs/DOCUMENTATION_QUICK_REFERENCE.md`](docs/DOCUMENTATION_QUICK_REFERENCE.md).
-Do not create markdown files in the repository root — use the `docs/` structure
-instead.
-
----
-
 This repository contains the streaming continuum-imaging pipeline for DSA-110:
 
 - Watches incoming UVH5 subband files and converts them to CASA Measurement Sets
@@ -369,6 +320,53 @@ docker compose stop dashboard-dev api
 dev server on 5173. Both can run simultaneously.
 
 ## Troubleshooting
+
+**New to this project?**
+
+1. **Run the setup script:**
+
+   ```bash
+   ./scripts/setup-dev.sh
+   ```
+
+   This will:
+   - Set up git hooks
+   - Install dependencies
+   - Verify your environment
+   - Check for common issues
+
+2. **Verify your setup:**
+
+   ```bash
+   ./scripts/check-environment.sh
+   ```
+
+3. **Read the developer guide:**
+   - [`docs/how-to/DEVELOPER_HANDOFF_WARNINGS.md`](docs/how-to/DEVELOPER_HANDOFF_WARNINGS.md) -
+     Critical warnings
+   - [`docs/how-to/QUICK_REFERENCE_WARNINGS.md`](docs/how-to/QUICK_REFERENCE_WARNINGS.md) -
+     Quick reference
+
+**⚠️ CRITICAL:** Always use casa6 Python environment:
+
+```bash
+# WRONG
+python script.py
+
+# CORRECT
+/opt/miniforge/envs/casa6/bin/python script.py
+# Or use wrapper:
+./scripts/run-python.sh script.py
+```
+
+---
+
+Note: Before creating any markdown documentation, see
+[`docs/DOCUMENTATION_QUICK_REFERENCE.md`](docs/DOCUMENTATION_QUICK_REFERENCE.md).
+Do not create markdown files in the repository root — use the `docs/` structure
+instead.
+
+---
 
 - `casatools` errors opening MS
   - Use orchestrator `direct-subband` writer; ensure imaging columns exist
