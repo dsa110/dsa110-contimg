@@ -165,7 +165,7 @@ locations.
 
 The file `FILENAME.md` is in the root directory. Documentation must be in the `docs/` structure.
 
-Please move to: `docs/dev/status/YYYY-MM/FILENAME.md`
+Please move to: `internal/docs/dev/status/`
 
 See: `docs/DOCUMENTATION_QUICK_REFERENCE.md`
 ```

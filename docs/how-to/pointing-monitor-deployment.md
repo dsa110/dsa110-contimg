@@ -2,13 +2,16 @@
 
 **Date:** 2025-11-12  
 **Status:** Production Ready  
-**Purpose:** Guide for deploying and monitoring the DSA-110 pointing monitor service
+**Purpose:** Guide for deploying and monitoring the DSA-110 pointing monitor
+service
 
 ---
 
 ## Overview
 
-The pointing monitor automatically extracts telescope pointing information from incoming UVH5 visibility files and stores it in the products database. This enables:
+The pointing monitor automatically extracts telescope pointing information from
+incoming UVH5 visibility files and stores it in the products database. This
+enables:
 
 - Real-time tracking of telescope pointing
 - Historical pointing analysis
@@ -21,7 +24,8 @@ The pointing monitor automatically extracts telescope pointing information from 
 
 ### Components
 
-1. **File System Watcher**: Monitors `/data/incoming/` for new `*_sb00.hdf5` files
+1. **File System Watcher**: Monitors `/data/incoming/` for new `*_sb00.hdf5`
+   files
 2. **Pointing Extractor**: Reads pointing metadata from UVH5 headers
 3. **Database Writer**: Stores pointing data in `pointing_history` table
 4. **Health Monitor**: Performs periodic health checks and writes status JSON
@@ -42,7 +46,8 @@ UVH5 Files (*_sb00.hdf5) → File Watcher → Pointing Extraction → SQLite Dat
 
 1. **Python Environment**: Requires `casa6` conda environment
 2. **Dependencies**: `watchdog`, `h5py`, `astropy`, `casacore`
-3. **Directory Access**: Read access to `/data/incoming/`, write access to state directory
+3. **Directory Access**: Read access to `/data/incoming/`, write access to state
+   directory
 4. **Database**: Products database must exist (created automatically)
 
 ### Step 1: Verify Environment
@@ -109,7 +114,8 @@ The service uses variables from `/data/dsa110-contimg/ops/systemd/contimg.env`:
 Edit `/etc/systemd/system/contimg-pointing-monitor.service` to customize:
 
 - `--health-check-interval`: Health check frequency in seconds (default: 300)
-- `--status-file`: Path to status JSON file (default: `${PIPELINE_STATE_DIR}/pointing-monitor-status.json`)
+- `--status-file`: Path to status JSON file (default:
+  `${PIPELINE_STATE_DIR}/pointing-monitor-status.json`)
 - `--log-level`: Logging verbosity
 
 ---
@@ -132,6 +138,7 @@ cat /data/dsa110-contimg/state/pointing-monitor-status.json | jq .healthy
 ```
 
 **Status File Structure:**
+
 ```json
 {
   "running": true,
@@ -226,24 +233,35 @@ ls -la /opt/miniforge/envs/casa6/bin/python
 ### Common Issues
 
 **1. Status file not updating**
-- Check service is running: `sudo systemctl is-active contimg-pointing-monitor.service`
+
+- Check service is running:
+  `sudo systemctl is-active contimg-pointing-monitor.service`
 - Check write permissions: `ls -la /data/dsa110-contimg/state/`
 - Check disk space: `df -h /data/dsa110-contimg/state/`
 
 **2. No files being processed**
+
 - Verify watch directory exists: `ls -la /data/incoming/`
-- Check for `*_sb00.hdf5` files: `find /data/incoming -name "*_sb00.hdf5" | head -5`
+- Check for `*_sb00.hdf5` files:
+  `find /data/incoming -name "*_sb00.hdf5" | head -5`
 - Check file permissions: `ls -la /data/incoming/*_sb00.hdf5 | head -1`
 
 **3. Database errors**
+
 - Check database exists: `ls -la /data/dsa110-contimg/state/products.sqlite3`
-- Check database permissions: `ls -la /data/dsa110-contimg/state/products.sqlite3`
-- Test database access: `sqlite3 /data/dsa110-contimg/state/products.sqlite3 "SELECT 1;"`
+- Check database permissions:
+  `ls -la /data/dsa110-contimg/state/products.sqlite3`
+- Test database access:
+  `sqlite3 /data/dsa110-contimg/state/products.sqlite3 "SELECT 1;"`
 
 **4. High error rate**
-- Check recent errors in status file: `jq .metrics.recent_error_count /data/dsa110-contimg/state/pointing-monitor-status.json`
-- View error messages: `jq .metrics.last_error_message /data/dsa110-contimg/state/pointing-monitor-status.json`
-- Check UVH5 file format: `h5dump -H /data/incoming/<file>_sb00.hdf5 | grep -i "phase_center"`
+
+- Check recent errors in status file:
+  `jq .metrics.recent_error_count /data/dsa110-contimg/state/pointing-monitor-status.json`
+- View error messages:
+  `jq .metrics.last_error_message /data/dsa110-contimg/state/pointing-monitor-status.json`
+- Check UVH5 file format:
+  `h5dump -H /data/incoming/<file>_sb00.hdf5 | grep -i "phase_center"`
 
 ### Health Check Failures
 
@@ -253,7 +271,8 @@ The monitor performs health checks every 5 minutes. Common failures:
 - **Database connection lost**: Database may be locked or corrupted
 - **Status file write failure**: Check disk space and permissions
 
-Health check failures are logged but don't stop the monitor. Check logs for details.
+Health check failures are logged but don't stop the monitor. Check logs for
+details.
 
 ---
 
@@ -339,7 +358,7 @@ else:
 The frontend can query pointing monitor status:
 
 ```typescript
-const response = await fetch('/api/pointing-monitor/status');
+const response = await fetch("/api/pointing-monitor/status");
 const status = await response.json();
 ```
 
@@ -416,6 +435,7 @@ sqlite3 /data/dsa110-contimg/state/products.sqlite3 "ANALYZE pointing_history;"
 ### Log Rotation
 
 Logs are written to:
+
 - `/data/dsa110-contimg/state/logs/pointing-monitor.out`
 - `/data/dsa110-contimg/state/logs/pointing-monitor.err`
 
@@ -440,5 +460,4 @@ Configure logrotate if needed:
 - **Pointing Utilities**: `src/dsa110_contimg/pointing/utils.py`
 - **Service File**: `ops/systemd/contimg-pointing-monitor.service`
 - **API Endpoint**: `/api/pointing-monitor/status`
-- **Review Document**: `docs/reports/POINTING_MONITORING_REVIEW.md`
-
+- **Review Document**: `docs/archive/reports/POINTING_MONITORING_REVIEW.md`

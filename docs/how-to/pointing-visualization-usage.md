@@ -333,7 +333,7 @@ Returns pointing entries in MJD range.
 **Questions?**
 
 - See technical documentation: `docs/how-to/pointing-visualization.md`
-- Check API documentation: `docs/reference/dashboard_api.md`
+- Check API documentation: `docs/reference/dashboard_backend_api.md`
 
 ---
 

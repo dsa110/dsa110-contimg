@@ -270,8 +270,8 @@ After running the pipeline, check that:
 
 ## Related Documentation
 
-- `docs/analysis/SYNTHETIC_DATA_PIPELINE_STAGE_COVERAGE.md` - Pipeline stage
-  coverage assessment
-- `docs/analysis/SYNTHETIC_DATA_REPRESENTATIVENESS.md` - Synthetic data
+- `docs/archive/analysis/SYNTHETIC_DATA_PIPELINE_STAGE_COVERAGE.md` - Pipeline
+  stage coverage assessment
+- `docs/archive/analysis/SYNTHETIC_DATA_REPRESENTATIVENESS.md` - Synthetic data
   representativeness
 - `docs/concepts/pipeline_stage_architecture.md` - Pipeline stage documentation

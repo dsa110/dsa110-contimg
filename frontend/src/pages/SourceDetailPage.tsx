@@ -44,6 +44,7 @@ import { useSourceDetail } from "../api/queries";
 import GenericTable from "../components/GenericTable";
 import type { TableColumn } from "../components/GenericTable";
 import { Box } from "@mui/material";
+import PageBreadcrumbs from "../components/PageBreadcrumbs";
 
 export default function SourceDetailPage() {
   const { sourceId } = useParams<{ sourceId: string }>();
@@ -166,278 +167,281 @@ export default function SourceDetailPage() {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Page Header */}
-      <Box
-        sx={{
-          mb: 4,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Box>
-          <Typography variant="h4" gutterBottom>
-            <strong>Source:</strong> {source.name}
-          </Typography>
-          {source.ese_probability && source.ese_probability > 0 && (
-            <Chip
-              label={`ESE Candidate (${(source.ese_probability * 100).toFixed(1)}%)`}
-              color="warning"
-              size="small"
-              sx={{ mt: 1 }}
-            />
-          )}
-          {source.new_source && (
-            <Chip label="New Source" color="success" size="small" sx={{ mt: 1, ml: 1 }} />
-          )}
-        </Box>
-        <Stack direction="row" spacing={1}>
-          {/* External links */}
-          <Button
-            size="small"
-            variant="outlined"
-            startIcon={<LinkIcon />}
-            href={`https://simbad.u-strasbg.fr/simbad/sim-coo?Coord=${source.ra_deg}d${source.dec_deg}d`}
-            target="_blank"
-          >
-            SIMBAD
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            startIcon={<LinkIcon />}
-            href={`https://ned.ipac.caltech.edu/conesearch?coordinates=${source.ra_deg}d%20${source.dec_deg}d`}
-            target="_blank"
-          >
-            NED
-          </Button>
-          {/* Navigation */}
-          {navigationIds?.previousId && (
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={<ArrowBackIcon />}
-              onClick={() => navigate(`/sources/${navigationIds.previousId}`)}
-            >
-              Previous
-            </Button>
-          )}
-          {navigationIds?.nextId && (
-            <Button
-              size="small"
-              variant="outlined"
-              endIcon={<ArrowForwardIcon />}
-              onClick={() => navigate(`/sources/${navigationIds.nextId}`)}
-            >
-              Next
-            </Button>
-          )}
-        </Stack>
-      </Box>
-
-      {/* Three-Column Layout */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
-          gap: 3,
-        }}
-      >
-        {/* Column 1: Details */}
-        <Box>
-          <Card>
-            <CardHeader title="Details" />
-            <CardContent>
-              <Typography variant="body2" paragraph>
-                <strong>Name:</strong> {source.name}
-              </Typography>
-              <Divider sx={{ my: 2 }} />
-
-              <Typography variant="body2" paragraph>
-                <strong>Position:</strong>
-                <br />
-                {formatRA(source.ra_deg)} {formatDec(source.dec_deg)}
-                <br />
-                <strong>Decimal:</strong> {source.ra_deg.toFixed(6)} {source.dec_deg.toFixed(6)}
-              </Typography>
-
-              <Divider sx={{ my: 2 }} />
-
-              <Typography variant="body2" paragraph>
-                <strong>Flux Statistics:</strong>
-                <br />
-                {source.mean_flux_jy && (
-                  <>
-                    Mean Flux: {(source.mean_flux_jy * 1000).toFixed(3)} mJy
-                    <br />
-                  </>
-                )}
-                {source.std_flux_jy && (
-                  <>
-                    Std Flux: {(source.std_flux_jy * 1000).toFixed(3)} mJy
-                    <br />
-                  </>
-                )}
-                {source.max_snr && (
-                  <>
-                    Max SNR: {source.max_snr.toFixed(2)}
-                    <br />
-                  </>
-                )}
-                {source.variability_metrics && (
-                  <>
-                    Variability (v): {source.variability_metrics.v.toFixed(3)}
-                    <br />
-                    Variability (η): {source.variability_metrics.eta.toFixed(3)}
-                  </>
-                )}
-              </Typography>
-
-              <Divider sx={{ my: 2 }} />
-
-              <Typography variant="body2" paragraph>
-                <strong>Measurements:</strong>
-                <br />
-                Total: {source.n_meas}
-                <br />
-                Forced: {source.n_meas_forced}
-              </Typography>
-
-              {source.ese_probability !== undefined && source.ese_probability > 0 && (
-                <>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant="body2" paragraph>
-                    <strong>ESE Metrics:</strong>
-                    <br />
-                    Probability: {(source.ese_probability * 100).toFixed(1)}%
-                  </Typography>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </Box>
-
-        {/* Column 2: Sky Visualization (Aladin Lite) */}
-        <Box>
-          <Card>
-            <CardHeader title="Sky View" />
-            <CardContent>
-              <Box
-                id="aladin-lite-div"
-                sx={{
-                  width: "100%",
-                  height: "400px",
-                  border: "1px solid #ddd",
-                  borderRadius: 1,
-                }}
-              >
-                {/* Aladin Lite will be initialized here */}
-                <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-                  Aladin Lite integration coming soon
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Box>
-
-        {/* Column 3: Comments/Annotations */}
-        <Box>
-          <Card>
-            <CardHeader title="Comments & Annotations" />
-            <CardContent>
-              <Typography variant="body2" color="text.secondary">
-                Comments system coming soon
-              </Typography>
-              {/* TODO: Add comments component */}
-            </CardContent>
-          </Card>
-        </Box>
-      </Box>
-
-      {/* Full-width: Light Curve */}
-      <Box sx={{ mt: 3 }}>
-        <Card>
-          <CardHeader
-            title="Light Curve"
-            action={
-              <IconButton onClick={() => toggleSection("lightCurve")}>
-                {expandedSections.lightCurve ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-              </IconButton>
-            }
-          />
-          <Collapse in={expandedSections.lightCurve}>
-            <CardContent>
-              <Box sx={{ height: "400px" }}>
-                {/* TODO: Add Plotly light curve visualization */}
-                <Typography variant="body2" color="text.secondary">
-                  Light curve visualization coming soon
-                </Typography>
-              </Box>
-            </CardContent>
-          </Collapse>
-        </Card>
-      </Box>
-
-      {/* Full-width: Detections Table */}
-      <Box sx={{ mt: 3 }}>
-        <Card>
-          <CardHeader
-            title="Detections"
-            action={
-              <IconButton onClick={() => toggleSection("detections")}>
-                {expandedSections.detections ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-              </IconButton>
-            }
-          />
-          <Collapse in={expandedSections.detections}>
-            <CardContent>
-              <GenericTable<any>
-                apiEndpoint={`/api/sources/${sourceId}/detections`}
-                columns={detectionColumns}
-                title=""
-                searchable={true}
-                exportable={true}
-                pageSize={25}
-                onRowClick={(row) => {
-                  if (row.image_id) {
-                    navigate(`/images/${row.image_id}`);
-                  }
-                }}
-                transformData={(data) => ({
-                  rows: data.items || [],
-                  total: data.total || 0,
-                })}
+    <>
+      <PageBreadcrumbs />
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        {/* Page Header */}
+        <Box
+          sx={{
+            mb: 4,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Box>
+            <Typography variant="h4" gutterBottom>
+              <strong>Source:</strong> {source.name}
+            </Typography>
+            {source.ese_probability && source.ese_probability > 0 && (
+              <Chip
+                label={`ESE Candidate (${(source.ese_probability * 100).toFixed(1)}%)`}
+                color="warning"
+                size="small"
+                sx={{ mt: 1 }}
               />
-            </CardContent>
-          </Collapse>
-        </Card>
-      </Box>
+            )}
+            {source.new_source && (
+              <Chip label="New Source" color="success" size="small" sx={{ mt: 1, ml: 1 }} />
+            )}
+          </Box>
+          <Stack direction="row" spacing={1}>
+            {/* External links */}
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<LinkIcon />}
+              href={`https://simbad.u-strasbg.fr/simbad/sim-coo?Coord=${source.ra_deg}d${source.dec_deg}d`}
+              target="_blank"
+            >
+              SIMBAD
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<LinkIcon />}
+              href={`https://ned.ipac.caltech.edu/conesearch?coordinates=${source.ra_deg}d%20${source.dec_deg}d`}
+              target="_blank"
+            >
+              NED
+            </Button>
+            {/* Navigation */}
+            {navigationIds?.previousId && (
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<ArrowBackIcon />}
+                onClick={() => navigate(`/sources/${navigationIds.previousId}`)}
+              >
+                Previous
+              </Button>
+            )}
+            {navigationIds?.nextId && (
+              <Button
+                size="small"
+                variant="outlined"
+                endIcon={<ArrowForwardIcon />}
+                onClick={() => navigate(`/sources/${navigationIds.nextId}`)}
+              >
+                Next
+              </Button>
+            )}
+          </Stack>
+        </Box>
 
-      {/* Full-width: Related Sources */}
-      {/* TODO: Implement related sources when API endpoint is available */}
-      {false && (
+        {/* Three-Column Layout */}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
+            gap: 3,
+          }}
+        >
+          {/* Column 1: Details */}
+          <Box>
+            <Card>
+              <CardHeader title="Details" />
+              <CardContent>
+                <Typography variant="body2" paragraph>
+                  <strong>Name:</strong> {source.name}
+                </Typography>
+                <Divider sx={{ my: 2 }} />
+
+                <Typography variant="body2" paragraph>
+                  <strong>Position:</strong>
+                  <br />
+                  {formatRA(source.ra_deg)} {formatDec(source.dec_deg)}
+                  <br />
+                  <strong>Decimal:</strong> {source.ra_deg.toFixed(6)} {source.dec_deg.toFixed(6)}
+                </Typography>
+
+                <Divider sx={{ my: 2 }} />
+
+                <Typography variant="body2" paragraph>
+                  <strong>Flux Statistics:</strong>
+                  <br />
+                  {source.mean_flux_jy && (
+                    <>
+                      Mean Flux: {(source.mean_flux_jy * 1000).toFixed(3)} mJy
+                      <br />
+                    </>
+                  )}
+                  {source.std_flux_jy && (
+                    <>
+                      Std Flux: {(source.std_flux_jy * 1000).toFixed(3)} mJy
+                      <br />
+                    </>
+                  )}
+                  {source.max_snr && (
+                    <>
+                      Max SNR: {source.max_snr.toFixed(2)}
+                      <br />
+                    </>
+                  )}
+                  {source.variability_metrics && (
+                    <>
+                      Variability (v): {source.variability_metrics.v.toFixed(3)}
+                      <br />
+                      Variability (η): {source.variability_metrics.eta.toFixed(3)}
+                    </>
+                  )}
+                </Typography>
+
+                <Divider sx={{ my: 2 }} />
+
+                <Typography variant="body2" paragraph>
+                  <strong>Measurements:</strong>
+                  <br />
+                  Total: {source.n_meas}
+                  <br />
+                  Forced: {source.n_meas_forced}
+                </Typography>
+
+                {source.ese_probability !== undefined && source.ese_probability > 0 && (
+                  <>
+                    <Divider sx={{ my: 2 }} />
+                    <Typography variant="body2" paragraph>
+                      <strong>ESE Metrics:</strong>
+                      <br />
+                      Probability: {(source.ese_probability * 100).toFixed(1)}%
+                    </Typography>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </Box>
+
+          {/* Column 2: Sky Visualization (Aladin Lite) */}
+          <Box>
+            <Card>
+              <CardHeader title="Sky View" />
+              <CardContent>
+                <Box
+                  id="aladin-lite-div"
+                  sx={{
+                    width: "100%",
+                    height: "400px",
+                    border: "1px solid #ddd",
+                    borderRadius: 1,
+                  }}
+                >
+                  {/* Aladin Lite will be initialized here */}
+                  <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
+                    Aladin Lite integration coming soon
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Box>
+
+          {/* Column 3: Comments/Annotations */}
+          <Box>
+            <Card>
+              <CardHeader title="Comments & Annotations" />
+              <CardContent>
+                <Typography variant="body2" color="text.secondary">
+                  Comments system coming soon
+                </Typography>
+                {/* TODO: Add comments component */}
+              </CardContent>
+            </Card>
+          </Box>
+        </Box>
+
+        {/* Full-width: Light Curve */}
         <Box sx={{ mt: 3 }}>
           <Card>
             <CardHeader
-              title="Related Sources"
+              title="Light Curve"
               action={
-                <IconButton onClick={() => toggleSection("related")}>
-                  {expandedSections.related ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                <IconButton onClick={() => toggleSection("lightCurve")}>
+                  {expandedSections.lightCurve ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                 </IconButton>
               }
             />
-            <Collapse in={expandedSections.related}>
+            <Collapse in={expandedSections.lightCurve}>
               <CardContent>
-                <Typography variant="body2" color="text.secondary">
-                  Related sources table coming soon
-                </Typography>
-                {/* TODO: Add related sources GenericTable */}
+                <Box sx={{ height: "400px" }}>
+                  {/* TODO: Add Plotly light curve visualization */}
+                  <Typography variant="body2" color="text.secondary">
+                    Light curve visualization coming soon
+                  </Typography>
+                </Box>
               </CardContent>
             </Collapse>
           </Card>
         </Box>
-      )}
-    </Container>
+
+        {/* Full-width: Detections Table */}
+        <Box sx={{ mt: 3 }}>
+          <Card>
+            <CardHeader
+              title="Detections"
+              action={
+                <IconButton onClick={() => toggleSection("detections")}>
+                  {expandedSections.detections ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+              }
+            />
+            <Collapse in={expandedSections.detections}>
+              <CardContent>
+                <GenericTable<any>
+                  apiEndpoint={`/api/sources/${sourceId}/detections`}
+                  columns={detectionColumns}
+                  title=""
+                  searchable={true}
+                  exportable={true}
+                  pageSize={25}
+                  onRowClick={(row) => {
+                    if (row.image_id) {
+                      navigate(`/images/${row.image_id}`);
+                    }
+                  }}
+                  transformData={(data) => ({
+                    rows: data.items || [],
+                    total: data.total || 0,
+                  })}
+                />
+              </CardContent>
+            </Collapse>
+          </Card>
+        </Box>
+
+        {/* Full-width: Related Sources */}
+        {/* TODO: Implement related sources when API endpoint is available */}
+        {false && (
+          <Box sx={{ mt: 3 }}>
+            <Card>
+              <CardHeader
+                title="Related Sources"
+                action={
+                  <IconButton onClick={() => toggleSection("related")}>
+                    {expandedSections.related ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  </IconButton>
+                }
+              />
+              <Collapse in={expandedSections.related}>
+                <CardContent>
+                  <Typography variant="body2" color="text.secondary">
+                    Related sources table coming soon
+                  </Typography>
+                  {/* TODO: Add related sources GenericTable */}
+                </CardContent>
+              </Collapse>
+            </Card>
+          </Box>
+        )}
+      </Container>
+    </>
   );
 }

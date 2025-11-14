@@ -707,5 +707,3 @@ zeros"
 - **Calibration Functions**: `src/dsa110_contimg/calibration/calibration.py`
 - **Flagging Module**: `src/dsa110_contimg/calibration/flagging.py`
 - **Model Population**: `src/dsa110_contimg/calibration/model.py`
-- Best practices review (archived):
-  `docs/archive/reports/CALIBRATION_REVIEW_PERPLEXITY.md`

@@ -377,8 +377,8 @@ are placeholders and not yet fully implemented.
 ### API Endpoints Used
 
 - `POST /api/legacy/sources/search` - Search sources (legacy endpoint)
-- `GET /api/sources/{sourceId}` - Get source details
-- `GET /api/sources/{sourceId}/detections` - Get source detections (for detail
+- `GET /api/sources/{source_id}` - Get source details
+- `GET /api/sources/{source_id}/detections` - Get source detections (for detail
   page table)
 
 ### User Workflows
@@ -702,7 +702,7 @@ Visualization page for QA features.
 - `GET /api/jobs` - List jobs
 - `GET /api/jobs/id/{job_id}` - Get job details
 - `GET /api/jobs/id/{job_id}/logs` - Stream job logs
-- `GET /api/calibration/qa` - Get calibration QA
+- `GET (removed)` - Get calibration QA
 
 ### User Workflows
 
@@ -963,7 +963,7 @@ pages (`/data/:type/:id`) may provide lineage information.
 ### API Endpoints Used
 
 - `GET /api/data` - List data instances (with type and status filters)
-- `GET /api/data/{type}/{id}` - Get data instance details (via detail page)
+- `GET (removed)` - Get data instance details (via detail page)
 
 ### User Workflows
 

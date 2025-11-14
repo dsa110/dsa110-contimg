@@ -2697,10 +2697,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         return StreamingResponse(event_stream(), media_type="text/event-stream")
 
     @router.post("/jobs/calibrate", response_model=Job)
-    def create_calibrate_job(request: JobCreateRequest, background_tasks: BackgroundTasks) -> Job:
+    def create_calibrate_job(
+        request: CalibrateJobCreateRequest, background_tasks: BackgroundTasks
+    ) -> Job:
         """Create and run a calibration job."""
         from dsa110_contimg.api.job_runner import run_calibrate_job
-        from dsa110_contimg.api.models import JobParams
+        from dsa110_contimg.api.models import CalibrateJobCreateRequest
         from dsa110_contimg.database.jobs import create_job
         from dsa110_contimg.database.products import ensure_products_db
 

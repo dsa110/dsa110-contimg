@@ -37,7 +37,7 @@ on:
   push:
     branches: [main, master]
     paths:
-      - "docs/**"
+      - "docs/"
       - "mkdocs.yml"
       - ".github/workflows/docs.yml"
       - docs/javascripts/ (custom JavaScript)
@@ -122,7 +122,7 @@ After the workflow completes (usually 2-3 minutes):
 
 Every time you push to `main` with changes to:
 
-- `docs/**` (any documentation file)
+- `docs/` (any documentation file)
 - `mkdocs.yml` (configuration)
 - `.github/workflows/docs.yml` (workflow itself)
 - docs/javascripts/ (custom JavaScript)

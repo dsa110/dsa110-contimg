@@ -77,7 +77,7 @@ workflow on first deployment.
 
 2. **File paths:**
    - Workflow only triggers on changes to:
-     - `docs/**`
+     - `docs/`
      - `mkdocs.yml`
      - `.github/workflows/docs.yml`
      - docs/javascripts/ (custom JavaScript)

@@ -283,7 +283,7 @@ Before starting work:
 - **Test Organization:** `docs/concepts/TEST_ORGANIZATION.md`
 - **Error Detection:** `docs/how-to/agentic-session-setup.md`
 - **Directory Structure:** `docs/concepts/DIRECTORY_ARCHITECTURE.md`
-- **Pytest Issues:** `docs/dev/PYTEST_REDIRECTION_FIX.md`
+- **Pytest Issues:** `internal/docs/dev/imported/PYTEST_REDIRECTION_FIX.md`
 
 ---
 

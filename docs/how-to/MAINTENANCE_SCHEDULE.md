@@ -20,7 +20,7 @@ prevention system.
 **What it does:**
 
 - Audits all suppression patterns in codebase
-- Saves results to `docs/dev/audits/output-suppression-audit-YYYYMMDD.txt`
+- Saves results to `internal/docs/dev/imported/audits/`
 - Checks for non-whitelisted suppressions
 - Provides statistics
 

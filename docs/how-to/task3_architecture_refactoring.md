@@ -2,7 +2,8 @@
 
 **Date:** 2025-11-13  
 **Status:** in-progress  
-**Related:** [Task 3 Progress](task3_progress.md), [Dashboard Remodeling](../dev/analysis/dashboard_remodeling.md)
+**Related:** [Task 3 Progress](task3_progress.md),
+[Dashboard Remodeling](../dev/analysis/dashboard_remodeling.md)
 
 ---
 
@@ -108,17 +109,17 @@ src/dsa110_contimg/api/
 
 **Strategy:**
 
-- Use `/api/v1/` prefix for all endpoints
-- Keep `/api/` as alias to `/api/v1/` for backward compatibility
-- Plan for future `/api/v2/` migration
+- Use `/api/` base (no versioned prefix)
+- Avoid versioned paths in this codebase to prevent drift
 
 **Implementation:**
 
 ```python
 from fastapi import APIRouter
 
-v1_router = APIRouter(prefix="/api/v1")
-app.include_router(v1_router)
+# Example (not used here):
+# v1_router = APIRouter(prefix="/api")
+# app.include_router(v1_router)
 ```
 
 #### 3.3 Implement Rate Limiting
@@ -165,17 +166,17 @@ app.include_router(v1_router)
 
 - `frontend/src/pages/ControlPage.tsx` - Split into components
 - `frontend/src/components/workflows/` - New directory for workflow components
-- `frontend/src/hooks/useCalibrationWorkflow.ts` - New hook
-- `frontend/src/hooks/useImagingWorkflow.ts` - New hook
-- `frontend/src/hooks/useConversionWorkflow.ts` - New hook
-- `frontend/src/hooks/useJobManagement.ts` - New hook
+- useCalibrationWorkflow.ts - New hook
+- useImagingWorkflow.ts - New hook
+- useConversionWorkflow.ts - New hook
+- useJobManagement.ts - New hook
 - `.eslintrc.js` - Add console.log rule
 
 ### Backend
 
 - `src/dsa110_contimg/api/routes.py` - Split into modules
-- `src/dsa110_contimg/api/routes/` - New directory structure
-- `src/dsa110_contimg/api/main.py` - App factory (if needed)
+- API routes package - New directory structure
+- app factory module - App factory (if needed)
 - `requirements.txt` - Add rate limiting library
 
 ## Testing Strategy

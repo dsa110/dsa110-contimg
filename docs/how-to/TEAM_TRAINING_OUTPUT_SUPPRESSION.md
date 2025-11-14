@@ -374,7 +374,8 @@ a comment explaining why. Better to be explicit.
 - **Pre-commit hook:** `.git/hooks/pre-commit`
 - **Audit tool:** `scripts/audit-output-suppression.sh`
 - **Fix tool:** `scripts/fix-non-legitimate-suppressions.sh`
-- **Documentation:** `docs/dev/OUTPUT_SUPPRESSION_EXCEPTIONS.md`
+- **Documentation:**
+  `internal/docs/dev/imported/OUTPUT_SUPPRESSION_EXCEPTIONS.md`
 
 ---
 

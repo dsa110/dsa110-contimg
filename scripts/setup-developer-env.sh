@@ -54,22 +54,19 @@ if [ -f \"$PROJECT_ROOT/scripts/agent-setup.sh\" ]; then
 fi
 
 # Python wrapper - redirects python/python3 to casa6
-if [ -f \"$PROJECT_ROOT/scripts/python-wrapper.sh\" ]; then
-    # Create aliases that use the wrapper
-    alias python=\"$PROJECT_ROOT/scripts/python-wrapper.sh\"
-    alias python3=\"$PROJECT_ROOT/scripts/python-wrapper.sh\"
-    
-    # Warn if someone tries to use system python directly
-    _system_python_warning() {
-        echo \"WARNING: You're using system Python. This project requires casa6.\" >&2
-        echo \"Use: /opt/miniforge/envs/casa6/bin/python\" >&2
-        echo \"Or the 'python' alias (which uses casa6 automatically)\" >&2
+# Use functions instead of aliases (work in non-interactive shells too)
+if [ -f \"$PROJECT_ROOT/scripts/casa6-env.sh\" ]; then
+    # Source casa6-env.sh which creates functions (works everywhere)
+    source \"$PROJECT_ROOT/scripts/casa6-env.sh\"
+elif [ -f \"$PROJECT_ROOT/scripts/python-wrapper.sh\" ]; then
+    # Fallback to python-wrapper.sh if casa6-env.sh doesn't exist
+    # Create functions that use the wrapper (better than aliases)
+    python() {
+        \"$PROJECT_ROOT/scripts/python-wrapper.sh\" \"\$@\"
     }
-    
-    # Override PATH to prefer wrapper (if in project directory)
-    if [[ \"\$PWD\" == \"$PROJECT_ROOT\"* ]]; then
-        export PATH=\"$PROJECT_ROOT/scripts:\$PATH\"
-    fi
+    python3() {
+        \"$PROJECT_ROOT/scripts/python-wrapper.sh\" \"\$@\"
+    }
 fi
 
 # Pytest wrapper - prevents 2>&1 errors

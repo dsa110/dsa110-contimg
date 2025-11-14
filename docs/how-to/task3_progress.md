@@ -37,13 +37,17 @@ grep -r "console\." frontend/src --include="*.ts" --include="*.tsx" | \
 
 ### Phase 2: Frontend Refactoring
 
-- [ ] Split ControlPage.tsx (2,439 lines) into workflow components
+- [x] Create JobManagement component (extracted from ControlPage)
+- [x] Create ConversionWorkflow component (Convert tab + Full Pipeline)
+- [x] Create CalibrationWorkflow component (Calibrate + Apply tabs)
+- [x] Create ImagingWorkflow component (Image tab)
+- [x] Refactor ControlPage to compose workflow components
 - [ ] Increase test coverage to 70%+
 
 ### Phase 3: Backend Refactoring
 
 - [ ] Modularize routes.py (6,522 lines)
-- [ ] Add API versioning (`/api/v1/`)
+- [ ] Add API versioning (`/api/`)
 - [ ] Implement rate limiting
 - [ ] Verify OpenAPI docs at `/docs`
 

@@ -475,5 +475,4 @@ After verifying all stages work:
 - **Streaming:** `docs/how-to/streaming.md`
 - **Dashboard:** `docs/how-to/dashboard.md`
 - **Project index:** `docs/index.md`
-- **Test results (archived):**
-  `docs/archive/reports/TESTING_COMPLETE_SUMMARY.md`
+<!-- Removed archived test results link that no longer exists -->
