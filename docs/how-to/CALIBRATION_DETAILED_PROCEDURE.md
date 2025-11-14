@@ -1,18 +1,23 @@
 # Detailed Calibration Procedure
 
-**Purpose:** This document provides a comprehensive, step-by-step explanation of the calibration procedure for DSA-110 continuum imaging pipeline.
+**Purpose:** This document provides a comprehensive, step-by-step explanation of
+the calibration procedure for DSA-110 continuum imaging pipeline.
 
-**Location:** `docs/howto/CALIBRATION_DETAILED_PROCEDURE.md`
+**Location:** `docs/how-to/CALIBRATION_DETAILED_PROCEDURE.md`
 
 ---
 
 ## Overview
 
-The calibration procedure corrects for instrumental and atmospheric effects that distort radio interferometric data. The pipeline performs **bandpass (BP)** and **gain (G)** calibration by default, with optional **delay (K)** calibration available.
+The calibration procedure corrects for instrumental and atmospheric effects that
+distort radio interferometric data. The pipeline performs **bandpass (BP)** and
+**gain (G)** calibration by default, with optional **delay (K)** calibration
+available.
 
 **Calibration Order:** K → BP → G (if K is enabled)
 
-**Default Behavior:** K-calibration is **skipped by default** for DSA-110 (connected-element array, 2.6 km max baseline), following VLA/ALMA practice.
+**Default Behavior:** K-calibration is **skipped by default** for DSA-110
+(connected-element array, 2.6 km max baseline), following VLA/ALMA practice.
 
 ---
 
@@ -20,7 +25,8 @@ The calibration procedure corrects for instrumental and atmospheric effects that
 
 ### Step 1: Pre-Calibration Flagging
 
-**Purpose:** Remove bad data (zeros, RFI) before calibration to ensure solution integrity.
+**Purpose:** Remove bad data (zeros, RFI) before calibration to ensure solution
+integrity.
 
 **Process:**
 
@@ -43,24 +49,29 @@ The calibration procedure corrects for instrumental and atmospheric effects that
    - **Recommended for calibrators** - ensures clean solutions
 
 4. **Channel-Level Flagging** (`--auto-flag-channels`, default: enabled)
-   - **Purpose**: After RFI flagging, analyzes flagging statistics per channel and flags channels with high flagging rates before calibration
-   - **How it works**: 
+   - **Purpose**: After RFI flagging, analyzes flagging statistics per channel
+     and flags channels with high flagging rates before calibration
+   - **How it works**:
      - Calculates flagging fraction per channel across all SPWs
-     - Flags channels where >50% of data is flagged (configurable via `--channel-flag-threshold`)
-     - More precise than SPW-level flagging since SPWs are arbitrary subdivisions
-   - **When to use**: Enabled by default. Use `--no-auto-flag-channels` to disable.
-   - **Benefits**: 
+     - Flags channels where >50% of data is flagged (configurable via
+       `--channel-flag-threshold`)
+     - More precise than SPW-level flagging since SPWs are arbitrary
+       subdivisions
+   - **When to use**: Enabled by default. Use `--no-auto-flag-channels` to
+     disable.
+   - **Benefits**:
      - Preserves good channels even in "bad" SPWs
      - Reduces data loss compared to flagging entire SPWs
      - Improves calibration quality by using maximum available data
    - **Example**:
+
      ```bash
      # Use default threshold (50%)
      python -m dsa110_contimg.calibration.cli calibrate \
          --ms /path/to/ms \
          --auto-fields \
          --flagging-mode rfi
-     
+
      # Custom threshold (40%)
      python -m dsa110_contimg.calibration.cli calibrate \
          --ms /path/to/ms \
@@ -70,15 +81,18 @@ The calibration procedure corrects for instrumental and atmospheric effects that
      ```
 
 **Flagging Modes:**
+
 - `--flagging-mode zeros` (default): Only zeros flagging
 - `--flagging-mode rfi`: Zeros + RFI flagging
 - `--flagging-mode none`: Skip flagging (not recommended)
 
 **Validation:**
+
 - After flagging, pipeline verifies ≥10% unflagged data remains
 - Warns if <30% unflagged (may affect solution quality)
 
 **Example:**
+
 ```bash
 # Flagging is automatic, but can be controlled:
 python -m dsa110_contimg.calibration.cli calibrate \
@@ -95,6 +109,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 **When Enabled:** `--fast` flag with `--timebin` and `--chanbin` parameters
 
 **Process:**
+
 1. Creates a new MS with binned data:
    - Time averaging: `--timebin 30s` (average over 30 seconds)
    - Channel binning: `--chanbin 4` (average 4 channels together)
@@ -103,12 +118,14 @@ python -m dsa110_contimg.calibration.cli calibrate \
 4. Subset can be cleaned up with `--cleanup-subset`
 
 **Trade-offs:**
+
 - ✓ **Faster**: 3-5x speedup for large MS files
 - ✓ **Lower memory**: Reduced data volume
 - ⚠️ **Lower resolution**: Solutions have coarser time/channel resolution
 - ⚠️ **May miss fast variations**: Time-variable effects may be averaged out
 
 **Example:**
+
 ```bash
 python -m dsa110_contimg.calibration.cli calibrate \
     --ms /path/to/ms \
@@ -121,9 +138,12 @@ python -m dsa110_contimg.calibration.cli calibrate \
 
 ### Step 3: Model Data Population
 
-**Purpose:** Populate `MODEL_DATA` column with expected visibility predictions from sky model.
+**Purpose:** Populate `MODEL_DATA` column with expected visibility predictions
+from sky model.
 
-**CRITICAL:** All calibration steps (K, BP, G) **require** `MODEL_DATA` to be populated. Calibration compares observed data (`DATA`) to model predictions (`MODEL_DATA`) to solve for corrections.
+**CRITICAL:** All calibration steps (K, BP, G) **require** `MODEL_DATA` to be
+populated. Calibration compares observed data (`DATA`) to model predictions
+(`MODEL_DATA`) to solve for corrections.
 
 **Population Methods:**
 
@@ -144,14 +164,18 @@ python -m dsa110_contimg.calibration.cli calibrate \
    - **Useful for non-standard calibrators**
 
 **Validation:**
+
 - Pipeline verifies `MODEL_DATA` exists and is populated (not all zeros)
 - Raises error if `MODEL_DATA` is missing or unpopulated
 
 **Technical Details:**
-- Model written via CASA `ft()` (Fourier transform) or `setjy()` (standard calibrators)
+
+- Model written via CASA `ft()` (Fourier transform) or `setjy()` (standard
+  calibrators)
 - Model stored in `MODEL_DATA` column as complex visibilities
 
 **Example:**
+
 ```bash
 # Use catalog model (automatic for calibrators)
 python -m dsa110_contimg.calibration.cli calibrate \
@@ -177,14 +201,19 @@ python -m dsa110_contimg.calibration.cli calibrate \
 
 **Status:** **Skipped by default** for DSA-110
 
-**Purpose:** Corrects frequency-independent delays per antenna (clock offsets, cable delays).
+**Purpose:** Corrects frequency-independent delays per antenna (clock offsets,
+cable delays).
 
 **Rationale for Skipping:**
+
 - DSA-110 is a connected-element array (2.6 km max baseline)
-- Following VLA/ALMA practice: residual delays (<0.5 ns) are absorbed into complex gain calibration
-- K-calibration is primarily needed for VLBI arrays (thousands of km baselines, independent atomic clocks)
+- Following VLA/ALMA practice: residual delays (<0.5 ns) are absorbed into
+  complex gain calibration
+- K-calibration is primarily needed for VLBI arrays (thousands of km baselines,
+  independent atomic clocks)
 
 **When to Enable:**
+
 - Use `--do-k` flag to explicitly enable if needed
 - Typically only required for VLBI observations or explicit delay measurements
 
@@ -202,16 +231,19 @@ python -m dsa110_contimg.calibration.cli calibrate \
    - Can be skipped with `--k-fast-only`
 
 **Technical Details:**
+
 - Uses CASA `gaincal` with `gaintype='K'`
 - Combines across scans by default (`combine='scan'`)
 - Can combine across SPWs with `--combine-spw`
 - Minimum SNR threshold: `--bp-minsnr` (default: 5.0)
 
 **Output:**
+
 - Calibration table: `<ms_prefix>_kcal`
 - Format: CASA table directory (not a file)
 
 **Example:**
+
 ```bash
 # Enable K-calibration
 python -m dsa110_contimg.calibration.cli calibrate \
@@ -227,9 +259,11 @@ python -m dsa110_contimg.calibration.cli calibrate \
 
 **Status:** **Enabled by default**
 
-**Purpose:** Corrects frequency-dependent amplitude and phase variations across the observing band.
+**Purpose:** Corrects frequency-dependent amplitude and phase variations across
+the observing band.
 
 **Why Needed:**
+
 - Receivers have frequency-dependent response
 - Bandpass shape varies per antenna
 - Essential for accurate flux measurements
@@ -254,11 +288,15 @@ python -m dsa110_contimg.calibration.cli calibrate \
   - Single field: `--field 0`
   - Field range: `--field 0~15` (combines with `--bp-combine-field`)
   - Auto-select: `--auto-fields` (finds calibrator fields automatically)
-  
+
   **Default Field Combining** (when using `--auto-fields`):
-  - After rephasing MS to calibrator position, automatically selects **all fields** (0~N-1) instead of just the peak field
-  - Automatically enables `--bp-combine-field` to combine all fields for better SNR
-  - **Rationale**: For drift-scan instruments like DSA-110, all fields share the same phase center after rephasing, so combining them maximizes integration time (e.g., 300 seconds vs 12.5 seconds)
+  - After rephasing MS to calibrator position, automatically selects **all
+    fields** (0~N-1) instead of just the peak field
+  - Automatically enables `--bp-combine-field` to combine all fields for better
+    SNR
+  - **Rationale**: For drift-scan instruments like DSA-110, all fields share the
+    same phase center after rephasing, so combining them maximizes integration
+    time (e.g., 300 seconds vs 12.5 seconds)
   - **When to use**: Default behavior. Manually specify `--field` to override.
   - **Example**:
     ```bash
@@ -285,26 +323,32 @@ python -m dsa110_contimg.calibration.cli calibrate \
   - Smooths bandpass table after solve
 
 **Technical Details:**
+
 - **PRECONDITION:** `MODEL_DATA` must be populated
 - Uses `MODEL_DATA` as source model (`smodel`)
 - Reference antenna: `--refant` (must have good SNR)
 - Solution normalization: `solnorm=True` (normalizes solutions)
 
 **Validation:**
+
 - Verifies table exists and has solutions
 - Checks reference antenna has solutions
 - Validates table compatibility with MS
 
 **Output:**
+
 - Calibration table: `<ms_prefix>_bpcal`
 - Format: CASA table directory
 - **Plots** (if `--plot-bandpass` enabled, default: True):
-  - Bandpass amplitude plots: `{ms_dir}/calibration_plots/bandpass/{table_name}_plot_amp*.png`
-  - Bandpass phase plots: `{ms_dir}/calibration_plots/bandpass/{table_name}_plot_phase*.png`
+  - Bandpass amplitude plots:
+    `{ms_dir}/calibration_plots/bandpass/{table_name}_plot_amp*.png`
+  - Bandpass phase plots:
+    `{ms_dir}/calibration_plots/bandpass/{table_name}_plot_phase*.png`
   - One plot per SPW, showing all antennas overlaid
   - Accessible via dashboard API endpoints
 
 **Example:**
+
 ```bash
 # Standard bandpass calibration
 python -m dsa110_contimg.calibration.cli calibrate \
@@ -334,9 +378,11 @@ python -m dsa110_contimg.calibration.cli calibrate \
 
 **Status:** **Enabled by default**
 
-**Purpose:** Corrects time-dependent phase and amplitude variations (atmospheric effects, instrumental drifts).
+**Purpose:** Corrects time-dependent phase and amplitude variations (atmospheric
+effects, instrumental drifts).
 
 **Why Needed:**
+
 - Atmospheric phase varies on timescales of seconds to minutes
 - Instrumental gains drift over time
 - Essential for phase coherence and accurate imaging
@@ -378,6 +424,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
   - Solutions below threshold are flagged
 
 **Technical Details:**
+
 - **PRECONDITION:** `MODEL_DATA` must be populated
 - **PRECONDITION:** Bandpass tables must exist and be validated
 - Applies bandpass tables during gain solve (`gaintable=bptables`)
@@ -386,21 +433,26 @@ python -m dsa110_contimg.calibration.cli calibrate \
 - Optionally combines across fields (`--bp-combine-field`)
 
 **Fast Mode:**
+
 - `--fast` flag enables phase-only gains automatically
 - Phase-only (`calmode='p'`) is faster than amplitude+phase
 
 **Output:**
+
 - Calibration tables:
   - `<ms_prefix>_gpcal` (phase-only, `solint='inf'`)
-  - `<ms_prefix>_2gcal` (phase-only, `solint='60s'`, if `--gain-solint` specified)
+  - `<ms_prefix>_2gcal` (phase-only, `solint='60s'`, if `--gain-solint`
+    specified)
 - Format: CASA table directories
 
 **Validation:**
+
 - Verifies tables exist and have solutions
 - Checks reference antenna has solutions
 - Validates table compatibility with MS
 
 **Example:**
+
 ```bash
 # Standard gain calibration (phase-only)
 python -m dsa110_contimg.calibration.cli calibrate \
@@ -435,26 +487,31 @@ python -m dsa110_contimg.calibration.cli calibrate \
 **Purpose:** Verify calibration tables are valid and compatible with MS.
 
 **Process:**
+
 - Checks tables exist and are readable
 - Verifies tables have solutions (non-empty)
 - Validates reference antenna has solutions
 - Checks table compatibility with MS (frequency ranges, time ranges)
 
 **QA Validation:**
+
 - Runs `check_calibration_quality()` after each solve
 - Checks solution quality metrics
 - Alerts on issues (low SNR, flagged solutions, etc.)
 
 ### Step 2: Calibration Table Registration
 
-**Purpose:** Register calibration tables in database for later application to target fields.
+**Purpose:** Register calibration tables in database for later application to
+target fields.
 
 **Process:**
+
 - Tables registered in `cal_registry.sqlite3`
 - Validity windows stored (MJD ranges)
 - Apply order tracked (K → BP → G)
 
 **Benefits:**
+
 - Tracks which tables are valid for which time periods
 - Enables automatic table selection for target fields
 - Prevents using outdated calibration tables
@@ -475,6 +532,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 ```
 
 **What Happens:**
+
 1. ✓ Flagging: Reset flags → Flag zeros → (Optional RFI)
 2. ✓ Model Population: Populate `MODEL_DATA` from VLA catalog
 3. ✗ K-calibration: Skipped (default)
@@ -483,6 +541,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 6. ✓ Validation: Verify tables and register in database
 
 **Output Tables:**
+
 - `<ms_prefix>_bpcal` (bandpass)
 - `<ms_prefix>_gpcal` (phase-only gains)
 
@@ -501,6 +560,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 ```
 
 **What Happens:**
+
 1. ✓ Create subset MS (time/channel binned)
 2. ✓ Flagging: Reset flags → Flag zeros
 3. ✓ Model Population: Populate `MODEL_DATA` from catalog
@@ -509,6 +569,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 6. ✓ Validation: Verify tables
 
 **Trade-offs:**
+
 - ✓ Faster: 3-5x speedup
 - ⚠️ Lower resolution: Solutions averaged over bins
 
@@ -525,6 +586,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 ```
 
 **What Happens:**
+
 1. ✓ Flagging: Reset flags → Flag zeros → RFI
 2. ✓ Model Population: Populate `MODEL_DATA` from catalog
 3. ✓ K-calibration: Solve delays (slow + fast)
@@ -533,6 +595,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 6. ✓ Validation: Verify all tables
 
 **Output Tables:**
+
 - `<ms_prefix>_kcal` (delay)
 - `<ms_prefix>_bpcal` (bandpass)
 - `<ms_prefix>_gpcal` (phase-only gains, `solint='inf'`)
@@ -551,31 +614,37 @@ python -m dsa110_contimg.calibration.cli calibrate \
 ### Optional Parameters
 
 **Flagging:**
+
 - `--flagging-mode zeros|rfi|none` (default: `zeros`)
 - `--no-flagging`: Skip flagging (not recommended)
 
 **Fast Mode:**
+
 - `--preset development`: Use development quality tier (⚠️ NON-SCIENCE)
 - `--timebin <interval>`: Time averaging (e.g., `30s`)
 - `--chanbin <factor>`: Channel binning (e.g., `4`)
 
 **Model Population:**
+
 - `--model-source catalog|nvss` (default: `catalog`)
 - `--cal-catalog <path>`: Calibrator catalog path
 - `--cal-flux-jy <flux>`: Manual calibrator flux
 
 **Bandpass:**
+
 - `--bp-combine-field`: Combine across fields
 - `--bp-minsnr <value>`: Minimum SNR (default: 3.0)
 - `--uvrange <cut>`: UV range selection (e.g., `>1klambda`)
 - `--prebp-phase`: Pre-bandpass phase correction
 
 **Gain:**
+
 - `--gain-solint <interval>`: Solution interval (default: `inf`)
 - `--gain-calmode p|ap|a`: Calibration mode (default: `p`)
 - `--gain-minsnr <value>`: Minimum SNR (default: 3.0)
 
 **K-Calibration:**
+
 - `--do-k`: Enable K-calibration (disabled by default)
 - `--combine-spw`: Combine across SPWs
 - `--k-fast-only`: Skip slow solve, only fast solve
@@ -589,6 +658,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 **Symptoms:** Many solutions flagged, warnings about low SNR
 
 **Solutions:**
+
 - Use `--bp-combine-field` to combine across fields (improves SNR)
 - Reduce UV range cut: `--uvrange ''` (no cut)
 - Lower SNR threshold: `--bp-minsnr 3.0` (default)
@@ -597,9 +667,11 @@ python -m dsa110_contimg.calibration.cli calibrate \
 
 ### Missing MODEL_DATA
 
-**Symptoms:** Error: "MODEL_DATA column does not exist" or "MODEL_DATA is all zeros"
+**Symptoms:** Error: "MODEL_DATA column does not exist" or "MODEL_DATA is all
+zeros"
 
 **Solutions:**
+
 - Ensure `--model-source catalog` or `--model-source nvss` is specified
 - Check calibrator is in catalog: `--cal-catalog <path>`
 - Verify calibrator coordinates: `--cal-ra-deg`, `--cal-dec-deg`
@@ -610,6 +682,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 **Symptoms:** Warning: "Only X% data remains unflagged"
 
 **Solutions:**
+
 - Use less aggressive flagging: `--flagging-mode zeros` (skip RFI)
 - Check data quality: `python -m dsa110_contimg.qa.ms_quality <ms>`
 - Adjust flagging parameters: `--no-flagging` (not recommended)
@@ -619,18 +692,18 @@ python -m dsa110_contimg.calibration.cli calibrate \
 **Symptoms:** Error: "Calibration table does not exist"
 
 **Solutions:**
+
 - Verify MS path is correct
 - Check calibration completed successfully (check logs)
-- Verify table names match expected pattern: `<ms_prefix>_bpcal`, `<ms_prefix>_gpcal`
+- Verify table names match expected pattern: `<ms_prefix>_bpcal`,
+  `<ms_prefix>_gpcal`
 
 ---
 
 ## References
 
-- **Calibration Reference**: `docs/reference/calibration.md`
+- Calibration reference: see `docs/index.md` and `docs/how-to/streaming.md`
 - **Calibration CLI**: `src/dsa110_contimg/calibration/cli.py`
 - **Calibration Functions**: `src/dsa110_contimg/calibration/calibration.py`
 - **Flagging Module**: `src/dsa110_contimg/calibration/flagging.py`
 - **Model Population**: `src/dsa110_contimg/calibration/model.py`
-- **Best Practices Review**: `docs/reports/CALIBRATION_REVIEW_PERPLEXITY.md`
-

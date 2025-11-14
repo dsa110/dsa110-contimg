@@ -103,5 +103,6 @@ echo "Next steps:"
 echo "  - Make a test commit to verify the pre-commit hook works"
 echo "  - Run 'cd frontend && npm run format:check' to verify Prettier"
 echo "  - Run './scripts/check-environment.sh' anytime to verify setup"
+echo "  - Pre-commit runs a docs audit (scripts/doc_audit.py) to catch endpoint/link drift"
+echo "    Run 'make doc-audit' anytime to check documentation locally"
 echo ""
-

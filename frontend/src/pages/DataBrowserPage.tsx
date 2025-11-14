@@ -40,6 +40,7 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useDataInstances, useUVH5Files } from "../api/queries";
+import PageBreadcrumbs from "../components/PageBreadcrumbs";
 import type { DataInstance } from "../api/types";
 import { EmptyState } from "../components/EmptyState";
 import { SkeletonLoader } from "../components/SkeletonLoader";
@@ -128,128 +129,131 @@ export default function DataBrowserPage() {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h2" component="h2" gutterBottom>
-        Data Browser
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Manage and browse all pipeline data products
-      </Typography>
+    <>
+      <PageBreadcrumbs />
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h2" component="h2" gutterBottom>
+          Data Browser
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Manage and browse all pipeline data products
+        </Typography>
 
-      <Paper sx={{ mb: 2 }}>
-        <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)}>
-          <Tab
-            icon={<FolderOpen />}
-            iconPosition="start"
-            label="Incoming"
-            sx={{ textTransform: "none" }}
-          />
-          <Tab
-            icon={<CloudUpload />}
-            iconPosition="start"
-            label="Staging"
-            sx={{ textTransform: "none" }}
-          />
-          <Tab
-            icon={<CloudDone />}
-            iconPosition="start"
-            label="Published"
-            sx={{ textTransform: "none" }}
-          />
-        </Tabs>
-      </Paper>
+        <Paper sx={{ mb: 2 }}>
+          <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)}>
+            <Tab
+              icon={<FolderOpen />}
+              iconPosition="start"
+              label="Incoming"
+              sx={{ textTransform: "none" }}
+            />
+            <Tab
+              icon={<CloudUpload />}
+              iconPosition="start"
+              label="Staging"
+              sx={{ textTransform: "none" }}
+            />
+            <Tab
+              icon={<CloudDone />}
+              iconPosition="start"
+              label="Published"
+              sx={{ textTransform: "none" }}
+            />
+          </Tabs>
+        </Paper>
 
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
-          {tabValue === 0 ? (
-            // Incoming tab filters
-            <>
-              <TextField
-                size="small"
-                label="Search files"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by filename or path..."
-                sx={{ minWidth: 250 }}
-              />
-              <FormControl size="small" sx={{ minWidth: 150 }}>
-                <InputLabel>Subband</InputLabel>
+        <Paper sx={{ p: 2, mb: 2 }}>
+          <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
+            {tabValue === 0 ? (
+              // Incoming tab filters
+              <>
+                <TextField
+                  size="small"
+                  label="Search files"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by filename or path..."
+                  sx={{ minWidth: 250 }}
+                />
+                <FormControl size="small" sx={{ minWidth: 150 }}>
+                  <InputLabel>Subband</InputLabel>
+                  <Select
+                    value={subbandFilter}
+                    label="Subband"
+                    onChange={(e) => setSubbandFilter(e.target.value)}
+                  >
+                    <MenuItem value="">All Subbands</MenuItem>
+                    {Array.from({ length: 24 }, (_, i) => (
+                      <MenuItem key={i} value={`sb${i}`}>
+                        sb{i}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </>
+            ) : (
+              // Staging/Published tab filters
+              <FormControl size="small" sx={{ minWidth: 200 }}>
+                <InputLabel>Data Type</InputLabel>
                 <Select
-                  value={subbandFilter}
-                  label="Subband"
-                  onChange={(e) => setSubbandFilter(e.target.value)}
+                  value={dataTypeFilter}
+                  label="Data Type"
+                  onChange={(e) => setDataTypeFilter(e.target.value)}
                 >
-                  <MenuItem value="">All Subbands</MenuItem>
-                  {Array.from({ length: 24 }, (_, i) => (
-                    <MenuItem key={i} value={`sb${i}`}>
-                      sb{i}
+                  <MenuItem value="all">All Types</MenuItem>
+                  {Object.entries(DATA_TYPE_LABELS).map(([value, label]) => (
+                    <MenuItem key={value} value={value}>
+                      {label}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
-            </>
-          ) : (
-            // Staging/Published tab filters
-            <FormControl size="small" sx={{ minWidth: 200 }}>
-              <InputLabel>Data Type</InputLabel>
-              <Select
-                value={dataTypeFilter}
-                label="Data Type"
-                onChange={(e) => setDataTypeFilter(e.target.value)}
-              >
-                <MenuItem value="all">All Types</MenuItem>
-                {Object.entries(DATA_TYPE_LABELS).map(([value, label]) => (
-                  <MenuItem key={value} value={value}>
-                    {label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          )}
-        </Box>
-      </Paper>
+            )}
+          </Box>
+        </Paper>
 
-      <TabPanel value={tabValue} index={0}>
-        <IncomingDataTable
-          files={incomingQuery.data?.items || []}
-          total={incomingQuery.data?.total || 0}
-          isLoading={incomingQuery.isLoading}
-          error={incomingQuery.error}
-          page={page}
-          rowsPerPage={rowsPerPage}
-          onPageChange={setPage}
-          onRowsPerPageChange={setRowsPerPage}
-        />
-      </TabPanel>
-      <TabPanel value={tabValue} index={1}>
-        <DataTable
-          instances={stagingQuery.data?.items || []}
-          total={stagingQuery.data?.total || 0}
-          isLoading={stagingQuery.isLoading}
-          error={stagingQuery.error}
-          onViewDetails={handleViewDetails}
-          status="staging"
-          page={page}
-          rowsPerPage={rowsPerPage}
-          onPageChange={setPage}
-          onRowsPerPageChange={setRowsPerPage}
-        />
-      </TabPanel>
-      <TabPanel value={tabValue} index={2}>
-        <DataTable
-          instances={publishedQuery.data?.items || []}
-          total={publishedQuery.data?.total || 0}
-          isLoading={publishedQuery.isLoading}
-          error={publishedQuery.error}
-          onViewDetails={handleViewDetails}
-          status="published"
-          page={page}
-          rowsPerPage={rowsPerPage}
-          onPageChange={setPage}
-          onRowsPerPageChange={setRowsPerPage}
-        />
-      </TabPanel>
-    </Box>
+        <TabPanel value={tabValue} index={0}>
+          <IncomingDataTable
+            files={incomingQuery.data?.items || []}
+            total={incomingQuery.data?.total || 0}
+            isLoading={incomingQuery.isLoading}
+            error={incomingQuery.error}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            onPageChange={setPage}
+            onRowsPerPageChange={setRowsPerPage}
+          />
+        </TabPanel>
+        <TabPanel value={tabValue} index={1}>
+          <DataTable
+            instances={stagingQuery.data?.items || []}
+            total={stagingQuery.data?.total || 0}
+            isLoading={stagingQuery.isLoading}
+            error={stagingQuery.error}
+            onViewDetails={handleViewDetails}
+            status="staging"
+            page={page}
+            rowsPerPage={rowsPerPage}
+            onPageChange={setPage}
+            onRowsPerPageChange={setRowsPerPage}
+          />
+        </TabPanel>
+        <TabPanel value={tabValue} index={2}>
+          <DataTable
+            instances={publishedQuery.data?.items || []}
+            total={publishedQuery.data?.total || 0}
+            isLoading={publishedQuery.isLoading}
+            error={publishedQuery.error}
+            onViewDetails={handleViewDetails}
+            status="published"
+            page={page}
+            rowsPerPage={rowsPerPage}
+            onPageChange={setPage}
+            onRowsPerPageChange={setRowsPerPage}
+          />
+        </TabPanel>
+      </Box>
+    </>
   );
 }
 

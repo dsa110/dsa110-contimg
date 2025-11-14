@@ -1,13 +1,18 @@
 # Using the Conversion Orchestrator CLI
 
-**Purpose**: This document explains how to use the unified orchestrator CLI for UVH5 → MS conversion. The orchestrator CLI is the **single, canonical pathway** for all conversion workflows, with flags enabling different modes.
+**Purpose**: This document explains how to use the unified orchestrator CLI for
+UVH5 → MS conversion. The orchestrator CLI is the **single, canonical pathway**
+for all conversion workflows, with flags enabling different modes.
 
-**Location**: `docs/howto/USING_ORCHESTRATOR_CLI.md`  
-**Related**: `docs/howto/FIND_CALIBRATOR_TRANSIT_DATA.md`
+**Location**: `docs/how-to/USING_ORCHESTRATOR_CLI.md`  
+**Related**: `docs/how-to/FIND_CALIBRATOR_TRANSIT_DATA.md`
 
 ## Philosophy: One Pathway with Flags
 
-The orchestrator CLI (`dsa110_contimg.conversion.strategies.hdf5_orchestrator`) is the **single entry point** for all conversion workflows. Instead of creating separate scripts for different use cases, we use flags to enable different modes:
+The orchestrator CLI (`dsa110_contimg.conversion.strategies.hdf5_orchestrator`)
+is the **single entry point** for all conversion workflows. Instead of creating
+separate scripts for different use cases, we use flags to enable different
+modes:
 
 - **Standard mode**: Explicit time window (`start_time` and `end_time`)
 - **Calibrator mode**: Automatic transit finding (`--calibrator`)
@@ -31,15 +36,18 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
 ```
 
 **Output**: MS files are written directly to organized locations:
+
 - `ms/science/YYYY-MM-DD/<timestamp>.ms` (default)
 - `ms/calibrators/YYYY-MM-DD/<timestamp>.ms` (if calibrator detected)
 - `ms/failed/YYYY-MM-DD/<timestamp>.ms` (if conversion fails)
 
-**When to use**: Processing all groups in a time window (streaming pipeline, batch processing)
+**When to use**: Processing all groups in a time window (streaming pipeline,
+batch processing)
 
 ### Mode 2: Calibrator Transit (Find Transit Automatically)
 
-This mode finds the calibrator transit and calculates the time window automatically:
+This mode finds the calibrator transit and calculates the time window
+automatically:
 
 ```bash
 python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
@@ -50,7 +58,8 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     --stage-to-tmpfs
 ```
 
-**When to use**: Processing a specific calibrator transit (most recent available)
+**When to use**: Processing a specific calibrator transit (most recent
+available)
 
 ### Mode 3: Specific Calibrator Transit Date
 
@@ -82,13 +91,15 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     --stage-to-tmpfs
 ```
 
-**When to use**: Processing a specific calibrator transit with a known exact time
+**When to use**: Processing a specific calibrator transit with a known exact
+time
 
 ## Calibrator Mode Options
 
 When using `--calibrator`, you can customize the search:
 
-- `--window-minutes`: Search window in minutes around transit (default: 60, i.e., ±30 minutes)
+- `--window-minutes`: Search window in minutes around transit (default: 60,
+  i.e., ±30 minutes)
 - `--max-days-back`: Maximum days to search back (default: 30)
 - `--transit-date`: Specific date (YYYY-MM-DD) or time (YYYY-MM-DDTHH:MM:SS)
 
@@ -107,10 +118,13 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
 
 ## What Happens in Calibrator Mode
 
-1. **Finds transit**: Uses `CalibratorMSGenerator.find_transit()` to locate the transit
+1. **Finds transit**: Uses `CalibratorMSGenerator.find_transit()` to locate the
+   transit
 2. **Verifies data**: Checks that subband groups exist for that transit time
-3. **Calculates window**: Computes `start_time` and `end_time` based on transit ± window
-4. **Converts groups**: Calls the standard conversion pipeline with the calculated window
+3. **Calculates window**: Computes `start_time` and `end_time` based on transit
+   ± window
+4. **Converts groups**: Calls the standard conversion pipeline with the
+   calculated window
 
 The orchestrator logs the transit information:
 
@@ -164,13 +178,18 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
 
 ## Why This Approach?
 
-**Before**: Multiple scripts (`generate_calibrator_ms.py`, `generate_transit_hour_ms.py`, etc.) that duplicated logic and created confusion about which tool to use.
+**Before**: Multiple scripts (`generate_calibrator_ms.py`,
+`generate_transit_hour_ms.py`, etc.) that duplicated logic and created confusion
+about which tool to use.
 
-**Now**: Single orchestrator CLI with flags. One pathway, different modes enabled by flags.
+**Now**: Single orchestrator CLI with flags. One pathway, different modes
+enabled by flags.
 
 **Benefits**:
+
 - **Clear entry point**: Always use the orchestrator CLI
-- **No redundancy**: Logic lives in one place (orchestrator + CalibratorMSGenerator service)
+- **No redundancy**: Logic lives in one place (orchestrator +
+  CalibratorMSGenerator service)
 - **Consistent behavior**: Same conversion pipeline regardless of mode
 - **Easier maintenance**: Changes to conversion logic affect all use cases
 
@@ -182,11 +201,12 @@ The orchestrator CLI is designed to work with other pipeline stages:
 2. **Calibration**: `python -m dsa110_contimg.calibration.cli`
 3. **Imaging**: `python -m dsa110_contimg.imaging.cli`
 
-Each stage has its own CLI with flags for different modes. The orchestrator CLI focuses solely on conversion.
+Each stage has its own CLI with flags for different modes. The orchestrator CLI
+focuses solely on conversion.
 
 ## See Also
 
-- **Finding transit data**: `docs/howto/FIND_CALIBRATOR_TRANSIT_DATA.md`
-- **CalibratorMSGenerator**: `src/dsa110_contimg/conversion/calibrator_ms_service.py`
-- **Conversion process**: `docs/reports/CONVERSION_PROCESS_SUMMARY.md`
-
+- **Finding transit data**: `docs/how-to/FIND_CALIBRATOR_TRANSIT_DATA.md`
+- **CalibratorMSGenerator**:
+  `src/dsa110_contimg/conversion/calibrator_ms_service.py`
+- **Conversion process**: `docs/archive/reports/`

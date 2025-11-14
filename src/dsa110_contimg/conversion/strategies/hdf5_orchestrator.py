@@ -143,9 +143,7 @@ def _peek_uvh5_phase_and_midtime(
                         f"({np.rad2deg(ra_rad):.2f}°)"
                     )
                 except Exception as e:
-                    logger.warning(
-                        f"Could not calculate RA from HA: {e}. Using default 0.0"
-                    )
+                    logger.warning(f"Could not calculate RA from HA: {e}. Using default 0.0")
                     pt_ra_val = 0.0
 
         val_dec = _read_extra("phase_center_dec")
@@ -259,8 +257,7 @@ def find_subband_groups(
                 return sb_num
 
             sorted_group = [
-                subband_map[s]
-                for s in sorted(spw, key=sort_key_for_group, reverse=True)
+                subband_map[s] for s in sorted(spw, key=sort_key_for_group, reverse=True)
             ]
             groups.append(sorted_group)
             for idx in group_indices:
@@ -326,23 +323,17 @@ def _load_and_merge_subbands(
             batch = sorted_file_list[i : i + batch_size]
 
             if show_progress:
-                logger.info(
-                    f"Loading batch {batch_num}/{total_batches} ({len(batch)} subbands)..."
-                )
+                logger.info(f"Loading batch {batch_num}/{total_batches} ({len(batch)} subbands)...")
 
             # Load batch
-            batch_data = _load_and_merge_subbands_single_batch(
-                batch, show_progress=False
-            )
+            batch_data = _load_and_merge_subbands_single_batch(batch, show_progress=False)
 
             # Merge with accumulated result
             if merged is None:
                 merged = batch_data
             else:
                 # Merge batch into accumulated result
-                merged.fast_concat(
-                    [batch_data], axis="freq", inplace=True, run_check=False
-                )
+                merged.fast_concat([batch_data], axis="freq", inplace=True, run_check=False)
 
             # Explicit cleanup to help GC
             del batch_data
@@ -352,9 +343,7 @@ def _load_and_merge_subbands(
 
         if merged is not None:
             merged.reorder_freqs(channel_order="freq", run_check=False)
-            logger.info(
-                f"Concatenated {len(sorted_file_list)} subbands in {total_batches} batches"
-            )
+            logger.info(f"Concatenated {len(sorted_file_list)} subbands in {total_batches} batches")
 
     finally:
         _pyuv_lg.setLevel(_prev_level)
@@ -475,9 +464,7 @@ def _load_and_merge_subbands_single_batch(
     uv = acc[0]
     if len(acc) > 1:
         uv.fast_concat(acc[1:], axis="freq", inplace=True, run_check=False)
-    logger.debug(
-        "Concatenated %d subbands in %.2fs", len(acc), time.perf_counter() - t_cat0
-    )
+    logger.debug("Concatenated %d subbands in %.2fs", len(acc), time.perf_counter() - t_cat0)
     uv.reorder_freqs(channel_order="freq", run_check=False)
     return uv
 
@@ -673,9 +660,7 @@ def convert_subband_groups_to_ms(
         return
 
     # Print group filenames for visibility
-    logger.info(
-        f"Found {len(groups)} complete subband group(s) ({len(groups)*16} total files)"
-    )
+    logger.info(f"Found {len(groups)} complete subband group(s) ({len(groups)*16} total files)")
     for i, group in enumerate(groups, 1):
         logger.info(f"  Group {i}:")
         # Sort by subband number ONLY (0-15) to show correct spectral order
@@ -727,9 +712,7 @@ def convert_subband_groups_to_ms(
                                 else:
                                     removed_count += 1
                         except Exception as e:
-                            logger.debug(
-                                f"Failed to remove stale tmpfs directory {stale_dir}: {e}"
-                            )
+                            logger.debug(f"Failed to remove stale tmpfs directory {stale_dir}: {e}")
 
                     if removed_count > 0:
                         logger.info(
@@ -737,9 +720,7 @@ def convert_subband_groups_to_ms(
                             f"{'y' if removed_count == 1 else 'ies'}"
                         )
             except Exception as cleanup_err:
-                logger.debug(
-                    f"Stale tmpfs cleanup check failed (non-fatal): {cleanup_err}"
-                )
+                logger.debug(f"Stale tmpfs cleanup check failed (non-fatal): {cleanup_err}")
 
     # Add progress indicator for group processing
     from dsa110_contimg.utils.progress import get_progress_bar, should_disable_progress
@@ -772,9 +753,7 @@ def convert_subband_groups_to_ms(
         # Verify all files are readable
         unreadable_files = [f for f in file_list if not os.access(f, os.R_OK)]
         if unreadable_files:
-            logger.error(
-                f"Group has unreadable files: {unreadable_files}. Skipping group."
-            )
+            logger.error(f"Group has unreadable files: {unreadable_files}. Skipping group.")
             continue
 
         first_file = os.path.basename(file_list[0])
@@ -793,9 +772,7 @@ def convert_subband_groups_to_ms(
         # Check if MS already exists
         if os.path.exists(ms_path):
             if skip_existing:
-                logger.info(
-                    "MS already exists (--skip-existing), skipping: %s", ms_path
-                )
+                logger.info("MS already exists (--skip-existing), skipping: %s", ms_path)
                 continue
             else:
                 logger.info("MS already exists, skipping: %s", ms_path)
@@ -815,7 +792,7 @@ def convert_subband_groups_to_ms(
             check_disk_space(
                 output_dir,
                 required_bytes=estimated_ms_size,
-                operation=f"conversion of {group_id}",
+                operation=f"conversion of {base_name}",
                 fatal=True,  # Fail fast if insufficient space
             )
 
@@ -838,8 +815,7 @@ def convert_subband_groups_to_ms(
             if scratch_dir and os.path.exists(scratch_dir):
                 if not os.access(scratch_dir, os.W_OK):
                     logger.error(
-                        f"Scratch directory is not writable: {scratch_dir}. "
-                        f"Skipping group."
+                        f"Scratch directory is not writable: {scratch_dir}. " f"Skipping group."
                     )
                     continue
 
@@ -997,9 +973,7 @@ def convert_subband_groups_to_ms(
                 try:
                     if os.path.exists(ms_path):
                         shutil.rmtree(ms_path, ignore_errors=True)
-                        logger.info(
-                            f"Cleaned up MS with incorrect frequency order: {ms_path}"
-                        )
+                        logger.info(f"Cleaned up MS with incorrect frequency order: {ms_path}")
                 except Exception:
                     pass
                 raise
@@ -1109,9 +1083,7 @@ def convert_subband_groups_to_ms(
                     logger.error(f"WARNING: {e}")
                     # Continue anyway - user may proceed with caution
             else:
-                logger.debug(
-                    "Skipping validation checks during conversion (will be done after)"
-                )
+                logger.debug("Skipping validation checks during conversion (will be done after)")
 
             # Verify MS is readable and has required structure
             # Ensure CASAPATH is set before importing CASA modules
@@ -1151,9 +1123,7 @@ def convert_subband_groups_to_ms(
                             "Re-run conversion if MS is corrupted",
                         ]
                         error_msg = format_file_error_with_suggestions(
-                            RuntimeError(
-                                f"MS missing required columns: {missing_cols}"
-                            ),
+                            RuntimeError(f"MS missing required columns: {missing_cols}"),
                             ms_path,
                             "MS validation",
                             suggestions,
@@ -1223,9 +1193,7 @@ def convert_subband_groups_to_ms(
                 if uv is None:
                     uv = UVData()
                     uv.read(file_list, read_data=False)
-                set_model_column(
-                    base_name, uv, pt_dec, phase_ra, phase_dec, flux_jy=flux
-                )
+                set_model_column(base_name, uv, pt_dec, phase_ra, phase_dec, flux_jy=flux)
             except Exception:
                 logger.warning("Failed to set MODEL_DATA column")
 
@@ -1262,9 +1230,7 @@ def convert_subband_groups_to_ms(
                 logger.warning(f"Failed to save checkpoint: {e}")
 
         # Run QA check on MS (skip if requested - will be done after conversion stage)
-        skip_qa = writer_kwargs and writer_kwargs.get(
-            "skip_validation_during_conversion", False
-        )
+        skip_qa = writer_kwargs and writer_kwargs.get("skip_validation_during_conversion", False)
         if not skip_qa:
             try:
                 qa_passed, qa_metrics = check_ms_after_conversion(
@@ -1300,9 +1266,7 @@ def add_args(p: argparse.ArgumentParser) -> None:
         python -m dsa110_contimg.conversion.cli groups /data/incoming /data/ms \\
             --calibrator 0834+555 --find-only
     """
-    p.add_argument(
-        "input_dir", help="Directory containing UVH5 (HDF5 container) subband files."
-    )
+    p.add_argument("input_dir", help="Directory containing UVH5 (HDF5 container) subband files.")
     p.add_argument(
         "output_dir",
         nargs="?",
@@ -1378,9 +1342,7 @@ def add_args(p: argparse.ArgumentParser) -> None:
             "'auto' selects 'parallel-subband' for production (16 subbands) or 'pyuvdata' for testing (≤2 subbands)."
         ),
     )
-    p.add_argument(
-        "--flux", type=float, help="Optional flux in Jy to write to MODEL_DATA."
-    )
+    p.add_argument("--flux", type=float, help="Optional flux in Jy to write to MODEL_DATA.")
     p.add_argument("--scratch-dir", help="Scratch directory for temporary files.")
     p.add_argument(
         "--max-workers",
@@ -1555,9 +1517,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                     for candidate in candidate_transits:
                         if candidate.isot.startswith(args.transit_date):
                             target_transit_time = candidate
-                            logger.info(
-                                f"Calculated transit time: {target_transit_time.isot}"
-                            )
+                            logger.info(f"Calculated transit time: {target_transit_time.isot}")
                             break
 
                     if target_transit_time is None:
@@ -1662,9 +1622,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                 logger.info(
                     f"  Delta from transit: {transit_info.get('delta_minutes', 'N/A')} minutes"
                 )
-                logger.info(
-                    f"\nHDF5 Files ({len(transit_info.get('files', []))} subbands):"
-                )
+                logger.info(f"\nHDF5 Files ({len(transit_info.get('files', []))} subbands):")
                 # Sort by subband number ONLY (0-15) to show correct spectral order
                 # Files from find_transit are already sorted, but ensure correct order here too
 
@@ -1696,8 +1654,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
     # Validate that we have time window
     if not start_time or not end_time:
         logger.error(
-            "Either explicit time window (start_time end_time) or "
-            "--calibrator must be provided."
+            "Either explicit time window (start_time end_time) or " "--calibrator must be provided."
         )
         return 1
 
@@ -1726,9 +1683,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
             first_file = os.path.basename(file_list[0]) if file_list else "unknown"
             base_name = os.path.splitext(first_file)[0].split("_sb")[0]
             ms_path = os.path.join(args.output_dir, f"{base_name}.ms")
-            logger.info(
-                f"  {i}. Group {base_name} ({len(file_list)} subbands) -> {ms_path}"
-            )
+            logger.info(f"  {i}. Group {base_name} ({len(file_list)} subbands) -> {ms_path}")
 
         logger.info("\nValidation:")
         # Perform validation checks
@@ -1737,9 +1692,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
 
             validate_directory(args.output_dir, must_exist=False, must_writable=True)
             if args.scratch_dir:
-                validate_directory(
-                    args.scratch_dir, must_exist=False, must_writable=True
-                )
+                validate_directory(args.scratch_dir, must_exist=False, must_writable=True)
             logger.info("  ✓ Directory validation passed")
         except Exception as e:
             from dsa110_contimg.utils.validation import ValidationError

@@ -1,6 +1,6 @@
 /**
  * Confirmation Dialog Component
- * Reusable confirmation dialog for dangerous actions
+ * For destructive actions and important confirmations
  */
 import React from "react";
 import {
@@ -12,48 +12,69 @@ import {
   Button,
   Box,
   Typography,
-  Alert,
 } from "@mui/material";
-import { Warning } from "@mui/icons-material";
+import { Warning, ErrorOutline, Info, CheckCircle } from "@mui/icons-material";
+
+export type ConfirmationSeverity = "warning" | "error" | "info" | "success";
 
 interface ConfirmationDialogProps {
   open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
   title: string;
   message: string;
+  severity?: ConfirmationSeverity;
   confirmText?: string;
   cancelText?: string;
-  severity?: "error" | "warning" | "info";
-  onConfirm: () => void;
-  onCancel: () => void;
   loading?: boolean;
 }
 
-export default function ConfirmationDialog({
+const severityConfig = {
+  warning: {
+    icon: Warning,
+    color: "warning" as const,
+    defaultConfirmText: "Continue",
+  },
+  error: {
+    icon: ErrorOutline,
+    color: "error" as const,
+    defaultConfirmText: "Delete",
+  },
+  info: {
+    icon: Info,
+    color: "info" as const,
+    defaultConfirmText: "Confirm",
+  },
+  success: {
+    icon: CheckCircle,
+    color: "success" as const,
+    defaultConfirmText: "Confirm",
+  },
+};
+
+export function ConfirmationDialog({
   open,
+  onClose,
+  onConfirm,
   title,
   message,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
   severity = "warning",
-  onConfirm,
-  onCancel,
+  confirmText,
+  cancelText = "Cancel",
   loading = false,
 }: ConfirmationDialogProps) {
-  const getColor = () => {
-    switch (severity) {
-      case "error":
-        return "error";
-      case "warning":
-        return "warning";
-      default:
-        return "primary";
-    }
+  const config = severityConfig[severity];
+  const Icon = config.icon;
+
+  const handleConfirm = () => {
+    onConfirm();
+    onClose();
   };
 
   return (
     <Dialog
       open={open}
-      onClose={onCancel}
+      onClose={onClose}
       maxWidth="sm"
       fullWidth
       PaperProps={{
@@ -63,27 +84,28 @@ export default function ConfirmationDialog({
       }}
     >
       <DialogTitle>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Warning color={getColor()} />
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Icon color={config.color} />
           <Typography variant="h6" component="span">
             {title}
           </Typography>
         </Box>
       </DialogTitle>
       <DialogContent>
-        <Alert severity={severity} sx={{ mb: 2 }}>
-          {message}
-        </Alert>
-        <DialogContentText>
-          This action cannot be undone. Are you sure you want to continue?
-        </DialogContentText>
+        <DialogContentText sx={{ mt: 1, fontSize: "0.875rem" }}>{message}</DialogContentText>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onCancel} disabled={loading}>
+        <Button onClick={onClose} disabled={loading}>
           {cancelText}
         </Button>
-        <Button onClick={onConfirm} variant="contained" color={getColor()} disabled={loading}>
-          {loading ? "Processing..." : confirmText}
+        <Button
+          onClick={handleConfirm}
+          variant="contained"
+          color={config.color}
+          disabled={loading}
+          autoFocus
+        >
+          {loading ? "Processing..." : confirmText || config.defaultConfirmText}
         </Button>
       </DialogActions>
     </Dialog>

@@ -16,7 +16,7 @@
  */
 
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link as RouterLink } from "react-router-dom";
 import {
   Container,
   Card,
@@ -32,12 +32,14 @@ import {
   Alert,
 } from "@mui/material";
 import { SkeletonLoader } from "../components/SkeletonLoader";
+import PageBreadcrumbs from "../components/PageBreadcrumbs";
 import {
   ArrowBack as ArrowBackIcon,
   ArrowForward as ArrowForwardIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   Link as LinkIcon,
+  Visibility as VisibilityIcon,
 } from "@mui/icons-material";
 import { useImageDetail } from "../api/queries";
 import GenericTable from "../components/GenericTable";
@@ -360,6 +362,16 @@ export default function ImageDetailPage() {
                       {image.path}
                     </Box>
                   </Typography>
+                  <Button
+                    variant="outlined"
+                    startIcon={<VisibilityIcon />}
+                    component={RouterLink}
+                    to={`/carta?file=${encodeURIComponent(image.path)}`}
+                    sx={{ mt: 1 }}
+                    fullWidth
+                  >
+                    View in CARTA
+                  </Button>
                 </>
               )}
             </CardContent>

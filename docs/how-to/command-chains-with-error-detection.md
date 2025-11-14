@@ -118,7 +118,7 @@ This ensures:
 
 **What's NOT wrapped automatically:**
 
-- Scripts (`./script.sh`, `scripts/script.sh`)
+- Scripts (`./script.sh`, `scripts/`)
 - Built-in commands (`cd`, `echo`, etc.)
 - Other executables not in the wrapper list
 

@@ -50,6 +50,13 @@ repos:
         exclude: ^(archive/|notebooks/|\.venv/|venv/|env/|tests/.*test_.*\.py)
         # Note: Pylint on tests can be noisy; consider enabling separately if desired
 
+      - id: pyflakes
+        name: pyflakes (casa6) - Undefined variable detection
+        entry: /opt/miniforge/envs/casa6/bin/pyflakes
+        language: system
+        types: [python]
+        exclude: ^(archive/|notebooks/|\.venv/|venv/|env/)
+
   # Port configuration validation
   - repo: local
     hooks:

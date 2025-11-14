@@ -1,8 +1,7 @@
 # Package Installation Guide
 
-**Purpose**: This guide explains how to install the
-**{{ config.extra.package_name }}** package (version {{ config.extra.version }})
-as a proper Python package.
+**Purpose**: This guide explains how to install the **dsa110-contimg** package
+(version 0.1.0) as a proper Python package.
 
 **Location**: `docs/how-to/package_installation.md`  
 **Related**:
@@ -12,8 +11,8 @@ as a proper Python package.
 
 ## Overview
 
-The **{{ config.extra.package_name }}** pipeline is now configured as a proper
-Python package using `pyproject.toml`. This allows:
+The **dsa110-contimg** pipeline is now configured as a proper Python package
+using `pyproject.toml`. This allows:
 
 - **Direct imports** without `sys.path` manipulation
 - **CLI entry points** as system commands
@@ -201,7 +200,7 @@ The `pyproject.toml` defines:
 - **Dependencies**: Listed in `[project]` section
 - **Optional dependencies**: `[project.optional-dependencies]` (dev, casa, all)
 - **CLI entry points**: `[project.scripts]` section
-- **Package discovery**: Finds all packages in `src/dsa110_contimg*`
+- **Package discovery**: Finds all packages in `src/dsa110_contimg/`
 
 ## Troubleshooting
 

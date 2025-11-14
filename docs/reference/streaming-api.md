@@ -6,7 +6,7 @@ The Streaming Service API provides RESTful endpoints for controlling and
 monitoring the streaming converter service. All endpoints are under the base
 path api/streaming (base path, not a standalone endpoint).
 
-**Base URL:** `http://localhost:8010/api/streaming`
+Base path: `http://localhost:8010/api/streaming`
 
 **Authentication:** None (currently)
 
@@ -343,7 +343,7 @@ from typing import Dict, Any, Optional
 BASE_URL = "http://localhost:8010/api/streaming"
 
 # Get status
-response = requests.get(f"{BASE_URL}/status")
+response = requests.get(f"{BASE_URL}status")
 status = response.json()
 print(f"Service running: {status['running']}")
 
@@ -407,7 +407,7 @@ class StreamingServiceClient:
 
     def get_status(self) -> Dict[str, Any]:
         """Get service status."""
-        return self._request("GET", "/status")
+        return self._request("GET", "status")
 
     def get_health(self) -> Dict[str, Any]:
         """Get health check."""
@@ -593,7 +593,7 @@ class TestStreamingService:
     def test_get_status_success(self, mock_response):
         """Test successful status retrieval."""
         with patch('requests.get', return_value=mock_response):
-            response = requests.get(f"{BASE_URL}/status")
+            response = requests.get(f"{BASE_URL}status")
             status = response.json()
             assert status["running"] is True
             assert "pid" in status
@@ -670,7 +670,7 @@ const BASE_URL = "http://localhost:8010/api/streaming";
 
 // Get status
 async function getStatus() {
-  const response = await fetch(`${BASE_URL}/status`);
+  const response = await fetch(`${BASE_URL}status`);
   const status = await response.json();
   console.log("Service running:", status.running);
   return status;
@@ -778,7 +778,7 @@ class StreamingServiceClient {
   }
 
   async getStatus(): Promise<StreamingStatus> {
-    return this.request<StreamingStatus>("/status");
+    return this.request<StreamingStatus>("status");
   }
 
   async getHealth(): Promise<ApiResponse<any>> {

@@ -208,7 +208,8 @@ make test-pytest-validate
 
 ## Related Documentation
 
-- `docs/dev/PYTEST_REDIRECTION_FIX.md` - Detailed explanation of the issue
+- `internal/docs/dev/imported/PYTEST_REDIRECTION_FIX.md` - Detailed explanation
+  of the issue
 - `scripts/pytest-safe.sh` - Safe wrapper implementation
 - `scripts/validate-pytest-usage.sh` - Validation script
 - `.git/hooks/pre-commit` - Pre-commit hook

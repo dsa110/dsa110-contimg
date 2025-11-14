@@ -287,6 +287,13 @@ class JobCreateRequest(BaseModel):
     params: JobParams
 
 
+class CalibrateJobCreateRequest(BaseModel):
+    """Request model for calibration jobs using CalibrateJobParams."""
+
+    ms_path: str
+    params: CalibrateJobParams
+
+
 class MSListEntry(BaseModel):
     path: str
     mid_mjd: Optional[float] = None

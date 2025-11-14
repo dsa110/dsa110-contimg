@@ -1,6 +1,6 @@
 /**
  * Main Navigation Component
- * Uses grouped navigation to reduce clutter
+ * Flattened navigation - all primary sections visible directly
  */
 import {
   AppBar,
@@ -36,100 +36,49 @@ import {
   AccountTree,
   EventNote,
   Cached,
+  Science,
+  Visibility,
 } from "@mui/icons-material";
 import CommandPalette from "./CommandPalette";
 import { useCommandPalette } from "../hooks/useCommandPalette";
 import { useWorkflow } from "../contexts/WorkflowContext";
-import { NavigationGroup } from "./NavigationGroup";
 
-// Navigation groups for consolidated pages
-const navigationGroups = {
-  pipeline: {
-    label: "Pipeline Operations",
-    icon: <AccountTree />,
-    items: [
-      {
-        label: "Pipeline Monitoring",
-        path: "/pipeline-operations",
-        icon: <AccountTree />,
-      },
-      {
-        label: "Operations (DLQ)",
-        path: "/pipeline-operations",
-        icon: <Build />,
-      },
-      { label: "Events", path: "/pipeline-operations", icon: <EventNote /> },
-    ],
-  },
-  data: {
-    label: "Data Explorer",
-    icon: <Storage />,
-    items: [
-      { label: "Data Browser", path: "/data-explorer", icon: <Storage /> },
-      { label: "Mosaics", path: "/data-explorer", icon: <Image /> },
-      { label: "Sources", path: "/data-explorer", icon: <TableChart /> },
-      { label: "Sky View", path: "/data-explorer", icon: <Public /> },
-    ],
-  },
-  control: {
-    label: "Pipeline Control",
-    icon: <Settings />,
-    items: [
-      { label: "Control Panel", path: "/pipeline-control", icon: <Settings /> },
-      {
-        label: "Streaming Service",
-        path: "/pipeline-control",
-        icon: <PlayArrow />,
-      },
-      { label: "Observing", path: "/pipeline-control", icon: <Public /> },
-    ],
-  },
-  diagnostics: {
-    label: "System Diagnostics",
-    icon: <Assessment />,
-    items: [
-      {
-        label: "System Health",
-        path: "/system-diagnostics",
-        icon: <Assessment />,
-      },
-      { label: "QA Tools", path: "/system-diagnostics", icon: <Assessment /> },
-      {
-        label: "Cache Statistics",
-        path: "/system-diagnostics",
-        icon: <Cached />,
-      },
-    ],
-  },
-};
-
-// Legacy nav items for mobile drawer (backward compatibility)
+// Flattened navigation items - all primary sections visible
 const navItems = [
   { path: "/dashboard", label: "Dashboard", icon: Dashboard },
-  {
-    path: "/pipeline-operations",
-    label: "Pipeline Operations",
-    icon: AccountTree,
-  },
-  { path: "/data-explorer", label: "Data Explorer", icon: Storage },
-  { path: "/pipeline-control", label: "Pipeline Control", icon: Settings },
-  {
-    path: "/system-diagnostics",
-    label: "System Diagnostics",
-    icon: Assessment,
-  },
+  { path: "/pipeline", label: "Pipeline", icon: AccountTree },
+  { path: "/operations", label: "Operations", icon: Build },
+  { path: "/control", label: "Control", icon: Settings },
+  { path: "/streaming", label: "Streaming", icon: PlayArrow },
+  { path: "/data", label: "Data Browser", icon: Storage },
+  { path: "/sources", label: "Sources", icon: TableChart },
+  { path: "/mosaics", label: "Mosaics", icon: Image },
+  { path: "/sky", label: "Sky View", icon: Public },
+  { path: "/carta", label: "CARTA", icon: Visibility },
+  { path: "/qa", label: "QA Tools", icon: Science },
+  { path: "/health", label: "Health", icon: Assessment },
+  { path: "/events", label: "Events", icon: EventNote },
+  { path: "/cache", label: "Cache", icon: Cached },
 ];
 
 export default function Navigation() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("lg")); // Changed from "md" to "lg" for better breakpoint
   const { open: commandPaletteOpen, setOpen: setCommandPaletteOpen } = useCommandPalette();
   const { currentWorkflow } = useWorkflow();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  const isActive = (path: string) => {
+    if (path === "/dashboard") {
+      return location.pathname === "/dashboard";
+    }
+    // For other routes, check if pathname starts with the route
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
   const drawer = (
@@ -140,16 +89,13 @@ export default function Navigation() {
       <List>
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive =
-            location.pathname === item.path ||
-            (item.path === "/data" && location.pathname.startsWith("/data")) ||
-            (item.path === "/qa" && location.pathname.startsWith("/qa"));
+          const active = isActive(item.path);
 
           return (
             <ListItem key={item.path} disablePadding>
-              <ListItemButton component={RouterLink} to={item.path} selected={isActive}>
+              <ListItemButton component={RouterLink} to={item.path} selected={active}>
                 <ListItemIcon>
-                  <Icon color={isActive ? "primary" : "inherit"} />
+                  <Icon color={active ? "primary" : "inherit"} />
                 </ListItemIcon>
                 <ListItemText primary={item.label} />
               </ListItemButton>
@@ -171,14 +117,18 @@ export default function Navigation() {
           right: 0,
         }}
       >
-        <Toolbar sx={{ width: "100%", maxWidth: "100%" }}>
+        <Toolbar sx={{ width: "100%", maxWidth: "100%", px: { xs: 1, sm: 2 } }}>
           {isMobile && (
             <IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2 }}>
               <MenuIcon />
             </IconButton>
           )}
-          <ShowChart sx={{ mr: 2 }} />
-          <Typography variant="h6" component="div" sx={{ flexGrow: 0, mr: 4 }}>
+          <ShowChart sx={{ mr: 2, display: { xs: "none", sm: "block" } }} />
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{ flexGrow: 0, mr: { xs: 1, sm: 4 }, display: { xs: "none", sm: "block" } }}
+          >
             DSA-110
           </Typography>
 
@@ -186,46 +136,53 @@ export default function Navigation() {
             <Box
               sx={{
                 display: "flex",
-                gap: 1,
+                gap: 0.5,
                 flexGrow: 1,
                 alignItems: "center",
+                flexWrap: "wrap",
+                overflowX: "auto",
+                "&::-webkit-scrollbar": { display: "none" },
+                scrollbarWidth: "none",
               }}
             >
-              {/* Dashboard - Always visible */}
-              <Button
-                component={RouterLink}
-                to="/dashboard"
-                startIcon={<Dashboard />}
-                sx={{
-                  color: location.pathname === "/dashboard" ? "primary.main" : "inherit",
-                  bgcolor:
-                    location.pathname === "/dashboard"
-                      ? "rgba(144, 202, 249, 0.08)"
-                      : "transparent",
-                  fontWeight: location.pathname === "/dashboard" ? 600 : 400,
-                  "&:hover": {
-                    bgcolor: "rgba(144, 202, 249, 0.12)",
-                  },
-                }}
-              >
-                Dashboard
-              </Button>
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.path);
 
-              {/* Grouped Navigation */}
-              {Object.entries(navigationGroups).map(([key, group]) => (
-                <NavigationGroup
-                  key={key}
-                  label={group.label}
-                  icon={group.icon}
-                  items={group.items}
-                  currentPath={location.pathname}
-                />
-              ))}
+                return (
+                  <Button
+                    key={item.path}
+                    component={RouterLink}
+                    to={item.path}
+                    startIcon={<Icon />}
+                    sx={{
+                      color: active ? "primary.main" : "text.secondary",
+                      bgcolor: active ? "rgba(144, 202, 249, 0.08)" : "transparent",
+                      fontWeight: active ? 600 : 400,
+                      fontSize: "0.875rem",
+                      px: 1.5,
+                      py: 0.75,
+                      minWidth: "auto",
+                      whiteSpace: "nowrap",
+                      "&:hover": {
+                        bgcolor: active ? "rgba(144, 202, 249, 0.12)" : "rgba(255, 255, 255, 0.05)",
+                      },
+                      transition: "all 0.2s ease-in-out",
+                    }}
+                  >
+                    {item.label}
+                  </Button>
+                );
+              })}
             </Box>
           )}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, ml: "auto" }}>
             {currentWorkflow && !isMobile && (
-              <Chip label={currentWorkflow} size="small" sx={{ textTransform: "capitalize" }} />
+              <Chip
+                label={currentWorkflow}
+                size="small"
+                sx={{ textTransform: "capitalize", display: { xs: "none", md: "flex" } }}
+              />
             )}
             <IconButton
               color="inherit"
@@ -246,8 +203,8 @@ export default function Navigation() {
           keepMounted: true, // Better open performance on mobile.
         }}
         sx={{
-          display: { xs: "block", md: "none" },
-          "& .MuiDrawer-paper": { boxSizing: "border-box", width: 240 },
+          display: { xs: "block", lg: "none" },
+          "& .MuiDrawer-paper": { boxSizing: "border-box", width: 280 },
         }}
       >
         {drawer}

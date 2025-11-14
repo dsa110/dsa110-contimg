@@ -312,15 +312,16 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             "http://10.42.0.148:5173",
             "http://localhost:5174",
             "http://127.0.0.1:5174",
+            # Dashboard dev server port
+            "http://localhost:3210",
+            "http://127.0.0.1:3210",
             # Common static serve ports we use
             "http://localhost:3000",
             "http://localhost:3001",
             "http://localhost:3002",
-            "http://localhost:3210",
             "http://127.0.0.1:3000",
             "http://127.0.0.1:3001",
             "http://127.0.0.1:3002",
-            "http://127.0.0.1:3210",
             "http://lxd110h17:3000",
             "http://lxd110h17:3001",
             "http://lxd110h17:3002",
@@ -2696,10 +2697,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         return StreamingResponse(event_stream(), media_type="text/event-stream")
 
     @router.post("/jobs/calibrate", response_model=Job)
-    def create_calibrate_job(request: JobCreateRequest, background_tasks: BackgroundTasks) -> Job:
+    def create_calibrate_job(
+        request: CalibrateJobCreateRequest, background_tasks: BackgroundTasks
+    ) -> Job:
         """Create and run a calibration job."""
         from dsa110_contimg.api.job_runner import run_calibrate_job
-        from dsa110_contimg.api.models import JobParams
+        from dsa110_contimg.api.models import CalibrateJobCreateRequest
         from dsa110_contimg.database.jobs import create_job
         from dsa110_contimg.database.products import ensure_products_db
 
@@ -6472,7 +6475,52 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     # Root-level health check endpoint (for monitoring tools that request /health)
     @app.get("/health")
     def health_check():
-        """Simple health check endpoint for monitoring tools."""
-        return {"status": "healthy", "service": "dsa110-contimg-api"}
+        """
+        Enhanced health check endpoint for monitoring tools.
+        Returns service status, version, and basic system information.
+        """
+        health_info = {
+            "status": "healthy",
+            "service": "dsa110-contimg-api",
+            "version": "0.1.0",
+            "timestamp": datetime.now().isoformat(),
+        }
+
+        # Add system metrics if available
+        try:
+            import psutil
+
+            health_info["system"] = {
+                "cpu_percent": psutil.cpu_percent(interval=0.1),
+                "memory_percent": psutil.virtual_memory().percent,
+                "disk_usage": {
+                    "total": psutil.disk_usage("/").total,
+                    "used": psutil.disk_usage("/").used,
+                    "free": psutil.disk_usage("/").free,
+                    "percent": psutil.disk_usage("/").percent,
+                },
+            }
+        except ImportError:
+            health_info["system"] = {"note": "psutil not available"}
+        except Exception as e:
+            health_info["system"] = {"error": str(e)}
+
+        # Check database connectivity
+        try:
+            db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+            if db_path.exists():
+                import sqlite3
+
+                # Use context manager to ensure connection is always closed
+                with sqlite3.connect(str(db_path), timeout=1.0) as conn:
+                    conn.execute("SELECT 1").fetchone()
+                health_info["database"] = "connected"
+            else:
+                health_info["database"] = "not_found"
+        except Exception as e:
+            health_info["database"] = f"error: {str(e)}"
+            health_info["status"] = "degraded"
+
+        return health_info
 
     return app

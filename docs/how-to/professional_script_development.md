@@ -247,8 +247,8 @@ relative to the script location.
 
 1. **Short term (current fix)**: ✅ **Keep the current approach** - it works and
    is consistent with 60+ existing scripts
-2. **Medium term**: Create `scripts/_common.py` with shared
-   `setup_project_path()` function
+2. **Medium term**: Create `scripts/` with shared `setup_project_path()`
+   function
 3. **Long term**: Add `pyproject.toml` and install package in development mode
 
 **Why not change everything now?**

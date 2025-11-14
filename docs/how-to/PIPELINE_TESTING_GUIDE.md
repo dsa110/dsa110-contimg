@@ -1,9 +1,12 @@
 # Pipeline Testing Guide
 
-**Purpose:** Verify each pipeline stage is functional and ready for streaming/debugging
+**Purpose:** Verify each pipeline stage is functional and ready for
+streaming/debugging
 
 **Related Guides:**
-- Finding calibrator transit data: [`FIND_CALIBRATOR_TRANSIT_DATA.md`](FIND_CALIBRATOR_TRANSIT_DATA.md)
+
+- Finding calibrator transit data:
+  [`FIND_CALIBRATOR_TRANSIT_DATA.md`](FIND_CALIBRATOR_TRANSIT_DATA.md)
 
 ---
 
@@ -17,6 +20,7 @@ bash scripts/test_pipeline_end_to_end.sh
 ```
 
 This test:
+
 1. ✅ Generates minimal synthetic UVH5 data (4 subbands, 1 minute, 64 channels)
 2. ✅ Converts UVH5 → MS (orchestrator with direct-subband writer)
 3. ✅ RFI flagging (reset flags, flag zeros)
@@ -48,7 +52,7 @@ bash scripts/test_pipeline_end_to_end.sh --use-existing-ms /path/to/existing.ms
 
 ---
 
-### Option 2: Manual 3-Stage Quick-Look (from docs/quicklook.md)
+### Option 2: Manual 3-Stage Quick-Look
 
 For fastest iteration on specific stages:
 
@@ -113,7 +117,8 @@ python -m dsa110_contimg.calibration.cli calibrate \
   --field 0 --refant 1 --fast
 ```
 
-**Best for:** Faster calibration iteration (preserves full bandwidth, reduces baselines/times)
+**Best for:** Faster calibration iteration (preserves full bandwidth, reduces
+baselines/times)
 
 ---
 
@@ -128,9 +133,10 @@ conda run -n casa6 python scripts/check_upstream_delays.py \
 ```
 
 **Output interpretation:**
+
 - <1 ns: Likely corrected upstream ✓
 - 1-5 ns: Partial correction (may need K-calibration)
-- >5 ns: Needs K-calibration (use `--do-k` flag)
+- > 5 ns: Needs K-calibration (use `--do-k` flag)
 
 **Best for:** Determining if K-calibration is needed
 
@@ -141,6 +147,7 @@ conda run -n casa6 python scripts/check_upstream_delays.py \
 ### Stage 1: Conversion (UVH5 → MS)
 
 **Test:**
+
 ```bash
 python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
   /path/to/uvh5_dir \
@@ -152,12 +159,16 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
 ```
 
 **Verify:**
+
 - MS created in output directory
-- MS has correct columns: `DATA`, `MODEL_DATA`, `CORRECTED_DATA`, `WEIGHT_SPECTRUM`
+- MS has correct columns: `DATA`, `MODEL_DATA`, `CORRECTED_DATA`,
+  `WEIGHT_SPECTRUM`
 - No errors in logs
-- MS can be opened with `casatasks`: `python -c "from casacore.tables import table; t = table('${MS_PATH}'); print(t.nrows())"`
+- MS can be opened with `casatasks`:
+  `python -c "from casacore.tables import table; t = table('${MS_PATH}'); print(t.nrows())"`
 
 **Common issues:**
+
 - Missing subbands → Check file pattern matches `*_sb??.hdf5`
 - Writer errors → Try `--writer direct-subband` explicitly
 - Memory issues → Reduce `--max-workers` or disable tmpfs staging
@@ -167,6 +178,7 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
 ### Stage 2: RFI Flagging
 
 **Test:**
+
 ```bash
 python -m dsa110_contimg.calibration.cli flag \
   --ms /scratch/ms/test.ms \
@@ -175,11 +187,13 @@ python -m dsa110_contimg.calibration.cli flag \
 ```
 
 **Verify:**
+
 - Flags reset to False
 - Zero visibilities flagged
 - MS still readable
 
 **Common issues:**
+
 - MS locked → Check no other processes accessing MS
 - No flags column → Should be created automatically
 
@@ -188,6 +202,7 @@ python -m dsa110_contimg.calibration.cli flag \
 ### Stage 3: Calibration (K/BP/G)
 
 **Test:**
+
 ```bash
 python -m dsa110_contimg.calibration.cli calibrate \
   --ms /scratch/ms/test.ms \
@@ -199,14 +214,19 @@ python -m dsa110_contimg.calibration.cli calibrate \
   --uvrange '>1klambda'
 ```
 
-**Note:** K-calibration is **skipped by default** for DSA-110. Use `--do-k` to enable.
+**Note:** K-calibration is **skipped by default** for DSA-110. Use `--do-k` to
+enable.
 
 **Verify:**
-- Caltables created: `test.ms.bpcal`, `test.ms.gcal` (and `test.ms.kcal` if `--do-k`)
+
+- Caltables created: `test.ms.bpcal`, `test.ms.gcal` (and `test.ms.kcal` if
+  `--do-k`)
 - No errors in logs
-- Caltables readable: `python -c "from casacore.tables import table; t = table('test.ms.bpcal'); print(t.nrows())"`
+- Caltables readable:
+  `python -c "from casacore.tables import table; t = table('test.ms.bpcal'); print(t.nrows())"`
 
 **Common issues:**
+
 - No calibrator field → Ensure field 0 (or specified field) has bright source
 - Low SNR → Increase `--timebin` or remove `--uvrange` cut
 - K-calibration fails → Check if delays corrected upstream (see Option 5)
@@ -216,25 +236,32 @@ python -m dsa110_contimg.calibration.cli calibrate \
 ### Stage 4: Apply Calibration
 
 **Test:**
+
 ```bash
 python -m dsa110_contimg.calibration.cli apply \
   --ms /scratch/ms/test.ms
 ```
 
 **Verify:**
+
 - `CORRECTED_DATA` column has non-zero values
 - No errors in logs
-- Check values: `python -c "from casacore.tables import table; t = table('test.ms'); cd = t.getcol('CORRECTED_DATA'); print('Non-zero:', (cd != 0).sum())"`
+- Check values:
+  `python -c "from casacore.tables import table; t = table('test.ms'); cd = t.getcol('CORRECTED_DATA'); print('Non-zero:', (cd != 0).sum())"`
 
 **Common issues:**
-- No caltables found → Check caltable registry: `python -m dsa110_contimg.database.registry_cli list`
-- CORRECTED_DATA all zeros → Verify caltables are valid and applied in correct order
+
+- No caltables found → Check caltable registry:
+  `python -m dsa110_contimg.database.registry_cli list`
+- CORRECTED_DATA all zeros → Verify caltables are valid and applied in correct
+  order
 
 ---
 
 ### Stage 5: Imaging
 
 **Test:**
+
 ```bash
 scripts/image_ms.sh /scratch/ms/test.ms /scratch/out/test \
   --quick \
@@ -243,12 +270,16 @@ scripts/image_ms.sh /scratch/ms/test.ms /scratch/out/test \
 ```
 
 **Verify:**
+
 - Image created: `test.image` directory
 - No errors in logs
-- Image readable: `python -c "from casacore.tables import table; t = table('test.image'); print('Shape:', t.getcol('map').shape)"`
+- Image readable:
+  `python -c "from casacore.tables import table; t = table('test.image'); print('Shape:', t.getcol('map').shape)"`
 
 **Common issues:**
-- tclean fails → Check if `CORRECTED_DATA` exists and is non-zero (or falls back to `DATA`)
+
+- tclean fails → Check if `CORRECTED_DATA` exists and is non-zero (or falls back
+  to `DATA`)
 - Out of memory → Reduce `imsize` or use `--quality-tier development`
 - No convergence → Increase `--niter` or adjust threshold
 
@@ -257,6 +288,7 @@ scripts/image_ms.sh /scratch/ms/test.ms /scratch/out/test \
 ### Stage 6: QA Checks
 
 **Test:**
+
 ```bash
 python <<PY
 from dsa110_contimg.qa.pipeline_quality import (
@@ -265,7 +297,7 @@ from dsa110_contimg.qa.pipeline_quality import (
 )
 
 # MS QA
-passed, metrics = check_ms_after_conversion("/scratch/ms/test.ms", 
+passed, metrics = check_ms_after_conversion("/scratch/ms/test.ms",
                                              quick_check_only=True)
 print(f"MS QA: {'PASS' if passed else 'FAIL'}")
 print(f"Metrics: {metrics}")
@@ -279,6 +311,7 @@ PY
 ```
 
 **Verify:**
+
 - QA checks return `passed=True` (or identify specific issues)
 - Metrics are reasonable (no NaN/Inf values)
 - QA plots generated (if enabled)
@@ -290,6 +323,7 @@ PY
 ### 1. Check Logs
 
 All pipeline stages output detailed logs:
+
 - Conversion: Check orchestrator output for writer type, timing, errors
 - Calibration: Check for solve statistics, reference antenna warnings
 - Imaging: Check tclean convergence, deconvolution progress
@@ -305,7 +339,7 @@ ms = "/scratch/ms/test.ms"
 with table(ms) as tb:
     print("Columns:", tb.colnames())
     print("Rows:", tb.nrows())
-    
+
 # Check fields
 with table(ms + "::FIELD") as tf:
     print("Fields:", tf.getcol("NAME"))
@@ -323,6 +357,7 @@ python scripts/test_data_accessibility.py
 ```
 
 This checks:
+
 - MS files readable
 - Image directories accessible
 - Database connectivity
@@ -335,6 +370,7 @@ python -m dsa110_contimg.database.registry_cli list
 ```
 
 This shows:
+
 - Registered caltables
 - Validity windows
 - Apply order
@@ -342,6 +378,7 @@ This shows:
 ### 5. Test with Minimal Data
 
 If full pipeline fails, test stages individually:
+
 1. Create minimal synthetic data (4 subbands, 1 minute)
 2. Test conversion only
 3. Test calibration on converted MS
@@ -352,24 +389,28 @@ If full pipeline fails, test stages individually:
 ## Expected Outputs
 
 ### Successful Conversion
+
 - MS directory created with `.ms` extension
 - MS contains all required columns
 - Logs show "WRITER_TYPE: direct-subband" (or "pyuvdata" for ≤2 subbands)
 - No errors, only warnings (if any)
 
 ### Successful Calibration
+
 - Caltables created (`.bpcal`, `.gcal`, optionally `.kcal`)
 - Caltables registered in `cal_registry.sqlite3`
 - Logs show solve statistics (SNR, residuals)
 - No critical errors
 
 ### Successful Imaging
+
 - Image directory created (`.image` extension)
 - Image contains reasonable flux values
 - tclean converged (niter < max iterations)
 - No deconvolution warnings
 
 ### Successful QA
+
 - All checks return `passed=True`
 - Metrics within expected ranges
 - No NaN/Inf values
@@ -382,6 +423,7 @@ If full pipeline fails, test stages individually:
 ### Problem: Conversion fails
 
 **Check:**
+
 - UVH5 file pattern matches `*_sb??.hdf5`
 - All 16 subbands present (or reduced set if using minimal config)
 - Timestamps match search window
@@ -390,6 +432,7 @@ If full pipeline fails, test stages individually:
 ### Problem: Calibration fails
 
 **Check:**
+
 - Calibrator field exists and has bright source
 - Reference antenna is present in MS
 - Sufficient baselines for solving
@@ -398,6 +441,7 @@ If full pipeline fails, test stages individually:
 ### Problem: Imaging fails
 
 **Check:**
+
 - `CORRECTED_DATA` exists and non-zero (or `DATA` if no calibration)
 - Sufficient memory for imsize
 - UV range has data (`--uvrange` may be too restrictive)
@@ -406,6 +450,7 @@ If full pipeline fails, test stages individually:
 ### Problem: QA checks fail
 
 **Check:**
+
 - MS structure is valid (all required columns present)
 - Image dimensions match expected
 - No corrupted data (NaN/Inf)
@@ -427,9 +472,7 @@ After verifying all stages work:
 
 ## References
 
-- **Quick-look guide:** `docs/quicklook.md`
-- **Quick-start guide:** `docs/quickstart.md`
-- **Pipeline overview:** `docs/pipeline.md`
-- **Simulation docs:** `docs/simulation/README.md` (if exists)
-- **Test results:** `docs/reports/TESTING_COMPLETE_SUMMARY.md`
-
+- **Streaming:** `docs/how-to/streaming.md`
+- **Dashboard:** `docs/how-to/dashboard.md`
+- **Project index:** `docs/index.md`
+<!-- Removed archived test results link that no longer exists -->

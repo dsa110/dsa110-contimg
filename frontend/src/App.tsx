@@ -23,6 +23,7 @@ import DataBrowserPage from "./pages/DataBrowserPage";
 import DataDetailPage from "./pages/DataDetailPage";
 import QAVisualizationPage from "./pages/QAVisualizationPage";
 import QACartaPage from "./pages/QACartaPage";
+import CARTAPage from "./pages/CARTAPage";
 import ObservingPage from "./pages/ObservingPage";
 import HealthPage from "./pages/HealthPage";
 import { OperationsPage } from "./pages/OperationsPage";
@@ -129,6 +130,23 @@ function AppContent() {
                           <Routes>
                             <Route path="/" element={<Navigate to="/dashboard" replace />} />
                             <Route path="/dashboard" element={<DashboardPage />} />
+                            {/* Legacy route redirects */}
+                            <Route
+                              path="/pipeline-control"
+                              element={<Navigate to="/control" replace />}
+                            />
+                            <Route
+                              path="/pipeline-operations"
+                              element={<Navigate to="/pipeline" replace />}
+                            />
+                            <Route
+                              path="/data-explorer"
+                              element={<Navigate to="/data" replace />}
+                            />
+                            <Route
+                              path="/system-diagnostics"
+                              element={<Navigate to="/health" replace />}
+                            />
                             <Route path="/control" element={<ControlPage />} />
                             <Route path="/mosaics" element={<MosaicGalleryPage />} />
                             <Route path="/mosaics/:mosaicId" element={<MosaicViewPage />} />
@@ -141,6 +159,7 @@ function AppContent() {
                             <Route path="/data/:type/:id" element={<DataDetailPage />} />
                             <Route path="/qa" element={<QAVisualizationPage />} />
                             <Route path="/qa/carta" element={<QACartaPage />} />
+                            <Route path="/carta" element={<CARTAPage />} />
                             <Route path="/observing" element={<ObservingPage />} />
                             <Route path="/health" element={<HealthPage />} />
                             <Route path="/operations" element={<OperationsPage />} />

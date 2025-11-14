@@ -56,7 +56,7 @@ GitHub Actions automatically validates output handling on:
 
 - Push to `main` or `dev` branches
 - Pull requests targeting `main` or `dev`
-- Changes to `scripts/**` or `.cursor/rules/output-suppression.mdc`
+- Changes to `scripts/` or `.cursor/rules/output-suppression.mdc`
 
 **Workflow**: `.github/workflows/output-handling-validation.yml`
 

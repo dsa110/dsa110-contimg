@@ -5,7 +5,8 @@
 
 ## Overview
 
-This walkthrough explains how the GitHub Pages deployment is configured for this project and how to use it.
+This walkthrough explains how the GitHub Pages deployment is configured for this
+project and how to use it.
 
 ## Current Configuration
 
@@ -19,6 +20,7 @@ docs_dir: docs
 ```
 
 **Key points:**
+
 - `site_url`: Where your documentation will be hosted
   - Your actual domain: `http://code.deepsynoptic.org/dsa110-contimg/`
   - (Custom domain/reverse proxy setup, not standard GitHub Pages)
@@ -29,21 +31,23 @@ docs_dir: docs
 The workflow has three triggers:
 
 **A. Push to main/master** (deploys to GitHub Pages)
+
 ```yaml
 on:
   push:
     branches: [main, master]
     paths:
-      - 'docs/**'
-      - 'mkdocs.yml'
-      - '.github/workflows/docs.yml'
-      - 'docs/javascripts/**'
+      - "docs/"
+      - "mkdocs.yml"
+      - ".github/workflows/docs.yml"
+      - docs/javascripts/ (custom JavaScript)
 ```
 
 **B. Pull Request** (builds and tests, but doesn't deploy)
+
 ```yaml
-  pull_request:
-    paths: [...]
+pull_request:
+  paths: [...]
 ```
 
 **C. Manual trigger** (workflow_dispatch - run from GitHub UI)
@@ -61,7 +65,8 @@ on:
    - **Folder:** `/ (root)`
 5. Click **Save**
 
-**What happens:** GitHub creates a `gh-pages` branch (if it doesn't exist) and serves files from it.
+**What happens:** GitHub creates a `gh-pages` branch (if it doesn't exist) and
+serves files from it.
 
 ### Step 2: Verify Workflow is Ready
 
@@ -116,12 +121,14 @@ After the workflow completes (usually 2-3 minutes):
 ### Automatic Rebuilds
 
 Every time you push to `main` with changes to:
-- `docs/**` (any documentation file)
+
+- `docs/` (any documentation file)
 - `mkdocs.yml` (configuration)
 - `.github/workflows/docs.yml` (workflow itself)
-- `docs/javascripts/**` (custom JavaScript)
+- docs/javascripts/ (custom JavaScript)
 
 The workflow automatically:
+
 1. ✅ Builds the documentation
 2. ✅ Tests links and diagrams
 3. ✅ Deploys to GitHub Pages
@@ -165,6 +172,7 @@ Before pushing, test locally:
 ### Pull Request Testing
 
 When you open a PR:
+
 - Workflow runs but **doesn't deploy**
 - Validates that documentation builds successfully
 - Checks links and diagrams
@@ -184,24 +192,28 @@ When you open a PR:
 Common issues:
 
 **Missing dependencies:**
+
 ```bash
 # Check docs/requirements.txt exists
 cat docs/requirements.txt
 ```
 
 **MkDocs errors:**
+
 ```bash
 # Test build locally
 /opt/miniforge/envs/casa6/bin/python -m mkdocs build --strict
 ```
 
 **Link errors:**
+
 - Check the "link-check" job in Actions
 - Fix broken links in your markdown files
 
 ### Deployment Not Happening
 
 Check:
+
 1. ✅ Are you pushing to `main` or `master`?
 2. ✅ Did you change files in `docs/` or `mkdocs.yml`?
 3. ✅ Is GitHub Pages enabled in Settings → Pages?
@@ -214,11 +226,13 @@ Check:
 If you want a custom domain (e.g., `docs.yoursite.com`):
 
 1. Add `CNAME` file to `docs/` directory:
+
    ```bash
    echo "docs.yoursite.com" > docs/CNAME
    ```
 
 2. Update `mkdocs.yml`:
+
    ```yaml
    site_url: https://docs.yoursite.com/
    ```
@@ -247,12 +261,14 @@ You can manually trigger deployment:
 ## Summary
 
 **Your setup:**
+
 - ✅ Workflow configured (`.github/workflows/docs.yml`)
 - ✅ MkDocs configured (`mkdocs.yml`)
 - ✅ Automatic deployment on push to `main`
 - ⏳ **Next step:** Enable GitHub Pages in repository settings
 
 **After enabling GitHub Pages:**
+
 - Push to `main` → Docs deploy automatically
 - Changes go live in 1-2 minutes
 - No manual steps needed!
@@ -264,4 +280,3 @@ You can manually trigger deployment:
 **Workflow:** `.github/workflows/docs.yml`  
 **Build command:** `mkdocs build --strict`  
 **Deploy branch:** `gh-pages` (auto-managed)
-

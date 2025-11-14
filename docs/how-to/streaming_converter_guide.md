@@ -69,8 +69,8 @@ chmod 755 /data/incoming_data /data/output /data/scratch /data/checkpoints
 Note: Prefer the consolidated references:
 
 - `docs/reference/cli.md` for module entrypoints
-- `docs/ops/deploy-systemd.md` for systemd
-- `docs/ops/deploy-docker.md` for docker-compose
+- `docs/operations/deploy-systemd.md` for systemd
+- `docs/operations/deploy-docker.md` for docker-compose
 
 ### 1. Systemd Service (Recommended)
 
@@ -346,5 +346,5 @@ benefits from its tmpfs/SSD staging behavior:
 - tmpfs: When enabled by the converter (default), the final MS is staged in RAM
   (`/dev/shm`) when capacity allows and then moved into the output directory.
 
-See `docs/pipeline/README_uvh5_to_ms.md` for details on the converter’s tmpfs
-thresholding and finalization.
+See `docs/concepts/streaming-architecture.md` for details on the converter’s
+tmpfs thresholding and finalization.

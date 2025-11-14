@@ -1,6 +1,19 @@
 #!/bin/bash
 # Agent Setup Script
-# Source this at the start of any agentic session to ensure error detection is enabled
+# Source this at the start of any agentic session to ensure:
+# 1. Error detection is enabled
+# 2. casa6 environment is enforced for all Python operations
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source casa6 environment enforcement FIRST (before error detection)
+if [ -f "${SCRIPT_DIR}/casa6-env.sh" ]; then
+    source "${SCRIPT_DIR}/casa6-env.sh"
+    CASA6_STATUS="✅"
+else
+    echo "⚠️  WARNING: casa6-env.sh not found at ${SCRIPT_DIR}/casa6-env.sh" >&2
+    CASA6_STATUS="❌"
+fi
 
 # Set BASH_ENV if not already set
 if [ -z "${BASH_ENV:-}" ]; then
@@ -14,6 +27,8 @@ if [ -z "${AUTO_ERROR_DETECTION:-}" ]; then
     fi
 fi
 
-echo "✅ Error detection enabled for agentic session"
-echo "   BASH_ENV=${BASH_ENV}"
-echo "   AUTO_ERROR_DETECTION=${AUTO_ERROR_DETECTION:-not set}"
+echo "✅ Agent setup complete"
+echo "   Error detection: ${AUTO_ERROR_DETECTION:-❌ not enabled}"
+echo "   Casa6 enforcement: ${CASA6_ENV_ENFORCED:-❌ not enabled}"
+echo "   Casa6 Python: ${CASA6_PYTHON:-❌ not set}"
+echo "   BASH_ENV: ${BASH_ENV}"

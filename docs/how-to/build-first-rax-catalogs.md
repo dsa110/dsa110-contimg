@@ -2,12 +2,15 @@
 
 ## Overview
 
-Similar to NVSS catalog conversion, FIRST and RAX catalogs can be converted to SQLite databases for efficient querying. This document describes how to build these catalogs.
+Similar to NVSS catalog conversion, FIRST and RAX catalogs can be converted to
+SQLite databases for efficient querying. This document describes how to build
+these catalogs.
 
 ## Prerequisites
 
 - HDF5 file with pointing information (to extract declination)
-- FIRST/RAX catalog files (CSV/FITS) - will be auto-downloaded/cached if not provided
+- FIRST/RAX catalog files (CSV/FITS) - will be auto-downloaded/cached if not
+  provided
 - Python environment with DSA-110 dependencies
 
 ## Building FIRST Catalog
@@ -98,7 +101,9 @@ print(f"RAX database created: {output_path}")
 
 ## Output Format
 
-Both scripts create SQLite databases in `state/catalogs/` with naming convention:
+Both scripts create SQLite databases in `state/catalogs/` with naming
+convention:
+
 - FIRST: `first_dec{dec_rounded:+.1f}.sqlite3`
 - RAX: `rax_dec{dec_rounded:+.1f}.sqlite3`
 
@@ -159,30 +164,32 @@ The catalog system uses environment variables to locate databases:
 - `RAX_CATALOG`: Path to RAX catalog directory or file
 
 If not set, the system will:
+
 1. Look for databases in `state/catalogs/`
 2. Attempt to auto-download/cache catalog files
 3. Fall back to CSV files if available
 
 ## Comparison with NVSS
 
-| Feature | NVSS | FIRST | RAX |
-|---------|------|-------|-----|
-| **CLI Script** | ✓ | ✓ | ✓ |
-| **Auto-download** | ✓ | ✓ | Partial |
-| **SQLite Format** | ✓ | ✓ | ✓ |
-| **Declination Strips** | ✓ | ✓ | ✓ |
-| **Flux Threshold** | ✓ | ✓ | ✓ |
+| Feature                | NVSS | FIRST | RAX     |
+| ---------------------- | ---- | ----- | ------- |
+| **CLI Script**         | ✓    | ✓     | ✓       |
+| **Auto-download**      | ✓    | ✓     | Partial |
+| **SQLite Format**      | ✓    | ✓     | ✓       |
+| **Declination Strips** | ✓    | ✓     | ✓       |
+| **Flux Threshold**     | ✓    | ✓     | ✓       |
 
 ## Notes
 
 1. **FIRST Catalog**: May require manual download from FIRST survey website
 2. **RAX Catalog**: May need to be provided manually or cached
 3. **Declination Range**: Default ±6 degrees matches NVSS convention
-4. **Caching**: Catalog files are cached in `.cache/catalogs/` to avoid re-downloading
+4. **Caching**: Catalog files are cached in `.cache/catalogs/` to avoid
+   re-downloading
 
 ## Related Documentation
 
-- `docs/how-to/build-nvss-catalog.md` - NVSS catalog building (similar process)
+- `docs/reference/CATALOG_DOCUMENTATION_INDEX.md` - NVSS catalog building
+  (similar process)
 - `src/dsa110_contimg/catalog/builders.py` - Builder functions
 - `src/dsa110_contimg/catalog/query.py` - Catalog query interface
-

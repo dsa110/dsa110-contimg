@@ -3,6 +3,7 @@
  * Displays failed operations with retry/resolve capabilities
  */
 import { useState } from "react";
+import { logger } from "../../utils/logger";
 import {
   Table,
   TableBody,
@@ -90,7 +91,7 @@ export function DeadLetterQueueTable({
       setNote("");
       refetch();
     } catch (error) {
-      console.error("Failed to perform action:", error);
+      logger.error("Failed to perform action:", error);
     }
   };
 

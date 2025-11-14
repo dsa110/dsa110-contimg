@@ -6,6 +6,7 @@ import type { UseQueryResult } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { apiClient } from "./client";
 import { createWebSocketClient, WebSocketClient } from "./websocket";
+import { logger } from "../utils/logger";
 import type {
   PipelineStatus,
   SystemMetrics,
@@ -145,7 +146,7 @@ function getWebSocketClient(): WebSocketClient | null {
       });
       wsClientInstance.connect();
     } catch (error) {
-      console.warn("Failed to create WebSocket client, using polling:", error);
+      logger.warn("Failed to create WebSocket client, using polling:", error);
       return null;
     }
   }

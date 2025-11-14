@@ -1,8 +1,10 @@
 # Steps to Produce a 5-Minute Image of 0834+555 Transit
 
-**Objective:** Create a calibrated continuum image from a 5-minute observation containing a transit of the VLA calibrator 0834+555.
+**Objective:** Create a calibrated continuum image from a 5-minute observation
+containing a transit of the VLA calibrator 0834+555.
 
 **Prerequisites:**
+
 - UVH5 subband files available in `/data/incoming` (or your input directory)
 - `casa6` conda environment activated
 - Pipeline environment variables configured (if using custom paths)
@@ -13,7 +15,8 @@
 
 ### Option A: Using Orchestrator CLI (Recommended)
 
-The orchestrator CLI automatically finds the transit time and converts the matching 5-minute group:
+The orchestrator CLI automatically finds the transit time and converts the
+matching 5-minute group:
 
 ```bash
 python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
@@ -25,6 +28,7 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
 ```
 
 **What this does:**
+
 - Finds the most recent transit of 0834+555
 - Locates the 5-minute group containing that transit time
 - Verifies all 16 subband files exist
@@ -32,6 +36,7 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
 - Outputs MS to `/stage/dsa110-contimg/ms/<group_id>.ms`
 
 **For a specific date:**
+
 ```bash
 python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     /data/incoming \
@@ -54,6 +59,7 @@ python -m dsa110_contimg.conversion.cli groups \
 ```
 
 **Expected output:**
+
 - MS file path: `/stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms` (example)
 - Group ID corresponds to the 5-minute window containing the transit
 
@@ -61,7 +67,8 @@ python -m dsa110_contimg.conversion.cli groups \
 
 ## Step 2: Calibrate the Measurement Set (Recommended)
 
-Calibration improves image quality by correcting for frequency-dependent bandpass and time-variable gains.
+Calibration improves image quality by correcting for frequency-dependent
+bandpass and time-variable gains.
 
 ### Option A: Quick Calibration (Development Tier)
 
@@ -83,11 +90,14 @@ python -m dsa110_contimg.calibration.cli calibrate \
 ```
 
 **What this does:**
+
 - Performs bandpass (BP) and gain (G) calibration
 - Uses development quality tier with time/channel binning
-- ⚠️  Creates **NON_SCIENCE_DEVELOPMENT** prefixed calibration tables
-- Skips K-calibration (delay) by default (appropriate for DSA-110 short baselines)
-- **These tables CANNOT be applied to production data** due to binning mismatches
+- ⚠️ Creates **NON_SCIENCE_DEVELOPMENT** prefixed calibration tables
+- Skips K-calibration (delay) by default (appropriate for DSA-110 short
+  baselines)
+- **These tables CANNOT be applied to production data** due to binning
+  mismatches
 
 ### Option B: Standard Calibration
 
@@ -102,15 +112,19 @@ python -m dsa110_contimg.calibration.cli calibrate \
 ```
 
 **Calibration tables created:**
+
 - `/stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms.bpcal`
 - `/stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms.gpcal`
 
-**Note:** If calibration tables already exist from a previous calibration run, you can skip this step if you're satisfied with the existing calibration.
+**Note:** If calibration tables already exist from a previous calibration run,
+you can skip this step if you're satisfied with the existing calibration.
 
 ### Detailed Calibration Procedure
 
 For a comprehensive explanation of what happens during calibration, see:
-- **Complete calibration guide**: `docs/howto/CALIBRATION_DETAILED_PROCEDURE.md`
+
+- **Complete calibration guide**:
+  `docs/how-to/CALIBRATION_DETAILED_PROCEDURE.md`
 
 ---
 
@@ -130,7 +144,9 @@ python -m dsa110_contimg.imaging.cli image \
 ```
 
 **Parameters explained:**
-- `--quality-tier development`: Enables development tier (reduces `imsize` and `niter` automatically)
+
+- `--quality-tier development`: Enables development tier (reduces `imsize` and
+  `niter` automatically)
 - `--imsize 512`: Image size in pixels (512×512 for quick look)
 - `--niter 300`: Maximum iterations (quick mode)
 - `--threshold 0.1mJy`: Stopping threshold
@@ -152,11 +168,15 @@ scripts/image_ms.sh \
 ## Step 4: Verify Output
 
 **Image files created:**
+
 - `/stage/dsa110-contimg/images/0834_transit_5min.image/` - Cleaned image
-- `/stage/dsa110-contimg/images/0834_transit_5min.pbcor/` - Primary beam corrected image
-- `/stage/dsa110-contimg/images/0834_transit_5min.pbcor.fits` - FITS export (if not skipped)
+- `/stage/dsa110-contimg/images/0834_transit_5min.pbcor/` - Primary beam
+  corrected image
+- `/stage/dsa110-contimg/images/0834_transit_5min.pbcor.fits` - FITS export (if
+  not skipped)
 
 **Check image quality:**
+
 ```bash
 # View image statistics
 python -m dsa110_contimg.qa.image_quality \
@@ -260,33 +280,42 @@ echo "Complete! Image: $OUTPUT_IMAGE_DIR/${GROUP_ID}_0834.pbcor.fits"
 
 ## Notes
 
-1. **Calibration is optional** but recommended for best image quality. Uncalibrated images will use `DATA` column instead of `CORRECTED_DATA`.
+1. **Calibration is optional** but recommended for best image quality.
+   Uncalibrated images will use `DATA` column instead of `CORRECTED_DATA`.
 
-2. **Quick mode** (`--quick`) reduces image size and iterations for speed. For higher quality, omit `--quick` and use larger `imsize` (e.g., 1024 or 2048).
+2. **Quick mode** (`--quick`) reduces image size and iterations for speed. For
+   higher quality, omit `--quick` and use larger `imsize` (e.g., 1024 or 2048).
 
-3. **Primary beam correction** (`--pbcor`) should always be used for flux-accurate images.
+3. **Primary beam correction** (`--pbcor`) should always be used for
+   flux-accurate images.
 
-4. **Reference antenna** (`--refant 103`) may need adjustment based on your array configuration. Use `--auto-refant` to select automatically.
+4. **Reference antenna** (`--refant 103`) may need adjustment based on your
+   array configuration. Use `--auto-refant` to select automatically.
 
-5. **Time window**: The orchestrator automatically finds the 5-minute group containing the transit. Each group represents a ~5-minute observation window.
+5. **Time window**: The orchestrator automatically finds the 5-minute group
+   containing the transit. Each group represents a ~5-minute observation window.
 
-6. **Performance**: Using `--stage-to-tmpfs` speeds up conversion by staging files in RAM (`/dev/shm`) instead of disk.
+6. **Performance**: Using `--stage-to-tmpfs` speeds up conversion by staging
+   files in RAM (`/dev/shm`) instead of disk.
 
 ---
 
 ## Troubleshooting
 
 **No transit found:**
+
 - Check that data exists: `ls /data/incoming/*_sb??.hdf5 | head -20`
 - Try increasing `--max-days-back` (default: 30 days)
 - Verify calibrator name: `0834+555` (not `0834+555` with different formatting)
 
 **Calibration fails:**
+
 - Check that MODEL_DATA is populated (needed for calibration)
 - Try different reference antenna: `--auto-refant`
 - Reduce UV range cut: `--uvrange ''` (no cut)
 
 **Imaging fails:**
+
 - Verify MS has data: `python -m dsa110_contimg.qa.ms_quality <ms_path>`
 - Check disk space: `df -h /stage/dsa110-contimg`
 - Reduce image size: `--imsize 256`
@@ -295,9 +324,8 @@ echo "Complete! Image: $OUTPUT_IMAGE_DIR/${GROUP_ID}_0834.pbcor.fits"
 
 ## References
 
-- **Finding transit data**: `docs/howto/FIND_CALIBRATOR_TRANSIT_DATA.md`
-- **Orchestrator CLI**: `docs/howto/USING_ORCHESTRATOR_CLI.md`
-- **Calibration guide**: `docs/reference/calibration.md`
+- **Finding transit data**: `docs/how-to/FIND_CALIBRATOR_TRANSIT_DATA.md`
+- **Orchestrator CLI**: `docs/how-to/USING_ORCHESTRATOR_CLI.md`
+- **Calibration guide**: `docs/how-to/streaming.md`
 - **Imaging guide**: `docs/reference/cli.md`
-- **Quick-look workflow**: `docs/quicklook.md`
-
+- **Quick-look workflow**: `docs/index.md`
