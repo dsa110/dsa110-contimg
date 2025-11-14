@@ -265,9 +265,12 @@ fi
 
 echo "Validating test organization for staged files..." >&2
 
+# Get repo root for portable paths
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+
 # Run validation script - capture exit code explicitly
 # Note: Don't redirect here - let the script handle its own output
-if ! /opt/miniforge/envs/casa6/bin/python /data/dsa110-contimg/scripts/validate-test-organization.py --staged-only; then
+if ! /opt/miniforge/envs/casa6/bin/python "${REPO_ROOT}/scripts/validate-test-organization.py" --staged-only; then
     VALIDATION_EXIT=$?
     echo "" >&2
     echo "ERROR: Test organization validation failed!" >&2
