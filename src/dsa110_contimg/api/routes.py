@@ -6245,6 +6245,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             - Success rate
             - Recent failures
         """
+        import os
         from datetime import datetime
         from pathlib import Path
 
@@ -6313,6 +6314,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Returns:
             List of failed publish records with error details
         """
+        import os
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
