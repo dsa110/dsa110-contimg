@@ -324,6 +324,7 @@ def validate_tiles_consistency(
     )
     db_data = {}
     ms_paths = set()
+    cal_status = {}  # Initialize to avoid possibly-used-before-assignment
     if products_db:
         try:
             with sqlite3.connect(str(products_db)) as conn:
@@ -338,7 +339,6 @@ def validate_tiles_consistency(
                 ms_paths = {row["ms_path"] for row in rows if row["ms_path"]}
 
             # Batch query for calibration status
-            cal_status = {}
             if ms_paths:
                 with sqlite3.connect(str(products_db)) as conn:
                     conn.row_factory = sqlite3.Row
@@ -1104,7 +1104,11 @@ def check_primary_beam_consistency(
                 # Extract frequency information from coordinate system
                 try:
                     # Try to get frequency from coordinate system
-                    freq_info = coord_sys.spectral()
+                    # Check if spectral method exists (casacore API may vary)
+                    if hasattr(coord_sys, "spectral"):
+                        freq_info = coord_sys.spectral()
+                    else:
+                        freq_info = None
                     if freq_info:
                         # Get reference frequency
                         ref_freq = freq_info.get("restfreq", [None])[0]

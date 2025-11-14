@@ -83,6 +83,44 @@ def resolve_catalog_path(
             if candidate.exists():
                 return candidate
 
+        # If exact match not found, try to find nearest declination match (within 1.0 degree tolerance)
+        catalog_dirs = []
+        for root_str in ["/data/dsa110-contimg", "/app"]:
+            root_path = Path(root_str)
+            if root_path.exists():
+                catalog_dirs.append(root_path / "state" / "catalogs")
+        try:
+            current_file = Path(__file__).resolve()
+            potential_root = current_file.parents[3]
+            if (potential_root / "src" / "dsa110_contimg").exists():
+                catalog_dirs.append(potential_root / "state" / "catalogs")
+        except Exception:
+            pass
+        catalog_dirs.append(Path.cwd() / "state" / "catalogs")
+        catalog_dirs.append(Path("/data/dsa110-contimg/state/catalogs"))
+
+        best_match = None
+        best_diff = float("inf")
+        pattern = f"{catalog_type}_dec*.sqlite3"
+        for catalog_dir in catalog_dirs:
+            if not catalog_dir.exists():
+                continue
+            # Find all matching catalog files
+            for catalog_file in catalog_dir.glob(pattern):
+                try:
+                    # Extract declination from filename: nvss_dec+54.6.sqlite3 -> 54.6
+                    dec_str = catalog_file.stem.replace(f"{catalog_type}_dec", "").replace("+", "")
+                    file_dec = float(dec_str)
+                    diff = abs(file_dec - float(dec_strip))
+                    if diff < best_diff and diff <= 1.0:  # Within 1 degree tolerance
+                        best_diff = diff
+                        best_match = catalog_file
+                except (ValueError, AttributeError):
+                    continue
+
+        if best_match is not None:
+            return best_match
+
     # 4. Try standard master catalog location
     if catalog_type == "master":
         master_candidates = [

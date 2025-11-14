@@ -134,6 +134,7 @@ def cmd_nvss(args: argparse.Namespace) -> int:
         dec_deg=dec0,
         radius_deg=radius_deg,
         min_flux_mjy=float(args.min_mjy),
+        catalog_path=args.catalog_path,
     )
     # Rename columns to match expected format
     df = df.rename(columns={"ra_deg": "ra", "dec_deg": "dec", "flux_mjy": "flux_20_cm"})
@@ -474,6 +475,12 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--products-db", default="state/products.sqlite3")
     sp.add_argument("--min-mjy", type=float, default=10.0)
     sp.add_argument("--radius-deg", type=float, default=None, help="Override FoV radius (deg)")
+    sp.add_argument(
+        "--catalog-path",
+        type=str,
+        default=None,
+        help="Explicit path to NVSS catalog SQLite database (overrides auto-resolution)",
+    )
     sp.add_argument("--box", type=int, default=5, help="Box size in pixels")
     sp.add_argument(
         "--annulus",
