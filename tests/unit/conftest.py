@@ -41,6 +41,7 @@ sys.modules['uncertainties.core'] = MockModule('uncertainties.core')
 sys.modules['pyuvdata'] = MockModule('pyuvdata')
 sys.modules['pyuvdata.utils'] = MockModule('pyuvdata.utils')
 sys.modules['structlog'] = MockModule('structlog')
+sys.modules['numba'] = MockModule('numba')
 
 # Note: The original patch for CalibratorMSGenerator cannot work until
 # the conversion module can be imported without CASA dependencies.
