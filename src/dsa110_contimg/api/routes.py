@@ -280,21 +280,25 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             ],
                             # Legacy fields for backward compatibility
                             "disk_percent": (
-                                system_metrics.disks[0].percent
+                                system_metrics.disks[
+                                    0
+                                ].percent  # pylint: disable=unsubscriptable-object
                                 if system_metrics.disks
-                                else None  # pylint: disable=unsubscriptable-object
+                                else None
                             ),
                             "disk_free_gb": (
                                 round(
-                                    system_metrics.disks[0].free / (1024**3), 2
-                                )  # pylint: disable=unsubscriptable-object
+                                    system_metrics.disks[0].free / (1024**3),
+                                    2,  # pylint: disable=unsubscriptable-object
+                                )
                                 if system_metrics.disks
                                 else None
                             ),
                             "disk_total_gb": (
                                 round(
-                                    system_metrics.disks[0].total / (1024**3), 2
-                                )  # pylint: disable=unsubscriptable-object
+                                    system_metrics.disks[0].total / (1024**3),
+                                    2,  # pylint: disable=unsubscriptable-object
+                                )
                                 if system_metrics.disks
                                 else None
                             ),
@@ -3399,8 +3403,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
                     t.location = DSA110_LOCATION
                     ra_meridian = t.sidereal_time("apparent").to_value(
-                        u.deg
-                    )  # pylint: disable=no-member
+                        u.deg  # pylint: disable=no-member
+                    )
                     dec_meridian = float(pt_dec.to_value(u.deg))  # pylint: disable=no-member
 
                     pb_response = airy_primary_beam_response(
