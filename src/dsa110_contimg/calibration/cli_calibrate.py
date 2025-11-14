@@ -1618,14 +1618,17 @@ def handle_calibrate(args: argparse.Namespace) -> int:
 
                         print(f"MS phase center: RA={ms_ra_deg:.4f}°, Dec={ms_dec_deg:.4f}°")
                         ms_coord = SkyCoord(
-                            ra=ms_ra_deg * u.deg, dec=ms_dec_deg * u.deg
-                        )  # pylint: disable=no-member
+                            ra=ms_ra_deg * u.deg,
+                            dec=ms_dec_deg * u.deg,  # pylint: disable=no-member
+                        )
                         cal_coord = SkyCoord(
-                            ra=ra_deg * u.deg, dec=dec_deg * u.deg
-                        )  # pylint: disable=no-member
+                            ra=ra_deg * u.deg, dec=dec_deg * u.deg  # pylint: disable=no-member
+                        )
                         sep_arcmin = (
-                            ms_coord.separation(cal_coord).to(u.arcmin).value
-                        )  # pylint: disable=no-member
+                            ms_coord.separation(cal_coord)
+                            .to(u.arcmin)
+                            .value  # pylint: disable=no-member
+                        )
 
                         print(f"Separation: {sep_arcmin:.2f} arcmin")
                         if sep_arcmin < 1.0:
@@ -1723,8 +1726,10 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                 frame="icrs",
                             )
                             phase_shift_arcmin = (
-                                old_coord.separation(new_coord).to(u.arcmin).value
-                            )  # pylint: disable=no-member
+                                old_coord.separation(new_coord)
+                                .to(u.arcmin)
+                                .value  # pylint: disable=no-member
+                            )
 
                             logger.debug(f"Phase shift magnitude: {phase_shift_arcmin:.1f} arcmin")
 
@@ -1860,8 +1865,9 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                         )
 
                                         if (
-                                            separation.to(u.arcmin).value > 1.0
-                                        ):  # pylint: disable=no-member
+                                            separation.to(u.arcmin).value
+                                            > 1.0  # pylint: disable=no-member
+                                        ):
                                             logger.warning(
                                                 f"REFERENCE_DIR still offset by {separation.to(u.arcmin):.4f} - calibration may fail"  # pylint: disable=no-member
                                             )

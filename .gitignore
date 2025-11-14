@@ -204,3 +204,6 @@ site/
 # Top-level markdown files (keep only README.md in repo)
 /*.md
 !/README.md
+
+# Ignore archived docs folder
+docs/archive/
