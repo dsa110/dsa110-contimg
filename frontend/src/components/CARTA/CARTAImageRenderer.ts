@@ -66,23 +66,23 @@ export class CARTAImageRenderer {
   /**
    * Add or update a raster tile
    */
-  addTile(tile: RasterTile): void {
+  async addTile(tile: RasterTile): Promise<void> {
     const key = `${tile.x}_${tile.y}_${tile.layer}`;
     this.tiles.set(key, tile);
-    this.render();
+    await this.render();
   }
 
   /**
    * Add multiple tiles from RasterTileData
    */
-  addTiles(tileData: RasterTileData): void {
+  async addTiles(tileData: RasterTileData): Promise<void> {
     if (tileData.imageBounds) {
       this.setBounds(tileData.imageBounds);
     }
 
-    tileData.tiles.forEach((tile) => {
-      this.addTile(tile);
-    });
+    for (const tile of tileData.tiles) {
+      await this.addTile(tile);
+    }
   }
 
   /**
@@ -127,9 +127,9 @@ export class CARTAImageRenderer {
   }
 
   /**
-   * Render tiles to canvas
+   * Render tiles to canvas (async)
    */
-  private render(): void {
+  private async render(): Promise<void> {
     if (this.tiles.size === 0 || !this.bounds) {
       return;
     }
@@ -140,10 +140,9 @@ export class CARTAImageRenderer {
     // Create image data
     this.imageData = this.ctx.createImageData(width, height);
 
-    // Render each tile
-    this.tiles.forEach((tile) => {
-      this.renderTile(tile);
-    });
+    // Render each tile (await all)
+    const renderPromises = Array.from(this.tiles.values()).map((tile) => this.renderTile(tile));
+    await Promise.all(renderPromises);
 
     // Apply color mapping and scaling
     this.applyColorMap();
@@ -155,15 +154,15 @@ export class CARTAImageRenderer {
   }
 
   /**
-   * Render a single tile
+   * Render a single tile (async)
    */
-  private renderTile(tile: RasterTile): void {
+  private async renderTile(tile: RasterTile): Promise<void> {
     if (!this.imageData || !this.bounds) {
       return;
     }
 
     // Convert tile data to image
-    const tileImage = this.decodeTileData(tile);
+    const tileImage = await this.decodeTileData(tile);
     if (!tileImage) {
       return;
     }
@@ -207,9 +206,10 @@ export class CARTAImageRenderer {
 
   /**
    * Decode tile image data
-   * Supports various compression types
+   * Supports various compression types (JPEG, PNG, raw RGBA)
+   * Note: For compressed formats, this returns a promise that resolves when decoding completes
    */
-  private decodeTileData(tile: RasterTile): Uint8Array | null {
+  private async decodeTileData(tile: RasterTile): Promise<Uint8Array | null> {
     try {
       let imageData: Uint8Array;
 
@@ -222,11 +222,118 @@ export class CARTAImageRenderer {
         return null;
       }
 
-      // For now, assume raw RGBA data
-      // In production, handle compression types (JPEG, PNG, etc.)
-      return imageData;
+      // Check for compression type based on magic bytes
+      // JPEG: FF D8 FF
+      // PNG: 89 50 4E 47
+      if (
+        imageData.length >= 3 &&
+        imageData[0] === 0xff &&
+        imageData[1] === 0xd8 &&
+        imageData[2] === 0xff
+      ) {
+        // JPEG compressed - decode using canvas
+        return await this.decodeJPEG(imageData);
+      } else if (
+        imageData.length >= 4 &&
+        imageData[0] === 0x89 &&
+        imageData[1] === 0x50 &&
+        imageData[2] === 0x4e &&
+        imageData[3] === 0x47
+      ) {
+        // PNG compressed - decode using canvas
+        return await this.decodePNG(imageData);
+      } else {
+        // Assume raw RGBA data
+        return imageData;
+      }
     } catch (error) {
       logger.error("Failed to decode tile data:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Decode JPEG image data (async)
+   */
+  private async decodeJPEG(jpegData: Uint8Array): Promise<Uint8Array | null> {
+    try {
+      // Create blob and load as image
+      const blob = new Blob([jpegData], { type: "image/jpeg" });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+
+      return new Promise<Uint8Array | null>((resolve) => {
+        img.onload = () => {
+          // Create temporary canvas to extract pixel data
+          const tempCanvas = document.createElement("canvas");
+          tempCanvas.width = img.width;
+          tempCanvas.height = img.height;
+          const tempCtx = tempCanvas.getContext("2d");
+          if (!tempCtx) {
+            URL.revokeObjectURL(url);
+            resolve(null);
+            return;
+          }
+
+          tempCtx.drawImage(img, 0, 0);
+          const imageData = tempCtx.getImageData(0, 0, img.width, img.height);
+          URL.revokeObjectURL(url);
+          resolve(new Uint8Array(imageData.data));
+        };
+
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          logger.warn("Failed to decode JPEG image");
+          resolve(null);
+        };
+
+        img.src = url;
+      });
+    } catch (error) {
+      logger.error("Failed to decode JPEG:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Decode PNG image data (async)
+   */
+  private async decodePNG(pngData: Uint8Array): Promise<Uint8Array | null> {
+    try {
+      // Create blob and load as image
+      const blob = new Blob([pngData], { type: "image/png" });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+
+      return new Promise<Uint8Array | null>((resolve) => {
+        img.onload = () => {
+          // Create temporary canvas to extract pixel data
+          const tempCanvas = document.createElement("canvas");
+          tempCanvas.width = img.width;
+          tempCanvas.height = img.height;
+          const tempCtx = tempCanvas.getContext("2d");
+          if (!tempCtx) {
+            URL.revokeObjectURL(url);
+            resolve(null);
+            return;
+          }
+
+          tempCtx.drawImage(img, 0, 0);
+          const imageData = tempCtx.getImageData(0, 0, img.width, img.height);
+          URL.revokeObjectURL(url);
+          resolve(new Uint8Array(imageData.data));
+        };
+
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          logger.warn("Failed to decode PNG image");
+          resolve(null);
+        };
+
+        img.src = url;
+      });
+    } catch (error) {
+      logger.error("Failed to decode PNG:", error);
       return null;
     }
   }

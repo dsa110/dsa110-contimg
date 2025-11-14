@@ -30,6 +30,9 @@ import { OperationsPage } from "./pages/OperationsPage";
 import PipelinePage from "./pages/PipelinePage";
 import EventsPage from "./pages/EventsPage";
 import CachePage from "./pages/CachePage";
+import DataLineagePage from "./pages/DataLineagePage";
+import CalibrationWorkflowPage from "./pages/CalibrationWorkflowPage";
+import MSBrowserPage from "./pages/MSBrowserPage";
 import { isRetryableError } from "./utils/errorUtils";
 
 // Create React Query client factory function
@@ -166,6 +169,10 @@ function AppContent() {
                             <Route path="/pipeline" element={<PipelinePage />} />
                             <Route path="/events" element={<EventsPage />} />
                             <Route path="/cache" element={<CachePage />} />
+                            {/* Domain-specific pages */}
+                            <Route path="/lineage/:id" element={<DataLineagePage />} />
+                            <Route path="/calibration" element={<CalibrationWorkflowPage />} />
+                            <Route path="/ms-browser" element={<MSBrowserPage />} />
                           </Routes>
                         </ErrorBoundary>
                       </Box>

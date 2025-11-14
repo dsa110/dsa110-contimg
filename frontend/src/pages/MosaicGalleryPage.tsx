@@ -27,6 +27,7 @@ import { useMosaicQuery, useCreateMosaic } from "../api/queries";
 import type { Mosaic } from "../api/types";
 import { EmptyState } from "../components/EmptyState";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
+import { MosaicConstructionWorkflow } from "../components/workflows/MosaicConstructionWorkflow";
 
 export default function MosaicGalleryPage() {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ export default function MosaicGalleryPage() {
     start_time: string;
     end_time: string;
   } | null>(null);
+  const [showWorkflow, setShowWorkflow] = useState(false);
 
   const { data, isLoading, error } = useMosaicQuery(queryRequest);
   const createMosaic = useCreateMosaic();
@@ -81,6 +83,29 @@ export default function MosaicGalleryPage() {
           <Typography variant="h2" component="h2" gutterBottom sx={{ mb: 4 }}>
             Mosaic Gallery
           </Typography>
+
+          {/* Workflow Toggle */}
+          <Box sx={{ mb: 3 }}>
+            <Button
+              variant={showWorkflow ? "contained" : "outlined"}
+              onClick={() => setShowWorkflow(!showWorkflow)}
+              startIcon={<Image />}
+            >
+              {showWorkflow ? "Hide Workflow" : "Show Mosaic Construction Workflow"}
+            </Button>
+          </Box>
+
+          {/* Mosaic Construction Workflow */}
+          {showWorkflow && (
+            <Box sx={{ mb: 4 }}>
+              <MosaicConstructionWorkflow
+                onMosaicCreated={(mosaic) => {
+                  setShowWorkflow(false);
+                  navigate(`/mosaics/${mosaic.id}`);
+                }}
+              />
+            </Box>
+          )}
 
           {/* Query Interface */}
           <Paper sx={{ p: 3, mb: 4 }}>

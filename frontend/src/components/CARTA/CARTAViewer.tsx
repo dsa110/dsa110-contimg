@@ -17,11 +17,21 @@ import {
   AccordionSummary,
   AccordionDetails,
   Chip,
+  Grid,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ZoomInIcon from "@mui/icons-material/ZoomIn";
+import ZoomOutIcon from "@mui/icons-material/ZoomOut";
+import FitScreenIcon from "@mui/icons-material/FitScreen";
 import { CARTAClient, CARTAConfig } from "../../services/cartaClient";
 import { logger } from "../../utils/logger";
 import { CARTAImageRenderer } from "./CARTAImageRenderer";
+import { CARTAZoomPan } from "./CARTAZoomPan";
+import CARTAProfilePlot from "./CARTAProfilePlot";
+import CARTAHistogram from "./CARTAHistogram";
+import CARTARegionSelector from "./CARTARegionSelector";
 import {
   CARTAMessageType,
   FileInfo,
@@ -29,6 +39,9 @@ import {
   SetRegionRequest,
   RegionType,
   Point,
+  SpatialProfileData,
+  SpectralProfileData,
+  RegionHistogramData,
 } from "../../services/cartaProtobuf";
 
 interface CARTAViewerProps {
@@ -66,10 +79,19 @@ export default function CARTAViewer({
   const [fileInfo, setFileInfo] = useState<FileInfo | null>(null);
   const [currentFileId, setCurrentFileId] = useState<number | null>(null);
   const [showFileInfo, setShowFileInfo] = useState(false);
+  const [regionType, setRegionType] = useState<RegionType>(RegionType.RECTANGLE);
+  const [spatialProfile, setSpatialProfile] = useState<SpatialProfileData | undefined>();
+  const [spectralProfile, setSpectralProfile] = useState<SpectralProfileData | undefined>();
+  const [histogram, setHistogram] = useState<RegionHistogramData | undefined>();
+  const [showProfiles, setShowProfiles] = useState(false);
+  const [showHistogram, setShowHistogram] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const clientRef = useRef<CARTAClient | null>(null);
   const rendererRef = useRef<CARTAImageRenderer | null>(null);
+  const zoomPanRef = useRef<CARTAZoomPan | null>(null);
   const regionsRef = useRef<Map<number, Point[]>>(new Map());
+  const isDrawingRef = useRef(false);
+  const currentPointsRef = useRef<Point[]>([]);
 
   // Get backend URL from props or environment
   // Port 9002 is in the 9000-9099 range for External Integrations
@@ -143,12 +165,50 @@ export default function CARTAViewer({
       }
     });
 
-    cartaClient.onMessage(CARTAMessageType.RASTER_TILE_DATA, (tileData: RasterTileData) => {
+    cartaClient.onMessage(CARTAMessageType.RASTER_TILE_DATA, async (tileData: RasterTileData) => {
       logger.debug("Received raster tile data", tileData);
       if (rendererRef.current) {
-        rendererRef.current.addTiles(tileData);
+        await rendererRef.current.addTiles(tileData);
+        // Re-render with zoom/pan transform if active
+        if (zoomPanRef.current && canvasRef.current) {
+          const ctx = canvasRef.current.getContext("2d");
+          if (ctx) {
+            ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+            zoomPanRef.current.applyTransform(ctx);
+            // Re-render image (renderer will handle this)
+            await rendererRef.current.addTiles(tileData);
+            zoomPanRef.current.restoreTransform(ctx);
+          }
+        }
       }
     });
+
+    cartaClient.onMessage(
+      CARTAMessageType.SPATIAL_PROFILE_DATA,
+      (profileData: SpatialProfileData) => {
+        logger.info("Received spatial profile data", profileData);
+        setSpatialProfile(profileData);
+        setShowProfiles(true);
+      }
+    );
+
+    cartaClient.onMessage(
+      CARTAMessageType.SPECTRAL_PROFILE_DATA,
+      (profileData: SpectralProfileData) => {
+        logger.info("Received spectral profile data", profileData);
+        setSpectralProfile(profileData);
+        setShowProfiles(true);
+      }
+    );
+
+    cartaClient.onMessage(
+      CARTAMessageType.REGION_HISTOGRAM_DATA,
+      (histogramData: RegionHistogramData) => {
+        logger.info("Received region histogram data", histogramData);
+        setHistogram(histogramData);
+        setShowHistogram(true);
+      }
+    );
 
     cartaClient.onMessage(CARTAMessageType.SET_REGION_ACK, (ack: any) => {
       logger.info("Region set successfully", ack);
@@ -222,7 +282,7 @@ export default function CARTAViewer({
     });
   };
 
-  // Initialize image renderer
+  // Initialize image renderer and zoom/pan
   useEffect(() => {
     if (!canvasRef.current) {
       return;
@@ -231,6 +291,30 @@ export default function CARTAViewer({
     try {
       rendererRef.current = new CARTAImageRenderer(canvasRef.current);
       logger.info("CARTA image renderer initialized");
+
+      // Initialize zoom/pan controller
+      zoomPanRef.current = new CARTAZoomPan(
+        canvasRef.current,
+        {
+          scale: 1.0,
+          offsetX: 0,
+          offsetY: 0,
+          minScale: 0.1,
+          maxScale: 10.0,
+        },
+        (state) => {
+          // Handle zoom/pan state changes - re-render if needed
+          if (rendererRef.current && canvasRef.current) {
+            const ctx = canvasRef.current.getContext("2d");
+            if (ctx) {
+              ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+              zoomPanRef.current?.applyTransform(ctx);
+              // Re-render will be triggered by tile updates
+            }
+          }
+        }
+      );
+      logger.info("CARTA zoom/pan controller initialized");
     } catch (error) {
       logger.error("Failed to initialize image renderer:", error);
       setError("Failed to initialize image renderer");
@@ -241,72 +325,87 @@ export default function CARTAViewer({
         rendererRef.current.clear();
         rendererRef.current = null;
       }
+      if (zoomPanRef.current) {
+        zoomPanRef.current.destroy();
+        zoomPanRef.current = null;
+      }
     };
   }, []);
 
-  // Handle canvas mouse events for region creation
+  // Handle canvas mouse events for region creation (with zoom/pan coordinate conversion)
   useEffect(() => {
-    if (!canvasRef.current || !connected || !currentFileId) {
+    if (!canvasRef.current || !connected || !currentFileId || !zoomPanRef.current) {
       return;
     }
 
     const canvas = canvasRef.current;
-    let isDrawing = false;
-    let currentPoints: Point[] = [];
+    const zoomPan = zoomPanRef.current;
 
     const handleMouseDown = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      currentPoints.push({ x, y });
-      isDrawing = true;
+      // Only start drawing if not panning (right-click or modifier key for pan)
+      if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
+        const rect = canvas.getBoundingClientRect();
+        const screenX = e.clientX - rect.left;
+        const screenY = e.clientY - rect.top;
+        const imageCoords = zoomPan.screenToImage(screenX, screenY);
+        currentPointsRef.current = [{ x: imageCoords.x, y: imageCoords.y }];
+        isDrawingRef.current = true;
+      }
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isDrawing) {
+      if (!isDrawingRef.current) {
         return;
       }
       const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      // Update preview
-      if (rendererRef.current && currentPoints.length > 0) {
+      const screenX = e.clientX - rect.left;
+      const screenY = e.clientY - rect.top;
+      const imageCoords = zoomPan.screenToImage(screenX, screenY);
+
+      // Update preview based on region type
+      if (rendererRef.current && currentPointsRef.current.length > 0) {
         renderRegions();
-        rendererRef.current.drawRegion([...currentPoints, { x, y }], "#00ff00", 1, false);
+        const previewPoints = getPreviewPoints(currentPointsRef.current, imageCoords, regionType);
+        rendererRef.current.drawRegion(previewPoints, "#00ff00", 1, false);
       }
     };
 
     const handleMouseUp = async (e: MouseEvent) => {
-      if (!isDrawing || currentPoints.length === 0) {
+      if (!isDrawingRef.current || currentPointsRef.current.length === 0) {
         return;
       }
 
       const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      currentPoints.push({ x, y });
+      const screenX = e.clientX - rect.left;
+      const screenY = e.clientY - rect.top;
+      const imageCoords = zoomPan.screenToImage(screenX, screenY);
 
-      // Create region (rectangle for now)
-      if (currentPoints.length >= 2 && client) {
-        const regionId = Date.now(); // Simple ID generation
+      // Add final point
+      currentPointsRef.current.push(imageCoords);
+
+      // Create region based on type
+      const controlPoints = getControlPointsForRegionType(currentPointsRef.current, regionType);
+
+      if (controlPoints.length >= getMinPointsForRegionType(regionType) && client) {
+        const regionId = Date.now();
         const request: SetRegionRequest = {
           fileId: currentFileId,
           regionId,
-          regionType: RegionType.RECTANGLE,
-          controlPoints: currentPoints,
+          regionType,
+          controlPoints,
         };
 
         try {
           await client.setRegion(request);
-          regionsRef.current.set(regionId, currentPoints);
+          regionsRef.current.set(regionId, controlPoints);
           renderRegions();
         } catch (err) {
           logger.error("Failed to create region:", err);
         }
       }
 
-      isDrawing = false;
-      currentPoints = [];
+      isDrawingRef.current = false;
+      currentPointsRef.current = [];
     };
 
     canvas.addEventListener("mousedown", handleMouseDown);
@@ -318,7 +417,127 @@ export default function CARTAViewer({
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [connected, currentFileId, client]);
+  }, [connected, currentFileId, client, regionType]);
+
+  // Helper functions for region creation
+  const getMinPointsForRegionType = (type: RegionType): number => {
+    switch (type) {
+      case RegionType.POINT:
+        return 1;
+      case RegionType.RECTANGLE:
+      case RegionType.ELLIPSE:
+        return 2;
+      case RegionType.POLYGON:
+        return 3;
+      case RegionType.ANNULUS:
+        return 3;
+      default:
+        return 2;
+    }
+  };
+
+  const getControlPointsForRegionType = (points: Point[], type: RegionType): Point[] => {
+    if (points.length === 0) {
+      return [];
+    }
+
+    switch (type) {
+      case RegionType.POINT:
+        return [points[0]];
+      case RegionType.RECTANGLE:
+        if (points.length >= 2) {
+          const [p1, p2] = points;
+          return [p1, { x: p2.x, y: p1.y }, p2, { x: p1.x, y: p2.y }];
+        }
+        return points;
+      case RegionType.ELLIPSE:
+        if (points.length >= 2) {
+          const [center, edge] = points;
+          const radiusX = Math.abs(edge.x - center.x);
+          const radiusY = Math.abs(edge.y - center.y);
+          // Return center and radii
+          return [center, { x: radiusX, y: radiusY }];
+        }
+        return points;
+      case RegionType.POLYGON:
+        return points;
+      case RegionType.ANNULUS:
+        if (points.length >= 3) {
+          const [center, innerEdge, outerEdge] = points;
+          return [center, innerEdge, outerEdge];
+        }
+        return points;
+      default:
+        return points;
+    }
+  };
+
+  const getPreviewPoints = (
+    startPoints: Point[],
+    currentPoint: Point,
+    type: RegionType
+  ): Point[] => {
+    switch (type) {
+      case RegionType.POINT:
+        return [currentPoint];
+      case RegionType.RECTANGLE:
+        if (startPoints.length > 0) {
+          const p1 = startPoints[0];
+          return [p1, { x: currentPoint.x, y: p1.y }, currentPoint, { x: p1.x, y: currentPoint.y }];
+        }
+        return [currentPoint];
+      case RegionType.ELLIPSE:
+        if (startPoints.length > 0) {
+          const center = startPoints[0];
+          const radiusX = Math.abs(currentPoint.x - center.x);
+          const radiusY = Math.abs(currentPoint.y - center.y);
+          // Generate ellipse points for preview
+          const previewPoints: Point[] = [];
+          for (let i = 0; i < 32; i++) {
+            const angle = (i / 32) * 2 * Math.PI;
+            previewPoints.push({
+              x: center.x + radiusX * Math.cos(angle),
+              y: center.y + radiusY * Math.sin(angle),
+            });
+          }
+          return previewPoints;
+        }
+        return [currentPoint];
+      case RegionType.POLYGON:
+        return [...startPoints, currentPoint];
+      case RegionType.ANNULUS:
+        if (startPoints.length > 0) {
+          const center = startPoints[0];
+          // Draw two circles
+          const innerRadius =
+            startPoints.length > 1
+              ? Math.hypot(startPoints[1].x - center.x, startPoints[1].y - center.y)
+              : 10;
+          const outerRadius = Math.hypot(currentPoint.x - center.x, currentPoint.y - center.y);
+          const previewPoints: Point[] = [];
+          // Inner circle
+          for (let i = 0; i < 32; i++) {
+            const angle = (i / 32) * 2 * Math.PI;
+            previewPoints.push({
+              x: center.x + innerRadius * Math.cos(angle),
+              y: center.y + innerRadius * Math.sin(angle),
+            });
+          }
+          // Outer circle
+          for (let i = 0; i < 32; i++) {
+            const angle = (i / 32) * 2 * Math.PI;
+            previewPoints.push({
+              x: center.x + outerRadius * Math.cos(angle),
+              y: center.y + outerRadius * Math.sin(angle),
+            });
+          }
+          return previewPoints;
+        }
+        return [currentPoint];
+      default:
+        return [currentPoint];
+    }
+  };
 
   const handleReconnect = () => {
     setError(null);
@@ -416,6 +635,75 @@ export default function CARTAViewer({
           )}
         </Box>
       )}
+      {/* Controls Bar */}
+      <Box
+        sx={{
+          p: 1,
+          borderBottom: 1,
+          borderColor: "divider",
+          display: "flex",
+          gap: 2,
+          alignItems: "center",
+          flexWrap: "wrap",
+        }}
+      >
+        <CARTARegionSelector
+          selectedType={regionType}
+          onTypeChange={setRegionType}
+          disabled={!connected || !currentFileId}
+        />
+        <Box sx={{ flex: 1 }} />
+        <Tooltip title="Zoom In">
+          <IconButton
+            size="small"
+            onClick={() => zoomPanRef.current?.zoomIn()}
+            disabled={!connected}
+          >
+            <ZoomInIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Zoom Out">
+          <IconButton
+            size="small"
+            onClick={() => zoomPanRef.current?.zoomOut()}
+            disabled={!connected}
+          >
+            <ZoomOutIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Fit to Screen">
+          <IconButton
+            size="small"
+            onClick={() => {
+              if (fileInfo?.dimensions && fileInfo.dimensions.length >= 2) {
+                zoomPanRef.current?.fitToCanvas(fileInfo.dimensions[0], fileInfo.dimensions[1]);
+              } else {
+                zoomPanRef.current?.reset();
+              }
+            }}
+            disabled={!connected || !fileInfo}
+          >
+            <FitScreenIcon />
+          </IconButton>
+        </Tooltip>
+        <Button
+          size="small"
+          variant={showProfiles ? "contained" : "outlined"}
+          onClick={() => setShowProfiles(!showProfiles)}
+          disabled={!spatialProfile && !spectralProfile}
+        >
+          Profiles
+        </Button>
+        <Button
+          size="small"
+          variant={showHistogram ? "contained" : "outlined"}
+          onClick={() => setShowHistogram(!showHistogram)}
+          disabled={!histogram}
+        >
+          Histogram
+        </Button>
+      </Box>
+
       {showFileInfo && fileInfo && (
         <Accordion expanded={showFileInfo} sx={{ maxHeight: "200px", overflow: "auto" }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -461,29 +749,51 @@ export default function CARTAViewer({
           </AccordionDetails>
         </Accordion>
       )}
-      <Box
-        sx={{
-          flex: 1,
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        <Box
-          component="canvas"
-          ref={canvasRef}
-          sx={{
-            width: "100%",
-            height: "100%",
-            display: "block",
-            cursor: "crosshair",
-          }}
-        />
-        {error && connected && (
-          <Alert severity="warning" sx={{ position: "absolute", top: 8, left: 8, right: 8 }}>
-            {error}
-          </Alert>
+
+      <Grid container sx={{ flex: 1, overflow: "hidden" }}>
+        <Grid item xs={showProfiles || showHistogram ? 8 : 12} sx={{ position: "relative" }}>
+          <Box
+            sx={{
+              width: "100%",
+              height: "100%",
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            <Box
+              component="canvas"
+              ref={canvasRef}
+              sx={{
+                width: "100%",
+                height: "100%",
+                display: "block",
+                cursor: isDrawingRef.current ? "crosshair" : "grab",
+              }}
+            />
+            {error && connected && (
+              <Alert severity="warning" sx={{ position: "absolute", top: 8, left: 8, right: 8 }}>
+                {error}
+              </Alert>
+            )}
+          </Box>
+        </Grid>
+        {(showProfiles || showHistogram) && (
+          <Grid item xs={4} sx={{ borderLeft: 1, borderColor: "divider", overflow: "auto" }}>
+            <Box sx={{ p: 1, display: "flex", flexDirection: "column", gap: 2, height: "100%" }}>
+              {showProfiles && (spatialProfile || spectralProfile) && (
+                <CARTAProfilePlot
+                  spatialProfile={spatialProfile}
+                  spectralProfile={spectralProfile}
+                  height={showHistogram ? "45%" : "100%"}
+                />
+              )}
+              {showHistogram && histogram && (
+                <CARTAHistogram histogramData={histogram} height={showProfiles ? "45%" : "100%"} />
+              )}
+            </Box>
+          </Grid>
         )}
-      </Box>
+      </Grid>
     </Paper>
   );
 }

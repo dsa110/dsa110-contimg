@@ -3,11 +3,18 @@
  */
 import { useState } from "react";
 import { Box, Typography, Tabs, Tab, Paper, Grid } from "@mui/material";
-import { Folder, Image as ImageIcon, TableChart, NoteAdd } from "@mui/icons-material";
+import {
+  Folder,
+  Image as ImageIcon,
+  TableChart,
+  NoteAdd,
+  CompareArrows,
+} from "@mui/icons-material";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
 import DirectoryBrowser from "../components/QA/DirectoryBrowser";
 import FITSViewer from "../components/QA/FITSViewer";
 import CasaTableViewer from "../components/QA/CasaTableViewer";
+import ImageComparisonTool from "../components/ImageComparisonTool";
 import QANotebookGenerator from "../components/QA/QANotebookGenerator";
 
 interface TabPanelProps {
@@ -81,6 +88,12 @@ export default function QAVisualizationPage() {
               label="Notebook Generator"
               sx={{ textTransform: "none" }}
             />
+            <Tab
+              icon={<CompareArrows />}
+              iconPosition="start"
+              label="Image Comparison"
+              sx={{ textTransform: "none" }}
+            />
           </Tabs>
         </Paper>
 
@@ -129,6 +142,9 @@ export default function QAVisualizationPage() {
 
         <TabPanel value={tabValue} index={3}>
           <QANotebookGenerator />
+        </TabPanel>
+        <TabPanel value={tabValue} index={4}>
+          <ImageComparisonTool />
         </TabPanel>
       </Box>
     </>

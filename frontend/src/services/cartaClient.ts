@@ -85,16 +85,22 @@ export class CARTAClient {
 
   /**
    * Initialize Protocol Buffer definitions
-   * Note: In production, load actual .proto files from CARTA
+   * Attempts to load actual .proto files, falls back to JSON encoding
    */
   private async initializeProtobuf(): Promise<void> {
     try {
-      // For now, we'll use JSON-based message encoding/decoding
-      // In production, load actual CARTA .proto files:
-      // this.root = await protobuf.load("path/to/carta.proto");
-      logger.info("Protocol Buffer support initialized (using JSON fallback)");
+      // Try to load CARTA .proto files
+      const { loadCARTAProtobuf } = await import("./cartaProtoLoader");
+      this.root = await loadCARTAProtobuf();
+
+      if (this.root) {
+        logger.info("CARTA Protocol Buffer definitions loaded successfully");
+      } else {
+        logger.info("Protocol Buffer support initialized (using JSON fallback)");
+      }
     } catch (error) {
       logger.warn("Failed to load Protocol Buffer definitions, using JSON fallback:", error);
+      this.root = null;
     }
   }
 

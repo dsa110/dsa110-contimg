@@ -38,6 +38,7 @@ import {
   Cached,
   Science,
   Visibility,
+  FolderOpen,
 } from "@mui/icons-material";
 import CommandPalette from "./CommandPalette";
 import { useCommandPalette } from "../hooks/useCommandPalette";
@@ -49,6 +50,8 @@ const navItems = [
   { path: "/pipeline", label: "Pipeline", icon: AccountTree },
   { path: "/operations", label: "Operations", icon: Build },
   { path: "/control", label: "Control", icon: Settings },
+  { path: "/calibration", label: "Calibration", icon: Build },
+  { path: "/ms-browser", label: "MS Browser", icon: FolderOpen },
   { path: "/streaming", label: "Streaming", icon: PlayArrow },
   { path: "/data", label: "Data Browser", icon: Storage },
   { path: "/sources", label: "Sources", icon: TableChart },
