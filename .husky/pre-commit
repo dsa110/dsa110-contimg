@@ -15,7 +15,16 @@ cd "$REPO_ROOT" || {
 }
 
 # Run doc audit to prevent endpoint/link drift
-if command -v python3 >/dev/null 2>&1; then
+# CRITICAL: Use casa6 Python environment per PYTHON_ENVIRONMENT_REQUIREMENT
+CASA6_PYTHON="${CASA6_PYTHON:-/opt/miniforge/envs/casa6/bin/python}"
+if [ -x "$CASA6_PYTHON" ]; then
+  echo "Running documentation audit..."
+  if ! "$CASA6_PYTHON" scripts/doc_audit.py; then
+    printf "\n[doc-audit] Documentation audit failed. Fix issues or run: %s scripts/doc_audit.py\n\n" "$CASA6_PYTHON" >&2
+    exit 1
+  fi
+elif command -v python3 >/dev/null 2>&1; then
+  echo "Warning: casa6 Python not found at $CASA6_PYTHON, falling back to python3" >&2
   echo "Running documentation audit..."
   if ! python3 scripts/doc_audit.py; then
     printf "\n[doc-audit] Documentation audit failed. Fix issues or run: python3 scripts/doc_audit.py\n\n" >&2
@@ -54,7 +63,8 @@ elif [ -n "$CURRENT_PYTHON" ] && [ "$CURRENT_PYTHON" != "$CASA6_PYTHON" ]; then
 fi
 
 # Check for NEW markdown files in root - FAIL if staging new ones
-STAGED_MARKDOWN_IN_ROOT=$(echo "$STAGED_FILES_EARLY" | grep -E "^[^/]+\.md$" | grep -v "^README\.md$" || true)
+# Exclude README.md, CHANGELOG.md, and LICENSE.md (consistent with .githooks/pre-commit)
+STAGED_MARKDOWN_IN_ROOT=$(echo "$STAGED_FILES_EARLY" | grep -E "^[^/]+\.md$" | grep -v "^README\.md$" | grep -v "^CHANGELOG\.md$" | grep -v "^LICENSE\.md$" || true)
 if [ -n "$STAGED_MARKDOWN_IN_ROOT" ]; then
   echo "❌ ERROR: Cannot commit markdown files in root directory" >&2
   echo "  Documentation must be in docs/ structure" >&2
@@ -71,12 +81,13 @@ if [ -n "$STAGED_MARKDOWN_IN_ROOT" ]; then
 fi
 
 # Check for existing markdown files in root (warn but don't fail - might be legacy)
-ROOT_MARKDOWN=$(find "$REPO_ROOT" -maxdepth 1 -name "*.md" -type f ! -name "README.md" 2>/dev/null | wc -l)
+# Exclude README.md, CHANGELOG.md, and LICENSE.md (consistent with .githooks/pre-commit)
+ROOT_MARKDOWN=$(find "$REPO_ROOT" -maxdepth 1 -name "*.md" -type f ! -name "README.md" ! -name "CHANGELOG.md" ! -name "LICENSE.md" 2>/dev/null | wc -l)
 if [ "$ROOT_MARKDOWN" -gt 0 ]; then
   echo "Warning: Found $ROOT_MARKDOWN existing markdown file(s) in root directory" >&2
   echo "  Documentation should be in docs/ structure" >&2
   echo "  See: docs/DOCUMENTATION_QUICK_REFERENCE.md" >&2
-  find "$REPO_ROOT" -maxdepth 1 -name "*.md" -type f ! -name "README.md" 2>/dev/null | while read -r file; do
+  find "$REPO_ROOT" -maxdepth 1 -name "*.md" -type f ! -name "README.md" ! -name "CHANGELOG.md" ! -name "LICENSE.md" 2>/dev/null | while read -r file; do
     echo "  Found: $(basename "$file")" >&2
   done
 fi
@@ -148,7 +159,7 @@ fi
 # Check for console.log in production code (warn but don't fail)
 if [ -d "${FRONTEND_DIR}/src" ]; then
   CONSOLE_LOGS=$(grep -r "console\.log\|console\.debug" --include="*.ts" --include="*.tsx" "${FRONTEND_DIR}/src" 2>/dev/null | grep -v "node_modules" | wc -l || echo "0")
-  if [ "$CONSOLE_LOGS" -gt 0 ] && [ "$CONSOLE_LOGS" -lt 10 ]; then
+  if [ "$CONSOLE_LOGS" -gt 0 ]; then
     echo "Warning: Found $CONSOLE_LOGS console.log/debug statement(s) in frontend code" >&2
     echo "  Consider removing or using proper logging" >&2
   fi

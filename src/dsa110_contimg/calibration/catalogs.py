@@ -20,7 +20,8 @@ NVSS_URL = "https://heasarc.gsfc.nasa.gov/FTP/heasarc/dbase/tdat_files/heasarc_n
 # FIRST catalog URLs (if available)
 # Note: FIRST catalog is typically available as FITS files from NRAO
 # Users may need to download manually or provide path
-FIRST_CATALOG_BASE_URL = "https://third.ucllnl.org/first/catalogs/"  # Example, verify actual URL
+# Example, verify actual URL
+FIRST_CATALOG_BASE_URL = "https://third.ucllnl.org/first/catalogs/"
 
 # RAX catalog URL (DSA-110 specific, may need to be provided manually)
 # RAX catalog location to be determined based on DSA-110 data access
@@ -303,7 +304,7 @@ def read_first_catalog(
             # Query FIRST catalog from Vizier
             # FIRST catalog name in Vizier: "VIII/92/first14"
             print("Querying FIRST catalog via Vizier...")
-            catalog_list = Vizier.query_catalog("VIII/92/first14")
+            catalog_list = Vizier.query_catalog("VIII/92/first14")  # pylint: disable=no-member
 
             if catalog_list:
                 # Convert first catalog to DataFrame
@@ -440,8 +441,8 @@ def read_vla_calibrator_catalog(path: str, cache_dir: Optional[str] = None) -> p
                 source = parts[0]
                 ra_str = parts[3]
                 dec_str = parts[4]
-                ra_deg = Angle(ra_str).to_value(u.deg)
-                dec_deg = Angle(dec_str).to_value(u.deg)
+                ra_deg = Angle(ra_str).to_value(u.deg)  # pylint: disable=no-member
+                dec_deg = Angle(dec_str).to_value(u.deg)  # pylint: disable=no-member
             except Exception:
                 continue
 
@@ -581,7 +582,7 @@ def read_vla_parsed_catalog_csv(path: str) -> pd.DataFrame:
         try:
             sc = SkyCoord(
                 str(ra_val).strip() + " " + str(dec_val).strip(),
-                unit=(u.hourangle, u.deg),
+                unit=(u.hourangle, u.deg),  # pylint: disable=no-member
                 frame="icrs",
             )
             return float(sc.ra.deg), float(sc.dec.deg)
@@ -589,7 +590,7 @@ def read_vla_parsed_catalog_csv(path: str) -> pd.DataFrame:
             try:
                 sc = SkyCoord(
                     str(ra_val).strip() + " " + str(dec_val).strip(),
-                    unit=(u.deg, u.deg),
+                    unit=(u.deg, u.deg),  # pylint: disable=no-member
                     frame="icrs",
                 )
                 return float(sc.ra.deg), float(sc.dec.deg)
@@ -637,7 +638,7 @@ def read_vla_parsed_catalog_with_flux(path: str, band: str = "20cm") -> pd.DataF
         try:
             sc = SkyCoord(
                 str(ra).strip() + " " + str(dec).strip(),
-                unit=(u.hourangle, u.deg),
+                unit=(u.hourangle, u.deg),  # pylint: disable=no-member
                 frame="icrs",
             )
             ra_deg = float(sc.ra.deg)
@@ -645,7 +646,9 @@ def read_vla_parsed_catalog_with_flux(path: str, band: str = "20cm") -> pd.DataF
         except Exception:
             # Try degrees
             try:
-                sc = SkyCoord(float(ra) * u.deg, float(dec) * u.deg, frame="icrs")
+                sc = SkyCoord(
+                    float(ra) * u.deg, float(dec) * u.deg, frame="icrs"  # pylint: disable=no-member
+                )
                 ra_deg = float(sc.ra.deg)
                 dec_deg = float(sc.dec.deg)
             except Exception:
@@ -765,8 +768,8 @@ def calibrator_match(
     # Use simple LST→RA equivalence; rely on existing helper in schedule via next_transit_time logic
     # For robustness, we compute LST from astropy Time directly here
     t = Time(mid_mjd, format="mjd", scale="utc", location=DSA110_LOCATION)
-    ra_meridian = t.sidereal_time("apparent").to_value(u.deg)
-    dec_meridian = float(pt_dec.to_value(u.deg))
+    ra_meridian = t.sidereal_time("apparent").to_value(u.deg)  # pylint: disable=no-member
+    dec_meridian = float(pt_dec.to_value(u.deg))  # pylint: disable=no-member
 
     # Filter by radius window (approximate RA window scaled by cos(dec))
     df = catalog_df.copy()
@@ -791,6 +794,7 @@ def calibrator_match(
 
     # Determine flux column to use (prefer flux_20_cm, fallback to flux_jy)
     flux_col = None
+    flux_scale = 1.0  # Default: already in Jy
     if "flux_20_cm" in sel.columns:
         flux_col = "flux_20_cm"
         flux_scale = 1e-3  # Convert mJy to Jy
@@ -866,15 +870,15 @@ def generate_caltable(
     vla_df: pd.DataFrame,
     pt_dec: u.Quantity,
     csv_path: str,
-    radius: u.Quantity = 2.5 * u.deg,
-    min_weighted_flux: u.Quantity = 1.0 * u.Jy,
+    radius: u.Quantity = 2.5 * u.deg,  # pylint: disable=no-member
+    min_weighted_flux: u.Quantity = 1.0 * u.Jy,  # pylint: disable=no-member
     min_percent_flux: float = 0.15,
 ) -> str:
     """Build a declination-specific calibrator table and save to CSV.
 
     Weighted by primary beam response at 1.4 GHz.
     """
-    pt_dec_deg = pt_dec.to_value(u.deg)
+    pt_dec_deg = pt_dec.to_value(u.deg)  # pylint: disable=no-member
     # ensure numeric
     vla_df = vla_df.copy()
     vla_df["ra"] = pd.to_numeric(vla_df["ra"], errors="coerce")
@@ -882,8 +886,8 @@ def generate_caltable(
     vla_df["flux_20_cm"] = pd.to_numeric(vla_df["flux_20_cm"], errors="coerce")
 
     cal_df = vla_df[
-        (vla_df["dec"] < (pt_dec_deg + radius.to_value(u.deg)))
-        & (vla_df["dec"] > (pt_dec_deg - radius.to_value(u.deg)))
+        (vla_df["dec"] < (pt_dec_deg + radius.to_value(u.deg)))  # pylint: disable=no-member
+        & (vla_df["dec"] > (pt_dec_deg - radius.to_value(u.deg)))  # pylint: disable=no-member
         & (vla_df["flux_20_cm"] > 1000.0)
     ].copy()
     if cal_df.empty:
@@ -905,15 +909,19 @@ def generate_caltable(
 
         # Field: local patch of radius scaled by cos(dec)
         field = vla_df[
-            (vla_df["dec"] < (pt_dec_deg + radius.to_value(u.deg)))
-            & (vla_df["dec"] > (pt_dec_deg - radius.to_value(u.deg)))
+            (vla_df["dec"] < (pt_dec_deg + radius.to_value(u.deg)))  # pylint: disable=no-member
+            & (vla_df["dec"] > (pt_dec_deg - radius.to_value(u.deg)))  # pylint: disable=no-member
             & (
                 vla_df["ra"]
-                < row["ra"] + radius.to_value(u.deg) / max(np.cos(np.deg2rad(pt_dec_deg)), 1e-3)
+                < row["ra"]
+                + radius.to_value(u.deg)
+                / max(np.cos(np.deg2rad(pt_dec_deg)), 1e-3)  # pylint: disable=no-member
             )
             & (
                 vla_df["ra"]
-                > row["ra"] - radius.to_value(u.deg) / max(np.cos(np.deg2rad(pt_dec_deg)), 1e-3)
+                > row["ra"]
+                - radius.to_value(u.deg)
+                / max(np.cos(np.deg2rad(pt_dec_deg)), 1e-3)  # pylint: disable=no-member
             )
         ].copy()
         wsum = 0.0
@@ -928,7 +936,7 @@ def generate_caltable(
     cal_df["percent_flux"] = cal_df["weighted_flux"] / cal_df["field_flux"].replace(0, np.nan)
 
     sel = cal_df[
-        (cal_df["weighted_flux"] > min_weighted_flux.to_value(u.Jy))
+        (cal_df["weighted_flux"] > min_weighted_flux.to_value(u.Jy))  # pylint: disable=no-member
         & (cal_df["percent_flux"] > min_percent_flux)
     ].copy()
 
@@ -962,8 +970,8 @@ def update_caltable(
 ) -> str:
     """Ensure a declination-specific caltable exists; return its path."""
     os.makedirs(out_dir, exist_ok=True)
-    decsign = "+" if pt_dec.to_value(u.deg) >= 0 else "-"
-    decval = f"{abs(pt_dec.to_value(u.deg)):05.1f}".replace(".", "p")
+    decsign = "+" if pt_dec.to_value(u.deg) >= 0 else "-"  # pylint: disable=no-member
+    decval = f"{abs(pt_dec.to_value(u.deg)):05.1f}".replace(".", "p")  # pylint: disable=no-member
     csv_path = str(Path(out_dir) / f"calibrator_sources_dec{decsign}{decval}.csv")
     if not os.path.exists(csv_path):
         generate_caltable(vla_df=vla_df, pt_dec=pt_dec, csv_path=csv_path)
@@ -1122,11 +1130,13 @@ def query_nvss_sources(
                 # Exact angular separation filter (post-query refinement)
                 if len(df) > 0:
                     sc = SkyCoord(
-                        ra=df["ra_deg"].values * u.deg,
-                        dec=df["dec_deg"].values * u.deg,
+                        ra=df["ra_deg"].values * u.deg,  # pylint: disable=no-member
+                        dec=df["dec_deg"].values * u.deg,  # pylint: disable=no-member
                         frame="icrs",
                     )
-                    center = SkyCoord(ra_deg * u.deg, dec_deg * u.deg, frame="icrs")
+                    center = SkyCoord(
+                        ra_deg * u.deg, dec_deg * u.deg, frame="icrs"
+                    )  # pylint: disable=no-member
                     sep = sc.separation(center).deg
                     df = df[sep <= radius_deg].copy()
 
@@ -1159,11 +1169,13 @@ def query_nvss_sources(
 
                 # Convert to SkyCoord for separation calculation
                 sc = SkyCoord(
-                    ra=df_full["ra"].values * u.deg,
-                    dec=df_full["dec"].values * u.deg,
+                    ra=df_full["ra"].values * u.deg,  # pylint: disable=no-member
+                    dec=df_full["dec"].values * u.deg,  # pylint: disable=no-member
                     frame="icrs",
                 )
-                center = SkyCoord(ra_deg * u.deg, dec_deg * u.deg, frame="icrs")
+                center = SkyCoord(
+                    ra_deg * u.deg, dec_deg * u.deg, frame="icrs"  # pylint: disable=no-member
+                )  # pylint: disable=no-member
                 sep = sc.separation(center).deg
 
                 # Filter by separation
@@ -1338,11 +1350,13 @@ def query_rax_sources(
                 # Exact angular separation filter (post-query refinement)
                 if len(df) > 0:
                     sc = SkyCoord(
-                        ra=df["ra_deg"].values * u.deg,
-                        dec=df["dec_deg"].values * u.deg,
+                        ra=df["ra_deg"].values * u.deg,  # pylint: disable=no-member
+                        dec=df["dec_deg"].values * u.deg,  # pylint: disable=no-member
                         frame="icrs",
                     )
-                    center = SkyCoord(ra_deg * u.deg, dec_deg * u.deg, frame="icrs")
+                    center = SkyCoord(
+                        ra_deg * u.deg, dec_deg * u.deg, frame="icrs"
+                    )  # pylint: disable=no-member
                     sep = sc.separation(center).deg
                     df = df[sep <= radius_deg].copy()
 
@@ -1390,8 +1404,14 @@ def query_rax_sources(
                 # Convert to SkyCoord for separation calculation
                 ra_vals = pd.to_numeric(df_full[ra_col], errors="coerce")
                 dec_vals = pd.to_numeric(df_full[dec_col], errors="coerce")
-                sc = SkyCoord(ra=ra_vals.values * u.deg, dec=dec_vals.values * u.deg, frame="icrs")
-                center = SkyCoord(ra_deg * u.deg, dec_deg * u.deg, frame="icrs")
+                sc = SkyCoord(
+                    ra=ra_vals.values * u.deg,  # pylint: disable=no-member
+                    dec=dec_vals.values * u.deg,
+                    frame="icrs",
+                )  # pylint: disable=no-member
+                center = SkyCoord(
+                    ra_deg * u.deg, dec_deg * u.deg, frame="icrs"  # pylint: disable=no-member
+                )  # pylint: disable=no-member
                 sep = sc.separation(center).deg
 
                 # Filter by separation
@@ -1573,11 +1593,13 @@ def query_vlass_sources(
                 # Exact angular separation filter (post-query refinement)
                 if len(df) > 0:
                     sc = SkyCoord(
-                        ra=df["ra_deg"].values * u.deg,
-                        dec=df["dec_deg"].values * u.deg,
+                        ra=df["ra_deg"].values * u.deg,  # pylint: disable=no-member
+                        dec=df["dec_deg"].values * u.deg,  # pylint: disable=no-member
                         frame="icrs",
                     )
-                    center = SkyCoord(ra_deg * u.deg, dec_deg * u.deg, frame="icrs")
+                    center = SkyCoord(
+                        ra_deg * u.deg, dec_deg * u.deg, frame="icrs"
+                    )  # pylint: disable=no-member
                     sep = sc.separation(center).deg
                     df = df[sep <= radius_deg].copy()
 
@@ -1649,8 +1671,14 @@ def query_vlass_sources(
                 # Convert to SkyCoord for separation calculation
                 ra_vals = pd.to_numeric(df_full[ra_col], errors="coerce")
                 dec_vals = pd.to_numeric(df_full[dec_col], errors="coerce")
-                sc = SkyCoord(ra=ra_vals.values * u.deg, dec=dec_vals.values * u.deg, frame="icrs")
-                center = SkyCoord(ra_deg * u.deg, dec_deg * u.deg, frame="icrs")
+                sc = SkyCoord(
+                    ra=ra_vals.values * u.deg,  # pylint: disable=no-member
+                    dec=dec_vals.values * u.deg,
+                    frame="icrs",
+                )  # pylint: disable=no-member
+                center = SkyCoord(
+                    ra_deg * u.deg, dec_deg * u.deg, frame="icrs"  # pylint: disable=no-member
+                )  # pylint: disable=no-member
                 sep = sc.separation(center).deg
 
                 # Filter by separation

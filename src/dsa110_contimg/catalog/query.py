@@ -433,11 +433,13 @@ def _query_sqlite(
         # Exact angular separation filter
         if len(df) > 0:
             sc = SkyCoord(
-                ra=df["ra_deg"].values * u.deg,
-                dec=df["dec_deg"].values * u.deg,
+                ra=df["ra_deg"].values * u.deg,  # pylint: disable=no-member
+                dec=df["dec_deg"].values * u.deg,  # pylint: disable=no-member
                 frame="icrs",
             )
-            center = SkyCoord(ra_center * u.deg, dec_center * u.deg, frame="icrs")
+            center = SkyCoord(
+                ra_center * u.deg, dec_center * u.deg, frame="icrs"  # pylint: disable=no-member
+            )  # pylint: disable=no-member
             sep = sc.separation(center).deg
             df = df[sep <= radius_deg].copy()
 
@@ -458,8 +460,14 @@ def _query_nvss_csv(
     from dsa110_contimg.calibration.catalogs import read_nvss_catalog
 
     df = read_nvss_catalog()
-    sc = SkyCoord(ra=df["ra"].values * u.deg, dec=df["dec"].values * u.deg, frame="icrs")
-    center = SkyCoord(ra_center * u.deg, dec_center * u.deg, frame="icrs")
+    sc = SkyCoord(
+        ra=df["ra"].values * u.deg,
+        dec=df["dec"].values * u.deg,  # pylint: disable=no-member
+        frame="icrs",
+    )  # pylint: disable=no-member
+    center = SkyCoord(
+        ra_center * u.deg, dec_center * u.deg, frame="icrs"  # pylint: disable=no-member
+    )  # pylint: disable=no-member
     sep = sc.separation(center).deg
 
     keep = sep <= radius_deg
