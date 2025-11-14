@@ -7,6 +7,7 @@ import { Container, Typography, Paper, Box, Alert, Chip, Button, Grid } from "@m
 import { ArrowBack } from "@mui/icons-material";
 import SkyViewer from "../components/Sky/SkyViewer";
 import { useMosaic } from "../api/queries";
+import PageBreadcrumbs from "../components/PageBreadcrumbs";
 
 export default function MosaicViewPage() {
   const { mosaicId } = useParams<{ mosaicId: string }>();
@@ -55,80 +56,87 @@ export default function MosaicViewPage() {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Box display="flex" alignItems="center" gap={2} mb={4}>
-        <Button startIcon={<ArrowBack />} onClick={() => navigate("/mosaics")} variant="outlined">
-          Back to Gallery
-        </Button>
-        <Typography variant="h1" component="h1">
-          {mosaic.name}
-        </Typography>
-        <Chip label={mosaic.status} color={getStatusColor(mosaic.status)} size="small" />
-      </Box>
+    <>
+      <PageBreadcrumbs />
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Box display="flex" alignItems="center" gap={2} mb={4}>
+          <Button startIcon={<ArrowBack />} onClick={() => navigate("/mosaics")} variant="outlined">
+            Back to Gallery
+          </Button>
+          <Typography variant="h1" component="h1">
+            {mosaic.name}
+          </Typography>
+          <Chip label={mosaic.status} color={getStatusColor(mosaic.status)} size="small" />
+        </Box>
 
-      <Grid container spacing={3}>
-        {/* Mosaic Metadata */}
-        <Grid item xs={12} md={4} {...({} as any)}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Mosaic Information
-            </Typography>
-
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                <strong>Time Range:</strong>
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 2 }}>
-                {new Date(mosaic.start_time).toLocaleString()} →<br />
-                {new Date(mosaic.end_time).toLocaleString()}
+        <Grid container spacing={3}>
+          {/* Mosaic Metadata */}
+          <Grid item xs={12} md={4} {...({} as any)}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Mosaic Information
               </Typography>
 
-              <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {mosaic.image_count !== undefined && (
-                  <Chip label={`${mosaic.image_count} images`} size="small" variant="outlined" />
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  <strong>Time Range:</strong>
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  {new Date(mosaic.start_time).toLocaleString()} →<br />
+                  {new Date(mosaic.end_time).toLocaleString()}
+                </Typography>
+
+                <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
+                  {mosaic.image_count !== undefined && (
+                    <Chip label={`${mosaic.image_count} images`} size="small" variant="outlined" />
+                  )}
+                  {mosaic.noise_jy !== undefined && (
+                    <Chip
+                      label={`${(mosaic.noise_jy * 1000).toFixed(2)} mJy noise`}
+                      size="small"
+                      variant="outlined"
+                    />
+                  )}
+                  {mosaic.source_count !== undefined && (
+                    <Chip
+                      label={`${mosaic.source_count} sources`}
+                      size="small"
+                      variant="outlined"
+                    />
+                  )}
+                </Box>
+
+                {mosaic.created_at && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Created:</strong> {new Date(mosaic.created_at).toLocaleString()}
+                    </Typography>
+                  </Box>
                 )}
-                {mosaic.noise_jy !== undefined && (
-                  <Chip
-                    label={`${(mosaic.noise_jy * 1000).toFixed(2)} mJy noise`}
-                    size="small"
-                    variant="outlined"
-                  />
-                )}
-                {mosaic.source_count !== undefined && (
-                  <Chip label={`${mosaic.source_count} sources`} size="small" variant="outlined" />
+
+                {mosaic.path && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="body2" color="text.secondary" noWrap>
+                      <strong>Path:</strong> {mosaic.path.split("/").pop()}
+                    </Typography>
+                  </Box>
                 )}
               </Box>
+            </Paper>
+          </Grid>
 
-              {mosaic.created_at && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>Created:</strong> {new Date(mosaic.created_at).toLocaleString()}
-                  </Typography>
-                </Box>
-              )}
+          {/* Main Mosaic Display */}
+          <Grid item xs={12} md={8} {...({} as any)}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+                Mosaic Display
+              </Typography>
 
-              {mosaic.path && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="body2" color="text.secondary" noWrap>
-                    <strong>Path:</strong> {mosaic.path.split("/").pop()}
-                  </Typography>
-                </Box>
-              )}
-            </Box>
-          </Paper>
+              <SkyViewer imagePath={fitsUrl} displayId="mosaicViewDisplay" height={700} />
+            </Paper>
+          </Grid>
         </Grid>
-
-        {/* Main Mosaic Display */}
-        <Grid item xs={12} md={8} {...({} as any)}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-              Mosaic Display
-            </Typography>
-
-            <SkyViewer imagePath={fitsUrl} displayId="mosaicViewDisplay" height={700} />
-          </Paper>
-        </Grid>
-      </Grid>
-    </Container>
+      </Container>
+    </>
   );
 }

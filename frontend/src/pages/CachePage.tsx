@@ -1,19 +1,9 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Typography,
-  Tabs,
-  Tab,
-  Paper,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from "@mui/material";
+import { Box, Typography, Tabs, Tab, Paper, Button } from "@mui/material";
 import { CacheStats, CacheKeys, CachePerformance } from "../components/Cache";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../api/client";
+import { ConfirmationDialog } from "../components/ConfirmationDialog";
 
 function TabPanel(props: { children?: React.ReactNode; index: number; value: number }) {
   const { children, value, index, ...other } = props;
@@ -92,25 +82,16 @@ export default function CachePage() {
       </Paper>
 
       {/* Clear Cache Confirmation Dialog */}
-      <Dialog open={clearDialogOpen} onClose={() => setClearDialogOpen(false)}>
-        <DialogTitle>Clear All Cache</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to clear all cache? This action cannot be undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setClearDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleClearCache}
-            color="error"
-            variant="contained"
-            disabled={clearCacheMutation.isPending}
-          >
-            {clearCacheMutation.isPending ? "Clearing..." : "Clear All"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmationDialog
+        open={clearDialogOpen}
+        onClose={() => setClearDialogOpen(false)}
+        onConfirm={handleClearCache}
+        title="Clear All Cache"
+        message="Are you sure you want to clear all cache? This action cannot be undone."
+        severity="error"
+        confirmText="Clear All"
+        loading={clearCacheMutation.isPending}
+      />
     </Box>
   );
 }

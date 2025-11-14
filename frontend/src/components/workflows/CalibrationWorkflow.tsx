@@ -41,6 +41,8 @@ import {
 import { useNotifications } from "../../contexts/NotificationContext";
 import { CalibrationSPWPanel } from "../CalibrationSPWPanel";
 import CalibrationQAPanel from "../CalibrationQAPanel";
+import { ValidatedTextField } from "../ValidatedTextField";
+import { validationRules } from "../../utils/formValidation";
 import type { CalibrateJobParams, JobParams } from "../../api/types";
 
 interface CalibrationWorkflowProps {
@@ -287,7 +289,7 @@ export function CalibrationWorkflow({
             <Typography variant="subtitle2" gutterBottom>
               Basic Parameters
             </Typography>
-            <TextField
+            <ValidatedTextField
               fullWidth
               label="Field ID"
               value={calibParams.field || ""}
@@ -295,6 +297,16 @@ export function CalibrationWorkflow({
               sx={{ mb: 2 }}
               size="small"
               helperText="Leave empty for auto-detect from catalog"
+              validationRules={[
+                {
+                  validate: (value: string) => {
+                    // Optional field - if provided, should be numeric or valid field name
+                    if (!value.trim()) return true;
+                    return /^[0-9]+$/.test(value.trim()) || /^[a-zA-Z0-9_-]+$/.test(value.trim());
+                  },
+                  message: "Field ID must be numeric or alphanumeric",
+                },
+              ]}
             />
             {selectedMS && (
               <>
@@ -867,7 +879,7 @@ export function CalibrationWorkflow({
                 <Typography variant="subtitle2">Advanced Options</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <TextField
+                <ValidatedTextField
                   fullWidth
                   label="Gain Solution Interval"
                   value={calibParams.gain_solint || "inf"}
@@ -880,6 +892,21 @@ export function CalibrationWorkflow({
                   sx={{ mb: 2 }}
                   size="small"
                   helperText="e.g., 'inf', '60s', '10min'"
+                  validationRules={[
+                    {
+                      validate: (value: string) => {
+                        if (!value) return false;
+                        const lower = value.toLowerCase();
+                        // Allow "inf" or time format like "60s", "10min", "1h", etc.
+                        return (
+                          lower === "inf" ||
+                          /^\d+[smhd]$/i.test(value) ||
+                          /^\d+\.\d+[smhd]$/i.test(value)
+                        );
+                      },
+                      message: "Must be 'inf' or time format (e.g., '60s', '10min', '1h')",
+                    },
+                  ]}
                 />
                 <FormControl fullWidth sx={{ mb: 2 }} size="small">
                   <InputLabel>Gain Cal Mode</InputLabel>
@@ -898,11 +925,11 @@ export function CalibrationWorkflow({
                     <MenuItem value="a">Amp only</MenuItem>
                   </Select>
                 </FormControl>
-                <TextField
+                <ValidatedTextField
                   fullWidth
                   label="Minimum PB Response"
                   type="number"
-                  value={calibParams.min_pb || 0.5}
+                  value={String(calibParams.min_pb || 0.5)}
                   onChange={(e) => {
                     const val = parseFloat(e.target.value);
                     if (!isNaN(val) && val >= 0 && val <= 1) {
@@ -913,6 +940,10 @@ export function CalibrationWorkflow({
                   size="small"
                   helperText="0.0 - 1.0 (higher = stricter field selection)"
                   inputProps={{ min: 0, max: 1, step: 0.1 }}
+                  validationRules={[
+                    validationRules.number("Must be a number"),
+                    validationRules.range(0, 1, "Must be between 0.0 and 1.0"),
+                  ]}
                 />
                 <FormControlLabel
                   control={
