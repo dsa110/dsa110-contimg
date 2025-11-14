@@ -3,9 +3,10 @@
 Welcome. This pipeline turns incoming UVH5 subband data into calibrated,
 quick-look continuum images and exposes a monitoring API.
 
-!!! info "Package Information" This documentation is for
-**{{ config.extra.package_name }}** version **{{ config.extra.version }}**.
-{% if config.extra.description %} {{ config.extra.description }} {% endif %}
+!!! info "Package Information" This documentation is for **dsa110-contimg**
+version **0.1.0**.
+
+    DSA-110 Continuum Imaging Pipeline
 
 This documentation is organized to help you understand and use the pipeline
 effectively.

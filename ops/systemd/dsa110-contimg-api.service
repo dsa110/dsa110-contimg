@@ -11,12 +11,32 @@ EnvironmentFile=/data/dsa110-contimg/ops/systemd/contimg.env
 Environment="PYTHONPATH=/data/dsa110-contimg/src"
 WorkingDirectory=/data/dsa110-contimg
 ExecStart=/opt/miniforge/envs/casa6/bin/uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port ${CONTIMG_API_PORT}
+
+# Resource limits
+MemoryMax=4G
+MemoryHigh=3G
+CPUQuota=300%
+CPUWeight=200
+
+# Health check endpoint available at /health
+# For systemd health monitoring, use external tools or systemd health check service
+
+# Restart policy
 Restart=always
 RestartSec=5
+StartLimitInterval=300
+StartLimitBurst=5
+
+# Security
 NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/data/dsa110-contimg/state /stage/dsa110-contimg /data/incoming
+
+# Logging
 StandardOutput=append:/data/dsa110-contimg/state/logs/dsa110-contimg-api.out
 StandardError=append:/data/dsa110-contimg/state/logs/dsa110-contimg-api.err
 
 [Install]
 WantedBy=multi-user.target
-

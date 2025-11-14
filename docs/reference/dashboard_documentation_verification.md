@@ -8,7 +8,9 @@
 
 ## Summary
 
-All 9 dashboard pages are now implemented. Documentation has been updated to accurately reflect what is actually implemented vs. what is planned or partially implemented.
+All 9 dashboard pages are now implemented. Documentation has been updated to
+accurately reflect what is actually implemented vs. what is planned or partially
+implemented.
 
 ---
 
@@ -17,11 +19,13 @@ All 9 dashboard pages are now implemented. Documentation has been updated to acc
 ### 1. Dashboard Page (`/dashboard`)
 
 **Documentation Claimed:**
+
 - "Live metrics chart (last 6 hours)"
 - "Color-coded status indicators (green/yellow/red)"
 - "Quick actions (View Source, Dismiss, Export)" for ESE candidates
 
 **Actual Implementation:**
+
 - Current metrics display only (no historical chart)
 - Basic status indicators
 - ESE candidates panel with clickable navigation to source detail page
@@ -33,23 +37,28 @@ All 9 dashboard pages are now implemented. Documentation has been updated to acc
 ### 2. Sky View Page (`/sky`)
 
 **Documentation Claimed:**
+
 - Mosaic Builder on Sky View page
 - "Download PNG image"
 - "Reprocess with different parameters"
 - "View QA plots"
 
 **Actual Implementation:**
+
 - Mosaic Builder is on separate Mosaic Gallery page (`/mosaics`)
-- Sky View has: ImageBrowser, SkyMap, JS9 viewer, Catalog overlay, Region tools, Profile tool, Image fitting tool, Photometry plugin
+- Sky View has: ImageBrowser, SkyMap, JS9 viewer, Catalog overlay, Region tools,
+  Profile tool, Image fitting tool, Photometry plugin
 - No PNG download, reprocessing, or QA plot viewing on Sky View
 
-**Fixed:** Updated documentation to reflect actual features and noted that Mosaic Builder is on separate page.
+**Fixed:** Updated documentation to reflect actual features and noted that
+Mosaic Builder is on separate page.
 
 ---
 
 ### 3. Sources Page (`/sources`)
 
 **Documentation Claimed:**
+
 - "Auto-complete suggestions"
 - "Save filter presets"
 - "Bulk Actions: Select all, Flag selected, Export selected, Add to watch list"
@@ -57,19 +66,24 @@ All 9 dashboard pages are now implemented. Documentation has been updated to acc
 - "Variability indicator (✓/⚠/✗)"
 
 **Actual Implementation:**
+
 - Basic search by source ID
-- Advanced filters: variability threshold slider, declination range slider, ESE filter checkbox
+- Advanced filters: variability threshold slider, declination range slider, ESE
+  filter checkbox
 - Filter management: active filter count chip, clear button
-- Table columns: Source ID (clickable), RA/Dec, Catalog, Mean Flux, Std Dev, χ²/ν, Variable flag, Observation count
+- Table columns: Source ID (clickable), RA/Dec, Catalog, Mean Flux, Std Dev,
+  χ²/ν, Variable flag, Observation count
 - No auto-complete, presets, bulk actions, sparklines, or variability indicators
 
-**Fixed:** Updated documentation to match actual table columns and filter features.
+**Fixed:** Updated documentation to match actual table columns and filter
+features.
 
 ---
 
 ### 4. Source Detail Page (`/sources/:sourceId`)
 
 **Documentation Claimed:**
+
 - "Interactive Plotly.js visualization" for light curve
 - "Statistics Panel" with detailed metrics
 - "Catalog Information" with NVSS/VLASS/FIRST details
@@ -77,19 +91,22 @@ All 9 dashboard pages are now implemented. Documentation has been updated to acc
 - "Notes & Classification" system
 
 **Actual Implementation:**
+
 - Light curve section exists but is placeholder (not implemented)
 - Source details panel with basic metadata
 - Detections table (GenericTable) with clickable rows
 - Aladin Lite placeholder (not implemented)
 - Comments placeholder (not implemented)
 
-**Fixed:** Updated documentation to clearly mark placeholders vs. implemented features.
+**Fixed:** Updated documentation to clearly mark placeholders vs. implemented
+features.
 
 ---
 
 ### 5. Observing Page (`/observing`)
 
 **Documentation Claimed:**
+
 - "Local Sidereal Time (LST)"
 - "Altitude and Azimuth"
 - "Parallactic angle"
@@ -100,20 +117,24 @@ All 9 dashboard pages are now implemented. Documentation has been updated to acc
 - "Declination strip coverage overlay"
 
 **Actual Implementation:**
+
 - Current pointing (RA/Dec from most recent history entry)
 - Pipeline status chips
 - Calibrator tracking table (top 10 matches)
 - Calibrator flux vs time plot (conditional)
 - Pointing history visualization (7-day fixed trail)
-- No LST, Alt/Az, Parallactic angle, Antenna status, Observing mode, Calibrator plan, or time range selection
+- No LST, Alt/Az, Parallactic angle, Antenna status, Observing mode, Calibrator
+  plan, or time range selection
 
-**Fixed:** Updated documentation to reflect implemented features and note missing features.
+**Fixed:** Updated documentation to reflect implemented features and note
+missing features.
 
 ---
 
 ### 6. Health Page (`/health`)
 
 **Documentation Claimed:**
+
 - "Resource Usage Plots (Last 6 Hours)" with historical data
 - "CPU percentage (current, average, peak)"
 - "Memory percentage (current, average, peak)"
@@ -123,31 +144,39 @@ All 9 dashboard pages are now implemented. Documentation has been updated to acc
 - "QA Diagnostic Gallery" with thumbnails
 
 **Actual Implementation:**
+
 - Current metrics only (single data point plot, not historical)
 - Metric cards with progress bars
 - Detailed memory and disk information
 - Queue Status tab with statistics and state distribution
 - QA Diagnostics tab with ESE candidates table and link to QA page
-- No historical plots, calibration registry, data quality metrics, performance metrics, or QA gallery
+- No historical plots, calibration registry, data quality metrics, performance
+  metrics, or QA gallery
 
-**Fixed:** Updated documentation to reflect actual three-tab structure and implemented features.
+**Fixed:** Updated documentation to reflect actual three-tab structure and
+implemented features.
 
 ---
 
 ### 7. Streaming Page (`/streaming`)
 
 **Documentation Claimed:**
-- "Current Operations" with operation type, progress percentage, estimated completion
-- "Processing Rate: Groups processed per hour, Average processing time, Throughput metrics"
+
+- "Current Operations" with operation type, progress percentage, estimated
+  completion
+- "Processing Rate: Groups processed per hour, Average processing time,
+  Throughput metrics"
 - "Validation before save" for configuration
 - "Reset to defaults" button
 
 **Actual Implementation:**
+
 - Service status (running/stopped, PID, uptime)
 - Resource usage (CPU %, Memory MB with progress bars)
 - Queue statistics (from metrics, if available)
 - Configuration display and dialog editor
-- No current operations display, detailed processing rate metrics, or reset defaults
+- No current operations display, detailed processing rate metrics, or reset
+  defaults
 
 **Fixed:** Updated documentation to match actual implementation.
 
@@ -156,9 +185,11 @@ All 9 dashboard pages are now implemented. Documentation has been updated to acc
 ### 8. QA Visualization Page (`/qa`)
 
 **Documentation Claimed:**
+
 - "Dual Window Mode" for FITS comparison
 
 **Actual Implementation:**
+
 - Single FITS viewer
 - No dual window mode
 
@@ -169,12 +200,14 @@ All 9 dashboard pages are now implemented. Documentation has been updated to acc
 ### 9. Data Browser Page (`/data`)
 
 **Documentation Claimed:**
+
 - "Data Lineage Graph" visualization
 - "Date range" filter
 - "Quality threshold" filter
 - "Search functionality"
 
 **Actual Implementation:**
+
 - Staging/Published tabs
 - Data type filter dropdown
 - Data instance table with status, QA status, finalization status
@@ -206,11 +239,13 @@ All 9 dashboard pages are now implemented. Documentation has been updated to acc
 The following features are documented but not yet implemented:
 
 ### Source Detail Page
+
 - Light curve visualization (Plotly.js)
 - Aladin Lite sky view integration
 - Comments and annotations system
 
 ### Observing Page
+
 - LST, Alt/Az, Parallactic angle display
 - Antenna status panel
 - Observing mode display
@@ -219,6 +254,7 @@ The following features are documented but not yet implemented:
 - Declination strip overlay
 
 ### Health Page
+
 - Historical metrics plots (last 6 hours)
 - Calibration Registry display
 - Data Quality Metrics trends
@@ -226,15 +262,18 @@ The following features are documented but not yet implemented:
 - QA Diagnostic Gallery
 
 ### QA Visualization Page
+
 - Dual Window Mode for FITS comparison
 
 ### Data Browser Page
+
 - Data Lineage Graph visualization
 - Date range filter
 - Quality threshold filter
 - Search functionality
 
 ### Dashboard Page
+
 - Historical metrics chart
 - Advanced ESE candidate actions (dismiss, export)
 
@@ -242,8 +281,8 @@ The following features are documented but not yet implemented:
 
 ## Verification Methodology
 
-1. Read actual page component files (`frontend/src/pages/*.tsx`)
-2. Read actual component files (`frontend/src/components/**/*.tsx`)
+1. Read actual page component files (`frontend/src/pages/`)
+2. Read actual component files (`frontend/src/components/`)
 3. Checked API endpoint usage in queries (`frontend/src/api/queries.ts`)
 4. Compared against documentation claims
 5. Updated documentation to match reality
@@ -253,7 +292,9 @@ The following features are documented but not yet implemented:
 
 ## Conclusion
 
-Documentation has been updated to accurately reflect the current implementation state. All 9 pages are implemented, but some advanced features within pages are still planned. The documentation now clearly distinguishes between:
+Documentation has been updated to accurately reflect the current implementation
+state. All 9 pages are implemented, but some advanced features within pages are
+still planned. The documentation now clearly distinguishes between:
 
 - ✅ **Implemented** - Actually working in code
 - 📋 **Planned** - Documented but not yet implemented
@@ -263,4 +304,3 @@ Documentation has been updated to accurately reflect the current implementation 
 
 **Last Updated:** 2025-11-12  
 **Next Review:** After implementing planned features
-

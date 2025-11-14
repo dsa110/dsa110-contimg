@@ -11,11 +11,14 @@
    - Found in team URL or settings
 
 3. **Create config file:**
+
    ```bash
    cp .linear_config.json.example .linear_config.json
    nano .linear_config.json
    ```
+
    Add your credentials:
+
    ```json
    {
      "api_key": "lin_api_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
@@ -24,6 +27,7 @@
    ```
 
 4. **Test the connection:**
+
    ```bash
    make sync-linear-dry-run
    ```
@@ -33,7 +37,8 @@
    make sync-linear
    ```
 
-That's it! Your TODO items will be created as Linear issues and linked back to TODO.md.
+That's it! Your TODO items will be created as Linear issues and linked back to
+TODO.md.
 
 ---
 
@@ -48,5 +53,5 @@ That's it! Your TODO items will be created as Linear issues and linked back to T
 
 ## Need Help?
 
-See `docs/LINEAR_INTEGRATION.md` for detailed documentation, troubleshooting, and advanced usage.
-
+See `docs/how-to/LINEAR_INTEGRATION.md` for detailed documentation,
+troubleshooting, and advanced usage.

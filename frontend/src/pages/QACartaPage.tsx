@@ -13,6 +13,7 @@ import "./QACartaPage.css"; // Custom theme overrides to match MUI dark theme
 import DirectoryBrowser from "../components/QA/DirectoryBrowser";
 import FITSViewer from "../components/QA/FITSViewer";
 import CasaTableViewer from "../components/QA/CasaTableViewer";
+import { logger } from "../utils/logger";
 
 // Widget component registry
 const WIDGET_COMPONENTS: Record<string, React.ComponentType<any>> = {
@@ -155,7 +156,7 @@ export default function QACartaPage() {
             },
           };
 
-          console.log("Golden Layout config:", JSON.stringify(config, null, 2));
+          logger.debug("Golden Layout config:", JSON.stringify(config, null, 2));
 
           // Component factory function
           const componentFactory = (componentName: string) => {
@@ -203,11 +204,11 @@ export default function QACartaPage() {
           };
 
           // CRITICAL: Create layout WITHOUT config first, register components, THEN load config
-          console.log("Creating empty layout...");
+          logger.debug("Creating empty layout...");
           const layout = new GoldenLayout(layoutRef.current!);
 
           // Register components BEFORE loading config
-          console.log("Registering components...");
+          logger.debug("Registering components...");
           layout.registerComponentFactoryFunction(
             "DirectoryBrowser",
             componentFactory("DirectoryBrowser")
@@ -219,29 +220,29 @@ export default function QACartaPage() {
           );
 
           // Now load the config - check for available methods
-          console.log("Loading config...");
+          logger.debug("Loading config...");
           if (typeof (layout as any).loadLayout === "function") {
             (layout as any).loadLayout(config);
-            console.log("Config loaded via loadLayout()");
+            logger.debug("Config loaded via loadLayout()");
           } else if (typeof (layout as any).loadState === "function") {
             (layout as any).loadState(config);
-            console.log("Config loaded via loadState()");
+            logger.debug("Config loaded via loadState()");
           } else if (typeof (layout as any).load === "function") {
             (layout as any).load(config);
-            console.log("Config loaded via load()");
+            logger.debug("Config loaded via load()");
           } else {
             // Fallback: try to manually add components using layout API
-            console.warn("No load method found, trying manual component addition");
+            logger.warn("No load method found, trying manual component addition");
             try {
               const rootItem = (layout as any).root;
               if (rootItem && typeof rootItem.addChild === "function") {
                 // This is a fallback - may not work with v2 API
-                console.log("Attempting manual component addition...");
+                logger.debug("Attempting manual component addition...");
               } else {
                 throw new Error("No suitable method to load config found");
               }
             } catch (e) {
-              console.error("Failed to load config:", e);
+              logger.error("Failed to load config:", e);
               throw e;
             }
           }
@@ -251,10 +252,10 @@ export default function QACartaPage() {
           const rootElement = layoutRef.current?.querySelector(".lm_root");
           const hasChildren = rootElement && rootElement.children.length > 0;
 
-          console.log("Layout initialized. Root has children:", hasChildren);
+          logger.debug("Layout initialized. Root has children:", hasChildren);
 
           if (!hasChildren) {
-            console.warn(
+            logger.warn(
               "Layout created but no children found. Config may not have been processed correctly."
             );
             // Try to manually trigger layout update if method exists
@@ -267,14 +268,14 @@ export default function QACartaPage() {
           setIsInitialized(true);
           setError(null);
         } catch (initError) {
-          console.error("Failed to initialize Golden Layout:", initError);
+          logger.error("Failed to initialize Golden Layout:", initError);
           setError(
             `Initialization error: ${initError instanceof Error ? initError.message : String(initError)}`
           );
         }
       })
       .catch((importError) => {
-        console.error("Failed to import Golden Layout:", importError);
+        logger.error("Failed to import Golden Layout:", importError);
         setError(
           `Import error: ${importError instanceof Error ? importError.message : String(importError)}`
         );
@@ -286,7 +287,7 @@ export default function QACartaPage() {
         try {
           goldenLayoutRef.current.destroy();
         } catch (e) {
-          console.error("Error destroying Golden Layout:", e);
+          logger.error("Error destroying Golden Layout:", e);
         }
         goldenLayoutRef.current = null;
       }

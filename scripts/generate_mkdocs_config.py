@@ -122,6 +122,44 @@ def update_mkdocs_config(mkdocs_path: Path, metadata: dict) -> None:
         f.writelines(lines)
 
 
+def update_markdown_files(repo_root: Path, metadata: dict) -> None:
+    """Update markdown files with actual package metadata values."""
+    # Files that reference package metadata
+    files_to_update = [
+        repo_root / "docs" / "index.md",
+        repo_root / "docs" / "how-to" / "package_installation.md",
+    ]
+
+    package_name = metadata["name"]
+    version = metadata["version"]
+    description = metadata.get("description", "")
+
+    for file_path in files_to_update:
+        if not file_path.exists():
+            continue
+
+        with open(file_path, "r") as f:
+            content = f.read()
+
+        # Replace template variables with actual values
+        original_content = content
+        content = content.replace("{{ config.extra.package_name }}", package_name)
+        content = content.replace("{{ config.extra.version }}", version)
+        content = content.replace("{% if config.extra.description %}", "")
+        content = content.replace("{{ config.extra.description }}", description)
+        content = content.replace("{% endif %}", "")
+
+        # Clean up any remaining template artifacts
+        content = content.replace("{{ config.extra.package_name }}", package_name)
+        content = content.replace("{{ config.extra.version }}", version)
+
+        # Only write if content changed
+        if content != original_content:
+            with open(file_path, "w") as f:
+                f.write(content)
+            print(f"  Updated {file_path.name} with package metadata")
+
+
 def main():
     """Main function."""
     repo_root = Path(__file__).parent.parent
@@ -141,6 +179,9 @@ def main():
 
     # Update mkdocs config
     update_mkdocs_config(mkdocs_path, metadata)
+
+    # Update markdown files with actual values (since MkDocs doesn't process Jinja2 in markdown)
+    update_markdown_files(repo_root, metadata)
 
     print(f"✓ Updated {mkdocs_path} with metadata from {pyproject_path}")
     print(f"  Site name: {metadata['description'] or metadata['name'].replace('-', ' ').title()}")

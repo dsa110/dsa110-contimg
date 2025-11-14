@@ -1,21 +1,47 @@
 [Unit]
-Description=DSA-110 Continuum Dashboard (Frontend)
+Description=DSA-110 Continuum Dashboard (Frontend) - Production
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
+User=ubuntu
+Group=ubuntu
 EnvironmentFile=/data/dsa110-contimg/ops/systemd/contimg.env
-Environment="VITE_API_URL=http://localhost:8000"
+Environment="NODE_ENV=production"
 Environment="PATH=/opt/miniforge/envs/casa6/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 WorkingDirectory=/data/dsa110-contimg/frontend
-ExecStart=/opt/miniforge/envs/casa6/bin/npm run dev -- --host 0.0.0.0 --port ${CONTIMG_DASHBOARD_PORT}
+
+# Production: Build and serve static files
+# Note: FastAPI also serves static files at /ui/, but this provides a standalone option
+ExecStartPre=/data/dsa110-contimg/scripts/build-dashboard-production.sh
+ExecStart=/data/dsa110-contimg/scripts/serve-dashboard-production.sh
+
+# Resource limits
+MemoryMax=2G
+MemoryHigh=1.5G
+CPUQuota=200%
+CPUWeight=100
+
+# Health check (simple - service is considered healthy if it starts)
+# For more sophisticated health checks, use external monitoring tools
+
+# Restart policy
 Restart=always
 RestartSec=5
+StartLimitInterval=300
+StartLimitBurst=5
+
+# Security
 NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/data/dsa110-contimg/state/logs /data/dsa110-contimg/frontend
+
+# Logging
 StandardOutput=append:/data/dsa110-contimg/state/logs/dsa110-contimg-dashboard.out
 StandardError=append:/data/dsa110-contimg/state/logs/dsa110-contimg-dashboard.err
 
 [Install]
 WantedBy=multi-user.target
-

@@ -689,7 +689,12 @@ Visualization page for QA features.
 ### API Endpoints Used
 
 - `GET /api/ms` - List Measurement Sets
-- `GET /api/ms/{ms_path}` - Get MS details
+- `GET /api/ms` - List Measurement Sets
+- `GET /api/ms/{ms_path:path}/metadata` - MS metadata
+- `GET /api/ms/{ms_path:path}/calibrator-matches` - Calibrator candidates
+- `GET /api/ms/{ms_path:path}/existing-caltables` - Existing calibration tables
+- `POST /api/ms/{ms_path:path}/validate-caltable` - Validate caltable
+  compatibility
 - `POST /api/jobs/calibrate` - Create calibration job
 - `POST /api/jobs/apply` - Create apply job
 - `POST /api/jobs/image` - Create imaging job

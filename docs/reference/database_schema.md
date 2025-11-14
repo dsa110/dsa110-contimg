@@ -434,7 +434,7 @@ WHERE snr_nvss >= 10.0;
 
 ### Add New Tables to Existing Database
 
-**Python helper** (`src/dsa110_contimg/database/migrations.py`):
+**Python helper** (`src/dsa110_contimg/database/`):
 
 ```python
 """Database schema migrations."""

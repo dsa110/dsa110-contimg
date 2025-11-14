@@ -24,11 +24,13 @@
 **Expected:** ✅ Should work (uses `created_at` timestamp column)
 
 **Test Command:**
+
 ```bash
 curl -s "http://localhost:8000/api/images?start_date=2025-10-28T00:00:00&limit=5" | jq '.total, .items[0].created_at'
 ```
 
 **Notes:**
+
 - Date filtering uses SQL WHERE clause on `created_at` column
 - Should be fast (<200ms)
 - Should have accurate pagination
@@ -40,6 +42,7 @@ curl -s "http://localhost:8000/api/images?start_date=2025-10-28T00:00:00&limit=5
 **Expected:** ❌ Will not work (all `noise_jy` are NULL)
 
 **Test Command:**
+
 ```bash
 curl -s "http://localhost:8000/api/images?noise_max=0.001&limit=5" | jq '.total'
 ```
@@ -59,11 +62,13 @@ curl -s "http://localhost:8000/api/images?noise_max=0.001&limit=5" | jq '.total'
 **Expected:** ⚠️ Will work but slow (requires reading FITS files)
 
 **Test Command:**
+
 ```bash
 curl -s "http://localhost:8000/api/images?dec_min=40&dec_max=50&limit=5" | jq '.total'
 ```
 
 **Expected Behavior:**
+
 - Will work (post-processing extracts coordinates from FITS)
 - Slow (1-5 seconds per request)
 - May have pagination issues
@@ -82,11 +87,13 @@ curl -s "http://localhost:8000/api/images?dec_min=40&dec_max=50&limit=5" | jq '.
 **Expected:** ⚠️ Will work but heuristic-based
 
 **Test Command:**
+
 ```bash
 curl -s "http://localhost:8000/api/images?has_calibrator=true&limit=5" | jq '.total'
 ```
 
 **Expected Behavior:**
+
 - Uses path pattern matching (heuristic)
 - Looks for: 'cal', 'calibrator', '3c', 'j1331' in MS path
 - May have false positives/negatives
@@ -105,9 +112,11 @@ curl -s "http://localhost:8000/api/images?has_calibrator=true&limit=5" | jq '.to
 **Severity:** HIGH  
 **Status:** Documented
 
-**Issue:** All images have `noise_jy`, `center_ra_deg`, `center_dec_deg` set to NULL
+**Issue:** All images have `noise_jy`, `center_ra_deg`, `center_dec_deg` set to
+NULL
 
 **Impact:**
+
 - Noise filtering non-functional
 - Declination filtering slow (requires FITS reading)
 - User experience degraded
@@ -115,6 +124,7 @@ curl -s "http://localhost:8000/api/images?has_calibrator=true&limit=5" | jq '.to
 **Documentation:** `docs/known-issues/image-metadata-population.md`
 
 **Action Required:**
+
 1. Update database schema (add missing columns)
 2. Extract metadata during image creation
 3. Backfill existing images
@@ -128,11 +138,12 @@ curl -s "http://localhost:8000/api/images?has_calibrator=true&limit=5" | jq '.to
 
 **Issue:** `AttributeError: 'FileBase' object has no attribute 'file_type'`
 
-**Location:** `src/dsa110_contimg/api/visualization_routes.py:219`
+**Location:** `src/dsa110_contimg/api/visualization_routes.py`
 
 **Root Cause:** `FileBase` class doesn't have `file_type` attribute
 
 **Fix Applied:**
+
 - Changed `item.file_type` to `autodetect_file_type(item.fullpath)`
 - Added fallback: `"directory" if item.isdir else "file"`
 - Fixed in both locations (lines 219 and 831)
@@ -148,16 +159,19 @@ curl -s "http://localhost:8000/api/images?has_calibrator=true&limit=5" | jq '.to
 
 **Issue:** Requests to `/health` return 404 (should be `/api/health`)
 
-**Root Cause:** Endpoint exists at `/api/health` but something is requesting `/health`
+**Root Cause:** Endpoint exists at `/api/health` but something is requesting
+`/health`
 
 **Investigation:**
-- Endpoint exists: `src/dsa110_contimg/api/routers/status.py:46`
+
+- Endpoint exists: `src/dsa110_contimg/api/routers/status.py`
 - Router registered: `app.include_router(status_router, prefix="/api")`
 - Something is polling `/health` (without `/api` prefix)
 
 **Impact:** Just log noise (404 errors in logs)
 
 **Action Required:**
+
 - Identify what's requesting `/health` (monitoring tool?)
 - Either fix requester to use `/api/health`
 - Or add redirect from `/health` to `/api/health`
@@ -172,6 +186,7 @@ curl -s "http://localhost:8000/api/images?has_calibrator=true&limit=5" | jq '.to
 **Issue:** 4+ Vite dev server instances running (ports 5173-5176)
 
 **Current Status:**
+
 - Port 5173: Root user (Docker?)
 - Port 5174: Ubuntu user (PID 29636)
 - Port 5175: Ubuntu user (PID 11829)
@@ -181,6 +196,7 @@ curl -s "http://localhost:8000/api/images?has_calibrator=true&limit=5" | jq '.to
 **Impact:** Resource waste, port confusion
 
 **Action Required:**
+
 - Clean up old instances: `pkill -f "vite.*517[3-6]"`
 - Restart on default port 5173
 - Document single-instance best practice
@@ -193,7 +209,8 @@ curl -s "http://localhost:8000/api/images?has_calibrator=true&limit=5" | jq '.to
 
 ### Immediate (Before Committing Image Filters)
 
-- [x] ✅ Document metadata limitation (`docs/known-issues/image-metadata-population.md`)
+- [x] ✅ Document metadata limitation
+      (`docs/known-issues/image-metadata-population.md`)
 - [x] ✅ Fix visualization browse bug
 - [ ] ⏳ Test date filter (requires API running)
 - [ ] ⏳ Test experimental filters (requires API running)
@@ -224,6 +241,7 @@ curl -s "http://localhost:8000/api/images?has_calibrator=true&limit=5" | jq '.to
 ### Reasoning:
 
 **What Works:**
+
 - ✅ Date filtering (SQL-level, fast, accurate)
 - ✅ Code quality excellent (10/10)
 - ✅ Security verified (SQL injection safe)
@@ -231,6 +249,7 @@ curl -s "http://localhost:8000/api/images?has_calibrator=true&limit=5" | jq '.to
 - ✅ Visualization bug fixed
 
 **What Doesn't Work:**
+
 - ❌ Noise filtering (metadata not populated)
 - ⚠️ Declination filtering (slow, requires FITS reading)
 - ⚠️ Calibrator filtering (heuristic, may have false positives)
@@ -238,17 +257,21 @@ curl -s "http://localhost:8000/api/images?has_calibrator=true&limit=5" | jq '.to
 **Recommendation:**
 
 **Option A: Commit Now (Recommended)**
+
 - Document limitations clearly
 - Note noise filter requires metadata fix
 - Mark experimental filters as "slow" or "heuristic"
 - Proceed with date filtering as primary feature
 
 **Option B: Wait for Metadata Fix**
+
 - Fix metadata population first
 - Test all filters
 - Then commit complete feature
 
-**Recommendation:** **Option A** - Commit with clear documentation of limitations. The date filtering works perfectly, and experimental filters are functional (even if slow/limited). Metadata fix can be separate PR.
+**Recommendation:** **Option A** - Commit with clear documentation of
+limitations. The date filtering works perfectly, and experimental filters are
+functional (even if slow/limited). Metadata fix can be separate PR.
 
 ### Commit Message Suggestion:
 
@@ -296,12 +319,19 @@ Next Steps:
 ### Before Commit:
 
 - [ ] Start API server
-- [ ] Test date filter: `curl "http://localhost:8000/api/images?start_date=2025-10-28T00:00:00&limit=5"`
-- [ ] Test noise filter: `curl "http://localhost:8000/api/images?noise_max=0.001&limit=5"` (expect no filtering)
-- [ ] Test declination filter: `curl "http://localhost:8000/api/images?dec_min=40&dec_max=50&limit=5"` (expect slow)
-- [ ] Test calibrator filter: `curl "http://localhost:8000/api/images?has_calibrator=true&limit=5"`
+- [ ] Test date filter:
+      `curl "http://localhost:8000/api/images?start_date=2025-10-28T00:00:00&limit=5"`
+- [ ] Test noise filter:
+      `curl "http://localhost:8000/api/images?noise_max=0.001&limit=5"` (expect
+      no filtering)
+- [ ] Test declination filter:
+      `curl "http://localhost:8000/api/images?dec_min=40&dec_max=50&limit=5"`
+      (expect slow)
+- [ ] Test calibrator filter:
+      `curl "http://localhost:8000/api/images?has_calibrator=true&limit=5"`
 - [ ] Test frontend UI: `http://localhost:5177/sky`
-- [ ] Verify visualization browse bug fix: `curl "http://localhost:8000/api/visualization/browse?path=/data/dsa110-contimg/state/qa"`
+- [ ] Verify visualization browse bug fix:
+      `curl "http://localhost:8000/api/visualization/browse?path=/data/dsa110-contimg/state/qa"`
 
 ### After Commit:
 
@@ -313,4 +343,3 @@ Next Steps:
 
 **Report Generated:** 2025-11-12  
 **Next Review:** After API testing completion
-

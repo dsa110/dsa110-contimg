@@ -2,6 +2,7 @@
  * Circuit Breaker Status Component
  */
 import { useState } from "react";
+import { logger } from "../../utils/logger";
 import {
   Card,
   CardContent,
@@ -42,7 +43,7 @@ export function CircuitBreakerStatus() {
       setSelectedBreaker(null);
       refetch();
     } catch (error) {
-      console.error("Failed to reset circuit breaker:", error);
+      logger.error("Failed to reset circuit breaker:", error);
     }
   };
 

@@ -4,6 +4,7 @@ import { usePipelineStatus, useSystemMetrics } from "../api/queries";
 import ESECandidatesPanel from "../components/ESECandidatesPanel";
 import PointingVisualization from "../components/PointingVisualization";
 import { StatusIndicator } from "../components/StatusIndicator";
+import { MetricCard } from "../components/MetricCard";
 import { SkeletonLoader } from "../components/SkeletonLoader";
 import CollapsibleSection from "../components/CollapsibleSection";
 
@@ -35,49 +36,66 @@ export default function DashboardPage() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h1" component="h1" gutterBottom sx={{ mb: 4 }}>
-        DSA-110 Continuum Imaging Pipeline
-      </Typography>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700, mb: 1 }}>
+          DSA-110 Continuum Imaging Pipeline
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Real-time monitoring and control dashboard
+        </Typography>
+      </Box>
 
       <Stack spacing={3}>
         {/* Row 1: Pipeline Status + System Health */}
         <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
           <CollapsibleSection title="Pipeline Status" defaultExpanded={true} variant="outlined">
             <Box sx={{ mt: 2 }}>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Queue Statistics
               </Typography>
-              <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 2 }}>
-                <Box sx={{ flex: "1 1 45%" }}>
-                  <Typography variant="body2">
-                    Total: <strong>{status?.queue.total || 0}</strong>
-                  </Typography>
-                </Box>
-                <Box sx={{ flex: "1 1 45%" }}>
-                  <Typography variant="body2">
-                    Pending: <strong>{status?.queue.pending || 0}</strong>
-                  </Typography>
-                </Box>
-                <Box sx={{ flex: "1 1 45%" }}>
-                  <Typography variant="body2">
-                    In Progress: <strong>{status?.queue.in_progress || 0}</strong>
-                  </Typography>
-                </Box>
-                <Box sx={{ flex: "1 1 45%" }}>
-                  <Typography variant="body2">
-                    Completed: <strong>{status?.queue.completed || 0}</strong>
-                  </Typography>
-                </Box>
-                <Box sx={{ flex: "1 1 45%" }}>
-                  <Typography variant="body2">
-                    Failed: <strong>{status?.queue.failed || 0}</strong>
-                  </Typography>
-                </Box>
-                <Box sx={{ flex: "1 1 45%" }}>
-                  <Typography variant="body2">
-                    Collecting: <strong>{status?.queue.collecting || 0}</strong>
-                  </Typography>
-                </Box>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)" },
+                  gap: 2,
+                }}
+              >
+                <MetricCard
+                  label="Total"
+                  value={status?.queue.total || 0}
+                  color="primary"
+                  size="small"
+                />
+                <MetricCard
+                  label="Pending"
+                  value={status?.queue.pending || 0}
+                  color="info"
+                  size="small"
+                />
+                <MetricCard
+                  label="In Progress"
+                  value={status?.queue.in_progress || 0}
+                  color="warning"
+                  size="small"
+                />
+                <MetricCard
+                  label="Completed"
+                  value={status?.queue.completed || 0}
+                  color="success"
+                  size="small"
+                />
+                <MetricCard
+                  label="Failed"
+                  value={status?.queue.failed || 0}
+                  color="error"
+                  size="small"
+                />
+                <MetricCard
+                  label="Collecting"
+                  value={status?.queue.collecting || 0}
+                  color="info"
+                  size="small"
+                />
               </Box>
 
               <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
@@ -101,6 +119,7 @@ export default function DashboardPage() {
                     value={metrics.cpu_percent}
                     thresholds={{ good: 70, warning: 50 }}
                     label="CPU"
+                    size="medium"
                   />
                 )}
                 {metrics?.mem_percent !== undefined && (
@@ -108,6 +127,7 @@ export default function DashboardPage() {
                     value={metrics.mem_percent}
                     thresholds={{ good: 80, warning: 60 }}
                     label="Memory"
+                    size="medium"
                   />
                 )}
                 {metrics?.disk_total && metrics?.disk_used && (
@@ -115,13 +135,17 @@ export default function DashboardPage() {
                     value={(metrics.disk_used / metrics.disk_total) * 100}
                     thresholds={{ good: 75, warning: 90 }}
                     label="Disk"
+                    size="medium"
                   />
                 )}
-                <Box sx={{ flex: "1 1 45%" }}>
-                  <Typography variant="body2">
-                    Load (1m): <strong>{metrics?.load_1?.toFixed(2) || "N/A"}</strong>
-                  </Typography>
-                </Box>
+                {metrics?.load_1 !== undefined && (
+                  <MetricCard
+                    label="Load (1m)"
+                    value={metrics.load_1.toFixed(2)}
+                    color="info"
+                    size="small"
+                  />
+                )}
               </Box>
 
               <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
