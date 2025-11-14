@@ -17,6 +17,8 @@ def detect_ms_corruption(ms_path: str) -> tuple[bool, list[str]]:
     Returns:
         (is_corrupted, list_of_issues) tuple
     """
+    from pathlib import Path
+
     # Ensure CASAPATH is set before importing CASA modules
     from dsa110_contimg.utils.casa_init import ensure_casa_path
 
@@ -27,6 +29,21 @@ def detect_ms_corruption(ms_path: str) -> tuple[bool, list[str]]:
     table = casatables.table  # noqa: N816
 
     issues = []
+
+    # Check for missing MS table files (indicates data corruption)
+    ms_path_obj = Path(ms_path)
+    required_table_files = ["table.dat", "table.f0", "table.f1", "table.f2", "table.f3"]
+    missing_table_files = []
+    for table_file in required_table_files:
+        table_path = ms_path_obj / table_file
+        if not table_path.exists():
+            missing_table_files.append(table_file)
+
+    if missing_table_files:
+        issues.append(
+            f"Missing required table files: {missing_table_files}. "
+            "This indicates data corruption or incomplete conversion."
+        )
 
     try:
         # Try to open MS
@@ -117,8 +134,7 @@ def is_ms_safe_for_ft(ms_path: str) -> bool:
         # Check if corruption is only MODEL_DATA (repairable)
         # vs deeper structural issues (not repairable)
         model_data_only = all(
-            "MODEL_DATA" in issue or "cannot read MODEL_DATA" in issue.lower()
-            for issue in issues
+            "MODEL_DATA" in issue or "cannot read MODEL_DATA" in issue.lower() for issue in issues
         )
 
         return not model_data_only  # Only safe if corruption is repairable

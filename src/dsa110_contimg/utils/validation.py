@@ -13,18 +13,18 @@ import shutil
 from pathlib import Path
 from typing import List, Optional
 
+import casacore.tables as casatables  # type: ignore
 import numpy as np
 
 # Provide a patchable casacore table symbol for tests
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+from dsa110_contimg.utils.exceptions import ValidationError
 
 ensure_casa_path()
-import casacore.tables as casatables  # type: ignore
 
 table = casatables.table  # noqa: N816
 
 # Import ValidationError from unified exception hierarchy
-from dsa110_contimg.utils.exceptions import ValidationError
 
 # Re-export for backward compatibility
 __all__ = [
@@ -38,9 +38,7 @@ __all__ = [
 ]
 
 
-def validate_file_path(
-    path: str, must_exist: bool = True, must_readable: bool = True
-) -> Path:
+def validate_file_path(path: str, must_exist: bool = True, must_readable: bool = True) -> Path:
     """
     Validate a file path with clear error messages.
 
@@ -60,9 +58,7 @@ def validate_file_path(
     if must_exist and not p.exists():
         raise ValidationError(
             [f"File does not exist: {path}"],
-            error_types=(
-                ["ms_not_found"] if path.endswith(".ms") else ["file_not_found"]
-            ),
+            error_types=(["ms_not_found"] if path.endswith(".ms") else ["file_not_found"]),
             error_details=[{"path": path}],
         )
 
@@ -143,6 +139,39 @@ def validate_ms(
     # MS files are directories, not files - validate as directory
     validate_directory(ms_path, must_exist=True, must_readable=True)
 
+    # Check for missing MS table files (indicates data corruption)
+    ms_path_obj = Path(ms_path)
+    required_table_files = [
+        "table.dat",
+        "table.f0",
+        "table.f1",
+        "table.f2",
+        "table.f3",
+    ]
+    missing_table_files = []
+    for table_file in required_table_files:
+        table_path = ms_path_obj / table_file
+        if not table_path.exists():
+            missing_table_files.append(table_file)
+
+    if missing_table_files:
+        suggestion = (
+            "MS appears corrupted - missing required table files. "
+            "Check if MS conversion completed successfully, verify disk space "
+            "and permissions, check for interrupted processes, or consider "
+            "re-running conversion from original data."
+        )
+        raise ValidationError(
+            [
+                f"MS missing required table files: {missing_table_files}. "
+                f"Path: {ms_path}. "
+                "This indicates data corruption or incomplete conversion."
+            ],
+            error_types=["ms_missing_table_files"],
+            error_details=[{"path": ms_path, "missing": missing_table_files}],
+            suggestion=suggestion,
+        )
+
     # Validate MS structure (lazy import CASA dependency)
     # Ensure CASAPATH is set before importing CASA modules
     from dsa110_contimg.utils.casa_init import ensure_casa_path
@@ -174,6 +203,25 @@ def validate_ms(
     except ValidationError:
         raise
     except Exception as e:
+        # Check if error is related to missing table files
+        error_str = str(e).lower()
+        if "table.f" in error_str or "cannot open" in error_str or "corrupted" in error_str:
+            suggestion = (
+                "MS table files may be missing or corrupted. "
+                "Check if MS conversion completed successfully, verify disk space "
+                "and permissions, check for interrupted processes, or consider "
+                "re-running conversion from original data."
+            )
+            raise ValidationError(
+                [
+                    f"MS appears corrupted or incomplete: {ms_path}. "
+                    f"Error: {e}. "
+                    "This may indicate missing table files or data corruption."
+                ],
+                error_types=["ms_corrupted"],
+                error_details=[{"path": ms_path, "error": str(e)}],
+                suggestion=suggestion,
+            ) from e
         raise ValidationError([f"MS is not readable: {ms_path}. Error: {e}"]) from e
 
 
@@ -306,18 +354,14 @@ def validate_ms_for_calibration(
             flags = tb.getcol("FLAG")
             unflagged_fraction = np.sum(~flags) / flags.size if flags.size > 0 else 0
             if unflagged_fraction < 0.1:
-                warnings.append(
-                    f"Very little unflagged data: {unflagged_fraction*100:.1f}%"
-                )
+                warnings.append(f"Very little unflagged data: {unflagged_fraction*100:.1f}%")
     except Exception:
         pass  # Non-fatal check
 
     return warnings
 
 
-def validate_corrected_data_quality(
-    ms_path: str, sample_size: int = 10000
-) -> List[str]:
+def validate_corrected_data_quality(ms_path: str, sample_size: int = 10000) -> List[str]:
     """
     Validate CORRECTED_DATA column quality.
 
@@ -352,9 +396,7 @@ def validate_corrected_data_quality(
             sample_size = min(sample_size, n_rows)
 
             if sample_size > 0:
-                corrected_data = tb.getcol(
-                    "CORRECTED_DATA", startrow=0, nrow=sample_size
-                )
+                corrected_data = tb.getcol("CORRECTED_DATA", startrow=0, nrow=sample_size)
                 flags = tb.getcol("FLAG", startrow=0, nrow=sample_size)
 
                 unflagged = corrected_data[~flags]

@@ -105,9 +105,7 @@ def mjd_to_casa_time(mjd: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
     return (float(mjd) - CASA_TIME_EPOCH_MJD) * 86400.0
 
 
-def casa_time_to_astropy_time(
-    time_sec: Union[float, np.ndarray], scale: str = "utc"
-) -> Time:
+def casa_time_to_astropy_time(time_sec: Union[float, np.ndarray], scale: str = "utc") -> Time:
     """Convert CASA TIME to astropy Time object.
 
     This leverages astropy's robust time handling and validation.
@@ -136,9 +134,7 @@ def casa_time_to_astropy_time(
     return Time(mjd, format="mjd", scale=scale)
 
 
-def validate_time_mjd(
-    mjd: float, year_range: Tuple[int, int] = DEFAULT_YEAR_RANGE
-) -> bool:
+def validate_time_mjd(mjd: float, year_range: Tuple[int, int] = DEFAULT_YEAR_RANGE) -> bool:
     """Validate that MJD corresponds to a reasonable date using astropy.
 
     Uses astropy Time to check if the date falls within expected range.
@@ -267,25 +263,33 @@ def extract_ms_time_range(
         msmd = msmetadata()
         msmd.open(ms_path)
         try:
-            tr = msmd.timerangeforobs()
-            msmd.close()
-            if tr and isinstance(tr, (list, tuple)) and len(tr) >= 2:
-                start_mjd = float(tr[0])
-                end_mjd = float(tr[1])
-                mid_mjd = 0.5 * (start_mjd + end_mjd)
+            # Explicitly use observation ID 0 to avoid "Observation ID -1 out of range" error
+            # First check how many observations exist
+            n_obs = msmd.nobservations()
+            if n_obs == 0:
+                logger.debug(f"No observations found in {ms_path}, skipping timerangeforobs")
+                msmd.close()
+            else:
+                # Use observation ID 0 (first observation)
+                tr = msmd.timerangeforobs(0)
+                msmd.close()
+                if tr and isinstance(tr, (list, tuple)) and len(tr) >= 2:
+                    start_mjd = float(tr[0])
+                    end_mjd = float(tr[1])
+                    mid_mjd = 0.5 * (start_mjd + end_mjd)
 
-                # Validate using astropy
-                if validate_time_mjd(start_mjd, year_range) and validate_time_mjd(
-                    end_mjd, year_range
-                ):
-                    return start_mjd, end_mjd, mid_mjd
-                else:
-                    logger.warning(
-                        f"msmetadata.timerangeforobs() returned invalid dates "
-                        f"for {ms_path}: start={start_mjd}, end={end_mjd}"
-                    )
+                    # Validate using astropy
+                    if validate_time_mjd(start_mjd, year_range) and validate_time_mjd(
+                        end_mjd, year_range
+                    ):
+                        return start_mjd, end_mjd, mid_mjd
+                    else:
+                        logger.warning(
+                            f"msmetadata.timerangeforobs(0) returned invalid dates "
+                            f"for {ms_path}: start={start_mjd}, end={end_mjd}"
+                        )
         except Exception as e:
-            logger.debug(f"msmetadata.timerangeforobs() failed for {ms_path}: {e}")
+            logger.debug(f"msmetadata.timerangeforobs(0) failed for {ms_path}: {e}")
         finally:
             try:
                 msmd.close()
@@ -385,9 +389,7 @@ def extract_ms_time_range(
     except Exception as e:
         logger.debug(f"Failed to read TIME_RANGE from OBSERVATION table: {e}")
 
-    logger.debug(
-        f"Could not extract valid time range from {ms_path} (fallback will be used)"
-    )
+    logger.debug(f"Could not extract valid time range from {ms_path} (fallback will be used)")
     return None, None, None
 
 

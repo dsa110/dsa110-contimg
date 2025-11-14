@@ -26,12 +26,7 @@ from dsa110_contimg.utils.validation import (
     validate_ms_for_calibration,
 )
 
-from .calibration import (
-    solve_bandpass,
-    solve_delay,
-    solve_gains,
-    solve_prebandpass_phase,
-)
+from .calibration import solve_bandpass, solve_delay, solve_gains, solve_prebandpass_phase
 from .cli_utils import clear_all_calibration_artifacts as _clear_all_calibration_artifacts
 from .cli_utils import rephase_ms_to_calibrator as _rephase_ms_to_calibrator
 from .diagnostics import generate_calibration_diagnostics
@@ -928,9 +923,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             else:
                 # Auto-resolve to SQLite database (preferred) or CSV fallback
                 try:
-                    from dsa110_contimg.calibration.catalogs import (
-                        resolve_vla_catalog_path,
-                    )
+                    from dsa110_contimg.calibration.catalogs import resolve_vla_catalog_path
 
                     catalog_path = str(resolve_vla_catalog_path(prefer_sqlite=True))
                     logger.info(f"Auto-resolved catalog to: {catalog_path}")
@@ -1438,10 +1431,15 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             f"Found {total_flagged_channels} problematic channel(s) across "
                             f"{len(problematic_channels)} SPW(s):"
                         )
+                        # Use DATA column for channel flagging (calibrate command doesn't have datacolumn arg)
+                        # Safely get datacolumn with explicit default to avoid AttributeError
+                        datacolumn = "DATA"  # Default for calibrate command
+                        if hasattr(args, "datacolumn") and args.datacolumn:
+                            datacolumn = args.datacolumn
                         flag_problematic_channels(
                             args.ms,
                             problematic_channels,
-                            datacolumn=getattr(args, "datacolumn", "DATA"),
+                            datacolumn=datacolumn,
                         )
                         logger.info(
                             f"✓ [2/6] Channel-level flagging complete: {total_flagged_channels} "
@@ -1449,6 +1447,17 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                         )
                     else:
                         logger.info("✓ [2/6] No problematic channels detected")
+                except AttributeError as e:
+                    # Specifically catch AttributeError to provide better diagnostics
+                    error_msg = str(e)
+                    if "datacolumn" in error_msg.lower():
+                        logger.warning(
+                            f"Channel-level flagging failed due to datacolumn access issue: {e}. "
+                            f"This should not happen - calibrate command uses DATA column by default."
+                        )
+                    else:
+                        logger.warning(f"Channel-level flagging analysis failed: {e}")
+                    logger.warning("Continuing with calibration (channel-level flagging skipped)")
                 except Exception as e:
                     logger.warning(f"Channel-level flagging analysis failed: {e}")
                     logger.warning("Continuing with calibration (channel-level flagging skipped)")
@@ -2629,9 +2638,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         try:
             from pathlib import Path
 
-            from dsa110_contimg.calibration.caltable_paths import (
-                validate_caltables_exist,
-            )
+            from dsa110_contimg.calibration.caltable_paths import validate_caltables_exist
 
             # Determine caltable directory (same as MS directory by default)
             caltable_dir = Path(ms_in).parent
@@ -2661,10 +2668,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             import re
             from pathlib import Path
 
-            from dsa110_contimg.database.registry import (
-                ensure_db,
-                register_set_from_prefix,
-            )
+            from dsa110_contimg.database.registry import ensure_db, register_set_from_prefix
             from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
             # Determine registry DB path (same logic as apply_service)

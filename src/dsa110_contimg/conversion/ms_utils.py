@@ -35,8 +35,8 @@ def _ensure_imaging_columns_exist(ms_path: str) -> None:
     ensure_casa_path()
 
     try:
-        from casacore.tables import addImagingColumns as _addImCols  # type: ignore
         import casacore.tables as _casatables
+        from casacore.tables import addImagingColumns as _addImCols  # type: ignore
 
         _tb = _casatables.table
 
@@ -111,8 +111,8 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
     logger = logging.getLogger(__name__)
 
     try:
-        import numpy as _np
         import casacore.tables as _casatables  # type: ignore
+        import numpy as _np
 
         _tb = _casatables.table
     except ImportError as e:
@@ -134,9 +134,7 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
                     missing.append("MODEL_DATA")
                 if "CORRECTED_DATA" not in colnames:
                     missing.append("CORRECTED_DATA")
-                raise RuntimeError(
-                    f"Cannot populate columns - they don't exist: {missing}"
-                )
+                raise RuntimeError(f"Cannot populate columns - they don't exist: {missing}")
 
             # Get DATA shape and dtype from first row
             try:
@@ -174,9 +172,7 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
 
                 # Log summary with examples
                 if fixed > 0:
-                    logger.debug(
-                        f"Populated {fixed} rows in {col} column for {ms_path}"
-                    )
+                    logger.debug(f"Populated {fixed} rows in {col} column for {ms_path}")
                 if errors > 0:
                     error_summary = f"Failed to populate {errors} out of {nrow} rows in {col} column for {ms_path}"
                     if error_examples:
@@ -203,8 +199,8 @@ def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
       to WEIGHT.
     """
     try:
-        import numpy as _np
         import casacore.tables as _casatables  # type: ignore
+        import numpy as _np
 
         _tb = _casatables.table
     except Exception:
@@ -333,8 +329,8 @@ def _fix_field_phase_centers_from_times(ms_path: str) -> None:
     """
     try:
         import astropy.units as u  # type: ignore
-        import numpy as _np
         import casacore.tables as _casatables  # type: ignore
+        import numpy as _np
 
         _tb = _casatables.table
 
@@ -357,9 +353,7 @@ def _fix_field_phase_centers_from_times(ms_path: str) -> None:
             field_times = {}
             for fid in unique_field_ids:
                 mask = field_ids == fid
-                field_times[int(fid)] = _np.mean(
-                    times[mask]
-                )  # Use mean time for the field
+                field_times[int(fid)] = _np.mean(times[mask])  # Use mean time for the field
 
         # Read FIELD table
         with _tb(ms_path + "::FIELD", readonly=False) as field_table:
@@ -394,10 +388,7 @@ def _fix_field_phase_centers_from_times(ms_path: str) -> None:
                 with _tb(ms_path + "::OBSERVATION", readonly=True) as obs_table:
                     # Check telescope name for potential future use, but get_meridian_coords
                     # already uses correct DSA-110 coordinates internally
-                    if (
-                        obs_table.nrows() > 0
-                        and "TELESCOPE_NAME" in obs_table.colnames()
-                    ):
+                    if obs_table.nrows() > 0 and "TELESCOPE_NAME" in obs_table.colnames():
                         _tel_name = obs_table.getcol("TELESCOPE_NAME")[0]
                         # get_meridian_coords() uses DSA-110 coordinates internally
             except Exception:
@@ -434,9 +425,9 @@ def _fix_field_phase_centers_from_times(ms_path: str) -> None:
                     # Only update if significantly different (more than 1 arcsec)
                     ra_diff_rad = abs(ra_rad - current_ra)
                     dec_diff_rad = abs(dec_rad - current_dec)
-                    if ra_diff_rad > _np.deg2rad(
+                    if ra_diff_rad > _np.deg2rad(1.0 / 3600.0) or dec_diff_rad > _np.deg2rad(
                         1.0 / 3600.0
-                    ) or dec_diff_rad > _np.deg2rad(1.0 / 3600.0):
+                    ):
                         phase_dir[field_idx, 0, 0] = ra_rad
                         phase_dir[field_idx, 0, 1] = dec_rad
                         updated = True
@@ -448,9 +439,9 @@ def _fix_field_phase_centers_from_times(ms_path: str) -> None:
                     # Only update if significantly different (more than 1 arcsec)
                     ra_diff_rad = abs(ra_rad - current_ra)
                     dec_diff_rad = abs(dec_rad - current_dec)
-                    if ra_diff_rad > _np.deg2rad(
+                    if ra_diff_rad > _np.deg2rad(1.0 / 3600.0) or dec_diff_rad > _np.deg2rad(
                         1.0 / 3600.0
-                    ) or dec_diff_rad > _np.deg2rad(1.0 / 3600.0):
+                    ):
                         ref_dir[field_idx, 0, 0] = ra_rad
                         ref_dir[field_idx, 0, 1] = dec_rad
                         updated = True
@@ -466,9 +457,124 @@ def _fix_field_phase_centers_from_times(ms_path: str) -> None:
         import logging
 
         logger = logging.getLogger(__name__)
-        logger.warning(
-            "Could not fix FIELD table phase centers (non-fatal)", exc_info=True
-        )
+        logger.warning("Could not fix FIELD table phase centers (non-fatal)", exc_info=True)
+
+
+def _ensure_observation_table_valid(ms_path: str) -> None:
+    """
+    Ensure OBSERVATION table exists and has at least one valid row.
+
+    This fixes MS files where the OBSERVATION table is empty or malformed,
+    which causes CASA msmetadata to fail with "Observation ID -1 out of range".
+
+    Parameters
+    ----------
+    ms_path : str
+        Path to Measurement Set
+    """
+    try:
+        import casacore.tables as _casatables
+        import numpy as _np
+
+        _tb = _casatables.table
+    except Exception:
+        return
+
+    try:
+        with _tb(f"{ms_path}::OBSERVATION", readonly=False) as obs_tb:
+            # If table is empty, create a default observation row
+            if obs_tb.nrows() == 0:
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.warning(f"OBSERVATION table is empty in {ms_path}, creating default row")
+
+                # Get telescope name from environment or use default
+                telescope_name = os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110")
+
+                # Create a default observation row
+                # CASA requires specific columns - use minimal valid values
+                default_values = {
+                    "TIME_RANGE": _np.array([0.0, 0.0], dtype=_np.float64),
+                    "LOG": "",
+                    "SCHEDULE": "",
+                    "FLAG_ROW": False,
+                    "OBSERVER": "",
+                    "PROJECT": "",
+                    "RELEASE_DATE": 0.0,
+                    "SCHEDULE_TYPE": "",
+                    "TELESCOPE_NAME": telescope_name,
+                }
+
+                # Add row with default values
+                obs_tb.addrows(1)
+                for col, val in default_values.items():
+                    if col in obs_tb.colnames():
+                        obs_tb.putcell(col, 0, val)
+
+                logger.info(f"Created default OBSERVATION row in {ms_path}")
+
+    except Exception:
+        # Non-fatal: best-effort fix only
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.warning("Could not ensure OBSERVATION table validity (non-fatal)", exc_info=True)
+
+
+def _fix_observation_id_column(ms_path: str) -> None:
+    """
+    Ensure OBSERVATION_ID column in main table has valid values (>= 0).
+
+    This fixes MS files where OBSERVATION_ID values are negative or invalid,
+    which causes CASA msmetadata to fail.
+
+    Parameters
+    ----------
+    ms_path : str
+        Path to Measurement Set
+    """
+    try:
+        import casacore.tables as _casatables
+        import numpy as _np
+
+        _tb = _casatables.table
+    except Exception:
+        return
+
+    try:
+        with _tb(ms_path, readonly=False) as main_tb:
+            if "OBSERVATION_ID" not in main_tb.colnames():
+                return
+
+            obs_ids = main_tb.getcol("OBSERVATION_ID")
+            if obs_ids is None or len(obs_ids) == 0:
+                return
+
+            # Check if any values are negative
+            negative_mask = obs_ids < 0
+            if _np.any(negative_mask):
+                import logging
+
+                logger = logging.getLogger(__name__)
+                n_negative = _np.sum(negative_mask)
+                logger.warning(
+                    f"Found {n_negative} rows with negative OBSERVATION_ID in {ms_path}, fixing"
+                )
+
+                # Fix negative values to 0
+                fixed_ids = obs_ids.copy()
+                fixed_ids[negative_mask] = 0
+                main_tb.putcol("OBSERVATION_ID", fixed_ids)
+
+                logger.info(f"Fixed {n_negative} negative OBSERVATION_ID values in {ms_path}")
+
+    except Exception:
+        # Non-fatal: best-effort fix only
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.warning("Could not fix OBSERVATION_ID column (non-fatal)", exc_info=True)
 
 
 def _fix_observation_time_range(ms_path: str) -> None:
@@ -487,8 +593,8 @@ def _fix_observation_time_range(ms_path: str) -> None:
         Path to Measurement Set
     """
     try:
-        import numpy as _np
         import casacore.tables as _casatables
+        import numpy as _np
 
         _tb = _casatables.table
 
@@ -501,6 +607,9 @@ def _fix_observation_time_range(ms_path: str) -> None:
         return
 
     try:
+        # First ensure OBSERVATION table exists and has at least one row
+        _ensure_observation_table_valid(ms_path)
+
         # Read TIME column from main table (authoritative source)
         with _tb(ms_path, readonly=True) as main_tb:
             if "TIME" not in main_tb.colnames() or main_tb.nrows() == 0:
@@ -534,6 +643,7 @@ def _fix_observation_time_range(ms_path: str) -> None:
         # Update OBSERVATION table
         with _tb(f"{ms_path}::OBSERVATION", readonly=False) as obs_tb:
             if obs_tb.nrows() == 0:
+                # Should not happen after _ensure_observation_table_valid, but handle gracefully
                 return
 
             if "TIME_RANGE" not in obs_tb.colnames():
@@ -578,9 +688,7 @@ def _fix_observation_time_range(ms_path: str) -> None:
         import logging
 
         logger = logging.getLogger(__name__)
-        logger.warning(
-            "Could not fix OBSERVATION table TIME_RANGE (non-fatal)", exc_info=True
-        )
+        logger.warning("Could not fix OBSERVATION table TIME_RANGE (non-fatal)", exc_info=True)
 
 
 @require_casa6_python
@@ -763,14 +871,10 @@ def configure_ms_for_imaging(
                                     f"Imaging columns exist but contain None values in {ms_path}"
                                 )
                         except Exception as e:
-                            logger.warning(
-                                f"Could not verify column data in {ms_path}: {e}"
-                            )
+                            logger.warning(f"Could not verify column data in {ms_path}: {e}")
                     logger.info(f"✓ Imaging columns verified in {ms_path}")
             else:
-                logger.debug(
-                    f"Imaging columns created (validation skipped) in {ms_path}"
-                )
+                logger.debug(f"Imaging columns created (validation skipped) in {ms_path}")
 
             operations_status["columns"] = "success"
         except ConversionError:
@@ -838,6 +942,15 @@ def configure_ms_for_imaging(
         operations_status["field_phase_centers"] = f"failed: {e}"
         # Non-fatal: field phase center fix is best-effort
 
+    # Fix OBSERVATION table and OBSERVATION_ID column (critical for CASA msmetadata)
+    try:
+        _ensure_observation_table_valid(ms_path)
+        _fix_observation_id_column(ms_path)
+        operations_status["observation_table"] = "success"
+    except Exception as e:
+        operations_status["observation_table"] = f"failed: {e}"
+        # Non-fatal: observation table fix is best-effort
+
     # Fix OBSERVATION table TIME_RANGE (corrects missing/invalid time range)
     try:
         _fix_observation_time_range(ms_path)
@@ -847,9 +960,7 @@ def configure_ms_for_imaging(
         # Non-fatal: observation time range fix is best-effort
 
     # Summary logging - report what worked and what didn't
-    success_ops = [
-        op for op, status in operations_status.items() if status == "success"
-    ]
+    success_ops = [op for op, status in operations_status.items() if status == "success"]
     failed_ops = [
         f"{op}({status.split(': ')[1]})"
         for op, status in operations_status.items()
@@ -882,5 +993,7 @@ __all__ = [
     "_initialize_weights",
     "_fix_mount_type_in_ms",
     "_fix_field_phase_centers_from_times",
+    "_ensure_observation_table_valid",
+    "_fix_observation_id_column",
     "_fix_observation_time_range",
 ]

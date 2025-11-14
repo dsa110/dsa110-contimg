@@ -1,0 +1,17 @@
+FROM node:20-slim
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install GitHub Copilot CLI
+RUN npm install -g @github/copilot
+
+# Set working directory
+WORKDIR /workspace
+
+# Default command
+CMD ["copilot", "--help"]
+

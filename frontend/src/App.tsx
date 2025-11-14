@@ -119,7 +119,10 @@ function AppContent() {
   const [queryClient] = useState(() => getQueryClient());
 
   // Set basename for production builds served from /ui/
-  const basename = import.meta.env.PROD ? "/ui" : undefined;
+  // Ensure basename is always a string or undefined (never an object)
+  // Use explicit type guard to prevent object coercion errors in React Router
+  const basename: string | undefined =
+    typeof import.meta.env.PROD === "boolean" && import.meta.env.PROD ? "/ui" : undefined;
 
   return (
     <ErrorBoundary>

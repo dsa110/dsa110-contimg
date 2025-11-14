@@ -304,6 +304,14 @@ if [ -n "$STAGED_FRONTEND_FILES" ]; then
         exit 1
       fi
       
+      # Verify page components have default exports (required for React.lazy())
+      if ! execute_with_monitoring "npm run verify:page-exports"; then
+        echo "" >&2
+        echo "Page export verification failed. All page components must use default exports for React.lazy()." >&2
+        echo "Fix: Change 'export function ComponentName()' to 'export default function ComponentName()'" >&2
+        exit 1
+      fi
+      
       # Run lint
       if ! execute_with_monitoring "npm run lint"; then
         echo "" >&2

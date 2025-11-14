@@ -29,4 +29,10 @@ export default defineConfig([
       ],
     },
   },
+  // Note: ESLint import plugin doesn't fully support flat config (ESLint 9) yet
+  // Default export enforcement for lazy-loaded components is handled by:
+  // 1. TypeScript type checking (catches missing default exports)
+  // 2. Custom verification script: scripts/verify-page-exports.js
+  // 3. Route rendering integration test (catches runtime errors)
+  // See: frontend/docs/analysis/lazy-loading-export-issues.md
 ]);

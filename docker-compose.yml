@@ -29,7 +29,7 @@ services:
     image: continuumdevs/dsa110-dashboard:latest
     container_name: dsa110-dashboard
     ports:
-      - "3000:3000"
+      - "3210:3000"
     environment:
       - REACT_APP_API_URL=http://localhost:8000
     restart: unless-stopped
@@ -38,6 +38,7 @@ services:
     command: serve -s /app/build -l 3000
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      # Note: Host port is 3210, but container listens on 3000
       interval: 30s
       timeout: 10s
       retries: 3
@@ -48,7 +49,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: dsa110-dashboard-dev
     ports:
-      - "5174:5173" # Use port 5174 on host to avoid conflict with local dev server
+      - "5174:5173" # Frontend dev server (Docker) on port 5174
     volumes:
       - ./frontend:/app
       - /app/node_modules

@@ -160,6 +160,10 @@ state/
 .watch/
 *watch*
 
+# CodeQL database directories
+codeql-db-python/
+codeql-db-*/
+
 # Editor/tool-specific directories to ignore
 .codex/
 
@@ -204,9 +208,10 @@ site/
 # Process IDs and lock files
 *.pid
 
-# Top-level markdown files (keep only README.md in repo)
+# Top-level markdown files (keep only README.md and MEMORY.md in repo)
 /*.md
 !/README.md
+!/MEMORY.md
 
 # Ignore archived docs folder
 docs/archive/

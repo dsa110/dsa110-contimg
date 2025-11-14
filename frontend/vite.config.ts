@@ -33,10 +33,10 @@ export default defineConfig({
   base: process.env.NODE_ENV === "production" ? "/ui/" : "/",
   server: {
     host: "0.0.0.0", // Allow external connections in Docker
-    port: 3210,
+    port: 5173,
     hmr: {
       host: "localhost",
-      port: 3210,
+      port: 5173,
     },
     watch: {
       usePolling: false, // Use native file system events (faster)

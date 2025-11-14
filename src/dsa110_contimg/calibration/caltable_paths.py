@@ -109,6 +109,10 @@ def validate_caltables_exist(
     """
     Validate that expected calibration tables exist.
 
+    Supports both naming conventions:
+    - Standard CASA: {ms_basename}.K, {ms_basename}.B0, {ms_basename}.G
+    - DSA-110 convention: {ms_basename}_kcal, {ms_basename}_bpcal, {ms_basename}_gpcal, {ms_basename}_2gcal
+
     Args:
         ms_path: Path to Measurement Set
         caltable_dir: Directory containing caltables
@@ -123,26 +127,82 @@ def validate_caltables_exist(
     Raises:
         FileNotFoundError: If raise_on_missing=True and tables are missing
     """
-    expected = get_expected_caltables(ms_path, caltable_dir, caltype, spwmap)
+    import glob
+
+    ms_path_obj = Path(ms_path)
+    ms_basename = ms_path_obj.stem
+
+    if caltable_dir is None:
+        caltable_dir = ms_path_obj.parent
+    else:
+        caltable_dir = Path(caltable_dir)
 
     existing = {"K": [], "B": [], "G": [], "all": []}
     missing = {"K": [], "B": [], "G": [], "all": []}
 
+    # Check for standard CASA naming convention first
+    expected_standard = get_expected_caltables(ms_path, caltable_dir, caltype, spwmap)
+
+    # Also check for DSA-110 naming convention (combined tables)
+    # Pattern: {ms_basename}_*_kcal, {ms_basename}_*_bpcal, {ms_basename}_*_gpcal, {ms_basename}_*_2gcal
+    expected_dsa110 = {"K": [], "B": [], "G": [], "all": []}
+
+    if caltype in ("all", "K"):
+        # Look for _kcal tables
+        kcal_pattern = str(caltable_dir / f"{ms_basename}_*_kcal")
+        kcal_tables = glob.glob(kcal_pattern)
+        expected_dsa110["K"].extend(kcal_tables)
+
+    if caltype in ("all", "B"):
+        # Look for _bpcal tables
+        bpcal_pattern = str(caltable_dir / f"{ms_basename}_*_bpcal")
+        bpcal_tables = glob.glob(bpcal_pattern)
+        expected_dsa110["B"].extend(bpcal_tables)
+
+    if caltype in ("all", "G"):
+        # Look for _gpcal and _2gcal tables
+        gpcal_pattern = str(caltable_dir / f"{ms_basename}_*_gpcal")
+        gpcal_tables = glob.glob(gpcal_pattern)
+        expected_dsa110["G"].extend(gpcal_tables)
+
+        # Also check for _2gcal (second-order gain calibration)
+        g2cal_pattern = str(caltable_dir / f"{ms_basename}_*_2gcal")
+        g2cal_tables = glob.glob(g2cal_pattern)
+        expected_dsa110["G"].extend(g2cal_tables)
+
+    # Combine both naming conventions
+    all_expected = {
+        "K": expected_standard["K"] + expected_dsa110["K"],
+        "B": expected_standard["B"] + expected_dsa110["B"],
+        "G": expected_standard["G"] + expected_dsa110["G"],
+        "all": expected_standard["all"] + expected_dsa110["all"],
+    }
+
+    # Check which tables actually exist
     for caltype_key in ["K", "B", "G"]:
-        for table_path in expected[caltype_key]:
+        for table_path in all_expected[caltype_key]:
             if Path(table_path).exists():
                 existing[caltype_key].append(table_path)
                 existing["all"].append(table_path)
             else:
-                missing[caltype_key].append(table_path)
-                missing["all"].append(table_path)
+                # Only report as missing if it's from the standard convention
+                # (DSA-110 convention tables may not exist if using standard naming)
+                if table_path in expected_standard[caltype_key]:
+                    missing[caltype_key].append(table_path)
+                    missing["all"].append(table_path)
+
+    # If we found tables using DSA-110 convention, don't report standard convention as missing
+    if existing["all"]:
+        # Clear missing list if we found any tables (they're using a different naming convention)
+        missing = {"K": [], "B": [], "G": [], "all": []}
 
     if raise_on_missing and missing["all"]:
         raise FileNotFoundError(
             f"Missing calibration tables for {ms_path}:\n"
             f"  K tables: {missing['K']}\n"
             f"  B tables: {missing['B']}\n"
-            f"  G tables: {missing['G']}"
+            f"  G tables: {missing['G']}\n"
+            f"  Found tables: {existing['all']}"
         )
 
     return existing, missing
