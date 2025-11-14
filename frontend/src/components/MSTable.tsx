@@ -1,17 +1,17 @@
 /**
  * MSTable Component
- * 
+ *
  * Advanced table for displaying Measurement Sets with:
  * - Search and filtering
  * - Sortable columns
  * - Status badges
  * - Multi-select for batch operations
  * - Pagination
- * 
+ *
  * @module components/MSTable
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from "react";
 import {
   Box,
   Table,
@@ -35,14 +35,14 @@ import {
   Pagination,
   Tooltip,
   IconButton,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Search as SearchIcon,
   CheckCircle as CheckIcon,
   Warning as WarningIcon,
   Refresh as RefreshIcon,
-} from '@mui/icons-material';
-import type { MSListEntry, MSListFilters } from '../api/types';
+} from "@mui/icons-material";
+import type { MSListEntry, MSListFilters } from "../api/types";
 
 interface MSTableProps {
   /** Array of MS entries to display */
@@ -65,19 +65,24 @@ interface MSTableProps {
   onRefresh?: () => void;
 }
 
-type SortField = 'path' | 'start_time' | 'calibrator_name' | 'size_gb';
-type SortDirection = 'asc' | 'desc';
+type SortField = "path" | "start_time" | "calibrator_name" | "size_gb";
+type SortDirection = "asc" | "desc";
 
 /**
  * Get color for quality badge
  */
-function getQualityColor(quality?: string): 'success' | 'warning' | 'error' | 'default' {
+function getQualityColor(quality?: string): "success" | "warning" | "error" | "default" {
   switch (quality) {
-    case 'excellent': return 'success';
-    case 'good': return 'success';
-    case 'marginal': return 'warning';
-    case 'poor': return 'error';
-    default: return 'default';
+    case "excellent":
+      return "success";
+    case "good":
+      return "success";
+    case "marginal":
+      return "warning";
+    case "poor":
+      return "error";
+    default:
+      return "default";
   }
 }
 
@@ -85,7 +90,7 @@ function getQualityColor(quality?: string): 'success' | 'warning' | 'error' | 'd
  * Format file size in GB
  */
 function formatSize(sizeGb?: number): string {
-  if (!sizeGb) return '-';
+  if (!sizeGb) return "-";
   return `${sizeGb.toFixed(1)} GB`;
 }
 
@@ -93,10 +98,10 @@ function formatSize(sizeGb?: number): string {
  * Format timestamp
  */
 function formatTime(isoString?: string): string {
-  if (!isoString) return '-';
+  if (!isoString) return "-";
   try {
     const date = new Date(isoString);
-    return date.toISOString().replace('T', ' ').slice(0, 19);
+    return date.toISOString().replace("T", " ").slice(0, 19);
   } catch {
     return isoString;
   }
@@ -106,7 +111,7 @@ function formatTime(isoString?: string): string {
  * Extract filename from path
  */
 function getFilename(path: string): string {
-  const parts = path.split('/');
+  const parts = path.split("/");
   return parts[parts.length - 1] || path;
 }
 
@@ -122,11 +127,11 @@ export default function MSTable({
   onRefresh,
 }: MSTableProps) {
   // Local filter state
-  const [searchText, setSearchText] = useState('');
-  const [filterCalibrator, setFilterCalibrator] = useState<string>('all');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [sortField, setSortField] = useState<SortField>('start_time');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [searchText, setSearchText] = useState("");
+  const [filterCalibrator, setFilterCalibrator] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [sortField, setSortField] = useState<SortField>("start_time");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [page, setPage] = useState(1);
   const [rowsPerPage] = useState(25);
 
@@ -143,28 +148,28 @@ export default function MSTable({
     if (searchText) {
       const search = searchText.toLowerCase();
       result = result.filter(
-        ms =>
+        (ms) =>
           ms.path.toLowerCase().includes(search) ||
           ms.calibrator_name?.toLowerCase().includes(search)
       );
     }
 
     // Calibrator filter
-    if (filterCalibrator !== 'all') {
-      if (filterCalibrator === 'yes') {
-        result = result.filter(ms => ms.has_calibrator);
-      } else if (filterCalibrator === 'no') {
-        result = result.filter(ms => !ms.has_calibrator);
+    if (filterCalibrator !== "all") {
+      if (filterCalibrator === "yes") {
+        result = result.filter((ms) => ms.has_calibrator);
+      } else if (filterCalibrator === "no") {
+        result = result.filter((ms) => !ms.has_calibrator);
       }
     }
 
     // Status filter
-    if (filterStatus === 'calibrated') {
-      result = result.filter(ms => ms.is_calibrated);
-    } else if (filterStatus === 'imaged') {
-      result = result.filter(ms => ms.is_imaged);
-    } else if (filterStatus === 'uncalibrated') {
-      result = result.filter(ms => !ms.is_calibrated);
+    if (filterStatus === "calibrated") {
+      result = result.filter((ms) => ms.is_calibrated);
+    } else if (filterStatus === "imaged") {
+      result = result.filter((ms) => ms.is_imaged);
+    } else if (filterStatus === "uncalibrated") {
+      result = result.filter((ms) => !ms.is_calibrated);
     }
 
     // Sort
@@ -173,19 +178,19 @@ export default function MSTable({
       let bVal: string | number;
 
       switch (sortField) {
-        case 'path':
+        case "path":
           aVal = a.path;
           bVal = b.path;
           break;
-        case 'start_time':
-          aVal = a.start_time || '';
-          bVal = b.start_time || '';
+        case "start_time":
+          aVal = a.start_time || "";
+          bVal = b.start_time || "";
           break;
-        case 'calibrator_name':
-          aVal = a.calibrator_name || '';
-          bVal = b.calibrator_name || '';
+        case "calibrator_name":
+          aVal = a.calibrator_name || "";
+          bVal = b.calibrator_name || "";
           break;
-        case 'size_gb':
+        case "size_gb":
           aVal = a.size_gb || 0;
           bVal = b.size_gb || 0;
           break;
@@ -193,8 +198,8 @@ export default function MSTable({
           return 0;
       }
 
-      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
-      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
       return 0;
     });
 
@@ -212,7 +217,7 @@ export default function MSTable({
   // Selection handlers
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      onSelectionChange(paginatedData.map(ms => ms.path));
+      onSelectionChange(paginatedData.map((ms) => ms.path));
     } else {
       onSelectionChange([]);
     }
@@ -221,7 +226,7 @@ export default function MSTable({
   const handleSelectOne = (path: string) => {
     const isSelected = selected.includes(path);
     if (isSelected) {
-      onSelectionChange(selected.filter(p => p !== path));
+      onSelectionChange(selected.filter((p) => p !== path));
     } else {
       // When selecting via checkbox, only call onSelectionChange
       // It will handle updating both selectedMSList and selectedMS
@@ -231,15 +236,16 @@ export default function MSTable({
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortDirection('desc');
+      setSortDirection("desc");
     }
   };
 
-  const isAllSelected = paginatedData.length > 0 && paginatedData.every(ms => selected.includes(ms.path));
-  const isSomeSelected = paginatedData.some(ms => selected.includes(ms.path)) && !isAllSelected;
+  const isAllSelected =
+    paginatedData.length > 0 && paginatedData.every((ms) => selected.includes(ms.path));
+  const isSomeSelected = paginatedData.some((ms) => selected.includes(ms.path)) && !isAllSelected;
 
   return (
     <Box>
@@ -259,7 +265,7 @@ export default function MSTable({
           }}
           sx={{ flexGrow: 1 }}
         />
-        
+
         <FormControl size="small" sx={{ minWidth: 150 }}>
           <InputLabel>Calibrator</InputLabel>
           <Select
@@ -297,7 +303,7 @@ export default function MSTable({
       </Stack>
 
       {/* Summary */}
-      <Typography variant="caption" sx={{ display: 'block', mb: 1, color: 'text.secondary' }}>
+      <Typography variant="caption" sx={{ display: "block", mb: 1, color: "text.secondary" }}>
         Showing {paginatedData.length} of {filteredAndSortedData.length} MS
         {selected.length > 0 && ` (${selected.length} selected)`}
       </Typography>
@@ -317,27 +323,27 @@ export default function MSTable({
               </TableCell>
               <TableCell>
                 <TableSortLabel
-                  active={sortField === 'path'}
-                  direction={sortField === 'path' ? sortDirection : 'asc'}
-                  onClick={() => handleSort('path')}
+                  active={sortField === "path"}
+                  direction={sortField === "path" ? sortDirection : "asc"}
+                  onClick={() => handleSort("path")}
                 >
                   MS Name
                 </TableSortLabel>
               </TableCell>
               <TableCell>
                 <TableSortLabel
-                  active={sortField === 'start_time'}
-                  direction={sortField === 'start_time' ? sortDirection : 'asc'}
-                  onClick={() => handleSort('start_time')}
+                  active={sortField === "start_time"}
+                  direction={sortField === "start_time" ? sortDirection : "asc"}
+                  onClick={() => handleSort("start_time")}
                 >
                   Time
                 </TableSortLabel>
               </TableCell>
               <TableCell>
                 <TableSortLabel
-                  active={sortField === 'calibrator_name'}
-                  direction={sortField === 'calibrator_name' ? sortDirection : 'asc'}
-                  onClick={() => handleSort('calibrator_name')}
+                  active={sortField === "calibrator_name"}
+                  direction={sortField === "calibrator_name" ? sortDirection : "asc"}
+                  onClick={() => handleSort("calibrator_name")}
                 >
                   Calibrator
                 </TableSortLabel>
@@ -346,9 +352,9 @@ export default function MSTable({
               <TableCell>Quality</TableCell>
               <TableCell align="right">
                 <TableSortLabel
-                  active={sortField === 'size_gb'}
-                  direction={sortField === 'size_gb' ? sortDirection : 'asc'}
-                  onClick={() => handleSort('size_gb')}
+                  active={sortField === "size_gb"}
+                  direction={sortField === "size_gb" ? sortDirection : "asc"}
+                  onClick={() => handleSort("size_gb")}
                 >
                   Size
                 </TableSortLabel>
@@ -358,36 +364,31 @@ export default function MSTable({
           <TableBody>
             {paginatedData.map((ms) => {
               const isSelected = selected.includes(ms.path);
-              
+
               return (
                 <TableRow
                   key={ms.path}
                   hover
                   onClick={() => onMSClick?.(ms)}
                   selected={isSelected}
-                  sx={{ cursor: onMSClick ? 'pointer' : 'default' }}
+                  sx={{ cursor: onMSClick ? "pointer" : "default" }}
                 >
                   <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
-                    <Checkbox
-                      checked={isSelected}
-                      onChange={() => handleSelectOne(ms.path)}
-                    />
+                    <Checkbox checked={isSelected} onChange={() => handleSelectOne(ms.path)} />
                   </TableCell>
-                  <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                  <TableCell sx={{ fontFamily: "monospace", fontSize: "0.8rem" }}>
                     {getFilename(ms.path)}
                   </TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem' }}>
-                    {formatTime(ms.start_time)}
-                  </TableCell>
+                  <TableCell sx={{ fontSize: "0.75rem" }}>{formatTime(ms.start_time)}</TableCell>
                   <TableCell>
                     {ms.has_calibrator ? (
                       <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Tooltip title={`Quality: ${ms.calibrator_quality || 'unknown'}`}>
+                        <Tooltip title={`Quality: ${ms.calibrator_quality || "unknown"}`}>
                           <Chip
-                            label={ms.calibrator_name || 'Unknown'}
+                            label={ms.calibrator_name || "Unknown"}
                             size="small"
                             color={getQualityColor(ms.calibrator_quality)}
-                            sx={{ fontSize: '0.7rem', height: 20 }}
+                            sx={{ fontSize: "0.7rem", height: 20 }}
                           />
                         </Tooltip>
                       </Stack>
@@ -397,31 +398,31 @@ export default function MSTable({
                         label="None"
                         size="small"
                         color="default"
-                        sx={{ fontSize: '0.7rem', height: 20 }}
+                        sx={{ fontSize: "0.7rem", height: 20 }}
                       />
                     )}
                   </TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={0.5}>
                       {ms.is_calibrated && (
-                        <Tooltip title={`Cal: ${ms.calibration_quality || 'unknown'}`}>
+                        <Tooltip title={`Cal: ${ms.calibration_quality || "unknown"}`}>
                           <Chip
                             icon={<CheckIcon />}
                             label="Cal"
                             size="small"
                             color="primary"
-                            sx={{ fontSize: '0.65rem', height: 18 }}
+                            sx={{ fontSize: "0.65rem", height: 18 }}
                           />
                         </Tooltip>
                       )}
                       {ms.is_imaged && (
-                        <Tooltip title={`Img: ${ms.image_quality || 'unknown'}`}>
+                        <Tooltip title={`Img: ${ms.image_quality || "unknown"}`}>
                           <Chip
                             icon={<CheckIcon />}
                             label="Img"
                             size="small"
                             color="secondary"
-                            sx={{ fontSize: '0.65rem', height: 18 }}
+                            sx={{ fontSize: "0.65rem", height: 18 }}
                           />
                         </Tooltip>
                       )}
@@ -433,7 +434,7 @@ export default function MSTable({
                         label={ms.calibration_quality}
                         size="small"
                         color={getQualityColor(ms.calibration_quality)}
-                        sx={{ fontSize: '0.65rem', height: 18, mr: 0.5 }}
+                        sx={{ fontSize: "0.65rem", height: 18, mr: 0.5 }}
                       />
                     )}
                     {ms.image_quality && (
@@ -441,11 +442,11 @@ export default function MSTable({
                         label={ms.image_quality}
                         size="small"
                         color={getQualityColor(ms.image_quality)}
-                        sx={{ fontSize: '0.65rem', height: 18 }}
+                        sx={{ fontSize: "0.65rem", height: 18 }}
                       />
                     )}
                   </TableCell>
-                  <TableCell align="right" sx={{ fontSize: '0.75rem' }}>
+                  <TableCell align="right" sx={{ fontSize: "0.75rem" }}>
                     {formatSize(ms.size_gb)}
                   </TableCell>
                 </TableRow>
@@ -455,7 +456,7 @@ export default function MSTable({
               <TableRow>
                 <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
                   <Typography variant="body2" color="text.secondary">
-                    {loading ? 'Loading...' : 'No MS files found'}
+                    {loading ? "Loading..." : "No MS files found"}
                   </Typography>
                 </TableCell>
               </TableRow>
@@ -466,7 +467,7 @@ export default function MSTable({
 
       {/* Pagination */}
       {pageCount > 1 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
           <Pagination
             count={pageCount}
             page={page}
@@ -480,4 +481,3 @@ export default function MSTable({
     </Box>
   );
 }
-

@@ -1,14 +1,7 @@
-# Streaming Service Troubleshooting Guide
+# Moved
 
-## Overview
-
-This guide provides comprehensive troubleshooting procedures for the DSA-110 streaming service. Use this document to diagnose and resolve common issues.
-
-**Related Documentation:**
-- [Streaming Control Guide](./streaming-control.md) - Basic usage and control
-- [Streaming Architecture](../concepts/streaming-architecture.md) - System architecture
-- [Streaming API Reference](../reference/streaming-api.md) - API documentation
-- [Docker Client Reference](../reference/docker-client.md) - Docker integration
+This content was consolidated into `docs/how-to/streaming.md` (Troubleshooting
+section).
 
 ## Quick Diagnosis
 
@@ -27,20 +20,21 @@ docker-compose logs stream | tail -50
 
 ### Common Symptoms
 
-| Symptom | Likely Cause | Quick Fix |
-|---------|-------------|-----------|
-| Service won't start | Configuration error, missing directories | Check config, verify paths |
+| Symptom                   | Likely Cause                                 | Quick Fix                             |
+| ------------------------- | -------------------------------------------- | ------------------------------------- |
+| Service won't start       | Configuration error, missing directories     | Check config, verify paths            |
 | Service stops immediately | Python/CASA not available, permission issues | Check Python path, verify permissions |
-| No files being processed | Input directory not accessible, wrong path | Verify input_dir, check permissions |
-| High CPU usage | Too many workers, processing bottleneck | Reduce max_workers |
-| High memory usage | Large files, memory leak | Check file sizes, restart service |
-| Queue not processing | Worker stuck, database locked | Check queue state, restart service |
+| No files being processed  | Input directory not accessible, wrong path   | Verify input_dir, check permissions   |
+| High CPU usage            | Too many workers, processing bottleneck      | Reduce max_workers                    |
+| High memory usage         | Large files, memory leak                     | Check file sizes, restart service     |
+| Queue not processing      | Worker stuck, database locked                | Check queue state, restart service    |
 
 ## Common Issues and Solutions
 
 ### 1. Service Won't Start
 
 #### Symptoms
+
 - Start button in dashboard returns error
 - Service status shows "Stopped" immediately after start attempt
 - Error message: "Failed to start streaming service"
@@ -48,11 +42,13 @@ docker-compose logs stream | tail -50
 #### Diagnosis Steps
 
 **Step 1: Check API Logs**
+
 ```bash
 docker-compose logs api | grep -i "streaming\|error" | tail -20
 ```
 
 **Step 2: Check Configuration**
+
 ```bash
 # Via API
 curl http://localhost:8010/api/streaming/config
@@ -62,6 +58,7 @@ cat state/streaming_config.json
 ```
 
 **Step 3: Verify Directories**
+
 ```bash
 # Check if directories exist and are accessible
 ls -la $CONTIMG_INPUT_DIR
@@ -70,6 +67,7 @@ ls -la $CONTIMG_SCRATCH_DIR
 ```
 
 **Step 4: Check Python Environment**
+
 ```bash
 # Verify CASA6 Python exists
 ls -la /opt/miniforge/envs/casa6/bin/python
@@ -81,6 +79,7 @@ ls -la /opt/miniforge/envs/casa6/bin/python
 #### Solutions
 
 **Issue: Configuration Error**
+
 ```bash
 # Reset to defaults via API
 curl -X POST http://localhost:8010/api/streaming/config \
@@ -94,6 +93,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ```
 
 **Issue: Missing Directories**
+
 ```bash
 # Create missing directories
 mkdir -p /data/incoming
@@ -103,6 +103,7 @@ chmod 755 /data/incoming /stage/dsa110-contimg/ms /stage/dsa110-contimg
 ```
 
 **Issue: Python Not Found**
+
 ```bash
 # Verify CASA6 environment
 conda activate casa6
@@ -114,6 +115,7 @@ python --version
 ```
 
 **Issue: Permission Denied**
+
 ```bash
 # Check directory permissions
 ls -ld /data/incoming /stage/dsa110-contimg
@@ -126,6 +128,7 @@ sudo chown -R $USER:$USER /stage/dsa110-contimg
 ### 2. Service Starts But Stops Immediately
 
 #### Symptoms
+
 - Service appears to start successfully
 - Status shows "Running" briefly, then "Stopped"
 - No error message in dashboard
@@ -133,16 +136,19 @@ sudo chown -R $USER:$USER /stage/dsa110-contimg
 #### Diagnosis Steps
 
 **Step 1: Check Container Logs**
+
 ```bash
 docker-compose logs stream | tail -100
 ```
 
 **Step 2: Check for Python Errors**
+
 ```bash
 docker-compose logs stream | grep -i "error\|exception\|traceback" | tail -20
 ```
 
 **Step 3: Check System Resources**
+
 ```bash
 # Check disk space
 df -h /data /scratch
@@ -157,12 +163,14 @@ dmesg | tail -20
 #### Solutions
 
 **Issue: Python Import Error**
+
 ```bash
 # Test imports manually
 docker-compose exec stream python -c "import dsa110_contimg.conversion.streaming.streaming_converter"
 ```
 
 **Issue: Out of Disk Space**
+
 ```bash
 # Check disk usage
 df -h
@@ -174,6 +182,7 @@ find /stage/dsa110-contimg -type f -mtime +30 -delete
 ```
 
 **Issue: Out of Memory (OOM Killer)**
+
 ```bash
 # Check if OOM killer was involved
 dmesg | grep -i "oom\|killed"
@@ -185,6 +194,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ```
 
 **Issue: Database Locked**
+
 ```bash
 # Check for database locks
 sqlite3 state/ingest.sqlite3 "SELECT * FROM sqlite_master WHERE type='table';"
@@ -196,6 +206,7 @@ docker-compose restart stream
 ### 3. Service Running But Not Processing Files
 
 #### Symptoms
+
 - Service status shows "Running"
 - No files being converted
 - Queue shows items stuck in "pending" or "collecting"
@@ -203,6 +214,7 @@ docker-compose restart stream
 #### Diagnosis Steps
 
 **Step 1: Check Input Directory**
+
 ```bash
 # Verify files are arriving
 ls -lh /data/incoming/*.hdf5 | head -10
@@ -212,6 +224,7 @@ ls -l /data/incoming/*.hdf5 | head -5
 ```
 
 **Step 2: Check Queue Status**
+
 ```bash
 # Via API
 curl http://localhost:8010/api/streaming/metrics
@@ -221,6 +234,7 @@ sqlite3 state/ingest.sqlite3 "SELECT state, COUNT(*) FROM ingest_queue GROUP BY 
 ```
 
 **Step 3: Check Worker Status**
+
 ```bash
 # Check if workers are active
 docker-compose logs stream | grep -i "worker\|processing" | tail -20
@@ -229,6 +243,7 @@ docker-compose logs stream | grep -i "worker\|processing" | tail -20
 #### Solutions
 
 **Issue: Files Not Arriving**
+
 ```bash
 # Check if input directory is correct
 curl http://localhost:8010/api/streaming/config | jq .input_dir
@@ -241,6 +256,7 @@ ls /data/incoming/*_sb*.hdf5 | head -5
 ```
 
 **Issue: Wrong Expected Subbands**
+
 ```bash
 # Check current setting
 curl http://localhost:8010/api/streaming/config | jq .expected_subbands
@@ -252,6 +268,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ```
 
 **Issue: Queue Stuck**
+
 ```bash
 # Check queue state
 sqlite3 state/ingest.sqlite3 "SELECT group_id, state, retry_count FROM ingest_queue WHERE state='in_progress';"
@@ -264,6 +281,7 @@ curl -X POST http://localhost:8010/api/streaming/restart
 ```
 
 **Issue: Permission Denied on Files**
+
 ```bash
 # Check file ownership
 ls -l /data/incoming/*.hdf5 | head -5
@@ -275,6 +293,7 @@ sudo chown -R $USER:$USER /data/incoming/*.hdf5
 ### 4. High CPU Usage
 
 #### Symptoms
+
 - CPU usage consistently >80%
 - System becomes unresponsive
 - Other services slow down
@@ -282,6 +301,7 @@ sudo chown -R $USER:$USER /data/incoming/*.hdf5
 #### Diagnosis Steps
 
 **Step 1: Check Current CPU Usage**
+
 ```bash
 # Via API
 curl http://localhost:8010/api/streaming/status | jq .cpu_percent
@@ -291,11 +311,13 @@ docker stats contimg-stream --no-stream
 ```
 
 **Step 2: Check Worker Count**
+
 ```bash
 curl http://localhost:8010/api/streaming/config | jq .max_workers
 ```
 
 **Step 3: Check Processing Rate**
+
 ```bash
 curl http://localhost:8010/api/streaming/metrics | jq .processing_rate_per_hour
 ```
@@ -303,6 +325,7 @@ curl http://localhost:8010/api/streaming/metrics | jq .processing_rate_per_hour
 #### Solutions
 
 **Issue: Too Many Workers**
+
 ```bash
 # Reduce worker count
 curl -X POST http://localhost:8010/api/streaming/config \
@@ -314,6 +337,7 @@ curl -X POST http://localhost:8010/api/streaming/restart
 ```
 
 **Issue: Large Files**
+
 ```bash
 # Check file sizes
 ls -lh /data/incoming/*.hdf5 | awk '{print $5}' | sort -h | tail -5
@@ -325,6 +349,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ```
 
 **Issue: CASA Processing Overhead**
+
 ```bash
 # Check CASA thread settings
 echo $OMP_NUM_THREADS
@@ -338,6 +363,7 @@ export MKL_NUM_THREADS=4
 ### 5. High Memory Usage
 
 #### Symptoms
+
 - Memory usage >8GB
 - System swapping
 - Service crashes with out-of-memory
@@ -345,6 +371,7 @@ export MKL_NUM_THREADS=4
 #### Diagnosis Steps
 
 **Step 1: Check Memory Usage**
+
 ```bash
 # Via API
 curl http://localhost:8010/api/streaming/status | jq .memory_mb
@@ -354,12 +381,14 @@ docker stats contimg-stream --no-stream --format "{{.MemUsage}}"
 ```
 
 **Step 2: Check for Memory Leaks**
+
 ```bash
 # Monitor memory over time
 watch -n 5 'docker stats contimg-stream --no-stream --format "{{.MemUsage}}"'
 ```
 
 **Step 3: Check File Sizes**
+
 ```bash
 # Large files consume more memory
 du -sh /data/incoming/*.hdf5 | sort -h | tail -5
@@ -368,6 +397,7 @@ du -sh /data/incoming/*.hdf5 | sort -h | tail -5
 #### Solutions
 
 **Issue: Large Files**
+
 ```bash
 # Process files in smaller batches
 curl -X POST http://localhost:8010/api/streaming/config \
@@ -376,6 +406,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ```
 
 **Issue: Memory Leak**
+
 ```bash
 # Restart service periodically
 # Set up cron job or monitoring to restart every 24 hours
@@ -383,6 +414,7 @@ curl -X POST http://localhost:8010/api/streaming/restart
 ```
 
 **Issue: Too Many Concurrent Operations**
+
 ```bash
 # Reduce workers and processing rate
 curl -X POST http://localhost:8010/api/streaming/config \
@@ -393,6 +425,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ### 6. Queue Not Processing
 
 #### Symptoms
+
 - Queue shows items in "pending" state
 - No progress on processing
 - Workers appear idle
@@ -400,26 +433,28 @@ curl -X POST http://localhost:8010/api/streaming/config \
 #### Diagnosis Steps
 
 **Step 1: Check Queue State**
+
 ```bash
 # Via API
 curl http://localhost:8010/api/streaming/metrics | jq .queue_stats
 
 # Direct query
 sqlite3 state/ingest.sqlite3 <<EOF
-SELECT state, COUNT(*) as count, 
+SELECT state, COUNT(*) as count,
        MIN(last_update) as oldest,
        MAX(last_update) as newest
-FROM ingest_queue 
+FROM ingest_queue
 GROUP BY state;
 EOF
 ```
 
 **Step 2: Check for Stuck Items**
+
 ```bash
 sqlite3 state/ingest.sqlite3 <<EOF
-SELECT group_id, state, retry_count, 
+SELECT group_id, state, retry_count,
        datetime(last_update, 'unixepoch') as last_update_time
-FROM ingest_queue 
+FROM ingest_queue
 WHERE state IN ('in_progress', 'pending')
 ORDER BY last_update
 LIMIT 10;
@@ -427,6 +462,7 @@ EOF
 ```
 
 **Step 3: Check Worker Logs**
+
 ```bash
 docker-compose logs stream | grep -i "worker\|acquire\|pending" | tail -30
 ```
@@ -434,6 +470,7 @@ docker-compose logs stream | grep -i "worker\|acquire\|pending" | tail -30
 #### Solutions
 
 **Issue: Database Locked**
+
 ```bash
 # Check for locks
 sqlite3 state/ingest.sqlite3 "PRAGMA busy_timeout;"
@@ -446,26 +483,28 @@ curl -X POST http://localhost:8010/api/streaming/restart
 ```
 
 **Issue: Stuck in "in_progress"**
+
 ```bash
 # Find items stuck for >1 hour
 sqlite3 state/ingest.sqlite3 <<EOF
 SELECT group_id, state, retry_count
-FROM ingest_queue 
-WHERE state='in_progress' 
+FROM ingest_queue
+WHERE state='in_progress'
   AND last_update < (strftime('%s', 'now') - 3600);
 EOF
 
 # Reset stuck items (use with caution)
 sqlite3 state/ingest.sqlite3 <<EOF
-UPDATE ingest_queue 
+UPDATE ingest_queue
 SET state='pending', retry_count=retry_count+1
-WHERE state='in_progress' 
+WHERE state='in_progress'
   AND last_update < (strftime('%s', 'now') - 3600)
   AND retry_count < 5;
 EOF
 ```
 
 **Issue: No Workers Available**
+
 ```bash
 # Check worker configuration
 curl http://localhost:8010/api/streaming/config | jq .max_workers
@@ -479,6 +518,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ### 7. Docker-Related Issues
 
 #### Symptoms
+
 - "docker-compose not found" errors
 - Cannot control service from dashboard
 - Container status inconsistent
@@ -486,6 +526,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 #### Diagnosis Steps
 
 **Step 1: Check Docker Availability**
+
 ```bash
 # Check if Docker is running
 docker ps
@@ -496,6 +537,7 @@ docker compose version
 ```
 
 **Step 2: Check Docker Socket**
+
 ```bash
 # Check if socket is accessible
 ls -la /var/run/docker.sock
@@ -505,6 +547,7 @@ docker info
 ```
 
 **Step 3: Check Container Status**
+
 ```bash
 # Check container directly
 docker ps -a | grep contimg-stream
@@ -516,6 +559,7 @@ docker inspect contimg-stream | jq '.[0].State'
 #### Solutions
 
 **Issue: Docker Compose Not Available**
+
 ```bash
 # Install docker-compose if missing
 sudo apt-get install docker-compose
@@ -525,6 +569,7 @@ docker compose ps
 ```
 
 **Issue: Docker Socket Not Mounted**
+
 ```bash
 # Add to docker-compose.yml api service:
 volumes:
@@ -535,6 +580,7 @@ docker-compose restart api
 ```
 
 **Issue: Permission Denied on Socket**
+
 ```bash
 # Add user to docker group
 sudo usermod -aG docker $USER
@@ -549,6 +595,7 @@ docker ps
 ### 8. Configuration Issues
 
 #### Symptoms
+
 - Configuration changes not taking effect
 - Service uses wrong paths
 - Settings reset after restart
@@ -556,6 +603,7 @@ docker ps
 #### Diagnosis Steps
 
 **Step 1: Check Current Configuration**
+
 ```bash
 # Via API
 curl http://localhost:8010/api/streaming/config
@@ -565,6 +613,7 @@ cat state/streaming_config.json
 ```
 
 **Step 2: Verify Configuration Persistence**
+
 ```bash
 # Check file permissions
 ls -la state/streaming_config.json
@@ -576,6 +625,7 @@ test -w state/streaming_config.json && echo "Writable" || echo "Not writable"
 #### Solutions
 
 **Issue: Config Not Saving**
+
 ```bash
 # Check directory permissions
 ls -ld state/
@@ -586,6 +636,7 @@ chmod 644 state/streaming_config.json
 ```
 
 **Issue: Config Not Applied**
+
 ```bash
 # Restart service after config change
 curl -X POST http://localhost:8010/api/streaming/config \
@@ -597,6 +648,7 @@ curl -X POST http://localhost:8010/api/streaming/restart
 ```
 
 **Issue: Environment Variables Override Config**
+
 ```bash
 # Check environment variables
 docker-compose exec api env | grep CONTIMG
@@ -625,6 +677,7 @@ docker-compose logs -f stream
 ### 2. Check Logs
 
 **Streaming Service Logs**
+
 ```bash
 # Recent logs
 docker-compose logs stream | tail -100
@@ -640,12 +693,14 @@ docker-compose logs stream | grep "2025-11-06T14:00:00"
 ```
 
 **API Logs**
+
 ```bash
 # Check API logs for streaming-related errors
 docker-compose logs api | grep -i "streaming" | tail -50
 ```
 
 **System Logs**
+
 ```bash
 # Check system logs for OOM or other issues
 dmesg | tail -50
@@ -655,11 +710,12 @@ journalctl -u docker -n 50
 ### 3. Database Inspection
 
 **Check Queue State**
+
 ```bash
 sqlite3 state/ingest.sqlite3 <<EOF
 .mode column
 .headers on
-SELECT 
+SELECT
     state,
     COUNT(*) as count,
     MIN(datetime(last_update, 'unixepoch')) as oldest,
@@ -670,9 +726,10 @@ EOF
 ```
 
 **Find Problematic Groups**
+
 ```bash
 sqlite3 state/ingest.sqlite3 <<EOF
-SELECT 
+SELECT
     group_id,
     state,
     retry_count,
@@ -686,9 +743,10 @@ EOF
 ```
 
 **Check Processing History**
+
 ```bash
 sqlite3 state/ingest.sqlite3 <<EOF
-SELECT 
+SELECT
     group_id,
     state,
     datetime(received_at, 'unixepoch') as received,
@@ -704,6 +762,7 @@ EOF
 ### 4. Performance Profiling
 
 **Monitor Resource Usage**
+
 ```bash
 # Continuous monitoring
 watch -n 2 'docker stats contimg-stream --no-stream'
@@ -713,6 +772,7 @@ docker stats contimg-stream --no-stream --format "table {{.CPUPerc}}\t{{.MemUsag
 ```
 
 **Check Processing Rate**
+
 ```bash
 # Get current rate
 curl http://localhost:8010/api/streaming/metrics | jq .processing_rate_per_hour
@@ -725,6 +785,7 @@ done
 ```
 
 **Identify Bottlenecks**
+
 ```bash
 # Check queue depth
 curl -s http://localhost:8010/api/streaming/metrics | jq .queue_stats
@@ -741,6 +802,7 @@ iftop -i eth0
 ### 1. Service Won't Start
 
 **Full Reset Procedure**
+
 ```bash
 # 1. Stop service
 curl -X POST http://localhost:8010/api/streaming/stop
@@ -761,6 +823,7 @@ curl -X POST http://localhost:8010/api/streaming/start
 ### 2. Queue Stuck
 
 **Queue Recovery Procedure**
+
 ```bash
 # 1. Stop service
 curl -X POST http://localhost:8010/api/streaming/stop
@@ -768,15 +831,15 @@ curl -X POST http://localhost:8010/api/streaming/stop
 # 2. Reset stuck items
 sqlite3 state/ingest.sqlite3 <<EOF
 -- Reset items stuck in_progress for >1 hour
-UPDATE ingest_queue 
+UPDATE ingest_queue
 SET state='pending', retry_count=retry_count+1
-WHERE state='in_progress' 
+WHERE state='in_progress'
   AND last_update < (strftime('%s', 'now') - 3600);
 
 -- Reset failed items with low retry count
-UPDATE ingest_queue 
+UPDATE ingest_queue
 SET state='pending', retry_count=0
-WHERE state='failed' 
+WHERE state='failed'
   AND retry_count < 3;
 EOF
 
@@ -787,6 +850,7 @@ curl -X POST http://localhost:8010/api/streaming/start
 ### 3. Database Corruption
 
 **Database Recovery**
+
 ```bash
 # 1. Stop service
 curl -X POST http://localhost:8010/api/streaming/stop
@@ -811,6 +875,7 @@ curl -X POST http://localhost:8010/api/streaming/start
 ### 4. Complete Service Reset
 
 **Nuclear Option (Use with Caution)**
+
 ```bash
 # 1. Stop service
 curl -X POST http://localhost:8010/api/streaming/stop
@@ -834,11 +899,13 @@ curl -X POST http://localhost:8010/api/streaming/start
 ### 1. Optimize Worker Count
 
 **Rule of Thumb:**
+
 - 1 worker per CPU core (if CPU-bound)
 - 1-2 workers if I/O-bound
 - Monitor CPU usage and adjust
 
 **Procedure:**
+
 ```bash
 # Start with 2 workers
 curl -X POST http://localhost:8010/api/streaming/config \
@@ -856,6 +923,7 @@ watch -n 60 'curl -s http://localhost:8010/api/streaming/status | jq .cpu_percen
 ### 2. Optimize Polling Intervals
 
 **For High-Frequency Data:**
+
 ```bash
 curl -X POST http://localhost:8010/api/streaming/config \
   -H "Content-Type: application/json" \
@@ -866,6 +934,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ```
 
 **For Low-Frequency Data:**
+
 ```bash
 curl -X POST http://localhost:8010/api/streaming/config \
   -H "Content-Type: application/json" \
@@ -878,6 +947,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ### 3. Optimize Chunk Duration
 
 **For Large Files:**
+
 ```bash
 # Increase chunk duration to process fewer files at once
 curl -X POST http://localhost:8010/api/streaming/config \
@@ -886,6 +956,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ```
 
 **For Small Files:**
+
 ```bash
 # Decrease chunk duration for faster processing
 curl -X POST http://localhost:8010/api/streaming/config \
@@ -902,41 +973,49 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ```
 INFO: Worker acquired group 2025-11-06T14:00:00
 ```
+
 → Worker picked up a group for processing
 
 ```
 ERROR: Failed to process group 2025-11-06T14:00:00: Permission denied
 ```
+
 → File permission issue
 
 ```
 WARNING: Group 2025-11-06T14:00:00 incomplete: 12/16 subbands
 ```
+
 → Missing subbands, waiting for more
 
 ```
 INFO: Group 2025-11-06T14:00:00 completed in 125.3s
 ```
+
 → Successful processing
 
 ### Log Filtering
 
 **Find Errors:**
+
 ```bash
 docker-compose logs stream | grep -E "ERROR|Exception|Traceback" | tail -50
 ```
 
 **Find Specific Group:**
+
 ```bash
 docker-compose logs stream | grep "2025-11-06T14:00:00"
 ```
 
 **Find Performance Issues:**
+
 ```bash
 docker-compose logs stream | grep -E "slow|timeout|took.*[0-9]{3,}s"
 ```
 
 **Find Worker Activity:**
+
 ```bash
 docker-compose logs stream | grep -E "worker|acquire|process"
 ```
@@ -948,26 +1027,31 @@ docker-compose logs stream | grep -E "worker|acquire|process"
 When reporting issues, collect:
 
 1. **Service Status**
+
    ```bash
    curl http://localhost:8010/api/streaming/status > status.json
    ```
 
 2. **Configuration**
+
    ```bash
    curl http://localhost:8010/api/streaming/config > config.json
    ```
 
 3. **Metrics**
+
    ```bash
    curl http://localhost:8010/api/streaming/metrics > metrics.json
    ```
 
 4. **Recent Logs**
+
    ```bash
    docker-compose logs stream --tail 200 > stream_logs.txt
    ```
 
 5. **Queue State**
+
    ```bash
    sqlite3 state/ingest.sqlite3 "SELECT * FROM ingest_queue WHERE state != 'completed' LIMIT 20;" > queue_state.txt
    ```
@@ -1048,6 +1132,6 @@ echo "Diagnostics saved to ${OUTPUT_DIR}.tar.gz"
 
 - [Streaming Control Guide](./streaming-control.md) - Basic usage
 - [Streaming API Reference](../reference/streaming-api.md) - API documentation
-- [Streaming Architecture](../concepts/streaming-architecture.md) - System design
+- [Streaming Architecture](../concepts/streaming-architecture.md) - System
+  design
 - [Docker Deployment](../operations/deploy-docker.md) - Deployment guide
-

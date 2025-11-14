@@ -2,9 +2,9 @@
  * Fitting Visualization Component
  * Displays fitted 2D model overlay on JS9 image
  */
-import { useEffect, useRef } from 'react';
-import { Box, Typography, Chip, Paper } from '@mui/material';
-import { logger } from '../../utils/logger';
+import { useEffect, useRef } from "react";
+import { Box, Typography, Chip, Paper } from "@mui/material";
+import { logger } from "../../utils/logger";
 
 declare global {
   interface Window {
@@ -56,7 +56,7 @@ export default function FittingVisualization({
   displayId,
   fitResult,
   visible = true,
-  color = 'lime',
+  color = "lime",
 }: FittingVisualizationProps) {
   const overlayRef = useRef<any | null>(null);
 
@@ -65,7 +65,7 @@ export default function FittingVisualization({
       // Clear overlay if not visible
       if (overlayRef.current) {
         try {
-          if (typeof overlayRef.current.remove === 'function') {
+          if (typeof overlayRef.current.remove === "function") {
             overlayRef.current.remove();
           }
         } catch (e) {
@@ -82,14 +82,14 @@ export default function FittingVisualization({
         return divId === displayId;
       });
 
-      if (!display?.im || !window.JS9 || typeof window.JS9.AddOverlay !== 'function') {
+      if (!display?.im || !window.JS9 || typeof window.JS9.AddOverlay !== "function") {
         return;
       }
 
       // Clear existing overlay
       if (overlayRef.current) {
         try {
-          if (typeof overlayRef.current.remove === 'function') {
+          if (typeof overlayRef.current.remove === "function") {
             overlayRef.current.remove();
           }
         } catch (e) {
@@ -109,7 +109,7 @@ export default function FittingVisualization({
 
       // JS9 ellipse overlay
       const overlay = window.JS9.AddOverlay(display.im.id, {
-        type: 'ellipse',
+        type: "ellipse",
         x: x,
         y: y,
         a: major_radius,
@@ -125,7 +125,7 @@ export default function FittingVisualization({
 
       // Also draw center point
       const centerOverlay = window.JS9.AddOverlay(display.im.id, {
-        type: 'circle',
+        type: "circle",
         x: x,
         y: y,
         radius: 3,
@@ -137,21 +137,21 @@ export default function FittingVisualization({
         overlayRef.current = { ellipse: overlay, center: centerOverlay };
       }
     } catch (e) {
-      logger.error('Error adding fitting visualization overlay:', e);
+      logger.error("Error adding fitting visualization overlay:", e);
     }
 
     // Cleanup function
     return () => {
       if (overlayRef.current) {
         try {
-          if (overlayRef.current.remove && typeof overlayRef.current.remove === 'function') {
+          if (overlayRef.current.remove && typeof overlayRef.current.remove === "function") {
             overlayRef.current.remove();
           } else if (overlayRef.current.ellipse && overlayRef.current.center) {
             // Handle multiple overlays
-            if (typeof overlayRef.current.ellipse.remove === 'function') {
+            if (typeof overlayRef.current.ellipse.remove === "function") {
               overlayRef.current.ellipse.remove();
             }
-            if (typeof overlayRef.current.center.remove === 'function') {
+            if (typeof overlayRef.current.center.remove === "function") {
               overlayRef.current.center.remove();
             }
           }
@@ -172,7 +172,7 @@ export default function FittingVisualization({
       <Typography variant="subtitle2" gutterBottom>
         Fit Results ({fitResult.model})
       </Typography>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1 }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 1 }}>
         <Chip label={`Amplitude: ${fitResult.parameters.amplitude.toFixed(4)}`} size="small" />
         <Chip
           label={`Center: (${fitResult.parameters.center.x.toFixed(1)}, ${fitResult.parameters.center.y.toFixed(1)})`}
@@ -189,7 +189,7 @@ export default function FittingVisualization({
         <Chip label={`PA: ${fitResult.parameters.pa.toFixed(1)}°`} size="small" />
         <Chip label={`Background: ${fitResult.parameters.background.toFixed(4)}`} size="small" />
       </Box>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
         <Chip
           label={`χ²: ${fitResult.statistics.chi_squared.toFixed(4)}`}
           size="small"
@@ -220,4 +220,3 @@ export default function FittingVisualization({
     </Paper>
   );
 }
-

@@ -1,6 +1,6 @@
 /**
  * useJS9ImageLoader Hook
- * 
+ *
  * Handles loading images into JS9 display, including:
  * - Loading images when path changes
  * - Managing loading and error states
@@ -8,11 +8,11 @@
  * - Handling image load errors and retries
  */
 
-import { useEffect, useState, useRef } from 'react';
-import { logger } from '../../../utils/logger';
-import { isJS9Available, findDisplay } from '../../../utils/js9';
-import { useJS9Safe } from '../../../contexts/JS9Context';
-import { js9Service } from '../../../services/js9';
+import { useEffect, useState, useRef } from "react";
+import { logger } from "../../../utils/logger";
+import { isJS9Available, findDisplay } from "../../../utils/js9";
+import { useJS9Safe } from "../../../contexts/JS9Context";
+import { js9Service } from "../../../services/js9";
 
 interface UseJS9ImageLoaderOptions {
   imagePath: string | null;
@@ -58,8 +58,8 @@ export function useJS9ImageLoader({
     const hideJS9Loading = () => {
       // Try multiple selectors to catch JS9 loading indicators
       const selectors = [
-        '.JS9Loading',
-        '.js9-loading',
+        ".JS9Loading",
+        ".js9-loading",
         '[class*="js9"][class*="load"]',
         '[id*="js9"][id*="load"]',
         '[class*="JS9"][class*="Load"]',
@@ -76,10 +76,10 @@ export function useJS9ImageLoader({
           const elements = document.querySelectorAll(selector);
           elements.forEach((el: any) => {
             if (el && el.style) {
-              el.style.display = 'none';
-              el.style.visibility = 'hidden';
-              el.style.opacity = '0';
-              el.style.pointerEvents = 'none';
+              el.style.display = "none";
+              el.style.visibility = "hidden";
+              el.style.opacity = "0";
+              el.style.pointerEvents = "none";
             }
           });
         } catch (e) {
@@ -89,50 +89,50 @@ export function useJS9ImageLoader({
 
       // Also check inside the target div specifically - hide ANY element that might be a spinner
       if (targetDiv) {
-        const allChildren = targetDiv.querySelectorAll('*');
+        const allChildren = targetDiv.querySelectorAll("*");
         allChildren.forEach((el: any) => {
           if (el && el.style) {
             // Handle className properly - it can be a string, DOMTokenList, or SVGAnimatedString
-            let className = '';
-            if (typeof el.className === 'string') {
+            let className = "";
+            if (typeof el.className === "string") {
               className = el.className;
-            } else if (el.className && typeof el.className.toString === 'function') {
+            } else if (el.className && typeof el.className.toString === "function") {
               className = el.className.toString();
             } else if (el.className && el.className.baseVal) {
               className = el.className.baseVal;
-            } else if (el.getAttribute && el.getAttribute('class')) {
-              className = el.getAttribute('class') || '';
+            } else if (el.getAttribute && el.getAttribute("class")) {
+              className = el.getAttribute("class") || "";
             }
 
-            const id = (el.id || '').toString();
-            const style = el.getAttribute('style') || '';
-            const tagName = (el.tagName || '').toLowerCase();
+            const id = (el.id || "").toString();
+            const style = el.getAttribute("style") || "";
+            const tagName = (el.tagName || "").toLowerCase();
 
             // Check if this looks like a loading indicator
             const classNameLower = className.toLowerCase();
             const isSpinner =
-              classNameLower.includes('load') ||
-              classNameLower.includes('spinner') ||
-              classNameLower.includes('loader') ||
-              id.toLowerCase().includes('load') ||
-              id.toLowerCase().includes('spinner') ||
-              style.toLowerCase().includes('spinner') ||
-              style.toLowerCase().includes('loader') ||
-              style.toLowerCase().includes('rotate') ||
+              classNameLower.includes("load") ||
+              classNameLower.includes("spinner") ||
+              classNameLower.includes("loader") ||
+              id.toLowerCase().includes("load") ||
+              id.toLowerCase().includes("spinner") ||
+              style.toLowerCase().includes("spinner") ||
+              style.toLowerCase().includes("loader") ||
+              style.toLowerCase().includes("rotate") ||
               // Check for animated elements (common in spinners)
               (el.getAttribute &&
-                el.getAttribute('class') &&
-                el.getAttribute('class')?.includes('animate')) ||
+                el.getAttribute("class") &&
+                el.getAttribute("class")?.includes("animate")) ||
               // Check for SVG spinners
-              (tagName === 'svg' && (classNameLower.includes('spin') || id.includes('spin'))) ||
+              (tagName === "svg" && (classNameLower.includes("spin") || id.includes("spin"))) ||
               // Check for circular/rotating elements
-              (style.includes('animation') && (style.includes('spin') || style.includes('rotate')));
+              (style.includes("animation") && (style.includes("spin") || style.includes("rotate")));
 
             if (isSpinner) {
-              el.style.display = 'none';
-              el.style.visibility = 'hidden';
-              el.style.opacity = '0';
-              el.style.pointerEvents = 'none';
+              el.style.display = "none";
+              el.style.visibility = "hidden";
+              el.style.opacity = "0";
+              el.style.pointerEvents = "none";
             }
           }
         });
@@ -140,17 +140,18 @@ export function useJS9ImageLoader({
         // Also hide any direct children that are not the canvas (JS9 uses canvas for images)
         // If there's a div that's not a canvas and not our loading box, it might be JS9's spinner
         Array.from(targetDiv.children).forEach((child: any) => {
-          if (child && child.tagName && child.tagName.toLowerCase() !== 'canvas') {
+          if (child && child.tagName && child.tagName.toLowerCase() !== "canvas") {
             // Check if it's not our React loading box
-            const isOurSpinner = child.querySelector && child.querySelector('.MuiCircularProgress-root');
+            const isOurSpinner =
+              child.querySelector && child.querySelector(".MuiCircularProgress-root");
             if (!isOurSpinner && child.style) {
               // This might be JS9's spinner - hide it
               const rect = child.getBoundingClientRect();
               // If it's a small element in the center, it's likely a spinner
               if (rect.width < 100 && rect.height < 100) {
-                child.style.display = 'none';
-                child.style.visibility = 'hidden';
-                child.style.opacity = '0';
+                child.style.display = "none";
+                child.style.visibility = "hidden";
+                child.style.opacity = "0";
               }
             }
           }
@@ -194,7 +195,7 @@ export function useJS9ImageLoader({
           childList: true,
           subtree: true,
           attributes: true,
-          attributeFilter: ['class', 'id', 'style'],
+          attributeFilter: ["class", "id", "style"],
         });
       }
 
@@ -227,7 +228,7 @@ export function useJS9ImageLoader({
         // Add a cache-busting parameter to ensure JS9 treats this as a new image
         // This prevents JS9 from using a cached version of a previously loaded image
         const cacheBuster = `?t=${Date.now()}`;
-        const imageUrlWithCacheBuster = imagePath.includes('?')
+        const imageUrlWithCacheBuster = imagePath.includes("?")
           ? `${imagePath}&_cb=${Date.now()}`
           : `${imagePath}${cacheBuster}`;
 
@@ -242,8 +243,8 @@ export function useJS9ImageLoader({
         // Use a small delay after closing to ensure cleanup
         timeoutRef.current = setTimeout(() => {
           if (!imagePath || !js9Service.isAvailable()) {
-            logger.error('JS9.Load not available when trying to load image');
-            setError('JS9 library not fully loaded. Please refresh the page.');
+            logger.error("JS9.Load not available when trying to load image");
+            setError("JS9 library not fully loaded. Please refresh the page.");
             setLoading(false);
             return;
           }
@@ -251,17 +252,17 @@ export function useJS9ImageLoader({
           try {
             js9Service.loadImage(imageUrlWithCacheBuster, {
               divID: displayId,
-              scale: 'linear',
-              colormap: 'grey',
+              scale: "linear",
+              colormap: "grey",
               onload: (im: any) => {
-                logger.debug('FITS image loaded:', im, 'Display:', displayId);
+                logger.debug("FITS image loaded:", im, "Display:", displayId);
                 imageLoadedRef.current = true;
                 setLoading(false);
                 cleanupInterval();
                 hideJS9Loading();
 
                 // Restore page title (JS9 modifies it when loading images)
-                const originalTitle = document.title.split(':')[0].trim();
+                const originalTitle = document.title.split(":")[0].trim();
                 if (document.title !== originalTitle) {
                   document.title = originalTitle;
                 }
@@ -273,14 +274,14 @@ export function useJS9ImageLoader({
                     if (container) {
                       js9Service.resizeDisplay(displayId);
                       // Force canvas to match container width
-                      const canvas = container.querySelector('canvas');
+                      const canvas = container.querySelector("canvas");
                       if (canvas && canvas.style) {
-                        canvas.style.width = '100%';
-                        canvas.style.maxWidth = '100%';
+                        canvas.style.width = "100%";
+                        canvas.style.maxWidth = "100%";
                       }
                     }
                   } catch (e) {
-                    logger.warn('Failed to resize JS9 display after image load:', e);
+                    logger.warn("Failed to resize JS9 display after image load:", e);
                   }
                 }, 200);
 
@@ -290,18 +291,18 @@ export function useJS9ImageLoader({
                   // Verify the image is in the correct display
                   const display = getDisplaySafe(displayId);
                   if (display && display.im && display.im.id === im.id) {
-                    logger.debug('Image confirmed in display:', displayId);
+                    logger.debug("Image confirmed in display:", displayId);
                   } else {
-                    logger.debug('Image loaded but not in expected display, attempting to fix...');
+                    logger.debug("Image loaded but not in expected display, attempting to fix...");
                     js9Service.setDisplay(displayId, im.id);
                   }
                 } catch (e) {
-                  logger.debug('Error verifying display:', e);
+                  logger.debug("Error verifying display:", e);
                 }
               },
               onerror: (err: any) => {
-                logger.error('JS9 load error:', err);
-                setError(`Failed to load image: ${err.message || 'Unknown error'}`);
+                logger.error("JS9 load error:", err);
+                setError(`Failed to load image: ${err.message || "Unknown error"}`);
                 setLoading(false);
                 imageLoadedRef.current = false;
                 cleanupInterval();
@@ -310,16 +311,16 @@ export function useJS9ImageLoader({
             });
           } catch (loadErr: any) {
             // If divID doesn't work, try without specifying display
-            logger.warn('JS9.Load with divID failed, trying without display parameter:', loadErr);
+            logger.warn("JS9.Load with divID failed, trying without display parameter:", loadErr);
             try {
               if (!js9Service.isAvailable()) {
-                throw new Error('JS9.Load not available');
+                throw new Error("JS9.Load not available");
               }
               js9Service.loadImage(imageUrlWithCacheBuster, {
-                scale: 'linear',
-                colormap: 'grey',
+                scale: "linear",
+                colormap: "grey",
                 onload: (im: any) => {
-                  logger.debug('FITS image loaded (fallback):', im);
+                  logger.debug("FITS image loaded (fallback):", im);
                   imageLoadedRef.current = true;
                   setLoading(false);
 
@@ -330,21 +331,21 @@ export function useJS9ImageLoader({
                       if (container) {
                         js9Service.resizeDisplay(displayId);
                         // Force canvas to match container width
-                        const canvas = container.querySelector('canvas');
+                        const canvas = container.querySelector("canvas");
                         if (canvas && canvas.style) {
-                          canvas.style.width = '100%';
-                          canvas.style.maxWidth = '100%';
+                          canvas.style.width = "100%";
+                          canvas.style.maxWidth = "100%";
                         }
                       }
                     } catch (e) {
-                      logger.warn('Failed to resize JS9 display after image load:', e);
+                      logger.warn("Failed to resize JS9 display after image load:", e);
                     }
                   }, 200);
                   cleanupInterval();
                   hideJS9Loading();
 
                   // Restore page title (JS9 modifies it when loading images)
-                  const originalTitle = document.title.split(':')[0].trim();
+                  const originalTitle = document.title.split(":")[0].trim();
                   if (document.title !== originalTitle) {
                     document.title = originalTitle;
                   }
@@ -353,8 +354,8 @@ export function useJS9ImageLoader({
                   js9Service.setDisplay(displayId, im.id);
                 },
                 onerror: (err: any) => {
-                  logger.error('JS9 load error (fallback):', err);
-                  setError(`Failed to load image: ${err.message || 'Unknown error'}`);
+                  logger.error("JS9 load error (fallback):", err);
+                  setError(`Failed to load image: ${err.message || "Unknown error"}`);
                   setLoading(false);
                   imageLoadedRef.current = false;
                   cleanupInterval();
@@ -362,7 +363,7 @@ export function useJS9ImageLoader({
                 },
               });
             } catch (fallbackErr: any) {
-              setError(`Failed to load image: ${fallbackErr.message || 'Unknown error'}`);
+              setError(`Failed to load image: ${fallbackErr.message || "Unknown error"}`);
               setLoading(false);
               imageLoadedRef.current = false;
               cleanupInterval();
@@ -382,8 +383,8 @@ export function useJS9ImageLoader({
         hideJS9Loading();
       };
     } catch (err: any) {
-      logger.error('Error loading image:', err);
-      setError(`Error: ${err.message || 'Unknown error'}`);
+      logger.error("Error loading image:", err);
+      setError(`Error: ${err.message || "Unknown error"}`);
       setLoading(false);
       imageLoadedRef.current = false;
       cleanupInterval();
@@ -393,4 +394,3 @@ export function useJS9ImageLoader({
 
   return { loading, error, imageLoadedRef };
 }
-

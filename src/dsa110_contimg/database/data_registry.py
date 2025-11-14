@@ -87,9 +87,7 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
     except sqlite3.OperationalError:
         # Column doesn't exist, add it
         try:
-            conn.execute(
-                "ALTER TABLE data_registry ADD COLUMN publish_attempts INTEGER DEFAULT 0"
-            )
+            conn.execute("ALTER TABLE data_registry ADD COLUMN publish_attempts INTEGER DEFAULT 0")
             logger.info("Added publish_attempts column to data_registry")
         except sqlite3.OperationalError as e:
             logger.warning(f"Could not add publish_attempts column: {e}")
@@ -104,6 +102,29 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
             logger.info("Added publish_error column to data_registry")
         except sqlite3.OperationalError as e:
             logger.warning(f"Could not add publish_error column: {e}")
+
+    # Add photometry tracking columns
+    try:
+        # Check if photometry_status column exists
+        conn.execute("SELECT photometry_status FROM data_registry LIMIT 1")
+    except sqlite3.OperationalError:
+        # Column doesn't exist, add it
+        try:
+            conn.execute("ALTER TABLE data_registry ADD COLUMN photometry_status TEXT DEFAULT NULL")
+            logger.info("Added photometry_status column to data_registry")
+        except sqlite3.OperationalError as e:
+            logger.warning(f"Could not add photometry_status column: {e}")
+
+    try:
+        # Check if photometry_job_id column exists
+        conn.execute("SELECT photometry_job_id FROM data_registry LIMIT 1")
+    except sqlite3.OperationalError:
+        # Column doesn't exist, add it
+        try:
+            conn.execute("ALTER TABLE data_registry ADD COLUMN photometry_job_id TEXT DEFAULT NULL")
+            logger.info("Added photometry_job_id column to data_registry")
+        except sqlite3.OperationalError as e:
+            logger.warning(f"Could not add photometry_job_id column: {e}")
 
     # Data relationships table
     conn.execute(
@@ -138,9 +159,7 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_data_registry_type_status ON data_registry(data_type, status)"
         )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_data_registry_status ON data_registry(status)"
-        )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_data_registry_status ON data_registry(status)")
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_data_registry_published_at ON data_registry(published_at)"
         )
@@ -153,9 +172,7 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_data_relationships_child ON data_relationships(child_data_id)"
         )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_data_tags_data_id ON data_tags(data_id)"
-        )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_data_tags_data_id ON data_tags(data_id)")
     except Exception as e:
         logger.warning(f"Failed to create indexes: {e}")
 
@@ -352,9 +369,7 @@ def trigger_auto_publish(
         # Check if already publishing (another process has the lock)
         if status == "publishing":
             conn.rollback()
-            logger.debug(
-                f"Data {data_id} is already being published by another process"
-            )
+            logger.debug(f"Data {data_id} is already being published by another process")
             return False
 
         # Check if max attempts exceeded
@@ -431,9 +446,7 @@ def trigger_auto_publish(
         )
         # For safety, append timestamp to avoid overwriting
         timestamp = int(time.time())
-        published_path = (
-            published_dir / f"{stage_path_obj.stem}_{timestamp}{stage_path_obj.suffix}"
-        )
+        published_path = published_dir / f"{stage_path_obj.stem}_{timestamp}{stage_path_obj.suffix}"
 
     # CRITICAL: Enhanced path validation for published path
     expected_products_base = Path("/data/dsa110-contimg/products")
@@ -457,9 +470,7 @@ def trigger_auto_publish(
                 f"Move appeared to succeed but destination does not exist: {published_path}"
             )
         if stage_path_obj.exists():
-            raise RuntimeError(
-                f"Move appeared to succeed but source still exists: {stage_path}"
-            )
+            raise RuntimeError(f"Move appeared to succeed but source still exists: {stage_path}")
 
         # Update database - clear publish error on success
         now = time.time()
@@ -486,6 +497,109 @@ def trigger_auto_publish(
         logger.error(f"Failed to auto-publish {data_id}: {error_msg}", exc_info=True)
         _record_publish_failure(conn, cur, data_id, publish_attempts, error_msg)
         return False
+
+
+def update_photometry_status(
+    conn: sqlite3.Connection,
+    data_id: str,
+    status: str,
+    job_id: Optional[str] = None,
+) -> bool:
+    """Update photometry status for a data product.
+
+    Args:
+        conn: Database connection
+        data_id: Data product ID
+        status: Status ("pending", "running", "completed", "failed")
+        job_id: Optional batch job ID
+
+    Returns:
+        True if updated successfully, False otherwise
+    """
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            UPDATE data_registry
+            SET photometry_status = ?, photometry_job_id = ?
+            WHERE data_id = ?
+            """,
+            (status, job_id, data_id),
+        )
+        conn.commit()
+        if cur.rowcount == 0:
+            logger.warning(f"No data record found for data_id: {data_id}")
+            return False
+        return True
+    except Exception as e:
+        logger.error(f"Failed to update photometry status for {data_id}: {e}")
+        conn.rollback()
+        return False
+
+
+def get_photometry_status(
+    conn: sqlite3.Connection,
+    data_id: str,
+) -> Optional[Dict[str, Any]]:
+    """Get photometry status for a data product.
+
+    Args:
+        conn: Database connection
+        data_id: Data product ID
+
+    Returns:
+        Dict with "status" and "job_id" keys, or None if not found
+    """
+    try:
+        cur = conn.cursor()
+        # Try to select photometry columns (may not exist in older schemas)
+        try:
+            cur.execute(
+                """
+                SELECT photometry_status, photometry_job_id
+                FROM data_registry
+                WHERE data_id = ?
+                """,
+                (data_id,),
+            )
+        except sqlite3.OperationalError:
+            # Columns don't exist yet
+            return None
+
+        row = cur.fetchone()
+        if not row:
+            return None
+
+        status, job_id = row
+        return {"status": status, "job_id": job_id}
+    except Exception as e:
+        logger.error(f"Failed to get photometry status for {data_id}: {e}")
+        return None
+
+
+def link_photometry_to_data(
+    conn: sqlite3.Connection,
+    data_id: str,
+    photometry_job_id: str,
+) -> bool:
+    """Link a photometry job to a data product.
+
+    Convenience function that calls update_photometry_status() with "pending" status.
+
+    Args:
+        conn: Database connection
+        data_id: Data product ID
+        photometry_job_id: Batch photometry job ID
+
+    Returns:
+        True if linked successfully, False otherwise
+    """
+    return update_photometry_status(
+        conn=conn,
+        data_id=data_id,
+        status="pending",
+        job_id=photometry_job_id,
+    )
 
 
 def _record_publish_failure(
@@ -604,9 +718,7 @@ def publish_data_manual(
         )
         conn.commit()
 
-        logger.info(
-            f"Manually published {data_id} from {stage_path} to {published_path}"
-        )
+        logger.info(f"Manually published {data_id} from {stage_path} to {published_path}")
         return True
 
     except Exception as e:
@@ -723,12 +835,35 @@ def list_data(
     conn: sqlite3.Connection,
     data_type: Optional[str] = None,
     status: Optional[str] = None,
-) -> List[DataRecord]:
-    """List data records with optional filters."""
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
+) -> tuple[List[DataRecord], int]:
+    """List data records with optional filters and pagination.
+
+    Returns:
+        Tuple of (records, total_count)
+    """
     cur = conn.cursor()
 
     # Try to select with new columns, fall back to old columns if they don't exist
     try:
+        # Build base query for counting
+        count_query = "SELECT COUNT(*) FROM data_registry WHERE 1=1"
+        count_params = []
+
+        if data_type:
+            count_query += " AND data_type = ?"
+            count_params.append(data_type)
+
+        if status:
+            count_query += " AND status = ?"
+            count_params.append(status)
+
+        # Get total count
+        cur.execute(count_query, count_params)
+        total_count = cur.fetchone()[0]
+
+        # Build query for data
         query = """
             SELECT id, data_type, data_id, base_path, status, stage_path, published_path,
                    created_at, staged_at, published_at, publish_mode, metadata_json,
@@ -749,10 +884,18 @@ def list_data(
 
         query += " ORDER BY created_at DESC"
 
+        # Add pagination
+        if limit is not None:
+            query += " LIMIT ?"
+            params.append(limit)
+            if offset is not None:
+                query += " OFFSET ?"
+                params.append(offset)
+
         cur.execute(query, params)
         rows = cur.fetchall()
 
-        return [
+        records = [
             DataRecord(
                 id=row[0],
                 data_type=row[1],
@@ -770,15 +913,30 @@ def list_data(
                 validation_status=row[13],
                 finalization_status=row[14],
                 auto_publish_enabled=bool(row[15]),
-                publish_attempts=(
-                    row[16] if len(row) > 16 and row[16] is not None else 0
-                ),
+                publish_attempts=(row[16] if len(row) > 16 and row[16] is not None else 0),
                 publish_error=row[17] if len(row) > 17 else None,
             )
             for row in rows
         ]
+        return records, total_count
     except sqlite3.OperationalError:
         # Fall back to old schema if columns don't exist
+        # Build count query
+        count_query = "SELECT COUNT(*) FROM data_registry WHERE 1=1"
+        count_params = []
+
+        if data_type:
+            count_query += " AND data_type = ?"
+            count_params.append(data_type)
+
+        if status:
+            count_query += " AND status = ?"
+            count_params.append(status)
+
+        cur.execute(count_query, count_params)
+        total_count = cur.fetchone()[0]
+
+        # Build data query
         query = """
             SELECT id, data_type, data_id, base_path, status, stage_path, published_path,
                    created_at, staged_at, published_at, publish_mode, metadata_json,
@@ -798,10 +956,18 @@ def list_data(
 
         query += " ORDER BY created_at DESC"
 
+        # Add pagination
+        if limit is not None:
+            query += " LIMIT ?"
+            params.append(limit)
+            if offset is not None:
+                query += " OFFSET ?"
+                params.append(offset)
+
         cur.execute(query, params)
         rows = cur.fetchall()
 
-        return [
+        records = [
             DataRecord(
                 id=row[0],
                 data_type=row[1],
@@ -824,6 +990,7 @@ def list_data(
             )
             for row in rows
         ]
+        return records, total_count
 
 
 def link_data(

@@ -16,12 +16,12 @@ const DEFAULT_OPTIONS: Required<CircuitBreakerOptions> = {
 };
 
 export const CircuitState = {
-  CLOSED: 'closed', // Normal operation
-  OPEN: 'open', // Circuit is open, failing fast
-  HALF_OPEN: 'half_open', // Testing if service recovered
+  CLOSED: "closed", // Normal operation
+  OPEN: "open", // Circuit is open, failing fast
+  HALF_OPEN: "half_open", // Testing if service recovered
 } as const;
 
-export type CircuitState = typeof CircuitState[keyof typeof CircuitState];
+export type CircuitState = (typeof CircuitState)[keyof typeof CircuitState];
 
 interface FailureRecord {
   timestamp: number;
@@ -130,4 +130,3 @@ export class CircuitBreaker {
 export function createCircuitBreaker(options: CircuitBreakerOptions = {}): CircuitBreaker {
   return new CircuitBreaker(options);
 }
-

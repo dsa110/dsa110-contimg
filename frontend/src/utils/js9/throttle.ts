@@ -1,6 +1,6 @@
 /**
  * Throttle utility for JS9 API calls
- * 
+ *
  * Prevents excessive API calls (e.g., GetWCS, GetVal on mouse move)
  */
 
@@ -33,7 +33,7 @@ export function throttle<T extends (...args: any[]) => any>(
 
 /**
  * Debounce utility for JS9 API calls
- * 
+ *
  * Useful for operations that should only happen after user stops interacting
  */
 export function debounce<T extends (...args: any[]) => any>(
@@ -51,4 +51,3 @@ export function debounce<T extends (...args: any[]) => any>(
     }, delay);
   };
 }
-

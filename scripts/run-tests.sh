@@ -1,167 +1,136 @@
 #!/bin/bash
+# Test runner script - organizes tests into logical groups
+# Usage: ./scripts/run-tests.sh [category] [options]
 #
-# Test Execution Script for DSA-110 Dashboard
+# Categories (organized by test taxonomy - see docs/concepts/TEST_ORGANIZATION.md):
+#   smoke         - Smoke tests (quick sanity checks, < 10s)
+#   unit          - All unit tests (fast, isolated)
+#   unit-api      - API unit tests
+#   unit-calibration - Calibration unit tests
+#   unit-conversion - Conversion unit tests
+#   unit-database - Database unit tests
+#   unit-photometry - Photometry unit tests
+#   unit-qa       - QA unit tests
+#   integration   - Integration tests (component interactions)
+#   integration-streaming - Streaming integration tests
+#   integration-pipeline - Pipeline integration tests
+#   integration-workflow - Workflow integration tests
+#   science       - Science validation tests
+#   e2e           - End-to-end tests (full workflows)
+#   all           - All tests (default)
 #
-# This script runs tests using Docker (required for Ubuntu 18.x compatibility).
-# Tests can be run in Docker containers to avoid npm/npx compatibility issues.
-#
+# Options are passed directly to pytest
 
 set -e
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT"
 
-# Configuration
-FRONTEND_URL="http://localhost:5173"
-BACKEND_URL="http://localhost:8010"
-TEST_MODE="${1:-all}" # all, e2e, manual, docker-e2e
-DOCKER_MODE="${2:-false}" # Use Docker for E2E tests
+PYTEST_SAFE="$SCRIPT_DIR/pytest-safe.sh"
 
-echo -e "${GREEN}DSA-110 Dashboard Test Suite${NC}"
-echo "================================"
-echo ""
-
-# Check if services are running
-check_service() {
-    local url=$1
-    local name=$2
-    
-    echo -e "${YELLOW}Checking $name...${NC}"
-    if curl -s -f "$url" > /dev/null 2>&1; then
-        echo -e "${GREEN}✓ $name is running${NC}"
-        return 0
-    else
-        echo -e "${RED}✗ $name is not running at $url${NC}"
-        return 1
-    fi
-}
-
-# Check prerequisites
-echo "Checking prerequisites..."
-echo ""
-
-FRONTEND_OK=false
-BACKEND_OK=false
-
-if check_service "$FRONTEND_URL" "Frontend"; then
-    FRONTEND_OK=true
+# Validate pytest-safe.sh exists
+if [ ! -f "$PYTEST_SAFE" ]; then
+    echo "Error: pytest-safe.sh not found at $PYTEST_SAFE" >&2
+    exit 1
 fi
-
-if check_service "$BACKEND_URL/api/health" "Backend"; then
-    BACKEND_OK=true
-fi
-
-echo ""
-
-if [ "$FRONTEND_OK" = false ] || [ "$BACKEND_OK" = false ]; then
-    echo -e "${RED}Error: Required services are not running${NC}"
-    echo ""
-    echo "Please start the services:"
-    echo "  - Frontend: npm run dev (in frontend/)"
-    echo "  - Backend: python -m dsa110_contimg.api.main"
-    echo ""
+if [ ! -x "$PYTEST_SAFE" ]; then
+    echo "Error: pytest-safe.sh is not executable" >&2
     exit 1
 fi
 
-# Check if Docker is available
-check_docker() {
-    if command -v docker &> /dev/null; then
-        return 0
-    else
-        return 1
-    fi
-}
+# Default category
+CATEGORY="${1:-all}"
+shift || true  # Remove category from args, keep rest for pytest
 
-# Run tests in Docker
-run_docker_tests() {
-    echo -e "${GREEN}Running E2E tests in Docker...${NC}"
-    echo ""
-    
-    # Check if services are running
-    if [ "$FRONTEND_OK" = false ] || [ "$BACKEND_OK" = false ]; then
-        echo -e "${YELLOW}Warning: Services may not be accessible from Docker container${NC}"
-        echo "Make sure services are accessible at:"
-        echo "  - Frontend: $FRONTEND_URL"
-        echo "  - Backend: $BACKEND_URL"
-        echo ""
-    fi
-    
-    # Build test image
-    echo -e "${YELLOW}Building test Docker image...${NC}"
-    docker build -f docker/Dockerfile.test -t dsa110-test:latest . || {
-        echo -e "${RED}Failed to build test image${NC}"
-        exit 1
-    }
-    
-    # Run tests in container
-    echo -e "${GREEN}Running tests...${NC}"
-    docker run --rm \
-        --network host \
-        --add-host=host.docker.internal:host-gateway \
-        -v "$(pwd)/test-results:/app/test-results" \
-        -v "$(pwd)/playwright-report:/app/playwright-report" \
-        -e BASE_URL="$FRONTEND_URL" \
-        -e API_URL="$BACKEND_URL" \
-        dsa110-test:latest \
-        npx playwright test "$@"
-    
-    echo ""
-    echo -e "${GREEN}Test results saved to: test-results/${NC}"
-    echo -e "${GREEN}HTML report: playwright-report/index.html${NC}"
-}
+# Colors for output
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
 
-echo ""
-echo -e "${GREEN}All prerequisites met!${NC}"
+echo -e "${BLUE}Running tests: ${CATEGORY}${NC}"
 echo ""
 
-# Run tests based on mode
-case "$TEST_MODE" in
-    e2e|docker-e2e)
-        if check_docker; then
-            run_docker_tests
-        else
-            echo -e "${RED}Error: Docker is required for E2E tests on Ubuntu 18.x${NC}"
-            echo "Please install Docker: https://docs.docker.com/get-docker/"
-            exit 1
-        fi
+case "$CATEGORY" in
+    smoke)
+        echo -e "${GREEN}Running smoke tests (quick sanity checks)...${NC}"
+        "$PYTEST_SAFE" tests/smoke/ -m smoke "$@"
         ;;
-    manual)
-        echo -e "${GREEN}Opening manual test guide...${NC}"
-        echo ""
-        echo "See docs/testing/COMPREHENSIVE_TESTING_PLAN.md for manual test cases"
-        echo ""
-        echo "To run E2E tests in Docker, use: ./scripts/run-tests.sh docker-e2e"
+    unit)
+        echo -e "${GREEN}Running all unit tests...${NC}"
+        "$PYTEST_SAFE" tests/unit/ "$@"
+        ;;
+    unit-api)
+        echo -e "${GREEN}Running API unit tests...${NC}"
+        "$PYTEST_SAFE" tests/unit/api/ "$@"
+        ;;
+    unit-calibration)
+        echo -e "${GREEN}Running calibration unit tests...${NC}"
+        "$PYTEST_SAFE" tests/unit/calibration/ "$@"
+        ;;
+    unit-conversion)
+        echo -e "${GREEN}Running conversion unit tests...${NC}"
+        "$PYTEST_SAFE" tests/unit/conversion/ "$@"
+        ;;
+    unit-database)
+        echo -e "${GREEN}Running database unit tests...${NC}"
+        "$PYTEST_SAFE" tests/unit/database/ "$@"
+        ;;
+    unit-photometry)
+        echo -e "${GREEN}Running photometry unit tests...${NC}"
+        "$PYTEST_SAFE" tests/unit/photometry/ "$@"
+        ;;
+    unit-qa)
+        echo -e "${GREEN}Running QA unit tests...${NC}"
+        "$PYTEST_SAFE" tests/unit/qa/ "$@"
+        ;;
+    integration)
+        echo -e "${GREEN}Running all integration tests...${NC}"
+        "$PYTEST_SAFE" tests/integration/ "$@"
+        ;;
+    integration-streaming)
+        echo -e "${GREEN}Running streaming integration tests...${NC}"
+        "$PYTEST_SAFE" tests/integration/test_streaming*.py "$@"
+        ;;
+    integration-pipeline)
+        echo -e "${GREEN}Running pipeline integration tests...${NC}"
+        "$PYTEST_SAFE" tests/integration/test_orchestrator*.py tests/integration/test_stage*.py "$@"
+        ;;
+    integration-workflow)
+        echo -e "${GREEN}Running workflow integration tests...${NC}"
+        "$PYTEST_SAFE" tests/integration/test_end_to_end*.py "$@"
+        ;;
+    science)
+        echo -e "${GREEN}Running science validation tests...${NC}"
+        "$PYTEST_SAFE" tests/science/ "$@"
+        ;;
+    root)
+        echo -e "${GREEN}Running root-level tests...${NC}"
+        echo -e "${YELLOW}Note: No root-level test files found. Tests are organized in subdirectories.${NC}"
+        "$PYTEST_SAFE" tests/ "$@"
+        ;;
+    e2e)
+        echo -e "${GREEN}Running end-to-end tests...${NC}"
+        "$PYTEST_SAFE" tests/e2e/ -m e2e "$@"
+        ;;
+    quick)
+        echo -e "${GREEN}Running quick tests (smoke + unit, no slow tests)...${NC}"
+        "$PYTEST_SAFE" tests/smoke/ tests/unit/ -m "not slow" "$@"
         ;;
     all)
         echo -e "${GREEN}Running all tests...${NC}"
-        echo ""
-        if check_docker; then
-            echo "1. Running E2E tests in Docker..."
-            run_docker_tests || echo -e "${YELLOW}Some E2E tests failed${NC}"
-        else
-            echo -e "${YELLOW}Docker not available. Skipping E2E tests.${NC}"
-            echo "Install Docker to run E2E tests: https://docs.docker.com/get-docker/"
-        fi
-        echo ""
-        echo "2. Manual test cases available in:"
-        echo "   docs/testing/COMPREHENSIVE_TESTING_PLAN.md"
+        "$PYTEST_SAFE" tests/ "$@"
         ;;
     *)
-        echo -e "${RED}Unknown test mode: $TEST_MODE${NC}"
-        echo "Usage: $0 [all|e2e|docker-e2e|manual]"
+        echo -e "${YELLOW}Unknown category: $CATEGORY${NC}"
         echo ""
-        echo "Modes:"
-        echo "  all        - Run all tests (E2E in Docker + show manual guide)"
-        echo "  e2e        - Run E2E tests in Docker (same as docker-e2e)"
-        echo "  docker-e2e - Run E2E tests in Docker"
-        echo "  manual     - Show manual test guide"
+        echo "Available categories:"
+        echo "  smoke, unit, unit-api, unit-calibration, unit-conversion, unit-database"
+        echo "  unit-photometry, unit-qa, integration, integration-streaming"
+        echo "  integration-pipeline, integration-workflow, science, e2e, quick, all"
+        echo ""
+        echo "Usage: $0 [category] [pytest-options]"
         exit 1
         ;;
 esac
-
-echo ""
-echo -e "${GREEN}Test execution complete!${NC}"
-

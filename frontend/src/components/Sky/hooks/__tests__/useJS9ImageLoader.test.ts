@@ -1,6 +1,6 @@
 /**
  * Unit Tests for useJS9ImageLoader Hook
- * 
+ *
  * Tests:
  * 1. Image loading when path changes
  * 2. Loading state management
@@ -9,9 +9,9 @@
  * 5. Cache busting
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, waitFor, act } from '@testing-library/react';
-import { useJS9ImageLoader } from '../useJS9ImageLoader';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { renderHook, waitFor, act } from "@testing-library/react";
+import { useJS9ImageLoader } from "../useJS9ImageLoader";
 
 // Setup window.JS9 for tests
 (global as any).window = {
@@ -19,7 +19,7 @@ import { useJS9ImageLoader } from '../useJS9ImageLoader';
 };
 
 // Mock logger
-vi.mock('../../../../utils/logger', () => ({
+vi.mock("../../../../utils/logger", () => ({
   logger: {
     debug: vi.fn(),
     warn: vi.fn(),
@@ -28,7 +28,7 @@ vi.mock('../../../../utils/logger', () => ({
 }));
 
 // Mock JS9 utilities
-vi.mock('../../../../utils/js9', () => ({
+vi.mock("../../../../utils/js9", () => ({
   isJS9Available: vi.fn(() => true),
   findDisplay: vi.fn(() => null),
 }));
@@ -46,21 +46,21 @@ const { mockJS9Service } = vi.hoisted(() => {
   };
 });
 
-vi.mock('../../../../services/js9', () => ({
+vi.mock("../../../../services/js9", () => ({
   js9Service: mockJS9Service,
 }));
 
 // Mock JS9Context
 const mockGetDisplaySafe = vi.fn(() => null);
 
-vi.mock('../../../../contexts/JS9Context', () => ({
+vi.mock("../../../../contexts/JS9Context", () => ({
   useJS9Safe: vi.fn(() => ({
     isJS9Ready: true,
     getDisplay: mockGetDisplaySafe,
   })),
 }));
 
-describe('useJS9ImageLoader', () => {
+describe("useJS9ImageLoader", () => {
   const mockTimeoutRef = { current: null as NodeJS.Timeout | null };
   let container: HTMLElement;
 
@@ -71,10 +71,10 @@ describe('useJS9ImageLoader', () => {
     mockJS9Service.isAvailable.mockReturnValue(true);
     mockGetDisplaySafe.mockReturnValue(null);
     (global as any).window.JS9 = {};
-    
+
     // Create a div with the displayId for the hook to find
-    container = document.createElement('div');
-    container.id = 'testDisplay';
+    container = document.createElement("div");
+    container.id = "testDisplay";
     document.body.appendChild(container);
   });
 
@@ -89,12 +89,11 @@ describe('useJS9ImageLoader', () => {
     vi.useRealTimers();
   });
 
-
-  it('should return loading=false initially when no image path', () => {
+  it("should return loading=false initially when no image path", () => {
     const { result } = renderHook(() =>
       useJS9ImageLoader({
         imagePath: null,
-        displayId: 'testDisplay',
+        displayId: "testDisplay",
         initialized: true,
         isJS9Ready: true,
         timeoutRef: mockTimeoutRef,
@@ -106,11 +105,11 @@ describe('useJS9ImageLoader', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('should set loading=true when image path provided', () => {
+  it("should set loading=true when image path provided", () => {
     const { result } = renderHook(() =>
       useJS9ImageLoader({
-        imagePath: '/test/image.fits',
-        displayId: 'testDisplay',
+        imagePath: "/test/image.fits",
+        displayId: "testDisplay",
         initialized: true,
         isJS9Ready: true,
         timeoutRef: mockTimeoutRef,
@@ -120,15 +119,15 @@ describe('useJS9ImageLoader', () => {
 
     // Advance timers to trigger the setTimeout in the hook
     vi.advanceTimersByTime(100);
-    
+
     expect(result.current.loading).toBe(true);
   });
 
-  it('should not load when not initialized', () => {
+  it("should not load when not initialized", () => {
     const { result } = renderHook(() =>
       useJS9ImageLoader({
-        imagePath: '/test/image.fits',
-        displayId: 'testDisplay',
+        imagePath: "/test/image.fits",
+        displayId: "testDisplay",
         initialized: false,
         isJS9Ready: true,
         timeoutRef: mockTimeoutRef,
@@ -140,13 +139,13 @@ describe('useJS9ImageLoader', () => {
     expect(mockJS9Service.loadImage).not.toHaveBeenCalled();
   });
 
-  it('should not load when JS9 not ready', () => {
+  it("should not load when JS9 not ready", () => {
     mockJS9Service.isAvailable.mockReturnValue(false);
-    
+
     const { result } = renderHook(() =>
       useJS9ImageLoader({
-        imagePath: '/test/image.fits',
-        displayId: 'testDisplay',
+        imagePath: "/test/image.fits",
+        displayId: "testDisplay",
         initialized: true,
         isJS9Ready: false,
         timeoutRef: mockTimeoutRef,
@@ -158,14 +157,14 @@ describe('useJS9ImageLoader', () => {
     expect(mockJS9Service.loadImage).not.toHaveBeenCalled();
   });
 
-  it('should close existing image before loading new one', () => {
-    const existingDisplay = { id: 'testDisplay', im: { id: 'oldImage' } };
+  it("should close existing image before loading new one", () => {
+    const existingDisplay = { id: "testDisplay", im: { id: "oldImage" } };
     mockGetDisplaySafe.mockReturnValue(existingDisplay);
 
     renderHook(() =>
       useJS9ImageLoader({
-        imagePath: '/test/image.fits',
-        displayId: 'testDisplay',
+        imagePath: "/test/image.fits",
+        displayId: "testDisplay",
         initialized: true,
         isJS9Ready: true,
         timeoutRef: mockTimeoutRef,
@@ -176,21 +175,21 @@ describe('useJS9ImageLoader', () => {
     // Advance timers to trigger the setTimeout in the hook
     vi.advanceTimersByTime(200);
 
-    expect(mockJS9Service.closeImage).toHaveBeenCalledWith('oldImage');
+    expect(mockJS9Service.closeImage).toHaveBeenCalledWith("oldImage");
   });
 
-  it('should handle load errors', () => {
+  it("should handle load errors", () => {
     mockJS9Service.loadImage.mockImplementation((path: string, options: any) => {
       // Call onerror synchronously to simulate immediate error
       if (options && options.onerror) {
-        options.onerror(new Error('Load failed'));
+        options.onerror(new Error("Load failed"));
       }
     });
 
     const { result } = renderHook(() =>
       useJS9ImageLoader({
-        imagePath: '/test/image.fits',
-        displayId: 'testDisplay',
+        imagePath: "/test/image.fits",
+        displayId: "testDisplay",
         initialized: true,
         isJS9Ready: true,
         timeoutRef: mockTimeoutRef,
@@ -207,18 +206,18 @@ describe('useJS9ImageLoader', () => {
     expect(result.current.loading).toBe(false);
   });
 
-  it('should reset state when imagePath cleared', () => {
+  it("should reset state when imagePath cleared", () => {
     const { result, rerender } = renderHook(
       ({ imagePath }) =>
         useJS9ImageLoader({
           imagePath,
-          displayId: 'testDisplay',
+          displayId: "testDisplay",
           initialized: true,
           isJS9Ready: true,
           timeoutRef: mockTimeoutRef,
           getDisplaySafe: mockGetDisplaySafe,
         }),
-      { initialProps: { imagePath: '/test/image.fits' } }
+      { initialProps: { imagePath: "/test/image.fits" } }
     );
 
     rerender({ imagePath: null });
@@ -227,11 +226,11 @@ describe('useJS9ImageLoader', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('should add cache buster to image URL', () => {
+  it("should add cache buster to image URL", () => {
     renderHook(() =>
       useJS9ImageLoader({
-        imagePath: '/test/image.fits',
-        displayId: 'testDisplay',
+        imagePath: "/test/image.fits",
+        displayId: "testDisplay",
         initialized: true,
         isJS9Ready: true,
         timeoutRef: mockTimeoutRef,
@@ -244,8 +243,7 @@ describe('useJS9ImageLoader', () => {
 
     expect(mockJS9Service.loadImage).toHaveBeenCalled();
     const callArgs = mockJS9Service.loadImage.mock.calls[0];
-    expect(callArgs[0]).toContain('/test/image.fits');
+    expect(callArgs[0]).toContain("/test/image.fits");
     expect(callArgs[0]).toMatch(/[?&]t=\d+/);
   });
 });
-

@@ -1,18 +1,19 @@
 /**
  * API client configuration for DSA-110 pipeline backend.
  */
-import axios, { AxiosError } from 'axios';
-import type { InternalAxiosRequestConfig } from 'axios';
-import { logger } from '../utils/logger';
-import { classifyError, getUserFriendlyMessage } from '../utils/errorUtils';
-import { createCircuitBreaker } from './circuitBreaker';
+import axios, { AxiosError } from "axios";
+import type { InternalAxiosRequestConfig } from "axios";
+import { logger } from "../utils/logger";
+import { classifyError, getUserFriendlyMessage } from "../utils/errorUtils";
+import { createCircuitBreaker } from "./circuitBreaker";
 
 // Use current origin when served from API at /ui, otherwise use relative URL (proxied by Vite)
 // In Docker, Vite proxy handles /api -> backend service
 // If VITE_API_URL is explicitly set, use it; otherwise use /api for Vite proxy
-const API_BASE_URL = (typeof window !== 'undefined' && window.location.pathname.startsWith('/ui')) 
-  ? window.location.origin 
-  : (import.meta.env.VITE_API_URL || '/api'); // Use VITE_API_URL if set, otherwise /api for Vite proxy
+const API_BASE_URL =
+  typeof window !== "undefined" && window.location.pathname.startsWith("/ui")
+    ? window.location.origin
+    : import.meta.env.VITE_API_URL || "/api"; // Use VITE_API_URL if set, otherwise /api for Vite proxy
 
 // Create circuit breaker for API calls
 const circuitBreaker = createCircuitBreaker({
@@ -23,9 +24,9 @@ const circuitBreaker = createCircuitBreaker({
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,  // 30 seconds for conversion jobs
+  timeout: 120000, // 120 seconds - increased for slow cold-start requests
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -33,7 +34,7 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     if (!circuitBreaker.canAttempt()) {
-      const error = new Error('Service temporarily unavailable. Please try again later.');
+      const error = new Error("Service temporarily unavailable. Please try again later.");
       (error as { isCircuitBreakerOpen?: boolean }).isCircuitBreakerOpen = true;
       return Promise.reject(error);
     }
@@ -51,8 +52,8 @@ apiClient.interceptors.response.use(
   },
   async (error: AxiosError) => {
     const classified = classifyError(error);
-    
-    logger.apiError('API request failed', error);
+
+    logger.apiError("API request failed", error);
 
     // Record failure for circuit breaker if retryable
     if (classified.retryable) {
@@ -69,19 +70,21 @@ apiClient.interceptors.response.use(
     if (!error.config) {
       return Promise.reject(error);
     }
-    
-    const config = error.config as InternalAxiosRequestConfig & { _retryCount?: number };
+
+    const config = error.config as InternalAxiosRequestConfig & {
+      _retryCount?: number;
+    };
     const retryCount = config._retryCount || 0;
     const maxRetries = 3;
 
     if (classified.retryable && retryCount < maxRetries && circuitBreaker.canAttempt()) {
       config._retryCount = retryCount + 1;
-      
+
       // Exponential backoff: 1s, 2s, 4s
       const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
-      
+
       await new Promise((resolve) => setTimeout(resolve, delay));
-      
+
       try {
         return await apiClient.request(config);
       } catch (retryError) {
@@ -96,4 +99,3 @@ apiClient.interceptors.response.use(
 
 // Export circuit breaker for monitoring
 export { circuitBreaker };
-

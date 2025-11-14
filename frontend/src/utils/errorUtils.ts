@@ -3,14 +3,14 @@
  */
 
 export const ErrorType = {
-  NETWORK: 'network',
-  SERVER: 'server',
-  CLIENT: 'client',
-  TIMEOUT: 'timeout',
-  UNKNOWN: 'unknown',
+  NETWORK: "network",
+  SERVER: "server",
+  CLIENT: "client",
+  TIMEOUT: "timeout",
+  UNKNOWN: "unknown",
 } as const;
 
-export type ErrorType = typeof ErrorType[keyof typeof ErrorType];
+export type ErrorType = (typeof ErrorType)[keyof typeof ErrorType];
 
 export interface ClassifiedError {
   type: ErrorType;
@@ -26,7 +26,7 @@ export interface ClassifiedError {
 export function classifyError(error: unknown): ClassifiedError {
   const defaultError: ClassifiedError = {
     type: ErrorType.UNKNOWN,
-    message: 'An unknown error occurred',
+    message: "An unknown error occurred",
     retryable: false,
     originalError: error,
   };
@@ -36,7 +36,7 @@ export function classifyError(error: unknown): ClassifiedError {
   }
 
   // Axios errors
-  if (typeof error === 'object' && 'isAxiosError' in error && error.isAxiosError) {
+  if (typeof error === "object" && "isAxiosError" in error && error.isAxiosError) {
     const axiosError = error as {
       code?: string;
       message?: string;
@@ -45,10 +45,10 @@ export function classifyError(error: unknown): ClassifiedError {
     };
 
     // Network errors (no response received)
-    if (axiosError.code === 'ECONNABORTED' || axiosError.code === 'ETIMEDOUT') {
+    if (axiosError.code === "ECONNABORTED" || axiosError.code === "ETIMEDOUT") {
       return {
         type: ErrorType.TIMEOUT,
-        message: axiosError.message || 'Request timed out',
+        message: axiosError.message || "Request timed out",
         retryable: true,
         originalError: error,
       };
@@ -57,7 +57,7 @@ export function classifyError(error: unknown): ClassifiedError {
     if (!axiosError.response && axiosError.request) {
       return {
         type: ErrorType.NETWORK,
-        message: 'Network error: Unable to reach server',
+        message: "Network error: Unable to reach server",
         retryable: true,
         originalError: error,
       };
@@ -80,11 +80,11 @@ export function classifyError(error: unknown): ClassifiedError {
 
   // Generic Error objects
   if (error instanceof Error) {
-    const message = error.message || 'An error occurred';
+    const message = error.message || "An error occurred";
     const isNetworkError =
-      message.includes('Network') ||
-      message.includes('fetch') ||
-      message.includes('Failed to fetch');
+      message.includes("Network") ||
+      message.includes("fetch") ||
+      message.includes("Failed to fetch");
 
     return {
       type: isNetworkError ? ErrorType.NETWORK : ErrorType.UNKNOWN,
@@ -117,24 +117,23 @@ export function getUserFriendlyMessage(error: unknown): string {
 
   switch (classified.type) {
     case ErrorType.NETWORK:
-      return 'Unable to connect to the server. Please check your internet connection.';
+      return "Unable to connect to the server. Please check your internet connection.";
     case ErrorType.TIMEOUT:
-      return 'The request took too long. Please try again.';
+      return "The request took too long. Please try again.";
     case ErrorType.SERVER:
-      return 'Server error occurred. Please try again later.';
+      return "Server error occurred. Please try again later.";
     case ErrorType.CLIENT:
       if (classified.statusCode === 401) {
-        return 'Access denied.';
+        return "Access denied.";
       }
       if (classified.statusCode === 403) {
-        return 'You do not have permission to perform this action.';
+        return "You do not have permission to perform this action.";
       }
       if (classified.statusCode === 404) {
-        return 'The requested resource was not found.';
+        return "The requested resource was not found.";
       }
-      return 'Invalid request. Please check your input and try again.';
+      return "Invalid request. Please check your input and try again.";
     default:
       return classified.message;
   }
 }
-

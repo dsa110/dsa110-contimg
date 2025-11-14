@@ -3,7 +3,7 @@
  * Side-by-side JS9 viewers with synchronized pan/zoom/colormap and blend mode
  * Reference: https://js9.si.edu/js9/help/publicapi.html
  */
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Box,
   Button,
@@ -22,19 +22,13 @@ import {
   DialogActions,
   Tooltip,
   Chip,
-} from '@mui/material';
-import {
-  Close,
-  CompareArrows,
-  Opacity,
-  Link,
-  LinkOff,
-} from '@mui/icons-material';
-import SkyViewer from './SkyViewer';
-import ImageBrowser from './ImageBrowser';
-import type { ImageInfo } from '../../api/types';
-import { logger } from '../../utils/logger';
-import { findDisplay, isJS9Available } from '../../utils/js9';
+} from "@mui/material";
+import { Close, CompareArrows, Opacity, Link, LinkOff } from "@mui/icons-material";
+import SkyViewer from "./SkyViewer";
+import ImageBrowser from "./ImageBrowser";
+import type { ImageInfo } from "../../api/types";
+import { logger } from "../../utils/logger";
+import { findDisplay, isJS9Available } from "../../utils/js9";
 
 declare global {
   interface Window {
@@ -58,13 +52,13 @@ export default function MultiImageCompare({
   const [imageA, setImageA] = useState<ImageInfo | null>(initialImageA);
   const [imageB, setImageB] = useState<ImageInfo | null>(initialImageB);
   const [blendOpacity, setBlendOpacity] = useState(50);
-  const [blendMode, setBlendMode] = useState<'overlay' | 'difference' | 'add'>('overlay');
+  const [blendMode, setBlendMode] = useState<"overlay" | "difference" | "add">("overlay");
   const [syncEnabled, setSyncEnabled] = useState(true);
   const syncRef = useRef(false);
   const listenersRegisteredRef = useRef(false);
   const eventHandlersRef = useRef<Array<{ event: string; handler: () => void }>>([]);
-  const displayAId = 'js9CompareA';
-  const displayBId = 'js9CompareB';
+  const displayAId = "js9CompareA";
+  const displayBId = "js9CompareB";
 
   // Construct FITS URLs
   const fitsUrlA = imageA ? `/api/images/${imageA.id}/fits` : null;
@@ -74,7 +68,7 @@ export default function MultiImageCompare({
   useEffect(() => {
     if (!open || !window.JS9 || !syncEnabled) {
       // Clean up listeners when sync is disabled or dialog is closed
-      if (listenersRegisteredRef.current && typeof window.JS9?.RemoveEventListener === 'function') {
+      if (listenersRegisteredRef.current && typeof window.JS9?.RemoveEventListener === "function") {
         eventHandlersRef.current.forEach(({ event, handler }) => {
           try {
             window.JS9.RemoveEventListener(event, handler);
@@ -122,7 +116,7 @@ export default function MultiImageCompare({
           }
         }
       } catch (e) {
-        logger.debug('Error syncing displays:', e);
+        logger.debug("Error syncing displays:", e);
       } finally {
         syncing = false;
       }
@@ -134,7 +128,7 @@ export default function MultiImageCompare({
 
       if (displayA?.im && displayB?.im && !syncRef.current && !listenersRegisteredRef.current) {
         // Use JS9.SyncImages if available, otherwise use manual sync
-        if (typeof window.JS9.SyncImages === 'function') {
+        if (typeof window.JS9.SyncImages === "function") {
           try {
             window.JS9.SyncImages([displayAId, displayBId], {
               pan: true,
@@ -142,14 +136,17 @@ export default function MultiImageCompare({
               colormap: true,
             });
             syncRef.current = true;
-            logger.debug('JS9 images synchronized via SyncImages API');
+            logger.debug("JS9 images synchronized via SyncImages API");
           } catch (e) {
-            logger.debug('SyncImages API failed, using manual sync:', e);
+            logger.debug("SyncImages API failed, using manual sync:", e);
             syncRef.current = true;
           }
         } else {
           // Clean up any existing listeners before registering new ones
-          if (listenersRegisteredRef.current && typeof window.JS9.RemoveEventListener === 'function') {
+          if (
+            listenersRegisteredRef.current &&
+            typeof window.JS9.RemoveEventListener === "function"
+          ) {
             eventHandlersRef.current.forEach(({ event, handler }) => {
               try {
                 window.JS9.RemoveEventListener(event, handler);
@@ -180,18 +177,18 @@ export default function MultiImageCompare({
             }
           };
 
-          if (typeof window.JS9.AddEventListener === 'function') {
-            window.JS9.AddEventListener('zoom', handleZoom);
-            window.JS9.AddEventListener('pan', handlePan);
-            window.JS9.AddEventListener('colormap', handleColormap);
-            
+          if (typeof window.JS9.AddEventListener === "function") {
+            window.JS9.AddEventListener("zoom", handleZoom);
+            window.JS9.AddEventListener("pan", handlePan);
+            window.JS9.AddEventListener("colormap", handleColormap);
+
             // Store handlers for cleanup using ref
             eventHandlersRef.current = [
-              { event: 'zoom', handler: handleZoom },
-              { event: 'pan', handler: handlePan },
-              { event: 'colormap', handler: handleColormap },
+              { event: "zoom", handler: handleZoom },
+              { event: "pan", handler: handlePan },
+              { event: "colormap", handler: handleColormap },
             ];
-            
+
             listenersRegisteredRef.current = true;
             syncRef.current = true;
           }
@@ -201,15 +198,15 @@ export default function MultiImageCompare({
 
     // Check periodically until both images are loaded
     interval = setInterval(setupSync, 500);
-    
+
     // Cleanup function returned from useEffect
     return () => {
       if (interval) {
         clearInterval(interval);
       }
-      
+
       // Remove event listeners if they were registered (using refs to access current values)
-      if (listenersRegisteredRef.current && typeof window.JS9?.RemoveEventListener === 'function') {
+      if (listenersRegisteredRef.current && typeof window.JS9?.RemoveEventListener === "function") {
         eventHandlersRef.current.forEach(({ event, handler }) => {
           try {
             window.JS9.RemoveEventListener(event, handler);
@@ -220,7 +217,7 @@ export default function MultiImageCompare({
         eventHandlersRef.current = [];
         listenersRegisteredRef.current = false;
       }
-      
+
       syncRef.current = false;
     };
   }, [open, syncEnabled, imageA, imageB]);
@@ -244,7 +241,7 @@ export default function MultiImageCompare({
       try {
         // JS9 BlendImage API: blend imageB onto imageA
         // Reference: https://js9.si.edu/js9/help/publicapi.html
-        if (typeof window.JS9.BlendImage === 'function') {
+        if (typeof window.JS9.BlendImage === "function") {
           window.JS9.BlendImage(displayA.im.id, displayB.im.id, {
             opacity: blendOpacity / 100,
             mode: blendMode,
@@ -252,10 +249,15 @@ export default function MultiImageCompare({
         } else {
           // BlendImage not available - could implement manual blending via canvas
           // For now, just log that blend mode is set but not applied
-          logger.debug('JS9.BlendImage not available, blend mode:', blendMode, 'opacity:', blendOpacity);
+          logger.debug(
+            "JS9.BlendImage not available, blend mode:",
+            blendMode,
+            "opacity:",
+            blendOpacity
+          );
         }
       } catch (e) {
-        logger.debug('Blend mode not available or error:', e);
+        logger.debug("Blend mode not available or error:", e);
       }
     }
   }, [open, blendOpacity, blendMode, fitsUrlA, fitsUrlB]);
@@ -272,25 +274,31 @@ export default function MultiImageCompare({
       maxWidth="xl"
       fullWidth
       PaperProps={{
-        sx: { height: '90vh' },
+        sx: { height: "90vh" },
       }}
     >
       <DialogTitle>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h6">Compare Images</Typography>
           <Box display="flex" alignItems="center" gap={1}>
-            <Tooltip title={syncEnabled ? 'Synchronization enabled - pan, zoom, and colormap are synced' : 'Synchronization disabled'}>
+            <Tooltip
+              title={
+                syncEnabled
+                  ? "Synchronization enabled - pan, zoom, and colormap are synced"
+                  : "Synchronization disabled"
+              }
+            >
               <Chip
                 icon={syncEnabled ? <Link /> : <LinkOff />}
-                label={syncEnabled ? 'Synced' : 'Unsynced'}
-                color={syncEnabled ? 'primary' : 'default'}
+                label={syncEnabled ? "Synced" : "Unsynced"}
+                color={syncEnabled ? "primary" : "default"}
                 size="small"
                 onClick={() => setSyncEnabled(!syncEnabled)}
                 sx={{
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': {
-                    transform: 'scale(1.05)',
+                  cursor: "pointer",
+                  transition: "all 0.2s ease-in-out",
+                  "&:hover": {
+                    transform: "scale(1.05)",
                   },
                 }}
               />
@@ -311,11 +319,8 @@ export default function MultiImageCompare({
                   <Typography variant="subtitle2" gutterBottom>
                     Image A
                   </Typography>
-                  <Box sx={{ maxHeight: 200, overflow: 'auto' }}>
-                    <ImageBrowser
-                      onSelectImage={setImageA}
-                      selectedImageId={imageA?.id}
-                    />
+                  <Box sx={{ maxHeight: 200, overflow: "auto" }}>
+                    <ImageBrowser onSelectImage={setImageA} selectedImageId={imageA?.id} />
                   </Box>
                 </Paper>
               </Grid>
@@ -324,11 +329,8 @@ export default function MultiImageCompare({
                   <Typography variant="subtitle2" gutterBottom>
                     Image B
                   </Typography>
-                  <Box sx={{ maxHeight: 200, overflow: 'auto' }}>
-                    <ImageBrowser
-                      onSelectImage={setImageB}
-                      selectedImageId={imageB?.id}
-                    />
+                  <Box sx={{ maxHeight: 200, overflow: "auto" }}>
+                    <ImageBrowser onSelectImage={setImageB} selectedImageId={imageB?.id} />
                   </Box>
                 </Paper>
               </Grid>
@@ -340,8 +342,8 @@ export default function MultiImageCompare({
             <Paper
               sx={{
                 p: 2,
-                opacity: (!imageA || !imageB) ? 0.6 : 1,
-                transition: 'opacity 0.2s ease-in-out',
+                opacity: !imageA || !imageB ? 0.6 : 1,
+                transition: "opacity 0.2s ease-in-out",
               }}
             >
               <Typography variant="subtitle2" gutterBottom>
@@ -357,8 +359,8 @@ export default function MultiImageCompare({
                   <Tooltip
                     title={
                       !imageA || !imageB
-                        ? 'Select both images to enable blend mode'
-                        : 'Blend mode determines how Image B is combined with Image A'
+                        ? "Select both images to enable blend mode"
+                        : "Blend mode determines how Image B is combined with Image A"
                     }
                   >
                     <FormControl fullWidth size="small" disabled={!imageA || !imageB}>
@@ -379,17 +381,17 @@ export default function MultiImageCompare({
                   <Tooltip
                     title={
                       !imageA || !imageB
-                        ? 'Select both images to adjust opacity'
-                        : 'Adjust the opacity of Image B when blending'
+                        ? "Select both images to adjust opacity"
+                        : "Adjust the opacity of Image B when blending"
                     }
                   >
                     <Box display="flex" alignItems="center" gap={2}>
-                      <Opacity sx={{ opacity: (!imageA || !imageB) ? 0.5 : 1 }} />
+                      <Opacity sx={{ opacity: !imageA || !imageB ? 0.5 : 1 }} />
                       <Typography
                         variant="body2"
                         sx={{
                           minWidth: 60,
-                          color: (!imageA || !imageB) ? 'text.disabled' : 'text.primary',
+                          color: !imageA || !imageB ? "text.disabled" : "text.primary",
                         }}
                       >
                         Opacity: {blendOpacity}%
@@ -416,25 +418,17 @@ export default function MultiImageCompare({
               <Grid size={{ xs: 6 }}>
                 <Paper sx={{ p: 1 }}>
                   <Typography variant="caption" color="text.secondary" sx={{ px: 1 }}>
-                    {imageA ? `Image A: ${imageA.path.split('/').pop()}` : 'No image selected'}
+                    {imageA ? `Image A: ${imageA.path.split("/").pop()}` : "No image selected"}
                   </Typography>
-                  <SkyViewer
-                    imagePath={fitsUrlA}
-                    displayId={displayAId}
-                    height={500}
-                  />
+                  <SkyViewer imagePath={fitsUrlA} displayId={displayAId} height={500} />
                 </Paper>
               </Grid>
               <Grid size={{ xs: 6 }}>
                 <Paper sx={{ p: 1 }}>
                   <Typography variant="caption" color="text.secondary" sx={{ px: 1 }}>
-                    {imageB ? `Image B: ${imageB.path.split('/').pop()}` : 'No image selected'}
+                    {imageB ? `Image B: ${imageB.path.split("/").pop()}` : "No image selected"}
                   </Typography>
-                  <SkyViewer
-                    imagePath={fitsUrlB}
-                    displayId={displayBId}
-                    height={500}
-                  />
+                  <SkyViewer imagePath={fitsUrlB} displayId={displayBId} height={500} />
                 </Paper>
               </Grid>
             </Grid>
@@ -447,4 +441,3 @@ export default function MultiImageCompare({
     </Dialog>
   );
 }
-

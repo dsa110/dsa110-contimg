@@ -1,22 +1,22 @@
 /**
  * SkyViewer Component - JS9 FITS Image Viewer Integration
- * 
+ *
  * Refactored to use custom hooks for better separation of concerns:
  * - useJS9Initialization: Handles JS9 display initialization
  * - useJS9ImageLoader: Handles image loading and state management
  * - useJS9Resize: Handles display resizing
  * - useJS9ContentPreservation: Preserves JS9 content across React renders
  */
-import { useEffect, useRef } from 'react';
-import { Box, CircularProgress, Alert, Typography } from '@mui/material';
-import { isJS9Available, findDisplay } from '../../utils/js9';
-import { useJS9Safe } from '../../contexts/JS9Context';
-import { useJS9Initialization } from './hooks/useJS9Initialization';
-import { useJS9ImageLoader } from './hooks/useJS9ImageLoader';
-import { useJS9Resize } from './hooks/useJS9Resize';
-import { useJS9ContentPreservation } from './hooks/useJS9ContentPreservation';
-import styles from './Sky.module.css';
-import WCSDisplay from './WCSDisplay';
+import { useEffect, useRef } from "react";
+import { Box, CircularProgress, Alert, Typography } from "@mui/material";
+import { isJS9Available, findDisplay } from "../../utils/js9";
+import { useJS9Safe } from "../../contexts/JS9Context";
+import { useJS9Initialization } from "./hooks/useJS9Initialization";
+import { useJS9ImageLoader } from "./hooks/useJS9ImageLoader";
+import { useJS9Resize } from "./hooks/useJS9Resize";
+import { useJS9ContentPreservation } from "./hooks/useJS9ContentPreservation";
+import styles from "./Sky.module.css";
+import WCSDisplay from "./WCSDisplay";
 
 declare global {
   interface Window {
@@ -30,10 +30,10 @@ interface SkyViewerProps {
   height?: number;
 }
 
-export default function SkyViewer({ 
-  imagePath, 
-  displayId = 'js9Display',
-  height = 600 
+export default function SkyViewer({
+  imagePath,
+  displayId = "js9Display",
+  height = 600,
 }: SkyViewerProps) {
   // Use JS9 context if available (backward compatible)
   const js9Context = useJS9Safe();
@@ -43,7 +43,7 @@ export default function SkyViewer({
 
   // Use context's JS9 readiness if available, otherwise check directly
   const isJS9Ready = js9Context?.isJS9Ready ?? isJS9Available();
-  
+
   // Use context's getDisplay if available, otherwise use utility
   const getDisplaySafe = (id: string) => {
     return js9Context?.getDisplay(id) ?? findDisplay(id);
@@ -60,7 +60,11 @@ export default function SkyViewer({
   });
 
   // Load images
-  const { loading, error: loadError, imageLoadedRef } = useJS9ImageLoader({
+  const {
+    loading,
+    error: loadError,
+    imageLoadedRef,
+  } = useJS9ImageLoader({
     imagePath,
     displayId,
     initialized,
@@ -96,20 +100,20 @@ export default function SkyViewer({
   useEffect(() => {
     const originalTitle = document.title;
     const titleObserver = new MutationObserver(() => {
-      if (document.title !== originalTitle && document.title.includes(':')) {
+      if (document.title !== originalTitle && document.title.includes(":")) {
         document.title = originalTitle;
       }
     });
-    titleObserver.observe(document.querySelector('title') || document.head, {
+    titleObserver.observe(document.querySelector("title") || document.head, {
       childList: true,
       subtree: true,
-      characterData: true
+      characterData: true,
     });
     return () => titleObserver.disconnect();
   }, []);
 
   return (
-    <Box sx={{ position: 'relative', width: '100%', height: `${height}px` }}>
+    <Box sx={{ position: "relative", width: "100%", height: `${height}px` }}>
       <Box
         key={displayId}
         id={displayId}
@@ -117,19 +121,19 @@ export default function SkyViewer({
         component="div"
         className={styles.JS9DisplayContainer}
         sx={{
-          width: '100%',
-          maxWidth: '100%',
-          minWidth: '400px',
+          width: "100%",
+          maxWidth: "100%",
+          minWidth: "400px",
           height: `${height}px`,
           minHeight: `${height}px`,
-          border: '1px solid',
-          borderColor: 'divider',
+          border: "1px solid",
+          borderColor: "divider",
           borderRadius: 1,
-          bgcolor: '#0a0a0a',
-          position: 'relative',
-          display: 'block',
-          boxSizing: 'border-box',
-          overflow: 'hidden',
+          bgcolor: "#0a0a0a",
+          position: "relative",
+          display: "block",
+          boxSizing: "border-box",
+          overflow: "hidden",
         }}
         // Prevent React from clearing JS9 content on re-render
         onMouseEnter={() => {
@@ -147,27 +151,27 @@ export default function SkyViewer({
           }
         }}
       />
-      
+
       {/* WCS Coordinate Display Overlay */}
       <WCSDisplay displayId={displayId} />
 
       {loading && !imageLoadedRef.current && (
         <Box
           sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
             gap: 2,
             zIndex: 1000,
-            pointerEvents: 'none',
-            '& + *': {
+            pointerEvents: "none",
+            "& + *": {
               // Hide any JS9 loading indicators that might appear
               '& .JS9Loading, & .js9-loading, & [class*="js9"][class*="load"]': {
-                display: 'none !important',
+                display: "none !important",
               },
             },
           }}
@@ -178,7 +182,7 @@ export default function SkyViewer({
           </Typography>
         </Box>
       )}
-      
+
       {/* Hidden style tag to globally hide JS9 loading indicators and ensure canvas fills container */}
       <style>{`
         .JS9Loading,
@@ -211,7 +215,7 @@ export default function SkyViewer({
       {error && (
         <Box
           sx={{
-            position: 'absolute',
+            position: "absolute",
             top: 16,
             left: 16,
             right: 16,
@@ -226,23 +230,20 @@ export default function SkyViewer({
       {!imagePath && !loading && (
         <Box
           sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            textAlign: 'center',
-            color: 'text.secondary',
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            textAlign: "center",
+            color: "text.secondary",
           }}
         >
           <Typography variant="h6" gutterBottom>
             No image selected
           </Typography>
-          <Typography variant="body2">
-            Select an image from the browser to display
-          </Typography>
+          <Typography variant="body2">Select an image from the browser to display</Typography>
         </Box>
       )}
     </Box>
   );
 }
-

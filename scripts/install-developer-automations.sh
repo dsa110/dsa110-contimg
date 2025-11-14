@@ -1,0 +1,113 @@
+#!/bin/bash
+# Install all developer automation protections
+# This sets up everything needed to prevent common mistakes
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT"
+
+echo "Installing developer automation protections..."
+echo ""
+
+# 1. Setup developer environment (shell aliases and auto-sourcing)
+echo "1. Setting up developer environment..."
+if [ -f "$SCRIPT_DIR/setup-developer-env.sh" ]; then
+    "$SCRIPT_DIR/setup-developer-env.sh"
+    echo "   ✓ Developer environment configured"
+else
+    echo "   ✗ setup-developer-env.sh not found"
+fi
+echo ""
+
+# 2. Verify pre-commit hooks are installed
+echo "2. Verifying pre-commit hooks..."
+if [ -f ".git/hooks/pre-commit" ]; then
+    echo "   ✓ Pre-commit hook exists"
+    
+    # Check if all validation scripts are referenced
+    HOOKS_OK=1
+    for script in validate-pytest-usage.sh pre-commit-doc-location.sh pre-commit-python-env.sh pre-commit-output-suppression.sh; do
+        if ! grep -q "$script" ".git/hooks/pre-commit" 2>/dev/null; then
+            echo "   ⚠ $script not found in pre-commit hook"
+            HOOKS_OK=0
+        fi
+    done
+    
+    if [ $HOOKS_OK -eq 1 ]; then
+        echo "   ✓ All validation scripts integrated"
+    else
+        echo "   ⚠ Some validation scripts missing from pre-commit hook"
+        echo "   Run: git add .git/hooks/pre-commit && git commit -m 'Update pre-commit hooks'"
+    fi
+else
+    echo "   ✗ Pre-commit hook not found"
+    echo "   Run: make test-org-install (or manually create .git/hooks/pre-commit)"
+fi
+echo ""
+
+# 3. Create Python wrapper symlinks (optional, for PATH-based access)
+echo "3. Setting up Python wrapper..."
+CASA6_PYTHON="/opt/miniforge/envs/casa6/bin/python"
+if [ -x "$CASA6_PYTHON" ]; then
+    echo "   ✓ casa6 Python found at $CASA6_PYTHON"
+    
+    # Optionally create local bin directory with wrappers
+    LOCAL_BIN="$PROJECT_ROOT/.local/bin"
+    mkdir -p "$LOCAL_BIN"
+    
+    if [ -f "$SCRIPT_DIR/python-wrapper.sh" ]; then
+        # Create symlinks (if not already in PATH)
+        if [ ! -f "$LOCAL_BIN/python" ]; then
+            ln -sf "$SCRIPT_DIR/python-wrapper.sh" "$LOCAL_BIN/python"
+            echo "   ✓ Created python wrapper in $LOCAL_BIN/python"
+        fi
+        if [ ! -f "$LOCAL_BIN/python3" ]; then
+            ln -sf "$SCRIPT_DIR/python-wrapper.sh" "$LOCAL_BIN/python3"
+            echo "   ✓ Created python3 wrapper in $LOCAL_BIN/python3"
+        fi
+        
+        echo "   To use wrappers, add to PATH:"
+        echo "     export PATH=\"$LOCAL_BIN:\$PATH\""
+    fi
+else
+    echo "   ✗ casa6 Python not found at $CASA6_PYTHON"
+    echo "   Please install casa6 environment first"
+fi
+echo ""
+
+# 4. Verify test runner uses safe wrapper
+echo "4. Verifying test runner configuration..."
+if grep -q "pytest-safe.sh" "$SCRIPT_DIR/run-tests.sh" 2>/dev/null; then
+    echo "   ✓ Test runner uses pytest-safe.sh"
+else
+    echo "   ⚠ Test runner may not use safe wrapper"
+fi
+echo ""
+
+# 5. Summary
+echo "=========================================="
+echo "Installation Summary"
+echo "=========================================="
+echo ""
+echo "Automations installed:"
+echo "  ✓ Developer environment setup (shell aliases)"
+echo "  ✓ Pre-commit hooks (pytest, docs, Python env, output suppression)"
+echo "  ✓ Python wrapper (redirects python/python3 to casa6)"
+echo "  ✓ Pytest safe wrapper (prevents 2>&1 errors)"
+echo ""
+echo "Next steps:"
+echo "  1. Source your shell RC file:"
+echo "     source ~/.bashrc  # or ~/.zshrc"
+echo ""
+echo "  2. Verify setup:"
+echo "     python --version  # Should show casa6 Python"
+echo "     pytest --version  # Should use safe wrapper"
+echo ""
+echo "  3. Test pre-commit hooks:"
+echo "     # Try committing a markdown file to root (should fail)"
+echo "     # Try committing a script with system Python (should fail)"
+echo ""
+echo "For details, see: docs/how-to/DEVELOPER_HANDOVER_WARNINGS.md"
+

@@ -3,7 +3,7 @@
  * Integrates server-side CASA analysis tasks (imstat, imfit, imview, specflux, imval) into JS9 viewer
  * Reference: https://js9.si.edu/js9/help/localtasks.html
  */
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -31,16 +31,16 @@ import {
   TextField,
   Switch,
   FormControlLabel,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Download as DownloadIcon,
   Refresh as RefreshIcon,
   CheckCircle as CheckCircleIcon,
-} from '@mui/icons-material';
-import { apiClient } from '../../../api/client';
-import { logger } from '../../../utils/logger';
-import { findDisplay, isJS9Available } from '../../../utils/js9';
-import ContourOverlay from './ContourOverlay';
+} from "@mui/icons-material";
+import { apiClient } from "../../../api/client";
+import { logger } from "../../../utils/logger";
+import { findDisplay, isJS9Available } from "../../../utils/js9";
+import ContourOverlay from "./ContourOverlay";
 
 declare global {
   interface Window {
@@ -76,7 +76,7 @@ interface RegionInfo {
  */
 class DSACASAnalysisPlugin {
   private displayId: string;
-  private pluginName: string = 'DSA CASA Analysis';
+  private pluginName: string = "DSA CASA Analysis";
   private resultCallback: ((result: CASAnalysisResult | null) => void) | null = null;
   private currentImagePath: string | null = null;
   private regionCallback: ((region: RegionInfo | null) => void) | null = null;
@@ -130,7 +130,7 @@ class DSACASAnalysisPlugin {
         }
       }
     } catch (error) {
-      logger.warn('Error getting image path from JS9:', error);
+      logger.warn("Error getting image path from JS9:", error);
     }
 
     return this.currentImagePath;
@@ -154,7 +154,7 @@ class DSACASAnalysisPlugin {
         if (regions && regions.length > 0) {
           const region = regions[regions.length - 1];
           return {
-            shape: region.shape || region.type || 'circle',
+            shape: region.shape || region.type || "circle",
             x: region.x || region.xcen,
             y: region.y || region.ycen,
             r: region.r || region.radius,
@@ -164,7 +164,7 @@ class DSACASAnalysisPlugin {
         }
       }
     } catch (error) {
-      logger.warn('Error getting region from JS9:', error);
+      logger.warn("Error getting region from JS9:", error);
     }
 
     return null;
@@ -188,7 +188,7 @@ class DSACASAnalysisPlugin {
     parameters?: Record<string, any>
   ): Promise<void> {
     if (!this.resultCallback) {
-      logger.warn('No result callback set for CASA analysis');
+      logger.warn("No result callback set for CASA analysis");
       return;
     }
 
@@ -197,7 +197,7 @@ class DSACASAnalysisPlugin {
       this.resultCallback({
         success: false,
         task,
-        error: 'No image loaded in JS9 viewer',
+        error: "No image loaded in JS9 viewer",
       });
       return;
     }
@@ -211,7 +211,7 @@ class DSACASAnalysisPlugin {
         error: undefined,
       });
 
-      const response = await apiClient.post<CASAnalysisResult>('/api/visualization/js9/analysis', {
+      const response = await apiClient.post<CASAnalysisResult>("/api/visualization/js9/analysis", {
         task,
         image_path: imagePath,
         region: activeRegion || undefined,
@@ -221,11 +221,11 @@ class DSACASAnalysisPlugin {
       this.resultCallback(response.data);
       return response.data;
     } catch (error: any) {
-      logger.error('Error executing CASA analysis:', error);
+      logger.error("Error executing CASA analysis:", error);
       this.resultCallback({
         success: false,
         task,
-        error: error.response?.data?.detail || error.message || 'Unknown error',
+        error: error.response?.data?.detail || error.message || "Unknown error",
       });
     }
   }
@@ -236,35 +236,35 @@ class DSACASAnalysisPlugin {
   init() {
     try {
       if (!window.JS9) {
-        logger.warn('JS9 not available for plugin initialization');
+        logger.warn("JS9 not available for plugin initialization");
         return;
       }
 
-      if (typeof window.JS9.AddAnalysis === 'function') {
+      if (typeof window.JS9.AddAnalysis === "function") {
         const tasks = [
-          { name: 'Image Statistics', task: 'imstat' },
-          { name: 'Source Fitting', task: 'imfit' },
-          { name: 'Contour Generation', task: 'imview' },
-          { name: 'Spectral Flux', task: 'specflux' },
-          { name: 'Pixel Extraction', task: 'imval' },
-          { name: 'Image Header', task: 'imhead' },
-          { name: 'Image Math', task: 'immath' },
+          { name: "Image Statistics", task: "imstat" },
+          { name: "Source Fitting", task: "imfit" },
+          { name: "Contour Generation", task: "imview" },
+          { name: "Spectral Flux", task: "specflux" },
+          { name: "Pixel Extraction", task: "imval" },
+          { name: "Image Header", task: "imhead" },
+          { name: "Image Math", task: "immath" },
         ];
 
         tasks.forEach(({ name, task }) => {
           window.JS9.AddAnalysis({
             name: `CASA: ${name}`,
-            menu: 'Analysis',
+            menu: "Analysis",
             callback: () => {
               this.executeAnalysis(task);
             },
           });
         });
 
-        logger.debug('DSA CASA Analysis plugin registered with JS9');
+        logger.debug("DSA CASA Analysis plugin registered with JS9");
       }
     } catch (error) {
-      logger.error('Error initializing CASA analysis plugin:', error);
+      logger.error("Error initializing CASA analysis plugin:", error);
     }
   }
 
@@ -277,13 +277,13 @@ class DSACASAnalysisPlugin {
  * React component wrapper for the CASA analysis plugin
  */
 export default function CASAnalysisPlugin({
-  displayId = 'skyViewDisplay',
+  displayId = "skyViewDisplay",
   imagePath,
 }: CASAnalysisPluginProps) {
   const pluginRef = useRef<DSACASAnalysisPlugin | null>(null);
   const [result, setResult] = useState<CASAnalysisResult | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<string>('imstat');
+  const [selectedTask, setSelectedTask] = useState<string>("imstat");
   const [loading, setLoading] = useState(false);
   const [currentRegion, setCurrentRegion] = useState<RegionInfo | null>(null);
   const [useRegion, setUseRegion] = useState(true);
@@ -307,7 +307,7 @@ export default function CASAnalysisPlugin({
       const timeout = setTimeout(() => {
         clearInterval(checkJS9);
         if (!isJS9Available()) {
-          logger.warn('JS9 not available after timeout');
+          logger.warn("JS9 not available after timeout");
         }
       }, 10000);
 
@@ -351,7 +351,7 @@ export default function CASAnalysisPlugin({
       });
 
       if (!display) {
-        logger.debug('JS9 display not found, waiting...');
+        logger.debug("JS9 display not found, waiting...");
         setTimeout(initializePlugin, 500);
         return;
       }
@@ -362,9 +362,9 @@ export default function CASAnalysisPlugin({
         if (analysisResult) {
           setDialogOpen(true);
           setLoading(analysisResult.error === undefined && !analysisResult.success);
-          
+
           // If imview task and successful, extract contour data
-          if (analysisResult.success && analysisResult.task === 'imview' && analysisResult.result) {
+          if (analysisResult.success && analysisResult.task === "imview" && analysisResult.result) {
             if (analysisResult.result.contour_paths) {
               setContourData(analysisResult.result);
               setShowContours(true);
@@ -379,7 +379,7 @@ export default function CASAnalysisPlugin({
       pluginRef.current.init();
       pluginRef.current.updateRegion();
     } catch (error) {
-      logger.error('Error initializing CASA analysis plugin:', error);
+      logger.error("Error initializing CASA analysis plugin:", error);
     }
   };
 
@@ -407,9 +407,9 @@ export default function CASAnalysisPlugin({
     if (!result || !result.result) return;
 
     const dataStr = JSON.stringify(result, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
     link.download = `casa_analysis_${result.task}_${Date.now()}.json`;
     link.click();
@@ -419,30 +419,30 @@ export default function CASAnalysisPlugin({
   const exportToCSV = () => {
     if (!result || !result.result) return;
 
-    let csv = '';
+    let csv = "";
     const data = result.result;
 
     // Try to convert result to CSV format
-    if (data.DATA && typeof data.DATA === 'object') {
+    if (data.DATA && typeof data.DATA === "object") {
       // imstat format
       const stats = data.DATA;
-      csv = 'Statistic,Value\n';
+      csv = "Statistic,Value\n";
       for (const [key, value] of Object.entries(stats)) {
         csv += `${key},${value}\n`;
       }
     } else if (Array.isArray(data.values)) {
       // imval format
-      csv = 'Index,Value\n';
+      csv = "Index,Value\n";
       data.values.forEach((val: any, idx: number) => {
         csv += `${idx},${val}\n`;
       });
     } else {
       // Generic format
-      csv = 'Key,Value\n';
-      const flatten = (obj: any, prefix = '') => {
+      csv = "Key,Value\n";
+      const flatten = (obj: any, prefix = "") => {
         for (const [key, value] of Object.entries(obj)) {
           const newKey = prefix ? `${prefix}.${key}` : key;
-          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+          if (typeof value === "object" && value !== null && !Array.isArray(value)) {
             flatten(value, newKey);
           } else {
             csv += `${newKey},${value}\n`;
@@ -452,9 +452,9 @@ export default function CASAnalysisPlugin({
       flatten(data);
     }
 
-    const dataBlob = new Blob([csv], { type: 'text/csv' });
+    const dataBlob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
     link.download = `casa_analysis_${result.task}_${Date.now()}.csv`;
     link.click();
@@ -462,10 +462,10 @@ export default function CASAnalysisPlugin({
   };
 
   const formatResult = (result: any): string => {
-    if (typeof result === 'string') {
+    if (typeof result === "string") {
       return result;
     }
-    if (typeof result === 'object') {
+    if (typeof result === "object") {
       return JSON.stringify(result, null, 2);
     }
     return String(result);
@@ -499,7 +499,7 @@ export default function CASAnalysisPlugin({
       const isCached = result.execution_time_sec !== undefined && result.execution_time_sec < 0.01;
 
       // Render table for imstat results
-      if (data.DATA && typeof data.DATA === 'object' && selectedTask === 'imstat') {
+      if (data.DATA && typeof data.DATA === "object" && selectedTask === "imstat") {
         const stats = data.DATA;
         return (
           <Box sx={{ mt: 2 }}>
@@ -524,8 +524,12 @@ export default function CASAnalysisPlugin({
               <Table size="small" stickyHeader>
                 <TableHead>
                   <TableRow>
-                    <TableCell><strong>Statistic</strong></TableCell>
-                    <TableCell align="right"><strong>Value</strong></TableCell>
+                    <TableCell>
+                      <strong>Statistic</strong>
+                    </TableCell>
+                    <TableCell align="right">
+                      <strong>Value</strong>
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -533,7 +537,7 @@ export default function CASAnalysisPlugin({
                     <TableRow key={key}>
                       <TableCell>{key}</TableCell>
                       <TableCell align="right">
-                        {typeof value === 'number' ? value.toLocaleString() : String(value)}
+                        {typeof value === "number" ? value.toLocaleString() : String(value)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -564,10 +568,8 @@ export default function CASAnalysisPlugin({
               Execution time: {result.execution_time_sec}s
             </Typography>
           )}
-          <Paper sx={{ mt: 2, p: 2, maxHeight: 400, overflow: 'auto' }}>
-            <pre style={{ margin: 0, fontSize: '0.875rem' }}>
-              {formatResult(result.result)}
-            </pre>
+          <Paper sx={{ mt: 2, p: 2, maxHeight: 400, overflow: "auto" }}>
+            <pre style={{ margin: 0, fontSize: "0.875rem" }}>{formatResult(result.result)}</pre>
           </Paper>
         </Box>
       );
@@ -578,30 +580,30 @@ export default function CASAnalysisPlugin({
 
   const handleBatchAnalysis = async () => {
     if (!pluginRef.current || selectedRegions.length === 0) return;
-    
+
     setBatchLoading(true);
     setBatchResults([]);
     setDialogOpen(true);
-    
+
     const results: CASAnalysisResult[] = [];
-    
+
     try {
       // Process regions in parallel batches for performance
       const batchSize = 5; // Process 5 regions at a time
       for (let i = 0; i < selectedRegions.length; i += batchSize) {
         const batch = selectedRegions.slice(i, i + batchSize);
-        const batchPromises = batch.map(region => 
+        const batchPromises = batch.map((region) =>
           pluginRef.current!.executeAnalysis(selectedTask, region)
         );
         const batchResults = await Promise.all(batchPromises);
-        results.push(...batchResults.filter(r => r !== null && r !== undefined));
-        
+        results.push(...batchResults.filter((r) => r !== null && r !== undefined));
+
         // Update UI with progress
         setBatchResults([...results]);
       }
       setBatchResults(results);
     } catch (error) {
-      logger.error('Error in batch analysis:', error);
+      logger.error("Error in batch analysis:", error);
     } finally {
       setBatchLoading(false);
     }
@@ -615,12 +617,12 @@ export default function CASAnalysisPlugin({
         return divId === displayId;
       });
       if (!display?.im) return [];
-      
+
       const regions = window.JS9.GetRegions(display.im.id);
       if (!regions || !Array.isArray(regions)) return [];
-      
+
       return regions.map((r: any) => ({
-        shape: r.shape || 'circle',
+        shape: r.shape || "circle",
         x: r.x,
         y: r.y,
         r: r.r,
@@ -628,7 +630,7 @@ export default function CASAnalysisPlugin({
         height: r.height,
       }));
     } catch (e) {
-      logger.error('Error getting all regions:', e);
+      logger.error("Error getting all regions:", e);
       return [];
     }
   };
@@ -646,7 +648,7 @@ export default function CASAnalysisPlugin({
           opacity={0.7}
         />
       )}
-      
+
       <Box sx={{ mb: 2 }}>
         <Box display="flex" gap={1} flexWrap="wrap" alignItems="center" mb={1}>
           <FormControl size="small" sx={{ minWidth: 200 }}>
@@ -678,11 +680,7 @@ export default function CASAnalysisPlugin({
           />
 
           {currentRegion && (
-            <Chip
-              label={`${currentRegion.shape} region`}
-              size="small"
-              variant="outlined"
-            />
+            <Chip label={`${currentRegion.shape} region`} size="small" variant="outlined" />
           )}
 
           <Tooltip title="Refresh region from JS9">
@@ -699,8 +697,8 @@ export default function CASAnalysisPlugin({
           >
             Run Analysis
           </Button>
-          
-          {selectedTask === 'imview' && result?.success && contourData && (
+
+          {selectedTask === "imview" && result?.success && contourData && (
             <FormControlLabel
               control={
                 <Switch
@@ -712,7 +710,7 @@ export default function CASAnalysisPlugin({
               label="Show Contours"
             />
           )}
-          
+
           <FormControlLabel
             control={
               <Switch
@@ -730,7 +728,7 @@ export default function CASAnalysisPlugin({
             }
             label="Batch Mode"
           />
-          
+
           {batchMode && (
             <Button
               variant="outlined"
@@ -744,9 +742,9 @@ export default function CASAnalysisPlugin({
         </Box>
 
         {currentRegion && useRegion && (
-          <Box sx={{ mt: 1, fontSize: '0.75rem', color: 'text.secondary' }}>
-            Region: {currentRegion.shape} at ({currentRegion.x?.toFixed(1)}, {currentRegion.y?.toFixed(1)})
-            {currentRegion.r && `, r=${currentRegion.r.toFixed(1)}`}
+          <Box sx={{ mt: 1, fontSize: "0.75rem", color: "text.secondary" }}>
+            Region: {currentRegion.shape} at ({currentRegion.x?.toFixed(1)},{" "}
+            {currentRegion.y?.toFixed(1)}){currentRegion.r && `, r=${currentRegion.r.toFixed(1)}`}
           </Box>
         )}
       </Box>
@@ -793,9 +791,15 @@ export default function CASAnalysisPlugin({
                 <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
-                      <TableCell><strong>Region</strong></TableCell>
-                      <TableCell><strong>Status</strong></TableCell>
-                      <TableCell align="right"><strong>Time (s)</strong></TableCell>
+                      <TableCell>
+                        <strong>Region</strong>
+                      </TableCell>
+                      <TableCell>
+                        <strong>Status</strong>
+                      </TableCell>
+                      <TableCell align="right">
+                        <strong>Time (s)</strong>
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -810,7 +814,7 @@ export default function CASAnalysisPlugin({
                           )}
                         </TableCell>
                         <TableCell align="right">
-                          {result.execution_time_sec?.toFixed(3) || '-'}
+                          {result.execution_time_sec?.toFixed(3) || "-"}
                         </TableCell>
                       </TableRow>
                     ))}

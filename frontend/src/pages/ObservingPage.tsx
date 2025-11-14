@@ -2,7 +2,7 @@
  * Observing Page
  * Real-time telescope status and observing plan
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo } from "react";
 import {
   Container,
   Typography,
@@ -15,7 +15,6 @@ import {
   Stack,
   Chip,
   Alert,
-  CircularProgress,
   Tabs,
   Tab,
   Divider,
@@ -25,19 +24,20 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-} from '@mui/material';
+} from "@mui/material";
 import {
   RadioButtonChecked as PointIcon,
   Schedule as ScheduleIcon,
   TrendingUp as TrendingUpIcon,
-} from '@mui/icons-material';
-import { usePointingHistory, usePipelineStatus } from '../api/queries';
-import { apiClient } from '../api/client';
-import { useQuery } from '@tanstack/react-query';
-import PointingVisualization from '../components/PointingVisualization';
-import Plot from 'react-plotly.js';
-import type { Data, Layout } from 'plotly.js';
-import dayjs from 'dayjs';
+} from "@mui/icons-material";
+import { usePointingHistory, usePipelineStatus } from "../api/queries";
+import { apiClient } from "../api/client";
+import { useQuery } from "@tanstack/react-query";
+import PointingVisualization from "../components/PointingVisualization";
+import { SkeletonLoader } from "../components/SkeletonLoader";
+import Plot from "react-plotly.js";
+import type { Data, Layout } from "plotly.js";
+import dayjs from "dayjs";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -62,8 +62,8 @@ export default function ObservingPage() {
   const { startMjd, endMjd } = useMemo(() => {
     const now = new Date();
     const startDate = new Date(now.getTime() - 6 * 60 * 60 * 1000);
-    const startMjd = (startDate.getTime() / 86400000) + 40587;
-    const endMjd = (now.getTime() / 86400000) + 40587;
+    const startMjd = startDate.getTime() / 86400000 + 40587;
+    const endMjd = now.getTime() / 86400000 + 40587;
     return { startMjd, endMjd };
   }, []);
 
@@ -74,13 +74,10 @@ export default function ObservingPage() {
   } = usePointingHistory(startMjd, endMjd);
 
   // Fetch recent calibrator matches
-  const {
-    data: calibratorMatches,
-    isLoading: calibratorLoading,
-  } = useQuery({
-    queryKey: ['calibrator-matches', 'recent'],
+  const { data: calibratorMatches, isLoading: calibratorLoading } = useQuery({
+    queryKey: ["calibrator-matches", "recent"],
     queryFn: async () => {
-      const response = await apiClient.get('/api/calibrator_matches?limit=50&matched_only=true');
+      const response = await apiClient.get("/api/calibrator_matches?limit=50&matched_only=true");
       return response.data;
     },
     refetchInterval: 60000, // Refresh every minute
@@ -88,7 +85,7 @@ export default function ObservingPage() {
 
   const historyData = pointingHistory?.items || [];
   const calibratorData = calibratorMatches?.items || [];
-  
+
   // Extract individual calibrator matches from groups
   const allCalibratorMatches = useMemo(() => {
     const matches: any[] = [];
@@ -133,8 +130,8 @@ export default function ObservingPage() {
         const fluxes = matches.map((m: any) => (m.weighted_flux || m.flux_jy || 0) * 1000); // Convert to mJy
 
         data.push({
-          type: 'scatter',
-          mode: 'lines+markers',
+          type: "scatter",
+          mode: "lines+markers",
           name: name,
           x: times,
           y: fluxes,
@@ -144,11 +141,11 @@ export default function ObservingPage() {
     });
 
     const layout: Partial<Layout> = {
-      title: 'Calibrator Flux vs Time',
-      xaxis: { title: 'Time' },
-      yaxis: { title: 'Flux (mJy)' },
-      hovermode: 'closest',
-      template: 'plotly_dark',
+      title: "Calibrator Flux vs Time",
+      xaxis: { title: "Time" },
+      yaxis: { title: "Flux (mJy)" },
+      hovermode: "closest",
+      template: "plotly_dark",
     };
 
     return { data, layout };
@@ -156,15 +153,11 @@ export default function ObservingPage() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h3" gutterBottom sx={{ mb: 4 }}>
+      <Typography variant="h2" component="h2" gutterBottom sx={{ mb: 4 }}>
         Observing Status
       </Typography>
 
-      {pointingLoading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-          <CircularProgress />
-        </Box>
-      )}
+      {pointingLoading && <SkeletonLoader variant="cards" rows={2} />}
 
       {pointingError && (
         <Alert severity="warning" sx={{ mb: 3 }}>
@@ -176,10 +169,7 @@ export default function ObservingPage() {
         {/* Current Status Panel */}
         <Grid item xs={12} md={4}>
           <Card>
-            <CardHeader
-              title="Current Status"
-              avatar={<PointIcon />}
-            />
+            <CardHeader title="Current Status" avatar={<PointIcon />} />
             <CardContent>
               {currentPointing ? (
                 <Stack spacing={2}>
@@ -187,12 +177,8 @@ export default function ObservingPage() {
                     <Typography variant="body2" color="text.secondary">
                       Current Pointing
                     </Typography>
-                    <Typography variant="h6">
-                      RA: {currentPointing.ra.toFixed(4)}°
-                    </Typography>
-                    <Typography variant="h6">
-                      Dec: {currentPointing.dec.toFixed(4)}°
-                    </Typography>
+                    <Typography variant="h6">RA: {currentPointing.ra.toFixed(4)}°</Typography>
+                    <Typography variant="h6">Dec: {currentPointing.dec.toFixed(4)}°</Typography>
                   </Box>
                   <Divider />
                   <Box>
@@ -200,7 +186,7 @@ export default function ObservingPage() {
                       Last Update
                     </Typography>
                     <Typography variant="body1">
-                      {dayjs(currentPointing.timestamp).format('YYYY-MM-DD HH:mm:ss')}
+                      {dayjs(currentPointing.timestamp).format("YYYY-MM-DD HH:mm:ss")}
                     </Typography>
                   </Box>
                   <Divider />
@@ -239,13 +225,10 @@ export default function ObservingPage() {
         {/* Calibrator Tracking */}
         <Grid item xs={12} md={8}>
           <Card>
-            <CardHeader
-              title="Calibrator Tracking"
-              avatar={<ScheduleIcon />}
-            />
+            <CardHeader title="Calibrator Tracking" avatar={<ScheduleIcon />} />
             <CardContent>
               {calibratorLoading ? (
-                <CircularProgress />
+                <SkeletonLoader variant="table" rows={3} columns={4} />
               ) : allCalibratorMatches.length > 0 ? (
                 <TableContainer>
                   <Table size="small">
@@ -262,19 +245,17 @@ export default function ObservingPage() {
                     <TableBody>
                       {allCalibratorMatches.slice(0, 10).map((match: any, idx: number) => (
                         <TableRow key={idx}>
-                          <TableCell>{match.name || 'Unknown'}</TableCell>
-                          <TableCell>{match.ra_deg?.toFixed(4) || 'N/A'}</TableCell>
-                          <TableCell>{match.dec_deg?.toFixed(4) || 'N/A'}</TableCell>
+                          <TableCell>{match.name || "Unknown"}</TableCell>
+                          <TableCell>{match.ra_deg?.toFixed(4) || "N/A"}</TableCell>
+                          <TableCell>{match.dec_deg?.toFixed(4) || "N/A"}</TableCell>
                           <TableCell>
                             {(match.weighted_flux || match.flux_jy || 0) * 1000 > 0
                               ? ((match.weighted_flux || match.flux_jy) * 1000).toFixed(2)
-                              : 'N/A'}
+                              : "N/A"}
                           </TableCell>
-                          <TableCell>{match.sep_deg?.toFixed(3) || 'N/A'}</TableCell>
+                          <TableCell>{match.sep_deg?.toFixed(3) || "N/A"}</TableCell>
                           <TableCell>
-                            {match.timestamp
-                              ? dayjs(match.timestamp).format('MM-DD HH:mm')
-                              : 'N/A'}
+                            {match.timestamp ? dayjs(match.timestamp).format("MM-DD HH:mm") : "N/A"}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -304,15 +285,12 @@ export default function ObservingPage() {
         {calibratorPlotData.data.length > 0 && (
           <Grid item xs={12}>
             <Card>
-              <CardHeader
-                title="Calibrator Flux vs Time"
-                avatar={<TrendingUpIcon />}
-              />
+              <CardHeader title="Calibrator Flux vs Time" avatar={<TrendingUpIcon />} />
               <CardContent>
                 <Plot
                   data={calibratorPlotData.data}
                   layout={calibratorPlotData.layout}
-                  style={{ width: '100%', height: '400px' }}
+                  style={{ width: "100%", height: "400px" }}
                 />
               </CardContent>
             </Card>
@@ -322,4 +300,3 @@ export default function ObservingPage() {
     </Container>
   );
 }
-

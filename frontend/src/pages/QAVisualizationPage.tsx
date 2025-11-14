@@ -1,25 +1,13 @@
 /**
  * QA Visualization Page - Main page for QA data visualization and exploration
  */
-import { useState } from 'react';
-import {
-  Box,
-  Typography,
-  Tabs,
-  Tab,
-  Paper,
-  Grid,
-} from '@mui/material';
-import {
-  Folder,
-  Image as ImageIcon,
-  TableChart,
-  NoteAdd,
-} from '@mui/icons-material';
-import DirectoryBrowser from '../components/QA/DirectoryBrowser';
-import FITSViewer from '../components/QA/FITSViewer';
-import CasaTableViewer from '../components/QA/CasaTableViewer';
-import QANotebookGenerator from '../components/QA/QANotebookGenerator';
+import { useState } from "react";
+import { Box, Typography, Tabs, Tab, Paper, Grid } from "@mui/material";
+import { Folder, Image as ImageIcon, TableChart, NoteAdd } from "@mui/icons-material";
+import DirectoryBrowser from "../components/QA/DirectoryBrowser";
+import FITSViewer from "../components/QA/FITSViewer";
+import CasaTableViewer from "../components/QA/CasaTableViewer";
+import QANotebookGenerator from "../components/QA/QANotebookGenerator";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -42,10 +30,10 @@ export default function QAVisualizationPage() {
   const [selectedTablePath, setSelectedTablePath] = useState<string | null>(null);
 
   const handleFileSelect = (path: string, type: string) => {
-    if (type === 'fits') {
+    if (type === "fits") {
       setSelectedFITSPath(path);
       setTabValue(1); // Switch to FITS viewer tab
-    } else if (type === 'casatable') {
+    } else if (type === "casatable") {
       setSelectedTablePath(path);
       setTabValue(2); // Switch to CASA table viewer tab
     }
@@ -57,7 +45,7 @@ export default function QAVisualizationPage() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h2" component="h2" gutterBottom>
         QA Visualization
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -70,25 +58,25 @@ export default function QAVisualizationPage() {
             icon={<Folder />}
             iconPosition="start"
             label="Directory Browser"
-            sx={{ textTransform: 'none' }}
+            sx={{ textTransform: "none" }}
           />
           <Tab
             icon={<ImageIcon />}
             iconPosition="start"
             label="FITS Viewer"
-            sx={{ textTransform: 'none' }}
+            sx={{ textTransform: "none" }}
           />
           <Tab
             icon={<TableChart />}
             iconPosition="start"
             label="CASA Table Viewer"
-            sx={{ textTransform: 'none' }}
+            sx={{ textTransform: "none" }}
           />
           <Tab
             icon={<NoteAdd />}
             iconPosition="start"
             label="Notebook Generator"
-            sx={{ textTransform: 'none' }}
+            sx={{ textTransform: "none" }}
           />
         </Tabs>
       </Paper>
@@ -106,7 +94,7 @@ export default function QAVisualizationPage() {
             <DirectoryBrowser
               initialPath="/data/dsa110-contimg/state/images"
               onSelectFile={(path, type) => {
-                if (type === 'fits') {
+                if (type === "fits") {
                   setSelectedFITSPath(path);
                 }
               }}
@@ -124,7 +112,7 @@ export default function QAVisualizationPage() {
             <DirectoryBrowser
               initialPath="/data/dsa110-contimg/state/ms"
               onSelectFile={(path, type) => {
-                if (type === 'casatable') {
+                if (type === "casatable") {
                   setSelectedTablePath(path);
                 }
               }}
@@ -142,4 +130,3 @@ export default function QAVisualizationPage() {
     </Box>
   );
 }
-

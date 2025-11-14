@@ -1,14 +1,24 @@
 /**
  * CatalogOverlay Component - Overlay catalog sources on images
  */
-import { useMemo } from 'react';
-import { Box, FormControl, InputLabel, Select, MenuItem, Switch, FormControlLabel, Slider, Typography } from '@mui/material';
-import { useCatalogOverlay } from '../../api/queries';
-import type { CatalogSource } from '../../api/types';
+import { useMemo } from "react";
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Switch,
+  FormControlLabel,
+  Slider,
+  Typography,
+} from "@mui/material";
+import { useCatalogOverlay } from "../../api/queries";
+import type { CatalogSource } from "../../api/types";
 
 interface CatalogOverlayProps {
   imageId: string | null;
-  catalog?: 'nvss' | 'vlass';
+  catalog?: "nvss" | "vlass";
   showLabels?: boolean;
   color?: string;
   size?: number;
@@ -19,9 +29,9 @@ interface CatalogOverlayProps {
 
 export default function CatalogOverlay({
   imageId,
-  catalog = 'nvss',
+  catalog = "nvss",
   showLabels = false,
-  color = '#00ff00',
+  color = "#00ff00",
   size = 4,
   opacity = 0.7,
   onSourceClick,
@@ -48,7 +58,7 @@ export default function CatalogOverlay({
     return (
       <Box sx={{ p: 2 }}>
         <Typography variant="body2" color="error">
-          Error loading catalog overlay: {error instanceof Error ? error.message : 'Unknown error'}
+          Error loading catalog overlay: {error instanceof Error ? error.message : "Unknown error"}
         </Typography>
       </Box>
     );
@@ -65,18 +75,18 @@ export default function CatalogOverlay({
   }
 
   return (
-    <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+    <Box sx={{ position: "relative", width: "100%", height: "100%" }}>
       {/* This component renders overlay markers on an image canvas */}
       {/* The actual rendering would be done by the parent image viewer component */}
       {/* This component provides the data and controls */}
       <svg
         style={{
-          position: 'absolute',
+          position: "absolute",
           top: 0,
           left: 0,
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
         }}
       >
         {sources.map((source: CatalogSource, idx: number) => (
@@ -89,7 +99,10 @@ export default function CatalogOverlay({
               stroke="white"
               strokeWidth={1}
               opacity={opacity}
-              style={{ pointerEvents: 'all', cursor: onSourceClick ? 'pointer' : 'default' }}
+              style={{
+                pointerEvents: "all",
+                cursor: onSourceClick ? "pointer" : "default",
+              }}
               onClick={() => onSourceClick?.(source)}
             />
             {showLabels && (
@@ -98,7 +111,7 @@ export default function CatalogOverlay({
                 y={source.y}
                 fill="white"
                 fontSize="10px"
-                style={{ pointerEvents: 'none' }}
+                style={{ pointerEvents: "none" }}
               >
                 {source.name || `Source ${idx + 1}`}
               </text>
@@ -114,8 +127,8 @@ export default function CatalogOverlay({
  * CatalogOverlayControls Component - Controls for catalog overlay
  */
 interface CatalogOverlayControlsProps {
-  catalog: 'nvss' | 'vlass';
-  onCatalogChange: (catalog: 'nvss' | 'vlass') => void;
+  catalog: "nvss" | "vlass";
+  onCatalogChange: (catalog: "nvss" | "vlass") => void;
   showOverlay: boolean;
   onShowOverlayChange: (show: boolean) => void;
   opacity: number;
@@ -146,7 +159,10 @@ export function CatalogOverlayControls({
     <Box sx={{ p: 2 }}>
       <FormControl fullWidth sx={{ mb: 2 }}>
         <InputLabel>Catalog</InputLabel>
-        <Select value={catalog} onChange={(e) => onCatalogChange(e.target.value as 'nvss' | 'vlass')}>
+        <Select
+          value={catalog}
+          onChange={(e) => onCatalogChange(e.target.value as "nvss" | "vlass")}
+        >
           <MenuItem value="nvss">NVSS</MenuItem>
           <MenuItem value="vlass">VLASS</MenuItem>
         </Select>
@@ -193,7 +209,7 @@ export function CatalogOverlayControls({
           {onMinFluxJyChange && (
             <>
               <Typography gutterBottom>
-                Minimum Flux: {minFluxJy !== undefined ? `${minFluxJy.toFixed(3)} Jy` : 'None'}
+                Minimum Flux: {minFluxJy !== undefined ? `${minFluxJy.toFixed(3)} Jy` : "None"}
               </Typography>
               <Slider
                 value={minFluxJy || 0}
@@ -210,4 +226,3 @@ export function CatalogOverlayControls({
     </Box>
   );
 }
-

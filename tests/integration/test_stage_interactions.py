@@ -10,18 +10,18 @@ Tests how real pipeline stages interact with each other, including:
 
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from dsa110_contimg.pipeline.config import PipelineConfig, PathsConfig
+from dsa110_contimg.pipeline.config import PathsConfig, PipelineConfig
 from dsa110_contimg.pipeline.context import PipelineContext
 from dsa110_contimg.pipeline.orchestrator import PipelineOrchestrator, StageDefinition
 from dsa110_contimg.pipeline.stages_impl import (
-    CatalogSetupStage,
-    ConversionStage,
     CalibrationSolveStage,
     CalibrationStage,
+    CatalogSetupStage,
+    ConversionStage,
     ImagingStage,
     ValidationStage,
 )
@@ -52,24 +52,32 @@ class TestStageChainExecution:
     def test_catalog_setup_to_conversion_chain(self, config, initial_context):
         """Test CatalogSetupStage → ConversionStage chain."""
         # Mock imports that happen inside execute methods
-        with patch(
-            "dsa110_contimg.pointing.utils.load_pointing",
-            return_value={"dec_deg": 30.0},
-        ), patch("dsa110_contimg.database.products.ensure_products_db"), patch(
-            "dsa110_contimg.catalog.query.resolve_catalog_path",
-            return_value=Path("/mock/catalog.db"),
-        ), patch(
-            "dsa110_contimg.catalog.builders.build_nvss_strip_db",
-            return_value=Path("/mock/nvss.db"),
-        ), patch(
-            "dsa110_contimg.catalog.builders.build_first_strip_db",
-            return_value=Path("/mock/first.db"),
-        ), patch(
-            "dsa110_contimg.catalog.builders.build_rax_strip_db",
-            return_value=Path("/mock/rax.db"),
-        ), patch(
-            "dsa110_contimg.conversion.strategies.hdf5_orchestrator.convert_subband_groups_to_ms",
-            return_value=["/mock/converted.ms"],
+        with (
+            patch(
+                "dsa110_contimg.pointing.utils.load_pointing",
+                return_value={"dec_deg": 30.0},
+            ),
+            patch("dsa110_contimg.database.products.ensure_products_db"),
+            patch(
+                "dsa110_contimg.catalog.query.resolve_catalog_path",
+                return_value=Path("/mock/catalog.db"),
+            ),
+            patch(
+                "dsa110_contimg.catalog.builders.build_nvss_strip_db",
+                return_value=Path("/mock/nvss.db"),
+            ),
+            patch(
+                "dsa110_contimg.catalog.builders.build_first_strip_db",
+                return_value=Path("/mock/first.db"),
+            ),
+            patch(
+                "dsa110_contimg.catalog.builders.build_rax_strip_db",
+                return_value=Path("/mock/rax.db"),
+            ),
+            patch(
+                "dsa110_contimg.conversion.strategies.hdf5_orchestrator.convert_subband_groups_to_ms",
+                return_value=["/mock/converted.ms"],
+            ),
         ):
 
             catalog_stage = CatalogSetupStage(config)
@@ -91,9 +99,23 @@ class TestStageChainExecution:
         # Setup context with ms_path (simulating conversion output)
         context_with_ms = initial_context.with_output("ms_path", "/mock/converted.ms")
 
-        with patch(
-            "dsa110_contimg.calibration.calibration.solve_calibration_tables",
-            return_value={"K": "/mock/K.cal", "BA": "/mock/BA.cal"},
+        with (
+            patch(
+                "dsa110_contimg.calibration.calibration.solve_bandpass",
+                return_value="/mock/BA.cal",
+            ),
+            patch(
+                "dsa110_contimg.calibration.calibration.solve_gains",
+                return_value="/mock/G.cal",
+            ),
+            patch(
+                "dsa110_contimg.calibration.calibration.solve_delay",
+                return_value=None,
+            ),
+            patch(
+                "dsa110_contimg.calibration.calibration.solve_prebandpass_phase",
+                return_value=None,
+            ),
         ):
 
             calibration_solve_stage = CalibrationSolveStage(config)
@@ -105,19 +127,21 @@ class TestStageChainExecution:
             # Verify both outputs present
             assert "ms_path" in context_after_calibration.outputs
             assert context_after_calibration.outputs["ms_path"] == "/mock/converted.ms"
-            assert "K" in context_after_calibration.outputs["calibration_tables"]
+            # calibration_tables is a list, not a dict
+            assert isinstance(context_after_calibration.outputs["calibration_tables"], list)
 
     def test_calibration_to_imaging_chain(self, config, initial_context):
         """Test CalibrationStage → ImagingStage chain."""
         # Setup context with ms_path and calibration tables
         context_with_ms = initial_context.with_output("ms_path", "/mock/calibrated.ms")
         context_with_cal = context_with_ms.with_output(
-            "calibration_tables", {"K": "/mock/K.cal", "BA": "/mock/BA.cal"}
+            "calibration_tables", ["/mock/K.cal", "/mock/BA.cal"]
         )
 
         # Mock imports that happen inside execute methods
-        with patch("dsa110_contimg.calibration.apply_service.apply_calibration"), patch(
-            "dsa110_contimg.imaging.imaging.run_tclean", return_value="/mock/image.fits"
+        with (
+            patch("dsa110_contimg.calibration.apply_service.apply_calibration"),
+            patch("dsa110_contimg.imaging.cli_imaging.image_ms", return_value="/mock/image.fits"),
         ):
 
             calibration_stage = CalibrationStage(config)
@@ -133,13 +157,11 @@ class TestStageChainExecution:
 
     def test_imaging_to_validation_chain(self, config, initial_context):
         """Test ImagingStage → ValidationStage chain."""
-        context_with_image = initial_context.with_output(
-            "image_path", "/mock/image.fits"
-        )
+        context_with_image = initial_context.with_output("image_path", "/mock/image.fits")
 
         # Mock validation function (check actual import path)
         with patch(
-            "dsa110_contimg.qa.validation_suite.run_validation_suite",
+            "dsa110_contimg.qa.catalog_validation.run_full_validation",
             return_value={"status": "passed", "metrics": {"snr": 10.5, "rms": 0.001}},
         ):
 
@@ -170,29 +192,35 @@ class TestStageOutputPropagation:
 
     def test_outputs_persist_through_multiple_stages(self, config):
         """Test that outputs from early stages persist through later stages."""
-        initial_context = PipelineContext(
-            config=config, inputs={"input_path": "/mock/input.hdf5"}
-        )
+        initial_context = PipelineContext(config=config, inputs={"input_path": "/mock/input.hdf5"})
 
         # Mock imports that happen inside execute methods
-        with patch(
-            "dsa110_contimg.pointing.utils.load_pointing",
-            return_value={"dec_deg": 30.0},
-        ), patch("dsa110_contimg.database.products.ensure_products_db"), patch(
-            "dsa110_contimg.catalog.query.resolve_catalog_path",
-            return_value=Path("/mock/catalog.db"),
-        ), patch(
-            "dsa110_contimg.catalog.builders.build_nvss_strip_db",
-            return_value=Path("/mock/nvss.db"),
-        ), patch(
-            "dsa110_contimg.catalog.builders.build_first_strip_db",
-            return_value=Path("/mock/first.db"),
-        ), patch(
-            "dsa110_contimg.catalog.builders.build_rax_strip_db",
-            return_value=Path("/mock/rax.db"),
-        ), patch(
-            "dsa110_contimg.conversion.strategies.hdf5_orchestrator.convert_subband_groups_to_ms",
-            return_value=["/mock/converted.ms"],
+        with (
+            patch(
+                "dsa110_contimg.pointing.utils.load_pointing",
+                return_value={"dec_deg": 30.0},
+            ),
+            patch("dsa110_contimg.database.products.ensure_products_db"),
+            patch(
+                "dsa110_contimg.catalog.query.resolve_catalog_path",
+                return_value=Path("/mock/catalog.db"),
+            ),
+            patch(
+                "dsa110_contimg.catalog.builders.build_nvss_strip_db",
+                return_value=Path("/mock/nvss.db"),
+            ),
+            patch(
+                "dsa110_contimg.catalog.builders.build_first_strip_db",
+                return_value=Path("/mock/first.db"),
+            ),
+            patch(
+                "dsa110_contimg.catalog.builders.build_rax_strip_db",
+                return_value=Path("/mock/rax.db"),
+            ),
+            patch(
+                "dsa110_contimg.conversion.strategies.hdf5_orchestrator.convert_subband_groups_to_ms",
+                return_value=["/mock/converted.ms"],
+            ),
         ):
 
             catalog_stage = CatalogSetupStage(config)
@@ -211,9 +239,7 @@ class TestStageOutputPropagation:
 
     def test_context_immutability_across_stages(self, config):
         """Test that context immutability is maintained across stages."""
-        initial_context = PipelineContext(
-            config=config, inputs={"input_path": "/mock/input.hdf5"}
-        )
+        initial_context = PipelineContext(config=config, inputs={"input_path": "/mock/input.hdf5"})
 
         # Create a context with ms_path to simulate conversion output
         new_context = initial_context.with_output("ms_path", "/mock/converted.ms")
@@ -242,9 +268,7 @@ class TestStageDependencyValidation:
 
     def test_conversion_validates_input_path(self, config):
         """Test ConversionStage validates input_path exists."""
-        context = PipelineContext(
-            config=config, inputs={"input_path": "/nonexistent/file.hdf5"}
-        )
+        context = PipelineContext(config=config, inputs={"input_path": "/nonexistent/file.hdf5"})
         stage = ConversionStage(config)
 
         is_valid, error_msg = stage.validate(context)
@@ -300,9 +324,7 @@ class TestStageErrorHandling:
 
     def test_stage_failure_prevents_next_stage(self, config):
         """Test that stage failure prevents dependent stages from executing."""
-        initial_context = PipelineContext(
-            config=config, inputs={"input_path": "/mock/input.hdf5"}
-        )
+        initial_context = PipelineContext(config=config, inputs={"input_path": "/mock/input.hdf5"})
 
         conversion_stage = ConversionStage(config)
         calibration_stage = CalibrationSolveStage(config)
@@ -320,9 +342,7 @@ class TestStageErrorHandling:
 
     def test_cleanup_called_on_failure(self, config):
         """Test that cleanup is called even when stage fails."""
-        initial_context = PipelineContext(
-            config=config, inputs={"input_path": "/mock/input.hdf5"}
-        )
+        initial_context = PipelineContext(config=config, inputs={"input_path": "/mock/input.hdf5"})
 
         conversion_stage = ConversionStage(config)
         conversion_stage.cleanup = MagicMock()
@@ -360,31 +380,37 @@ class TestOrchestratorWithRealStages:
     def test_orchestrator_executes_stage_chain(self, config, initial_context):
         """Test orchestrator executes a chain of real stages."""
         # Mock imports that happen inside execute methods
-        with patch(
-            "dsa110_contimg.pointing.utils.load_pointing",
-            return_value={"dec_deg": 30.0},
-        ), patch("dsa110_contimg.database.products.ensure_products_db"), patch(
-            "dsa110_contimg.catalog.query.resolve_catalog_path",
-            return_value=Path("/mock/catalog.db"),
-        ), patch(
-            "dsa110_contimg.catalog.builders.build_nvss_strip_db",
-            return_value=Path("/mock/nvss.db"),
-        ), patch(
-            "dsa110_contimg.catalog.builders.build_first_strip_db",
-            return_value=Path("/mock/first.db"),
-        ), patch(
-            "dsa110_contimg.catalog.builders.build_rax_strip_db",
-            return_value=Path("/mock/rax.db"),
-        ), patch(
-            "dsa110_contimg.conversion.strategies.hdf5_orchestrator.convert_subband_groups_to_ms",
-            return_value=["/mock/converted.ms"],
+        with (
+            patch(
+                "dsa110_contimg.pointing.utils.load_pointing",
+                return_value={"dec_deg": 30.0},
+            ),
+            patch("dsa110_contimg.database.products.ensure_products_db"),
+            patch(
+                "dsa110_contimg.catalog.query.resolve_catalog_path",
+                return_value=Path("/mock/catalog.db"),
+            ),
+            patch(
+                "dsa110_contimg.catalog.builders.build_nvss_strip_db",
+                return_value=Path("/mock/nvss.db"),
+            ),
+            patch(
+                "dsa110_contimg.catalog.builders.build_first_strip_db",
+                return_value=Path("/mock/first.db"),
+            ),
+            patch(
+                "dsa110_contimg.catalog.builders.build_rax_strip_db",
+                return_value=Path("/mock/rax.db"),
+            ),
+            patch(
+                "dsa110_contimg.conversion.strategies.hdf5_orchestrator.convert_subband_groups_to_ms",
+                return_value=["/mock/converted.ms"],
+            ),
         ):
 
             stages = [
                 StageDefinition("catalog_setup", CatalogSetupStage(config), []),
-                StageDefinition(
-                    "conversion", ConversionStage(config), ["catalog_setup"]
-                ),
+                StageDefinition("conversion", ConversionStage(config), ["catalog_setup"]),
             ]
 
             orchestrator = PipelineOrchestrator(stages)

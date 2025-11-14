@@ -25,4 +25,5 @@ __all__ = [
     "units",
     "model_validation",
     "caltable_paths",
+    "streaming",
 ]

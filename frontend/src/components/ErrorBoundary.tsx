@@ -2,12 +2,12 @@
  * Error Boundary Component
  * Catches React rendering errors and displays a user-friendly error message
  */
-import { Component } from 'react';
-import type { ErrorInfo, ReactNode } from 'react';
-import { Box, Typography, Button, Paper, Alert, Stack } from '@mui/material';
-import { ErrorOutline, Refresh, Home } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import { classifyError, getUserFriendlyMessage } from '../utils/errorUtils';
+import { Component } from "react";
+import type { ErrorInfo, ReactNode } from "react";
+import { Box, Typography, Button, Paper, Alert, Stack } from "@mui/material";
+import { ErrorOutline, Refresh, Home } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import { classifyError, getUserFriendlyMessage } from "../utils/errorUtils";
 
 interface Props {
   children: ReactNode;
@@ -40,7 +40,7 @@ class ErrorBoundaryInner extends Component<Props & { navigate: (path: string) =>
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Use console.error here since logger might not be available if error occurs early
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
     this.setState({
       error,
       errorInfo,
@@ -57,7 +57,7 @@ class ErrorBoundaryInner extends Component<Props & { navigate: (path: string) =>
 
   handleGoHome = () => {
     this.handleReset();
-    this.props.navigate('/dashboard');
+    this.props.navigate("/dashboard");
   };
 
   render() {
@@ -68,7 +68,7 @@ class ErrorBoundaryInner extends Component<Props & { navigate: (path: string) =>
 
       const error = this.state.error;
       const classified = error ? classifyError(error) : null;
-      const userMessage = error ? getUserFriendlyMessage(error) : 'An unexpected error occurred';
+      const userMessage = error ? getUserFriendlyMessage(error) : "An unexpected error occurred";
 
       return (
         <Box sx={{ p: 3 }}>
@@ -77,29 +77,19 @@ class ErrorBoundaryInner extends Component<Props & { navigate: (path: string) =>
               <Typography variant="h6" gutterBottom>
                 Something went wrong
               </Typography>
-              <Typography variant="body2">
-                {userMessage}
-              </Typography>
-              {classified && classified.type === 'network' && (
-                <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+              <Typography variant="body2">{userMessage}</Typography>
+              {classified && classified.type === "network" && (
+                <Typography variant="body2" sx={{ mt: 1, fontStyle: "italic" }}>
                   Please check your internet connection and try again.
                 </Typography>
               )}
             </Alert>
 
             <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-              <Button
-                variant="contained"
-                startIcon={<Refresh />}
-                onClick={this.handleReset}
-              >
+              <Button variant="contained" startIcon={<Refresh />} onClick={this.handleReset}>
                 Try Again
               </Button>
-              <Button
-                variant="outlined"
-                startIcon={<Home />}
-                onClick={this.handleGoHome}
-              >
+              <Button variant="outlined" startIcon={<Home />} onClick={this.handleGoHome}>
                 Go to Dashboard
               </Button>
             </Stack>
@@ -113,19 +103,19 @@ class ErrorBoundaryInner extends Component<Props & { navigate: (path: string) =>
                   component="pre"
                   sx={{
                     p: 2,
-                    bgcolor: '#1e1e1e',
+                    bgcolor: "#1e1e1e",
                     borderRadius: 1,
-                    overflow: 'auto',
-                    fontSize: '0.75rem',
-                    fontFamily: 'monospace',
-                    color: '#ff6b6b',
-                    maxHeight: '400px',
+                    overflow: "auto",
+                    fontSize: "0.75rem",
+                    fontFamily: "monospace",
+                    color: "#ff6b6b",
+                    maxHeight: "400px",
                   }}
                 >
                   {error.toString()}
                   {this.state.errorInfo?.componentStack && (
                     <>
-                      {'\n\nComponent Stack:'}
+                      {"\n\nComponent Stack:"}
                       {this.state.errorInfo.componentStack}
                     </>
                   )}
@@ -133,7 +123,8 @@ class ErrorBoundaryInner extends Component<Props & { navigate: (path: string) =>
                 {classified && (
                   <Box sx={{ mt: 1 }}>
                     <Typography variant="caption" color="text.secondary">
-                      Error Type: {classified.type} | Retryable: {classified.retryable ? 'Yes' : 'No'}
+                      Error Type: {classified.type} | Retryable:{" "}
+                      {classified.retryable ? "Yes" : "No"}
                       {classified.statusCode && ` | Status: ${classified.statusCode}`}
                     </Typography>
                   </Box>
@@ -159,14 +150,15 @@ function ErrorBoundary(props: Props) {
     // Router context not available, navigate will be null
     navigate = null;
   }
-  
-  const safeNavigate = navigate || ((path: string) => {
-    // Fallback: use window.location if navigate not available
-    window.location.href = path;
-  });
-  
+
+  const safeNavigate =
+    navigate ||
+    ((path: string) => {
+      // Fallback: use window.location if navigate not available
+      window.location.href = path;
+    });
+
   return <ErrorBoundaryInner {...props} navigate={safeNavigate} />;
 }
 
 export default ErrorBoundary;
-

@@ -1,7 +1,7 @@
 /**
  * Control Page - Manual job execution interface
  */
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Box,
   Paper,
@@ -34,12 +34,8 @@ import {
   Alert,
   Tooltip,
   CircularProgress,
-} from '@mui/material';
-import {
-  PlayArrow,
-  Refresh,
-  ExpandMore,
-} from '@mui/icons-material';
+} from "@mui/material";
+import { PlayArrow, Refresh, ExpandMore } from "@mui/icons-material";
 import {
   useMSList,
   useJobs,
@@ -51,121 +47,132 @@ import {
   useMSMetadata,
   useCalibratorMatches,
   useExistingCalTables,
-  useCalTables, 
+  useCalTables,
   useCreateWorkflowJob,
   useValidateCalTable,
   useCalibrationQA,
-} from '../api/queries';
-import type { JobParams, ConversionJobParams, CalibrateJobParams, MSListEntry } from '../api/types';
-import MSTable from '../components/MSTable';
-import { CalibrationSPWPanel } from '../components/CalibrationSPWPanel';
-import CalibrationQAPanel from '../components/CalibrationQAPanel';
-import { computeSelectedMS } from '../utils/selectionLogic';
-import { useNotifications } from '../contexts/NotificationContext';
+} from "../api/queries";
+import type { JobParams, ConversionJobParams, CalibrateJobParams, MSListEntry } from "../api/types";
+import MSTable from "../components/MSTable";
+import { CalibrationSPWPanel } from "../components/CalibrationSPWPanel";
+import CalibrationQAPanel from "../components/CalibrationQAPanel";
+import { computeSelectedMS } from "../utils/selectionLogic";
+import { useNotifications } from "../contexts/NotificationContext";
 
 export default function ControlPage() {
-  const [selectedMS, setSelectedMS] = useState('');
-  const [selectedMSList, setSelectedMSList] = useState<string[]>([]);  // Multi-select for batch ops
+  const [selectedMS, setSelectedMS] = useState("");
+  const [selectedMSList, setSelectedMSList] = useState<string[]>([]); // Multi-select for batch ops
   const [activeTab, setActiveTab] = useState(0);
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
-  const [logContent, setLogContent] = useState('');
-  
+  const [logContent, setLogContent] = useState("");
+
   // Use notification context for error messages
   const { showError, showSuccess } = useNotifications();
-  
+
   // Compatibility check state
-  const [compatibilityChecks, setCompatibilityChecks] = useState<Record<string, {
-    is_compatible: boolean;
-    issues: string[];
-    warnings: string[];
-  }>>({});
+  const [compatibilityChecks, setCompatibilityChecks] = useState<
+    Record<
+      string,
+      {
+        is_compatible: boolean;
+        issues: string[];
+        warnings: string[];
+      }
+    >
+  >({});
   const validateCalTable = useValidateCalTable();
-  
+
   // Form states
   const [calibParams, setCalibParams] = useState<CalibrateJobParams>({
-    field: '',
-    refant: '103',
+    field: "",
+    refant: "103",
     solve_delay: true,
     solve_bandpass: true,
     solve_gains: true,
-    gain_solint: 'inf',
-    gain_calmode: 'ap',
+    gain_solint: "inf",
+    gain_calmode: "ap",
     auto_fields: true,
     min_pb: 0.5,
     do_flagging: false,
-    use_existing_tables: 'auto',
+    use_existing_tables: "auto",
     existing_k_table: undefined,
     existing_bp_table: undefined,
     existing_g_table: undefined,
   });
-  
+
   const [applyParams, setApplyParams] = useState<JobParams>({
     gaintables: [],
   });
-  
+
   const [imageParams, setImageParams] = useState<JobParams>({
-    gridder: 'wproject',
+    gridder: "wproject",
     wprojplanes: -1,
-    datacolumn: 'corrected',
+    datacolumn: "corrected",
     quick: false,
     skip_fits: true,
     use_nvss_mask: true,
     mask_radius_arcsec: 60.0,
   });
-  
+
   const [convertParams, setConvertParams] = useState<ConversionJobParams>({
-    input_dir: '/data/incoming',
-    output_dir: '/scratch/dsa110-contimg/ms',
-    start_time: '',
-    end_time: '',
-    writer: 'auto',
+    input_dir: "/data/incoming",
+    output_dir: "/scratch/dsa110-contimg/ms",
+    start_time: "",
+    end_time: "",
+    writer: "auto",
     stage_to_tmpfs: true,
     max_workers: 4,
   });
 
   // Queries and mutations
-  const { data: msList, refetch: refetchMS } = useMSList({ 
-    scan: true, 
-    scan_dir: '/scratch/dsa110-contimg/ms' 
+  const { data: msList, refetch: refetchMS } = useMSList({
+    scan: true,
+    scan_dir: "/scratch/dsa110-contimg/ms",
   });
   const { data: jobsList, refetch: refetchJobs } = useJobs();
   const calibrateMutation = useCreateCalibrateJob();
   const applyMutation = useCreateApplyJob();
   const imageMutation = useCreateImageJob();
   const convertMutation = useCreateConvertJob();
-  
+
   // Data hooks - always called at top level
   const { data: msMetadata } = useMSMetadata(selectedMS);
-  const { data: calMatches, isLoading: calMatchesLoading, error: calMatchesError } = useCalibratorMatches(selectedMS);
+  const {
+    data: calMatches,
+    isLoading: calMatchesLoading,
+    error: calMatchesError,
+  } = useCalibratorMatches(selectedMS);
   const { data: existingTables } = useExistingCalTables(selectedMS);
   const { data: calTables } = useCalTables();
   const { data: uvh5Files } = useUVH5Files(convertParams.input_dir);
   const { data: calibrationQA, isLoading: calibrationQALoading } = useCalibrationQA(selectedMS);
   const workflowMutation = useCreateWorkflowJob();
-  
+
   // Clear compatibility checks when MS changes
   useEffect(() => {
     setCompatibilityChecks({});
   }, [selectedMS]);
-  
+
   // Workflow params state
   const [workflowParams, setWorkflowParams] = useState({
-    start_time: '',
-    end_time: '',
+    start_time: "",
+    end_time: "",
   });
 
   // SSE for job logs
   const eventSourceRef = useRef<EventSource | null>(null);
-  
+
   // Helper function to extract error message from API error
   const getErrorMessage = (error: unknown): string => {
-    if (error && typeof error === 'object') {
+    if (error && typeof error === "object") {
       // Handle axios errors
-      if ('response' in error) {
-        const apiError = error as { response?: { data?: { detail?: unknown; message?: string } } };
+      if ("response" in error) {
+        const apiError = error as {
+          response?: { data?: { detail?: unknown; message?: string } };
+        };
         if (apiError.response?.data?.detail) {
-          return typeof apiError.response.data.detail === 'string' 
-            ? apiError.response.data.detail 
+          return typeof apiError.response.data.detail === "string"
+            ? apiError.response.data.detail
             : JSON.stringify(apiError.response.data.detail);
         }
         if (apiError.response?.data?.message) {
@@ -173,13 +180,13 @@ export default function ControlPage() {
         }
       }
       // Handle standard Error objects
-      if ('message' in error && typeof error.message === 'string') {
+      if ("message" in error && typeof error.message === "string") {
         return error.message;
       }
     }
-    return 'An unknown error occurred';
+    return "An unknown error occurred";
   };
-  
+
   // Note: Handlers are already memoized with useCallback, so they can be used directly in effects
 
   // Handlers with error handling - wrapped in useCallback to prevent unnecessary re-renders
@@ -190,7 +197,7 @@ export default function ControlPage() {
       {
         onSuccess: (job) => {
           setSelectedJobId(job.id);
-          setLogContent('');
+          setLogContent("");
           refetchJobs();
           showSuccess(`Calibration job #${job.id} started successfully`);
         },
@@ -201,7 +208,7 @@ export default function ControlPage() {
       }
     );
   }, [selectedMS, calibParams, calibrateMutation, refetchJobs, showError, showSuccess]);
-  
+
   const handleApplySubmit = useCallback(() => {
     if (!selectedMS) return;
     applyMutation.mutate(
@@ -209,7 +216,7 @@ export default function ControlPage() {
       {
         onSuccess: (job) => {
           setSelectedJobId(job.id);
-          setLogContent('');
+          setLogContent("");
           refetchJobs();
           showSuccess(`Apply calibration job #${job.id} started successfully`);
         },
@@ -220,7 +227,7 @@ export default function ControlPage() {
       }
     );
   }, [selectedMS, applyParams, applyMutation, refetchJobs, showError, showSuccess]);
-  
+
   const handleImageSubmit = useCallback(() => {
     if (!selectedMS) return;
     imageMutation.mutate(
@@ -228,7 +235,7 @@ export default function ControlPage() {
       {
         onSuccess: (job) => {
           setSelectedJobId(job.id);
-          setLogContent('');
+          setLogContent("");
           refetchJobs();
           showSuccess(`Imaging job #${job.id} started successfully`);
         },
@@ -239,14 +246,14 @@ export default function ControlPage() {
       }
     );
   }, [selectedMS, imageParams, imageMutation, refetchJobs, showError, showSuccess]);
-  
+
   const handleConvertSubmit = useCallback(() => {
     convertMutation.mutate(
       { params: convertParams },
       {
         onSuccess: (job) => {
           setSelectedJobId(job.id);
-          setLogContent('');
+          setLogContent("");
           refetchJobs();
           showSuccess(`Conversion job #${job.id} started successfully`);
         },
@@ -257,7 +264,7 @@ export default function ControlPage() {
       }
     );
   }, [convertParams, convertMutation, refetchJobs, showError, showSuccess]);
-  
+
   const handleWorkflowSubmit = () => {
     if (!workflowParams.start_time || !workflowParams.end_time) return;
     workflowMutation.mutate(
@@ -265,7 +272,7 @@ export default function ControlPage() {
       {
         onSuccess: (job) => {
           setSelectedJobId(job.id);
-          setLogContent('');
+          setLogContent("");
           refetchJobs();
           showSuccess(`Workflow job #${job.id} started successfully`);
         },
@@ -276,31 +283,31 @@ export default function ControlPage() {
       }
     );
   };
-  
+
   useEffect(() => {
     // Clean up any existing EventSource connection
     if (eventSourceRef.current) {
       eventSourceRef.current.close();
       eventSourceRef.current = null;
     }
-    
+
     if (selectedJobId !== null) {
       // Use relative URL to leverage Vite proxy configuration
       // In Docker, Vite proxy handles /api -> backend service
       const url = `/api/jobs/id/${selectedJobId}/logs`;
       const eventSource = new EventSource(url);
-      
+
       eventSource.onmessage = (event) => {
         setLogContent((prev) => prev + event.data);
       };
-      
+
       eventSource.onerror = () => {
         eventSource.close();
         eventSourceRef.current = null;
       };
-      
+
       eventSourceRef.current = eventSource;
-      
+
       return () => {
         if (eventSourceRef.current) {
           eventSourceRef.current.close();
@@ -309,22 +316,29 @@ export default function ControlPage() {
       };
     } else {
       // Clear log content when no job is selected
-      setLogContent('');
+      setLogContent("");
     }
   }, [selectedJobId]);
-  
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       // Ctrl/Cmd + Enter to run current tab's action
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
-        
+
         if (activeTab === 0) {
-          if (!convertParams.start_time || !convertParams.end_time || convertMutation.isPending) return;
+          if (!convertParams.start_time || !convertParams.end_time || convertMutation.isPending)
+            return;
           handleConvertSubmit();
         } else if (activeTab === 1) {
-          if (!selectedMS || selectedMSList.length !== 1 || calibrateMutation.isPending || (!calibParams.solve_delay && !calibParams.solve_bandpass && !calibParams.solve_gains)) return;
+          if (
+            !selectedMS ||
+            selectedMSList.length !== 1 ||
+            calibrateMutation.isPending ||
+            (!calibParams.solve_delay && !calibParams.solve_bandpass && !calibParams.solve_gains)
+          )
+            return;
           handleCalibrateSubmit();
         } else if (activeTab === 2) {
           if (!selectedMS || !applyParams.gaintables?.length || applyMutation.isPending) return;
@@ -335,10 +349,10 @@ export default function ControlPage() {
         }
       }
       // Ctrl/Cmd + R to refresh (but prevent page reload)
-      if ((e.ctrlKey || e.metaKey) && e.key === 'r' && !e.shiftKey) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "r" && !e.shiftKey) {
         // Only prevent if we're in a form field (to allow normal refresh elsewhere)
         const target = e.target as HTMLElement;
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
           return; // Allow normal refresh
         }
         e.preventDefault();
@@ -346,9 +360,9 @@ export default function ControlPage() {
         refetchJobs();
       }
     };
-    
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
   }, [
     activeTab,
     convertParams,
@@ -367,18 +381,20 @@ export default function ControlPage() {
     refetchMS,
     refetchJobs,
   ]);
-  
+
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h2" component="h2" gutterBottom>
         Control Panel
       </Typography>
-      
-      <Box sx={{ display: 'flex', gap: 2 }}>
+
+      <Box sx={{ display: "flex", gap: 2 }}>
         {/* Left column - Job controls */}
         <Box sx={{ flex: 1 }}>
           <Paper sx={{ p: 2, mb: 2 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>Measurement Sets</Typography>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Measurement Sets
+            </Typography>
             <MSTable
               data={msList?.items || []}
               total={msList?.total}
@@ -387,10 +403,10 @@ export default function ControlPage() {
               onSelectionChange={(paths: string[]) => {
                 // Capture previous selection before updating (avoid stale closure)
                 const prevList = selectedMSList;
-                
+
                 // Update selectedMSList
                 setSelectedMSList(paths);
-                
+
                 // Update selectedMS using pure function (easier to test and debug)
                 const newSelectedMS = computeSelectedMS(paths, prevList, selectedMS);
                 setSelectedMS(newSelectedMS);
@@ -400,133 +416,206 @@ export default function ControlPage() {
                 setSelectedMS(ms.path);
                 // Also update selectedMSList to include this MS if not already selected
                 // Use functional update to avoid stale closure
-                setSelectedMSList(prev => {
+                setSelectedMSList((prev) => {
                   if (!prev.includes(ms.path)) {
                     return [...prev, ms.path];
                   }
                   return prev;
                 });
                 // Scroll to metadata panel
-                const metadataPanel = document.getElementById('ms-metadata-panel');
+                const metadataPanel = document.getElementById("ms-metadata-panel");
                 if (metadataPanel) {
-                  metadataPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  metadataPanel.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest",
+                  });
                 }
               }}
               onRefresh={refetchMS}
             />
-            
+
             {/* MS Metadata Panel */}
             {selectedMS && msMetadata && (
-              <Box id="ms-metadata-panel" sx={{ mt: 2, p: 2, bgcolor: '#1e1e1e', borderRadius: 1 }}>
-                <Typography variant="subtitle2" gutterBottom sx={{ color: '#ffffff' }}>
+              <Box id="ms-metadata-panel" sx={{ mt: 2, p: 2, bgcolor: "#1e1e1e", borderRadius: 1 }}>
+                <Typography variant="subtitle2" gutterBottom sx={{ color: "#ffffff" }}>
                   MS Information
-            </Typography>
-                <Box sx={{ fontSize: '0.75rem', fontFamily: 'monospace', color: '#ffffff' }}>
+                </Typography>
+                <Box
+                  sx={{
+                    fontSize: "0.75rem",
+                    fontFamily: "monospace",
+                    color: "#ffffff",
+                  }}
+                >
                   {msMetadata.start_time && (
                     <Box sx={{ mb: 0.5 }}>
-                      <strong>Time:</strong> {msMetadata.start_time} → {msMetadata.end_time} ({msMetadata.duration_sec?.toFixed(1)}s)
+                      <strong>Time:</strong> {msMetadata.start_time} → {msMetadata.end_time} (
+                      {msMetadata.duration_sec?.toFixed(1)}s)
                     </Box>
                   )}
                   {msMetadata.freq_min_ghz && (
                     <Box sx={{ mb: 0.5 }}>
-                      <strong>Frequency:</strong> {msMetadata.freq_min_ghz.toFixed(3)} - {msMetadata.freq_max_ghz?.toFixed(3)} GHz ({msMetadata.num_channels} channels)
+                      <strong>Frequency:</strong> {msMetadata.freq_min_ghz.toFixed(3)} -{" "}
+                      {msMetadata.freq_max_ghz?.toFixed(3)} GHz ({msMetadata.num_channels} channels)
                     </Box>
                   )}
                   {msMetadata.fields && msMetadata.fields.length > 0 && (
                     <Box sx={{ mb: 0.5 }}>
-                      <strong>Fields:</strong> {msMetadata.fields.map(f => 
-                        `${f.name} (RA: ${f.ra_deg.toFixed(4)}°, Dec: ${f.dec_deg.toFixed(4)}°)`
-                      ).join('; ')}
+                      <strong>Fields:</strong>{" "}
+                      {msMetadata.fields
+                        .map(
+                          (f) =>
+                            `${f.name} (RA: ${f.ra_deg.toFixed(4)}°, Dec: ${f.dec_deg.toFixed(4)}°)`
+                        )
+                        .join("; ")}
                     </Box>
                   )}
-                  {msMetadata.num_fields !== undefined && !msMetadata.fields && msMetadata.field_names && (
-                    <Box sx={{ mb: 0.5 }}>
-                      <strong>Fields:</strong> {msMetadata.num_fields} {msMetadata.field_names && `(${msMetadata.field_names.join(', ')})`}
-                    </Box>
-                  )}
+                  {msMetadata.num_fields !== undefined &&
+                    !msMetadata.fields &&
+                    msMetadata.field_names && (
+                      <Box sx={{ mb: 0.5 }}>
+                        <strong>Fields:</strong> {msMetadata.num_fields}{" "}
+                        {msMetadata.field_names && `(${msMetadata.field_names.join(", ")})`}
+                      </Box>
+                    )}
                   {msMetadata.antennas && msMetadata.antennas.length > 0 && (
                     <Box sx={{ mb: 0.5 }}>
-                      <strong>Antennas:</strong> {msMetadata.antennas.map(a => `${a.name} (${a.antenna_id})`).join(', ')}
+                      <strong>Antennas:</strong>{" "}
+                      {msMetadata.antennas.map((a) => `${a.name} (${a.antenna_id})`).join(", ")}
                     </Box>
                   )}
-                  {msMetadata.num_antennas !== undefined && (!msMetadata.antennas || msMetadata.antennas.length === 0) && (
-                    <Box sx={{ mb: 0.5 }}>
-                      <strong>Antennas:</strong> {msMetadata.num_antennas}
-                    </Box>
-                  )}
+                  {msMetadata.num_antennas !== undefined &&
+                    (!msMetadata.antennas || msMetadata.antennas.length === 0) && (
+                      <Box sx={{ mb: 0.5 }}>
+                        <strong>Antennas:</strong> {msMetadata.num_antennas}
+                      </Box>
+                    )}
                   {msMetadata.flagging_stats && (
                     <Box sx={{ mb: 0.5 }}>
-                      <strong>Flagging:</strong> {(msMetadata.flagging_stats.total_fraction * 100).toFixed(1)}% flagged
-                      {msMetadata.flagging_stats.per_antenna && Object.keys(msMetadata.flagging_stats.per_antenna).length > 0 && (
-                        <Accordion sx={{ mt: 1, bgcolor: '#2e2e2e' }}>
-                          <AccordionSummary expandIcon={<ExpandMore sx={{ color: '#fff' }} />}>
-                            <Typography variant="caption" sx={{ color: '#aaa' }}>
-                              Per-antenna flagging breakdown
-                            </Typography>
-                          </AccordionSummary>
-                          <AccordionDetails>
-                            <Box sx={{ maxHeight: 200, overflow: 'auto' }}>
-                              {msMetadata.antennas && Object.entries(msMetadata.flagging_stats.per_antenna || {}).map(([antId, frac]) => {
-                                const ant = msMetadata.antennas?.find(a => String(a.antenna_id) === antId);
-                                const flagPercent = (frac as number * 100).toFixed(1);
-                                const color = (frac as number) > 0.5 ? '#f44336' : (frac as number) > 0.2 ? '#ff9800' : '#4caf50';
-                                return (
-                                  <Box key={antId} sx={{ mb: 0.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Typography variant="caption" sx={{ color: '#fff', fontSize: '0.7rem' }}>
-                                      {ant ? `${ant.name} (${antId})` : `Antenna ${antId}`}
-                                    </Typography>
-                                    <Chip 
-                                      label={`${flagPercent}%`}
-                                      size="small"
-                                      sx={{ 
-                                        height: 16, 
-                                        fontSize: '0.6rem',
-                                        bgcolor: color,
-                                        color: '#fff'
-                                      }}
-                                    />
-                                  </Box>
-                                );
-                              })}
-                            </Box>
-                          </AccordionDetails>
-                        </Accordion>
-                      )}
-                      {msMetadata.flagging_stats.per_field && Object.keys(msMetadata.flagging_stats.per_field).length > 0 && (
-                        <Accordion sx={{ mt: 1, bgcolor: '#2e2e2e' }}>
-                          <AccordionSummary expandIcon={<ExpandMore sx={{ color: '#fff' }} />}>
-                            <Typography variant="caption" sx={{ color: '#aaa' }}>
-                              Per-field flagging breakdown
-                            </Typography>
-                          </AccordionSummary>
-                          <AccordionDetails>
-                            <Box sx={{ maxHeight: 200, overflow: 'auto' }}>
-                              {msMetadata.fields && Object.entries(msMetadata.flagging_stats.per_field || {}).map(([fieldId, frac]) => {
-                                const field = msMetadata.fields?.find(f => String(f.field_id) === fieldId);
-                                const flagPercent = (frac as number * 100).toFixed(1);
-                                const color = (frac as number) > 0.5 ? '#f44336' : (frac as number) > 0.2 ? '#ff9800' : '#4caf50';
-                                return (
-                                  <Box key={fieldId} sx={{ mb: 0.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Typography variant="caption" sx={{ color: '#fff', fontSize: '0.7rem' }}>
-                                      {field ? `${field.name} (Field ${fieldId})` : `Field ${fieldId}`}
-                                    </Typography>
-                                    <Chip 
-                                      label={`${flagPercent}%`}
-                                      size="small"
-                                      sx={{ 
-                                        height: 16, 
-                                        fontSize: '0.6rem',
-                                        bgcolor: color,
-                                        color: '#fff'
-                                      }}
-                                    />
-                                  </Box>
-                                );
-                              })}
-                            </Box>
-                          </AccordionDetails>
-                        </Accordion>
-                      )}
+                      <strong>Flagging:</strong>{" "}
+                      {(msMetadata.flagging_stats.total_fraction * 100).toFixed(1)}% flagged
+                      {msMetadata.flagging_stats.per_antenna &&
+                        Object.keys(msMetadata.flagging_stats.per_antenna).length > 0 && (
+                          <Accordion sx={{ mt: 1, bgcolor: "#2e2e2e" }}>
+                            <AccordionSummary expandIcon={<ExpandMore sx={{ color: "#fff" }} />}>
+                              <Typography variant="caption" sx={{ color: "#aaa" }}>
+                                Per-antenna flagging breakdown
+                              </Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                              <Box sx={{ maxHeight: 200, overflow: "auto" }}>
+                                {msMetadata.antennas &&
+                                  Object.entries(msMetadata.flagging_stats.per_antenna || {}).map(
+                                    ([antId, frac]) => {
+                                      const ant = msMetadata.antennas?.find(
+                                        (a) => String(a.antenna_id) === antId
+                                      );
+                                      const flagPercent = ((frac as number) * 100).toFixed(1);
+                                      const color =
+                                        (frac as number) > 0.5
+                                          ? "#f44336"
+                                          : (frac as number) > 0.2
+                                            ? "#ff9800"
+                                            : "#4caf50";
+                                      return (
+                                        <Box
+                                          key={antId}
+                                          sx={{
+                                            mb: 0.5,
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                          }}
+                                        >
+                                          <Typography
+                                            variant="caption"
+                                            sx={{
+                                              color: "#fff",
+                                              fontSize: "0.7rem",
+                                            }}
+                                          >
+                                            {ant ? `${ant.name} (${antId})` : `Antenna ${antId}`}
+                                          </Typography>
+                                          <Chip
+                                            label={`${flagPercent}%`}
+                                            size="small"
+                                            sx={{
+                                              height: 16,
+                                              fontSize: "0.6rem",
+                                              bgcolor: color,
+                                              color: "#fff",
+                                            }}
+                                          />
+                                        </Box>
+                                      );
+                                    }
+                                  )}
+                              </Box>
+                            </AccordionDetails>
+                          </Accordion>
+                        )}
+                      {msMetadata.flagging_stats.per_field &&
+                        Object.keys(msMetadata.flagging_stats.per_field).length > 0 && (
+                          <Accordion sx={{ mt: 1, bgcolor: "#2e2e2e" }}>
+                            <AccordionSummary expandIcon={<ExpandMore sx={{ color: "#fff" }} />}>
+                              <Typography variant="caption" sx={{ color: "#aaa" }}>
+                                Per-field flagging breakdown
+                              </Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                              <Box sx={{ maxHeight: 200, overflow: "auto" }}>
+                                {msMetadata.fields &&
+                                  Object.entries(msMetadata.flagging_stats.per_field || {}).map(
+                                    ([fieldId, frac]) => {
+                                      const field = msMetadata.fields?.find(
+                                        (f) => String(f.field_id) === fieldId
+                                      );
+                                      const flagPercent = ((frac as number) * 100).toFixed(1);
+                                      const color =
+                                        (frac as number) > 0.5
+                                          ? "#f44336"
+                                          : (frac as number) > 0.2
+                                            ? "#ff9800"
+                                            : "#4caf50";
+                                      return (
+                                        <Box
+                                          key={fieldId}
+                                          sx={{
+                                            mb: 0.5,
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                          }}
+                                        >
+                                          <Typography
+                                            variant="caption"
+                                            sx={{
+                                              color: "#fff",
+                                              fontSize: "0.7rem",
+                                            }}
+                                          >
+                                            {field
+                                              ? `${field.name} (Field ${fieldId})`
+                                              : `Field ${fieldId}`}
+                                          </Typography>
+                                          <Chip
+                                            label={`${flagPercent}%`}
+                                            size="small"
+                                            sx={{
+                                              height: 16,
+                                              fontSize: "0.6rem",
+                                              bgcolor: color,
+                                              color: "#fff",
+                                            }}
+                                          />
+                                        </Box>
+                                      );
+                                    }
+                                  )}
+                              </Box>
+                            </AccordionDetails>
+                          </Accordion>
+                        )}
                     </Box>
                   )}
                   {msMetadata.size_gb !== undefined && (
@@ -535,121 +624,173 @@ export default function ControlPage() {
                     </Box>
                   )}
                   <Box sx={{ mb: 0.5 }}>
-                    <strong>Columns:</strong> {msMetadata.data_columns.join(', ')}
+                    <strong>Columns:</strong> {msMetadata.data_columns.join(", ")}
                   </Box>
                   <Box>
-                    <strong>Calibrated:</strong> 
-                    <Chip 
-                      label={msMetadata.calibrated ? 'YES' : 'NO'} 
-                      color={msMetadata.calibrated ? 'success' : 'default'}
+                    <strong>Calibrated:</strong>
+                    <Chip
+                      label={msMetadata.calibrated ? "YES" : "NO"}
+                      color={msMetadata.calibrated ? "success" : "default"}
                       size="small"
-                      sx={{ ml: 1, height: 20, fontSize: '0.7rem' }}
+                      sx={{ ml: 1, height: 20, fontSize: "0.7rem" }}
                     />
                   </Box>
                 </Box>
               </Box>
             )}
-            
+
             {/* Calibrator Match Display */}
             {selectedMS && selectedMSList.length === 1 && (
               <>
                 {calMatchesLoading && (
-                  <Box sx={{ mt: 2, p: 2, bgcolor: '#1e1e1e', borderRadius: 1 }}>
-                    <Typography variant="caption" sx={{ color: '#888' }}>
+                  <Box sx={{ mt: 2, p: 2, bgcolor: "#1e1e1e", borderRadius: 1 }}>
+                    <Typography variant="caption" sx={{ color: "#888" }}>
                       Searching for calibrators...
                     </Typography>
                   </Box>
                 )}
-                {(calMatchesError || (!calMatchesLoading && (!calMatches || calMatches.matches.length === 0))) && (
-                  <Box sx={{ mt: 2, p: 1.5, bgcolor: '#3e2723', borderRadius: 1, border: '1px solid #d32f2f' }}>
-                    <Typography variant="caption" sx={{ color: '#ffccbc' }}>
-                      {'\u2717'} No calibrators detected
+                {(calMatchesError ||
+                  (!calMatchesLoading && (!calMatches || calMatches.matches.length === 0))) && (
+                  <Box
+                    sx={{
+                      mt: 2,
+                      p: 1.5,
+                      bgcolor: "#3e2723",
+                      borderRadius: 1,
+                      border: "1px solid #d32f2f",
+                    }}
+                  >
+                    <Typography variant="caption" sx={{ color: "#ffccbc" }}>
+                      {"\u2717"} No calibrators detected
                       {(() => {
-                        const msEntry = msList?.items.find(ms => ms.path === selectedMS);
+                        const msEntry = msList?.items.find((ms) => ms.path === selectedMS);
                         if (msEntry?.has_calibrator) {
-                          return ' (but MS list indicates calibrator exists - API call may have failed)';
+                          return " (but MS list indicates calibrator exists - API call may have failed)";
                         }
-                        return ' (pointing may not contain suitable source)';
+                        return " (pointing may not contain suitable source)";
                       })()}
                     </Typography>
                   </Box>
                 )}
-                {!calMatchesLoading && !calMatchesError && calMatches && calMatches.matches.length > 0 && (
-                  <Box sx={{ mt: 2 }}>
-                    {(() => {
-                      const best = calMatches.matches[0];
-                      const qualityColor = {
-                        excellent: '#4caf50',
-                        good: '#8bc34a',
-                        marginal: '#ff9800',
-                        poor: '#f44336'
-                      }[best.quality] || '#888';
-                      
-                      return (
-                        <>
-                          <Box sx={{ p: 1.5, bgcolor: '#1e3a1e', borderRadius: 1, border: `2px solid ${qualityColor}` }}>
-                            <Typography variant="subtitle2" sx={{ color: '#ffffff', mb: 1, fontWeight: 'bold' }}>
-                              {'\u2713'} Best Calibrator: {best.name}
-                            </Typography>
-                            <Box sx={{ fontSize: '0.75rem', fontFamily: 'monospace', color: '#ffffff' }}>
-                              <Box sx={{ mb: 0.5 }}>
-                                <strong>Flux:</strong> {best.flux_jy.toFixed(2)} Jy | <strong>PB:</strong> {best.pb_response.toFixed(3)} | 
-                                <Chip 
-                                  label={best.quality.toUpperCase()} 
-                                  size="small"
-                                  sx={{ 
-                                    ml: 1, 
-                                    height: 18, 
-                                    fontSize: '0.65rem', 
-                                    bgcolor: qualityColor,
-                                    color: '#fff',
-                                    fontWeight: 'bold'
-                                  }}
-                                />
-                              </Box>
-                              <Box sx={{ mb: 0.5 }}>
-                                <strong>Position:</strong> RA {best.ra_deg.toFixed(4)}° | Dec {best.dec_deg.toFixed(4)}°
-                              </Box>
-                              <Box>
-                                <strong>Separation:</strong> {best.sep_deg.toFixed(3)}° from meridian
+                {!calMatchesLoading &&
+                  !calMatchesError &&
+                  calMatches &&
+                  calMatches.matches.length > 0 && (
+                    <Box sx={{ mt: 2 }}>
+                      {(() => {
+                        const best = calMatches.matches[0];
+                        const qualityColor =
+                          {
+                            excellent: "#4caf50",
+                            good: "#8bc34a",
+                            marginal: "#ff9800",
+                            poor: "#f44336",
+                          }[best.quality] || "#888";
+
+                        return (
+                          <>
+                            <Box
+                              sx={{
+                                p: 1.5,
+                                bgcolor: "#1e3a1e",
+                                borderRadius: 1,
+                                border: `2px solid ${qualityColor}`,
+                              }}
+                            >
+                              <Typography
+                                variant="subtitle2"
+                                sx={{
+                                  color: "#ffffff",
+                                  mb: 1,
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                {"\u2713"} Best Calibrator: {best.name}
+                              </Typography>
+                              <Box
+                                sx={{
+                                  fontSize: "0.75rem",
+                                  fontFamily: "monospace",
+                                  color: "#ffffff",
+                                }}
+                              >
+                                <Box sx={{ mb: 0.5 }}>
+                                  <strong>Flux:</strong> {best.flux_jy.toFixed(2)} Jy |{" "}
+                                  <strong>PB:</strong> {best.pb_response.toFixed(3)} |
+                                  <Chip
+                                    label={best.quality.toUpperCase()}
+                                    size="small"
+                                    sx={{
+                                      ml: 1,
+                                      height: 18,
+                                      fontSize: "0.65rem",
+                                      bgcolor: qualityColor,
+                                      color: "#fff",
+                                      fontWeight: "bold",
+                                    }}
+                                  />
+                                </Box>
+                                <Box sx={{ mb: 0.5 }}>
+                                  <strong>Position:</strong> RA {best.ra_deg.toFixed(4)}° | Dec{" "}
+                                  {best.dec_deg.toFixed(4)}°
+                                </Box>
+                                <Box>
+                                  <strong>Separation:</strong> {best.sep_deg.toFixed(3)}° from
+                                  meridian
+                                </Box>
                               </Box>
                             </Box>
-                          </Box>
-                          
-                          {calMatches.matches.length > 1 && (
-                            <Accordion sx={{ mt: 1, bgcolor: '#2e2e2e' }}>
-                              <AccordionSummary expandIcon={<ExpandMore sx={{ color: '#fff' }} />}>
-                                <Typography variant="caption" sx={{ color: '#aaa' }}>
-                                  Show {calMatches.matches.length - 1} more calibrator{calMatches.matches.length > 2 ? 's' : ''}
-                                </Typography>
-                              </AccordionSummary>
-                              <AccordionDetails>
-                                {calMatches.matches.slice(1).map((m, i) => (
-                                  <Box key={i} sx={{ mb: 1, p: 1, bgcolor: '#1e1e1e', borderRadius: 1, fontSize: '0.7rem', color: '#ccc' }}>
-                                    <strong>{m.name}</strong> - {m.flux_jy.toFixed(2)} Jy (PB: {m.pb_response.toFixed(3)}, {m.quality})
-                                  </Box>
-                                ))}
-                              </AccordionDetails>
-                            </Accordion>
-                          )}
-                        </>
-                      );
-                    })()}
-                  </Box>
-                )}
+
+                            {calMatches.matches.length > 1 && (
+                              <Accordion sx={{ mt: 1, bgcolor: "#2e2e2e" }}>
+                                <AccordionSummary
+                                  expandIcon={<ExpandMore sx={{ color: "#fff" }} />}
+                                >
+                                  <Typography variant="caption" sx={{ color: "#aaa" }}>
+                                    Show {calMatches.matches.length - 1} more calibrator
+                                    {calMatches.matches.length > 2 ? "s" : ""}
+                                  </Typography>
+                                </AccordionSummary>
+                                <AccordionDetails>
+                                  {calMatches.matches.slice(1).map((m, i) => (
+                                    <Box
+                                      key={i}
+                                      sx={{
+                                        mb: 1,
+                                        p: 1,
+                                        bgcolor: "#1e1e1e",
+                                        borderRadius: 1,
+                                        fontSize: "0.7rem",
+                                        color: "#ccc",
+                                      }}
+                                    >
+                                      <strong>{m.name}</strong> - {m.flux_jy.toFixed(2)} Jy (PB:{" "}
+                                      {m.pb_response.toFixed(3)}, {m.quality})
+                                    </Box>
+                                  ))}
+                                </AccordionDetails>
+                              </Accordion>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </Box>
+                  )}
               </>
             )}
           </Paper>
-          
+
           {/* Workflow Banner */}
-          <Paper sx={{ 
-            p: 2, 
-            mb: 2, 
-            background: 'linear-gradient(135deg, #1565c0 0%, #0d47a1 100%)', 
-            color: 'white',
-            border: '2px solid #1976d2',
-          }}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+          <Paper
+            sx={{
+              p: 2,
+              mb: 2,
+              background: "linear-gradient(135deg, #1565c0 0%, #0d47a1 100%)",
+              color: "white",
+              border: "2px solid #1976d2",
+            }}
+          >
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
               Quick Pipeline Workflow
             </Typography>
             <Typography variant="body2" sx={{ mb: 2, opacity: 0.9 }}>
@@ -659,58 +800,78 @@ export default function ControlPage() {
               <TextField
                 label="Start Time"
                 value={workflowParams.start_time}
-                onChange={(e) => setWorkflowParams({...workflowParams, start_time: e.target.value})}
+                onChange={(e) =>
+                  setWorkflowParams({
+                    ...workflowParams,
+                    start_time: e.target.value,
+                  })
+                }
                 size="small"
                 placeholder="YYYY-MM-DD HH:MM:SS"
-                sx={{ 
-                  bgcolor: 'white', 
+                sx={{
+                  bgcolor: "white",
                   borderRadius: 1,
-                  '& .MuiInputBase-root': { color: '#000' },
-                  '& .MuiInputLabel-root': { color: '#666' },
+                  "& .MuiInputBase-root": { color: "#000" },
+                  "& .MuiInputLabel-root": { color: "#666" },
                 }}
               />
               <TextField
                 label="End Time"
                 value={workflowParams.end_time}
-                onChange={(e) => setWorkflowParams({...workflowParams, end_time: e.target.value})}
+                onChange={(e) =>
+                  setWorkflowParams({
+                    ...workflowParams,
+                    end_time: e.target.value,
+                  })
+                }
                 size="small"
                 placeholder="YYYY-MM-DD HH:MM:SS"
-                sx={{ 
-                  bgcolor: 'white', 
+                sx={{
+                  bgcolor: "white",
                   borderRadius: 1,
-                  '& .MuiInputBase-root': { color: '#000' },
-                  '& .MuiInputLabel-root': { color: '#666' },
+                  "& .MuiInputBase-root": { color: "#000" },
+                  "& .MuiInputLabel-root": { color: "#666" },
                 }}
               />
               <Tooltip
                 title={
                   !workflowParams.start_time || !workflowParams.end_time
-                    ? 'Enter start and end times to run the full pipeline'
+                    ? "Enter start and end times to run the full pipeline"
                     : workflowMutation.isPending
-                    ? 'Pipeline workflow in progress...'
-                    : 'Run full pipeline workflow (Ctrl/Cmd + Enter)'
+                      ? "Pipeline workflow in progress..."
+                      : "Run full pipeline workflow (Ctrl/Cmd + Enter)"
                 }
               >
                 <span>
                   <Button
                     variant="contained"
-                    startIcon={workflowMutation.isPending ? <CircularProgress size={20} color="inherit" /> : <PlayArrow />}
+                    startIcon={
+                      workflowMutation.isPending ? (
+                        <CircularProgress size={20} color="inherit" />
+                      ) : (
+                        <PlayArrow />
+                      )
+                    }
                     onClick={handleWorkflowSubmit}
-                    disabled={!workflowParams.start_time || !workflowParams.end_time || workflowMutation.isPending}
-                    sx={{ 
-                      bgcolor: '#fff', 
-                      color: '#1565c0',
-                      '&:hover': { bgcolor: '#f5f5f5' },
-                      whiteSpace: 'nowrap',
+                    disabled={
+                      !workflowParams.start_time ||
+                      !workflowParams.end_time ||
+                      workflowMutation.isPending
+                    }
+                    sx={{
+                      bgcolor: "#fff",
+                      color: "#1565c0",
+                      "&:hover": { bgcolor: "#f5f5f5" },
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    {workflowMutation.isPending ? 'Running...' : 'Run Full Pipeline'}
+                    {workflowMutation.isPending ? "Running..." : "Run Full Pipeline"}
                   </Button>
                 </span>
               </Tooltip>
             </Stack>
           </Paper>
-          
+
           <Paper sx={{ p: 2 }}>
             <Tabs value={activeTab} onChange={(_, val) => setActiveTab(val)}>
               <Tab label="Convert" />
@@ -718,14 +879,14 @@ export default function ControlPage() {
               <Tab label="Apply" />
               <Tab label="Image" />
             </Tabs>
-            
+
             {/* Convert Tab */}
             {activeTab === 0 && (
               <Box sx={{ mt: 2 }}>
                 {selectedMS && msMetadata && (
                   <Alert severity="info" sx={{ mb: 2 }}>
                     <Typography variant="body2" sx={{ mb: 1 }}>
-                      An MS is currently selected: <strong>{selectedMS.split('/').pop()}</strong>
+                      An MS is currently selected: <strong>{selectedMS.split("/").pop()}</strong>
                     </Typography>
                     <Typography variant="body2" sx={{ mb: 1 }}>
                       Switch to the <strong>Calibrate</strong> tab to use this MS for calibration.
@@ -737,8 +898,8 @@ export default function ControlPage() {
                         onClick={() => {
                           setConvertParams({
                             ...convertParams,
-                            start_time: msMetadata.start_time || '',
-                            end_time: msMetadata.end_time || '',
+                            start_time: msMetadata.start_time || "",
+                            end_time: msMetadata.end_time || "",
                           });
                         }}
                         sx={{ mt: 1 }}
@@ -748,10 +909,10 @@ export default function ControlPage() {
                     )}
                   </Alert>
                 )}
-                <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+                <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
                   Convert UVH5 files to Measurement Set format:
                 </Typography>
-                
+
                 <Typography variant="subtitle2" gutterBottom>
                   Time Range
                 </Typography>
@@ -760,7 +921,12 @@ export default function ControlPage() {
                     fullWidth
                     label="Start Time"
                     value={convertParams.start_time}
-                    onChange={(e) => setConvertParams({ ...convertParams, start_time: e.target.value })}
+                    onChange={(e) =>
+                      setConvertParams({
+                        ...convertParams,
+                        start_time: e.target.value,
+                      })
+                    }
                     size="small"
                     placeholder="YYYY-MM-DD HH:MM:SS"
                   />
@@ -768,12 +934,17 @@ export default function ControlPage() {
                     fullWidth
                     label="End Time"
                     value={convertParams.end_time}
-                    onChange={(e) => setConvertParams({ ...convertParams, end_time: e.target.value })}
+                    onChange={(e) =>
+                      setConvertParams({
+                        ...convertParams,
+                        end_time: e.target.value,
+                      })
+                    }
                     size="small"
                     placeholder="YYYY-MM-DD HH:MM:SS"
                   />
                 </Stack>
-                
+
                 <Typography variant="subtitle2" gutterBottom>
                   Directories
                 </Typography>
@@ -781,7 +952,12 @@ export default function ControlPage() {
                   fullWidth
                   label="Input Directory"
                   value={convertParams.input_dir}
-                  onChange={(e) => setConvertParams({ ...convertParams, input_dir: e.target.value })}
+                  onChange={(e) =>
+                    setConvertParams({
+                      ...convertParams,
+                      input_dir: e.target.value,
+                    })
+                  }
                   sx={{ mb: 2 }}
                   size="small"
                 />
@@ -789,16 +965,26 @@ export default function ControlPage() {
                   fullWidth
                   label="Output Directory"
                   value={convertParams.output_dir}
-                  onChange={(e) => setConvertParams({ ...convertParams, output_dir: e.target.value })}
+                  onChange={(e) =>
+                    setConvertParams({
+                      ...convertParams,
+                      output_dir: e.target.value,
+                    })
+                  }
                   sx={{ mb: 2 }}
                   size="small"
                 />
-                
+
                 <FormControl fullWidth sx={{ mb: 2 }} size="small">
                   <InputLabel>Writer Type</InputLabel>
                   <Select
                     value={convertParams.writer}
-                    onChange={(e) => setConvertParams({ ...convertParams, writer: e.target.value })}
+                    onChange={(e) =>
+                      setConvertParams({
+                        ...convertParams,
+                        writer: e.target.value,
+                      })
+                    }
                     label="Writer Type"
                   >
                     <MenuItem value="auto">Auto (recommended)</MenuItem>
@@ -807,18 +993,23 @@ export default function ControlPage() {
                     <MenuItem value="dask">Dask</MenuItem>
                   </Select>
                 </FormControl>
-                
+
                 <FormControlLabel
                   control={
-                    <Checkbox 
-                      checked={convertParams.stage_to_tmpfs} 
-                      onChange={(e) => setConvertParams({...convertParams, stage_to_tmpfs: e.target.checked})}
+                    <Checkbox
+                      checked={convertParams.stage_to_tmpfs}
+                      onChange={(e) =>
+                        setConvertParams({
+                          ...convertParams,
+                          stage_to_tmpfs: e.target.checked,
+                        })
+                      }
                     />
                   }
                   label="Stage to tmpfs (faster but uses RAM)"
                   sx={{ mb: 2 }}
                 />
-                
+
                 <TextField
                   fullWidth
                   label="Max Workers"
@@ -834,55 +1025,67 @@ export default function ControlPage() {
                   size="small"
                   inputProps={{ min: 1, max: 16 }}
                 />
-                
+
                 {/* UVH5 File List */}
                 {uvh5Files && uvh5Files.items.length > 0 && (
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="subtitle2" gutterBottom>
                       Available UVH5 Files ({uvh5Files.items.length})
                     </Typography>
-                    <Box sx={{ 
-                      maxHeight: 200, 
-                      overflow: 'auto', 
-                      bgcolor: '#1e1e1e', 
-                      p: 1, 
-                      borderRadius: 1,
-                      fontFamily: 'monospace',
-                      fontSize: '0.7rem'
-                    }}>
+                    <Box
+                      sx={{
+                        maxHeight: 200,
+                        overflow: "auto",
+                        bgcolor: "#1e1e1e",
+                        p: 1,
+                        borderRadius: 1,
+                        fontFamily: "monospace",
+                        fontSize: "0.7rem",
+                      }}
+                    >
                       {uvh5Files.items.map((file) => (
-                        <Box key={file.path} sx={{ color: '#ffffff', mb: 0.3 }}>
-                          {file.path.split('/').pop()} ({file.size_mb?.toFixed(1)} MB)
+                        <Box key={file.path} sx={{ color: "#ffffff", mb: 0.3 }}>
+                          {file.path.split("/").pop()} ({file.size_mb?.toFixed(1)} MB)
                         </Box>
                       ))}
                     </Box>
                   </Box>
                 )}
-                
+
                 <Tooltip
                   title={
                     !convertParams.start_time || !convertParams.end_time
-                      ? 'Enter start and end times to run conversion'
+                      ? "Enter start and end times to run conversion"
                       : convertMutation.isPending
-                      ? 'Conversion job in progress...'
-                      : 'Run conversion (Ctrl/Cmd + Enter)'
+                        ? "Conversion job in progress..."
+                        : "Run conversion (Ctrl/Cmd + Enter)"
                   }
                 >
                   <span>
                     <Button
                       variant="contained"
-                      startIcon={convertMutation.isPending ? <CircularProgress size={20} color="inherit" /> : <PlayArrow />}
+                      startIcon={
+                        convertMutation.isPending ? (
+                          <CircularProgress size={20} color="inherit" />
+                        ) : (
+                          <PlayArrow />
+                        )
+                      }
                       onClick={handleConvertSubmit}
-                      disabled={!convertParams.start_time || !convertParams.end_time || convertMutation.isPending}
+                      disabled={
+                        !convertParams.start_time ||
+                        !convertParams.end_time ||
+                        convertMutation.isPending
+                      }
                       fullWidth
                     >
-                      {convertMutation.isPending ? 'Running...' : 'Run Conversion'}
+                      {convertMutation.isPending ? "Running..." : "Run Conversion"}
                     </Button>
                   </span>
                 </Tooltip>
               </Box>
             )}
-            
+
             {/* Calibrate Tab */}
             {activeTab === 1 && (
               <Box sx={{ mt: 2 }}>
@@ -893,45 +1096,51 @@ export default function ControlPage() {
                 )}
                 {selectedMS && selectedMSList.length > 1 && (
                   <Alert severity="error" sx={{ mb: 2 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: "bold", mb: 1 }}>
                       Multiple MSs selected ({selectedMSList.length})
                     </Typography>
                     <Typography variant="body2">
-                      Only one MS can be calibrated at a time. Please deselect other MSs, keeping only one selected.
+                      Only one MS can be calibrated at a time. Please deselect other MSs, keeping
+                      only one selected.
                     </Typography>
                   </Alert>
                 )}
                 {selectedMS && selectedMSList.length === 1 && (
                   <Alert severity="success" sx={{ mb: 2 }}>
                     <Typography variant="body2">
-                      Selected MS: <strong>{selectedMS.split('/').pop()}</strong>
+                      Selected MS: <strong>{selectedMS.split("/").pop()}</strong>
                     </Typography>
                     {msMetadata && msMetadata.start_time && (
-                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                      <Typography variant="caption" sx={{ display: "block", mt: 0.5 }}>
                         Time range: {msMetadata.start_time} → {msMetadata.end_time}
                       </Typography>
                     )}
                   </Alert>
                 )}
-                <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+                <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
                   Generates calibration tables from a calibrator observation:
                 </Typography>
-                
+
                 <Typography variant="subtitle2" gutterBottom>
                   Calibration Tables to Generate
                 </Typography>
                 <Box sx={{ mb: 2 }}>
                   <FormControlLabel
                     control={
-                      <Checkbox 
-                        checked={calibParams.solve_delay} 
-                        onChange={(e) => setCalibParams({...calibParams, solve_delay: e.target.checked})}
+                      <Checkbox
+                        checked={calibParams.solve_delay}
+                        onChange={(e) =>
+                          setCalibParams({
+                            ...calibParams,
+                            solve_delay: e.target.checked,
+                          })
+                        }
                       />
                     }
                     label={
                       <Box>
                         <Typography variant="body2">K (Delay calibration)</Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
                           Antenna-based delays
                         </Typography>
                       </Box>
@@ -939,15 +1148,20 @@ export default function ControlPage() {
                   />
                   <FormControlLabel
                     control={
-                      <Checkbox 
-                        checked={calibParams.solve_bandpass} 
-                        onChange={(e) => setCalibParams({...calibParams, solve_bandpass: e.target.checked})}
+                      <Checkbox
+                        checked={calibParams.solve_bandpass}
+                        onChange={(e) =>
+                          setCalibParams({
+                            ...calibParams,
+                            solve_bandpass: e.target.checked,
+                          })
+                        }
                       />
                     }
                     label={
                       <Box>
                         <Typography variant="body2">BP (Bandpass calibration)</Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
                           Frequency response per antenna
                         </Typography>
                       </Box>
@@ -955,29 +1169,34 @@ export default function ControlPage() {
                   />
                   <FormControlLabel
                     control={
-                      <Checkbox 
-                        checked={calibParams.solve_gains} 
-                        onChange={(e) => setCalibParams({...calibParams, solve_gains: e.target.checked})}
+                      <Checkbox
+                        checked={calibParams.solve_gains}
+                        onChange={(e) =>
+                          setCalibParams({
+                            ...calibParams,
+                            solve_gains: e.target.checked,
+                          })
+                        }
                       />
                     }
                     label={
                       <Box>
                         <Typography variant="body2">G (Gain calibration)</Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
                           Time-variable complex gains
                         </Typography>
                       </Box>
                     }
                   />
                 </Box>
-                
+
                 <Typography variant="subtitle2" gutterBottom>
                   Basic Parameters
                 </Typography>
                 <TextField
                   fullWidth
                   label="Field ID"
-                  value={calibParams.field || ''}
+                  value={calibParams.field || ""}
                   onChange={(e) => setCalibParams({ ...calibParams, field: e.target.value })}
                   sx={{ mb: 2 }}
                   size="small"
@@ -986,28 +1205,41 @@ export default function ControlPage() {
                 {selectedMS && (
                   <>
                     {!msMetadata || !msMetadata.antennas || msMetadata.antennas.length === 0 ? (
-                <TextField
-                  fullWidth
-                  label="Reference Antenna"
-                  value={calibParams.refant || ''}
-                  onChange={(e) => setCalibParams({ ...calibParams, refant: e.target.value })}
-                  sx={{ mb: 2 }}
+                      <TextField
+                        fullWidth
+                        label="Reference Antenna"
+                        value={calibParams.refant || ""}
+                        onChange={(e) =>
+                          setCalibParams({
+                            ...calibParams,
+                            refant: e.target.value,
+                          })
+                        }
+                        sx={{ mb: 2 }}
                         size="small"
                         helperText="Reference antenna ID (e.g., 103)"
                       />
                     ) : (
                       (() => {
-                        const refantValid = !calibParams.refant || 
-                          msMetadata.antennas.some(a => 
-                            String(a.antenna_id) === calibParams.refant || a.name === calibParams.refant
+                        const refantValid =
+                          !calibParams.refant ||
+                          msMetadata.antennas.some(
+                            (a) =>
+                              String(a.antenna_id) === calibParams.refant ||
+                              a.name === calibParams.refant
                           );
-                        
+
                         return (
                           <FormControl fullWidth sx={{ mb: 2 }} size="small">
                             <InputLabel>Reference Antenna</InputLabel>
                             <Select
-                              value={calibParams.refant || ''}
-                              onChange={(e) => setCalibParams({ ...calibParams, refant: e.target.value })}
+                              value={calibParams.refant || ""}
+                              onChange={(e) =>
+                                setCalibParams({
+                                  ...calibParams,
+                                  refant: e.target.value,
+                                })
+                              }
                               label="Reference Antenna"
                               error={!refantValid}
                             >
@@ -1018,13 +1250,28 @@ export default function ControlPage() {
                               ))}
                             </Select>
                             {!refantValid && calibParams.refant && (
-                              <Typography variant="caption" sx={{ color: 'error.main', mt: 0.5, display: 'block' }}>
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: "error.main",
+                                  mt: 0.5,
+                                  display: "block",
+                                }}
+                              >
                                 Warning: Antenna "{calibParams.refant}" not found in MS
                               </Typography>
                             )}
                             {refantValid && (
-                              <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, display: 'block' }}>
-                                Select reference antenna from {msMetadata.antennas.length} available antennas
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: "text.secondary",
+                                  mt: 0.5,
+                                  display: "block",
+                                }}
+                              >
+                                Select reference antenna from {msMetadata.antennas.length} available
+                                antennas
                               </Typography>
                             )}
                           </FormControl>
@@ -1033,92 +1280,149 @@ export default function ControlPage() {
                     )}
                   </>
                 )}
-                
+
                 <Divider sx={{ my: 2 }} />
-                
+
                 {/* Existing Tables Section */}
                 <Typography variant="subtitle2" gutterBottom>
                   Existing Calibration Tables
                 </Typography>
-                
+
                 {selectedMS && !existingTables && (
-                  <Box sx={{ mb: 2, p: 1.5, bgcolor: '#2e2e2e', borderRadius: 1 }}>
-                    <Typography variant="caption" sx={{ color: '#888' }}>
+                  <Box sx={{ mb: 2, p: 1.5, bgcolor: "#2e2e2e", borderRadius: 1 }}>
+                    <Typography variant="caption" sx={{ color: "#888" }}>
                       Loading existing tables...
                     </Typography>
                   </Box>
                 )}
-                {selectedMS && existingTables && (!existingTables.has_k && !existingTables.has_bp && !existingTables.has_g) && (
-                  <Box sx={{ mb: 2, p: 1.5, bgcolor: '#2e2e2e', borderRadius: 1 }}>
-                    <Typography variant="caption" sx={{ color: '#888' }}>
-                      No existing calibration tables found for this MS
-                    </Typography>
-                  </Box>
-                )}
-                {selectedMS && existingTables && (existingTables.has_k || existingTables.has_bp || existingTables.has_g) && (
-                  <Box sx={{ mb: 2 }}>
-                    <RadioGroup
-                      value={calibParams.use_existing_tables || 'auto'}
-                      onChange={(e) => setCalibParams({
-                        ...calibParams, 
-                        use_existing_tables: e.target.value as 'auto' | 'manual' | 'none'
-                      })}
+                {selectedMS &&
+                  existingTables &&
+                  !existingTables.has_k &&
+                  !existingTables.has_bp &&
+                  !existingTables.has_g && (
+                    <Box
+                      sx={{
+                        mb: 2,
+                        p: 1.5,
+                        bgcolor: "#2e2e2e",
+                        borderRadius: 1,
+                      }}
                     >
-                      <FormControlLabel value="auto" control={<Radio size="small" />} label="Auto-select (use latest)" />
-                      <FormControlLabel value="manual" control={<Radio size="small" />} label="Manual select" />
-                      <FormControlLabel value="none" control={<Radio size="small" />} label="Don't use existing tables" />
-                    </RadioGroup>
-                    
-                    {calibParams.use_existing_tables === 'auto' && (
-                      <Box sx={{ mt: 1, p: 1.5, bgcolor: '#1e3a1e', borderRadius: 1 }}>
-                        <Typography variant="caption" sx={{ color: '#4caf50', fontWeight: 'bold', display: 'block', mb: 1 }}>
-                          Found existing tables (will use latest if needed):
-                        </Typography>
-                        <Box sx={{ fontSize: '0.7rem', fontFamily: 'monospace', color: '#ffffff' }}>
-                          {existingTables.has_k && existingTables.k_tables.length > 0 && (
-                            <Box sx={{ mb: 0.5 }}>
-                              {'\u2713'} K: {existingTables.k_tables[0].filename} 
-                              ({existingTables.k_tables[0].age_hours.toFixed(1)}h ago)
-                            </Box>
-                          )}
-                          {existingTables.has_bp && existingTables.bp_tables.length > 0 && (
-                            <Box sx={{ mb: 0.5 }}>
-                              {'\u2713'} BP: {existingTables.bp_tables[0].filename} 
-                              ({existingTables.bp_tables[0].age_hours.toFixed(1)}h ago)
-                            </Box>
-                          )}
-                          {existingTables.has_g && existingTables.g_tables.length > 0 && (
-                            <Box sx={{ mb: 0.5 }}>
-                              {'\u2713'} G: {existingTables.g_tables[0].filename} 
-                              ({existingTables.g_tables[0].age_hours.toFixed(1)}h ago)
-                            </Box>
-                          )}
+                      <Typography variant="caption" sx={{ color: "#888" }}>
+                        No existing calibration tables found for this MS
+                      </Typography>
+                    </Box>
+                  )}
+                {selectedMS &&
+                  existingTables &&
+                  (existingTables.has_k || existingTables.has_bp || existingTables.has_g) && (
+                    <Box sx={{ mb: 2 }}>
+                      <RadioGroup
+                        value={calibParams.use_existing_tables || "auto"}
+                        onChange={(e) =>
+                          setCalibParams({
+                            ...calibParams,
+                            use_existing_tables: e.target.value as "auto" | "manual" | "none",
+                          })
+                        }
+                      >
+                        <FormControlLabel
+                          value="auto"
+                          control={<Radio size="small" />}
+                          label="Auto-select (use latest)"
+                        />
+                        <FormControlLabel
+                          value="manual"
+                          control={<Radio size="small" />}
+                          label="Manual select"
+                        />
+                        <FormControlLabel
+                          value="none"
+                          control={<Radio size="small" />}
+                          label="Don't use existing tables"
+                        />
+                      </RadioGroup>
+
+                      {calibParams.use_existing_tables === "auto" && (
+                        <Box
+                          sx={{
+                            mt: 1,
+                            p: 1.5,
+                            bgcolor: "#1e3a1e",
+                            borderRadius: 1,
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: "#4caf50",
+                              fontWeight: "bold",
+                              display: "block",
+                              mb: 1,
+                            }}
+                          >
+                            Found existing tables (will use latest if needed):
+                          </Typography>
+                          <Box
+                            sx={{
+                              fontSize: "0.7rem",
+                              fontFamily: "monospace",
+                              color: "#ffffff",
+                            }}
+                          >
+                            {existingTables.has_k && existingTables.k_tables.length > 0 && (
+                              <Box sx={{ mb: 0.5 }}>
+                                {"\u2713"} K: {existingTables.k_tables[0].filename}(
+                                {existingTables.k_tables[0].age_hours.toFixed(1)}h ago)
+                              </Box>
+                            )}
+                            {existingTables.has_bp && existingTables.bp_tables.length > 0 && (
+                              <Box sx={{ mb: 0.5 }}>
+                                {"\u2713"} BP: {existingTables.bp_tables[0].filename}(
+                                {existingTables.bp_tables[0].age_hours.toFixed(1)}h ago)
+                              </Box>
+                            )}
+                            {existingTables.has_g && existingTables.g_tables.length > 0 && (
+                              <Box sx={{ mb: 0.5 }}>
+                                {"\u2713"} G: {existingTables.g_tables[0].filename}(
+                                {existingTables.g_tables[0].age_hours.toFixed(1)}h ago)
+                              </Box>
+                            )}
+                          </Box>
                         </Box>
-                      </Box>
-                    )}
-                    
-                    {calibParams.use_existing_tables === 'manual' && (
+                      )}
+
+                      {calibParams.use_existing_tables === "manual" && (
                         <Box sx={{ mt: 1 }}>
                           {existingTables.k_tables.length > 0 && (
                             <Box sx={{ mb: 2 }}>
-                              <Typography variant="caption" sx={{ fontWeight: 'bold' }}>K (Delay) Tables:</Typography>
+                              <Typography variant="caption" sx={{ fontWeight: "bold" }}>
+                                K (Delay) Tables:
+                              </Typography>
                               <RadioGroup
-                                value={calibParams.existing_k_table || 'none'}
+                                value={calibParams.existing_k_table || "none"}
                                 onChange={(e) => {
-                                  const newValue = e.target.value === 'none' ? undefined : e.target.value;
-                                  setCalibParams({...calibParams, existing_k_table: newValue});
-                                  
+                                  const newValue =
+                                    e.target.value === "none" ? undefined : e.target.value;
+                                  setCalibParams({
+                                    ...calibParams,
+                                    existing_k_table: newValue,
+                                  });
+
                                   // Validate compatibility when a table is selected
                                   if (newValue && selectedMS) {
                                     validateCalTable.mutate(
-                                      { msPath: selectedMS, caltablePath: newValue },
+                                      {
+                                        msPath: selectedMS,
+                                        caltablePath: newValue,
+                                      },
                                       {
                                         onSuccess: (result) => {
-                                          setCompatibilityChecks(prev => ({
+                                          setCompatibilityChecks((prev) => ({
                                             ...prev,
-                                            [newValue]: result
+                                            [newValue]: result,
                                           }));
-                                        }
+                                        },
                                       }
                                     );
                                   }
@@ -1127,7 +1431,7 @@ export default function ControlPage() {
                                 {existingTables.k_tables.map((table) => {
                                   const compat = compatibilityChecks[table.path];
                                   const isSelected = calibParams.existing_k_table === table.path;
-                                  
+
                                   return (
                                     <Box key={table.path}>
                                       <FormControlLabel
@@ -1136,23 +1440,30 @@ export default function ControlPage() {
                                         label={
                                           <Box>
                                             <Typography variant="caption">
-                                              {table.filename} ({table.size_mb.toFixed(1)} MB, {table.age_hours.toFixed(1)}h ago)
+                                              {table.filename} ({table.size_mb.toFixed(1)} MB,{" "}
+                                              {table.age_hours.toFixed(1)}h ago)
                                             </Typography>
                                             {isSelected && compat && (
                                               <Box sx={{ mt: 0.5 }}>
                                                 {compat.is_compatible ? (
-                                                  <Chip 
-                                                    label="✓ Compatible" 
-                                                    size="small" 
+                                                  <Chip
+                                                    label="✓ Compatible"
+                                                    size="small"
                                                     color="success"
-                                                    sx={{ height: 16, fontSize: '0.6rem' }}
+                                                    sx={{
+                                                      height: 16,
+                                                      fontSize: "0.6rem",
+                                                    }}
                                                   />
                                                 ) : (
-                                                  <Chip 
-                                                    label="✗ Incompatible" 
-                                                    size="small" 
+                                                  <Chip
+                                                    label="✗ Incompatible"
+                                                    size="small"
                                                     color="error"
-                                                    sx={{ height: 16, fontSize: '0.6rem' }}
+                                                    sx={{
+                                                      height: 16,
+                                                      fontSize: "0.6rem",
+                                                    }}
                                                   />
                                                 )}
                                               </Box>
@@ -1165,7 +1476,15 @@ export default function ControlPage() {
                                           {compat.issues.length > 0 && (
                                             <Box sx={{ mt: 0.5 }}>
                                               {compat.issues.map((issue: string, idx: number) => (
-                                                <Typography key={idx} variant="caption" sx={{ color: 'error.main', display: 'block', fontSize: '0.65rem' }}>
+                                                <Typography
+                                                  key={idx}
+                                                  variant="caption"
+                                                  sx={{
+                                                    color: "error.main",
+                                                    display: "block",
+                                                    fontSize: "0.65rem",
+                                                  }}
+                                                >
                                                   ⚠ {issue}
                                                 </Typography>
                                               ))}
@@ -1173,48 +1492,80 @@ export default function ControlPage() {
                                           )}
                                           {compat.warnings.length > 0 && (
                                             <Box sx={{ mt: 0.5 }}>
-                                              {compat.warnings.map((warning: string, idx: number) => (
-                                                <Typography key={idx} variant="caption" sx={{ color: 'warning.main', display: 'block', fontSize: '0.65rem' }}>
-                                                  ⚠ {warning}
-                                                </Typography>
-                                              ))}
+                                              {compat.warnings.map(
+                                                (warning: string, idx: number) => (
+                                                  <Typography
+                                                    key={idx}
+                                                    variant="caption"
+                                                    sx={{
+                                                      color: "warning.main",
+                                                      display: "block",
+                                                      fontSize: "0.65rem",
+                                                    }}
+                                                  >
+                                                    ⚠ {warning}
+                                                  </Typography>
+                                                )
+                                              )}
                                             </Box>
                                           )}
-                                          {compat.is_compatible && compat.issues.length === 0 && compat.warnings.length === 0 && (
-                                            <Typography variant="caption" sx={{ color: 'success.main', display: 'block', fontSize: '0.65rem' }}>
-                                              ✓ All compatibility checks passed
-                                            </Typography>
-                                          )}
+                                          {compat.is_compatible &&
+                                            compat.issues.length === 0 &&
+                                            compat.warnings.length === 0 && (
+                                              <Typography
+                                                variant="caption"
+                                                sx={{
+                                                  color: "success.main",
+                                                  display: "block",
+                                                  fontSize: "0.65rem",
+                                                }}
+                                              >
+                                                ✓ All compatibility checks passed
+                                              </Typography>
+                                            )}
                                         </Box>
                                       )}
                                     </Box>
                                   );
                                 })}
-                                <FormControlLabel value="none" control={<Radio size="small" />} label={<Typography variant="caption">None</Typography>} />
+                                <FormControlLabel
+                                  value="none"
+                                  control={<Radio size="small" />}
+                                  label={<Typography variant="caption">None</Typography>}
+                                />
                               </RadioGroup>
                             </Box>
                           )}
-                          
+
                           {existingTables.bp_tables.length > 0 && (
                             <Box sx={{ mb: 2 }}>
-                              <Typography variant="caption" sx={{ fontWeight: 'bold' }}>BP (Bandpass) Tables:</Typography>
+                              <Typography variant="caption" sx={{ fontWeight: "bold" }}>
+                                BP (Bandpass) Tables:
+                              </Typography>
                               <RadioGroup
-                                value={calibParams.existing_bp_table || 'none'}
+                                value={calibParams.existing_bp_table || "none"}
                                 onChange={(e) => {
-                                  const newValue = e.target.value === 'none' ? undefined : e.target.value;
-                                  setCalibParams({...calibParams, existing_bp_table: newValue});
-                                  
+                                  const newValue =
+                                    e.target.value === "none" ? undefined : e.target.value;
+                                  setCalibParams({
+                                    ...calibParams,
+                                    existing_bp_table: newValue,
+                                  });
+
                                   // Validate compatibility when a table is selected
                                   if (newValue && selectedMS) {
                                     validateCalTable.mutate(
-                                      { msPath: selectedMS, caltablePath: newValue },
+                                      {
+                                        msPath: selectedMS,
+                                        caltablePath: newValue,
+                                      },
                                       {
                                         onSuccess: (result) => {
-                                          setCompatibilityChecks(prev => ({
+                                          setCompatibilityChecks((prev) => ({
                                             ...prev,
-                                            [newValue]: result
+                                            [newValue]: result,
                                           }));
-                                        }
+                                        },
                                       }
                                     );
                                   }
@@ -1223,7 +1574,7 @@ export default function ControlPage() {
                                 {existingTables.bp_tables.map((table) => {
                                   const compat = compatibilityChecks[table.path];
                                   const isSelected = calibParams.existing_bp_table === table.path;
-                                  
+
                                   return (
                                     <Box key={table.path}>
                                       <FormControlLabel
@@ -1232,23 +1583,30 @@ export default function ControlPage() {
                                         label={
                                           <Box>
                                             <Typography variant="caption">
-                                              {table.filename} ({table.size_mb.toFixed(1)} MB, {table.age_hours.toFixed(1)}h ago)
+                                              {table.filename} ({table.size_mb.toFixed(1)} MB,{" "}
+                                              {table.age_hours.toFixed(1)}h ago)
                                             </Typography>
                                             {isSelected && compat && (
                                               <Box sx={{ mt: 0.5 }}>
                                                 {compat.is_compatible ? (
-                                                  <Chip 
-                                                    label="✓ Compatible" 
-                                                    size="small" 
+                                                  <Chip
+                                                    label="✓ Compatible"
+                                                    size="small"
                                                     color="success"
-                                                    sx={{ height: 16, fontSize: '0.6rem' }}
+                                                    sx={{
+                                                      height: 16,
+                                                      fontSize: "0.6rem",
+                                                    }}
                                                   />
                                                 ) : (
-                                                  <Chip 
-                                                    label="✗ Incompatible" 
-                                                    size="small" 
+                                                  <Chip
+                                                    label="✗ Incompatible"
+                                                    size="small"
                                                     color="error"
-                                                    sx={{ height: 16, fontSize: '0.6rem' }}
+                                                    sx={{
+                                                      height: 16,
+                                                      fontSize: "0.6rem",
+                                                    }}
                                                   />
                                                 )}
                                               </Box>
@@ -1261,7 +1619,15 @@ export default function ControlPage() {
                                           {compat.issues.length > 0 && (
                                             <Box sx={{ mt: 0.5 }}>
                                               {compat.issues.map((issue: string, idx: number) => (
-                                                <Typography key={idx} variant="caption" sx={{ color: 'error.main', display: 'block', fontSize: '0.65rem' }}>
+                                                <Typography
+                                                  key={idx}
+                                                  variant="caption"
+                                                  sx={{
+                                                    color: "error.main",
+                                                    display: "block",
+                                                    fontSize: "0.65rem",
+                                                  }}
+                                                >
                                                   ⚠ {issue}
                                                 </Typography>
                                               ))}
@@ -1269,48 +1635,80 @@ export default function ControlPage() {
                                           )}
                                           {compat.warnings.length > 0 && (
                                             <Box sx={{ mt: 0.5 }}>
-                                              {compat.warnings.map((warning: string, idx: number) => (
-                                                <Typography key={idx} variant="caption" sx={{ color: 'warning.main', display: 'block', fontSize: '0.65rem' }}>
-                                                  ⚠ {warning}
-                                                </Typography>
-                                              ))}
+                                              {compat.warnings.map(
+                                                (warning: string, idx: number) => (
+                                                  <Typography
+                                                    key={idx}
+                                                    variant="caption"
+                                                    sx={{
+                                                      color: "warning.main",
+                                                      display: "block",
+                                                      fontSize: "0.65rem",
+                                                    }}
+                                                  >
+                                                    ⚠ {warning}
+                                                  </Typography>
+                                                )
+                                              )}
                                             </Box>
                                           )}
-                                          {compat.is_compatible && compat.issues.length === 0 && compat.warnings.length === 0 && (
-                                            <Typography variant="caption" sx={{ color: 'success.main', display: 'block', fontSize: '0.65rem' }}>
-                                              ✓ All compatibility checks passed
-                                            </Typography>
-                                          )}
+                                          {compat.is_compatible &&
+                                            compat.issues.length === 0 &&
+                                            compat.warnings.length === 0 && (
+                                              <Typography
+                                                variant="caption"
+                                                sx={{
+                                                  color: "success.main",
+                                                  display: "block",
+                                                  fontSize: "0.65rem",
+                                                }}
+                                              >
+                                                ✓ All compatibility checks passed
+                                              </Typography>
+                                            )}
                                         </Box>
                                       )}
                                     </Box>
                                   );
                                 })}
-                                <FormControlLabel value="none" control={<Radio size="small" />} label={<Typography variant="caption">None</Typography>} />
+                                <FormControlLabel
+                                  value="none"
+                                  control={<Radio size="small" />}
+                                  label={<Typography variant="caption">None</Typography>}
+                                />
                               </RadioGroup>
                             </Box>
                           )}
-                          
+
                           {existingTables.g_tables.length > 0 && (
                             <Box sx={{ mb: 2 }}>
-                              <Typography variant="caption" sx={{ fontWeight: 'bold' }}>G (Gain) Tables:</Typography>
+                              <Typography variant="caption" sx={{ fontWeight: "bold" }}>
+                                G (Gain) Tables:
+                              </Typography>
                               <RadioGroup
-                                value={calibParams.existing_g_table || 'none'}
+                                value={calibParams.existing_g_table || "none"}
                                 onChange={(e) => {
-                                  const newValue = e.target.value === 'none' ? undefined : e.target.value;
-                                  setCalibParams({...calibParams, existing_g_table: newValue});
-                                  
+                                  const newValue =
+                                    e.target.value === "none" ? undefined : e.target.value;
+                                  setCalibParams({
+                                    ...calibParams,
+                                    existing_g_table: newValue,
+                                  });
+
                                   // Validate compatibility when a table is selected
                                   if (newValue && selectedMS) {
                                     validateCalTable.mutate(
-                                      { msPath: selectedMS, caltablePath: newValue },
+                                      {
+                                        msPath: selectedMS,
+                                        caltablePath: newValue,
+                                      },
                                       {
                                         onSuccess: (result) => {
-                                          setCompatibilityChecks(prev => ({
+                                          setCompatibilityChecks((prev) => ({
                                             ...prev,
-                                            [newValue]: result
+                                            [newValue]: result,
                                           }));
-                                        }
+                                        },
                                       }
                                     );
                                   }
@@ -1319,7 +1717,7 @@ export default function ControlPage() {
                                 {existingTables.g_tables.map((table) => {
                                   const compat = compatibilityChecks[table.path];
                                   const isSelected = calibParams.existing_g_table === table.path;
-                                  
+
                                   return (
                                     <Box key={table.path}>
                                       <FormControlLabel
@@ -1328,23 +1726,30 @@ export default function ControlPage() {
                                         label={
                                           <Box>
                                             <Typography variant="caption">
-                                              {table.filename} ({table.size_mb.toFixed(1)} MB, {table.age_hours.toFixed(1)}h ago)
+                                              {table.filename} ({table.size_mb.toFixed(1)} MB,{" "}
+                                              {table.age_hours.toFixed(1)}h ago)
                                             </Typography>
                                             {isSelected && compat && (
                                               <Box sx={{ mt: 0.5 }}>
                                                 {compat.is_compatible ? (
-                                                  <Chip 
-                                                    label="✓ Compatible" 
-                                                    size="small" 
+                                                  <Chip
+                                                    label="✓ Compatible"
+                                                    size="small"
                                                     color="success"
-                                                    sx={{ height: 16, fontSize: '0.6rem' }}
+                                                    sx={{
+                                                      height: 16,
+                                                      fontSize: "0.6rem",
+                                                    }}
                                                   />
                                                 ) : (
-                                                  <Chip 
-                                                    label="✗ Incompatible" 
-                                                    size="small" 
+                                                  <Chip
+                                                    label="✗ Incompatible"
+                                                    size="small"
                                                     color="error"
-                                                    sx={{ height: 16, fontSize: '0.6rem' }}
+                                                    sx={{
+                                                      height: 16,
+                                                      fontSize: "0.6rem",
+                                                    }}
                                                   />
                                                 )}
                                               </Box>
@@ -1357,7 +1762,15 @@ export default function ControlPage() {
                                           {compat.issues.length > 0 && (
                                             <Box sx={{ mt: 0.5 }}>
                                               {compat.issues.map((issue: string, idx: number) => (
-                                                <Typography key={idx} variant="caption" sx={{ color: 'error.main', display: 'block', fontSize: '0.65rem' }}>
+                                                <Typography
+                                                  key={idx}
+                                                  variant="caption"
+                                                  sx={{
+                                                    color: "error.main",
+                                                    display: "block",
+                                                    fontSize: "0.65rem",
+                                                  }}
+                                                >
                                                   ⚠ {issue}
                                                 </Typography>
                                               ))}
@@ -1365,24 +1778,47 @@ export default function ControlPage() {
                                           )}
                                           {compat.warnings.length > 0 && (
                                             <Box sx={{ mt: 0.5 }}>
-                                              {compat.warnings.map((warning: string, idx: number) => (
-                                                <Typography key={idx} variant="caption" sx={{ color: 'warning.main', display: 'block', fontSize: '0.65rem' }}>
-                                                  ⚠ {warning}
-                                                </Typography>
-                                              ))}
+                                              {compat.warnings.map(
+                                                (warning: string, idx: number) => (
+                                                  <Typography
+                                                    key={idx}
+                                                    variant="caption"
+                                                    sx={{
+                                                      color: "warning.main",
+                                                      display: "block",
+                                                      fontSize: "0.65rem",
+                                                    }}
+                                                  >
+                                                    ⚠ {warning}
+                                                  </Typography>
+                                                )
+                                              )}
                                             </Box>
                                           )}
-                                          {compat.is_compatible && compat.issues.length === 0 && compat.warnings.length === 0 && (
-                                            <Typography variant="caption" sx={{ color: 'success.main', display: 'block', fontSize: '0.65rem' }}>
-                                              ✓ All compatibility checks passed
-                                            </Typography>
-                                          )}
+                                          {compat.is_compatible &&
+                                            compat.issues.length === 0 &&
+                                            compat.warnings.length === 0 && (
+                                              <Typography
+                                                variant="caption"
+                                                sx={{
+                                                  color: "success.main",
+                                                  display: "block",
+                                                  fontSize: "0.65rem",
+                                                }}
+                                              >
+                                                ✓ All compatibility checks passed
+                                              </Typography>
+                                            )}
                                         </Box>
                                       )}
                                     </Box>
                                   );
                                 })}
-                                <FormControlLabel value="none" control={<Radio size="small" />} label={<Typography variant="caption">None</Typography>} />
+                                <FormControlLabel
+                                  value="none"
+                                  control={<Radio size="small" />}
+                                  label={<Typography variant="caption">None</Typography>}
+                                />
                               </RadioGroup>
                             </Box>
                           )}
@@ -1390,9 +1826,9 @@ export default function ControlPage() {
                       )}
                     </Box>
                   )}
-                
+
                 <Divider sx={{ my: 2 }} />
-                
+
                 <Accordion sx={{ mb: 2 }}>
                   <AccordionSummary expandIcon={<ExpandMore />}>
                     <Typography variant="subtitle2">Advanced Options</Typography>
@@ -1401,8 +1837,13 @@ export default function ControlPage() {
                     <TextField
                       fullWidth
                       label="Gain Solution Interval"
-                      value={calibParams.gain_solint || 'inf'}
-                      onChange={(e) => setCalibParams({ ...calibParams, gain_solint: e.target.value })}
+                      value={calibParams.gain_solint || "inf"}
+                      onChange={(e) =>
+                        setCalibParams({
+                          ...calibParams,
+                          gain_solint: e.target.value,
+                        })
+                      }
                       sx={{ mb: 2 }}
                       size="small"
                       helperText="e.g., 'inf', '60s', '10min'"
@@ -1410,8 +1851,13 @@ export default function ControlPage() {
                     <FormControl fullWidth sx={{ mb: 2 }} size="small">
                       <InputLabel>Gain Cal Mode</InputLabel>
                       <Select
-                        value={calibParams.gain_calmode || 'ap'}
-                        onChange={(e) => setCalibParams({ ...calibParams, gain_calmode: e.target.value as 'ap' | 'p' | 'a' })}
+                        value={calibParams.gain_calmode || "ap"}
+                        onChange={(e) =>
+                          setCalibParams({
+                            ...calibParams,
+                            gain_calmode: e.target.value as "ap" | "p" | "a",
+                          })
+                        }
                         label="Gain Cal Mode"
                       >
                         <MenuItem value="ap">Amp + Phase</MenuItem>
@@ -1437,49 +1883,74 @@ export default function ControlPage() {
                     />
                     <FormControlLabel
                       control={
-                        <Checkbox 
-                          checked={calibParams.do_flagging || false} 
-                          onChange={(e) => setCalibParams({...calibParams, do_flagging: e.target.checked})}
+                        <Checkbox
+                          checked={calibParams.do_flagging || false}
+                          onChange={(e) =>
+                            setCalibParams({
+                              ...calibParams,
+                              do_flagging: e.target.checked,
+                            })
+                          }
                         />
                       }
                       label="Enable pre-calibration flagging"
                     />
                   </AccordionDetails>
                 </Accordion>
-                
+
                 <Tooltip
                   title={
                     !selectedMS
-                      ? 'Select a measurement set first'
+                      ? "Select a measurement set first"
                       : selectedMSList.length !== 1
-                      ? 'Select exactly one measurement set'
-                      : (!calibParams.solve_delay && !calibParams.solve_bandpass && !calibParams.solve_gains)
-                      ? 'Select at least one calibration table type (K, BP, or G)'
-                      : calibrateMutation.isPending
-                      ? 'Calibration job in progress...'
-                      : 'Run calibration (Ctrl/Cmd + Enter)'
+                        ? "Select exactly one measurement set"
+                        : !calibParams.solve_delay &&
+                            !calibParams.solve_bandpass &&
+                            !calibParams.solve_gains
+                          ? "Select at least one calibration table type (K, BP, or G)"
+                          : calibrateMutation.isPending
+                            ? "Calibration job in progress..."
+                            : "Run calibration (Ctrl/Cmd + Enter)"
                   }
                 >
                   <span>
                     <Button
                       variant="contained"
-                      startIcon={calibrateMutation.isPending ? <CircularProgress size={20} color="inherit" /> : <PlayArrow />}
+                      startIcon={
+                        calibrateMutation.isPending ? (
+                          <CircularProgress size={20} color="inherit" />
+                        ) : (
+                          <PlayArrow />
+                        )
+                      }
                       onClick={handleCalibrateSubmit}
-                      disabled={!selectedMS || selectedMSList.length !== 1 || calibrateMutation.isPending || (!calibParams.solve_delay && !calibParams.solve_bandpass && !calibParams.solve_gains)}
+                      disabled={
+                        !selectedMS ||
+                        selectedMSList.length !== 1 ||
+                        calibrateMutation.isPending ||
+                        (!calibParams.solve_delay &&
+                          !calibParams.solve_bandpass &&
+                          !calibParams.solve_gains)
+                      }
                       fullWidth
                     >
-                      {calibrateMutation.isPending ? 'Running...' : 'Run Calibration'}
+                      {calibrateMutation.isPending ? "Running..." : "Run Calibration"}
                     </Button>
                   </span>
                 </Tooltip>
-                {(!calibParams.solve_delay && !calibParams.solve_bandpass && !calibParams.solve_gains) && (
-                  <Typography variant="caption" sx={{ color: 'error.main', mt: 1, display: 'block' }}>
-                    Select at least one calibration table type
-                  </Typography>
-                )}
+                {!calibParams.solve_delay &&
+                  !calibParams.solve_bandpass &&
+                  !calibParams.solve_gains && (
+                    <Typography
+                      variant="caption"
+                      sx={{ color: "error.main", mt: 1, display: "block" }}
+                    >
+                      Select at least one calibration table type
+                    </Typography>
+                  )}
               </Box>
             )}
-            
+
             {/* Per-SPW Flagging Analysis Section */}
             {activeTab === 1 && selectedMS && (
               <>
@@ -1498,36 +1969,44 @@ export default function ControlPage() {
                 </Box>
               </>
             )}
-            
+
             {/* Apply Tab */}
             {activeTab === 2 && (
               <Box sx={{ mt: 2 }}>
-                <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+                <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
                   Apply existing calibration tables to the selected MS:
                 </Typography>
-                <Box sx={{ 
-                  mb: 2, 
-                  p: 1.5, 
-                  bgcolor: '#1e1e1e', 
-                  borderRadius: 1,
-                  fontFamily: 'monospace',
-                  fontSize: '0.75rem',
-                  color: '#ffffff'
-                }}>
-                  <Box>Clears existing calibration, then applies K, BP, and G tables to CORRECTED_DATA column</Box>
+                <Box
+                  sx={{
+                    mb: 2,
+                    p: 1.5,
+                    bgcolor: "#1e1e1e",
+                    borderRadius: 1,
+                    fontFamily: "monospace",
+                    fontSize: "0.75rem",
+                    color: "#ffffff",
+                  }}
+                >
+                  <Box>
+                    Clears existing calibration, then applies K, BP, and G tables to CORRECTED_DATA
+                    column
+                  </Box>
                 </Box>
-                
+
                 <Typography variant="subtitle2" gutterBottom>
                   Calibration Tables
                 </Typography>
                 <TextField
                   fullWidth
                   label="Gaintables (comma-separated paths)"
-                  value={applyParams.gaintables?.join(',') || ''}
+                  value={applyParams.gaintables?.join(",") || ""}
                   onChange={(e) =>
                     setApplyParams({
                       ...applyParams,
-                      gaintables: e.target.value.split(',').map((s) => s.trim()).filter(Boolean),
+                      gaintables: e.target.value
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean),
                     })
                   }
                   multiline
@@ -1536,14 +2015,22 @@ export default function ControlPage() {
                   size="small"
                   helperText="Enter full paths to .kcal, .bpcal, .gpcal tables"
                 />
-                
+
                 {/* Cal Table Browser */}
                 {calTables && calTables.items.length > 0 && (
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="subtitle2" gutterBottom>
                       Available Calibration Tables (click to add)
                     </Typography>
-                    <Box sx={{ maxHeight: 200, overflow: 'auto', border: '1px solid #444', borderRadius: 1, p: 1 }}>
+                    <Box
+                      sx={{
+                        maxHeight: 200,
+                        overflow: "auto",
+                        border: "1px solid #444",
+                        borderRadius: 1,
+                        p: 1,
+                      }}
+                    >
                       {calTables.items.map((table) => (
                         <Box
                           key={table.path}
@@ -1559,68 +2046,82 @@ export default function ControlPage() {
                           sx={{
                             p: 0.5,
                             mb: 0.5,
-                            bgcolor: '#2e2e2e',
+                            bgcolor: "#2e2e2e",
                             borderRadius: 1,
-                            cursor: 'pointer',
-                            fontSize: '0.75rem',
-                            fontFamily: 'monospace',
-                            '&:hover': { bgcolor: '#3e3e3e' },
+                            cursor: "pointer",
+                            fontSize: "0.75rem",
+                            fontFamily: "monospace",
+                            "&:hover": { bgcolor: "#3e3e3e" },
                           }}
                         >
-                          <Chip label={table.table_type} size="small" sx={{ mr: 1, height: 18, fontSize: '0.65rem' }} />
+                          <Chip
+                            label={table.table_type}
+                            size="small"
+                            sx={{ mr: 1, height: 18, fontSize: "0.65rem" }}
+                          />
                           {table.filename} ({table.size_mb.toFixed(1)} MB)
                         </Box>
                       ))}
                     </Box>
                   </Box>
                 )}
-                
+
                 <Tooltip
                   title={
                     !selectedMS
-                      ? 'Select a measurement set first'
+                      ? "Select a measurement set first"
                       : !applyParams.gaintables?.length
-                      ? 'Enter at least one calibration table path'
-                      : applyMutation.isPending
-                      ? 'Apply calibration job in progress...'
-                      : 'Apply calibration tables (Ctrl/Cmd + Enter)'
+                        ? "Enter at least one calibration table path"
+                        : applyMutation.isPending
+                          ? "Apply calibration job in progress..."
+                          : "Apply calibration tables (Ctrl/Cmd + Enter)"
                   }
                 >
                   <span>
                     <Button
                       variant="contained"
-                      startIcon={applyMutation.isPending ? <CircularProgress size={20} color="inherit" /> : <PlayArrow />}
+                      startIcon={
+                        applyMutation.isPending ? (
+                          <CircularProgress size={20} color="inherit" />
+                        ) : (
+                          <PlayArrow />
+                        )
+                      }
                       onClick={handleApplySubmit}
-                      disabled={!selectedMS || !applyParams.gaintables?.length || applyMutation.isPending}
+                      disabled={
+                        !selectedMS || !applyParams.gaintables?.length || applyMutation.isPending
+                      }
                       fullWidth
                     >
-                      {applyMutation.isPending ? 'Running...' : 'Apply Calibration'}
+                      {applyMutation.isPending ? "Running..." : "Apply Calibration"}
                     </Button>
                   </span>
                 </Tooltip>
               </Box>
             )}
-            
+
             {/* Image Tab */}
             {activeTab === 3 && (
               <Box sx={{ mt: 2 }}>
-                <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+                <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
                   Image the selected MS using CASA tclean:
                 </Typography>
-                <Box sx={{ 
-                  mb: 2, 
-                  p: 1.5, 
-                  bgcolor: '#1e1e1e', 
-                  borderRadius: 1,
-                  fontFamily: 'monospace',
-                  fontSize: '0.75rem',
-                  color: '#ffffff'
-                }}>
+                <Box
+                  sx={{
+                    mb: 2,
+                    p: 1.5,
+                    bgcolor: "#1e1e1e",
+                    borderRadius: 1,
+                    fontFamily: "monospace",
+                    fontSize: "0.75rem",
+                    color: "#ffffff",
+                  }}
+                >
                   <Box sx={{ mb: 0.5 }}>• Auto-detects pixel size and image dimensions</Box>
                   <Box sx={{ mb: 0.5 }}>• Uses w-projection for wide-field imaging</Box>
                   <Box>• Outputs .image, .residual, .psf, and optionally .fits</Box>
                 </Box>
-                
+
                 <Typography variant="subtitle2" gutterBottom>
                   Imaging Parameters
                 </Typography>
@@ -1628,7 +2129,12 @@ export default function ControlPage() {
                   <InputLabel>Gridder</InputLabel>
                   <Select
                     value={imageParams.gridder}
-                    onChange={(e) => setImageParams({ ...imageParams, gridder: e.target.value })}
+                    onChange={(e) =>
+                      setImageParams({
+                        ...imageParams,
+                        gridder: e.target.value,
+                      })
+                    }
                     label="Gridder"
                   >
                     <MenuItem value="wproject">W-projection (recommended)</MenuItem>
@@ -1636,7 +2142,7 @@ export default function ControlPage() {
                     <MenuItem value="widefield">Widefield</MenuItem>
                   </Select>
                 </FormControl>
-                
+
                 <TextField
                   fullWidth
                   label="W-projection planes"
@@ -1652,89 +2158,127 @@ export default function ControlPage() {
                   size="small"
                   helperText="-1 for auto, or specify number of planes"
                 />
-                
+
                 <FormControl fullWidth sx={{ mb: 2 }} size="small">
                   <InputLabel>Data Column</InputLabel>
                   <Select
                     value={imageParams.datacolumn}
-                    onChange={(e) => setImageParams({ ...imageParams, datacolumn: e.target.value })}
+                    onChange={(e) =>
+                      setImageParams({
+                        ...imageParams,
+                        datacolumn: e.target.value,
+                      })
+                    }
                     label="Data Column"
                   >
                     <MenuItem value="corrected">CORRECTED_DATA (after calibration)</MenuItem>
                     <MenuItem value="data">DATA (raw visibilities)</MenuItem>
                   </Select>
                 </FormControl>
-                
+
                 {selectedMS && msMetadata && (
                   <>
                     {(() => {
-                      const hasCorrectedData = msMetadata.data_columns.includes('CORRECTED_DATA');
-                      const usingDataColumn = imageParams.datacolumn === 'data';
-                      
+                      const hasCorrectedData = msMetadata.data_columns.includes("CORRECTED_DATA");
+                      const usingDataColumn = imageParams.datacolumn === "data";
+
                       if (hasCorrectedData && usingDataColumn) {
                         return (
-                          <Box sx={{ mb: 2, p: 1.5, bgcolor: '#3e2723', borderRadius: 1, border: '1px solid #ff9800' }}>
-                            <Typography variant="caption" sx={{ color: '#ffccbc', fontWeight: 'bold' }}>
-                              Warning: CORRECTED_DATA column exists but you're imaging DATA column. 
+                          <Box
+                            sx={{
+                              mb: 2,
+                              p: 1.5,
+                              bgcolor: "#3e2723",
+                              borderRadius: 1,
+                              border: "1px solid #ff9800",
+                            }}
+                          >
+                            <Typography
+                              variant="caption"
+                              sx={{ color: "#ffccbc", fontWeight: "bold" }}
+                            >
+                              Warning: CORRECTED_DATA column exists but you're imaging DATA column.
                               Consider using CORRECTED_DATA for calibrated data.
                             </Typography>
                           </Box>
                         );
                       }
-                      
+
                       if (!hasCorrectedData && !usingDataColumn) {
                         return (
-                          <Box sx={{ mb: 2, p: 1.5, bgcolor: '#3e2723', borderRadius: 1, border: '1px solid #d32f2f' }}>
-                            <Typography variant="caption" sx={{ color: '#ffccbc', fontWeight: 'bold' }}>
-                              Error: CORRECTED_DATA column does not exist. Please apply calibration first or use DATA column.
+                          <Box
+                            sx={{
+                              mb: 2,
+                              p: 1.5,
+                              bgcolor: "#3e2723",
+                              borderRadius: 1,
+                              border: "1px solid #d32f2f",
+                            }}
+                          >
+                            <Typography
+                              variant="caption"
+                              sx={{ color: "#ffccbc", fontWeight: "bold" }}
+                            >
+                              Error: CORRECTED_DATA column does not exist. Please apply calibration
+                              first or use DATA column.
                             </Typography>
                           </Box>
                         );
                       }
-                      
+
                       return null;
                     })()}
                   </>
                 )}
-                
+
                 <FormControlLabel
                   control={
-                    <Checkbox 
-                      checked={imageParams.quick || false} 
-                      onChange={(e) => setImageParams({...imageParams, quick: e.target.checked})}
+                    <Checkbox
+                      checked={imageParams.quick || false}
+                      onChange={(e) =>
+                        setImageParams({
+                          ...imageParams,
+                          quick: e.target.checked,
+                        })
+                      }
                     />
                   }
                   label="Quick mode (fewer iterations)"
                   sx={{ mb: 1 }}
                 />
-                
+
                 <FormControlLabel
                   control={
-                    <Checkbox 
-                      checked={imageParams.skip_fits !== false} 
-                      onChange={(e) => setImageParams({...imageParams, skip_fits: e.target.checked})}
+                    <Checkbox
+                      checked={imageParams.skip_fits !== false}
+                      onChange={(e) =>
+                        setImageParams({
+                          ...imageParams,
+                          skip_fits: e.target.checked,
+                        })
+                      }
                     />
                   }
                   label="Skip FITS export (faster)"
                   sx={{ mb: 2 }}
                 />
-                
+
                 <FormControlLabel
                   control={
                     <Switch
                       checked={imageParams.use_nvss_mask ?? true}
-                      onChange={(e) => setImageParams({ 
-                        ...imageParams, 
-                        use_nvss_mask: e.target.checked 
-                      })}
+                      onChange={(e) =>
+                        setImageParams({
+                          ...imageParams,
+                          use_nvss_mask: e.target.checked,
+                        })
+                      }
                       color="primary"
                     />
                   }
                   label={
                     <Box>
-                      <Typography variant="body2">
-                        Use NVSS Masking
-                      </Typography>
+                      <Typography variant="body2">Use NVSS Masking</Typography>
                       <Typography variant="caption" color="text.secondary" display="block">
                         Enable masked imaging (2-4x faster, recommended)
                       </Typography>
@@ -1742,7 +2286,7 @@ export default function ControlPage() {
                   }
                   sx={{ mb: 2 }}
                 />
-                
+
                 {imageParams.use_nvss_mask && (
                   <TextField
                     fullWidth
@@ -1752,9 +2296,9 @@ export default function ControlPage() {
                     onChange={(e) => {
                       const val = parseFloat(e.target.value);
                       if (!isNaN(val) && val >= 10 && val <= 300) {
-                        setImageParams({ 
-                          ...imageParams, 
-                          mask_radius_arcsec: val 
+                        setImageParams({
+                          ...imageParams,
+                          mask_radius_arcsec: val,
                         });
                       }
                     }}
@@ -1764,25 +2308,31 @@ export default function ControlPage() {
                     inputProps={{ min: 10, max: 300, step: 5 }}
                   />
                 )}
-                
+
                 <Tooltip
                   title={
                     !selectedMS
-                      ? 'Select a measurement set first'
+                      ? "Select a measurement set first"
                       : imageMutation.isPending
-                      ? 'Imaging job in progress...'
-                      : 'Create image (Ctrl/Cmd + Enter)'
+                        ? "Imaging job in progress..."
+                        : "Create image (Ctrl/Cmd + Enter)"
                   }
                 >
                   <span>
                     <Button
                       variant="contained"
-                      startIcon={imageMutation.isPending ? <CircularProgress size={20} color="inherit" /> : <PlayArrow />}
+                      startIcon={
+                        imageMutation.isPending ? (
+                          <CircularProgress size={20} color="inherit" />
+                        ) : (
+                          <PlayArrow />
+                        )
+                      }
                       onClick={handleImageSubmit}
                       disabled={!selectedMS || imageMutation.isPending}
                       fullWidth
                     >
-                      {imageMutation.isPending ? 'Running...' : 'Create Image'}
+                      {imageMutation.isPending ? "Running..." : "Create Image"}
                     </Button>
                   </span>
                 </Tooltip>
@@ -1790,17 +2340,20 @@ export default function ControlPage() {
             )}
           </Paper>
         </Box>
-        
+
         {/* Right column - Job logs and status */}
         <Box sx={{ flex: 1 }}>
           <Paper sx={{ p: 2, mb: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 2,
+              }}
+            >
               <Typography variant="h6">Recent Jobs</Typography>
-              <Button
-                startIcon={<Refresh />}
-                onClick={() => refetchJobs()}
-                size="small"
-              >
+              <Button startIcon={<Refresh />} onClick={() => refetchJobs()} size="small">
                 Refresh
               </Button>
             </Box>
@@ -1821,9 +2374,12 @@ export default function ControlPage() {
                       hover
                       onClick={() => {
                         setSelectedJobId(job.id);
-                        setLogContent('');
+                        setLogContent("");
                       }}
-                      sx={{ cursor: 'pointer', bgcolor: selectedJobId === job.id ? 'action.selected' : 'inherit' }}
+                      sx={{
+                        cursor: "pointer",
+                        bgcolor: selectedJobId === job.id ? "action.selected" : "inherit",
+                      }}
                     >
                       <TableCell>{job.id}</TableCell>
                       <TableCell>{job.type}</TableCell>
@@ -1832,14 +2388,18 @@ export default function ControlPage() {
                           label={job.status}
                           size="small"
                           color={
-                            job.status === 'done' ? 'success' :
-                            job.status === 'failed' ? 'error' :
-                            job.status === 'running' ? 'primary' : 'default'
+                            job.status === "done"
+                              ? "success"
+                              : job.status === "failed"
+                                ? "error"
+                                : job.status === "running"
+                                  ? "primary"
+                                  : "default"
                           }
                         />
                       </TableCell>
-                      <TableCell sx={{ fontSize: '0.7rem', fontFamily: 'monospace' }}>
-                        {job.ms_path ? job.ms_path.split('/').pop() : '-'}
+                      <TableCell sx={{ fontSize: "0.7rem", fontFamily: "monospace" }}>
+                        {job.ms_path ? job.ms_path.split("/").pop() : "-"}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -1847,7 +2407,7 @@ export default function ControlPage() {
               </Table>
             </TableContainer>
           </Paper>
-          
+
           {/* Error Alert */}
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
@@ -1857,19 +2417,20 @@ export default function ControlPage() {
             <Box
               sx={{
                 height: 400,
-                overflow: 'auto',
-                bgcolor: '#1e1e1e',
+                overflow: "auto",
+                bgcolor: "#1e1e1e",
                 p: 2,
                 borderRadius: 1,
-                fontFamily: 'monospace',
-                fontSize: '0.75rem',
-                color: '#00ff00',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
+                fontFamily: "monospace",
+                fontSize: "0.75rem",
+                color: "#00ff00",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
               }}
             >
-              {logContent || (selectedJobId === null ? 'Select a job to view logs' : 'No logs yet...')}
-        </Box>
+              {logContent ||
+                (selectedJobId === null ? "Select a job to view logs" : "No logs yet...")}
+            </Box>
           </Paper>
         </Box>
       </Box>

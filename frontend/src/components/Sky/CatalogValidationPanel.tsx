@@ -1,7 +1,7 @@
 /**
  * CatalogValidationPanel Component - Display catalog validation results
  */
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Box,
   Paper,
@@ -16,28 +16,30 @@ import {
   CircularProgress,
   Stack,
   Divider,
-} from '@mui/material';
-import { CheckCircle, Error, Warning } from '@mui/icons-material';
-import { useCatalogValidation, useRunCatalogValidation } from '../../api/queries';
-import type { CatalogValidationResult } from '../../api/types';
+} from "@mui/material";
+import { CheckCircle, Error, Warning } from "@mui/icons-material";
+import { useCatalogValidation, useRunCatalogValidation } from "../../api/queries";
+import type { CatalogValidationResult } from "../../api/types";
 
 interface CatalogValidationPanelProps {
   imageId: string | null;
-  catalog?: 'nvss' | 'vlass';
+  catalog?: "nvss" | "vlass";
 }
 
 export default function CatalogValidationPanel({
   imageId,
-  catalog: initialCatalog = 'nvss',
+  catalog: initialCatalog = "nvss",
 }: CatalogValidationPanelProps) {
-  const [catalog, setCatalog] = useState<'nvss' | 'vlass'>(initialCatalog);
-  const [validationType, setValidationType] = useState<'all' | 'astrometry' | 'flux_scale' | 'source_counts'>('all');
+  const [catalog, setCatalog] = useState<"nvss" | "vlass">(initialCatalog);
+  const [validationType, setValidationType] = useState<
+    "all" | "astrometry" | "flux_scale" | "source_counts"
+  >("all");
 
-  const { data: validationResults, isLoading, error } = useCatalogValidation(
-    imageId,
-    catalog,
-    validationType === 'all' ? 'all' : validationType
-  );
+  const {
+    data: validationResults,
+    isLoading,
+    error,
+  } = useCatalogValidation(imageId, catalog, validationType === "all" ? "all" : validationType);
 
   const runValidation = useRunCatalogValidation();
 
@@ -46,37 +48,38 @@ export default function CatalogValidationPanel({
     runValidation.mutate({
       imageId,
       catalog,
-      validationTypes: ['astrometry', 'flux_scale', 'source_counts'],
+      validationTypes: ["astrometry", "flux_scale", "source_counts"],
     });
   };
 
   const renderValidationResult = (result: CatalogValidationResult | undefined, title: string) => {
     if (!result) return null;
 
-    const statusColor = result.has_issues ? 'error' : result.has_warnings ? 'warning' : 'success';
+    const statusColor = result.has_issues ? "error" : result.has_warnings ? "warning" : "success";
     const StatusIcon = result.has_issues ? Error : result.has_warnings ? Warning : CheckCircle;
 
     return (
       <Paper sx={{ p: 2, mb: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
           <StatusIcon color={statusColor} sx={{ mr: 1 }} />
           <Typography variant="h6">{title}</Typography>
           <Chip
-            label={result.has_issues ? 'Issues' : result.has_warnings ? 'Warnings' : 'Pass'}
+            label={result.has_issues ? "Issues" : result.has_warnings ? "Warnings" : "Pass"}
             color={statusColor}
             size="small"
-            sx={{ ml: 'auto' }}
+            sx={{ ml: "auto" }}
           />
         </Box>
 
         <Stack spacing={1}>
           <Box>
             <Typography variant="body2" color="text.secondary">
-              Matched: {result.n_matched} / {result.n_detected} detected, {result.n_catalog} catalog sources
+              Matched: {result.n_matched} / {result.n_detected} detected, {result.n_catalog} catalog
+              sources
             </Typography>
           </Box>
 
-          {result.validation_type === 'astrometry' && (
+          {result.validation_type === "astrometry" && (
             <>
               {result.mean_offset_arcsec !== undefined && (
                 <Typography variant="body2">
@@ -95,13 +98,14 @@ export default function CatalogValidationPanel({
               )}
               {result.offset_ra_arcsec !== undefined && result.offset_dec_arcsec !== undefined && (
                 <Typography variant="body2">
-                  RA Offset: {result.offset_ra_arcsec.toFixed(2)} arcsec, Dec Offset: {result.offset_dec_arcsec.toFixed(2)} arcsec
+                  RA Offset: {result.offset_ra_arcsec.toFixed(2)} arcsec, Dec Offset:{" "}
+                  {result.offset_dec_arcsec.toFixed(2)} arcsec
                 </Typography>
               )}
             </>
           )}
 
-          {result.validation_type === 'flux_scale' && (
+          {result.validation_type === "flux_scale" && (
             <>
               {result.mean_flux_ratio !== undefined && (
                 <Typography variant="body2">
@@ -121,7 +125,7 @@ export default function CatalogValidationPanel({
             </>
           )}
 
-          {result.validation_type === 'source_counts' && (
+          {result.validation_type === "source_counts" && (
             <>
               {result.completeness !== undefined && (
                 <Typography variant="body2">
@@ -174,7 +178,7 @@ export default function CatalogValidationPanel({
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
         <FormControl sx={{ minWidth: 150 }}>
           <InputLabel>Catalog</InputLabel>
-          <Select value={catalog} onChange={(e) => setCatalog(e.target.value as 'nvss' | 'vlass')}>
+          <Select value={catalog} onChange={(e) => setCatalog(e.target.value as "nvss" | "vlass")}>
             <MenuItem value="nvss">NVSS</MenuItem>
             <MenuItem value="vlass">VLASS</MenuItem>
           </Select>
@@ -198,37 +202,38 @@ export default function CatalogValidationPanel({
           onClick={handleRunValidation}
           disabled={!imageId || runValidation.isPending}
         >
-          {runValidation.isPending ? <CircularProgress size={20} /> : 'Run Validation'}
+          {runValidation.isPending ? <CircularProgress size={20} /> : "Run Validation"}
         </Button>
       </Stack>
 
       <Divider sx={{ my: 2 }} />
 
       {isLoading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
           <CircularProgress />
         </Box>
       )}
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          Error loading validation results: {error instanceof Error ? error.message : 'Unknown error'}
+          Error loading validation results:{" "}
+          {error instanceof Error ? error.message : "Unknown error"}
         </Alert>
       )}
 
       {validationResults && (
         <>
-          {validationType === 'all' || validationType === 'astrometry' ? (
-            renderValidationResult(validationResults.astrometry, 'Astrometry Validation')
-          ) : null}
+          {validationType === "all" || validationType === "astrometry"
+            ? renderValidationResult(validationResults.astrometry, "Astrometry Validation")
+            : null}
 
-          {validationType === 'all' || validationType === 'flux_scale' ? (
-            renderValidationResult(validationResults.flux_scale, 'Flux Scale Validation')
-          ) : null}
+          {validationType === "all" || validationType === "flux_scale"
+            ? renderValidationResult(validationResults.flux_scale, "Flux Scale Validation")
+            : null}
 
-          {validationType === 'all' || validationType === 'source_counts' ? (
-            renderValidationResult(validationResults.source_counts, 'Source Counts Validation')
-          ) : null}
+          {validationType === "all" || validationType === "source_counts"
+            ? renderValidationResult(validationResults.source_counts, "Source Counts Validation")
+            : null}
         </>
       )}
 
@@ -240,4 +245,3 @@ export default function CatalogValidationPanel({
     </Box>
   );
 }
-

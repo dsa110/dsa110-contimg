@@ -14,7 +14,7 @@ import os
 import sqlite3
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 from astropy.coordinates import EarthLocation, SkyCoord
@@ -26,9 +26,11 @@ from dsa110_contimg.conversion.config import CalibratorMSConfig
 from dsa110_contimg.database.data_registry import (
     ensure_data_registry_db,
     get_data,
+    link_photometry_to_data,
 )
 from dsa110_contimg.database.products import ensure_products_db
 from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
+from dsa110_contimg.photometry.helpers import query_sources_for_mosaic
 from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
 logger = logging.getLogger(__name__)
@@ -53,6 +55,8 @@ class MosaicOrchestrator:
         mosaic_output_dir: Optional[Path] = None,
         input_dir: Optional[Path] = None,
         observatory_location: Optional[EarthLocation] = None,
+        enable_photometry: bool = False,
+        photometry_config: Optional[Dict[str, Any]] = None,
     ):
         """Initialize mosaic orchestrator.
 
@@ -65,6 +69,12 @@ class MosaicOrchestrator:
             mosaic_output_dir: Directory for mosaics (defaults from env)
             input_dir: Input directory for HDF5 files (defaults from env)
             observatory_location: Observatory location (defaults to DSA-110)
+            enable_photometry: Enable automatic photometry after mosaic creation
+            photometry_config: Photometry configuration dict with keys:
+                catalog (str): Catalog to use ("nvss", "first", etc.)
+                radius_deg (float): Search radius in degrees
+                normalize (bool): Enable normalization
+                max_sources (int): Maximum sources to measure
         """
         # Determine paths from environment or defaults
         state_dir = Path(os.getenv("PIPELINE_STATE_DIR", "/data/dsa110-contimg/state"))
@@ -91,9 +101,7 @@ class MosaicOrchestrator:
         self.mosaic_output_dir = mosaic_output_dir or (output_base / "mosaics")
 
         # Input directory
-        self.input_dir = input_dir or Path(
-            os.getenv("CONTIMG_INPUT_DIR", "/data/incoming")
-        )
+        self.input_dir = input_dir or Path(os.getenv("CONTIMG_INPUT_DIR", "/data/incoming"))
 
         # Observatory location
         if observatory_location is None:
@@ -110,15 +118,22 @@ class MosaicOrchestrator:
         # Initialize calibrator service for transit finding
         try:
             config = CalibratorMSConfig.from_env()
-            self.calibrator_service = CalibratorMSGenerator.from_config(
-                config, verbose=False
-            )
+            self.calibrator_service = CalibratorMSGenerator.from_config(config, verbose=False)
         except Exception as e:
             logger.warning(f"Could not initialize calibrator service: {e}")
             self.calibrator_service = None
 
         # Initialize streaming mosaic manager (lazy, after we know what we're doing)
         self.mosaic_manager: Optional[StreamingMosaicManager] = None
+
+        # Photometry configuration
+        self.enable_photometry = enable_photometry
+        self.photometry_config = photometry_config or {
+            "catalog": "nvss",
+            "radius_deg": 1.0,
+            "normalize": False,
+            "max_sources": None,
+        }
 
     def _get_mosaic_manager(self) -> StreamingMosaicManager:
         """Get or create StreamingMosaicManager instance."""
@@ -133,9 +148,7 @@ class MosaicOrchestrator:
             )
         return self.mosaic_manager
 
-    def find_earliest_incomplete_window(
-        self, max_days_back: int = 60
-    ) -> Optional[Dict]:
+    def find_earliest_incomplete_window(self, max_days_back: int = 60) -> Optional[Dict]:
         """Find earliest incomplete observation window (has data, no published mosaic).
 
         This implements the default behavior: process earliest data first.
@@ -264,9 +277,7 @@ class MosaicOrchestrator:
         # Calculate end time using TimeDelta with explicit units
         from astropy.time import TimeDelta
 
-        end_time = start_time + TimeDelta(
-            DEFAULT_MOSAIC_SPAN_MINUTES * 60, format="sec"
-        )
+        end_time = start_time + TimeDelta(DEFAULT_MOSAIC_SPAN_MINUTES * 60, format="sec")
 
         return {
             "start_time": start_time,
@@ -366,10 +377,10 @@ class MosaicOrchestrator:
             True if conversion triggered successfully, False otherwise
         """
         try:
+            from dsa110_contimg.conversion.config import CalibratorMSConfig
             from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
                 convert_subband_groups_to_ms,
             )
-            from dsa110_contimg.conversion.config import CalibratorMSConfig
             from dsa110_contimg.utils.ms_organization import create_path_mapper
 
             # Get input/output directories from environment
@@ -377,19 +388,13 @@ class MosaicOrchestrator:
             output_dir = self.ms_output_dir
 
             # Convert time range to strings for orchestrator
-            start_str = (
-                start_time.isot.split("T")[0] + " " + start_time.isot.split("T")[1]
-            )
+            start_str = start_time.isot.split("T")[0] + " " + start_time.isot.split("T")[1]
             end_str = end_time.isot.split("T")[0] + " " + end_time.isot.split("T")[1]
 
             # Create path mapper for organized output
-            path_mapper = create_path_mapper(
-                output_dir, is_calibrator=False, is_failed=False
-            )
+            path_mapper = create_path_mapper(output_dir, is_calibrator=False, is_failed=False)
 
-            logger.info(
-                f"Triggering HDF5 conversion for window: {start_str} to {end_str}"
-            )
+            logger.info(f"Triggering HDF5 conversion for window: {start_str} to {end_str}")
 
             # Trigger conversion
             convert_subband_groups_to_ms(
@@ -401,9 +406,7 @@ class MosaicOrchestrator:
                 writer="auto",
                 writer_kwargs={
                     "max_workers": int(os.getenv("CONTIMG_MAX_WORKERS", "4")),
-                    "stage_to_tmpfs": os.getenv(
-                        "CONTIMG_STAGE_TO_TMPFS", "false"
-                    ).lower()
+                    "stage_to_tmpfs": os.getenv("CONTIMG_STAGE_TO_TMPFS", "false").lower()
                     == "true",
                     "tmpfs_path": os.getenv("CONTIMG_TMPFS_PATH", "/dev/shm"),
                 },
@@ -478,11 +481,7 @@ class MosaicOrchestrator:
             existing_ms = [row[0] for row in rows]
             logger.info(f"After conversion: {len(existing_ms)} MS files found")
 
-        return (
-            existing_ms[:required_count]
-            if len(existing_ms) >= required_count
-            else existing_ms
-        )
+        return existing_ms[:required_count] if len(existing_ms) >= required_count else existing_ms
 
     def _form_group_from_ms_paths(self, ms_paths: List[str], group_id: str) -> bool:
         """Manually form a group from specific MS file paths.
@@ -554,9 +553,7 @@ class MosaicOrchestrator:
             group_id, calibration_ms
         )
         if error_msg:
-            logger.error(
-                f"Calibration solving failed for group {group_id}: {error_msg}"
-            )
+            logger.error(f"Calibration solving failed for group {group_id}: {error_msg}")
             return None
 
         # Apply calibration
@@ -576,7 +573,114 @@ class MosaicOrchestrator:
             return None
 
         logger.info(f"Successfully processed group {group_id}, mosaic: {mosaic_path}")
+
+        # Trigger photometry if enabled
+        if self.enable_photometry and mosaic_path:
+            photometry_job_id = self._trigger_photometry_for_mosaic(
+                mosaic_path=Path(mosaic_path),
+                group_id=group_id,
+            )
+            if photometry_job_id:
+                logger.info(f"Photometry job {photometry_job_id} created for mosaic {mosaic_path}")
+                # Link photometry job to data registry
+                try:
+                    mosaic_data_id = Path(mosaic_path).stem
+                    if link_photometry_to_data(
+                        self.data_registry_db, mosaic_data_id, str(photometry_job_id)
+                    ):
+                        logger.debug(
+                            f"Linked photometry job {photometry_job_id} to mosaic data_id {mosaic_data_id}"
+                        )
+                    else:
+                        logger.debug(
+                            f"Could not link photometry job (mosaic data_id {mosaic_data_id} may not exist in registry)"
+                        )
+                except Exception as e:
+                    logger.debug(f"Failed to link photometry to data registry (non-fatal): {e}")
+            else:
+                logger.warning(f"No photometry job created for mosaic {mosaic_path}")
+
         return mosaic_path
+
+    def _trigger_photometry_for_mosaic(
+        self,
+        mosaic_path: Path,
+        group_id: str,
+    ) -> Optional[int]:
+        """Trigger photometry measurement for a newly created mosaic.
+
+        Args:
+            mosaic_path: Path to mosaic FITS file
+            group_id: Mosaic group ID
+
+        Returns:
+            Batch job ID if successful, None otherwise
+        """
+        if not mosaic_path.exists():
+            logger.warning(f"Mosaic FITS file not found: {mosaic_path}")
+            return None
+
+        try:
+            from dsa110_contimg.api.batch_jobs import create_batch_photometry_job
+
+            # Query sources for the mosaic field
+            sources = query_sources_for_mosaic(
+                mosaic_path,
+                catalog=self.photometry_config.get("catalog", "nvss"),
+                radius_deg=self.photometry_config.get("radius_deg", 1.0),
+                max_sources=self.photometry_config.get("max_sources", None),
+            )
+
+            if not sources:
+                logger.info(f"No sources found for photometry in mosaic {mosaic_path}")
+                return None
+
+            # Extract coordinates from sources
+            coordinates = [
+                {
+                    "ra_deg": float(src.get("ra", src.get("ra_deg", 0.0))),
+                    "dec_deg": float(src.get("dec", src.get("dec_deg", 0.0))),
+                }
+                for src in sources
+            ]
+
+            logger.info(
+                f"Found {len(coordinates)} sources for photometry in mosaic {mosaic_path.name}"
+            )
+
+            # Prepare batch job parameters
+            params = {
+                "method": "peak",
+                "normalize": self.photometry_config.get("normalize", False),
+            }
+
+            # Get products DB connection
+            conn = ensure_products_db(self.products_db_path)
+
+            # Generate data_id from mosaic path (stem without extension)
+            mosaic_data_id = mosaic_path.stem
+
+            # Create batch photometry job
+            batch_job_id = create_batch_photometry_job(
+                conn=conn,
+                job_type="batch_photometry",
+                fits_paths=[str(mosaic_path)],
+                coordinates=coordinates,
+                params=params,
+                data_id=mosaic_data_id,
+            )
+
+            logger.info(
+                f"Created photometry batch job {batch_job_id} for mosaic {mosaic_path.name}"
+            )
+            return batch_job_id
+
+        except Exception as e:
+            logger.error(
+                f"Failed to trigger photometry for mosaic {mosaic_path}: {e}",
+                exc_info=True,
+            )
+            return None
 
     def create_mosaic_centered_on_calibrator(
         self,
@@ -600,14 +704,10 @@ class MosaicOrchestrator:
         Returns:
             Published mosaic path, or None if failed
         """
-        logger.info(
-            f"Creating {timespan_minutes}-minute mosaic centered on {calibrator_name}"
-        )
+        logger.info(f"Creating {timespan_minutes}-minute mosaic centered on {calibrator_name}")
 
         # Find transit-centered window
-        window_info = self.find_transit_centered_window(
-            calibrator_name, timespan_minutes
-        )
+        window_info = self.find_transit_centered_window(calibrator_name, timespan_minutes)
         if not window_info:
             logger.error(f"Could not find transit window for {calibrator_name}")
             return None
@@ -624,24 +724,16 @@ class MosaicOrchestrator:
         )
 
         # Ensure MS files exist in window
-        ms_paths = self.ensure_ms_files_in_window(
-            start_time, end_time, required_ms_count
-        )
+        ms_paths = self.ensure_ms_files_in_window(start_time, end_time, required_ms_count)
         if len(ms_paths) < required_ms_count:
             # Allow asymmetric mosaics if data availability requires it
             if len(ms_paths) < 3:
-                logger.error(
-                    f"Only {len(ms_paths)} MS files available, need at least 3"
-                )
+                logger.error(f"Only {len(ms_paths)} MS files available, need at least 3")
                 return None
-            logger.warning(
-                f"Only {len(ms_paths)} MS files available, creating asymmetric mosaic"
-            )
+            logger.warning(f"Only {len(ms_paths)} MS files available, creating asymmetric mosaic")
 
         # Form group ID (sanitize transit time for use as identifier)
-        transit_str = (
-            transit_time.isot.replace(":", "-").replace(".", "-").replace("T", "_")
-        )
+        transit_str = transit_time.isot.replace(":", "-").replace(".", "-").replace("T", "_")
         group_id = f"mosaic_{transit_str}"
         if not self._form_group_from_ms_paths(ms_paths, group_id):
             logger.error("Failed to form group")
@@ -694,9 +786,7 @@ class MosaicOrchestrator:
         Returns:
             Published mosaic path, or None if failed
         """
-        logger.info(
-            "Creating mosaic using default behavior (earliest incomplete window)"
-        )
+        logger.info("Creating mosaic using default behavior (earliest incomplete window)")
 
         # Find earliest incomplete window
         window_info = self.find_earliest_incomplete_window()
@@ -718,22 +808,99 @@ class MosaicOrchestrator:
         )
 
         # Ensure MS files exist in window
-        ms_paths = self.ensure_ms_files_in_window(
-            start_time, end_time, required_ms_count
-        )
+        ms_paths = self.ensure_ms_files_in_window(start_time, end_time, required_ms_count)
         if len(ms_paths) < required_ms_count:
             # Allow asymmetric mosaics if data availability requires it
             if len(ms_paths) < 3:
-                logger.error(
-                    f"Only {len(ms_paths)} MS files available, need at least 3"
-                )
+                logger.error(f"Only {len(ms_paths)} MS files available, need at least 3")
                 return None
-            logger.warning(
-                f"Only {len(ms_paths)} MS files available, creating asymmetric mosaic"
-            )
+            logger.warning(f"Only {len(ms_paths)} MS files available, creating asymmetric mosaic")
 
         # Form group
         group_id = f"mosaic_default_{start_time.isot.replace(':', '-').replace('.', '-').replace('T', '_')}"
+        if not self._form_group_from_ms_paths(ms_paths, group_id):
+            logger.error("Failed to form group")
+            return None
+
+        # Process the group: calibration → imaging → mosaic creation
+        logger.info(f"Processing group {group_id}...")
+        mosaic_path = self._process_group_workflow(group_id)
+
+        if not mosaic_path:
+            logger.error("Mosaic creation failed")
+            return None
+
+        logger.info(f"Mosaic created at: {mosaic_path}")
+
+        # Extract mosaic ID from path
+        mosaic_id = Path(mosaic_path).stem
+
+        if wait_for_published:
+            logger.info("Waiting for mosaic to be published...")
+            published_path = self.wait_for_published(
+                mosaic_id, poll_interval_seconds, max_wait_hours
+            )
+            if published_path:
+                logger.info(f"Mosaic published at: {published_path}")
+                return published_path
+            else:
+                logger.error("Mosaic was not published within timeout")
+                return None
+
+        return mosaic_path
+
+    def create_mosaic_in_time_window(
+        self,
+        start_time: str,
+        end_time: str,
+        wait_for_published: bool = True,
+        poll_interval_seconds: int = 5,
+        max_wait_hours: float = 24.0,
+    ) -> Optional[str]:
+        """Create mosaic for a specific time window.
+
+        Args:
+            start_time: Start time in ISO format (e.g., "2025-11-12T10:00:00")
+            end_time: End time in ISO format (e.g., "2025-11-12T10:50:00")
+            wait_for_published: Wait until mosaic is published (default: True)
+            poll_interval_seconds: Polling interval for published status (default: 5)
+            max_wait_hours: Maximum hours to wait (default: 24)
+
+        Returns:
+            Published mosaic path, or None if failed
+        """
+        logger.info(f"Creating mosaic for time window: {start_time} to {end_time}")
+
+        # Parse time strings to Time objects
+        try:
+            start_time_obj = Time(start_time, format="isot", scale="utc")
+            end_time_obj = Time(end_time, format="isot", scale="utc")
+        except Exception as e:
+            logger.error(f"Invalid time format: {e}")
+            return None
+
+        # Calculate timespan and required MS count
+        timespan_minutes = (end_time_obj - start_time_obj).to("min").value
+        required_ms_count = int(timespan_minutes / MS_DURATION_MINUTES)
+
+        logger.info(
+            f"Time window: {start_time_obj.isot} to {end_time_obj.isot}\n"
+            f"Timespan: {timespan_minutes:.1f} minutes\n"
+            f"Required MS files: {required_ms_count}"
+        )
+
+        # Ensure MS files exist in window
+        ms_paths = self.ensure_ms_files_in_window(start_time_obj, end_time_obj, required_ms_count)
+        if len(ms_paths) < required_ms_count:
+            # Allow asymmetric mosaics if data availability requires it
+            if len(ms_paths) < 3:
+                logger.error(f"Only {len(ms_paths)} MS files available, need at least 3")
+                return None
+            logger.warning(f"Only {len(ms_paths)} MS files available, creating asymmetric mosaic")
+
+        # Form group ID (sanitize start time for use as identifier)
+        start_str = start_time_obj.isot.replace(":", "-").replace(".", "-").replace("T", "_")
+        group_id = f"mosaic_{start_str}"
         if not self._form_group_from_ms_paths(ms_paths, group_id):
             logger.error("Failed to form group")
             return None
@@ -860,9 +1027,7 @@ class MosaicOrchestrator:
                     if published_path and Path(published_path).exists():
                         return published_path
                     else:
-                        logger.warning(
-                            f"Mosaic {mosaic_id} marked published but file not found"
-                        )
+                        logger.warning(f"Mosaic {mosaic_id} marked published but file not found")
 
             time.sleep(poll_interval_seconds)
 

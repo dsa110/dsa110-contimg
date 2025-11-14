@@ -87,13 +87,9 @@ export function createRetryInterceptor(options: RetryOptions = {}) {
     }
 
     // Retry the request
-    return retryWithBackoff(
-      async () => {
-        // Re-throw to let axios handle the retry
-        throw error;
-      },
-      options
-    );
+    return retryWithBackoff(async () => {
+      // Re-throw to let axios handle the retry
+      throw error;
+    }, options);
   };
 }
-

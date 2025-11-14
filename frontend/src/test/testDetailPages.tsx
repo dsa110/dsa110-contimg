@@ -1,6 +1,6 @@
 /**
  * Test utilities for detail pages.
- * 
+ *
  * Mock data generators for testing SourceDetailPage and ImageDetailPage
  * without requiring a running backend.
  */
@@ -53,7 +53,7 @@ export const mockDetectionList = {
       name: null,
       image_id: 2,
       image_path: "/data/images/image_002.fits",
-      ra: 123.456790,
+      ra: 123.45679,
       dec: 42.123457,
       flux_peak: 48.7,
       flux_peak_err: 5.8,
@@ -137,7 +137,7 @@ export const mockMeasurementList = {
       id: null,
       name: null,
       source_id: "NVSS J123457+420313",
-      ra: 123.456790,
+      ra: 123.45679,
       dec: 42.123457,
       flux_peak: 38.7,
       flux_peak_err: 4.8,
@@ -154,4 +154,3 @@ export const mockMeasurementList = {
   page: 1,
   page_size: 25,
 };
-

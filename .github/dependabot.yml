@@ -1,0 +1,50 @@
+version: 2
+updates:
+  # Frontend dependencies
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "jakobtfaber"
+    labels:
+      - "dependencies"
+      - "frontend"
+    commit-message:
+      prefix: "chore(frontend)"
+      include: "scope"
+    # Group updates to reduce PR noise
+    groups:
+      frontend-dependencies:
+        patterns:
+          - "@mui/*"
+          - "@types/*"
+          - "react*"
+          - "typescript"
+          - "vite"
+      frontend-dev-dependencies:
+        patterns:
+          - "eslint*"
+          - "prettier"
+          - "@testing-library/*"
+          - "vitest"
+          - "playwright"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "jakobtfaber"
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "chore(ci)"

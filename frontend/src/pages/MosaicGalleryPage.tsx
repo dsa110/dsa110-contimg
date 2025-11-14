@@ -2,7 +2,7 @@
  * Mosaic Gallery Page
  * Time-range query interface for hour-long mosaics
  */
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Container,
   Typography,
@@ -14,25 +14,27 @@ import {
   CardContent,
   CardActions,
   Alert,
-  CircularProgress,
   Chip,
-} from '@mui/material';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { Download, ImageSearch } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import dayjs, { Dayjs } from 'dayjs';
-import { useMosaicQuery, useCreateMosaic } from '../api/queries';
-import type { Mosaic } from '../api/types';
+} from "@mui/material";
+import { SkeletonLoader } from "../components/SkeletonLoader";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { Download, ImageSearch, Image } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import dayjs, { Dayjs } from "dayjs";
+import { useMosaicQuery, useCreateMosaic } from "../api/queries";
+import type { Mosaic } from "../api/types";
+import { EmptyState } from "../components/EmptyState";
 
 export default function MosaicGalleryPage() {
   const navigate = useNavigate();
-  const [startTime, setStartTime] = useState<Dayjs | null>(dayjs().subtract(1, 'hour'));
+  const [startTime, setStartTime] = useState<Dayjs | null>(dayjs().subtract(1, "hour"));
   const [endTime, setEndTime] = useState<Dayjs | null>(dayjs());
-  const [queryRequest, setQueryRequest] = useState<{ start_time: string; end_time: string } | null>(
-    null
-  );
+  const [queryRequest, setQueryRequest] = useState<{
+    start_time: string;
+    end_time: string;
+  } | null>(null);
 
   const { data, isLoading, error } = useMosaicQuery(queryRequest);
   const createMosaic = useCreateMosaic();
@@ -57,29 +59,29 @@ export default function MosaicGalleryPage() {
 
   const getMosaicStatus = (mosaic: Mosaic) => {
     switch (mosaic.status) {
-      case 'completed':
-        return { color: 'success' as const, label: 'Completed' };
-      case 'in_progress':
-        return { color: 'info' as const, label: 'In Progress' };
-      case 'pending':
-        return { color: 'warning' as const, label: 'Pending' };
-      case 'failed':
-        return { color: 'error' as const, label: 'Failed' };
+      case "completed":
+        return { color: "success" as const, label: "Completed" };
+      case "in_progress":
+        return { color: "info" as const, label: "In Progress" };
+      case "pending":
+        return { color: "warning" as const, label: "Pending" };
+      case "failed":
+        return { color: "error" as const, label: "Failed" };
       default:
-        return { color: 'default' as const, label: mosaic.status };
+        return { color: "default" as const, label: mosaic.status };
     }
   };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Typography variant="h3" gutterBottom sx={{ mb: 4 }}>
+        <Typography variant="h2" component="h2" gutterBottom sx={{ mb: 4 }}>
           Mosaic Gallery
         </Typography>
 
         {/* Query Interface */}
         <Paper sx={{ p: 3, mb: 4 }}>
-          <Typography variant="h5" gutterBottom>
+          <Typography variant="h6" gutterBottom>
             Time Range Query
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -91,13 +93,13 @@ export default function MosaicGalleryPage() {
               label="Start Time (UTC)"
               value={startTime}
               onChange={setStartTime}
-              slotProps={{ textField: { size: 'small' } }}
+              slotProps={{ textField: { size: "small" } }}
             />
             <DateTimePicker
               label="End Time (UTC)"
               value={endTime}
               onChange={setEndTime}
-              slotProps={{ textField: { size: 'small' } }}
+              slotProps={{ textField: { size: "small" } }}
             />
             <Button
               variant="contained"
@@ -112,24 +114,20 @@ export default function MosaicGalleryPage() {
               onClick={handleCreateMosaic}
               disabled={!startTime || !endTime || createMosaic.isPending}
             >
-              {createMosaic.isPending ? 'Creating...' : 'Create New Mosaic'}
+              {createMosaic.isPending ? "Creating..." : "Create New Mosaic"}
             </Button>
           </Box>
 
           {startTime && endTime && (
             <Alert severity="info" sx={{ mt: 2 }}>
-              Duration: {endTime.diff(startTime, 'minute')} minutes (
-              {endTime.diff(startTime, 'hour', true).toFixed(2)} hours)
+              Duration: {endTime.diff(startTime, "minute")} minutes (
+              {endTime.diff(startTime, "hour", true).toFixed(2)} hours)
             </Alert>
           )}
         </Paper>
 
         {/* Results */}
-        {isLoading && (
-          <Box display="flex" justifyContent="center" py={4}>
-            <CircularProgress />
-          </Box>
-        )}
+        {isLoading && <SkeletonLoader variant="cards" rows={3} />}
 
         {error && (
           <Alert severity="warning">
@@ -138,17 +136,38 @@ export default function MosaicGalleryPage() {
         )}
 
         {data && data.mosaics.length === 0 && queryRequest && (
-          <Alert severity="info">
-            No mosaics found for the selected time range. Try creating a new one!
-          </Alert>
+          <EmptyState
+            icon={<Image sx={{ fontSize: 64, color: "text.secondary" }} />}
+            title="No mosaics found"
+            description="No mosaics found for the selected time range. Try adjusting the time range or create a new mosaic from the Control page."
+            actions={[
+              <Button
+                key="control"
+                variant="contained"
+                onClick={() => navigate("/pipeline-control")}
+              >
+                Go to Control
+              </Button>,
+            ]}
+          />
         )}
 
         {data && data.mosaics.length > 0 && (
           <>
             <Typography variant="h6" gutterBottom>
-              Found {data.total} mosaic{data.total !== 1 ? 's' : ''}
+              Found {data.total} mosaic{data.total !== 1 ? "s" : ""}
             </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 3 }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "1fr 1fr",
+                  md: "1fr 1fr 1fr",
+                },
+                gap: 3,
+              }}
+            >
               {data.mosaics.map((mosaic) => {
                 const status = getMosaicStatus(mosaic);
                 return (
@@ -158,26 +177,29 @@ export default function MosaicGalleryPage() {
                         component="div"
                         sx={{
                           height: 200,
-                          bgcolor: '#1e1e1e',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
+                          bgcolor: "#1e1e1e",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
                       >
                         {mosaic.thumbnail_path ? (
                           <img
                             src={mosaic.thumbnail_path}
                             alt={mosaic.name}
-                            style={{ maxWidth: '100%', maxHeight: '100%' }}
+                            style={{ maxWidth: "100%", maxHeight: "100%" }}
                           />
                         ) : (
-                          <Typography color="text.secondary">
-                            Preview not available
-                          </Typography>
+                          <Typography color="text.secondary">Preview not available</Typography>
                         )}
                       </CardMedia>
                       <CardContent>
-                        <Box display="flex" justifyContent="space-between" alignItems="start" mb={1}>
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="start"
+                          mb={1}
+                        >
                           <Typography variant="h6" component="div" noWrap>
                             {mosaic.name}
                           </Typography>
@@ -212,7 +234,7 @@ export default function MosaicGalleryPage() {
                         <Button size="small" startIcon={<Download />}>
                           PNG
                         </Button>
-                        <Button 
+                        <Button
                           size="small"
                           onClick={() => mosaic.id && navigate(`/mosaics/${mosaic.id}`)}
                         >
@@ -230,4 +252,3 @@ export default function MosaicGalleryPage() {
     </LocalizationProvider>
   );
 }
-

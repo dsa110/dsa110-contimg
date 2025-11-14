@@ -2,7 +2,7 @@
  * Image Fitting Tool Component
  * UI controls for fitting 2D models (Gaussian, Moffat) to sources in images
  */
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Box,
   Paper,
@@ -16,11 +16,11 @@ import {
   CircularProgress,
   Switch,
   FormControlLabel,
-} from '@mui/material';
-import FittingVisualization from './FittingVisualization';
-import type { FitResult } from './FittingVisualization';
-import { useImageFitting } from '../../api/queries';
-import { useRegions } from '../../api/queries';
+} from "@mui/material";
+import FittingVisualization from "./FittingVisualization";
+import type { FitResult } from "./FittingVisualization";
+import { useImageFitting } from "../../api/queries";
+import { useRegions } from "../../api/queries";
 
 interface ImageFittingToolProps {
   displayId: string;
@@ -35,24 +35,19 @@ export default function ImageFittingTool({
   imagePath,
   onFitComplete,
 }: ImageFittingToolProps) {
-  const [model, setModel] = useState<'gaussian' | 'moffat'>('gaussian');
+  const [model, setModel] = useState<"gaussian" | "moffat">("gaussian");
   const [regionId, setRegionId] = useState<number | null>(null);
   const [fitBackground, setFitBackground] = useState(true);
   const [showFit, setShowFit] = useState(true);
 
-  const {
-    data: fitResult,
-    isPending: isLoading,
-    error,
-    mutate: performFit,
-  } = useImageFitting();
+  const { data: fitResult, isPending: isLoading, error, mutate: performFit } = useImageFitting();
 
   // Get regions for this image
   const { data: regionsData } = useRegions(imagePath);
 
   const handleFit = () => {
     if (!imageId) {
-      alert('Please select an image first');
+      alert("Please select an image first");
       return;
     }
 
@@ -86,7 +81,7 @@ export default function ImageFittingTool({
           <Select
             value={model}
             label="Model"
-            onChange={(e) => setModel(e.target.value as 'gaussian' | 'moffat')}
+            onChange={(e) => setModel(e.target.value as "gaussian" | "moffat")}
           >
             <MenuItem value="gaussian">Gaussian</MenuItem>
             <MenuItem value="moffat">Moffat</MenuItem>
@@ -97,7 +92,7 @@ export default function ImageFittingTool({
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel>Region (Optional)</InputLabel>
             <Select
-              value={regionId || ''}
+              value={regionId || ""}
               label="Region (Optional)"
               onChange={(e) => setRegionId(e.target.value ? Number(e.target.value) : null)}
             >
@@ -113,16 +108,13 @@ export default function ImageFittingTool({
 
         <FormControlLabel
           control={
-            <Switch
-              checked={fitBackground}
-              onChange={(e) => setFitBackground(e.target.checked)}
-            />
+            <Switch checked={fitBackground} onChange={(e) => setFitBackground(e.target.checked)} />
           }
           label="Fit Background"
           sx={{ mb: 2 }}
         />
 
-        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+        <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
           <Button
             variant="contained"
             onClick={handleFit}
@@ -131,24 +123,19 @@ export default function ImageFittingTool({
           >
             Fit Model
           </Button>
-          <Button
-            variant="outlined"
-            onClick={handleClearFit}
-            disabled={!fitResult}
-            fullWidth
-          >
+          <Button variant="outlined" onClick={handleClearFit} disabled={!fitResult} fullWidth>
             Clear Fit
           </Button>
         </Box>
 
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
-            Error fitting model: {error instanceof Error ? error.message : 'Unknown error'}
+            Error fitting model: {error instanceof Error ? error.message : "Unknown error"}
           </Alert>
         )}
 
         {isLoading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
             <CircularProgress size={24} />
             <Typography variant="body2" sx={{ ml: 2 }}>
               Fitting model...
@@ -160,29 +147,15 @@ export default function ImageFittingTool({
       {fitResult && (
         <>
           <FormControlLabel
-            control={
-              <Switch
-                checked={showFit}
-                onChange={(e) => setShowFit(e.target.checked)}
-              />
-            }
+            control={<Switch checked={showFit} onChange={(e) => setShowFit(e.target.checked)} />}
             label="Show Fit Overlay"
             sx={{ mb: 2 }}
           />
-          <FittingVisualization
-            displayId={displayId}
-            fitResult={fitResult}
-            visible={showFit}
-          />
+          <FittingVisualization displayId={displayId} fitResult={fitResult} visible={showFit} />
         </>
       )}
 
-      {!imageId && (
-        <Alert severity="warning">
-          Please select an image to fit models to.
-        </Alert>
-      )}
+      {!imageId && <Alert severity="warning">Please select an image to fit models to.</Alert>}
     </Paper>
   );
 }
-

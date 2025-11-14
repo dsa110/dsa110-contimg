@@ -2,26 +2,16 @@
  * Mosaic View Page
  * JS9 FITS mosaic viewer
  */
-import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Container,
-  Typography,
-  Paper,
-  Box,
-  CircularProgress,
-  Alert,
-  Chip,
-  Button,
-  Grid,
-} from '@mui/material';
-import { ArrowBack } from '@mui/icons-material';
-import SkyViewer from '../components/Sky/SkyViewer';
-import { useMosaic } from '../api/queries';
+import { useParams, useNavigate } from "react-router-dom";
+import { Container, Typography, Paper, Box, Alert, Chip, Button, Grid } from "@mui/material";
+import { ArrowBack } from "@mui/icons-material";
+import SkyViewer from "../components/Sky/SkyViewer";
+import { useMosaic } from "../api/queries";
 
 export default function MosaicViewPage() {
   const { mosaicId } = useParams<{ mosaicId: string }>();
   const navigate = useNavigate();
-  
+
   const numericId = mosaicId ? parseInt(mosaicId, 10) : null;
   const { data: mosaic, isLoading, error } = useMosaic(numericId);
 
@@ -30,25 +20,23 @@ export default function MosaicViewPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'success' as const;
-      case 'in_progress':
-        return 'info' as const;
-      case 'pending':
-        return 'warning' as const;
-      case 'failed':
-        return 'error' as const;
+      case "completed":
+        return "success" as const;
+      case "in_progress":
+        return "info" as const;
+      case "pending":
+        return "warning" as const;
+      case "failed":
+        return "error" as const;
       default:
-        return 'default' as const;
+        return "default" as const;
     }
   };
 
   if (isLoading) {
     return (
       <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-          <CircularProgress />
-        </Box>
+        <SkeletonLoader variant="cards" rows={3} />
       </Container>
     );
   }
@@ -57,13 +45,9 @@ export default function MosaicViewPage() {
     return (
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Alert severity="error">
-          {error ? `Error loading mosaic: ${error}` : 'Mosaic not found'}
+          {error ? `Error loading mosaic: ${error}` : "Mosaic not found"}
         </Alert>
-        <Button
-          startIcon={<ArrowBack />}
-          onClick={() => navigate('/mosaics')}
-          sx={{ mt: 2 }}
-        >
+        <Button startIcon={<ArrowBack />} onClick={() => navigate("/mosaics")} sx={{ mt: 2 }}>
           Back to Gallery
         </Button>
       </Container>
@@ -73,21 +57,13 @@ export default function MosaicViewPage() {
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box display="flex" alignItems="center" gap={2} mb={4}>
-        <Button
-          startIcon={<ArrowBack />}
-          onClick={() => navigate('/mosaics')}
-          variant="outlined"
-        >
+        <Button startIcon={<ArrowBack />} onClick={() => navigate("/mosaics")} variant="outlined">
           Back to Gallery
         </Button>
-        <Typography variant="h3" component="h1">
+        <Typography variant="h1" component="h1">
           {mosaic.name}
         </Typography>
-        <Chip
-          label={mosaic.status}
-          color={getStatusColor(mosaic.status)}
-          size="small"
-        />
+        <Chip label={mosaic.status} color={getStatusColor(mosaic.status)} size="small" />
       </Box>
 
       <Grid container spacing={3}>
@@ -97,7 +73,7 @@ export default function MosaicViewPage() {
             <Typography variant="h6" gutterBottom>
               Mosaic Information
             </Typography>
-            
+
             <Box sx={{ mt: 2 }}>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 <strong>Time Range:</strong>
@@ -107,13 +83,9 @@ export default function MosaicViewPage() {
                 {new Date(mosaic.end_time).toLocaleString()}
               </Typography>
 
-              <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
                 {mosaic.image_count !== undefined && (
-                  <Chip
-                    label={`${mosaic.image_count} images`}
-                    size="small"
-                    variant="outlined"
-                  />
+                  <Chip label={`${mosaic.image_count} images`} size="small" variant="outlined" />
                 )}
                 {mosaic.noise_jy !== undefined && (
                   <Chip
@@ -123,11 +95,7 @@ export default function MosaicViewPage() {
                   />
                 )}
                 {mosaic.source_count !== undefined && (
-                  <Chip
-                    label={`${mosaic.source_count} sources`}
-                    size="small"
-                    variant="outlined"
-                  />
+                  <Chip label={`${mosaic.source_count} sources`} size="small" variant="outlined" />
                 )}
               </Box>
 
@@ -142,7 +110,7 @@ export default function MosaicViewPage() {
               {mosaic.path && (
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="body2" color="text.secondary" noWrap>
-                    <strong>Path:</strong> {mosaic.path.split('/').pop()}
+                    <strong>Path:</strong> {mosaic.path.split("/").pop()}
                   </Typography>
                 </Box>
               )}
@@ -157,15 +125,10 @@ export default function MosaicViewPage() {
               Mosaic Display
             </Typography>
 
-            <SkyViewer
-              imagePath={fitsUrl}
-              displayId="mosaicViewDisplay"
-              height={700}
-            />
+            <SkyViewer imagePath={fitsUrl} displayId="mosaicViewDisplay" height={700} />
           </Paper>
         </Grid>
       </Grid>
     </Container>
   );
 }
-

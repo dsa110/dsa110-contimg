@@ -1,7 +1,7 @@
 /**
  * CasaTableViewer Component - View CASA Measurement Set tables
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Box,
   Paper,
@@ -20,10 +20,10 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-} from '@mui/material';
-import { ExpandMore, TableChart, Info, Refresh } from '@mui/icons-material';
-import { useCasaTableInfo } from '../../api/queries';
-import { apiClient } from '../../api/client';
+} from "@mui/material";
+import { ExpandMore, TableChart, Info, Refresh } from "@mui/icons-material";
+import { useCasaTableInfo } from "../../api/queries";
+import { apiClient } from "../../api/client";
 
 interface CasaTableViewerProps {
   tablePath: string | null;
@@ -36,7 +36,12 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
   const [maxRows, setMaxRows] = useState(10);
   const [maxCols, setMaxCols] = useState(10);
 
-  const { data: tableInfo, isLoading: loadingInfo, error: infoError, refetch } = useCasaTableInfo(tablePath);
+  const {
+    data: tableInfo,
+    isLoading: loadingInfo,
+    error: infoError,
+    refetch,
+  } = useCasaTableInfo(tablePath);
 
   // Load table viewer HTML from API
   const loadViewer = () => {
@@ -55,14 +60,16 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
           max_rows: maxRows,
           max_cols: maxCols,
         },
-        responseType: 'text',
+        responseType: "text",
       })
       .then((response) => {
         setViewerHtml(response.data);
         setLoadingViewer(false);
       })
       .catch((error) => {
-        setViewerError(error.response?.data?.detail || error.message || 'Failed to load table viewer');
+        setViewerError(
+          error.response?.data?.detail || error.message || "Failed to load table viewer"
+        );
         setLoadingViewer(false);
       });
   };
@@ -75,21 +82,29 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
 
   if (!tablePath) {
     return (
-      <Paper sx={{ p: 3, bgcolor: 'background.paper', height: '100%' }}>
+      <Paper sx={{ p: 3, bgcolor: "background.paper", height: "100%" }}>
         <Alert severity="info">Select a CASA table to view</Alert>
       </Paper>
     );
   }
 
   return (
-    <Paper sx={{ p: 2, bgcolor: 'background.paper', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+    <Paper
+      sx={{
+        p: 2,
+        bgcolor: "background.paper",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
         <TableChart />
         <Typography variant="h6">CASA Table Viewer</Typography>
         {tableInfo && (
           <Chip
-            label={tableInfo.exists ? 'Found' : 'Not Found'}
-            color={tableInfo.exists ? 'success' : 'error'}
+            label={tableInfo.exists ? "Found" : "Not Found"}
+            color={tableInfo.exists ? "success" : "error"}
             size="small"
           />
         )}
@@ -106,11 +121,11 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
         </Button>
       </Box>
 
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontFamily: 'monospace' }}>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontFamily: "monospace" }}>
         {tablePath}
       </Typography>
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+      <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
         <TextField
           label="Max Rows"
           type="number"
@@ -136,12 +151,13 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
 
       {infoError && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          Error loading table info: {infoError instanceof Error ? infoError.message : 'Unknown error'}
+          Error loading table info:{" "}
+          {infoError instanceof Error ? infoError.message : "Unknown error"}
         </Alert>
       )}
 
       {loadingInfo && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
           <CircularProgress size={24} />
         </Box>
       )}
@@ -150,16 +166,16 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
         <>
           <Accordion defaultExpanded={false}>
             <AccordionSummary expandIcon={<ExpandMore />}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Info />
                 <Typography>Table Information</Typography>
               </Box>
             </AccordionSummary>
             <AccordionDetails>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <Box>
                   <Typography variant="body2" sx={{ mb: 1 }}>
-                    <strong>Rows:</strong> {tableInfo.nrows?.toLocaleString() || 'N/A'}
+                    <strong>Rows:</strong> {tableInfo.nrows?.toLocaleString() || "N/A"}
                   </Typography>
                   <Typography variant="body2" sx={{ mb: 1 }}>
                     <strong>Columns:</strong> {tableInfo.columns?.length || 0}
@@ -168,8 +184,12 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
                     <strong>Subtables:</strong> {tableInfo.subtables?.length || 0}
                   </Typography>
                   <Typography variant="body2" sx={{ mb: 1 }}>
-                    <strong>Writable:</strong>{' '}
-                    {tableInfo.is_writable !== null ? (tableInfo.is_writable ? 'Yes' : 'No') : 'N/A'}
+                    <strong>Writable:</strong>{" "}
+                    {tableInfo.is_writable !== null
+                      ? tableInfo.is_writable
+                        ? "Yes"
+                        : "No"
+                      : "N/A"}
                   </Typography>
                 </Box>
 
@@ -178,7 +198,7 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
                     <Typography variant="body2" sx={{ mb: 1 }}>
                       <strong>Columns ({tableInfo.columns.length}):</strong>
                     </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                       {tableInfo.columns.map((col) => (
                         <Chip key={col} label={col} size="small" variant="outlined" />
                       ))}
@@ -191,14 +211,20 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
                     <Typography variant="body2" sx={{ mb: 1 }}>
                       <strong>Subtables ({tableInfo.subtables.length}):</strong>
                     </Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 0.5,
+                      }}
+                    >
                       {tableInfo.subtables.slice(0, 10).map((subtable) => (
                         <Typography
                           key={subtable}
                           variant="caption"
-                          sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}
+                          sx={{ fontFamily: "monospace", fontSize: "0.75rem" }}
                         >
-                          {subtable.split('/').pop()}
+                          {subtable.split("/").pop()}
                         </Typography>
                       ))}
                       {tableInfo.subtables.length > 10 && (
@@ -229,14 +255,14 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
                             .map(([key, value]) => (
                               <TableRow key={key}>
                                 <TableCell>
-                                  <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
+                                  <Typography variant="caption" sx={{ fontFamily: "monospace" }}>
                                     {key}
                                   </Typography>
                                 </TableCell>
                                 <TableCell>
                                   <Typography variant="caption">
-                                    {typeof value === 'string' && value.length > 50
-                                      ? value.substring(0, 50) + '...'
+                                    {typeof value === "string" && value.length > 50
+                                      ? value.substring(0, 50) + "..."
                                       : String(value)}
                                   </Typography>
                                 </TableCell>
@@ -263,7 +289,7 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
           )}
 
           {loadingViewer && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4, mt: 2 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", p: 4, mt: 2 }}>
               <CircularProgress />
               <Typography variant="body2" sx={{ ml: 2 }}>
                 Loading table data...
@@ -277,10 +303,10 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
             <Box
               sx={{
                 mt: 2,
-                border: '1px solid',
-                borderColor: 'divider',
+                border: "1px solid",
+                borderColor: "divider",
                 borderRadius: 1,
-                overflow: 'auto',
+                overflow: "auto",
                 p: 2,
               }}
               dangerouslySetInnerHTML={{ __html: viewerHtml }}
@@ -290,11 +316,8 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
       )}
 
       {tableInfo && !tableInfo.exists && (
-        <Alert severity="warning">
-          Table not found or not accessible: {tablePath}
-        </Alert>
+        <Alert severity="warning">Table not found or not accessible: {tablePath}</Alert>
       )}
     </Paper>
   );
 }
-

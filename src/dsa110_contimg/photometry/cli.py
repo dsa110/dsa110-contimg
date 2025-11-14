@@ -30,11 +30,12 @@ from astropy.io import fits  # type: ignore[reportMissingTypeStubs]
 from astropy.wcs import WCS  # type: ignore[reportMissingTypeStubs]
 from matplotlib.colors import Normalize
 
-from dsa110_contimg.calibration.catalogs import read_nvss_catalog
+from dsa110_contimg.calibration.catalogs import query_nvss_sources
 from dsa110_contimg.database.products import (
     ensure_products_db,
     photometry_insert,
 )
+from dsa110_contimg.photometry.ese_detection import detect_ese_candidates
 
 from .adaptive_binning import AdaptiveBinningConfig
 from .adaptive_photometry import measure_with_adaptive_binning
@@ -127,20 +128,18 @@ def _image_center_and_radius_deg(fits_path: str) -> Tuple[float, float, float]:
 def cmd_nvss(args: argparse.Namespace) -> int:
     ra0, dec0, auto_rad = _image_center_and_radius_deg(args.fits)
     radius_deg = float(args.radius_deg) if args.radius_deg is not None else auto_rad
-    df = read_nvss_catalog()
-    sc = acoords.SkyCoord(
-        df["ra"].to_numpy(),
-        df["dec"].to_numpy(),
-        unit="deg",
-        frame="icrs",
+    # Use SQLite-first query function (falls back to CSV if needed)
+    df = query_nvss_sources(
+        ra_deg=ra0,
+        dec_deg=dec0,
+        radius_deg=radius_deg,
+        min_flux_mjy=float(args.min_mjy),
     )
-    center = acoords.SkyCoord(ra0, dec0, unit="deg", frame="icrs")
-    sep_deg = sc.separation(center).deg
-    flux_mjy = df["flux_20_cm"].to_numpy()
-    keep = (sep_deg <= radius_deg) & (flux_mjy >= float(args.min_mjy))
-    ra_sel = df["ra"].to_numpy()[keep]
-    dec_sel = df["dec"].to_numpy()[keep]
-    flux_sel = flux_mjy[keep]
+    # Rename columns to match expected format
+    df = df.rename(columns={"ra_deg": "ra", "dec_deg": "dec", "flux_mjy": "flux_20_cm"})
+    ra_sel = df["ra"].to_numpy()
+    dec_sel = df["dec"].to_numpy()
+    flux_sel = df["flux_20_cm"].to_numpy()
 
     results = []
     now = time.time()
@@ -260,6 +259,56 @@ def cmd_adaptive(args: argparse.Namespace) -> int:
     return 0 if result.success else 1
 
 
+def cmd_ese_detect(args: argparse.Namespace) -> int:
+    """Detect ESE candidates from variability statistics."""
+    from dsa110_contimg.photometry.thresholds import get_threshold_preset
+
+    products_db = Path(os.getenv("PIPELINE_PRODUCTS_DB", args.products_db))
+
+    if not products_db.exists():
+        print(json.dumps({"error": f"Products database not found: {products_db}"}, indent=2))
+        return 1
+
+    # Handle preset or min_sigma
+    preset = getattr(args, "preset", None)
+    min_sigma_param = getattr(args, "min_sigma", None)
+
+    if preset:
+        thresholds = get_threshold_preset(preset)
+        min_sigma = thresholds.get("min_sigma", 5.0)
+    elif min_sigma_param is not None:
+        min_sigma = min_sigma_param
+    else:
+        # Default fallback
+        min_sigma = 5.0
+
+    try:
+        candidates = detect_ese_candidates(
+            products_db=products_db,
+            min_sigma=min_sigma,
+            source_id=getattr(args, "source_id", None),
+            recompute=getattr(args, "recompute", False),
+            use_composite_scoring=getattr(args, "use_composite_scoring", False),
+        )
+
+        result = {
+            "products_db": str(products_db),
+            "preset": preset,
+            "min_sigma": min_sigma,
+            "source_id": getattr(args, "source_id", None),
+            "recompute": getattr(args, "recompute", False),
+            "candidates_found": len(candidates),
+            "candidates": candidates,
+        }
+
+        print(json.dumps(result, indent=2))
+        return 0
+
+    except Exception as e:
+        print(json.dumps({"error": str(e)}, indent=2))
+        return 1
+
+
 def cmd_plot(args: argparse.Namespace) -> int:
     # Load image
     hdr = fits.getheader(args.fits)
@@ -270,9 +319,7 @@ def cmd_plot(args: argparse.Namespace) -> int:
     m = np.isfinite(data)
     vals = data[m]
     lo, hi = (
-        (np.nanpercentile(vals, 2.0), np.nanpercentile(vals, 98.0))
-        if vals.size
-        else (0.0, 1.0)
+        (np.nanpercentile(vals, 2.0), np.nanpercentile(vals, 98.0)) if vals.size else (0.0, 1.0)
     )
     img = np.clip(data, lo, hi)
 
@@ -301,9 +348,7 @@ def cmd_plot(args: argparse.Namespace) -> int:
     ra = np.array([r[0] for r in rows], dtype=float)
     dec = np.array([r[1] for r in rows], dtype=float)
     peak = np.array([r[2] for r in rows], dtype=float)
-    nvss_jy = np.array(
-        [np.nan if r[3] is None else (float(r[3]) / 1e3) for r in rows], dtype=float
-    )
+    nvss_jy = np.array([np.nan if r[3] is None else (float(r[3]) / 1e3) for r in rows], dtype=float)
     coords = acoords.SkyCoord(ra, dec, unit="deg", frame="icrs")
     x, y = w.world_to_pixel(coords)
 
@@ -424,15 +469,11 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--box", type=int, default=5, help="Box size in pixels")
     sp.set_defaults(func=cmd_peak_many)
 
-    sp = sub.add_parser(
-        "nvss", help="Forced photometry for NVSS sources within the image FoV"
-    )
+    sp = sub.add_parser("nvss", help="Forced photometry for NVSS sources within the image FoV")
     sp.add_argument("--fits", required=True, help="Input FITS image (PB-corrected)")
     sp.add_argument("--products-db", default="state/products.sqlite3")
     sp.add_argument("--min-mjy", type=float, default=10.0)
-    sp.add_argument(
-        "--radius-deg", type=float, default=None, help="Override FoV radius (deg)"
-    )
+    sp.add_argument("--radius-deg", type=float, default=None, help="Override FoV radius (deg)")
     sp.add_argument("--box", type=int, default=5, help="Box size in pixels")
     sp.add_argument(
         "--annulus",
@@ -443,9 +484,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sp.set_defaults(func=cmd_nvss)
 
-    sp = sub.add_parser(
-        "plot", help="Visualize photometry results overlaid on FITS image"
-    )
+    sp = sub.add_parser("plot", help="Visualize photometry results overlaid on FITS image")
     sp.add_argument("--fits", required=True, help="Input FITS image (PB-corrected)")
     sp.add_argument("--products-db", default="state/products.sqlite3")
     sp.add_argument("--out", default=None, help="Output PNG path")
@@ -454,9 +493,7 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--vmax", type=float, default=None)
     sp.set_defaults(func=cmd_plot)
 
-    sp = sub.add_parser(
-        "adaptive", help="Adaptive channel binning photometry from Measurement Set"
-    )
+    sp = sub.add_parser("adaptive", help="Adaptive channel binning photometry from Measurement Set")
     sp.add_argument("--ms", required=True, help="Input Measurement Set path")
     sp.add_argument("--ra", type=float, required=True, help="Right Ascension (deg)")
     sp.add_argument("--dec", type=float, required=True, help="Declination (deg)")
@@ -478,9 +515,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=16,
         help="Maximum bin width in channels (default: 16 for DSA-110)",
     )
-    sp.add_argument(
-        "--imsize", type=int, default=1024, help="Image size in pixels (default: 1024)"
-    )
+    sp.add_argument("--imsize", type=int, default=1024, help="Image size in pixels (default: 1024)")
     sp.add_argument(
         "--quality-tier",
         type=str,
@@ -520,6 +555,44 @@ def build_parser() -> argparse.ArgumentParser:
         "Recommended when processing multiple sources in parallel.",
     )
     sp.set_defaults(func=cmd_adaptive)
+
+    sp = sub.add_parser("ese-detect", help="Detect ESE candidates from variability statistics")
+    sp.add_argument(
+        "--products-db",
+        type=str,
+        default="state/products.sqlite3",
+        help="Path to products database (default: state/products.sqlite3)",
+    )
+    sp.add_argument(
+        "--min-sigma",
+        type=float,
+        default=None,
+        help="Minimum sigma deviation threshold (ignored if --preset is provided)",
+    )
+    sp.add_argument(
+        "--preset",
+        type=str,
+        choices=["conservative", "moderate", "sensitive"],
+        default=None,
+        help="Threshold preset: 'conservative' (5.0), 'moderate' (3.5), or 'sensitive' (3.0)",
+    )
+    sp.add_argument(
+        "--source-id",
+        type=str,
+        default=None,
+        help="Optional specific source ID to check (if not provided, checks all sources)",
+    )
+    sp.add_argument(
+        "--recompute",
+        action="store_true",
+        help="Recompute variability statistics before detection",
+    )
+    sp.add_argument(
+        "--use-composite-scoring",
+        action="store_true",
+        help="Enable multi-metric composite scoring for better confidence assessment",
+    )
+    sp.set_defaults(func=cmd_ese_detect)
 
     return p
 

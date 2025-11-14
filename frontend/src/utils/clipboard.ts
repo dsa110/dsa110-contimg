@@ -1,7 +1,7 @@
 /**
  * Clipboard utilities for copying text to clipboard
  */
-import { logger } from './logger';
+import { logger } from "./logger";
 
 /**
  * Copy text to clipboard with user feedback
@@ -15,17 +15,17 @@ export async function copyToClipboard(text: string): Promise<boolean> {
       return true;
     } else {
       // Fallback for older browsers
-      const textArea = document.createElement('textarea');
+      const textArea = document.createElement("textarea");
       textArea.value = text;
-      textArea.style.position = 'fixed';
-      textArea.style.left = '-999999px';
-      textArea.style.top = '-999999px';
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
       document.body.appendChild(textArea);
       textArea.focus();
       textArea.select();
-      
+
       try {
-        const successful = document.execCommand('copy');
+        const successful = document.execCommand("copy");
         document.body.removeChild(textArea);
         return successful;
       } catch (err) {
@@ -34,8 +34,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
       }
     }
   } catch (err) {
-    logger.error('Failed to copy text:', err);
+    logger.error("Failed to copy text:", err);
     return false;
   }
 }
-

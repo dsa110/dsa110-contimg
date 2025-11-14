@@ -1,7 +1,8 @@
 import fnmatch
+import json
 import logging
 import os
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from casatasks import gaincal as casa_gaincal  # type: ignore[import]
 
@@ -49,6 +50,213 @@ def _get_caltable_spw_count(caltable_path: str) -> Optional[int]:
         return None
 
 
+def _get_casa_version() -> Optional[str]:
+    """Get CASA version string.
+
+    Returns:
+        CASA version string (e.g., "6.7.2"), or None if unavailable
+    """
+    try:
+        import casatools  # type: ignore[import]
+
+        # Try to get version from casatools
+        if hasattr(casatools, "version"):
+            version = casatools.version()
+            # Handle both string and list/tuple formats
+            if isinstance(version, str):
+                return version
+            elif isinstance(version, (list, tuple)):
+                # Convert list/tuple to string (e.g., [6, 7, 2] -> "6.7.2")
+                return ".".join(str(v) for v in version)
+            else:
+                return str(version)
+
+        # Fallback: try casatasks
+        try:
+            import casatasks  # type: ignore[import]
+
+            if hasattr(casatasks, "version"):
+                version = casatasks.version()
+                if isinstance(version, str):
+                    return version
+                elif isinstance(version, (list, tuple)):
+                    return ".".join(str(v) for v in version)
+                else:
+                    return str(version)
+        except Exception:
+            pass
+
+        # Fallback: try environment variable
+        casa_version = os.environ.get("CASA_VERSION")
+        if casa_version:
+            return casa_version
+
+        return None
+    except Exception:
+        return None
+
+
+def _build_command_string(task_name: str, kwargs: Dict[str, Any]) -> str:
+    """Build a human-readable command string from task name and kwargs.
+
+    Args:
+        task_name: CASA task name (e.g., "gaincal", "bandpass")
+        kwargs: Dictionary of task parameters
+
+    Returns:
+        Formatted command string
+    """
+    # Filter out None values and format
+    filtered_kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+    # Format parameters
+    params = []
+    for key, value in sorted(filtered_kwargs.items()):
+        if isinstance(value, str):
+            params.append(f"{key}='{value}'")
+        elif isinstance(value, (list, tuple)):
+            params.append(f"{key}={list(value)}")
+        else:
+            params.append(f"{key}={value}")
+
+    return f"{task_name}({', '.join(params)})"
+
+
+def _extract_quality_metrics(
+    caltable_path: str,
+) -> Optional[Dict[str, Any]]:
+    """Extract quality metrics from a calibration table.
+
+    Args:
+        caltable_path: Path to calibration table
+
+    Returns:
+        Dictionary with quality metrics (SNR, flagged_fraction, etc.), or None
+    """
+    import numpy as np  # type: ignore[import]
+
+    try:
+        with table(caltable_path, readonly=True) as tb:
+            metrics: Dict[str, Any] = {}
+
+            # Number of solutions
+            nrows = tb.nrows()
+            metrics["n_solutions"] = nrows
+
+            if nrows == 0:
+                return metrics
+
+            # Check for FLAG column
+            if "FLAG" in tb.colnames():
+                flags = tb.getcol("FLAG")
+                if flags.size > 0:
+                    flagged_count = np.sum(flags)
+                    total_count = flags.size
+                    metrics["flagged_fraction"] = float(flagged_count / total_count)
+
+            # Check for SNR column
+            if "SNR" in tb.colnames():
+                snr = tb.getcol("SNR")
+                if snr.size > 0:
+                    snr_flat = snr.flatten()
+                    snr_valid = snr_flat[~np.isnan(snr_flat)]
+                    if len(snr_valid) > 0:
+                        metrics["snr_mean"] = float(np.mean(snr_valid))
+                        metrics["snr_median"] = float(np.median(snr_valid))
+                        metrics["snr_min"] = float(np.min(snr_valid))
+                        metrics["snr_max"] = float(np.max(snr_valid))
+
+            # Number of antennas
+            if "ANTENNA1" in tb.colnames():
+                ant1 = tb.getcol("ANTENNA1")
+                unique_ants = np.unique(ant1)
+                metrics["n_antennas"] = len(unique_ants)
+
+            # Number of spectral windows
+            if "SPECTRAL_WINDOW_ID" in tb.colnames():
+                spw_ids = tb.getcol("SPECTRAL_WINDOW_ID")
+                unique_spws = np.unique(spw_ids)
+                metrics["n_spws"] = len(unique_spws)
+
+            return metrics if metrics else None
+
+    except Exception as e:
+        logger.warning(f"Failed to extract quality metrics from {caltable_path}: {e}")
+        return None
+
+
+def _track_calibration_provenance(
+    ms_path: str,
+    caltable_path: str,
+    task_name: str,
+    params: Dict[str, Any],
+    registry_db: Optional[str] = None,
+) -> None:
+    """Track calibration provenance after successful solve.
+
+    This function captures and stores provenance information (source MS,
+    solver command, version, parameters, quality metrics) for a calibration table.
+
+    Args:
+        ms_path: Path to the input MS that generated this caltable
+        caltable_path: Path to the calibration table
+        task_name: CASA task name used (e.g., "gaincal", "bandpass")
+        params: Dictionary of all calibration parameters used
+        registry_db: Optional path to registry database (if None, uses default)
+    """
+    try:
+        from pathlib import Path as PathLib
+
+        from dsa110_contimg.database.provenance import track_calibration_provenance
+
+        # Get CASA version
+        casa_version = _get_casa_version()
+
+        # Build command string
+        command_str = _build_command_string(task_name, params)
+
+        # Extract quality metrics
+        quality_metrics = _extract_quality_metrics(caltable_path)
+
+        # Determine registry DB path
+        if registry_db is None:
+            # Use default registry path logic
+            registry_db_path = PathLib(
+                os.environ.get(
+                    "CAL_REGISTRY_DB",
+                    os.path.join(
+                        os.environ.get("PIPELINE_STATE_DIR", "/data/dsa110-contimg/state"),
+                        "cal_registry.sqlite3",
+                    ),
+                )
+            )
+        else:
+            registry_db_path = PathLib(registry_db)
+
+        # Track provenance
+        track_calibration_provenance(
+            registry_db=registry_db_path,
+            ms_path=ms_path,
+            caltable_path=caltable_path,
+            params=params,
+            metrics=quality_metrics,
+            solver_command=command_str,
+            solver_version=casa_version,
+        )
+
+        logger.debug(
+            f"Tracked provenance for {caltable_path} "
+            f"(source: {ms_path}, version: {casa_version})"
+        )
+
+    except Exception as e:
+        # Don't fail calibration if provenance tracking fails
+        logger.warning(
+            f"Failed to track provenance for {caltable_path}: {e}. "
+            f"Calibration succeeded but provenance not recorded."
+        )
+
+
 def _determine_spwmap_for_bptables(
     bptables: List[str],
     ms_path: str,
@@ -93,9 +301,7 @@ def _determine_spwmap_for_bptables(
     return None
 
 
-def _validate_solve_success(
-    caltable_path: str, refant: Optional[Union[int, str]] = None
-) -> None:
+def _validate_solve_success(caltable_path: str, refant: Optional[Union[int, str]] = None) -> None:
     """Validate that a calibration solve completed successfully.
 
     This ensures we follow "measure twice, cut once" - verify solutions exist
@@ -112,9 +318,7 @@ def _validate_solve_success(
 
     # Verify table exists
     if not os.path.exists(caltable_path):
-        raise RuntimeError(
-            f"Calibration solve failed: table was not created: {caltable_path}"
-        )
+        raise RuntimeError(f"Calibration solve failed: table was not created: {caltable_path}")
 
     # Verify table has solutions
     try:
@@ -179,9 +383,7 @@ def _resolve_field_ids(ms: str, field_sel: str) -> List[int]:
     sel = str(field_sel).strip()
     # Try numeric selections first: comma-separated tokens and A~B ranges
     ids: List[int] = []
-    numeric_tokens = [
-        tok.strip() for tok in sel.replace(";", ",").split(",") if tok.strip()
-    ]
+    numeric_tokens = [tok.strip() for tok in sel.replace(";", ",").split(",") if tok.strip()]
 
     def _add_numeric(tok: str) -> bool:
         if "~" in tok:
@@ -253,7 +455,6 @@ def solve_delay(
     import numpy as np  # type: ignore[import]
 
     # use module-level table
-
     # Validate data availability before attempting calibration
     logger.info(f"Validating data for delay solve on field(s) {cal_field}...")
 
@@ -302,9 +503,7 @@ def solve_delay(
         field_ant2 = ant2_slice[rel_idx]
         ref_present = np.any((field_ant1 == int(refant)) | (field_ant2 == int(refant)))
         if not ref_present:
-            raise ValueError(
-                f"Reference antenna {refant} not found in field {cal_field}"
-            )
+            raise ValueError(f"Reference antenna {refant} not found in field {cal_field}")
 
         # Check for unflagged data (optimized: use getcol instead of per-row getcell)
         # This is much faster for large MS files
@@ -314,8 +513,7 @@ def solve_delay(
             raise ValueError(f"All data in field {cal_field} is flagged")
 
         logger.debug(
-            f"Field {cal_field}: {np.sum(field_mask)} rows, "
-            f"{unflagged_count} unflagged points"
+            f"Field {cal_field}: {np.sum(field_mask)} rows, " f"{unflagged_count} unflagged points"
         )
 
     # Use more conservative combination settings to avoid empty arrays
@@ -330,10 +528,7 @@ def solve_delay(
     # OPTIMIZATION: Allow skipping slow solve in fast mode for speed
     if not skip_slow:
         try:
-            logger.info(
-                f"Running delay solve (K) on field {cal_field} "
-                f"with refant {refant}..."
-            )
+            logger.info(f"Running delay solve (K) on field {cal_field} " f"with refant {refant}...")
             kwargs = dict(
                 vis=ms,
                 caltable=f"{table_prefix}_kcal",
@@ -353,6 +548,13 @@ def solve_delay(
             # This ensures we follow "measure twice, cut once" - verify solutions exist
             # immediately after solve completes, before proceeding.
             _validate_solve_success(f"{table_prefix}_kcal", refant=refant)
+            # Track provenance after successful solve
+            _track_calibration_provenance(
+                ms_path=ms,
+                caltable_path=f"{table_prefix}_kcal",
+                task_name="gaincal",
+                params=kwargs,
+            )
             tables.append(f"{table_prefix}_kcal")
             logger.info(f"✓ Delay solve completed: {table_prefix}_kcal")
         except Exception as e:
@@ -378,12 +580,17 @@ def solve_delay(
                 # This ensures we follow "measure twice, cut once" - verify solutions exist
                 # immediately after solve completes, before proceeding.
                 _validate_solve_success(f"{table_prefix}_kcal", refant=refant)
+                # Track provenance after successful solve
+                _track_calibration_provenance(
+                    ms_path=ms,
+                    caltable_path=f"{table_prefix}_kcal",
+                    task_name="gaincal",
+                    params=kwargs,
+                )
                 tables.append(f"{table_prefix}_kcal")
                 logger.info(f"✓ Delay solve completed (retry): {table_prefix}_kcal")
             except Exception as e2:
-                raise RuntimeError(
-                    f"Delay solve failed even with conservative settings: {e2}"
-                )
+                raise RuntimeError(f"Delay solve failed even with conservative settings: {e2}")
     else:
         logger.debug("Skipping slow delay solve (fast mode optimization)")
 
@@ -414,6 +621,13 @@ def solve_delay(
             # This ensures we follow "measure twice, cut once" - verify solutions exist
             # immediately after solve completes, before proceeding.
             _validate_solve_success(f"{table_prefix}_2kcal", refant=refant)
+            # Track provenance after successful solve
+            _track_calibration_provenance(
+                ms_path=ms,
+                caltable_path=f"{table_prefix}_2kcal",
+                task_name="gaincal",
+                params=kwargs,
+            )
             tables.append(f"{table_prefix}_2kcal")
             logger.info(f"✓ Fast delay solve completed: {table_prefix}_2kcal")
         except Exception as e:
@@ -477,9 +691,7 @@ def solve_prebandpass_phase(
         table_prefix = f"{os.path.splitext(ms)[0]}_{cal_field}"
 
     # PRECONDITION CHECK: Verify MODEL_DATA exists and is populated
-    logger.info(
-        f"Validating MODEL_DATA for pre-bandpass phase solve on field(s) {cal_field}..."
-    )
+    logger.info(f"Validating MODEL_DATA for pre-bandpass phase solve on field(s) {cal_field}...")
     with table(ms) as tb:
         if "MODEL_DATA" not in tb.colnames():
             raise ValueError(
@@ -537,12 +749,8 @@ def solve_prebandpass_phase(
         spw_ids = list(range(n_spws))
         ref_freqs = tspw.getcol("REF_FREQUENCY")
         num_chan = tspw.getcol("NUM_CHAN")
-        logger.info(
-            f"MS contains {n_spws} spectral windows: SPW {spw_ids[0]} to SPW {spw_ids[-1]}"
-        )
-        logger.info(
-            f"  Frequency range: {ref_freqs[0]/1e9:.4f} - {ref_freqs[-1]/1e9:.4f} GHz"
-        )
+        logger.info(f"MS contains {n_spws} spectral windows: SPW {spw_ids[0]} to SPW {spw_ids[-1]}")
+        logger.info(f"  Frequency range: {ref_freqs[0]/1e9:.4f} - {ref_freqs[-1]/1e9:.4f} GHz")
         logger.info(f"  Total channels across all SPWs: {np.sum(num_chan)}")
 
     # Check data selection for the specified field
@@ -561,9 +769,7 @@ def solve_prebandpass_phase(
             try:
                 field_idx = int(field_selector)
                 field_mask = field_ids == field_idx
-                spw_ids_with_data = np.unique(
-                    data_desc_to_spw[spw_ids_in_data[field_mask]]
-                )
+                spw_ids_with_data = np.unique(data_desc_to_spw[spw_ids_in_data[field_mask]])
             except ValueError:
                 # Field selector might be a name, use all data
                 spw_ids_with_data = np.unique(data_desc_to_spw[spw_ids_in_data])
@@ -574,9 +780,7 @@ def solve_prebandpass_phase(
         spw_ids_with_data = sorted(
             [int(x) for x in spw_ids_with_data]
         )  # Convert to plain ints for cleaner output
-        logger.info(
-            f"\nSPWs with data for field(s) '{field_selector}': {spw_ids_with_data}"
-        )
+        logger.info(f"\nSPWs with data for field(s) '{field_selector}': {spw_ids_with_data}")
         logger.info(f"  Total SPWs to be processed: {len(spw_ids_with_data)}")
 
         if combine_spw:
@@ -593,9 +797,7 @@ def solve_prebandpass_phase(
             logger.info(
                 f"    → Each of the {len(spw_ids_with_data)} SPWs will be solved separately"
             )
-            logger.info(
-                f"    → Solutions will be stored in SPW IDs {spw_ids_with_data}"
-            )
+            logger.info(f"    → Solutions will be stored in SPW IDs {spw_ids_with_data}")
 
     logger.info("=" * 70 + "\n")
 
@@ -630,6 +832,13 @@ def solve_prebandpass_phase(
 
     casa_gaincal(**kwargs)
     _validate_solve_success(caltable_name, refant=refant)
+    # Track provenance after successful solve
+    _track_calibration_provenance(
+        ms_path=ms,
+        caltable_path=caltable_name,
+        task_name="gaincal",
+        params=kwargs,
+    )
     logger.info(f"✓ Pre-bandpass phase-only solve completed: {caltable_name}")
 
     return caltable_name
@@ -754,12 +963,8 @@ def solve_bandpass(
         spw_ids = list(range(n_spws))
         ref_freqs = tspw.getcol("REF_FREQUENCY")
         num_chan = tspw.getcol("NUM_CHAN")
-        logger.info(
-            f"MS contains {n_spws} spectral windows: SPW {spw_ids[0]} to SPW {spw_ids[-1]}"
-        )
-        logger.info(
-            f"  Frequency range: {ref_freqs[0]/1e9:.4f} - {ref_freqs[-1]/1e9:.4f} GHz"
-        )
+        logger.info(f"MS contains {n_spws} spectral windows: SPW {spw_ids[0]} to SPW {spw_ids[-1]}")
+        logger.info(f"  Frequency range: {ref_freqs[0]/1e9:.4f} - {ref_freqs[-1]/1e9:.4f} GHz")
         logger.info(f"  Total channels across all SPWs: {np.sum(num_chan)}")
 
     # Check data selection for the specified field
@@ -774,18 +979,14 @@ def solve_bandpass(
             try:
                 field_idx = int(field_selector)
                 field_mask = field_ids == field_idx
-                spw_ids_with_data = np.unique(
-                    data_desc_to_spw[spw_ids_in_data[field_mask]]
-                )
+                spw_ids_with_data = np.unique(data_desc_to_spw[spw_ids_in_data[field_mask]])
             except ValueError:
                 spw_ids_with_data = np.unique(data_desc_to_spw[spw_ids_in_data])
         else:
             spw_ids_with_data = np.unique(data_desc_to_spw[spw_ids_in_data])
 
         spw_ids_with_data = sorted(spw_ids_with_data)
-        logger.info(
-            f"\nSPWs with data for field(s) '{field_selector}': {spw_ids_with_data}"
-        )
+        logger.info(f"\nSPWs with data for field(s) '{field_selector}': {spw_ids_with_data}")
         logger.info(f"  Total SPWs to be processed: {len(spw_ids_with_data)}")
 
         if combine_spw:
@@ -802,9 +1003,7 @@ def solve_bandpass(
             logger.info(
                 f"    → Each of the {len(spw_ids_with_data)} SPWs will be solved separately"
             )
-            logger.info(
-                f"    → Solutions will be stored in SPW IDs {spw_ids_with_data}"
-            )
+            logger.info(f"    → Solutions will be stored in SPW IDs {spw_ids_with_data}")
 
     logger.info("=" * 70 + "\n")
 
@@ -817,9 +1016,7 @@ def solve_bandpass(
     # CRITICAL: Apply pre-bandpass phase-only calibration if provided. This corrects
     # phase drifts in raw uncalibrated data that cause decorrelation and low SNR.
     combine_desc = f" (combining across {comb})" if comb else ""
-    phase_desc = (
-        f" with pre-bandpass phase correction" if prebandpass_phase_table else ""
-    )
+    phase_desc = f" with pre-bandpass phase correction" if prebandpass_phase_table else ""
     logger.info(
         f"Running bandpass solve using bandpass task (bandtype='B') on field {field_selector}{combine_desc}{phase_desc}..."
     )
@@ -842,9 +1039,7 @@ def solve_bandpass(
     # This corrects phase drifts that cause decorrelation in raw uncalibrated data
     if prebandpass_phase_table:
         kwargs["gaintable"] = [prebandpass_phase_table]
-        logger.debug(
-            f"  Applying pre-bandpass phase-only calibration: {prebandpass_phase_table}"
-        )
+        logger.debug(f"  Applying pre-bandpass phase-only calibration: {prebandpass_phase_table}")
 
         # CRITICAL FIX: Determine spwmap if pre-bandpass phase table was created with combine_spw=True
         # When combine_spw is used, the pre-bandpass phase table has solutions only for SPW=0 (aggregate).
@@ -864,6 +1059,13 @@ def solve_bandpass(
     # This ensures we follow "measure twice, cut once" - verify solutions exist
     # immediately after solve completes, before proceeding.
     _validate_solve_success(f"{table_prefix}_bpcal", refant=refant)
+    # Track provenance after successful solve
+    _track_calibration_provenance(
+        ms_path=ms,
+        caltable_path=f"{table_prefix}_bpcal",
+        task_name="bandpass",
+        params=kwargs,
+    )
     logger.info(f"✓ Bandpass solve completed: {table_prefix}_bpcal")
 
     # Optional smoothing of bandpass table (post-solve), off by default
@@ -876,9 +1078,7 @@ def solve_bandpass(
         ):
             try:
                 # Prefer CASA smoothcal if available
-                from casatasks import (
-                    smoothcal as casa_smoothcal,  # type: ignore[import]
-                )
+                from casatasks import smoothcal as casa_smoothcal  # type: ignore[import]
 
                 logger.info(
                     f"Smoothing bandpass table '{table_prefix}_bpcal' with {bp_smooth_type} (window={bp_smooth_window})..."
@@ -893,9 +1093,7 @@ def solve_bandpass(
                 )
                 logger.info("✓ Bandpass table smoothing complete")
             except Exception as e:
-                logger.warning(
-                    f"Could not smooth bandpass table via CASA smoothcal: {e}"
-                )
+                logger.warning(f"Could not smooth bandpass table via CASA smoothcal: {e}")
     except Exception:
         # Do not fail calibration if smoothing parameters are malformed
         pass
@@ -977,9 +1175,7 @@ def solve_gains(
     # for consistent, reliable calibration across all calibrators.
     # NOTE: K-table is NOT used for gain calibration (K-calibration not used for DSA-110)
     if bptables:
-        logger.info(
-            f"Validating {len(bptables)} bandpass table(s) before gain calibration..."
-        )
+        logger.info(f"Validating {len(bptables)} bandpass table(s) before gain calibration...")
         try:
             # Convert refant string to int for validation
             # Handle comma-separated refant string (e.g., "113,114,103,106,112")
@@ -994,9 +1190,7 @@ def solve_gains(
                     refant_int = int(refant)
             else:
                 refant_int = refant
-            validate_caltables_for_use(
-                bptables, ms, require_all=True, refant=refant_int
-            )
+            validate_caltables_for_use(bptables, ms, require_all=True, refant=refant_int)
         except (FileNotFoundError, ValueError) as e:
             raise ValueError(
                 f"Calibration table validation failed. This is a required precondition for "
@@ -1065,6 +1259,13 @@ def solve_gains(
     # This ensures we follow "measure twice, cut once" - verify solutions exist
     # immediately after solve completes, before proceeding.
     _validate_solve_success(f"{table_prefix}_gpcal", refant=refant)
+    # Track provenance after successful solve
+    _track_calibration_provenance(
+        ms_path=ms,
+        caltable_path=f"{table_prefix}_gpcal",
+        task_name="gaincal",
+        params=kwargs,
+    )
     logger.info(f"✓ Phase-only gain solve completed: {table_prefix}_gpcal")
 
     out = [f"{table_prefix}_gpcal"]
@@ -1099,9 +1300,14 @@ def solve_gains(
         # This ensures we follow "measure twice, cut once" - verify solutions exist
         # immediately after solve completes, before proceeding.
         _validate_solve_success(f"{table_prefix}_2gcal", refant=refant)
-        logger.info(
-            f"✓ Short-timescale phase-only gain solve completed: {table_prefix}_2gcal"
+        # Track provenance after successful solve
+        _track_calibration_provenance(
+            ms_path=ms,
+            caltable_path=f"{table_prefix}_2gcal",
+            task_name="gaincal",
+            params=kwargs,
         )
+        logger.info(f"✓ Short-timescale phase-only gain solve completed: {table_prefix}_2gcal")
         out.append(f"{table_prefix}_2gcal")
 
     # QA validation of gain calibration tables

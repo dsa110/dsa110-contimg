@@ -10,6 +10,7 @@
 ## Starting the Services
 
 ### Terminal 1: Backend
+
 ```bash
 cd /data/dsa110-contimg
 conda activate casa6
@@ -21,6 +22,7 @@ uvicorn dsa110_contimg.api.server:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 Expected output:
+
 ```
 INFO:     Started server process [12345]
 INFO:     Waiting for application startup.
@@ -29,12 +31,14 @@ INFO:     Uvicorn running on http://0.0.0.0:8000
 ```
 
 ### Terminal 2: Frontend
+
 ```bash
 cd /data/dsa110-contimg/frontend
 npm start
 ```
 
 Expected output:
+
 ```
 Compiled successfully!
 
@@ -57,7 +61,8 @@ You can now view dsa110-dashboard in the browser.
 ### Step 1: Calibrate a Calibrator MS
 
 1. **Select MS**: Choose a calibrator MS from dropdown
-   - Example: `/stage/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.ms`
+   - Example:
+     `/stage/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.ms`
 
 2. **Go to "Calibrate" tab**
 
@@ -68,6 +73,7 @@ You can now view dsa110-dashboard in the browser.
 4. **Click "Run Calibration"**
 
 5. **Watch logs stream**:
+
    ```
    Starting calibration...
    Solving K (delay) calibration...
@@ -88,6 +94,7 @@ You can now view dsa110-dashboard in the browser.
 2. **Go to "Apply" tab**
 
 3. **Enter gaintable paths** (copy from previous job artifacts):
+
    ```
    /stage/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.kcal,
    /stage/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.bpcal,
@@ -118,6 +125,7 @@ You can now view dsa110-dashboard in the browser.
 4. **Click "Run Imaging"**
 
 5. **Watch logs**:
+
    ```
    Imaging /scratch/.../target.ms -> /scratch/images/target.img
    Auto-detecting cell size...
@@ -138,9 +146,10 @@ You can now view dsa110-dashboard in the browser.
 ## Monitoring Jobs
 
 ### Job Table (bottom right)
+
 - **ID**: Unique job identifier
 - **Type**: calibrate, apply, or image
-- **Status**: 
+- **Status**:
   - 🔵 pending - waiting to start
   - 🟢 running - in progress
   - ✓ done - completed successfully
@@ -150,6 +159,7 @@ You can now view dsa110-dashboard in the browser.
 **Click any row** to load that job's logs in the viewer.
 
 ### Live Log Viewer (top right)
+
 - Shows real-time output from selected job
 - Auto-scrolls to bottom as new lines arrive
 - Displays job ID in header
@@ -158,33 +168,40 @@ You can now view dsa110-dashboard in the browser.
 ## Tips & Tricks
 
 ### Finding Calibrator MSs
+
 Calibrators typically have:
+
 - Known source names (3C48, 3C286, etc.)
 - Higher flux (look for `has_calibrator=true` in queue)
 - Field names containing calibrator IDs
 
 ### Discovering Existing Caltables
+
 Check the MS directory:
+
 ```bash
 ls /stage/dsa110-contimg/ms/range_*/2025-*/*cal
 ```
 
 ### Checking Job Status from CLI
+
 ```bash
 sqlite3 state/products.sqlite3 \
-  "SELECT id, type, status, datetime(created_at, 'unixepoch') 
-   FROM jobs 
-   ORDER BY id DESC 
+  "SELECT id, type, status, datetime(created_at, 'unixepoch')
+   FROM jobs
+   ORDER BY id DESC
    LIMIT 5;"
 ```
 
 ### Viewing Full Logs
+
 ```bash
 sqlite3 state/products.sqlite3 \
   "SELECT logs FROM jobs WHERE id=<JOB_ID>;" | less
 ```
 
 ### Clearing Failed Jobs
+
 ```bash
 sqlite3 state/products.sqlite3 \
   "DELETE FROM jobs WHERE status='failed';"
@@ -193,7 +210,9 @@ sqlite3 state/products.sqlite3 \
 ## Common Issues
 
 ### "No MS found in dropdown"
-**Solution**: 
+
+**Solution**:
+
 1. Check that backend is connected to correct database
 2. Verify `ms_index` table has entries:
    ```bash
@@ -202,28 +221,36 @@ sqlite3 state/products.sqlite3 \
 3. If empty, run conversion pipeline to populate MS entries
 
 ### "Job stuck in pending"
+
 **Solution**:
+
 1. Check backend terminal for errors
 2. Verify `casa6` conda environment is available
 3. Ensure `PYTHONPATH` is set correctly
 4. Restart FastAPI server
 
 ### "Logs not streaming"
+
 **Solution**:
+
 1. Open browser DevTools → Network tab
-2. Look for `/api/jobs/{id}/logs` with type `eventsource`
+2. Look for `/api/jobs/id/{job_id}/logs` with type `eventsource`
 3. If connection fails, check CORS settings
 4. Verify job ID is valid
 
 ### "Apply fails: gaintables not found"
+
 **Solution**:
+
 1. Verify gaintable paths are absolute (not relative)
 2. Check paths exist: `ls <path_to_caltable>`
 3. Ensure no extra spaces in comma-separated list
 4. Copy paths exactly from calibrate job artifacts
 
 ### "Image produces blank output"
+
 **Solution**:
+
 1. Verify CORRECTED_DATA exists:
    ```bash
    conda run -n casa6 python -c "
@@ -245,18 +272,22 @@ sqlite3 state/products.sqlite3 \
 ## Advanced: Parameter Reference
 
 ### Calibrate Parameters
+
 - `field`: Field ID or name (0-indexed integer or string)
 - `refant`: Reference antenna (comma-separated list, e.g., "103,100,104")
 
 ### Apply Parameters
-- `gaintables`: Comma-separated list of absolute paths to `.kcal`, `.bpcal`, `.gpcal` files
+
+- `gaintables`: Comma-separated list of absolute paths to `.kcal`, `.bpcal`,
+  `.gpcal` files
 
 ### Image Parameters
-- `gridder`: 
+
+- `gridder`:
   - `wproject` - w-term correction (recommended)
   - `standard` - simple FFT (fast, no w-correction)
   - `mosaic` - mosaic mode (for multi-pointing)
-- `wprojplanes`: 
+- `wprojplanes`:
   - `-1` - auto-calculate
   - `0` - disable w-projection
   - `>0` - specific number of planes (more = slower but more accurate)
@@ -267,6 +298,7 @@ sqlite3 state/products.sqlite3 \
 ## Next Steps
 
 After imaging completes:
+
 1. **View images**: Use CASA viewer or DS9
    ```bash
    casaviewer /scratch/images/target.img.image
@@ -278,4 +310,3 @@ After imaging completes:
 ---
 
 **Questions?** Check `CONTROL_PANEL_README.md` for detailed architecture docs.
-

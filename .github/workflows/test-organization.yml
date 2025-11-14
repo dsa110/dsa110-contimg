@@ -1,0 +1,20 @@
+name: Test Organization Validation
+
+on:
+  pull_request:
+    paths:
+      - "tests/**/*.py"
+      - "scripts/validate-test-organization.py"
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  validate-test-organization:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Validate Test Organization
+        run: |
+          python scripts/validate-test-organization.py --strict

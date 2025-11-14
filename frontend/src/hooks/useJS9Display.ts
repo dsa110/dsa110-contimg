@@ -1,11 +1,11 @@
 /**
  * React Hook for JS9 Display Management
- * 
+ *
  * Provides reactive access to JS9 display state
  */
 
-import { useEffect, useState, useCallback } from 'react';
-import { findDisplay, isJS9Available, getDisplayImageId } from '../utils/js9';
+import { useEffect, useState, useCallback } from "react";
+import { findDisplay, isJS9Available, getDisplayImageId } from "../utils/js9";
 
 declare global {
   interface Window {
@@ -22,7 +22,7 @@ interface UseJS9DisplayResult {
 
 /**
  * Hook to access JS9 display state reactively
- * 
+ *
  * @param displayId - The display ID to track
  * @returns Display state and refresh function
  */
@@ -61,21 +61,20 @@ export function useJS9Display(displayId: string): UseJS9DisplayResult {
     };
 
     // Listen to events that indicate display state changed
-    if (typeof window.JS9?.AddEventListener === 'function') {
-      window.JS9.AddEventListener('displayimage', handleImageChange);
-      window.JS9.AddEventListener('imageLoad', handleImageChange);
-      window.JS9.AddEventListener('imageDisplay', handleImageChange);
+    if (typeof window.JS9?.AddEventListener === "function") {
+      window.JS9.AddEventListener("displayimage", handleImageChange);
+      window.JS9.AddEventListener("imageLoad", handleImageChange);
+      window.JS9.AddEventListener("imageDisplay", handleImageChange);
     }
 
     return () => {
-      if (typeof window.JS9?.RemoveEventListener === 'function') {
-        window.JS9.RemoveEventListener('displayimage', handleImageChange);
-        window.JS9.RemoveEventListener('imageLoad', handleImageChange);
-        window.JS9.RemoveEventListener('imageDisplay', handleImageChange);
+      if (typeof window.JS9?.RemoveEventListener === "function") {
+        window.JS9.RemoveEventListener("displayimage", handleImageChange);
+        window.JS9.RemoveEventListener("imageLoad", handleImageChange);
+        window.JS9.RemoveEventListener("imageDisplay", handleImageChange);
       }
     };
   }, [refresh]);
 
   return { display, imageId, isAvailable, refresh };
 }
-

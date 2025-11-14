@@ -2,7 +2,7 @@
  * RegionTools Component
  * Provides tools for drawing and managing regions on images
  */
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -15,15 +15,15 @@ import {
   Typography,
   IconButton,
   Tooltip,
-} from '@mui/material';
+} from "@mui/material";
 import {
   RadioButtonUnchecked as CircleIcon,
   CropFree as RectangleIcon,
   ChangeHistory as PolygonIcon,
   Delete as DeleteIcon,
   Edit as EditIcon,
-} from '@mui/icons-material';
-import { logger } from '../../utils/logger';
+} from "@mui/icons-material";
+import { logger } from "../../utils/logger";
 
 declare global {
   interface Window {
@@ -38,22 +38,22 @@ interface RegionToolsProps {
   onRegionDeleted?: (regionId: number) => void;
 }
 
-type DrawingMode = 'none' | 'circle' | 'rectangle' | 'polygon';
+type DrawingMode = "none" | "circle" | "rectangle" | "polygon";
 
 export default function RegionTools({
-  displayId = 'js9Display',
+  displayId = "js9Display",
   imagePath,
   onRegionCreated,
   onRegionDeleted,
 }: RegionToolsProps) {
-  const [drawingMode, setDrawingMode] = useState<DrawingMode>('none');
+  const [drawingMode, setDrawingMode] = useState<DrawingMode>("none");
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
-  const [regionName, setRegionName] = useState('');
+  const [regionName, setRegionName] = useState("");
   const [pendingRegion, setPendingRegion] = useState<any>(null);
 
   const handleToolSelect = (mode: DrawingMode) => {
     if (mode === drawingMode) {
-      setDrawingMode('none'); // Toggle off
+      setDrawingMode("none"); // Toggle off
     } else {
       setDrawingMode(mode);
     }
@@ -79,25 +79,25 @@ export default function RegionTools({
       };
 
       // Call API to create region
-      const response = await fetch('/api/regions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/regions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(regionData),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create region');
+        throw new Error("Failed to create region");
       }
 
       const result = await response.json();
       onRegionCreated?.(result.region);
       setNameDialogOpen(false);
-      setRegionName('');
+      setRegionName("");
       setPendingRegion(null);
-      setDrawingMode('none');
+      setDrawingMode("none");
     } catch (e) {
-      logger.error('Error saving region:', e);
-      alert('Failed to save region. Please try again.');
+      logger.error("Error saving region:", e);
+      alert("Failed to save region. Please try again.");
     }
   };
 
@@ -113,31 +113,31 @@ export default function RegionTools({
       <ButtonGroup size="small" variant="outlined">
         <Tooltip title="Draw Circle">
           <Button
-            variant={drawingMode === 'circle' ? 'contained' : 'outlined'}
-            onClick={() => handleToolSelect('circle')}
+            variant={drawingMode === "circle" ? "contained" : "outlined"}
+            onClick={() => handleToolSelect("circle")}
           >
             <CircleIcon />
           </Button>
         </Tooltip>
         <Tooltip title="Draw Rectangle">
           <Button
-            variant={drawingMode === 'rectangle' ? 'contained' : 'outlined'}
-            onClick={() => handleToolSelect('rectangle')}
+            variant={drawingMode === "rectangle" ? "contained" : "outlined"}
+            onClick={() => handleToolSelect("rectangle")}
           >
             <RectangleIcon />
           </Button>
         </Tooltip>
         <Tooltip title="Draw Polygon">
           <Button
-            variant={drawingMode === 'polygon' ? 'contained' : 'outlined'}
-            onClick={() => handleToolSelect('polygon')}
+            variant={drawingMode === "polygon" ? "contained" : "outlined"}
+            onClick={() => handleToolSelect("polygon")}
           >
             <PolygonIcon />
           </Button>
         </Tooltip>
       </ButtonGroup>
 
-      {drawingMode !== 'none' && (
+      {drawingMode !== "none" && (
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           Click and drag on the image to draw a {drawingMode}
         </Typography>
@@ -167,4 +167,3 @@ export default function RegionTools({
     </Box>
   );
 }
-

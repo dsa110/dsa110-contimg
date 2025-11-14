@@ -1,6 +1,6 @@
 /**
  * Unit Tests for useJS9Initialization Hook
- * 
+ *
  * Tests:
  * 1. Hook returns initialized=false initially
  * 2. Hook initializes JS9 display when ready
@@ -8,12 +8,12 @@
  * 4. Hook skips initialization if display already exists
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, waitFor, act } from '@testing-library/react';
-import { useJS9Initialization } from '../useJS9Initialization';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { renderHook, waitFor, act } from "@testing-library/react";
+import { useJS9Initialization } from "../useJS9Initialization";
 
 // Mock logger
-vi.mock('../../../../utils/logger', () => ({
+vi.mock("../../../../utils/logger", () => ({
   logger: {
     debug: vi.fn(),
     warn: vi.fn(),
@@ -22,7 +22,7 @@ vi.mock('../../../../utils/logger', () => ({
 }));
 
 // Mock JS9 utilities
-vi.mock('../../../../utils/js9', () => ({
+vi.mock("../../../../utils/js9", () => ({
   isJS9Available: vi.fn(() => true),
   findDisplay: vi.fn(() => null),
 }));
@@ -39,7 +39,7 @@ const { mockJS9Service } = vi.hoisted(() => {
   };
 });
 
-vi.mock('../../../../services/js9', () => ({
+vi.mock("../../../../services/js9", () => ({
   js9Service: mockJS9Service,
 }));
 
@@ -49,7 +49,7 @@ const mockJS9Context = {
   getDisplay: vi.fn(() => null),
 };
 
-vi.mock('../../../../contexts/JS9Context', () => ({
+vi.mock("../../../../contexts/JS9Context", () => ({
   useJS9Safe: vi.fn(() => mockJS9Context),
 }));
 
@@ -59,14 +59,14 @@ declare global {
   }
 }
 
-describe('useJS9Initialization', () => {
+describe("useJS9Initialization", () => {
   const mockContainerRef = {
-    current: document.createElement('div'),
+    current: document.createElement("div"),
   } as React.RefObject<HTMLDivElement>;
 
   beforeEach(() => {
     vi.useFakeTimers();
-    
+
     // Setup window.JS9 mock
     window.JS9 = {
       SetOptions: vi.fn(),
@@ -76,11 +76,11 @@ describe('useJS9Initialization', () => {
       displays: [],
     };
 
-    mockContainerRef.current = document.createElement('div');
-    mockContainerRef.current.id = 'testDisplay';
-    mockContainerRef.current.style.width = '500px';
-    mockContainerRef.current.style.height = '600px';
-    
+    mockContainerRef.current = document.createElement("div");
+    mockContainerRef.current.id = "testDisplay";
+    mockContainerRef.current.style.width = "500px";
+    mockContainerRef.current.style.height = "600px";
+
     // Mock getBoundingClientRect to return proper dimensions
     mockContainerRef.current.getBoundingClientRect = vi.fn(() => ({
       width: 500,
@@ -106,10 +106,10 @@ describe('useJS9Initialization', () => {
     vi.useRealTimers();
   });
 
-  it('should return initialized=false initially', () => {
+  it("should return initialized=false initially", () => {
     const { result } = renderHook(() =>
       useJS9Initialization({
-        displayId: 'testDisplay',
+        displayId: "testDisplay",
         containerRef: mockContainerRef,
         height: 600,
         isJS9Ready: false,
@@ -122,14 +122,14 @@ describe('useJS9Initialization', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('should initialize JS9 display when ready', () => {
+  it("should initialize JS9 display when ready", () => {
     window.JS9.SetOptions = vi.fn();
     window.JS9.Init = vi.fn();
     window.JS9.AddDivs = vi.fn();
 
     const { result } = renderHook(() =>
       useJS9Initialization({
-        displayId: 'testDisplay',
+        displayId: "testDisplay",
         containerRef: mockContainerRef,
         height: 600,
         isJS9Ready: true,
@@ -145,16 +145,16 @@ describe('useJS9Initialization', () => {
 
     // Hook should initialize after dimensions are checked
     expect(result.current.initialized).toBe(true);
-    expect(mockJS9Service.addDivs).toHaveBeenCalledWith('testDisplay');
+    expect(mockJS9Service.addDivs).toHaveBeenCalledWith("testDisplay");
   });
 
-  it('should skip initialization if display already exists', () => {
-    const existingDisplay = { id: 'testDisplay' };
+  it("should skip initialization if display already exists", () => {
+    const existingDisplay = { id: "testDisplay" };
     const getDisplaySafe = vi.fn(() => existingDisplay);
 
     const { result } = renderHook(() =>
       useJS9Initialization({
-        displayId: 'testDisplay',
+        displayId: "testDisplay",
         containerRef: mockContainerRef,
         height: 600,
         isJS9Ready: true,
@@ -167,20 +167,20 @@ describe('useJS9Initialization', () => {
     expect(window.JS9.AddDivs).not.toHaveBeenCalled();
   });
 
-  it('should handle errors gracefully', () => {
+  it("should handle errors gracefully", () => {
     // Mock addDivs to throw an error
     // Note: The error is thrown inside doInitialize() which is called asynchronously
     // The hook's try-catch around initializeJS9() should catch it
     mockJS9Service.addDivs.mockImplementation(() => {
-      throw new Error('Initialization failed');
+      throw new Error("Initialization failed");
     });
 
     // Spy on console.error to verify error is logged
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const { result } = renderHook(() =>
       useJS9Initialization({
-        displayId: 'testDisplay',
+        displayId: "testDisplay",
         containerRef: mockContainerRef,
         height: 600,
         isJS9Ready: true,
@@ -209,9 +209,8 @@ describe('useJS9Initialization', () => {
     // After the error is caught, initialization should not be complete
     // The hook sets error state when doInitialize() throws
     expect(result.current.initialized).toBe(false);
-    
+
     // Clean up spy
     consoleErrorSpy.mockRestore();
   });
 });
-

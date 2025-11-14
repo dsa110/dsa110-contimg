@@ -2,7 +2,7 @@
  * SkyMap Component
  * Interactive sky coverage map showing observed fields and telescope pointing
  */
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from "react";
 import {
   Paper,
   Typography,
@@ -17,13 +17,13 @@ import {
   DialogActions,
   Button,
   Divider,
-} from '@mui/material';
-import Plot from 'react-plotly.js';
-import type { Data, Layout } from 'plotly.js';
-import { usePointingHistory } from '../../api/queries';
-import { useImages } from '../../api/queries';
-import type { ImageInfo, PointingHistoryEntry } from '../../api/types';
-import dayjs from 'dayjs';
+} from "@mui/material";
+import Plot from "react-plotly.js";
+import type { Data, Layout } from "plotly.js";
+import { usePointingHistory } from "../../api/queries";
+import { useImages } from "../../api/queries";
+import type { ImageInfo, PointingHistoryEntry } from "../../api/types";
+import dayjs from "dayjs";
 
 interface SkyMapProps {
   height?: number;
@@ -53,8 +53,8 @@ export default function SkyMap({
     const now = new Date();
     const startDate = new Date(now.getTime() - historyDays * 24 * 60 * 60 * 1000);
     // Convert to MJD (Unix epoch to MJD offset is 40587)
-    const startMjd = (startDate.getTime() / 86400000) + 40587;
-    const endMjd = (now.getTime() / 86400000) + 40587;
+    const startMjd = startDate.getTime() / 86400000 + 40587;
+    const endMjd = now.getTime() / 86400000 + 40587;
     return { startMjd, endMjd };
   }, [showPointingHistory, historyDays]);
 
@@ -79,7 +79,7 @@ export default function SkyMap({
   });
 
   const images = imagesResponse?.items || [];
-  
+
   // Filter images that have RA/Dec coordinates
   const fieldsWithCoords = useMemo(() => {
     return images.filter(
@@ -95,13 +95,13 @@ export default function SkyMap({
     if (showPointingHistory && historyData.length > 0) {
       const ras = historyData.map((p) => p.ra_deg);
       const decs = historyData.map((p) => p.dec_deg);
-      
+
       // Color code by observation time (normalize timestamps)
       const timestamps = historyData.map((p) => p.timestamp);
       const minTime = Math.min(...timestamps);
       const maxTime = Math.max(...timestamps);
       const timeRange = maxTime - minTime || 1;
-      
+
       // Create color scale from blue (old) to red (recent)
       const colors = timestamps.map((ts) => {
         const normalized = (ts - minTime) / timeRange;
@@ -112,17 +112,17 @@ export default function SkyMap({
       });
 
       data.push({
-        type: 'scatter',
-        mode: 'lines',
-        name: 'Pointing History',
+        type: "scatter",
+        mode: "lines",
+        name: "Pointing History",
         x: ras,
         y: decs,
         line: {
-          color: 'rgba(144, 202, 249, 0.3)',
+          color: "rgba(144, 202, 249, 0.3)",
           width: 2,
         },
-        hovertemplate: 'RA: %{x:.2f}°<br>Dec: %{y:.2f}°<br>Time: %{customdata}<extra></extra>',
-        customdata: timestamps.map((ts) => dayjs(ts * 1000).format('YYYY-MM-DD HH:mm:ss')),
+        hovertemplate: "RA: %{x:.2f}°<br>Dec: %{y:.2f}°<br>Time: %{customdata}<extra></extra>",
+        customdata: timestamps.map((ts) => dayjs(ts * 1000).format("YYYY-MM-DD HH:mm:ss")),
         showlegend: true,
       });
 
@@ -135,18 +135,18 @@ export default function SkyMap({
       const recentTimestamps = timestamps.slice(recentStart);
 
       data.push({
-        type: 'scatter',
-        mode: 'markers',
-        name: 'Recent Pointing',
+        type: "scatter",
+        mode: "markers",
+        name: "Recent Pointing",
         x: recentRas,
         y: recentDecs,
         marker: {
           color: recentColors,
           size: 6,
-          line: { color: 'white', width: 1 },
+          line: { color: "white", width: 1 },
         },
-        hovertemplate: 'RA: %{x:.2f}°<br>Dec: %{y:.2f}°<br>Time: %{customdata}<extra></extra>',
-        customdata: recentTimestamps.map((ts) => dayjs(ts * 1000).format('YYYY-MM-DD HH:mm:ss')),
+        hovertemplate: "RA: %{x:.2f}°<br>Dec: %{y:.2f}°<br>Time: %{customdata}<extra></extra>",
+        customdata: recentTimestamps.map((ts) => dayjs(ts * 1000).format("YYYY-MM-DD HH:mm:ss")),
         showlegend: true,
       });
     }
@@ -155,15 +155,13 @@ export default function SkyMap({
     if (showObservedFields && fieldsWithCoords.length > 0) {
       const fieldRas = fieldsWithCoords.map((img) => img.center_ra_deg!);
       const fieldDecs = fieldsWithCoords.map((img) => img.center_dec_deg!);
-      
+
       // Color code by observation time (created_at)
-      const fieldTimes = fieldsWithCoords.map((img) => 
-        new Date(img.created_at).getTime()
-      );
+      const fieldTimes = fieldsWithCoords.map((img) => new Date(img.created_at).getTime());
       const minFieldTime = Math.min(...fieldTimes);
       const maxFieldTime = Math.max(...fieldTimes);
       const fieldTimeRange = maxFieldTime - minFieldTime || 1;
-      
+
       // Create color scale from purple (old) to yellow (recent)
       const fieldColors = fieldTimes.map((time) => {
         const normalized = (time - minFieldTime) / fieldTimeRange;
@@ -185,27 +183,27 @@ export default function SkyMap({
       });
 
       data.push({
-        type: 'scatter',
-        mode: 'markers',
-        name: 'Observed Fields',
+        type: "scatter",
+        mode: "markers",
+        name: "Observed Fields",
         x: fieldRas,
         y: fieldDecs,
         marker: {
           color: fieldColors,
           size: fieldSizes,
-          line: { color: 'white', width: 0.5 },
+          line: { color: "white", width: 0.5 },
           opacity: 0.7,
         },
-        hovertemplate: 
-          'Field: %{customdata[0]}<br>' +
-          'RA: %{x:.2f}°<br>' +
-          'Dec: %{y:.2f}°<br>' +
-          'Noise: %{customdata[1]}<br>' +
-          'Time: %{customdata[2]}<extra></extra>',
+        hovertemplate:
+          "Field: %{customdata[0]}<br>" +
+          "RA: %{x:.2f}°<br>" +
+          "Dec: %{y:.2f}°<br>" +
+          "Noise: %{customdata[1]}<br>" +
+          "Time: %{customdata[2]}<extra></extra>",
         customdata: fieldsWithCoords.map((img) => [
-          img.path.split('/').pop() || 'Unknown',
-          img.noise_jy ? `${(img.noise_jy * 1000).toFixed(2)} mJy` : 'N/A',
-          dayjs(img.created_at).format('YYYY-MM-DD HH:mm:ss'),
+          img.path.split("/").pop() || "Unknown",
+          img.noise_jy ? `${(img.noise_jy * 1000).toFixed(2)} mJy` : "N/A",
+          dayjs(img.created_at).format("YYYY-MM-DD HH:mm:ss"),
           img.id, // Store image ID at index 3 for click handling
         ]),
         showlegend: true,
@@ -215,38 +213,38 @@ export default function SkyMap({
     // Create layout
     const plotLayout: Partial<Layout> = {
       title: {
-        text: 'Sky Coverage Map',
+        text: "Sky Coverage Map",
         font: { size: 18 },
       },
       xaxis: {
-        title: { text: 'Right Ascension (degrees)' },
+        title: { text: "Right Ascension (degrees)" },
         range: [0, 360],
         showgrid: true,
-        gridcolor: 'rgba(128, 128, 128, 0.2)',
-        tickmode: 'linear',
+        gridcolor: "rgba(128, 128, 128, 0.2)",
+        tickmode: "linear",
         tick0: 0,
         dtick: 30,
       },
       yaxis: {
-        title: { text: 'Declination (degrees)' },
+        title: { text: "Declination (degrees)" },
         range: [-90, 90],
         showgrid: true,
-        gridcolor: 'rgba(128, 128, 128, 0.2)',
-        tickmode: 'linear',
+        gridcolor: "rgba(128, 128, 128, 0.2)",
+        tickmode: "linear",
         tick0: -90,
         dtick: 30,
       },
-      plot_bgcolor: '#1e1e1e',
-      paper_bgcolor: '#1e1e1e',
-      font: { color: '#ffffff' },
+      plot_bgcolor: "#1e1e1e",
+      paper_bgcolor: "#1e1e1e",
+      font: { color: "#ffffff" },
       legend: {
         x: 0.02,
         y: 0.98,
-        bgcolor: 'rgba(0, 0, 0, 0.5)',
-        bordercolor: 'rgba(255, 255, 255, 0.2)',
+        bgcolor: "rgba(0, 0, 0, 0.5)",
+        bordercolor: "rgba(255, 255, 255, 0.2)",
         borderwidth: 1,
       },
-      hovermode: 'closest',
+      hovermode: "closest",
       height: height,
       margin: { l: 60, r: 20, t: 60, b: 60 },
     };
@@ -257,15 +255,19 @@ export default function SkyMap({
   // Handle plot click
   const handlePlotClick = (event: any) => {
     if (!event || !event.points || event.points.length === 0) return;
-    
+
     const point = event.points[0];
     const pointData = point.data;
-    
+
     // Check if clicked point is from observed fields
-    if (pointData.name === 'Observed Fields' && point.customdata && Array.isArray(point.customdata)) {
+    if (
+      pointData.name === "Observed Fields" &&
+      point.customdata &&
+      Array.isArray(point.customdata)
+    ) {
       const imageId = point.customdata[3]; // Image ID stored at index 3
       const image = fieldsWithCoords.find((img) => img.id === imageId);
-      
+
       if (image && image.center_ra_deg !== undefined && image.center_dec_deg !== undefined) {
         setSelectedField({
           image,
@@ -277,7 +279,8 @@ export default function SkyMap({
     }
   };
 
-  const isLoading = (showPointingHistory && historyLoading) || (showObservedFields && imagesLoading);
+  const isLoading =
+    (showPointingHistory && historyLoading) || (showObservedFields && imagesLoading);
   const hasError = historyError || imagesError;
 
   return (
@@ -289,16 +292,18 @@ export default function SkyMap({
               Sky Coverage Map
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {showPointingHistory && showObservedFields && 'Telescope pointing history and observed fields'}
-              {showPointingHistory && !showObservedFields && 'Telescope pointing history'}
-              {!showPointingHistory && showObservedFields && 'Observed fields'}
+              {showPointingHistory &&
+                showObservedFields &&
+                "Telescope pointing history and observed fields"}
+              {showPointingHistory && !showObservedFields && "Telescope pointing history"}
+              {!showPointingHistory && showObservedFields && "Observed fields"}
             </Typography>
           </Box>
 
           {hasError && (
             <Alert severity="warning">
-              {historyError && 'Failed to load pointing history. '}
-              {imagesError && 'Failed to load observed fields. '}
+              {historyError && "Failed to load pointing history. "}
+              {imagesError && "Failed to load observed fields. "}
               Some data may be unavailable.
             </Alert>
           )}
@@ -314,9 +319,7 @@ export default function SkyMap({
             >
               <Stack spacing={2} alignItems="center">
                 <CircularProgress size={40} />
-                <Typography color="text.secondary">
-                  Loading sky coverage data...
-                </Typography>
+                <Typography color="text.secondary">Loading sky coverage data...</Typography>
               </Stack>
             </Box>
           ) : plotData.length > 0 ? (
@@ -348,18 +351,20 @@ export default function SkyMap({
                 config={{
                   responsive: true,
                   displayModeBar: true,
-                  modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+                  modeBarButtonsToRemove: ["lasso2d", "select2d"],
                   displaylogo: false,
                 }}
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 onClick={handlePlotClick}
               />
 
               <Box>
                 <Typography variant="caption" color="text.secondary">
-                  {showPointingHistory && historyData.length > 0 && 
+                  {showPointingHistory &&
+                    historyData.length > 0 &&
                     `Pointing history: Last ${historyDays} days. `}
-                  {showObservedFields && fieldsWithCoords.length > 0 && 
+                  {showObservedFields &&
+                    fieldsWithCoords.length > 0 &&
                     `Click on observed field markers to view details. `}
                   Colors indicate observation time (blue/purple = older, red/yellow = recent).
                 </Typography>
@@ -374,24 +379,15 @@ export default function SkyMap({
               border="1px dashed rgba(255, 255, 255, 0.2)"
               borderRadius={1}
             >
-              <Typography color="text.secondary">
-                No sky coverage data available
-              </Typography>
+              <Typography color="text.secondary">No sky coverage data available</Typography>
             </Box>
           )}
         </Stack>
       </Paper>
 
       {/* Field Details Dialog */}
-      <Dialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          Field Observation Details
-        </DialogTitle>
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Field Observation Details</DialogTitle>
         <DialogContent>
           {selectedField && (
             <Stack spacing={2} sx={{ mt: 1 }}>
@@ -399,7 +395,7 @@ export default function SkyMap({
                 <Typography variant="subtitle2" color="text.secondary">
                   Image Path
                 </Typography>
-                <Typography variant="body1" sx={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>
+                <Typography variant="body1" sx={{ fontFamily: "monospace", fontSize: "0.9rem" }}>
                   {selectedField.image.path}
                 </Typography>
               </Box>
@@ -433,16 +429,14 @@ export default function SkyMap({
                     Observation Time
                   </Typography>
                   <Typography variant="body1">
-                    {dayjs(selectedField.image.created_at).format('YYYY-MM-DD HH:mm:ss UTC')}
+                    {dayjs(selectedField.image.created_at).format("YYYY-MM-DD HH:mm:ss UTC")}
                   </Typography>
                 </Box>
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary">
                     Image Type
                   </Typography>
-                  <Typography variant="body1">
-                    {selectedField.image.type}
-                  </Typography>
+                  <Typography variant="body1">{selectedField.image.type}</Typography>
                 </Box>
               </Stack>
 
@@ -503,12 +497,9 @@ export default function SkyMap({
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>
-            Close
-          </Button>
+          <Button onClick={() => setDialogOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
     </>
   );
 }
-

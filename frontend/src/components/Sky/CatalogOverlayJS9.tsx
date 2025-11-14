@@ -2,11 +2,11 @@
  * CatalogOverlayJS9 Component
  * Overlays catalog sources on JS9 image viewer using JS9 overlay API
  */
-import { useEffect, useRef, useState } from 'react';
-import { Box, Switch, FormControlLabel, Typography, CircularProgress } from '@mui/material';
-import { useCatalogOverlayByCoords } from '../../api/queries';
-import { logger } from '../../utils/logger';
-import { findDisplay } from '../../utils/js9';
+import { useEffect, useRef, useState } from "react";
+import { Box, Switch, FormControlLabel, Typography, CircularProgress } from "@mui/material";
+import { useCatalogOverlayByCoords } from "../../api/queries";
+import { logger } from "../../utils/logger";
+import { findDisplay } from "../../utils/js9";
 
 declare global {
   interface Window {
@@ -25,23 +25,22 @@ interface CatalogOverlayJS9Props {
 }
 
 export default function CatalogOverlayJS9({
-  displayId = 'js9Display',
+  displayId = "js9Display",
   ra,
   dec,
   radius = 1.5,
-  catalog = 'all',
+  catalog = "all",
   visible = true,
   onSourceClick,
 }: CatalogOverlayJS9Props) {
   const overlayRef = useRef<any[]>([]);
   const [hoveredSource, setHoveredSource] = useState<any | null>(null);
 
-  const { data: overlayData, isLoading, error } = useCatalogOverlayByCoords(
-    ra,
-    dec,
-    radius,
-    catalog
-  );
+  const {
+    data: overlayData,
+    isLoading,
+    error,
+  } = useCatalogOverlayByCoords(ra, dec, radius, catalog);
 
   // Render catalog sources as JS9 overlays
   useEffect(() => {
@@ -50,11 +49,11 @@ export default function CatalogOverlayJS9({
       if (overlayRef.current.length > 0) {
         overlayRef.current.forEach((overlay: any) => {
           try {
-            if (overlay && typeof overlay.remove === 'function') {
+            if (overlay && typeof overlay.remove === "function") {
               overlay.remove();
             }
           } catch (e) {
-            logger.debug('Error removing overlay:', e);
+            logger.debug("Error removing overlay:", e);
           }
         });
         overlayRef.current = [];
@@ -72,11 +71,11 @@ export default function CatalogOverlayJS9({
       // Clear existing overlays
       overlayRef.current.forEach((overlay: any) => {
         try {
-          if (overlay && typeof overlay.remove === 'function') {
+          if (overlay && typeof overlay.remove === "function") {
             overlay.remove();
           }
         } catch (e) {
-          logger.debug('Error removing overlay:', e);
+          logger.debug("Error removing overlay:", e);
         }
       });
       overlayRef.current = [];
@@ -98,9 +97,9 @@ export default function CatalogOverlayJS9({
           const radius = 5; // pixels
 
           // Use JS9's overlay API if available
-          if (typeof window.JS9.AddOverlay === 'function') {
+          if (typeof window.JS9.AddOverlay === "function") {
             const overlay = window.JS9.AddOverlay(display.im.id, {
-              type: 'circle',
+              type: "circle",
               x: x,
               y: y,
               radius: radius,
@@ -121,25 +120,25 @@ export default function CatalogOverlayJS9({
           } else {
             // Fallback: use canvas overlay (simplified)
             // This would require more complex implementation
-            logger.debug('JS9.AddOverlay not available, skipping overlay');
+            logger.debug("JS9.AddOverlay not available, skipping overlay");
           }
         } catch (e) {
-          logger.error('Error adding catalog overlay:', e);
+          logger.error("Error adding catalog overlay:", e);
         }
       });
     } catch (e) {
-      logger.error('Error rendering catalog overlay:', e);
+      logger.error("Error rendering catalog overlay:", e);
     }
 
     // Cleanup on unmount
     return () => {
       overlayRef.current.forEach((overlay: any) => {
         try {
-          if (overlay && typeof overlay.remove === 'function') {
+          if (overlay && typeof overlay.remove === "function") {
             overlay.remove();
           }
         } catch (e) {
-          logger.debug('Error cleaning up overlay:', e);
+          logger.debug("Error cleaning up overlay:", e);
         }
       });
       overlayRef.current = [];
@@ -148,20 +147,20 @@ export default function CatalogOverlayJS9({
 
   const getCatalogColor = (catalogType: string): string => {
     switch (catalogType?.toLowerCase()) {
-      case 'nvss':
-        return '#2196F3'; // Blue
-      case 'vlass':
-        return '#4CAF50'; // Green
-      case 'first':
-        return '#F44336'; // Red
+      case "nvss":
+        return "#2196F3"; // Blue
+      case "vlass":
+        return "#4CAF50"; // Green
+      case "first":
+        return "#F44336"; // Red
       default:
-        return '#FFC107'; // Amber
+        return "#FFC107"; // Amber
     }
   };
 
   if (isLoading) {
     return (
-      <Box sx={{ p: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Box sx={{ p: 1, display: "flex", alignItems: "center", gap: 1 }}>
         <CircularProgress size={16} />
         <Typography variant="body2" color="text.secondary">
           Loading catalog...
@@ -174,7 +173,7 @@ export default function CatalogOverlayJS9({
     return (
       <Box sx={{ p: 1 }}>
         <Typography variant="body2" color="error">
-          Error loading catalog: {error instanceof Error ? error.message : 'Unknown error'}
+          Error loading catalog: {error instanceof Error ? error.message : "Unknown error"}
         </Typography>
       </Box>
     );
@@ -198,4 +197,3 @@ export default function CatalogOverlayJS9({
     </Box>
   );
 }
-

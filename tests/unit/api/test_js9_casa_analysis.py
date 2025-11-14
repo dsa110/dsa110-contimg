@@ -10,9 +10,10 @@ Tests:
 6. JSON serialization
 """
 
-import pytest
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 from fastapi.testclient import TestClient
 
 
@@ -27,7 +28,7 @@ def mock_fits_file(tmp_path):
 @pytest.fixture
 def client():
     """Create test client."""
-    from dsa110_contimg.api.main import app
+    from dsa110_contimg.api import app
 
     return TestClient(app)
 
@@ -35,15 +36,13 @@ def client():
 @pytest.fixture
 def mock_casa_tasks():
     """Mock CASA tasks."""
-    with patch("dsa110_contimg.api.visualization_routes.imstat") as mock_imstat, patch(
-        "dsa110_contimg.api.visualization_routes.imfit"
-    ) as mock_imfit, patch(
-        "dsa110_contimg.api.visualization_routes.imhead"
-    ) as mock_imhead, patch(
-        "dsa110_contimg.api.visualization_routes.immath"
-    ) as mock_immath, patch(
-        "dsa110_contimg.api.visualization_routes.imval"
-    ) as mock_imval:
+    with (
+        patch("dsa110_contimg.api.visualization_routes.imstat") as mock_imstat,
+        patch("dsa110_contimg.api.visualization_routes.imfit") as mock_imfit,
+        patch("dsa110_contimg.api.visualization_routes.imhead") as mock_imhead,
+        patch("dsa110_contimg.api.visualization_routes.immath") as mock_immath,
+        patch("dsa110_contimg.api.visualization_routes.imval") as mock_imval,
+    ):
 
         mock_imstat.return_value = {
             "DATA": {
@@ -81,9 +80,7 @@ class TestRequestValidation:
 
     def test_missing_image_path(self, client):
         """Test missing image path."""
-        response = client.post(
-            "/api/visualization/js9/analysis", json={"task": "imstat"}
-        )
+        response = client.post("/api/visualization/js9/analysis", json={"task": "imstat"})
         assert response.status_code == 422  # Validation error
 
     def test_nonexistent_image(self, client):
@@ -153,9 +150,12 @@ class TestTaskExecution:
 
     def test_immath_execution(self, client, mock_fits_file, mock_casa_tasks):
         """Test immath task execution."""
-        with patch("dsa110_contimg.api.visualization_routes.ensure_casa_path"), patch(
-            "tempfile.gettempdir", return_value=str(Path(mock_fits_file).parent)
-        ), patch("os.path.exists", return_value=True), patch("os.remove"):
+        with (
+            patch("dsa110_contimg.api.visualization_routes.ensure_casa_path"),
+            patch("tempfile.gettempdir", return_value=str(Path(mock_fits_file).parent)),
+            patch("os.path.exists", return_value=True),
+            patch("os.remove"),
+        ):
 
             response = client.post(
                 "/api/visualization/js9/analysis",
@@ -282,10 +282,14 @@ class TestErrorHandling:
 
     def test_imhead_fallback_to_fits(self, client, mock_fits_file):
         """Test imhead fallback to direct FITS reading."""
-        with patch("dsa110_contimg.api.visualization_routes.ensure_casa_path"), patch(
-            "dsa110_contimg.api.visualization_routes.imhead",
-            side_effect=Exception("CASA unavailable"),
-        ), patch("astropy.io.fits.open") as mock_fits:
+        with (
+            patch("dsa110_contimg.api.visualization_routes.ensure_casa_path"),
+            patch(
+                "dsa110_contimg.api.visualization_routes.imhead",
+                side_effect=Exception("CASA unavailable"),
+            ),
+            patch("astropy.io.fits.open") as mock_fits,
+        ):
 
             mock_hdul = MagicMock()
             mock_hdul.__enter__.return_value = [MagicMock()]

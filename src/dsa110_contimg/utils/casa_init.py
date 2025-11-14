@@ -72,35 +72,44 @@ def ensure_casa_path() -> None:
         geodetic_src = os.path.join(casa_path, "data", "geodetic")
         ephemerides_src = os.path.join(casa_path, "data", "ephemerides")
 
-        # Find where casacore is installed
+        # Find where casacore is installed (must be in casa6 environment)
         try:
             import casacore
 
             casacore_path = os.path.dirname(casacore.__file__)
-            casacore_data_dir = os.path.join(
-                os.path.dirname(casacore_path), "casacore", "data"
-            )
+            # casacore_path is like: /opt/miniforge/envs/casa6/lib/python3.11/site-packages/casacore
+            # casacore_data_dir should be: /opt/miniforge/envs/casa6/lib/python3.11/site-packages/casacore/data
+            casacore_data_dir = os.path.join(casacore_path, "data")
 
-            # Create data directory if it doesn't exist
-            os.makedirs(casacore_data_dir, exist_ok=True)
+            # Only proceed if we're in casa6 environment (not system Python)
+            # Check that casacore_path contains 'casa6' or 'miniforge' to ensure we're not in system Python
+            if "casa6" in casacore_path or "miniforge" in casacore_path:
+                # Create data directory if it doesn't exist
+                os.makedirs(casacore_data_dir, exist_ok=True)
 
-            # Create symlinks for geodetic and ephemerides data
-            geodetic_dest = os.path.join(casacore_data_dir, "geodetic")
-            ephemerides_dest = os.path.join(casacore_data_dir, "ephemerides")
+                # Create symlinks for geodetic and ephemerides data
+                geodetic_dest = os.path.join(casacore_data_dir, "geodetic")
+                ephemerides_dest = os.path.join(casacore_data_dir, "ephemerides")
 
-            if os.path.exists(geodetic_src) and not os.path.exists(geodetic_dest):
-                try:
-                    os.symlink(geodetic_src, geodetic_dest)
-                except (OSError, PermissionError):
-                    # Symlink creation failed (might not have permissions or already exists)
-                    pass
+                if os.path.exists(geodetic_src) and not os.path.exists(geodetic_dest):
+                    try:
+                        os.symlink(geodetic_src, geodetic_dest)
+                    except (OSError, PermissionError) as e:
+                        # Symlink creation failed (might not have permissions or already exists)
+                        # This is non-critical - CASAPATH should be sufficient
+                        pass
 
-            if os.path.exists(ephemerides_src) and not os.path.exists(ephemerides_dest):
-                try:
-                    os.symlink(ephemerides_src, ephemerides_dest)
-                except (OSError, PermissionError):
-                    # Symlink creation failed
-                    pass
+                if os.path.exists(ephemerides_src) and not os.path.exists(ephemerides_dest):
+                    try:
+                        os.symlink(ephemerides_src, ephemerides_dest)
+                    except (OSError, PermissionError) as e:
+                        # Symlink creation failed
+                        # This is non-critical - CASAPATH should be sufficient
+                        pass
+            else:
+                # We're in system Python - don't try to modify system paths
+                # Just ensure CASAPATH is set and let casacore use it
+                pass
         except (ImportError, AttributeError):
             # casacore not available or path detection failed
             pass

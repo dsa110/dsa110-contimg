@@ -2,11 +2,11 @@
  * Flux Chart Panel
  * Plotly.js interactive time-series flux plots
  */
-import { useMemo } from 'react';
-import { Paper, Typography, Box, Alert } from '@mui/material';
-import Plot from 'react-plotly.js';
-import type { Data, Layout } from 'plotly.js';
-import type { SourceTimeseries } from '../api/types';
+import { useMemo } from "react";
+import { Paper, Typography, Box, Alert } from "@mui/material";
+import Plot from "react-plotly.js";
+import type { Data, Layout } from "plotly.js";
+import type { SourceTimeseries } from "../api/types";
 
 interface FluxChartPanelProps {
   source: SourceTimeseries | null;
@@ -30,36 +30,36 @@ export default function FluxChartPanel({ source, height = 400 }: FluxChartPanelP
 
     const data: Data[] = [
       {
-        type: 'scatter',
-        mode: 'lines+markers' as any,
-        name: 'Flux Measurements',
+        type: "scatter",
+        mode: "lines+markers" as any,
+        name: "Flux Measurements",
         x: times,
         y: fluxes,
         error_y: {
-          type: 'data',
+          type: "data",
           array: errors,
           visible: true,
-          color: '#90caf9',
+          color: "#90caf9",
         },
         marker: {
-          color: '#90caf9',
+          color: "#90caf9",
           size: 6,
         },
         line: {
-          color: '#90caf9',
+          color: "#90caf9",
           width: 1,
         },
       },
       {
-        type: 'scatter',
-        mode: 'lines',
-        name: 'Mean Flux',
+        type: "scatter",
+        mode: "lines",
+        name: "Mean Flux",
         x: [times[0], times[times.length - 1]],
         y: [source.mean_flux_jy * 1000, source.mean_flux_jy * 1000],
         line: {
-          color: '#4caf50',
+          color: "#4caf50",
           width: 2,
-          dash: 'dash',
+          dash: "dash",
         },
       },
     ];
@@ -67,28 +67,28 @@ export default function FluxChartPanel({ source, height = 400 }: FluxChartPanelP
     const plotLayout: Partial<Layout> = {
       title: source.source_id as any,
       xaxis: {
-        title: 'Observation Time (UTC)' as any,
-        gridcolor: '#333',
-        color: '#ffffff',
+        title: "Observation Time (UTC)" as any,
+        gridcolor: "#333",
+        color: "#ffffff",
       },
       yaxis: {
-        title: 'Flux Density (mJy)' as any,
-        gridcolor: '#333',
-        color: '#ffffff',
+        title: "Flux Density (mJy)" as any,
+        gridcolor: "#333",
+        color: "#ffffff",
       },
-      paper_bgcolor: '#1e1e1e',
-      plot_bgcolor: '#1e1e1e',
+      paper_bgcolor: "#1e1e1e",
+      plot_bgcolor: "#1e1e1e",
       font: {
-        color: '#ffffff',
+        color: "#ffffff",
       },
-      hovermode: 'closest',
+      hovermode: "closest",
       showlegend: true,
       legend: {
         x: 1,
-        xanchor: 'right',
+        xanchor: "right",
         y: 1,
-        bgcolor: 'rgba(30, 30, 30, 0.8)',
-        bordercolor: '#666',
+        bgcolor: "rgba(30, 30, 30, 0.8)",
+        bordercolor: "#666",
         borderwidth: 1,
       },
       margin: {
@@ -127,10 +127,10 @@ export default function FluxChartPanel({ source, height = 400 }: FluxChartPanelP
           config={{
             responsive: true,
             displayModeBar: true,
-            modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+            modeBarButtonsToRemove: ["lasso2d", "select2d"],
             displaylogo: false,
           }}
-          style={{ width: '100%' }}
+          style={{ width: "100%" }}
         />
       </Box>
 
@@ -140,18 +140,14 @@ export default function FluxChartPanel({ source, height = 400 }: FluxChartPanelP
             Mean Flux
           </Typography>
           <Typography variant="body2">
-            {(source.mean_flux_jy * 1000).toFixed(2)} ± {(source.std_flux_jy * 1000).toFixed(2)}{' '}
-            mJy
+            {(source.mean_flux_jy * 1000).toFixed(2)} ± {(source.std_flux_jy * 1000).toFixed(2)} mJy
           </Typography>
         </Box>
         <Box>
           <Typography variant="caption" color="text.secondary">
             χ²/ν
           </Typography>
-          <Typography
-            variant="body2"
-            color={source.chi_sq_nu > 5 ? 'error.main' : 'text.primary'}
-          >
+          <Typography variant="body2" color={source.chi_sq_nu > 5 ? "error.main" : "text.primary"}>
             {source.chi_sq_nu.toFixed(2)}
           </Typography>
         </Box>
@@ -159,8 +155,8 @@ export default function FluxChartPanel({ source, height = 400 }: FluxChartPanelP
           <Typography variant="caption" color="text.secondary">
             Variability
           </Typography>
-          <Typography variant="body2" color={source.is_variable ? 'error.main' : 'success.main'}>
-            {source.is_variable ? 'Variable' : 'Stable'}
+          <Typography variant="body2" color={source.is_variable ? "error.main" : "success.main"}>
+            {source.is_variable ? "Variable" : "Stable"}
           </Typography>
         </Box>
         <Box>
@@ -173,4 +169,3 @@ export default function FluxChartPanel({ source, height = 400 }: FluxChartPanelP
     </Paper>
   );
 }
-

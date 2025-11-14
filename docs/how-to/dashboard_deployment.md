@@ -1,8 +1,6 @@
-# DSA-110 Dashboard: Deployment & Operations
+# Moved
 
-**Date:** 2025-11-12  
-**Status:** Consolidated deployment documentation  
-**Audience:** DevOps engineers, system administrators
+See `docs/how-to/dashboard.md` (Deployment section).
 
 ---
 
@@ -53,6 +51,7 @@
 ### Production Build
 
 **Build Command:**
+
 ```bash
 cd /data/dsa110-contimg/frontend
 conda activate casa6
@@ -60,12 +59,14 @@ npm run build
 ```
 
 **Output:**
+
 - Build artifacts in `dist/` directory
 - Optimized, minified JavaScript
 - Optimized CSS
 - Static assets
 
 **Build Features:**
+
 - Code splitting
 - Tree shaking
 - Minification
@@ -75,12 +76,14 @@ npm run build
 ### Build Verification
 
 **Preview Build:**
+
 ```bash
 npm run preview
 # Available at http://localhost:4173
 ```
 
 **Check Build Output:**
+
 ```bash
 ls -lh dist/
 # Should see: index.html, assets/, etc.
@@ -93,6 +96,7 @@ ls -lh dist/
 ### Docker Compose
 
 **Configuration (`docker-compose.yml`):**
+
 ```yaml
 services:
   api:
@@ -118,11 +122,13 @@ services:
 ```
 
 **Deploy:**
+
 ```bash
 docker-compose up -d
 ```
 
 **Check Status:**
+
 ```bash
 docker-compose ps
 docker-compose logs -f dashboard
@@ -131,12 +137,14 @@ docker-compose logs -f dashboard
 ### Docker Image Build
 
 **Build Frontend Image:**
+
 ```bash
 cd frontend
 docker build -t dsa110-dashboard:latest -f Dockerfile.prod .
 ```
 
 **Dockerfile.prod:**
+
 ```dockerfile
 FROM node:22-alpine AS builder
 WORKDIR /app
@@ -159,6 +167,7 @@ CMD ["nginx", "-g", "daemon off;"]
 ### API Service
 
 **Service File (`contimg-api.service`):**
+
 ```ini
 [Unit]
 Description=DSA-110 Continuum Pipeline API
@@ -178,6 +187,7 @@ WantedBy=multi-user.target
 ```
 
 **Install:**
+
 ```bash
 sudo cp ops/systemd/contimg-api.service /etc/systemd/system/
 sudo systemctl daemon-reload
@@ -186,6 +196,7 @@ sudo systemctl start contimg-api.service
 ```
 
 **Manage:**
+
 ```bash
 # Status
 sudo systemctl status contimg-api.service
@@ -200,6 +211,7 @@ sudo systemctl restart contimg-api.service
 ### Dashboard Service (Optional)
 
 **If serving separately:**
+
 ```bash
 # Build frontend
 cd /data/dsa110-contimg/frontend
@@ -213,6 +225,7 @@ sudo nano /etc/systemd/system/dsa110-dashboard.service
 ```
 
 **Service File:**
+
 ```ini
 [Unit]
 Description=DSA-110 Dashboard
@@ -236,6 +249,7 @@ WantedBy=multi-user.target
 ### FastAPI Static Mount (Recommended)
 
 **Integrated with Backend:**
+
 ```python
 # In api/routes.py
 from fastapi.staticfiles import StaticFiles
@@ -244,10 +258,12 @@ app.mount("/ui", StaticFiles(directory="frontend/dist", html=True), name="ui")
 ```
 
 **Access:**
+
 - Frontend: `http://localhost:8000/ui`
 - API: `http://localhost:8000/api`
 
 **Benefits:**
+
 - Single service to manage
 - Same port for frontend and API
 - Simplified deployment
@@ -255,6 +271,7 @@ app.mount("/ui", StaticFiles(directory="frontend/dist", html=True), name="ui")
 ### Nginx Reverse Proxy
 
 **Configuration (`nginx.conf`):**
+
 ```nginx
 server {
     listen 80;
@@ -287,24 +304,28 @@ server {
 ### Environment Variables
 
 **Development (`.env.development`):**
+
 ```bash
 VITE_API_URL=http://localhost:8000
 VITE_WS_URL=ws://localhost:8000
 ```
 
 **Production (`.env.production`):**
+
 ```bash
 VITE_API_URL=https://dsa110-pipeline.caltech.edu/api
 VITE_WS_URL=wss://dsa110-pipeline.caltech.edu/api/ws
 ```
 
 **Build-Time Variables:**
+
 - Variables prefixed with `VITE_` are embedded at build time
 - Must rebuild frontend after changing environment variables
 
 ### Configuration Files
 
 **Backend Configuration:**
+
 - `ops/systemd/contimg.env` - Environment variables for systemd
 - `.env` - Local development environment
 
@@ -315,11 +336,13 @@ VITE_WS_URL=wss://dsa110-pipeline.caltech.edu/api/ws
 ### Health Check Endpoints
 
 **API Health:**
+
 ```bash
 curl http://localhost:8000/api/status
 ```
 
 **Frontend Health:**
+
 ```bash
 curl http://localhost:3000/
 # Should return HTML
@@ -328,6 +351,7 @@ curl http://localhost:3000/
 ### Monitoring Scripts
 
 **Check Services:**
+
 ```bash
 # Check API
 curl -f http://localhost:8000/api/status || echo "API down"
@@ -339,6 +363,7 @@ curl -f http://localhost:3000/ || echo "Frontend down"
 ### Log Monitoring
 
 **Systemd Logs:**
+
 ```bash
 # Follow logs
 sudo journalctl -u contimg-api.service -f
@@ -348,6 +373,7 @@ sudo journalctl -u contimg-api.service -n 100
 ```
 
 **Docker Logs:**
+
 ```bash
 docker-compose logs -f api
 docker-compose logs -f dashboard
@@ -362,6 +388,7 @@ docker-compose logs -f dashboard
 **Problem:** Build fails with errors
 
 **Solutions:**
+
 1. Check Node.js version: `node --version` (should be v22+)
 2. Clean install: `rm -rf node_modules && npm install`
 3. Check for TypeScript errors: `npm run type-check`
@@ -372,6 +399,7 @@ docker-compose logs -f dashboard
 **Problem:** Systemd service fails to start
 
 **Solutions:**
+
 1. Check service status: `sudo systemctl status contimg-api.service`
 2. Check logs: `sudo journalctl -u contimg-api.service`
 3. Verify paths in service file
@@ -382,6 +410,7 @@ docker-compose logs -f dashboard
 **Problem:** Port already in use
 
 **Solutions:**
+
 ```bash
 # Find process using port
 lsof -i :8000
@@ -397,6 +426,7 @@ kill -9 <PID>
 **Problem:** Frontend shows blank page or errors
 
 **Solutions:**
+
 1. Check browser console for errors
 2. Verify API URL in environment variables
 3. Check CORS settings in backend
@@ -406,7 +436,7 @@ kill -9 <PID>
 
 ## See Also
 
-- [Development Workflow](./dashboard_development_workflow.md) - Development setup
+- [Development Workflow](./dashboard_development_workflow.md) - Development
+  setup
 - [Architecture](../concepts/dashboard_architecture.md) - System architecture
 - [Backend API](../reference/dashboard_backend_api.md) - API documentation
-

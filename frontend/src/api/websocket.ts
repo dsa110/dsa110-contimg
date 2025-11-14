@@ -2,7 +2,7 @@
  * WebSocket/SSE client for real-time updates
  */
 
-import { logger } from '../utils/logger';
+import { logger } from "../utils/logger";
 
 export type MessageHandler = (data: any) => void;
 
@@ -49,7 +49,7 @@ export class WebSocketClient {
         this.connectWebSocket();
       }
     } catch (error) {
-      logger.error('Failed to connect:', error);
+      logger.error("Failed to connect:", error);
       this.isConnecting = false;
       this.scheduleReconnect();
     }
@@ -59,15 +59,15 @@ export class WebSocketClient {
    * Connect using WebSocket
    */
   private connectWebSocket(): void {
-    const wsUrl = this.url.replace(/^http/, 'ws');
+    const wsUrl = this.url.replace(/^http/, "ws");
     this.ws = new WebSocket(wsUrl);
 
     this.ws.onopen = () => {
-      logger.info('WebSocket connected');
+      logger.info("WebSocket connected");
       this.isConnecting = false;
       this.isConnected = true;
       this.reconnectAttempts = 0;
-      
+
       // Send ping to keep connection alive
       this.startPingInterval();
     };
@@ -77,18 +77,18 @@ export class WebSocketClient {
         const data = JSON.parse(event.data);
         this.handleMessage(data);
       } catch (error) {
-        logger.warn('Failed to parse WebSocket message:', error);
+        logger.warn("Failed to parse WebSocket message:", error);
       }
     };
 
     this.ws.onerror = (error) => {
-      logger.error('WebSocket error:', error);
+      logger.error("WebSocket error:", error);
       this.isConnecting = false;
       this.isConnected = false;
     };
 
     this.ws.onclose = () => {
-      logger.info('WebSocket closed');
+      logger.info("WebSocket closed");
       this.isConnecting = false;
       this.isConnected = false;
       this.stopPingInterval();
@@ -100,11 +100,11 @@ export class WebSocketClient {
    * Connect using Server-Sent Events
    */
   private connectSSE(): void {
-    const sseUrl = this.url.replace(/\/ws\//, '/sse/');
+    const sseUrl = this.url.replace(/\/ws\//, "/sse/");
     this.ws = new EventSource(sseUrl);
 
     (this.ws as EventSource).onopen = () => {
-      logger.info('SSE connected');
+      logger.info("SSE connected");
       this.isConnecting = false;
       this.isConnected = true;
       this.reconnectAttempts = 0;
@@ -115,12 +115,12 @@ export class WebSocketClient {
         const data = JSON.parse(event.data);
         this.handleMessage(data);
       } catch (error) {
-        logger.warn('Failed to parse SSE message:', error);
+        logger.warn("Failed to parse SSE message:", error);
       }
     };
 
     (this.ws as EventSource).onerror = (error) => {
-      logger.error('SSE error:', error);
+      logger.error("SSE error:", error);
       this.isConnecting = false;
       this.isConnected = false;
       this.scheduleReconnect();
@@ -131,27 +131,27 @@ export class WebSocketClient {
    * Handle incoming message
    */
   private handleMessage(data: any): void {
-    const type = data.type || 'message';
+    const type = data.type || "message";
     const handlers = this.handlers.get(type);
-    
+
     if (handlers) {
       handlers.forEach((handler) => {
         try {
           handler(data);
         } catch (error) {
-          logger.error('Error in message handler:', error);
+          logger.error("Error in message handler:", error);
         }
       });
     }
 
     // Also call 'message' handlers for all messages
-    const messageHandlers = this.handlers.get('message');
-    if (messageHandlers && type !== 'message') {
+    const messageHandlers = this.handlers.get("message");
+    if (messageHandlers && type !== "message") {
       messageHandlers.forEach((handler) => {
         try {
           handler(data);
         } catch (error) {
-          logger.error('Error in message handler:', error);
+          logger.error("Error in message handler:", error);
         }
       });
     }
@@ -187,7 +187,7 @@ export class WebSocketClient {
     }
 
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      logger.error('Max reconnection attempts reached');
+      logger.error("Max reconnection attempts reached");
       return;
     }
 
@@ -198,7 +198,7 @@ export class WebSocketClient {
     );
 
     logger.info(`Scheduling reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`);
-    
+
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
       this.connect();
@@ -217,7 +217,7 @@ export class WebSocketClient {
 
     this.pingInterval = setInterval(() => {
       if (this.ws && this.ws instanceof WebSocket && this.ws.readyState === WebSocket.OPEN) {
-        this.ws.send('ping');
+        this.ws.send("ping");
       }
     }, 30000); // Ping every 30 seconds
   }
@@ -268,4 +268,3 @@ export class WebSocketClient {
 export function createWebSocketClient(options: WebSocketClientOptions): WebSocketClient {
   return new WebSocketClient(options);
 }
-

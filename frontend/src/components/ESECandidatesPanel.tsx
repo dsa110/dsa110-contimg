@@ -15,21 +15,21 @@ import {
   TableRow,
   Alert,
   CircularProgress,
-} from '@mui/material';
-import { CheckCircle } from '@mui/icons-material';
-import { useESECandidates } from '../api/queries';
-import type { ESECandidate } from '../api/types';
+} from "@mui/material";
+import { CheckCircle } from "@mui/icons-material";
+import { useESECandidates } from "../api/queries";
+import type { ESECandidate } from "../api/types";
 
-function getStatusColor(status: ESECandidate['status']) {
+function getStatusColor(status: ESECandidate["status"]) {
   switch (status) {
-    case 'active':
-      return 'error';
-    case 'resolved':
-      return 'success';
-    case 'false_positive':
-      return 'default';
+    case "active":
+      return "error";
+    case "resolved":
+      return "success";
+    case "false_positive":
+      return "default";
     default:
-      return 'default';
+      return "default";
   }
 }
 
@@ -57,7 +57,7 @@ export default function ESECandidatesPanel() {
     );
   }
 
-  const activeCandidates = data?.candidates.filter((c) => c.status === 'active') || [];
+  const activeCandidates = data?.candidates.filter((c) => c.status === "active") || [];
 
   return (
     <Paper sx={{ p: 3 }}>
@@ -65,12 +65,7 @@ export default function ESECandidatesPanel() {
         <Typography variant="h5">
           ESE Candidates
           {activeCandidates.length > 0 && (
-            <Chip
-              label={activeCandidates.length}
-              color="error"
-              size="small"
-              sx={{ ml: 2 }}
-            />
+            <Chip label={activeCandidates.length} color="error" size="small" sx={{ ml: 2 }} />
           )}
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -101,7 +96,7 @@ export default function ESECandidatesPanel() {
                   key={candidate.source_id}
                   sx={{
                     backgroundColor:
-                      candidate.status === 'active' ? 'rgba(244, 67, 54, 0.05)' : 'inherit',
+                      candidate.status === "active" ? "rgba(244, 67, 54, 0.05)" : "inherit",
                   }}
                 >
                   <TableCell>
@@ -110,13 +105,18 @@ export default function ESECandidatesPanel() {
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
-                    <Typography
-                      variant="body2"
-                      fontWeight="bold"
-                      color={candidate.max_sigma_dev >= 10 ? 'error.main' : 'warning.main'}
-                    >
-                      {candidate.max_sigma_dev.toFixed(1)}σ
-                    </Typography>
+                    <Chip
+                      label={`${candidate.max_sigma_dev.toFixed(1)}σ`}
+                      color={
+                        candidate.max_sigma_dev >= 8
+                          ? "error"
+                          : candidate.max_sigma_dev >= 6
+                            ? "warning"
+                            : "default"
+                      }
+                      size="small"
+                      sx={{ fontWeight: "bold" }}
+                    />
                   </TableCell>
                   <TableCell align="right">
                     <Typography variant="body2">
@@ -135,7 +135,7 @@ export default function ESECandidatesPanel() {
                   </TableCell>
                   <TableCell>
                     <Chip
-                      label={candidate.status.replace('_', ' ')}
+                      label={candidate.status.replace("_", " ")}
                       color={getStatusColor(candidate.status)}
                       size="small"
                     />
@@ -149,4 +149,3 @@ export default function ESECandidatesPanel() {
     </Paper>
   );
 }
-

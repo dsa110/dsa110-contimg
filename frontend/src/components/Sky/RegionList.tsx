@@ -2,7 +2,7 @@
  * RegionList Component
  * Displays and manages regions for the current image
  */
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Box,
   List,
@@ -19,15 +19,20 @@ import {
   DialogActions,
   Button,
   TextField,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Delete as DeleteIcon,
   Edit as EditIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
-} from '@mui/icons-material';
-import { useRegions, useDeleteRegion, useUpdateRegion, useRegionStatistics } from '../../api/queries';
-import { logger } from '../../utils/logger';
+} from "@mui/icons-material";
+import {
+  useRegions,
+  useDeleteRegion,
+  useUpdateRegion,
+  useRegionStatistics,
+} from "../../api/queries";
+import { logger } from "../../utils/logger";
 
 interface RegionListProps {
   imagePath?: string | null;
@@ -42,7 +47,7 @@ export default function RegionList({
 }: RegionListProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingRegion, setEditingRegion] = useState<any>(null);
-  const [editName, setEditName] = useState('');
+  const [editName, setEditName] = useState("");
   const [hiddenRegions, setHiddenRegions] = useState<Set<number>>(new Set());
 
   const { data: regionsData, isLoading } = useRegions(imagePath);
@@ -52,13 +57,13 @@ export default function RegionList({
   const regions = regionsData?.regions || [];
 
   const handleDelete = async (regionId: number) => {
-    if (!confirm('Delete this region?')) return;
+    if (!confirm("Delete this region?")) return;
 
     try {
       await deleteRegion.mutateAsync(regionId);
     } catch (e) {
-      logger.error('Error deleting region:', e);
-      alert('Failed to delete region');
+      logger.error("Error deleting region:", e);
+      alert("Failed to delete region");
     }
   };
 
@@ -78,10 +83,10 @@ export default function RegionList({
       });
       setEditDialogOpen(false);
       setEditingRegion(null);
-      setEditName('');
+      setEditName("");
     } catch (e) {
-      logger.error('Error updating region:', e);
-      alert('Failed to update region');
+      logger.error("Error updating region:", e);
+      alert("Failed to update region");
     }
   };
 
@@ -126,15 +131,15 @@ export default function RegionList({
             key={region.id}
             onClick={() => onRegionSelect?.(region)}
             sx={{
-              cursor: 'pointer',
+              cursor: "pointer",
               opacity: hiddenRegions.has(region.id) ? 0.5 : 1,
-              backgroundColor: selectedRegionId === region.id ? 'action.selected' : 'transparent',
+              backgroundColor: selectedRegionId === region.id ? "action.selected" : "transparent",
             }}
           >
             <ListItemText
               primary={region.name}
               secondary={
-                <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+                <Box sx={{ display: "flex", gap: 1, mt: 0.5 }}>
                   <Chip label={region.type} size="small" />
                   <Typography variant="caption" color="text.secondary">
                     {new Date(region.created_at * 1000).toLocaleDateString()}
@@ -149,7 +154,7 @@ export default function RegionList({
                   e.stopPropagation();
                   handleToggleVisibility(region.id);
                 }}
-                title={hiddenRegions.has(region.id) ? 'Show' : 'Hide'}
+                title={hiddenRegions.has(region.id) ? "Show" : "Hide"}
               >
                 {hiddenRegions.has(region.id) ? <VisibilityOffIcon /> : <VisibilityIcon />}
               </IconButton>
@@ -202,4 +207,3 @@ export default function RegionList({
     </Paper>
   );
 }
-

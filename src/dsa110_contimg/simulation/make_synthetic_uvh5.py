@@ -6,7 +6,7 @@ import json
 import random
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional, Tuple
 
 import astropy.units as u
 import h5py
@@ -24,9 +24,7 @@ PACKAGE_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CONFIG_DIR = PACKAGE_ROOT / "config"
 PYUVSIM_DIR = PACKAGE_ROOT / "pyuvsim"
-DEFAULT_TEMPLATE = (
-    REPO_ROOT / "data-samples" / "ms" / "test_8subbands_concatenated.hdf5"
-)
+DEFAULT_TEMPLATE = REPO_ROOT / "data-samples" / "ms" / "test_8subbands_concatenated.hdf5"
 
 SECONDS_PER_DAY = 86400.0
 
@@ -56,9 +54,7 @@ def load_reference_layout(path: Path) -> Dict:
         return json.load(fh)
 
 
-def load_telescope_config(
-    config_path: Path, layout_meta: Dict, freq_order: str
-) -> TelescopeConfig:
+def load_telescope_config(config_path: Path, layout_meta: Dict, freq_order: str) -> TelescopeConfig:
     with config_path.open("r", encoding="utf-8") as fh:
         raw = yaml.safe_load(fh)
 
@@ -88,18 +84,12 @@ def load_telescope_config(
         if freq_max is None:
             freq_max = float(np.max(freq_template))
     if freq_min is None or freq_max is None:
-        raise ValueError(
-            "Unable to derive frequency bounds from configuration or layout metadata"
-        )
+        raise ValueError("Unable to derive frequency bounds from configuration or layout metadata")
 
     norm_freq_order = freq_order.lower()
     if norm_freq_order not in {"asc", "desc"}:
         raise ValueError(f"Unsupported frequency order '{freq_order}'")
-    if (
-        freq_template.size > 0
-        and norm_freq_order == "asc"
-        and freq_template[0] > freq_template[-1]
-    ):
+    if freq_template.size > 0 and norm_freq_order == "asc" and freq_template[0] > freq_template[-1]:
         freq_template = freq_template[::-1]
     if (
         freq_template.size > 0
@@ -128,9 +118,18 @@ def load_telescope_config(
     )
 
 
-def build_time_arrays(config: TelescopeConfig, template: UVData, start_time: Time):
-    nbls = template.Nbls
-    ntimes = template.Ntimes
+def build_time_arrays(config: TelescopeConfig, nbls: int, ntimes: int, start_time: Time):
+    """Build time arrays for synthetic data generation.
+
+    Args:
+        config: Telescope configuration
+        nbls: Number of baselines
+        ntimes: Number of time integrations
+        start_time: Observation start time
+
+    Returns:
+        Tuple of (unique_times, time_array, lst_array, integration_time)
+    """
     dt_days = config.integration_time_sec / SECONDS_PER_DAY
 
     unique_times = start_time.mjd + dt_days * np.arange(ntimes)
@@ -139,39 +138,47 @@ def build_time_arrays(config: TelescopeConfig, template: UVData, start_time: Tim
     lst = Time(unique_times, format="mjd", scale="utc", location=config.site_location)
     lst_array = np.repeat(lst.sidereal_time("apparent").rad, nbls)
 
-    integration_time = np.full(
-        time_array.shape, config.integration_time_sec, dtype=float
-    )
+    integration_time = np.full(time_array.shape, config.integration_time_sec, dtype=float)
     return unique_times, time_array, lst_array, integration_time
 
 
 def build_uvw(
-    template: UVData, config: TelescopeConfig, unique_times_mjd: np.ndarray
+    config: TelescopeConfig,
+    unique_times_mjd: np.ndarray,
+    ant1_array: np.ndarray,
+    ant2_array: np.ndarray,
+    nants_telescope: int,
 ) -> np.ndarray:
-    nbls = template.Nbls
-    ntimes = template.Ntimes
+    """Build UVW array for synthetic data generation.
 
-    ant_df = get_itrf(
-        latlon_center=(OVRO_LAT * u.rad, OVRO_LON * u.rad, OVRO_ALT * u.m)
-    )
+    Args:
+        config: Telescope configuration
+        unique_times_mjd: Array of unique times in MJD
+        ant1_array: Antenna 1 array for baselines
+        ant2_array: Antenna 2 array for baselines
+        nants_telescope: Number of antennas
+
+    Returns:
+        UVW array with shape (nbls * ntimes, 3)
+    """
+    nbls = len(ant1_array)
+    ntimes = len(unique_times_mjd)
+
+    ant_df = get_itrf(latlon_center=(OVRO_LAT * u.rad, OVRO_LON * u.rad, OVRO_ALT * u.m))
     ant_offsets = {}
     missing = []
-    for ant in range(template.Nants_telescope):
+    for ant in range(nants_telescope):
         station = ant + 1
         if station in ant_df.index:
             row = ant_df.loc[station]
-            ant_offsets[ant] = np.array(
-                [row["dx_m"], row["dy_m"], row["dz_m"]], dtype=float
-            )
+            ant_offsets[ant] = np.array([row["dx_m"], row["dy_m"], row["dz_m"]], dtype=float)
         else:
             missing.append(station)
     if missing:
         raise ValueError(f"Missing antenna offsets for stations: {missing}")
 
-    ant1 = template.ant_1_array[:nbls]
-    ant2 = template.ant_2_array[:nbls]
     blen = np.zeros((nbls, 3))
-    for idx, (a1, a2) in enumerate(zip(ant1, ant2)):
+    for idx, (a1, a2) in enumerate(zip(ant1_array, ant2_array)):
         blen[idx] = ant_offsets[int(a2)] - ant_offsets[int(a1)]
 
     uvw = np.zeros((nbls * ntimes, 3), dtype=float)
@@ -189,16 +196,209 @@ def build_uvw(
     return uvw
 
 
-def make_visibilities(template: UVData, amplitude_jy: float) -> np.ndarray:
-    shape = (template.Nblts, template.Nspws, template.Nfreqs, template.Npols)
-    value = amplitude_jy / 2.0  # split unpolarized flux equally between XX and YY
-    vis = np.full(shape, value, dtype=np.complex64)
+def make_visibilities(
+    nblts: int,
+    nspws: int,
+    nfreqs: int,
+    npols: int,
+    amplitude_jy: float,
+    u_lambda: Optional[np.ndarray] = None,
+    v_lambda: Optional[np.ndarray] = None,
+    source_model: str = "point",
+    source_size_arcsec: Optional[float] = None,
+    source_pa_deg: float = 0.0,
+) -> np.ndarray:
+    """Create visibility array for synthetic data.
+
+    Args:
+        nblts: Number of baseline-time pairs
+        nspws: Number of spectral windows
+        nfreqs: Number of frequency channels
+        npols: Number of polarizations
+        amplitude_jy: Source flux density in Jy
+        u_lambda: U coordinates in wavelengths (for extended sources)
+        v_lambda: V coordinates in wavelengths (for extended sources)
+        source_model: Source model type: "point", "gaussian", or "disk"
+        source_size_arcsec: Source size in arcseconds (FWHM for Gaussian, radius for disk)
+        source_pa_deg: Position angle in degrees (for Gaussian, default: 0)
+
+    Returns:
+        Visibility array with shape (nblts, nspws, nfreqs, npols)
+    """
+    from dsa110_contimg.simulation.visibility_models import (
+        disk_source_visibility,
+        gaussian_source_visibility,
+    )
+
+    shape = (nblts, nspws, nfreqs, npols)
+
+    if source_model == "point" or source_size_arcsec is None or source_size_arcsec == 0:
+        # Point source: constant visibility
+        value = amplitude_jy / 2.0  # split unpolarized flux equally between XX and YY
+        vis = np.full(shape, value, dtype=np.complex64)
+    elif source_model == "gaussian":
+        # Gaussian extended source
+        if u_lambda is None or v_lambda is None:
+            raise ValueError("u_lambda and v_lambda required for Gaussian source")
+        # Use major_axis = minor_axis for circular Gaussian
+        major_axis = source_size_arcsec
+        minor_axis = source_size_arcsec
+        vis_1d = gaussian_source_visibility(
+            u_lambda, v_lambda, amplitude_jy, major_axis, minor_axis, source_pa_deg
+        )
+        # Expand to full shape: (nblts, nspws, nfreqs, npols)
+        vis = np.zeros(shape, dtype=np.complex64)
+        for spw in range(nspws):
+            for freq in range(nfreqs):
+                for pol in range(npols):
+                    vis[:, spw, freq, pol] = (
+                        vis_1d / 2.0
+                    )  # Split unpolarized flux equally between XX and YY
+    elif source_model == "disk":
+        # Uniform disk source
+        if u_lambda is None or v_lambda is None:
+            raise ValueError("u_lambda and v_lambda required for disk source")
+        vis_1d = disk_source_visibility(u_lambda, v_lambda, amplitude_jy, source_size_arcsec)
+        # Expand to full shape
+        vis = np.zeros(shape, dtype=np.complex64)
+        for spw in range(nspws):
+            for freq in range(nfreqs):
+                for pol in range(npols):
+                    vis[:, spw, freq, pol] = (
+                        vis_1d / 2.0
+                    )  # Split unpolarized flux equally between XX and YY
+    else:
+        raise ValueError(f"Unknown source model: {source_model}")
+
     return vis
+
+
+def build_uvdata_from_scratch(
+    config: TelescopeConfig,
+    nants: int = 110,
+    ntimes: int = 30,
+    start_time: Time = None,
+) -> UVData:
+    """Build a minimal UVData object from scratch without requiring a template.
+
+    This function creates a UVData object with realistic DSA-110 structure
+    using only configuration files and antenna position data.
+
+    Args:
+        config: Telescope configuration
+        nants: Number of antennas (default: 110 for DSA-110)
+        ntimes: Number of time integrations (default: 30 for ~5 minutes)
+        start_time: Observation start time (default: current time)
+
+    Returns:
+        UVData object with basic structure populated
+    """
+    if start_time is None:
+        start_time = Time.now()
+
+    # Get antenna positions
+    ant_df = get_itrf(latlon_center=(OVRO_LAT * u.rad, OVRO_LON * u.rad, OVRO_ALT * u.m))
+
+    # Select antennas (use first nants stations)
+    available_stations = sorted(ant_df.index)[:nants]
+    ant_offsets = {}
+    for station in available_stations:
+        ant_idx = station - 1  # Convert station number to antenna index
+        row = ant_df.loc[station]
+        ant_offsets[ant_idx] = np.array([row["dx_m"], row["dy_m"], row["dz_m"]], dtype=float)
+
+    # Create baseline pairs
+    ant_indices = sorted(ant_offsets.keys())
+    baselines = [(i, j) for i in ant_indices for j in ant_indices if i < j]
+    nbls = len(baselines)
+
+    # Build antenna arrays
+    ant1_list = [b[0] for b in baselines]
+    ant2_list = [b[1] for b in baselines]
+
+    # Build time arrays
+    unique_times, time_array, lst_array, integration_time = build_time_arrays(
+        config, nbls, ntimes, start_time
+    )
+
+    # Build UVW array
+    uvw_array = build_uvw(
+        config,
+        unique_times,
+        np.array(ant1_list),
+        np.array(ant2_list),
+        nants,
+    )
+
+    # Create UVData object
+    uv = UVData()
+
+    # Set basic dimensions
+    uv.Nblts = nbls * ntimes
+    uv.Nbls = nbls
+    uv.Ntimes = ntimes
+    uv.Nfreqs = config.channels_per_subband
+    uv.Nspws = 1
+    uv.Npols = len(config.polarizations)
+    uv.Nants_data = nants
+    uv.Nants_telescope = nants
+
+    # Set antenna arrays
+    uv.ant_1_array = np.repeat(ant1_list, ntimes)
+    uv.ant_2_array = np.repeat(ant2_list, ntimes)
+    uv.antenna_numbers = np.array(ant_indices, dtype=int)
+    uv.antenna_names = [str(i) for i in ant_indices]
+
+    # Set time arrays
+    uv.time_array = time_array
+    uv.lst_array = lst_array
+    uv.integration_time = integration_time
+
+    # Set frequency array (will be set per subband)
+    uv.freq_array = np.zeros((1, config.channels_per_subband), dtype=float)
+    uv.channel_width = np.full(config.channels_per_subband, config.channel_width_hz, dtype=float)
+
+    # Set phase center
+    uv.phase_center_ra = config.phase_ra.to_value(u.rad)
+    uv.phase_center_dec = config.phase_dec.to_value(u.rad)
+    uv.phase_center_frame = "icrs"
+    uv.phase_center_epoch = 2000.0
+
+    # Set UVW
+    uv.uvw_array = uvw_array
+
+    # Set polarization
+    uv.polarization_array = np.array(config.polarizations, dtype=int)
+
+    # Set telescope metadata
+    uv.telescope_name = "DSA-110"
+    uv.telescope_location = np.array(
+        [
+            config.site_location.lon.to_value(u.rad),
+            config.site_location.lat.to_value(u.rad),
+            config.site_location.height.to_value(u.m),
+        ]
+    )
+
+    # Set data arrays (will be populated per subband)
+    uv.data_array = np.zeros((uv.Nblts, uv.Nspws, uv.Nfreqs, uv.Npols), dtype=np.complex64)
+    uv.flag_array = np.zeros((uv.Nblts, uv.Nspws, uv.Nfreqs, uv.Npols), dtype=bool)
+    uv.nsample_array = np.ones((uv.Nblts, uv.Nspws, uv.Nfreqs, uv.Npols), dtype=np.float32)
+
+    # Set units and metadata
+    uv.vis_units = "Jy"
+    uv.history = "Synthetic UVData created from scratch (template-free mode)"
+    uv.object_name = "synthetic_calibrator"
+    uv.extra_keywords = config.extra_keywords.copy()
+    uv.extra_keywords["synthetic"] = True
+    uv.extra_keywords["template_free"] = True
+
+    return uv
 
 
 def write_subband_uvh5(
     subband_index: int,
-    template: UVData,
+    uv_template: UVData,
     config: TelescopeConfig,
     start_time: Time,
     times_mjd: np.ndarray,
@@ -207,11 +407,52 @@ def write_subband_uvh5(
     uvw_array: np.ndarray,
     amplitude_jy: float,
     output_dir: Path,
+    source_model: str = "point",
+    source_size_arcsec: Optional[float] = None,
+    source_pa_deg: float = 0.0,
+    add_noise: bool = False,
+    system_temperature_k: float = 50.0,
+    add_cal_errors: bool = False,
+    gain_std: float = 0.1,
+    phase_std_deg: float = 10.0,
+    rng: Optional[np.random.Generator] = None,
 ) -> Path:
-    uv = template.copy()
-    uv.history += (
-        f"\nSynthetic point-source dataset generated (subband {subband_index:02d})."
-    )
+    """Write a single subband UVH5 file.
+
+    Args:
+        subband_index: Subband index (0-based)
+        uv_template: Template UVData object (or created from scratch)
+        config: Telescope configuration
+        start_time: Observation start time
+        times_mjd: Time array in MJD
+        lst_array: LST array in radians
+        integration_time: Integration time array in seconds
+        uvw_array: UVW array
+        amplitude_jy: Source flux density in Jy
+        output_dir: Output directory
+
+    Returns:
+        Path to created UVH5 file
+    """
+    uv = uv_template.copy()
+    uv.history += f"\nSynthetic point-source dataset generated (subband {subband_index:02d})."
+
+    # Mark as synthetic in extra_keywords
+    uv.extra_keywords["synthetic"] = True
+    uv.extra_keywords["synthetic_flux_jy"] = float(amplitude_jy)
+    uv.extra_keywords["synthetic_source_model"] = source_model
+    # Store source position for catalog generation
+    uv.extra_keywords["synthetic_source_ra_deg"] = float(config.phase_ra.to_value(u.deg))
+    uv.extra_keywords["synthetic_source_dec_deg"] = float(config.phase_dec.to_value(u.deg))
+    if source_size_arcsec is not None:
+        uv.extra_keywords["synthetic_source_size_arcsec"] = float(source_size_arcsec)
+    if add_noise:
+        uv.extra_keywords["synthetic_has_noise"] = True
+        uv.extra_keywords["synthetic_system_temp_k"] = float(system_temperature_k)
+    if add_cal_errors:
+        uv.extra_keywords["synthetic_has_cal_errors"] = True
+        uv.extra_keywords["synthetic_gain_std"] = float(gain_std)
+        uv.extra_keywords["synthetic_phase_std_deg"] = float(phase_std_deg)
 
     delta_f = abs(config.channel_width_hz)
     nchan = config.channels_per_subband
@@ -237,7 +478,78 @@ def write_subband_uvh5(
     uv.integration_time = integration_time
     uv.uvw_array = uvw_array
 
-    uv.data_array = make_visibilities(uv, amplitude_jy)
+    # Calculate u, v coordinates in wavelengths for extended sources
+    u_lambda = None
+    v_lambda = None
+    if source_model != "point" and source_size_arcsec is not None:
+        # Extract u, v from uvw_array (w is third column)
+        # uvw_array shape: (Nblts, 3) where columns are [u, v, w] in meters
+        # Convert to wavelengths using mean frequency
+        mean_freq_hz = np.mean(uv.freq_array)
+        wavelength_m = 299792458.0 / mean_freq_hz  # c / f
+        u_lambda = uvw_array[:, 0] / wavelength_m
+        v_lambda = uvw_array[:, 1] / wavelength_m
+
+    # Generate visibilities
+    uv.data_array = make_visibilities(
+        uv.Nblts,
+        uv.Nspws,
+        uv.Nfreqs,
+        uv.Npols,
+        amplitude_jy,
+        u_lambda=u_lambda,
+        v_lambda=v_lambda,
+        source_model=source_model,
+        source_size_arcsec=source_size_arcsec,
+        source_pa_deg=source_pa_deg,
+    )
+
+    # Add thermal noise if requested
+    if add_noise:
+        from dsa110_contimg.simulation.visibility_models import add_thermal_noise
+
+        # Get integration time and channel width
+        int_time = config.integration_time_sec
+        chan_width = abs(config.channel_width_hz)
+
+        # Get mean frequency for noise calculation (use center of frequency array)
+        mean_freq_hz = (
+            np.mean(uv.freq_array)
+            if hasattr(uv, "freq_array") and uv.freq_array.size > 0
+            else config.reference_frequency_hz
+        )
+
+        uv.data_array = add_thermal_noise(
+            uv.data_array,
+            int_time,
+            chan_width,
+            system_temperature_k=system_temperature_k,
+            frequency_hz=mean_freq_hz,
+            rng=rng,
+        )
+
+    # Add calibration errors if requested
+    if add_cal_errors:
+        from dsa110_contimg.simulation.visibility_models import (
+            add_calibration_errors,
+            apply_calibration_errors_to_visibilities,
+        )
+
+        _, complex_gains, _ = add_calibration_errors(
+            uv.data_array,
+            uv.Nants_telescope,
+            gain_std=gain_std,
+            phase_std_deg=phase_std_deg,
+            rng=rng,
+        )
+
+        uv.data_array = apply_calibration_errors_to_visibilities(
+            uv.data_array,
+            uv.ant_1_array,
+            uv.ant_2_array,
+            complex_gains,
+        )
+
     uv.flag_array = np.zeros_like(uv.data_array, dtype=bool)
     uv.nsample_array = np.ones_like(uv.data_array, dtype=np.float32)
 
@@ -273,7 +585,24 @@ def parse_args() -> argparse.Namespace:
         "--template",
         type=Path,
         default=DEFAULT_TEMPLATE,
-        help="Reference UVH5 file for metadata scaffolding",
+        help="Reference UVH5 file for metadata scaffolding (optional if --template-free used)",
+    )
+    parser.add_argument(
+        "--template-free",
+        action="store_true",
+        help="Generate synthetic data without requiring a template file",
+    )
+    parser.add_argument(
+        "--nants",
+        type=int,
+        default=110,
+        help="Number of antennas (only used in template-free mode, default: 110)",
+    )
+    parser.add_argument(
+        "--ntimes",
+        type=int,
+        default=30,
+        help="Number of time integrations (only used in template-free mode, default: 30)",
     )
     parser.add_argument(
         "--layout-meta",
@@ -328,22 +657,86 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Emit subband files in a shuffled order to exercise ingestion ordering",
     )
+    parser.add_argument(
+        "--source-model",
+        choices=["point", "gaussian", "disk"],
+        default="point",
+        help="Source model type (default: point)",
+    )
+    parser.add_argument(
+        "--source-size-arcsec",
+        type=float,
+        default=None,
+        help="Source size in arcseconds (FWHM for Gaussian, radius for disk)",
+    )
+    parser.add_argument(
+        "--source-pa-deg",
+        type=float,
+        default=0.0,
+        help="Position angle in degrees for Gaussian sources (default: 0)",
+    )
+    parser.add_argument(
+        "--add-noise",
+        action="store_true",
+        help="Add realistic thermal noise to visibilities",
+    )
+    parser.add_argument(
+        "--system-temp-k",
+        type=float,
+        default=50.0,
+        help="System temperature in Kelvin for noise calculation (default: 50K)",
+    )
+    parser.add_argument(
+        "--add-cal-errors",
+        action="store_true",
+        help="Add realistic calibration errors (gain and phase)",
+    )
+    parser.add_argument(
+        "--gain-std",
+        type=float,
+        default=0.1,
+        help="Standard deviation of gain errors (default: 0.1 = 10%%)",
+    )
+    parser.add_argument(
+        "--phase-std-deg",
+        type=float,
+        default=10.0,
+        help="Standard deviation of phase errors in degrees (default: 10 deg)",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Random seed for reproducibility (for noise and cal errors)",
+    )
+    parser.add_argument(
+        "--create-catalog",
+        action="store_true",
+        help="Create synthetic catalog database matching source positions",
+    )
+    parser.add_argument(
+        "--catalog-type",
+        type=str,
+        choices=["nvss", "first", "rax", "vlass"],
+        default="nvss",
+        help="Catalog type for synthetic catalog (default: nvss)",
+    )
+    parser.add_argument(
+        "--catalog-output",
+        type=Path,
+        default=None,
+        help="Output path for synthetic catalog database (auto-generated if not specified)",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
 
-    if not args.template.exists():
-        raise FileNotFoundError(
-            f"Template UVH5 not found at {args.template}. Provide --template with a reference dataset."
-        )
     if not args.layout_meta.exists():
         raise FileNotFoundError(f"Layout metadata not found at {args.layout_meta}")
     if not args.telescope_config.exists():
-        raise FileNotFoundError(
-            f"Telescope configuration not found at {args.telescope_config}"
-        )
+        raise FileNotFoundError(f"Telescope configuration not found at {args.telescope_config}")
 
     layout_meta = load_reference_layout(args.layout_meta)
     config = load_telescope_config(args.telescope_config, layout_meta, args.freq_order)
@@ -354,20 +747,60 @@ def main() -> None:
             f" but configuration expects {config.num_subbands}."
         )
 
-    uv_template = UVData()
-    uv_template.read(
-        args.template,
-        file_type="uvh5",
-        run_check=False,
-        run_check_acceptability=False,
-        strict_uvw_antpos_check=False,
-    )
-
     start_time = Time(args.start_time, format="isot", scale="utc")
-    unique_times, time_array, lst_array, integration_time = build_time_arrays(
-        config, uv_template, start_time
-    )
-    uvw_array = build_uvw(uv_template, config, unique_times)
+
+    # Template-free mode: build UVData from scratch
+    if args.template_free:
+        print("Using template-free generation mode...")
+        uv_template = build_uvdata_from_scratch(
+            config, nants=args.nants, ntimes=args.ntimes, start_time=start_time
+        )
+        nbls = uv_template.Nbls
+        ntimes = uv_template.Ntimes
+        unique_times, time_array, lst_array, integration_time = build_time_arrays(
+            config, nbls, ntimes, start_time
+        )
+        uvw_array = build_uvw(
+            config,
+            unique_times,
+            uv_template.ant_1_array[:nbls],
+            uv_template.ant_2_array[:nbls],
+            uv_template.Nants_telescope,
+        )
+    # Template mode: use existing template file
+    else:
+        if not args.template.exists():
+            raise FileNotFoundError(
+                f"Template UVH5 not found at {args.template}. "
+                f"Provide --template with a reference dataset or use --template-free."
+            )
+        print(f"Using template file: {args.template}")
+        uv_template = UVData()
+        uv_template.read(
+            args.template,
+            file_type="uvh5",
+            run_check=False,
+            run_check_acceptability=False,
+            strict_uvw_antpos_check=False,
+        )
+        nbls = uv_template.Nbls
+        ntimes = uv_template.Ntimes
+        unique_times, time_array, lst_array, integration_time = build_time_arrays(
+            config, nbls, ntimes, start_time
+        )
+        uvw_array = build_uvw(
+            config,
+            unique_times,
+            uv_template.ant_1_array[:nbls],
+            uv_template.ant_2_array[:nbls],
+            uv_template.Nants_telescope,
+        )
+
+    # Set up random number generator for reproducibility
+    if args.seed is not None:
+        rng = np.random.default_rng(args.seed)
+    else:
+        rng = np.random.default_rng()
 
     outputs = []
     total_subbands = min(args.subbands, config.num_subbands)
@@ -387,12 +820,89 @@ def main() -> None:
             uvw_array,
             args.flux_jy,
             args.output,
+            source_model=args.source_model,
+            source_size_arcsec=args.source_size_arcsec,
+            source_pa_deg=args.source_pa_deg,
+            add_noise=args.add_noise,
+            system_temperature_k=args.system_temp_k,
+            add_cal_errors=args.add_cal_errors,
+            gain_std=args.gain_std,
+            phase_std_deg=args.phase_std_deg,
+            rng=rng,
         )
         outputs.append(path)
 
     print("Generated synthetic subbands:")
     for path in outputs:
         print(f"  {path}")
+
+    # Create synthetic catalog if requested
+    if args.create_catalog:
+        from dsa110_contimg.simulation.synthetic_catalog import (
+            create_synthetic_catalog_from_uvh5,
+        )
+
+        # Use first output file to extract source positions
+        uvh5_path = outputs[0]
+
+        # Determine catalog output path
+        if args.catalog_output is None:
+            # Auto-generate path based on declination strip
+            dec_strip = round(float(uv_template.phase_center_dec_degrees), 1)
+            catalog_name = f"{args.catalog_type}_dec{dec_strip:+.1f}.sqlite3"
+            catalog_output = args.output.parent / "catalogs" / catalog_name
+        else:
+            catalog_output = args.catalog_output
+
+        print(f"\nCreating synthetic {args.catalog_type.upper()} catalog...")
+        catalog_path = create_synthetic_catalog_from_uvh5(
+            uvh5_path=uvh5_path,
+            catalog_output_path=catalog_output,
+            catalog_type=args.catalog_type,
+            add_noise=True,  # Add realistic catalog errors
+            rng=rng,
+        )
+        print(f"  Created: {catalog_path}")
+        print(f"\nTo use in pipeline testing, set environment variable:")
+        print(f"  export {args.catalog_type.upper()}_CATALOG={catalog_path}")
+
+    # Print summary of features used
+    features = []
+    if args.source_model != "point":
+        features.append(f"Extended source ({args.source_model}, {args.source_size_arcsec} arcsec)")
+    if args.add_noise:
+        features.append(f"Thermal noise (T_sys={args.system_temp_k}K)")
+    if args.add_cal_errors:
+        features.append(
+            f"Calibration errors (gain_std={args.gain_std}, phase_std={args.phase_std_deg}deg)"
+        )
+
+    if features:
+        print("\nFeatures enabled:")
+        for feature in features:
+            print(f"  - {feature}")
+    else:
+        print("\nUsing basic point source model (no noise, no cal errors)")
+
+    # Validate generated files if validation module is available
+    try:
+        from dsa110_contimg.simulation.validate_synthetic import validate_uvh5_file
+
+        print("\nValidating generated files...")
+        all_valid = True
+        for path in outputs:
+            is_valid, errors = validate_uvh5_file(path)
+            if is_valid:
+                print(f"  ✓ {path.name}: Valid")
+            else:
+                print(f"  ✗ {path.name}: Invalid - {errors}")
+                all_valid = False
+        if all_valid:
+            print("\n✓ All generated files validated successfully")
+        else:
+            print("\n⚠ Some generated files failed validation")
+    except ImportError:
+        print("\n⚠ Validation module not available, skipping validation")
 
 
 if __name__ == "__main__":

@@ -63,9 +63,7 @@ def build_nvss_strip_db(
 
     # Filter to declination strip
     dec_col = "dec" if "dec" in df_full.columns else "dec_deg"
-    df_strip = df_full[
-        (df_full[dec_col] >= dec_min) & (df_full[dec_col] <= dec_max)
-    ].copy()
+    df_strip = df_full[(df_full[dec_col] >= dec_min) & (df_full[dec_col] <= dec_max)].copy()
 
     print(f"Filtered NVSS catalog: {len(df_full)} → {len(df_strip)} sources")
     print(f"Declination range: {dec_min:.6f} to {dec_max:.6f} degrees")
@@ -215,9 +213,7 @@ def build_first_strip_db(
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Load FIRST catalog (auto-downloads if needed, similar to NVSS)
-    df_full = read_first_catalog(
-        cache_dir=cache_dir, first_catalog_path=first_catalog_path
-    )
+    df_full = read_first_catalog(cache_dir=cache_dir, first_catalog_path=first_catalog_path)
 
     # Normalize column names (similar to build_master.py)
     FIRST_CANDIDATES = {
@@ -537,8 +533,197 @@ def build_rax_strip_db(
             "INSERT OR REPLACE INTO meta(key, value) VALUES('n_sources', ?)",
             (str(len(insert_data)),),
         )
+        source_file_str = str(rax_catalog_path) if rax_catalog_path else "auto-downloaded/cached"
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES('source_file', ?)",
+            (source_file_str,),
+        )
+        if min_flux_mjy is not None:
+            conn.execute(
+                "INSERT OR REPLACE INTO meta(key, value) VALUES('min_flux_mjy', ?)",
+                (str(min_flux_mjy),),
+            )
+
+        conn.commit()
+
+    file_size_mb = output_path.stat().st_size / (1024 * 1024)
+    print(f"✓ Database created: {output_path}")
+    print(f"  Size: {file_size_mb:.2f} MB")
+    print(f"  Sources: {len(insert_data)}")
+
+    return output_path
+
+
+def build_vlass_strip_db(
+    dec_center: float,
+    dec_range: Tuple[float, float],
+    vlass_catalog_path: Optional[str] = None,
+    output_path: Optional[str | os.PathLike[str]] = None,
+    min_flux_mjy: Optional[float] = None,
+    cache_dir: str = ".cache/catalogs",
+) -> Path:
+    """Build SQLite database for VLASS sources in a declination strip.
+
+    Args:
+        dec_center: Center declination in degrees
+        dec_range: Tuple of (dec_min, dec_max) in degrees
+        vlass_catalog_path: Optional path to VLASS catalog (CSV/FITS).
+                          If None, attempts to find cached catalog.
+        output_path: Output SQLite database path (auto-generated if None)
+        min_flux_mjy: Minimum flux threshold in mJy (None = no threshold)
+        cache_dir: Directory for caching catalog files
+
+    Returns:
+        Path to created SQLite database
+    """
+    from dsa110_contimg.catalog.build_master import _normalize_columns, _read_table
+
+    dec_min, dec_max = dec_range
+
+    # Resolve output path
+    if output_path is None:
+        dec_rounded = round(dec_center, 1)
+        db_name = f"vlass_dec{dec_rounded:+.1f}.sqlite3"
+        output_path = Path("state/catalogs") / db_name
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Load VLASS catalog
+    if vlass_catalog_path:
+        df_full = _read_table(vlass_catalog_path)
+    else:
+        # Try to find cached VLASS catalog
+        cache_path = Path(cache_dir) / "vlass_catalog"
+        for ext in [".csv", ".fits", ".fits.gz", ".csv.gz"]:
+            candidate = cache_path.with_suffix(ext)
+            if candidate.exists():
+                df_full = _read_table(str(candidate))
+                break
+        else:
+            raise FileNotFoundError(
+                f"VLASS catalog not found. Provide vlass_catalog_path or place "
+                f"catalog in {cache_dir}/vlass_catalog.csv or .fits"
+            )
+
+    # Normalize column names for VLASS
+    VLASS_CANDIDATES = {
+        "ra": ["ra", "ra_deg", "raj2000"],
+        "dec": ["dec", "dec_deg", "dej2000"],
+        "flux": ["peak_flux", "peak_mjy_per_beam", "flux_peak", "flux", "total_flux"],
+    }
+
+    col_map = _normalize_columns(df_full, VLASS_CANDIDATES)
+
+    # Standardize column names
+    ra_col = col_map.get("ra", "ra")
+    dec_col = col_map.get("dec", "dec")
+    flux_col = col_map.get("flux", None)
+
+    # Filter to declination strip
+    df_strip = df_full[
+        (pd.to_numeric(df_full[dec_col], errors="coerce") >= dec_min)
+        & (pd.to_numeric(df_full[dec_col], errors="coerce") <= dec_max)
+    ].copy()
+
+    print(f"Filtered VLASS catalog: {len(df_full)} → {len(df_strip)} sources")
+    print(f"Declination range: {dec_min:.6f} to {dec_max:.6f} degrees")
+
+    # Apply flux threshold if specified
+    if min_flux_mjy is not None and flux_col:
+        flux_val = pd.to_numeric(df_strip[flux_col], errors="coerce")
+        # Convert to mJy if needed (assume > 1000 means Jy, otherwise mJy)
+        if len(flux_val) > 0 and flux_val.max() > 1000:
+            flux_val = flux_val * 1000.0  # Convert Jy to mJy
+        df_strip = df_strip[flux_val >= min_flux_mjy].copy()
+        print(f"After flux cut ({min_flux_mjy} mJy): {len(df_strip)} sources")
+
+    # Create SQLite database
+    print(f"Creating SQLite database: {output_path}")
+
+    with sqlite3.connect(str(output_path)) as conn:
+        # Create sources table
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS sources (
+                source_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ra_deg REAL NOT NULL,
+                dec_deg REAL NOT NULL,
+                flux_mjy REAL,
+                UNIQUE(ra_deg, dec_deg)
+            )
+        """
+        )
+
+        # Create spatial index
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_radec ON sources(ra_deg, dec_deg)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_dec ON sources(dec_deg)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_flux ON sources(flux_mjy)")
+
+        # Clear existing data
+        conn.execute("DELETE FROM sources")
+
+        # Insert sources
+        insert_data = []
+        for _, row in df_strip.iterrows():
+            ra = pd.to_numeric(row[ra_col], errors="coerce")
+            dec = pd.to_numeric(row[dec_col], errors="coerce")
+
+            if not (np.isfinite(ra) and np.isfinite(dec)):
+                continue
+
+            # Handle flux
+            flux = None
+            if flux_col and flux_col in row.index:
+                flux_val = pd.to_numeric(row[flux_col], errors="coerce")
+                if np.isfinite(flux_val):
+                    # Convert to mJy if needed (assume > 1000 means Jy, otherwise mJy)
+                    flux_val_float = float(flux_val)
+                    if flux_val_float > 1000:
+                        flux = flux_val_float * 1000.0  # Convert Jy to mJy
+                    else:
+                        flux = flux_val_float
+
+            if np.isfinite(ra) and np.isfinite(dec):
+                insert_data.append((ra, dec, flux))
+
+        conn.executemany(
+            "INSERT OR IGNORE INTO sources(ra_deg, dec_deg, flux_mjy) VALUES(?, ?, ?)",
+            insert_data,
+        )
+
+        # Create metadata table
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS meta (
+                key TEXT PRIMARY KEY,
+                value TEXT
+            )
+        """
+        )
+
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES('dec_center', ?)",
+            (str(dec_center),),
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES('dec_min', ?)",
+            (str(dec_min),),
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES('dec_max', ?)",
+            (str(dec_max),),
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES('build_time_iso', ?)",
+            (datetime.now(timezone.utc).isoformat(),),
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES('n_sources', ?)",
+            (str(len(insert_data)),),
+        )
         source_file_str = (
-            str(rax_catalog_path) if rax_catalog_path else "auto-downloaded/cached"
+            str(vlass_catalog_path) if vlass_catalog_path else "auto-downloaded/cached"
         )
         conn.execute(
             "INSERT OR REPLACE INTO meta(key, value) VALUES('source_file', ?)",

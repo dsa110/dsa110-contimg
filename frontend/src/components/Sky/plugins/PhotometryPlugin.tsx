@@ -2,7 +2,7 @@
  * DSA Photometry Plugin for JS9
  * Calculates photometry statistics (peak flux, integrated flux, RMS noise) for circular regions
  */
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Paper,
   Typography,
@@ -15,9 +15,9 @@ import {
   TableRow,
   CircularProgress,
   Alert,
-} from '@mui/material';
-import { logger } from '../../../utils/logger';
-import { findDisplay, isJS9Available } from '../../../utils/js9';
+} from "@mui/material";
+import { logger } from "../../../utils/logger";
+import { findDisplay, isJS9Available } from "../../../utils/js9";
 
 declare global {
   interface Window {
@@ -43,7 +43,7 @@ interface PhotometryPluginProps {
  */
 class DSAPhotometryPlugin {
   private displayId: string;
-  private pluginName: string = 'DSA Photometry';
+  private pluginName: string = "DSA Photometry";
   private statsCallback: ((stats: PhotometryStats | null) => void) | null = null;
 
   constructor(displayId: string) {
@@ -71,10 +71,10 @@ class DSAPhotometryPlugin {
       try {
         imageData = window.JS9.GetImageData?.(imageId);
       } catch (e) {
-        logger.debug('GetImageData failed, trying alternative method:', e);
+        logger.debug("GetImageData failed, trying alternative method:", e);
       }
 
-        // Alternative: use GetVal for individual pixels if GetImageData not available
+      // Alternative: use GetVal for individual pixels if GetImageData not available
       if (!imageData || !imageData.data) {
         // Fallback: try to get image dimensions first
         const display = findDisplay(this.displayId);
@@ -96,10 +96,10 @@ class DSAPhotometryPlugin {
 
       // Extract region parameters
       // JS9 regions: circles use 'c' or 'circle', rectangles use 'r' or 'box'
-      const regionType = region.shape || region.type || region.regtype || 'circle';
+      const regionType = region.shape || region.type || region.regtype || "circle";
       let regionPixels: { x: number; y: number }[] = [];
 
-      if (regionType === 'circle' || regionType === 'c') {
+      if (regionType === "circle" || regionType === "c") {
         // Circle region: x, y, radius (in image coordinates)
         const x = Math.round(region.x || region.xcenter || region.xc || 0);
         const y = Math.round(region.y || region.ycenter || region.yc || 0);
@@ -111,8 +111,16 @@ class DSAPhotometryPlugin {
 
         // Collect pixels within circle
         const r2 = radius * radius;
-        for (let py = Math.max(0, Math.floor(y - radius)); py <= Math.min(height - 1, Math.ceil(y + radius)); py++) {
-          for (let px = Math.max(0, Math.floor(x - radius)); px <= Math.min(width - 1, Math.ceil(x + radius)); px++) {
+        for (
+          let py = Math.max(0, Math.floor(y - radius));
+          py <= Math.min(height - 1, Math.ceil(y + radius));
+          py++
+        ) {
+          for (
+            let px = Math.max(0, Math.floor(x - radius));
+            px <= Math.min(width - 1, Math.ceil(x + radius));
+            px++
+          ) {
             const dx = px - x;
             const dy = py - y;
             const dist2 = dx * dx + dy * dy;
@@ -121,7 +129,7 @@ class DSAPhotometryPlugin {
             }
           }
         }
-      } else if (regionType === 'box' || regionType === 'rectangle' || regionType === 'r') {
+      } else if (regionType === "box" || regionType === "rectangle" || regionType === "r") {
         // Rectangle region
         const x = Math.round(region.x || region.xcenter || region.xc || 0);
         const y = Math.round(region.y || region.ycenter || region.yc || 0);
@@ -144,7 +152,7 @@ class DSAPhotometryPlugin {
         }
       } else {
         // Unsupported region type
-        logger.debug('Unsupported region type for photometry:', regionType);
+        logger.debug("Unsupported region type for photometry:", regionType);
         return null;
       }
 
@@ -167,7 +175,7 @@ class DSAPhotometryPlugin {
         }
       } else {
         // Fallback: use GetVal for each pixel
-        if (typeof window.JS9.GetVal === 'function') {
+        if (typeof window.JS9.GetVal === "function") {
           for (const pixel of regionPixels) {
             try {
               const value = window.JS9.GetVal(imageId, pixel.x, pixel.y);
@@ -179,7 +187,7 @@ class DSAPhotometryPlugin {
             }
           }
         } else {
-          logger.warn('JS9.GetVal not available for pixel extraction');
+          logger.warn("JS9.GetVal not available for pixel extraction");
           return null;
         }
       }
@@ -191,10 +199,11 @@ class DSAPhotometryPlugin {
       // Calculate statistics
       const peakFlux = Math.max(...pixels);
       const integratedFlux = pixels.reduce((sum, val) => sum + val, 0);
-      
+
       // Calculate RMS noise (standard deviation)
       const mean = integratedFlux / pixels.length;
-      const variance = pixels.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / pixels.length;
+      const variance =
+        pixels.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / pixels.length;
       const rmsNoise = Math.sqrt(variance);
 
       return {
@@ -205,7 +214,7 @@ class DSAPhotometryPlugin {
         regionType,
       };
     } catch (error) {
-      logger.error('Error calculating photometry:', error);
+      logger.error("Error calculating photometry:", error);
       return null;
     }
   }
@@ -230,13 +239,13 @@ class DSAPhotometryPlugin {
   init() {
     try {
       if (!window.JS9) {
-        logger.warn('JS9 not available for plugin initialization');
+        logger.warn("JS9 not available for plugin initialization");
         return;
       }
 
       // Register plugin with JS9
       // JS9.RegisterPlugin(class, name, constructor, {callbacks})
-      if (typeof window.JS9.RegisterPlugin === 'function') {
+      if (typeof window.JS9.RegisterPlugin === "function") {
         window.JS9.RegisterPlugin(
           DSAPhotometryPlugin,
           this.pluginName,
@@ -245,14 +254,14 @@ class DSAPhotometryPlugin {
             onregionschange: this.handleRegionChange,
           }
         );
-        logger.debug('DSA Photometry plugin registered');
+        logger.debug("DSA Photometry plugin registered");
       } else {
         // Fallback: manually set up callbacks if RegisterPlugin not available
-        logger.debug('JS9.RegisterPlugin not available, using manual callback setup');
+        logger.debug("JS9.RegisterPlugin not available, using manual callback setup");
         this.setupManualCallbacks();
       }
     } catch (error) {
-      logger.error('Error initializing photometry plugin:', error);
+      logger.error("Error initializing photometry plugin:", error);
     }
   }
 
@@ -276,8 +285,8 @@ class DSAPhotometryPlugin {
           const regions = window.JS9.GetRegions(display.im.id);
           if (regions && regions.length > 0) {
             // Use the first circular region
-            const circleRegion = regions.find((r: any) => 
-              r.shape === 'circle' || r.type === 'circle' || r.type === 'c'
+            const circleRegion = regions.find(
+              (r: any) => r.shape === "circle" || r.type === "circle" || r.type === "c"
             );
             if (circleRegion) {
               this.handleRegionChange(display.im, circleRegion);
@@ -285,7 +294,7 @@ class DSAPhotometryPlugin {
           }
         }
       } catch (error) {
-        logger.debug('Error checking regions:', error);
+        logger.debug("Error checking regions:", error);
       }
     }, 500); // Check every 500ms
 
@@ -306,7 +315,7 @@ class DSAPhotometryPlugin {
 /**
  * React component wrapper for the photometry plugin
  */
-export default function PhotometryPlugin({ displayId = 'skyViewDisplay' }: PhotometryPluginProps) {
+export default function PhotometryPlugin({ displayId = "skyViewDisplay" }: PhotometryPluginProps) {
   const pluginRef = useRef<DSAPhotometryPlugin | null>(null);
   const [stats, setStats] = useState<PhotometryStats | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -324,7 +333,7 @@ export default function PhotometryPlugin({ displayId = 'skyViewDisplay' }: Photo
       const timeout = setTimeout(() => {
         clearInterval(checkJS9);
         if (!isJS9Available()) {
-          setError('JS9 not available');
+          setError("JS9 not available");
         }
       }, 10000);
 
@@ -347,8 +356,8 @@ export default function PhotometryPlugin({ displayId = 'skyViewDisplay' }: Photo
         plugin.init();
         pluginRef.current = plugin;
       } catch (err: any) {
-        logger.error('Error initializing photometry plugin:', err);
-        setError(err.message || 'Failed to initialize plugin');
+        logger.error("Error initializing photometry plugin:", err);
+        setError(err.message || "Failed to initialize plugin");
       }
     }
 
@@ -360,7 +369,7 @@ export default function PhotometryPlugin({ displayId = 'skyViewDisplay' }: Photo
   }, [displayId]);
 
   // Poll for region changes (JS9 doesn't have region events, so polling is necessary)
-  const lastRegionHashRef = useRef<string>('');
+  const lastRegionHashRef = useRef<string>("");
   const hasStatsRef = useRef<boolean>(false);
 
   const checkRegions = useCallback(() => {
@@ -373,7 +382,7 @@ export default function PhotometryPlugin({ displayId = 'skyViewDisplay' }: Photo
         if (hasStatsRef.current) {
           setStats(null);
           hasStatsRef.current = false;
-          lastRegionHashRef.current = '';
+          lastRegionHashRef.current = "";
         }
         return;
       }
@@ -381,23 +390,23 @@ export default function PhotometryPlugin({ displayId = 'skyViewDisplay' }: Photo
       // Get regions for this image
       let regions: any[] = [];
       try {
-        if (typeof window.JS9.GetRegions === 'function') {
+        if (typeof window.JS9.GetRegions === "function") {
           regions = window.JS9.GetRegions(display.im.id) || [];
         }
       } catch (e) {
-        logger.debug('Error getting regions:', e);
+        logger.debug("Error getting regions:", e);
       }
 
       // Find circular regions (prioritize circles for photometry)
       const circleRegion = regions.find((r: any) => {
-        const shape = r.shape || r.type || r.regtype || '';
-        return shape === 'circle' || shape === 'c';
+        const shape = r.shape || r.type || r.regtype || "";
+        return shape === "circle" || shape === "c";
       });
 
       // Create hash of region to detect changes
       const regionHash = circleRegion
         ? `${circleRegion.x || 0}_${circleRegion.y || 0}_${circleRegion.radius || circleRegion.r || 0}`
-        : '';
+        : "";
 
       // Only update if region changed
       if (regionHash !== lastRegionHashRef.current) {
@@ -423,7 +432,7 @@ export default function PhotometryPlugin({ displayId = 'skyViewDisplay' }: Photo
         }
       }
     } catch (err) {
-      logger.debug('Error checking regions:', err);
+      logger.debug("Error checking regions:", err);
     }
   }, [displayId]);
 
@@ -442,7 +451,7 @@ export default function PhotometryPlugin({ displayId = 'skyViewDisplay' }: Photo
   }, [checkRegions]);
 
   const formatValue = (value: number | null): string => {
-    if (value === null || isNaN(value)) return 'N/A';
+    if (value === null || isNaN(value)) return "N/A";
     return value.toExponential(3);
   };
 
@@ -451,7 +460,7 @@ export default function PhotometryPlugin({ displayId = 'skyViewDisplay' }: Photo
       <Typography variant="h6" gutterBottom>
         DSA Photometry
       </Typography>
-      
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
@@ -463,14 +472,18 @@ export default function PhotometryPlugin({ displayId = 'skyViewDisplay' }: Photo
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell><strong>Parameter</strong></TableCell>
-                <TableCell align="right"><strong>Value</strong></TableCell>
+                <TableCell>
+                  <strong>Parameter</strong>
+                </TableCell>
+                <TableCell align="right">
+                  <strong>Value</strong>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               <TableRow>
                 <TableCell>Region Type</TableCell>
-                <TableCell align="right">{stats.regionType || 'N/A'}</TableCell>
+                <TableCell align="right">{stats.regionType || "N/A"}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Pixel Count</TableCell>
@@ -492,7 +505,7 @@ export default function PhotometryPlugin({ displayId = 'skyViewDisplay' }: Photo
           </Table>
         </TableContainer>
       ) : (
-        <Box sx={{ textAlign: 'center', py: 3 }}>
+        <Box sx={{ textAlign: "center", py: 3 }}>
           <Typography variant="body2" color="text.secondary">
             Draw a circular region on the image to calculate photometry
           </Typography>
@@ -501,4 +514,3 @@ export default function PhotometryPlugin({ displayId = 'skyViewDisplay' }: Photo
     </Paper>
   );
 }
-

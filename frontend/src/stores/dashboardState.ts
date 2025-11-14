@@ -1,35 +1,35 @@
 /**
  * Dashboard State Types
- * 
+ *
  * Defines the state structure for the anticipatory dashboard.
  * Inspired by VAST's state management patterns and the anticipatory dashboard design.
- * 
+ *
  * @module stores/dashboardState
  */
 
-export type DashboardMode = 
-  | 'idle'           // Normal monitoring, autonomous operations running smoothly
-  | 'autonomous'     // Streaming pipeline operating autonomously (monitoring mode)
-  | 'discovery'      // ESE candidate detected - focused investigation
-  | 'investigation'  // Deep dive into specific source/issue
-  | 'debugging'      // Diagnostic mode for troubleshooting
-  | 'manual-control' // Manual override of autonomous operations
-  | 'analysis';      // Analysis workspace mode
+export type DashboardMode =
+  | "idle" // Normal monitoring, autonomous operations running smoothly
+  | "autonomous" // Streaming pipeline operating autonomously (monitoring mode)
+  | "discovery" // ESE candidate detected - focused investigation
+  | "investigation" // Deep dive into specific source/issue
+  | "debugging" // Diagnostic mode for troubleshooting
+  | "manual-control" // Manual override of autonomous operations
+  | "analysis"; // Analysis workspace mode
 
 export interface IdleState {
-  mode: 'idle';
-  status: 'healthy' | 'attention' | 'warning';
+  mode: "idle";
+  status: "healthy" | "attention" | "warning";
   lastUpdate: Date;
   streamingPipeline?: {
-    status: 'running' | 'stopped' | 'error';
+    status: "running" | "stopped" | "error";
     lastCheck: Date;
   };
 }
 
 export interface AutonomousState {
-  mode: 'autonomous';
+  mode: "autonomous";
   streamingPipeline: {
-    status: 'running' | 'stopped' | 'error';
+    status: "running" | "stopped" | "error";
     currentOperations: AutonomousOperation[];
     metrics: {
       throughput: number;
@@ -43,8 +43,8 @@ export interface AutonomousState {
 
 export interface AutonomousOperation {
   id: string;
-  type: 'conversion' | 'calibration' | 'imaging' | 'mosaicking';
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  type: "conversion" | "calibration" | "imaging" | "mosaicking";
+  status: "pending" | "running" | "completed" | "failed";
   startTime: Date;
   endTime?: Date;
   progress?: number;
@@ -52,7 +52,7 @@ export interface AutonomousOperation {
 }
 
 export interface DiscoveryState {
-  mode: 'discovery';
+  mode: "discovery";
   candidate: {
     sourceId: string;
     ra: number;
@@ -69,22 +69,22 @@ export interface DiscoveryState {
 }
 
 export interface InvestigationState {
-  mode: 'investigation';
+  mode: "investigation";
   context: {
     sourceId?: string;
     msPath?: string;
     imagePath?: string;
-    focus: 'light-curve' | 'calibration' | 'imaging' | 'catalog' | 'general';
+    focus: "light-curve" | "calibration" | "imaging" | "catalog" | "general";
   };
   preloadedData: Record<string, unknown>;
 }
 
 export interface DebuggingState {
-  mode: 'debugging';
+  mode: "debugging";
   issue: {
     id: string;
-    type: 'pipeline-error' | 'calibration-failure' | 'imaging-error' | 'system-error';
-    severity: 'low' | 'medium' | 'high' | 'critical';
+    type: "pipeline-error" | "calibration-failure" | "imaging-error" | "system-error";
+    severity: "low" | "medium" | "high" | "critical";
     description: string;
     timestamp: Date;
   };
@@ -97,7 +97,7 @@ export interface DebuggingState {
 }
 
 export interface ManualControlState {
-  mode: 'manual-control';
+  mode: "manual-control";
   reason: string;
   previousState: DashboardState;
   controlScope: {
@@ -114,7 +114,7 @@ export interface ManualControlState {
 }
 
 export interface AnalysisState {
-  mode: 'analysis';
+  mode: "analysis";
   workspace: {
     id: string;
     name: string;
@@ -134,7 +134,7 @@ export interface AnalysisState {
   trustIndicators: Array<{
     type: string;
     label: string;
-    status: 'trusted' | 'warning' | 'untrusted';
+    status: "trusted" | "warning" | "untrusted";
   }>;
   reproducibility: {
     analysisId: string;
@@ -142,17 +142,23 @@ export interface AnalysisState {
   };
 }
 
-export type DashboardState = 
-  | IdleState 
+export type DashboardState =
+  | IdleState
   | AutonomousState
-  | DiscoveryState 
-  | InvestigationState 
+  | DiscoveryState
+  | InvestigationState
   | DebuggingState
   | ManualControlState
   | AnalysisState;
 
 export interface UserIntent {
-  type: 'view-source' | 'view-ms' | 'view-image' | 'investigate-candidate' | 'debug-issue' | 'analyze-data';
+  type:
+    | "view-source"
+    | "view-ms"
+    | "view-image"
+    | "investigate-candidate"
+    | "debug-issue"
+    | "analyze-data";
   targetId?: string;
   msPath?: string;
   sourceId?: string;
@@ -181,4 +187,3 @@ export interface DashboardContext {
   recentActions: Action[];
   workflowHistory: WorkflowStep[];
 }
-

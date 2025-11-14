@@ -2,7 +2,7 @@
  * Health Page
  * Deep diagnostics for pipeline and data quality monitoring
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo } from "react";
 import {
   Container,
   Typography,
@@ -25,21 +25,26 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Memory as MemoryIcon,
   Speed as SpeedIcon,
   Storage as StorageIcon,
   Assessment as AssessmentIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 import {
   usePipelineStatus,
   useSystemMetrics,
   useESECandidates,
-} from '../api/queries';
-import Plot from 'react-plotly.js';
-import type { Data, Layout } from 'plotly.js';
-import { useNavigate } from 'react-router-dom';
+  useHealthSummary,
+} from "../api/queries";
+import Plot from "react-plotly.js";
+import type { Data, Layout } from "plotly.js";
+import { useNavigate } from "react-router-dom";
+import dayjs from "dayjs";
+import { DeadLetterQueueStats } from "../components/DeadLetterQueue";
+import { CircuitBreakerStatus } from "../components/CircuitBreaker";
+import type { HealthSummary } from "../api/types";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -59,7 +64,7 @@ function TabPanel(props: TabPanelProps) {
 function MetricCard({
   label,
   value,
-  unit = '',
+  unit = "",
   threshold = { warning: 75, critical: 90 },
   icon,
 }: {
@@ -72,22 +77,22 @@ function MetricCard({
   const percentage = value || 0;
   const severity =
     percentage >= threshold.critical
-      ? 'error'
+      ? "error"
       : percentage >= threshold.warning
-      ? 'warning'
-      : 'success';
+        ? "warning"
+        : "success";
 
   return (
     <Card>
       <CardContent>
         <Stack direction="row" spacing={2} alignItems="center">
-          {icon && <Box sx={{ color: 'text.secondary' }}>{icon}</Box>}
+          {icon && <Box sx={{ color: "text.secondary" }}>{icon}</Box>}
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant="body2" color="text.secondary">
               {label}
             </Typography>
             <Typography variant="h5">
-              {value !== undefined ? `${value.toFixed(1)}${unit}` : 'N/A'}
+              {value !== undefined ? `${value.toFixed(1)}${unit}` : "N/A"}
             </Typography>
             <LinearProgress
               variant="determinate"
@@ -99,6 +104,89 @@ function MetricCard({
         </Stack>
       </CardContent>
     </Card>
+  );
+}
+
+function OperationsHealthTab() {
+  const { data: healthSummary, isLoading } = useHealthSummary();
+
+  if (isLoading || !healthSummary) {
+    return <SkeletonLoader variant="cards" rows={3} />;
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "healthy":
+        return "success";
+      case "degraded":
+        return "warning";
+      case "unhealthy":
+        return "error";
+      default:
+        return "default";
+    }
+  };
+
+  return (
+    <Grid container spacing={3}>
+      {/* Overall Status */}
+      <Grid item xs={12}>
+        <Card>
+          <CardContent>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Chip
+                label={`Overall Status: ${healthSummary.status.toUpperCase()}`}
+                color={getStatusColor(healthSummary.status) as any}
+                size="large"
+              />
+              <Typography variant="body2" color="text.secondary">
+                Last updated: {new Date(healthSummary.timestamp * 1000).toLocaleString()}
+              </Typography>
+            </Stack>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* Health Checks */}
+      <Grid item xs={12} md={6}>
+        <Card>
+          <CardHeader title="Health Checks" />
+          <CardContent>
+            <Stack spacing={2}>
+              {Object.entries(healthSummary.checks).map(([name, check]) => (
+                <Box key={name}>
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Chip
+                      label={check.healthy ? "Healthy" : "Unhealthy"}
+                      color={check.healthy ? "success" : "error"}
+                      size="small"
+                    />
+                    <Typography variant="body2">
+                      <strong>{name.replace(/_/g, " ")}</strong>
+                    </Typography>
+                  </Stack>
+                  {check.error && (
+                    <Typography variant="caption" color="error" sx={{ ml: 5 }}>
+                      {check.error}
+                    </Typography>
+                  )}
+                </Box>
+              ))}
+            </Stack>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* DLQ Stats */}
+      <Grid item xs={12} md={6}>
+        <DeadLetterQueueStats />
+      </Grid>
+
+      {/* Circuit Breakers */}
+      <Grid item xs={12}>
+        <CircuitBreakerStatus />
+      </Grid>
+    </Grid>
   );
 }
 
@@ -116,29 +204,29 @@ export default function HealthPage() {
 
     const data: Data[] = [
       {
-        type: 'scatter',
-        mode: 'lines',
-        name: 'CPU %',
+        type: "scatter",
+        mode: "lines",
+        name: "CPU %",
         x: [new Date()],
         y: [metrics.cpu_percent],
-        line: { color: '#90caf9' },
+        line: { color: "#90caf9" },
       },
       {
-        type: 'scatter',
-        mode: 'lines',
-        name: 'Memory %',
+        type: "scatter",
+        mode: "lines",
+        name: "Memory %",
         x: [new Date()],
         y: [metrics.mem_percent],
-        line: { color: '#a5d6a7' },
+        line: { color: "#a5d6a7" },
       },
     ];
 
     const layout: Partial<Layout> = {
-      title: 'System Resource Usage',
-      xaxis: { title: 'Time' },
-      yaxis: { title: 'Usage (%)', range: [0, 100] },
-      hovermode: 'closest',
-      template: 'plotly_dark',
+      title: "System Resource Usage",
+      xaxis: { title: "Time" },
+      yaxis: { title: "Usage (%)", range: [0, 100] },
+      hovermode: "closest",
+      template: "plotly_dark",
     };
 
     return { data, layout };
@@ -149,11 +237,15 @@ export default function HealthPage() {
     if (!status) return null;
 
     const states = [
-      { name: 'Completed', value: status.queue.completed, color: '#4caf50' },
-      { name: 'Pending', value: status.queue.pending, color: '#ff9800' },
-      { name: 'In Progress', value: status.queue.in_progress, color: '#2196f3' },
-      { name: 'Failed', value: status.queue.failed, color: '#f44336' },
-      { name: 'Collecting', value: status.queue.collecting, color: '#9e9e9e' },
+      { name: "Completed", value: status.queue.completed, color: "#4caf50" },
+      { name: "Pending", value: status.queue.pending, color: "#ff9800" },
+      {
+        name: "In Progress",
+        value: status.queue.in_progress,
+        color: "#2196f3",
+      },
+      { name: "Failed", value: status.queue.failed, color: "#f44336" },
+      { name: "Collecting", value: status.queue.collecting, color: "#9e9e9e" },
     ].filter((s) => s.value > 0);
 
     return states;
@@ -161,21 +253,22 @@ export default function HealthPage() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h3" gutterBottom sx={{ mb: 4 }}>
+      <Typography variant="h2" component="h2" gutterBottom sx={{ mb: 4 }}>
         System Health & Diagnostics
       </Typography>
 
       <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} sx={{ mb: 3 }}>
         <Tab label="System Monitoring" />
         <Tab label="Queue Status" />
+        <Tab label="Operations Health" />
         <Tab label="QA Diagnostics" />
       </Tabs>
 
       {/* System Monitoring Tab */}
       <TabPanel value={tabValue} index={0}>
         {metricsLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-            <CircularProgress />
+          <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+            <SkeletonLoader variant="cards" rows={2} />
           </Box>
         ) : (
           <Grid container spacing={3}>
@@ -214,13 +307,13 @@ export default function HealthPage() {
                   <Card>
                     <CardContent>
                       <Stack direction="row" spacing={2} alignItems="center">
-                        <SpeedIcon sx={{ color: 'text.secondary' }} />
+                        <SpeedIcon sx={{ color: "text.secondary" }} />
                         <Box>
                           <Typography variant="body2" color="text.secondary">
                             Load Average (1m)
                           </Typography>
                           <Typography variant="h5">
-                            {metrics?.load_1?.toFixed(2) || 'N/A'}
+                            {metrics?.load_1?.toFixed(2) || "N/A"}
                           </Typography>
                         </Box>
                       </Stack>
@@ -239,7 +332,7 @@ export default function HealthPage() {
                     <Plot
                       data={metricsPlotData.data}
                       layout={metricsPlotData.layout}
-                      style={{ width: '100%', height: '400px' }}
+                      style={{ width: "100%", height: "400px" }}
                     />
                   </CardContent>
                 </Card>
@@ -259,7 +352,7 @@ export default function HealthPage() {
                       <Typography variant="h6">
                         {metrics?.mem_total
                           ? `${(metrics.mem_total / 1024 / 1024 / 1024).toFixed(2)} GB`
-                          : 'N/A'}
+                          : "N/A"}
                       </Typography>
                     </Box>
                     <Box>
@@ -269,7 +362,7 @@ export default function HealthPage() {
                       <Typography variant="h6">
                         {metrics?.mem_used
                           ? `${(metrics.mem_used / 1024 / 1024 / 1024).toFixed(2)} GB`
-                          : 'N/A'}
+                          : "N/A"}
                       </Typography>
                     </Box>
                     <Box>
@@ -277,13 +370,13 @@ export default function HealthPage() {
                         Load Averages
                       </Typography>
                       <Typography variant="body1">
-                        1m: {metrics?.load_1?.toFixed(2) || 'N/A'}
+                        1m: {metrics?.load_1?.toFixed(2) || "N/A"}
                       </Typography>
                       <Typography variant="body1">
-                        5m: {metrics?.load_5?.toFixed(2) || 'N/A'}
+                        5m: {metrics?.load_5?.toFixed(2) || "N/A"}
                       </Typography>
                       <Typography variant="body1">
-                        15m: {metrics?.load_15?.toFixed(2) || 'N/A'}
+                        15m: {metrics?.load_15?.toFixed(2) || "N/A"}
                       </Typography>
                     </Box>
                   </Stack>
@@ -303,7 +396,7 @@ export default function HealthPage() {
                       <Typography variant="h6">
                         {metrics?.disk_total
                           ? `${(metrics.disk_total / 1024 / 1024 / 1024).toFixed(2)} GB`
-                          : 'N/A'}
+                          : "N/A"}
                       </Typography>
                     </Box>
                     <Box>
@@ -313,7 +406,7 @@ export default function HealthPage() {
                       <Typography variant="h6">
                         {metrics?.disk_used
                           ? `${(metrics.disk_used / 1024 / 1024 / 1024).toFixed(2)} GB`
-                          : 'N/A'}
+                          : "N/A"}
                       </Typography>
                     </Box>
                     <Box>
@@ -323,7 +416,7 @@ export default function HealthPage() {
                       <Typography variant="h6">
                         {metrics?.disk_total && metrics?.disk_used
                           ? `${((metrics.disk_total - metrics.disk_used) / 1024 / 1024 / 1024).toFixed(2)} GB`
-                          : 'N/A'}
+                          : "N/A"}
                       </Typography>
                     </Box>
                   </Stack>
@@ -337,8 +430,8 @@ export default function HealthPage() {
       {/* Queue Status Tab */}
       <TabPanel value={tabValue} index={1}>
         {statusLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-            <CircularProgress />
+          <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+            <SkeletonLoader variant="cards" rows={2} />
           </Box>
         ) : (
           <Grid container spacing={3}>
@@ -412,8 +505,8 @@ export default function HealthPage() {
                         <Box key={state.name}>
                           <Box
                             sx={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
+                              display: "flex",
+                              justifyContent: "space-between",
                               mb: 0.5,
                             }}
                           >
@@ -429,15 +522,13 @@ export default function HealthPage() {
                           <LinearProgress
                             variant="determinate"
                             value={
-                              status?.queue.total
-                                ? (state.value / status.queue.total) * 100
-                                : 0
+                              status?.queue.total ? (state.value / status.queue.total) * 100 : 0
                             }
                             sx={{
                               height: 8,
                               borderRadius: 4,
-                              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                              '& .MuiLinearProgress-bar': {
+                              backgroundColor: "rgba(255, 255, 255, 0.1)",
+                              "& .MuiLinearProgress-bar": {
                                 backgroundColor: state.color,
                               },
                             }}
@@ -474,13 +565,13 @@ export default function HealthPage() {
                                   label={group.state}
                                   size="small"
                                   color={
-                                    group.state === 'completed'
-                                      ? 'success'
-                                      : group.state === 'failed'
-                                      ? 'error'
-                                      : group.state === 'in_progress'
-                                      ? 'info'
-                                      : 'warning'
+                                    group.state === "completed"
+                                      ? "success"
+                                      : group.state === "failed"
+                                        ? "error"
+                                        : group.state === "in_progress"
+                                          ? "info"
+                                          : "warning"
                                   }
                                 />
                               </TableCell>
@@ -504,15 +595,20 @@ export default function HealthPage() {
         )}
       </TabPanel>
 
-      {/* QA Diagnostics Tab */}
+      {/* Operations Health Tab */}
       <TabPanel value={tabValue} index={2}>
+        <OperationsHealthTab />
+      </TabPanel>
+
+      {/* QA Diagnostics Tab */}
+      <TabPanel value={tabValue} index={3}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <Alert severity="info">
-              QA diagnostics and gallery features are available on the{' '}
+              QA diagnostics and gallery features are available on the{" "}
               <strong
-                onClick={() => navigate('/qa')}
-                style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                onClick={() => navigate("/qa")}
+                style={{ cursor: "pointer", textDecoration: "underline" }}
               >
                 QA Visualization page
               </strong>
@@ -522,10 +618,7 @@ export default function HealthPage() {
 
           <Grid item xs={12}>
             <Card>
-              <CardHeader
-                title="ESE Candidates"
-                avatar={<AssessmentIcon />}
-              />
+              <CardHeader title="ESE Candidates" avatar={<AssessmentIcon />} />
               <CardContent>
                 {eseCandidates?.candidates && eseCandidates.candidates.length > 0 ? (
                   <TableContainer>
@@ -548,16 +641,16 @@ export default function HealthPage() {
                                 label={candidate.status}
                                 size="small"
                                 color={
-                                  candidate.status === 'active'
-                                    ? 'error'
-                                    : candidate.status === 'resolved'
-                                    ? 'success'
-                                    : 'default'
+                                  candidate.status === "active"
+                                    ? "error"
+                                    : candidate.status === "resolved"
+                                      ? "success"
+                                      : "default"
                                 }
                               />
                             </TableCell>
                             <TableCell>
-                              {dayjs(candidate.last_detection_at).format('YYYY-MM-DD HH:mm')}
+                              {dayjs(candidate.last_detection_at).format("YYYY-MM-DD HH:mm")}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -577,4 +670,3 @@ export default function HealthPage() {
     </Container>
   );
 }
-

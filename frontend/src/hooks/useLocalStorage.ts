@@ -1,13 +1,16 @@
 /**
  * Custom hook for localStorage with type safety
  */
-import { useState } from 'react';
-import { logger } from '../utils/logger';
+import { useState } from "react";
+import { logger } from "../utils/logger";
 
-function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
+function useLocalStorage<T>(
+  key: string,
+  initialValue: T
+): [T, (value: T | ((val: T) => T)) => void] {
   // State to store our value
   const [storedValue, setStoredValue] = useState<T>(() => {
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return initialValue;
     }
 
@@ -26,8 +29,8 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val
       // Allow value to be a function so we have the same API as useState
       const valueToStore = value instanceof Function ? value(storedValue) : value;
       setStoredValue(valueToStore);
-      
-      if (typeof window !== 'undefined') {
+
+      if (typeof window !== "undefined") {
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
     } catch (error) {
@@ -39,4 +42,3 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val
 }
 
 export default useLocalStorage;
-

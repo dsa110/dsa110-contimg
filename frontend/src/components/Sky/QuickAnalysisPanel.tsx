@@ -3,7 +3,7 @@
  * Local JavaScript analysis tasks for JS9 images
  * Reference: https://js9.si.edu/js9/help/localtasks.html
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Button,
@@ -19,15 +19,10 @@ import {
   Alert,
   CircularProgress,
   Tooltip,
-} from '@mui/material';
-import {
-  ShowChart,
-  BarChart,
-  Info,
-  Download,
-} from '@mui/icons-material';
-import { logger } from '../../utils/logger';
-import { findDisplay, isJS9Available } from '../../utils/js9';
+} from "@mui/material";
+import { ShowChart, BarChart, Info, Download } from "@mui/icons-material";
+import { logger } from "../../utils/logger";
+import { findDisplay, isJS9Available } from "../../utils/js9";
 
 declare global {
   interface Window {
@@ -61,16 +56,17 @@ interface WCSInfo {
   value: number;
 }
 
-export default function QuickAnalysisPanel({
-  displayId = 'js9Display',
-}: QuickAnalysisPanelProps) {
+export default function QuickAnalysisPanel({ displayId = "js9Display" }: QuickAnalysisPanelProps) {
   const [spectrumData, setSpectrumData] = useState<SpectrumData | null>(null);
   const [sourceStats, setSourceStats] = useState<SourceStats | null>(null);
   const [wcsInfo, setWcsInfo] = useState<WCSInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingOperation, setLoadingOperation] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
+  const [mousePosition, setMousePosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const [hasImage, setHasImage] = useState(false);
 
   // Check if image is loaded - use JS9 events (REMOVED redundant polling)
@@ -96,15 +92,15 @@ export default function QuickAnalysisPanel({
       setTimeout(checkImage, 100);
     };
 
-    if (isJS9Available() && typeof window.JS9.AddEventListener === 'function') {
-      window.JS9.AddEventListener('imageLoad', imageLoadHandler);
-      window.JS9.AddEventListener('imageDisplay', imageDisplayHandler);
+    if (isJS9Available() && typeof window.JS9.AddEventListener === "function") {
+      window.JS9.AddEventListener("imageLoad", imageLoadHandler);
+      window.JS9.AddEventListener("imageDisplay", imageDisplayHandler);
     }
 
     return () => {
-      if (isJS9Available() && typeof window.JS9?.RemoveEventListener === 'function') {
-        window.JS9.RemoveEventListener('imageLoad', imageLoadHandler);
-        window.JS9.RemoveEventListener('imageDisplay', imageDisplayHandler);
+      if (isJS9Available() && typeof window.JS9?.RemoveEventListener === "function") {
+        window.JS9.RemoveEventListener("imageLoad", imageLoadHandler);
+        window.JS9.RemoveEventListener("imageDisplay", imageDisplayHandler);
       }
     };
   }, [checkImage]);
@@ -152,21 +148,21 @@ export default function QuickAnalysisPanel({
 
     const displayDiv = document.getElementById(displayId);
     if (displayDiv) {
-      displayDiv.addEventListener('mousemove', handleMouseMove);
+      displayDiv.addEventListener("mousemove", handleMouseMove);
       return () => {
-        displayDiv.removeEventListener('mousemove', handleMouseMove);
+        displayDiv.removeEventListener("mousemove", handleMouseMove);
       };
     }
   }, [displayId]);
 
   const extractSpectrum = async () => {
     if (!window.JS9) {
-      setError('JS9 not available');
+      setError("JS9 not available");
       return;
     }
 
     setLoading(true);
-    setLoadingOperation('Extracting spectrum...');
+    setLoadingOperation("Extracting spectrum...");
     setError(null);
 
     try {
@@ -176,7 +172,7 @@ export default function QuickAnalysisPanel({
       });
 
       if (!display?.im) {
-        setError('No image loaded. Please select an image from the browser above.');
+        setError("No image loaded. Please select an image from the browser above.");
         setLoading(false);
         setLoadingOperation(null);
         return;
@@ -186,7 +182,9 @@ export default function QuickAnalysisPanel({
       const regions = window.JS9.GetRegions?.(imageId) || [];
 
       if (regions.length === 0) {
-        setError('Please draw a region on the image first. Use JS9 region tools (circle, box, etc.) to select an area for analysis.');
+        setError(
+          "Please draw a region on the image first. Use JS9 region tools (circle, box, etc.) to select an area for analysis."
+        );
         setLoading(false);
         setLoadingOperation(null);
         return;
@@ -195,7 +193,7 @@ export default function QuickAnalysisPanel({
       // Get image data
       const imageData = window.JS9.GetImageData?.(imageId);
       if (!imageData || !imageData.data) {
-        setError('Could not retrieve image data. The image may not be fully loaded yet.');
+        setError("Could not retrieve image data. The image may not be fully loaded yet.");
         setLoading(false);
         return;
       }
@@ -223,8 +221,8 @@ export default function QuickAnalysisPanel({
 
       setSpectrumData({ x, y });
     } catch (e: any) {
-      logger.error('Error extracting spectrum:', e);
-      setError(e.message || 'Failed to extract spectrum');
+      logger.error("Error extracting spectrum:", e);
+      setError(e.message || "Failed to extract spectrum");
     } finally {
       setLoading(false);
       setLoadingOperation(null);
@@ -233,12 +231,12 @@ export default function QuickAnalysisPanel({
 
   const calculateSourceStats = async () => {
     if (!window.JS9) {
-      setError('JS9 not available');
+      setError("JS9 not available");
       return;
     }
 
     setLoading(true);
-    setLoadingOperation('Calculating statistics...');
+    setLoadingOperation("Calculating statistics...");
     setError(null);
 
     try {
@@ -248,7 +246,7 @@ export default function QuickAnalysisPanel({
       });
 
       if (!display?.im) {
-        setError('No image loaded. Please select an image from the browser above.');
+        setError("No image loaded. Please select an image from the browser above.");
         setLoading(false);
         setLoadingOperation(null);
         return;
@@ -258,7 +256,9 @@ export default function QuickAnalysisPanel({
       const regions = window.JS9.GetRegions?.(imageId) || [];
 
       if (regions.length === 0) {
-        setError('Please draw a region on the image first. Use JS9 region tools (circle, box, etc.) to select an area for analysis.');
+        setError(
+          "Please draw a region on the image first. Use JS9 region tools (circle, box, etc.) to select an area for analysis."
+        );
         setLoading(false);
         setLoadingOperation(null);
         return;
@@ -267,7 +267,7 @@ export default function QuickAnalysisPanel({
       // Get image data
       const imageData = window.JS9.GetImageData?.(imageId);
       if (!imageData || !imageData.data) {
-        setError('Could not retrieve image data. The image may not be fully loaded yet.');
+        setError("Could not retrieve image data. The image may not be fully loaded yet.");
         setLoading(false);
         return;
       }
@@ -284,7 +284,7 @@ export default function QuickAnalysisPanel({
       }
 
       if (values.length === 0) {
-        setError('No valid pixels found in the selected region. Try selecting a different area.');
+        setError("No valid pixels found in the selected region. Try selecting a different area.");
         setLoading(false);
         return;
       }
@@ -294,7 +294,8 @@ export default function QuickAnalysisPanel({
       const mean = sum / values.length;
       const peak = Math.max(...values);
       const min = Math.min(...values);
-      const variance = values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / values.length;
+      const variance =
+        values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / values.length;
       const rms = Math.sqrt(variance);
 
       setSourceStats({
@@ -306,8 +307,10 @@ export default function QuickAnalysisPanel({
         pixels: values.length,
       });
     } catch (e: any) {
-      logger.error('Error calculating source stats:', e);
-      setError(`Failed to calculate statistics: ${e.message || 'Unknown error'}. Make sure an image is loaded and a region is selected.`);
+      logger.error("Error calculating source stats:", e);
+      setError(
+        `Failed to calculate statistics: ${e.message || "Unknown error"}. Make sure an image is loaded and a region is selected.`
+      );
     } finally {
       setLoading(false);
       setLoadingOperation(null);
@@ -316,7 +319,7 @@ export default function QuickAnalysisPanel({
 
   const getWCSInfo = () => {
     if (!window.JS9) {
-      setError('JS9 not available');
+      setError("JS9 not available");
       return;
     }
 
@@ -326,7 +329,7 @@ export default function QuickAnalysisPanel({
     });
 
     if (!display?.im) {
-      setError('No image loaded. Please select an image from the browser above.');
+      setError("No image loaded. Please select an image from the browser above.");
       return;
     }
 
@@ -337,12 +340,12 @@ export default function QuickAnalysisPanel({
 
   const exportRegionData = async () => {
     if (!window.JS9) {
-      setError('JS9 not available');
+      setError("JS9 not available");
       return;
     }
 
     setLoading(true);
-    setLoadingOperation('Exporting region data...');
+    setLoadingOperation("Exporting region data...");
     setError(null);
 
     try {
@@ -352,7 +355,7 @@ export default function QuickAnalysisPanel({
       });
 
       if (!display?.im) {
-        setError('No image loaded. Please select an image from the browser above.');
+        setError("No image loaded. Please select an image from the browser above.");
         setLoading(false);
         setLoadingOperation(null);
         return;
@@ -362,7 +365,9 @@ export default function QuickAnalysisPanel({
       const regions = window.JS9.GetRegions?.(imageId) || [];
 
       if (regions.length === 0) {
-        setError('Please draw a region on the image first. Use JS9 region tools (circle, box, etc.) to select an area for analysis.');
+        setError(
+          "Please draw a region on the image first. Use JS9 region tools (circle, box, etc.) to select an area for analysis."
+        );
         setLoading(false);
         setLoadingOperation(null);
         return;
@@ -371,14 +376,14 @@ export default function QuickAnalysisPanel({
       // Get image data
       const imageData = window.JS9.GetImageData?.(imageId);
       if (!imageData || !imageData.data) {
-        setError('Could not retrieve image data. The image may not be fully loaded yet.');
+        setError("Could not retrieve image data. The image may not be fully loaded yet.");
         setLoading(false);
         return;
       }
 
       // Export as CSV
       const data = imageData.data as number[];
-      const csvRows = ['x,y,value'];
+      const csvRows = ["x,y,value"];
 
       for (let y = 0; y < imageData.height; y++) {
         for (let x = 0; x < imageData.width; x++) {
@@ -389,10 +394,10 @@ export default function QuickAnalysisPanel({
         }
       }
 
-      const csvContent = csvRows.join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const csvContent = csvRows.join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `region_data_${Date.now()}.csv`;
       document.body.appendChild(a);
@@ -400,8 +405,10 @@ export default function QuickAnalysisPanel({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (e: any) {
-      logger.error('Error exporting region data:', e);
-      setError(`Failed to export data: ${e.message || 'Unknown error'}. Make sure an image is loaded and a region is selected.`);
+      logger.error("Error exporting region data:", e);
+      setError(
+        `Failed to export data: ${e.message || "Unknown error"}. Make sure an image is loaded and a region is selected.`
+      );
     } finally {
       setLoading(false);
       setLoadingOperation(null);
@@ -419,7 +426,8 @@ export default function QuickAnalysisPanel({
 
       {!imageAvailable && (
         <Alert severity="info" sx={{ mb: 2 }}>
-          Select an image from the browser above to enable analysis tools. These tools perform client-side analysis on the loaded FITS image.
+          Select an image from the browser above to enable analysis tools. These tools perform
+          client-side analysis on the loaded FITS image.
         </Alert>
       )}
 
@@ -512,7 +520,9 @@ export default function QuickAnalysisPanel({
                 </TableRow>
                 <TableRow>
                   <TableCell>Pixel (x, y)</TableCell>
-                  <TableCell>({wcsInfo.x}, {wcsInfo.y})</TableCell>
+                  <TableCell>
+                    ({wcsInfo.x}, {wcsInfo.y})
+                  </TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell>Value</TableCell>
@@ -535,16 +545,14 @@ export default function QuickAnalysisPanel({
             <Typography variant="subtitle2" gutterBottom>
               Spectrum
             </Typography>
-            <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
+            <Paper sx={{ p: 2, bgcolor: "background.default" }}>
               <Typography variant="caption" color="text.secondary">
                 Spectrum extracted from region (simplified visualization)
               </Typography>
               <Box sx={{ mt: 1 }}>
+                <Typography variant="body2">Data points: {spectrumData.x.length}</Typography>
                 <Typography variant="body2">
-                  Data points: {spectrumData.x.length}
-                </Typography>
-                <Typography variant="body2">
-                  Range: {Math.min(...spectrumData.y).toExponential(3)} to{' '}
+                  Range: {Math.min(...spectrumData.y).toExponential(3)} to{" "}
                   {Math.max(...spectrumData.y).toExponential(3)}
                 </Typography>
               </Box>
@@ -594,4 +602,3 @@ export default function QuickAnalysisPanel({
     </Box>
   );
 }
-

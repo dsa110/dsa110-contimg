@@ -1,8 +1,6 @@
-# DSA-110 Dashboard: Development Workflow & Setup
+# Moved
 
-**Date:** 2025-11-12  
-**Status:** Consolidated development workflow documentation  
-**Audience:** Frontend developers, new contributors
+See `docs/how-to/dashboard.md`.
 
 ---
 
@@ -50,12 +48,14 @@ cd frontend
 ### Step 2: Install Dependencies
 
 **Using casa6 conda environment (recommended):**
+
 ```bash
 conda activate casa6
 npm install
 ```
 
 **Using Docker (alternative):**
+
 ```bash
 docker run -it -v "$PWD:/app" -w /app node:22 npm install
 ```
@@ -63,6 +63,7 @@ docker run -it -v "$PWD:/app" -w /app node:22 npm install
 ### Step 3: Start Development Servers
 
 **Terminal 1 - Backend API:**
+
 ```bash
 cd /data/dsa110-contimg
 conda activate casa6
@@ -70,6 +71,7 @@ uvicorn dsa110_contimg.api.server:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 **Terminal 2 - Frontend Dev Server:**
+
 ```bash
 cd /data/dsa110-contimg/frontend
 conda activate casa6
@@ -159,6 +161,7 @@ git commit -m "feat: add new feature"
 ```
 
 **Commit Message Format:**
+
 - `feat:` - New feature
 - `fix:` - Bug fix
 - `docs:` - Documentation
@@ -181,6 +184,7 @@ git push origin feature/new-feature-name
 ### TypeScript
 
 **Use TypeScript for all new code:**
+
 ```typescript
 // Good
 interface Props {
@@ -195,6 +199,7 @@ const Component = (props: any) => { ... }
 ### Component Structure
 
 **Standard Component Pattern:**
+
 ```typescript
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -209,10 +214,10 @@ export default function Component({ id }: ComponentProps) {
     queryKey: ['resource', id],
     queryFn: () => apiClient.get(`/resource/${id}`),
   });
-  
+
   if (isLoading) return <CircularProgress />;
   if (!data) return <Alert>No data</Alert>;
-  
+
   return (
     <Box>
       <Typography>{data.name}</Typography>
@@ -235,10 +240,12 @@ export default function Component({ id }: ComponentProps) {
 ### React DevTools
 
 **Install Browser Extension:**
+
 - Chrome: React Developer Tools
 - Firefox: React Developer Tools
 
 **Features:**
+
 - Component tree inspection
 - Props and state viewing
 - Performance profiling
@@ -246,6 +253,7 @@ export default function Component({ id }: ComponentProps) {
 ### React Query DevTools
 
 **Built-in DevTools (dev mode only):**
+
 - Query cache inspection
 - Query status monitoring
 - Cache invalidation testing
@@ -253,22 +261,24 @@ export default function Component({ id }: ComponentProps) {
 ### Browser Console
 
 **Common Debugging:**
+
 ```typescript
 // Log query data
-console.log('Query data:', data);
+console.log("Query data:", data);
 
 // Log errors
-console.error('Error:', error);
+console.error("Error:", error);
 
 // Log WebSocket messages
-wsClient.on('message', (data) => {
-  console.log('WS message:', data);
+wsClient.on("message", (data) => {
+  console.log("WS message:", data);
 });
 ```
 
 ### Network Tab
 
 **Check API Calls:**
+
 - Open browser DevTools → Network tab
 - Filter by "Fetch/XHR"
 - Inspect request/response
@@ -281,6 +291,7 @@ wsClient.on('message', (data) => {
 ### Adding a New Page
 
 1. **Create Page Component:**
+
 ```typescript
 // src/pages/NewPage.tsx
 export default function NewPage() {
@@ -289,6 +300,7 @@ export default function NewPage() {
 ```
 
 2. **Add Route:**
+
 ```typescript
 // src/App.tsx
 import NewPage from './pages/NewPage';
@@ -297,6 +309,7 @@ import NewPage from './pages/NewPage';
 ```
 
 3. **Add Navigation Link:**
+
 ```typescript
 // src/components/Navigation.tsx
 <MenuItem component={Link} to="/new-page">
@@ -307,6 +320,7 @@ import NewPage from './pages/NewPage';
 ### Adding a New API Hook
 
 1. **Define Type:**
+
 ```typescript
 // src/api/types.ts
 export interface NewResource {
@@ -316,24 +330,27 @@ export interface NewResource {
 ```
 
 2. **Create Hook:**
+
 ```typescript
 // src/api/queries.ts
 export function useNewResource(id: string) {
   return useQuery({
-    queryKey: ['resource', id],
+    queryKey: ["resource", id],
     queryFn: () => apiClient.get<NewResource>(`/resource/${id}`),
   });
 }
 ```
 
 3. **Use in Component:**
+
 ```typescript
-const { data } = useNewResource('123');
+const { data } = useNewResource("123");
 ```
 
 ### Adding a New Component
 
 1. **Create Component:**
+
 ```typescript
 // src/components/NewComponent.tsx
 interface Props {
@@ -346,9 +363,10 @@ export default function NewComponent({ data }: Props) {
 ```
 
 2. **Export from index (if needed):**
+
 ```typescript
 // src/components/index.ts
-export { default as NewComponent } from './NewComponent';
+export { default as NewComponent } from "./NewComponent";
 ```
 
 ---
@@ -360,6 +378,7 @@ export { default as NewComponent } from './NewComponent';
 **Problem:** Frontend can't connect to backend
 
 **Solutions:**
+
 1. Check backend is running: `curl http://localhost:8000/api/status`
 2. Check CORS settings in FastAPI backend
 3. Verify `.env.development` has correct `VITE_API_URL`
@@ -370,6 +389,7 @@ export { default as NewComponent } from './NewComponent';
 **Problem:** TypeScript compilation errors
 
 **Solutions:**
+
 ```bash
 # Run type checking
 npm run type-check
@@ -383,6 +403,7 @@ npx tsc --noEmit src/pages/DashboardPage.tsx
 **Problem:** Production build fails
 
 **Solutions:**
+
 ```bash
 # Clean build
 rm -rf dist node_modules/.vite
@@ -397,6 +418,7 @@ npm install
 **Problem:** Changes not reflected in browser
 
 **Solutions:**
+
 1. Check Vite dev server is running
 2. Hard refresh browser (Ctrl+Shift+R)
 3. Restart dev server
@@ -407,6 +429,7 @@ npm install
 **Problem:** Port 5173 already in use
 
 **Solutions:**
+
 ```bash
 # Use different port
 npm run dev -- --port 3000
@@ -419,7 +442,7 @@ lsof -ti:5173 | xargs kill
 
 ## See Also
 
-- [Frontend Architecture](../concepts/dashboard_frontend_architecture.md) - Architecture details
+- [Frontend Architecture](../concepts/dashboard_frontend_architecture.md) -
+  Architecture details
 - [Testing Guide](./dashboard_testing.md) - Testing setup
 - [Deployment Guide](./dashboard_deployment.md) - Deployment steps
-

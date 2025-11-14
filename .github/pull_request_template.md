@@ -13,12 +13,20 @@
 - [ ] Test improvement
 - [ ] Other (please describe)
 
+## Environment Setup
+
+- [ ] Ran `./scripts/setup-dev.sh` after cloning
+- [ ] Verified environment with `./scripts/check-environment.sh`
+- [ ] Using casa6 Python environment (not system Python)
+- [ ] All dependencies installed
+
 ## Testing
 
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
 - [ ] Manual testing performed
 - [ ] All tests passing
+- [ ] Tests follow organization in `docs/concepts/TEST_ORGANIZATION.md`
 
 ## Code Review Checklist
 
@@ -55,6 +63,10 @@
 - [ ] Complex logic is commented
 - [ ] README/docs updated if needed
 - [ ] API changes documented
+- [ ] **No markdown files in root directory** (must be in docs/ structure)
+- [ ] Documentation follows structure in `docs/DOCUMENTATION_QUICK_REFERENCE.md`
+- [ ] New features have documentation
+- [ ] Breaking changes are documented
 
 ## Related Issues
 
@@ -63,4 +75,3 @@
 ## Additional Notes
 
 <!-- Any additional information for reviewers -->
-

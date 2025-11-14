@@ -1,162 +1,125 @@
 # Test Suite Organization
 
-This directory contains the unified test suite for the DSA-110 continuum imaging pipeline.
+This directory contains the test suite for the DSA-110 Continuum Imaging
+Pipeline.
+
+## Test Taxonomy
+
+Tests are organized by **purpose** and **scope** to enable efficient test
+execution and clear test purposes.
+
+See
+[docs/concepts/TEST_ORGANIZATION.md](../../docs/concepts/TEST_ORGANIZATION.md)
+for the complete test organization strategy.
 
 ## Directory Structure
 
 ```
 tests/
-├── pytest.ini                    # Pytest configuration
-├── README.md                     # This file
-├── README_CALIBRATION_TESTING.md # Comprehensive calibration testing guide
-├── unit/                          # Pytest unit tests
-│   ├── api/                      # API route tests
-│   │   └── test_routes.py
-│   ├── simulation/               # Synthetic data validation tests
-│   │   └── test_validate_synthetic.py
-│   ├── test_calibration_comprehensive.py  # Comprehensive calibration tests
-│   ├── test_subband_ordering.py  # Subband ordering tests
-│   ├── test_cli_calibration_args.py
-│   ├── test_imaging_mocked.py  # Imaging logic tests with mocking (see README_MOCKING_EXAMPLES.md)
-│   ├── test_quality_tier.py  # Quality tier behavior tests
-│   └── test_nvss_seeding.py  # NVSS seeding logic tests
-├── integration/                  # Integration tests
-│   ├── test_pipeline_end_to_end.sh  # End-to-end pipeline test (bash)
-│   └── test_calibration_workflow.py  # Calibration workflow integration
-├── scripts/                      # Standalone test/diagnostic scripts
-│   ├── README.md                 # Documentation for standalone scripts
-│   ├── test_suite_comprehensive.py
-│   ├── test_qa_modules.py
-│   ├── test_alerting.py
-│   └── ... (other standalone scripts)
-└── utils/                        # Test utilities and helpers
-    ├── testing.py
-    ├── testing_fast.py
-    ├── testing_compare_writers.py
-    └── ... (utility scripts)
+├── smoke/              # Quick sanity checks (< 10s total)
+├── unit/               # Unit tests (fast, isolated, mocked)
+│   ├── api/           # API endpoint tests
+│   ├── calibration/   # Calibration algorithm tests
+│   ├── catalog/       # Catalog query/access tests
+│   ├── conversion/    # Data conversion tests
+│   ├── database/      # Database schema/query tests
+│   ├── imaging/       # Imaging algorithm tests
+│   ├── mosaic/        # Mosaic creation tests
+│   ├── photometry/    # Photometry measurement tests
+│   ├── pipeline/      # Pipeline stage/context tests
+│   ├── qa/            # QA validation tests
+│   ├── simulation/    # Synthetic data generation tests
+│   └── visualization/ # Visualization/plotting tests
+├── integration/        # Integration tests (component interactions)
+├── science/           # Science validation tests (algorithm correctness)
+└── e2e/               # End-to-end tests (full workflows)
 ```
 
 ## Running Tests
 
-### Pytest Tests (Unit & Integration)
+### Quick Development Cycle
 
-Pytest discovers and runs tests automatically:
+```bash
+# Run smoke tests (fastest)
+./scripts/run-tests.sh smoke
+
+# Run unit tests (fast)
+./scripts/run-tests.sh unit
+
+# Run quick tests (smoke + unit, no slow)
+./scripts/run-tests.sh quick
+```
+
+### Pre-Commit
+
+```bash
+# Run smoke + unit tests
+./scripts/run-tests.sh quick
+```
+
+### PR Validation
+
+```bash
+# Run unit + integration tests
+./scripts/run-tests.sh unit
+./scripts/run-tests.sh integration
+```
+
+### Full Validation
 
 ```bash
 # Run all tests
-pytest
-
-# Run only unit tests
-pytest tests/unit/
-
-# Run only integration tests
-pytest tests/integration/
-
-# Run specific test file
-pytest tests/unit/api/test_routes.py
-
-# Run with verbose output
-pytest -v
+./scripts/run-tests.sh all
 ```
 
-### Standalone Test Scripts
+## Test Markers
 
-These are run directly as Python scripts:
+Tests should be marked with appropriate pytest markers:
 
-```bash
-# Comprehensive test suite
-python tests/scripts/test_suite_comprehensive.py
+- `@pytest.mark.unit` - Unit test (fast, isolated)
+- `@pytest.mark.integration` - Integration test
+- `@pytest.mark.smoke` - Smoke test (critical path)
+- `@pytest.mark.science` - Science validation test
+- `@pytest.mark.e2e` - End-to-end test
+- `@pytest.mark.slow` - Slow test (> 1 minute)
+- `@pytest.mark.casa` - Requires CASA environment
 
-# QA module tests
-python tests/scripts/test_qa_modules.py
+## Test Organization Principles
 
-# Alerting tests
-python tests/scripts/test_alerting.py
-```
-
-### End-to-End Integration Test
-
-The bash script for full pipeline testing:
-
-```bash
-# Run full end-to-end test
-bash tests/integration/test_pipeline_end_to_end.sh
-
-# Skip synthetic data generation (use existing)
-bash tests/integration/test_pipeline_end_to_end.sh --skip-synthetic
-
-# Use existing MS (skip conversion)
-bash tests/integration/test_pipeline_end_to_end.sh --use-existing-ms /path/to/ms
-```
-
-## Test Categories
-
-### Unit Tests (`tests/unit/`)
-- **Purpose**: Test individual modules and functions in isolation
-- **Style**: Pytest with fixtures and assertions
-- **Mocking Examples**: See `tests/unit/README_MOCKING_EXAMPLES.md` for comprehensive examples of unit testing with mocked dependencies
-- **Fixtures**: Shared fixtures are defined in `tests/conftest.py` (mock tables, temporary directories, etc.)
-- **Examples**: API routes, data validation, calibration components
-- **New**: Comprehensive calibration tests (`test_calibration_comprehensive.py`, `test_subband_ordering.py`)
-
-### Integration Tests (`tests/integration/`)
-- **Purpose**: Test full pipeline workflows end-to-end
-- **Style**: Pytest or standalone scripts
-- **Examples**: Full pipeline execution, component integration, calibration workflow
-- **New**: Calibration workflow integration tests (`test_calibration_workflow.py`)
-
-### Standalone Scripts (`tests/scripts/`)
-- **Purpose**: Diagnostic, validation, and comprehensive testing scripts
-- **Style**: Direct execution with custom output
-- **Examples**: Comprehensive test suites, module-specific validations
-- **Note**: These scripts use `sys.path.insert()` to import from the main codebase
-
-### Test Utilities (`tests/utils/`)
-- **Purpose**: Helper scripts and utilities for testing
-- **Style**: Reusable functions and demo scripts
-- **Examples**: Testing helpers, writer comparisons, demo scripts
-
-## Path References
-
-All test scripts automatically find the source code:
-- **Pytest tests**: Use `pythonpath = src` in `pytest.ini`
-- **Standalone scripts**: Use `sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))`
-- **Bash scripts**: Use `REPO_ROOT` calculated from script location
+1. **Fast feedback:** Fast tests run first, slow tests run later
+2. **Clear purpose:** Test name and location indicate what it tests
+3. **Isolation:** Unit tests don't depend on external resources
+4. **Completeness:** Integration tests cover real workflows
+5. **Maintainability:** Easy to find and update related tests
 
 ## Adding New Tests
 
-### Adding a Pytest Test
+When adding a new test:
 
-1. Create test file in appropriate directory:
-   - `tests/unit/<module>/test_*.py` for unit tests
-   - `tests/integration/test_*.py` for integration tests
-2. Follow pytest naming conventions (`test_*.py`, `def test_*()`)
-3. Use pytest fixtures for setup/teardown
+1. **Determine test type:**
+   - Unit test: Tests single component in isolation → `tests/unit/<module>/`
+   - Integration test: Tests component interactions → `tests/integration/`
+   - Smoke test: Quick sanity check → `tests/smoke/`
+   - Science test: Algorithm validation → `tests/science/`
+   - E2E test: Full workflow → `tests/e2e/`
 
-Example:
-```python
-# tests/unit/calibration/test_bandpass.py
-def test_bandpass_solve():
-    # Test code here
-    pass
-```
+2. **Add appropriate markers:**
 
-### Adding a Standalone Test Script
-
-1. Create script in `tests/scripts/`
-2. Include path setup:
    ```python
-   import sys
-   from pathlib import Path
-   sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
+   @pytest.mark.unit
+   def test_my_feature():
+       ...
    ```
-3. Use descriptive name: `test_<feature>_<purpose>.py`
 
-## Migration Notes
+3. **Follow naming conventions:**
+   - Unit: `test_<module>_<feature>.py`
+   - Integration: `test_<workflow>_<component>.py`
+   - Smoke: `test_<critical_path>.py`
 
-**2025-01-15**: Test directories consolidated:
-- Moved from `scripts/tests/` → `tests/scripts/`
-- Organized pytest tests into `tests/unit/` and `tests/integration/`
-- Moved utilities to `tests/utils/`
-- Updated all path references
+## Test Statistics
 
+- **Unit tests:** ~98 files
+- **Integration tests:** ~16 files
+- **Smoke tests:** ~1 file
+- **Science tests:** ~5 files
+- **E2E tests:** ~0 files (workflows in integration/)

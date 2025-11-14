@@ -64,7 +64,7 @@ class TestResolveImagePath:
 class TestConvertCasaToFits:
     """Test convert_casa_to_fits function."""
 
-    @patch("dsa110_contimg.api.image_utils.casatasks")
+    @patch("casatasks.exportfits")
     def test_convert_casa_to_fits_success(self, mock_casatasks):
         """Test successful CASA to FITS conversion."""
         casa_path = "/data/images/test.image"
@@ -77,7 +77,7 @@ class TestConvertCasaToFits:
         assert result == fits_path
         mock_casatasks.exportfits.assert_called_once()
 
-    @patch("dsa110_contimg.api.image_utils.casatasks")
+    @patch("casatasks.exportfits")
     def test_convert_casa_to_fits_failure(self, mock_casatasks):
         """Test CASA to FITS conversion failure."""
         casa_path = "/data/images/test.image"

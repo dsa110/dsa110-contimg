@@ -60,11 +60,15 @@ from dsa110_contimg.api.models import (
     AntennaInfo,
     BatchApplyParams,
     BatchCalibrateParams,
+    BatchConversionParams,
+    BatchESEDetectParams,
     BatchImageParams,
     BatchJob,
     BatchJobCreateRequest,
     BatchJobList,
     BatchJobStatus,
+    BatchPhotometryParams,
+    BatchPublishParams,
     CalibrateJobParams,
     CalibrationQA,
     CalibratorMatchList,
@@ -78,8 +82,12 @@ from dsa110_contimg.api.models import (
     DiskInfo,
     ESECandidate,
     ESECandidatesResponse,
+    ESEDetectJobCreateRequest,
+    ESEDetectJobParams,
     ExistingCalTable,
     ExistingCalTables,
+    ExternalCatalogMatch,
+    ExternalCatalogsResponse,
     FieldInfo,
     FlaggingStats,
     GroupDetail,
@@ -90,6 +98,7 @@ from dsa110_contimg.api.models import (
     Job,
     JobCreateRequest,
     JobList,
+    LightCurveData,
     Measurement,
     MeasurementList,
     Mosaic,
@@ -104,6 +113,7 @@ from dsa110_contimg.api.models import (
     ObservationTimeline,
     PipelineStatus,
     PointingHistoryList,
+    PostageStampsResponse,
     ProductList,
     QAArtifact,
     QAList,
@@ -111,24 +121,25 @@ from dsa110_contimg.api.models import (
     SourceDetail,
     SourceSearchResponse,
     SourceTimeseries,
-    LightCurveData,
-    PostageStampsResponse,
-    ExternalCatalogsResponse,
-    ExternalCatalogMatch,
     StreamingConfigRequest,
-    VariabilityMetrics,
     StreamingControlResponse,
     StreamingHealthResponse,
     StreamingStatusResponse,
     SystemMetrics,
     UVH5FileEntry,
     UVH5FileList,
+    VariabilityMetrics,
     WorkflowJobCreateRequest,
 )
 from dsa110_contimg.api.streaming_service import (
     StreamingConfig,
     StreamingServiceManager,
 )
+
+# Module-level cache for UVH5 file listings (TTL: 30 seconds)
+# Shared across all requests for fast file discovery
+_uvh5_file_cache: dict[str, tuple[float, list[str]]] = {}
+_uvh5_cache_ttl = 30.0  # seconds
 
 logger = logging.getLogger(__name__)
 
@@ -144,8 +155,46 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     # Background task to broadcast status updates
     @app.on_event("startup")
     async def start_status_broadcaster():
-        """Start background task to broadcast status updates."""
+        """Start background task to broadcast status updates and pre-warm database connections."""
+        from pathlib import Path
+
         from dsa110_contimg.api.websocket_manager import create_status_update, manager
+        from dsa110_contimg.database.data_registry import ensure_data_registry_db
+
+        # Pre-warm database connection to avoid cold-start delays
+        try:
+            db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+            conn = ensure_data_registry_db(db_path)
+            # Execute a simple query to initialize the connection
+            conn.execute("SELECT 1").fetchone()
+            logger.info("Pre-warmed data registry database connection")
+        except Exception as e:
+            logger.warning(f"Failed to pre-warm database connection: {e}")
+
+        # Pre-warm UVH5 file cache in background
+        async def pre_warm_uvh5_cache():
+            """Pre-warm the UVH5 file cache in the background."""
+            try:
+                input_dir = os.getenv("CONTIMG_INPUT_DIR", "/data/incoming")
+                search_path = Path(input_dir)
+                if search_path.exists():
+                    # Build cache in background (use module-level cache)
+                    all_files = []
+                    for root, dirs, files in os.walk(search_path):
+                        for file in files:
+                            if file.endswith(".hdf5"):
+                                all_files.append(os.path.join(root, file))
+                    all_files.sort(reverse=True)
+                    # Access module-level cache (defined at top of file)
+                    import dsa110_contimg.api.routes as routes_module
+
+                    routes_module._uvh5_file_cache[str(search_path)] = (time.time(), all_files)
+                    logger.info(f"Pre-warmed UVH5 file cache: {len(all_files)} files")
+            except Exception as e:
+                logger.warning(f"Failed to pre-warm UVH5 cache: {e}")
+
+        # Start pre-warming in background (don't await to avoid blocking startup)
+        asyncio.create_task(pre_warm_uvh5_cache())
 
         async def broadcast_status():
             """Periodically fetch and broadcast status updates."""
@@ -160,28 +209,20 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
                     try:
                         queue_stats = fetch_queue_stats(cfg.queue_db)
-                        recent_groups = fetch_recent_queue_groups(
-                            cfg.queue_db, cfg, limit=20
-                        )
+                        recent_groups = fetch_recent_queue_groups(cfg.queue_db, cfg, limit=20)
                         cal_sets = fetch_calibration_sets(cfg.registry_db)
                         matched_recent = sum(
-                            1
-                            for g in recent_groups
-                            if getattr(g, "has_calibrator", False)
+                            1 for g in recent_groups if getattr(g, "has_calibrator", False)
                         )
                         pipeline_status = {
                             "queue": (
-                                queue_stats.dict()
-                                if hasattr(queue_stats, "dict")
-                                else queue_stats
+                                queue_stats.dict() if hasattr(queue_stats, "dict") else queue_stats
                             ),
                             "recent_groups": [
-                                g.dict() if hasattr(g, "dict") else g
-                                for g in recent_groups
+                                g.dict() if hasattr(g, "dict") else g for g in recent_groups
                             ],
                             "calibration_sets": [
-                                cs.dict() if hasattr(cs, "dict") else cs
-                                for cs in cal_sets
+                                cs.dict() if hasattr(cs, "dict") else cs for cs in cal_sets
                             ],
                             "matched_recent": matched_recent,
                         }
@@ -221,9 +262,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             ],
                             # Legacy fields for backward compatibility
                             "disk_percent": (
-                                system_metrics.disks[0].percent
-                                if system_metrics.disks
-                                else None
+                                system_metrics.disks[0].percent if system_metrics.disks else None
                             ),
                             "disk_free_gb": (
                                 round(system_metrics.disks[0].free / (1024**3), 2)
@@ -245,18 +284,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
                         ese_data = fetch_ese_candidates(cfg.products_db, limit=50)
                         ese_candidates = {
-                            "candidates": [
-                                c.dict() if hasattr(c, "dict") else c for c in ese_data
-                            ],
+                            "candidates": [c.dict() if hasattr(c, "dict") else c for c in ese_data],
                         }
                     except Exception as e:
                         logger.warning(f"Failed to fetch ESE candidates: {e}")
 
                     # Broadcast update
                     if pipeline_status or metrics or ese_candidates:
-                        update = create_status_update(
-                            pipeline_status, metrics, ese_candidates
-                        )
+                        update = create_status_update(pipeline_status, metrics, ese_candidates)
                         await manager.broadcast(update)
 
                 except asyncio.CancelledError:
@@ -323,9 +358,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             def serve_js9_worker():
                 file_path = js9_files_map["js9worker.js"]
                 if file_path.exists():
-                    return FileResponse(
-                        str(file_path), media_type="application/javascript"
-                    )
+                    return FileResponse(str(file_path), media_type="application/javascript")
                 raise HTTPException(status_code=404, detail="js9worker.js not found")
 
             @app.get("/ui/astroemw.wasm")
@@ -339,9 +372,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             def serve_astroemw_js():
                 file_path = js9_files_map["astroemw.js"]
                 if file_path.exists():
-                    return FileResponse(
-                        str(file_path), media_type="application/javascript"
-                    )
+                    return FileResponse(str(file_path), media_type="application/javascript")
                 raise HTTPException(status_code=404, detail="astroemw.js not found")
 
             # Catch-all for client-side routing - serve index.html for any /ui/* path
@@ -392,13 +423,33 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         pass
 
     router = APIRouter(prefix="/api")
+
     # Include subrouters
-    from dsa110_contimg.api.routers.status import router as status_router
-    from dsa110_contimg.api.routers.images import router as images_router
-    from dsa110_contimg.api.routers.products import router as products_router
-    from dsa110_contimg.api.routers.mosaics import router as mosaics_router
-    from dsa110_contimg.api.routers.photometry import router as photometry_router
+    # Health checks and metrics (no /api prefix)
+    from dsa110_contimg.api.health import router as health_router
     from dsa110_contimg.api.routers.catalogs import router as catalogs_router
+    from dsa110_contimg.api.routers.images import router as images_router
+    from dsa110_contimg.api.routers.mosaics import router as mosaics_router
+    from dsa110_contimg.api.routers.operations import router as operations_router
+    from dsa110_contimg.api.routers.photometry import router as photometry_router
+    from dsa110_contimg.api.routers.pipeline import router as pipeline_router
+    from dsa110_contimg.api.routers.products import router as products_router
+    from dsa110_contimg.api.routers.status import router as status_router
+
+    app.include_router(health_router)
+
+    # Prometheus metrics endpoint
+    try:
+        from fastapi.responses import Response
+        from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+
+        @app.get("/metrics")
+        def metrics():
+            """Prometheus metrics endpoint."""
+            return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+    except ImportError:
+        logger.warning("Prometheus client not available, /metrics endpoint disabled")
 
     app.include_router(status_router, prefix="/api")
     app.include_router(images_router, prefix="/api")
@@ -406,6 +457,15 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     app.include_router(mosaics_router, prefix="/api")
     app.include_router(photometry_router, prefix="/api")
     app.include_router(catalogs_router, prefix="/api")
+    app.include_router(operations_router, prefix="/api")
+    app.include_router(pipeline_router, prefix="/api/pipeline")
+
+    # Events and Cache monitoring (Phase 3)
+    from dsa110_contimg.api.routers import cache as cache_router_module
+    from dsa110_contimg.api.routers import events as events_router_module
+
+    app.include_router(events_router_module.router, prefix="/api/events", tags=["events"])
+    app.include_router(cache_router_module.router, prefix="/api/cache", tags=["cache"])
 
     @router.get("/images/{image_id}/measurements", response_model=MeasurementList)
     def get_image_measurements(
@@ -420,14 +480,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         # Get image path
         with _connect(db_path) as conn:
-            img_row = conn.execute(
-                "SELECT path FROM images WHERE id = ?", (image_id,)
-            ).fetchone()
+            img_row = conn.execute("SELECT path FROM images WHERE id = ?", (image_id,)).fetchone()
 
             if not img_row:
-                raise HTTPException(
-                    status_code=404, detail=f"Image {image_id} not found"
-                )
+                raise HTTPException(status_code=404, detail=f"Image {image_id} not found")
 
             image_path = img_row["path"]
 
@@ -440,9 +496,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             }
 
             if "photometry" not in tables:
-                return MeasurementList(
-                    items=[], total=0, page=page, page_size=page_size
-                )
+                return MeasurementList(items=[], total=0, page=page, page_size=page_size)
 
             # Get total count
             count_row = conn.execute(
@@ -452,9 +506,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             total = count_row["cnt"] if count_row else 0
 
             if total == 0:
-                return MeasurementList(
-                    items=[], total=0, page=page, page_size=page_size
-                )
+                return MeasurementList(items=[], total=0, page=page, page_size=page_size)
 
             # Get paginated measurements
             offset = (page - 1) * page_size
@@ -513,27 +565,17 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     )
                 )
 
-            return MeasurementList(
-                items=measurements, total=total, page=page, page_size=page_size
-            )
+            return MeasurementList(items=measurements, total=total, page=page, page_size=page_size)
 
     @router.get("/images/{image_id}/profile")
     def get_image_profile(
         image_id: int,
-        profile_type: str = Query(
-            ..., description="Profile type: line, polyline, or point"
-        ),
+        profile_type: str = Query(..., description="Profile type: line, polyline, or point"),
         coordinates: str = Query(..., description="JSON array of coordinate pairs"),
-        coordinate_system: str = Query(
-            "wcs", description="Coordinate system: wcs or pixel"
-        ),
+        coordinate_system: str = Query("wcs", description="Coordinate system: wcs or pixel"),
         width: int = Query(1, description="Width of profile extraction in pixels"),
-        radius: float = Query(
-            10.0, description="Radius in arcseconds for point profile"
-        ),
-        fit_model: Optional[str] = Query(
-            None, description="Fit model: gaussian, moffat, or none"
-        ),
+        radius: float = Query(10.0, description="Radius in arcseconds for point profile"),
+        fit_model: Optional[str] = Query(None, description="Fit model: gaussian, moffat, or none"),
     ):
         """Extract a spatial profile from an image.
 
@@ -555,23 +597,17 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail="Database not found")
 
         with _connect(db_path) as conn:
-            row = conn.execute(
-                "SELECT path FROM images WHERE id = ?", (image_id,)
-            ).fetchone()
+            row = conn.execute("SELECT path FROM images WHERE id = ?", (image_id,)).fetchone()
 
             if not row:
-                raise HTTPException(
-                    status_code=404, detail=f"Image {image_id} not found"
-                )
+                raise HTTPException(status_code=404, detail=f"Image {image_id} not found")
 
             image_path = row["path"]
 
         # Get FITS file path
         fits_path = get_fits_path(image_path)
         if not fits_path or not Path(fits_path).exists():
-            raise HTTPException(
-                status_code=404, detail=f"FITS file not found for image {image_id}"
-            )
+            raise HTTPException(status_code=404, detail=f"FITS file not found for image {image_id}")
 
         # Validate profile type first
         if profile_type not in ["line", "polyline", "point"]:
@@ -592,13 +628,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     raise ValueError("Point profile requires at least 1 coordinate")
             else:
                 if len(coords_list) < 2:
-                    raise ValueError(
-                        f"{profile_type} profile requires at least 2 coordinates"
-                    )
+                    raise ValueError(f"{profile_type} profile requires at least 2 coordinates")
         except json.JSONDecodeError:
-            raise HTTPException(
-                status_code=400, detail="Invalid JSON in coordinates parameter"
-            )
+            raise HTTPException(status_code=400, detail="Invalid JSON in coordinates parameter")
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
 
@@ -657,9 +689,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
                 distance = np.array(profile_data["distance"])
                 flux = np.array(profile_data["flux"])
-                error = (
-                    np.array(profile_data["error"]) if profile_data["error"] else None
-                )
+                error = np.array(profile_data["error"]) if profile_data["error"] else None
 
                 if fit_model == "gaussian":
                     fit_result = fit_gaussian_profile(distance, flux, error)
@@ -677,23 +707,17 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         except Exception as e:
             logger.error(f"Error extracting profile from image {image_id}: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Failed to extract profile: {str(e)}"
-            )
+            raise HTTPException(status_code=500, detail=f"Failed to extract profile: {str(e)}")
 
     @router.post("/images/{image_id}/fit")
     def fit_image(
         image_id: int,
         model: str = Body(..., description="Fit model: gaussian or moffat"),
-        region_id: Optional[int] = Body(
-            None, description="Optional region ID to fit within"
-        ),
+        region_id: Optional[int] = Body(None, description="Optional region ID to fit within"),
         initial_guess: Optional[str] = Body(
             None, description="Optional JSON with initial parameters"
         ),
-        fit_background: bool = Body(
-            True, description="Whether to fit background level"
-        ),
+        fit_background: bool = Body(True, description="Whether to fit background level"),
     ):
         """Fit a 2D model (Gaussian or Moffat) to a source in an image.
 
@@ -713,23 +737,17 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail="Database not found")
 
         with _connect(db_path) as conn:
-            row = conn.execute(
-                "SELECT path FROM images WHERE id = ?", (image_id,)
-            ).fetchone()
+            row = conn.execute("SELECT path FROM images WHERE id = ?", (image_id,)).fetchone()
 
             if not row:
-                raise HTTPException(
-                    status_code=404, detail=f"Image {image_id} not found"
-                )
+                raise HTTPException(status_code=404, detail=f"Image {image_id} not found")
 
             image_path = row["path"]
 
         # Get FITS file path
         fits_path = get_fits_path(image_path)
         if not fits_path or not Path(fits_path).exists():
-            raise HTTPException(
-                status_code=404, detail=f"FITS file not found for image {image_id}"
-            )
+            raise HTTPException(status_code=404, detail=f"FITS file not found for image {image_id}")
 
         # Validate model
         if model not in ["gaussian", "moffat"]:
@@ -805,9 +823,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             region_mask = None
         except Exception as e:
             logger.error(f"Error loading FITS file or creating region mask: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Failed to process image: {str(e)}"
-            )
+            raise HTTPException(status_code=500, detail=f"Failed to process image: {str(e)}")
 
         try:
             # Perform fitting
@@ -832,9 +848,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         except Exception as e:
             logger.error(f"Error fitting {model} to image {image_id}: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Failed to fit {model}: {str(e)}"
-            )
+            raise HTTPException(status_code=500, detail=f"Failed to fit {model}: {str(e)}")
 
     # moved to dsa110_contimg.api.routers.catalogs
 
@@ -907,9 +921,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         required_fields = ["name", "type", "coordinates", "image_path"]
         for field in required_fields:
             if field not in region_data:
-                raise HTTPException(
-                    status_code=400, detail=f"Missing required field: {field}"
-                )
+                raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
 
         # Create region object
         region = RegionData(
@@ -952,14 +964,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail="Database not found")
 
         with _connect(db_path) as conn:
-            row = conn.execute(
-                "SELECT * FROM regions WHERE id = ?", (region_id,)
-            ).fetchone()
+            row = conn.execute("SELECT * FROM regions WHERE id = ?", (region_id,)).fetchone()
 
             if not row:
-                raise HTTPException(
-                    status_code=404, detail=f"Region {region_id} not found"
-                )
+                raise HTTPException(status_code=404, detail=f"Region {region_id} not found")
 
             region_data = {
                 "id": row["id"],
@@ -985,14 +993,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         with _connect(db_path) as conn:
             # Check if region exists
-            row = conn.execute(
-                "SELECT id FROM regions WHERE id = ?", (region_id,)
-            ).fetchone()
+            row = conn.execute("SELECT id FROM regions WHERE id = ?", (region_id,)).fetchone()
 
             if not row:
-                raise HTTPException(
-                    status_code=404, detail=f"Region {region_id} not found"
-                )
+                raise HTTPException(status_code=404, detail=f"Region {region_id} not found")
 
             # Update region
             update_fields = []
@@ -1010,9 +1014,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             params.append(time.time())
             params.append(region_id)
 
-            conn.execute(
-                f"UPDATE regions SET {', '.join(update_fields)} WHERE id = ?", params
-            )
+            conn.execute(f"UPDATE regions SET {', '.join(update_fields)} WHERE id = ?", params)
             conn.commit()
 
         return {"id": region_id, "updated": True}
@@ -1028,9 +1030,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             cursor = conn.execute("DELETE FROM regions WHERE id = ?", (region_id,))
 
             if cursor.rowcount == 0:
-                raise HTTPException(
-                    status_code=404, detail=f"Region {region_id} not found"
-                )
+                raise HTTPException(status_code=404, detail=f"Region {region_id} not found")
 
             conn.commit()
 
@@ -1050,14 +1050,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail="Database not found")
 
         with _connect(db_path) as conn:
-            row = conn.execute(
-                "SELECT * FROM regions WHERE id = ?", (region_id,)
-            ).fetchone()
+            row = conn.execute("SELECT * FROM regions WHERE id = ?", (region_id,)).fetchone()
 
             if not row:
-                raise HTTPException(
-                    status_code=404, detail=f"Region {region_id} not found"
-                )
+                raise HTTPException(status_code=404, detail=f"Region {region_id} not found")
 
             region = json_to_region(
                 {
@@ -1082,9 +1078,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             return {"region_id": region_id, "statistics": stats}
 
     @router.get("/calibrator_matches", response_model=CalibratorMatchList)
-    def calibrator_matches(
-        limit: int = 50, matched_only: bool = False
-    ) -> CalibratorMatchList:
+    def calibrator_matches(limit: int = 50, matched_only: bool = False) -> CalibratorMatchList:
         items = fetch_recent_calibrator_matches(
             cfg.queue_db, limit=limit, matched_only=matched_only
         )
@@ -1110,9 +1104,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         and returns timeline segments showing when observation data exists.
         """
         scan_dir = Path(data_dir) if data_dir else Path("/data/incoming")
-        return fetch_observation_timeline(
-            scan_dir, gap_threshold_hours=gap_threshold_hours
-        )
+        return fetch_observation_timeline(scan_dir, gap_threshold_hours=gap_threshold_hours)
 
     @router.get("/observation_timeline/plot")
     def observation_timeline_plot(
@@ -1140,9 +1132,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         matplotlib.use("Agg")  # Non-interactive backend
 
         scan_dir = Path(data_dir) if data_dir else Path("/data/incoming")
-        timeline = fetch_observation_timeline(
-            scan_dir, gap_threshold_hours=gap_threshold_hours
-        )
+        timeline = fetch_observation_timeline(scan_dir, gap_threshold_hours=gap_threshold_hours)
 
         if not timeline.segments:
             raise HTTPException(
@@ -1176,9 +1166,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         ax.set_xlabel("Observation Time", fontsize=12)
         ax.set_ylabel("Data Segments", fontsize=12)
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
-        ax.xaxis.set_major_locator(
-            mdates.DayLocator(interval=max(1, len(timeline.segments) // 10))
-        )
+        ax.xaxis.set_major_locator(mdates.DayLocator(interval=max(1, len(timeline.segments) // 10)))
         plt.xticks(rotation=45, ha="right")
 
         # Set y-axis
@@ -1204,12 +1192,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         # Add statistics text
         if timeline.earliest_time and timeline.latest_time:
-            stats_text = (
-                f"First: {timeline.earliest_time.strftime('%Y-%m-%d %H:%M:%S')}\n"
-            )
-            stats_text += (
-                f"Last: {timeline.latest_time.strftime('%Y-%m-%d %H:%M:%S')}\n"
-            )
+            stats_text = f"First: {timeline.earliest_time.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            stats_text += f"Last: {timeline.latest_time.strftime('%Y-%m-%d %H:%M:%S')}\n"
             stats_text += f"Span: {time_span_days} days\n"
             stats_text += f"Segments: {len(timeline.segments)}\n"
             stats_text += f"Files: {timeline.total_files}"
@@ -1230,9 +1214,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
             fig.savefig(tmp_file.name, dpi=150, bbox_inches="tight")
             plt.close(fig)
-            return FileResponse(
-                tmp_file.name, media_type="image/png", filename="timeline.png"
-            )
+            return FileResponse(tmp_file.name, media_type="image/png", filename="timeline.png")
 
     @router.get("/qa", response_model=QAList)
     def qa(limit: int = 100) -> QAList:
@@ -1247,11 +1229,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         (limit,),
                     ).fetchall()
                     for r in rows:
-                        ts = (
-                            datetime.fromtimestamp(r["created_at"])
-                            if r["created_at"]
-                            else None
-                        )
+                        ts = datetime.fromtimestamp(r["created_at"]) if r["created_at"] else None
                         artifacts.append(
                             QAArtifact(
                                 group_id=r["group_id"],
@@ -1289,9 +1267,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             )
                 except Exception:
                     continue
-        artifacts.sort(
-            key=lambda a: a.created_at or datetime.fromtimestamp(0), reverse=True
-        )
+        artifacts.sort(key=lambda a: a.created_at or datetime.fromtimestamp(0), reverse=True)
         return QAList(items=artifacts[:limit])
 
     @router.get("/qa/file/{group}/{name}")
@@ -1448,11 +1424,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         (limit,),
                     ).fetchall()
                     for r in rows:
-                        ts = (
-                            datetime.fromtimestamp(r["created_at"])
-                            if r["created_at"]
-                            else None
-                        )
+                        ts = datetime.fromtimestamp(r["created_at"]) if r["created_at"] else None
                         artifacts.append(
                             QAArtifact(
                                 group_id=r["group_id"],
@@ -1471,9 +1443,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 if not sub.is_dir():
                     continue
                 latest = None
-                for f in sorted(
-                    sub.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True
-                ):
+                for f in sorted(sub.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True):
                     if f.suffix.lower() in (".png", ".jpg", ".jpeg", ".svg"):
                         latest = f
                         break
@@ -1557,11 +1527,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         (group_id,),
                     ).fetchall()
                     for r in rows:
-                        ts = (
-                            datetime.fromtimestamp(r["created_at"])
-                            if r["created_at"]
-                            else None
-                        )
+                        ts = datetime.fromtimestamp(r["created_at"]) if r["created_at"] else None
                         qa_items.append(
                             QAArtifact(
                                 group_id=group_id,
@@ -1575,18 +1541,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         # FS fallback
         if not qa_items and qa_dir.exists():
             for f in qa_dir.iterdir():
-                if (
-                    f.suffix.lower() in (".png", ".jpg", ".jpeg", ".svg", ".html")
-                    and f.is_file()
-                ):
+                if f.suffix.lower() in (".png", ".jpg", ".jpeg", ".svg", ".html") and f.is_file():
                     try:
                         ts = datetime.fromtimestamp(f.stat().st_mtime)
                     except Exception:
                         ts = None
                     qa_items.append(
-                        QAArtifact(
-                            group_id=group_id, name=f.name, path=str(f), created_at=ts
-                        )
+                        QAArtifact(group_id=group_id, name=f.name, path=str(f), created_at=ts)
                     )
 
         # Fetch writer type from performance_metrics
@@ -1611,9 +1572,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             subbands_present=row["subbands"] or 0,
             expected_subbands=row["expected_subbands"] or 16,
             has_calibrator=(
-                bool(row["has_calibrator"])
-                if row["has_calibrator"] is not None
-                else None
+                bool(row["has_calibrator"]) if row["has_calibrator"] is not None else None
             ),
             matches=matches_list or None,
             qa=qa_items,
@@ -1698,9 +1657,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         end_mjd=r["end_mjd"],
                         mid_mjd=r["mid_mjd"],
                         processed_at=(
-                            datetime.fromtimestamp(r["processed_at"])
-                            if r["processed_at"]
-                            else None
+                            datetime.fromtimestamp(r["processed_at"]) if r["processed_at"] else None
                         ),
                         status=r["status"],
                         stage=r["stage"],
@@ -1747,9 +1704,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/ese/candidates", response_model=ESECandidatesResponse)
     def ese_candidates(limit: int = 50, min_sigma: float = 5.0):
         """Get ESE candidate sources from database."""
-        candidates_data = fetch_ese_candidates(
-            cfg.products_db, limit=limit, min_sigma=min_sigma
-        )
+        candidates_data = fetch_ese_candidates(cfg.products_db, limit=limit, min_sigma=min_sigma)
         candidates = [ESECandidate(**c) for c in candidates_data]
         return ESECandidatesResponse(
             candidates=candidates,
@@ -1773,13 +1728,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     ):
         """Get postage stamp cutouts for an ESE candidate source."""
         # Reuse existing postage stamps endpoint logic
-        return get_source_postage_stamps(
-            source_id, size_arcsec=size_arcsec, max_stamps=max_stamps
-        )
+        return get_source_postage_stamps(source_id, size_arcsec=size_arcsec, max_stamps=max_stamps)
 
-    @router.get(
-        "/ese/candidates/{source_id}/variability", response_model=VariabilityMetrics
-    )
+    @router.get("/ese/candidates/{source_id}/variability", response_model=VariabilityMetrics)
     def get_ese_candidate_variability(source_id: str):
         """Get variability metrics for an ESE candidate source."""
         # Reuse existing variability endpoint logic
@@ -1792,9 +1743,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     def get_ese_candidate_external_catalogs(
         source_id: str,
         radius_arcsec: float = Query(5.0, description="Search radius in arcseconds"),
-        catalogs: Optional[str] = Query(
-            None, description="Comma-separated list of catalogs"
-        ),
+        catalogs: Optional[str] = Query(None, description="Comma-separated list of catalogs"),
         timeout: float = Query(30.0, description="Query timeout in seconds"),
     ):
         """Get external catalog matches for an ESE candidate source."""
@@ -1840,9 +1789,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             total=1,
         )
 
-    @router.get(
-        "/legacy/sources/{source_id}/variability", response_model=VariabilityMetrics
-    )
+    @router.get("/legacy/sources/{source_id}/variability", response_model=VariabilityMetrics)
     def get_source_variability(source_id: str):
         """Get variability metrics for a source."""
         from dsa110_contimg.photometry.source import Source
@@ -1869,9 +1816,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/legacy/sources/{source_id}/lightcurve", response_model=LightCurveData)
     def get_source_lightcurve(source_id: str):
         """Get light curve data for a source."""
-        from dsa110_contimg.photometry.source import Source
-        from dsa110_contimg.api.models import SourceFluxPoint
         from astropy.time import Time
+
+        from dsa110_contimg.api.models import SourceFluxPoint
+        from dsa110_contimg.photometry.source import Source
 
         try:
             source = Source(source_id=source_id, products_db=cfg.products_db)
@@ -1918,9 +1866,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             mjd=float(mjd),
                             time=time_str,
                             flux_jy=float(norm_flux_jy) if norm_flux_jy else 0.0,
-                            flux_err_jy=(
-                                float(norm_flux_err_jy) if norm_flux_err_jy else None
-                            ),
+                            flux_err_jy=(float(norm_flux_err_jy) if norm_flux_err_jy else None),
                             image_id=image_path,
                         )
                     )
@@ -1930,9 +1876,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 ra_deg=source.ra_deg,
                 dec_deg=source.dec_deg,
                 flux_points=flux_points,
-                normalized_flux_points=(
-                    normalized_flux_points if normalized_flux_points else None
-                ),
+                normalized_flux_points=(normalized_flux_points if normalized_flux_points else None),
             )
         except HTTPException:
             raise
@@ -1953,9 +1897,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         max_stamps: int = Query(20, description="Maximum number of stamps to return"),
     ):
         """Get postage stamp cutouts for a source."""
+        import tempfile
+
         from dsa110_contimg.photometry.source import Source
         from dsa110_contimg.qa.postage_stamps import create_cutout
-        import tempfile
 
         try:
             source = Source(source_id=source_id, products_db=cfg.products_db)
@@ -1971,9 +1916,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             temp_dir.mkdir(exist_ok=True)
 
             # Get unique image paths
-            image_paths = (
-                source.measurements["image_path"].dropna().unique()[:max_stamps]
-            )
+            image_paths = source.measurements["image_path"].dropna().unique()[:max_stamps]
 
             for image_path in image_paths:
                 if not Path(image_path).exists():
@@ -1990,17 +1933,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 img_measurements = source.measurements[
                     source.measurements["image_path"] == image_path
                 ]
-                mjd = (
-                    img_measurements["mjd"].iloc[0]
-                    if "mjd" in img_measurements.columns
-                    else 0.0
-                )
+                mjd = img_measurements["mjd"].iloc[0] if "mjd" in img_measurements.columns else 0.0
 
                 try:
                     # Create cutout
-                    cutout_path = (
-                        temp_dir / f"{source_id}_{Path(image_path).stem}_cutout.fits"
-                    )
+                    cutout_path = temp_dir / f"{source_id}_{Path(image_path).stem}_cutout.fits"
 
                     # Convert image_path to Path and size_arcsec to size_arcmin
                     fits_path = Path(image_path)
@@ -2017,9 +1954,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     # Save cutout to FITS file
                     from astropy.io import fits
 
-                    hdu = fits.PrimaryHDU(
-                        data=cutout_data, header=cutout_wcs.to_header()
-                    )
+                    hdu = fits.PrimaryHDU(data=cutout_data, header=cutout_wcs.to_header())
                     hdu.writeto(cutout_path, overwrite=True)
 
                     stamps.append(
@@ -2032,9 +1967,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 except Exception as e:
                     logger.warning(f"Error creating cutout for {image_path}: {e}")
                     stamps.append(
-                        PostageStampInfo(
-                            image_path=image_path, mjd=float(mjd), error=str(e)
-                        )
+                        PostageStampInfo(image_path=image_path, mjd=float(mjd), error=str(e))
                     )
 
             return PostageStampsResponse(
@@ -2068,6 +2001,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     ):
         """Get external catalog matches for a source (SIMBAD, NED, Gaia)."""
         import time
+
         from dsa110_contimg.photometry.source import Source
 
         try:
@@ -2307,18 +2241,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 mean_flux_jy=mean_flux,
                 std_flux_jy=std_flux,
                 max_snr=max_snr,
-                is_variable=(
-                    variability_metrics.is_variable if variability_metrics else False
-                ),
+                is_variable=(variability_metrics.is_variable if variability_metrics else False),
                 ese_probability=ese_probability,
                 new_source=new_source,
                 variability_metrics=variability_metrics,
             )
         except Exception as e:
             logger.error(f"Error getting source detail for {source_id}: {e}")
-            raise HTTPException(
-                status_code=404, detail=f"Source {source_id} not found: {str(e)}"
-            )
+            raise HTTPException(status_code=404, detail=f"Source {source_id} not found: {str(e)}")
 
     @router.get("/legacy/sources/{source_id}/detections", response_model=DetectionList)
     def get_source_detections(
@@ -2384,9 +2314,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         if isinstance(row["measured_at"], (int, float)):
                             measured_at = datetime.fromtimestamp(row["measured_at"])
                         else:
-                            measured_at = datetime.fromisoformat(
-                                str(row["measured_at"])
-                            )
+                            measured_at = datetime.fromisoformat(str(row["measured_at"]))
                     except Exception:
                         pass
 
@@ -2418,14 +2346,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     )
                 )
 
-            return DetectionList(
-                items=detections, total=total, page=page, page_size=page_size
-            )
+            return DetectionList(items=detections, total=total, page=page, page_size=page_size)
         except Exception as e:
             logger.error(f"Error getting detections for {source_id}: {e}")
-            raise HTTPException(
-                status_code=404, detail=f"Source {source_id} not found: {str(e)}"
-            )
+            raise HTTPException(status_code=404, detail=f"Source {source_id} not found: {str(e)}")
 
     @router.get("/alerts/history", response_model=List[AlertHistory])
     def alerts_history(limit: int = 50):
@@ -2492,18 +2416,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             params: list[object] = []
 
             if search:
-                where_clauses.append(
-                    "(m.path LIKE ? OR COALESCE(cm.calibrator_name, '') LIKE ?)"
-                )
+                where_clauses.append("(m.path LIKE ? OR COALESCE(cm.calibrator_name, '') LIKE ?)")
                 params.extend([f"%{search}%", f"%{search}%"])
 
             if has_calibrator is not None:
                 if has_calibrator:
                     where_clauses.append("cm.has_calibrator = 1")
                 else:
-                    where_clauses.append(
-                        "(cm.has_calibrator = 0 OR cm.has_calibrator IS NULL)"
-                    )
+                    where_clauses.append("(cm.has_calibrator = 0 OR cm.has_calibrator IS NULL)")
 
             if is_calibrated is not None:
                 if is_calibrated:
@@ -2513,9 +2433,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
             if is_imaged is not None:
                 if is_imaged:
-                    where_clauses.append(
-                        "m.imagename IS NOT NULL AND m.imagename != ''"
-                    )
+                    where_clauses.append("m.imagename IS NOT NULL AND m.imagename != ''")
                 else:
                     where_clauses.append("(m.imagename IS NULL OR m.imagename = '')")
 
@@ -2704,14 +2622,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     artifacts=jd["artifacts"],
                     created_at=datetime.fromtimestamp(jd["created_at"]),
                     started_at=(
-                        datetime.fromtimestamp(jd["started_at"])
-                        if jd["started_at"]
-                        else None
+                        datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None
                     ),
                     finished_at=(
-                        datetime.fromtimestamp(jd["finished_at"])
-                        if jd["finished_at"]
-                        else None
+                        datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None
                     ),
                 )
             )
@@ -2742,12 +2656,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             logs=jd["logs"],
             artifacts=jd["artifacts"],
             created_at=datetime.fromtimestamp(jd["created_at"]),
-            started_at=(
-                datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None
-            ),
-            finished_at=(
-                datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None
-            ),
+            started_at=(datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None),
+            finished_at=(datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None),
         )
 
     @router.get("/jobs/id/{job_id}/logs")
@@ -2786,9 +2696,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         return StreamingResponse(event_stream(), media_type="text/event-stream")
 
     @router.post("/jobs/calibrate", response_model=Job)
-    def create_calibrate_job(
-        request: JobCreateRequest, background_tasks: BackgroundTasks
-    ) -> Job:
+    def create_calibrate_job(request: JobCreateRequest, background_tasks: BackgroundTasks) -> Job:
         """Create and run a calibration job."""
         from dsa110_contimg.api.job_runner import run_calibrate_job
         from dsa110_contimg.api.models import JobParams
@@ -2798,9 +2706,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
-        job_id = create_job(
-            conn, "calibrate", request.ms_path, request.params.model_dump()
-        )
+        job_id = create_job(conn, "calibrate", request.ms_path, request.params.model_dump())
         conn.close()
 
         # Start job in background
@@ -2828,18 +2734,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             logs=jd["logs"],
             artifacts=jd["artifacts"],
             created_at=datetime.fromtimestamp(jd["created_at"]),
-            started_at=(
-                datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None
-            ),
-            finished_at=(
-                datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None
-            ),
+            started_at=(datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None),
+            finished_at=(datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None),
         )
 
     @router.post("/jobs/apply", response_model=Job)
-    def create_apply_job(
-        request: JobCreateRequest, background_tasks: BackgroundTasks
-    ) -> Job:
+    def create_apply_job(request: JobCreateRequest, background_tasks: BackgroundTasks) -> Job:
         """Create and run an apply calibration job."""
         from dsa110_contimg.api.job_runner import run_apply_job
         from dsa110_contimg.api.models import JobParams
@@ -2873,18 +2773,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             logs=jd["logs"],
             artifacts=jd["artifacts"],
             created_at=datetime.fromtimestamp(jd["created_at"]),
-            started_at=(
-                datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None
-            ),
-            finished_at=(
-                datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None
-            ),
+            started_at=(datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None),
+            finished_at=(datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None),
         )
 
     @router.post("/jobs/image", response_model=Job)
-    def create_image_job(
-        request: JobCreateRequest, background_tasks: BackgroundTasks
-    ) -> Job:
+    def create_image_job(request: JobCreateRequest, background_tasks: BackgroundTasks) -> Job:
         """Create and run an imaging job."""
         from dsa110_contimg.api.job_runner import run_image_job
         from dsa110_contimg.api.models import JobParams
@@ -2918,61 +2812,157 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             logs=jd["logs"],
             artifacts=jd["artifacts"],
             created_at=datetime.fromtimestamp(jd["created_at"]),
-            started_at=(
-                datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None
-            ),
-            finished_at=(
-                datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None
-            ),
+            started_at=(datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None),
+            finished_at=(datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None),
         )
 
-    @router.get("/uvh5", response_model=UVH5FileList)
-    def list_uvh5_files(input_dir: str | None = None, limit: int = 100) -> UVH5FileList:
-        """List available UVH5 files for conversion."""
+    @router.get("/uvh5")
+    def list_uvh5_files(
+        input_dir: str | None = None,
+        limit: int = Query(100, ge=1, le=10000, description="Maximum number of files to return"),
+        offset: int = Query(0, ge=0, description="Number of files to skip"),
+        search: str | None = Query(None, description="Search filter (matches filename or path)"),
+        subband: str | None = Query(None, description="Filter by subband (e.g., 'sb0', 'sb23')"),
+    ) -> dict:
+        """List available UVH5 files for conversion with pagination and search.
+
+        Returns:
+            Dict with 'items' (list of UVH5 files), 'total' (total count), 'limit', 'offset'
+        """
         import glob as _glob
         import re
+        import time
 
-        from dsa110_contimg.api.models import UVH5FileEntry, UVH5FileList
+        from dsa110_contimg.api.models import UVH5FileEntry
 
         if input_dir is None:
             input_dir = os.getenv("CONTIMG_INPUT_DIR", "/data/incoming")
 
         entries: list[UVH5FileEntry] = []
+        all_files: list[str] = []
 
         try:
             search_path = Path(input_dir)
             if not search_path.exists():
-                return UVH5FileList(items=[])
+                return {
+                    "items": [],
+                    "total": 0,
+                    "limit": limit,
+                    "offset": offset,
+                }
 
-            # Find all .hdf5 files
-            pattern = str(search_path / "**/*.hdf5")
-            files = sorted(_glob.glob(pattern, recursive=True), reverse=True)[:limit]
+            # Use cached file list if available and fresh
+            # Access module-level cache explicitly
+            import dsa110_contimg.api.routes as routes_module
 
-            for fpath in files:
+            cache = routes_module._uvh5_file_cache
+            cache_ttl = routes_module._uvh5_cache_ttl
+
+            cache_key = str(search_path)
+            current_time = time.time()
+
+            if cache_key in cache:
+                cached_time, cached_files = cache[cache_key]
+                if current_time - cached_time < cache_ttl:
+                    all_files = cached_files
+                else:
+                    # Cache expired, refresh it
+                    del cache[cache_key]
+
+            if not all_files:
+                # Find all .hdf5 files (use os.walk for better performance on large dirs)
+                # Limit initial scan to avoid very long first request
+                # Cache will be built incrementally
+                all_files = []
+                max_scan_files = 100000  # Limit to prevent extremely long scans
+                file_count = 0
+
+                for root, dirs, files in os.walk(search_path):
+                    for file in files:
+                        if file.endswith(".hdf5"):
+                            all_files.append(os.path.join(root, file))
+                            file_count += 1
+                            if file_count >= max_scan_files:
+                                break
+                    if file_count >= max_scan_files:
+                        break
+
+                # Sort by path (reverse for newest first)
+                all_files.sort(reverse=True)
+
+                # Cache the result
+                cache[cache_key] = (current_time, all_files)
+
+            # Apply filters (optimized with early filtering)
+            filtered_files = all_files
+
+            # Pre-compile regex for subband if needed
+            subband_pattern = None
+            if subband:
+                subband_num = subband.replace("sb", "")
+                subband_pattern = f"_sb{subband_num}.hdf5"
+
+            if search or subband:
+                search_lower = search.lower() if search else None
+                filtered_files = []
+                for f in all_files:
+                    # Apply search filter
+                    if search_lower and search_lower not in f.lower():
+                        continue
+                    # Apply subband filter
+                    if subband_pattern and subband_pattern not in f:
+                        continue
+                    filtered_files.append(f)
+
+            # Get total count before pagination
+            total_count = len(filtered_files)
+
+            # Apply pagination
+            paginated_files = filtered_files[offset : offset + limit]
+
+            # Pre-compile regex for filename parsing
+            filename_pattern = re.compile(r"(.+)_sb(\d+)\.hdf5$")
+
+            # Batch process files for better performance
+            for fpath in paginated_files:
                 fname = os.path.basename(fpath)
-                size_mb = os.path.getsize(fpath) / (1024 * 1024)
+
+                # Get file size (with error handling, only for paginated files)
+                # This is fast since we only check sizes for the current page
+                size_mb = None
+                try:
+                    stat_result = os.stat(fpath)
+                    size_mb = stat_result.st_size / (1024 * 1024)
+                except (OSError, FileNotFoundError):
+                    # File may have been deleted, skip size
+                    pass
 
                 # Extract timestamp and subband from filename
                 # Expected format: YYYY-MM-DDTHH:MM:SS_sbXX.hdf5
                 timestamp = None
-                subband = None
-                match = re.match(r"(.+)_sb(\d+)\.hdf5$", fname)
+                file_subband = None
+                match = filename_pattern.match(fname)
                 if match:
                     timestamp = match.group(1)
-                    subband = f"sb{match.group(2)}"
+                    file_subband = f"sb{match.group(2)}"
 
                 entries.append(
                     UVH5FileEntry(
                         path=fpath,
                         timestamp=timestamp,
-                        subband=subband,
-                        size_mb=round(size_mb, 2),
+                        subband=file_subband,
+                        size_mb=round(size_mb, 2) if size_mb else None,
                     )
                 )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error listing UVH5 files: {e}")
 
-        return UVH5FileList(items=entries)
+        return {
+            "items": [entry.dict() for entry in entries],
+            "total": total_count,
+            "limit": limit,
+            "offset": offset,
+        }
 
     @router.post("/jobs/convert", response_model=Job)
     def create_convert_job(
@@ -2992,9 +2982,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         conn.close()
 
         # Start job in background
-        background_tasks.add_task(
-            run_convert_job, job_id, request.params.model_dump(), db_path
-        )
+        background_tasks.add_task(run_convert_job, job_id, request.params.model_dump(), db_path)
 
         # Return initial job state
         conn = ensure_products_db(db_path)
@@ -3015,12 +3003,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             logs=jd["logs"],
             artifacts=jd["artifacts"],
             created_at=datetime.fromtimestamp(jd["created_at"]),
-            started_at=(
-                datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None
-            ),
-            finished_at=(
-                datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None
-            ),
+            started_at=(datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None),
+            finished_at=(datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None),
         )
 
     @router.get("/caltables", response_model=CalTableList)
@@ -3094,10 +3078,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     def get_ms_metadata(ms_path: str) -> MSMetadata:
         """Get metadata for an MS file."""
         from dsa110_contimg.api.models import (
-            MSMetadata,
-            FieldInfo,
             AntennaInfo,
+            FieldInfo,
             FlaggingStats,
+            MSMetadata,
         )
 
         # Ensure CASAPATH is set before importing CASA modules
@@ -3105,7 +3089,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         ensure_casa_path()
 
-        from casatools import table, ms as casams
         import numpy as np
         from casatools import ms as casams
         from casatools import table
@@ -3155,9 +3138,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 if flags.size > 0:
                     total_flagged = np.sum(flags)
                     total_data = flags.size
-                    flag_fraction = (
-                        float(total_flagged / total_data) if total_data > 0 else 0.0
-                    )
+                    flag_fraction = float(total_flagged / total_data) if total_data > 0 else 0.0
 
                     # Per-antenna flagging
                     ant1 = tb.getcol("ANTENNA1")
@@ -3226,11 +3207,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 ra_deg = np.degrees(ra_rad)
                 dec_deg = np.degrees(dec_rad)
 
-                fields.append(
-                    FieldInfo(
-                        field_id=i, name=str(name), ra_deg=ra_deg, dec_deg=dec_deg
-                    )
-                )
+                fields.append(FieldInfo(field_id=i, name=str(name), ra_deg=ra_deg, dec_deg=dec_deg))
 
             metadata.num_fields = len(field_names)
             metadata.field_names = field_names
@@ -3271,9 +3248,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         return metadata
 
-    @router.get(
-        "/ms/{ms_path:path}/calibrator-matches", response_model=MSCalibratorMatchList
-    )
+    @router.get("/ms/{ms_path:path}/calibrator-matches", response_model=MSCalibratorMatchList)
     def get_ms_calibrator_matches(
         ms_path: str, catalog: str = "vla", radius_deg: float = 1.5, top_n: int = 5
     ) -> MSCalibratorMatchList:
@@ -3317,9 +3292,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 try:
                     df = load_vla_catalog()
                 except FileNotFoundError as e:
-                    raise HTTPException(
-                        status_code=500, detail=f"VLA catalog not found: {e}"
-                    )
+                    raise HTTPException(status_code=500, detail=f"VLA catalog not found: {e}")
             else:
                 raise HTTPException(status_code=400, detail="Unknown catalog")
 
@@ -3439,13 +3412,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             )
 
         except Exception as e:
-            raise HTTPException(
-                status_code=500, detail=f"Error finding calibrators: {str(e)}"
-            )
+            raise HTTPException(status_code=500, detail=f"Error finding calibrators: {str(e)}")
 
-    @router.get(
-        "/ms/{ms_path:path}/existing-caltables", response_model=ExistingCalTables
-    )
+    @router.get("/ms/{ms_path:path}/existing-caltables", response_model=ExistingCalTables)
     def get_existing_caltables(ms_path: str) -> ExistingCalTables:
         """Discover existing calibration tables for an MS."""
         import glob
@@ -3482,15 +3451,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             )
 
         # Find tables
-        k_tables = [
-            make_table_info(p) for p in glob.glob(k_pattern) if os.path.isdir(p)
-        ]
-        bp_tables = [
-            make_table_info(p) for p in glob.glob(bp_pattern) if os.path.isdir(p)
-        ]
-        g_tables = [
-            make_table_info(p) for p in glob.glob(g_pattern) if os.path.isdir(p)
-        ]
+        k_tables = [make_table_info(p) for p in glob.glob(k_pattern) if os.path.isdir(p)]
+        bp_tables = [make_table_info(p) for p in glob.glob(bp_pattern) if os.path.isdir(p)]
+        g_tables = [make_table_info(p) for p in glob.glob(g_pattern) if os.path.isdir(p)]
 
         # Sort by modified time (newest first)
         k_tables.sort(key=lambda t: t.modified_time, reverse=True)
@@ -3507,9 +3470,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             has_g=len(g_tables) > 0,
         )
 
-    @router.post(
-        "/ms/{ms_path:path}/validate-caltable", response_model=CalTableCompatibility
-    )
+    @router.post("/ms/{ms_path:path}/validate-caltable", response_model=CalTableCompatibility)
     def validate_caltable_compatibility(
         ms_path: str, caltable_path: str = Body(..., embed=True)
     ) -> CalTableCompatibility:
@@ -3525,9 +3486,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         # Decode paths
         ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
-        cal_full_path = (
-            f"/{caltable_path}" if not caltable_path.startswith("/") else caltable_path
-        )
+        cal_full_path = f"/{caltable_path}" if not caltable_path.startswith("/") else caltable_path
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
@@ -3583,17 +3542,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         if tb_spw.nrows() > 0:
                             cal_chan_freqs = tb_spw.getcol("CHAN_FREQ")
                             if len(cal_chan_freqs) > 0:
-                                caltable_freq_min_ghz = float(
-                                    cal_chan_freqs.min() / 1e9
-                                )
-                                caltable_freq_max_ghz = float(
-                                    cal_chan_freqs.max() / 1e9
-                                )
+                                caltable_freq_min_ghz = float(cal_chan_freqs.min() / 1e9)
+                                caltable_freq_max_ghz = float(cal_chan_freqs.max() / 1e9)
                         tb_spw.close()
                     except Exception:
-                        warnings.append(
-                            "Could not extract frequency range from calibration table"
-                        )
+                        warnings.append("Could not extract frequency range from calibration table")
             tb.close()
 
             # Validate antenna compatibility
@@ -3670,9 +3623,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         # cases where the path might not start with / and ensure proper decoding
         # Handle URL-encoded colons and other special characters
         decoded_path = urllib.parse.unquote(ms_path)
-        ms_full_path = (
-            f"/{decoded_path}" if not decoded_path.startswith("/") else decoded_path
-        )
+        ms_full_path = f"/{decoded_path}" if not decoded_path.startswith("/") else decoded_path
 
         # Log for debugging
         logger.debug(
@@ -3770,9 +3721,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         # FastAPI automatically URL-decodes path parameters, but we need to handle
         # cases where the path might not start with / and ensure proper decoding
         decoded_path = urllib.parse.unquote(ms_path)
-        ms_full_path = (
-            f"/{decoded_path}" if not decoded_path.startswith("/") else decoded_path
-        )
+        ms_full_path = f"/{decoded_path}" if not decoded_path.startswith("/") else decoded_path
 
         if not os.path.exists(ms_full_path):
             # Try alternative path constructions
@@ -3787,9 +3736,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     ms_full_path = alt
                     break
             else:
-                raise HTTPException(
-                    status_code=404, detail=f"MS not found: {ms_full_path}"
-                )
+                raise HTTPException(status_code=404, detail=f"MS not found: {ms_full_path}")
 
         # Determine plot directory
         ms_dir = os.path.dirname(ms_full_path)
@@ -3829,11 +3776,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
             caltables = discover_caltables(ms_full_path)
 
-            if (
-                "bp" not in caltables
-                or not caltables["bp"]
-                or not Path(caltables["bp"]).exists()
-            ):
+            if "bp" not in caltables or not caltables["bp"] or not Path(caltables["bp"]).exists():
                 raise HTTPException(
                     status_code=404,
                     detail="No bandpass calibration table found for this MS",
@@ -3879,9 +3822,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             raise
         except Exception as e:
             logger.error(f"Error generating per-SPW plot: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Error generating per-SPW plot: {str(e)}"
-            )
+            raise HTTPException(status_code=500, detail=f"Error generating per-SPW plot: {str(e)}")
 
     @router.get("/qa/calibration/{ms_path:path}/caltable-completeness")
     async def get_caltable_completeness(ms_path: str):
@@ -3933,9 +3874,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             row = cursor.fetchone()
 
             if not row:
-                raise HTTPException(
-                    status_code=404, detail="No calibration QA found for this MS"
-                )
+                raise HTTPException(status_code=404, detail="No calibration QA found for this MS")
 
             # Parse JSON metrics
             k_metrics = json.loads(row[3]) if row[3] else None
@@ -3965,9 +3904,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             raise
         except Exception as e:
             logger.error(f"Error fetching calibration QA: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Error fetching calibration QA: {str(e)}"
-            )
+            raise HTTPException(status_code=500, detail=f"Error fetching calibration QA: {str(e)}")
         finally:
             conn.close()
 
@@ -4087,10 +4024,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         # Check cache first
         try:
-            import sqlite3
-            import json
-            import time
             import hashlib
+            import json
+            import sqlite3
+            import time
 
             cache_key = hashlib.md5(
                 f"{image_path}:{catalog}:{validation_type}".encode()
@@ -4108,9 +4045,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 ).fetchone()
 
                 if cached:
-                    logger.debug(
-                        f"Returning cached validation results for {image_path}"
-                    )
+                    logger.debug(f"Returning cached validation results for {image_path}")
                     return json.loads(cached["results_json"])
         except Exception as e:
             logger.debug(f"Could not check validation cache: {e}")
@@ -4125,16 +4060,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             results["flux_scale"] = validate_flux_scale(image_path, catalog=catalog)
 
         if validation_type in ("all", "source_counts"):
-            results["source_counts"] = validate_source_counts(
-                image_path, catalog=catalog
-            )
+            results["source_counts"] = validate_source_counts(image_path, catalog=catalog)
 
         # Store results in database for future retrieval (caching)
         try:
-            import sqlite3
-            import json
-            import time
             import hashlib
+            import json
+            import sqlite3
+            import time
 
             # Create cache key from image path and catalog
             cache_key = hashlib.md5(
@@ -4235,9 +4168,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             results["flux_scale"] = validate_flux_scale(image_path, catalog=catalog)
 
         if "source_counts" in validation_types:
-            results["source_counts"] = validate_source_counts(
-                image_path, catalog=catalog
-            )
+            results["source_counts"] = validate_source_counts(image_path, catalog=catalog)
 
         # TODO: Store results in database for future retrieval
 
@@ -4285,13 +4216,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             image_path = resolve_image_path(image_id)
 
         # Run validations
-        astrometry_result, flux_scale_result, source_counts_result = (
-            run_full_validation(
-                image_path=image_path,
-                catalog=catalog,
-                validation_types=validation_types,
-                generate_html=False,  # We'll generate HTML ourselves
-            )
+        astrometry_result, flux_scale_result, source_counts_result = run_full_validation(
+            image_path=image_path,
+            catalog=catalog,
+            validation_types=validation_types,
+            generate_html=False,  # We'll generate HTML ourselves
         )
 
         # Create validation report
@@ -4308,14 +4237,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         html_output_path = None
         if save_to_file:
             # Save to QA directory
-            qa_dir = os.path.join(
-                os.getenv("PIPELINE_STATE_DIR", "state"), "qa", "reports"
-            )
+            qa_dir = os.path.join(os.getenv("PIPELINE_STATE_DIR", "state"), "qa", "reports")
             os.makedirs(qa_dir, exist_ok=True)
             image_basename = os.path.splitext(os.path.basename(image_path))[0]
-            html_output_path = os.path.join(
-                qa_dir, f"{image_basename}_validation_report.html"
-            )
+            html_output_path = os.path.join(qa_dir, f"{image_basename}_validation_report.html")
 
         # Generate HTML
         html_content = generate_html_report(report, output_path=html_output_path)
@@ -4358,14 +4283,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         # Determine output path
         if output_path is None:
-            qa_dir = os.path.join(
-                os.getenv("PIPELINE_STATE_DIR", "state"), "qa", "reports"
-            )
+            qa_dir = os.path.join(os.getenv("PIPELINE_STATE_DIR", "state"), "qa", "reports")
             os.makedirs(qa_dir, exist_ok=True)
             image_basename = os.path.splitext(os.path.basename(image_path))[0]
-            output_path = os.path.join(
-                qa_dir, f"{image_basename}_validation_report.html"
-            )
+            output_path = os.path.join(qa_dir, f"{image_basename}_validation_report.html")
 
         # Run validations and generate HTML
         run_full_validation(
@@ -4415,9 +4336,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             row = cursor.fetchone()
 
             if not row:
-                raise HTTPException(
-                    status_code=404, detail="No image QA found for this MS"
-                )
+                raise HTTPException(status_code=404, detail="No image QA found for this MS")
 
             return ImageQA(
                 ms_path=row[1],
@@ -4438,9 +4357,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             raise
         except Exception as e:
             logger.error(f"Error fetching image QA: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Error fetching image QA: {str(e)}"
-            )
+            raise HTTPException(status_code=500, detail=f"Error fetching image QA: {str(e)}")
         finally:
             conn.close()
 
@@ -4528,14 +4445,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             except Exception as e:
                 logger.warning(f"Could not fetch image QA: {e}")
 
-            return QAMetrics(
-                ms_path=ms_full_path, calibration_qa=cal_qa, image_qa=img_qa
-            )
+            return QAMetrics(ms_path=ms_full_path, calibration_qa=cal_qa, image_qa=img_qa)
         except Exception as e:
             logger.error(f"Error fetching QA metrics: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Error fetching QA metrics: {str(e)}"
-            )
+            raise HTTPException(status_code=500, detail=f"Error fetching QA metrics: {str(e)}")
         finally:
             conn.close()
 
@@ -4564,9 +4477,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             row = cursor.fetchone()
 
             if not row or not row[0]:
-                raise HTTPException(
-                    status_code=404, detail="No thumbnail found for this MS"
-                )
+                raise HTTPException(status_code=404, detail="No thumbnail found for this MS")
 
             thumbnail_path = Path(row[0])
             if not thumbnail_path.exists():
@@ -4581,9 +4492,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             raise
         except Exception as e:
             logger.error(f"Error serving thumbnail: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Error serving thumbnail: {str(e)}"
-            )
+            raise HTTPException(status_code=500, detail=f"Error serving thumbnail: {str(e)}")
         finally:
             conn.close()
 
@@ -4610,9 +4519,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         import matplotlib.pyplot as plt
 
         # Decode path
-        cal_full_path = (
-            f"/{caltable_path}" if not caltable_path.startswith("/") else caltable_path
-        )
+        cal_full_path = f"/{caltable_path}" if not caltable_path.startswith("/") else caltable_path
 
         if not os.path.exists(cal_full_path):
             raise HTTPException(status_code=404, detail="Calibration table not found")
@@ -4622,16 +4529,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             tb.open(cal_full_path, nomodify=True)
 
             if tb.nrows() == 0:
-                raise HTTPException(
-                    status_code=400, detail="Calibration table has no solutions"
-                )
+                raise HTTPException(status_code=400, detail="Calibration table has no solutions")
 
             # Get data columns
             antenna_ids = tb.getcol("ANTENNA1") if "ANTENNA1" in tb.colnames() else None
             spw_ids = (
-                tb.getcol("SPECTRAL_WINDOW_ID")
-                if "SPECTRAL_WINDOW_ID" in tb.colnames()
-                else None
+                tb.getcol("SPECTRAL_WINDOW_ID") if "SPECTRAL_WINDOW_ID" in tb.colnames() else None
             )
             times = tb.getcol("TIME") if "TIME" in tb.colnames() else None
             gains = tb.getcol("CPARAM") if "CPARAM" in tb.colnames() else None
@@ -4648,11 +4551,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             spw_ids = np.asarray(spw_ids) if spw_ids is not None else None
             times = np.asarray(times) if times is not None else None
             gains = np.asarray(gains)
-            flags = (
-                np.asarray(flags)
-                if flags is not None
-                else np.zeros(gains.shape, dtype=bool)
-            )
+            flags = np.asarray(flags) if flags is not None else np.zeros(gains.shape, dtype=bool)
 
             # Mask flagged values
             gains_masked = np.where(flags, np.nan + 0j, gains)
@@ -4694,9 +4593,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     if amplitudes.ndim > 1:
                         # Average over polarization if needed
                         amplitudes = (
-                            np.nanmean(amplitudes, axis=-1)
-                            if amplitudes.ndim > 1
-                            else amplitudes
+                            np.nanmean(amplitudes, axis=-1) if amplitudes.ndim > 1 else amplitudes
                         )
 
                     # Create frequency array matching the data
@@ -4725,9 +4622,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
                 except Exception as e:
                     logger.error(f"Error plotting amplitude vs frequency: {e}")
-                    raise HTTPException(
-                        status_code=500, detail=f"Error generating plot: {e}"
-                    )
+                    raise HTTPException(status_code=500, detail=f"Error generating plot: {e}")
 
             elif plot_type == "phase_vs_time":
                 # For gain: phase vs time
@@ -4788,9 +4683,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             from dsa110_contimg.utils.angles import wrap_phase_deg
 
                             freq_data.extend(spw_freqs.tolist())
-                            phase_data.extend(
-                                wrap_phase_deg(np.degrees(spw_phases)).tolist()
-                            )
+                            phase_data.extend(wrap_phase_deg(np.degrees(spw_phases)).tolist())
 
                     ax.plot(freq_data, phase_data, "b-", alpha=0.7, linewidth=0.5)
                     ax.set_xlabel("Frequency (GHz)")
@@ -4802,13 +4695,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
                 except Exception as e:
                     logger.error(f"Error plotting phase vs frequency: {e}")
-                    raise HTTPException(
-                        status_code=500, detail=f"Error generating plot: {e}"
-                    )
+                    raise HTTPException(status_code=500, detail=f"Error generating plot: {e}")
             else:
-                raise HTTPException(
-                    status_code=400, detail=f"Unknown plot type: {plot_type}"
-                )
+                raise HTTPException(status_code=400, detail=f"Unknown plot type: {plot_type}")
 
             tb.close()
 
@@ -4828,9 +4717,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             raise
         except Exception as e:
             logger.error(f"Error generating calibration plot: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Error generating plot: {str(e)}"
-            )
+            raise HTTPException(status_code=500, detail=f"Error generating plot: {str(e)}")
         finally:
             try:
                 tb.close()
@@ -4855,9 +4742,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         conn.close()
 
         # Start workflow in background
-        background_tasks.add_task(
-            run_workflow_job, job_id, request.params.model_dump(), db_path
-        )
+        background_tasks.add_task(run_workflow_job, job_id, request.params.model_dump(), db_path)
 
         # Return initial job state
         conn = ensure_products_db(db_path)
@@ -4875,12 +4760,48 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             logs=jd["logs"],
             artifacts=jd["artifacts"],
             created_at=datetime.fromtimestamp(jd["created_at"]),
-            started_at=(
-                datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None
-            ),
-            finished_at=(
-                datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None
-            ),
+            started_at=(datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None),
+            finished_at=(datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None),
+        )
+
+    @router.post("/jobs/ese-detect", response_model=Job)
+    def create_ese_detect_job(
+        request: ESEDetectJobCreateRequest, background_tasks: BackgroundTasks
+    ) -> Job:
+        """Create and run an ESE detection job."""
+        from dsa110_contimg.api.job_runner import run_ese_detect_job
+        from dsa110_contimg.api.models import JobParams
+        from dsa110_contimg.database.jobs import create_job
+        from dsa110_contimg.database.products import ensure_products_db
+
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        conn = ensure_products_db(db_path)
+
+        # Create ESE detection job
+        job_id = create_job(conn, "ese-detect", "", request.params.model_dump())
+        conn.close()
+
+        # Start job in background
+        background_tasks.add_task(run_ese_detect_job, job_id, request.params.model_dump(), db_path)
+
+        # Return initial job state
+        conn = ensure_products_db(db_path)
+        from dsa110_contimg.database.jobs import get_job as db_get_job
+
+        jd = db_get_job(conn, job_id)
+        conn.close()
+
+        return Job(
+            id=jd["id"],
+            type=jd["type"],
+            status=jd["status"],
+            ms_path=jd["ms_path"],
+            params=JobParams(**jd["params"]) if jd["params"] else JobParams(),
+            logs=jd["logs"],
+            artifacts=jd["artifacts"],
+            created_at=datetime.fromtimestamp(jd["created_at"]),
+            started_at=(datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None),
+            finished_at=(datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None),
         )
 
     # Batch job endpoints
@@ -4897,9 +4818,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             raise HTTPException(status_code=400, detail="Job type must be 'calibrate'")
 
         if not isinstance(request.params, BatchCalibrateParams):
-            raise HTTPException(
-                status_code=400, detail="Invalid params type for batch calibrate"
-            )
+            raise HTTPException(status_code=400, detail="Invalid params type for batch calibrate")
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
@@ -4947,12 +4866,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         job_id=item_row[1],
                         status=item_row[2],
                         error=item_row[3],
-                        started_at=(
-                            datetime.fromtimestamp(item_row[4]) if item_row[4] else None
-                        ),
-                        completed_at=(
-                            datetime.fromtimestamp(item_row[5]) if item_row[5] else None
-                        ),
+                        started_at=(datetime.fromtimestamp(item_row[4]) if item_row[4] else None),
+                        completed_at=(datetime.fromtimestamp(item_row[5]) if item_row[5] else None),
                     )
                 )
 
@@ -4983,9 +4898,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             raise HTTPException(status_code=400, detail="Job type must be 'apply'")
 
         if not isinstance(request.params, BatchApplyParams):
-            raise HTTPException(
-                status_code=400, detail="Invalid params type for batch apply"
-            )
+            raise HTTPException(status_code=400, detail="Invalid params type for batch apply")
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
@@ -5031,12 +4944,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         job_id=item_row[1],
                         status=item_row[2],
                         error=item_row[3],
-                        started_at=(
-                            datetime.fromtimestamp(item_row[4]) if item_row[4] else None
-                        ),
-                        completed_at=(
-                            datetime.fromtimestamp(item_row[5]) if item_row[5] else None
-                        ),
+                        started_at=(datetime.fromtimestamp(item_row[4]) if item_row[4] else None),
+                        completed_at=(datetime.fromtimestamp(item_row[5]) if item_row[5] else None),
                     )
                 )
 
@@ -5067,9 +4976,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             raise HTTPException(status_code=400, detail="Job type must be 'image'")
 
         if not isinstance(request.params, BatchImageParams):
-            raise HTTPException(
-                status_code=400, detail="Invalid params type for batch image"
-            )
+            raise HTTPException(status_code=400, detail="Invalid params type for batch image")
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
@@ -5115,12 +5022,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         job_id=item_row[1],
                         status=item_row[2],
                         error=item_row[3],
-                        started_at=(
-                            datetime.fromtimestamp(item_row[4]) if item_row[4] else None
-                        ),
-                        completed_at=(
-                            datetime.fromtimestamp(item_row[5]) if item_row[5] else None
-                        ),
+                        started_at=(datetime.fromtimestamp(item_row[4]) if item_row[4] else None),
+                        completed_at=(datetime.fromtimestamp(item_row[5]) if item_row[5] else None),
                     )
                 )
 
@@ -5183,14 +5086,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             status=item_row[2],
                             error=item_row[3],
                             started_at=(
-                                datetime.fromtimestamp(item_row[4])
-                                if item_row[4]
-                                else None
+                                datetime.fromtimestamp(item_row[4]) if item_row[4] else None
                             ),
                             completed_at=(
-                                datetime.fromtimestamp(item_row[5])
-                                if item_row[5]
-                                else None
+                                datetime.fromtimestamp(item_row[5]) if item_row[5] else None
                             ),
                         )
                     )
@@ -5251,12 +5150,341 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         job_id=item_row[1],
                         status=item_row[2],
                         error=item_row[3],
-                        started_at=(
-                            datetime.fromtimestamp(item_row[4]) if item_row[4] else None
-                        ),
-                        completed_at=(
-                            datetime.fromtimestamp(item_row[5]) if item_row[5] else None
-                        ),
+                        started_at=(datetime.fromtimestamp(item_row[4]) if item_row[4] else None),
+                        completed_at=(datetime.fromtimestamp(item_row[5]) if item_row[5] else None),
+                    )
+                )
+
+            return BatchJob(
+                id=row[0],
+                type=row[1],
+                created_at=datetime.fromtimestamp(row[2]),
+                status=row[3],
+                total_items=row[4],
+                completed_items=row[5],
+                failed_items=row[6],
+                params=json.loads(row[7]) if row[7] else {},
+                items=items,
+            )
+        finally:
+            conn.close()
+
+    @router.post("/batch/convert", response_model=BatchJob)
+    def create_batch_convert_job(
+        request: BatchJobCreateRequest, background_tasks: BackgroundTasks
+    ) -> BatchJob:
+        """Create a batch conversion job for multiple time windows."""
+        from dsa110_contimg.api.batch_jobs import create_batch_conversion_job
+        from dsa110_contimg.api.job_runner import run_batch_convert_job
+        from dsa110_contimg.database.products import ensure_products_db
+
+        if request.job_type != "convert":
+            raise HTTPException(status_code=400, detail="Job type must be 'convert'")
+
+        if not isinstance(request.params, BatchConversionParams):
+            raise HTTPException(status_code=400, detail="Invalid params type for batch convert")
+
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        conn = ensure_products_db(db_path)
+
+        try:
+            # Convert time windows to list of dicts
+            time_windows = [
+                {"start_time": tw.start_time, "end_time": tw.end_time}
+                for tw in request.params.time_windows
+            ]
+
+            batch_id = create_batch_conversion_job(
+                conn,
+                "batch_convert",
+                time_windows,
+                request.params.params.model_dump(),
+            )
+
+            # Start batch processing in background
+            background_tasks.add_task(
+                run_batch_convert_job,
+                batch_id,
+                time_windows,
+                request.params.params.model_dump(),
+                db_path,
+            )
+
+            # Get batch job details
+            cursor = conn.execute(
+                """
+                SELECT id, type, created_at, status, total_items, completed_items, failed_items, params
+                FROM batch_jobs WHERE id = ?
+                """,
+                (batch_id,),
+            )
+            row = cursor.fetchone()
+
+            # Get batch items
+            items_cursor = conn.execute(
+                """
+                SELECT ms_path, job_id, status, error, started_at, completed_at
+                FROM batch_job_items WHERE batch_id = ?
+                """,
+                (batch_id,),
+            )
+            items = []
+            for item_row in items_cursor.fetchall():
+                items.append(
+                    BatchJobStatus(
+                        ms_path=item_row[0],
+                        job_id=item_row[1],
+                        status=item_row[2],
+                        error=item_row[3],
+                        started_at=(datetime.fromtimestamp(item_row[4]) if item_row[4] else None),
+                        completed_at=(datetime.fromtimestamp(item_row[5]) if item_row[5] else None),
+                    )
+                )
+
+            return BatchJob(
+                id=row[0],
+                type=row[1],
+                created_at=datetime.fromtimestamp(row[2]),
+                status=row[3],
+                total_items=row[4],
+                completed_items=row[5],
+                failed_items=row[6],
+                params=json.loads(row[7]) if row[7] else {},
+                items=items,
+            )
+        finally:
+            conn.close()
+
+    @router.post("/batch/publish", response_model=BatchJob)
+    def create_batch_publish_job(
+        request: BatchJobCreateRequest, background_tasks: BackgroundTasks
+    ) -> BatchJob:
+        """Create a batch publish job for multiple data instances."""
+        from dsa110_contimg.api.batch_jobs import create_batch_publish_job
+        from dsa110_contimg.api.job_runner import run_batch_publish_job
+        from dsa110_contimg.database.products import ensure_products_db
+
+        if request.job_type != "publish":
+            raise HTTPException(status_code=400, detail="Job type must be 'publish'")
+
+        if not isinstance(request.params, BatchPublishParams):
+            raise HTTPException(status_code=400, detail="Invalid params type for batch publish")
+
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        conn = ensure_products_db(db_path)
+
+        try:
+            batch_id = create_batch_publish_job(
+                conn,
+                "batch_publish",
+                request.params.data_ids,
+                {"products_base": request.params.products_base},
+            )
+
+            # Start batch processing in background
+            background_tasks.add_task(
+                run_batch_publish_job,
+                batch_id,
+                request.params.data_ids,
+                {"products_base": request.params.products_base},
+                db_path,
+            )
+
+            # Get batch job details
+            cursor = conn.execute(
+                """
+                SELECT id, type, created_at, status, total_items, completed_items, failed_items, params
+                FROM batch_jobs WHERE id = ?
+                """,
+                (batch_id,),
+            )
+            row = cursor.fetchone()
+
+            # Get batch items
+            items_cursor = conn.execute(
+                """
+                SELECT ms_path, job_id, status, error, started_at, completed_at
+                FROM batch_job_items WHERE batch_id = ?
+                """,
+                (batch_id,),
+            )
+            items = []
+            for item_row in items_cursor.fetchall():
+                items.append(
+                    BatchJobStatus(
+                        ms_path=item_row[0],
+                        job_id=item_row[1],
+                        status=item_row[2],
+                        error=item_row[3],
+                        started_at=(datetime.fromtimestamp(item_row[4]) if item_row[4] else None),
+                        completed_at=(datetime.fromtimestamp(item_row[5]) if item_row[5] else None),
+                    )
+                )
+
+            return BatchJob(
+                id=row[0],
+                type=row[1],
+                created_at=datetime.fromtimestamp(row[2]),
+                status=row[3],
+                total_items=row[4],
+                completed_items=row[5],
+                failed_items=row[6],
+                params=json.loads(row[7]) if row[7] else {},
+                items=items,
+            )
+        finally:
+            conn.close()
+
+    @router.post("/batch/photometry", response_model=BatchJob)
+    def create_batch_photometry_job_endpoint(
+        request: BatchJobCreateRequest, background_tasks: BackgroundTasks
+    ) -> BatchJob:
+        """Create a batch photometry job for multiple images and coordinates."""
+        from dsa110_contimg.api.batch_jobs import create_batch_photometry_job
+        from dsa110_contimg.api.job_runner import run_batch_photometry_job
+        from dsa110_contimg.database.products import ensure_products_db
+
+        if request.job_type != "photometry":
+            raise HTTPException(status_code=400, detail="Job type must be 'photometry'")
+
+        if not isinstance(request.params, BatchPhotometryParams):
+            raise HTTPException(status_code=400, detail="Invalid params type for batch photometry")
+
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        conn = ensure_products_db(db_path)
+
+        try:
+            # Convert coordinates to list of dicts
+            coordinates = [
+                {"ra_deg": c.ra_deg, "dec_deg": c.dec_deg} for c in request.params.coordinates
+            ]
+
+            batch_id = create_batch_photometry_job(
+                conn,
+                "batch_photometry",
+                request.params.fits_paths,
+                coordinates,
+                request.params.model_dump(),
+            )
+
+            # Start batch processing in background
+            background_tasks.add_task(
+                run_batch_photometry_job,
+                batch_id,
+                request.params.fits_paths,
+                coordinates,
+                request.params.model_dump(),
+                db_path,
+            )
+
+            # Get batch job details
+            cursor = conn.execute(
+                """
+                SELECT id, type, created_at, status, total_items, completed_items, failed_items, params
+                FROM batch_jobs WHERE id = ?
+                """,
+                (batch_id,),
+            )
+            row = cursor.fetchone()
+
+            # Get batch items
+            items_cursor = conn.execute(
+                """
+                SELECT ms_path, job_id, status, error, started_at, completed_at
+                FROM batch_job_items WHERE batch_id = ?
+                """,
+                (batch_id,),
+            )
+            items = []
+            for item_row in items_cursor.fetchall():
+                items.append(
+                    BatchJobStatus(
+                        ms_path=item_row[0],
+                        job_id=item_row[1],
+                        status=item_row[2],
+                        error=item_row[3],
+                        started_at=(datetime.fromtimestamp(item_row[4]) if item_row[4] else None),
+                        completed_at=(datetime.fromtimestamp(item_row[5]) if item_row[5] else None),
+                    )
+                )
+
+            return BatchJob(
+                id=row[0],
+                type=row[1],
+                created_at=datetime.fromtimestamp(row[2]),
+                status=row[3],
+                total_items=row[4],
+                completed_items=row[5],
+                failed_items=row[6],
+                params=json.loads(row[7]) if row[7] else {},
+                items=items,
+            )
+        finally:
+            conn.close()
+
+    @router.post("/batch/ese-detect", response_model=BatchJob)
+    def create_batch_ese_detect_job_endpoint(
+        request: BatchJobCreateRequest, background_tasks: BackgroundTasks
+    ) -> BatchJob:
+        """Create a batch ESE detection job."""
+        from dsa110_contimg.api.batch_jobs import create_batch_ese_detect_job
+        from dsa110_contimg.api.job_runner import run_batch_ese_detect_job
+        from dsa110_contimg.database.products import ensure_products_db
+
+        if request.job_type != "ese-detect":
+            raise HTTPException(status_code=400, detail="Job type must be 'ese-detect'")
+
+        if not isinstance(request.params, BatchESEDetectParams):
+            raise HTTPException(
+                status_code=400, detail="Invalid params type for batch ESE detection"
+            )
+
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        conn = ensure_products_db(db_path)
+
+        try:
+            batch_id = create_batch_ese_detect_job(
+                conn,
+                "batch_ese-detect",
+                request.params.model_dump(),
+            )
+
+            # Start batch processing in background
+            background_tasks.add_task(
+                run_batch_ese_detect_job,
+                batch_id,
+                request.params.model_dump(),
+                db_path,
+            )
+
+            # Get batch job details
+            cursor = conn.execute(
+                """
+                SELECT id, type, created_at, status, total_items, completed_items, failed_items, params
+                FROM batch_jobs WHERE id = ?
+                """,
+                (batch_id,),
+            )
+            row = cursor.fetchone()
+
+            # Get batch items
+            items_cursor = conn.execute(
+                """
+                SELECT ms_path, job_id, status, error, started_at, completed_at
+                FROM batch_job_items WHERE batch_id = ?
+                """,
+                (batch_id,),
+            )
+            items = []
+            for item_row in items_cursor.fetchall():
+                items.append(
+                    BatchJobStatus(
+                        ms_path=item_row[0],
+                        job_id=item_row[1],
+                        status=item_row[2],
+                        error=item_row[3],
+                        started_at=(datetime.fromtimestamp(item_row[4]) if item_row[4] else None),
+                        completed_at=(datetime.fromtimestamp(item_row[5]) if item_row[5] else None),
                     )
                 )
 
@@ -5284,9 +5512,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         try:
             # Check if batch exists
-            cursor = conn.execute(
-                "SELECT status FROM batch_jobs WHERE id = ?", (batch_id,)
-            )
+            cursor = conn.execute("SELECT status FROM batch_jobs WHERE id = ?", (batch_id,))
             row = cursor.fetchone()
 
             if not row:
@@ -5299,9 +5525,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 )
 
             # Update batch status to cancelled
-            conn.execute(
-                "UPDATE batch_jobs SET status = 'cancelled' WHERE id = ?", (batch_id,)
-            )
+            conn.execute("UPDATE batch_jobs SET status = 'cancelled' WHERE id = ?", (batch_id,))
 
             # Update pending/running items to cancelled
             conn.execute(
@@ -5346,9 +5570,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             elif test_mode == "error" and test_error:
                 from fastapi import HTTPException
 
-                raise HTTPException(
-                    status_code=test_error, detail="Test error simulation"
-                )
+                raise HTTPException(status_code=test_error, detail="Test error simulation")
 
         status = _streaming_manager.get_status()
         return StreamingStatusResponse(**status.to_dict())
@@ -5423,9 +5645,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 input_dir=os.getenv("CONTIMG_INPUT_DIR", "/data/incoming"),
                 output_dir=os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms"),
                 queue_db=os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
-                registry_db=os.getenv(
-                    "CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"
-                ),
+                registry_db=os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
                 scratch_dir=os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg"),
             )
 
@@ -5463,8 +5683,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         config = StreamingConfig(
             input_dir=request.input_dir,
             output_dir=request.output_dir,
-            queue_db=request.queue_db
-            or os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
+            queue_db=request.queue_db or os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
             registry_db=request.registry_db
             or os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
             scratch_dir=request.scratch_dir
@@ -5506,8 +5725,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             config = StreamingConfig(
                 input_dir=request.input_dir,
                 output_dir=request.output_dir,
-                queue_db=request.queue_db
-                or os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
+                queue_db=request.queue_db or os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
                 registry_db=request.registry_db
                 or os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
                 scratch_dir=request.scratch_dir
@@ -5543,8 +5761,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             config = StreamingConfig(
                 input_dir=request.input_dir,
                 output_dir=request.output_dir,
-                queue_db=request.queue_db
-                or os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
+                queue_db=request.queue_db or os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
                 registry_db=request.registry_db
                 or os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
                 scratch_dir=request.scratch_dir
@@ -5595,9 +5812,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         """
                     ).fetchall()
 
-                    metrics["queue_stats"] = {
-                        row["state"]: row["count"] for row in queue_stats
-                    }
+                    metrics["queue_stats"] = {row["state"]: row["count"] for row in queue_stats}
 
                     # Get processing rate (groups processed in last hour)
                     one_hour_ago = time.time() - 3600
@@ -5634,9 +5849,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             _python_cmd_for_jobs,
             _src_path_for_env,
         )
-        from dsa110_contimg.database.products import (
-            ensure_products_db as _ensure_products_db,
-        )
+        from dsa110_contimg.database.products import ensure_products_db as _ensure_products_db
 
         # Prepare environment for child process imports
         child_env = os.environ.copy()
@@ -5735,11 +5948,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             disk_ok = False
 
         ok = bool(
-            sp_ok
-            and casa_json.get("ok", False)
-            and src_json.get("ok", False)
-            and db_ok
-            and disk_ok
+            sp_ok and casa_json.get("ok", False) and src_json.get("ok", False) and db_ok and disk_ok
         )
 
         return {
@@ -5761,8 +5970,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     async def list_data_instances(
         data_type: str | None = None,
         status: str | None = None,
+        limit: int = Query(50, ge=1, le=1000, description="Number of records to return"),
+        offset: int = Query(0, ge=0, description="Number of records to skip"),
     ):
-        """List data instances with optional filters."""
+        """List data instances with optional filters and pagination.
+
+        Returns:
+            Dict with 'items' (list of data instances) and 'total' (total count)
+        """
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
@@ -5774,26 +5989,37 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
 
-        records = list_data(conn, data_type=data_type, status=status)
+        records, total_count = list_data(
+            conn,
+            data_type=data_type,
+            status=status,
+            limit=limit,
+            offset=offset,
+        )
 
-        return [
-            {
-                "id": r.data_id,
-                "data_type": r.data_type,
-                "status": r.status,
-                "stage_path": r.stage_path,
-                "published_path": r.published_path,
-                "created_at": r.created_at,
-                "published_at": r.published_at,
-                "publish_mode": r.publish_mode,
-                "qa_status": r.qa_status,
-                "validation_status": r.validation_status,
-                "finalization_status": r.finalization_status,
-                "auto_publish_enabled": r.auto_publish_enabled,
-                "metadata": json.loads(r.metadata_json) if r.metadata_json else None,
-            }
-            for r in records
-        ]
+        return {
+            "items": [
+                {
+                    "id": r.data_id,
+                    "data_type": r.data_type,
+                    "status": r.status,
+                    "stage_path": r.stage_path,
+                    "published_path": r.published_path,
+                    "created_at": r.created_at,
+                    "published_at": r.published_at,
+                    "publish_mode": r.publish_mode,
+                    "qa_status": r.qa_status,
+                    "validation_status": r.validation_status,
+                    "finalization_status": r.finalization_status,
+                    "auto_publish_enabled": r.auto_publish_enabled,
+                    "metadata": json.loads(r.metadata_json) if r.metadata_json else None,
+                }
+                for r in records
+            ],
+            "total": total_count,
+            "limit": limit,
+            "offset": offset,
+        }
 
     @router.get("/data/{data_id:path}")
     async def get_data_instance(data_id: str) -> dict:
@@ -5826,9 +6052,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             "validation_status": record.validation_status,
             "finalization_status": record.finalization_status,
             "auto_publish_enabled": record.auto_publish_enabled,
-            "metadata": (
-                json.loads(record.metadata_json) if record.metadata_json else None
-            ),
+            "metadata": (json.loads(record.metadata_json) if record.metadata_json else None),
         }
 
     @router.post("/data/{data_id:path}/finalize")
@@ -5859,9 +6083,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         # Check if auto-published
         updated_record = get_data(conn, data_id)
-        auto_published = (
-            updated_record.status == "published" if updated_record else False
-        )
+        auto_published = updated_record.status == "published" if updated_record else False
 
         return {
             "finalized": finalized,
@@ -5888,9 +6110,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail=f"Data {data_id} not found")
 
         if record.status == "published":
-            raise HTTPException(
-                status_code=400, detail=f"Data {data_id} is already published"
-            )
+            raise HTTPException(status_code=400, detail=f"Data {data_id} is already published")
 
         success = publish_data_manual(conn, data_id)
         if not success:
@@ -5908,9 +6128,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Enable auto-publish for a data instance."""
         from pathlib import Path
 
-        from dsa110_contimg.database.data_registry import (
-            enable_auto_publish as enable_ap,
-        )
+        from dsa110_contimg.database.data_registry import enable_auto_publish as enable_ap
         from dsa110_contimg.database.data_registry import (
             ensure_data_registry_db,
         )
@@ -5929,9 +6147,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Disable auto-publish for a data instance."""
         from pathlib import Path
 
-        from dsa110_contimg.database.data_registry import (
-            disable_auto_publish as disable_ap,
-        )
+        from dsa110_contimg.database.data_registry import disable_auto_publish as disable_ap
         from dsa110_contimg.database.data_registry import (
             ensure_data_registry_db,
         )
@@ -5993,8 +6209,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             - Success rate
             - Recent failures
         """
-        from pathlib import Path
         from datetime import datetime
+        from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
             ensure_data_registry_db,
@@ -6005,13 +6221,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         conn = ensure_data_registry_db(db_path)
 
         # Get all published data
-        published = list_data(conn, status="published")
+        published, _ = list_data(conn, status="published")
 
         # Get all staging data (may include failed publishes)
-        staging = list_data(conn, status="staging")
+        staging, _ = list_data(conn, status="staging")
 
         # Get publishing data (currently being published)
-        publishing = list_data(conn, status="publishing")
+        publishing, _ = list_data(conn, status="publishing")
 
         # Calculate metrics
         total_published = len(published)
@@ -6019,9 +6235,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         total_publishing = len(publishing)
 
         # Count failed publishes (staging with publish_attempts > 0)
-        failed_publishes = [
-            r for r in staging if r.publish_attempts and r.publish_attempts > 0
-        ]
+        failed_publishes = [r for r in staging if r.publish_attempts and r.publish_attempts > 0]
 
         # Count max attempts exceeded
         max_attempts_exceeded = [
@@ -6030,16 +6244,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         # Calculate success rate (published / (published + failed))
         total_attempts = total_published + len(failed_publishes)
-        success_rate = (
-            (total_published / total_attempts * 100) if total_attempts > 0 else 100.0
-        )
+        success_rate = (total_published / total_attempts * 100) if total_attempts > 0 else 100.0
 
         # Get recent failures (last 24 hours)
         now = datetime.now()
         recent_failures = [
-            r
-            for r in failed_publishes
-            if r.staged_at and (now.timestamp() - r.staged_at) < 86400
+            r for r in failed_publishes if r.staged_at and (now.timestamp() - r.staged_at) < 86400
         ]
 
         return {
@@ -6078,7 +6288,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         conn = ensure_data_registry_db(db_path)
 
         # Get staging data
-        staging = list_data(conn, status="staging")
+        staging, _ = list_data(conn, status="staging")
 
         # Filter failed publishes
         failed = [r for r in staging if r.publish_attempts and r.publish_attempts > 0]
@@ -6137,9 +6347,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail=f"Data {data_id} not found")
 
         if record.status == "published":
-            raise HTTPException(
-                status_code=400, detail=f"Data {data_id} is already published"
-            )
+            raise HTTPException(status_code=400, detail=f"Data {data_id} is already published")
 
         # Reset publish attempts before retry
         cur = conn.cursor()
@@ -6200,7 +6408,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         conn = ensure_data_registry_db(db_path)
 
         # Get failed publishes
-        staging = list_data(conn, status="staging")
+        staging, _ = list_data(conn, status="staging")
         failed = [r for r in staging if r.publish_attempts and r.publish_attempts > 0]
 
         if max_attempts is not None:

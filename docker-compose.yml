@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   api:
@@ -48,12 +48,12 @@ services:
       dockerfile: Dockerfile.dev
     container_name: dsa110-dashboard-dev
     ports:
-      - "5174:5173"  # Use port 5174 on host to avoid conflict with local dev server
+      - "5174:5173" # Use port 5174 on host to avoid conflict with local dev server
     volumes:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=/api  # Use relative path for Vite proxy (/api -> backend)
+      - VITE_API_URL=/api # Use relative path for Vite proxy (/api -> backend)
       - NODE_ENV=development
       - API_PROXY_TARGET=http://api:8000
     restart: unless-stopped
@@ -70,4 +70,3 @@ services:
 networks:
   default:
     name: dsa110-network
-

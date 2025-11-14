@@ -2,24 +2,27 @@
 
 ## Overview
 
-The pipeline uses SQLite databases for state management and product tracking. This document details the schema for all databases with a focus on frontend requirements.
+The pipeline uses SQLite databases for state management and product tracking.
+This document details the schema for all databases with a focus on frontend
+requirements.
 
 ---
 
 ## Database Files
 
-| Database | Location | Purpose |
-|----------|----------|---------|
-| `ingest.sqlite3` | `/data/dsa110-contimg/state/` | Queue management, subband tracking |
-| `cal_registry.sqlite3` | `/data/dsa110-contimg/state/` | Calibration table registry |
-| `products.sqlite3` | `/data/dsa110-contimg/state/` | Images, photometry, MS index |
-| `master_sources.sqlite3` | `/data/dsa110-contimg/state/catalogs/` | NVSS/VLASS/FIRST crossmatch |
+| Database                 | Location                               | Purpose                            |
+| ------------------------ | -------------------------------------- | ---------------------------------- |
+| `ingest.sqlite3`         | `/data/dsa110-contimg/state/`          | Queue management, subband tracking |
+| `cal_registry.sqlite3`   | `/data/dsa110-contimg/state/`          | Calibration table registry         |
+| `products.sqlite3`       | `/data/dsa110-contimg/state/`          | Images, photometry, MS index       |
+| `master_sources.sqlite3` | `/data/dsa110-contimg/state/catalogs/` | NVSS/VLASS/FIRST crossmatch        |
 
 ---
 
 ## 1. Ingest Queue Database (`ingest.sqlite3`)
 
 ### Table: `ingest_queue`
+
 Tracks observation groups through the pipeline.
 
 ```sql
@@ -40,6 +43,7 @@ CREATE INDEX IF NOT EXISTS idx_ingest_received ON ingest_queue(received_at);
 ```
 
 ### Table: `subband_files`
+
 Tracks individual subband files per group.
 
 ```sql
@@ -58,6 +62,7 @@ CREATE INDEX IF NOT EXISTS idx_subband_group ON subband_files(group_id);
 ```
 
 ### Table: `performance_metrics`
+
 Processing performance per group.
 
 ```sql
@@ -85,31 +90,61 @@ CREATE INDEX IF NOT EXISTS idx_perf_group ON performance_metrics(group_id);
 ## 2. Calibration Registry (`cal_registry.sqlite3`)
 
 ### Table: `caltables`
-Tracks calibration tables and their validity ranges.
+
+Tracks calibration tables and their validity ranges, with complete provenance
+tracking.
 
 ```sql
 CREATE TABLE IF NOT EXISTS caltables (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     set_name TEXT NOT NULL,                -- e.g., 'bp_3c286_60238'
     path TEXT NOT NULL UNIQUE,             -- Full path to caltable
-    table_type TEXT NOT NULL,              -- 'K' | 'BP' | 'G'
+    table_type TEXT NOT NULL,              -- 'K' | 'BP' | 'G' | 'BA' | 'GA' | 'GP' | '2G' | 'FLUX'
     order_index INTEGER NOT NULL,          -- Application order (K=0, BP=1, G=2)
-    valid_start_mjd REAL NOT NULL,         -- Start of validity window
-    valid_end_mjd REAL NOT NULL,           -- End of validity window
+    cal_field TEXT,                        -- Source/field used to solve
+    refant TEXT,                           -- Reference antenna
+    valid_start_mjd REAL,                  -- Start of validity window (MJD)
+    valid_end_mjd REAL,                    -- End of validity window (MJD)
     created_at REAL NOT NULL,              -- Unix timestamp
-    active INTEGER DEFAULT 1               -- 0/1 boolean
+    status TEXT NOT NULL,                  -- 'active' | 'retired' | 'failed'
+    notes TEXT,                            -- Free-form notes
+    -- Provenance tracking columns (added 2025-01-XX)
+    source_ms_path TEXT,                   -- Input MS that generated this caltable
+    solver_command TEXT,                   -- Full CASA command executed
+    solver_version TEXT,                   -- CASA version used (e.g., '6.7.2')
+    solver_params TEXT,                    -- JSON: all calibration parameters
+    quality_metrics TEXT                  -- JSON: SNR, flagged_fraction, etc.
 );
 
 CREATE INDEX IF NOT EXISTS idx_caltables_set ON caltables(set_name);
 CREATE INDEX IF NOT EXISTS idx_caltables_valid ON caltables(valid_start_mjd, valid_end_mjd);
-CREATE INDEX IF NOT EXISTS idx_caltables_active ON caltables(active);
+CREATE INDEX IF NOT EXISTS idx_caltables_source ON caltables(source_ms_path);
 ```
+
+**Provenance Fields:**
+
+- `source_ms_path`: Path to the input Measurement Set that generated this
+  calibration table
+- `solver_command`: Human-readable CASA command string (e.g.,
+  `"gaincal(vis='...', caltable='...', ...)"`)
+- `solver_version`: CASA version string (e.g., `"6.7.2"`)
+- `solver_params`: JSON object containing all calibration parameters (e.g.,
+  `{"field": "0", "refant": "103", "gaintype": "K"}`)
+- `quality_metrics`: JSON object with quality statistics (e.g.,
+  `{"snr_mean": 10.5, "flagged_fraction": 0.1, "n_antennas": 10}`)
+
+**Migration**: Existing databases are automatically migrated when accessed. Old
+entries will have NULL values for provenance fields.
+
+**See Also**: `docs/dev/calibration_provenance_tracking_implementation.md` for
+complete documentation.
 
 ---
 
 ## 3. Products Database (`products.sqlite3`)
 
 ### Table: `ms_index`
+
 Tracks Measurement Sets through processing stages.
 
 ```sql
@@ -136,6 +171,7 @@ CREATE INDEX IF NOT EXISTS idx_ms_index_field ON ms_index(field_name);
 ```
 
 ### Table: `images`
+
 Catalog of image products.
 
 ```sql
@@ -171,6 +207,7 @@ CREATE INDEX IF NOT EXISTS idx_images_field ON images(field_name);
 ```
 
 ### Table: `photometry`
+
 Forced photometry measurements on sources.
 
 ```sql
@@ -198,6 +235,7 @@ CREATE INDEX IF NOT EXISTS idx_photometry_source_mjd ON photometry(source_id, mj
 ```
 
 ### Table: `variability_stats`
+
 Pre-computed variability statistics per source (updated periodically).
 
 ```sql
@@ -226,6 +264,7 @@ CREATE INDEX IF NOT EXISTS idx_variability_last_mjd ON variability_stats(last_mj
 ```
 
 ### Table: `ese_candidates`
+
 Flagged ESE candidates (auto-flagged or user-flagged).
 
 ```sql
@@ -249,6 +288,7 @@ CREATE INDEX IF NOT EXISTS idx_ese_flagged ON ese_candidates(flagged_at);
 ```
 
 ### Table: `mosaics`
+
 Metadata for mosaic images (pre-generated, not user-initiated).
 
 ```sql
@@ -278,6 +318,7 @@ CREATE INDEX IF NOT EXISTS idx_mosaics_mjd ON mosaics(start_mjd, end_mjd);
 ```
 
 ### Table: `qa_artifacts`
+
 Quality assurance plots and diagnostics.
 
 ```sql
@@ -297,6 +338,7 @@ CREATE INDEX IF NOT EXISTS idx_qa_created ON qa_artifacts(created_at);
 ```
 
 ### Table: `pointing_history`
+
 Telescope pointing history for sky coverage visualization.
 
 ```sql
@@ -316,6 +358,7 @@ CREATE INDEX IF NOT EXISTS idx_pointing_dec ON pointing_history(dec_deg);
 ```
 
 ### Table: `alert_history`
+
 Log of Slack alerts sent.
 
 ```sql
@@ -341,6 +384,7 @@ CREATE INDEX IF NOT EXISTS idx_alert_type ON alert_history(alert_type);
 ## 4. Master Sources Catalog (`master_sources.sqlite3`)
 
 ### Table: `sources`
+
 Crossmatched catalog (NVSS + VLASS + FIRST).
 
 ```sql
@@ -365,6 +409,7 @@ CREATE INDEX IF NOT EXISTS idx_sources_alpha ON sources(alpha);
 ```
 
 ### Views: `good_references` and `final_references`
+
 Pre-filtered source lists for forced photometry.
 
 ```sql
@@ -400,7 +445,7 @@ def migrate_products_db(db_path: Path):
     """Add frontend tables to products.sqlite3."""
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
-    
+
     # Add variability_stats table
     cur.execute("""
         CREATE TABLE IF NOT EXISTS variability_stats (
@@ -420,7 +465,7 @@ def migrate_products_db(db_path: Path):
             updated_at REAL NOT NULL
         )
     """)
-    
+
     # Add ese_candidates table
     cur.execute("""
         CREATE TABLE IF NOT EXISTS ese_candidates (
@@ -437,7 +482,7 @@ def migrate_products_db(db_path: Path):
             FOREIGN KEY (source_id) REFERENCES variability_stats(source_id)
         )
     """)
-    
+
     # Add mosaics table
     cur.execute("""
         CREATE TABLE IF NOT EXISTS mosaics (
@@ -461,7 +506,7 @@ def migrate_products_db(db_path: Path):
             thumbnail_path TEXT
         )
     """)
-    
+
     # Add alert_history table
     cur.execute("""
         CREATE TABLE IF NOT EXISTS alert_history (
@@ -476,7 +521,7 @@ def migrate_products_db(db_path: Path):
             error_msg TEXT
         )
     """)
-    
+
     # Create indices
     cur.execute("CREATE INDEX IF NOT EXISTS idx_variability_chi2 ON variability_stats(chi2_nu)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_variability_sigma ON variability_stats(sigma_deviation)")
@@ -484,7 +529,7 @@ def migrate_products_db(db_path: Path):
     cur.execute("CREATE INDEX IF NOT EXISTS idx_ese_status ON ese_candidates(status)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_mosaics_mjd ON mosaics(start_mjd, end_mjd)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_alert_sent ON alert_history(sent_at)")
-    
+
     conn.commit()
     conn.close()
     print(f"✓ Migrated {db_path}")
@@ -498,8 +543,9 @@ if __name__ == "__main__":
 ## Query Examples
 
 ### Get ESE Candidates with Source Details
+
 ```sql
-SELECT 
+SELECT
     e.source_id,
     v.ra_deg,
     v.dec_deg,
@@ -519,8 +565,9 @@ LIMIT 50;
 ```
 
 ### Get Flux Timeseries for Source
+
 ```sql
-SELECT 
+SELECT
     mjd,
     peak_jyb * 1000 as flux_mjy,  -- Convert Jy/beam to mJy
     peak_err_jyb * 1000 as error_mjy,
@@ -534,8 +581,9 @@ ORDER BY mjd ASC;
 ```
 
 ### Get Recent Mosaics
+
 ```sql
-SELECT 
+SELECT
     name,
     path,
     start_mjd,
@@ -555,4 +603,3 @@ LIMIT 20;
 **Document Version**: 1.0  
 **Last Updated**: 2025-10-24  
 **Status**: Schema Specification
-

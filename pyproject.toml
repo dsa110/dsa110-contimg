@@ -1,0 +1,182 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dsa110-contimg"
+version = "0.1.0"
+description = "DSA-110 Continuum Imaging Pipeline"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "DSA-110 Team"}
+]
+keywords = ["radio astronomy", "imaging", "calibration", "CASA", "DSA-110"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+]
+
+# Core runtime dependencies
+# Note: CASA packages (casatools, casatasks, casacore) are typically installed
+# via conda, not pip, so they're listed as optional dependencies
+dependencies = [
+    "astropy>=5.0.0",
+    "numpy>=1.20.0",
+    "scipy>=1.7.0",
+    "pandas>=1.5.0",
+    "h5py>=3.7.0",
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+    "pydantic>=2.0.0",
+    "click>=8.1.0",
+    "psutil>=5.9.0",
+    "watchdog>=3.0.0",
+    "typing-extensions>=4.0.0",
+    "pyyaml>=6.0",
+]
+
+# Optional dependencies for CASA (typically installed via conda)
+[project.optional-dependencies]
+casa = [
+    # These are typically installed via conda, but listed here for reference
+    # "casatools",
+    # "casatasks",
+    # "casaconfig",
+    # "python-casacore",
+]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-xdist>=3.3.0",
+    "pytest-timeout>=2.1.0",
+    "pytest-mock>=3.11.0",
+    "coverage>=7.2.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "pylint>=3.0.0",
+    "mypy>=1.4.0",
+    "pytest-benchmark>=4.0.0",
+    "memory-profiler>=0.61.0",
+    "httpx>=0.25.0",
+]
+all = [
+    "dsa110-contimg[dev]",
+]
+
+[project.scripts]
+# Main CLI entry points
+dsa110-convert = "dsa110_contimg.conversion.cli:main"
+dsa110-calibrate = "dsa110_contimg.calibration.cli:main"
+dsa110-image = "dsa110_contimg.imaging.cli:main"
+dsa110-mosaic = "dsa110_contimg.mosaic.cli:main"
+dsa110-photometry = "dsa110_contimg.photometry.cli:main"
+dsa110-registry = "dsa110_contimg.database.registry_cli:main"
+dsa110-streaming = "dsa110_contimg.conversion.streaming.streaming_converter:main"
+
+[tool.setuptools]
+# Package discovery - find all packages in src/
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["dsa110_contimg*"]
+exclude = ["tests*", "*.tests*", "*.tests.*", "tests.*"]
+
+# Black code formatter configuration
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+  | archive
+)/
+'''
+
+# isort import sorting
+[tool.isort]
+profile = "black"
+line_length = 100
+src_paths = ["src", "scripts", "tests"]
+skip_glob = ["archive/*", "*.pyc"]
+
+# Pytest configuration
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+]
+markers = [
+    "unit: Unit tests (fast, isolated)",
+    "integration: Integration tests (require external resources)",
+    "slow: Slow tests (may take minutes)",
+    "casa: Tests requiring CASA environment",
+    "synthetic: Tests using synthetic data",
+    "e2e: End-to-end tests",
+    "smoke: Smoke tests (quick sanity checks)",
+    "science: Science validation tests",
+]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/archive/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+
+# MyPy type checking
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+# CASA modules are not typed
+[[tool.mypy.overrides]]
+module = [
+    "casatools.*",
+    "casatasks.*",
+    "casacore.*",
+    "pyuvdata.*",
+]
+ignore_missing_imports = true
+

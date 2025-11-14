@@ -38,12 +38,12 @@ plugins:
         theme: default
         # Theme variables set to allow inline styles to override
         themeVariables:
-          primaryColor: '#2196F3'
-          primaryTextColor: '#fff'
-          primaryBorderColor: '#1976D2'
-          lineColor: '#424242'
-          secondaryColor: '#FFC107'
-          tertiaryColor: '#4CAF50'
+          primaryColor: "#2196F3"
+          primaryTextColor: "#fff"
+          primaryBorderColor: "#1976D2"
+          lineColor: "#424242"
+          secondaryColor: "#FFC107"
+          tertiaryColor: "#4CAF50"
         # Ensure inline styles take precedence
         suppressErrorRendering: false
   - mkdocstrings:
@@ -52,104 +52,111 @@ plugins:
           options:
             show_source: false
             docstring_style: google
+extra:
+  version: 0.1.0
+  package_name: dsa110-contimg
+  description: DSA-110 Continuum Imaging Pipeline
+  license: MIT
+  authors: DSA-110 Team
+
 nav:
   - Home: index.md
   - Documentation Guide: DOCUMENTATION_QUICK_REFERENCE.md
   - Concepts:
-    - Overview: concepts/index.md
-    - Architecture: concepts/architecture.md
-    - Directory Architecture: concepts/DIRECTORY_ARCHITECTURE.md
-    - Modules: concepts/modules.md
-    - Control Panel: concepts/control-panel.md
-    - AOFlagger: concepts/aoflagger.md
-    - Frontend Design: concepts/frontend_design.md
-    - Dashboard:
-      - Mockups: concepts/dashboard_mockups.md
-      - Sky View: SKYVIEW_IMPLEMENTATION_PLAN.md
-    - Glossary: concepts/GLOSSARY.md
-    - Pipeline:
-      - Overview: concepts/pipeline_overview.md
-      - Stage Architecture: concepts/pipeline_stage_architecture.md
-      - Workflow Visualization: concepts/pipeline_workflow_visualization.md
-      - Production Features: concepts/pipeline_production_features.md
-      - Patterns: concepts/pipeline_patterns.md
-    - Science:
-      - Photometry Normalization: concepts/science/photometry_normalization.md
-    - Browser MCP Server: concepts/mcp_browser_server_setup.md
-  - Tutorials:
-    - Conversion:
-      - HDF5 to MS: tutorials/HDF5_TO_MS_TUTORIAL.md
-    - Simulation: tutorials/simulation-tutorial.md
-    - Calibrate and Apply: tutorials/calibrate-apply.md
-    - Convert Standalone: tutorials/convert-standalone.md
-    - Streaming: tutorials/streaming.md
-    - Notebooks:
-      - Bandpass Calibration Test: tutorials/notebooks/bandpass_calibration_test.ipynb
-      - Calibrator Helper: tutorials/notebooks/calibrator_helper.py
-      - Calibrator Search: tutorials/notebooks/CalibratorSearch.ipynb
-      - MS Staging Workflow: tutorials/notebooks/ms_staging_workflow.ipynb
-  - How-To Guides:
-    - GitHub Pages Setup: how-to/github_pages_walkthrough.md
-    - Quickstarts:
-      - General: how-to/quickstart.md
-      - Control Panel: how-to/control-panel-quickstart.md
-      - Linear Setup: how-to/LINEAR_SETUP_QUICKSTART.md
-    - Testing:
-      - Fast Testing: how-to/FAST_TESTING.md
-      - Pipeline Guide: how-to/PIPELINE_TESTING_GUIDE.md
-      - Flag Subcommand: how-to/TEST_FLAG_SUBCOMMAND.md
-    - Build VP from h5: how-to/build-vp-from-h5.md
-    - Calibration:
-      - Detailed Procedure: how-to/CALIBRATION_DETAILED_PROCEDURE.md
-      - Find Calibrator Transit: how-to/FIND_CALIBRATOR_TRANSIT_DATA.md
-    - Image 0834 Transit 5min: how-to/IMAGE_0834_TRANSIT_5MIN.md
-    - Mosaic:
-      - Quickstart: how-to/mosaic_quickstart.md
-      - Complete Guide: how-to/mosaic.md
-    - Quality Assurance:
-      - Setup: how-to/QUALITY_ASSURANCE_SETUP.md
-      - Quick Look: how-to/quicklook.md
-    - Reprocess: how-to/reprocess.md
-    - Using Orchestrator CLI: how-to/USING_ORCHESTRATOR_CLI.md
-    - Dashboard:
-      - Development: how-to/dashboard-development.md
-      - Quickstart: how-to/dashboard-quickstart.md
-      - Testing: how-to/dashboard_testing.md
-      - Development Workflow: how-to/dashboard_development_workflow.md
-    - Linear Integration: how-to/LINEAR_INTEGRATION.md
-    - Frontend Initial Setup: how-to/frontend-initial-setup.md
-    - AOFlagger Parameter Optimization: how-to/PARAMETER_OPTIMIZATION_GUIDE.md
-    - Downsampling Guide: how-to/downsampling_guide.md
-    - Conversion:
-      - UVH5 to MS: how-to/uvh5_to_ms_conversion.md
-      - Streaming Converter: how-to/streaming_converter_guide.md
-    - Troubleshooting: how-to/troubleshooting.md
-  - Reference:
-    - API:
-      - Endpoints: reference/api-endpoints.md
+      - Overview: concepts/index.md
+      - Architecture: concepts/architecture.md
+      - Directory Architecture: concepts/DIRECTORY_ARCHITECTURE.md
+      - Modules: concepts/modules.md
+      - Control Panel: concepts/control-panel.md
+      - AOFlagger: concepts/aoflagger.md
+      - Frontend Design: concepts/frontend_design.md
       - Dashboard:
-        - API Reference: reference/dashboard_backend_api.md
-        - Pages & Features: reference/dashboard_pages_and_features.md
-      - Integration Snippets: reference/backend_integration_snippets.md
-    - Calibration Overview: reference/calibration-overview.md
-    - CLI: reference/cli.md
-    - Control Panel Cheatsheet: reference/control-panel-cheatsheet.md
-    - Database Schema: reference/database_schema.md
-    - Environment Variables: reference/env.md
-    - Critical Python Environment: reference/CRITICAL_PYTHON_ENVIRONMENT.md
-    - Optimizations:
-      - API: reference/optimizations/OPTIMIZATION_API.md
-      - Profiling Guide: reference/optimizations/PROFILING_GUIDE.md
+          - Mockups: concepts/dashboard_mockups.md
+          - Sky View: SKYVIEW_IMPLEMENTATION_PLAN.md
+      - Glossary: concepts/GLOSSARY.md
+      - Pipeline:
+          - Overview: concepts/pipeline_overview.md
+          - Stage Architecture: concepts/pipeline_stage_architecture.md
+          - Workflow Visualization: concepts/pipeline_workflow_visualization.md
+          - Production Features: concepts/pipeline_production_features.md
+          - Patterns: concepts/pipeline_patterns.md
+      - Science:
+          - Photometry Normalization: concepts/science/photometry_normalization.md
+      - Browser MCP Server: concepts/mcp_browser_server_setup.md
+  - Tutorials:
+      - Conversion:
+          - HDF5 to MS: tutorials/HDF5_TO_MS_TUTORIAL.md
+      - Simulation: tutorials/simulation-tutorial.md
+      - Calibrate and Apply: tutorials/calibrate-apply.md
+      - Convert Standalone: tutorials/convert-standalone.md
+      - Streaming: tutorials/streaming.md
+      - Notebooks:
+          - Bandpass Calibration Test: tutorials/notebooks/bandpass_calibration_test.ipynb
+          - Calibrator Helper: tutorials/notebooks/calibrator_helper.py
+          - Calibrator Search: tutorials/notebooks/CalibratorSearch.ipynb
+          - MS Staging Workflow: tutorials/notebooks/ms_staging_workflow.ipynb
+  - How-To Guides:
+      - GitHub Pages Setup: how-to/github_pages_walkthrough.md
+      - Quickstarts:
+          - General: how-to/quickstart.md
+          - Control Panel: how-to/control-panel-quickstart.md
+          - Linear Setup: how-to/LINEAR_SETUP_QUICKSTART.md
+      - Testing:
+          - Fast Testing: how-to/FAST_TESTING.md
+          - Pipeline Guide: how-to/PIPELINE_TESTING_GUIDE.md
+          - Flag Subcommand: how-to/TEST_FLAG_SUBCOMMAND.md
+      - Build VP from h5: how-to/build-vp-from-h5.md
+      - Calibration:
+          - Detailed Procedure: how-to/CALIBRATION_DETAILED_PROCEDURE.md
+          - Find Calibrator Transit: how-to/FIND_CALIBRATOR_TRANSIT_DATA.md
+      - Image 0834 Transit 5min: how-to/IMAGE_0834_TRANSIT_5MIN.md
+      - Mosaic:
+          - Quickstart: how-to/mosaic_quickstart.md
+          - Complete Guide: how-to/mosaic.md
+      - Quality Assurance:
+          - Setup: how-to/QUALITY_ASSURANCE_SETUP.md
+          - Quick Look: how-to/quicklook.md
+      - Reprocess: how-to/reprocess.md
+      - Using Orchestrator CLI: how-to/USING_ORCHESTRATOR_CLI.md
+      - Dashboard:
+          - Development: how-to/dashboard-development.md
+          - Quickstart: how-to/dashboard-quickstart.md
+          - Testing: how-to/dashboard_testing.md
+          - Development Workflow: how-to/dashboard_development_workflow.md
+      - Linear Integration: how-to/LINEAR_INTEGRATION.md
+      - Frontend Initial Setup: how-to/frontend-initial-setup.md
+      - AOFlagger Parameter Optimization: how-to/PARAMETER_OPTIMIZATION_GUIDE.md
+      - Downsampling Guide: how-to/downsampling_guide.md
+      - Conversion:
+          - UVH5 to MS: how-to/uvh5_to_ms_conversion.md
+          - Streaming Converter: how-to/streaming_converter_guide.md
+      - Troubleshooting: how-to/troubleshooting.md
+  - Reference:
+      - API:
+          - Endpoints: reference/api-endpoints.md
+          - Dashboard:
+              - API Reference: reference/dashboard_backend_api.md
+              - Pages & Features: reference/dashboard_pages_and_features.md
+          - Integration Snippets: reference/backend_integration_snippets.md
+      - Calibration Overview: reference/calibration-overview.md
+      - CLI: reference/cli.md
+      - Control Panel Cheatsheet: reference/control-panel-cheatsheet.md
+      - Database Schema: reference/database_schema.md
+      - Environment Variables: reference/env.md
+      - Critical Python Environment: reference/CRITICAL_PYTHON_ENVIRONMENT.md
+      - Optimizations:
+          - API: reference/optimizations/OPTIMIZATION_API.md
+          - Profiling Guide: reference/optimizations/PROFILING_GUIDE.md
   - Operations:
-    - Deployment:
-      - Docker: operations/deploy-docker.md
-      - systemd: operations/deploy-systemd.md
-    - Port Management: operations/port-management.md
-    - Refant Quick Reference: operations/refant_quick_reference.md
-    - Service Restart Fix: operations/service_restart_fix.md
-    - Systemd Migration: operations/systemd-migration.md
+      - Deployment:
+          - Docker: operations/deploy-docker.md
+          - systemd: operations/deploy-systemd.md
+      - Port Management: operations/port-management.md
+      - Refant Quick Reference: operations/refant_quick_reference.md
+      - Service Restart Fix: operations/service_restart_fix.md
+      - Systemd Migration: operations/systemd-migration.md
   - Contributing:
-    - Overview: contributing/index.md
-    - Archive:
-      - Contributing to TODO: contributing/archive/CONTRIBUTING_TODO.md
-      - Rules: contributing/archive/rules.md
+      - Overview: contributing/index.md
+      - Archive:
+          - Contributing to TODO: contributing/archive/CONTRIBUTING_TODO.md
+          - Rules: contributing/archive/rules.md

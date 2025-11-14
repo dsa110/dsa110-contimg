@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import sqlite3
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -56,6 +58,403 @@ def create_batch_job(
 
     conn.commit()
     return batch_id
+
+
+def create_batch_conversion_job(
+    conn: sqlite3.Connection,
+    job_type: str,
+    time_windows: List[Dict[str, str]],
+    params: Dict[str, Any],
+) -> int:
+    """Create a batch conversion job in the database.
+
+    Args:
+        conn: Database connection
+        job_type: Job type (e.g., "batch_convert")
+        time_windows: List of time window dicts with "start_time" and "end_time"
+        params: Shared parameters for all conversion jobs
+
+    Returns:
+        Batch job ID
+    """
+    # Input validation
+    if not isinstance(job_type, str) or not job_type.strip():
+        raise ValueError("job_type must be a non-empty string")
+    if not isinstance(time_windows, list):
+        raise ValueError("time_windows must be a list")
+    if not all(
+        isinstance(tw, dict)
+        and "start_time" in tw
+        and "end_time" in tw
+        and isinstance(tw["start_time"], str)
+        and isinstance(tw["end_time"], str)
+        for tw in time_windows
+    ):
+        raise ValueError("All time_windows must be dicts with 'start_time' and 'end_time' strings")
+    if not isinstance(params, dict):
+        raise ValueError("params must be a dictionary")
+
+    # Ensure batch_jobs table exists
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS batch_jobs (
+            id INTEGER PRIMARY KEY,
+            type TEXT NOT NULL,
+            created_at REAL NOT NULL,
+            status TEXT NOT NULL,
+            total_items INTEGER NOT NULL,
+            completed_items INTEGER DEFAULT 0,
+            failed_items INTEGER DEFAULT 0,
+            params TEXT
+        )
+    """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS batch_job_items (
+            id INTEGER PRIMARY KEY,
+            batch_id INTEGER NOT NULL,
+            ms_path TEXT NOT NULL,
+            job_id INTEGER,
+            status TEXT NOT NULL,
+            error TEXT,
+            started_at REAL,
+            completed_at REAL,
+            FOREIGN KEY (batch_id) REFERENCES batch_jobs(id)
+        )
+    """
+    )
+
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        INSERT INTO batch_jobs (type, created_at, status, total_items, completed_items, failed_items, params)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            job_type,
+            datetime.utcnow().timestamp(),
+            "pending",
+            len(time_windows),
+            0,
+            0,
+            str(params),
+        ),
+    )
+    batch_id = cursor.lastrowid
+
+    # Insert batch items using time window identifiers
+    for tw in time_windows:
+        # Use time window as identifier (format: "time_window_{start}_{end}")
+        time_window_id = f"time_window_{tw['start_time']}_{tw['end_time']}"
+        cursor.execute(
+            """
+            INSERT INTO batch_job_items (batch_id, ms_path, status)
+            VALUES (?, ?, ?)
+            """,
+            (batch_id, time_window_id, "pending"),
+        )
+
+    conn.commit()
+    return batch_id
+
+
+def create_batch_publish_job(
+    conn: sqlite3.Connection,
+    job_type: str,
+    data_ids: List[str],
+    params: Dict[str, Any],
+) -> int:
+    """Create a batch publish job in the database.
+
+    Args:
+        conn: Database connection
+        job_type: Job type (e.g., "batch_publish")
+        data_ids: List of data instance IDs to publish
+        params: Shared parameters for all publish jobs (e.g., products_base)
+
+    Returns:
+        Batch job ID
+    """
+    # Input validation
+    if not isinstance(job_type, str) or not job_type.strip():
+        raise ValueError("job_type must be a non-empty string")
+    if not isinstance(data_ids, list):
+        raise ValueError("data_ids must be a list")
+    if not all(isinstance(did, str) and did.strip() for did in data_ids):
+        raise ValueError("All data_ids must be non-empty strings")
+    if not isinstance(params, dict):
+        raise ValueError("params must be a dictionary")
+
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        INSERT INTO batch_jobs (type, created_at, status, total_items, completed_items, failed_items, params)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            job_type,
+            datetime.utcnow().timestamp(),
+            "pending",
+            len(data_ids),
+            0,
+            0,
+            str(params),
+        ),
+    )
+    batch_id = cursor.lastrowid
+
+    # Insert batch items using data_ids
+    for data_id in data_ids:
+        cursor.execute(
+            """
+            INSERT INTO batch_job_items (batch_id, ms_path, status)
+            VALUES (?, ?, ?)
+            """,
+            (batch_id, data_id, "pending"),
+        )
+
+    conn.commit()
+    return batch_id
+
+
+def create_batch_photometry_job(
+    conn: sqlite3.Connection,
+    job_type: str,
+    fits_paths: List[str],
+    coordinates: List[dict],
+    params: Dict[str, Any],
+    data_id: Optional[str] = None,
+) -> int:
+    """Create a batch photometry job in the database.
+
+    Args:
+        conn: Database connection
+        job_type: Job type (e.g., "batch_photometry")
+        fits_paths: List of FITS image paths to process
+        coordinates: List of coordinate dicts with ra_deg and dec_deg
+        params: Shared parameters for all photometry jobs
+        data_id: Optional data ID to link photometry job to data registry
+
+    Returns:
+        Batch job ID
+    """
+    # Ensure batch_jobs table exists
+    # ensure_products_db creates this table, but we need to ensure it exists
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS batch_jobs (
+            id INTEGER PRIMARY KEY,
+            type TEXT NOT NULL,
+            created_at REAL NOT NULL,
+            status TEXT NOT NULL,
+            total_items INTEGER NOT NULL,
+            completed_items INTEGER DEFAULT 0,
+            failed_items INTEGER DEFAULT 0,
+            params TEXT
+        )
+    """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS batch_job_items (
+            id INTEGER PRIMARY KEY,
+            batch_id INTEGER NOT NULL,
+            ms_path TEXT NOT NULL,
+            job_id INTEGER,
+            status TEXT NOT NULL,
+            error TEXT,
+            started_at REAL,
+            completed_at REAL,
+            FOREIGN KEY (batch_id) REFERENCES batch_jobs(id)
+        )
+    """
+    )
+    # Migrate existing tables to add data_id column if it doesn't exist
+    try:
+        conn.execute("SELECT data_id FROM batch_job_items LIMIT 1")
+    except sqlite3.OperationalError:
+        # Column doesn't exist, add it
+        try:
+            conn.execute("ALTER TABLE batch_job_items ADD COLUMN data_id TEXT DEFAULT NULL")
+        except sqlite3.OperationalError:
+            pass  # Column may already exist from concurrent creation
+    conn.commit()
+
+    # Input validation
+    if not isinstance(job_type, str) or not job_type.strip():
+        raise ValueError("job_type must be a non-empty string")
+    if not isinstance(fits_paths, list):
+        raise ValueError("fits_paths must be a list")
+    if not all(isinstance(fp, str) and fp.strip() for fp in fits_paths):
+        raise ValueError("All fits_paths must be non-empty strings")
+    if not isinstance(coordinates, list):
+        raise ValueError("coordinates must be a list")
+    if not isinstance(params, dict):
+        raise ValueError("params must be a dictionary")
+
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        INSERT INTO batch_jobs (type, created_at, status, total_items, completed_items, failed_items, params)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            job_type,
+            datetime.utcnow().timestamp(),
+            "pending",
+            # Total items = images * coordinates
+            len(fits_paths) * len(coordinates),
+            0,
+            0,
+            json.dumps(params) if isinstance(params, dict) else str(params),
+        ),
+    )
+    batch_id = cursor.lastrowid
+
+    # Insert batch items (one per image-coordinate pair)
+    for fits_path in fits_paths:
+        for coord in coordinates:
+            # Use fits_path as ms_path identifier (for compatibility with batch_job_items schema)
+            item_id = f"{fits_path}:{coord['ra_deg']}:{coord['dec_deg']}"
+            cursor.execute(
+                """
+                INSERT INTO batch_job_items (batch_id, ms_path, status, data_id)
+                VALUES (?, ?, ?, ?)
+                """,
+                (batch_id, item_id, "pending", data_id),
+            )
+
+    conn.commit()
+    return batch_id
+
+
+def create_batch_ese_detect_job(
+    conn: sqlite3.Connection,
+    job_type: str,
+    params: Dict[str, Any],
+) -> int:
+    """Create a batch ESE detection job in the database.
+
+    Args:
+        conn: Database connection
+        job_type: Job type (e.g., "batch_ese-detect")
+        params: ESE detection parameters (min_sigma, recompute, source_ids)
+
+    Returns:
+        Batch job ID
+    """
+    # Ensure batch_jobs table exists
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS batch_jobs (
+            id INTEGER PRIMARY KEY,
+            type TEXT NOT NULL,
+            created_at REAL NOT NULL,
+            status TEXT NOT NULL,
+            total_items INTEGER NOT NULL,
+            completed_items INTEGER DEFAULT 0,
+            failed_items INTEGER DEFAULT 0,
+            params TEXT
+        )
+    """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS batch_job_items (
+            id INTEGER PRIMARY KEY,
+            batch_id INTEGER NOT NULL,
+            ms_path TEXT NOT NULL,
+            job_id INTEGER,
+            status TEXT NOT NULL,
+            error TEXT,
+            started_at REAL,
+            completed_at REAL,
+            FOREIGN KEY (batch_id) REFERENCES batch_jobs(id)
+        )
+    """
+    )
+    conn.commit()
+
+    # Input validation
+    if not isinstance(job_type, str) or not job_type.strip():
+        raise ValueError("job_type must be a non-empty string")
+    if not isinstance(params, dict):
+        raise ValueError("params must be a dictionary")
+
+    source_ids = params.get("source_ids")
+    if source_ids is not None:
+        if not isinstance(source_ids, list):
+            raise ValueError("source_ids must be a list")
+        if not all(isinstance(sid, str) and sid.strip() for sid in source_ids):
+            raise ValueError("All source_ids must be non-empty strings")
+        total_items = len(source_ids)
+    else:
+        # Will process all sources (single item)
+        total_items = 1
+
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        INSERT INTO batch_jobs (type, created_at, status, total_items, completed_items, failed_items, params)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            job_type,
+            time.time(),
+            "pending",
+            total_items,
+            0,
+            0,
+            str(params),
+        ),
+    )
+    batch_id = cursor.lastrowid
+
+    # Create batch job items
+    if source_ids:
+        for source_id in source_ids:
+            cursor.execute(
+                """
+                INSERT INTO batch_job_items (batch_id, ms_path, status)
+                VALUES (?, ?, ?)
+                """,
+                (batch_id, source_id, "pending"),
+            )
+    else:
+        # Single item for "all sources"
+        cursor.execute(
+            """
+            INSERT INTO batch_job_items (batch_id, ms_path, status)
+            VALUES (?, ?, ?)
+            """,
+            (batch_id, "all_sources", "pending"),
+        )
+
+    conn.commit()
+    return batch_id
+
+
+def update_batch_conversion_item(
+    conn: sqlite3.Connection,
+    batch_id: int,
+    time_window_id: str,
+    job_id: Optional[int],
+    status: str,
+    error: Optional[str] = None,
+):
+    """Update a batch conversion job item status.
+
+    Args:
+        conn: Database connection
+        batch_id: Batch job ID
+        time_window_id: Time window identifier (format: "time_window_{start}_{end}")
+        job_id: Individual job ID (if created)
+        status: Status (pending, running, done, failed, cancelled)
+        error: Error message (if failed)
+    """
+    # Use the same update_batch_item function but with time_window_id as ms_path
+    update_batch_item(conn, batch_id, time_window_id, job_id, status, error)
 
 
 def update_batch_item(
@@ -142,9 +541,7 @@ def update_batch_item(
     conn.commit()
 
 
-def extract_calibration_qa(
-    ms_path: str, job_id: int, caltables: Dict[str, str]
-) -> Dict[str, Any]:
+def extract_calibration_qa(ms_path: str, job_id: int, caltables: Dict[str, str]) -> Dict[str, Any]:
     """Extract QA metrics from calibration tables."""
     # Ensure CASAPATH is set before importing CASA modules
     from dsa110_contimg.utils.casa_init import ensure_casa_path
@@ -222,9 +619,7 @@ def extract_calibration_qa(
                         for s in spw_stats
                     ]
                 except Exception as e:
-                    logger.warning(
-                        f"Failed to extract per-SPW statistics for {ms_path}: {e}"
-                    )
+                    logger.warning(f"Failed to extract per-SPW statistics for {ms_path}: {e}")
             except Exception as e:
                 logger.warning(f"Failed to extract BP QA for {ms_path}: {e}")
 
@@ -297,9 +692,7 @@ def extract_image_qa(ms_path: str, job_id: int, image_path: str) -> Dict[str, An
         qa_metrics["peak_flux"] = float(stats.get("max", [0])[0])
 
         if qa_metrics["rms_noise"] > 0:
-            qa_metrics["dynamic_range"] = (
-                qa_metrics["peak_flux"] / qa_metrics["rms_noise"]
-            )
+            qa_metrics["dynamic_range"] = qa_metrics["peak_flux"] / qa_metrics["rms_noise"]
 
         # Get beam info
         beam = ia.restoringbeam()
@@ -356,9 +749,7 @@ def generate_image_thumbnail(
         data = ia.getchunk()
         if data.ndim >= 2:
             img_data = (
-                data[:, :, 0, 0]
-                if data.ndim == 4
-                else data[:, :, 0] if data.ndim == 3 else data
+                data[:, :, 0, 0] if data.ndim == 4 else data[:, :, 0] if data.ndim == 3 else data
             )
         else:
             ia.close()

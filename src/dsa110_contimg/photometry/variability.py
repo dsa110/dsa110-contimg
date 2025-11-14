@@ -9,9 +9,10 @@ Reference: archive/references/vast-tools/vasttools/utils.py
 
 from __future__ import annotations
 
+from typing import Optional
+
 import numpy as np
 import pandas as pd
-from typing import Optional
 
 
 def calculate_eta_metric(
@@ -55,9 +56,7 @@ def calculate_eta_metric(
         raise ValueError(f"Error column '{err_col}' not found in DataFrame")
 
     # Filter out invalid values
-    valid_mask = (
-        np.isfinite(df[flux_col]) & np.isfinite(df[err_col]) & (df[err_col] > 0)
-    )
+    valid_mask = np.isfinite(df[flux_col]) & np.isfinite(df[err_col]) & (df[err_col] > 0)
 
     if valid_mask.sum() < 2:
         return 0.0
@@ -171,3 +170,61 @@ def calculate_v_metric(fluxes: np.ndarray) -> float:
         return 0.0
 
     return float(np.std(valid_fluxes) / mean_flux)
+
+
+def calculate_sigma_deviation(
+    fluxes: np.ndarray,
+    mean: Optional[float] = None,
+    std: Optional[float] = None,
+) -> float:
+    """
+    Calculate sigma deviation (maximum deviation from mean in units of standard deviation).
+
+    This measures how many standard deviations the maximum or minimum flux
+    deviates from the mean. This is a key metric for ESE detection.
+
+    Formula:
+        sigma_deviation = max(
+            |max_flux - mean_flux| / std_flux,
+            |min_flux - mean_flux| / std_flux
+        )
+
+    Args:
+        fluxes: Array of flux values
+        mean: Pre-computed mean (optional, computed if not provided)
+        std: Pre-computed standard deviation (optional, computed if not provided)
+
+    Returns:
+        Sigma deviation value (float)
+
+    Raises:
+        ValueError: If input is empty or all NaN
+    """
+    # Filter out NaN values
+    valid_fluxes = fluxes[np.isfinite(fluxes)]
+
+    if len(valid_fluxes) == 0:
+        raise ValueError("Input array is empty or contains only NaN values")
+
+    if len(valid_fluxes) == 1:
+        # Single measurement: no variance, return 0.0
+        return 0.0
+
+    # Compute mean and std if not provided
+    # Note: If precomputed stats are provided, they should be computed from valid_fluxes
+    if mean is None:
+        mean = float(np.mean(valid_fluxes))
+    if std is None:
+        std = float(np.std(valid_fluxes, ddof=1))  # Sample standard deviation
+
+    # If std is zero (all values identical), return 0.0
+    if std == 0.0:
+        return 0.0
+
+    # Calculate maximum deviation from mean using valid fluxes only
+    max_flux = float(np.max(valid_fluxes))
+    min_flux = float(np.min(valid_fluxes))
+
+    sigma_deviation = max(abs(max_flux - mean) / std, abs(min_flux - mean) / std)
+
+    return float(sigma_deviation)

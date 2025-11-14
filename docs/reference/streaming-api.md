@@ -2,7 +2,9 @@
 
 ## Overview
 
-The Streaming Service API provides RESTful endpoints for controlling and monitoring the streaming converter service. All endpoints are under `/api/streaming/`.
+The Streaming Service API provides RESTful endpoints for controlling and
+monitoring the streaming converter service. All endpoints are under the base
+path api/streaming (base path, not a standalone endpoint).
 
 **Base URL:** `http://localhost:8010/api/streaming`
 
@@ -128,7 +130,8 @@ curl http://localhost:8010/api/streaming/config
 
 ### POST /api/streaming/config
 
-Update the streaming service configuration. If the service is running, it will be restarted with the new configuration.
+Update the streaming service configuration. If the service is running, it will
+be restarted with the new configuration.
 
 **Request Body:**
 
@@ -378,11 +381,11 @@ BASE_URL = "http://localhost:8010/api/streaming"
 
 class StreamingServiceClient:
     """Client for streaming service API with error handling."""
-    
+
     def __init__(self, base_url: str = BASE_URL, timeout: int = 30):
         self.base_url = base_url
         self.timeout = timeout
-    
+
     def _request(self, method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
         """Make API request with error handling."""
         url = f"{self.base_url}{endpoint}"
@@ -401,41 +404,41 @@ class StreamingServiceClient:
             raise RuntimeError(f"API error: {error_detail}")
         except RequestException as e:
             raise RuntimeError(f"Request failed: {str(e)}")
-    
+
     def get_status(self) -> Dict[str, Any]:
         """Get service status."""
         return self._request("GET", "/status")
-    
+
     def get_health(self) -> Dict[str, Any]:
         """Get health check."""
         return self._request("GET", "/health")
-    
+
     def start(self, config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Start the service."""
         data = config if config else None
         return self._request("POST", "/start", json=data)
-    
+
     def stop(self) -> Dict[str, Any]:
         """Stop the service."""
         return self._request("POST", "/stop")
-    
+
     def restart(self, config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Restart the service."""
         data = config if config else None
         return self._request("POST", "/restart", json=data)
-    
+
     def update_config(self, config: Dict[str, Any]) -> Dict[str, Any]:
         """Update configuration."""
         return self._request("POST", "/config", json=config)
-    
+
     def get_config(self) -> Dict[str, Any]:
         """Get current configuration."""
         return self._request("GET", "/config")
-    
+
     def get_metrics(self) -> Dict[str, Any]:
         """Get processing metrics."""
         return self._request("GET", "/metrics")
-    
+
     def wait_for_healthy(self, timeout: int = 60, poll_interval: int = 2) -> bool:
         """Wait for service to become healthy."""
         start_time = time.time()
@@ -448,19 +451,19 @@ class StreamingServiceClient:
                 pass
             time.sleep(poll_interval)
         return False
-    
+
     def ensure_running(self, config: Optional[Dict[str, Any]] = None) -> bool:
         """Ensure service is running, start if not."""
         try:
             status = self.get_status()
             if status.get("running", False):
                 return True
-            
+
             # Service not running, start it
             result = self.start(config)
             if not result.get("success", False):
                 raise RuntimeError(f"Failed to start: {result.get('message')}")
-            
+
             # Wait for it to become healthy
             return self.wait_for_healthy()
         except Exception as e:
@@ -470,11 +473,11 @@ class StreamingServiceClient:
 # Usage example
 if __name__ == "__main__":
     client = StreamingServiceClient()
-    
+
     # Ensure service is running
     if client.ensure_running():
         print("Service is running")
-        
+
         # Monitor for a while
         for i in range(10):
             metrics = client.get_metrics()
@@ -529,15 +532,15 @@ def send_alert(message: str):
 def monitor_service(interval: int = 60, min_rate: float = 1.0):
     """Monitor service continuously."""
     logger.info("Starting streaming service monitor")
-    
+
     consecutive_failures = 0
     max_failures = 3
-    
+
     while True:
         try:
             # Check health
             healthy, health_data = check_service_health()
-            
+
             if not healthy:
                 consecutive_failures += 1
                 if consecutive_failures >= max_failures:
@@ -545,16 +548,16 @@ def monitor_service(interval: int = 60, min_rate: float = 1.0):
                 logger.warning(f"Service unhealthy (failure {consecutive_failures}/{max_failures})")
             else:
                 consecutive_failures = 0
-                
+
                 # Check processing rate
                 response = requests.get(f"{BASE_URL}/metrics", timeout=5)
                 metrics = response.json()
-                
+
                 if not check_processing_rate(metrics, min_rate):
                     send_alert(f"Low processing rate: {metrics.get('processing_rate_per_hour', 0)} groups/hour")
-                
+
                 logger.info(f"Service healthy - Rate: {metrics.get('processing_rate_per_hour', 0)} groups/hr")
-            
+
             time.sleep(interval)
         except KeyboardInterrupt:
             logger.info("Monitor stopped by user")
@@ -578,7 +581,7 @@ BASE_URL = "http://localhost:8010/api/streaming"
 
 class TestStreamingService:
     """Test suite for streaming service API."""
-    
+
     @pytest.fixture
     def mock_response(self):
         """Create mock response."""
@@ -586,7 +589,7 @@ class TestStreamingService:
         response.json.return_value = {"running": True, "pid": 12345}
         response.raise_for_status = Mock()
         return response
-    
+
     def test_get_status_success(self, mock_response):
         """Test successful status retrieval."""
         with patch('requests.get', return_value=mock_response):
@@ -594,7 +597,7 @@ class TestStreamingService:
             status = response.json()
             assert status["running"] is True
             assert "pid" in status
-    
+
     def test_start_service(self, mock_response):
         """Test starting service."""
         mock_response.json.return_value = {
@@ -607,7 +610,7 @@ class TestStreamingService:
             result = response.json()
             assert result["success"] is True
             assert result["pid"] == 12345
-    
+
     def test_start_service_already_running(self, mock_response):
         """Test starting service when already running."""
         mock_response.json.return_value = {
@@ -620,7 +623,7 @@ class TestStreamingService:
             result = response.json()
             assert result["success"] is False
             assert "already running" in result["message"].lower()
-    
+
     def test_update_config(self, mock_response):
         """Test configuration update."""
         config = {
@@ -636,7 +639,7 @@ class TestStreamingService:
             response = requests.post(f"{BASE_URL}/config", json=config)
             result = response.json()
             assert result["success"] is True
-    
+
     def test_get_metrics(self, mock_response):
         """Test metrics retrieval."""
         mock_response.json.return_value = {
@@ -663,25 +666,25 @@ class TestStreamingService:
 ### Basic Usage
 
 ```typescript
-const BASE_URL = 'http://localhost:8010/api/streaming';
+const BASE_URL = "http://localhost:8010/api/streaming";
 
 // Get status
 async function getStatus() {
   const response = await fetch(`${BASE_URL}/status`);
   const status = await response.json();
-  console.log('Service running:', status.running);
+  console.log("Service running:", status.running);
   return status;
 }
 
 // Start service
 async function startService(config?: StreamingConfig) {
   const response = await fetch(`${BASE_URL}/start`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: config ? JSON.stringify(config) : undefined,
   });
   const result = await response.json();
-  console.log('Start result:', result.message);
+  console.log("Start result:", result.message);
   return result;
 }
 
@@ -689,7 +692,7 @@ async function startService(config?: StreamingConfig) {
 async function getMetrics() {
   const response = await fetch(`${BASE_URL}/metrics`);
   const metrics = await response.json();
-  console.log('Processing rate:', metrics.processing_rate_per_hour);
+  console.log("Processing rate:", metrics.processing_rate_per_hour);
   return metrics;
 }
 ```
@@ -726,7 +729,10 @@ class StreamingServiceClient {
   private baseUrl: string;
   private timeout: number;
 
-  constructor(baseUrl: string = 'http://localhost:8010/api/streaming', timeout: number = 30000) {
+  constructor(
+    baseUrl: string = "http://localhost:8010/api/streaming",
+    timeout: number = 30000
+  ) {
     this.baseUrl = baseUrl;
     this.timeout = timeout;
   }
@@ -744,7 +750,7 @@ class StreamingServiceClient {
         ...options,
         signal: controller.signal,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           ...options.headers,
         },
       });
@@ -752,14 +758,16 @@ class StreamingServiceClient {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ detail: response.statusText }));
+        const error = await response
+          .json()
+          .catch(() => ({ detail: response.statusText }));
         throw new Error(error.detail || `HTTP ${response.status}`);
       }
 
       return await response.json();
     } catch (error: any) {
       clearTimeout(timeoutId);
-      if (error.name === 'AbortError') {
+      if (error.name === "AbortError") {
         throw new Error(`Request timeout after ${this.timeout}ms`);
       }
       if (error instanceof TypeError) {
@@ -770,49 +778,52 @@ class StreamingServiceClient {
   }
 
   async getStatus(): Promise<StreamingStatus> {
-    return this.request<StreamingStatus>('/status');
+    return this.request<StreamingStatus>("/status");
   }
 
   async getHealth(): Promise<ApiResponse<any>> {
-    return this.request<ApiResponse<any>>('/health');
+    return this.request<ApiResponse<any>>("/health");
   }
 
   async start(config?: StreamingConfig): Promise<ApiResponse<any>> {
-    return this.request<ApiResponse<any>>('/start', {
-      method: 'POST',
+    return this.request<ApiResponse<any>>("/start", {
+      method: "POST",
       body: config ? JSON.stringify(config) : undefined,
     });
   }
 
   async stop(): Promise<ApiResponse<any>> {
-    return this.request<ApiResponse<any>>('/stop', {
-      method: 'POST',
+    return this.request<ApiResponse<any>>("/stop", {
+      method: "POST",
     });
   }
 
   async restart(config?: StreamingConfig): Promise<ApiResponse<any>> {
-    return this.request<ApiResponse<any>>('/restart', {
-      method: 'POST',
+    return this.request<ApiResponse<any>>("/restart", {
+      method: "POST",
       body: config ? JSON.stringify(config) : undefined,
     });
   }
 
   async updateConfig(config: StreamingConfig): Promise<ApiResponse<any>> {
-    return this.request<ApiResponse<any>>('/config', {
-      method: 'POST',
+    return this.request<ApiResponse<any>>("/config", {
+      method: "POST",
       body: JSON.stringify(config),
     });
   }
 
   async getConfig(): Promise<StreamingConfig> {
-    return this.request<StreamingConfig>('/config');
+    return this.request<StreamingConfig>("/config");
   }
 
   async getMetrics(): Promise<any> {
-    return this.request<any>('/metrics');
+    return this.request<any>("/metrics");
   }
 
-  async waitForHealthy(timeout: number = 60000, pollInterval: number = 2000): Promise<boolean> {
+  async waitForHealthy(
+    timeout: number = 60000,
+    pollInterval: number = 2000
+  ): Promise<boolean> {
     const startTime = Date.now();
     while (Date.now() - startTime < timeout) {
       try {
@@ -823,7 +834,7 @@ class StreamingServiceClient {
       } catch (error) {
         // Continue polling
       }
-      await new Promise(resolve => setTimeout(resolve, pollInterval));
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
     }
     return false;
   }
@@ -837,12 +848,12 @@ class StreamingServiceClient {
 
       const result = await this.start(config);
       if (!result.success) {
-        throw new Error(result.message || 'Failed to start service');
+        throw new Error(result.message || "Failed to start service");
       }
 
       return await this.waitForHealthy();
     } catch (error) {
-      console.error('Error ensuring service is running:', error);
+      console.error("Error ensuring service is running:", error);
       return false;
     }
   }
@@ -853,21 +864,21 @@ const client = new StreamingServiceClient();
 
 async function monitorService() {
   if (await client.ensureRunning()) {
-    console.log('Service is running');
-    
+    console.log("Service is running");
+
     // Monitor for a while
     for (let i = 0; i < 10; i++) {
       const metrics = await client.getMetrics();
       const status = await client.getStatus();
       console.log(
         `Status: ${status.running}, ` +
-        `CPU: ${status.cpu_percent?.toFixed(1)}%, ` +
-        `Rate: ${metrics.processing_rate_per_hour} groups/hr`
+          `CPU: ${status.cpu_percent?.toFixed(1)}%, ` +
+          `Rate: ${metrics.processing_rate_per_hour} groups/hr`
       );
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   } else {
-    console.error('Failed to start service');
+    console.error("Failed to start service");
   }
 }
 ```
@@ -1023,17 +1034,17 @@ async function safeStartService() {
     const client = new StreamingServiceClient();
     const result = await client.start();
     if (!result.success) {
-      console.error('Start failed:', result.message);
+      console.error("Start failed:", result.message);
       return false;
     }
     return true;
   } catch (error: any) {
-    if (error.message.includes('timeout')) {
-      console.error('Request timed out - service may be overloaded');
-    } else if (error.message.includes('Network error')) {
-      console.error('Cannot connect to API - check if API is running');
+    if (error.message.includes("timeout")) {
+      console.error("Request timed out - service may be overloaded");
+    } else if (error.message.includes("Network error")) {
+      console.error("Cannot connect to API - check if API is running");
     } else {
-      console.error('Unexpected error:', error);
+      console.error("Unexpected error:", error);
     }
     return false;
   }
@@ -1049,13 +1060,13 @@ async function startWithRetry(maxRetries: number = 3) {
         return true;
       }
       if (i < maxRetries - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
       }
     } catch (error) {
       if (i === maxRetries - 1) {
         throw error;
       }
-      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+      await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
     }
   }
   return false;
@@ -1067,11 +1078,11 @@ async function safeRestart() {
   try {
     const health = await client.getHealth();
     if (!health.healthy) {
-      console.warn('Service is unhealthy, attempting restart...');
+      console.warn("Service is unhealthy, attempting restart...");
     }
     return await client.restart();
   } catch (error) {
-    console.error('Restart failed:', error);
+    console.error("Restart failed:", error);
     throw error;
   }
 }
@@ -1081,7 +1092,9 @@ async function safeRestart() {
 
 ## See Also
 
-- [Streaming Control Guide](../how-to/streaming-control.md) - User guide for dashboard control
-- [Streaming Architecture](../concepts/streaming-architecture.md) - System architecture
-- [Docker Client Reference](../reference/docker-client.md) - Docker integration details
-
+- [Streaming Control Guide](../how-to/streaming-control.md) - User guide for
+  dashboard control
+- [Streaming Architecture](../concepts/streaming-architecture.md) - System
+  architecture
+- [Docker Client Reference](../reference/docker-client.md) - Docker integration
+  details

@@ -60,6 +60,7 @@ curl -X POST http://localhost:8000/api/jobs/calibrate \
 ## 🐛 Troubleshooting
 
 ### Port Already in Use
+
 ```bash
 # Find what's using port 8000
 sudo lsof -i :8000
@@ -72,6 +73,7 @@ sudo fuser -k 8000/tcp
 ```
 
 ### API Won't Start
+
 ```bash
 # Check logs
 tail -50 /var/log/dsa110/api.log
@@ -84,15 +86,17 @@ uvicorn dsa110_contimg.api.routes:create_app --factory --host 0.0.0.0 --port 800
 ```
 
 ### Logs Not Streaming
+
 ```bash
 # Check SSE connection in browser DevTools → Network tab
-# Look for /api/jobs/{id}/logs with type "eventsource"
+# Look for /api/jobs/id/{job_id}/logs with type "eventsource"
 
 # Test SSE endpoint
 curl -N http://localhost:8000/api/jobs/1/logs
 ```
 
 ### Job Stuck in Pending
+
 ```bash
 # Check backend logs
 ./scripts/manage-services.sh logs api
@@ -109,7 +113,7 @@ echo $PYTHONPATH
 ```bash
 # List recent jobs
 sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
-  "SELECT id, type, status, datetime(created_at, 'unixepoch') 
+  "SELECT id, type, status, datetime(created_at, 'unixepoch')
    FROM jobs ORDER BY id DESC LIMIT 10;"
 
 # View job logs
@@ -124,6 +128,7 @@ sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
 ## 📝 Job Parameters
 
 ### Calibrate
+
 ```json
 {
   "ms_path": "/scratch/.../ms/file.ms",
@@ -135,6 +140,7 @@ sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
 ```
 
 ### Apply
+
 ```json
 {
   "ms_path": "/scratch/.../ms/file.ms",
@@ -149,6 +155,7 @@ sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
 ```
 
 ### Image
+
 ```json
 {
   "ms_path": "/scratch/.../ms/file.ms",
@@ -210,6 +217,7 @@ ps aux | grep -E "uvicorn|dsa110"
 ## 🎯 Common Workflows
 
 ### Full Calibration Pipeline
+
 ```bash
 # 1. Start API
 sudo fuser -k 8000/tcp
@@ -229,6 +237,7 @@ sudo fuser -k 8000/tcp
 ```
 
 ### Check Job Status
+
 ```bash
 # Via API
 curl http://localhost:8000/api/jobs | jq '.items[] | {id, type, status}'
@@ -261,4 +270,3 @@ sqlite3 state/products.sqlite3 \
 ---
 
 **Quick Help**: `./scripts/manage-services.sh` (no args shows usage)
-

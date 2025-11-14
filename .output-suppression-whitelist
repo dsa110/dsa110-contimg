@@ -1,0 +1,214 @@
+# Output Suppression Whitelist
+# Format: file_path:line_number:category:reason
+# Categories: error-detection, optional-check, infrastructure, cleanup
+# 
+# This whitelist allows legitimate exceptions to the "no output suppression" rule.
+# All suppressions must be documented here to pass pre-commit validation.
+
+# ============================================================================
+# ERROR DETECTION INFRASTRUCTURE
+# ============================================================================
+# These suppressions are necessary for the error detection system itself
+# to avoid recursive error loops and wrapper failures.
+
+scripts/auto-error-detection.sh:28:error-detection:Suppresses wrapper errors in error detection system - prevents recursive loops
+scripts/auto-error-detection.sh:32:error-detection:Suppresses chmod errors for error detection wrapper - optional setup
+scripts/auto-error-detection.sh:123:error-detection:Suppresses file existence check errors in error detection - optional feature
+scripts/auto-error-detection.sh:165:error-detection:Suppresses shebang check errors in error detection - optional validation
+scripts/auto-error-detection-universal.sh:24:error-detection:Suppresses wrapper errors in universal error detection - prevents recursive loops
+scripts/auto-error-detection-universal.sh:28:error-detection:Suppresses chmod errors for universal error detection wrapper - optional setup
+scripts/agent-setup.sh:12:infrastructure:Suppresses sourcing errors for optional error detection setup - infrastructure initialization
+
+# ============================================================================
+# INFRASTRUCTURE SETUP
+# ============================================================================
+# These suppressions are in setup/installation scripts where expected errors
+# are handled gracefully.
+
+scripts/developer-setup.sh:17:infrastructure:Suppresses wrapper errors in developer setup - prevents recursive loops
+scripts/developer-setup.sh:39:infrastructure:Suppresses which command errors - optional Python detection
+scripts/developer-setup.sh:40:infrastructure:Suppresses which command errors - optional Python3 detection
+scripts/developer-setup.sh:69:infrastructure:Suppresses import errors for optional CASA check - infrastructure validation
+
+# ============================================================================
+# OPTIONAL FEATURE DETECTION
+# ============================================================================
+# These suppressions check for optional tools/features without failing if missing.
+
+scripts/auto-fix-gotchas.sh:52:optional-check:Suppresses npm install errors - optional Prettier installation
+scripts/auto-fix-gotchas.sh:63:optional-check:Suppresses husky install errors - optional Git hooks setup
+scripts/auto-fix-gotchas.sh:68:optional-check:Suppresses which command errors - optional Python detection
+scripts/build-frontend-docker.sh:18:optional-check:Suppresses node version check errors - optional version detection
+
+# ============================================================================
+# CLEANUP SCRIPTS
+# ============================================================================
+# These suppressions are in cleanup scripts where missing files/permissions
+# are expected and handled gracefully.
+
+scripts/cleanup_casa_logs.sh:94:cleanup:Suppresses date command errors - cross-platform date parsing
+scripts/cleanup_casa_logs.sh:101:cleanup:Suppresses date formatting errors - cross-platform date display
+scripts/cleanup_casa_logs.sh:109:cleanup:Suppresses stat command errors - cross-platform file time check
+scripts/cleanup_casa_logs.sh:113:cleanup:Suppresses date formatting errors - cross-platform time display
+scripts/cleanup_casa_logs.sh:115:cleanup:Suppresses rm errors during log cleanup - expected for missing files
+scripts/cleanup_casa_logs.sh:126:cleanup:Suppresses find errors during log cleanup - expected for empty directories
+scripts/cleanup_casa_logs.sh:139:cleanup:Suppresses find errors during log cleanup - expected for empty directories
+scripts/cleanup_casa_logs.sh:165:cleanup:Suppresses rm errors during log cleanup - expected for missing files
+scripts/move_casa_logs.sh:90:cleanup:Suppresses find errors during log move - expected for empty directories
+scripts/move_casa_logs.sh:139:cleanup:Suppresses mv errors during log move - expected for permission issues
+
+# ============================================================================
+# INFRASTRUCTURE - AUTO-FIX SCRIPTS
+# ============================================================================
+# These suppressions are in auto-fix scripts that handle optional checks.
+
+scripts/auto-fix-common-issues.sh:41:infrastructure:Suppresses type check errors - optional error detection function check
+scripts/auto-fix-common-issues.sh:53:infrastructure:Suppresses import errors for optional CASA check - infrastructure validation
+scripts/auto-fix-common-issues.sh:57:infrastructure:Suppresses import errors for optional CASA path setup - infrastructure initialization
+scripts/auto-fix-common-issues.sh:67:infrastructure:Suppresses validation errors for optional test organization check
+scripts/auto-fix-common-issues.sh:74:infrastructure:Suppresses validation errors for optional test organization check
+
+# ============================================================================
+# INFRASTRUCTURE - SERVICE MANAGEMENT
+# ============================================================================
+# These suppressions are in service management scripts for optional operations.
+
+scripts/manage-services.sh:22:infrastructure:Suppresses mkdir errors - handles permission issues gracefully
+scripts/manage-services.sh:23:infrastructure:Suppresses mkdir errors - handles permission issues gracefully
+scripts/manage-services.sh:67:infrastructure:Suppresses lsof errors - optional port check
+
+# ============================================================================
+# INFRASTRUCTURE - QUICK START
+# ============================================================================
+# These suppressions are in quick start scripts for optional validation.
+
+scripts/quick-start.sh:16:infrastructure:Suppresses validation errors for optional environment check
+
+# ============================================================================
+# INFRASTRUCTURE - TEST ORGANIZATION
+# ============================================================================
+# These suppressions are in test organization scripts for optional file counts.
+
+scripts/organize-tests.sh:122:infrastructure:Suppresses ls errors for optional test file count - expected for empty directories
+scripts/organize-tests.sh:125:infrastructure:Suppresses ls errors for optional test file count - expected for empty directories
+scripts/reorganize-tests-by-taxonomy.sh:94:infrastructure:Suppresses ls errors for optional test file count - expected for empty directories
+scripts/reorganize-tests-by-taxonomy.sh:97:infrastructure:Suppresses ls errors for optional test file count - expected for empty directories
+scripts/reorganize-tests-by-taxonomy.sh:98:infrastructure:Suppresses ls errors for optional test file count - expected for empty directories
+scripts/reorganize-tests-by-taxonomy.sh:100:infrastructure:Suppresses ls errors for optional test file listing - expected for empty directories
+
+# ============================================================================
+# INFRASTRUCTURE - MOSAIC VISUALIZATION
+# ============================================================================
+# These suppressions are in visualization scripts for optional file operations.
+
+scripts/build_and_visualize_mosaic.sh:74:infrastructure:Suppresses ls errors for optional file listing - expected for missing files
+
+# ============================================================================
+# INFRASTRUCTURE - ERROR DETECTOR EXAMPLE
+# ============================================================================
+# These suppressions are in example scripts for optional operations.
+
+scripts/error-detector-example.sh:23:infrastructure:Suppresses cd errors for optional directory change - example script
+
+# ============================================================================
+# INFRASTRUCTURE - API TESTING
+# ============================================================================
+# These suppressions are in API test scripts for optional JSON parsing.
+
+scripts/test_pipeline_api.sh:68:infrastructure:Suppresses jq parsing errors for optional JSON extraction - test script
+
+
+# ============================================================================
+# ADDITIONAL INFRASTRUCTURE AND OPTIONAL CHECKS
+# ============================================================================
+# Additional legitimate suppressions identified during full audit
+
+scripts/auto-fix-common-issues.sh:41:infrastructure:Suppresses type check errors - optional error detection function check
+scripts/auto-fix-common-issues.sh:53:infrastructure:Suppresses import errors for optional CASA check - infrastructure validation
+scripts/auto-fix-common-issues.sh:57:infrastructure:Suppresses import errors for optional CASA path setup - infrastructure initialization
+scripts/auto-fix-common-issues.sh:67:infrastructure:Suppresses validation errors for optional test organization check
+scripts/auto-fix-common-issues.sh:74:infrastructure:Suppresses validation errors for optional test organization check
+scripts/auto-fix-gotchas.sh:48:optional-check:Suppresses command-not-found for optional npx check
+scripts/auto-fix-gotchas.sh:49:optional-check:Suppresses version check errors for optional Prettier
+scripts/auto-fix-gotchas.sh:52:infrastructure:Suppresses npm install errors - optional Prettier installation
+scripts/auto-fix-gotchas.sh:63:infrastructure:Suppresses husky install errors - optional Git hooks setup
+scripts/auto-fix-gotchas.sh:68:optional-check:Suppresses which command errors - optional Python detection
+scripts/build-frontend-docker.sh:18:optional-check:Suppresses node version check errors - optional version detection
+scripts/build_and_visualize_mosaic.sh:74:infrastructure:Suppresses ls errors for optional file listing - expected for missing files
+scripts/move_casa_logs.sh:90:cleanup:Suppresses find errors during log move - expected for empty directories
+scripts/move_casa_logs.sh:139:cleanup:Suppresses mv errors during log move - expected for permission issues
+scripts/organize-tests.sh:122:infrastructure:Suppresses ls errors for optional test file count - expected for empty directories
+scripts/organize-tests.sh:125:infrastructure:Suppresses ls errors for optional test file count - expected for empty directories
+scripts/reorganize-tests-by-taxonomy.sh:94:infrastructure:Suppresses ls errors for optional test file count - expected for empty directories
+scripts/reorganize-tests-by-taxonomy.sh:97:infrastructure:Suppresses ls errors for optional test file count - expected for empty directories
+scripts/reorganize-tests-by-taxonomy.sh:98:infrastructure:Suppresses ls errors for optional test file count - expected for empty directories
+scripts/reorganize-tests-by-taxonomy.sh:100:infrastructure:Suppresses ls errors for optional test file listing - expected for empty directories
+scripts/quick-start.sh:16:infrastructure:Suppresses validation errors for optional environment check
+scripts/test_pipeline_api.sh:68:infrastructure:Suppresses jq parsing errors for optional JSON extraction - test script
+scripts/error-detector-example.sh:23:infrastructure:Suppresses cd errors for optional directory change - example script
+scripts/manage-services.sh:22:infrastructure:Suppresses mkdir errors - handles permission issues gracefully
+scripts/manage-services.sh:23:infrastructure:Suppresses mkdir errors - handles permission issues gracefully
+scripts/manage-services.sh:29:infrastructure:Suppresses lsof errors - optional port check
+scripts/manage-services.sh:33:infrastructure:Suppresses lsof errors - optional port check
+scripts/manage-services.sh:39:infrastructure:Suppresses fuser errors - optional port check
+scripts/manage-services.sh:67:infrastructure:Suppresses lsof errors - optional port check
+scripts/manage-services.sh:69:infrastructure:Suppresses lsof errors - optional port check
+scripts/manage-services.sh:84:infrastructure:Suppresses fuser errors - optional port kill
+scripts/manage-services.sh:86:infrastructure:Suppresses fuser errors - optional port kill
+scripts/manage-services.sh:93:infrastructure:Suppresses ps errors - optional process check
+scripts/manage-services.sh:99:infrastructure:Suppresses ps errors - optional process check
+scripts/manage-services.sh:101:infrastructure:Suppresses kill errors - optional process termination
+scripts/manage-services.sh:104:infrastructure:Suppresses kill errors - optional process termination
+scripts/manage-services.sh:108:infrastructure:Suppresses kill errors - optional process termination
+scripts/manage-services.sh:110:infrastructure:Suppresses kill errors - optional process termination
+scripts/manage-services.sh:119:infrastructure:Suppresses lsof errors - optional port check
+scripts/manage-services.sh:225:infrastructure:Suppresses command-not-found for optional conda check
+scripts/manage-services.sh:260:infrastructure:Suppresses kill errors - optional process termination
+scripts/manage-services.sh:277:infrastructure:Suppresses kill errors - optional process termination
+scripts/manage-services.sh:330:infrastructure:Suppresses netstat errors - optional port check
+scripts/manage-services.sh:384:infrastructure:Suppresses kill errors - optional process termination
+scripts/test_with_chrome.sh:46:infrastructure:Suppresses curl errors for optional Chrome CDP check - test script
+scripts/test_with_chrome.sh:50:infrastructure:Suppresses jq errors for optional JSON parsing - test script
+scripts/test_with_chrome.sh:54:infrastructure:Suppresses jq errors for optional JSON parsing - test script
+scripts/test_with_chrome.sh:58:infrastructure:Suppresses curl errors for optional Chrome CDP check - test script
+scripts/test_with_chrome.sh:60:infrastructure:Suppresses jq errors for optional JSON parsing - test script
+scripts/test_with_chrome.sh:86:infrastructure:Suppresses kill errors for optional Chrome cleanup - test script
+scripts/test_with_chrome.sh:87:infrastructure:Suppresses rm errors for optional Chrome cleanup - test script
+scripts/validate-environment.sh:26:infrastructure:Suppresses type check errors - optional error detection function check
+scripts/validate-environment.sh:35:infrastructure:Suppresses import errors for optional CASA check - infrastructure validation
+scripts/validate-output-handling.sh:17:infrastructure:Suppresses grep errors in validation script - meta-validation
+scripts/validate-output-handling.sh:22:infrastructure:Suppresses sed errors in validation script - meta-validation
+scripts/validate-output-handling.sh:40:infrastructure:Suppresses grep errors in validation script - meta-validation
+scripts/validate_production_setup.sh:79:infrastructure:Suppresses df errors for optional disk space check
+scripts/validate_production_setup.sh:88:infrastructure:Suppresses df errors for optional disk space check
+scripts/validate_production_setup.sh:123:infrastructure:Suppresses mkdir errors - handles permission issues gracefully
+scripts/validate_production_setup.sh:135:infrastructure:Suppresses import errors for optional CASA check - infrastructure validation
+scripts/validate_production_setup.sh:144:infrastructure:Suppresses import errors for optional FastAPI check - infrastructure validation
+scripts/lib/anti-pattern-detection.sh:196:infrastructure:Suppresses grep errors for optional pattern count - meta-detection
+scripts/lib/anti-pattern-detection.sh:234:infrastructure:Suppresses grep errors for optional pattern check - meta-detection
+scripts/lib/anti-pattern-detection.sh:270:infrastructure:Suppresses grep errors for optional keyword check - meta-detection
+scripts/lib/error-detection.sh:156:error-detection:Suppresses free errors for optional memory check - error detection system
+scripts/lib/error-detection.sh:304:error-detection:Suppresses grep errors for optional HTML check - error detection system
+scripts/lib/__tests__/error-detection.test.sh:137:error-detection:Suppresses rm errors in test cleanup - test infrastructure
+scripts/lib/__tests__/integration.test.sh:50:infrastructure:Suppresses cd errors for optional directory change - test infrastructure
+scripts/run-tests-docker.sh:49:optional-check:Suppresses docker compose errors for optional test setup
+scripts/run-tests-docker.sh:80:infrastructure:Suppresses docker rmi errors for optional image cleanup
+scripts/run-with-error-detection-immediate-kill.sh:57:error-detection:Suppresses kill check errors - error detection system
+scripts/run-with-error-detection-immediate-kill.sh:60:error-detection:Suppresses kill errors - error detection system
+scripts/run-with-error-detection-immediate-kill.sh:63:error-detection:Suppresses kill check errors - error detection system
+scripts/run-with-error-detection-immediate-kill.sh:64:error-detection:Suppresses kill errors - error detection system
+scripts/run-with-error-detection-immediate-kill.sh:66:error-detection:Suppresses kill errors - error detection system
+scripts/run-with-error-detection-immediate-kill.sh:109:error-detection:Suppresses wait errors - error detection system
+scripts/run-with-error-detection.sh:277:error-detection:Suppresses grep errors for optional JUnit parsing - error detection system
+scripts/run-with-error-detection.sh:278:error-detection:Suppresses grep errors for optional JUnit parsing - error detection system
+scripts/run_conversion.sh:81:infrastructure:Suppresses ls errors for optional MS file detection
+scripts/scratch_sync.sh:141:infrastructure:Suppresses du errors for optional disk usage check
+scripts/scratch_sync.sh:147:infrastructure:Suppresses df errors for optional disk space check
+scripts/setup-auto-error-detection.sh:23:error-detection:Suppresses grep errors for optional setup check - error detection system
+scripts/setup-auto-error-detection.sh:36:error-detection:Suppresses sed errors for optional setup removal - error detection system
+scripts/setup-auto-error-detection.sh:37:error-detection:Suppresses sed errors for optional setup removal - error detection system
+scripts/setup-auto-error-detection.sh:68:error-detection:Suppresses grep errors for optional profile check - error detection system
+scripts/setup-dev.sh:16:infrastructure:Suppresses chmod errors for optional Git hooks setup
+scripts/agent-setup.sh:13:error-detection:Suppresses sourcing errors for optional error detection setup - infrastructure initialization
+scripts/auto-error-detection-env.sh:7:error-detection:Suppresses sourcing errors for optional error detection setup - infrastructure initialization
+scripts/ensure-error-detection.sh:11:error-detection:Suppresses sourcing errors for optional error detection setup - infrastructure initialization

@@ -14,42 +14,48 @@ import {
   Tabs,
   Tab,
   Stack,
-} from '@mui/material';
-import { CheckCircle, Warning, Error, Help } from '@mui/icons-material';
-import { useState } from 'react';
+} from "@mui/material";
+import { CheckCircle, Warning, Error, Help } from "@mui/icons-material";
+import { useState } from "react";
 // import Plot from 'react-plotly.js'; // Unused for now
 // import type { CalibrationQA } from '../api/types'; // Unused for now
-import { useCalibrationQA, useBandpassPlots } from '../api/queries';
+import { useCalibrationQA, useBandpassPlots } from "../api/queries";
 
 interface CalibrationQAPanelProps {
   msPath: string | null;
 }
 
-type QualityLevel = 'excellent' | 'good' | 'marginal' | 'poor' | 'unknown';
+type QualityLevel = "excellent" | "good" | "marginal" | "poor" | "unknown";
 
 function QualityIndicator({ quality }: { quality: QualityLevel }) {
   const config = {
-    excellent: { color: 'success' as const, icon: <CheckCircle />, label: 'Excellent' },
-    good: { color: 'info' as const, icon: <CheckCircle />, label: 'Good' },
-    marginal: { color: 'warning' as const, icon: <Warning />, label: 'Marginal' },
-    poor: { color: 'error' as const, icon: <Error />, label: 'Poor' },
-    unknown: { color: 'default' as const, icon: <Help />, label: 'Unknown' },
+    excellent: {
+      color: "success" as const,
+      icon: <CheckCircle />,
+      label: "Excellent",
+    },
+    good: { color: "info" as const, icon: <CheckCircle />, label: "Good" },
+    marginal: {
+      color: "warning" as const,
+      icon: <Warning />,
+      label: "Marginal",
+    },
+    poor: { color: "error" as const, icon: <Error />, label: "Poor" },
+    unknown: { color: "default" as const, icon: <Help />, label: "Unknown" },
   };
 
   const { color, icon, label } = config[quality] || config.unknown;
 
-  return (
-    <Chip
-      icon={icon}
-      label={label}
-      color={color}
-      size="small"
-      sx={{ fontWeight: 'bold' }}
-    />
-  );
+  return <Chip icon={icon} label={label} color={color} size="small" sx={{ fontWeight: "bold" }} />;
 }
 
-function MetricCard({ label, value, unit, goodThreshold, warningThreshold }: {
+function MetricCard({
+  label,
+  value,
+  unit,
+  goodThreshold,
+  warningThreshold,
+}: {
   label: string;
   value: number | null | undefined;
   unit?: string;
@@ -67,13 +73,13 @@ function MetricCard({ label, value, unit, goodThreshold, warningThreshold }: {
     );
   }
 
-  let color: 'success' | 'warning' | 'error' | 'default' = 'default';
+  let color: "success" | "warning" | "error" | "default" = "default";
   if (goodThreshold !== undefined && value >= goodThreshold) {
-    color = 'success';
+    color = "success";
   } else if (warningThreshold !== undefined && value >= warningThreshold) {
-    color = 'warning';
+    color = "warning";
   } else if (warningThreshold !== undefined) {
-    color = 'error';
+    color = "error";
   }
 
   return (
@@ -81,8 +87,8 @@ function MetricCard({ label, value, unit, goodThreshold, warningThreshold }: {
       <Typography variant="caption" color="text.secondary">
         {label}
       </Typography>
-      <Typography variant="body2" color={color === 'default' ? 'text.primary' : `${color}.main`}>
-        <strong>{value.toFixed(2)}</strong> {unit || ''}
+      <Typography variant="body2" color={color === "default" ? "text.primary" : `${color}.main`}>
+        <strong>{value.toFixed(2)}</strong> {unit || ""}
       </Typography>
     </Box>
   );
@@ -103,7 +109,7 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
 
   if (isLoading) {
     return (
-      <Paper sx={{ p: 3, textAlign: 'center' }}>
+      <Paper sx={{ p: 3, textAlign: "center" }}>
         <CircularProgress />
         <Typography variant="body2" sx={{ mt: 2 }}>
           Loading calibration QA...
@@ -116,13 +122,13 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
     return (
       <Paper sx={{ p: 3 }}>
         <Alert severity="warning">
-          {error ? 'Failed to load calibration QA' : 'No calibration QA data available'}
+          {error ? "Failed to load calibration QA" : "No calibration QA data available"}
         </Alert>
       </Paper>
     );
   }
 
-  const quality = (qa.overall_quality || 'unknown') as QualityLevel;
+  const quality = (qa.overall_quality || "unknown") as QualityLevel;
 
   return (
     <Paper sx={{ p: 3 }}>
@@ -142,8 +148,12 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
       {tabValue === 0 && (
         <Grid container spacing={2}>
           <Grid item xs={12} {...({} as any)}>
-            <Alert severity={quality === 'poor' ? 'error' : quality === 'marginal' ? 'warning' : 'success'}>
-              Overall Quality: <strong>{qa.overall_quality || 'unknown'}</strong>
+            <Alert
+              severity={
+                quality === "poor" ? "error" : quality === "marginal" ? "warning" : "success"
+              }
+            >
+              Overall Quality: <strong>{qa.overall_quality || "unknown"}</strong>
             </Alert>
           </Grid>
 
@@ -267,11 +277,23 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
               <Typography variant="subtitle2" gutterBottom>
                 Per-SPW Statistics
               </Typography>
-              <Box sx={{ maxHeight: '300px', overflow: 'auto' }}>
+              <Box sx={{ maxHeight: "300px", overflow: "auto" }}>
                 {qa.per_spw_stats.map((spw, idx) => (
-                  <Box key={idx} sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+                  <Box
+                    key={idx}
+                    sx={{
+                      p: 1,
+                      borderBottom: "1px solid",
+                      borderColor: "divider",
+                    }}
+                  >
                     <Typography variant="caption">
-                      SPW {spw.spw_id}: Flagged {(((spw as any).flagged_count || 0) / ((spw as any).total_count || 1) * 100).toFixed(1)}%
+                      SPW {spw.spw_id}: Flagged{" "}
+                      {(
+                        (((spw as any).flagged_count || 0) / ((spw as any).total_count || 1)) *
+                        100
+                      ).toFixed(1)}
+                      %
                     </Typography>
                   </Box>
                 ))}
@@ -322,10 +344,10 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
                     src={plot.url}
                     alt={plot.filename}
                     sx={{
-                      width: '100%',
-                      height: 'auto',
-                      border: '1px solid',
-                      borderColor: 'divider',
+                      width: "100%",
+                      height: "auto",
+                      border: "1px solid",
+                      borderColor: "divider",
                       borderRadius: 1,
                     }}
                   />
@@ -340,4 +362,3 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
     </Paper>
   );
 }
-

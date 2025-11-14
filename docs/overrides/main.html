@@ -1,0 +1,39 @@
+{% extends "base.html" %} {% block extrahead %} {{ super() }}
+<style>
+  .version-badge {
+    display: inline-block;
+    padding: 0.25em 0.5em;
+    margin-left: 0.5em;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 500;
+  }
+  .package-info {
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 0.5em;
+  }
+</style>
+{% endblock %} {% block site_name %} {{ config.site_name }} {% if config.extra and
+config.extra.version %}
+<span class="version-badge">v{{ config.extra.version }}</span>
+{% endif %} {% endblock %} {% block footer %}
+<div class="md-footer-meta md-typeset">
+  <div class="md-footer-meta__inner md-grid">
+    <div class="md-footer-copyright">
+      {% if config.copyright %}
+      <div class="md-footer-copyright__highlight">{{ config.copyright }}</div>
+      {% endif %} {% if config.extra and config.extra.package_name %}
+      <div class="package-info">
+        Package: <strong>{{ config.extra.package_name }}</strong> {% if config.extra.version %} |
+        Version: <strong>{{ config.extra.version }}</strong> {% endif %} {% if config.extra.license
+        %} | License: <strong>{{ config.extra.license }}</strong>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% include "partials/social.html" %}
+  </div>
+</div>
+{% endblock %}

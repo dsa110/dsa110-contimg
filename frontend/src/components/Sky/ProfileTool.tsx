@@ -2,7 +2,7 @@
  * Profile Tool Component
  * UI controls for drawing and extracting spatial profiles from JS9 images
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
 import {
   Box,
   Paper,
@@ -19,12 +19,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-} from '@mui/material';
-import ProfilePlot from './ProfilePlot';
-import type { ProfileData } from './ProfilePlot';
-import { useProfileExtraction } from '../../api/queries';
-import { logger } from '../../utils/logger';
-import { findDisplay } from '../../utils/js9';
+} from "@mui/material";
+import ProfilePlot from "./ProfilePlot";
+import type { ProfileData } from "./ProfilePlot";
+import { useProfileExtraction } from "../../api/queries";
+import { logger } from "../../utils/logger";
+import { findDisplay } from "../../utils/js9";
 
 declare global {
   interface Window {
@@ -38,13 +38,9 @@ interface ProfileToolProps {
   onProfileExtracted?: (profile: ProfileData) => void;
 }
 
-export default function ProfileTool({
-  displayId,
-  imageId,
-  onProfileExtracted,
-}: ProfileToolProps) {
-  const [profileType, setProfileType] = useState<'line' | 'polyline' | 'point'>('line');
-  const [fitModel, setFitModel] = useState<'none' | 'gaussian' | 'moffat'>('none');
+export default function ProfileTool({ displayId, imageId, onProfileExtracted }: ProfileToolProps) {
+  const [profileType, setProfileType] = useState<"line" | "polyline" | "point">("line");
+  const [fitModel, setFitModel] = useState<"none" | "gaussian" | "moffat">("none");
   const [coordinates, setCoordinates] = useState<number[][]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [radius, setRadius] = useState<number>(10.0);
@@ -70,7 +66,7 @@ export default function ProfileTool({
     if (overlayRef.current.length > 0 && window.JS9) {
       overlayRef.current.forEach((overlay: any) => {
         try {
-          if (overlay && typeof overlay.remove === 'function') {
+          if (overlay && typeof overlay.remove === "function") {
             overlay.remove();
           }
         } catch (e) {
@@ -87,7 +83,7 @@ export default function ProfileTool({
       const display = findDisplay(displayId);
       return display?.im ? display : null;
     } catch (e) {
-      logger.error('Error getting JS9 display:', e);
+      logger.error("Error getting JS9 display:", e);
       return null;
     }
   };
@@ -102,20 +98,26 @@ export default function ProfileTool({
         return [wcs.ra * 15, wcs.dec];
       }
     } catch (e) {
-      logger.error('Error converting pixel to WCS:', e);
+      logger.error("Error converting pixel to WCS:", e);
     }
     return null;
   };
 
-  const addOverlayLine = (x1: number, y1: number, x2: number, y2: number, color: string = 'cyan') => {
+  const addOverlayLine = (
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    color: string = "cyan"
+  ) => {
     const display = getJS9Display();
     if (!display?.im || !window.JS9) return;
 
     try {
       // Use JS9's overlay API if available
-      if (typeof window.JS9.AddOverlay === 'function') {
+      if (typeof window.JS9.AddOverlay === "function") {
         const overlay = window.JS9.AddOverlay(display.im.id, {
-          type: 'line',
+          type: "line",
           x1: x1,
           y1: y1,
           x2: x2,
@@ -128,18 +130,18 @@ export default function ProfileTool({
         }
       }
     } catch (e) {
-      logger.error('Error adding overlay line:', e);
+      logger.error("Error adding overlay line:", e);
     }
   };
 
-  const addOverlayPoint = (x: number, y: number, color: string = 'cyan') => {
+  const addOverlayPoint = (x: number, y: number, color: string = "cyan") => {
     const display = getJS9Display();
     if (!display?.im || !window.JS9) return;
 
     try {
-      if (typeof window.JS9.AddOverlay === 'function') {
+      if (typeof window.JS9.AddOverlay === "function") {
         const overlay = window.JS9.AddOverlay(display.im.id, {
-          type: 'circle',
+          type: "circle",
           x: x,
           y: y,
           radius: 3,
@@ -150,7 +152,7 @@ export default function ProfileTool({
         }
       }
     } catch (e) {
-      logger.error('Error adding overlay point:', e);
+      logger.error("Error adding overlay point:", e);
     }
   };
 
@@ -172,7 +174,7 @@ export default function ProfileTool({
           pixelCoords.push([wcs.x, wcs.y]);
         }
       } catch (e) {
-        logger.error('Error converting WCS to pixel for overlay:', e);
+        logger.error("Error converting WCS to pixel for overlay:", e);
       }
     }
 
@@ -184,27 +186,32 @@ export default function ProfileTool({
     });
 
     // Draw lines connecting points
-    if (profileType === 'line' && pixelCoords.length >= 2) {
+    if (profileType === "line" && pixelCoords.length >= 2) {
       addOverlayLine(pixelCoords[0][0], pixelCoords[0][1], pixelCoords[1][0], pixelCoords[1][1]);
-    } else if (profileType === 'polyline' && pixelCoords.length >= 2) {
+    } else if (profileType === "polyline" && pixelCoords.length >= 2) {
       for (let i = 0; i < pixelCoords.length - 1; i++) {
-        addOverlayLine(pixelCoords[i][0], pixelCoords[i][1], pixelCoords[i + 1][0], pixelCoords[i + 1][1]);
+        addOverlayLine(
+          pixelCoords[i][0],
+          pixelCoords[i][1],
+          pixelCoords[i + 1][0],
+          pixelCoords[i + 1][1]
+        );
       }
-    } else if (profileType === 'point' && pixelCoords.length >= 1) {
+    } else if (profileType === "point" && pixelCoords.length >= 1) {
       // Draw circle for point profile
       const [x, y] = pixelCoords[0];
       try {
         const display = getJS9Display();
-        if (display?.im && window.JS9 && typeof window.JS9.AddOverlay === 'function') {
+        if (display?.im && window.JS9 && typeof window.JS9.AddOverlay === "function") {
           // Estimate radius in pixels (rough conversion)
           const pixelScale = display.im.scale || 1;
-          const radiusPixels = (radius / 3600) / pixelScale * 206265; // Rough conversion
+          const radiusPixels = (radius / 3600 / pixelScale) * 206265; // Rough conversion
           const overlay = window.JS9.AddOverlay(display.im.id, {
-            type: 'circle',
+            type: "circle",
             x: x,
             y: y,
             radius: Math.max(radiusPixels, 5),
-            color: 'cyan',
+            color: "cyan",
             width: 1,
           });
           if (overlay) {
@@ -212,7 +219,7 @@ export default function ProfileTool({
           }
         }
       } catch (e) {
-        logger.error('Error adding point profile circle:', e);
+        logger.error("Error adding point profile circle:", e);
       }
     }
   };
@@ -223,11 +230,11 @@ export default function ProfileTool({
 
   const handleStartDrawing = () => {
     if (!imageId) {
-      alert('Please select an image first');
+      alert("Please select an image first");
       return;
     }
 
-    if (profileType === 'point') {
+    if (profileType === "point") {
       setRadiusDialogOpen(true);
       return;
     }
@@ -239,14 +246,14 @@ export default function ProfileTool({
     // Attach click handler to JS9 canvas
     const display = getJS9Display();
     if (!display?.im) {
-      alert('Image not loaded. Please wait for the image to load.');
+      alert("Image not loaded. Please wait for the image to load.");
       setIsDrawing(false);
       return;
     }
 
-    const canvas = document.getElementById(displayId)?.querySelector('canvas');
+    const canvas = document.getElementById(displayId)?.querySelector("canvas");
     if (!canvas) {
-      alert('JS9 canvas not found.');
+      alert("JS9 canvas not found.");
       setIsDrawing(false);
       return;
     }
@@ -271,20 +278,20 @@ export default function ProfileTool({
 
         setCoordinates((prev) => {
           const newCoords = [...prev, wcsCoords];
-          
+
           // Auto-complete for line profile (2 points)
-          if (profileType === 'line' && newCoords.length >= 2) {
+          if (profileType === "line" && newCoords.length >= 2) {
             setIsDrawing(false);
             if (clickHandlerRef.current) {
-              canvas.removeEventListener('click', clickHandlerRef.current);
+              canvas.removeEventListener("click", clickHandlerRef.current);
               clickHandlerRef.current = null;
             }
           }
           // Auto-complete for point profile (1 point)
-          else if (profileType === 'point' && newCoords.length >= 1) {
+          else if (profileType === "point" && newCoords.length >= 1) {
             setIsDrawing(false);
             if (clickHandlerRef.current) {
-              canvas.removeEventListener('click', clickHandlerRef.current);
+              canvas.removeEventListener("click", clickHandlerRef.current);
               clickHandlerRef.current = null;
             }
           }
@@ -292,17 +299,17 @@ export default function ProfileTool({
           return newCoords;
         });
       } catch (e) {
-        logger.error('Error handling canvas click:', e);
+        logger.error("Error handling canvas click:", e);
       }
     };
 
     clickHandlerRef.current = handleCanvasClick;
-    canvas.addEventListener('click', handleCanvasClick);
+    canvas.addEventListener("click", handleCanvasClick);
 
     // Instructions
-    if (profileType === 'line') {
-      alert('Click two points on the image to define a line profile.');
-    } else if (profileType === 'polyline') {
+    if (profileType === "line") {
+      alert("Click two points on the image to define a line profile.");
+    } else if (profileType === "polyline") {
       alert('Click multiple points on the image. Press "Extract Profile" when done.');
     }
   };
@@ -311,9 +318,9 @@ export default function ProfileTool({
     setIsDrawing(false);
     const display = getJS9Display();
     if (display?.im) {
-      const canvas = document.getElementById(displayId)?.querySelector('canvas');
+      const canvas = document.getElementById(displayId)?.querySelector("canvas");
       if (canvas && clickHandlerRef.current) {
-        canvas.removeEventListener('click', clickHandlerRef.current);
+        canvas.removeEventListener("click", clickHandlerRef.current);
         clickHandlerRef.current = null;
       }
     }
@@ -327,14 +334,14 @@ export default function ProfileTool({
 
     const display = getJS9Display();
     if (!display?.im) {
-      alert('Image not loaded. Please wait for the image to load.');
+      alert("Image not loaded. Please wait for the image to load.");
       setIsDrawing(false);
       return;
     }
 
-    const canvas = document.getElementById(displayId)?.querySelector('canvas');
+    const canvas = document.getElementById(displayId)?.querySelector("canvas");
     if (!canvas) {
-      alert('JS9 canvas not found.');
+      alert("JS9 canvas not found.");
       setIsDrawing(false);
       return;
     }
@@ -359,31 +366,31 @@ export default function ProfileTool({
         setCoordinates([wcsCoords]);
         setIsDrawing(false);
         if (clickHandlerRef.current) {
-          canvas.removeEventListener('click', clickHandlerRef.current);
+          canvas.removeEventListener("click", clickHandlerRef.current);
           clickHandlerRef.current = null;
         }
       } catch (e) {
-        logger.error('Error handling canvas click:', e);
+        logger.error("Error handling canvas click:", e);
       }
     };
 
     clickHandlerRef.current = handleCanvasClick;
-    canvas.addEventListener('click', handleCanvasClick);
-    alert('Click a point on the image to define the center of the radial profile.');
+    canvas.addEventListener("click", handleCanvasClick);
+    alert("Click a point on the image to define the center of the radial profile.");
   };
 
   const handleExtractProfile = () => {
     if (!imageId) {
-      alert('Please select an image first');
+      alert("Please select an image first");
       return;
     }
 
-    if (profileType === 'point' && coordinates.length < 1) {
-      alert('Please provide at least 1 coordinate for point profile');
+    if (profileType === "point" && coordinates.length < 1) {
+      alert("Please provide at least 1 coordinate for point profile");
       return;
     }
 
-    if (profileType !== 'point' && coordinates.length < 2) {
+    if (profileType !== "point" && coordinates.length < 2) {
       alert(`Please provide at least 2 coordinates for ${profileType} profile`);
       return;
     }
@@ -392,10 +399,10 @@ export default function ProfileTool({
       imageId,
       profileType,
       coordinates,
-      coordinateSystem: 'wcs',
+      coordinateSystem: "wcs",
       width: 1,
       radius: 10.0,
-      fitModel: fitModel === 'none' ? undefined : fitModel,
+      fitModel: fitModel === "none" ? undefined : fitModel,
     });
   };
 
@@ -410,18 +417,18 @@ export default function ProfileTool({
     if (!profileData) return;
 
     // Export as CSV
-    const csvLines = ['Distance,Flux,Error'];
+    const csvLines = ["Distance,Flux,Error"];
     for (let i = 0; i < profileData.distance.length; i++) {
       const dist = profileData.distance[i];
       const flux = profileData.flux[i];
-      const error = profileData.error?.[i] || '';
+      const error = profileData.error?.[i] || "";
       csvLines.push(`${dist},${flux},${error}`);
     }
 
-    const csvContent = csvLines.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const csvContent = csvLines.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
     link.download = `profile_${profileType}_${Date.now()}.csv`;
     link.click();
@@ -446,7 +453,7 @@ export default function ProfileTool({
             value={profileType}
             label="Profile Type"
             onChange={(e) => {
-              setProfileType(e.target.value as 'line' | 'polyline' | 'point');
+              setProfileType(e.target.value as "line" | "polyline" | "point");
               setCoordinates([]);
             }}
           >
@@ -461,7 +468,7 @@ export default function ProfileTool({
           <Select
             value={fitModel}
             label="Fit Model"
-            onChange={(e) => setFitModel(e.target.value as 'none' | 'gaussian' | 'moffat')}
+            onChange={(e) => setFitModel(e.target.value as "none" | "gaussian" | "moffat")}
           >
             <MenuItem value="none">None</MenuItem>
             <MenuItem value="gaussian">Gaussian</MenuItem>
@@ -469,21 +476,21 @@ export default function ProfileTool({
           </Select>
         </FormControl>
 
-        <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+        <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
           <Button
-            variant={isDrawing ? 'contained' : 'outlined'}
-            color={isDrawing ? 'warning' : 'primary'}
+            variant={isDrawing ? "contained" : "outlined"}
+            color={isDrawing ? "warning" : "primary"}
             onClick={isDrawing ? handleStopDrawing : handleStartDrawing}
             disabled={!imageId || isLoading}
-            sx={{ flex: 1, minWidth: '120px' }}
+            sx={{ flex: 1, minWidth: "120px" }}
           >
-            {isDrawing ? 'Stop Drawing' : 'Draw Profile'}
+            {isDrawing ? "Stop Drawing" : "Draw Profile"}
           </Button>
           <Button
             variant="contained"
             onClick={handleExtractProfile}
             disabled={!imageId || coordinates.length === 0 || isLoading}
-            sx={{ flex: 1, minWidth: '120px' }}
+            sx={{ flex: 1, minWidth: "120px" }}
           >
             Extract Profile
           </Button>
@@ -491,7 +498,7 @@ export default function ProfileTool({
             variant="outlined"
             onClick={handleClearProfile}
             disabled={coordinates.length === 0 && !isDrawing}
-            sx={{ flex: 1, minWidth: '120px' }}
+            sx={{ flex: 1, minWidth: "120px" }}
           >
             Clear
           </Button>
@@ -499,26 +506,28 @@ export default function ProfileTool({
 
         {isDrawing && (
           <Alert severity="info" sx={{ mb: 2 }}>
-            {profileType === 'line' && 'Click two points on the image to define a line.'}
-            {profileType === 'polyline' && 'Click multiple points on the image. Click "Extract Profile" when done.'}
-            {profileType === 'point' && `Click a point on the image to define the center (radius: ${radius} arcsec).`}
+            {profileType === "line" && "Click two points on the image to define a line."}
+            {profileType === "polyline" &&
+              'Click multiple points on the image. Click "Extract Profile" when done.'}
+            {profileType === "point" &&
+              `Click a point on the image to define the center (radius: ${radius} arcsec).`}
           </Alert>
         )}
 
         {coordinates.length > 0 && (
           <Alert severity="info" sx={{ mb: 2 }}>
-            {coordinates.length} coordinate{coordinates.length !== 1 ? 's' : ''} defined
+            {coordinates.length} coordinate{coordinates.length !== 1 ? "s" : ""} defined
           </Alert>
         )}
 
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
-            Error extracting profile: {error instanceof Error ? error.message : 'Unknown error'}
+            Error extracting profile: {error instanceof Error ? error.message : "Unknown error"}
           </Alert>
         )}
 
         {isLoading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
             <CircularProgress size={24} />
           </Box>
         )}
@@ -526,12 +535,8 @@ export default function ProfileTool({
 
       {profileData && (
         <Box sx={{ mt: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mb: 1 }}>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={handleExportProfile}
-            >
+          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mb: 1 }}>
+            <Button variant="outlined" size="small" onClick={handleExportProfile}>
               Export CSV
             </Button>
           </Box>
@@ -540,9 +545,7 @@ export default function ProfileTool({
       )}
 
       {!imageId && (
-        <Alert severity="warning">
-          Please select an image to extract profiles from.
-        </Alert>
+        <Alert severity="warning">Please select an image to extract profiles from.</Alert>
       )}
 
       {/* Radius Dialog for Point Profile */}
@@ -568,4 +571,3 @@ export default function ProfileTool({
     </Paper>
   );
 }
-

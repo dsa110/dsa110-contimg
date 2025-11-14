@@ -1,6 +1,6 @@
 /**
  * CASAnalysisPlugin Unit Tests - OPTIMIZED VERSION
- * 
+ *
  * Tests:
  * 1. Component rendering and initialization
  * 2. Task selection and execution
@@ -11,11 +11,11 @@
  * 7. Export functionality
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, cleanup } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import '@testing-library/jest-dom';
-import CASAnalysisPlugin from './CASAnalysisPlugin';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, waitFor, cleanup } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import "@testing-library/jest-dom";
+import CASAnalysisPlugin from "./CASAnalysisPlugin";
 
 declare global {
   interface Window {
@@ -32,12 +32,12 @@ const { mockApiClient } = vi.hoisted(() => {
   };
 });
 
-vi.mock('../../../api/client', () => ({
+vi.mock("../../../api/client", () => ({
   apiClient: mockApiClient,
 }));
 
 // Mock logger
-vi.mock('../../../utils/logger', () => ({
+vi.mock("../../../utils/logger", () => ({
   logger: {
     debug: vi.fn(),
     warn: vi.fn(),
@@ -46,11 +46,11 @@ vi.mock('../../../utils/logger', () => ({
 }));
 
 // Mock ContourOverlay
-vi.mock('./ContourOverlay', () => ({
+vi.mock("./ContourOverlay", () => ({
   default: () => null,
 }));
 
-describe('CASAnalysisPlugin', () => {
+describe("CASAnalysisPlugin", () => {
   let mockJS9: any;
   let mockDisplay: any;
   let mockImage: any;
@@ -61,31 +61,31 @@ describe('CASAnalysisPlugin', () => {
     // Tests that need fake timers can enable them individually
 
     mockImage = {
-      id: 'test-image-1',
-      file: '/test/image.fits',
+      id: "test-image-1",
+      file: "/test/image.fits",
     };
 
     mockDisplay = {
-      id: 'skyViewDisplay',
-      display: 'skyViewDisplay',
-      divID: 'skyViewDisplay',
+      id: "skyViewDisplay",
+      display: "skyViewDisplay",
+      divID: "skyViewDisplay",
       im: mockImage,
     };
 
     mockJS9 = {
       displays: [mockDisplay],
-      GetImageData: vi.fn(() => ({ file: '/test/image.fits' })),
-      GetFITSheader: vi.fn(() => ({ FILENAME: '/test/image.fits' })),
+      GetImageData: vi.fn(() => ({ file: "/test/image.fits" })),
+      GetFITSheader: vi.fn(() => ({ FILENAME: "/test/image.fits" })),
       GetRegions: vi.fn(() => []),
       AddAnalysis: vi.fn(),
       Load: vi.fn(),
     };
 
     (window as any).JS9 = mockJS9;
-    
+
     // Ensure document.body exists for rendering
     if (!document.body) {
-      document.body = document.createElement('body');
+      document.body = document.createElement("body");
     }
   });
 
@@ -94,51 +94,51 @@ describe('CASAnalysisPlugin', () => {
     vi.useRealTimers();
     vi.clearAllMocks();
     delete (window as any).JS9;
-    
+
     // Ensure document.body is restored
     if (!document.body) {
-      document.body = document.createElement('body');
+      document.body = document.createElement("body");
     }
   });
 
-  describe('Component Rendering', () => {
-    it('should render without crashing', () => {
+  describe("Component Rendering", () => {
+    it("should render without crashing", () => {
       render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath="/test/image.fits" />);
       expect(screen.getByLabelText(/CASA Task/i)).toBeInTheDocument();
     });
 
-    it('should display all task options', async () => {
+    it("should display all task options", async () => {
       const user = userEvent.setup();
       render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath="/test/image.fits" />);
-      
+
       const select = screen.getByLabelText(/CASA Task/i);
       await user.click(select);
 
       // Use getAllByText and check first element since Select shows selected value + menu items
-      const imageStats = screen.getAllByText('Image Statistics');
+      const imageStats = screen.getAllByText("Image Statistics");
       expect(imageStats.length).toBeGreaterThan(0);
-      expect(screen.getByText('Source Fitting')).toBeInTheDocument();
-      expect(screen.getByText('Contour Generation')).toBeInTheDocument();
-      expect(screen.getByText('Spectral Flux')).toBeInTheDocument();
-      expect(screen.getByText('Pixel Extraction')).toBeInTheDocument();
-      expect(screen.getByText('Image Header')).toBeInTheDocument();
-      expect(screen.getByText('Image Math')).toBeInTheDocument();
+      expect(screen.getByText("Source Fitting")).toBeInTheDocument();
+      expect(screen.getByText("Contour Generation")).toBeInTheDocument();
+      expect(screen.getByText("Spectral Flux")).toBeInTheDocument();
+      expect(screen.getByText("Pixel Extraction")).toBeInTheDocument();
+      expect(screen.getByText("Image Header")).toBeInTheDocument();
+      expect(screen.getByText("Image Math")).toBeInTheDocument();
     });
 
-    it('should disable run button when no image path', () => {
+    it("should disable run button when no image path", () => {
       render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath={null} />);
-      
-      const button = screen.getByText('Run Analysis');
+
+      const button = screen.getByText("Run Analysis");
       expect(button).toBeDisabled();
     });
   });
 
-  describe('Task Execution', () => {
-    it('should execute analysis when run button clicked', async () => {
+  describe("Task Execution", () => {
+    it("should execute analysis when run button clicked", async () => {
       const mockResponse = {
         data: {
           success: true,
-          task: 'imstat',
+          task: "imstat",
           result: { DATA: { mean: 0.001, std: 0.0005 } },
           execution_time_sec: 0.234,
         },
@@ -147,29 +147,29 @@ describe('CASAnalysisPlugin', () => {
       mockApiClient.post.mockResolvedValue(mockResponse);
 
       render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath="/test/image.fits" />);
-      
+
       const user = userEvent.setup();
-      const button = screen.getByText('Run Analysis');
+      const button = screen.getByText("Run Analysis");
       await user.click(button);
 
       await waitFor(() => {
         expect(mockApiClient.post).toHaveBeenCalledWith(
-          '/api/visualization/js9/analysis',
+          "/api/visualization/js9/analysis",
           expect.objectContaining({
-            task: 'imstat',
-            image_path: '/test/image.fits',
+            task: "imstat",
+            image_path: "/test/image.fits",
           })
         );
       });
     });
 
-    it('should handle API errors gracefully', async () => {
-      mockApiClient.post.mockRejectedValue(new Error('API Error'));
+    it("should handle API errors gracefully", async () => {
+      mockApiClient.post.mockRejectedValue(new Error("API Error"));
 
       render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath="/test/image.fits" />);
-      
+
       const user = userEvent.setup();
-      const button = screen.getByText('Run Analysis');
+      const button = screen.getByText("Run Analysis");
       await user.click(button);
 
       await waitFor(() => {
@@ -179,7 +179,7 @@ describe('CASAnalysisPlugin', () => {
       });
     });
 
-    it('should show loading state during execution', async () => {
+    it("should show loading state during execution", async () => {
       let resolvePromise: (value: any) => void;
       const promise = new Promise((resolve) => {
         resolvePromise = resolve;
@@ -188,9 +188,9 @@ describe('CASAnalysisPlugin', () => {
       mockApiClient.post.mockReturnValue(promise);
 
       render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath="/test/image.fits" />);
-      
+
       const user = userEvent.setup();
-      const button = screen.getByText('Run Analysis');
+      const button = screen.getByText("Run Analysis");
       await user.click(button);
 
       // Loading message may appear multiple times - use getAllByText
@@ -200,7 +200,7 @@ describe('CASAnalysisPlugin', () => {
       resolvePromise!({
         data: {
           success: true,
-          task: 'imstat',
+          task: "imstat",
           result: {},
         },
       });
@@ -211,11 +211,11 @@ describe('CASAnalysisPlugin', () => {
     });
   });
 
-  describe('Region Handling', () => {
-    it('should detect region from JS9', () => {
+  describe("Region Handling", () => {
+    it("should detect region from JS9", () => {
       mockJS9.GetRegions.mockReturnValue([
         {
-          shape: 'circle',
+          shape: "circle",
           x: 100,
           y: 200,
           r: 50,
@@ -228,9 +228,9 @@ describe('CASAnalysisPlugin', () => {
       expect(mockJS9.GetRegions).toHaveBeenCalled();
     });
 
-    it('should toggle region usage', async () => {
+    it("should toggle region usage", async () => {
       render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath="/test/image.fits" />);
-      
+
       const user = userEvent.setup();
       const switchElement = screen.getByLabelText(/Use Region/i);
       expect(switchElement).toBeChecked(); // Default is true
@@ -239,10 +239,10 @@ describe('CASAnalysisPlugin', () => {
       expect(switchElement).not.toBeChecked();
     });
 
-    it('should include region in API call when useRegion is enabled', async () => {
+    it("should include region in API call when useRegion is enabled", async () => {
       mockJS9.GetRegions.mockReturnValue([
         {
-          shape: 'circle',
+          shape: "circle",
           x: 100,
           y: 200,
           r: 50,
@@ -250,26 +250,29 @@ describe('CASAnalysisPlugin', () => {
       ]);
 
       mockApiClient.post.mockResolvedValue({
-        data: { success: true, task: 'imstat', result: {} },
+        data: { success: true, task: "imstat", result: {} },
       });
 
       render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath="/test/image.fits" />);
-      
+
       // Wait for region to be detected (component uses polling)
-      await waitFor(() => {
-        expect(mockJS9.GetRegions).toHaveBeenCalled();
-      }, { timeout: 2000 });
+      await waitFor(
+        () => {
+          expect(mockJS9.GetRegions).toHaveBeenCalled();
+        },
+        { timeout: 2000 }
+      );
 
       const user = userEvent.setup();
-      const button = screen.getByText('Run Analysis');
+      const button = screen.getByText("Run Analysis");
       await user.click(button);
 
       await waitFor(() => {
         expect(mockApiClient.post).toHaveBeenCalledWith(
-          '/api/visualization/js9/analysis',
+          "/api/visualization/js9/analysis",
           expect.objectContaining({
             region: expect.objectContaining({
-              shape: 'circle',
+              shape: "circle",
               x: 100,
               y: 200,
               r: 50,
@@ -280,10 +283,10 @@ describe('CASAnalysisPlugin', () => {
     });
   });
 
-  describe('Batch Mode', () => {
-    it('should enable batch mode toggle', async () => {
+  describe("Batch Mode", () => {
+    it("should enable batch mode toggle", async () => {
       render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath="/test/image.fits" />);
-      
+
       const batchSwitch = screen.getByLabelText(/Batch Mode/i);
       expect(batchSwitch).not.toBeChecked();
 
@@ -291,14 +294,14 @@ describe('CASAnalysisPlugin', () => {
       expect(batchSwitch).toBeChecked();
     });
 
-    it('should detect multiple regions in batch mode', async () => {
+    it("should detect multiple regions in batch mode", async () => {
       mockJS9.GetRegions.mockReturnValue([
-        { shape: 'circle', x: 100, y: 100, r: 20 },
-        { shape: 'box', x: 200, y: 200, width: 30, height: 30 },
+        { shape: "circle", x: 100, y: 100, r: 20 },
+        { shape: "box", x: 200, y: 200, width: 30, height: 30 },
       ]);
 
       render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath="/test/image.fits" />);
-      
+
       const user = userEvent.setup();
       const batchSwitch = screen.getByLabelText(/Batch Mode/i);
       await user.click(batchSwitch);
@@ -308,23 +311,23 @@ describe('CASAnalysisPlugin', () => {
       });
     });
 
-    it('should execute batch analysis', async () => {
+    it("should execute batch analysis", async () => {
       mockJS9.GetRegions.mockReturnValue([
-        { shape: 'circle', x: 100, y: 100, r: 20 },
-        { shape: 'circle', x: 200, y: 200, r: 30 },
+        { shape: "circle", x: 100, y: 100, r: 20 },
+        { shape: "circle", x: 200, y: 200, r: 30 },
       ]);
 
       mockApiClient.post.mockResolvedValue({
         data: {
           success: true,
-          task: 'imstat',
+          task: "imstat",
           result: {},
           execution_time_sec: 0.1,
         },
       });
 
       render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath="/test/image.fits" />);
-      
+
       const user = userEvent.setup();
       const batchSwitch = screen.getByLabelText(/Batch Mode/i);
       await user.click(batchSwitch);
@@ -344,12 +347,12 @@ describe('CASAnalysisPlugin', () => {
     });
   });
 
-  describe('Contour Overlay', () => {
-    it('should show contour toggle after imview task', async () => {
+  describe("Contour Overlay", () => {
+    it("should show contour toggle after imview task", async () => {
       mockApiClient.post.mockResolvedValue({
         data: {
           success: true,
-          task: 'imview',
+          task: "imview",
           result: {
             contour_paths: [{ level: 0.1, paths: [] }],
           },
@@ -357,14 +360,14 @@ describe('CASAnalysisPlugin', () => {
       });
 
       render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath="/test/image.fits" />);
-      
+
       const user = userEvent.setup();
       // Select imview task
       const select = screen.getByLabelText(/CASA Task/i);
       await user.click(select);
-      await user.click(screen.getByText('Contour Generation'));
+      await user.click(screen.getByText("Contour Generation"));
 
-      const button = screen.getByText('Run Analysis');
+      const button = screen.getByText("Run Analysis");
       await user.click(button);
 
       await waitFor(() => {
@@ -373,18 +376,18 @@ describe('CASAnalysisPlugin', () => {
     });
   });
 
-  describe('Export Functionality', () => {
-    it('should export results as JSON', async () => {
+  describe("Export Functionality", () => {
+    it("should export results as JSON", async () => {
       const mockResult = {
         success: true,
-        task: 'imstat',
+        task: "imstat",
         result: { DATA: { mean: 0.001 } },
       };
 
       mockApiClient.post.mockResolvedValue({ data: mockResult });
 
       // Mock URL.createObjectURL and document.createElement
-      const mockCreateObjectURL = vi.fn(() => 'blob:url');
+      const mockCreateObjectURL = vi.fn(() => "blob:url");
       const mockRevokeObjectURL = vi.fn();
       const mockClick = vi.fn();
       const mockRemove = vi.fn();
@@ -393,8 +396,8 @@ describe('CASAnalysisPlugin', () => {
       global.URL.revokeObjectURL = mockRevokeObjectURL;
 
       const mockLink = {
-        href: '',
-        download: '',
+        href: "",
+        download: "",
         click: mockClick,
         remove: mockRemove,
       };
@@ -402,54 +405,54 @@ describe('CASAnalysisPlugin', () => {
       // Mock URL.createObjectURL and revokeObjectURL
       global.URL.createObjectURL = mockCreateObjectURL;
       global.URL.revokeObjectURL = mockRevokeObjectURL;
-      
+
       // Create a real anchor element and mock its methods
-      const realAnchor = document.createElement('a');
-      realAnchor.href = 'blob:url';
-      realAnchor.download = '';
+      const realAnchor = document.createElement("a");
+      realAnchor.href = "blob:url";
+      realAnchor.download = "";
       realAnchor.click = mockClick;
       realAnchor.remove = mockRemove;
-      
+
       // Mock document.createElement to return real anchor for 'a' elements
       const originalCreateElement = document.createElement.bind(document);
-      const createElementSpy = vi.spyOn(document, 'createElement');
+      const createElementSpy = vi.spyOn(document, "createElement");
       createElementSpy.mockImplementation((tagName: string) => {
-        if (tagName === 'a') {
+        if (tagName === "a") {
           return realAnchor;
         }
         return originalCreateElement(tagName);
       });
 
       render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath="/test/image.fits" />);
-      
+
       const user = userEvent.setup();
-      const button = screen.getByText('Run Analysis');
+      const button = screen.getByText("Run Analysis");
       await user.click(button);
 
       await waitFor(() => {
-        const exportButton = screen.getByText('Export JSON');
+        const exportButton = screen.getByText("Export JSON");
         expect(exportButton).toBeInTheDocument();
       });
 
       // Reuse user from above
-      const exportButton = screen.getByText('Export JSON');
+      const exportButton = screen.getByText("Export JSON");
       await user.click(exportButton);
 
       expect(mockCreateObjectURL).toHaveBeenCalled();
       expect(mockClick).toHaveBeenCalled();
-      
+
       // Restore mocks
       createElementSpy.mockRestore();
     });
   });
 
-  describe('JS9 Integration', () => {
-    it('should register analysis tasks with JS9', async () => {
+  describe("JS9 Integration", () => {
+    it("should register analysis tasks with JS9", async () => {
       // Ensure document.body exists
       if (!document.body) {
-        document.body = document.createElement('body');
+        document.body = document.createElement("body");
       }
-      
+
       render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath="/test/image.fits" />);
 
       await waitFor(() => {
@@ -461,12 +464,12 @@ describe('CASAnalysisPlugin', () => {
       expect(calls.length).toBeGreaterThanOrEqual(7);
     });
 
-    it('should handle missing JS9 gracefully', () => {
+    it("should handle missing JS9 gracefully", () => {
       delete (window as any).JS9;
-      
+
       // Ensure document.body exists
       if (!document.body) {
-        document.body = document.createElement('body');
+        document.body = document.createElement("body");
       }
 
       expect(() => {
@@ -475,4 +478,3 @@ describe('CASAnalysisPlugin', () => {
     });
   });
 });
-

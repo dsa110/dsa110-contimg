@@ -1,7 +1,7 @@
 /**
  * QANotebookGenerator Component - Generate QA notebooks
  */
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Box,
   Paper,
@@ -20,15 +20,15 @@ import {
   ListItemText,
   ListItemIcon,
   Divider,
-} from '@mui/material';
+} from "@mui/material";
 import {
   NoteAdd,
   CheckCircle,
   Error as ErrorIcon,
   Download,
   Description,
-} from '@mui/icons-material';
-import { useGenerateNotebook, useRunQA } from '../../api/queries';
+} from "@mui/icons-material";
+import { useGenerateNotebook, useRunQA } from "../../api/queries";
 
 interface QANotebookGeneratorProps {
   defaultMSPath?: string;
@@ -36,14 +36,14 @@ interface QANotebookGeneratorProps {
 }
 
 export default function QANotebookGenerator({
-  defaultMSPath = '',
-  defaultQARoot = '/data/dsa110-contimg/state/qa',
+  defaultMSPath = "",
+  defaultQARoot = "/data/dsa110-contimg/state/qa",
 }: QANotebookGeneratorProps) {
   const [msPath, setMSPath] = useState(defaultMSPath);
   const [qaRoot, setQARoot] = useState(defaultQARoot);
-  const [outputPath, setOutputPath] = useState('');
-  const [title, setTitle] = useState('');
-  const [notebookType, setNotebookType] = useState<'qa' | 'fits' | 'ms'>('qa');
+  const [outputPath, setOutputPath] = useState("");
+  const [title, setTitle] = useState("");
+  const [notebookType, setNotebookType] = useState<"qa" | "fits" | "ms">("qa");
   const [generateNotebook, setGenerateNotebook] = useState(true);
   const [displaySummary, setDisplaySummary] = useState(false);
 
@@ -52,7 +52,7 @@ export default function QANotebookGenerator({
 
   const handleGenerateNotebook = () => {
     if (!outputPath) {
-      alert('Please specify an output path');
+      alert("Please specify an output path");
       return;
     }
 
@@ -67,7 +67,7 @@ export default function QANotebookGenerator({
 
   const handleRunQA = () => {
     if (!msPath) {
-      alert('Please specify an MS path');
+      alert("Please specify an MS path");
       return;
     }
 
@@ -81,7 +81,7 @@ export default function QANotebookGenerator({
 
   const downloadNotebook = (notebookPath: string) => {
     const encodedPath = encodeURIComponent(notebookPath);
-    window.open(`/api/visualization/notebook/${encodedPath}`, '_blank');
+    window.open(`/api/visualization/notebook/${encodedPath}`, "_blank");
   };
 
   const generateResult = generateNotebookMutation.data;
@@ -89,12 +89,12 @@ export default function QANotebookGenerator({
 
   return (
     <Paper sx={{ p: 2 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
         <NoteAdd />
         <Typography variant="h6">QA Notebook Generator</Typography>
       </Box>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <TextField
           label="MS Path"
           value={msPath}
@@ -141,7 +141,7 @@ export default function QANotebookGenerator({
           <Select
             value={notebookType}
             label="Notebook Type"
-            onChange={(e) => setNotebookType(e.target.value as 'qa' | 'fits' | 'ms')}
+            onChange={(e) => setNotebookType(e.target.value as "qa" | "fits" | "ms")}
           >
             <MenuItem value="qa">QA Report</MenuItem>
             <MenuItem value="fits">FITS Viewer</MenuItem>
@@ -154,11 +154,7 @@ export default function QANotebookGenerator({
           onClick={handleGenerateNotebook}
           disabled={generateNotebookMutation.isPending || !outputPath}
           startIcon={
-            generateNotebookMutation.isPending ? (
-              <CircularProgress size={16} />
-            ) : (
-              <NoteAdd />
-            )
+            generateNotebookMutation.isPending ? <CircularProgress size={16} /> : <NoteAdd />
           }
         >
           Generate Notebook
@@ -166,10 +162,10 @@ export default function QANotebookGenerator({
 
         {generateNotebookMutation.isError && (
           <Alert severity="error">
-            Error generating notebook:{' '}
+            Error generating notebook:{" "}
             {generateNotebookMutation.error instanceof Error
               ? generateNotebookMutation.error.message
-              : 'Unknown error'}
+              : "Unknown error"}
           </Alert>
         )}
 
@@ -197,13 +193,13 @@ export default function QANotebookGenerator({
           Run QA and Generate Notebook
         </Typography>
 
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: "flex", gap: 2 }}>
           <FormControl size="small" sx={{ minWidth: 200 }}>
             <InputLabel>Generate Notebook</InputLabel>
             <Select
-              value={generateNotebook ? 'yes' : 'no'}
+              value={generateNotebook ? "yes" : "no"}
               label="Generate Notebook"
-              onChange={(e) => setGenerateNotebook(e.target.value === 'yes')}
+              onChange={(e) => setGenerateNotebook(e.target.value === "yes")}
             >
               <MenuItem value="yes">Yes</MenuItem>
               <MenuItem value="no">No</MenuItem>
@@ -213,9 +209,9 @@ export default function QANotebookGenerator({
           <FormControl size="small" sx={{ minWidth: 200 }}>
             <InputLabel>Display Summary</InputLabel>
             <Select
-              value={displaySummary ? 'yes' : 'no'}
+              value={displaySummary ? "yes" : "no"}
               label="Display Summary"
-              onChange={(e) => setDisplaySummary(e.target.value === 'yes')}
+              onChange={(e) => setDisplaySummary(e.target.value === "yes")}
             >
               <MenuItem value="yes">Yes</MenuItem>
               <MenuItem value="no">No</MenuItem>
@@ -228,27 +224,23 @@ export default function QANotebookGenerator({
           color="secondary"
           onClick={handleRunQA}
           disabled={runQAMutation.isPending || !msPath}
-          startIcon={
-            runQAMutation.isPending ? <CircularProgress size={16} /> : <Description />
-          }
+          startIcon={runQAMutation.isPending ? <CircularProgress size={16} /> : <Description />}
         >
           Run QA
         </Button>
 
         {runQAMutation.isError && (
           <Alert severity="error">
-            Error running QA:{' '}
-            {runQAMutation.error instanceof Error
-              ? runQAMutation.error.message
-              : 'Unknown error'}
+            Error running QA:{" "}
+            {runQAMutation.error instanceof Error ? runQAMutation.error.message : "Unknown error"}
           </Alert>
         )}
 
         {qaResult && (
-          <Alert severity={qaResult.success ? 'success' : 'warning'}>
+          <Alert severity={qaResult.success ? "success" : "warning"}>
             <Box>
               <Typography variant="body2" sx={{ mb: 1 }}>
-                <strong>QA Run {qaResult.success ? 'Completed' : 'Failed'}</strong>
+                <strong>QA Run {qaResult.success ? "Completed" : "Failed"}</strong>
               </Typography>
               {qaResult.reasons && qaResult.reasons.length > 0 && (
                 <Box sx={{ mb: 1 }}>
@@ -273,17 +265,17 @@ export default function QANotebookGenerator({
               )}
               {qaResult.artifacts && qaResult.artifacts.length > 0 && (
                 <Box>
-                  <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+                  <Typography variant="caption" sx={{ display: "block", mb: 0.5 }}>
                     <strong>Artifacts:</strong>
                   </Typography>
                   {qaResult.artifacts.map((artifact, idx) => (
                     <Chip
                       key={idx}
-                      label={artifact.split('/').pop()}
+                      label={artifact.split("/").pop()}
                       size="small"
                       icon={<Description />}
                       onClick={() => downloadNotebook(artifact)}
-                      sx={{ mr: 0.5, mb: 0.5, cursor: 'pointer' }}
+                      sx={{ mr: 0.5, mb: 0.5, cursor: "pointer" }}
                     />
                   ))}
                 </Box>
@@ -295,4 +287,3 @@ export default function QANotebookGenerator({
     </Paper>
   );
 }
-

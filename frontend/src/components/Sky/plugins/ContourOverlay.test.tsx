@@ -1,6 +1,6 @@
 /**
  * ContourOverlay Component Unit Tests
- * 
+ *
  * Tests:
  * 1. Component renders without errors
  * 2. Overlay creation when contour data provided
@@ -9,9 +9,9 @@
  * 5. Visibility toggle works
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render } from '@testing-library/react';
-import ContourOverlay from './ContourOverlay';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render } from "@testing-library/react";
+import ContourOverlay from "./ContourOverlay";
 
 declare global {
   interface Window {
@@ -19,7 +19,7 @@ declare global {
   }
 }
 
-describe('ContourOverlay', () => {
+describe("ContourOverlay", () => {
   let mockJS9: any;
   let mockDisplay: any;
   let mockImage: any;
@@ -49,13 +49,13 @@ describe('ContourOverlay', () => {
     overlayRefs = [];
 
     mockImage = {
-      id: 'test-image-1',
+      id: "test-image-1",
     };
 
     mockDisplay = {
-      id: 'testDisplay',
-      display: 'testDisplay',
-      divID: 'testDisplay',
+      id: "testDisplay",
+      display: "testDisplay",
+      divID: "testDisplay",
       im: mockImage,
     };
 
@@ -78,28 +78,16 @@ describe('ContourOverlay', () => {
     delete (window as any).JS9;
   });
 
-  it('should render without errors', () => {
+  it("should render without errors", () => {
     const contourData = createMockContourData();
     expect(() => {
-      render(
-        <ContourOverlay
-          displayId="testDisplay"
-          contourData={contourData}
-          visible={true}
-        />
-      );
+      render(<ContourOverlay displayId="testDisplay" contourData={contourData} visible={true} />);
     }).not.toThrow();
   });
 
-  it('should create overlays when visible and contour data provided', () => {
+  it("should create overlays when visible and contour data provided", () => {
     const contourData = createMockContourData();
-    render(
-      <ContourOverlay
-        displayId="testDisplay"
-        contourData={contourData}
-        visible={true}
-      />
-    );
+    render(<ContourOverlay displayId="testDisplay" contourData={contourData} visible={true} />);
 
     // Should create line segments for each path
     // Level 0.1: 2 paths with 4 points each = 8 line segments (3 per path)
@@ -109,39 +97,23 @@ describe('ContourOverlay', () => {
     expect(mockJS9.AddOverlay.mock.calls.length).toBeGreaterThan(0);
   });
 
-  it('should not create overlays when not visible', () => {
+  it("should not create overlays when not visible", () => {
     const contourData = createMockContourData();
-    render(
-      <ContourOverlay
-        displayId="testDisplay"
-        contourData={contourData}
-        visible={false}
-      />
-    );
+    render(<ContourOverlay displayId="testDisplay" contourData={contourData} visible={false} />);
 
     expect(mockJS9.AddOverlay).not.toHaveBeenCalled();
   });
 
-  it('should not create overlays when contour data is null', () => {
-    render(
-      <ContourOverlay
-        displayId="testDisplay"
-        contourData={null}
-        visible={true}
-      />
-    );
+  it("should not create overlays when contour data is null", () => {
+    render(<ContourOverlay displayId="testDisplay" contourData={null} visible={true} />);
 
     expect(mockJS9.AddOverlay).not.toHaveBeenCalled();
   });
 
-  it('should cleanup overlays on unmount', () => {
+  it("should cleanup overlays on unmount", () => {
     const contourData = createMockContourData();
     const { unmount } = render(
-      <ContourOverlay
-        displayId="testDisplay"
-        contourData={contourData}
-        visible={true}
-      />
+      <ContourOverlay displayId="testDisplay" contourData={contourData} visible={true} />
     );
 
     const overlayCount = mockJS9.AddOverlay.mock.calls.length;
@@ -155,7 +127,7 @@ describe('ContourOverlay', () => {
     });
   });
 
-  it('should handle empty contour paths gracefully', () => {
+  it("should handle empty contour paths gracefully", () => {
     const contourData = {
       contour_levels: [0.1],
       contour_paths: [],
@@ -164,34 +136,22 @@ describe('ContourOverlay', () => {
     };
 
     expect(() => {
-      render(
-        <ContourOverlay
-          displayId="testDisplay"
-          contourData={contourData}
-          visible={true}
-        />
-      );
+      render(<ContourOverlay displayId="testDisplay" contourData={contourData} visible={true} />);
     }).not.toThrow();
 
     expect(mockJS9.AddOverlay).not.toHaveBeenCalled();
   });
 
-  it('should handle missing JS9 gracefully', () => {
+  it("should handle missing JS9 gracefully", () => {
     delete (window as any).JS9;
     const contourData = createMockContourData();
 
     expect(() => {
-      render(
-        <ContourOverlay
-          displayId="testDisplay"
-          contourData={contourData}
-          visible={true}
-        />
-      );
+      render(<ContourOverlay displayId="testDisplay" contourData={contourData} visible={true} />);
     }).not.toThrow();
   });
 
-  it('should use custom color and line width', () => {
+  it("should use custom color and line width", () => {
     const contourData = createMockContourData();
     render(
       <ContourOverlay
@@ -207,10 +167,9 @@ describe('ContourOverlay', () => {
     const calls = mockJS9.AddOverlay.mock.calls;
     if (calls.length > 0) {
       const firstCall = calls[0][1];
-      expect(firstCall.color).toBe('red');
+      expect(firstCall.color).toBe("red");
       expect(firstCall.width).toBe(2);
       expect(firstCall.opacity).toBe(0.5);
     }
   });
 });
-

@@ -52,6 +52,7 @@ All requests and responses use `application/json`.
 ### Response Format
 
 **Success Response:**
+
 ```json
 {
   "data": { ... },
@@ -60,6 +61,7 @@ All requests and responses use `application/json`.
 ```
 
 **Error Response:**
+
 ```json
 {
   "error": "Error message",
@@ -72,11 +74,12 @@ All requests and responses use `application/json`.
 
 ## Core Endpoints
 
-### GET /status
+### GET /api/status
 
 Get pipeline queue statistics and recent observations.
 
 **Response:**
+
 ```json
 {
   "queue": {
@@ -107,6 +110,7 @@ Get pipeline queue statistics and recent observations.
 ```
 
 **Fields:**
+
 - `queue`: Current processing queue statistics
 - `calibration_sets`: Active calibration groups
 - `recent_groups`: Last 20 observation groups with their processing state
@@ -120,6 +124,7 @@ Get pipeline queue statistics and recent observations.
 Get system health metrics (CPU, memory, disk, load).
 
 **Response:**
+
 ```json
 {
   "cpu_percent": 45.2,
@@ -135,6 +140,7 @@ Get system health metrics (CPU, memory, disk, load).
 ```
 
 **Fields:**
+
 - `cpu_percent`: CPU usage percentage (0-100)
 - `mem_percent`: Memory usage percentage (0-100)
 - `disk_*`: Disk space in bytes
@@ -150,9 +156,11 @@ Get system health metrics (CPU, memory, disk, load).
 Get historical system metrics.
 
 **Query Parameters:**
+
 - `limit` (optional): Number of historical points (default: 60)
 
 **Response:**
+
 ```json
 [
   {
@@ -176,6 +184,7 @@ Get historical system metrics.
 Health check endpoint for monitoring and load balancers.
 
 **Response:**
+
 ```json
 {
   "status": "healthy",
@@ -202,10 +211,12 @@ Health check endpoint for monitoring and load balancers.
 Get extreme scattering event (ESE) candidate sources above 5σ threshold.
 
 **Query Parameters:**
+
 - `limit` (optional): Maximum number of results (default: 100)
 - `status` (optional): Filter by status (`active`, `resolved`, `false_positive`)
 
 **Response:**
+
 ```json
 {
   "candidates": [
@@ -228,6 +239,7 @@ Get extreme scattering event (ESE) candidate sources above 5σ threshold.
 ```
 
 **Fields:**
+
 - `source_id`: NVSS identifier (or other survey ID)
 - `ra_deg`, `dec_deg`: J2000 coordinates in degrees
 - `first_detection_at`: When variability was first detected
@@ -247,9 +259,11 @@ Get extreme scattering event (ESE) candidate sources above 5σ threshold.
 Get historical alert log for ESE candidates and system warnings.
 
 **Query Parameters:**
+
 - `limit` (optional): Maximum number of results (default: 50)
 
 **Response:**
+
 ```json
 [
   {
@@ -305,6 +319,7 @@ Query external catalogs for an ESE candidate source.
 Query mosaics by time range.
 
 **Request Body:**
+
 ```json
 {
   "start_time": "2025-10-24T13:00:00Z",
@@ -313,6 +328,7 @@ Query mosaics by time range.
 ```
 
 **Response:**
+
 ```json
 {
   "mosaics": [
@@ -338,6 +354,7 @@ Query mosaics by time range.
 Generate a new mosaic from time range.
 
 **Request Body:**
+
 ```json
 {
   "start_time": "2025-10-24T15:00:00Z",
@@ -347,6 +364,7 @@ Generate a new mosaic from time range.
 ```
 
 **Response:**
+
 ```json
 {
   "status": "not_implemented",
@@ -355,7 +373,8 @@ Generate a new mosaic from time range.
 }
 ```
 
-**Note:** Currently returns "not_implemented" - use CLI tools for mosaic generation.
+**Note:** Currently returns "not_implemented" - use CLI tools for mosaic
+generation.
 
 ---
 
@@ -364,6 +383,7 @@ Generate a new mosaic from time range.
 Get detailed information about a specific mosaic.
 
 **Response:**
+
 ```json
 {
   "id": 15,
@@ -394,6 +414,7 @@ Download FITS file for a mosaic.
 Search for sources with filtering and sorting.
 
 **Request Body:**
+
 ```json
 {
   "query": "NVSS J123456",
@@ -413,6 +434,7 @@ Search for sources with filtering and sorting.
 ```
 
 **Response:**
+
 ```json
 {
   "sources": [
@@ -441,6 +463,7 @@ Search for sources with filtering and sorting.
 Get detailed information about a specific source.
 
 **Response:**
+
 ```json
 {
   "id": "NVSS J123456.7+420312",
@@ -459,7 +482,7 @@ Get detailed information about a specific source.
     "v": 0.25,
     "eta": 0.12,
     "vs_mean": 0.15,
-    "m_mean": 0.10,
+    "m_mean": 0.1,
     "n_epochs": 142
   }
 }
@@ -472,13 +495,14 @@ Get detailed information about a specific source.
 Get variability metrics for a source.
 
 **Response:**
+
 ```json
 {
   "source_id": "NVSS J123456.7+420312",
   "v": 0.25,
   "eta": 0.12,
   "vs_mean": 0.15,
-  "m_mean": 0.10,
+  "m_mean": 0.1,
   "n_epochs": 142
 }
 ```
@@ -490,6 +514,7 @@ Get variability metrics for a source.
 Get light curve data for a source.
 
 **Response:**
+
 ```json
 {
   "source_id": "NVSS J123456.7+420312",
@@ -515,10 +540,12 @@ Get light curve data for a source.
 Get paginated detections for a source.
 
 **Query Parameters:**
+
 - `page` (optional): Page number (default: 1)
 - `page_size` (optional): Items per page (default: 25, max: 100)
 
 **Response:**
+
 ```json
 {
   "items": [
@@ -552,10 +579,12 @@ Get paginated detections for a source.
 Get postage stamp cutouts for a source.
 
 **Query Parameters:**
+
 - `size_arcsec` (optional): Cutout size in arcseconds (default: 60.0)
 - `max_stamps` (optional): Maximum number of stamps (default: 20)
 
 **Response:**
+
 ```json
 {
   "source_id": "NVSS J123456.7+420312",
@@ -576,11 +605,13 @@ Get postage stamp cutouts for a source.
 Query external catalogs (SIMBAD, NED, Gaia) for a source.
 
 **Query Parameters:**
+
 - `radius_arcsec` (optional): Search radius (default: 5.0)
 - `catalogs` (optional): Comma-separated list (simbad,ned,gaia) or "all"
 - `timeout` (optional): Query timeout in seconds (default: 30.0)
 
 **Response:**
+
 ```json
 {
   "source_id": "NVSS J123456.7+420312",
@@ -611,6 +642,7 @@ Query external catalogs (SIMBAD, NED, Gaia) for a source.
 List available images with filtering.
 
 **Query Parameters:**
+
 - `limit` (optional): Maximum results (default: 100)
 - `offset` (optional): Pagination offset (default: 0)
 - `ms_path` (optional): Filter by MS path pattern
@@ -624,6 +656,7 @@ List available images with filtering.
 - `has_calibrator` (optional): Filter by calibrator detection (experimental)
 
 **Response:**
+
 ```json
 {
   "items": [
@@ -651,6 +684,7 @@ List available images with filtering.
 Get detailed information about a specific image.
 
 **Response:**
+
 ```json
 {
   "id": 123,
@@ -686,6 +720,7 @@ Download FITS file for an image.
 Get photometry measurements for an image.
 
 **Response:**
+
 ```json
 {
   "items": [
@@ -710,8 +745,10 @@ Get photometry measurements for an image.
 Get image profile (1D slice) along specified axis.
 
 **Query Parameters:**
+
 - `axis` (optional): "x" or "y" (default: "x")
-- `position` (optional): Pixel position along perpendicular axis (default: center)
+- `position` (optional): Pixel position along perpendicular axis (default:
+  center)
 
 **Response:** JSON array of pixel values
 
@@ -722,6 +759,7 @@ Get image profile (1D slice) along specified axis.
 Fit a Gaussian to a source in an image.
 
 **Request Body:**
+
 ```json
 {
   "ra_deg": 188.73625,
@@ -731,6 +769,7 @@ Fit a Gaussian to a source in an image.
 ```
 
 **Response:**
+
 ```json
 {
   "fitted": true,
@@ -752,9 +791,11 @@ Fit a Gaussian to a source in an image.
 List regions for an image.
 
 **Query Parameters:**
+
 - `image_path` (optional): Filter by image path
 
 **Response:**
+
 ```json
 {
   "regions": [
@@ -778,6 +819,7 @@ List regions for an image.
 Create a new region.
 
 **Request Body:**
+
 ```json
 {
   "image_path": "/stage/.../image.fits",
@@ -789,6 +831,7 @@ Create a new region.
 ```
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -803,6 +846,7 @@ Create a new region.
 Get a specific region by ID.
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -829,6 +873,7 @@ Update an existing region.
 Delete a region.
 
 **Response:**
+
 ```json
 {
   "message": "Region deleted successfully"
@@ -842,6 +887,7 @@ Delete a region.
 Get statistics for pixels within a region.
 
 **Response:**
+
 ```json
 {
   "mean": 0.0012,
@@ -862,10 +908,12 @@ Get statistics for pixels within a region.
 Get telescope pointing history.
 
 **Query Parameters:**
+
 - `start_mjd` (required): Start time in MJD
 - `end_mjd` (required): End time in MJD
 
 **Response:**
+
 ```json
 {
   "items": [
@@ -886,10 +934,12 @@ Get telescope pointing history.
 Get calibrator matches for target observations.
 
 **Query Parameters:**
+
 - `limit` (optional): Maximum results (default: 50)
 - `matched_only` (optional): Return only matched calibrators (default: false)
 
 **Response:**
+
 ```json
 {
   "matches": [
@@ -910,9 +960,11 @@ Get calibrator matches for target observations.
 Get observation timeline with gap detection.
 
 **Query Parameters:**
+
 - `gap_threshold_hours` (optional): Gap threshold (default: 1.0)
 
 **Response:**
+
 ```json
 {
   "observations": [
@@ -950,6 +1002,7 @@ Get observation timeline as PNG plot.
 Get detailed information about an observation group.
 
 **Response:**
+
 ```json
 {
   "group_id": "2025-10-24T14:00:00",
@@ -969,6 +1022,7 @@ Get detailed information about an observation group.
 Trigger reprocessing of an observation group.
 
 **Response:**
+
 ```json
 {
   "ok": true
@@ -984,6 +1038,7 @@ Trigger reprocessing of an observation group.
 Get streaming service status.
 
 **Response:**
+
 ```json
 {
   "running": true,
@@ -1006,6 +1061,7 @@ Get streaming service status.
 Start the streaming service.
 
 **Response:**
+
 ```json
 {
   "status": "started",
@@ -1021,6 +1077,7 @@ Start the streaming service.
 Stop the streaming service.
 
 **Response:**
+
 ```json
 {
   "status": "stopped",
@@ -1035,6 +1092,7 @@ Stop the streaming service.
 Restart the streaming service.
 
 **Response:**
+
 ```json
 {
   "status": "restarted",
@@ -1050,6 +1108,7 @@ Restart the streaming service.
 Get current streaming service configuration.
 
 **Response:**
+
 ```json
 {
   "input_dir": "/data/incoming",
@@ -1066,6 +1125,7 @@ Get current streaming service configuration.
 Update streaming service configuration.
 
 **Request Body:**
+
 ```json
 {
   "input_dir": "/data/incoming",
@@ -1076,6 +1136,7 @@ Update streaming service configuration.
 ```
 
 **Response:**
+
 ```json
 {
   "status": "updated",
@@ -1092,12 +1153,14 @@ Update streaming service configuration.
 Get list of Measurement Sets with filtering.
 
 **Query Parameters:**
+
 - `stage` (optional): Filter by processing stage
 - `status` (optional): Filter by status
 - `limit` (optional): Maximum results
 - `offset` (optional): Pagination offset
 
 **Response:**
+
 ```json
 {
   "ms_list": [
@@ -1122,6 +1185,7 @@ Get list of Measurement Sets with filtering.
 Create a new pipeline job.
 
 **Request Body:**
+
 ```json
 {
   "job_type": "image",
@@ -1134,6 +1198,7 @@ Create a new pipeline job.
 ```
 
 **Response:**
+
 ```json
 {
   "job_id": "job_20251024_001",
@@ -1149,10 +1214,12 @@ Create a new pipeline job.
 Get list of jobs.
 
 **Query Parameters:**
+
 - `status` (optional): Filter by status
 - `limit` (optional): Maximum results (default: 50)
 
 **Response:**
+
 ```json
 {
   "jobs": [
@@ -1176,6 +1243,7 @@ Get list of jobs.
 Get job details by ID.
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -1204,6 +1272,7 @@ Stream job logs via Server-Sent Events (SSE).
 Create a calibration job.
 
 **Request Body:**
+
 ```json
 {
   "ms_paths": ["/stage/.../ms1"],
@@ -1215,6 +1284,7 @@ Create a calibration job.
 ```
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -1230,6 +1300,7 @@ Create a calibration job.
 Create a calibration application job.
 
 **Request Body:**
+
 ```json
 {
   "ms_paths": ["/stage/.../ms1"],
@@ -1246,6 +1317,7 @@ Create a calibration application job.
 Create an imaging job.
 
 **Request Body:**
+
 ```json
 {
   "ms_paths": ["/stage/.../ms1"],
@@ -1266,6 +1338,7 @@ Create an imaging job.
 Create a UVH5 to MS conversion job.
 
 **Request Body:**
+
 ```json
 {
   "uvh5_paths": ["/data/incoming/file.uvh5"],
@@ -1282,6 +1355,7 @@ Create a UVH5 to MS conversion job.
 Create a workflow job (calibrate → apply → image).
 
 **Request Body:**
+
 ```json
 {
   "ms_paths": ["/stage/.../ms1"],
@@ -1302,6 +1376,7 @@ Create a workflow job (calibrate → apply → image).
 Create a batch calibration job for multiple MS files.
 
 **Request Body:**
+
 ```json
 {
   "ms_paths": ["/stage/.../ms1", "/stage/.../ms2"],
@@ -1310,6 +1385,7 @@ Create a batch calibration job for multiple MS files.
 ```
 
 **Response:**
+
 ```json
 {
   "batch_id": "batch_20251024_001",
@@ -1341,6 +1417,7 @@ Create a batch imaging job.
 Get list of batch jobs.
 
 **Response:**
+
 ```json
 {
   "batches": [
@@ -1363,6 +1440,7 @@ Get list of batch jobs.
 Get batch job details.
 
 **Response:**
+
 ```json
 {
   "batch_id": "batch_20251024_001",
@@ -1381,6 +1459,7 @@ Get batch job details.
 Cancel a batch job.
 
 **Response:**
+
 ```json
 {
   "status": "cancelled",
@@ -1397,10 +1476,12 @@ Cancel a batch job.
 List Measurement Sets with filtering.
 
 **Query Parameters:**
+
 - `search` (optional): Search term for MS path
 - `limit` (optional): Maximum results (default: 50)
 
 **Response:**
+
 ```json
 {
   "ms_list": [
@@ -1423,11 +1504,13 @@ List Measurement Sets with filtering.
 List MS index entries.
 
 **Query Parameters:**
+
 - `stage` (optional): Filter by processing stage
 - `status` (optional): Filter by status
 - `limit` (optional): Maximum results (default: 100)
 
 **Response:**
+
 ```json
 {
   "items": [
@@ -1449,6 +1532,7 @@ List MS index entries.
 Scan filesystem for MS files and register them in the database.
 
 **Request Body:**
+
 ```json
 {
   "search_paths": ["/stage/.../ms"],
@@ -1457,6 +1541,7 @@ Scan filesystem for MS files and register them in the database.
 ```
 
 **Response:**
+
 ```json
 {
   "discovered": 10,
@@ -1472,6 +1557,7 @@ Scan filesystem for MS files and register them in the database.
 Get metadata for an MS file.
 
 **Response:**
+
 ```json
 {
   "path": "/stage/.../ms",
@@ -1493,6 +1579,7 @@ Get metadata for an MS file.
 Get calibrator matches for an MS.
 
 **Response:**
+
 ```json
 {
   "matches": [
@@ -1512,6 +1599,7 @@ Get calibrator matches for an MS.
 Get existing calibration tables for an MS.
 
 **Response:**
+
 ```json
 {
   "caltables": [
@@ -1532,6 +1620,7 @@ Get existing calibration tables for an MS.
 Validate calibration table compatibility with an MS.
 
 **Request Body:**
+
 ```json
 {
   "caltable_path": "/stage/.../cal.K"
@@ -1539,6 +1628,7 @@ Validate calibration table compatibility with an MS.
 ```
 
 **Response:**
+
 ```json
 {
   "compatible": true,
@@ -1556,9 +1646,11 @@ Validate calibration table compatibility with an MS.
 Browse QA directory structure.
 
 **Query Parameters:**
+
 - `path` (optional): Directory path (default: root)
 
 **Response:**
+
 ```json
 {
   "path": "/stage/dsa110-contimg/qa",
@@ -1586,6 +1678,7 @@ Browse QA directory structure.
 Get FITS file information.
 
 **Response:**
+
 ```json
 {
   "path": "/stage/.../image.fits",
@@ -1608,6 +1701,7 @@ Get FITS file information.
 Get CASA table information.
 
 **Response:**
+
 ```json
 {
   "path": "/stage/.../cal.K",
@@ -1630,9 +1724,11 @@ Get CASA table information.
 Get quality assurance metrics for recent observations.
 
 **Query Parameters:**
+
 - `limit` (optional): Number of recent observations (default: 100)
 
 **Response:**
+
 ```json
 {
   "items": [
@@ -1661,6 +1757,7 @@ Serve QA files with path traversal protection.
 Get QA thumbnails.
 
 **Query Parameters:**
+
 - `limit` (optional): Maximum results (default: 100)
 
 **Response:** Same format as `/qa`
@@ -1672,6 +1769,7 @@ Get QA thumbnails.
 Get calibration QA metrics for an MS.
 
 **Response:**
+
 ```json
 {
   "ms_path": "/stage/.../ms",
@@ -1694,6 +1792,7 @@ Get calibration QA metrics for an MS.
 List available bandpass plots for an MS.
 
 **Response:**
+
 ```json
 {
   "plots": [
@@ -1728,6 +1827,7 @@ Get spectral window plot for calibration.
 Get calibration table completeness metrics.
 
 **Response:**
+
 ```json
 {
   "completeness": 0.95,
@@ -1743,6 +1843,7 @@ Get calibration table completeness metrics.
 Get QA metrics for an MS path.
 
 **Response:**
+
 ```json
 {
   "ms_path": "/stage/.../ms",
@@ -1759,6 +1860,7 @@ Get QA metrics for an MS path.
 Generate QA notebook.
 
 **Request Body:**
+
 ```json
 {
   "group_id": "2025-10-24T13:28:03",
@@ -1768,6 +1870,7 @@ Generate QA notebook.
 ```
 
 **Response:**
+
 ```json
 {
   "notebook_path": "/stage/.../qa_notebook.ipynb",
@@ -1784,6 +1887,7 @@ Generate QA notebook.
 List data products with staging/published status.
 
 **Response:**
+
 ```json
 {
   "items": [
@@ -1805,6 +1909,7 @@ List data products with staging/published status.
 Get data product details.
 
 **Response:**
+
 ```json
 {
   "data_id": "2025-10-24T14:00:00",
@@ -1822,6 +1927,7 @@ Get data product details.
 Finalize a data product (move from staging to published).
 
 **Response:**
+
 ```json
 {
   "status": "finalized",
@@ -1836,6 +1942,7 @@ Finalize a data product (move from staging to published).
 Publish a data product.
 
 **Response:**
+
 ```json
 {
   "status": "published",
@@ -1850,6 +1957,7 @@ Publish a data product.
 Enable auto-publish for a data product.
 
 **Response:**
+
 ```json
 {
   "status": "enabled",
@@ -1864,6 +1972,7 @@ Enable auto-publish for a data product.
 Disable auto-publish for a data product.
 
 **Response:**
+
 ```json
 {
   "status": "disabled",
@@ -1878,6 +1987,7 @@ Disable auto-publish for a data product.
 Get auto-publish status for a data product.
 
 **Response:**
+
 ```json
 {
   "auto_publish": true
@@ -1891,6 +2001,7 @@ Get auto-publish status for a data product.
 Get data lineage graph for a data product.
 
 **Response:**
+
 ```json
 {
   "data_id": "2025-10-24T14:00:00",
@@ -1909,9 +2020,11 @@ Get data lineage graph for a data product.
 Get recent products.
 
 **Query Parameters:**
+
 - `limit` (optional): Maximum results (default: 50)
 
 **Response:**
+
 ```json
 {
   "items": [
@@ -1933,12 +2046,14 @@ Get recent products.
 Get catalog sources for overlay on images.
 
 **Query Parameters:**
+
 - `ra` (required): RA center in degrees
 - `dec` (required): Dec center in degrees
 - `radius` (required): Search radius in degrees
 - `catalog` (optional): Catalog type (nvss, vlass, first, all) (default: "all")
 
 **Response:**
+
 ```json
 {
   "sources": [
@@ -1966,9 +2081,11 @@ Get catalog sources for overlay on images.
 List available calibration tables.
 
 **Query Parameters:**
+
 - `cal_dir` (optional): Calibration directory path
 
 **Response:**
+
 ```json
 {
   "caltables": [
@@ -1991,10 +2108,12 @@ List available calibration tables.
 List available UVH5 files for conversion.
 
 **Query Parameters:**
+
 - `input_dir` (optional): Input directory path
 - `limit` (optional): Maximum results (default: 100)
 
 **Response:**
+
 ```json
 {
   "files": [
@@ -2016,11 +2135,13 @@ List available UVH5 files for conversion.
 WebSocket endpoint for real-time status updates.
 
 **Connection:**
+
 ```javascript
-const ws = new WebSocket('ws://localhost:8000/api/ws/status');
+const ws = new WebSocket("ws://localhost:8000/api/ws/status");
 ```
 
 **Message Format:**
+
 ```json
 {
   "type": "status_update",
@@ -2033,6 +2154,7 @@ const ws = new WebSocket('ws://localhost:8000/api/ws/status');
 ```
 
 **Message Types:**
+
 - `status_update` - Pipeline status updates
 - `metrics_update` - System metrics updates
 - `ese_update` - ESE candidate updates
@@ -2046,8 +2168,9 @@ const ws = new WebSocket('ws://localhost:8000/api/ws/status');
 Server-Sent Events endpoint (fallback for WebSocket).
 
 **Connection:**
+
 ```javascript
-const eventSource = new EventSource('/api/sse/status');
+const eventSource = new EventSource("/api/sse/status");
 ```
 
 **Message Format:** Same as WebSocket
@@ -2059,24 +2182,29 @@ const eventSource = new EventSource('/api/sse/status');
 ### Python Functions (`api/data_access.py`)
 
 **Queue Management:**
+
 - `fetch_queue_stats()` - Get queue statistics
 - `fetch_recent_queue_groups()` - Get recent groups
 - `fetch_calibration_sets()` - Get calibration sets
 
 **ESE Detection:**
+
 - `fetch_ese_candidates()` - Get ESE candidates
 - `fetch_alert_history()` - Get alert history
 
 **Source Monitoring:**
+
 - `search_sources()` - Search sources
 - `fetch_source_detail()` - Get source details
 - `fetch_source_timeseries()` - Get flux timeseries
 
 **Mosaics:**
+
 - `query_mosaics()` - Query existing mosaics
 - `create_mosaic_job()` - Create mosaic generation job
 
 **Streaming Service:**
+
 - `get_streaming_status()` - Get service status
 - `start_streaming_service()` - Start service
 - `stop_streaming_service()` - Stop service
@@ -2088,16 +2216,19 @@ const eventSource = new EventSource('/api/sse/status');
 ### Error Classification
 
 **Network Errors:**
+
 - Connection timeout
 - DNS resolution failure
 - Network unreachable
 
 **Server Errors:**
+
 - 500 Internal Server Error
 - 503 Service Unavailable
 - 502 Bad Gateway
 
 **Client Errors:**
+
 - 400 Bad Request
 - 404 Not Found
 - 422 Validation Error
@@ -2124,16 +2255,19 @@ const eventSource = new EventSource('/api/sse/status');
 ### Future Plans
 
 **JWT Tokens:**
+
 - Token-based authentication
 - Role-based access control
 - Token refresh mechanism
 
 **API Keys:**
+
 - Key-based authentication
 - Rate limiting per key
 - Key rotation
 
 **CORS:**
+
 - Configured for allowed origins
 - Credentials support
 - Preflight handling
@@ -2142,12 +2276,18 @@ const eventSource = new EventSource('/api/sse/status');
 
 ## See Also
 
-- [Dashboard Implementation Status](./dashboard_implementation_status.md) - Current implementation status
-- [Dashboard Pages & Features](./dashboard_pages_and_features.md) - Page documentation
-- [JS9 CASA Analysis API](./js9_casa_analysis_api.md) - JS9 CASA analysis endpoint documentation
-- [JS9 CASA Analysis How-To](../how-to/js9_casa_analysis.md) - User guide for JS9 CASA analysis
-- [Streaming Service Architecture](../concepts/streaming-architecture.md) - Streaming service details
-- [Frontend Architecture](../concepts/dashboard_frontend_architecture.md) - Frontend integration
+- [Dashboard Implementation Status](./dashboard_implementation_status.md) -
+  Current implementation status
+- [Dashboard Pages & Features](./dashboard_pages_and_features.md) - Page
+  documentation
+- [JS9 CASA Analysis API](./js9_casa_analysis_api.md) - JS9 CASA analysis
+  endpoint documentation
+- [JS9 CASA Analysis How-To](../how-to/js9_casa_analysis.md) - User guide for
+  JS9 CASA analysis
+- [Streaming Service Architecture](../concepts/streaming-architecture.md) -
+  Streaming service details
+- [Frontend Architecture](../concepts/dashboard_frontend_architecture.md) -
+  Frontend integration
 
 ---
 
@@ -2155,15 +2295,293 @@ const eventSource = new EventSource('/api/sse/status');
 
 **Total Endpoints:** 100+  
 **Router Structure:**
+
 - `/api/status` - Status router (`routers/status.py`)
 - `/api/images` - Images router (`routers/images.py`)
 - `/api/products` - Products router (`routers/products.py`)
-- `/api/mosaics` - Mosaics router (`routers/mosaics.py`)
-- `/api/sources` - Photometry router (`routers/photometry.py`)
-- `/api/catalog` - Catalogs router (`routers/catalogs.py`)
-- `/api/visualization` - Visualization router (`visualization_routes.py`)
-  - `/api/visualization/js9/analysis` - JS9 CASA analysis endpoint (see [JS9 CASA Analysis API](./js9_casa_analysis_api.md))
+- `/api/mosaics/{mosaic_id}` - Mosaics router (`routers/mosaics.py`)
+- `/api/sources/{source_id}` - Photometry router (`routers/photometry.py`)
+- `/api/catalog/overlay` - Catalogs router (`routers/catalogs.py`)
+  - Note: Visualization routes are not exposed by the current backend.
 - Main routes - Additional endpoints in `routes.py`
 
-**Note:** This document consolidates all API endpoints. For the most up-to-date endpoint list, see the FastAPI auto-generated docs at `/docs` (Swagger UI) or `/redoc` when the API server is running.
+**Note:** This document consolidates all API endpoints. For the most up-to-date
+endpoint list, see the FastAPI auto-generated docs at `/docs` (Swagger UI) or
+`/redoc` when the API server is running.
 
+<!-- BEGIN: VERIFIED-ENDPOINTS -->
+
+## Verified Endpoints (auto-generated)
+
+### alerts
+
+- `/api/alerts/history`
+
+### batch
+
+- `/api/batch`
+- `/api/batch/apply`
+- `/api/batch/calibrate`
+- `/api/batch/convert`
+- `/api/batch/ese-detect`
+- `/api/batch/image`
+- `/api/batch/photometry`
+- `/api/batch/publish`
+- `/api/batch/{batch_id}`
+- `/api/batch/{batch_id}/cancel`
+
+### calibrator_matches
+
+- `/api/calibrator_matches`
+
+### caltables
+
+- `/api/caltables`
+
+### catalog
+
+- `/api/catalog/overlay`
+
+### clear
+
+- `/api/clear`
+
+### data
+
+- `/api/data`
+- `/api/data/{data_id:path}`
+- `/api/data/{data_id:path}/auto-publish/disable`
+- `/api/data/{data_id:path}/auto-publish/enable`
+- `/api/data/{data_id:path}/auto-publish/status`
+- `/api/data/{data_id:path}/finalize`
+- `/api/data/{data_id:path}/lineage`
+- `/api/data/{data_id:path}/publish`
+
+### ese
+
+- `/api/ese/candidates`
+- `/api/ese/candidates/{source_id}/external_catalogs`
+- `/api/ese/candidates/{source_id}/lightcurve`
+- `/api/ese/candidates/{source_id}/postage_stamps`
+- `/api/ese/candidates/{source_id}/variability`
+
+### groups
+
+- `/api/groups/{group_id}`
+
+### health
+
+- `/api/health`
+
+### images
+
+- `/api/images`
+- `/api/images/{image_id}`
+- `/api/images/{image_id}/fit`
+- `/api/images/{image_id}/fits`
+- `/api/images/{image_id}/measurements`
+- `/api/images/{image_id}/profile`
+
+### jobs
+
+- `/api/jobs`
+- `/api/jobs/apply`
+- `/api/jobs/calibrate`
+- `/api/jobs/convert`
+- `/api/jobs/ese-detect`
+- `/api/jobs/healthz`
+- `/api/jobs/id/{job_id}`
+- `/api/jobs/id/{job_id}/logs`
+- `/api/jobs/image`
+- `/api/jobs/workflow`
+
+### keys
+
+- `/api/keys`
+- `/api/keys/{key:path}`
+
+### legacy
+
+- `/api/legacy/sources/search`
+- `/api/legacy/sources/{source_id}`
+- `/api/legacy/sources/{source_id}/detections`
+- `/api/legacy/sources/{source_id}/external_catalogs`
+- `/api/legacy/sources/{source_id}/lightcurve`
+- `/api/legacy/sources/{source_id}/postage_stamps`
+- `/api/legacy/sources/{source_id}/variability`
+
+### metrics
+
+- `/api/metrics/system`
+- `/api/metrics/system/history`
+
+### monitoring
+
+- `/api/monitoring/publish/failed`
+- `/api/monitoring/publish/retry-all`
+- `/api/monitoring/publish/retry/{data_id:path}`
+- `/api/monitoring/publish/status`
+
+### mosaics
+
+- `/api/mosaics/create`
+- `/api/mosaics/query`
+- `/api/mosaics/{mosaic_id}`
+- `/api/mosaics/{mosaic_id}/fits`
+
+### ms
+
+- `/api/ms`
+- `/api/ms/discover`
+- `/api/ms/{ms_path:path}/calibrator-matches`
+- `/api/ms/{ms_path:path}/existing-caltables`
+- `/api/ms/{ms_path:path}/metadata`
+- `/api/ms/{ms_path:path}/validate-caltable`
+
+### ms_index
+
+- `/api/ms_index`
+
+### observation_timeline
+
+- `/api/observation_timeline`
+- `/api/observation_timeline/plot`
+
+### operations
+
+- `/api/operations/circuit-breakers`
+- `/api/operations/circuit-breakers/{name}`
+- `/api/operations/circuit-breakers/{name}/reset`
+- `/api/operations/dlq/items`
+- `/api/operations/dlq/items/{item_id}`
+- `/api/operations/dlq/items/{item_id}/fail`
+- `/api/operations/dlq/items/{item_id}/resolve`
+- `/api/operations/dlq/items/{item_id}/retry`
+- `/api/operations/dlq/stats`
+
+### performance
+
+- `/api/performance`
+
+### photometry
+
+- `/api/photometry/measure`
+- `/api/photometry/measure-batch`
+- `/api/photometry/normalize`
+
+### pipeline
+
+- `/api/pipeline/dependency-graph`
+- `/api/pipeline/executions`
+- `/api/pipeline/executions/active`
+- `/api/pipeline/executions/{execution_id}`
+- `/api/pipeline/executions/{execution_id}/stages`
+- `/api/pipeline/metrics/summary`
+- `/api/pipeline/stages/metrics`
+- `/api/pipeline/stages/{stage_name}/metrics`
+
+### plots
+
+- `/api/plots/caltable/{caltable_path:path}`
+
+### pointing-monitor
+
+- `/api/pointing-monitor/status`
+
+### pointing_history
+
+- `/api/pointing_history`
+
+### products
+
+- `/api/products`
+
+### qa
+
+- `/api/qa`
+- `/api/qa/calibration/{ms_path:path}`
+- `/api/qa/calibration/{ms_path:path}/bandpass-plots`
+- `/api/qa/calibration/{ms_path:path}/bandpass-plots/{filename}`
+- `/api/qa/calibration/{ms_path:path}/caltable-completeness`
+- `/api/qa/calibration/{ms_path:path}/spw-plot`
+- `/api/qa/file/{group}/{name}`
+- `/api/qa/image/{ms_path:path}`
+- `/api/qa/images/{image_id}/catalog-overlay`
+- `/api/qa/images/{image_id}/catalog-validation`
+- `/api/qa/images/{image_id}/catalog-validation/run`
+- `/api/qa/images/{image_id}/validation-report.html`
+- `/api/qa/images/{image_id}/validation-report/generate`
+- `/api/qa/thumbs`
+- `/api/qa/{ms_path:path}`
+
+### regions
+
+- `/api/regions`
+- `/api/regions/{region_id}`
+- `/api/regions/{region_id}/statistics`
+
+### reprocess
+
+- `/api/reprocess/{group_id}`
+
+### sources
+
+- `/api/sources/search`
+- `/api/sources/{source_id}`
+- `/api/sources/{source_id}/detections`
+- `/api/sources/{source_id}/external_catalogs`
+- `/api/sources/{source_id}/lightcurve`
+- `/api/sources/{source_id}/postage_stamps`
+- `/api/sources/{source_id}/variability`
+
+### sse
+
+- `/api/sse/status`
+
+### stats
+
+- `/api/stats`
+
+### status
+
+- `/api/status`
+
+### stream
+
+- `/api/stream`
+
+### streaming
+
+- `/api/streaming/config`
+- `/api/streaming/health`
+- `/api/streaming/metrics`
+- `/api/streaming/restart`
+- `/api/streaming/start`
+- `/api/streaming/status`
+- `/api/streaming/stop`
+
+### test
+
+- `/api/test/streaming/broadcast`
+
+### thumbnails
+
+- `/api/thumbnails/{ms_path:path}.png`
+
+### types
+
+- `/api/types`
+
+### ui
+
+- `/api/ui/calibrators`
+
+### uvh5
+
+- `/api/uvh5`
+
+### ws
+
+- `/api/ws/status`
+
+<!-- END: VERIFIED-ENDPOINTS -->

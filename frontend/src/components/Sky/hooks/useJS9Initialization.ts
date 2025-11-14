@@ -1,6 +1,6 @@
 /**
  * useJS9Initialization Hook
- * 
+ *
  * Handles JS9 display initialization, including:
  * - Waiting for JS9 library to load
  * - Creating and configuring JS9 display
@@ -8,11 +8,11 @@
  * - Handling initialization errors
  */
 
-import { useEffect, useState } from 'react';
-import { logger } from '../../../utils/logger';
-import { findDisplay, isJS9Available } from '../../../utils/js9';
-import { useJS9Safe } from '../../../contexts/JS9Context';
-import { js9Service } from '../../../services/js9';
+import { useEffect, useState } from "react";
+import { logger } from "../../../utils/logger";
+import { findDisplay, isJS9Available } from "../../../utils/js9";
+import { useJS9Safe } from "../../../contexts/JS9Context";
+import { js9Service } from "../../../services/js9";
 
 interface UseJS9InitializationOptions {
   displayId: string;
@@ -42,7 +42,7 @@ export function useJS9Initialization({
     if (isJS9Ready) {
       const existingDisplay = getDisplaySafe(displayId);
       if (existingDisplay) {
-        logger.debug('JS9 display already exists for:', displayId);
+        logger.debug("JS9 display already exists for:", displayId);
         setInitialized(true);
         return;
       }
@@ -61,11 +61,11 @@ export function useJS9Initialization({
         );
         js9LoadingElements.forEach((el: any) => {
           if (el.style) {
-            el.style.display = 'none';
+            el.style.display = "none";
           }
         });
       } catch (e) {
-        logger.debug('Could not disable JS9 loading indicator:', e);
+        logger.debug("Could not disable JS9 loading indicator:", e);
       }
     }
 
@@ -93,8 +93,8 @@ export function useJS9Initialization({
       const timeout = setTimeout(() => {
         clearInterval(checkJS9);
         if (!js9Service.isAvailable()) {
-          logger.error('JS9 failed to load after 10 seconds');
-          setError('JS9 library failed to load. Please refresh the page.');
+          logger.error("JS9 failed to load after 10 seconds");
+          setError("JS9 library failed to load. Please refresh the page.");
         }
       }, 10000);
 
@@ -140,8 +140,8 @@ export function useJS9Initialization({
           // Ensure div has explicit dimensions
           const rect = containerRef.current.getBoundingClientRect();
           if (rect.width < 100) {
-            containerRef.current.style.width = '100%';
-            containerRef.current.style.minWidth = '400px';
+            containerRef.current.style.width = "100%";
+            containerRef.current.style.minWidth = "400px";
           }
           if (rect.height < 100) {
             containerRef.current.style.height = `${height}px`;
@@ -149,60 +149,60 @@ export function useJS9Initialization({
 
           // Configure JS9 paths to use local files (already configured in index.html)
           // Use the same paths as index.html to avoid conflicts
-          const js9Base = '/ui/js9';
+          const js9Base = "/ui/js9";
           try {
             // Configure JS9 paths
             const installDirFn = js9Service.getInstallDir();
             if (installDirFn) {
               // Override InstallDir to always return absolute path
               (window as any).JS9.InstallDir = function (path: string) {
-                if (path && path.startsWith('/')) {
+                if (path && path.startsWith("/")) {
                   return path; // Already absolute
                 }
-                return js9Base + '/' + (path || '');
+                return js9Base + "/" + (path || "");
               };
             }
 
             js9Service.setOptions({
               InstallDir: js9Base,
-              workerPath: js9Base + '/js9worker.js',
-              wasmPath: js9Base + '/astroemw.wasm',
-              wasmJS: js9Base + '/astroemw.js',
-              prefsPath: js9Base + '/js9Prefs.json',
+              workerPath: js9Base + "/js9worker.js",
+              wasmPath: js9Base + "/astroemw.wasm",
+              wasmJS: js9Base + "/astroemw.js",
+              prefsPath: js9Base + "/js9Prefs.json",
               loadImage: false,
-              helperType: 'none',
+              helperType: "none",
               helperPort: 0,
               loadProxy: false,
               resizeDisplay: true,
               autoResize: true,
             });
-            logger.debug('JS9 paths configured to use local files:', js9Base);
+            logger.debug("JS9 paths configured to use local files:", js9Base);
           } catch (configErr) {
-            logger.debug('JS9 path configuration failed:', configErr);
+            logger.debug("JS9 path configuration failed:", configErr);
           }
 
-                // Initialize JS9 globally if needed (only once)
-                try {
-                  js9Service.init({
-                    loadImage: false,
-                    resizeDisplay: true,
-                    autoResize: true,
-                  });
-                } catch (initErr) {
-                  // JS9 may already be initialized, try to set options instead
-                  try {
-                    js9Service.setOptions({
-                      loadImage: false,
-                      resizeDisplay: true,
-                      autoResize: true,
-                    });
-                  } catch (optErr) {
-                    logger.debug('JS9 Init and SetOptions failed:', initErr, optErr);
-                  }
-                }
+          // Initialize JS9 globally if needed (only once)
+          try {
+            js9Service.init({
+              loadImage: false,
+              resizeDisplay: true,
+              autoResize: true,
+            });
+          } catch (initErr) {
+            // JS9 may already be initialized, try to set options instead
+            try {
+              js9Service.setOptions({
+                loadImage: false,
+                resizeDisplay: true,
+                autoResize: true,
+              });
+            } catch (optErr) {
+              logger.debug("JS9 Init and SetOptions failed:", initErr, optErr);
+            }
+          }
 
-                // Register the div with JS9 using AddDivs
-                js9Service.addDivs(displayId);
+          // Register the div with JS9 using AddDivs
+          js9Service.addDivs(displayId);
 
           setInitialized(true);
         }
@@ -213,12 +213,11 @@ export function useJS9Initialization({
           clearTimeout(dimensionTimeout);
         };
       } catch (err) {
-        logger.error('JS9 initialization error:', err);
-        setError('Failed to initialize JS9 display');
+        logger.error("JS9 initialization error:", err);
+        setError("Failed to initialize JS9 display");
       }
     }
   }, [displayId, height, isJS9Ready, getDisplaySafe, js9Context, initialized, containerRef]);
 
   return { initialized, error };
 }
-

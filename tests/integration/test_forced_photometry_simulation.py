@@ -15,116 +15,13 @@ from pathlib import Path
 import astropy.units as u
 import numpy as np
 from astropy.coordinates import SkyCoord
-from astropy.io import fits
-from astropy.wcs import WCS
 
 from dsa110_contimg.photometry.forced import ForcedPhotometryResult, measure_forced_peak
+from dsa110_contimg.simulation.synthetic_fits import create_synthetic_fits
 
-
-def create_synthetic_fits(
-    output_path: Path,
-    center_ra: float = 180.0,  # degrees
-    center_dec: float = 35.0,  # degrees
-    image_size: int = 512,
-    pixel_scale: float = 0.001,  # degrees per pixel (~3.6 arcsec)
-    beam_fwhm_pix: float = 3.0,  # pixels (Gaussian FWHM)
-    rms_noise_jy: float = 0.001,  # Jy/beam RMS noise
-    sources: list = None,
-) -> Path:
-    """
-    Create a synthetic FITS image with Gaussian sources.
-
-    Args:
-        output_path: Path to save FITS file
-        center_ra: RA of image center (degrees)
-        center_dec: Dec of image center (degrees)
-        image_size: Image size in pixels (square)
-        pixel_scale: Pixel scale in degrees
-        beam_fwhm_pix: Beam FWHM in pixels
-        rms_noise_jy: RMS noise level in Jy/beam
-        sources: List of dicts with keys: ra_deg, dec_deg, flux_jy
-
-    Returns:
-        Path to created FITS file
-    """
-    if sources is None:
-        # Default test sources
-        sources = [
-            {"ra_deg": 180.0, "dec_deg": 35.0, "flux_jy": 1.0, "name": "bright_center"},
-            {
-                "ra_deg": 180.01,
-                "dec_deg": 35.01,
-                "flux_jy": 0.5,
-                "name": "medium_offset",
-            },
-            {
-                "ra_deg": 179.99,
-                "dec_deg": 34.99,
-                "flux_jy": 0.2,
-                "name": "faint_offset",
-            },
-            {
-                "ra_deg": 180.005,
-                "dec_deg": 35.005,
-                "flux_jy": 0.1,
-                "name": "faint_close",
-            },
-        ]
-
-    # Create empty image
-    data = np.zeros((image_size, image_size), dtype=np.float32)
-
-    # Create WCS header
-    wcs = WCS(naxis=2)
-    wcs.wcs.crpix = [image_size / 2.0, image_size / 2.0]  # Center pixel
-    wcs.wcs.crval = [center_ra, center_dec]
-    # Negative RA for standard convention
-    wcs.wcs.cdelt = [-pixel_scale, pixel_scale]
-    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
-    wcs.wcs.cunit = ["deg", "deg"]
-
-    # Convert source positions to pixel coordinates
-    y_coords, x_coords = np.ogrid[0:image_size, 0:image_size]
-
-    # Add Gaussian sources
-    sigma_pix = beam_fwhm_pix / (2 * np.sqrt(2 * np.log(2)))  # Convert FWHM to sigma
-
-    for src in sources:
-        ra_src = src["ra_deg"]
-        dec_src = src["dec_deg"]
-        flux_src = src["flux_jy"]
-
-        # Convert RA/Dec to pixel coordinates
-        pix_coords = wcs.world_to_pixel_values(ra_src, dec_src)
-        x0, y0 = float(pix_coords[0]), float(pix_coords[1])
-
-        if not (0 <= x0 < image_size and 0 <= y0 < image_size):
-            print(
-                f"Warning: Source {src.get('name', 'unknown')} at ({ra_src}, {dec_src}) "
-                f"is outside image bounds (pixel: {x0:.1f}, {y0:.1f})"
-            )
-            continue
-
-        # Create 2D Gaussian
-        gaussian = flux_src * np.exp(
-            -((x_coords - x0) ** 2 + (y_coords - y0) ** 2) / (2 * sigma_pix**2)
-        )
-        data += gaussian
-
-    # Add noise
-    noise = np.random.normal(0.0, rms_noise_jy, data.shape).astype(np.float32)
-    data += noise
-
-    # Create FITS file
-    hdu = fits.PrimaryHDU(data=data)
-    hdu.header.update(wcs.to_header())
-    hdu.header["BUNIT"] = "Jy/beam"
-    hdu.header["BMAJ"] = beam_fwhm_pix * pixel_scale * 3600  # arcsec
-    hdu.header["BMIN"] = beam_fwhm_pix * pixel_scale * 3600
-    hdu.header["BPA"] = 0.0
-
-    hdu.writeto(output_path, overwrite=True)
-    return output_path
+# create_synthetic_fits is now imported from dsa110_contimg.simulation.synthetic_fits
+# Note: The consolidated function uses pixel_scale_arcsec (not pixel_scale in degrees)
+# and beam_fwhm_pix defaults to 10.0 (not 3.0). Adjust calls accordingly.
 
 
 def test_forced_photometry_recovery(tmp_path):
@@ -142,15 +39,17 @@ def test_forced_photometry_recovery(tmp_path):
 
     # Create synthetic FITS image
     fits_path = tmp_path / "test_science_field.fits"
+    # Convert pixel_scale from degrees to arcsec (0.001 deg = 3.6 arcsec)
     create_synthetic_fits(
         fits_path,
-        center_ra=180.0,
-        center_dec=35.0,
+        ra_deg=180.0,
+        dec_deg=35.0,
         image_size=512,
-        pixel_scale=0.001,
+        pixel_scale_arcsec=3.6,  # ~0.001 degrees
         beam_fwhm_pix=3.0,
-        rms_noise_jy=0.001,
+        noise_level_jy=0.001,
         sources=test_sources,
+        mark_synthetic=True,
     )
 
     print(f"\nCreated synthetic FITS image: {fits_path}")
@@ -191,9 +90,7 @@ def test_forced_photometry_recovery(tmp_path):
 
         if np.isfinite(measured_flux) and np.isfinite(flux_error) and flux_error > 0:
             snr = measured_flux / flux_error
-            recovered = (
-                abs(measured_flux - expected_flux) / expected_flux < 0.2
-            )  # Within 20%
+            recovered = abs(measured_flux - expected_flux) / expected_flux < 0.2  # Within 20%
         else:
             snr = 0.0
             recovered = False
@@ -235,9 +132,7 @@ def test_forced_photometry_recovery(tmp_path):
     if flux_ratios:
         mean_ratio = np.mean(flux_ratios)
         std_ratio = np.std(flux_ratios)
-        print(
-            f"Mean flux ratio (measured/expected): {mean_ratio:.4f} ± {std_ratio:.4f}"
-        )
+        print(f"Mean flux ratio (measured/expected): {mean_ratio:.4f} ± {std_ratio:.4f}")
         print(f"Expected: 1.0000")
 
         # Check if mean ratio is close to 1.0
@@ -291,13 +186,14 @@ def test_forced_photometry_low_snr(tmp_path):
     fits_path = tmp_path / "test_low_snr.fits"
     create_synthetic_fits(
         fits_path,
-        center_ra=180.0,
-        center_dec=35.0,
+        ra_deg=180.0,
+        dec_deg=35.0,
         image_size=512,
-        pixel_scale=0.001,
+        pixel_scale_arcsec=3.6,
         beam_fwhm_pix=3.0,
-        rms_noise_jy=0.001,  # Same noise, but fainter sources
+        noise_level_jy=0.001,  # Same noise, but fainter sources
         sources=test_sources,
+        mark_synthetic=True,
     )
 
     results = []
@@ -313,10 +209,7 @@ def test_forced_photometry_low_snr(tmp_path):
         if np.isfinite(result.peak_jyb) and result.peak_err_jyb > 0:
             snr = result.peak_jyb / result.peak_err_jyb
             # For low SNR, we expect larger scatter but should still detect
-            recovered = (
-                snr >= 3.0
-                and abs(result.peak_jyb - src["flux_jy"]) / src["flux_jy"] < 0.5
-            )
+            recovered = snr >= 3.0 and abs(result.peak_jyb - src["flux_jy"]) / src["flux_jy"] < 0.5
         else:
             recovered = False
 
@@ -324,9 +217,7 @@ def test_forced_photometry_low_snr(tmp_path):
 
     # At least one should be recovered
     n_recovered = sum(1 for r in results if r["recovered"])
-    assert (
-        n_recovered >= 1
-    ), f"Expected at least 1 low-SNR source recovered, got {n_recovered}"
+    assert n_recovered >= 1, f"Expected at least 1 low-SNR source recovered, got {n_recovered}"
 
 
 def test_forced_photometry_edge_sources(tmp_path):
@@ -341,13 +232,14 @@ def test_forced_photometry_edge_sources(tmp_path):
     fits_path = tmp_path / "test_edge.fits"
     create_synthetic_fits(
         fits_path,
-        center_ra=180.0,
-        center_dec=35.0,
+        ra_deg=180.0,
+        dec_deg=35.0,
         image_size=256,  # Smaller image to test edge cases
-        pixel_scale=0.001,
+        pixel_scale_arcsec=3.6,
         beam_fwhm_pix=3.0,
-        rms_noise_jy=0.001,
+        noise_level_jy=0.001,
         sources=test_sources,
+        mark_synthetic=True,
     )
 
     results = []

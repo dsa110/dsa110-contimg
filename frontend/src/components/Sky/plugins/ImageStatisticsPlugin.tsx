@@ -2,7 +2,7 @@
  * DSA Image Statistics Plugin for JS9
  * Displays real-time image statistics: peak flux, RMS noise, beam size, center coordinates, source count
  */
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Paper,
   Typography,
@@ -12,9 +12,9 @@ import {
   Grid,
   CircularProgress,
   Alert,
-} from '@mui/material';
-import { logger } from '../../../utils/logger';
-import { findDisplay, isJS9Available, getDisplayImageId } from '../../../utils/js9';
+} from "@mui/material";
+import { logger } from "../../../utils/logger";
+import { findDisplay, isJS9Available, getDisplayImageId } from "../../../utils/js9";
 
 declare global {
   interface Window {
@@ -50,7 +50,7 @@ interface ImageStatisticsPluginProps {
  */
 function calculateImageStatistics(
   imageId: string,
-  imageInfo?: ImageStatisticsPluginProps['imageInfo']
+  imageInfo?: ImageStatisticsPluginProps["imageInfo"]
 ): ImageStatistics | null {
   try {
     if (!isJS9Available()) {
@@ -62,7 +62,7 @@ function calculateImageStatistics(
     try {
       imageData = window.JS9.GetImageData?.(imageId);
     } catch (e) {
-      logger.debug('GetImageData failed:', e);
+      logger.debug("GetImageData failed:", e);
       return null;
     }
 
@@ -106,7 +106,7 @@ function calculateImageStatistics(
         centerDec = wcs.dec || null;
       }
     } catch (e) {
-      logger.debug('Error getting WCS:', e);
+      logger.debug("Error getting WCS:", e);
     }
 
     // Count sources above 5σ threshold
@@ -128,7 +128,7 @@ function calculateImageStatistics(
           beamMajorArcsec = beamMajorArcsec || fitsHeader.BMAJ || fitsHeader.BEAM_MAJ || null;
           beamMinorArcsec = beamMinorArcsec || fitsHeader.BMIN || fitsHeader.BEAM_MIN || null;
           beamPaDeg = beamPaDeg || fitsHeader.BPA || fitsHeader.BEAM_PA || null;
-          
+
           // Convert from degrees to arcsec if needed
           if (beamMajorArcsec && beamMajorArcsec < 1) {
             beamMajorArcsec = beamMajorArcsec * 3600;
@@ -138,7 +138,7 @@ function calculateImageStatistics(
           }
         }
       } catch (e) {
-        logger.debug('Error getting FITS header:', e);
+        logger.debug("Error getting FITS header:", e);
       }
     }
 
@@ -155,7 +155,7 @@ function calculateImageStatistics(
       imageHeight: height,
     };
   } catch (error) {
-    logger.error('Error calculating image statistics:', error);
+    logger.error("Error calculating image statistics:", error);
     return null;
   }
 }
@@ -164,7 +164,7 @@ function calculateImageStatistics(
  * React component wrapper for the image statistics plugin
  */
 export default function ImageStatisticsPlugin({
-  displayId = 'skyViewDisplay',
+  displayId = "skyViewDisplay",
   imageInfo,
 }: ImageStatisticsPluginProps) {
   const [stats, setStats] = useState<ImageStatistics | null>(null);
@@ -189,7 +189,7 @@ export default function ImageStatisticsPlugin({
       }
 
       const imageId = display.im.id;
-      
+
       // Only recalculate if image changed
       if (lastImageIdRef.current === imageId) {
         return;
@@ -201,17 +201,17 @@ export default function ImageStatisticsPlugin({
 
       // Calculate statistics
       const calculatedStats = calculateImageStatistics(imageId, imageInfo);
-      
+
       if (calculatedStats) {
         setStats(calculatedStats);
         setError(null);
       } else {
-        setError('Failed to calculate statistics');
+        setError("Failed to calculate statistics");
       }
       setLoading(false);
     } catch (err: any) {
-      logger.error('Error updating statistics:', err);
-      setError(err.message || 'Failed to update statistics');
+      logger.error("Error updating statistics:", err);
+      setError(err.message || "Failed to update statistics");
       setLoading(false);
     }
   }, [displayId, imageInfo]);
@@ -230,7 +230,7 @@ export default function ImageStatisticsPlugin({
       const timeout = setTimeout(() => {
         clearInterval(checkJS9);
         if (!isJS9Available()) {
-          setError('JS9 not available');
+          setError("JS9 not available");
         }
       }, 10000);
 
@@ -247,7 +247,7 @@ export default function ImageStatisticsPlugin({
   const handleImageDisplay = useCallback(() => {
     // Reset last image ID to force recalculation
     lastImageIdRef.current = null;
-    
+
     // Small delay to ensure image is fully loaded
     setTimeout(() => {
       updateStatistics();
@@ -265,23 +265,23 @@ export default function ImageStatisticsPlugin({
     if (!isJS9Available()) return;
 
     // Register event listeners if available
-    if (typeof window.JS9.AddEventListener === 'function') {
-      window.JS9.AddEventListener('displayimage', handleImageDisplay);
-      window.JS9.AddEventListener('zoom', handlePanZoom);
-      window.JS9.AddEventListener('pan', handlePanZoom);
+    if (typeof window.JS9.AddEventListener === "function") {
+      window.JS9.AddEventListener("displayimage", handleImageDisplay);
+      window.JS9.AddEventListener("zoom", handlePanZoom);
+      window.JS9.AddEventListener("pan", handlePanZoom);
     }
 
     return () => {
-      if (isJS9Available() && typeof window.JS9.RemoveEventListener === 'function') {
-        window.JS9.RemoveEventListener('displayimage', handleImageDisplay);
-        window.JS9.RemoveEventListener('zoom', handlePanZoom);
-        window.JS9.RemoveEventListener('pan', handlePanZoom);
+      if (isJS9Available() && typeof window.JS9.RemoveEventListener === "function") {
+        window.JS9.RemoveEventListener("displayimage", handleImageDisplay);
+        window.JS9.RemoveEventListener("zoom", handlePanZoom);
+        window.JS9.RemoveEventListener("pan", handlePanZoom);
       }
     };
   }, [handleImageDisplay, handlePanZoom]);
 
-  const formatValue = (value: number | null, unit: string = ''): string => {
-    if (value === null || isNaN(value)) return 'N/A';
+  const formatValue = (value: number | null, unit: string = ""): string => {
+    if (value === null || isNaN(value)) return "N/A";
     if (Math.abs(value) < 0.001) {
       return `${value.toExponential(3)} ${unit}`.trim();
     }
@@ -289,22 +289,22 @@ export default function ImageStatisticsPlugin({
   };
 
   const formatRA = (raDeg: number | null): string => {
-    if (raDeg === null) return 'N/A';
+    if (raDeg === null) return "N/A";
     const hours = raDeg / 15;
     const h = Math.floor(hours);
     const m = Math.floor((hours - h) * 60);
     const s = ((hours - h) * 60 - m) * 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toFixed(1).padStart(4, '0')}`;
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toFixed(1).padStart(4, "0")}`;
   };
 
   const formatDec = (decDeg: number | null): string => {
-    if (decDeg === null) return 'N/A';
-    const sign = decDeg >= 0 ? '+' : '-';
+    if (decDeg === null) return "N/A";
+    const sign = decDeg >= 0 ? "+" : "-";
     const absDec = Math.abs(decDeg);
     const d = Math.floor(absDec);
     const m = Math.floor((absDec - d) * 60);
     const s = ((absDec - d) * 60 - m) * 60;
-    return `${sign}${d.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toFixed(1).padStart(4, '0')}`;
+    return `${sign}${d.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toFixed(1).padStart(4, "0")}`;
   };
 
   return (
@@ -320,7 +320,7 @@ export default function ImageStatisticsPlugin({
       )}
 
       {loading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
           <CircularProgress size={24} />
         </Box>
       )}
@@ -334,9 +334,7 @@ export default function ImageStatisticsPlugin({
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Peak Flux
                 </Typography>
-                <Typography variant="h6">
-                  {formatValue(stats.peakFlux, 'Jy/pixel')}
-                </Typography>
+                <Typography variant="h6">{formatValue(stats.peakFlux, "Jy/pixel")}</Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -348,9 +346,7 @@ export default function ImageStatisticsPlugin({
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   RMS Noise
                 </Typography>
-                <Typography variant="h6">
-                  {formatValue(stats.rmsNoise, 'Jy')}
-                </Typography>
+                <Typography variant="h6">{formatValue(stats.rmsNoise, "Jy")}</Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -364,12 +360,12 @@ export default function ImageStatisticsPlugin({
                 </Typography>
                 <Typography variant="body1">
                   {stats.beamMajorArcsec !== null && stats.beamMinorArcsec !== null
-                    ? `${formatValue(stats.beamMajorArcsec, '″')} × ${formatValue(stats.beamMinorArcsec, '″')}`
-                    : 'N/A'}
+                    ? `${formatValue(stats.beamMajorArcsec, "″")} × ${formatValue(stats.beamMinorArcsec, "″")}`
+                    : "N/A"}
                 </Typography>
                 {stats.beamPaDeg !== null && (
                   <Typography variant="caption" color="text.secondary">
-                    PA: {formatValue(stats.beamPaDeg, '°')}
+                    PA: {formatValue(stats.beamPaDeg, "°")}
                   </Typography>
                 )}
               </CardContent>
@@ -399,7 +395,9 @@ export default function ImageStatisticsPlugin({
                   Sources (≥5σ)
                 </Typography>
                 <Typography variant="h6">
-                  {stats.sourceCount5Sigma !== null ? stats.sourceCount5Sigma.toLocaleString() : 'N/A'}
+                  {stats.sourceCount5Sigma !== null
+                    ? stats.sourceCount5Sigma.toLocaleString()
+                    : "N/A"}
                 </Typography>
               </CardContent>
             </Card>
@@ -415,14 +413,14 @@ export default function ImageStatisticsPlugin({
                 <Typography variant="body1">
                   {stats.imageWidth !== null && stats.imageHeight !== null
                     ? `${stats.imageWidth} × ${stats.imageHeight} px`
-                    : 'N/A'}
+                    : "N/A"}
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
       ) : !loading && !error ? (
-        <Box sx={{ textAlign: 'center', py: 3 }}>
+        <Box sx={{ textAlign: "center", py: 3 }}>
           <Typography variant="body2" color="text.secondary">
             Load an image to display statistics
           </Typography>
@@ -431,4 +429,3 @@ export default function ImageStatisticsPlugin({
     </Paper>
   );
 }
-

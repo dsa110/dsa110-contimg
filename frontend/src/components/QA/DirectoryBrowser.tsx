@@ -1,7 +1,7 @@
 /**
  * DirectoryBrowser Component - Browse and navigate directory structures
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
 import {
   Box,
   Paper,
@@ -20,7 +20,7 @@ import {
   IconButton,
   Breadcrumbs,
   Link,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Folder,
   InsertDriveFile,
@@ -31,29 +31,31 @@ import {
   Home,
   ViewList,
   ViewModule,
-} from '@mui/icons-material';
-import { useDirectoryListing, useDirectoryThumbnails } from '../../api/queries';
-import type { DirectoryEntry } from '../../api/types';
+} from "@mui/icons-material";
+import { useDirectoryListing, useDirectoryThumbnails } from "../../api/queries";
+import type { DirectoryEntry } from "../../api/types";
 
 /**
  * Check if a path looks complete (not being actively typed).
  */
 function isPathComplete(path: string | null): boolean {
   if (!path || path.trim().length === 0) return false;
-  
+
   const trimmed = path.trim();
   // Paths ending with these characters suggest incomplete typing
-  const incompleteEndings = ['-', '_', '.', ' '];
+  const incompleteEndings = ["-", "_", ".", " "];
   // Allow root and common base paths
-  if (trimmed === '/' || trimmed === '/data' || trimmed.startsWith('/data/')) {
+  if (trimmed === "/" || trimmed === "/data" || trimmed.startsWith("/data/")) {
     // Check if it ends with an incomplete segment
-    const lastSegment = trimmed.split('/').pop() || '';
-    return !incompleteEndings.some(ending => lastSegment.endsWith(ending));
+    const lastSegment = trimmed.split("/").pop() || "";
+    return !incompleteEndings.some((ending) => lastSegment.endsWith(ending));
   }
-  
+
   // For other paths, check if the last segment looks incomplete
-  const lastSegment = trimmed.split('/').pop() || '';
-  return lastSegment.length > 0 && !incompleteEndings.some(ending => lastSegment.endsWith(ending));
+  const lastSegment = trimmed.split("/").pop() || "";
+  return (
+    lastSegment.length > 0 && !incompleteEndings.some((ending) => lastSegment.endsWith(ending))
+  );
 }
 
 interface DirectoryBrowserProps {
@@ -63,16 +65,16 @@ interface DirectoryBrowserProps {
 }
 
 export default function DirectoryBrowser({
-  initialPath = '/data/dsa110-contimg/state/qa',
+  initialPath = "/data/dsa110-contimg/state/qa",
   onSelectFile,
   onSelectDirectory,
 }: DirectoryBrowserProps) {
   const [currentPath, setCurrentPath] = useState(initialPath);
   const [debouncedPath, setDebouncedPath] = useState(initialPath);
   const [recursive, setRecursive] = useState(false);
-  const [includePattern, setIncludePattern] = useState('');
-  const [excludePattern, setExcludePattern] = useState('');
-  const [viewMode, setViewMode] = useState<'list' | 'thumbnails'>('list');
+  const [includePattern, setIncludePattern] = useState("");
+  const [excludePattern, setExcludePattern] = useState("");
+  const [viewMode, setViewMode] = useState<"list" | "thumbnails">("list");
   const [thumbnailCols] = useState<number | undefined>(undefined);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -107,7 +109,7 @@ export default function DirectoryBrowser({
 
   // Thumbnail catalog query
   const { data: thumbnailHtml, isLoading: thumbnailsLoading } = useDirectoryThumbnails(
-    viewMode === 'thumbnails' ? debouncedPath : null,
+    viewMode === "thumbnails" ? debouncedPath : null,
     recursive,
     includePattern || undefined,
     excludePattern || undefined,
@@ -145,54 +147,71 @@ export default function DirectoryBrowser({
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'directory':
+      case "directory":
         return <Folder />;
-      case 'fits':
+      case "fits":
         return <ImageIcon />;
-      case 'casatable':
+      case "casatable":
         return <TableChart />;
       default:
         return <InsertDriveFile />;
     }
   };
 
-  const getTypeColor = (type: string): 'default' | 'primary' | 'secondary' | 'success' | 'warning' => {
+  const getTypeColor = (
+    type: string
+  ): "default" | "primary" | "secondary" | "success" | "warning" => {
     switch (type) {
-      case 'directory':
-        return 'primary';
-      case 'fits':
-        return 'success';
-      case 'casatable':
-        return 'warning';
+      case "directory":
+        return "primary";
+      case "fits":
+        return "success";
+      case "casatable":
+        return "warning";
       default:
-        return 'default';
+        return "default";
     }
   };
 
   // Use debouncedPath for breadcrumbs to show the actual loaded path
-  const pathParts = debouncedPath.split('/').filter(Boolean);
+  const pathParts = debouncedPath.split("/").filter(Boolean);
   const breadcrumbs = pathParts.map((_, index) => {
-    const path = '/' + pathParts.slice(0, index + 1).join('/');
+    const path = "/" + pathParts.slice(0, index + 1).join("/");
     return { name: pathParts[index], path };
   });
 
   return (
-    <Paper sx={{ p: 2, bgcolor: 'background.paper', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+    <Paper
+      sx={{
+        p: 2,
+        bgcolor: "background.paper",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
         <Typography variant="h6">Directory Browser</Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: "flex", gap: 1 }}>
           <Button
-            variant={viewMode === 'list' ? 'contained' : 'outlined'}
+            variant={viewMode === "list" ? "contained" : "outlined"}
             startIcon={<ViewList />}
-            onClick={() => setViewMode('list')}
+            onClick={() => setViewMode("list")}
             size="small"
           >
             List
           </Button>
           <Button
-            variant={viewMode === 'thumbnails' ? 'contained' : 'outlined'}
+            variant={viewMode === "thumbnails" ? "contained" : "outlined"}
             startIcon={<ViewModule />}
-            onClick={() => setViewMode('thumbnails')}
+            onClick={() => setViewMode("thumbnails")}
             size="small"
           >
             Thumbnails
@@ -201,7 +220,7 @@ export default function DirectoryBrowser({
             startIcon={<Refresh />}
             onClick={() => {
               refetch();
-              if (viewMode === 'thumbnails') {
+              if (viewMode === "thumbnails") {
                 // Thumbnails will refetch automatically via query invalidation
               }
             }}
@@ -218,10 +237,10 @@ export default function DirectoryBrowser({
           <Link
             component="button"
             variant="body1"
-            onClick={() => handleBreadcrumbClick('/')}
-            sx={{ cursor: 'pointer' }}
+            onClick={() => handleBreadcrumbClick("/")}
+            sx={{ cursor: "pointer" }}
           >
-            <Home fontSize="small" sx={{ mr: 0.5, verticalAlign: 'middle' }} />
+            <Home fontSize="small" sx={{ mr: 0.5, verticalAlign: "middle" }} />
             Root
           </Link>
           {breadcrumbs.map((crumb, index) => (
@@ -230,7 +249,7 @@ export default function DirectoryBrowser({
               component="button"
               variant="body1"
               onClick={() => handleBreadcrumbClick(crumb.path)}
-              sx={{ cursor: 'pointer' }}
+              sx={{ cursor: "pointer" }}
             >
               {crumb.name}
             </Link>
@@ -238,7 +257,7 @@ export default function DirectoryBrowser({
         </Breadcrumbs>
       </Box>
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+      <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
         <TextField
           label="Current Path"
           value={currentPath}
@@ -256,7 +275,7 @@ export default function DirectoryBrowser({
         </Button>
       </Box>
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+      <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
         <TextField
           label="Include Pattern"
           value={includePattern}
@@ -275,17 +294,14 @@ export default function DirectoryBrowser({
         />
         <FormControlLabel
           control={
-            <Checkbox
-              checked={recursive}
-              onChange={(e) => setRecursive(e.target.checked)}
-            />
+            <Checkbox checked={recursive} onChange={(e) => setRecursive(e.target.checked)} />
           }
           label="Recursive"
         />
       </Box>
 
       {data && (
-        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
           <Chip label={`${data.total_files} Files`} size="small" />
           <Chip label={`${data.total_dirs} Directories`} size="small" color="primary" />
           <Chip label={`${data.fits_count} FITS`} size="small" color="success" />
@@ -295,18 +311,18 @@ export default function DirectoryBrowser({
 
       {error && isPathComplete(debouncedPath) && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          Error loading directory: {error instanceof Error ? error.message : 'Unknown error'}
+          Error loading directory: {error instanceof Error ? error.message : "Unknown error"}
         </Alert>
       )}
 
       {isLoading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
           <CircularProgress />
         </Box>
       )}
 
-      {viewMode === 'list' && data && !isLoading && (
-        <List sx={{ flex: 1, overflow: 'auto', bgcolor: 'background.paper' }}>
+      {viewMode === "list" && data && !isLoading && (
+        <List sx={{ flex: 1, overflow: "auto", bgcolor: "background.paper" }}>
           {data.entries.length === 0 ? (
             <Alert severity="info">No entries found</Alert>
           ) : (
@@ -315,32 +331,45 @@ export default function DirectoryBrowser({
                 key={entry.path}
                 disablePadding
                 sx={{
-                  borderBottom: '1px solid',
-                  borderColor: 'divider',
+                  borderBottom: "1px solid",
+                  borderColor: "divider",
                 }}
               >
                 <ListItemButton
                   onClick={() => handlePathClick(entry.path, entry.is_dir)}
                   sx={{
-                    bgcolor: 'background.paper',
-                    '&:hover': { bgcolor: 'action.hover' },
-                    flexDirection: 'column',
-                    alignItems: 'flex-start',
+                    bgcolor: "background.paper",
+                    "&:hover": { bgcolor: "action.hover" },
+                    flexDirection: "column",
+                    alignItems: "flex-start",
                     py: 1.5,
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      width: "100%",
+                    }}
+                  >
                     <ListItemIcon sx={{ minWidth: 40 }}>{getIcon(entry.type)}</ListItemIcon>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mb: 0.5,
+                        }}
+                      >
                         <Typography variant="body1" component="span" sx={{ fontWeight: 500 }}>
                           {entry.name}
                         </Typography>
                         <Chip label={entry.type} size="small" color={getTypeColor(entry.type)} />
                       </Box>
-                      <Box sx={{ display: 'flex', gap: 2 }}>
+                      <Box sx={{ display: "flex", gap: 2 }}>
                         <Typography variant="caption" color="text.secondary" component="span">
-                          {entry.size || 'N/A'}
+                          {entry.size || "N/A"}
                         </Typography>
                         {entry.modified_time && (
                           <Typography variant="caption" color="text.secondary" component="span">
@@ -356,7 +385,7 @@ export default function DirectoryBrowser({
                           e.stopPropagation();
                           handlePathClick(entry.path, true);
                         }}
-                        sx={{ ml: 'auto' }}
+                        sx={{ ml: "auto" }}
                       >
                         <NavigateNext />
                       </IconButton>
@@ -369,22 +398,29 @@ export default function DirectoryBrowser({
         </List>
       )}
 
-      {viewMode === 'thumbnails' && (
-        <Box sx={{ flex: 1, overflow: 'auto', bgcolor: 'background.paper', p: 2 }}>
+      {viewMode === "thumbnails" && (
+        <Box sx={{ flex: 1, overflow: "auto", bgcolor: "background.paper", p: 2 }}>
           {thumbnailsLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                minHeight: 200,
+              }}
+            >
               <CircularProgress />
             </Box>
           ) : thumbnailHtml ? (
             <Box
               dangerouslySetInnerHTML={{ __html: thumbnailHtml }}
               sx={{
-                '& .qa-thumb-item': {
-                  cursor: 'pointer',
+                "& .qa-thumb-item": {
+                  cursor: "pointer",
                 },
-                '& .qa-thumb-item:hover': {
-                  transform: 'scale(1.05)',
-                  transition: 'transform 0.2s',
+                "& .qa-thumb-item:hover": {
+                  transform: "scale(1.05)",
+                  transition: "transform 0.2s",
                 },
               }}
             />
@@ -396,4 +432,3 @@ export default function DirectoryBrowser({
     </Paper>
   );
 }
-

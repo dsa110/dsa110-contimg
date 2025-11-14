@@ -1,24 +1,6 @@
-# DSA-110 Pipeline Dashboard
+# Moved
 
-## Overview
-
-The DSA-110 Pipeline Dashboard is a modern React-based web interface for monitoring the continuum imaging pipeline in real-time. It provides comprehensive views of pipeline health, data quality, source monitoring, and extreme scattering event (ESE) detection.
-
-## Quick Start
-
-### Starting the Dashboard
-
-```bash
-# Terminal 1: Start the backend API
-cd /data/dsa110-contimg
-conda activate casa6
-uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8000 --reload
-
-# Terminal 2: Start the frontend
-cd /data/dsa110-contimg/frontend
-conda activate casa6
-npm run dev -- --host 0.0.0.0 --port 5173
-```
+See `docs/how-to/dashboard.md`.
 
 ### Accessing the Dashboard
 
@@ -36,10 +18,12 @@ The dashboard will automatically redirect to `/dashboard`.
 
 **URL:** `/dashboard`
 
-The main dashboard provides an at-a-glance view of pipeline health and system status:
+The main dashboard provides an at-a-glance view of pipeline health and system
+status:
 
 - **Pipeline Status Panel**
-  - Queue statistics (total, pending, in-progress, completed, failed, collecting)
+  - Queue statistics (total, pending, in-progress, completed, failed,
+    collecting)
   - Active calibration sets
   - Recent observations table with group IDs and processing state
 
@@ -155,7 +139,8 @@ FITS image viewer and sky navigation (integration in progress):
 - **API Framework:** FastAPI
 - **CORS:** Enabled for localhost development
 - **Endpoints:** RESTful JSON API
-- **Database:** SQLite3 (ingest.sqlite3, products.sqlite3, master_sources.sqlite3)
+- **Database:** SQLite3 (ingest.sqlite3, products.sqlite3,
+  master_sources.sqlite3)
 
 ## Architecture
 
@@ -208,12 +193,14 @@ The dashboard uses polling to fetch updates every 10 seconds:
 
 1. **React Query** manages data fetching and caching
 2. **Polling interval:** 10s for pipeline status, system metrics, ESE candidates
-3. **On-demand queries:** Triggered by user actions (search, time range selection)
+3. **On-demand queries:** Triggered by user actions (search, time range
+   selection)
 4. **Automatic retry:** 1 retry on failure, no refetch on window focus
 
 ### API Data Models
 
-See [API Reference](../reference/dashboard_backend_api.md) for detailed endpoint documentation.
+See [API Reference](../reference/dashboard_backend_api.md) for detailed endpoint
+documentation.
 
 ## Development
 
@@ -247,6 +234,7 @@ frontend/
 ### Adding a New Page
 
 1. **Create page component:**
+
    ```typescript
    // src/pages/NewPage.tsx
    export default function NewPage() {
@@ -261,9 +249,10 @@ frontend/
    ```
 
 2. **Add route in App.tsx:**
+
    ```typescript
    import NewPage from './pages/NewPage';
-   
+
    // In Routes:
    <Route path="/new" element={<NewPage />} />
    ```
@@ -279,6 +268,7 @@ frontend/
 ### Adding a New API Endpoint
 
 1. **Define TypeScript interface:**
+
    ```typescript
    // src/api/types.ts
    export interface NewData {
@@ -288,13 +278,14 @@ frontend/
    ```
 
 2. **Create React Query hook:**
+
    ```typescript
    // src/api/queries.ts
    export function useNewData() {
      return useQuery({
-       queryKey: ['newdata'],
+       queryKey: ["newdata"],
        queryFn: async () => {
-         const response = await apiClient.get<NewData[]>('/new');
+         const response = await apiClient.get<NewData[]>("/new");
          return response.data;
        },
      });
@@ -348,13 +339,13 @@ For development environments with SSH port forwarding, use the proxy:
 export default defineConfig({
   server: {
     proxy: {
-      '/api': {
-        target: 'http://localhost:8000',
+      "/api": {
+        target: "http://localhost:8000",
         changeOrigin: true,
-      }
-    }
-  }
-})
+      },
+    },
+  },
+});
 ```
 
 ## Troubleshooting
@@ -362,16 +353,19 @@ export default defineConfig({
 ### Dashboard Not Loading
 
 1. **Check both services are running:**
+
    ```bash
    ps aux | grep -E "node.*vite|uvicorn.*dsa110"
    ```
 
 2. **Test backend API:**
+
    ```bash
    curl http://localhost:8000/api/status
    ```
 
 3. **Test frontend:**
+
    ```bash
    curl http://localhost:5173
    ```
@@ -425,7 +419,8 @@ The dashboard currently uses mock data. To connect real data:
 3. **Update data models** if schema differs from mock data
 4. **Test with real pipeline data**
 
-See [Connecting Real Data](../reference/dashboard_backend_api.md) for detailed API details and wiring notes.
+See [Connecting Real Data](../reference/dashboard_backend_api.md) for detailed
+API details and wiring notes.
 
 ### Phase 2 Features
 
@@ -439,8 +434,10 @@ See [Connecting Real Data](../reference/dashboard_backend_api.md) for detailed A
 
 To integrate JS9 or Aladin Lite:
 
-1. **JS9:** See [JS9 Integration Guide](https://js9.si.edu/js9/help/install.html)
-2. **Aladin Lite:** See [Aladin Lite API](https://aladin.cds.unistra.fr/AladinLite/doc/)
+1. **JS9:** See
+   [JS9 Integration Guide](https://js9.si.edu/js9/help/install.html)
+2. **Aladin Lite:** See
+   [Aladin Lite API](https://aladin.cds.unistra.fr/AladinLite/doc/)
 
 Placeholder is ready in `src/pages/SkyViewPage.tsx`.
 
@@ -451,4 +448,3 @@ For issues or questions:
 - Check [Troubleshooting](troubleshooting.md)
 - See [API Reference](../reference/dashboard_backend_api.md)
 - Consult [Frontend Design](../concepts/frontend_design.md)
-

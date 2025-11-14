@@ -4,9 +4,24 @@
 set -e
 
 # Configuration (override via env: CONTIMG_API_PORT, CONTIMG_DASHBOARD_PORT, CONTIMG_DOCS_PORT)
-API_PORT="${CONTIMG_API_PORT:-8000}"
-DASHBOARD_PORT="${CONTIMG_DASHBOARD_PORT:-3210}"
-DOCS_PORT="${CONTIMG_DOCS_PORT:-8001}"
+# Uses centralized port configuration system (see config/ports.yaml)
+# Ports can be overridden via environment variables
+
+# Try to use port manager if available, otherwise fall back to env vars
+PYTHON_BIN="/opt/miniforge/envs/casa6/bin/python"
+export PYTHONPATH="$PROJECT_DIR/src:$PYTHONPATH"
+if [ -f "$PROJECT_DIR/src/dsa110_contimg/config/ports.py" ] && \
+   PYTHONPATH="$PROJECT_DIR/src:$PYTHONPATH" "$PYTHON_BIN" -c "from dsa110_contimg.config.ports import get_port" >/dev/null 2>&1; then
+    # Use centralized port manager
+    API_PORT=$(PYTHONPATH="$PROJECT_DIR/src:$PYTHONPATH" "$PYTHON_BIN" -c "from dsa110_contimg.config.ports import get_port; print(get_port('api', check_conflict=False))" 2>/dev/null || echo "${CONTIMG_API_PORT:-8000}")
+    DASHBOARD_PORT=$(PYTHONPATH="$PROJECT_DIR/src:$PYTHONPATH" "$PYTHON_BIN" -c "from dsa110_contimg.config.ports import get_port; print(get_port('dashboard', check_conflict=False))" 2>/dev/null || echo "${CONTIMG_DASHBOARD_PORT:-3210}")
+    DOCS_PORT=$(PYTHONPATH="$PROJECT_DIR/src:$PYTHONPATH" "$PYTHON_BIN" -c "from dsa110_contimg.config.ports import get_port; print(get_port('docs', check_conflict=False))" 2>/dev/null || echo "${CONTIMG_DOCS_PORT:-8001}")
+else
+    # Fallback to environment variables (backward compatible)
+    API_PORT="${CONTIMG_API_PORT:-8000}"
+    DASHBOARD_PORT="${CONTIMG_DASHBOARD_PORT:-3210}"
+    DOCS_PORT="${CONTIMG_DOCS_PORT:-8001}"
+fi
 UVICORN_RELOAD="${UVICORN_RELOAD:-1}"  # Enable auto-reload by default for development
 PROJECT_DIR="/data/dsa110-contimg"
 LOG_DIR="/var/log/dsa110"
@@ -34,6 +49,8 @@ check_port() {
         return 0
     fi
     # Fallback to fuser
+    # Note: fuser output is suppressed here because we only care about exit code
+    # This is an exception: checking port availability, not suppressing errors
     if fuser $port/tcp >/dev/null 2>&1 || sudo fuser $port/tcp >/dev/null 2>&1; then
         return 0
     fi
@@ -60,6 +77,8 @@ kill_port() {
     local attempt=0
     
     while [ $attempt -lt $max_attempts ]; do
+        # Note: Suppressing lsof errors here is acceptable - we only care if port is in use
+        # This is an exception: checking port status, not suppressing actual errors
         local pids=$(lsof -ti:$port 2>/dev/null)
         if [ -z "$pids" ]; then
             pids=$(sudo lsof -ti:$port 2>/dev/null)
@@ -73,6 +92,8 @@ kill_port() {
             echo -e "${YELLOW}Killing process(es) on port $port: $pids${NC}"
         fi
         # If we still don't have PIDs (docker-proxy), try fuser kill directly
+        # Note: Suppressing fuser output here is acceptable - we only care about success
+        # This is an exception: killing processes, not suppressing actual errors
         if [ -z "$pids" ]; then
             if [ $attempt -lt 2 ]; then
                 sudo fuser -k $port/tcp >/dev/null 2>&1 || true
@@ -119,6 +140,13 @@ kill_port() {
 
 # Start API
 start_api() {
+    # Proactive duplicate prevention
+    echo -e "${BLUE}Checking for duplicate services...${NC}"
+    "$PROJECT_DIR/scripts/prevent-duplicate-services.sh" api || {
+        echo -e "${YELLOW}Warning: Duplicate prevention check had issues, continuing anyway...${NC}"
+    }
+    echo ""
+    
     echo -e "${GREEN}Starting DSA-110 API on port $API_PORT...${NC}"
     
     # Kill existing process if any
@@ -187,6 +215,13 @@ start_api() {
 
 # Start Dashboard
 start_dashboard() {
+    # Proactive duplicate prevention
+    echo -e "${BLUE}Checking for duplicate services...${NC}"
+    "$PROJECT_DIR/scripts/prevent-duplicate-services.sh" dashboard || {
+        echo -e "${YELLOW}Warning: Duplicate prevention check had issues, continuing anyway...${NC}"
+    }
+    echo ""
+    
     echo -e "${GREEN}Starting DSA-110 Dashboard on port $DASHBOARD_PORT...${NC}"
     
     # Resolve a free port (prefer configured, else fallback range)
@@ -204,27 +239,18 @@ start_dashboard() {
     
     cd "$PROJECT_DIR/frontend"
     
-    # Check if we should use production (vite preview) or dev (vite)
-    if [ -d "dist" ]; then
-        echo "Using static server for production dist (serve -s)..."
-        nohup npx serve -s dist -l tcp://0.0.0.0:$chosen_port \
-            > "$LOG_DIR/dashboard.log" 2>&1 &
-    elif [ -d "build" ]; then
-        echo "Using legacy build directory..."
-        nohup npx serve -s build -l tcp://0.0.0.0:$chosen_port \
+    # Always use development server (vite dev) for frontend-dev
+    # Production builds should use a separate command or port
+    echo "Using development server (vite dev)..."
+    # Prefer casa6 Node (vite requires Node 20.19+ or 22.12+)
+    if command -v conda >/dev/null 2>&1; then
+        nohup env VITE_API_URL="http://localhost:$API_PORT" \
+            conda run -n casa6 npm run dev -- --host 0.0.0.0 --port $chosen_port \
             > "$LOG_DIR/dashboard.log" 2>&1 &
     else
-        echo "Using development server (vite dev)..."
-        # Prefer casa6 Node (vite requires Node 20.19+ or 22.12+)
-        if command -v conda >/dev/null 2>&1; then
-            nohup env VITE_API_URL="http://localhost:$API_PORT" \
-                conda run -n casa6 npm run dev -- --host 0.0.0.0 --port $chosen_port \
-                > "$LOG_DIR/dashboard.log" 2>&1 &
-        else
-            nohup env VITE_API_URL="http://localhost:$API_PORT" \
-                npm run dev -- --host 0.0.0.0 --port $chosen_port \
-                > "$LOG_DIR/dashboard.log" 2>&1 &
-        fi
+        nohup env VITE_API_URL="http://localhost:$API_PORT" \
+            npm run dev -- --host 0.0.0.0 --port $chosen_port \
+            > "$LOG_DIR/dashboard.log" 2>&1 &
     fi
     
     local pid=$!

@@ -24,6 +24,7 @@
 **Status:** ⚠️ **SERVER NOT RUNNING**
 
 **Instructions to start server:**
+
 ```bash
 cd /data/dsa110-contimg
 PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/python -m uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8000
@@ -49,8 +50,10 @@ curl -s "http://localhost:8000/api/images?noise_max=-1&limit=5" | jq '.total'
 ```
 
 **Expected Results:**
+
 - Working filters: Fast response (<200ms), accurate results
-- Experimental filters: Slower response (1-5s acceptable), may have pagination issues
+- Experimental filters: Slower response (1-5s acceptable), may have pagination
+  issues
 - Edge cases: No crashes, graceful handling
 
 ---
@@ -62,6 +65,7 @@ curl -s "http://localhost:8000/api/images?noise_max=-1&limit=5" | jq '.total'
 **Status:** ⚠️ **REQUIRES MANUAL TESTING**
 
 **Instructions to start frontend:**
+
 ```bash
 cd /data/dsa110-contimg/frontend
 npm run dev
@@ -83,7 +87,8 @@ npm run dev
 3. **Advanced Filters Panel** ⏳
    - [ ] Expand/collapse icon toggles advanced filters
    - [ ] Smooth animation on expand/collapse
-   - [ ] All controls visible: date pickers, slider, text input, checkbox, clear button
+   - [ ] All controls visible: date pickers, slider, text input, checkbox, clear
+         button
 
 4. **Date Range Filtering** ⏳
    - [ ] Start date picker opens calendar widget
@@ -154,7 +159,8 @@ npm run dev
 
 - ✅ Comprehensive docstring explaining working vs experimental filters
 - ✅ Query parameters have `EXPERIMENTAL` labels where appropriate
-- ✅ Post-filtering logic implemented for `dec_min`/`dec_max` and `has_calibrator`
+- ✅ Post-filtering logic implemented for `dec_min`/`dec_max` and
+  `has_calibrator`
 - ✅ SQL queries use parameterized `?` placeholders (12 instances verified)
 - ✅ No SQL injection vulnerabilities (all queries parameterized)
 - ✅ Error handling for FITS file reading (try/except blocks)
@@ -162,6 +168,7 @@ npm run dev
 - ✅ Python syntax check: PASSED
 
 **Security Check:** ✅ **SQL INJECTION SAFE**
+
 - All WHERE clauses use parameterized queries
 - No f-string SQL construction (except for safe table/column names)
 - User input properly escaped via parameter binding
@@ -190,6 +197,7 @@ npm run dev
 **Status:** ⏳ **PENDING MANUAL TEST**
 
 **Steps:**
+
 1. Set `start_date` to 7 days ago
 2. Set `noise_max` to 0.0005 (0.5 mJy)
 3. Verify filtered images are recent and low-noise
@@ -202,6 +210,7 @@ npm run dev
 **Status:** ⏳ **PENDING MANUAL TEST**
 
 **Steps:**
+
 1. Check "Has Calibrator Detected" checkbox
 2. Set declination range (e.g., 30° to 60°)
 3. Verify results show calibrator-like observations
@@ -214,6 +223,7 @@ npm run dev
 **Status:** ⏳ **PENDING MANUAL TEST**
 
 **Steps:**
+
 1. Set multiple filters
 2. Click "Clear All Filters"
 3. Verify all filters reset and images show full list
@@ -277,6 +287,7 @@ npm run dev
 **None** - Code quality checks passed, documentation complete.
 
 **Action Required:**
+
 - ✅ Run manual API tests (start server, run curl commands)
 - ✅ Run manual UI tests (start frontend, test in browser)
 - ✅ Verify experimental filters work (even if slow)
@@ -296,6 +307,7 @@ npm run dev
 ### Long-Term (Next Sprint)
 
 1. **Database Schema Enhancement**
+
    ```sql
    ALTER TABLE images ADD COLUMN center_ra_deg REAL;
    ALTER TABLE images ADD COLUMN center_dec_deg REAL;
@@ -332,12 +344,14 @@ npm run dev
 **Status:** ⚠️ **CONDITIONALLY READY TO COMMIT**
 
 **Reasoning:**
+
 - Code quality is excellent (10/10)
 - Security is verified (SQL injection safe)
 - Documentation is complete
 - **Manual testing required** to verify runtime behavior
 
 **Recommendation:**
+
 1. Start API server and run curl tests
 2. Start frontend and test in browser
 3. If manual tests pass → **READY TO COMMIT**
@@ -347,20 +361,21 @@ npm run dev
 
 ## Test Summary
 
-| Category | Status | Score |
-|----------|--------|-------|
-| Code Quality | ✅ PASSED | 10/10 |
-| Security | ✅ PASSED | ✅ Safe |
-| Documentation | ✅ PASSED | 10/10 |
-| Manual API Tests | ⏳ PENDING | - |
-| Manual UI Tests | ⏳ PENDING | - |
-| **Overall** | ⚠️ **CONDITIONAL** | **8/10** |
+| Category         | Status             | Score    |
+| ---------------- | ------------------ | -------- |
+| Code Quality     | ✅ PASSED          | 10/10    |
+| Security         | ✅ PASSED          | ✅ Safe  |
+| Documentation    | ✅ PASSED          | 10/10    |
+| Manual API Tests | ⏳ PENDING         | -        |
+| Manual UI Tests  | ⏳ PENDING         | -        |
+| **Overall**      | ⚠️ **CONDITIONAL** | **8/10** |
 
 ---
 
 ## Next Steps
 
 1. **Start API Server:**
+
    ```bash
    cd /data/dsa110-contimg
    PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/python -m uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8000
@@ -373,6 +388,7 @@ npm run dev
    - Verify edge cases handled gracefully
 
 3. **Start Frontend:**
+
    ```bash
    cd /data/dsa110-contimg/frontend
    npm run dev
@@ -406,7 +422,7 @@ Frontend:
 - useCallback optimizations
 
 Backend:
-- New /api/routers/images.py module
+- New src/dsa110_contimg/api/routers/images.py module
 - Refactored from monolithic routes.py
 - Working filters: start_date, end_date, noise_max (SQL-level)
 - Experimental filters: dec_min/max, has_calibrator (post-processing)
@@ -434,4 +450,3 @@ Next steps:
 
 **Report Generated:** 2025-11-12  
 **Next Review:** After manual testing completion
-

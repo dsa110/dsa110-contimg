@@ -2,9 +2,15 @@
 
 ## Overview
 
-The DSA-110 Continuum Imaging Pipeline provides comprehensive validation endpoints for assessing image quality, astrometry, flux scale, source completeness, photometry, variability, mosaics, streaming, and database consistency. All endpoints are prefixed with `/api/qa/images/{image_id}`.
+The DSA-110 Continuum Imaging Pipeline provides comprehensive validation
+endpoints for assessing image quality, astrometry, flux scale, source
+completeness, photometry, variability, mosaics, streaming, and database
+consistency. All endpoints are prefixed with the base path
+api/qa/images/{image_id}.
 
-**Note:** The validation system uses a centralized configuration system. See [Validation Guide](../how-to/validation_guide.md) for details on using the configuration system in Python.
+**Note:** The validation system uses a centralized configuration system. See
+[Validation Guide](../how-to/validation_guide.md) for details on using the
+configuration system in Python.
 
 ## Endpoints
 
@@ -15,11 +21,14 @@ The DSA-110 Continuum Imaging Pipeline provides comprehensive validation endpoin
 Retrieve validation results for an image (cached if available).
 
 **Parameters:**
+
 - `image_id` (path): Image ID (integer) or image path (string)
 - `catalog` (query, default: "nvss"): Reference catalog ("nvss" or "vlass")
-- `validation_type` (query, default: "all"): Validation type ("astrometry", "flux_scale", "source_counts", or "all")
+- `validation_type` (query, default: "all"): Validation type ("astrometry",
+  "flux_scale", "source_counts", or "all")
 
 **Response:**
+
 ```json
 {
   "astrometry": {
@@ -57,6 +66,7 @@ Retrieve validation results for an image (cached if available).
 ```
 
 **Example:**
+
 ```bash
 curl "http://localhost:8000/api/qa/images/123/catalog-validation?catalog=nvss&validation_type=all"
 ```
@@ -68,11 +78,14 @@ curl "http://localhost:8000/api/qa/images/123/catalog-validation?catalog=nvss&va
 Run validation tests for an image and return results.
 
 **Parameters:**
+
 - `image_id` (path): Image ID (integer) or image path (string)
 - `catalog` (query, default: "nvss"): Reference catalog ("nvss" or "vlass")
-- `validation_types` (body, default: ["astrometry", "flux_scale", "source_counts"]): List of validation types to run
+- `validation_types` (body, default: ["astrometry", "flux_scale",
+  "source_counts"]): List of validation types to run
 
 **Request Body:**
+
 ```json
 {
   "catalog": "nvss",
@@ -80,10 +93,10 @@ Run validation tests for an image and return results.
 }
 ```
 
-**Response:**
-Same as GET endpoint above.
+**Response:** Same as GET endpoint above.
 
 **Example:**
+
 ```bash
 curl -X POST "http://localhost:8000/api/qa/images/123/catalog-validation/run" \
   -H "Content-Type: application/json" \
@@ -97,15 +110,18 @@ curl -X POST "http://localhost:8000/api/qa/images/123/catalog-validation/run" \
 Generate and return HTML validation report.
 
 **Parameters:**
+
 - `image_id` (path): Image ID (integer) or image path (string)
 - `catalog` (query, default: "nvss"): Reference catalog ("nvss" or "vlass")
-- `validation_types` (query, default: ["astrometry", "flux_scale", "source_counts"]): List of validation types to include
-- `save_to_file` (query, default: false): Whether to save HTML report to file in QA directory
+- `validation_types` (query, default: ["astrometry", "flux_scale",
+  "source_counts"]): List of validation types to include
+- `save_to_file` (query, default: false): Whether to save HTML report to file in
+  QA directory
 
-**Response:**
-HTML content (Content-Type: text/html)
+**Response:** HTML content (Content-Type: text/html)
 
 **Example:**
+
 ```bash
 # Get HTML report (returns HTML directly)
 curl "http://localhost:8000/api/qa/images/123/validation-report.html?catalog=nvss&save_to_file=true"
@@ -115,6 +131,7 @@ open "http://localhost:8000/api/qa/images/123/validation-report.html?catalog=nvs
 ```
 
 **Report Features:**
+
 - Summary dashboard with overall status
 - Data type banner (test vs. real data)
 - Image visualization
@@ -133,12 +150,16 @@ open "http://localhost:8000/api/qa/images/123/validation-report.html?catalog=nvs
 Generate HTML validation report and save to file.
 
 **Parameters:**
+
 - `image_id` (path): Image ID (integer) or image path (string)
 - `catalog` (query, default: "nvss"): Reference catalog ("nvss" or "vlass")
-- `validation_types` (body, default: ["astrometry", "flux_scale", "source_counts"]): List of validation types to include
-- `output_path` (body, optional): Custom output path. If None, saves to QA directory.
+- `validation_types` (body, default: ["astrometry", "flux_scale",
+  "source_counts"]): List of validation types to include
+- `output_path` (body, optional): Custom output path. If None, saves to QA
+  directory.
 
 **Request Body:**
+
 ```json
 {
   "catalog": "nvss",
@@ -148,6 +169,7 @@ Generate HTML validation report and save to file.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -158,6 +180,7 @@ Generate HTML validation report and save to file.
 ```
 
 **Example:**
+
 ```bash
 curl -X POST "http://localhost:8000/api/qa/images/123/validation-report/generate" \
   -H "Content-Type: application/json" \
@@ -247,6 +270,7 @@ All endpoints may return standard HTTP error codes:
 - **500 Internal Server Error**: Validation failed
 
 Error response format:
+
 ```json
 {
   "detail": "Error message describing what went wrong"
@@ -258,6 +282,7 @@ Error response format:
 Validation parameters can be configured via:
 
 1. **YAML Configuration File** (recommended):
+
    ```yaml
    validation:
      enabled: true
@@ -270,6 +295,7 @@ Validation parameters can be configured via:
    ```
 
 2. **Environment Variables**:
+
    ```bash
    export PIPELINE_VALIDATION_ENABLED=true
    export PIPELINE_VALIDATION_CATALOG=nvss
@@ -330,4 +356,3 @@ print(f"Report saved to: {report_info['report_path']}")
 - [Validation Guide](../how-to/validation_guide.md)
 - [Configuration Guide](../configuration.md)
 - [Pipeline Overview](../concepts/pipeline_overview.md)
-

@@ -2,17 +2,12 @@
  * ImageMetadata Component
  * Displays image metadata (beam, noise, WCS, observation info, cursor position)
  */
-import { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  Divider,
-} from '@mui/material';
-import { logger } from '../../utils/logger';
-import { findDisplay, isJS9Available } from '../../utils/js9';
-import { throttle } from '../../utils/js9/throttle';
-import { useJS9Safe } from '../../contexts/JS9Context';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Box, Typography, Paper, Divider } from "@mui/material";
+import { logger } from "../../utils/logger";
+import { findDisplay, isJS9Available } from "../../utils/js9";
+import { throttle } from "../../utils/js9/throttle";
+import { useJS9Safe } from "../../contexts/JS9Context";
 
 declare global {
   interface Window {
@@ -40,10 +35,7 @@ interface CursorInfo {
   flux: number | null;
 }
 
-export default function ImageMetadata({ 
-  displayId = 'js9Display',
-  imageInfo 
-}: ImageMetadataProps) {
+export default function ImageMetadata({ displayId = "js9Display", imageInfo }: ImageMetadataProps) {
   // Use JS9 context if available (backward compatible)
   const js9Context = useJS9Safe();
   const isJS9Ready = js9Context?.isJS9Ready ?? isJS9Available();
@@ -72,7 +64,7 @@ export default function ImageMetadata({
       }
 
       const display = getDisplaySafe(displayId);
-      
+
       if (!display?.im) {
         setCursorInfo({
           pixelX: null,
@@ -88,16 +80,16 @@ export default function ImageMetadata({
       const im = display.im;
       const x = im.x || null;
       const y = im.y || null;
-      
+
       if (x !== null && y !== null) {
         // Get WCS coordinates (throttled via polling interval)
         const wcs = window.JS9.GetWCS?.(im.id, x, y);
         const ra = wcs?.ra || null;
         const dec = wcs?.dec || null;
-        
+
         // Get flux value at cursor (throttled via polling interval)
         const flux = window.JS9.GetVal?.(im.id, x, y);
-        
+
         setCursorInfo({
           pixelX: Math.round(x),
           pixelY: Math.round(y),
@@ -107,7 +99,7 @@ export default function ImageMetadata({
         });
       }
     } catch (e) {
-      logger.debug('Error getting cursor info:', e);
+      logger.debug("Error getting cursor info:", e);
     }
   }, [displayId, isJS9Ready, getDisplaySafe]);
 
@@ -127,37 +119,37 @@ export default function ImageMetadata({
     const interval = setInterval(() => {
       throttledUpdateCursor();
     }, 200);
-    
+
     return () => clearInterval(interval);
   }, [throttledUpdateCursor]);
 
   const formatRA = (raDeg: number | null): string => {
-    if (raDeg === null) return '--';
+    if (raDeg === null) return "--";
     const hours = raDeg / 15;
     const h = Math.floor(hours);
     const m = Math.floor((hours - h) * 60);
     const s = ((hours - h) * 60 - m) * 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toFixed(1).padStart(4, '0')}`;
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toFixed(1).padStart(4, "0")}`;
   };
 
   const formatDec = (decDeg: number | null): string => {
-    if (decDeg === null) return '--';
-    const sign = decDeg >= 0 ? '+' : '-';
+    if (decDeg === null) return "--";
+    const sign = decDeg >= 0 ? "+" : "-";
     const absDec = Math.abs(decDeg);
     const d = Math.floor(absDec);
     const m = Math.floor((absDec - d) * 60);
     const s = ((absDec - d) * 60 - m) * 60;
-    return `${sign}${d.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toFixed(1).padStart(4, '0')}`;
+    return `${sign}${d.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toFixed(1).padStart(4, "0")}`;
   };
 
   const formatBeam = (): string => {
     if (!imageInfo?.beam_major_arcsec || !imageInfo?.beam_minor_arcsec) {
-      return '--';
+      return "--";
     }
     const major = imageInfo.beam_major_arcsec.toFixed(1);
     const minor = imageInfo.beam_minor_arcsec.toFixed(1);
-    const pa = imageInfo.beam_pa_deg ? `${imageInfo.beam_pa_deg.toFixed(0)}°` : '';
-    return `${major}" × ${minor}"${pa ? ` PA ${pa}` : ''}`;
+    const pa = imageInfo.beam_pa_deg ? `${imageInfo.beam_pa_deg.toFixed(0)}°` : "";
+    return `${major}" × ${minor}"${pa ? ` PA ${pa}` : ""}`;
   };
 
   return (
@@ -165,14 +157,14 @@ export default function ImageMetadata({
       <Typography variant="h6" gutterBottom>
         Image Information
       </Typography>
-      
+
       <Divider sx={{ my: 1 }} />
 
       {/* Image Path */}
       {imageInfo?.path && (
         <Box sx={{ mb: 1 }}>
           <Typography variant="body2" color="text.secondary">
-            <strong>Image:</strong> {imageInfo.path.split('/').pop()}
+            <strong>Image:</strong> {imageInfo.path.split("/").pop()}
           </Typography>
         </Box>
       )}
@@ -210,7 +202,7 @@ export default function ImageMetadata({
       </Typography>
       <Box sx={{ mb: 1 }}>
         <Typography variant="body2" color="text.secondary">
-          <strong>Pixel:</strong> ({cursorInfo.pixelX ?? '--'}, {cursorInfo.pixelY ?? '--'})
+          <strong>Pixel:</strong> ({cursorInfo.pixelX ?? "--"}, {cursorInfo.pixelY ?? "--"})
         </Typography>
       </Box>
       <Box sx={{ mb: 1 }}>
@@ -233,4 +225,3 @@ export default function ImageMetadata({
     </Paper>
   );
 }
-

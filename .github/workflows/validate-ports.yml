@@ -1,0 +1,31 @@
+name: Validate Port Configuration
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  validate-ports:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install dependencies
+        run: |
+          pip install pyyaml || true
+
+      - name: Validate Port Configuration
+        run: |
+          python3 scripts/validate-port-config.py
+
+      - name: Check Ports
+        run: |
+          chmod +x scripts/check-ports.sh
+          ./scripts/check-ports.sh || true

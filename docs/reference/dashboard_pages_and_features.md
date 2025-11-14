@@ -9,7 +9,8 @@
 ## Implementation Status Legend
 
 - ✅ **Implemented** - Feature is fully implemented and working
-- 🔄 **Partially Implemented** - Feature exists but may be incomplete or in progress
+- 🔄 **Partially Implemented** - Feature exists but may be incomplete or in
+  progress
 - 📋 **Planned** - Feature is planned but not yet implemented
 - 💡 **Future** - Feature is in backlog or future consideration
 
@@ -43,6 +44,7 @@
 **Status:** ✅ **Implemented**
 
 **Queue Statistics:**
+
 - Total groups in queue
 - Pending groups (ready for processing)
 - In-progress groups (currently processing)
@@ -51,12 +53,14 @@
 - Collecting groups (waiting for all subbands)
 
 **Calibration Sets:**
+
 - Active calibration sets count
 - Calibration set details (set name, tables, valid MJD range)
 - Last update timestamp
 - Number of targets per set
 
 **Recent Observations Table:**
+
 - Last 20 observation groups
 - Group ID (normalized timestamp)
 - Processing state
@@ -69,12 +73,14 @@
 **Status:** ✅ **Implemented**
 
 **Resource Metrics:**
+
 - CPU usage percentage (with threshold indicators)
 - Memory usage percentage
 - Disk usage percentage
 - System load averages (1, 5, 15 minutes)
 
 **Real-Time Updates:**
+
 - Last update timestamp
 - Current metrics display (no historical chart - see Health page for trends)
 - Basic status indicators
@@ -84,6 +90,7 @@
 **Status:** ✅ **Implemented**
 
 **Real-Time Variability Alerts:**
+
 - Auto-flagged sources with >5σ variability
 - Source ID (NVSS naming convention)
 - Maximum σ deviation
@@ -93,6 +100,7 @@
 - Auto-refresh every 10 seconds
 
 **Alert Display:**
+
 - Auto-flagged sources with >5σ variability
 - Click to navigate to source detail page
 
@@ -101,12 +109,14 @@
 **Status:** ✅ **Implemented**
 
 **Interactive Sky Map:**
+
 - Current telescope pointing position (RA/Dec)
 - Historical pointing trail (configurable days, default 7)
 - Color-coded by time
 - Click to view observation details
 
 **Display Options:**
+
 - Show/hide historical trail
 - Adjust trail duration (1 day, 7 days, 30 days)
 - Zoom and pan controls
@@ -121,12 +131,14 @@
 ### User Workflows
 
 **Normal Operation:**
+
 1. User opens dashboard
 2. Sees pipeline status at a glance
 3. Monitors ESE candidates panel for alerts
 4. Checks system health metrics
 
 **Alert Investigation:**
+
 1. ESE candidate appears in panel
 2. User clicks "View Source"
 3. Navigates to Sources page for detailed investigation
@@ -147,12 +159,14 @@
 **Status:** ✅ **Implemented**
 
 **Coverage Visualization:**
+
 - Observed fields (color-coded by observation time)
 - Source density heatmap
 - Calibrator positions
 - Current/upcoming telescope pointing
 
 **Interactive Features:**
+
 - Click field → show observation details
 - Zoom and pan controls
 - Time range filtering
@@ -163,6 +177,7 @@
 **Status:** ✅ **Implemented**
 
 **Grid View:**
+
 - Thumbnail grid (4-6 images per row, responsive)
 - Each thumbnail shows:
   - Observation timestamp
@@ -172,6 +187,7 @@
   - Calibrator status
 
 **Filters:**
+
 - Date range (start/end UTC)
 - Declination range
 - Quality threshold (noise level)
@@ -180,6 +196,7 @@
 - Search by field ID or coordinates
 
 **Pagination:**
+
 - Configurable items per page
 - Page navigation controls
 - Total count display
@@ -189,6 +206,7 @@
 **Status:** ✅ **Implemented**
 
 **Full-Resolution Display:**
+
 - Large image viewer (JS9 integration)
 - Zoom and pan controls
 - Colormap selection
@@ -197,6 +215,7 @@
 - Catalog overlay toggle
 
 **Metadata Panel:**
+
 - Observation details (date, MJD, integration time)
 - Pointing center (RA/Dec)
 - Field size
@@ -217,6 +236,7 @@
   - Calibration tables used
 
 **Actions:**
+
 - Download FITS file
 - View source list
 - Catalog overlay toggle
@@ -225,7 +245,8 @@
 - Image fitting tool
 - Photometry plugin
 
-**Note:** Mosaic Builder functionality is available on the separate Mosaic Gallery page (`/mosaics`), not on Sky View page.
+**Note:** Mosaic Builder functionality is available on the separate Mosaic
+Gallery page (`/mosaics`), not on Sky View page.
 
 ### API Endpoints Used
 
@@ -236,6 +257,7 @@
 ### User Workflows
 
 **Image Exploration:**
+
 1. User navigates to Sky View
 2. Filters images by date range or quality
 3. Clicks thumbnail to view full image
@@ -243,6 +265,7 @@
 5. Downloads FITS file for analysis
 
 **Image Analysis:**
+
 1. User selects image from browser
 2. Views image in JS9 viewer
 3. Uses region tools, profile tool, or fitting tool
@@ -265,15 +288,18 @@
 **Status:** ✅ **Implemented**
 
 **Quick Search:**
+
 - Search by NVSS ID (e.g., `NVSS J123456.7+420312`)
 - Enter key to search
 
 **Advanced Filters (Collapsible):**
+
 - Variability threshold slider (0-10σ)
 - Declination range slider (-90° to +90°)
 - ESE candidates only checkbox
 
 **Filter Management:**
+
 - Active filter count chip
 - Clear all filters button
 - Show/hide advanced filters toggle
@@ -283,6 +309,7 @@
 **Status:** ✅ **Implemented**
 
 **High-Performance Table:**
+
 - Handles 10,000+ rows efficiently
 - Virtual scrolling
 - Sortable columns
@@ -290,6 +317,7 @@
 - Pagination (configurable page size)
 
 **Columns:**
+
 - Source ID (NVSS naming, monospace font)
 - RA/Dec coordinates (J2000)
 - NVSS flux (mJy)
@@ -302,6 +330,7 @@
 - Variability indicator (✓/⚠/✗)
 
 **Table Features:**
+
 - Clickable source IDs (navigate to detail page)
 - Sortable columns
 - Filterable columns
@@ -309,9 +338,11 @@
 
 #### Source Detail View
 
-**Status:** ✅ **Implemented** (Basic detail view with metadata and detections table)
+**Status:** ✅ **Implemented** (Basic detail view with metadata and detections
+table)
 
 **Source Details Panel:**
+
 - Source name/ID
 - RA/Dec coordinates (formatted HH:MM:SS and decimal)
 - Flux statistics (mean, std, max SNR if available)
@@ -322,31 +353,38 @@
 - External links (SIMBAD, NED)
 
 **Sky Visualization:**
+
 - Aladin Lite placeholder (not yet implemented)
 
 **Comments & Annotations:**
+
 - Placeholder section (not yet implemented)
 
 **Light Curve:**
+
 - Collapsible section (placeholder, not yet implemented)
 
 **Detections Table:**
+
 - GenericTable component
 - Columns: Name, RA, Dec, Peak Flux, Integrated Flux, SNR, Forced flag, Date
 - Clickable rows (navigate to image detail page)
 - Searchable and exportable
 
-**Note:** Light curve visualization, Aladin Lite sky view, and comments system are placeholders and not yet fully implemented.
+**Note:** Light curve visualization, Aladin Lite sky view, and comments system
+are placeholders and not yet fully implemented.
 
 ### API Endpoints Used
 
-- `POST /api/sources/search` - Search sources
+- `POST /api/legacy/sources/search` - Search sources (legacy endpoint)
 - `GET /api/sources/{sourceId}` - Get source details
-- `GET /api/sources/{sourceId}/detections` - Get source detections (for detail page table)
+- `GET /api/sources/{sourceId}/detections` - Get source detections (for detail
+  page table)
 
 ### User Workflows
 
 **Source Investigation:**
+
 1. User searches for source by NVSS ID (or uses advanced filters)
 2. Views source in table
 3. Clicks source ID to navigate to detail page
@@ -354,6 +392,7 @@
 5. Clicks detection row to view associated image
 
 **ESE Candidate Review:**
+
 1. User views ESE candidates on Dashboard
 2. Clicks candidate to navigate to source detail page
 3. Reviews source metadata and detections
@@ -373,25 +412,30 @@
 #### Current Status Panel
 
 **Telescope Pointing:**
+
 - Current RA/Dec coordinates (from most recent pointing history entry)
 - Last update timestamp
 - Pipeline status chips (pending, in-progress, completed counts)
 
-**Note:** LST, Alt/Az, Parallactic angle, Antenna status, and Observing mode features are not yet implemented.
+**Note:** LST, Alt/Az, Parallactic angle, Antenna status, and Observing mode
+features are not yet implemented.
 
 #### Pointing History Visualization
 
 **Sky Map Display:**
+
 - Pointing centers over last 7 days (fixed)
 - Color-coded by time
 - Uses PointingVisualization component
 - Historical trail display
 
-**Note:** Time range selection, declination strip overlay, and click-to-view details are not yet implemented.
+**Note:** Time range selection, declination strip overlay, and click-to-view
+details are not yet implemented.
 
 #### Calibrator Tracking
 
 **Active Calibrators (Recent):**
+
 - Calibrator name
 - RA/Dec coordinates
 - Flux (mJy)
@@ -400,22 +444,26 @@
 - Table display (top 10 matches)
 
 **Calibrator Flux vs Time:**
+
 - Time-series plot (Plotly.js)
 - Multiple calibrators overlaid
 - Shows flux measurements over time
 - Conditional display (only shown if multiple measurements exist)
 
-**Note:** Elevation-dependent effects, expected flux markers, and Calibrator Plan (upcoming transits) are not yet implemented.
+**Note:** Elevation-dependent effects, expected flux markers, and Calibrator
+Plan (upcoming transits) are not yet implemented.
 
 ### API Endpoints Used
 
-- `GET /api/pointing_history` - Pointing history (used to derive current pointing)
+- `GET /api/pointing_history` - Pointing history (used to derive current
+  pointing)
 - `GET /api/calibrator_matches` - Calibrator detection history
 - `GET /api/status` - Pipeline status
 
 ### User Workflows
 
 **Monitoring Telescope Status:**
+
 1. User opens Observing page
 2. Checks current pointing (RA/Dec from most recent history)
 3. Reviews pipeline status chips
@@ -423,6 +471,7 @@
 5. Examines calibrator flux vs time plot (if data available)
 
 **Pointing History Analysis:**
+
 1. User views pointing history visualization (7-day trail)
 2. Examines pointing patterns on sky map
 3. Reviews calibrator matches in table
@@ -441,25 +490,31 @@
 #### System Monitoring
 
 **Current Metrics (Metric Cards):**
+
 - CPU usage percentage (with progress bar and thresholds)
 - Memory usage percentage (with progress bar and thresholds)
 - Disk usage percentage (with progress bar and thresholds)
 - Load average (1m) display
 
 **Resource Usage Plot:**
-- Basic plot showing current CPU and Memory % (single data point, not historical)
+
+- Basic plot showing current CPU and Memory % (single data point, not
+  historical)
 - Plotly.js visualization
 
 **Detailed Metrics:**
+
 - Memory details (total, used in GB)
 - Disk details (total, used, available in GB)
 - Load averages (1m, 5m, 15m)
 
-**Note:** Historical metrics plots (last 6 hours), average/peak values, and color-coded zones are not yet implemented.
+**Note:** Historical metrics plots (last 6 hours), average/peak values, and
+color-coded zones are not yet implemented.
 
 #### Processing Queue Status
 
 **Queue Statistics:**
+
 - Total groups
 - Pending groups
 - In-progress groups
@@ -467,11 +522,13 @@
 - Completed groups (last 24 hours)
 
 **State Distribution:**
+
 - Visual bar chart
 - Percentage breakdown
 - Color-coded by state
 
 **Recent Groups Table:**
+
 - Group ID
 - Processing state (with color-coded chips)
 - Subband counts (present/expected)
@@ -480,6 +537,7 @@
 #### QA Diagnostics Tab
 
 **ESE Candidates Table:**
+
 - Source ID
 - Max σ deviation
 - Status (active/resolved/false_positive)
@@ -487,9 +545,12 @@
 - Top 10 candidates displayed
 
 **Link to QA Visualization:**
+
 - Alert with link to `/qa` page for full QA diagnostics
 
-**Note:** Calibration Registry, Data Quality Metrics, Performance Metrics, and QA Diagnostic Gallery features are not yet implemented on this page. See QA Visualization page for QA features.
+**Note:** Calibration Registry, Data Quality Metrics, Performance Metrics, and
+QA Diagnostic Gallery features are not yet implemented on this page. See QA
+Visualization page for QA features.
 
 ### API Endpoints Used
 
@@ -500,6 +561,7 @@
 ### User Workflows
 
 **System Health Monitoring:**
+
 1. User opens Health page
 2. Reviews resource usage trends
 3. Checks queue statistics
@@ -507,6 +569,7 @@
 5. Identifies potential issues
 
 **Diagnostic Investigation:**
+
 1. User notices elevated metrics
 2. Reviews QA diagnostic gallery
 3. Examines failed groups
@@ -527,11 +590,13 @@
 #### Job Submission Forms
 
 **Convert Job:**
+
 - Select UVH5 files or group ID
 - Output directory
 - Configuration options
 
 **Calibrate Job:**
+
 - Select Measurement Set
 - Reference antenna (default: "103")
 - Solve bandpass (yes/no)
@@ -542,11 +607,13 @@
 - Minimum primary beam threshold
 
 **Apply Job:**
+
 - Select Measurement Set
 - Select calibration tables (K, BP, G)
 - Apply options
 
 **Image Job:**
+
 - Select Measurement Set
 - Imaging parameters:
   - Gridder (wgridder, standard)
@@ -557,6 +624,7 @@
   - Iteration limits
 
 **Workflow Job:**
+
 - End-to-end pipeline execution
 - Convert → Calibrate → Apply → Image
 - Configuration for each stage
@@ -564,12 +632,14 @@
 #### MS Browser
 
 **Measurement Set List:**
+
 - Available Measurement Sets
 - Filter by path, date, state
 - Sortable columns
 - Select MS for job submission
 
 **MS Details:**
+
 - Path
 - Processing stage
 - Timestamps (created, updated)
@@ -579,12 +649,14 @@
 #### Job Management
 
 **Job List:**
+
 - Recent jobs (with status filter)
 - Job type, status, MS path
 - Created, started, finished timestamps
 - Actions (View Details, View Logs, Cancel)
 
 **Job Details:**
+
 - Job parameters
 - Status history
 - Logs (live streaming via SSE)
@@ -592,6 +664,7 @@
 - Error messages (if failed)
 
 **Live Log Streaming:**
+
 - Server-Sent Events (SSE) for real-time logs
 - Auto-scroll to latest
 - Filter log levels
@@ -600,6 +673,7 @@
 #### Calibration QA Display
 
 **Calibration Quality Metrics:**
+
 - K-table SNR
 - Bandpass RMS
 - Gain solution quality
@@ -607,6 +681,7 @@
 - Gain solution plots
 
 **QA Visualization:**
+
 - Interactive plots
 - Quality indicators
 - Comparison with expected values
@@ -620,13 +695,14 @@
 - `POST /api/jobs/image` - Create imaging job
 - `POST /api/jobs/workflow` - Create workflow job
 - `GET /api/jobs` - List jobs
-- `GET /api/jobs/{job_id}` - Get job details
-- `GET /api/jobs/{job_id}/logs` - Stream job logs
+- `GET /api/jobs/id/{job_id}` - Get job details
+- `GET /api/jobs/id/{job_id}/logs` - Stream job logs
 - `GET /api/calibration/qa` - Get calibration QA
 
 ### User Workflows
 
 **Manual Calibration:**
+
 1. User selects Measurement Set
 2. Configures calibration parameters
 3. Submits calibration job
@@ -635,6 +711,7 @@
 6. Applies calibration if quality is good
 
 **Reprocessing:**
+
 1. User identifies failed observation
 2. Selects Measurement Set
 3. Submits workflow job
@@ -655,6 +732,7 @@
 #### Service Control
 
 **Service Status:**
+
 - Running/Stopped/Error state
 - Process ID (PID)
 - Started timestamp
@@ -662,6 +740,7 @@
 - Error message (if any)
 
 **Control Buttons:**
+
 - Start service
 - Stop service
 - Restart service
@@ -670,6 +749,7 @@
 #### Real-Time Status
 
 **Service Status:**
+
 - Running/Stopped state (with chip indicator)
 - Health status chip (if healthy)
 - Process ID (PID)
@@ -677,6 +757,7 @@
 - Uptime (formatted: hours, minutes, seconds)
 
 **Resource Usage:**
+
 - CPU percentage (with progress bar and color coding)
 - Memory usage (MB, with progress bar)
 - Real-time updates (5s refresh)
@@ -684,16 +765,19 @@
 #### Queue Statistics
 
 **Queue Metrics:**
+
 - Total groups processed
 - Groups processed in last hour
 - Average processing time per group
 - Current queue depth (if available from status)
 
-**Note:** Detailed processing rate metrics and throughput breakdown are not yet fully implemented.
+**Note:** Detailed processing rate metrics and throughput breakdown are not yet
+fully implemented.
 
 #### Configuration Management
 
 **Current Configuration:**
+
 - Input directory
 - Output directory
 - Max workers
@@ -701,6 +785,7 @@
 - Other settings
 
 **Configuration Editor:**
+
 - Dialog-based configuration editor
 - Edit configuration values
 - Save configuration (updates via API)
@@ -720,6 +805,7 @@
 ### User Workflows
 
 **Starting Streaming Service:**
+
 1. User navigates to Streaming page
 2. Reviews current configuration
 3. Clicks "Start" button
@@ -727,6 +813,7 @@
 5. Reviews queue statistics
 
 **Updating Configuration:**
+
 1. User clicks "Edit Configuration"
 2. Modifies configuration values
 3. Validates changes
@@ -747,6 +834,7 @@
 #### Directory Browser
 
 **File Tree Navigation:**
+
 - Browse QA artifact directories
 - Expand/collapse folders
 - Filter by file type (FITS, images, logs, tables)
@@ -754,6 +842,7 @@
 - File metadata (size, modified time)
 
 **File Actions:**
+
 - View FITS file
 - View CASA table
 - Download file
@@ -762,6 +851,7 @@
 #### FITS Viewer
 
 **JS9 Integration:**
+
 - Load FITS files
 - Scale controls (linear, log, sqrt)
 - Colormap selection
@@ -774,6 +864,7 @@
 #### CASA Table Viewer
 
 **Table Browser:**
+
 - Browse Measurement Set tables
 - Column selection
 - Filtering and sorting
@@ -781,6 +872,7 @@
 - Data export (CSV)
 
 **Table Types:**
+
 - MAIN table (visibilities)
 - ANTENNA table
 - FIELD table
@@ -791,12 +883,14 @@
 #### QA Notebook Generator
 
 **Automated Report Generation:**
+
 - Generate Jupyter notebooks for QA analysis
 - Customizable templates
 - Include relevant plots and data
 - Export notebook file
 
 **Notebook Templates:**
+
 - Calibration QA
 - Image QA
 - Source detection QA
@@ -804,15 +898,12 @@
 
 ### API Endpoints Used
 
-- `GET /api/visualization/browse` - Browse QA directory
-- `GET /api/visualization/fits/view` - View FITS file
-- `GET /api/visualization/casa/table` - Browse CASA table
-- `POST /api/visualization/qa/run` - Run QA analysis
-- `GET /api/visualization/qa/notebook` - Generate QA notebook
+- Note: Visualization endpoints are not exposed by the current backend.
 
 ### User Workflows
 
 **QA Review:**
+
 1. User navigates to QA page
 2. Browses QA directory
 3. Views FITS files with JS9
@@ -820,6 +911,7 @@
 5. Generates QA notebook for detailed analysis
 
 **Diagnostic Investigation:**
+
 1. User identifies quality issue
 2. Navigates to QA page
 3. Locates relevant QA artifacts
@@ -840,24 +932,28 @@
 #### Data Product Browser
 
 **Product Types:**
+
 - Images (FITS files)
 - Mosaics (combined images)
 - Catalogs (source lists)
 - Measurement Sets
 
 **Filters:**
+
 - Date range
 - Product type
 - Quality threshold
 - Search functionality
 
 **Product Details:**
+
 - Metadata display
 - File paths
 - Processing history
 - Related products
 
-**Note:** Data Lineage Graph visualization is not yet implemented. Data detail pages (`/data/:type/:id`) may provide lineage information.
+**Note:** Data Lineage Graph visualization is not yet implemented. Data detail
+pages (`/data/:type/:id`) may provide lineage information.
 
 ### API Endpoints Used
 
@@ -867,6 +963,7 @@
 ### User Workflows
 
 **Product Exploration:**
+
 1. User navigates to Data Browser
 2. Filters products by type or date
 3. Views product details
@@ -880,12 +977,14 @@
 ### Navigation
 
 **Top Navigation Bar:**
+
 - Logo and title
 - Page links (Dashboard, Sky, Sources, etc.)
 - Settings menu (future)
 - User menu (future)
 
 **Breadcrumbs:**
+
 - Page hierarchy
 - Quick navigation
 - Current page indicator
@@ -893,11 +992,13 @@
 ### Real-Time Updates
 
 **Update Mechanisms:**
+
 - WebSocket (primary)
 - HTTP polling (fallback)
 - Server-Sent Events (for logs)
 
 **Update Intervals:**
+
 - Critical data: 10 seconds
 - Job status: 5 seconds
 - On-demand: User-triggered
@@ -905,6 +1006,7 @@
 ### Error Handling
 
 **Error Display:**
+
 - User-friendly error messages
 - Retry buttons
 - Error details (in development mode)
@@ -913,6 +1015,7 @@
 ### Loading States
 
 **Loading Indicators:**
+
 - Circular progress for data loading
 - Skeleton loaders for better UX
 - Progress bars for long operations
@@ -921,6 +1024,7 @@
 ### Export Functionality
 
 **Export Options:**
+
 - CSV export for tables
 - JSON export for data
 - PNG export for images
@@ -931,13 +1035,15 @@
 
 ## Related Documentation
 
-- **[Dashboard Quick Start](../how-to/dashboard-quickstart.md)** - Getting started guide
+- **[Dashboard Quick Start](../how-to/dashboard-quickstart.md)** - Getting
+  started guide
 - **[API Reference](./dashboard_backend_api.md)** - API endpoint documentation
-- **[Dashboard Architecture](../concepts/dashboard_architecture.md)** - System architecture
-- **[Dashboard Vision & Design](../concepts/dashboard_vision_and_design.md)** - Design principles
+- **[Dashboard Architecture](../concepts/dashboard_architecture.md)** - System
+  architecture
+- **[Dashboard Vision & Design](../concepts/dashboard_vision_and_design.md)** -
+  Design principles
 
 ---
 
 **Last Updated:** 2025-11-12  
 **Status:** Consolidated Feature Reference
-

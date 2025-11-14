@@ -24,7 +24,8 @@ e2e-tests:
     - timeout 60 bash -c 'until curl -f http://localhost:5173 > /dev/null 2>&1; do sleep 2; done' || exit 1
     - echo "Frontend server is ready"
     # Run E2E tests
-    - docker compose -f docker-compose.test.yml --profile e2e run --rm frontend-e2e
+    # Use explicit path relative to frontend directory (we're already in frontend/)
+    - docker compose -f ./docker-compose.test.yml --profile e2e run --rm frontend-e2e
   after_script:
     - |
       if [ -f /tmp/frontend-dev.pid ]; then
