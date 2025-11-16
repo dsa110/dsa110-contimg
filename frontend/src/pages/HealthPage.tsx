@@ -6,7 +6,6 @@ import { useState, useMemo } from "react";
 import {
   Container,
   Typography,
-  Paper,
   Box,
   Grid,
   Card,
@@ -27,9 +26,6 @@ import {
   TableRow,
 } from "@mui/material";
 import {
-  Memory as MemoryIcon,
-  Speed as SpeedIcon,
-  Storage as StorageIcon,
   Assessment as AssessmentIcon,
 } from "@mui/icons-material";
 import {
@@ -43,7 +39,6 @@ import type { Data, Layout } from "../components/PlotlyLazy";
 import { useNavigate } from "react-router-dom";
 import { DeadLetterQueueStats } from "../components/DeadLetterQueue";
 import { CircuitBreakerStatus } from "../components/CircuitBreaker";
-import type { HealthSummary } from "../api/types";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
 import { StatusIndicator } from "../components/StatusIndicator";
 import { MetricWithSparkline } from "../components/Sparkline";
@@ -102,7 +97,7 @@ function OperationsHealthTab() {
                 size="large"
               />
               <Typography variant="body2" color="text.secondary">
-                Last updated: {new Date(healthSummary.timestamp * 1000).toLocaleString()}
+                Last updated: {new Date((healthSummary.timestamp as any) * 1000).toLocaleString()}
               </Typography>
             </Stack>
           </CardContent>
@@ -123,17 +118,17 @@ function OperationsHealthTab() {
                 <Box key={name}>
                   <Stack direction="row" spacing={2} alignItems="center">
                     <Chip
-                      label={check.healthy ? "Healthy" : "Unhealthy"}
-                      color={check.healthy ? "success" : "error"}
+                      label={(check as any).healthy ? "Healthy" : "Unhealthy"}
+                      color={(check as any).healthy ? "success" : "error"}
                       size="small"
                     />
                     <Typography variant="body2">
                       <strong>{name.replace(/_/g, " ")}</strong>
                     </Typography>
                   </Stack>
-                  {check.error && (
+                  {(check as any).error && (
                     <Typography variant="caption" color="error" sx={{ ml: 5 }}>
-                      {check.error}
+                      {(check as any).error}
                     </Typography>
                   )}
                 </Box>
@@ -168,14 +163,14 @@ export default function HealthPage() {
   const { data: eseCandidates } = useESECandidates();
 
   // Track metric history for sparklines
-  const cpuHistory = useMetricHistory(metrics?.cpu_percent);
-  const memHistory = useMetricHistory(metrics?.mem_percent);
+  const cpuHistory = useMetricHistory(metrics ?? undefined?.cpu_percent);
+  const memHistory = useMetricHistory(metrics ?? undefined?.mem_percent);
   const diskHistory = useMetricHistory(
     metrics?.disk_total && metrics?.disk_used
       ? (metrics.disk_used / metrics.disk_total) * 100
       : undefined
   );
-  const loadHistory = useMetricHistory(metrics?.load_1);
+  const loadHistory = useMetricHistory(metrics ?? undefined?.load_1);
 
   // Prepare system metrics plot data
   const metricsPlotData = useMemo(() => {

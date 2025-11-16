@@ -40,7 +40,7 @@ export default function SkyViewer({
   const js9Context = useJS9Safe();
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Use context's JS9 readiness if available, otherwise check directly
   const isJS9Ready = js9Context?.isJS9Ready ?? isJS9Available();

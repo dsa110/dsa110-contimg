@@ -63,7 +63,7 @@ export default function DataExplorerPage() {
     setSearchParams({ tab: newValue.toString() }, { replace: true });
   };
 
-  const handleSourceSelect = (sourceId: string) => {
+  const _handleSourceSelect = (sourceId: string) => {
     setSelectedSource(sourceId);
     // Optionally switch to sky view when source is selected
     // setTabValue(3);

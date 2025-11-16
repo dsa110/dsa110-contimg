@@ -25,6 +25,7 @@ from dsa110_contimg.database.data_registry import (
     get_data,
     link_photometry_to_data,
 )
+from dsa110_contimg.database.hdf5_index import query_subband_groups
 from dsa110_contimg.database.products import ensure_products_db
 from dsa110_contimg.mosaic.error_handling import check_disk_space
 from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
@@ -1054,12 +1055,18 @@ class MosaicOrchestrator:
         self,
         ms_paths: List[str],
         required_ms_count: int,
+        start_time: Time,
+        end_time: Time,
     ) -> Tuple[List[str], List[str]]:
         """Validate HDF5 file availability if MS files don't exist.
+
+        Checks for complete subband groups in the specific time window needed for conversion.
 
         Args:
             ms_paths: List of available MS file paths
             required_ms_count: Required number of MS files
+            start_time: Window start time
+            end_time: Window end time
 
         Returns:
             Tuple of (errors, warnings)
@@ -1076,19 +1083,44 @@ class MosaicOrchestrator:
                             os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3")
                         )
                         if products_db.exists():
-                            conn = ensure_products_db(products_db)
-                            count = conn.execute(
-                                "SELECT COUNT(*) FROM hdf5_file_index WHERE stored = 1"
-                            ).fetchone()[0]
-                            if count > 0:
+                            # Query for complete groups in the specific time window
+                            start_time_str = start_time.to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+                            end_time_str = end_time.to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+
+                            groups = query_subband_groups(
+                                products_db,
+                                start_time_str,
+                                end_time_str,
+                                tolerance_s=1.0,
+                                only_stored=True,
+                            )
+
+                            if groups:
                                 logger.info(
-                                    f"✓ HDF5 files: Found {count} HDF5 files in database (conversion will be attempted)"
+                                    f"✓ HDF5 groups: Found {len(groups)} complete 16-subband group(s) "
+                                    f"in time window {start_time_str} to {end_time_str} "
+                                    f"(conversion will be attempted)"
                                 )
                             else:
-                                warnings.append(
-                                    "No HDF5 files found in database. "
-                                    "MS files must exist or HDF5 conversion must be possible."
-                                )
+                                # Fallback: check total count for informational purposes
+                                conn = ensure_products_db(products_db)
+                                count = conn.execute(
+                                    "SELECT COUNT(*) FROM hdf5_file_index WHERE stored = 1"
+                                ).fetchone()[0]
+                                conn.close()
+
+                                if count > 0:
+                                    warnings.append(
+                                        f"No complete HDF5 groups found in time window "
+                                        f"({start_time_str} to {end_time_str}), "
+                                        f"but {count} total HDF5 files exist in database. "
+                                        "MS files must exist or HDF5 conversion must be possible."
+                                    )
+                                else:
+                                    warnings.append(
+                                        "No HDF5 files found in database. "
+                                        "MS files must exist or HDF5 conversion must be possible."
+                                    )
                         else:
                             hdf5_files = list(input_dir.glob("*.h5")) + list(
                                 input_dir.glob("*.hdf5")
@@ -1206,7 +1238,9 @@ class MosaicOrchestrator:
         validation_errors.extend(errs)
         validation_warnings.extend(warns)
 
-        errs, warns = self._validate_hdf5_availability(ms_paths, required_ms_count)
+        errs, warns = self._validate_hdf5_availability(
+            ms_paths, required_ms_count, start_time, end_time
+        )
         validation_errors.extend(errs)
         validation_warnings.extend(warns)
 

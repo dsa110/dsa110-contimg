@@ -6,7 +6,6 @@ import { useState, useMemo } from "react";
 import {
   Container,
   Typography,
-  Paper,
   Box,
   Card,
   CardContent,
@@ -14,8 +13,6 @@ import {
   Stack,
   Chip,
   Alert,
-  Tabs,
-  Tab,
   Divider,
   Table,
   TableBody,
@@ -46,7 +43,7 @@ interface TabPanelProps {
   value: number;
 }
 
-function TabPanel(props: TabPanelProps) {
+function _TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
   return (
     <div role="tabpanel" hidden={value !== index} {...other}>

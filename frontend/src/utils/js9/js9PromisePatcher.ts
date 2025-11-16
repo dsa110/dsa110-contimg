@@ -43,7 +43,7 @@ class JS9PromisePatcher {
     }
 
     const self = this;
-    const handlerExecutionTimes = new WeakMap<Function, number>();
+    const _handlerExecutionTimes = new WeakMap<Function, number>();
 
     window.setTimeout = function (handler: TimerHandler, timeout?: number, ...args: any[]): number {
       // Patch handlers called with no timeout or timeout=0 (immediate execution)
@@ -105,8 +105,8 @@ class JS9PromisePatcher {
    */
   private createOptimizedHandler(handler: Function): Function {
     const self = this;
-    const CHUNK_TIME_MS = 5; // Max time per execution chunk
-    const YIELD_DELAY_MS = 1; // Delay between chunks
+    const _CHUNK_TIME_MS = 5; // Max time per execution chunk
+    const _YIELD_DELAY_MS = 1; // Delay between chunks
 
     return function (this: any, ...args: any[]) {
       // Strategy: Use requestIdleCallback if available for better yielding

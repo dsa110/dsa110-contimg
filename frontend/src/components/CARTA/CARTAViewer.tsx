@@ -112,7 +112,7 @@ export default function CARTAViewer({
     clientRef.current = cartaClient;
 
     // Set up message handlers
-    cartaClient.onMessage("REGISTER_VIEWER_ACK", (message) => {
+    cartaClient.onMessage("REGISTER_VIEWER_ACK" as unknown as CARTAMessageType, (message) => {
       logger.info("CARTA viewer registered", message);
       setStatus("Connected");
       setConnected(true);
@@ -302,7 +302,7 @@ export default function CARTAViewer({
           minScale: 0.1,
           maxScale: 10.0,
         },
-        (state) => {
+        (_state) => {
           // Handle zoom/pan state changes - re-render if needed
           if (rendererRef.current && canvasRef.current) {
             const ctx = canvasRef.current.getContext("2d");

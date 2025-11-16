@@ -1,5 +1,5 @@
 #!/opt/miniforge/envs/casa6/bin/python
-"""Create 10-minute mosaic with specified parameters.
+"""Create 12-minute mosaic with specified parameters.
 
 Parameters:
 - Calibrator: 0834+555
@@ -67,7 +67,7 @@ def main():
         write_status("RUNNING", "Initializing orchestrator")
         orchestrator = MosaicOrchestrator(products_db_path=Path("state/products.sqlite3"))
 
-        # Create 10-minute mosaic centered on calibrator 0834+555
+        # Create 12-minute mosaic centered on calibrator 0834+555
         # Note: Method is pbweighted by default (uses _build_weighted_mosaic)
         # Note: Validation happens automatically but can be bypassed if needed
         # Note: wait_for_published=False means it won't wait for publishing step
@@ -75,7 +75,7 @@ def main():
         write_status("RUNNING", "Creating mosaic (dry run)")
         mosaic_path = orchestrator.create_mosaic_centered_on_calibrator(
             calibrator_name="0834+555",
-            timespan_minutes=10,  # 10 minutes = 2 MS files (5 min each)
+            timespan_minutes=12,  # 12 minutes = 3 MS files (5 min each)
             wait_for_published=False,  # Don't wait for publishing, keep in /stage/
             dry_run=True,  # Dry run: validate plan without building
         )

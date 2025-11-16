@@ -53,17 +53,35 @@ class Logger {
     if (error && typeof error === "object") {
       if ("response" in error) {
         const apiError = error as {
-          response?: { status?: number; data?: unknown };
+          response?: { status?: number; data?: unknown; statusText?: string };
         };
         errorInfo.status = apiError.response?.status;
+        errorInfo.statusText = apiError.response?.statusText;
         errorInfo.data = apiError.response?.data;
+        errorInfo.url = apiError.response?.data && typeof apiError.response.data === "object" && "url" in apiError.response.data
+          ? (apiError.response.data as { url?: string }).url
+          : undefined;
       }
       if ("message" in error) {
         errorInfo.errorMessage = (error as { message: string }).message;
       }
+      if ("config" in error) {
+        const axiosError = error as { config?: { url?: string; method?: string } };
+        errorInfo.requestUrl = axiosError.config?.url;
+        errorInfo.requestMethod = axiosError.config?.method;
+      }
+      if ("code" in error) {
+        errorInfo.code = (error as { code?: string }).code;
+      }
     }
 
-    this.error("API Error:", errorInfo);
+    // Properly serialize the error object for console output
+    try {
+      this.error("API Error:", JSON.stringify(errorInfo, null, 2));
+    } catch {
+      // Fallback if JSON.stringify fails (circular references, etc.)
+      this.error("API Error:", message, error);
+    }
   }
 }
 

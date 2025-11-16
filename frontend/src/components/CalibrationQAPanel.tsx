@@ -18,7 +18,7 @@ import {
 import { CheckCircle, Warning, Error, Help } from "@mui/icons-material";
 import { useState } from "react";
 // import Plot from 'react-plotly.js'; // Unused for now
-// import type { CalibrationQA } from '../api/types'; // Unused for now
+import type { PerSPWStats } from '../api/types';
 import { useCalibrationQA, useBandpassPlots } from "../api/queries";
 
 interface CalibrationQAPanelProps {
@@ -323,13 +323,13 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
             </Grid>
           </Grid>
 
-          {qa.per_spw_stats && qa.per_spw_stats.length > 0 && (
+          {qa.per_spw_stats && (qa.per_spw_stats.length as any) > 0 && (
             <Box sx={{ mt: 3 }}>
               <Typography variant="subtitle2" gutterBottom>
                 Per-SPW Statistics
               </Typography>
               <Box sx={{ maxHeight: "300px", overflow: "auto" }}>
-                {qa.per_spw_stats.map((spw: PerSPWStats, idx: number) => (
+                {(qa.per_spw_stats.map as any)((spw: PerSPWStats, idx: number) => (
                   <Box
                     key={idx}
                     sx={{

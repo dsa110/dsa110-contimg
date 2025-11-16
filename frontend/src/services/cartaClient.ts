@@ -11,6 +11,8 @@ import * as protobuf from "protobufjs";
 import {
   CARTAMessageType,
   getCARTAMessageTypeName,
+} from "./cartaProtocol";
+import {
   encodeHeader,
   decodeHeader,
   combineMessage,
@@ -67,7 +69,7 @@ export class CARTAClient {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
   private reconnectInterval = 3000;
-  private reconnectTimer: NodeJS.Timeout | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private isConnecting = false;
   private isConnected = false;
   private sessionId: string | null = null;
@@ -592,3 +594,7 @@ export class CARTAClient {
     return parts[parts.length - 1] || filePath;
   }
 }
+
+// Re-export CARTAMessageType for use in other modules
+export type { CARTAMessageType };
+export { getCARTAMessageTypeName, encodeHeader, decodeHeader };

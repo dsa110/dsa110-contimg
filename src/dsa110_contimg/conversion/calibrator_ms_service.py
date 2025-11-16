@@ -460,6 +460,193 @@ class CalibratorMSGenerator:
 
         return metrics
 
+    def _log_found_groups(
+        self, groups: List[List[str]], transit: Time, t0: str, t1: str, window_minutes: int
+    ) -> None:
+        """Log information about found groups for a transit.
+
+        Args:
+            groups: List of group file lists
+            transit: Transit time
+            t0: Start time string
+            t1: End time string
+            window_minutes: Search window in minutes
+        """
+        total_files = sum(len(g) for g in groups)
+        logger.info(
+            f"Found {len(groups)} complete 16-subband group(s) ({total_files} total files) "
+            f"for transit {transit.isot}"
+        )
+        self._log_search_window(transit, t0, t1, window_minutes)
+
+    def _log_primary_beam_rejection(
+        self,
+        transit: Time,
+        calibrator_name: str,
+        ra_deg: float,
+        dec_deg: float,
+        metrics: dict,
+        min_pb_response: float,
+    ) -> None:
+        """Log primary beam validation failure.
+
+        Args:
+            transit: Transit time
+            calibrator_name: Calibrator name
+            ra_deg: Calibrator RA in degrees
+            dec_deg: Calibrator Dec in degrees
+            metrics: Primary beam metrics dict
+            min_pb_response: Minimum required PB response
+        """
+        logger.warning(
+            f"REJECTING transit {transit.isot}: Calibrator {calibrator_name} "
+            f"is NOT in primary beam\n"
+            f"  Calibrator: RA={ra_deg:.4f}°, Dec={dec_deg:.4f}°\n"
+            f"  Pointing: RA={metrics['pt_ra_deg']:.4f}°, Dec={metrics['pt_dec_deg']:.4f}°\n"
+            f"  Separation: {metrics['sep_deg']:.4f}° ({metrics['sep_deg']*60:.1f} arcmin)\n"
+            f"  Primary beam response: {metrics['pb_response']:.4f} (minimum required: {min_pb_response:.2f})\n"
+            f"  This group will be skipped - calibrator is outside usable beam."
+        )
+
+    def _log_primary_beam_success(
+        self,
+        transit: Time,
+        gbest: List[str],
+        dt_min: float,
+        pb_validation: dict,
+        ra_deg: float,
+        dec_deg: float,
+    ) -> None:
+        """Log successful primary beam validation.
+
+        Args:
+            transit: Transit time
+            gbest: Best candidate group file list
+            dt_min: Time difference in minutes
+            pb_validation: Primary beam validation dict
+            ra_deg: Calibrator RA in degrees
+            dec_deg: Calibrator Dec in degrees
+        """
+        logger.info(
+            f"✓ Found complete 16-subband group for transit {transit.isot}: "
+            f"{os.path.basename(gbest[0]).split('_sb')[0]} "
+            f"({dt_min:.1f} min from transit)"
+        )
+        logger.info(
+            f"✓ Pointing validation PASSED: Calibrator in primary beam\n"
+            f"  Pointing: RA={pb_validation['pt_ra_deg']:.4f}°, Dec={pb_validation['pt_dec_deg']:.4f}°\n"
+            f"  Calibrator: RA={ra_deg:.4f}°, Dec={dec_deg:.4f}°\n"
+            f"  Separation: {pb_validation['sep_deg']:.4f}° ({pb_validation['sep_deg']*60:.1f} arcmin)\n"
+            f"  Primary beam response: {pb_validation['pb_response']:.4f}"
+        )
+
+    def _build_transit_result_dict(
+        self,
+        calibrator_name: str,
+        transit: Time,
+        t0: str,
+        t1: str,
+        gbest: List[str],
+        mid: Time,
+        dt_min: float,
+        gbest_sorted: List[str],
+        pb_validation: dict,
+        dec_deg: float,
+    ) -> dict:
+        """Build transit result dictionary.
+
+        Args:
+            calibrator_name: Calibrator name
+            transit: Transit time
+            t0: Start time string
+            t1: End time string
+            gbest: Best candidate group file list
+            mid: Group mid-time
+            dt_min: Time difference in minutes
+            gbest_sorted: Sorted group file list
+            pb_validation: Primary beam validation dict
+            dec_deg: Calibrator declination in degrees
+
+        Returns:
+            Transit info dictionary
+        """
+        return {
+            "name": calibrator_name,
+            "transit_iso": transit.isot,
+            "start_iso": t0,
+            "end_iso": t1,
+            "group_id": os.path.basename(gbest[0]).split("_sb")[0],
+            "mid_iso": mid.isot,
+            "delta_minutes": dt_min,
+            "files": gbest_sorted,
+            "pointing_dec_deg": pb_validation["pt_dec_deg"],
+            "calibrator_dec_deg": dec_deg,
+            "separation_deg": pb_validation["sep_deg"],
+            "pb_response": pb_validation["pb_response"],
+        }
+
+    def _process_single_transit(
+        self,
+        t: Time,
+        calibrator_name: str,
+        ra_deg: float,
+        dec_deg: float,
+        window_minutes: int,
+        min_pb_response: float,
+        freq_ghz: float,
+    ) -> Optional[dict]:
+        """Process a single transit to find matching group.
+
+        Args:
+            t: Transit time
+            calibrator_name: Name of calibrator
+            ra_deg: Calibrator RA in degrees
+            dec_deg: Calibrator Dec in degrees
+            window_minutes: Search window in minutes
+            min_pb_response: Minimum primary beam response
+            freq_ghz: Frequency in GHz
+
+        Returns:
+            Transit info dict if found, None otherwise
+        """
+        t0, t1 = self._calculate_transit_window(t, window_minutes)
+        groups = query_subband_groups(self.products_db, t0, t1, tolerance_s=1.0)
+
+        if not groups:
+            return None
+
+        self._log_found_groups(groups, t, t0, t1, window_minutes)
+
+        candidate_result = self._find_best_candidate_group(groups, t)
+        if not candidate_result:
+            return None
+
+        dt_min, gbest, mid = candidate_result
+
+        is_complete, gbest_sorted = self._is_complete_subband_group(gbest)
+        if not is_complete:
+            logger.info(
+                f"Skipping transit {t.isot}: found group with {len(gbest)} subbands "
+                f"(need 16 complete), best candidate: {os.path.basename(gbest[0])}"
+            )
+            return None
+
+        pb_validation = self._validate_primary_beam(
+            gbest[0], ra_deg, dec_deg, min_pb_response, freq_ghz
+        )
+        if not pb_validation:
+            metrics = self._calculate_primary_beam_metrics(gbest[0], ra_deg, dec_deg, freq_ghz)
+            self._log_primary_beam_rejection(
+                t, calibrator_name, ra_deg, dec_deg, metrics, min_pb_response
+            )
+            return None
+
+        self._log_primary_beam_success(t, gbest, dt_min, pb_validation, ra_deg, dec_deg)
+
+        return self._build_transit_result_dict(
+            calibrator_name, t, t0, t1, gbest, mid, dt_min, gbest_sorted, pb_validation, dec_deg
+        )
+
     def find_transit(
         self,
         calibrator_name: str,
@@ -490,84 +677,11 @@ class CalibratorMSGenerator:
         transits = self._get_transit_times(ra_deg, transit_time, max_days_back)
 
         for t in transits:
-            t0, t1 = self._calculate_transit_window(t, window_minutes)
-
-            # Query for groups in search window
-            groups = query_subband_groups(self.products_db, t0, t1, tolerance_s=1.0)
-
-            if not groups:
-                continue
-
-            # Log found groups
-            total_files = sum(len(g) for g in groups)
-            logger.info(
-                f"Found {len(groups)} complete 16-subband group(s) ({total_files} total files) "
-                f"for transit {t.isot}"
+            result = self._process_single_transit(
+                t, calibrator_name, ra_deg, dec_deg, window_minutes, min_pb_response, freq_ghz
             )
-            self._log_search_window(t, t0, t1, window_minutes)
-
-            # Find best candidate group (closest to transit)
-            candidate_result = self._find_best_candidate_group(groups, t)
-            if not candidate_result:
-                continue
-
-            dt_min, gbest, mid = candidate_result
-
-            # Check if group is complete
-            is_complete, gbest_sorted = self._is_complete_subband_group(gbest)
-            if not is_complete:
-                logger.info(
-                    f"Skipping transit {t.isot}: found group with {len(gbest)} subbands "
-                    f"(need 16 complete), best candidate: {os.path.basename(gbest[0])}"
-                )
-                continue
-
-            # Validate primary beam
-            pb_validation = self._validate_primary_beam(
-                gbest[0], ra_deg, dec_deg, min_pb_response, freq_ghz
-            )
-            if not pb_validation:
-                # Calculate metrics for logging (validation failed)
-                metrics = self._calculate_primary_beam_metrics(gbest[0], ra_deg, dec_deg, freq_ghz)
-                logger.warning(
-                    f"REJECTING transit {t.isot}: Calibrator {calibrator_name} "
-                    f"is NOT in primary beam\n"
-                    f"  Calibrator: RA={ra_deg:.4f}°, Dec={dec_deg:.4f}°\n"
-                    f"  Pointing: RA={metrics['pt_ra_deg']:.4f}°, Dec={metrics['pt_dec_deg']:.4f}°\n"
-                    f"  Separation: {metrics['sep_deg']:.4f}° ({metrics['sep_deg']*60:.1f} arcmin)\n"
-                    f"  Primary beam response: {metrics['pb_response']:.4f} (minimum required: {min_pb_response:.2f})\n"
-                    f"  This group will be skipped - calibrator is outside usable beam."
-                )
-                continue
-
-            # Success! Calibrator is in beam
-            logger.info(
-                f"✓ Found complete 16-subband group for transit {t.isot}: "
-                f"{os.path.basename(gbest[0]).split('_sb')[0]} "
-                f"({dt_min:.1f} min from transit)"
-            )
-            logger.info(
-                f"✓ Pointing validation PASSED: Calibrator in primary beam\n"
-                f"  Pointing: RA={pb_validation['pt_ra_deg']:.4f}°, Dec={pb_validation['pt_dec_deg']:.4f}°\n"
-                f"  Calibrator: RA={ra_deg:.4f}°, Dec={dec_deg:.4f}°\n"
-                f"  Separation: {pb_validation['sep_deg']:.4f}° ({pb_validation['sep_deg']*60:.1f} arcmin)\n"
-                f"  Primary beam response: {pb_validation['pb_response']:.4f}"
-            )
-
-            return {
-                "name": calibrator_name,
-                "transit_iso": t.isot,
-                "start_iso": t0,
-                "end_iso": t1,
-                "group_id": os.path.basename(gbest[0]).split("_sb")[0],
-                "mid_iso": mid.isot,
-                "delta_minutes": dt_min,
-                "files": gbest_sorted,
-                "pointing_dec_deg": pb_validation["pt_dec_deg"],
-                "calibrator_dec_deg": dec_deg,
-                "separation_deg": pb_validation["sep_deg"],
-                "pb_response": pb_validation["pb_response"],
-            }
+            if result:
+                return result
 
         return None
 
@@ -649,6 +763,88 @@ class CalibratorMSGenerator:
         )
         return existing is not None
 
+    def _resolve_transit_time(
+        self,
+        calibrator_name: str,
+        transit_time: Optional[Time],
+        tolerance_minutes: float,
+        max_days_back: int,
+    ) -> Optional[Time]:
+        """Resolve transit time, finding latest if not provided.
+
+        Args:
+            calibrator_name: Name of calibrator
+            transit_time: Optional transit time
+            tolerance_minutes: Time tolerance in minutes
+            max_days_back: Maximum days to search back
+
+        Returns:
+            Transit time or None if not found
+        """
+        if transit_time is not None:
+            return transit_time
+
+        transit_info = self.find_transit(
+            calibrator_name,
+            transit_time=None,
+            window_minutes=int(tolerance_minutes * 2),
+            max_days_back=max_days_back,
+        )
+        if not transit_info:
+            return None
+        return Time(transit_info["transit_iso"])
+
+    def _query_ms_by_time_range(self, transit_time: Time, tolerance_minutes: float) -> List[tuple]:
+        """Query MS files in database by time range.
+
+        Args:
+            transit_time: Transit time
+            tolerance_minutes: Time tolerance in minutes
+
+        Returns:
+            List of (path, status, stage, mid_mjd, processed_at) tuples
+        """
+        conn = ensure_products_db(self.products_db)
+        transit_mjd = transit_time.mjd
+        tol_mjd = tolerance_minutes / (24 * 60)
+
+        rows = conn.execute(
+            """
+            SELECT path, status, stage, mid_mjd, processed_at
+            FROM ms_index
+            WHERE mid_mjd BETWEEN ? AND ?
+            ORDER BY ABS(mid_mjd - ?) ASC
+            LIMIT 20
+            """,
+            (transit_mjd - tol_mjd, transit_mjd + tol_mjd, transit_mjd),
+        ).fetchall()
+
+        conn.close()
+        return rows
+
+    def _match_calibrator_in_path(self, path: Path, calibrator_name: str) -> bool:
+        """Check if calibrator name matches in MS file path.
+
+        Args:
+            path: MS file path
+            calibrator_name: Calibrator name to match
+
+        Returns:
+            True if calibrator name found in path, False otherwise
+        """
+        cal_patterns = [
+            calibrator_name.replace("+", "_").replace("-", "_"),
+            calibrator_name.replace("+", "_"),
+            calibrator_name.replace("-", "_"),
+            calibrator_name,
+        ]
+
+        path_str = Path(path).stem.lower()
+        for pattern in cal_patterns:
+            if pattern.lower() in path_str:
+                return True
+        return False
+
     def find_existing_ms_for_transit(
         self,
         calibrator_name: str,
@@ -674,62 +870,26 @@ class CalibratorMSGenerator:
         Returns:
             Dict with ms_path, status, stage, mid_mjd, or None if not found
         """
+        transit_time = self._resolve_transit_time(
+            calibrator_name, transit_time, tolerance_minutes, max_days_back
+        )
         if transit_time is None:
-            # Find latest transit automatically
-            transit_info = self.find_transit(
-                calibrator_name,
-                transit_time=None,
-                window_minutes=int(tolerance_minutes * 2),
-                max_days_back=max_days_back,
-            )
-            if not transit_info:
-                return None
-            transit_time = Time(transit_info["transit_iso"])
+            return None
 
-        conn = ensure_products_db(self.products_db)
-
-        transit_mjd = transit_time.mjd
-        tol_mjd = tolerance_minutes / (24 * 60)
-
-        # Query by time range (sorted by proximity to transit)
-        rows = conn.execute(
-            """
-            SELECT path, status, stage, mid_mjd, processed_at
-            FROM ms_index
-            WHERE mid_mjd BETWEEN ? AND ?
-            ORDER BY ABS(mid_mjd - ?) ASC
-            LIMIT 20
-            """,
-            (transit_mjd - tol_mjd, transit_mjd + tol_mjd, transit_mjd),
-        ).fetchall()
-
-        conn.close()
-
+        rows = self._query_ms_by_time_range(transit_time, tolerance_minutes)
         if not rows:
             return None
 
-        # Filter by calibrator name in path
-        cal_patterns = [
-            calibrator_name.replace("+", "_").replace("-", "_"),
-            calibrator_name.replace("+", "_"),
-            calibrator_name.replace("-", "_"),
-            calibrator_name,
-        ]
-
         for row in rows:
             path, status, stage, mid_mjd, processed_at = row
-            path_str = Path(path).stem.lower()
-
-            # Check if any calibrator pattern matches
-            for pattern in cal_patterns:
-                if pattern.lower() in path_str:
-                    return {
-                        "ms_path": Path(path),
-                        "status": status,
-                        "stage": stage,
-                        "mid_mjd": mid_mjd,
-                        "processed_at": processed_at,
-                    }
+            if self._match_calibrator_in_path(Path(path), calibrator_name):
+                return {
+                    "ms_path": Path(path),
+                    "status": status,
+                    "stage": stage,
+                    "mid_mjd": mid_mjd,
+                    "processed_at": processed_at,
+                }
 
         return None
 
@@ -1092,6 +1252,49 @@ class CalibratorMSGenerator:
 
         return None
 
+    def _process_transits_for_available_data(
+        self,
+        transits: List[Time],
+        calibrator_name: str,
+        dec_deg: float,
+        cutoff_time: Time,
+        filelength: u.Quantity,
+        window_minutes: int,
+    ) -> List[dict]:
+        """Process transits to find available data groups.
+
+        Args:
+            transits: List of transit times
+            calibrator_name: Name of calibrator
+            dec_deg: Declination in degrees
+            cutoff_time: Cutoff time for filtering old groups
+            filelength: Typical observation file length
+            window_minutes: Search window in minutes
+
+        Returns:
+            List of transit info dicts with available data
+        """
+        available_transits = []
+        for transit in transits:
+            groups = self._query_hdf5_groups_in_window(transit, window_minutes)
+            if not groups:
+                continue
+
+            transit_info = self._find_matching_group_for_transit(
+                transit=transit,
+                groups=groups,
+                dec_deg=dec_deg,
+                cutoff_time=cutoff_time,
+                filelength=filelength,
+                calibrator_name=calibrator_name,
+            )
+
+            if transit_info:
+                available_transits.append(transit_info)
+
+        available_transits.sort(key=lambda x: x["transit_mjd"], reverse=True)
+        return available_transits
+
     def list_available_transits(
         self, calibrator_name: str, *, max_days_back: int = 30, window_minutes: int = 60
     ) -> List[dict]:
@@ -1118,21 +1321,14 @@ class CalibratorMSGenerator:
             - 'days_ago': Days since transit
             - 'has_ms': Boolean indicating if MS already exists
         """
-        # Load RA/Dec for calibrator
         ra_deg, dec_deg = self._load_radec(calibrator_name)
-
-        # Calculate search window
         start_time, end_time, cutoff_time = self._calculate_search_window(max_days_back)
 
-        # Query database for all complete groups in time range
         complete_groups_list = query_subband_groups(
             self.products_db, start_time, end_time, tolerance_s=1.0
         )
 
-        # Convert to dict keyed by group_id for compatibility
-        complete_groups = self._convert_groups_list_to_dict(complete_groups_list)
-
-        if not complete_groups:
+        if not complete_groups_list:
             logger.debug(
                 f"No complete 16-subband groups found in database for time range "
                 f"{start_time} to {end_time}. Consider running index_hdf5_files() "
@@ -1140,34 +1336,12 @@ class CalibratorMSGenerator:
             )
             return []
 
-        # Find transits first, then check if groups contain them
         transits = previous_transits(ra_deg, start_time=Time.now(), n=max_days_back)
-        available_transits = []
         filelength = 5 * u.min  # Typical observation file length  # pylint: disable=no-member
 
-        for transit in transits:
-            # Query database for groups in window around transit
-            groups = self._query_hdf5_groups_in_window(transit, window_minutes)
-            if not groups:
-                continue
-
-            # Find first matching group for this transit
-            transit_info = self._find_matching_group_for_transit(
-                transit=transit,
-                groups=groups,
-                dec_deg=dec_deg,
-                cutoff_time=cutoff_time,
-                filelength=filelength,
-                calibrator_name=calibrator_name,
-            )
-
-            if transit_info:
-                available_transits.append(transit_info)
-
-        # Sort by most recent first (by transit time)
-        available_transits.sort(key=lambda x: x["transit_mjd"], reverse=True)
-
-        return available_transits
+        return self._process_transits_for_available_data(
+            transits, calibrator_name, dec_deg, cutoff_time, filelength, window_minutes
+        )
 
     def locate_group(
         self, transit_info: dict, *, dec_tolerance_deg: float = 2.0
@@ -1313,6 +1487,41 @@ class CalibratorMSGenerator:
                 )
         return None
 
+    def _check_existing_ms_for_transit_info(
+        self,
+        calibrator_name: str,
+        transit_info: dict,
+        config: GenerateMSConfig,
+        progress: ProgressReporter,
+    ) -> Optional[Tuple[dict, List[str]]]:
+        """Check for existing MS for transit info.
+
+        Args:
+            calibrator_name: Name of calibrator
+            transit_info: Transit info dictionary
+            config: Generation configuration
+            progress: Progress reporter
+
+        Returns:
+            Tuple of (transit_info_with_existing, []) if found, None otherwise
+        """
+        transit_time_obj = Time(transit_info["transit_iso"])
+        existing = self.find_existing_ms_for_transit(
+            calibrator_name,
+            transit_time_obj,
+            tolerance_minutes=config.window_minutes / 2,
+        )
+        if existing:
+            progress.success(f"Found existing MS for transit: {existing['ms_path']}")
+            return (
+                {
+                    **transit_info,
+                    "existing_ms": existing,
+                },
+                [],
+            )
+        return None
+
     def _find_transit_and_group(
         self,
         calibrator_name: str,
@@ -1352,21 +1561,11 @@ class CalibratorMSGenerator:
 
         progress.success(f"Found transit: {transit_info['transit_iso']}")
 
-        transit_time_obj = Time(transit_info["transit_iso"])
-        existing = self.find_existing_ms_for_transit(
-            calibrator_name,
-            transit_time_obj,
-            tolerance_minutes=config.window_minutes / 2,
+        existing_result = self._check_existing_ms_for_transit_info(
+            calibrator_name, transit_info, config, progress
         )
-        if existing:
-            progress.success(f"Found existing MS for transit: {existing['ms_path']}")
-            return (
-                {
-                    **transit_info,
-                    "existing_ms": existing,
-                },
-                [],
-            )
+        if existing_result:
+            return existing_result
 
         progress.info("Locating subband group...")
         file_list = self.locate_group(transit_info, dec_tolerance_deg=config.dec_tolerance_deg)
@@ -1378,6 +1577,98 @@ class CalibratorMSGenerator:
 
         progress.success(f"Found {len(file_list)} subband files")
         return transit_info, file_list
+
+    def _handle_existing_ms(
+        self, ms_path: Path, transit_info: dict, metrics: dict, progress: ProgressReporter
+    ) -> Optional[CalibratorMSResult]:
+        """Handle case where MS already exists.
+
+        Args:
+            ms_path: MS file path
+            transit_info: Transit information dictionary
+            metrics: Metrics dictionary to update
+            progress: Progress reporter
+
+        Returns:
+            CalibratorMSResult if MS exists, None otherwise
+        """
+        exists, exist_info = self._check_existing_ms(ms_path, transit_info)
+        if not exists:
+            return None
+
+        progress.success(f"MS already exists (reason: {exist_info['reason']})")
+        metrics["already_exists"] = True
+        metrics["exist_reason"] = exist_info["reason"]
+
+        return CalibratorMSResult(
+            success=True,
+            ms_path=ms_path,
+            transit_info=transit_info,
+            group_id=transit_info["group_id"],
+            already_exists=True,
+            metrics=metrics,
+            progress_summary=progress.get_summary(),
+        )
+
+    def _perform_conversion(
+        self,
+        file_list: List[str],
+        ms_path: Path,
+        config: GenerateMSConfig,
+        progress: ProgressReporter,
+        metrics: dict,
+    ) -> None:
+        """Perform HDF5 to MS conversion.
+
+        Args:
+            file_list: List of subband file paths
+            ms_path: Output MS file path
+            config: Generation configuration
+            progress: Progress reporter
+            metrics: Metrics dictionary to update
+        """
+        progress.info(f"Converting {len(file_list)} subbands to MS...")
+        convert_start = time.time()
+
+        try:
+            self.convert_group(file_list, ms_path, stage_to_tmpfs=config.stage_to_tmpfs)
+        except ConversionError:
+            raise
+        except Exception as e:
+            raise ConversionError(f"Conversion failed: {e}") from e
+
+        convert_time = time.time() - convert_start
+        progress.success(f"Conversion completed in {convert_time:.1f}s")
+        metrics["conversion_time_seconds"] = convert_time
+
+    def _post_process_ms(
+        self,
+        ms_path: Path,
+        transit_info: dict,
+        config: GenerateMSConfig,
+        progress: ProgressReporter,
+        metrics: dict,
+    ) -> None:
+        """Post-process MS (configure for imaging, register in DB).
+
+        Args:
+            ms_path: MS file path
+            transit_info: Transit information dictionary
+            config: Generation configuration
+            progress: Progress reporter
+            metrics: Metrics dictionary to update
+        """
+        if config.configure_for_imaging:
+            progress.info("Configuring MS for imaging...")
+            configure_ms_for_imaging(os.fspath(ms_path))
+            progress.success("MS configured for imaging")
+            metrics["configured"] = True
+
+        if config.register_in_db:
+            progress.info("Registering MS in products database...")
+            self._register_ms_in_db(ms_path, transit_info)
+            progress.success("MS registered in database")
+            metrics["registered"] = True
 
     def _execute_conversion_workflow(
         self,
@@ -1409,48 +1700,12 @@ class CalibratorMSGenerator:
         )
 
         progress.info(f"Checking for existing MS: {ms_path}")
-        exists, exist_info = self._check_existing_ms(ms_path, transit_info)
+        existing_result = self._handle_existing_ms(ms_path, transit_info, metrics, progress)
+        if existing_result:
+            return existing_result
 
-        if exists:
-            progress.success(f"MS already exists (reason: {exist_info['reason']})")
-            metrics["already_exists"] = True
-            metrics["exist_reason"] = exist_info["reason"]
-
-            return CalibratorMSResult(
-                success=True,
-                ms_path=ms_path,
-                transit_info=transit_info,
-                group_id=transit_info["group_id"],
-                already_exists=True,
-                metrics=metrics,
-                progress_summary=progress.get_summary(),
-            )
-
-        progress.info(f"Converting {len(file_list)} subbands to MS...")
-        convert_start = time.time()
-
-        try:
-            self.convert_group(file_list, ms_path, stage_to_tmpfs=config.stage_to_tmpfs)
-        except ConversionError:
-            raise
-        except Exception as e:
-            raise ConversionError(f"Conversion failed: {e}") from e
-
-        convert_time = time.time() - convert_start
-        progress.success(f"Conversion completed in {convert_time:.1f}s")
-        metrics["conversion_time_seconds"] = convert_time
-
-        if config.configure_for_imaging:
-            progress.info("Configuring MS for imaging...")
-            configure_ms_for_imaging(os.fspath(ms_path))
-            progress.success("MS configured for imaging")
-            metrics["configured"] = True
-
-        if config.register_in_db:
-            progress.info("Registering MS in products database...")
-            self._register_ms_in_db(ms_path, transit_info)
-            progress.success("MS registered in database")
-            metrics["registered"] = True
+        self._perform_conversion(file_list, ms_path, config, progress, metrics)
+        self._post_process_ms(ms_path, transit_info, config, progress, metrics)
 
         progress.success(f"MS ready: {ms_path}")
 

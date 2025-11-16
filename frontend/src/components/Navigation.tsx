@@ -38,7 +38,6 @@ import {
   Cached,
   Science,
   Visibility,
-  FolderOpen,
 } from "@mui/icons-material";
 import CommandPalette from "./CommandPalette";
 import { useCommandPalette } from "../hooks/useCommandPalette";

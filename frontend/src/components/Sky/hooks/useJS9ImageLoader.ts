@@ -20,7 +20,7 @@ interface UseJS9ImageLoaderOptions {
   displayId: string;
   initialized: boolean;
   isJS9Ready: boolean;
-  timeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
+  timeoutRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
   getDisplaySafe: (id: string) => any | null;
 }
 
@@ -52,7 +52,7 @@ export function useJS9ImageLoader({
     imageLoadedRef.current = false;
 
     // Define variables outside try/catch so they're accessible everywhere
-    let hideInterval: NodeJS.Timeout | null = null;
+    let hideInterval: ReturnType<typeof setTimeout> | null = null;
     let observer: MutationObserver | null = null;
     let targetDiv: HTMLElement | null = null;
 

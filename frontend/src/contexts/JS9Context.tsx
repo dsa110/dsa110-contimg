@@ -147,7 +147,7 @@ export function JS9Provider({ children }: JS9ProviderProps) {
       if (state) return state;
 
       // Create state from current display
-      const display = getDisplay(displayId);
+      const _display = getDisplay(displayId);
       const imageId = getImageId(displayId);
       const hasImg = hasImage(displayId);
 
@@ -182,7 +182,7 @@ export function JS9Provider({ children }: JS9ProviderProps) {
   // Update display state
   const updateDisplayState = useCallback(
     (displayId: string) => {
-      const display = getDisplay(displayId);
+      const _display = getDisplay(displayId);
       const imageId = getImageId(displayId);
       const hasImg = hasImage(displayId);
       const isLoading = loadingRefs.current.get(displayId) ?? false;

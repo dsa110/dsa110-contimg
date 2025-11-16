@@ -21,7 +21,7 @@ export class WebSocketClient {
   private reconnectAttempts = 0;
   private useSSE: boolean;
   private handlers: Map<string, Set<MessageHandler>> = new Map();
-  private reconnectTimer: NodeJS.Timeout | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private isConnecting = false;
   private isConnected = false;
 
@@ -83,11 +83,25 @@ export class WebSocketClient {
     };
 
     this.ws.onmessage = (event) => {
+      // Handle keepalive "pong" messages (plain text, not JSON)
+      if (event.data === "pong") {
+        // Silently handle pong responses to ping keepalive
+        return;
+      }
+
+      // Try to parse as JSON for actual messages
       try {
         const data = JSON.parse(event.data);
         this.handleMessage(data);
       } catch (error) {
-        logger.warn("Failed to parse WebSocket message:", error);
+        // Only log if it's not a known non-JSON message
+        if (event.data !== "ping" && event.data !== "pong") {
+          logger.warn("Failed to parse WebSocket message:", {
+            error: error instanceof Error ? error.message : String(error),
+            data: event.data,
+            dataType: typeof event.data,
+          });
+        }
       }
     };
 
@@ -305,7 +319,7 @@ export class WebSocketClient {
   /**
    * Start ping interval for WebSocket
    */
-  private pingInterval: NodeJS.Timeout | null = null;
+  private pingInterval: ReturnType<typeof setTimeout> | null = null;
 
   private startPingInterval(): void {
     if (this.pingInterval) {

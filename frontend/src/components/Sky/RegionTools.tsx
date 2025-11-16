@@ -13,15 +13,12 @@ import {
   DialogActions,
   TextField,
   Typography,
-  IconButton,
   Tooltip,
 } from "@mui/material";
 import {
   RadioButtonUnchecked as CircleIcon,
   CropFree as RectangleIcon,
   ChangeHistory as PolygonIcon,
-  Delete as DeleteIcon,
-  Edit as EditIcon,
 } from "@mui/icons-material";
 import { logger } from "../../utils/logger";
 
@@ -59,7 +56,7 @@ export default function RegionTools({
     }
   };
 
-  const handleRegionDrawn = (regionData: any) => {
+  const _handleRegionDrawn = (regionData: any) => {
     setPendingRegion(regionData);
     setNameDialogOpen(true);
   };

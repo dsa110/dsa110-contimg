@@ -37,7 +37,6 @@ import {
   Assessment,
   Settings,
   CompareArrows,
-  Download,
   Refresh,
   Info,
 } from "@mui/icons-material";
@@ -293,7 +292,7 @@ export default function MSBrowserPage() {
   const [compareMS, setCompareMS] = useState<string>("");
 
   const { data: msList, refetch: refetchMS } = useMSList({
-    scan: true,
+    scan: String(true),
     scan_dir: "/scratch/dsa110-contimg/ms",
   });
   const { data: msMetadata } = useMSMetadata(selectedMS);
@@ -375,7 +374,7 @@ export default function MSBrowserPage() {
             <MSTable
               data={msList?.items || []}
               total={msList?.total}
-              filtered={msList?.filtered}
+              filtered={msList?.filtered?.length}
               selected={selectedMS ? [selectedMS] : []}
               onSelectionChange={(paths) => {
                 if (paths.length > 0) {
@@ -502,7 +501,7 @@ export default function MSBrowserPage() {
                     <MSTable
                       data={msList?.items || []}
                       total={msList?.total}
-                      filtered={msList?.filtered}
+                      filtered={msList?.filtered?.length}
                       selected={selectedMS ? [selectedMS] : []}
                       onSelectionChange={(paths) => {
                         if (paths.length > 0) {
@@ -527,7 +526,7 @@ export default function MSBrowserPage() {
                     <MSTable
                       data={msList?.items || []}
                       total={msList?.total}
-                      filtered={msList?.filtered}
+                      filtered={msList?.filtered?.length}
                       selected={compareMS ? [compareMS] : []}
                       onSelectionChange={(paths) => {
                         if (paths.length > 0) {

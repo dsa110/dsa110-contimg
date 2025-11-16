@@ -7,14 +7,9 @@ import {
   Box,
   Paper,
   Typography,
-  Chip,
   Tabs,
   Tab,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
 } from "@mui/material";
-import { ExpandMore } from "@mui/icons-material";
 import { useMSList, useJobs, useMSMetadata, useCalibratorMatches } from "../api/queries";
 import type { MSListEntry } from "../api/types";
 import MSTable from "../components/MSTable";
@@ -35,7 +30,7 @@ export default function ControlPage() {
 
   // Queries
   const { data: msList, refetch: refetchMS } = useMSList({
-    scan: true,
+    scan: String(true),
     scan_dir: "/scratch/dsa110-contimg/ms",
   });
   const { data: msMetadata } = useMSMetadata(selectedMS);
@@ -89,7 +84,7 @@ export default function ControlPage() {
               <MSTable
                 data={msList?.items || []}
                 total={msList?.total}
-                filtered={msList?.filtered}
+                filtered={msList?.filtered?.length}
                 selected={selectedMSList}
                 onSelectionChange={(paths: string[]) => {
                   const prevList = selectedMSList;

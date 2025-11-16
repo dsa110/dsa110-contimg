@@ -714,6 +714,11 @@ export interface DataInstance {
   map?: (fn: (id: string) => void) => void;
 }
 
+export interface DataInstanceList {
+  items: DataInstance[];
+  total: number;
+}
+
 export interface DataInstanceDetail {
   id: string;
   type: string;
@@ -860,4 +865,10 @@ export interface ConversionJobParams {
   max_workers?: number;
   subbands?: number;
   params?: Record<string, unknown>;
+}
+
+
+export interface HealthSummary {
+  status: string;
+  [key: string]: unknown;
 }

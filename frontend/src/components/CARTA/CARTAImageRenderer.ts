@@ -173,8 +173,6 @@ export class CARTAImageRenderer {
 
     const canvasX = (tile.x - this.bounds.xMin) * scaleX;
     const canvasY = (tile.y - this.bounds.yMin) * scaleY;
-    const canvasWidth = tile.width * scaleX;
-    const canvasHeight = tile.height * scaleY;
 
     // Draw tile to image data
     for (let y = 0; y < tile.height && y + tile.y < this.bounds.yMax; y++) {

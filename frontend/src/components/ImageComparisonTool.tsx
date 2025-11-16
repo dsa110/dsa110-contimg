@@ -16,21 +16,12 @@ import {
   CardHeader,
   Stack,
   Chip,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Slider,
-  Switch,
-  FormControlLabel,
   Alert,
-  Divider,
 } from "@mui/material";
 import {
   CompareArrows,
   Timeline,
   Assessment,
-  Download,
   Settings,
   Visibility,
 } from "@mui/icons-material";
@@ -71,13 +62,10 @@ export default function ImageComparisonTool({
   const [imageA, setImageA] = useState<ImageInfo | null>(initialImageA);
   const [imageB, setImageB] = useState<ImageInfo | null>(initialImageB);
   const [compareDialogOpen, setCompareDialogOpen] = useState(false);
-  const [comparisonMode, setComparisonMode] = useState<"before-after" | "epochs" | "custom">(mode);
 
   // Query for images if needed
   const { data: imagesData } = useImages({
     limit: 100,
-    order_by: "created_at",
-    order: "desc",
   });
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {

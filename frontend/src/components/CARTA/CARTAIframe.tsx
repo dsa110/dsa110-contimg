@@ -48,7 +48,7 @@ export default function CARTAIframe({
   const [connectionChecked, setConnectionChecked] = useState(false);
   const [starting, setStarting] = useState(false);
   const [autoStartAttempted, setAutoStartAttempted] = useState(false);
-  const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const checkIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     try {

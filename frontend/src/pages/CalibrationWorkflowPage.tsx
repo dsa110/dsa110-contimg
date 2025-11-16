@@ -22,7 +22,6 @@ import {
   Alert,
   Tabs,
   Tab,
-  Divider,
   Stack,
 } from "@mui/material";
 import {
@@ -82,11 +81,11 @@ export default function CalibrationWorkflowPage() {
   const [tabValue, setTabValue] = useState(0);
 
   const { data: msList, refetch: refetchMS } = useMSList({
-    scan: true,
+    scan: String(true),
     scan_dir: "/scratch/dsa110-contimg/ms",
   });
   const { data: msMetadata } = useMSMetadata(selectedMS);
-  const { data: calibrationQA } = useCalibrationQA(selectedMS);
+  const { data: _calibrationQA } = useCalibrationQA(selectedMS);
   const { data: bandpassPlots } = useBandpassPlots(selectedMS);
 
   const handleStepChange = (step: number) => {
@@ -108,7 +107,7 @@ export default function CalibrationWorkflowPage() {
     }
   };
 
-  const handleBack = () => {
+  const _handleBack = () => {
     if (activeStep > 0) {
       setActiveStep(activeStep - 1);
     }
@@ -176,7 +175,7 @@ export default function CalibrationWorkflowPage() {
                           <MSTable
                             data={msList?.items || []}
                             total={msList?.total}
-                            filtered={msList?.filtered}
+                            filtered={msList?.filtered?.length}
                             selected={selectedMS ? [selectedMS] : []}
                             onSelectionChange={(paths) => {
                               if (paths.length > 0) {

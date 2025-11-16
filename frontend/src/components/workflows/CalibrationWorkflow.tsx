@@ -105,7 +105,7 @@ export function CalibrationWorkflow({
   const { data: existingTables } = useExistingCalTables(selectedMS);
   const { data: calTables } = useCalTables();
   const validateCalTable = useValidateCalTable();
-  const { data: calibrationQA } = useCalibrationQA(selectedMS);
+  const { data: _calibrationQA } = useCalibrationQA(selectedMS);
   const { data: msMetadata } = useMSMetadata(selectedMS);
 
   // Helper function to extract error message from API error
@@ -135,7 +135,7 @@ export function CalibrationWorkflow({
   const handleCalibrateSubmit = useCallback(() => {
     if (!selectedMS) return;
     calibrateMutation.mutate(
-      { ms_path: selectedMS, params: calibParams },
+      { params: calibParams },
       {
         onSuccess: (job) => {
           onJobCreated?.(parseInt(job.id, 10));
@@ -522,7 +522,7 @@ export function CalibrationWorkflow({
                                       <Box>
                                         <Typography variant="caption">
                                           {table.filename} ({(table.size_mb ?? 0).toFixed(1)} MB,{" "}
-                                          {table.age_hours.toFixed(1)}h ago)
+                                          {table.age_hours?.toFixed(1)}h ago)
                                         </Typography>
                                         {isSelected && compat && (
                                           <Box sx={{ mt: 0.5 }}>
@@ -656,7 +656,7 @@ export function CalibrationWorkflow({
                                       <Box>
                                         <Typography variant="caption">
                                           {table.filename} ({(table.size_mb ?? 0).toFixed(1)} MB,{" "}
-                                          {table.age_hours.toFixed(1)}h ago)
+                                          {table.age_hours?.toFixed(1)}h ago)
                                         </Typography>
                                         {isSelected && compat && (
                                           <Box sx={{ mt: 0.5 }}>
@@ -790,7 +790,7 @@ export function CalibrationWorkflow({
                                       <Box>
                                         <Typography variant="caption">
                                           {table.filename} ({(table.size_mb ?? 0).toFixed(1)} MB,{" "}
-                                          {table.age_hours.toFixed(1)}h ago)
+                                          {table.age_hours?.toFixed(1)}h ago)
                                         </Typography>
                                         {isSelected && compat && (
                                           <Box sx={{ mt: 0.5 }}>
@@ -976,7 +976,7 @@ export function CalibrationWorkflow({
               <>
                 <CalibrationSPWPanel
                   msPath={selectedMS}
-                  onSPWChange={(spwList: any) => {
+                  onSPWChange={(_spwList: any) => {
                     // Handle SPW selection if needed
                   }}
                 />

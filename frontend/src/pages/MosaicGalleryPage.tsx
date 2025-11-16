@@ -163,7 +163,7 @@ export default function MosaicGalleryPage() {
             </Alert>
           )}
 
-          {data && data.mosaics.length === 0 && queryRequest && (
+          {data && data.mosaics?.length === 0 && queryRequest && (
             <EmptyState
               icon={<Image sx={{ fontSize: 64, color: "text.secondary" }} />}
               title="No mosaics found"
@@ -180,7 +180,7 @@ export default function MosaicGalleryPage() {
             />
           )}
 
-          {data && data.mosaics.length > 0 && (
+          {data && data.mosaics?.length > 0 && (
             <>
               <Typography variant="h6" gutterBottom>
                 Found {data.total} mosaic{data.total !== 1 ? "s" : ""}
@@ -196,7 +196,7 @@ export default function MosaicGalleryPage() {
                   gap: 3,
                 }}
               >
-                {data.mosaics.map((mosaic) => {
+                {data.mosaics?.map((mosaic) => {
                   const status = getMosaicStatus(mosaic);
                   return (
                     <Box key={mosaic.id}>

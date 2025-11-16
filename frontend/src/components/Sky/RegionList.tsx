@@ -30,7 +30,6 @@ import {
   useRegions,
   useDeleteRegion,
   useUpdateRegion,
-  useRegionStatistics,
 } from "../../api/queries";
 import { logger } from "../../utils/logger";
 

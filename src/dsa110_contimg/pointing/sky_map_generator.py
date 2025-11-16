@@ -5,10 +5,11 @@ This module provides utilities to generate or load an all-sky radio map
 as a background in the pointing visualization.
 """
 
+import json
 import logging
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from PIL import Image
@@ -80,7 +81,8 @@ def generate_synthetic_radio_sky_map(
     brightness = np.minimum(1.0, brightness)
 
     # Enhance contrast for better visibility
-    brightness = np.power(brightness, 0.8)  # Gamma correction for better visibility
+    # Gamma correction for better visibility
+    brightness = np.power(brightness, 0.8)
 
     # Convert to RGB (grayscale with slight blue tint for radio emission)
     gray = (brightness * 255).astype(np.uint8)
@@ -167,6 +169,452 @@ def load_haslam_408mhz_map(
     except Exception as e:
         logger.error(f"Failed to load/reproject Haslam map: {e}")
         return None
+
+
+def get_sky_map_data_path(
+    frequency_mhz: float = 1400.0,
+    resolution: int = 90,
+    map_type: str = "gsm",
+    output_dir: Optional[Path] = None,
+    file_format: str = "fits",
+) -> Path:
+    """Get path to cached sky map data file.
+
+    Args:
+        frequency_mhz: Frequency in MHz
+        resolution: Grid resolution
+        map_type: Type of map ("gsm" or "synthetic")
+        output_dir: Directory where cache should be stored
+        file_format: File format ("fits", "png", or "json")
+
+    Returns:
+        Path to cached file
+    """
+    if output_dir is None:
+        # Use absolute path from project root, not relative to current working directory
+        project_root = Path(__file__).parent.parent.parent.parent
+        state_dir = Path(os.getenv("PIPELINE_STATE_DIR", str(project_root / "state")))
+        output_dir = state_dir / "pointing" / "data"
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Create cache filename based on parameters
+    if file_format == "fits":
+        cache_filename = f"sky_map_{map_type}_{frequency_mhz:.1f}mhz_res{resolution}.fits"
+    elif file_format == "png":
+        cache_filename = f"sky_map_{map_type}_{frequency_mhz:.1f}mhz_res{resolution}.png"
+    else:  # json
+        cache_filename = f"sky_map_{map_type}_{frequency_mhz:.1f}mhz_res{resolution}.json"
+    return output_dir / cache_filename
+
+
+def load_sky_map_from_fits(fits_path: Path) -> Optional[Dict[str, List]]:
+    """Load sky map data from FITS file.
+
+    Args:
+        fits_path: Path to FITS file
+
+    Returns:
+        Dictionary with keys 'x', 'y', 'z' or None if loading fails
+    """
+    try:
+        from astropy.io import fits
+    except ImportError:
+        logger.warning("astropy not available, cannot load FITS file")
+        return None
+
+    try:
+        with fits.open(fits_path) as hdul:
+            # Read data from primary HDU
+            data = hdul[0].data
+            header = hdul[0].header
+
+            # Extract coordinate arrays from header or calculate
+            if "NAXIS1" in header and "NAXIS2" in header:
+                width = header["NAXIS1"]
+                height = header["NAXIS2"]
+            else:
+                # Infer from data shape
+                if len(data.shape) == 2:
+                    height, width = data.shape
+                else:
+                    logger.warning(f"Unexpected FITS data shape: {data.shape}")
+                    return None
+
+            # Get coordinate ranges from header (Aitoff projection standard ranges)
+            # Aitoff x: -180 to 180, y: -90 to 90
+            x_min = header.get("XMIN", -180.0)
+            x_max = header.get("XMAX", 180.0)
+            y_min = header.get("YMIN", -90.0)
+            y_max = header.get("YMAX", 90.0)
+
+            # Generate coordinate arrays
+            if width > 1:
+                x_coords = [x_min + (x_max - x_min) * j / (width - 1) for j in range(width)]
+            else:
+                x_coords = [x_min]
+
+            if height > 1:
+                y_coords = [y_min + (y_max - y_min) * i / (height - 1) for i in range(height)]
+            else:
+                y_coords = [y_min]
+
+            # Convert data to list of lists (normalize if needed)
+            z_values = data.tolist()
+
+            return {"x": x_coords, "y": y_coords, "z": z_values}
+    except Exception as e:
+        logger.warning(f"Failed to load FITS file {fits_path}: {e}")
+        return None
+
+
+def save_sky_map_to_fits(
+    data: Dict[str, List], fits_path: Path, frequency_mhz: float = 1400.0
+) -> bool:
+    """Save sky map data to FITS file.
+
+    Args:
+        data: Dictionary with keys 'x', 'y', 'z'
+        fits_path: Path where FITS file should be saved
+        frequency_mhz: Frequency in MHz (for header)
+
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        from astropy.io import fits
+    except ImportError:
+        logger.warning("astropy not available, cannot save FITS file")
+        return False
+
+    try:
+        # Convert z values to numpy array
+        z_array = np.array(data["z"])
+
+        # Create FITS header with metadata
+        header = fits.Header()
+        header["FREQ"] = (frequency_mhz, "Frequency in MHz")
+        header["NAXIS"] = 2
+        header["NAXIS1"] = len(data["x"])
+        header["NAXIS2"] = len(data["y"])
+        header["XMIN"] = (min(data["x"]), "Minimum Aitoff X coordinate")
+        header["XMAX"] = (max(data["x"]), "Maximum Aitoff X coordinate")
+        header["YMIN"] = (min(data["y"]), "Minimum Aitoff Y coordinate")
+        header["YMAX"] = (max(data["y"]), "Maximum Aitoff Y coordinate")
+        header["CTYPE1"] = "AITOFF_X"
+        header["CTYPE2"] = "AITOFF_Y"
+        header["COMMENT"] = "GSM sky map in Aitoff projection"
+
+        # Create primary HDU
+        hdu = fits.PrimaryHDU(data=z_array, header=header)
+
+        # Write to file
+        hdu.writeto(fits_path, overwrite=True)
+        logger.info(f"Saved GSM sky map to FITS: {fits_path}")
+        return True
+    except Exception as e:
+        logger.warning(f"Failed to save FITS file {fits_path}: {e}")
+        return False
+
+
+def save_sky_map_to_png(data: Dict[str, List], png_path: Path) -> bool:
+    """Save sky map data as PNG image.
+
+    Args:
+        data: Dictionary with keys 'x', 'y', 'z'
+        png_path: Path where PNG file should be saved
+
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        # Convert z values to numpy array and normalize to 0-255
+        z_array = np.array(data["z"])
+        z_min = np.min(z_array)
+        z_max = np.max(z_array)
+        if z_max > z_min:
+            normalized = ((z_array - z_min) / (z_max - z_min) * 255).astype(np.uint8)
+        else:
+            normalized = np.zeros_like(z_array, dtype=np.uint8)
+
+        # Create image (height x width)
+        img = Image.fromarray(normalized, mode="L")
+        img.save(png_path)
+        logger.info(f"Saved GSM sky map to PNG: {png_path}")
+        return True
+    except Exception as e:
+        logger.warning(f"Failed to save PNG file {png_path}: {e}")
+        return False
+
+
+def generate_gsm_sky_map_data(
+    frequency_mhz: float = 1400.0,
+    resolution: int = 90,
+    use_cache: bool = True,
+) -> Dict[str, List]:
+    """Generate Global Sky Model (GSM) sky map data in Aitoff projection.
+
+    Uses pygdsm to generate a realistic all-sky radio map and projects it
+    to Aitoff coordinates for use in the pointing visualization heatmap.
+    Results are cached to disk (FITS, PNG, and JSON) to avoid regenerating.
+
+    Args:
+        frequency_mhz: Frequency in MHz (default: 1400 MHz / 1.4 GHz)
+        resolution: Grid resolution (default: 90, gives 91x181 grid)
+        use_cache: If True, use cached data if available (default: True)
+
+    Returns:
+        Dictionary with keys 'x', 'y', 'z' containing coordinate arrays and brightness values
+    """
+    # Check cache first (try FITS, then PNG, then JSON)
+    if use_cache:
+        # Try FITS first (preserves data best)
+        fits_path = get_sky_map_data_path(
+            frequency_mhz=frequency_mhz,
+            resolution=resolution,
+            map_type="gsm",
+            file_format="fits",
+        )
+        if fits_path.exists():
+            logger.info(f"Loading cached GSM sky map from FITS: {fits_path}")
+            data = load_sky_map_from_fits(fits_path)
+            if data is not None:
+                return data
+
+        # Try JSON as fallback
+        json_path = get_sky_map_data_path(
+            frequency_mhz=frequency_mhz,
+            resolution=resolution,
+            map_type="gsm",
+            file_format="json",
+        )
+        if json_path.exists():
+            try:
+                logger.info(f"Loading cached GSM sky map from JSON: {json_path}")
+                with open(json_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+
+                # If we loaded from JSON but FITS doesn't exist, save to FITS/PNG now
+                if not fits_path.exists():
+                    logger.info("FITS file not found, converting JSON cache to FITS/PNG...")
+                    save_sky_map_to_fits(data, fits_path, frequency_mhz=frequency_mhz)
+                    png_path = get_sky_map_data_path(
+                        frequency_mhz=frequency_mhz,
+                        resolution=resolution,
+                        map_type="gsm",
+                        file_format="png",
+                    )
+                    save_sky_map_to_png(data, png_path)
+
+                return data
+            except (json.JSONDecodeError, IOError) as e:
+                logger.warning(f"Failed to load JSON cache, regenerating: {e}")
+
+    try:
+        import healpy as hp
+        import pygdsm
+    except ImportError as e:
+        logger.warning(
+            f"pygdsm or healpy not available: {e}. " "Install with: pip install pygdsm healpy"
+        )
+        # Fall back to synthetic data
+        return generate_synthetic_sky_map_data(resolution=resolution, use_cache=use_cache)
+
+    try:
+        # Generate GSM sky map at specified frequency
+        logger.info(f"Generating GSM sky map at {frequency_mhz} MHz...")
+        gsm = pygdsm.GlobalSkyModel16()
+        sky_map = gsm.generate(frequency_mhz)
+
+        # Get HEALPix resolution
+        nside = hp.get_nside(sky_map)
+        npix = hp.nside2npix(nside)
+
+        # Convert to log scale for better visualization
+        # Add small value to avoid log(0)
+        log_sky_map = np.log10(sky_map + 1e-10)
+
+        # Normalize to 0-1 range for heatmap
+        min_val = np.min(log_sky_map)
+        max_val = np.max(log_sky_map)
+        normalized_map = (
+            (log_sky_map - min_val) / (max_val - min_val) if max_val > min_val else log_sky_map
+        )
+
+        # Create Aitoff coordinate grid
+        x_step = 360.0 / resolution
+        y_step = 180.0 / resolution
+
+        x_coords: List[float] = []
+        y_coords: List[float] = []
+        z_values: List[List[float]] = []
+
+        for i in range(resolution + 1):
+            aitoff_y = -90.0 + i * y_step
+            y_coords.append(aitoff_y)
+            row: List[float] = []
+
+            for j in range(resolution + 1):
+                aitoff_x = -180.0 + j * x_step
+                if i == 0:
+                    x_coords.append(aitoff_x)
+
+                # Convert Aitoff coordinates to RA/Dec (approximate)
+                # For Aitoff: x = longitude (RA-180), y = latitude (Dec)
+                ra_deg = aitoff_x + 180.0
+                dec_deg = aitoff_y
+
+                # Convert RA/Dec to HEALPix pixel index
+                # HEALPix uses theta (colatitude) and phi (longitude)
+                theta = np.radians(90.0 - dec_deg)  # Colatitude
+                phi = np.radians(ra_deg)  # Longitude
+
+                # Get pixel index
+                pix_idx = hp.ang2pix(nside, theta, phi)
+
+                # Get brightness value from GSM map
+                brightness = float(normalized_map[pix_idx])
+                row.append(brightness)
+
+            z_values.append(row)
+
+        logger.info(f"Generated GSM sky map data: {len(x_coords)}x{len(y_coords)} grid")
+        result = {"x": x_coords, "y": y_coords, "z": z_values}
+
+        # Save to cache in multiple formats
+        if use_cache:
+            # Save as FITS (best for data preservation)
+            fits_path = get_sky_map_data_path(
+                frequency_mhz=frequency_mhz,
+                resolution=resolution,
+                map_type="gsm",
+                file_format="fits",
+            )
+            save_sky_map_to_fits(result, fits_path, frequency_mhz=frequency_mhz)
+
+            # Save as PNG (quick preview/fallback)
+            png_path = get_sky_map_data_path(
+                frequency_mhz=frequency_mhz,
+                resolution=resolution,
+                map_type="gsm",
+                file_format="png",
+            )
+            save_sky_map_to_png(result, png_path)
+
+            # Save as JSON (fallback if FITS not available)
+            json_path = get_sky_map_data_path(
+                frequency_mhz=frequency_mhz,
+                resolution=resolution,
+                map_type="gsm",
+                file_format="json",
+            )
+            try:
+                logger.info(f"Saving GSM sky map data to JSON: {json_path}")
+                with open(json_path, "w", encoding="utf-8") as f:
+                    json.dump(result, f)
+            except IOError as e:
+                logger.warning(f"Failed to save JSON cache: {e}")
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Failed to generate GSM sky map: {e}")
+        # Fall back to synthetic data
+        return generate_synthetic_sky_map_data(resolution=resolution, use_cache=use_cache)
+
+
+def generate_synthetic_sky_map_data(
+    resolution: int = 90,
+    use_cache: bool = True,
+) -> Dict[str, List]:
+    """Generate synthetic sky map data in Aitoff projection.
+
+    Fallback function that generates synthetic data matching the synthetic image generator.
+    Results are cached to disk to avoid regenerating on every request.
+
+    Args:
+        resolution: Grid resolution
+        use_cache: If True, use cached data if available (default: True)
+
+    Returns:
+        Dictionary with keys 'x', 'y', 'z' containing coordinate arrays and brightness values
+    """
+    # Check cache first
+    if use_cache:
+        cache_path = get_sky_map_data_path(
+            frequency_mhz=0.0,  # Synthetic doesn't use frequency
+            resolution=resolution,
+            map_type="synthetic",
+        )
+        if cache_path.exists():
+            try:
+                logger.info(f"Loading cached synthetic sky map data from {cache_path}")
+                with open(cache_path, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, IOError) as e:
+                logger.warning(f"Failed to load cache, regenerating: {e}")
+    x_step = 360.0 / resolution
+    y_step = 180.0 / resolution
+
+    x_coords: List[float] = []
+    y_coords: List[float] = []
+    z_values: List[List[float]] = []
+
+    for i in range(resolution + 1):
+        aitoff_y = -90.0 + i * y_step
+        y_coords.append(aitoff_y)
+        row: List[float] = []
+
+        for j in range(resolution + 1):
+            aitoff_x = -180.0 + j * x_step
+            if i == 0:
+                x_coords.append(aitoff_x)
+
+            # Convert Aitoff coordinates to approximate RA/Dec
+            ra_deg = aitoff_x + 180.0
+            dec_deg = aitoff_y
+
+            # Galactic center is at RA ~266°, Dec ~-29°
+            gal_center_ra = 266.0
+            gal_center_dec = -29.0
+
+            # Distance from galactic center (handle RA wrap-around)
+            ra_diff = ((ra_deg - gal_center_ra + 180) % 360) - 180
+            dec_diff = dec_deg - gal_center_dec
+            dist_from_center = np.sqrt(ra_diff**2 + dec_diff**2)
+
+            # Distance from galactic plane
+            plane_dec = -29.0 + 20 * np.sin(np.radians(ra_deg))
+            dist_from_plane = np.abs(dec_deg - plane_dec)
+
+            # Calculate brightness
+            center_brightness = max(0.0, 1.0 - dist_from_center / 80.0)
+            plane_brightness = max(0.0, 0.8 - dist_from_plane / 40.0)
+            brightness = 0.2 + center_brightness * 0.6 + plane_brightness * 0.4
+            normalized_brightness = min(1.0, brightness**0.8)
+
+            row.append(normalized_brightness)
+
+        z_values.append(row)
+
+    result = {"x": x_coords, "y": y_coords, "z": z_values}
+
+    # Save to cache
+    if use_cache:
+        cache_path = get_sky_map_data_path(
+            frequency_mhz=0.0,  # Synthetic doesn't use frequency
+            resolution=resolution,
+            map_type="synthetic",
+        )
+        try:
+            logger.info(f"Saving synthetic sky map data to cache: {cache_path}")
+            with open(cache_path, "w", encoding="utf-8") as f:
+                json.dump(result, f)
+        except IOError as e:
+            logger.warning(f"Failed to save cache: {e}")
+
+    return result
 
 
 def get_sky_map_path(

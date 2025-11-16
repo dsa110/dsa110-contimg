@@ -22,7 +22,7 @@ import { PlotlyLazy } from "../PlotlyLazy";
 import type { Data, Layout } from "../PlotlyLazy";
 import { usePointingHistory } from "../../api/queries";
 import { useImages } from "../../api/queries";
-import type { ImageInfo, PointingHistoryEntry } from "../../api/types";
+import type { ImageInfo } from "../../api/types";
 import dayjs from "dayjs";
 
 interface SkyMapProps {

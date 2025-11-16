@@ -25,7 +25,6 @@ import {
   FitScreen,
   GridOn,
   GridOff,
-  Palette,
   LocationOn,
 } from "@mui/icons-material";
 import { logger } from "../../utils/logger";

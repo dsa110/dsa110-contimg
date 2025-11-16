@@ -18,7 +18,7 @@ import {
   Chip,
   alpha,
 } from "@mui/material";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Dashboard,
   TableChart,

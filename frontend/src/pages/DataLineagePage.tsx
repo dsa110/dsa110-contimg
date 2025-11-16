@@ -20,12 +20,10 @@ import {
   CircularProgress,
   Tabs,
   Tab,
-  Divider,
 } from "@mui/material";
 import {
   ArrowForward,
   ArrowDownward,
-  Info,
   Settings,
   Timeline,
   Visibility,
@@ -184,7 +182,7 @@ export default function DataLineagePage() {
                   variant="outlined"
                   size="small"
                   startIcon={<Visibility />}
-                  onClick={() => handleNavigateToData(id || "", currentInstance.data_type)}
+                  onClick={() => handleNavigateToData(id ?? "" || "", currentInstance.data_type)}
                 >
                   View Details
                 </Button>
@@ -312,7 +310,7 @@ export default function DataLineagePage() {
                                     : item.relation.includes("image")
                                       ? "image"
                                       : "ms";
-                                handleNavigateToData(item.id, dataType);
+                                handleNavigateToData(item.id ?? "", dataType);
                               }}
                             >
                               View

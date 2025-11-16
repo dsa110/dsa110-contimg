@@ -25,11 +25,11 @@ import { ExpandMore } from "@mui/icons-material";
 import type { MSMetadata } from "../../api/types";
 
 interface MSInspectionPanelProps {
-  msPath: string;
+  msPath?: string;
   metadata: MSMetadata | undefined;
 }
 
-export function MSInspectionPanel({ msPath, metadata }: MSInspectionPanelProps) {
+export function MSInspectionPanel({ metadata }: MSInspectionPanelProps) {
   if (!metadata) {
     return (
       <Alert severity="info">Select an MS to view inspection details (listobs-like summary)</Alert>

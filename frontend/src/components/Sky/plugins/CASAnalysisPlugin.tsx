@@ -28,7 +28,6 @@ import {
   Chip,
   IconButton,
   Tooltip,
-  TextField,
   Switch,
   FormControlLabel,
 } from "@mui/material";
@@ -219,7 +218,7 @@ class DSACASAnalysisPlugin {
       });
 
       this.resultCallback(response.data);
-      return response.data;
+      return;
     } catch (error: any) {
       logger.error("Error executing CASA analysis:", error);
       this.resultCallback({

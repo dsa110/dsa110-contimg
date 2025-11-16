@@ -27,7 +27,6 @@ import {
   Stack,
 } from "@mui/material";
 import {
-  Refresh as RefreshIcon,
   PlayArrow as RetryIcon,
   CheckCircle as ResolveIcon,
   Cancel as FailIcon,

@@ -556,20 +556,56 @@ def query_subband_groups(
         ORDER BY group_id, subband_code
         """
 
+    # Query with timestamp_mjd for time-based clustering
+    if only_stored:
+        query = """
+        SELECT timestamp_mjd, subband_code, path
+        FROM hdf5_file_index
+        WHERE timestamp_mjd >= ? AND timestamp_mjd <= ? AND stored = 1
+        ORDER BY timestamp_mjd, subband_code
+        """
+    else:
+        query = """
+        SELECT timestamp_mjd, subband_code, path
+        FROM hdf5_file_index
+        WHERE timestamp_mjd >= ? AND timestamp_mjd <= ?
+        ORDER BY timestamp_mjd, subband_code
+        """
+
     rows = conn.execute(
         query,
         (start_mjd - tolerance_days, end_mjd + tolerance_days),
     ).fetchall()
 
-    # Group by group_id
-    groups_dict = defaultdict(dict)
-    for group_id, subband_code, path in rows:
-        groups_dict[group_id][subband_code] = path
+    if not rows:
+        return []
+
+    # Cluster files by timestamp within a tolerance window (1 minute = ~0.000694 days)
+    # This handles cases where filenames have slightly different timestamps
+    cluster_tolerance_days = 60.0 / 86400.0  # 1 minute tolerance for clustering
+
+    # Group files by time clusters
+    # Each cluster is represented by its earliest timestamp
+    time_clusters = {}  # cluster_mjd -> {subband_code: path}
+
+    for timestamp_mjd, subband_code, path in rows:
+        # Find existing cluster within tolerance, or create new one
+        cluster_found = False
+        for cluster_mjd in sorted(time_clusters.keys()):
+            if abs(timestamp_mjd - cluster_mjd) <= cluster_tolerance_days:
+                # Add to existing cluster
+                time_clusters[cluster_mjd][subband_code] = path
+                cluster_found = True
+                break
+
+        if not cluster_found:
+            # Create new cluster
+            time_clusters[timestamp_mjd] = {subband_code: path}
 
     # Filter to complete 16-subband groups
     expected_sb = [f"sb{idx:02d}" for idx in range(16)]
     complete_groups = []
-    for group_id, sb_map in groups_dict.items():
+    for cluster_mjd, sb_map in time_clusters.items():
         if set(sb_map.keys()) == set(expected_sb):
             # Sort by subband code
             group_files = [sb_map[sb] for sb in sorted(expected_sb)]

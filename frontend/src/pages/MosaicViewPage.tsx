@@ -68,7 +68,7 @@ export default function MosaicViewPage() {
           <Typography variant="h1" component="h1">
             {mosaic.name}
           </Typography>
-          <Chip label={mosaic.status} color={getStatusColor(mosaic.status)} size="small" />
+          <Chip label={mosaic.status ?? "" ?? ""} color={getStatusColor(mosaic.status)} size="small" />
         </Box>
 
         <Grid container spacing={3}>

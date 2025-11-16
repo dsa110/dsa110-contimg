@@ -20,7 +20,6 @@ import {
 import { alpha } from "@mui/material/styles";
 import { Refresh } from "@mui/icons-material";
 import { useJobs } from "../../api/queries";
-import type { JobList } from "../../api/types";
 
 interface JobManagementProps {
   selectedJobId: number | null;

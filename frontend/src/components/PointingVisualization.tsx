@@ -17,7 +17,7 @@ import {
 import { RadioButtonChecked as PointIcon, Refresh as RefreshIcon } from "@mui/icons-material";
 import { PlotlyLazy } from "./PlotlyLazy";
 import type { Data, Layout } from "./PlotlyLazy";
-import { usePointingMonitorStatus, usePointingHistory } from "../api/queries";
+import { usePointingMonitorStatus, usePointingHistory, useSkyMapData } from "../api/queries";
 
 interface PointingVisualizationProps {
   height?: number;
@@ -231,80 +231,30 @@ export default function PointingVisualization({
     return { timeSeriesData: data, timeSeriesLayout: layout };
   }, [historyData, showHistory, height]);
 
-  // Generate sky map background as heatmap data (instead of image overlay)
-  const generateSkyMapHeatmap = useMemo(() => {
-    if (!enableSkyMapBackground) return null;
-
-    // Generate a grid of Aitoff coordinates for the heatmap
-    const resolution = 90; // Grid resolution (balance between quality and performance)
-    const xStep = 360 / resolution;
-    const yStep = 180 / resolution;
-
-    const x: number[] = [];
-    const y: number[] = [];
-    const z: number[][] = [];
-
-    // Generate coordinate arrays and brightness values
-    for (let i = 0; i <= resolution; i++) {
-      const aitoffY = -90 + i * yStep;
-      y.push(aitoffY);
-      const row: number[] = [];
-
-      for (let j = 0; j <= resolution; j++) {
-        const aitoffX = -180 + j * xStep;
-        if (i === 0) {
-          x.push(aitoffX);
-        }
-
-        // Convert Aitoff coordinates back to approximate RA/Dec for brightness calculation
-        // Inverse Aitoff: approximate conversion
-        const ra_deg = aitoffX + 180;
-        const dec_deg = aitoffY;
-
-        // Galactic center is at RA ~266°, Dec ~-29°
-        const gal_center_ra = 266.0;
-        const gal_center_dec = -29.0;
-
-        // Distance from galactic center (handle RA wrap-around)
-        const ra_diff = ((ra_deg - gal_center_ra + 180) % 360) - 180;
-        const dec_diff = dec_deg - gal_center_dec;
-        const dist_from_center = Math.sqrt(ra_diff ** 2 + dec_diff ** 2);
-
-        // Distance from galactic plane (simplified as a band)
-        const plane_dec = -29.0 + 20 * Math.sin((ra_deg * Math.PI) / 180);
-        const dist_from_plane = Math.abs(dec_deg - plane_dec);
-
-        // Calculate brightness (matching backend logic)
-        const center_brightness = Math.max(0, 1.0 - dist_from_center / 80.0);
-        const plane_brightness = Math.max(0, 0.8 - dist_from_plane / 40.0);
-        const brightness = 0.2 + center_brightness * 0.6 + plane_brightness * 0.4;
-        const normalizedBrightness = Math.min(1.0, Math.pow(brightness, 0.8));
-
-        row.push(normalizedBrightness);
-      }
-      z.push(row);
-    }
-
-    return { x, y, z };
-  }, [enableSkyMapBackground]);
+  // Fetch sky map data from backend (GSM or synthetic)
+  const { data: skyMapHeatmapData, isLoading: _skyMapLoading } = useSkyMapData(
+    1400.0, // 1.4 GHz frequency
+    90, // Resolution
+    "gsm" // Use GSM, falls back to synthetic if unavailable
+  );
 
   // Prepare Aitoff projection sky map data
   const { skyMapData, skyMapLayout } = useMemo(() => {
     const data: Data[] = [];
 
-    // Add sky map background as heatmap (if enabled)
-    if (generateSkyMapHeatmap) {
+    // Add sky map background as heatmap (if enabled and data available)
+    if (enableSkyMapBackground && skyMapHeatmapData) {
       data.push({
         type: "heatmap",
-        x: generateSkyMapHeatmap.x,
-        y: generateSkyMapHeatmap.y,
-        z: generateSkyMapHeatmap.z,
+        x: skyMapHeatmapData.x,
+        y: skyMapHeatmapData.y,
+        z: skyMapHeatmapData.z,
         colorscale: [
           [0, "rgb(20, 20, 20)"],
-          [0.3, "rgb(40, 40, 60)"],
-          [0.6, "rgb(80, 80, 120)"],
-          [1, "rgb(150, 150, 200)"],
-        ],
+          [0.3, "rgb(60, 20, 40)"],
+          [0.6, "rgb(120, 40, 60)"],
+          [1, "rgb(255, 100, 80)"],
+        ], // Inferno-like colormap for radio sky
         showscale: false,
         hoverinfo: "skip" as any,
         opacity: 0.6,
@@ -446,7 +396,7 @@ export default function PointingVisualization({
     };
 
     return { skyMapData: [...gridLines, ...data], skyMapLayout: layout };
-  }, [currentPointing, historyData, showHistory, height, aitoffProjection, generateSkyMapHeatmap]);
+  }, [currentPointing, historyData, showHistory, height, aitoffProjection, enableSkyMapBackground, skyMapHeatmapData]);
 
   if (statusLoading) {
     return (

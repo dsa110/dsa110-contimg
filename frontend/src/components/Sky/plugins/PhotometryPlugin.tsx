@@ -13,7 +13,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  CircularProgress,
   Alert,
 } from "@mui/material";
 import { logger } from "../../../utils/logger";

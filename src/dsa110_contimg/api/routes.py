@@ -1242,6 +1242,37 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         return FileResponse(str(map_path), media_type="image/png", filename=map_path.name)
 
+    @router.get("/pointing/sky-map-data")
+    def get_sky_map_data(
+        frequency_mhz: float = Query(1400.0, description="Frequency in MHz (default: 1400)"),
+        resolution: int = Query(90, description="Grid resolution (default: 90)"),
+        map_type: str = Query("gsm", description="Map type: 'gsm' or 'synthetic'"),
+    ) -> dict:
+        """Get all-sky radio map data in Aitoff projection for pointing visualization.
+
+        Returns JSON data with x, y, z arrays for use in a heatmap plot.
+        Uses Global Sky Model (GSM) if available, otherwise falls back to synthetic data.
+        """
+        from dsa110_contimg.pointing.sky_map_generator import (
+            generate_gsm_sky_map_data,
+            generate_synthetic_sky_map_data,
+        )
+
+        if map_type == "gsm":
+            try:
+                data = generate_gsm_sky_map_data(frequency_mhz=frequency_mhz, resolution=resolution)
+            except Exception as e:
+                # Fall back to synthetic if GSM fails
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.warning(f"GSM generation failed, using synthetic: {e}")
+                data = generate_synthetic_sky_map_data(resolution=resolution)
+        else:
+            data = generate_synthetic_sky_map_data(resolution=resolution)
+
+        return data
+
     @router.get("/observation_timeline", response_model=ObservationTimeline)
     def observation_timeline(
         gap_threshold_hours: float = Query(

@@ -244,7 +244,7 @@ export default function DirectoryBrowser({
             <Home fontSize="small" sx={{ mr: 0.5, verticalAlign: "middle" }} />
             Root
           </Link>
-          {breadcrumbs.map((crumb, index) => (
+          {breadcrumbs.map((crumb, _index) => (
             <Link
               key={crumb.path}
               component="button"
@@ -374,9 +374,9 @@ export default function DirectoryBrowser({
                             {entry.size || "N/A"}
                           </Typography>
                         )}
-                        {entry.modified_time && (
+                        {entry.modified_at && (
                           <Typography variant="caption" color="text.secondary" component="span">
-                            {new Date(entry.modified_time).toLocaleString()}
+                            {new Date(entry.modified_at).toLocaleString()}
                           </Typography>
                         )}
                       </Box>

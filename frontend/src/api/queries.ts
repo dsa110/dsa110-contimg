@@ -41,7 +41,6 @@ import type {
   BatchJobCreateRequest,
   ImageList,
   ImageFilters,
-  DataInstance,
   DataInstanceList,
   DataInstanceDetail,
   AutoPublishStatus,
@@ -57,9 +56,6 @@ import type {
   QAResultSummary,
   DLQItem,
   DLQStats,
-  DLQRetryRequest,
-  DLQResolveRequest,
-  CircuitBreakerState,
   CircuitBreakerList,
   HealthSummary,
   PipelineExecutionResponse,
@@ -959,6 +955,72 @@ export function usePointingHistory(
     },
     refetchInterval: 60000, // Refresh every minute
     staleTime: 30000, // Consider stale after 30 seconds
+  });
+}
+
+export interface SkyMapData {
+  x: number[];
+  y: number[];
+  z: number[][];
+}
+
+export function useSkyMapData(
+  frequencyMhz: number = 1400.0,
+  resolution: number = 90,
+  mapType: string = "gsm"
+): UseQueryResult<SkyMapData> {
+  return useQuery({
+    queryKey: ["sky-map-data", frequencyMhz, resolution, mapType],
+    queryFn: async () => {
+      try {
+        const response = await apiClient.get<SkyMapData>(
+          `/pointing/sky-map-data?frequency_mhz=${frequencyMhz}&resolution=${resolution}&map_type=${mapType}`
+        );
+        return response.data;
+      } catch (error: unknown) {
+        // If the endpoint returns 404 or fails, try fallback to synthetic
+        if (
+          mapType !== "synthetic" &&
+          error &&
+          typeof error === "object" &&
+          "response" in error
+        ) {
+          const apiError = error as { response?: { status?: number } };
+          if (apiError.response?.status === 404) {
+            // Try synthetic as fallback
+            try {
+              const fallbackResponse = await apiClient.get<SkyMapData>(
+                `/pointing/sky-map-data?frequency_mhz=${frequencyMhz}&resolution=${resolution}&map_type=synthetic`
+              );
+              return fallbackResponse.data;
+            } catch (fallbackError) {
+              // If synthetic also fails, rethrow the original error
+              throw error;
+            }
+          }
+        }
+        // Rethrow if not a 404 or if already trying synthetic
+        throw error;
+      }
+    },
+    staleTime: Infinity, // Never stale - sky map data is cached on backend and doesn't change
+    gcTime: 24 * 60 * 60 * 1000, // Keep in cache for 24 hours (garbage collection time)
+    retry: (failureCount, error) => {
+      // Don't retry on 404 errors (endpoint doesn't exist)
+      if (
+        error &&
+        typeof error === "object" &&
+        "response" in error
+      ) {
+        const apiError = error as { response?: { status?: number } };
+        if (apiError.response?.status === 404) {
+          return false;
+        }
+      }
+      // Retry up to 2 times for other errors
+      return failureCount < 2;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000),
   });
 }
 

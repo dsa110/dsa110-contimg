@@ -51,7 +51,7 @@ const getContourColor = (
 
   // Use different shades/intensities based on level
   // Higher levels get brighter colors
-  const intensity = Math.floor(128 + normalized * 127);
+  const _intensity = Math.floor(128 + normalized * 127);
 
   // Convert hex color to RGB if needed
   if (baseColor.startsWith("#")) {

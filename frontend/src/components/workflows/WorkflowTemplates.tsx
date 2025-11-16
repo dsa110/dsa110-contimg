@@ -5,7 +5,6 @@
 import { useState } from "react";
 import {
   Box,
-  Paper,
   Typography,
   Grid,
   Card,
@@ -28,10 +27,8 @@ import {
 } from "@mui/material";
 import {
   PlayArrow,
-  Settings,
   Save,
   Download,
-  Visibility,
   Build,
   Image,
   GridOn,
@@ -204,7 +201,7 @@ interface WorkflowTemplatesProps {
   onTemplateSelect?: (template: WorkflowTemplate) => void;
 }
 
-export function WorkflowTemplates({ onTemplateSelect }: WorkflowTemplatesProps) {
+export function WorkflowTemplates({ _onTemplateSelect }: WorkflowTemplatesProps) {
   const navigate = useNavigate();
   const [selectedTemplate, setSelectedTemplate] = useState<WorkflowTemplate | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);

@@ -19,7 +19,6 @@ import {
   Stack,
   Chip,
   Checkbox,
-  FormControlLabel,
   TextField,
   Select,
   MenuItem,
@@ -31,7 +30,6 @@ import {
   ListItemText,
   ListItemIcon,
   IconButton,
-  Tooltip,
 } from "@mui/material";
 import {
   CheckCircle,
@@ -41,7 +39,6 @@ import {
   PlayArrow,
   Assessment,
   Delete,
-  Add,
 } from "@mui/icons-material";
 import { useImages, useCreateMosaic } from "../../api/queries";
 import type { ImageInfo, Mosaic } from "../../api/types";
@@ -90,8 +87,7 @@ export function MosaicConstructionWorkflow({
 
   const { data: imagesData } = useImages({
     limit: 500,
-    order_by: "created_at",
-    order: "desc",
+    
   });
   const createMosaic = useCreateMosaic();
 
