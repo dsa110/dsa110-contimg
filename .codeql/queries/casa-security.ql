@@ -15,10 +15,12 @@ import python
 from Call call, Name name
 where
   call.getFunc() = name and
-  name.getId().matches("%clean%") or
-  name.getId().matches("%tclean%") or
-  name.getId().matches("%calibrate%") or
-  name.getId().matches("%applycal%") or
-  name.getId().matches("%split%") or
-  name.getId().matches("%concat%")
+  (
+    name.getId().matches("%clean%") or
+    name.getId().matches("%tclean%") or
+    name.getId().matches("%calibrate%") or
+    name.getId().matches("%applycal%") or
+    name.getId().matches("%split%") or
+    name.getId().matches("%concat%")
+  )
 select call, "CASA task call detected. Review for security implications: $@", call, "CASA task call"

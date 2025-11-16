@@ -237,8 +237,8 @@ site/
 docs/archive/
 
 # Development
+.local/
 # Exception: allow .local/bin/python* to be tracked
 !.local/bin/
 !.local/bin/python*
-.local/
 internal/
