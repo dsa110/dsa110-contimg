@@ -413,12 +413,16 @@ function DataTable({
                 )}
               </TableCell>
               <TableCell>
-                <Typography variant="body2">{formatDate(parseInt(instance.created_at, 10))}</Typography>
+                <Typography variant="body2">
+                  {formatDate(parseInt(instance.created_at, 10))}
+                </Typography>
               </TableCell>
               {status === "published" && (
                 <TableCell>
                   {instance.published_at ? (
-                    <Typography variant="body2">{formatDate(parseInt(instance.published_at, 10))}</Typography>
+                    <Typography variant="body2">
+                      {formatDate(parseInt(instance.published_at, 10))}
+                    </Typography>
                   ) : (
                     <Typography variant="body2" color="text.secondary">
                       N/A

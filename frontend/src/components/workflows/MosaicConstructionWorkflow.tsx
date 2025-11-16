@@ -87,7 +87,6 @@ export function MosaicConstructionWorkflow({
 
   const { data: imagesData } = useImages({
     limit: 500,
-    
   });
   const createMosaic = useCreateMosaic();
 

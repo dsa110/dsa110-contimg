@@ -979,12 +979,7 @@ export function useSkyMapData(
         return response.data;
       } catch (error: unknown) {
         // If the endpoint returns 404 or fails, try fallback to synthetic
-        if (
-          mapType !== "synthetic" &&
-          error &&
-          typeof error === "object" &&
-          "response" in error
-        ) {
+        if (mapType !== "synthetic" && error && typeof error === "object" && "response" in error) {
           const apiError = error as { response?: { status?: number } };
           if (apiError.response?.status === 404) {
             // Try synthetic as fallback
@@ -1007,11 +1002,7 @@ export function useSkyMapData(
     gcTime: 24 * 60 * 60 * 1000, // Keep in cache for 24 hours (garbage collection time)
     retry: (failureCount, error) => {
       // Don't retry on 404 errors (endpoint doesn't exist)
-      if (
-        error &&
-        typeof error === "object" &&
-        "response" in error
-      ) {
+      if (error && typeof error === "object" && "response" in error) {
         const apiError = error as { response?: { status?: number } };
         if (apiError.response?.status === 404) {
           return false;

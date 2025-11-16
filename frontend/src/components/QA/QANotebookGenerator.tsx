@@ -57,7 +57,6 @@ export default function QANotebookGenerator({
     }
 
     generateNotebookMutation.mutate({
-
       qa_root: qaRoot || undefined,
       output_path: outputPath,
       title: title || undefined,
@@ -72,7 +71,6 @@ export default function QANotebookGenerator({
     }
 
     runQAMutation.mutate({
-
       qa_root: qaRoot,
       generate_notebook: generateNotebook,
       display_summary: displaySummary,

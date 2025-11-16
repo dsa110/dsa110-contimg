@@ -3,13 +3,7 @@
  * Refactored to use workflow components for better maintainability
  */
 import { useState, useEffect } from "react";
-import {
-  Box,
-  Paper,
-  Typography,
-  Tabs,
-  Tab,
-} from "@mui/material";
+import { Box, Paper, Typography, Tabs, Tab } from "@mui/material";
 import { useMSList, useJobs, useMSMetadata, useCalibratorMatches } from "../api/queries";
 import type { MSListEntry } from "../api/types";
 import MSTable from "../components/MSTable";

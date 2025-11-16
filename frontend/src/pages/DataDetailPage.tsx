@@ -222,14 +222,18 @@ export default function DataDetailPage() {
                   <Typography variant="body2" color="text.secondary">
                     Created
                   </Typography>
-                  <Typography variant="body1">{formatDate(parseInt(instance.created_at, 10))}</Typography>
+                  <Typography variant="body1">
+                    {formatDate(parseInt(instance.created_at, 10))}
+                  </Typography>
                 </Box>
                 {instance.published_at && (
                   <Box>
                     <Typography variant="body2" color="text.secondary">
                       Published
                     </Typography>
-                    <Typography variant="body1">{formatDate(parseInt(instance.published_at, 10))}</Typography>
+                    <Typography variant="body1">
+                      {formatDate(parseInt(instance.published_at, 10))}
+                    </Typography>
                   </Box>
                 )}
                 {instance.publish_mode && (

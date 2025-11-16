@@ -21,13 +21,7 @@ import {
   Tabs,
   Tab,
 } from "@mui/material";
-import {
-  ArrowForward,
-  ArrowDownward,
-  Settings,
-  Timeline,
-  Visibility,
-} from "@mui/icons-material";
+import { ArrowForward, ArrowDownward, Settings, Timeline, Visibility } from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDataLineage, useDataInstance } from "../api/queries";
 import DataLineageGraph from "../components/DataLineageGraph";
@@ -182,7 +176,7 @@ export default function DataLineagePage() {
                   variant="outlined"
                   size="small"
                   startIcon={<Visibility />}
-                  onClick={() => handleNavigateToData(id ?? "" || "", currentInstance.data_type)}
+                  onClick={() => handleNavigateToData(id ?? ("" || ""), currentInstance.data_type)}
                 >
                   View Details
                 </Button>

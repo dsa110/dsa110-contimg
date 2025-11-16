@@ -25,15 +25,7 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
-import {
-  PlayArrow,
-  Save,
-  Download,
-  Build,
-  Image,
-  GridOn,
-  Science,
-} from "@mui/icons-material";
+import { PlayArrow, Save, Download, Build, Image, GridOn, Science } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
 export interface WorkflowTemplate {

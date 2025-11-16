@@ -18,7 +18,7 @@ import {
 import { CheckCircle, Warning, Error, Help } from "@mui/icons-material";
 import { useState } from "react";
 // import Plot from 'react-plotly.js'; // Unused for now
-import type { PerSPWStats } from '../api/types';
+import type { PerSPWStats } from "../api/types";
 import { useCalibrationQA, useBandpassPlots } from "../api/queries";
 
 interface CalibrationQAPanelProps {

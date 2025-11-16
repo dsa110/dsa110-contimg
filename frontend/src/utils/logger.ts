@@ -58,9 +58,12 @@ class Logger {
         errorInfo.status = apiError.response?.status;
         errorInfo.statusText = apiError.response?.statusText;
         errorInfo.data = apiError.response?.data;
-        errorInfo.url = apiError.response?.data && typeof apiError.response.data === "object" && "url" in apiError.response.data
-          ? (apiError.response.data as { url?: string }).url
-          : undefined;
+        errorInfo.url =
+          apiError.response?.data &&
+          typeof apiError.response.data === "object" &&
+          "url" in apiError.response.data
+            ? (apiError.response.data as { url?: string }).url
+            : undefined;
       }
       if ("message" in error) {
         errorInfo.errorMessage = (error as { message: string }).message;

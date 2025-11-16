@@ -19,14 +19,7 @@ import {
   Typography,
   Tooltip,
 } from "@mui/material";
-import {
-  ZoomIn,
-  ZoomOut,
-  FitScreen,
-  GridOn,
-  GridOff,
-  LocationOn,
-} from "@mui/icons-material";
+import { ZoomIn, ZoomOut, FitScreen, GridOn, GridOff, LocationOn } from "@mui/icons-material";
 import { logger } from "../../utils/logger";
 import { findDisplay, isJS9Available } from "../../utils/js9";
 import { useJS9Safe } from "../../contexts/JS9Context";

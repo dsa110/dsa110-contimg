@@ -8,16 +8,8 @@
 
 import { logger } from "../utils/logger";
 import * as protobuf from "protobufjs";
-import {
-  CARTAMessageType,
-  getCARTAMessageTypeName,
-} from "./cartaProtocol";
-import {
-  encodeHeader,
-  decodeHeader,
-  combineMessage,
-  splitMessage,
-} from "./cartaProtobuf";
+import { CARTAMessageType, getCARTAMessageTypeName } from "./cartaProtocol";
+import { encodeHeader, decodeHeader, combineMessage, splitMessage } from "./cartaProtobuf";
 import type {
   RegisterViewerRequest,
   RegisterViewerAck,

@@ -18,13 +18,7 @@ import {
   Chip,
   Alert,
 } from "@mui/material";
-import {
-  CompareArrows,
-  Timeline,
-  Assessment,
-  Settings,
-  Visibility,
-} from "@mui/icons-material";
+import { CompareArrows, Timeline, Assessment, Settings, Visibility } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import MultiImageCompare from "./Sky/MultiImageCompare";
 import ImageBrowser from "./Sky/ImageBrowser";

@@ -25,9 +25,7 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import {
-  Assessment as AssessmentIcon,
-} from "@mui/icons-material";
+import { Assessment as AssessmentIcon } from "@mui/icons-material";
 import {
   usePipelineStatus,
   useSystemMetrics,

@@ -396,7 +396,15 @@ export default function PointingVisualization({
     };
 
     return { skyMapData: [...gridLines, ...data], skyMapLayout: layout };
-  }, [currentPointing, historyData, showHistory, height, aitoffProjection, enableSkyMapBackground, skyMapHeatmapData]);
+  }, [
+    currentPointing,
+    historyData,
+    showHistory,
+    height,
+    aitoffProjection,
+    enableSkyMapBackground,
+    skyMapHeatmapData,
+  ]);
 
   if (statusLoading) {
     return (

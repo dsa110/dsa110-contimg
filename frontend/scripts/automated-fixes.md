@@ -3,25 +3,31 @@
 ## Available Automation Tools
 
 ### 1. **ESLint with Auto-fix** (Already Available)
+
 - **What it can fix**: Formatting, some simple rule violations
-- **What it CANNOT fix**: Unused imports/variables (TS6133) - detects but doesn't auto-remove for safety
+- **What it CANNOT fix**: Unused imports/variables (TS6133) - detects but
+  doesn't auto-remove for safety
 - **Usage**: `npx eslint --fix src/`
 
 ### 2. **eslint-plugin-unused-imports** (Can Install)
+
 - **What it can fix**: Automatically removes unused imports
 - **Install**: `npm install -D eslint-plugin-unused-imports`
 - **Usage**: Configure in eslint.config.js, then `npx eslint --fix`
 
 ### 3. **ts-prune** (Can Install)
+
 - **What it can fix**: Finds unused exports (different from unused variables)
 - **Install**: `npm install -D ts-prune`
 - **Usage**: `npx ts-prune`
 
 ### 4. **TypeScript Compiler** (Already Available)
+
 - **What it can fix**: Nothing automatically - only reports errors
 - **Usage**: `npx tsc -b` (for checking)
 
 ### 5. **Custom Scripts** (Can Create)
+
 - Pattern-based fixes for common error types
 - Type assertion additions
 - Null coalescing additions
@@ -35,6 +41,7 @@
 ## Recommended Approach
 
 ### Phase 1: Install and Use eslint-plugin-unused-imports
+
 ```bash
 npm install -D eslint-plugin-unused-imports
 # Then configure in eslint.config.js
@@ -42,11 +49,13 @@ npm install -D eslint-plugin-unused-imports
 ```
 
 ### Phase 2: Pattern-Based Script Fixes
+
 For common patterns like:
+
 - Adding `?? undefined` for null coalescing
 - Adding type assertions for `unknown` types
 - Fixing common prop type mismatches
 
 ### Phase 3: Manual Review
-For complex type mismatches that require understanding context
 
+For complex type mismatches that require understanding context
