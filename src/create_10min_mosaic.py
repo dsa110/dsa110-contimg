@@ -17,16 +17,18 @@ import sys
 import traceback
 from datetime import datetime
 from pathlib import Path
+
 from dsa110_contimg.mosaic.orchestrator import MosaicOrchestrator
 
 # Error log file location
 ERROR_LOG = Path("/data/dsa110-contimg/src/mosaic_errors.log")
 STATUS_FILE = Path("/data/dsa110-contimg/src/mosaic_status.txt")
 
+
 def log_error(message, exception=None):
     """Log error to file with timestamp."""
     timestamp = datetime.now().isoformat()
-    with open(ERROR_LOG, 'a') as f:
+    with open(ERROR_LOG, "a") as f:
         f.write(f"[{timestamp}] ERROR: {message}\n")
         if exception:
             f.write(f"Exception: {str(exception)}\n")
@@ -36,34 +38,34 @@ def log_error(message, exception=None):
     if exception:
         print(traceback.format_exc(), file=sys.stderr)
 
+
 def write_status(status, details=""):
     """Write status to file for monitoring."""
     timestamp = datetime.now().isoformat()
-    with open(STATUS_FILE, 'w') as f:
+    with open(STATUS_FILE, "w") as f:
         f.write(f"Status: {status}\n")
         f.write(f"Timestamp: {timestamp}\n")
         if details:
             f.write(f"Details: {details}\n")
 
+
 def main():
     """Main execution with error handling."""
     try:
         write_status("RUNNING", "Starting mosaic creation")
-        
+
         # Set imaging parameters (applies to individual tiles)
         # Note: These are already the defaults, but setting explicitly for clarity
-        os.environ['IMG_IMSIZE'] = '1024'
-        os.environ['IMG_ROBUST'] = '0.0'
-        os.environ['IMG_NITER'] = '1000'
+        os.environ["IMG_IMSIZE"] = "1024"
+        os.environ["IMG_ROBUST"] = "0.0"
+        os.environ["IMG_NITER"] = "1000"
 
         # Ensure output stays in /stage/ (default location)
         # Default is already /stage/dsa110-contimg/mosaics/ unless CONTIMG_MOSAIC_DIR is set
 
         # Initialize orchestrator
         write_status("RUNNING", "Initializing orchestrator")
-        orchestrator = MosaicOrchestrator(
-            products_db_path=Path("state/products.sqlite3")
-        )
+        orchestrator = MosaicOrchestrator(products_db_path=Path("state/products.sqlite3"))
 
         # Create 10-minute mosaic centered on calibrator 0834+555
         # Note: Method is pbweighted by default (uses _build_weighted_mosaic)
@@ -75,7 +77,7 @@ def main():
             calibrator_name="0834+555",
             timespan_minutes=10,  # 10 minutes = 2 MS files (5 min each)
             wait_for_published=False,  # Don't wait for publishing, keep in /stage/
-            dry_run=True  # Dry run: validate plan without building
+            dry_run=True,  # Dry run: validate plan without building
         )
 
         if mosaic_path:
@@ -110,6 +112,7 @@ def main():
         log_error(error_msg, e)
         write_status("FAILED", error_msg)
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -16,7 +16,7 @@ class ControlPage(BasePage):
     CONVERT_TAB = "text=Convert"
     CALIBRATE_TAB = "text=Calibrate"
     IMAGE_TAB = "text=Image"
-    
+
     # MS Details Panel selectors
     MS_DETAILS_PANEL = "#ms-details-panel"
     MS_DETAILS_PANEL_TOGGLE = "#ms-details-panel [aria-expanded]"

@@ -22,8 +22,11 @@ class SourcesPage(BasePage):
         """Get the Source ID input field."""
         # Try to find input near "Source ID" label
         return (
-            self.page.locator('label').filter(has_text=re.compile(r'Source ID', re.I)).locator('..').locator('input[type="text"]').first
-            .or_(self.page.locator('input[placeholder*="Source ID" i]'))
+            self.page.locator("label")
+            .filter(has_text=re.compile(r"Source ID", re.I))
+            .locator("..")
+            .locator('input[type="text"]')
+            .first.or_(self.page.locator('input[placeholder*="Source ID" i]'))
             .or_(self.page.locator('input[type="text"]').first)
         )
 
@@ -38,7 +41,11 @@ class SourcesPage(BasePage):
     def get_advanced_filters_toggle(self) -> Locator:
         """Get the Show/Hide Advanced Filters button."""
         # Try multiple selectors to find the toggle button
-        return self.page.locator('button').filter(has_text=re.compile(r'Show|Hide.*Advanced Filters', re.I)).first
+        return (
+            self.page.locator("button")
+            .filter(has_text=re.compile(r"Show|Hide.*Advanced Filters", re.I))
+            .first
+        )
 
     def get_variability_threshold_slider(self) -> Locator:
         """Get the variability threshold slider."""
@@ -47,62 +54,75 @@ class SourcesPage(BasePage):
     def get_ese_only_checkbox(self) -> Locator:
         """Get the ESE only checkbox."""
         # Find checkbox near the ESE candidates label
-        return self.page.locator('label').filter(has_text=re.compile(r'ESE candidates', re.I)).locator('..').locator('input[type="checkbox"]').first
+        return (
+            self.page.locator("label")
+            .filter(has_text=re.compile(r"ESE candidates", re.I))
+            .locator("..")
+            .locator('input[type="checkbox"]')
+            .first
+        )
 
     def get_results_table(self) -> Locator:
         """Get the AG Grid results table."""
         # The grid container has class ag-theme-alpine-dark
-        return self.page.locator('.ag-theme-alpine-dark')
-    
+        return self.page.locator(".ag-theme-alpine-dark")
+
     def wait_for_grid_ready(self, timeout: int = 10000) -> None:
         """Wait for the AG Grid to be ready."""
         # The grid is inside a Paper component, then a Box with class ag-theme-alpine-dark
         # Wait for the Paper component first (more reliable)
-        paper = self.page.locator('div[class*="MuiPaper"]').filter(has_text=re.compile(r'sources|search', re.I)).first
-        paper.wait_for(state='visible', timeout=timeout)
-        
+        paper = (
+            self.page.locator('div[class*="MuiPaper"]')
+            .filter(has_text=re.compile(r"sources|search", re.I))
+            .first
+        )
+        paper.wait_for(state="visible", timeout=timeout)
+
         # Then wait for the grid container
-        grid_container = self.page.locator('.ag-theme-alpine-dark')
-        grid_container.wait_for(state='visible', timeout=timeout)
+        grid_container = self.page.locator(".ag-theme-alpine-dark")
+        grid_container.wait_for(state="visible", timeout=timeout)
         # Wait a bit more for the grid to fully initialize and render content
         self.page.wait_for_timeout(1000)
 
     def get_empty_state(self) -> Locator:
         """Get the empty state message."""
         # Empty state is inside the AG Grid overlay
-        return self.page.locator('.ag-theme-alpine-dark').locator('text=/Search for sources|No sources found/i').first
-    
+        return (
+            self.page.locator(".ag-theme-alpine-dark")
+            .locator("text=/Search for sources|No sources found/i")
+            .first
+        )
+
     def get_initial_empty_state(self) -> Locator:
         """Get the initial empty state (before any search)."""
         # Empty state is inside the grid's noRowsOverlayComponent
         # Look for the text anywhere on the page first, then narrow down
-        return self.page.get_by_text(re.compile(r'Search for sources', re.I)).first
-    
+        return self.page.get_by_text(re.compile(r"Search for sources", re.I)).first
+
     def get_no_results_empty_state(self) -> Locator:
         """Get the empty state shown when search returns no results."""
         # Empty state is inside the grid's noRowsOverlayComponent
-        return self.page.get_by_text(re.compile(r'No sources found', re.I)).first
+        return self.page.get_by_text(re.compile(r"No sources found", re.I)).first
 
     def get_error_alert(self) -> Locator:
         """Get the error alert if present."""
-        return self.page.locator('[role="alert"]').filter(has_text=re.compile(r'error', re.I)).first
+        return self.page.locator('[role="alert"]').filter(has_text=re.compile(r"error", re.I)).first
 
     def get_loading_indicator(self) -> Locator:
         """Get the loading indicator."""
-        return self.page.locator('text=/Loading sources/i')
+        return self.page.locator("text=/Loading sources/i")
 
     def enter_source_id(self, source_id: str) -> None:
         """Enter a source ID in the search field."""
         # Try multiple selectors to find the input
         input_field = (
-            self.page.locator('label:has-text("Source ID")')
-            .locator('..')
-            .locator('input')
-            .first
+            self.page.locator('label:has-text("Source ID")').locator("..").locator("input").first
         )
         if not input_field.is_visible(timeout=2000):
             # Fallback: find by placeholder or nearby text
-            input_field = self.page.locator('input[placeholder*="Source ID"], input[placeholder*="NVSS"]').first
+            input_field = self.page.locator(
+                'input[placeholder*="Source ID"], input[placeholder*="NVSS"]'
+            ).first
         input_field.fill(source_id)
 
     def click_search(self) -> None:
@@ -159,4 +179,3 @@ class SourcesPage(BasePage):
         """Get the table column headers."""
         headers = self.page.locator('.ag-header-cell, [role="columnheader"]')
         return [h.inner_text() for h in headers.all()]
-

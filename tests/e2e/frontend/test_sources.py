@@ -35,7 +35,7 @@ class TestSourcesPage:
         expect(main_content.first).to_be_visible(timeout=10000)
 
         # Check for page title
-        page_title = page.locator('text=/Source Monitoring/i')
+        page_title = page.locator("text=/Source Monitoring/i")
         expect(page_title.first).to_be_visible(timeout=5000)
 
     def test_source_id_input_field_visible(self, page: Page):
@@ -44,8 +44,9 @@ class TestSourcesPage:
         sources_page.navigate()
 
         # Check for Source ID input field
-        input_field = page.locator(
-            'label:has-text("Source ID")').locator('..').locator('input').first
+        input_field = (
+            page.locator('label:has-text("Source ID")').locator("..").locator("input").first
+        )
         expect(input_field).to_be_visible(timeout=5000)
 
     def test_search_button_visible(self, page: Page):
@@ -96,7 +97,7 @@ class TestSourcesPage:
         sources_page.navigate()
 
         # Initially hidden
-        variability_slider = page.locator('text=/Variability Threshold/i')
+        variability_slider = page.locator("text=/Variability Threshold/i")
         expect(variability_slider).not_to_be_visible(timeout=2000)
 
         # Show advanced filters
@@ -119,8 +120,9 @@ class TestSourcesPage:
         sources_page.navigate()
 
         # Enter source ID
-        input_field = page.locator(
-            'label:has-text("Source ID")').locator('..').locator('input').first
+        input_field = (
+            page.locator('label:has-text("Source ID")').locator("..").locator("input").first
+        )
         input_field.fill("NVSS J123456.7+420312")
 
         # Press Enter
@@ -146,9 +148,9 @@ class TestSourcesPage:
         # The text "Search for sources" should be visible on the page
         # Try multiple variations of the text
         empty_state_text = (
-            page.get_by_text(re.compile(r'Search for sources', re.I))
-            .or_(page.get_by_text(re.compile(r'Enter a source ID', re.I)))
-            .or_(page.locator('text=/Search.*sources/i'))
+            page.get_by_text(re.compile(r"Search for sources", re.I))
+            .or_(page.get_by_text(re.compile(r"Enter a source ID", re.I)))
+            .or_(page.locator("text=/Search.*sources/i"))
         )
         expect(empty_state_text.first).to_be_visible(timeout=5000)
 
@@ -171,7 +173,7 @@ class TestSourcesPage:
         # 1. Grid with results/empty state
         # 2. Error message (if API fails)
         # Check for grid first
-        grid_container = page.locator('.ag-theme-alpine-dark')
+        grid_container = page.locator(".ag-theme-alpine-dark")
         error_alert = page.locator('[role="alert"]')
 
         # Wait a bit for the page to update
@@ -186,12 +188,15 @@ class TestSourcesPage:
 
         # If grid is visible, check for content
         if grid_visible:
-            rows = page.locator('.ag-row')
-            empty_state = page.get_by_text(re.compile(
-                r'No sources found|No sources match|Search for sources', re.I))
+            rows = page.locator(".ag-row")
+            empty_state = page.get_by_text(
+                re.compile(r"No sources found|No sources match|Search for sources", re.I)
+            )
             rows_visible = rows.count() > 0
             empty_visible = empty_state.count() > 0
-            assert rows_visible or empty_visible, "Grid is visible but neither rows nor empty state found"
+            assert (
+                rows_visible or empty_visible
+            ), "Grid is visible but neither rows nor empty state found"
 
     def test_loading_state_during_search(self, page: Page):
         """Test that loading indicator is shown during search."""
@@ -242,8 +247,9 @@ class TestSourcesPage:
             clear_button.click()
 
             # Source ID should be cleared
-            input_field = page.locator(
-                'label:has-text("Source ID")').locator('..').locator('input').first
+            input_field = (
+                page.locator('label:has-text("Source ID")').locator("..").locator("input").first
+            )
             expect(input_field).to_have_value("", timeout=2000)
 
     def test_table_columns_displayed(self, page: Page):
@@ -284,7 +290,7 @@ class TestSourcesPage:
         error_alert = page.locator('[role="alert"]')
         if error_alert.count() > 0:
             # Error should have title and message
-            error_title = page.locator('text=/Error loading sources/i')
+            error_title = page.locator("text=/Error loading sources/i")
             expect(error_title.first).to_be_visible(timeout=2000)
 
     def test_advanced_filters_variability_threshold(self, page: Page):
@@ -297,7 +303,7 @@ class TestSourcesPage:
         page.wait_for_timeout(500)
 
         # Check that slider is visible
-        slider_label = page.locator('text=/Variability Threshold/i')
+        slider_label = page.locator("text=/Variability Threshold/i")
         expect(slider_label).to_be_visible(timeout=2000)
 
     def test_advanced_filters_ese_only(self, page: Page):
@@ -310,7 +316,7 @@ class TestSourcesPage:
         page.wait_for_timeout(500)
 
         # Check that checkbox is visible
-        ese_checkbox = page.locator('text=/ESE candidates/i')
+        ese_checkbox = page.locator("text=/ESE candidates/i")
         expect(ese_checkbox).to_be_visible(timeout=2000)
 
     def test_advanced_filters_declination_range(self, page: Page):
@@ -323,7 +329,7 @@ class TestSourcesPage:
         page.wait_for_timeout(500)
 
         # Check that declination range is visible
-        dec_range = page.locator('text=/Declination Range/i')
+        dec_range = page.locator("text=/Declination Range/i")
         expect(dec_range).to_be_visible(timeout=2000)
 
     @pytest.mark.e2e_slow
@@ -346,7 +352,7 @@ class TestSourcesPage:
         sources_page.wait_for_search_results()
 
         # Results should update - check for grid or error
-        grid_container = page.locator('.ag-theme-alpine-dark')
+        grid_container = page.locator(".ag-theme-alpine-dark")
         error_alert = page.locator('[role="alert"]')
 
         # Wait a bit for the page to update
@@ -361,12 +367,15 @@ class TestSourcesPage:
 
         # If grid is visible, check for content
         if grid_visible:
-            rows = page.locator('.ag-row')
-            empty_state = page.get_by_text(re.compile(
-                r'No sources found|No sources match|Search for sources', re.I))
+            rows = page.locator(".ag-row")
+            empty_state = page.get_by_text(
+                re.compile(r"No sources found|No sources match|Search for sources", re.I)
+            )
             rows_visible = rows.count() > 0
             empty_visible = empty_state.count() > 0
-            assert rows_visible or empty_visible, "Grid is visible but neither rows nor empty state found"
+            assert (
+                rows_visible or empty_visible
+            ), "Grid is visible but neither rows nor empty state found"
 
     def test_source_id_click_navigates(self, page: Page):
         """Test that clicking a source ID in results navigates to detail page."""
@@ -380,11 +389,11 @@ class TestSourcesPage:
 
         # Try to find and click a source ID link (if results exist)
         source_link = page.locator(
-            '.ag-cell[col-id="source_id"] a, .ag-cell[col-id="source_id"] span').first
+            '.ag-cell[col-id="source_id"] a, .ag-cell[col-id="source_id"] span'
+        ).first
         if source_link.is_visible(timeout=5000):
             # Click should navigate (fix for useMemo dependency ensures navigate works)
             source_link.click()
             page.wait_for_load_state("networkidle", timeout=10000)
             # Should navigate to source detail page
-            expect(page).to_have_url(re.compile(
-                r".*/sources/.*"), timeout=5000)
+            expect(page).to_have_url(re.compile(r".*/sources/.*"), timeout=5000)

@@ -25,6 +25,7 @@ from fastapi import Query
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 
+from dsa110_contimg.api.carta_service import get_carta_service_manager
 from dsa110_contimg.qa.casa_ms_qa import QaResult, QaThresholds, run_ms_qa
 from dsa110_contimg.qa.visualization import (
     CasaTable,
@@ -41,7 +42,6 @@ from dsa110_contimg.qa.visualization import (
 )
 from dsa110_contimg.qa.visualization_qa import run_ms_qa_with_visualization
 from dsa110_contimg.utils.path_validation import sanitize_filename, validate_path
-from dsa110_contimg.api.carta_service import get_carta_service_manager
 
 logger = logging.getLogger(__name__)
 

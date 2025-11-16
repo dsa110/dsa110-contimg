@@ -19,9 +19,7 @@ from dsa110_contimg.pointing.utils import load_pointing
 
 # Configure logging
 logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
 class PointingMonitorMetrics:
@@ -58,9 +56,7 @@ class PointingMonitorMetrics:
         """Get current statistics."""
         uptime = time.time() - self.start_time
         success_rate = (
-            (self.files_succeeded / self.files_processed * 100)
-            if self.files_processed > 0
-            else 0.0
+            (self.files_succeeded / self.files_processed * 100) if self.files_processed > 0 else 0.0
         )
 
         return {
@@ -80,9 +76,7 @@ class PointingMonitorMetrics:
 class PointingMonitor:
     """Main pointing monitor with health checks and metrics."""
 
-    def __init__(
-        self, watch_dir: Path, products_db: Path, status_file: Optional[Path] = None
-    ):
+    def __init__(self, watch_dir: Path, products_db: Path, status_file: Optional[Path] = None):
         self.watch_dir = Path(watch_dir)
         self.products_db = Path(products_db)
         self.status_file = Path(status_file) if status_file else None
@@ -163,47 +157,48 @@ class PointingMonitor:
     def _scan_existing_files(self):
         """Scan and process existing files in the watch directory."""
         logger.info(f"Scanning existing files in {self.watch_dir}...")
-        
+
         # Find all _sb00.hdf5 files and .ms directories
         existing_files = []
         for pattern in ["*_sb00.hdf5", "*.ms"]:
             existing_files.extend(self.watch_dir.rglob(pattern))
-        
+
         # Filter to only files (not directories for .ms pattern)
         existing_files = [
-            f for f in existing_files 
-            if f.is_file() or (f.is_dir() and f.name.endswith(".ms"))
+            f for f in existing_files if f.is_file() or (f.is_dir() and f.name.endswith(".ms"))
         ]
-        
+
         logger.info(f"Found {len(existing_files)} existing files to process")
-        
+
         # Process each file
         for file_path in sorted(existing_files):
             # Check if already processed by querying database
             try:
                 if self.conn is None:
                     self.conn = ensure_products_db(self.products_db)
-                
+
                 # Try to load pointing to get timestamp
                 info = load_pointing(file_path)
                 if info and "mid_time" in info:
                     # Check if this timestamp already exists
                     cursor = self.conn.execute(
                         "SELECT COUNT(*) FROM pointing_history WHERE timestamp = ?",
-                        (info["mid_time"].mjd,)
+                        (info["mid_time"].mjd,),
                     )
                     count = cursor.fetchone()[0]
-                    
+
                     if count > 0:
                         logger.debug(f"Skipping already processed file: {file_path}")
                         continue
             except Exception as e:
                 logger.debug(f"Could not check if file already processed: {file_path}, error: {e}")
-            
+
             # Process the file
             self.log_pointing_from_file(file_path)
-        
-        logger.info(f"Finished scanning existing files. Processed {self.metrics.files_processed} files total.")
+
+        logger.info(
+            f"Finished scanning existing files. Processed {self.metrics.files_processed} files total."
+        )
 
     def log_pointing_from_file(self, file_path: Path):
         """Extracts pointing from a file and logs it to the database."""
@@ -268,9 +263,7 @@ class PointingMonitor:
         self.observer = Observer()
         self.observer.schedule(event_handler, self.watch_dir, recursive=True)
 
-        logger.info(
-            f"Starting to monitor {self.watch_dir} for new observation files..."
-        )
+        logger.info(f"Starting to monitor {self.watch_dir} for new observation files...")
         logger.info(f"Status file: {self.status_file}")
         self.running = True
         self.observer.start()

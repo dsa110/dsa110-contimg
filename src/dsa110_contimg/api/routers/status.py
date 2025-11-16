@@ -32,10 +32,10 @@ router = APIRouter()
 async def test_streaming_broadcast(message: Optional[dict] = None):
     """Trigger WebSocket broadcast (disabled in production)."""
     if os.getenv("ENVIRONMENT") == "production":
-        raise HTTPException(
-            status_code=404, detail="Not available in production")
+        raise HTTPException(status_code=404, detail="Not available in production")
 
     from time import time
+
     from dsa110_contimg.api.websocket_manager import manager
 
     test_message = message or {
@@ -148,9 +148,7 @@ def status(request: Request, limit: int = 20) -> PipelineStatus:
     queue_stats = fetch_queue_stats(cfg.queue_db)
     recent_groups = fetch_recent_queue_groups(cfg.queue_db, cfg, limit=limit)
     cal_sets = fetch_calibration_sets(cfg.registry_db)
-    matched_recent = sum(
-        1 for g in recent_groups if getattr(g, "has_calibrator", False)
-    )
+    matched_recent = sum(1 for g in recent_groups if getattr(g, "has_calibrator", False))
     return PipelineStatus(
         queue=queue_stats,
         recent_groups=recent_groups,

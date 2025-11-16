@@ -28,7 +28,7 @@ export function MSComparisonPanel({ selectedMS, onMSSelect }: MSComparisonPanelP
   const [compareMS, setCompareMS] = useState<string>("");
 
   const { data: msList, refetch: refetchMS } = useMSList({
-    scan: true,
+    scan: "true",
     scan_dir: "/scratch/dsa110-contimg/ms",
   });
   const { data: msMetadata } = useMSMetadata(selectedMS);
@@ -56,7 +56,7 @@ export function MSComparisonPanel({ selectedMS, onMSSelect }: MSComparisonPanelP
             <MSTable
               data={msList?.items || []}
               total={msList?.total}
-              filtered={msList?.filtered}
+              filtered={msList?.filtered ? msList.filtered.length : undefined}
               selected={selectedMS ? [selectedMS] : []}
               onSelectionChange={(paths) => {
                 if (paths.length > 0) {
@@ -81,7 +81,7 @@ export function MSComparisonPanel({ selectedMS, onMSSelect }: MSComparisonPanelP
             <MSTable
               data={msList?.items || []}
               total={msList?.total}
-              filtered={msList?.filtered}
+              filtered={msList?.filtered ? msList.filtered.length : undefined}
               selected={compareMS ? [compareMS] : []}
               onSelectionChange={(paths) => {
                 if (paths.length > 0) {

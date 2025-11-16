@@ -128,8 +128,12 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
     # Indexes for fast queries
     try:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_hdf5_group_id ON hdf5_file_index(group_id)")
-        conn.execute("CREATE INDEX IF NOT EXISTS idx_hdf5_timestamp_mjd ON hdf5_file_index(timestamp_mjd)")
-        conn.execute("CREATE INDEX IF NOT EXISTS idx_hdf5_group_subband ON hdf5_file_index(group_id, subband_code)")
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_hdf5_timestamp_mjd ON hdf5_file_index(timestamp_mjd)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_hdf5_group_subband ON hdf5_file_index(group_id, subband_code)"
+        )
         conn.execute("CREATE INDEX IF NOT EXISTS idx_hdf5_stored ON hdf5_file_index(stored)")
     except Exception:
         pass

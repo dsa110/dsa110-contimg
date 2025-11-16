@@ -295,4 +295,3 @@ def get_carta_service_manager() -> CARTAServiceManager:
     if _carta_service_manager is None:
         _carta_service_manager = CARTAServiceManager()
     return _carta_service_manager
-

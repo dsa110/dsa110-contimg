@@ -10,9 +10,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Optional
 
-from dsa110_contimg.api.db_utils import db_operation, retry_db_operation
-
 from dsa110_contimg.api.config import ApiConfig
+from dsa110_contimg.api.db_utils import db_operation, retry_db_operation
 from dsa110_contimg.api.models import (
     CalibrationSet,
     CalibratorMatch,
@@ -102,6 +101,7 @@ def _retry_db_operation(func, max_retries: int = 3, initial_delay: float = 0.1):
 
 def fetch_queue_stats(queue_db: Path) -> QueueStats:
     """Fetch queue statistics with retry logic."""
+
     def _fetch():
         with db_operation(queue_db, "fetch_queue_stats", use_pool=True) as conn:
             row = conn.execute(
@@ -128,6 +128,7 @@ def fetch_queue_stats(queue_db: Path) -> QueueStats:
                 completed=row["completed"] or 0,
                 collecting=row["collecting"] or 0,
             )
+
     return retry_db_operation(_fetch, operation_name="fetch_queue_stats")
 
 
@@ -135,6 +136,7 @@ def fetch_recent_queue_groups(
     queue_db: Path, config: ApiConfig, limit: int = 20
 ) -> List[QueueGroup]:
     """Fetch recent queue groups with retry logic."""
+
     def _fetch():
         with db_operation(queue_db, "fetch_recent_queue_groups", use_pool=True) as conn:
             rows = conn.execute(
@@ -193,12 +195,12 @@ def fetch_recent_queue_groups(
                         last_update=datetime.fromtimestamp(r["last_update"]),
                         subbands_present=r["subbands"] or 0,
                         expected_subbands=r["expected_subbands"] or config.expected_subbands,
-                        has_calibrator=bool(
-                            has_cal) if has_cal is not None else None,
+                        has_calibrator=bool(has_cal) if has_cal is not None else None,
                         matches=matches_parsed or None,
                     )
                 )
             return groups
+
     return retry_db_operation(_fetch, operation_name="fetch_recent_queue_groups")
 
 
@@ -279,9 +281,7 @@ def fetch_recent_calibrator_matches(
         rows = conn.execute(base, (limit,)).fetchall()
     groups: List[CalibratorMatchGroup] = []
     for r in rows:
-        matched = (
-            bool(r["has_calibrator"]) if r["has_calibrator"] is not None else False
-        )
+        matched = bool(r["has_calibrator"]) if r["has_calibrator"] is not None else False
         calib_json = r["calibrators"] or "[]"
         try:
             parsed = _json.loads(calib_json)
@@ -317,19 +317,17 @@ def fetch_recent_calibrator_matches(
     return groups
 
 
-def _is_synthetic_pointing_data(
-    timestamp: float, data_registry_db: Optional[Path] = None
-) -> bool:
+def _is_synthetic_pointing_data(timestamp: float, data_registry_db: Optional[Path] = None) -> bool:
     """Check if pointing data is synthetic/simulated.
-    
+
     Synthetic data is identified by:
     1. Timestamps before MJD 60000 (approximately year 2023) - these are clearly test data
     2. Data registered in data_registry with synthetic markers (if registry available)
-    
+
     Args:
         timestamp: MJD timestamp
         data_registry_db: Optional path to data_registry database
-        
+
     Returns:
         True if data is synthetic, False otherwise
     """
@@ -337,7 +335,7 @@ def _is_synthetic_pointing_data(
     # Real observations should be from recent dates
     if timestamp < 60000:
         return True
-    
+
     # If data_registry is available, check for synthetic markers
     if data_registry_db and data_registry_db.exists():
         try:
@@ -360,7 +358,7 @@ def _is_synthetic_pointing_data(
         except Exception:
             # If registry check fails, fall back to timestamp filtering
             pass
-    
+
     return False
 
 
@@ -368,33 +366,31 @@ def fetch_pointing_history(
     db_path: str, start_mjd: float, end_mjd: float, exclude_synthetic: bool = True
 ) -> List[PointingHistoryEntry]:
     """Fetch pointing history from the database, excluding synthetic/simulated data.
-    
+
     Args:
         db_path: Path to products database
         start_mjd: Start MJD timestamp
         end_mjd: End MJD timestamp
         exclude_synthetic: If True, filter out synthetic/simulated data (default: True)
-        
+
     Returns:
         List of pointing history entries (real observations only)
     """
     import os
-    
+
     # Get data_registry path if available
     data_registry_db = None
     if exclude_synthetic:
-        registry_path = Path(
-            os.getenv("PIPELINE_DATA_REGISTRY_DB", "state/data_registry.sqlite3")
-        )
+        registry_path = Path(os.getenv("PIPELINE_DATA_REGISTRY_DB", "state/data_registry.sqlite3"))
         if registry_path.exists():
             data_registry_db = registry_path
-    
+
     with closing(_connect(Path(db_path))) as conn:
         rows = conn.execute(
             "SELECT timestamp, ra_deg, dec_deg FROM pointing_history WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp",
             (start_mjd, end_mjd),
         ).fetchall()
-    
+
     entries = [
         PointingHistoryEntry(
             timestamp=r["timestamp"],
@@ -403,7 +399,7 @@ def fetch_pointing_history(
         )
         for r in rows
     ]
-    
+
     # Filter out synthetic data if requested
     if exclude_synthetic:
         entries = [
@@ -411,13 +407,11 @@ def fetch_pointing_history(
             for entry in entries
             if not _is_synthetic_pointing_data(entry.timestamp, data_registry_db)
         ]
-    
+
     return entries
 
 
-def fetch_ese_candidates(
-    products_db: Path, limit: int = 50, min_sigma: float = 5.0
-) -> List[dict]:
+def fetch_ese_candidates(products_db: Path, limit: int = 50, min_sigma: float = 5.0) -> List[dict]:
     """Fetch ESE candidates from the database.
 
     Returns list of ESE candidates with variability stats joined.
@@ -429,9 +423,7 @@ def fetch_ese_candidates(
         # Check if tables exist
         tables = {
             row[0]
-            for row in conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'"
-            ).fetchall()
+            for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
         }
 
         if "ese_candidates" not in tables or "variability_stats" not in tables:
@@ -477,27 +469,18 @@ def fetch_ese_candidates(
     for r in rows:
         # Convert timestamps
         flagged_at = (
-            datetime.fromtimestamp(r["flagged_at"])
-            if r["flagged_at"]
-            else datetime.utcnow()
+            datetime.fromtimestamp(r["flagged_at"]) if r["flagged_at"] else datetime.utcnow()
         )
         last_measured = (
-            datetime.fromtimestamp(r["last_measured_at"])
-            if r["last_measured_at"]
-            else flagged_at
+            datetime.fromtimestamp(r["last_measured_at"]) if r["last_measured_at"] else flagged_at
         )
         first_measured = (
-            datetime.fromtimestamp(r["first_measured_at"])
-            if r["first_measured_at"]
-            else flagged_at
+            datetime.fromtimestamp(r["first_measured_at"]) if r["first_measured_at"] else flagged_at
         )
 
         # Calculate current and baseline flux
-        current_flux_jy = (r["mean_flux_mjy"] /
-                           1000.0) if r["mean_flux_mjy"] else 0.0
-        baseline_flux_jy = (
-            (r["nvss_flux_mjy"] / 1000.0) if r["nvss_flux_mjy"] else current_flux_jy
-        )
+        current_flux_jy = (r["mean_flux_mjy"] / 1000.0) if r["mean_flux_mjy"] else 0.0
+        baseline_flux_jy = (r["nvss_flux_mjy"] / 1000.0) if r["nvss_flux_mjy"] else current_flux_jy
 
         candidates.append(
             {
@@ -546,9 +529,7 @@ def fetch_mosaics(products_db: Path, start_time: str, end_time: str) -> List[dic
         # Check if mosaics table exists
         tables = {
             row[0]
-            for row in conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'"
-            ).fetchall()
+            for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
         }
 
         if "mosaics" not in tables:
@@ -575,9 +556,7 @@ def fetch_mosaics(products_db: Path, start_time: str, end_time: str) -> List[dic
         start_dt = Time(r["start_mjd"], format="mjd").datetime
         end_dt = Time(r["end_mjd"], format="mjd").datetime
         created_dt = (
-            datetime.fromtimestamp(r["created_at"])
-            if r["created_at"]
-            else datetime.utcnow()
+            datetime.fromtimestamp(r["created_at"]) if r["created_at"] else datetime.utcnow()
         )
 
         mosaics.append(
@@ -618,9 +597,7 @@ def fetch_mosaic_by_id(products_db: Path, mosaic_id: int) -> Optional[dict]:
         # Check if mosaics table exists
         tables = {
             row[0]
-            for row in conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'"
-            ).fetchall()
+            for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
         }
 
         if "mosaics" not in tables:
@@ -649,9 +626,7 @@ def fetch_mosaic_by_id(products_db: Path, mosaic_id: int) -> Optional[dict]:
         start_dt = Time(row["start_mjd"], format="mjd").datetime
         end_dt = Time(row["end_mjd"], format="mjd").datetime
         created_dt = (
-            datetime.fromtimestamp(row["created_at"])
-            if row["created_at"]
-            else datetime.utcnow()
+            datetime.fromtimestamp(row["created_at"]) if row["created_at"] else datetime.utcnow()
         )
 
         return {
@@ -692,9 +667,7 @@ def fetch_source_timeseries(products_db: Path, source_id: str) -> Optional[dict]
         # Check if tables exist
         tables = {
             row[0]
-            for row in conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'"
-            ).fetchall()
+            for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
         }
 
         if "photometry" not in tables:
@@ -703,9 +676,7 @@ def fetch_source_timeseries(products_db: Path, source_id: str) -> Optional[dict]
         # Get photometry measurements for this source
         # Try to match by source_id first, then by name pattern if source_id column exists
         # Check if source_id column exists
-        columns = {
-            row[1] for row in conn.execute("PRAGMA table_info(photometry)").fetchall()
-        }
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(photometry)").fetchall()}
 
         if "source_id" in columns:
             rows = conn.execute(
@@ -737,11 +708,7 @@ def fetch_source_timeseries(products_db: Path, source_id: str) -> Optional[dict]
         fluxes = []
 
         for r in rows:
-            mjd = (
-                r["mjd"]
-                if r["mjd"]
-                else Time(datetime.fromtimestamp(r["measured_at"])).mjd
-            )
+            mjd = r["mjd"] if r["mjd"] else Time(datetime.fromtimestamp(r["measured_at"])).mjd
             flux_jy = r["peak_jyb"] if r["peak_jyb"] else 0.0
             flux_err_jy = r["peak_err_jyb"] if r["peak_err_jyb"] else None
 
@@ -769,9 +736,9 @@ def fetch_source_timeseries(products_db: Path, source_id: str) -> Optional[dict]
 
             # Calculate chi-square for constant model
             if std_flux > 0:
-                chi_sq_nu = sum(
-                    ((f - mean_flux) / std_flux) ** 2 for f in fluxes
-                ) / max(1, len(fluxes) - 1)
+                chi_sq_nu = sum(((f - mean_flux) / std_flux) ** 2 for f in fluxes) / max(
+                    1, len(fluxes) - 1
+                )
             else:
                 chi_sq_nu = 0.0
 
@@ -812,9 +779,7 @@ def fetch_alert_history(products_db: Path, limit: int = 50) -> List[dict]:
         # Check if alert_history table exists
         tables = {
             row[0]
-            for row in conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'"
-            ).fetchall()
+            for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
         }
 
         if "alert_history" not in tables:
@@ -834,10 +799,7 @@ def fetch_alert_history(products_db: Path, limit: int = 50) -> List[dict]:
 
     alerts = []
     for r in rows:
-        sent_at = (
-            datetime.fromtimestamp(
-                r["sent_at"]) if r["sent_at"] else datetime.utcnow()
-        )
+        sent_at = datetime.fromtimestamp(r["sent_at"]) if r["sent_at"] else datetime.utcnow()
 
         alerts.append(
             {
@@ -871,12 +833,12 @@ def fetch_observation_timeline(
         ObservationTimeline with segments and statistics
     """
     import os
+
     from dsa110_contimg.database.products import ensure_products_db
 
     # Get products database path
     if products_db is None:
-        products_db = Path(
-            os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        products_db = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
 
     if not products_db.exists():
         return ObservationTimeline()

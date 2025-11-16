@@ -12,6 +12,7 @@ class BasePage:
         self.page = page
         # Get base_url from environment or use default
         import os
+
         self.base_url = os.getenv("FRONTEND_BASE_URL", "http://localhost:5174")
 
     def goto(self, path: str = "/") -> None:

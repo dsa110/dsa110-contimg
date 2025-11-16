@@ -68,15 +68,15 @@ def _check_master_sources_database() -> tuple[bool, Optional[str]]:
 
 def _check_casa_wrapper_config() -> tuple[bool, Optional[str], Optional[Dict[str, str]]]:
     """Check if casa_wrapper.sh location matches expected path from environment.
-    
+
     Reads from environment variable or falls back to reading contimg.env file.
-    
+
     Returns:
         Tuple of (healthy, error_message, details_dict)
     """
     # Try environment variable first
     expected_path = os.getenv("CONTIMG_CASA_WRAPPER")
-    
+
     # If not in environment, try reading from contimg.env file
     if not expected_path:
         env_file = Path("/data/dsa110-contimg/ops/systemd/contimg.env")
@@ -88,32 +88,30 @@ def _check_casa_wrapper_config() -> tuple[bool, Optional[str], Optional[Dict[str
                         if line.startswith("CONTIMG_CASA_WRAPPER=") and not line.startswith("#"):
                             expected_path = line.split("=", 1)[1].strip()
                             # Remove quotes if present
-                            expected_path = expected_path.strip('"\'')
+                            expected_path = expected_path.strip("\"'")
                             break
             except Exception as e:
                 return False, f"Error reading contimg.env: {e}", {"error_type": "file_read"}
-    
+
     if not expected_path:
         return True, None, {"note": "CONTIMG_CASA_WRAPPER not configured"}
-    
+
     expected = Path(expected_path)
     if not expected.exists():
-        return False, f"Expected casa_wrapper.sh not found: {expected_path}", {
-            "expected": str(expected_path),
-            "exists": False
-        }
-    
+        return (
+            False,
+            f"Expected casa_wrapper.sh not found: {expected_path}",
+            {"expected": str(expected_path), "exists": False},
+        )
+
     if not os.access(expected, os.X_OK):
-        return False, f"casa_wrapper.sh is not executable: {expected_path}", {
-            "expected": str(expected_path),
-            "executable": False
-        }
-    
-    return True, None, {
-        "expected": str(expected_path),
-        "exists": True,
-        "executable": True
-    }
+        return (
+            False,
+            f"casa_wrapper.sh is not executable: {expected_path}",
+            {"expected": str(expected_path), "executable": False},
+        )
+
+    return True, None, {"expected": str(expected_path), "exists": True, "executable": True}
 
 
 @router.get("/health/liveness")
@@ -195,7 +193,7 @@ def detailed_health_check():
         "healthy": healthy,
         "error": error,
         "type": "configuration",
-        **details
+        **details,
     }
     if not healthy:
         all_healthy = False

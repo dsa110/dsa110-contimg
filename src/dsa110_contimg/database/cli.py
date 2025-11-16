@@ -39,12 +39,10 @@ def cmd_publish(args: argparse.Namespace) -> int:
 
     if record.status == "published":
         logger.warning(f"Data {args.data_id} is already published")
-        print(json.dumps({"status": "already_published",
-              "data_id": args.data_id}, indent=2))
+        print(json.dumps({"status": "already_published", "data_id": args.data_id}, indent=2))
         return 0
 
-    success = publish_data_manual(
-        conn, args.data_id, products_base=args.products_base)
+    success = publish_data_manual(conn, args.data_id, products_base=args.products_base)
     if not success:
         logger.error(f"Failed to publish {args.data_id}")
         return 1
@@ -98,8 +96,7 @@ def cmd_retry(args: argparse.Namespace) -> int:
 
     if record.status == "published":
         logger.warning(f"Data {args.data_id} is already published")
-        print(json.dumps({"status": "already_published",
-              "data_id": args.data_id}, indent=2))
+        print(json.dumps({"status": "already_published", "data_id": args.data_id}, indent=2))
         return 0
 
     # Reset publish attempts before retry
@@ -220,8 +217,7 @@ def main(argv: list = None) -> int:
     # Add common logging arguments
     add_common_logging_args(parser)
 
-    subparsers = parser.add_subparsers(
-        dest="command", required=True, help="Subcommand to run")
+    subparsers = parser.add_subparsers(dest="command", required=True, help="Subcommand to run")
 
     # Publish subcommand
     publish_parser = subparsers.add_parser(

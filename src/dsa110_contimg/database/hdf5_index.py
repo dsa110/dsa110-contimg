@@ -97,9 +97,7 @@ def _scan_hdf5_files(
     return hdf5_files, current_paths
 
 
-def _parse_hdf5_metadata(
-    full_path: str, filename: str
-) -> Optional[Dict[str, Any]]:
+def _parse_hdf5_metadata(full_path: str, filename: str) -> Optional[Dict[str, Any]]:
     """Parse metadata from HDF5 filename and file stats.
 
     Args:
@@ -181,9 +179,7 @@ def _is_path_under_directory(db_path: str, input_dir_path: Path) -> Tuple[bool, 
         return False, None
 
 
-def _is_file_missing(
-    db_path: str, db_path_resolved: Optional[Path], current_paths: set
-) -> bool:
+def _is_file_missing(db_path: str, db_path_resolved: Optional[Path], current_paths: set) -> bool:
     """Check if a file is missing from the filesystem.
 
     Args:
@@ -214,9 +210,7 @@ def _mark_file_as_deleted(conn: sqlite3.Connection, db_path: str) -> None:
         conn: Database connection
         db_path: Path to mark as deleted
     """
-    conn.execute(
-        "UPDATE hdf5_file_index SET stored = 0 WHERE path = ?", (db_path,)
-    )
+    conn.execute("UPDATE hdf5_file_index SET stored = 0 WHERE path = ?", (db_path,))
 
 
 def _process_deleted_file_check(
@@ -255,9 +249,7 @@ def _process_deleted_file_check(
         return False
 
 
-def _mark_deleted_files(
-    conn: sqlite3.Connection, input_dir: Path, current_paths: set
-) -> int:
+def _mark_deleted_files(conn: sqlite3.Connection, input_dir: Path, current_paths: set) -> int:
     """Mark files in database that no longer exist on filesystem as not stored.
 
     Args:
@@ -268,9 +260,7 @@ def _mark_deleted_files(
     Returns:
         Number of files marked as not stored
     """
-    all_db_paths = conn.execute(
-        "SELECT path FROM hdf5_file_index WHERE stored = 1"
-    ).fetchall()
+    all_db_paths = conn.execute("SELECT path FROM hdf5_file_index WHERE stored = 1").fetchall()
 
     deleted_count = 0
     input_dir_path = Path(input_dir).resolve()
@@ -335,9 +325,8 @@ def index_hdf5_files(
     # Process files in batches
     batch_size = 1000
     for i in range(0, len(hdf5_files), batch_size):
-        batch = hdf5_files[i: i + batch_size]
-        batch_stats = _update_database_batch(
-            conn, batch, indexed_at, force_rescan)
+        batch = hdf5_files[i : i + batch_size]
+        batch_stats = _update_database_batch(conn, batch, indexed_at, force_rescan)
         for key in stats:
             stats[key] += batch_stats[key]
 
@@ -451,9 +440,7 @@ def _process_single_file(
     if not metadata:
         return None
 
-    status = _check_file_index_status(
-        conn, full_path, metadata["modified_time"], force_rescan
-    )
+    status = _check_file_index_status(conn, full_path, metadata["modified_time"], force_rescan)
     if status == "skipped":
         return "skipped"
 
@@ -508,9 +495,7 @@ def _update_database_batch(
         stats["total_scanned"] += 1
 
         try:
-            status = _process_single_file(
-                conn, full_path, filename, indexed_at, force_rescan
-            )
+            status = _process_single_file(conn, full_path, filename, indexed_at, force_rescan)
             _update_stats_for_file(stats, status)
         except Exception as e:
             logger.debug(f"Error indexing {full_path}: {e}")

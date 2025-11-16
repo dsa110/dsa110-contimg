@@ -221,6 +221,7 @@ export interface ImageInfo {
   ms_path: string;
   created_at?: string | null;
   type: string;
+  source_id?: string | null;
   beam_major_arcsec?: number | null;
   beam_minor_arcsec?: number | null;
   beam_pa_deg?: number | null;
@@ -552,16 +553,24 @@ export interface MSCalibratorMatch {
 }
 
 export interface ExistingCalTables {
-  items: ExistingCalTable[];
-  k_tables?: string[];
-  ba_tables?: string[];
-  bp_tables?: string[];
-  g_tables?: string[];
+  ms_path?: string;
+  items?: ExistingCalTable[];
+  k_tables?: ExistingCalTable[];
+  ba_tables?: ExistingCalTable[];
+  bp_tables?: ExistingCalTable[];
+  g_tables?: ExistingCalTable[];
+  has_k?: boolean;
+  has_bp?: boolean;
+  has_g?: boolean;
 }
 
 export interface ExistingCalTable {
   path: string;
-  type: string;
+  filename: string;
+  type?: string;
+  size_mb?: number;
+  age_hours?: number;
+  modified_time?: string;
   created_at?: string;
 }
 
@@ -610,6 +619,9 @@ export interface CatalogValidationResults {
   validated: boolean;
   matches?: number;
   errors?: string[];
+  astrometry?: Record<string, unknown>;
+  flux_scale?: number;
+  source_counts?: number;
 }
 
 export interface CatalogOverlayData {
@@ -620,6 +632,8 @@ export interface CatalogOverlayData {
 export interface CatalogSource {
   ra_deg: number;
   dec_deg: number;
+  x?: number;
+  y?: number;
   flux_jy?: number;
   name?: string;
 }
@@ -637,6 +651,10 @@ export interface BandpassPlotsList {
 
 export interface BandpassPlot {
   path: string;
+  filename: string;
+  type: string;
+  spw: number | null;
+  url: string;
   created_at?: string;
 }
 
@@ -743,6 +761,7 @@ export interface PointingHistoryEntry {
 export interface DirectoryEntry {
   name: string;
   type: "file" | "directory";
+  is_dir: boolean;
   size?: number;
   modified_at?: string;
   path?: string;
@@ -809,6 +828,8 @@ export interface QARunRequest {
 export interface QAResultSummary {
   group_id: string;
   passed: boolean;
+  success?: boolean;
+  reasons?: string[];
   metrics?: Record<string, number>;
   artifacts?: QAArtifact[];
 }
