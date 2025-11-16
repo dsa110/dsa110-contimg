@@ -107,8 +107,8 @@ export default function CatalogOverlay({
             />
             {showLabels && (
               <text
-                x={source.x + size + 2}
-                y={source.y}
+                x={(source.x ?? 0) + size + 2}
+                y={source.y ?? 0}
                 fill="white"
                 fontSize="10px"
                 style={{ pointerEvents: "none" }}

@@ -3,7 +3,7 @@
  * Provides a retry UI for failed operations
  */
 
-import { Button, ButtonProps, CircularProgress } from "@mui/material";
+import { Button, type ButtonProps, CircularProgress } from "@mui/material";
 import { Refresh } from "@mui/icons-material";
 import { useState } from "react";
 
