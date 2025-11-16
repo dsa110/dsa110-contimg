@@ -234,168 +234,313 @@ export default function PointingVisualization({
   // Fetch sky map data from backend (GSM or synthetic)
   const { data: skyMapHeatmapData, isLoading: _skyMapLoading } = useSkyMapData(
     1400.0, // 1.4 GHz frequency
-    90, // Resolution
+    90, // Resolution (reduced from 180 to avoid potential issues)
     "gsm" // Use GSM, falls back to synthetic if unavailable
   );
 
+  // Helper function to check if Aitoff coordinates are within the elliptical boundary
+  const isWithinAitoffBoundary = (x: number, y: number): boolean => {
+    // Aitoff projection creates an ellipse with semi-major axis ~180 and semi-minor axis ~90
+    // The boundary equation: (x/180)^2 + (y/90)^2 <= 1
+    // Use a slightly tighter boundary to ensure points are well within the ellipse
+    const ellipseCheck = (x / 180) ** 2 + (y / 90) ** 2;
+    return ellipseCheck <= 0.98; // Tighter boundary to avoid edge artifacts
+  };
+
   // Prepare Aitoff projection sky map data
   const { skyMapData, skyMapLayout } = useMemo(() => {
-    const data: Data[] = [];
+    try {
+      const data: Data[] = [];
 
-    // Add sky map background as heatmap (if enabled and data available)
-    if (enableSkyMapBackground && skyMapHeatmapData) {
-      data.push({
-        type: "heatmap",
-        x: skyMapHeatmapData.x,
-        y: skyMapHeatmapData.y,
-        z: skyMapHeatmapData.z,
-        colorscale: [
-          [0, "rgb(20, 20, 20)"],
-          [0.3, "rgb(60, 20, 40)"],
-          [0.6, "rgb(120, 40, 60)"],
-          [1, "rgb(255, 100, 80)"],
-        ], // Inferno-like colormap for radio sky
-        showscale: false,
-        hoverinfo: "skip" as any,
-        opacity: 0.6,
-      });
-    }
+      // Always ensure we have at least grid lines, even if other data fails
 
-    if (showHistory && historyData.length > 0) {
-      // Project all points to Aitoff coordinates
-      const projectedPoints = historyData.map((p) => {
-        const [x, y] = aitoffProjection(p.ra_deg, p.dec_deg);
-        return { x, y, ra: p.ra_deg, dec: p.dec_deg };
-      });
+      // Add sky map background as heatmap (if enabled and data available)
+      // Use heatmap with mask to properly constrain visualization within the Aitoff ellipse
+      if (
+        enableSkyMapBackground &&
+        skyMapHeatmapData &&
+        skyMapHeatmapData.x &&
+        skyMapHeatmapData.y &&
+        skyMapHeatmapData.z
+      ) {
+        try {
+          // Create a masked z array where values outside the ellipse are set to a very low value
+          // Using a very low value instead of null ensures smooth rendering
+          const maskedZ: number[][] = skyMapHeatmapData.z.map((row, i) => {
+            const y = skyMapHeatmapData.y[i];
+            return row.map((zValue, j) => {
+              const x = skyMapHeatmapData.x[j];
+              // Set values outside the ellipse to a very low value (near black)
+              // This ensures the heatmap renders smoothly without gaps
+              if (isWithinAitoffBoundary(x, y)) {
+                return zValue;
+              }
+              return 0.0; // Use 0 instead of null for smooth rendering
+            });
+          });
 
-      const xs = projectedPoints.map((p) => p.x);
-      const ys = projectedPoints.map((p) => p.y);
+          // Create heatmap with masked data
+          // The axis scaling (scaleanchor: "x", scaleratio: 0.5) ensures elliptical appearance
+          data.push({
+            type: "heatmap",
+            x: skyMapHeatmapData.x,
+            y: skyMapHeatmapData.y,
+            z: maskedZ,
+            colorscale: [
+              [0, "rgb(20, 20, 20)"], // Dark background for masked areas
+              [0.01, "rgb(20, 20, 20)"], // Ensure masked areas stay dark
+              [0.3, "rgb(60, 20, 40)"],
+              [0.6, "rgb(120, 40, 60)"],
+              [1, "rgb(255, 100, 80)"],
+            ],
+            showscale: false,
+            hoverinfo: "skip" as any,
+            zmin: 0,
+            zmax: 1,
+            zsmooth: "best" as any,
+            layer: "below" as any,
+          });
+        } catch (error) {
+          console.error("Error processing sky map data:", error);
+          // Continue without sky map background if there's an error
+        }
+      }
 
-      // Historical trail
-      data.push({
-        type: "scatter",
-        mode: "lines",
-        name: "Pointing History",
-        x: xs,
-        y: ys,
-        line: {
-          color: "rgba(144, 202, 249, 0.5)",
-          width: 2,
-        },
-        hovertemplate: "RA: %{customdata[0]:.2f}°<br>Dec: %{customdata[1]:.2f}°<extra></extra>",
-        customdata: historyData.map((p) => [p.ra_deg, p.dec_deg]),
-      });
+      if (showHistory && historyData.length > 0) {
+        // Project all points to Aitoff coordinates
+        const projectedPoints = historyData.map((p) => {
+          const [x, y] = aitoffProjection(p.ra_deg, p.dec_deg);
+          return { x, y, ra: p.ra_deg, dec: p.dec_deg };
+        });
 
-      // Sparse markers for performance
-      const step = Math.max(1, Math.floor(historyData.length / 20));
-      const sparseXs = xs.filter((_, i) => i % step === 0);
-      const sparseYs = ys.filter((_, i) => i % step === 0);
-      const sparseData = historyData.filter((_, i) => i % step === 0);
+        const xs = projectedPoints.map((p) => p.x);
+        const ys = projectedPoints.map((p) => p.y);
 
-      data.push({
-        type: "scatter",
-        mode: "markers",
-        name: "Historical Points",
-        x: sparseXs,
-        y: sparseYs,
-        marker: {
-          color: "rgba(144, 202, 249, 0.3)",
-          size: 4,
-        },
-        hovertemplate: "RA: %{customdata[0]:.2f}°<br>Dec: %{customdata[1]:.2f}°<extra></extra>",
-        customdata: sparseData.map((p) => [p.ra_deg, p.dec_deg]),
-        showlegend: false,
-      });
-    }
-
-    // Add current pointing position
-    if (currentPointing) {
-      const [x, y] = aitoffProjection(currentPointing.ra, currentPointing.dec);
-      data.push({
-        type: "scatter",
-        mode: "markers",
-        name: "Current Pointing",
-        x: [x],
-        y: [y],
-        marker: {
-          color: "#4caf50",
-          size: 15,
-          symbol: "circle",
+        // Historical trail
+        data.push({
+          type: "scatter",
+          mode: "lines",
+          name: "Pointing History",
+          x: xs,
+          y: ys,
           line: {
-            color: "#ffffff",
+            color: "rgba(144, 202, 249, 0.5)",
             width: 2,
           },
+          hovertemplate: "RA: %{customdata[0]:.2f}°<br>Dec: %{customdata[1]:.2f}°<extra></extra>",
+          customdata: historyData.map((p) => [p.ra_deg, p.dec_deg]),
+        });
+
+        // Sparse markers for performance
+        const step = Math.max(1, Math.floor(historyData.length / 20));
+        const sparseXs = xs.filter((_, i) => i % step === 0);
+        const sparseYs = ys.filter((_, i) => i % step === 0);
+        const sparseData = historyData.filter((_, i) => i % step === 0);
+
+        data.push({
+          type: "scatter",
+          mode: "markers",
+          name: "Historical Points",
+          x: sparseXs,
+          y: sparseYs,
+          marker: {
+            color: "rgba(144, 202, 249, 0.3)",
+            size: 4,
+          },
+          hovertemplate: "RA: %{customdata[0]:.2f}°<br>Dec: %{customdata[1]:.2f}°<extra></extra>",
+          customdata: sparseData.map((p) => [p.ra_deg, p.dec_deg]),
+          showlegend: false,
+        });
+      }
+
+      // Add current pointing position
+      if (currentPointing) {
+        const [x, y] = aitoffProjection(currentPointing.ra, currentPointing.dec);
+        data.push({
+          type: "scatter",
+          mode: "markers",
+          name: "Current Pointing",
+          x: [x],
+          y: [y],
+          marker: {
+            color: "#4caf50",
+            size: 15,
+            symbol: "circle",
+            line: {
+              color: "#ffffff",
+              width: 2,
+            },
+          },
+          hovertemplate:
+            "<b>Current Pointing</b><br>RA: %{customdata[0]:.4f}°<br>Dec: %{customdata[1]:.4f}°<extra></extra>",
+          customdata: [[currentPointing.ra, currentPointing.dec]],
+        });
+      }
+
+      // Add coordinate grid lines for reference (sparse for performance)
+      const gridLines: Data[] = [];
+      // RA grid lines (every 60 degrees for performance)
+      for (let ra = 0; ra < 360; ra += 60) {
+        const decs = Array.from({ length: 91 }, (_, i) => -90 + i * 2); // Sparse sampling
+        const ras = decs.map(() => ra);
+        const projected = ras.map((r, i) => aitoffProjection(r, decs[i]));
+        gridLines.push({
+          type: "scatter",
+          mode: "lines",
+          x: projected.map((p) => p[0]),
+          y: projected.map((p) => p[1]),
+          line: { color: "rgba(128, 128, 128, 0.15)", width: 1, dash: "dot" },
+          showlegend: false,
+          hoverinfo: "skip" as any,
+        });
+      }
+      // Dec grid lines (every 30 degrees)
+      for (let dec = -90; dec <= 90; dec += 30) {
+        const ras = Array.from({ length: 181 }, (_, i) => i * 2); // Sparse sampling
+        const decs = ras.map(() => dec);
+        const projected = ras.map((r, i) => aitoffProjection(r, decs[i]));
+        gridLines.push({
+          type: "scatter",
+          mode: "lines",
+          x: projected.map((p) => p[0]),
+          y: projected.map((p) => p[1]),
+          line: { color: "rgba(128, 128, 128, 0.15)", width: 1, dash: "dot" },
+          showlegend: false,
+          hoverinfo: "skip" as any,
+        });
+      }
+
+      const layout: Partial<Layout> = {
+        title: {
+          text: "Sky Map (Aitoff Projection)",
+          font: { size: 14 },
         },
-        hovertemplate:
-          "<b>Current Pointing</b><br>RA: %{customdata[0]:.4f}°<br>Dec: %{customdata[1]:.4f}°<extra></extra>",
-        customdata: [[currentPointing.ra, currentPointing.dec]],
-      });
-    }
-
-    // Add coordinate grid lines for reference (sparse for performance)
-    const gridLines: Data[] = [];
-    // RA grid lines (every 60 degrees for performance)
-    for (let ra = 0; ra < 360; ra += 60) {
-      const decs = Array.from({ length: 91 }, (_, i) => -90 + i * 2); // Sparse sampling
-      const ras = decs.map(() => ra);
-      const projected = ras.map((r, i) => aitoffProjection(r, decs[i]));
-      gridLines.push({
-        type: "scatter",
-        mode: "lines",
-        x: projected.map((p) => p[0]),
-        y: projected.map((p) => p[1]),
-        line: { color: "rgba(128, 128, 128, 0.15)", width: 1, dash: "dot" },
+        xaxis: {
+          title: { text: "" },
+          showgrid: false,
+          zeroline: false,
+          showticklabels: false,
+          range: [-180, 180],
+        },
+        yaxis: {
+          title: { text: "" },
+          showgrid: false,
+          zeroline: false,
+          showticklabels: false,
+          range: [-90, 90],
+          scaleanchor: "x" as any,
+          scaleratio: 0.5,
+        },
+        plot_bgcolor: "#1e1e1e",
+        paper_bgcolor: "#1e1e1e",
+        font: { color: "#ffffff" },
+        margin: { l: 20, r: 20, t: 50, b: 20 },
+        height: height,
+        hovermode: "closest" as any,
         showlegend: false,
-        hoverinfo: "skip" as any,
-      });
-    }
-    // Dec grid lines (every 30 degrees)
-    for (let dec = -90; dec <= 90; dec += 30) {
-      const ras = Array.from({ length: 181 }, (_, i) => i * 2); // Sparse sampling
-      const decs = ras.map(() => dec);
-      const projected = ras.map((r, i) => aitoffProjection(r, decs[i]));
-      gridLines.push({
-        type: "scatter",
-        mode: "lines",
-        x: projected.map((p) => p[0]),
-        y: projected.map((p) => p[1]),
-        line: { color: "rgba(128, 128, 128, 0.15)", width: 1, dash: "dot" },
-        showlegend: false,
-        hoverinfo: "skip" as any,
-      });
-    }
+      };
 
-    const layout: Partial<Layout> = {
-      title: {
-        text: "Sky Map (Aitoff Projection)",
-        font: { size: 14 },
-      },
-      xaxis: {
-        title: { text: "" },
-        showgrid: false,
-        zeroline: false,
-        showticklabels: false,
-        range: [-180, 180],
-      },
-      yaxis: {
-        title: { text: "" },
-        showgrid: false,
-        zeroline: false,
-        showticklabels: false,
-        range: [-90, 90],
-        scaleanchor: "x" as any,
-        scaleratio: 0.5,
-      },
-      plot_bgcolor: "#1e1e1e",
-      paper_bgcolor: "#1e1e1e",
-      font: { color: "#ffffff" },
-      margin: { l: 20, r: 20, t: 50, b: 20 },
-      height: height,
-      hovermode: "closest" as any,
-      showlegend: false,
-    };
-
-    return { skyMapData: [...gridLines, ...data], skyMapLayout: layout };
+      return { skyMapData: [...gridLines, ...data], skyMapLayout: layout };
+    } catch (error) {
+      console.error("Error in skyMapData useMemo:", error);
+      // Try to generate at least grid lines as fallback
+      try {
+        const gridLines: Data[] = [];
+        // RA grid lines (every 60 degrees for performance)
+        for (let ra = 0; ra < 360; ra += 60) {
+          const decs = Array.from({ length: 91 }, (_, i) => -90 + i * 2);
+          const ras = decs.map(() => ra);
+          const projected = ras.map((r, i) => aitoffProjection(r, decs[i]));
+          gridLines.push({
+            type: "scatter",
+            mode: "lines",
+            x: projected.map((p) => p[0]),
+            y: projected.map((p) => p[1]),
+            line: { color: "rgba(128, 128, 128, 0.15)", width: 1, dash: "dot" },
+            showlegend: false,
+            hoverinfo: "skip" as any,
+          });
+        }
+        // Dec grid lines (every 30 degrees)
+        for (let dec = -90; dec <= 90; dec += 30) {
+          const ras = Array.from({ length: 181 }, (_, i) => i * 2);
+          const decs = ras.map(() => dec);
+          const projected = ras.map((r, i) => aitoffProjection(r, decs[i]));
+          gridLines.push({
+            type: "scatter",
+            mode: "lines",
+            x: projected.map((p) => p[0]),
+            y: projected.map((p) => p[1]),
+            line: { color: "rgba(128, 128, 128, 0.15)", width: 1, dash: "dot" },
+            showlegend: false,
+            hoverinfo: "skip" as any,
+          });
+        }
+        const fallbackLayout: Partial<Layout> = {
+          title: {
+            text: "Sky Map (Aitoff Projection)",
+            font: { size: 14 },
+          },
+          xaxis: {
+            title: { text: "" },
+            showgrid: false,
+            zeroline: false,
+            showticklabels: false,
+            range: [-180, 180],
+          },
+          yaxis: {
+            title: { text: "" },
+            showgrid: false,
+            zeroline: false,
+            showticklabels: false,
+            range: [-90, 90],
+            scaleanchor: "x" as any,
+            scaleratio: 0.5,
+          },
+          plot_bgcolor: "#1e1e1e",
+          paper_bgcolor: "#1e1e1e",
+          font: { color: "#ffffff" },
+          margin: { l: 20, r: 20, t: 50, b: 20 },
+          height: height,
+          hovermode: "closest" as any,
+          showlegend: false,
+        };
+        return { skyMapData: gridLines, skyMapLayout: fallbackLayout };
+      } catch (fallbackError) {
+        console.error("Error generating fallback grid lines:", fallbackError);
+        // Last resort: return empty but valid structure
+        const fallbackLayout: Partial<Layout> = {
+          title: {
+            text: "Sky Map (Aitoff Projection)",
+            font: { size: 14 },
+          },
+          xaxis: {
+            title: { text: "" },
+            showgrid: false,
+            zeroline: false,
+            showticklabels: false,
+            range: [-180, 180],
+          },
+          yaxis: {
+            title: { text: "" },
+            showgrid: false,
+            zeroline: false,
+            showticklabels: false,
+            range: [-90, 90],
+            scaleanchor: "x" as any,
+            scaleratio: 0.5,
+          },
+          plot_bgcolor: "#1e1e1e",
+          paper_bgcolor: "#1e1e1e",
+          font: { color: "#ffffff" },
+          margin: { l: 20, r: 20, t: 50, b: 20 },
+          height: height,
+          hovermode: "closest" as any,
+          showlegend: false,
+        };
+        return { skyMapData: [], skyMapLayout: fallbackLayout };
+      }
+    }
   }, [
     currentPointing,
     historyData,

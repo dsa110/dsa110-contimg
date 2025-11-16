@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Mosaic Orchestrator - Intelligent mosaic creation with auto-inference and overrides.
 
@@ -8,6 +8,13 @@ This module implements the high-level logic for creating mosaics with minimal us
 - Auto-inference: Dec from data → BP calibrator → validity windows → skymodels
 - Hands-off operation: Single trigger → wait until published
 """
+# Version guard - prevent use of Python 2.7 or 3.6
+import sys
+
+if sys.version_info < (3, 11) or sys.version_info[:2] in [(2, 7), (3, 6)]:
+    sys.stderr.write("ERROR: Python 3.11+ required. Found: {}\n".format(sys.version))
+    sys.stderr.write("Use: /opt/miniforge/envs/casa6/bin/python\n")
+    sys.exit(1)
 
 import logging
 import os
@@ -388,6 +395,10 @@ class MosaicOrchestrator:
         if not ms_dir.exists():
             return
 
+        # Ensure we have a valid database connection
+        if not hasattr(self.products_db, "execute"):
+            self.products_db = ensure_products_db(self.products_db_path)
+
         registered_count = 0
         start_mjd = start_time.mjd
         end_mjd = end_time.mjd
@@ -401,8 +412,9 @@ class MosaicOrchestrator:
                 # Extract time range from MS file
                 ms_start_mjd, ms_end_mjd, ms_mid_mjd = extract_ms_time_range(str(ms_file))
 
-                # Check if within time window
-                if ms_mid_mjd < start_mjd or ms_mid_mjd > end_mjd:
+                # Check if within time window (expand slightly to catch files just outside)
+                time_buffer = 0.5 / 86400.0  # 30 minutes in days
+                if ms_mid_mjd < start_mjd - time_buffer or ms_mid_mjd > end_mjd + time_buffer:
                     continue
 
                 # Check if already in database
@@ -584,7 +596,7 @@ class MosaicOrchestrator:
         try:
             manager.products_db.execute(
                 """
-                INSERT OR REPLACE INTO mosaic_groups
+                INSERT OR REPLACE INTO mosaic_groups 
                 (group_id, ms_paths, created_at, status)
                 VALUES (?, ?, ?, 'pending')
                 """,

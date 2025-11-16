@@ -1,4 +1,13 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
+from __future__ import annotations
+
+# Version guard - prevent use of Python 2.7 or 3.6
+import sys
+
+if sys.version_info < (3, 11) or sys.version_info[:2] in [(2, 7), (3, 6)]:
+    sys.stderr.write("ERROR: Python 3.11+ required. Found: {}\n".format(sys.version))
+    sys.stderr.write("Use: /opt/miniforge/envs/casa6/bin/python\n")
+    sys.exit(1)
 """
 CLI for forced photometry on FITS images.
 
@@ -14,7 +23,6 @@ Examples:
     --fits /path/to/image.pbcor.fits \
     --coords "128.725,55.573; 129.002,55.610"
 """
-from __future__ import annotations
 
 import argparse
 import json

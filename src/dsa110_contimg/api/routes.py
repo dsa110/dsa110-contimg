@@ -149,6 +149,84 @@ _uvh5_cache_ttl = 30.0  # seconds
 logger = logging.getLogger(__name__)
 
 
+# Security helper functions for SQL injection prevention
+def _sanitize_sql_identifier(identifier: str, allowed: set[str] | None = None) -> str:
+    """
+    Sanitize SQL identifier (column/table name) to prevent SQL injection.
+
+    Args:
+        identifier: The identifier to sanitize
+        allowed: Optional whitelist of allowed identifiers
+
+    Returns:
+        Sanitized identifier
+
+    Raises:
+        ValueError: If identifier contains invalid characters or is not in whitelist
+    """
+    if not identifier or not isinstance(identifier, str):
+        raise ValueError("Identifier must be a non-empty string")
+
+    # Check against whitelist if provided
+    if allowed is not None and identifier not in allowed:
+        raise ValueError(f"Identifier '{identifier}' is not in allowed list: {allowed}")
+
+    # Validate identifier contains only alphanumeric, underscore, or dot characters
+    # This is a basic check; SQL identifiers can be more complex but this covers common cases
+    if not all(c.isalnum() or c in ("_", ".") for c in identifier):
+        raise ValueError(f"Identifier '{identifier}' contains invalid characters")
+
+    return identifier
+
+
+def _validate_enum_value(value: str | None, allowed: set[str] | None = None) -> str | None:
+    """
+    Validate enum/choice value against whitelist to prevent injection.
+
+    Args:
+        value: The value to validate
+        allowed: Optional whitelist of allowed values
+
+    Returns:
+        Validated value or None
+
+    Raises:
+        ValueError: If value is not None and not in whitelist
+    """
+    if value is None:
+        return None
+
+    if not isinstance(value, str):
+        raise ValueError("Value must be a string or None")
+
+    if allowed is not None and value not in allowed:
+        raise ValueError(f"Value '{value}' is not in allowed list: {allowed}")
+
+    return value
+
+
+def _build_safe_where_clause(field: str, value: Any, operator: str = "=") -> tuple[str, list[Any]]:
+    """
+    Build a safe WHERE clause fragment with parameterized value.
+
+    Args:
+        field: Column name (must be in allowed list or validated)
+        value: Value to compare
+        operator: SQL operator (=, !=, LIKE, etc.)
+
+    Returns:
+        Tuple of (clause_string, [value]) for use in parameterized queries
+    """
+    # Validate operator against safe list
+    safe_operators = {"=", "!=", "<>", "<", ">", "<=", ">=", "LIKE", "IS", "IS NOT"}
+    if operator.upper() not in safe_operators:
+        raise ValueError(f"Unsafe SQL operator: {operator}")
+
+    # Field name should be validated separately using _sanitize_sql_identifier
+    # For simplicity, we'll just use it directly in the clause
+    return f"{field} {operator} ?", [value]
+
+
 def create_app(config: ApiConfig | None = None) -> FastAPI:
     """Factory for the monitoring API application."""
 
@@ -274,20 +352,27 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
                 products_db = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
                 if products_db.exists():
-                    conn = ensure_products_db(products_db)
-                    query = """
-                    SELECT path FROM hdf5_file_index
-                    WHERE stored = 1
-                    ORDER BY path DESC
-                    LIMIT 100000
-                    """
-                    rows = conn.execute(query).fetchall()
-                    all_files = [row[0] for row in rows]
-                    # Access module-level cache (defined at top of file)
-                    import dsa110_contimg.api.routes as routes_module
+                    conn = None
+                    try:
+                        conn = ensure_products_db(products_db)
+                        query = """
+                        SELECT path FROM hdf5_file_index
+                        WHERE stored = 1
+                        ORDER BY path DESC
+                        LIMIT 100000
+                        """
+                        rows = conn.execute(query).fetchall()
+                        all_files = [row[0] for row in rows]
+                        # Access module-level cache (defined at top of file)
+                        import dsa110_contimg.api.routes as routes_module
 
-                    routes_module._uvh5_file_cache[str(search_path)] = (time.time(), all_files)
-                    logger.info(f"Pre-warmed UVH5 file cache from database: {len(all_files)} files")
+                        routes_module._uvh5_file_cache[str(search_path)] = (time.time(), all_files)
+                        logger.info(
+                            f"Pre-warmed UVH5 file cache from database: {len(all_files)} files"
+                        )
+                    finally:
+                        if conn is not None:
+                            conn.close()
                 elif search_path.exists():
                     # Fallback to filesystem scan if database doesn't exist
                     all_files = []
@@ -343,56 +428,18 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         # Use the shared metrics function to ensure consistency
                         system_metrics = _get_system_metrics()
 
-                        # Convert to dict format for WebSocket broadcast
-                        metrics = {
-                            "cpu_percent": system_metrics.cpu_percent,
-                            "memory_percent": system_metrics.mem_percent,
-                            "memory_used_gb": (
-                                round(system_metrics.mem_used / (1024**3), 2)
-                                if system_metrics.mem_used
-                                else None
-                            ),
-                            "memory_total_gb": (
-                                round(system_metrics.mem_total / (1024**3), 2)
-                                if system_metrics.mem_total
-                                else None
-                            ),
-                            "load_avg_1min": system_metrics.load_1,
-                            "timestamp": system_metrics.ts.isoformat(),
-                            # Include disk information
-                            "disks": [
-                                {
-                                    "mount_point": disk.mount_point,
-                                    "total_gb": round(disk.total / (1024**3), 2),
-                                    "used_gb": round(disk.used / (1024**3), 2),
-                                    "free_gb": round(disk.free / (1024**3), 2),
-                                    "percent": disk.percent,
-                                }
-                                for disk in system_metrics.disks
-                            ],
-                            # Legacy fields for backward compatibility
-                            "disk_percent": (
-                                system_metrics.disks[0].percent
-                                if len(system_metrics.disks) > 0
-                                else None
-                            ),
-                            "disk_free_gb": (
-                                round(
-                                    system_metrics.disks[0].free / (1024**3),
-                                    2,
-                                )
-                                if len(system_metrics.disks) > 0
-                                else None
-                            ),
-                            "disk_total_gb": (
-                                round(
-                                    system_metrics.disks[0].total / (1024**3),
-                                    2,
-                                )
-                                if len(system_metrics.disks) > 0
-                                else None
-                            ),
-                        }
+                        # Convert to dict format matching HTTP API response (SystemMetrics model)
+                        # This ensures WebSocket updates use the same format as the REST API
+                        # Use model_dump with json mode to serialize datetime to string (Pydantic v2)
+                        # or fallback to dict() and manually serialize datetime (Pydantic v1)
+                        if hasattr(system_metrics, "model_dump"):
+                            metrics = system_metrics.model_dump(mode="json")
+                        else:
+                            # Pydantic v1: manually serialize datetime to ISO string
+                            metrics_dict = system_metrics.dict()
+                            if "ts" in metrics_dict and metrics_dict["ts"]:
+                                metrics_dict["ts"] = metrics_dict["ts"].isoformat()
+                            metrics = metrics_dict
                     except Exception as e:
                         logger.warning(f"Failed to fetch metrics: {e}")
                         metrics = None
@@ -1003,16 +1050,22 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail="Database not found")
 
         with _connect(db_path) as conn:
+            # Validate region_type against allowed values to prevent SQL injection
+            # Add valid types as needed
+            allowed_region_types = {"polygon", "circle", "ellipse", "box"}
+            validated_region_type = _validate_enum_value(region_type, allowed_region_types)
+
             query = "SELECT * FROM regions WHERE 1=1"
             params = []
 
             if image_path:
+                # image_path is validated as a path, parameterized query prevents injection
                 query += " AND image_path = ?"
                 params.append(image_path)
 
-            if region_type:
+            if validated_region_type:
                 query += " AND type = ?"
-                params.append(region_type)
+                params.append(validated_region_type)
 
             query += " ORDER BY created_at DESC"
 
@@ -1133,22 +1186,31 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             if not row:
                 raise HTTPException(status_code=404, detail=f"Region {region_id} not found")
 
-            # Update region
+            # Update region - use whitelist for column names to prevent SQL injection
+            allowed_fields = {"name", "coordinates"}
             update_fields = []
             params = []
 
-            if "name" in region_data:
-                update_fields.append("name = ?")
-                params.append(region_data["name"])
+            # Validate and sanitize field names before building query
+            for field in region_data:
+                if field in allowed_fields:
+                    _sanitize_sql_identifier(field, allowed_fields)
+                    if field == "name":
+                        update_fields.append("name = ?")
+                        params.append(region_data["name"])
+                    elif field == "coordinates":
+                        update_fields.append("coordinates = ?")
+                        params.append(json.dumps(region_data["coordinates"]))
 
-            if "coordinates" in region_data:
-                update_fields.append("coordinates = ?")
-                params.append(json.dumps(region_data["coordinates"]))
+            if not update_fields:
+                raise HTTPException(status_code=400, detail="No valid fields to update")
 
             update_fields.append("updated_at = ?")
             params.append(time.time())
             params.append(region_id)
 
+            # Use parameterized query with whitelisted column names
+            # Field names are validated above, only values are parameterized
             conn.execute(f"UPDATE regions SET {', '.join(update_fields)} WHERE id = ?", params)
             conn.commit()
 
@@ -1221,7 +1283,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
     @router.get("/pointing_history", response_model=PointingHistoryList)
     def pointing_history(start_mjd: float, end_mjd: float) -> PointingHistoryList:
-        items = fetch_pointing_history(cfg.products_db, start_mjd, end_mjd)
+        items = fetch_pointing_history(cfg.queue_db, cfg.products_db, start_mjd, end_mjd)
         return PointingHistoryList(items=items)
 
     @router.get("/pointing/sky-map")
@@ -1821,15 +1883,29 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         if not db_path.exists():
             return MsIndexList(items=items)
         with _connect(db_path) as conn:
+            # Validate stage and status against allowed values to prevent SQL injection
+            allowed_stages = {
+                "ingest",
+                "calibrate",
+                "image",
+                "qa",
+                "archive",
+            }  # Add valid stages as needed
+            # Add valid statuses as needed
+            allowed_statuses = {"pending", "processing", "completed", "failed", "skipped"}
+
+            validated_stage = _validate_enum_value(stage, allowed_stages)
+            validated_status = _validate_enum_value(status, allowed_statuses)
+
             q = "SELECT path, start_mjd, end_mjd, mid_mjd, processed_at, status, stage, stage_updated_at, cal_applied, imagename FROM ms_index"
             where = []
             params: list[object] = []
-            if stage:
+            if validated_stage:
                 where.append("stage = ?")
-                params.append(stage)
-            if status:
+                params.append(validated_stage)
+            if validated_status:
                 where.append("status = ?")
-                params.append(status)
+                params.append(validated_status)
             if where:
                 q += " WHERE " + " AND ".join(where)
             # SQLite does not support NULLS LAST; DESC naturally places NULLs last for numeric values.
@@ -2644,9 +2720,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 except Exception:
                     pass
 
+            # WHERE clauses are built from hardcoded patterns with parameterized values
+            # This prevents SQL injection as no user input is directly inserted into SQL strings
             where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
 
-            # Determine sort order
+            # Determine sort order - validate sort_by against whitelist to prevent injection
             sort_mapping = {
                 "time_desc": "m.mid_mjd DESC",
                 "time_asc": "m.mid_mjd ASC",
@@ -2655,6 +2733,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 "size_desc": "m.path DESC",  # Size not in DB yet, use path
                 "size_asc": "m.path ASC",
             }
+            # Validate sort_by is in allowed mapping or use default
+            if sort_by and sort_by not in sort_mapping:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid sort_by value: {sort_by}. Allowed values: {list(sort_mapping.keys())}",
+                )
             order_by = sort_mapping.get(sort_by, "m.mid_mjd DESC")
 
             # Get total count (before pagination)
@@ -4346,7 +4430,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             import sqlite3
             import time
 
-            cache_key = hashlib.md5(
+            cache_key = hashlib.sha256(
                 f"{image_path}:{catalog}:{validation_type}".encode()
             ).hexdigest()
 
@@ -4387,7 +4471,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             import time
 
             # Create cache key from image path and catalog
-            cache_key = hashlib.md5(
+            cache_key = hashlib.sha256(
                 f"{image_path}:{catalog}:{validation_type}".encode()
             ).hexdigest()
 
@@ -4448,7 +4532,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     async def run_catalog_validation(
         image_id: str,
         catalog: str = "nvss",
-        validation_types: List[str] = ["astrometry", "flux_scale", "source_counts"],
+        validation_types: Optional[List[str]] = None,
     ):
         """
         Run catalog validation for an image and return results.
@@ -4568,7 +4652,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     async def generate_validation_html_report(
         image_id: str,
         catalog: str = "nvss",
-        validation_types: List[str] = ["astrometry", "flux_scale", "source_counts"],
+        validation_types: Optional[List[str]] = None,
         output_path: Optional[str] = None,
     ):
         """
@@ -4583,6 +4667,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Returns:
             Dict with report path and status
         """
+        if validation_types is None:
+            validation_types = ["astrometry", "flux_scale", "source_counts"]
         import os
 
         from dsa110_contimg.qa.catalog_validation import run_full_validation
@@ -6943,7 +7029,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     ) -> PointingHistoryList:
         """Root-level /pointing_history endpoint (also available at /api/pointing_history)."""
         cfg = request.app.state.cfg
-        items = fetch_pointing_history(cfg.products_db, start_mjd, end_mjd)
+        items = fetch_pointing_history(cfg.queue_db, cfg.products_db, start_mjd, end_mjd)
         return PointingHistoryList(items=items)
 
     @app.get("/ese/candidates", response_model=ESECandidatesResponse)

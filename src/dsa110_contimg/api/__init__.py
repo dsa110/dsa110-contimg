@@ -4,7 +4,46 @@ Exposes a default ``app`` for ASGI servers, while retaining the
 ``create_app`` factory for programmatic use.
 """
 
-from .routes import create_app  # noqa: F401
+
+# Lazy import to avoid expensive operations during module import
+def _get_create_app():
+    """Lazy import of create_app to avoid triggering imports during test collection."""
+    from .routes import create_app
+
+    return create_app
+
+
+# Make create_app available but don't import it yet
+def __getattr__(name):
+    if name == "create_app":
+        return _get_create_app()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 # Default ASGI application for `uvicorn dsa110_contimg.api:app`
-app = create_app()
+# Use lazy initialization to avoid expensive operations during import
+_app = None
+
+
+def _get_app():
+    """Lazy initialization of the app."""
+    global _app
+    if _app is None:
+        _app = _get_create_app()()
+    return _app
+
+
+# Expose app as a property that creates it on first access
+# This allows `uvicorn dsa110_contimg.api:app` to work while avoiding
+# expensive operations during module import (e.g., during test collection)
+
+
+class _LazyApp:
+    def __getattr__(self, name):
+        return getattr(_get_app(), name)
+
+    def __call__(self, *args, **kwargs):
+        return _get_app()(*args, **kwargs)
+
+
+app = _LazyApp()

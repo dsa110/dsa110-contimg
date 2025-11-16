@@ -96,7 +96,17 @@ function useRealtimeQuery<T>(
         queryClient.setQueryData(["pipeline", "status"], data.data.pipeline_status);
       }
       if (data.data?.metrics) {
-        queryClient.setQueryData(["system", "metrics"], data.data.metrics);
+        // Merge WebSocket metrics with existing cache to preserve all fields
+        // This prevents incomplete WebSocket updates from overwriting complete HTTP API data
+        const existingMetrics = queryClient.getQueryData<SystemMetrics>(["system", "metrics"]);
+        const wsMetrics = data.data.metrics;
+
+        // Only update if WebSocket metrics have the required fields (same format as HTTP API)
+        if (wsMetrics && typeof wsMetrics === "object") {
+          // Merge to preserve any fields that might be missing from WebSocket update
+          const mergedMetrics = existingMetrics ? { ...existingMetrics, ...wsMetrics } : wsMetrics;
+          queryClient.setQueryData(["system", "metrics"], mergedMetrics);
+        }
       }
       if (data.data?.ese_candidates) {
         queryClient.setQueryData(["ese", "candidates"], data.data.ese_candidates);

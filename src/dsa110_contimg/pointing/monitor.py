@@ -14,7 +14,7 @@ from typing import Dict, Optional
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.database.products import ensure_ingest_db
 from dsa110_contimg.pointing.utils import load_pointing
 
 # Configure logging
@@ -76,9 +76,9 @@ class PointingMonitorMetrics:
 class PointingMonitor:
     """Main pointing monitor with health checks and metrics."""
 
-    def __init__(self, watch_dir: Path, products_db: Path, status_file: Optional[Path] = None):
+    def __init__(self, watch_dir: Path, ingest_db: Path, status_file: Optional[Path] = None):
         self.watch_dir = Path(watch_dir)
-        self.products_db = Path(products_db)
+        self.ingest_db = Path(ingest_db)
         self.status_file = Path(status_file) if status_file else None
         self.metrics = PointingMonitorMetrics()
         self.conn: Optional[sqlite3.Connection] = None
@@ -111,11 +111,11 @@ class PointingMonitor:
 
         # Check database accessibility
         try:
-            test_conn = ensure_products_db(self.products_db)
+            test_conn = ensure_ingest_db(self.ingest_db)
             test_conn.execute("SELECT 1").fetchone()
             test_conn.close()
         except Exception as e:
-            issues.append(f"Database not accessible: {self.products_db} ({e})")
+            issues.append(f"Database not accessible: {self.ingest_db} ({e})")
 
         # Check database connection if established
         if self.conn is not None:
@@ -140,7 +140,7 @@ class PointingMonitor:
                 "healthy": is_healthy,
                 "issues": issues,
                 "watch_dir": str(self.watch_dir),
-                "products_db": str(self.products_db),
+                "ingest_db": str(self.ingest_db),
                 "metrics": stats,
                 "timestamp": time.time(),
                 "timestamp_iso": datetime.utcnow().isoformat() + "Z",
@@ -175,7 +175,7 @@ class PointingMonitor:
             # Check if already processed by querying database
             try:
                 if self.conn is None:
-                    self.conn = ensure_products_db(self.products_db)
+                    self.conn = ensure_ingest_db(self.ingest_db)
 
                 # Try to load pointing to get timestamp
                 info = load_pointing(file_path)
@@ -207,7 +207,7 @@ class PointingMonitor:
 
             # Reconnect if connection lost
             if self.conn is None:
-                self.conn = ensure_products_db(self.products_db)
+                self.conn = ensure_ingest_db(self.ingest_db)
 
             info = load_pointing(file_path)
             if info and "mid_time" in info and "dec_deg" in info and "ra_deg" in info:
@@ -249,8 +249,8 @@ class PointingMonitor:
 
         # Initialize database connection
         try:
-            self.conn = ensure_products_db(self.products_db)
-            logger.info(f"Connected to database: {self.products_db}")
+            self.conn = ensure_ingest_db(self.ingest_db)
+            logger.info(f"Connected to database: {self.ingest_db}")
         except Exception as e:
             logger.error(f"Failed to connect to database: {e}")
             raise

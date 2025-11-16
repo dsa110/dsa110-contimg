@@ -262,16 +262,6 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_img_qa_ms_path ON image_qa(ms_path)")
     except Exception:
         pass
-    # Table for pointing history
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS pointing_history (
-            timestamp REAL PRIMARY KEY,
-            ra_deg REAL,
-            dec_deg REAL
-        )
-        """
-    )
     # Lightweight migrations to add missing columns
     # Only migrate if table exists (it's created above)
     try:
@@ -682,8 +672,45 @@ def discover_ms_files(
     return registered
 
 
+def ensure_ingest_db(path: Path) -> sqlite3.Connection:
+    """Open or create the ingest SQLite DB and ensure pointing_history table exists.
+
+    This function creates the pointing_history table in the ingest database.
+    The ingest database is used for tracking raw observation data, while
+    products database is reserved for processed data products.
+
+    Tables:
+      - pointing_history(timestamp PRIMARY KEY, ra_deg, dec_deg)
+    """
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # Add timeout to prevent hanging on locked database
+    conn = sqlite3.connect(os.fspath(path), timeout=30.0)
+    # Enable WAL mode for better concurrent access
+    try:
+        conn.execute("PRAGMA journal_mode=WAL")
+    except Exception:
+        pass
+
+    # Table for pointing history (moved from products database)
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pointing_history (
+            timestamp REAL PRIMARY KEY,
+            ra_deg REAL,
+            dec_deg REAL
+        )
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_pointing_timestamp ON pointing_history(timestamp)")
+
+    conn.commit()
+    return conn
+
+
 __all__ = [
     "ensure_products_db",
+    "ensure_ingest_db",
     "ms_index_upsert",
     "images_insert",
     "photometry_insert",

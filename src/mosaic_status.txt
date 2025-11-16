@@ -1,3 +1,3 @@
-Status: SUCCESS
-Timestamp: 2025-11-15T20:04:50.241782
-Details: Dry run completed successfully - mosaic plan validated
+Status: FAILED
+Timestamp: 2025-11-16T01:24:40.906810
+Details: Failed to create mosaic (returned None)

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Streaming converter service for DSA-110 UVH5 subband groups.
 
@@ -73,6 +73,7 @@ from dsa110_contimg.calibration.streaming import (  # noqa
     solve_calibration_for_ms,
 )
 from dsa110_contimg.database.products import (  # noqa
+    ensure_ingest_db,
     ensure_products_db,
     images_insert,
     log_pointing,
@@ -1026,10 +1027,12 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     dec_deg=dec_deg,
                 )
 
-                # Log pointing to pointing_history table
+                # Log pointing to pointing_history table (in ingest database)
                 if mid_mjd is not None and ra_deg is not None and dec_deg is not None:
                     try:
-                        log_pointing(conn, mid_mjd, ra_deg, dec_deg)
+                        ingest_conn = ensure_ingest_db(self.config.paths.queue_db)
+                        log_pointing(ingest_conn, mid_mjd, ra_deg, dec_deg)
+                        ingest_conn.close()
                         log.debug(
                             f"Logged pointing to pointing_history: MJD={mid_mjd:.6f}, "
                             f"RA={ra_deg:.6f} deg, Dec={dec_deg:.6f} deg"

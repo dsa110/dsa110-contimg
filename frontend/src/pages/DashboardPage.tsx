@@ -221,7 +221,7 @@ export default function DashboardPage() {
                   Resource Usage
                 </Typography>
                 <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 2 }}>
-                  {metrics?.cpu_percent !== undefined && (
+                  {metrics?.cpu_percent != null && typeof metrics.cpu_percent === "number" && (
                     <StatusIndicator
                       value={metrics.cpu_percent}
                       thresholds={{ good: 70, warning: 50 }}
@@ -233,7 +233,7 @@ export default function DashboardPage() {
                       }
                     />
                   )}
-                  {metrics?.mem_percent !== undefined && (
+                  {metrics?.mem_percent != null && typeof metrics.mem_percent === "number" && (
                     <StatusIndicator
                       value={metrics.mem_percent}
                       thresholds={{ good: 80, warning: 60 }}
@@ -245,25 +245,28 @@ export default function DashboardPage() {
                       }
                     />
                   )}
-                  {metrics?.disk_total && metrics?.disk_used && (
-                    <StatusIndicator
-                      value={(metrics.disk_used / metrics.disk_total) * 100}
-                      thresholds={{ good: 75, warning: 90 }}
-                      label="Disk"
-                      size="medium"
-                      showTrend={diskHistory.length > 1}
-                      previousValue={
-                        diskHistory.length > 1 ? diskHistory[diskHistory.length - 2] : undefined
-                      }
-                    />
-                  )}
-                  {metrics?.load_1 !== undefined && (
+                  {metrics?.disk_total &&
+                    metrics?.disk_used &&
+                    typeof metrics.disk_total === "number" &&
+                    typeof metrics.disk_used === "number" &&
+                    metrics.disk_total > 0 && (
+                      <StatusIndicator
+                        value={(metrics.disk_used / metrics.disk_total) * 100}
+                        thresholds={{ good: 75, warning: 90 }}
+                        label="Disk"
+                        size="medium"
+                        showTrend={diskHistory.length > 1}
+                        previousValue={
+                          diskHistory.length > 1 ? diskHistory[diskHistory.length - 2] : undefined
+                        }
+                      />
+                    )}
+                  {metrics?.load_1 != null && typeof metrics.load_1 === "number" && (
                     <MetricWithSparkline
                       label="Load (1m)"
                       value={metrics.load_1.toFixed(2)}
                       color="info"
-                      size="small"
-                      sparklineData={loadHistory.length > 1 ? loadHistory : undefined}
+                      trend={loadHistory.length > 1 ? loadHistory : undefined}
                     />
                   )}
                 </Box>

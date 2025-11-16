@@ -134,10 +134,10 @@ class CatalogSetupStage(PipelineStage):
             )  # Default 0.1 degrees
 
             try:
-                from dsa110_contimg.database.products import ensure_products_db
+                from dsa110_contimg.database.products import ensure_ingest_db
 
-                products_db = self.config.paths.products_db
-                conn = ensure_products_db(products_db)
+                ingest_db = self.config.paths.queue_db
+                conn = ensure_ingest_db(ingest_db)
                 cursor = conn.cursor()
 
                 # Get most recent declination from pointing_history
@@ -175,10 +175,10 @@ class CatalogSetupStage(PipelineStage):
 
             # Log pointing to pointing_history for future change detection
             try:
-                from dsa110_contimg.database.products import ensure_products_db
+                from dsa110_contimg.database.products import ensure_ingest_db
 
-                products_db = self.config.paths.products_db
-                conn = ensure_products_db(products_db)
+                ingest_db = self.config.paths.queue_db
+                conn = ensure_ingest_db(ingest_db)
 
                 # Get timestamp from observation
                 timestamp = info.get("mid_time")

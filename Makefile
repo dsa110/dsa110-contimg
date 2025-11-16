@@ -4,7 +4,7 @@
 CASA6_PYTHON ?= /opt/miniforge/envs/casa6/bin/python
 
 .PHONY: test-validate test-org-install test-org-check test-pytest-validate check-env setup-dev auto-fix check-code-quality
- .PHONY: doc-audit
+.PHONY: doc-audit validate-python-version test-python-guards
 
 # Validate test organization
 test-validate:
@@ -44,3 +44,13 @@ check-code-quality:
 doc-audit:
 	@echo "Running documentation audit..."
 	@$(CASA6_PYTHON) scripts/doc_audit.py
+
+# Validate Python version usage (prevents use of Python 2.7 or 3.6)
+validate-python-version:
+	@echo "Validating Python version usage..."
+	@./scripts/validate-python-version.sh
+
+# Test Python version guards
+test-python-guards:
+	@echo "Testing Python version guards..."
+	@./scripts/test-python-guards.sh

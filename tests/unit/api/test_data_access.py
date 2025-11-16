@@ -12,6 +12,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from dsa110_contimg.api.config import ApiConfig
 from dsa110_contimg.api.data_access import (
     fetch_alert_history,
     fetch_calibration_sets,
@@ -26,7 +27,6 @@ from dsa110_contimg.api.data_access import (
     fetch_recent_queue_groups,
     fetch_source_timeseries,
 )
-from dsa110_contimg.api.config import ApiConfig
 from dsa110_contimg.api.models import QueueStats
 
 
@@ -61,6 +61,23 @@ def mock_queue_db(tmp_path):
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE pointing_history (
+                timestamp REAL PRIMARY KEY,
+                ra_deg REAL,
+                dec_deg REAL
+            )
+            """
+        )
+        # Insert test pointing data
+        from astropy.time import Time
+
+        now = Time.now()
+        conn.execute(
+            "INSERT INTO pointing_history(timestamp, ra_deg, dec_deg) VALUES(?, ?, ?)",
+            (now.mjd, 207.45, 34.19),
+        )
         # Insert test data with different timestamps for proper ordering
         now = datetime.now(tz=timezone.utc).timestamp()
         conn.execute(
@@ -94,6 +111,27 @@ def mock_products_db(tmp_path):
     conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
     with conn:
+        conn.execute(
+            """
+            CREATE TABLE ms_index (
+                path TEXT PRIMARY KEY,
+                start_mjd REAL,
+                end_mjd REAL,
+                mid_mjd REAL,
+                processed_at REAL,
+                status TEXT,
+                stage TEXT,
+                stage_updated_at REAL,
+                cal_applied INTEGER DEFAULT 0,
+                imagename TEXT,
+                field_name TEXT,
+                pointing_ra_deg REAL,
+                pointing_dec_deg REAL,
+                ra_deg REAL,
+                dec_deg REAL
+            )
+            """
+        )
         conn.execute(
             """
             CREATE TABLE images (
@@ -181,15 +219,7 @@ def mock_products_db(tmp_path):
             )
             """
         )
-        conn.execute(
-            """
-            CREATE TABLE pointing_history (
-                timestamp REAL PRIMARY KEY,
-                ra_deg REAL,
-                dec_deg REAL
-            )
-            """
-        )
+        # pointing_history table is now in ingest database, not products database
         conn.execute(
             """
             CREATE TABLE alert_history (
@@ -264,18 +294,7 @@ def mock_products_db(tmp_path):
                 0.00085,
             ),
         )
-        # Insert pointing history with MJD timestamp (timestamp is PRIMARY KEY)
-        from astropy.time import Time
-
-        now_dt = datetime.now(tz=timezone.utc)
-        now_mjd = Time(now_dt).mjd
-        conn.execute(
-            """
-            INSERT INTO pointing_history(timestamp, ra_deg, dec_deg)
-            VALUES(?,?,?)
-            """,
-            (now_mjd, 188.7, 42.1),
-        )
+        # pointing_history table is now in ingest database (mock_queue_db), not products database
     return db_path
 
 
@@ -529,9 +548,13 @@ class TestFetchSourceTimeseries:
 class TestFetchPointingHistory:
     """Test fetch_pointing_history function."""
 
-    def test_fetch_pointing_history_success(self, mock_products_db):
+    @patch.dict("os.environ", {"SKIP_INCOMING_SCAN": "true"})
+    def test_fetch_pointing_history_success(self, mock_queue_db, mock_products_db):
         """Test successful pointing history retrieval."""
-        # Function expects string path, not Path object
+        # Skip scanning /data/incoming/ (which has 80k+ files) via environment variable
+        import os
+
+        # Function now expects both ingest_db_path and products_db_path
         # Need to convert timestamp to MJD for query
         from astropy.time import Time
 
@@ -539,19 +562,28 @@ class TestFetchPointingHistory:
         now_mjd = Time(now).mjd
 
         history = fetch_pointing_history(
-            str(mock_products_db), start_mjd=now_mjd - 1.0, end_mjd=now_mjd + 1.0
+            str(mock_queue_db),  # ingest_db_path
+            str(mock_products_db),  # products_db_path
+            start_mjd=now_mjd - 1.0,
+            end_mjd=now_mjd + 1.0,
         )
         # May be empty if timestamp doesn't match MJD range
         assert len(history) >= 0
         if len(history) > 0:
             assert hasattr(history[0], "ra_deg")
             assert hasattr(history[0], "dec_deg")
+            assert hasattr(history[0], "timestamp")
 
-    def test_fetch_pointing_history_time_range(self, mock_products_db):
+    @patch.dict("os.environ", {"SKIP_INCOMING_SCAN": "true"})
+    def test_fetch_pointing_history_time_range(self, mock_queue_db, mock_products_db):
         """Test pointing history with time range filter."""
+        # Skip scanning /data/incoming/ (which has 80k+ files) via environment variable
         # Use far future MJD that won't match
         history = fetch_pointing_history(
-            str(mock_products_db), start_mjd=70000.0, end_mjd=70001.0
+            str(mock_queue_db),  # ingest_db_path
+            str(mock_products_db),  # products_db_path
+            start_mjd=70000.0,
+            end_mjd=70001.0,
         )
         assert len(history) == 0  # Outside time range
 

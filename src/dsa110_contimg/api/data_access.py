@@ -363,20 +363,35 @@ def _is_synthetic_pointing_data(timestamp: float, data_registry_db: Optional[Pat
 
 
 def fetch_pointing_history(
-    db_path: str, start_mjd: float, end_mjd: float, exclude_synthetic: bool = True
+    ingest_db_path: str,
+    products_db_path: str,
+    start_mjd: float,
+    end_mjd: float,
+    exclude_synthetic: bool = True,
 ) -> List[PointingHistoryEntry]:
-    """Fetch pointing history from the database, excluding synthetic/simulated data.
+    """Fetch pointing history from the database AND directly from HDF5 files in /data/incoming/.
+
+    This function queries:
+    1. The pointing_history table (monitoring data) from ingest database
+    2. The ms_index table (processed HDF5 observations) from products database
+    3. Directly scans /data/incoming/ for HDF5 files and extracts pointing data
+
+    This ensures complete coverage of ALL observations, including those not yet indexed.
 
     Args:
-        db_path: Path to products database
+        ingest_db_path: Path to ingest database (contains pointing_history table)
+        products_db_path: Path to products database (contains ms_index table)
         start_mjd: Start MJD timestamp
         end_mjd: End MJD timestamp
         exclude_synthetic: If True, filter out synthetic/simulated data (default: True)
 
     Returns:
-        List of pointing history entries (real observations only)
+        List of pointing history entries (real observations only), sorted by timestamp
     """
+    import logging
     import os
+
+    logger = logging.getLogger(__name__)
 
     # Get data_registry path if available
     data_registry_db = None
@@ -385,20 +400,87 @@ def fetch_pointing_history(
         if registry_path.exists():
             data_registry_db = registry_path
 
-    with closing(_connect(Path(db_path))) as conn:
-        rows = conn.execute(
-            "SELECT timestamp, ra_deg, dec_deg FROM pointing_history WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp",
-            (start_mjd, end_mjd),
-        ).fetchall()
+    entries_dict: dict[float, PointingHistoryEntry] = {}  # Use timestamp as key to deduplicate
 
-    entries = [
-        PointingHistoryEntry(
-            timestamp=r["timestamp"],
-            ra_deg=r["ra_deg"],
-            dec_deg=r["dec_deg"],
-        )
-        for r in rows
-    ]
+    # Query pointing_history table from ingest database (monitoring data)
+    ingest_db = Path(ingest_db_path)
+    if ingest_db.exists():
+        with closing(_connect(ingest_db)) as conn:
+            rows = conn.execute(
+                "SELECT timestamp, ra_deg, dec_deg FROM pointing_history WHERE timestamp BETWEEN ? AND ? AND ra_deg IS NOT NULL AND dec_deg IS NOT NULL ORDER BY timestamp",
+                (start_mjd, end_mjd),
+            ).fetchall()
+
+            for r in rows:
+                entries_dict[r["timestamp"]] = PointingHistoryEntry(
+                    timestamp=r["timestamp"],
+                    ra_deg=r["ra_deg"],
+                    dec_deg=r["dec_deg"],
+                )
+
+    # Query ms_index table from products database (processed HDF5 observations)
+    products_db = Path(products_db_path)
+    if products_db.exists():
+        with closing(_connect(products_db)) as conn:
+            # Use mid_mjd as the timestamp for observations
+            ms_rows = conn.execute(
+                "SELECT mid_mjd, ra_deg, dec_deg FROM ms_index WHERE mid_mjd BETWEEN ? AND ? AND ra_deg IS NOT NULL AND dec_deg IS NOT NULL ORDER BY mid_mjd",
+                (start_mjd, end_mjd),
+            ).fetchall()
+
+            for r in ms_rows:
+                timestamp = r["mid_mjd"]
+                # Only add if not already present (pointing_history takes precedence for same timestamp)
+                if timestamp not in entries_dict:
+                    entries_dict[timestamp] = PointingHistoryEntry(
+                        timestamp=timestamp,
+                        ra_deg=r["ra_deg"],
+                        dec_deg=r["dec_deg"],
+                    )
+
+    # Scan /data/incoming/ for HDF5 files and extract pointing data directly
+    # Skip during tests to avoid scanning large directories (80k+ files)
+    if os.getenv("SKIP_INCOMING_SCAN", "false").lower() != "true":
+        incoming_dir = Path("/data/incoming")
+        if incoming_dir.exists() and incoming_dir.is_dir():
+            try:
+                from dsa110_contimg.pointing.utils import load_pointing
+
+                hdf5_files = list(incoming_dir.glob("*.hdf5"))
+                logger.debug(f"Found {len(hdf5_files)} HDF5 files in /data/incoming/")
+
+                for hdf5_file in hdf5_files:
+                    try:
+                        pointing_info = load_pointing(hdf5_file)
+
+                        if (
+                            pointing_info.get("ra_deg") is not None
+                            and pointing_info.get("dec_deg") is not None
+                        ):
+                            mid_time = pointing_info.get("mid_time")
+                            if mid_time is not None:
+                                # Convert Time object to MJD
+                                timestamp = mid_time.mjd
+
+                                # Only include if within the requested time range
+                                if start_mjd <= timestamp <= end_mjd:
+                                    # Only add if not already present (database takes precedence)
+                                    if timestamp not in entries_dict:
+                                        entries_dict[timestamp] = PointingHistoryEntry(
+                                            timestamp=timestamp,
+                                            ra_deg=pointing_info["ra_deg"],
+                                            dec_deg=pointing_info["dec_deg"],
+                                        )
+                    except Exception as e:
+                        logger.warning(f"Failed to read pointing from {hdf5_file}: {e}")
+                        continue
+            except ImportError as e:
+                logger.warning(f"Could not import pointing utilities: {e}")
+            except Exception as e:
+                logger.warning(f"Error scanning /data/incoming/: {e}")
+
+    # Convert to list and sort by timestamp
+    entries = sorted(entries_dict.values(), key=lambda e: e.timestamp)
 
     # Filter out synthetic data if requested
     if exclude_synthetic:

@@ -71,13 +71,13 @@ def main():
         # Note: Method is pbweighted by default (uses _build_weighted_mosaic)
         # Note: Validation happens automatically but can be bypassed if needed
         # Note: wait_for_published=False means it won't wait for publishing step
-        # Note: dry_run=True to validate plan without building
-        write_status("RUNNING", "Creating mosaic (dry run)")
+        # Note: dry_run=False to actually create the mosaic
+        write_status("RUNNING", "Creating mosaic")
         mosaic_path = orchestrator.create_mosaic_centered_on_calibrator(
             calibrator_name="0834+555",
             timespan_minutes=12,  # 12 minutes = 3 MS files (5 min each)
             wait_for_published=False,  # Don't wait for publishing, keep in /stage/
-            dry_run=True,  # Dry run: validate plan without building
+            dry_run=False,  # Execute: create the mosaic
         )
 
         if mosaic_path:
