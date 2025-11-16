@@ -329,7 +329,7 @@ export default function SourceMonitoringPage() {
             {error instanceof Error
               ? error.message
               : "Source monitoring not available. This feature requires enhanced API endpoints."}
-            {process.env.NODE_ENV === "development" && (
+            {import.meta.env.MODE === "development" && (
               <Box
                 component="pre"
                 sx={{ fontSize: "0.75rem", marginTop: 1, whiteSpace: "pre-wrap" }}

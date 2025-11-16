@@ -96,7 +96,7 @@ export default function SkyViewer({
 
   // Performance monitoring (development only)
   useJS9PerformanceMonitoring({
-    enabled: process.env.NODE_ENV === "development",
+    enabled: import.meta.env.MODE === "development",
     slowThresholdMs: 50,
     autoLog: true,
     onSlowOperation: (entry) => {

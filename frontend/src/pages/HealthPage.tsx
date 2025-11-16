@@ -92,7 +92,7 @@ function OperationsHealthTab() {
               <Chip
                 label={`Overall Status: ${healthSummary.status.toUpperCase()}`}
                 color={getStatusColor(healthSummary.status) as any}
-                size="large"
+                size="medium"
               />
               <Typography variant="body2" color="text.secondary">
                 Last updated: {new Date((healthSummary.timestamp as any) * 1000).toLocaleString()}
@@ -112,7 +112,7 @@ function OperationsHealthTab() {
           <CardHeader title="Health Checks" />
           <CardContent>
             <Stack spacing={2}>
-              {Object.entries(healthSummary.checks).map(([name, check]) => (
+              {Object.entries(healthSummary.checks || {}).map(([name, check]) => (
                 <Box key={name}>
                   <Stack direction="row" spacing={2} alignItems="center">
                     <Chip
@@ -161,14 +161,14 @@ export default function HealthPage() {
   const { data: eseCandidates } = useESECandidates();
 
   // Track metric history for sparklines
-  const cpuHistory = useMetricHistory(metrics ?? undefined?.cpu_percent);
-  const memHistory = useMetricHistory(metrics ?? undefined?.mem_percent);
+  const cpuHistory = useMetricHistory(metrics?.cpu_percent ?? undefined);
+  const memHistory = useMetricHistory(metrics?.mem_percent ?? undefined);
   const diskHistory = useMetricHistory(
     metrics?.disk_total && metrics?.disk_used
       ? (metrics.disk_used / metrics.disk_total) * 100
       : undefined
   );
-  const loadHistory = useMetricHistory(metrics ?? undefined?.load_1);
+  const loadHistory = useMetricHistory(metrics?.load_1 ?? undefined);
 
   // Prepare system metrics plot data
   const metricsPlotData = useMemo(() => {
@@ -180,7 +180,7 @@ export default function HealthPage() {
         mode: "lines",
         name: "CPU %",
         x: [new Date()],
-        y: [metrics.cpu_percent],
+        y: [metrics.cpu_percent ?? 0],
         line: { color: "#90caf9" },
       },
       {
@@ -188,17 +188,17 @@ export default function HealthPage() {
         mode: "lines",
         name: "Memory %",
         x: [new Date()],
-        y: [metrics.mem_percent],
+        y: [metrics.mem_percent ?? 0],
         line: { color: "#a5d6a7" },
       },
     ];
 
     const layout: Partial<Layout> = {
-      title: "System Resource Usage",
-      xaxis: { title: "Time" },
-      yaxis: { title: "Usage (%)", range: [0, 100] },
+      title: { text: "System Resource Usage" },
+      xaxis: { title: { text: "Time" } },
+      yaxis: { title: { text: "Usage (%)" }, range: [0, 100] },
       hovermode: "closest",
-      template: "plotly_dark",
+      template: "plotly_dark" as any,
     };
 
     return { data, layout };
@@ -317,8 +317,7 @@ export default function HealthPage() {
                       label="Load Average (1m)"
                       value={metrics?.load_1?.toFixed(2) || "N/A"}
                       color="info"
-                      size="medium"
-                      sparklineData={loadHistory.length > 1 ? loadHistory : undefined}
+                      trend={loadHistory.length > 1 ? loadHistory : undefined}
                     />
                   </Grid>
                 </Grid>

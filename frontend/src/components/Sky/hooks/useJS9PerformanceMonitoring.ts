@@ -22,7 +22,7 @@ interface UseJS9PerformanceMonitoringOptions {
 
 export function useJS9PerformanceMonitoring(options: UseJS9PerformanceMonitoringOptions = {}) {
   const {
-    enabled = process.env.NODE_ENV === "development",
+    enabled = import.meta.env.MODE === "development",
     slowThresholdMs = 50,
     onSlowOperation,
     autoLog = true,

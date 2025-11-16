@@ -182,7 +182,7 @@ export default function SystemDiagnosticsPage() {
                 <StatCard
                   title="Total Operations"
                   value={databaseMetrics.total_operations.toLocaleString()}
-                  color="info"
+                  color="primary"
                 />
               </Grid>
               <Grid item xs={12} md={3}>

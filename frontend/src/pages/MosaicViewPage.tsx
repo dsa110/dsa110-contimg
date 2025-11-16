@@ -69,8 +69,8 @@ export default function MosaicViewPage() {
             {mosaic.name}
           </Typography>
           <Chip
-            label={mosaic.status ?? "" ?? ""}
-            color={getStatusColor(mosaic.status)}
+            label={mosaic.status ?? ""}
+            color={getStatusColor(mosaic.status ?? "")}
             size="small"
           />
         </Box>

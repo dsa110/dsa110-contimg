@@ -180,7 +180,7 @@ export default function MosaicGalleryPage() {
             />
           )}
 
-          {data && data.mosaics?.length > 0 && (
+          {data && data.mosaics && data.mosaics.length > 0 && (
             <>
               <Typography variant="h6" gutterBottom>
                 Found {data.total} mosaic{data.total !== 1 ? "s" : ""}

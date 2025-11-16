@@ -36,7 +36,7 @@ class JS9PromisePatcher {
     if (this.isPatched) {
       // Silently return if already patched (e.g., by initPatcher)
       // Only log in development mode for debugging
-      if (process.env.NODE_ENV === "development") {
+      if (import.meta.env.MODE === "development") {
         console.debug("[JS9PromisePatcher] Already patched, skipping");
       }
       return;
@@ -82,7 +82,7 @@ class JS9PromisePatcher {
           const optimizedHandler = self.createOptimizedHandler(handler);
 
           // Log in development mode for debugging
-          if (process.env.NODE_ENV === "development") {
+          if (import.meta.env.MODE === "development") {
             const handlerName = (handler as any).name || "anonymous";
             console.debug(`[JS9PromisePatcher] Intercepted setTimeout handler: ${handlerName}`);
           }
