@@ -28,6 +28,7 @@ export default function ControlPage() {
     scan_dir: "/scratch/dsa110-contimg/ms",
   });
   const { data: msMetadata } = useMSMetadata(selectedMS);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const {
     data: calMatches,
     isLoading: calMatchesLoading,

@@ -12,7 +12,7 @@ import {
   useEffect,
   useCallback,
   useRef,
-  ReactNode,
+  type ReactNode,
 } from "react";
 import { isJS9Available, findDisplay, getDisplayImageId } from "../utils/js9";
 

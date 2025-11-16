@@ -221,7 +221,7 @@ export default function DashboardPage() {
                   Resource Usage
                 </Typography>
                 <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 2 }}>
-                  {metrics?.cpu_percent !== undefined && (
+                  {metrics?.cpu_percent !== undefined && metrics?.cpu_percent !== null && (
                     <StatusIndicator
                       value={metrics.cpu_percent}
                       thresholds={{ good: 70, warning: 50 }}
@@ -233,7 +233,7 @@ export default function DashboardPage() {
                       }
                     />
                   )}
-                  {metrics?.mem_percent !== undefined && (
+                  {metrics?.mem_percent !== undefined && metrics?.mem_percent !== null && (
                     <StatusIndicator
                       value={metrics.mem_percent}
                       thresholds={{ good: 80, warning: 60 }}
