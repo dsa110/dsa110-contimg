@@ -73,10 +73,14 @@ archive/
 # Python compiled files and cache
 *.pyc
 __pycache__/
-
-# Pytest cache
+**/__pycache__/
 .cache/
 .pytest_cache/
+.mypy_cache/
+**/.mypy_cache/
+# Pyre cache
+.pyre/
+.pyre_cache/
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
