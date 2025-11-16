@@ -389,7 +389,7 @@ export default function MSTable({
                           <Chip
                             label={ms.calibrator_name || "Unknown"}
                             size="small"
-                            color={getQualityColor(ms.calibrator_quality)}
+                            color={getQualityColor(ms.calibrator_quality ?? undefined)}
                             sx={{ fontSize: "0.7rem", height: 20 }}
                           />
                         </Tooltip>
@@ -435,7 +435,7 @@ export default function MSTable({
                       <Chip
                         label={ms.calibration_quality}
                         size="small"
-                        color={getQualityColor(ms.calibration_quality)}
+                        color={getQualityColor(ms.calibration_quality ?? undefined)}
                         sx={{ fontSize: "0.65rem", height: 18, mr: 0.5 }}
                       />
                     )}
@@ -443,7 +443,7 @@ export default function MSTable({
                       <Chip
                         label={ms.image_quality}
                         size="small"
-                        color={getQualityColor(ms.image_quality)}
+                        color={getQualityColor(ms.image_quality ?? undefined)}
                         sx={{ fontSize: "0.65rem", height: 18 }}
                       />
                     )}

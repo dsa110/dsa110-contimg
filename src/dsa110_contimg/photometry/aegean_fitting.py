@@ -515,7 +515,7 @@ def _extract_aegean_results(
                     error_message="Aegean output table has no data extension",
                 )
 
-            data = hdul[1].data
+            data = hdul[1].data  # pylint: disable=no-member
 
             # Extract first source (should match input position)
             peak_flux = float(data["peak_flux"][0])

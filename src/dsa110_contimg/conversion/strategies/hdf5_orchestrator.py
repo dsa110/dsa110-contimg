@@ -111,7 +111,7 @@ def _peek_uvh5_phase_and_midtime(
                     from dsa110_contimg.utils.constants import OVRO_LOCATION
 
                     # Get longitude from Header (default to DSA-110 location from constants)
-                    lon_deg = OVRO_LOCATION.lon.to(u.deg).value
+                    lon_deg = OVRO_LOCATION.lon.to(u.deg).value  # pylint: disable=no-member
                     if "Header" in f and "longitude" in f["Header"]:
                         lon_val = np.asarray(f["Header"]["longitude"])
                         if lon_val.size == 1:
@@ -123,7 +123,7 @@ def _peek_uvh5_phase_and_midtime(
 
                     location = EarthLocation(
                         lat=OVRO_LOCATION.lat,
-                        lon=lon_deg * u.deg,
+                        lon=lon_deg * u.deg,  # pylint: disable=no-member
                         height=OVRO_LOCATION.height,
                     )
                     tref = Time(mid_jd, format="jd")

@@ -510,13 +510,13 @@ export function CalibrationWorkflow({
                             }}
                           >
                             {existingTables.k_tables.map((table) => {
-                              const compat = compatibilityChecks[table];
-                              const isSelected = calibParams.existing_k_table === table;
+                              const compat = compatibilityChecks[table.path];
+                              const isSelected = calibParams.existing_k_table === table.path;
 
                               return (
-                                <Box key={table}>
+                                <Box key={table.path}>
                                   <FormControlLabel
-                                    value={table}
+                                    value={table.path}
                                     control={<Radio size="small" />}
                                     label={
                                       <Box>
@@ -644,13 +644,13 @@ export function CalibrationWorkflow({
                             }}
                           >
                             {existingTables.bp_tables.map((table) => {
-                              const compat = compatibilityChecks[table];
-                              const isSelected = calibParams.existing_bp_table === table;
+                              const compat = compatibilityChecks[table.path];
+                              const isSelected = calibParams.existing_bp_table === table.path;
 
                               return (
-                                <Box key={table}>
+                                <Box key={table.path}>
                                   <FormControlLabel
-                                    value={table}
+                                    value={table.path}
                                     control={<Radio size="small" />}
                                     label={
                                       <Box>
@@ -778,13 +778,13 @@ export function CalibrationWorkflow({
                             }}
                           >
                             {existingTables.g_tables.map((table) => {
-                              const compat = compatibilityChecks[table];
-                              const isSelected = calibParams.existing_g_table === table;
+                              const compat = compatibilityChecks[table.path];
+                              const isSelected = calibParams.existing_g_table === table.path;
 
                               return (
-                                <Box key={table}>
+                                <Box key={table.path}>
                                   <FormControlLabel
-                                    value={table}
+                                    value={table.path}
                                     control={<Radio size="small" />}
                                     label={
                                       <Box>

@@ -2,7 +2,9 @@
 
 from playwright.sync_api import Locator, Page
 
-from tests.e2e.frontend.pages.base_page import BasePage
+from tests.e2e.frontend.pages.base_page import (
+    BasePage,  # pylint: disable=import-error,no-name-in-module
+)
 
 
 class ControlPage(BasePage):

@@ -825,20 +825,20 @@ class StreamingMosaicManager:
         lst = observation_date.sidereal_time("mean", longitude=self.observatory_location.lon)
 
         # Calculate time difference to transit
-        ra_angle = calibrator_ra * u.deg
-        lst_angle = lst.to(u.deg)
+        ra_angle = calibrator_ra * u.deg  # pylint: disable=no-member
+        lst_angle = lst.to(u.deg)  # pylint: disable=no-member
         hour_angle_deg = ra_angle - lst_angle
 
         # Normalize to [-180, 180] degrees (equivalent to [-12, 12] hours)
-        hour_angle_deg = hour_angle_deg.wrap_at(180 * u.deg)
+        hour_angle_deg = hour_angle_deg.wrap_at(180 * u.deg)  # pylint: disable=no-member
 
         # Convert hour angle from degrees to days
         # 1 hour = 15 degrees, 1 day = 24 hours
         # So: degrees / 15 degrees/hour / 24 hours/day = degrees / 360 degrees/day
-        hour_angle_days = hour_angle_deg.to_value(u.deg) / 360.0
+        hour_angle_days = hour_angle_deg.to_value(u.deg) / 360.0  # pylint: disable=no-member
 
         # Transit time
-        transit_time = observation_date + hour_angle_days * u.day
+        transit_time = observation_date + hour_angle_days * u.day  # pylint: disable=no-member
 
         return transit_time.mjd
 
@@ -2178,67 +2178,6 @@ class StreamingMosaicManager:
             )
             return False
 
-    def process_next_group(self) -> bool:
-        """Process next available group through full workflow.
-
-        Returns:
-            True if a group was processed, False if no group available
-        """
-        group_id = self.check_for_new_group()
-        if not group_id:
-            return False
-
-        logger.info(f"Processing group: {group_id}")
-
-        # Get MS paths
-        ms_paths = self.get_group_ms_paths(group_id)
-        if len(ms_paths) < self.ms_per_group:
-            logger.warning(f"Group {group_id} has only {len(ms_paths)} MS files")
-            return False
-
-        # Select calibration MS
-        calibration_ms = self.select_calibration_ms(ms_paths)
-        if not calibration_ms:
-            logger.error(f"Could not select calibration MS for group {group_id}")
-            return False
-
-        # Solve calibration
-        bpcal_solved, gaincal_solved, error_msg = self.solve_calibration_for_group(
-            group_id, calibration_ms
-        )
-        if error_msg:
-            logger.error(f"Calibration solving failed for group {group_id}: {error_msg}")
-            return False
-
-        # Apply calibration
-        if not self.apply_calibration_to_group(group_id):
-            logger.error(f"Failed to apply calibration to group {group_id}")
-            return False
-
-        # Image all MS
-        if not self.image_group(group_id):
-            logger.error(f"Failed to image group {group_id}")
-            return False
-
-        # Create mosaic
-        mosaic_path = self.create_mosaic(group_id)
-        if not mosaic_path:
-            logger.error(f"Failed to create mosaic for group {group_id}")
-            return False
-
-        # Run cross-matching if enabled
-        if self.config and self.config.crossmatch.enabled:
-            try:
-                self.run_crossmatch_for_mosaic(group_id, mosaic_path)
-            except Exception as e:
-                logger.warning(
-                    f"Cross-matching failed for group {group_id}: {e}. "
-                    "Continuing without cross-match results."
-                )
-
-        logger.info(f"Successfully processed group {group_id}, mosaic: {mosaic_path}")
-        return True
-
     def get_last_group_overlap_ms(self) -> List[str]:
         """Get the last 2 MS files from the most recent completed group for overlap.
 
@@ -2707,6 +2646,7 @@ def main() -> int:
         products_db_path=args.products_db,
         registry_db_path=args.registry_db,
         ms_output_dir=args.ms_dir,
+        images_dir=args.images_dir,
         mosaic_output_dir=args.mosaic_dir,
     )
 

@@ -42,6 +42,7 @@ import type {
   ImageList,
   ImageFilters,
   DataInstance,
+  DataInstanceList,
   DataInstanceDetail,
   AutoPublishStatus,
   DataLineage,
@@ -1017,14 +1018,14 @@ export function useUpdateStreamingConfig() {
 export function useDataInstances(
   dataType?: string,
   status?: "staging" | "published"
-): UseQueryResult<DataInstance[]> {
+): UseQueryResult<DataInstanceList> {
   return useQuery({
     queryKey: ["data", "instances", dataType, status],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (dataType) params.append("data_type", dataType);
       if (status) params.append("status", status);
-      const response = await apiClient.get<DataInstance[]>(`/data?${params.toString()}`);
+      const response = await apiClient.get<DataInstanceList>(`/data?${params.toString()}`);
       return response.data;
     },
   });

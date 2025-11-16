@@ -153,8 +153,8 @@ def load_haslam_408mhz_map(
     try:
         # Load FITS file
         with fits.open(fits_path) as hdul:
-            data = hdul[0].data
-            wcs = WCS(hdul[0].header)
+            data = hdul[0].data  # pylint: disable=no-member
+            wcs = WCS(hdul[0].header)  # pylint: disable=no-member
 
         # Reproject to Aitoff
         # This is a simplified version - full reprojection requires more setup
@@ -198,7 +198,9 @@ def get_sky_map_path(
         return output_path
     elif map_type == "haslam":
         output_path = output_dir / "haslam_408mhz_aitoff.png"
-        result = load_haslam_408mhz_map(output_path=output_path)
+        result = load_haslam_408mhz_map(
+            output_path=output_path
+        )  # pylint: disable=assignment-from-none
         if result is None:
             # Fall back to synthetic if Haslam unavailable
             logger.info("Falling back to synthetic map")

@@ -1,0 +1,288 @@
+{
+  ".class": "MypyFile",
+  "_fullname": "dsa110_contimg.utils.path_validation",
+  "future_import_flags": [],
+  "is_partial_stub_package": false,
+  "is_stub": false,
+  "names": {
+    ".class": "SymbolTable",
+    "Optional": {
+      ".class": "SymbolTableNode",
+      "cross_ref": "typing.Optional",
+      "kind": "Gdef"
+    },
+    "Path": {
+      ".class": "SymbolTableNode",
+      "cross_ref": "pathlib.Path",
+      "kind": "Gdef"
+    },
+    "Union": {
+      ".class": "SymbolTableNode",
+      "cross_ref": "typing.Union",
+      "kind": "Gdef"
+    },
+    "__annotations__": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "Var",
+        "flags": ["is_ready"],
+        "fullname": "dsa110_contimg.utils.path_validation.__annotations__",
+        "name": "__annotations__",
+        "type": {
+          ".class": "Instance",
+          "args": [
+            "builtins.str",
+            {
+              ".class": "AnyType",
+              "missing_import_name": null,
+              "source_any": null,
+              "type_of_any": 6
+            }
+          ],
+          "extra_attrs": null,
+          "type_ref": "builtins.dict"
+        }
+      }
+    },
+    "__doc__": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "Var",
+        "flags": ["is_ready"],
+        "fullname": "dsa110_contimg.utils.path_validation.__doc__",
+        "name": "__doc__",
+        "type": "builtins.str"
+      }
+    },
+    "__file__": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "Var",
+        "flags": ["is_ready"],
+        "fullname": "dsa110_contimg.utils.path_validation.__file__",
+        "name": "__file__",
+        "type": "builtins.str"
+      }
+    },
+    "__name__": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "Var",
+        "flags": ["is_ready"],
+        "fullname": "dsa110_contimg.utils.path_validation.__name__",
+        "name": "__name__",
+        "type": "builtins.str"
+      }
+    },
+    "__package__": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "Var",
+        "flags": ["is_ready"],
+        "fullname": "dsa110_contimg.utils.path_validation.__package__",
+        "name": "__package__",
+        "type": "builtins.str"
+      }
+    },
+    "__spec__": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "Var",
+        "flags": ["is_ready"],
+        "fullname": "dsa110_contimg.utils.path_validation.__spec__",
+        "name": "__spec__",
+        "type": "_frozen_importlib.ModuleSpec"
+      }
+    },
+    "get_safe_path": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "FuncDef",
+        "abstract_status": 0,
+        "arg_kinds": [0, 0, 1],
+        "arg_names": ["user_input", "base_dir", "subdirectory"],
+        "dataclass_transform_spec": null,
+        "deprecated": null,
+        "flags": [],
+        "fullname": "dsa110_contimg.utils.path_validation.get_safe_path",
+        "name": "get_safe_path",
+        "type": {
+          ".class": "CallableType",
+          "arg_kinds": [0, 0, 1],
+          "arg_names": ["user_input", "base_dir", "subdirectory"],
+          "arg_types": [
+            {
+              ".class": "UnionType",
+              "items": ["builtins.str", "pathlib.Path"],
+              "uses_pep604_syntax": false
+            },
+            {
+              ".class": "UnionType",
+              "items": ["builtins.str", "pathlib.Path"],
+              "uses_pep604_syntax": false
+            },
+            {
+              ".class": "UnionType",
+              "items": ["builtins.str", { ".class": "NoneType" }],
+              "uses_pep604_syntax": false
+            }
+          ],
+          "bound_args": [],
+          "def_extras": { "first_arg": null },
+          "fallback": "builtins.function",
+          "from_concatenate": false,
+          "implicit": false,
+          "imprecise_arg_kinds": false,
+          "is_ellipsis_args": false,
+          "name": "get_safe_path",
+          "ret_type": "pathlib.Path",
+          "type_guard": null,
+          "type_is": null,
+          "unpack_kwargs": false,
+          "variables": []
+        }
+      }
+    },
+    "is_safe_path": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "FuncDef",
+        "abstract_status": 0,
+        "arg_kinds": [0, 0],
+        "arg_names": ["path", "allowed_dirs"],
+        "dataclass_transform_spec": null,
+        "deprecated": null,
+        "flags": [],
+        "fullname": "dsa110_contimg.utils.path_validation.is_safe_path",
+        "name": "is_safe_path",
+        "type": {
+          ".class": "CallableType",
+          "arg_kinds": [0, 0],
+          "arg_names": ["path", "allowed_dirs"],
+          "arg_types": [
+            {
+              ".class": "UnionType",
+              "items": ["builtins.str", "pathlib.Path"],
+              "uses_pep604_syntax": false
+            },
+            {
+              ".class": "Instance",
+              "args": [
+                {
+                  ".class": "UnionType",
+                  "items": ["builtins.str", "pathlib.Path"],
+                  "uses_pep604_syntax": false
+                }
+              ],
+              "extra_attrs": null,
+              "type_ref": "builtins.list"
+            }
+          ],
+          "bound_args": [],
+          "def_extras": { "first_arg": null },
+          "fallback": "builtins.function",
+          "from_concatenate": false,
+          "implicit": false,
+          "imprecise_arg_kinds": false,
+          "is_ellipsis_args": false,
+          "name": "is_safe_path",
+          "ret_type": "builtins.bool",
+          "type_guard": null,
+          "type_is": null,
+          "unpack_kwargs": false,
+          "variables": []
+        }
+      }
+    },
+    "os": { ".class": "SymbolTableNode", "cross_ref": "os", "kind": "Gdef" },
+    "sanitize_filename": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "FuncDef",
+        "abstract_status": 0,
+        "arg_kinds": [0, 1],
+        "arg_names": ["filename", "max_length"],
+        "dataclass_transform_spec": null,
+        "deprecated": null,
+        "flags": [],
+        "fullname": "dsa110_contimg.utils.path_validation.sanitize_filename",
+        "name": "sanitize_filename",
+        "type": {
+          ".class": "CallableType",
+          "arg_kinds": [0, 1],
+          "arg_names": ["filename", "max_length"],
+          "arg_types": ["builtins.str", "builtins.int"],
+          "bound_args": [],
+          "def_extras": { "first_arg": null },
+          "fallback": "builtins.function",
+          "from_concatenate": false,
+          "implicit": false,
+          "imprecise_arg_kinds": false,
+          "is_ellipsis_args": false,
+          "name": "sanitize_filename",
+          "ret_type": "builtins.str",
+          "type_guard": null,
+          "type_is": null,
+          "unpack_kwargs": false,
+          "variables": []
+        }
+      }
+    },
+    "validate_path": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "FuncDef",
+        "abstract_status": 0,
+        "arg_kinds": [0, 0, 1],
+        "arg_names": ["user_path", "base_directory", "allow_absolute"],
+        "dataclass_transform_spec": null,
+        "deprecated": null,
+        "flags": [],
+        "fullname": "dsa110_contimg.utils.path_validation.validate_path",
+        "name": "validate_path",
+        "type": {
+          ".class": "CallableType",
+          "arg_kinds": [0, 0, 1],
+          "arg_names": ["user_path", "base_directory", "allow_absolute"],
+          "arg_types": [
+            {
+              ".class": "UnionType",
+              "items": ["builtins.str", "pathlib.Path"],
+              "uses_pep604_syntax": false
+            },
+            {
+              ".class": "UnionType",
+              "items": ["builtins.str", "pathlib.Path"],
+              "uses_pep604_syntax": false
+            },
+            "builtins.bool"
+          ],
+          "bound_args": [],
+          "def_extras": { "first_arg": null },
+          "fallback": "builtins.function",
+          "from_concatenate": false,
+          "implicit": false,
+          "imprecise_arg_kinds": false,
+          "is_ellipsis_args": false,
+          "name": "validate_path",
+          "ret_type": "pathlib.Path",
+          "type_guard": null,
+          "type_is": null,
+          "unpack_kwargs": false,
+          "variables": []
+        }
+      }
+    }
+  },
+  "path": "/data/dsa110-contimg/src/dsa110_contimg/utils/path_validation.py"
+}

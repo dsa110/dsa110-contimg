@@ -841,12 +841,23 @@ export interface JobParams {
   gaintables?: string[] | null;
   gridder?: string;
   wprojplanes?: number;
+  datacolumn?: string;
+  quick?: boolean;
+  skip_fits?: boolean;
+  use_nvss_mask?: boolean;
+  mask_radius_arcsec?: number;
 }
 
 export interface ConversionJobParams {
+  input_dir?: string;
   input_files?: string[];
   output_dir?: string;
   writer_type?: string;
+  writer?: string;
+  start_time?: string;
+  end_time?: string;
+  stage_to_tmpfs?: boolean;
+  max_workers?: number;
   subbands?: number;
   params?: Record<string, unknown>;
 }

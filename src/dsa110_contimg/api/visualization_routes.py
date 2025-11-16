@@ -453,7 +453,7 @@ def get_casatable_info(
             raise HTTPException(status_code=400, detail=f"Path is not a directory: {path}")
 
         casa_table = CasaTable(str(target_path))
-        casa_table.rescan()
+        casa_table.rescan()  # pylint: disable=no-member
 
         return CasaTableInfo(
             path=str(target_path),
@@ -494,7 +494,7 @@ def view_casatable(
             raise HTTPException(status_code=404, detail=f"CASA table not found: {path}")
 
         casa_table = CasaTable(str(target_path))
-        casa_table.rescan()
+        casa_table.rescan()  # pylint: disable=no-member
 
         # Note: show() uses display() which won't work in API context
         # We need to generate HTML directly
@@ -597,7 +597,7 @@ def view_image_file(
             raise HTTPException(status_code=404, detail=f"Image file not found: {path}")
 
         img_file = ImageFile(str(target_path))
-        html = img_file.render_html(width=width)
+        html = img_file.render_html(width=width)  # pylint: disable=no-member
 
         return HTMLResponse(content=html)
 
@@ -1168,7 +1168,7 @@ def _run_imview(
 
     # Load image data
     with fits.open(image_path) as hdul:
-        data = hdul[0].data
+        data = hdul[0].data  # pylint: disable=no-member
 
         # Handle multi-dimensional data
         if data.ndim > 2:
@@ -1302,7 +1302,7 @@ def _run_imval(
 
         try:
             with fits.open(image_path) as hdul:
-                data = hdul[0].data
+                data = hdul[0].data  # pylint: disable=no-member
 
                 # Handle multi-dimensional data
                 if data.ndim > 2:
@@ -1319,7 +1319,7 @@ def _run_imval(
                         create_region_mask,
                     )
 
-                    wcs = WCS(hdul[0].header)
+                    wcs = WCS(hdul[0].header)  # pylint: disable=no-member
                     region_data = type(
                         "RegionData",
                         (),
@@ -1333,7 +1333,9 @@ def _run_imval(
                         },
                     )()
 
-                    mask = create_region_mask(data.shape, region_data, wcs, hdul[0].header)
+                    mask = create_region_mask(
+                        data.shape, region_data, wcs, hdul[0].header
+                    )  # pylint: disable=no-member
                     values = data[mask].tolist()
                 else:
                     # Return all values (flattened)

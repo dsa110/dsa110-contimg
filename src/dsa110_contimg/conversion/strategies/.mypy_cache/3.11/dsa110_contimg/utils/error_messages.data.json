@@ -1,0 +1,458 @@
+{
+  ".class": "MypyFile",
+  "_fullname": "dsa110_contimg.utils.error_messages",
+  "future_import_flags": [],
+  "is_partial_stub_package": false,
+  "is_stub": false,
+  "names": {
+    ".class": "SymbolTable",
+    "Any": {
+      ".class": "SymbolTableNode",
+      "cross_ref": "typing.Any",
+      "kind": "Gdef"
+    },
+    "Dict": {
+      ".class": "SymbolTableNode",
+      "cross_ref": "typing.Dict",
+      "kind": "Gdef"
+    },
+    "ERROR_CODES": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "Var",
+        "flags": ["is_inferred", "has_explicit_value"],
+        "fullname": "dsa110_contimg.utils.error_messages.ERROR_CODES",
+        "name": "ERROR_CODES",
+        "type": {
+          ".class": "Instance",
+          "args": [
+            "builtins.str",
+            {
+              ".class": "Instance",
+              "args": [
+                "builtins.str",
+                {
+                  ".class": "Instance",
+                  "args": ["builtins.str"],
+                  "extra_attrs": null,
+                  "type_ref": "typing.Sequence"
+                }
+              ],
+              "extra_attrs": null,
+              "type_ref": "builtins.dict"
+            }
+          ],
+          "extra_attrs": null,
+          "type_ref": "builtins.dict"
+        }
+      }
+    },
+    "List": {
+      ".class": "SymbolTableNode",
+      "cross_ref": "typing.List",
+      "kind": "Gdef"
+    },
+    "Optional": {
+      ".class": "SymbolTableNode",
+      "cross_ref": "typing.Optional",
+      "kind": "Gdef"
+    },
+    "__annotations__": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "Var",
+        "flags": ["is_ready"],
+        "fullname": "dsa110_contimg.utils.error_messages.__annotations__",
+        "name": "__annotations__",
+        "type": {
+          ".class": "Instance",
+          "args": [
+            "builtins.str",
+            {
+              ".class": "AnyType",
+              "missing_import_name": null,
+              "source_any": null,
+              "type_of_any": 6
+            }
+          ],
+          "extra_attrs": null,
+          "type_ref": "builtins.dict"
+        }
+      }
+    },
+    "__doc__": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "Var",
+        "flags": ["is_ready"],
+        "fullname": "dsa110_contimg.utils.error_messages.__doc__",
+        "name": "__doc__",
+        "type": "builtins.str"
+      }
+    },
+    "__file__": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "Var",
+        "flags": ["is_ready"],
+        "fullname": "dsa110_contimg.utils.error_messages.__file__",
+        "name": "__file__",
+        "type": "builtins.str"
+      }
+    },
+    "__name__": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "Var",
+        "flags": ["is_ready"],
+        "fullname": "dsa110_contimg.utils.error_messages.__name__",
+        "name": "__name__",
+        "type": "builtins.str"
+      }
+    },
+    "__package__": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "Var",
+        "flags": ["is_ready"],
+        "fullname": "dsa110_contimg.utils.error_messages.__package__",
+        "name": "__package__",
+        "type": "builtins.str"
+      }
+    },
+    "__spec__": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "Var",
+        "flags": ["is_ready"],
+        "fullname": "dsa110_contimg.utils.error_messages.__spec__",
+        "name": "__spec__",
+        "type": "_frozen_importlib.ModuleSpec"
+      }
+    },
+    "create_error_summary": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "FuncDef",
+        "abstract_status": 0,
+        "arg_kinds": [0],
+        "arg_names": ["errors"],
+        "dataclass_transform_spec": null,
+        "deprecated": null,
+        "flags": [],
+        "fullname": "dsa110_contimg.utils.error_messages.create_error_summary",
+        "name": "create_error_summary",
+        "type": {
+          ".class": "CallableType",
+          "arg_kinds": [0],
+          "arg_names": ["errors"],
+          "arg_types": [
+            {
+              ".class": "Instance",
+              "args": [
+                {
+                  ".class": "Instance",
+                  "args": [
+                    "builtins.str",
+                    {
+                      ".class": "AnyType",
+                      "missing_import_name": null,
+                      "source_any": null,
+                      "type_of_any": 2
+                    }
+                  ],
+                  "extra_attrs": null,
+                  "type_ref": "builtins.dict"
+                }
+              ],
+              "extra_attrs": null,
+              "type_ref": "builtins.list"
+            }
+          ],
+          "bound_args": [],
+          "def_extras": { "first_arg": null },
+          "fallback": "builtins.function",
+          "from_concatenate": false,
+          "implicit": false,
+          "imprecise_arg_kinds": false,
+          "is_ellipsis_args": false,
+          "name": "create_error_summary",
+          "ret_type": "builtins.str",
+          "type_guard": null,
+          "type_is": null,
+          "unpack_kwargs": false,
+          "variables": []
+        }
+      }
+    },
+    "format_error_with_code": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "FuncDef",
+        "abstract_status": 0,
+        "arg_kinds": [0, 0],
+        "arg_names": ["error_type", "details"],
+        "dataclass_transform_spec": null,
+        "deprecated": null,
+        "flags": [],
+        "fullname": "dsa110_contimg.utils.error_messages.format_error_with_code",
+        "name": "format_error_with_code",
+        "type": {
+          ".class": "CallableType",
+          "arg_kinds": [0, 0],
+          "arg_names": ["error_type", "details"],
+          "arg_types": [
+            "builtins.str",
+            {
+              ".class": "Instance",
+              "args": [
+                "builtins.str",
+                {
+                  ".class": "AnyType",
+                  "missing_import_name": null,
+                  "source_any": null,
+                  "type_of_any": 2
+                }
+              ],
+              "extra_attrs": null,
+              "type_ref": "builtins.dict"
+            }
+          ],
+          "bound_args": [],
+          "def_extras": { "first_arg": null },
+          "fallback": "builtins.function",
+          "from_concatenate": false,
+          "implicit": false,
+          "imprecise_arg_kinds": false,
+          "is_ellipsis_args": false,
+          "name": "format_error_with_code",
+          "ret_type": "builtins.str",
+          "type_guard": null,
+          "type_is": null,
+          "unpack_kwargs": false,
+          "variables": []
+        }
+      }
+    },
+    "format_error_with_suggestion": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "FuncDef",
+        "abstract_status": 0,
+        "arg_kinds": [0, 0, 0],
+        "arg_names": ["error", "error_type", "details"],
+        "dataclass_transform_spec": null,
+        "deprecated": null,
+        "flags": [],
+        "fullname": "dsa110_contimg.utils.error_messages.format_error_with_suggestion",
+        "name": "format_error_with_suggestion",
+        "type": {
+          ".class": "CallableType",
+          "arg_kinds": [0, 0, 0],
+          "arg_names": ["error", "error_type", "details"],
+          "arg_types": [
+            "builtins.Exception",
+            "builtins.str",
+            {
+              ".class": "Instance",
+              "args": [
+                "builtins.str",
+                {
+                  ".class": "AnyType",
+                  "missing_import_name": null,
+                  "source_any": null,
+                  "type_of_any": 2
+                }
+              ],
+              "extra_attrs": null,
+              "type_ref": "builtins.dict"
+            }
+          ],
+          "bound_args": [],
+          "def_extras": { "first_arg": null },
+          "fallback": "builtins.function",
+          "from_concatenate": false,
+          "implicit": false,
+          "imprecise_arg_kinds": false,
+          "is_ellipsis_args": false,
+          "name": "format_error_with_suggestion",
+          "ret_type": "builtins.str",
+          "type_guard": null,
+          "type_is": null,
+          "unpack_kwargs": false,
+          "variables": []
+        }
+      }
+    },
+    "format_validation_error": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "FuncDef",
+        "abstract_status": 0,
+        "arg_kinds": [0, 1, 1],
+        "arg_names": ["errors", "warnings", "context"],
+        "dataclass_transform_spec": null,
+        "deprecated": null,
+        "flags": [],
+        "fullname": "dsa110_contimg.utils.error_messages.format_validation_error",
+        "name": "format_validation_error",
+        "type": {
+          ".class": "CallableType",
+          "arg_kinds": [0, 1, 1],
+          "arg_names": ["errors", "warnings", "context"],
+          "arg_types": [
+            {
+              ".class": "Instance",
+              "args": ["builtins.str"],
+              "extra_attrs": null,
+              "type_ref": "builtins.list"
+            },
+            {
+              ".class": "UnionType",
+              "items": [
+                {
+                  ".class": "Instance",
+                  "args": ["builtins.str"],
+                  "extra_attrs": null,
+                  "type_ref": "builtins.list"
+                },
+                { ".class": "NoneType" }
+              ],
+              "uses_pep604_syntax": false
+            },
+            "builtins.str"
+          ],
+          "bound_args": [],
+          "def_extras": { "first_arg": null },
+          "fallback": "builtins.function",
+          "from_concatenate": false,
+          "implicit": false,
+          "imprecise_arg_kinds": false,
+          "is_ellipsis_args": false,
+          "name": "format_validation_error",
+          "ret_type": "builtins.str",
+          "type_guard": null,
+          "type_is": null,
+          "unpack_kwargs": false,
+          "variables": []
+        }
+      }
+    },
+    "get_error_code_info": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "FuncDef",
+        "abstract_status": 0,
+        "arg_kinds": [0],
+        "arg_names": ["error_type"],
+        "dataclass_transform_spec": null,
+        "deprecated": null,
+        "flags": [],
+        "fullname": "dsa110_contimg.utils.error_messages.get_error_code_info",
+        "name": "get_error_code_info",
+        "type": {
+          ".class": "CallableType",
+          "arg_kinds": [0],
+          "arg_names": ["error_type"],
+          "arg_types": ["builtins.str"],
+          "bound_args": [],
+          "def_extras": { "first_arg": null },
+          "fallback": "builtins.function",
+          "from_concatenate": false,
+          "implicit": false,
+          "imprecise_arg_kinds": false,
+          "is_ellipsis_args": false,
+          "name": "get_error_code_info",
+          "ret_type": {
+            ".class": "UnionType",
+            "items": [
+              {
+                ".class": "Instance",
+                "args": [
+                  "builtins.str",
+                  {
+                    ".class": "AnyType",
+                    "missing_import_name": null,
+                    "source_any": null,
+                    "type_of_any": 2
+                  }
+                ],
+                "extra_attrs": null,
+                "type_ref": "builtins.dict"
+              },
+              { ".class": "NoneType" }
+            ],
+            "uses_pep604_syntax": false
+          },
+          "type_guard": null,
+          "type_is": null,
+          "unpack_kwargs": false,
+          "variables": []
+        }
+      }
+    },
+    "suggest_fix": {
+      ".class": "SymbolTableNode",
+      "kind": "Gdef",
+      "node": {
+        ".class": "FuncDef",
+        "abstract_status": 0,
+        "arg_kinds": [0, 0],
+        "arg_names": ["error_type", "details"],
+        "dataclass_transform_spec": null,
+        "deprecated": null,
+        "flags": [],
+        "fullname": "dsa110_contimg.utils.error_messages.suggest_fix",
+        "name": "suggest_fix",
+        "type": {
+          ".class": "CallableType",
+          "arg_kinds": [0, 0],
+          "arg_names": ["error_type", "details"],
+          "arg_types": [
+            "builtins.str",
+            {
+              ".class": "Instance",
+              "args": [
+                "builtins.str",
+                {
+                  ".class": "AnyType",
+                  "missing_import_name": null,
+                  "source_any": null,
+                  "type_of_any": 2
+                }
+              ],
+              "extra_attrs": null,
+              "type_ref": "builtins.dict"
+            }
+          ],
+          "bound_args": [],
+          "def_extras": { "first_arg": null },
+          "fallback": "builtins.function",
+          "from_concatenate": false,
+          "implicit": false,
+          "imprecise_arg_kinds": false,
+          "is_ellipsis_args": false,
+          "name": "suggest_fix",
+          "ret_type": "builtins.str",
+          "type_guard": null,
+          "type_is": null,
+          "unpack_kwargs": false,
+          "variables": []
+        }
+      }
+    }
+  },
+  "path": "/data/dsa110-contimg/src/dsa110_contimg/utils/error_messages.py"
+}

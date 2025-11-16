@@ -276,8 +276,12 @@ class CalibratorMSGenerator:
             Tuple of (start_time_str, end_time_str) in format "YYYY-MM-DD HH:MM:SS"
         """
         half = window_minutes // 2
-        t0 = (transit - half * u.min).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
-        t1 = (transit + half * u.min).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+        t0 = (
+            (transit - half * u.min).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+        )  # pylint: disable=no-member
+        t1 = (
+            (transit + half * u.min).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+        )  # pylint: disable=no-member
         return t0, t1
 
     def _get_transit_times(
@@ -340,7 +344,7 @@ class CalibratorMSGenerator:
             ts_str = base.split("_sb")[0]
             try:
                 mid = Time(ts_str)
-                dt_min = abs((mid - transit).to(u.min)).value
+                dt_min = abs((mid - transit).to(u.min)).value  # pylint: disable=no-member
                 candidates.append((dt_min, g, mid))
             except Exception:
                 continue
@@ -405,8 +409,8 @@ class CalibratorMSGenerator:
         )
 
         pt_ra_rad, pt_dec_rad, _ = _peek_uvh5_phase_and_midtime(group_file)
-        pt_ra_deg = float(pt_ra_rad.to_value(u.deg))
-        pt_dec_deg = float(pt_dec_rad.to_value(u.deg))
+        pt_ra_deg = float(pt_ra_rad.to_value(u.deg))  # pylint: disable=no-member
+        pt_dec_deg = float(pt_dec_rad.to_value(u.deg))  # pylint: disable=no-member
 
         cal_ra_rad = np.deg2rad(ra_deg)
         cal_dec_rad = np.deg2rad(dec_deg)
@@ -420,7 +424,7 @@ class CalibratorMSGenerator:
         pt_coord = SkyCoord(ra=pt_ra_rad_val * u.rad, dec=pt_dec_rad_val * u.rad)
         cal_coord = SkyCoord(ra=cal_ra_rad * u.rad, dec=cal_dec_rad * u.rad)
         sep = pt_coord.separation(cal_coord)
-        sep_deg = float(sep.to_value(u.deg))
+        sep_deg = float(sep.to_value(u.deg))  # pylint: disable=no-member
 
         return {
             "pb_response": pb_response,
@@ -783,9 +787,11 @@ class CalibratorMSGenerator:
             Tuple of (start_time_str, end_time_str, cutoff_time)
         """
         now = Time.now()
-        start_time = (now - max_days_back * u.day).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+        start_time = (
+            (now - max_days_back * u.day).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+        )  # pylint: disable=no-member
         end_time = now.to_datetime().strftime("%Y-%m-%d %H:%M:%S")
-        cutoff_time = now - max_days_back * u.day
+        cutoff_time = now - max_days_back * u.day  # pylint: disable=no-member
         return start_time, end_time, cutoff_time
 
     def _query_hdf5_groups_in_window(self, transit: Time, window_minutes: int) -> List[List[str]]:
@@ -799,8 +805,12 @@ class CalibratorMSGenerator:
             List of group file lists
         """
         half_window = window_minutes // 2
-        t0 = (transit - half_window * u.min).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
-        t1 = (transit + half_window * u.min).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+        t0 = (
+            (transit - half_window * u.min).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+        )  # pylint: disable=no-member
+        t1 = (
+            (transit + half_window * u.min).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+        )  # pylint: disable=no-member
 
         groups = query_subband_groups(self.products_db, t0, t1, tolerance_s=1.0)
         return groups if groups else []
@@ -827,12 +837,16 @@ class CalibratorMSGenerator:
             _, pt_dec_rad, mid_mjd = _peek_uvh5_phase_and_midtime(group_files[0])
             # Check if mid_mjd is valid (not None and not 0.0)
             if mid_mjd is not None and mid_mjd > 0:
-                pt_dec_deg = pt_dec_rad.to(u.deg).value if pt_dec_rad is not None else None
+                pt_dec_deg = (
+                    pt_dec_rad.to(u.deg).value if pt_dec_rad is not None else None
+                )  # pylint: disable=no-member
                 group_mid = Time(mid_mjd, format="mjd")
             else:
                 # Invalid mid_mjd, fallback to group_start
                 group_mid = group_start
-                pt_dec_deg = pt_dec_rad.to(u.deg).value if pt_dec_rad is not None else None
+                pt_dec_deg = (
+                    pt_dec_rad.to(u.deg).value if pt_dec_rad is not None else None
+                )  # pylint: disable=no-member
         except Exception:
             # Fallback: use group_start as mid-time, skip dec check
             group_mid = group_start
@@ -858,7 +872,7 @@ class CalibratorMSGenerator:
         return cal_in_datetime(
             group_id,
             transit,
-            duration=0 * u.min,  # Transit must be within file
+            duration=0 * u.min,  # Transit must be within file  # pylint: disable=no-member
             filelength=filelength,
         )
 
@@ -970,7 +984,7 @@ class CalibratorMSGenerator:
             # Sort files by subband number for proper spectral order
             group_files_sorted = self._sort_files_by_subband(group_files)
 
-            dt_min = abs((group_mid - transit).to(u.min).value)
+            dt_min = abs((group_mid - transit).to(u.min).value)  # pylint: disable=no-member
 
             return {
                 "group_id": group_id,
@@ -1007,7 +1021,7 @@ class CalibratorMSGenerator:
             "delta_minutes": group_info["delta_minutes"],
             "subband_count": len(group_info["group_files_sorted"]),
             "files": group_info["group_files_sorted"],
-            "days_ago": (Time.now() - transit).to(u.day).value,
+            "days_ago": (Time.now() - transit).to(u.day).value,  # pylint: disable=no-member
             "has_ms": self.has_ms_for_transit(calibrator_name, transit, tolerance_minutes=5.0),
         }
 
@@ -1129,7 +1143,7 @@ class CalibratorMSGenerator:
         # Find transits first, then check if groups contain them
         transits = previous_transits(ra_deg, start_time=Time.now(), n=max_days_back)
         available_transits = []
-        filelength = 5 * u.min  # Typical observation file length
+        filelength = 5 * u.min  # Typical observation file length  # pylint: disable=no-member
 
         for transit in transits:
             # Query database for groups in window around transit

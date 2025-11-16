@@ -31,7 +31,7 @@ class PromiseResolutionOptimizer {
       return;
     }
 
-    if (typeof window === "undefined" || !window.jQuery) {
+    if (typeof window === "undefined" || !(window as any).jQuery) {
       console.warn("[PromiseOptimizer] jQuery not available, skipping optimization");
       return;
     }
