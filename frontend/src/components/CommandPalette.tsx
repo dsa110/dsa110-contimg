@@ -16,13 +16,11 @@ import {
   Box,
   Typography,
   Chip,
-  Paper,
   alpha,
 } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Dashboard,
-  Image,
   TableChart,
   Public,
   Settings,
@@ -158,8 +156,7 @@ export default function CommandPalette({ open, onClose }: CommandPaletteProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const navigate = useNavigate();
-  const location = useLocation();
-  const { currentWorkflow, suggestedNextSteps } = useWorkflow();
+  const { suggestedNextSteps } = useWorkflow();
 
   // Combine all commands
   const allCommands = useMemo(() => {
@@ -330,7 +327,7 @@ export default function CommandPalette({ open, onClose }: CommandPaletteProps) {
                     {categoryLabels[category] || category}
                   </Typography>
                 </Box>
-                {commands.map((command, index) => {
+                {commands.map((command) => {
                   const globalIndex = filteredCommands.indexOf(command);
                   const isSelected = globalIndex === selectedIndex;
                   const Icon = command.icon || ArrowForward;

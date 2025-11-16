@@ -271,8 +271,8 @@ export default function SkyMap({
       if (image && image.center_ra_deg !== undefined && image.center_dec_deg !== undefined) {
         setSelectedField({
           image,
-          ra: image.center_ra_deg,
-          dec: image.center_dec_deg,
+          ra: image.center_ra_deg ?? 0,
+          dec: image.center_dec_deg ?? 0,
         });
         setDialogOpen(true);
       }

@@ -2,6 +2,11 @@
 *old*/
 archive/
 
+# Codeql
+.codeql/
+.codeql-db-*/
+.codeql-db-*/
+
 # Ignore Linear config (contains API keys)
 .linear_config.json
 
@@ -232,5 +237,8 @@ site/
 docs/archive/
 
 # Development
+# Exception: allow .local/bin/python* to be tracked
+!.local/bin/
+!.local/bin/python*
 .local/
 internal/
