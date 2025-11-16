@@ -177,12 +177,22 @@ def find_subband_groups(
     end_time: str,
     *,
     spw: Optional[Sequence[str]] = None,
-    tolerance_s: float = 30.0,
+    tolerance_s: float = 60.0,
 ) -> List[List[str]]:
     """Identify complete subband groups within a time window.
 
     This function tries to use the database first for better performance,
     falling back to filesystem scan if the database is not available.
+
+    Args:
+        input_dir: Directory containing HDF5 files
+        start_time: Start time (ISO format)
+        end_time: End time (ISO format)
+        spw: List of subband codes to expect (default: sb00-sb15)
+        tolerance_s: Time tolerance in seconds for clustering files into groups (default: 60.0)
+
+    Returns:
+        List of complete subband groups, each group is a list of file paths
     """
     if spw is None:
         spw = [f"sb{idx:02d}" for idx in range(16)]
@@ -195,12 +205,13 @@ def find_subband_groups(
 
         products_db = Path(_os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         if products_db.exists():
-            # Use database query
+            # Use database query with consistent clustering tolerance
             groups = query_subband_groups(
                 products_db,
                 start_time,
                 end_time,
-                tolerance_s=tolerance_s,
+                tolerance_s=1.0,  # Small window expansion for query
+                cluster_tolerance_s=tolerance_s,  # Use same tolerance for clustering
                 only_stored=True,
             )
             if groups:

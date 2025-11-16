@@ -510,6 +510,7 @@ def query_subband_groups(
     end_time: str,
     *,
     tolerance_s: float = 1.0,
+    cluster_tolerance_s: float = 60.0,
     only_stored: bool = True,
 ) -> List[List[str]]:
     """Query database for complete subband groups in time range.
@@ -518,7 +519,8 @@ def query_subband_groups(
         products_db: Path to products database
         start_time: Start time (ISO format: "YYYY-MM-DD HH:MM:SS")
         end_time: End time (ISO format: "YYYY-MM-DD HH:MM:SS")
-        tolerance_s: Time tolerance in seconds (default: 1.0)
+        tolerance_s: Time tolerance in seconds for query window expansion (default: 1.0)
+        cluster_tolerance_s: Time tolerance in seconds for clustering files into groups (default: 60.0)
         only_stored: If True, only return groups where all files are still stored on disk
 
     Returns:
@@ -539,22 +541,6 @@ def query_subband_groups(
     # Query for files in time range
     # Use tolerance: convert seconds to days
     tolerance_days = tolerance_s / 86400.0
-
-    # Build query with optional stored filter
-    if only_stored:
-        query = """
-        SELECT group_id, subband_code, path
-        FROM hdf5_file_index
-        WHERE timestamp_mjd >= ? AND timestamp_mjd <= ? AND stored = 1
-        ORDER BY group_id, subband_code
-        """
-    else:
-        query = """
-        SELECT group_id, subband_code, path
-        FROM hdf5_file_index
-        WHERE timestamp_mjd >= ? AND timestamp_mjd <= ?
-        ORDER BY group_id, subband_code
-        """
 
     # Query with timestamp_mjd for time-based clustering
     if only_stored:
@@ -580,9 +566,9 @@ def query_subband_groups(
     if not rows:
         return []
 
-    # Cluster files by timestamp within a tolerance window (1 minute = ~0.000694 days)
+    # Cluster files by timestamp within a tolerance window
     # This handles cases where filenames have slightly different timestamps
-    cluster_tolerance_days = 60.0 / 86400.0  # 1 minute tolerance for clustering
+    cluster_tolerance_days = cluster_tolerance_s / 86400.0
 
     # Group files by time clusters
     # Each cluster is represented by its earliest timestamp
