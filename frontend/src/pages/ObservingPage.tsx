@@ -43,6 +43,7 @@ interface TabPanelProps {
   value: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
   return (
@@ -53,6 +54,7 @@ function _TabPanel(props: TabPanelProps) {
 }
 
 export default function ObservingPage() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [tabValue, setTabValue] = useState(0);
   const { data: status } = usePipelineStatus();
 

@@ -38,10 +38,10 @@ interface RegionToolsProps {
 type DrawingMode = "none" | "circle" | "rectangle" | "polygon";
 
 export default function RegionTools({
-  displayId = "js9Display",
+  displayId: _displayId = "js9Display",
   imagePath,
   onRegionCreated,
-  onRegionDeleted,
+  onRegionDeleted: _onRegionDeleted,
 }: RegionToolsProps) {
   const [drawingMode, setDrawingMode] = useState<DrawingMode>("none");
   const [nameDialogOpen, setNameDialogOpen] = useState(false);

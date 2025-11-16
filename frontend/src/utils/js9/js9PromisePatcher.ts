@@ -8,7 +8,7 @@
 class JS9PromisePatcher {
   private isPatched: boolean = false;
   private originalSetTimeout: typeof setTimeout;
-  private readonly MAX_HANDLER_TIME_MS: number = 5; // Target max time per handler
+  private readonly _MAX_HANDLER_TIME_MS: number = 5; // Target max time per handler
   private readonly YIELD_THRESHOLD_MS: number = 10; // Yield if handler exceeds this
   private aggressiveMode: boolean = false; // Patch all immediate setTimeout calls
 

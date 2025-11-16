@@ -75,7 +75,7 @@ interface RegionInfo {
  */
 class DSACASAnalysisPlugin {
   private displayId: string;
-  private pluginName: string = "DSA CASA Analysis";
+  private _pluginName: string = "DSA CASA Analysis";
   private resultCallback: ((result: CASAnalysisResult | null) => void) | null = null;
   private currentImagePath: string | null = null;
   private regionCallback: ((region: RegionInfo | null) => void) | null = null;
@@ -286,7 +286,7 @@ export default function CASAnalysisPlugin({
   const [loading, setLoading] = useState(false);
   const [currentRegion, setCurrentRegion] = useState<RegionInfo | null>(null);
   const [useRegion, setUseRegion] = useState(true);
-  const [regionPolling, setRegionPolling] = useState(false);
+  const [_regionPolling, _setRegionPolling] = useState(false);
   const [showContours, setShowContours] = useState(false);
   const [contourData, setContourData] = useState<any>(null);
   const [selectedRegions, setSelectedRegions] = useState<RegionInfo[]>([]);

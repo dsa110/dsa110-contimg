@@ -360,13 +360,13 @@ function DataTable({
               </TableCell>
               <TableCell>
                 <Chip
-                  label={DATA_TYPE_LABELS[instance.data_type] || instance.data_type}
+                  label={(instance.data_type && DATA_TYPE_LABELS[instance.data_type]) || instance.data_type || "Unknown"}
                   size="small"
                   variant="outlined"
                 />
               </TableCell>
               <TableCell>
-                <Chip label={instance.status} color={STATUS_COLORS[instance.status]} size="small" />
+                <Chip label={instance.status} color={(instance.status && STATUS_COLORS[instance.status]) || "default"} size="small" />
               </TableCell>
               <TableCell>
                 {instance.qa_status ? (

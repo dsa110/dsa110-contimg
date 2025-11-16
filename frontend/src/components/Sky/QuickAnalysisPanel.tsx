@@ -62,7 +62,7 @@ export default function QuickAnalysisPanel({ displayId = "js9Display" }: QuickAn
   const [loading, setLoading] = useState(false);
   const [loadingOperation, setLoadingOperation] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [mousePosition, setMousePosition] = useState<{
+  const [_mousePosition, _setMousePosition] = useState<{
     x: number;
     y: number;
   } | null>(null);

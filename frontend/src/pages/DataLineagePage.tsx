@@ -145,9 +145,9 @@ export default function DataLineagePage() {
             title="Current Data Instance"
             action={
               <Chip
-                label={DATA_TYPE_LABELS[currentInstance.data_type] || currentInstance.data_type}
+                label={(currentInstance.data_type && DATA_TYPE_LABELS[currentInstance.data_type]) || currentInstance.data_type || "Unknown"}
                 color={
-                  (DATA_TYPE_COLORS[currentInstance.data_type] || "info") as
+                  ((currentInstance.data_type && DATA_TYPE_COLORS[currentInstance.data_type]) || "info") as
                     | "primary"
                     | "success"
                     | "info"

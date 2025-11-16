@@ -62,7 +62,7 @@ function TabPanel(props: TabPanelProps) {
 }
 
 function MSInspectionPanel({
-  msPath,
+  msPath: _msPath,
   metadata,
 }: {
   msPath: string;

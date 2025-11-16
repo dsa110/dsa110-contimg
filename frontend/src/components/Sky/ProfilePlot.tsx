@@ -38,7 +38,7 @@ interface ProfilePlotProps {
 export default function ProfilePlot({
   profileData,
   height = 400,
-  onExportPNG,
+  onExportPNG: _onExportPNG,
 }: ProfilePlotProps & { onExportPNG?: () => void }) {
   const { plotData, layout, fitInfo } = useMemo(() => {
     if (!profileData || !profileData.distance || profileData.distance.length === 0) {

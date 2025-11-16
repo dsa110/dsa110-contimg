@@ -85,7 +85,7 @@ export default function MultiImageCompare({
     let syncing = false;
     let interval: ReturnType<typeof setTimeout> | null = null;
 
-    const syncDisplays = (sourceDisplayId: string, targetDisplayId: string) => {
+    const syncDisplays = (_sourceDisplayId: string, _targetDisplayId: string) => {
       if (syncing) return;
       syncing = true;
 

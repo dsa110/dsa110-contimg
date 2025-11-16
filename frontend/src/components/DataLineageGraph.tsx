@@ -178,7 +178,7 @@ export default function DataLineageGraph({ dataId }: LineageGraphProps) {
           <Paper
             sx={{
               p: 2,
-              bgcolor: currentInstance
+              bgcolor: currentInstance?.data_type
                 ? DATA_TYPE_COLORS[currentInstance.data_type] || "primary.main"
                 : "primary.main",
               color: "white",

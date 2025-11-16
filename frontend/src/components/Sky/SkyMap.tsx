@@ -178,7 +178,7 @@ export default function SkyMap({
         // Invert noise: lower noise = larger size
         // Scale between 5 and 15 pixels
         const maxNoise = 0.01; // 10 mJy
-        const normalizedNoise = Math.min(img.noise_jy / maxNoise, 1);
+        const normalizedNoise = Math.min((img.noise_jy ?? 0) / maxNoise, 1);
         return 5 + (1 - normalizedNoise) * 10;
       });
 
@@ -448,7 +448,7 @@ export default function SkyMap({
                       Noise Level
                     </Typography>
                     <Typography variant="body1">
-                      {(selectedField.image.noise_jy * 1000).toFixed(2)} mJy/beam
+                      {((selectedField.image.noise_jy ?? 0) * 1000).toFixed(2)} mJy/beam
                     </Typography>
                   </Box>
                 </>
@@ -463,10 +463,10 @@ export default function SkyMap({
                         Beam Major Axis
                       </Typography>
                       <Typography variant="body1">
-                        {selectedField.image.beam_major_arcsec.toFixed(1)}"
+                        {(selectedField.image.beam_major_arcsec ?? 0).toFixed(1)}"
                       </Typography>
                     </Box>
-                    {selectedField.image.beam_minor_arcsec !== undefined && (
+                    {selectedField.image.beam_minor_arcsec !== undefined && selectedField.image.beam_minor_arcsec !== null && (
                       <Box>
                         <Typography variant="subtitle2" color="text.secondary">
                           Beam Minor Axis
@@ -488,7 +488,7 @@ export default function SkyMap({
                       Field Size
                     </Typography>
                     <Typography variant="body1">
-                      {selectedField.image.image_size_deg.toFixed(3)}°
+                      {(selectedField.image.image_size_deg ?? 0).toFixed(3)}°
                     </Typography>
                   </Box>
                 </>

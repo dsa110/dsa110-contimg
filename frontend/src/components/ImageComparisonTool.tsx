@@ -49,7 +49,7 @@ interface ImageComparisonToolProps {
 export default function ImageComparisonTool({
   initialImageA = null,
   initialImageB = null,
-  mode = "custom",
+  mode: _mode = "custom",
 }: ImageComparisonToolProps) {
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);

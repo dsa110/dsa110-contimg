@@ -38,7 +38,7 @@ interface ImageControlsProps {
 
 export default function ImageControls({
   displayId = "js9Display",
-  onImageLoad,
+  onImageLoad: _onImageLoad,
 }: ImageControlsProps) {
   // Use JS9 context if available (backward compatible)
   const js9Context = useJS9Safe();

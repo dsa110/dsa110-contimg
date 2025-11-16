@@ -34,7 +34,7 @@ export default function CatalogOverlayJS9({
   onSourceClick,
 }: CatalogOverlayJS9Props) {
   const overlayRef = useRef<any[]>([]);
-  const [hoveredSource, setHoveredSource] = useState<any | null>(null);
+  const [_hoveredSource, _setHoveredSource] = useState<any | null>(null);
 
   const {
     data: overlayData,

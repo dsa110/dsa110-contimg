@@ -257,13 +257,12 @@ export default function DashboardPage() {
                       }
                     />
                   )}
-                  {metrics?.load_1 !== undefined && (
+                  {metrics?.load_1 !== undefined && metrics?.load_1 !== null && (
                     <MetricWithSparkline
                       label="Load (1m)"
                       value={metrics.load_1.toFixed(2)}
                       color="info"
-                      size="small"
-                      sparklineData={loadHistory.length > 1 ? loadHistory : undefined}
+                      trend={loadHistory.length > 1 ? loadHistory : undefined}
                     />
                   )}
                 </Box>

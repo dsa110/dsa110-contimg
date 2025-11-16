@@ -141,7 +141,7 @@ export default function DataDetailPage() {
             <ArrowBack />
           </IconButton>
           <Typography variant="h1" component="h1" sx={{ flexGrow: 1 }}>
-            {DATA_TYPE_LABELS[instance.data_type] || instance.data_type}
+            {(instance.data_type && DATA_TYPE_LABELS[instance.data_type]) || instance.data_type || "Unknown"}
           </Typography>
           {canPublish && (
             <Button
@@ -202,7 +202,7 @@ export default function DataDetailPage() {
                     Type
                   </Typography>
                   <Chip
-                    label={DATA_TYPE_LABELS[instance.data_type] || instance.data_type}
+                    label={(instance.data_type && DATA_TYPE_LABELS[instance.data_type]) || instance.data_type || "Unknown"}
                     size="small"
                     sx={{ mt: 0.5 }}
                   />

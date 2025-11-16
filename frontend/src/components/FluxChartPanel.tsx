@@ -20,11 +20,11 @@ export default function FluxChartPanel({ source, height = 400 }: FluxChartPanelP
     }
 
     // Sort by time
-    const sortedPoints = [...source.flux_points].sort(
-      (a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
-    );
+    const sortedPoints = [...source.flux_points]
+      .filter((p) => p.time !== undefined)
+      .sort((a, b) => new Date(a.time!).getTime() - new Date(b.time!).getTime());
 
-    const times = sortedPoints.map((p) => p.time);
+    const times = sortedPoints.map((p) => p.time!);
     const fluxes = sortedPoints.map((p) => p.flux_jy * 1000); // Convert to mJy
     const errors = sortedPoints.map((p) => p.flux_err_jy * 1000);
 

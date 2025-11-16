@@ -15,7 +15,7 @@ class SetTimeoutPatcher {
   private originalSetTimeout: typeof setTimeout;
   private isPatched: boolean = false;
   private readonly CHUNK_TIME_MS: number = 5; // Max time per chunk
-  private readonly MAX_CHUNKS: number = 1000; // Safety limit
+  private readonly _MAX_CHUNKS: number = 1000; // Safety limit
 
   constructor() {
     this.originalSetTimeout = window.setTimeout;
