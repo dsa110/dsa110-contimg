@@ -281,7 +281,7 @@ export default function ObservingPage() {
             <Card>
               <CardHeader title="Pointing History" />
               <CardContent>
-                <PointingVisualization height={500} showHistory={true} historyDays={7} />
+                <PointingVisualization height={500} showHistory={true} />
               </CardContent>
             </Card>
           </Grid>

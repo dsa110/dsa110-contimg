@@ -43,10 +43,11 @@ export default defineConfig({
   base: process.env.NODE_ENV === "production" ? "/ui/" : "/",
   server: {
     host: "0.0.0.0", // Allow external connections in Docker
-    port: 5173,
+    port: parseInt(process.env.VITE_PORT || process.env.PORT || "5173", 10),
     hmr: {
-      host: "localhost",
-      port: 5173,
+      // Let Vite auto-detect the client hostname and port for HMR WebSocket connections
+      // This works for both local and remote connections and matches the server port
+      // Port will automatically match server.port when not specified
     },
     watch: {
       usePolling: false, // Use native file system events (faster)

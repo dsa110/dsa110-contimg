@@ -97,7 +97,7 @@ class DSAPhotometryPlugin {
       // Extract region parameters
       // JS9 regions: circles use 'c' or 'circle', rectangles use 'r' or 'box'
       const regionType = region.shape || region.type || region.regtype || "circle";
-      let regionPixels: { x: number; y: number }[] = [];
+      const regionPixels: { x: number; y: number }[] = [];
 
       if (regionType === "circle" || regionType === "c") {
         // Circle region: x, y, radius (in image coordinates)

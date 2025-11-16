@@ -10,6 +10,7 @@ import { logger } from "../utils/logger";
 import type {
   PipelineStatus,
   SystemMetrics,
+  DatabaseMetrics,
   ESECandidatesResponse,
   MosaicQueryRequest,
   MosaicQueryResponse,
@@ -180,6 +181,17 @@ export function useSystemMetrics(): UseQueryResult<SystemMetrics> {
     wsClient,
     10000
   );
+}
+
+export function useDatabaseMetrics(): UseQueryResult<DatabaseMetrics> {
+  return useQuery({
+    queryKey: ["metrics", "database"],
+    queryFn: async () => {
+      const response = await apiClient.get<DatabaseMetrics>("/metrics/database");
+      return response.data;
+    },
+    refetchInterval: 5000, // Poll every 5 seconds
+  });
 }
 
 export function useESECandidates(): UseQueryResult<ESECandidatesResponse> {

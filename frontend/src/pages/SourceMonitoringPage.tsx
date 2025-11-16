@@ -11,6 +11,7 @@ import {
   TextField,
   Button,
   Alert,
+  AlertTitle,
   Stack,
   Chip,
   Collapse,
@@ -37,14 +38,22 @@ import type { SourceTimeseries, SourceSearchRequest } from "../api/types";
 import { EmptyState } from "../components/EmptyState";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
 
+// Constants
+const DEFAULT_LIMIT = 100;
+const ADVANCED_FILTER_LIMIT = 1000;
+const DEFAULT_VARIABILITY_THRESHOLD = 5;
+const DEC_RANGE = { min: -90, max: 90 };
+const GRID_HEIGHT = 600;
+const PAGINATION_PAGE_SIZE = 20;
+
 export default function SourceMonitoringPage() {
   const navigate = useNavigate();
   const [sourceId, setSourceId] = useState("");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [variabilityThreshold, setVariabilityThreshold] = useState(5);
+  const [variabilityThreshold, setVariabilityThreshold] = useState(DEFAULT_VARIABILITY_THRESHOLD);
   const [eseOnly, setEseOnly] = useState(false);
-  const [decMin, setDecMin] = useState(-90);
-  const [decMax, setDecMax] = useState(90);
+  const [decMin, setDecMin] = useState(DEC_RANGE.min);
+  const [decMax, setDecMax] = useState(DEC_RANGE.max);
   const [searchRequest, setSearchRequest] = useState<SourceSearchRequest | null>(null);
   const gridRef = useRef<AgGridReact>(null);
 
@@ -55,32 +64,40 @@ export default function SourceMonitoringPage() {
 
     if (sourceId.trim()) {
       request.source_id = sourceId.trim();
+    } else if (!showAdvancedFilters) {
+      // No source ID and no advanced filters - don't search
+      setSearchRequest(null);
+      return;
     }
 
     if (showAdvancedFilters) {
-      request.limit = 1000; // Allow more results with filters
+      request.limit = ADVANCED_FILTER_LIMIT; // Allow more results with filters
+      request.variability_threshold = variabilityThreshold;
+      request.ese_only = eseOnly;
+      request.dec_min = decMin;
+      request.dec_max = decMax;
     } else {
-      request.limit = 100;
+      request.limit = DEFAULT_LIMIT;
     }
 
-    setSearchRequest(Object.keys(request).length > 0 ? request : null);
+    setSearchRequest(request);
   };
 
   const handleClearFilters = () => {
     setSourceId("");
-    setVariabilityThreshold(5);
+    setVariabilityThreshold(DEFAULT_VARIABILITY_THRESHOLD);
     setEseOnly(false);
-    setDecMin(-90);
-    setDecMax(90);
+    setDecMin(DEC_RANGE.min);
+    setDecMax(DEC_RANGE.max);
     setSearchRequest(null);
   };
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (sourceId.trim()) count++;
-    if (variabilityThreshold !== 5) count++;
+    if (variabilityThreshold !== DEFAULT_VARIABILITY_THRESHOLD) count++;
     if (eseOnly) count++;
-    if (decMin !== -90 || decMax !== 90) count++;
+    if (decMin !== DEC_RANGE.min || decMax !== DEC_RANGE.max) count++;
     return count;
   }, [sourceId, variabilityThreshold, eseOnly, decMin, decMax]);
 
@@ -109,13 +126,19 @@ export default function SourceMonitoringPage() {
         field: "ra_deg",
         headerName: "RA (deg)",
         width: 120,
-        valueFormatter: (params) => params.value?.toFixed(5),
+        valueFormatter: (params) => {
+          if (params.value == null) return "—";
+          return params.value.toFixed(5);
+        },
       },
       {
         field: "dec_deg",
         headerName: "Dec (deg)",
         width: 120,
-        valueFormatter: (params) => params.value?.toFixed(5),
+        valueFormatter: (params) => {
+          if (params.value == null) return "—";
+          return params.value.toFixed(5);
+        },
       },
       {
         field: "catalog",
@@ -126,19 +149,28 @@ export default function SourceMonitoringPage() {
         field: "mean_flux_jy",
         headerName: "Mean Flux (mJy)",
         width: 140,
-        valueFormatter: (params) => (params.value * 1000).toFixed(2),
+        valueFormatter: (params) => {
+          if (params.value == null) return "—";
+          return (params.value * 1000).toFixed(2);
+        },
       },
       {
         field: "std_flux_jy",
         headerName: "Std Dev (mJy)",
         width: 140,
-        valueFormatter: (params) => (params.value * 1000).toFixed(2),
+        valueFormatter: (params) => {
+          if (params.value == null) return "—";
+          return (params.value * 1000).toFixed(2);
+        },
       },
       {
         field: "chi_sq_nu",
         headerName: "χ²/ν",
         width: 100,
-        valueFormatter: (params) => params.value?.toFixed(2),
+        valueFormatter: (params) => {
+          if (params.value == null) return "—";
+          return params.value.toFixed(2);
+        },
         cellStyle: (params) => {
           if (params.value && params.value > 5) {
             return {
@@ -163,10 +195,13 @@ export default function SourceMonitoringPage() {
         field: "flux_points",
         headerName: "Observations",
         width: 130,
-        valueFormatter: (params) => `${params.value?.length || 0} points`,
+        valueFormatter: (params) => {
+          if (params.value == null || !Array.isArray(params.value)) return "0 points";
+          return `${params.value.length} points`;
+        },
       },
     ],
-    []
+    [navigate]
   );
 
   const defaultColDef = useMemo<ColDef>(
@@ -223,7 +258,7 @@ export default function SourceMonitoringPage() {
                 variant="contained"
                 startIcon={<Search />}
                 onClick={handleSearch}
-                disabled={!sourceId.trim() && !showAdvancedFilters}
+                disabled={(!sourceId.trim() && !showAdvancedFilters) || isLoading}
               >
                 Search
               </Button>
@@ -289,21 +324,32 @@ export default function SourceMonitoringPage() {
 
         {/* Results Table */}
         {error && (
-          <Alert severity="warning">
-            Source monitoring not available. This feature requires enhanced API endpoints.
+          <Alert severity="error">
+            <AlertTitle>Error loading sources</AlertTitle>
+            {error instanceof Error
+              ? error.message
+              : "Source monitoring not available. This feature requires enhanced API endpoints."}
+            {process.env.NODE_ENV === "development" && (
+              <Box
+                component="pre"
+                sx={{ fontSize: "0.75rem", marginTop: 1, whiteSpace: "pre-wrap" }}
+              >
+                {JSON.stringify(error, null, 2)}
+              </Box>
+            )}
           </Alert>
         )}
 
         {!error && (
           <Paper sx={{ p: 2 }}>
-            <Box className="ag-theme-alpine-dark" sx={{ height: 600, width: "100%" }}>
+            <Box className="ag-theme-alpine-dark" sx={{ height: GRID_HEIGHT, width: "100%" }}>
               <AgGridReact
                 ref={gridRef}
                 rowData={data?.sources || []}
                 columnDefs={columnDefs}
                 defaultColDef={defaultColDef}
                 pagination={true}
-                paginationPageSize={20}
+                paginationPageSize={PAGINATION_PAGE_SIZE}
                 loading={isLoading}
                 loadingOverlayComponent={() => (
                   <Box display="flex" justifyContent="center" alignItems="center" height="100%">

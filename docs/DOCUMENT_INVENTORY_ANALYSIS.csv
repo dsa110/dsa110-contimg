@@ -1,0 +1,631 @@
+filename,path,themes,date_modified
+AGENT_INFORMATION_RELIABILITY.md,AGENT_INFORMATION_RELIABILITY.md,miscellaneous,2025-11-13
+AGENT_SAFEGUARDS_COMPLETE.md,AGENT_SAFEGUARDS_COMPLETE.md,operations; security,2025-11-13
+AUTOMATED_TESTING_STRATEGY.md,AUTOMATED_TESTING_STRATEGY.md,testing,2025-11-13
+CASA6_ENVIRONMENT_GUIDE.md,CASA6_ENVIRONMENT_GUIDE.md,pipeline: imaging; dashboard: frontend; documentation; environment,2025-11-12
+CODE_REVIEW_ANALYSIS.md,CODE_REVIEW_ANALYSIS.md,miscellaneous,2025-11-13
+DASHBOARD_DOCUMENTATION_MASTER_INDEX.md,DASHBOARD_DOCUMENTATION_MASTER_INDEX.md,documentation,2025-11-13
+DASHBOARD_FRONTEND_CONSOLIDATED_OUTLINE.md,DASHBOARD_FRONTEND_CONSOLIDATED_OUTLINE.md,dashboard: frontend,2025-11-13
+DEVELOPMENT_ROADMAP.md,DEVELOPMENT_ROADMAP.md,development,2025-11-13
+DOCUMENTATION_AUDIT_SUMMARY.md,DOCUMENTATION_AUDIT_SUMMARY.md,documentation,2025-11-13
+DOCUMENTATION_CONSOLIDATION_STRATEGY.md,DOCUMENTATION_CONSOLIDATION_STRATEGY.md,documentation,2025-11-13
+DOCUMENTATION_QUICK_REFERENCE.md,DOCUMENTATION_QUICK_REFERENCE.md,dashboard: frontend; documentation,2025-11-13
+EXTERNAL_TOOLS_EVALUATION.md,EXTERNAL_TOOLS_EVALUATION.md,tools,2025-11-13
+IMPLEMENTATION_CHECKLIST.md,IMPLEMENTATION_CHECKLIST.md,development,2025-11-13
+QA_VISUALIZATION_DESIGN.md,QA_VISUALIZATION_DESIGN.md,pipeline: qa; dashboard: visualization; dashboard: architecture,2025-11-12
+QA_VISUALIZATION_QUICK_START.md,QA_VISUALIZATION_QUICK_START.md,pipeline: qa; dashboard: frontend; dashboard: visualization,2025-11-12
+QA_VISUALIZATION_USAGE.md,QA_VISUALIZATION_USAGE.md,pipeline: qa; dashboard: visualization,2025-11-12
+QUICK_START_WARNINGS.md,QUICK_START_WARNINGS.md,dashboard: frontend,2025-11-13
+RADIOPADRE_EVALUATION.md,RADIOPADRE_EVALUATION.md,tools,2025-11-13
+RADIOPADRE_VS_VAST_TOOLS_COMPARISON.md,RADIOPADRE_VS_VAST_TOOLS_COMPARISON.md,pipeline: crossmatching; tools,2025-11-13
+SKYVIEW_IMPLEMENTATION_PLAN.md,SKYVIEW_IMPLEMENTATION_PLAN.md,development,2025-11-13
+SYNTHETIC_DATA_GENERATION.md,SYNTHETIC_DATA_GENERATION.md,miscellaneous,2025-11-13
+TEST_AGENT_PYTHON_ENV.md,TEST_AGENT_PYTHON_ENV.md,testing,2025-11-13
+TODO.md,TODO.md,miscellaneous,2025-11-12
+WORKSPACE_RULES_CONCISE.md,WORKSPACE_RULES_CONCISE.md,miscellaneous,2025-11-12
+WORKSPACE_RULES_CONFIGURATION.md,WORKSPACE_RULES_CONFIGURATION.md,miscellaneous,2025-11-12
+DASHBOARD_DESIGN_IMPROVEMENTS.md,analysis/DASHBOARD_DESIGN_IMPROVEMENTS.md,dashboard: architecture,2025-11-13
+ARCHIVAL_NOTE.md,archive/2025-01/ARCHIVAL_NOTE.md,miscellaneous,2025-11-13
+AGENT_INFORMATION_RELIABILITY.md,archive/AGENT_INFORMATION_RELIABILITY.md,miscellaneous,2025-11-12
+AGENT_SAFEGUARDS_COMPLETE.md,archive/AGENT_SAFEGUARDS_COMPLETE.md,operations; security,2025-11-13
+AUTOMATED_TESTING_STRATEGY.md,archive/AUTOMATED_TESTING_STRATEGY.md,testing,2025-11-12
+CODE_REVIEW_ANALYSIS.md,archive/CODE_REVIEW_ANALYSIS.md,miscellaneous,2025-11-12
+DASHBOARD_DOCUMENTATION_MASTER_INDEX.md,archive/DASHBOARD_DOCUMENTATION_MASTER_INDEX.md,documentation,2025-11-13
+DASHBOARD_FRONTEND_CONSOLIDATED_OUTLINE.md,archive/DASHBOARD_FRONTEND_CONSOLIDATED_OUTLINE.md,dashboard: frontend,2025-11-13
+EXTERNAL_TOOLS_EVALUATION.md,archive/EXTERNAL_TOOLS_EVALUATION.md,tools,2025-11-12
+QUICK_START_WARNINGS.md,archive/QUICK_START_WARNINGS.md,dashboard: frontend,2025-11-14
+RADIOPADRE_EVALUATION.md,archive/RADIOPADRE_EVALUATION.md,tools,2025-11-12
+RADIOPADRE_VS_VAST_TOOLS_COMPARISON.md,archive/RADIOPADRE_VS_VAST_TOOLS_COMPARISON.md,pipeline: crossmatching; tools,2025-11-12
+SKYVIEW_IMPLEMENTATION_PLAN.md,archive/SKYVIEW_IMPLEMENTATION_PLAN.md,development,2025-11-12
+SYNTHETIC_DATA_GENERATION.md,archive/SYNTHETIC_DATA_GENERATION.md,miscellaneous,2025-11-12
+TEST_AGENT_PYTHON_ENV.md,archive/TEST_AGENT_PYTHON_ENV.md,testing,2025-11-12
+ANALYSIS_WORKSPACE_TOOLS.md,archive/analysis/ANALYSIS_WORKSPACE_TOOLS.md,tools,2025-11-12
+ANTICIPATORY_DASHBOARD_IMPLEMENTATION.md,archive/analysis/ANTICIPATORY_DASHBOARD_IMPLEMENTATION.md,development,2025-11-12
+API_ENDPOINTS_IMPLEMENTED.md,archive/analysis/API_ENDPOINTS_IMPLEMENTED.md,dashboard: backend,2025-11-12
+BUGFIXES_SEMANTIC_HTML.md,archive/analysis/BUGFIXES_SEMANTIC_HTML.md,troubleshooting,2025-11-13
+CARTA_INTEGRATION_ASSESSMENT.md,archive/analysis/CARTA_INTEGRATION_ASSESSMENT.md,dashboard: visualization; testing,2025-11-12
+CARTA_INTEGRATION_TODO.md,archive/analysis/CARTA_INTEGRATION_TODO.md,dashboard: visualization; testing,2025-11-13
+CARTA_PHASE1_COMPLETION.md,archive/analysis/CARTA_PHASE1_COMPLETION.md,dashboard: visualization; development,2025-11-13
+CARTA_PHASE1_TODO.md,archive/analysis/CARTA_PHASE1_TODO.md,dashboard: visualization; development,2025-11-13
+CARTA_PHASE2_TODO.md,archive/analysis/CARTA_PHASE2_TODO.md,dashboard: visualization; development,2025-11-13
+COMMAND_LINE_TEST_RESULTS.md,archive/analysis/COMMAND_LINE_TEST_RESULTS.md,testing,2025-11-12
+CORE_VALIDATION_PLAN.md,archive/analysis/CORE_VALIDATION_PLAN.md,testing,2025-11-13
+CRITICAL_MOSAIC_REGRIDDING_ISSUE.md,archive/analysis/CRITICAL_MOSAIC_REGRIDDING_ISSUE.md,pipeline: mosaicing; troubleshooting,2025-11-12
+CRITICAL_REVIEW_SYNTHETIC_DATA.md,archive/analysis/CRITICAL_REVIEW_SYNTHETIC_DATA.md,miscellaneous,2025-11-13
+CURSOR_CHAT_DEVELOPMENT_HISTORY.md,archive/analysis/CURSOR_CHAT_DEVELOPMENT_HISTORY.md,development,2025-11-13
+DASHBOARD_DESIGN_IMPROVEMENTS.md,archive/analysis/DASHBOARD_DESIGN_IMPROVEMENTS.md,dashboard: architecture,2025-11-13
+DASHBOARD_FRONTEND_DOCUMENTATION_INDEX.md,archive/analysis/DASHBOARD_FRONTEND_DOCUMENTATION_INDEX.md,dashboard: frontend; documentation,2025-11-13
+DASHBOARD_FRONTEND_DOCUMENTATION_INDEX_COMPLETE.md,archive/analysis/DASHBOARD_FRONTEND_DOCUMENTATION_INDEX_COMPLETE.md,dashboard: frontend; documentation,2025-11-13
+DASHBOARD_OVERVIEW.md,archive/analysis/DASHBOARD_OVERVIEW.md,miscellaneous,2025-11-12
+DASHBOARD_OVERVIEW_DETAILED.md,archive/analysis/DASHBOARD_OVERVIEW_DETAILED.md,miscellaneous,2025-11-13
+DASHBOARD_REVIEW.md,archive/analysis/DASHBOARD_REVIEW.md,miscellaneous,2025-11-12
+DASHBOARD_TEMPLATE_RECOMMENDATIONS.md,archive/analysis/DASHBOARD_TEMPLATE_RECOMMENDATIONS.md,miscellaneous,2025-11-12
+DEEP_STUDY_2025_01_XX.md,archive/analysis/DEEP_STUDY_2025_01_XX.md,miscellaneous,2025-11-13
+DEEP_STUDY_COMPREHENSIVE.md,archive/analysis/DEEP_STUDY_COMPREHENSIVE.md,miscellaneous,2025-11-13
+DEEP_STUDY_SUMMARY.md,archive/analysis/DEEP_STUDY_SUMMARY.md,miscellaneous,2025-11-13
+DOCUMENTATION_FIXES_APPLIED.md,archive/analysis/DOCUMENTATION_FIXES_APPLIED.md,documentation; troubleshooting,2025-11-13
+DOCUMENTATION_ISSUES_FOUND.md,archive/analysis/DOCUMENTATION_ISSUES_FOUND.md,documentation; troubleshooting,2025-11-13
+FIELD_MAPPING_COMPLETE.md,archive/analysis/FIELD_MAPPING_COMPLETE.md,miscellaneous,2025-11-12
+FINAL_RECOMMENDATION.md,archive/analysis/FINAL_RECOMMENDATION.md,miscellaneous,2025-11-12
+FINAL_TESTING_SUMMARY.md,archive/analysis/FINAL_TESTING_SUMMARY.md,testing,2025-11-12
+FINAL_TEST_RESULTS.md,archive/analysis/FINAL_TEST_RESULTS.md,testing,2025-11-12
+FIXES_VERIFICATION_REPORT.md,archive/analysis/FIXES_VERIFICATION_REPORT.md,operations; troubleshooting,2025-11-12
+FORCED_PHOTOMETRY_ENHANCEMENTS.md,archive/analysis/FORCED_PHOTOMETRY_ENHANCEMENTS.md,pipeline: photometry,2025-11-12
+FORCED_PHOTOMETRY_TESTS.md,archive/analysis/FORCED_PHOTOMETRY_TESTS.md,pipeline: photometry; testing,2025-11-12
+IMPLEMENTATION_PHASE10.md,archive/analysis/IMPLEMENTATION_PHASE10.md,development,2025-11-13
+IMPLEMENTATION_PHASE2.md,archive/analysis/IMPLEMENTATION_PHASE2.md,development,2025-11-13
+IMPLEMENTATION_PHASE3.md,archive/analysis/IMPLEMENTATION_PHASE3.md,development,2025-11-13
+IMPLEMENTATION_PHASE4.md,archive/analysis/IMPLEMENTATION_PHASE4.md,development,2025-11-13
+IMPLEMENTATION_PHASE5.md,archive/analysis/IMPLEMENTATION_PHASE5.md,development,2025-11-13
+IMPLEMENTATION_PHASE6.md,archive/analysis/IMPLEMENTATION_PHASE6.md,development,2025-11-13
+IMPLEMENTATION_PHASE7.md,archive/analysis/IMPLEMENTATION_PHASE7.md,development,2025-11-13
+IMPLEMENTATION_PHASE8.md,archive/analysis/IMPLEMENTATION_PHASE8.md,development,2025-11-13
+IMPLEMENTATION_PHASE9.md,archive/analysis/IMPLEMENTATION_PHASE9.md,development,2025-11-13
+IMPLEMENTATION_PRIORITIES.md,archive/analysis/IMPLEMENTATION_PRIORITIES.md,development,2025-11-12
+IMPLEMENTATION_STATUS.md,archive/analysis/IMPLEMENTATION_STATUS.md,development,2025-11-13
+IMPLEMENTATION_SUMMARY.md,archive/analysis/IMPLEMENTATION_SUMMARY.md,development,2025-11-13
+MASKED_IMAGING_ANALYSIS.md,archive/analysis/MASKED_IMAGING_ANALYSIS.md,pipeline: imaging; pipeline: masking,2025-11-13
+MASKING_EFFICIENCY_ANALYSIS.md,archive/analysis/MASKING_EFFICIENCY_ANALYSIS.md,pipeline: masking,2025-11-13
+MASKING_IMPLEMENTATION_COMPLETE.md,archive/analysis/MASKING_IMPLEMENTATION_COMPLETE.md,pipeline: masking; development,2025-11-12
+MASKING_TOGGLE_IMPLEMENTATION_PLAN.md,archive/analysis/MASKING_TOGGLE_IMPLEMENTATION_PLAN.md,pipeline: masking; development,2025-11-12
+MOFFAT_ROTATION_DEFERRED.md,archive/analysis/MOFFAT_ROTATION_DEFERRED.md,miscellaneous,2025-11-13
+MOFFAT_ROTATION_ESE_SCIENCE.md,archive/analysis/MOFFAT_ROTATION_ESE_SCIENCE.md,pipeline: ese,2025-11-12
+MOFFAT_ROTATION_UNRESOLVED_SOURCES.md,archive/analysis/MOFFAT_ROTATION_UNRESOLVED_SOURCES.md,miscellaneous,2025-11-12
+MOFFAT_ROTATION_VALUE.md,archive/analysis/MOFFAT_ROTATION_VALUE.md,miscellaneous,2025-11-12
+MOSAIC_BUILD_TEST_RESULTS.md,archive/analysis/MOSAIC_BUILD_TEST_RESULTS.md,pipeline: mosaicing; dashboard: frontend; testing,2025-11-12
+MOSAIC_FIXES_SUMMARY.md,archive/analysis/MOSAIC_FIXES_SUMMARY.md,pipeline: mosaicing; troubleshooting,2025-11-13
+MOSAIC_ISSUES_ANALYSIS.md,archive/analysis/MOSAIC_ISSUES_ANALYSIS.md,pipeline: mosaicing; troubleshooting,2025-11-12
+MOSAIC_STATUS_EXPLANATION.md,archive/analysis/MOSAIC_STATUS_EXPLANATION.md,pipeline: mosaicing; development,2025-11-12
+NAVIGATION_REDESIGN_PLAN.md,archive/analysis/NAVIGATION_REDESIGN_PLAN.md,dashboard: architecture,2025-11-13
+NEXT_STEPS_COMPLETION.md,archive/analysis/NEXT_STEPS_COMPLETION.md,miscellaneous,2025-11-12
+NEXT_STEPS_MOSAIC_FIXES.md,archive/analysis/NEXT_STEPS_MOSAIC_FIXES.md,pipeline: mosaicing; troubleshooting,2025-11-12
+NEXT_STEPS_SUMMARY.md,archive/analysis/NEXT_STEPS_SUMMARY.md,miscellaneous,2025-11-12
+PAGE_CONSOLIDATION_PLAN.md,archive/analysis/PAGE_CONSOLIDATION_PLAN.md,dashboard: frontend,2025-11-13
+PHASE1_COMPLETE.md,archive/analysis/PHASE1_COMPLETE.md,development,2025-11-13
+PHASE1_IMPLEMENTATION_STATUS.md,archive/analysis/PHASE1_IMPLEMENTATION_STATUS.md,development,2025-11-12
+PHASE1_IMPLEMENTATION_SUMMARY.md,archive/analysis/PHASE1_IMPLEMENTATION_SUMMARY.md,development,2025-11-13
+PHASE1_SUMMARY.md,archive/analysis/PHASE1_SUMMARY.md,development,2025-11-13
+PHASE1_TESTING_GUIDE.md,archive/analysis/PHASE1_TESTING_GUIDE.md,dashboard: frontend; testing; documentation; development,2025-11-12
+PHASE2_LIMITATIONS_ROADMAP.md,archive/analysis/PHASE2_LIMITATIONS_ROADMAP.md,development,2025-11-13
+PHASE2_WEEK5_COMPLETION.md,archive/analysis/PHASE2_WEEK5_COMPLETION.md,development,2025-11-13
+PHASE2_WEEKS6-7_COMPLETION.md,archive/analysis/PHASE2_WEEKS6-7_COMPLETION.md,development,2025-11-13
+PIPELINE_DEEP_UNDERSTANDING.md,archive/analysis/PIPELINE_DEEP_UNDERSTANDING.md,miscellaneous,2025-11-13
+PRETTIER_INTEGRATION.md,archive/analysis/PRETTIER_INTEGRATION.md,testing,2025-11-13
+PRIORITY1_COMPLETION.md,archive/analysis/PRIORITY1_COMPLETION.md,miscellaneous,2025-11-13
+PRIORITY1_TESTING_STRATEGY.md,archive/analysis/PRIORITY1_TESTING_STRATEGY.md,testing,2025-11-12
+PRIORITY1_TEST_RESULTS.md,archive/analysis/PRIORITY1_TEST_RESULTS.md,testing,2025-11-13
+RADIOPADRE_B1.2.4_FEATURE_ANALYSIS.md,archive/analysis/RADIOPADRE_B1.2.4_FEATURE_ANALYSIS.md,tools,2025-11-12
+RESIDUAL_VISUALIZATION_DEFERRED.md,archive/analysis/RESIDUAL_VISUALIZATION_DEFERRED.md,pipeline: qa; dashboard: visualization,2025-11-13
+RUNTIME_TESTING_RESULTS.md,archive/analysis/RUNTIME_TESTING_RESULTS.md,testing,2025-11-12
+RUNTIME_TESTING_SUMMARY.md,archive/analysis/RUNTIME_TESTING_SUMMARY.md,testing,2025-11-12
+STRUCTURE_DOCUMENTATION_ORGANIZATION_STUDY.md,archive/analysis/STRUCTURE_DOCUMENTATION_ORGANIZATION_STUDY.md,dashboard: architecture; documentation,2025-11-13
+SYNTHETIC_DATA_CONFIDENCE_ASSESSMENT.md,archive/analysis/SYNTHETIC_DATA_CONFIDENCE_ASSESSMENT.md,miscellaneous,2025-11-13
+SYNTHETIC_DATA_PIPELINE_STAGE_COVERAGE.md,archive/analysis/SYNTHETIC_DATA_PIPELINE_STAGE_COVERAGE.md,miscellaneous,2025-11-13
+SYNTHETIC_DATA_REPRESENTATIVENESS.md,archive/analysis/SYNTHETIC_DATA_REPRESENTATIVENESS.md,pipeline: ese,2025-11-13
+TESTING_COMPLETE.md,archive/analysis/TESTING_COMPLETE.md,testing,2025-11-13
+TIMEOUT_STRATEGY_IMPLEMENTATION.md,archive/analysis/TIMEOUT_STRATEGY_IMPLEMENTATION.md,development,2025-11-12
+UNANTICIPATED_ISSUES.md,archive/analysis/UNANTICIPATED_ISSUES.md,troubleshooting,2025-11-12
+VALIDATION_APPROACH.md,archive/analysis/VALIDATION_APPROACH.md,testing,2025-11-12
+VALIDATION_FOCUS_SUMMARY.md,archive/analysis/VALIDATION_FOCUS_SUMMARY.md,testing,2025-11-13
+VALIDATION_ISSUES.md,archive/analysis/VALIDATION_ISSUES.md,testing; troubleshooting,2025-11-12
+VALIDATION_LEARNINGS.md,archive/analysis/VALIDATION_LEARNINGS.md,testing,2025-11-12
+VAST_ARCHITECTURE_ANALYSIS.md,archive/analysis/VAST_ARCHITECTURE_ANALYSIS.md,pipeline: crossmatching; dashboard: architecture,2025-11-12
+VAST_DSA110_IMAGING_COMPARISON.md,archive/analysis/VAST_DSA110_IMAGING_COMPARISON.md,pipeline: imaging; pipeline: crossmatching; tools,2025-11-12
+VAST_FORCED_PHOTOMETRY_ANALYSIS.md,archive/analysis/VAST_FORCED_PHOTOMETRY_ANALYSIS.md,pipeline: crossmatching; pipeline: photometry,2025-11-12
+VAST_MOSAIC_AND_ANALYSIS_WORKFLOW.md,archive/analysis/VAST_MOSAIC_AND_ANALYSIS_WORKFLOW.md,pipeline: mosaicing; pipeline: crossmatching; dashboard: architecture,2025-11-12
+VAST_PIPELINE_IMAGING_WORKFLOW.md,archive/analysis/VAST_PIPELINE_IMAGING_WORKFLOW.md,pipeline: imaging; pipeline: crossmatching; dashboard: architecture,2025-11-12
+VAST_TOOLS_ADOPTION_SUMMARY.md,archive/analysis/VAST_TOOLS_ADOPTION_SUMMARY.md,pipeline: crossmatching; tools,2025-11-13
+VAST_TOOLS_DSA110_DETAILED_COMPARISON.md,archive/analysis/VAST_TOOLS_DSA110_DETAILED_COMPARISON.md,pipeline: crossmatching; tools,2025-11-13
+VAST_TOOLS_REFERENCE_ANALYSIS.md,archive/analysis/VAST_TOOLS_REFERENCE_ANALYSIS.md,pipeline: crossmatching; documentation; tools,2025-11-13
+VAST_TO_DSA110_SYNTHESIS.md,archive/analysis/VAST_TO_DSA110_SYNTHESIS.md,pipeline: crossmatching,2025-11-12
+VISUAL_DESIGN_CRITIQUE.md,archive/analysis/VISUAL_DESIGN_CRITIQUE.md,dashboard: visualization; dashboard: architecture,2025-11-13
+VISUAL_DESIGN_REDESIGN_PLAN.md,archive/analysis/VISUAL_DESIGN_REDESIGN_PLAN.md,dashboard: visualization; dashboard: architecture,2025-11-13
+WABIFAT_ANALYSIS.md,archive/analysis/WABIFAT_ANALYSIS.md,miscellaneous,2025-11-12
+WABIFAT_COMPATIBILITY_ASSESSMENT.md,archive/analysis/WABIFAT_COMPATIBILITY_ASSESSMENT.md,miscellaneous,2025-11-12
+WABIFAT_IMPLEMENTATION_STATUS.md,archive/analysis/WABIFAT_IMPLEMENTATION_STATUS.md,development,2025-11-13
+WABIFAT_VERIFICATION_RESULTS.md,archive/analysis/WABIFAT_VERIFICATION_RESULTS.md,miscellaneous,2025-11-12
+WSCLEAN_USAGE_ANALYSIS.md,archive/analysis/WSCLEAN_USAGE_ANALYSIS.md,pipeline: imaging,2025-11-12
+calibrator-detection-investigation.md,archive/analysis/calibrator-detection-investigation.md,pipeline: calibration; pipeline: ese,2025-11-12
+docker-networking-fix.md,archive/analysis/docker-networking-fix.md,deployment; troubleshooting,2025-11-12
+documentation-improvement-plan.md,archive/analysis/documentation-improvement-plan.md,documentation,2025-11-13
+dp3_multi_field_issue.md,archive/analysis/dp3_multi_field_issue.md,troubleshooting,2025-11-12
+dp3_multi_field_recommendation.md,archive/analysis/dp3_multi_field_recommendation.md,miscellaneous,2025-11-12
+dp3_multi_field_solutions.md,archive/analysis/dp3_multi_field_solutions.md,miscellaneous,2025-11-12
+dp3_polarization_limitation.md,archive/analysis/dp3_polarization_limitation.md,miscellaneous,2025-11-12
+dsa110-beam-assets-analysis.md,archive/analysis/dsa110-beam-assets-analysis.md,miscellaneous,2025-11-12
+model_py_implementation.md,archive/analysis/model_py_implementation.md,development,2025-11-13
+model_py_review.md,archive/analysis/model_py_review.md,miscellaneous,2025-11-12
+next-steps-execution-summary.md,archive/analysis/next-steps-execution-summary.md,miscellaneous,2025-11-12
+next-steps-final-status.md,archive/analysis/next-steps-final-status.md,development,2025-11-12
+pyradiosky_dp3_compatibility_check.md,archive/analysis/pyradiosky_dp3_compatibility_check.md,tools,2025-11-13
+pyradiosky_vs_componentlist.md,archive/analysis/pyradiosky_vs_componentlist.md,dashboard: frontend; tools,2025-11-12
+rephase_concat_analysis.md,archive/analysis/rephase_concat_analysis.md,development,2025-11-12
+rephase_concat_recommendation.md,archive/analysis/rephase_concat_recommendation.md,development,2025-11-12
+streaming-docs-assessment.md,archive/analysis/streaming-docs-assessment.md,pipeline: streaming,2025-11-13
+testing_results.md,archive/analysis/testing_results.md,testing,2025-11-12
+unanticipated_issues_verification.md,archive/analysis/unanticipated_issues_verification.md,troubleshooting,2025-11-12
+vp-table-usage-analysis.md,archive/analysis/vp-table-usage-analysis.md,miscellaneous,2025-11-12
+carta_integration_complete.md,archive/carta_integration_complete.md,dashboard: visualization; testing,2025-11-13
+carta_integration_guide.md,archive/carta_integration_guide.md,dashboard: frontend; dashboard: visualization; testing; documentation,2025-11-13
+carta_quick_start.md,archive/carta_quick_start.md,dashboard: frontend; dashboard: visualization,2025-11-13
+carta_user_access.md,archive/carta_user_access.md,dashboard: visualization,2025-11-13
+dashboard_integration_plan.md,archive/dashboard_integration_plan.md,testing,2025-11-12
+dashboard_ui_recommendations.md,archive/dashboard_ui_recommendations.md,dashboard: frontend,2025-11-12
+js9_casa_analysis_api.md,archive/js9_casa_analysis_api.md,pipeline: imaging; dashboard: backend; dashboard: visualization,2025-11-12
+performance_and_scalability.md,archive/performance_and_scalability.md,performance,2025-11-13
+performance_implementation_summary.md,archive/performance_implementation_summary.md,development; performance,2025-11-13
+PRETTIER_CRITICAL_ISSUES.md,archive/prettier/PRETTIER_CRITICAL_ISSUES.md,troubleshooting,2025-11-13
+PRETTIER_ENVIRONMENT_SPECIFIC.md,archive/prettier/PRETTIER_ENVIRONMENT_SPECIFIC.md,environment,2025-11-13
+PRETTIER_FIXES_APPLIED.md,archive/prettier/PRETTIER_FIXES_APPLIED.md,troubleshooting,2025-11-13
+QA_VISUALIZATION_ACCESS.md,archive/qa_visualization/QA_VISUALIZATION_ACCESS.md,pipeline: qa; dashboard: visualization,2025-11-12
+QA_VISUALIZATION_DASHBOARD_INTEGRATION.md,archive/qa_visualization/QA_VISUALIZATION_DASHBOARD_INTEGRATION.md,pipeline: qa; dashboard: visualization; testing,2025-11-12
+QA_VISUALIZATION_DASHBOARD_SUMMARY.md,archive/qa_visualization/QA_VISUALIZATION_DASHBOARD_SUMMARY.md,pipeline: qa; dashboard: visualization,2025-11-12
+QA_VISUALIZATION_DASHBOARD_TESTING.md,archive/qa_visualization/QA_VISUALIZATION_DASHBOARD_TESTING.md,pipeline: qa; dashboard: visualization; testing,2025-11-12
+QA_VISUALIZATION_ENDPOINT_TESTS.md,archive/qa_visualization/QA_VISUALIZATION_ENDPOINT_TESTS.md,pipeline: qa; dashboard: backend; dashboard: visualization; testing,2025-11-12
+QA_VISUALIZATION_IMPLEMENTATION_STATUS.md,archive/qa_visualization/QA_VISUALIZATION_IMPLEMENTATION_STATUS.md,pipeline: qa; dashboard: visualization; development,2025-11-12
+QA_VISUALIZATION_USER_GUIDE.md,archive/qa_visualization/QA_VISUALIZATION_USER_GUIDE.md,pipeline: qa; dashboard: frontend; dashboard: visualization; documentation,2025-11-12
+CASA_MPI_EVALUATION.md,archive/reports/CASA_MPI_EVALUATION.md,pipeline: imaging; tools,2025-11-12
+CODE_QUALITY_COMPLETION_SUMMARY.md,archive/reports/CODE_QUALITY_COMPLETION_SUMMARY.md,pipeline: qa,2025-11-13
+CODE_QUALITY_FINAL_SUMMARY.md,archive/reports/CODE_QUALITY_FINAL_SUMMARY.md,pipeline: qa,2025-11-13
+CODE_QUALITY_IMPROVEMENTS_2025-01.md,archive/reports/CODE_QUALITY_IMPROVEMENTS_2025-01.md,pipeline: qa,2025-11-12
+CODE_QUALITY_IMPROVEMENTS_GUIDE.md,archive/reports/CODE_QUALITY_IMPROVEMENTS_GUIDE.md,pipeline: qa; dashboard: frontend; documentation,2025-11-12
+CODE_QUALITY_LOW_PRIORITY_COMPLETED.md,archive/reports/CODE_QUALITY_LOW_PRIORITY_COMPLETED.md,pipeline: qa,2025-11-12
+CODE_QUALITY_PROGRESS_REPORT.md,archive/reports/CODE_QUALITY_PROGRESS_REPORT.md,pipeline: qa; operations,2025-11-12
+CODE_QUALITY_WORK_COMPLETED.md,archive/reports/CODE_QUALITY_WORK_COMPLETED.md,pipeline: qa,2025-11-12
+COMPLETION_SUMMARY.md,archive/reports/COMPLETION_SUMMARY.md,miscellaneous,2025-11-13
+DEEP_DIVE_ISSUES_REPORT.md,archive/reports/DEEP_DIVE_ISSUES_REPORT.md,operations; troubleshooting,2025-11-13
+FIXES_APPLIED_SUMMARY.md,archive/reports/FIXES_APPLIED_SUMMARY.md,troubleshooting,2025-11-13
+GITHUB_ACTIONS_FIX_2025-11-09.md,archive/reports/GITHUB_ACTIONS_FIX_2025-11-09.md,troubleshooting,2025-11-12
+GITHUB_PAGES_SETUP.md,archive/reports/GITHUB_PAGES_SETUP.md,dashboard: frontend; environment,2025-11-12
+IMMEDIATE_ACTION_PLAN.md,archive/reports/IMMEDIATE_ACTION_PLAN.md,miscellaneous,2025-11-12
+ISSUES_AUDIT_FINAL_2025-01.md,archive/reports/ISSUES_AUDIT_FINAL_2025-01.md,troubleshooting,2025-11-12
+MEDIUM_PRIORITY_FIXES_SUMMARY.md,archive/reports/MEDIUM_PRIORITY_FIXES_SUMMARY.md,troubleshooting,2025-11-13
+MERMAID_DIAGRAMS_EVALUATION.md,archive/reports/MERMAID_DIAGRAMS_EVALUATION.md,tools,2025-11-12
+MERMAID_IMPROVEMENTS_COMPLETE.md,archive/reports/MERMAID_IMPROVEMENTS_COMPLETE.md,miscellaneous,2025-11-12
+MKDOCS_CONSOLIDATION_PROPOSAL.md,archive/reports/MKDOCS_CONSOLIDATION_PROPOSAL.md,miscellaneous,2025-11-12
+MKDOCS_REVIEW_2025-01.md,archive/reports/MKDOCS_REVIEW_2025-01.md,miscellaneous,2025-11-12
+NEXT_STEPS_COMPLETE.md,archive/reports/NEXT_STEPS_COMPLETE.md,miscellaneous,2025-11-12
+NEXT_STEPS_STATUS.md,archive/reports/NEXT_STEPS_STATUS.md,development,2025-11-12
+PHASE1_CONSOLIDATION_COMPLETE.md,archive/reports/PHASE1_CONSOLIDATION_COMPLETE.md,development,2025-11-12
+PHASE2_CONSOLIDATION_COMPLETE.md,archive/reports/PHASE2_CONSOLIDATION_COMPLETE.md,development,2025-11-12
+PHASE3_CONSOLIDATION_COMPLETE.md,archive/reports/PHASE3_CONSOLIDATION_COMPLETE.md,development,2025-11-12
+PHASE3_CONSOLIDATION_PROPOSAL.md,archive/reports/PHASE3_CONSOLIDATION_PROPOSAL.md,development,2025-11-12
+PIPELINE_DOCUMENTATION_REVIEW_2025-01.md,archive/reports/PIPELINE_DOCUMENTATION_REVIEW_2025-01.md,documentation,2025-11-12
+POINTING_MONITORING_REVIEW.md,archive/reports/POINTING_MONITORING_REVIEW.md,dashboard: monitoring,2025-11-12
+POINTING_MONITOR_DEPLOYMENT_TEST.md,archive/reports/POINTING_MONITOR_DEPLOYMENT_TEST.md,dashboard: monitoring; testing; deployment,2025-11-12
+POINTING_VISUALIZATION_TEST.md,archive/reports/POINTING_VISUALIZATION_TEST.md,pipeline: qa; dashboard: monitoring; dashboard: visualization; testing,2025-11-12
+PROJECT_REVIEW_2025-01.md,archive/reports/PROJECT_REVIEW_2025-01.md,miscellaneous,2025-11-13
+REASSESSED_ISSUES_PRIORITY.md,archive/reports/REASSESSED_ISSUES_PRIORITY.md,troubleshooting,2025-11-12
+UNIT_TEST_SUMMARY_2025-01.md,archive/reports/UNIT_TEST_SUMMARY_2025-01.md,testing,2025-11-12
+WORKFLOW_FAILURES_ANALYSIS.md,archive/reports/WORKFLOW_FAILURES_ANALYSIS.md,dashboard: architecture,2025-11-12
+WORKFLOW_FIXES_APPLIED.md,archive/reports/WORKFLOW_FIXES_APPLIED.md,dashboard: architecture; troubleshooting,2025-11-12
+WORK_SUMMARY_2025-01.md,archive/reports/WORK_SUMMARY_2025-01.md,miscellaneous,2025-11-13
+additional_safeguards_needed_2025-11-10.md,archive/reports/additional_safeguards_needed_2025-11-10.md,operations; security,2025-11-13
+enhancements_implemented_2025-11-11.md,archive/reports/enhancements_implemented_2025-11-11.md,miscellaneous,2025-11-13
+production_readiness_plan_2025-11-11.md,archive/reports/production_readiness_plan_2025-11-11.md,deployment,2025-11-13
+safeguards_implemented_2025-11-10.md,archive/reports/safeguards_implemented_2025-11-10.md,operations; security,2025-11-13
+streaming_test_run_review_2025-11-10.md,archive/reports/streaming_test_run_review_2025-11-10.md,pipeline: streaming; testing,2025-11-13
+DOCKER_CONFIG_UPDATE.md,archive/status_reports/DOCKER_CONFIG_UPDATE.md,deployment,2025-11-06
+DOCKER_CONFIG_VERIFICATION.md,archive/status_reports/DOCKER_CONFIG_VERIFICATION.md,deployment,2025-11-06
+task3_ux_pattern_opportunities.md,archive/task3_ux_pattern_opportunities.md,dashboard: frontend; dashboard: architecture; testing; operations,2025-11-13
+user_guide_qa_visualization.md,archive/user_guide_qa_visualization.md,pipeline: qa; dashboard: frontend; dashboard: visualization; documentation,2025-11-12
+processpool-pickling-fix.md,bugfixes/processpool-pickling-fix.md,troubleshooting,2025-11-12
+2025-11-06-model-py-optimization.md,changelog/2025-11-06-model-py-optimization.md,performance,2025-11-13
+CALIBRATION_IMPROVEMENTS_2024.md,changelog/CALIBRATION_IMPROVEMENTS_2024.md,pipeline: calibration,2025-11-12
+PYRADIOSKY_DEFAULT_UPDATE.md,changelog/PYRADIOSKY_DEFAULT_UPDATE.md,tools,2025-11-12
+APPLYING_DEPENDENCY_ENFORCEMENT.md,concepts/APPLYING_DEPENDENCY_ENFORCEMENT.md,miscellaneous,2025-11-12
+DIAGRAM_REVIEW_FINDINGS.md,concepts/DIAGRAM_REVIEW_FINDINGS.md,miscellaneous,2025-11-12
+DIRECTORY_ARCHITECTURE.md,concepts/DIRECTORY_ARCHITECTURE.md,dashboard: architecture,2025-11-12
+GLOSSARY.md,concepts/GLOSSARY.md,miscellaneous,2025-11-12
+STREAMING_MOSAIC_WORKFLOW.md,concepts/STREAMING_MOSAIC_WORKFLOW.md,pipeline: streaming; pipeline: mosaicing; dashboard: architecture,2025-11-12
+TEST_ORGANIZATION.md,concepts/TEST_ORGANIZATION.md,testing,2025-11-13
+TEST_ORGANIZATION_ENFORCEMENT.md,concepts/TEST_ORGANIZATION_ENFORCEMENT.md,testing,2025-11-13
+anti_patterns_reference.md,concepts/anti_patterns_reference.md,dashboard: architecture; documentation,2025-11-12
+aoflagger.md,concepts/aoflagger.md,pipeline: flagging,2025-11-12
+architecture.md,concepts/architecture.md,dashboard: architecture,2025-11-12
+browser_mcp_chrome_remote_desktop_architecture.md,concepts/browser_mcp_chrome_remote_desktop_architecture.md,dashboard: architecture,2025-11-12
+browser_mcp_connection_troubleshooting.md,concepts/browser_mcp_connection_troubleshooting.md,troubleshooting,2025-11-12
+browser_mcp_diagnostics.md,concepts/browser_mcp_diagnostics.md,miscellaneous,2025-11-12
+control-panel.md,concepts/control-panel.md,dashboard: control,2025-11-12
+dashboard_architecture.md,concepts/dashboard_architecture.md,dashboard: architecture,2025-11-12
+dashboard_data_models.md,concepts/dashboard_data_models.md,miscellaneous,2025-11-12
+dashboard_error_handling.md,concepts/dashboard_error_handling.md,troubleshooting,2025-11-12
+dashboard_frontend_architecture.md,concepts/dashboard_frontend_architecture.md,dashboard: frontend; dashboard: architecture,2025-11-12
+dashboard_future_roadmap.md,concepts/dashboard_future_roadmap.md,development,2025-11-12
+dashboard_mockups.md,concepts/dashboard_mockups.md,miscellaneous,2025-11-12
+dashboard_state_management.md,concepts/dashboard_state_management.md,miscellaneous,2025-11-12
+dashboard_vision_and_design.md,concepts/dashboard_vision_and_design.md,dashboard: architecture,2025-11-12
+environment_dependency_enforcement.md,concepts/environment_dependency_enforcement.md,environment,2025-11-12
+ese_detection_architecture.md,concepts/ese_detection_architecture.md,pipeline: ese; dashboard: architecture,2025-11-13
+frontend_design.md,concepts/frontend_design.md,dashboard: frontend; dashboard: architecture,2025-11-12
+index.md,concepts/index.md,documentation,2025-11-12
+mcp_browser_server_setup.md,concepts/mcp_browser_server_setup.md,dashboard: backend; environment,2025-11-12
+modules.md,concepts/modules.md,miscellaneous,2025-11-12
+performance_considerations.md,concepts/performance_considerations.md,performance,2025-11-12
+photometry_manager.md,concepts/photometry_manager.md,pipeline: photometry,2025-11-14
+pipeline_overview.md,concepts/pipeline_overview.md,miscellaneous,2025-11-12
+pipeline_patterns.md,concepts/pipeline_patterns.md,dashboard: architecture,2025-11-12
+pipeline_production_features.md,concepts/pipeline_production_features.md,deployment,2025-11-12
+pipeline_stage_architecture.md,concepts/pipeline_stage_architecture.md,dashboard: architecture,2025-11-12
+pipeline_workflow_visualization.md,concepts/pipeline_workflow_visualization.md,pipeline: qa; dashboard: visualization; dashboard: architecture,2025-11-13
+photometry_normalization.md,concepts/science/photometry_normalization.md,pipeline: photometry,2025-11-13
+streaming-architecture.md,concepts/streaming-architecture.md,pipeline: streaming; dashboard: architecture,2025-11-12
+streaming_vs_orchestrator.md,concepts/streaming_vs_orchestrator.md,pipeline: streaming,2025-11-14
+configuration.md,configuration.md,miscellaneous,2025-11-12
+CONTRIBUTING_TODO.md,contributing/archive/CONTRIBUTING_TODO.md,miscellaneous,2025-11-13
+rules.md,contributing/archive/rules.md,miscellaneous,2025-10-27
+index.md,contributing/index.md,documentation,2025-11-12
+dashboard_integration_plan.md,dashboard_integration_plan.md,testing,2025-11-13
+dashboard_ui_recommendations.md,dashboard_ui_recommendations.md,dashboard: frontend,2025-11-13
+data_product_organization.md,design/data_product_organization.md,miscellaneous,2025-11-12
+IMPLEMENTATION_COMPLETE.md,dev/IMPLEMENTATION_COMPLETE.md,development,2025-11-13
+automation_assessment_justification.md,dev/analysis/automation_assessment_justification.md,miscellaneous,2025-11-14
+batch_mode_development_assessment.md,dev/analysis/batch_mode_development_assessment.md,development,2025-11-14
+codebase_review_2025-11-12.md,dev/analysis/codebase_review_2025-11-12.md,miscellaneous,2025-11-13
+cost_free_improvements.md,dev/analysis/cost_free_improvements.md,miscellaneous,2025-11-13
+critical_path_summary.md,dev/analysis/critical_path_summary.md,miscellaneous,2025-11-13
+cursor_rules_summary_2025-11-12.md,dev/analysis/cursor_rules_summary_2025-11-12.md,miscellaneous,2025-11-13
+enhancement_recommendations.md,dev/analysis/enhancement_recommendations.md,miscellaneous,2025-11-13
+ese_detection_critical_review.md,dev/analysis/ese_detection_critical_review.md,pipeline: ese,2025-11-13
+implementation_readiness_assessment.md,dev/analysis/implementation_readiness_assessment.md,development,2025-11-13
+photometry_automation_assessment.md,dev/analysis/photometry_automation_assessment.md,pipeline: photometry,2025-11-13
+photometry_automation_implementation_review.md,dev/analysis/photometry_automation_implementation_review.md,pipeline: photometry; development,2025-11-13
+photometry_automation_roadmap.md,dev/analysis/photometry_automation_roadmap.md,pipeline: photometry; development,2025-11-13
+plan_confidence_assessment.md,dev/analysis/plan_confidence_assessment.md,miscellaneous,2025-11-13
+remaining_tasks_completion_summary.md,dev/analysis/remaining_tasks_completion_summary.md,miscellaneous,2025-11-13
+unaddressed_tasks_review.md,dev/analysis/unaddressed_tasks_review.md,miscellaneous,2025-11-13
+unit_test_suite_summary.md,dev/analysis/unit_test_suite_summary.md,dashboard: frontend; testing,2025-11-13
+unit_tests_remaining_tasks_summary.md,dev/analysis/unit_tests_remaining_tasks_summary.md,testing,2025-11-13
+browser_testing_guide.md,dev/browser_testing_guide.md,dashboard: frontend; testing; documentation,2025-11-13
+calibration_provenance_risk_analysis.md,dev/calibration_provenance_risk_analysis.md,pipeline: calibration,2025-11-13
+calibration_provenance_tracking_implementation.md,dev/calibration_provenance_tracking_implementation.md,pipeline: calibration; development,2025-11-13
+catalog_implementation_comparison.md,dev/catalog_implementation_comparison.md,pipeline: crossmatching; development; tools,2025-11-13
+catalog_logging_migration.md,dev/catalog_logging_migration.md,pipeline: crossmatching,2025-11-13
+catalog_migration_to_sqlite.md,dev/catalog_migration_to_sqlite.md,pipeline: crossmatching,2025-11-13
+catalog_query_implementation_complete.md,dev/catalog_query_implementation_complete.md,pipeline: crossmatching; development,2025-11-13
+catalog_tests_summary.md,dev/catalog_tests_summary.md,pipeline: crossmatching; testing,2025-11-13
+catalog_tests_update.md,dev/catalog_tests_update.md,pipeline: crossmatching; testing,2025-11-13
+csv_fallback_disabled.md,dev/csv_fallback_disabled.md,miscellaneous,2025-11-13
+ese_automated_pipeline_summary.md,dev/ese_automated_pipeline_summary.md,pipeline: ese,2025-11-13
+ese_detection_complete_documentation_summary.md,dev/ese_detection_complete_documentation_summary.md,pipeline: ese; documentation,2025-11-13
+ese_detection_comprehensive_improvements.md,dev/ese_detection_comprehensive_improvements.md,pipeline: ese,2025-11-13
+ese_detection_documentation_index.md,dev/ese_detection_documentation_index.md,pipeline: ese; documentation,2025-11-13
+ese_detection_future_improvements.md,dev/ese_detection_future_improvements.md,pipeline: ese,2025-11-13
+ese_detection_implementation_phases.md,dev/ese_detection_implementation_phases.md,pipeline: ese; development,2025-11-13
+ese_detection_implementation_summary.md,dev/ese_detection_implementation_summary.md,pipeline: ese; development,2025-11-13
+ese_detection_research_findings.md,dev/ese_detection_research_findings.md,pipeline: ese,2025-11-13
+fallback_notification_analysis.md,dev/fallback_notification_analysis.md,miscellaneous,2025-11-13
+frontend_verification_summary.md,dev/frontend_verification_summary.md,dashboard: frontend,2025-11-13
+implementation_plan.md,dev/implementation_plan.md,development,2025-11-13
+implementation_summary.md,dev/implementation_summary.md,development,2025-11-13
+integration_examples.md,dev/integration_examples.md,testing,2025-11-13
+MOSAIC_ORCHESTRATOR_TEST_COVERAGE_ANALYSIS.md,dev/notes/MOSAIC_ORCHESTRATOR_TEST_COVERAGE_ANALYSIS.md,pipeline: mosaicing; testing,2025-11-13
+TEST_FIXTURE_OPTIMIZATION.md,dev/notes/TEST_FIXTURE_OPTIMIZATION.md,testing; troubleshooting; performance,2025-11-13
+nvss_query_optimization.md,dev/nvss_query_optimization.md,pipeline: crossmatching; performance,2025-11-13
+phase1_backend_testing_complete.md,dev/phase1_backend_testing_complete.md,dashboard: backend; testing; development,2025-11-13
+phase1_browser_testing_complete.md,dev/phase1_browser_testing_complete.md,testing; development,2025-11-13
+phase1_browser_testing_summary.md,dev/phase1_browser_testing_summary.md,testing; development,2025-11-13
+phase1_completion_summary.md,dev/phase1_completion_summary.md,development,2025-11-13
+phase1_implementation_status.md,dev/phase1_implementation_status.md,development,2025-11-13
+phase1_next_steps_detailed.md,dev/phase1_next_steps_detailed.md,development,2025-11-13
+phase1_programmatic_verification.md,dev/phase1_programmatic_verification.md,development,2025-11-13
+phase1_test_checklist.md,dev/phase1_test_checklist.md,testing; development,2025-11-13
+phase1_test_results.md,dev/phase1_test_results.md,testing; development,2025-11-13
+phase2_implementation_plan.md,dev/phase2_implementation_plan.md,development,2025-11-13
+phase2_implementation_summary.md,dev/phase2_implementation_summary.md,development,2025-11-13
+phase2_testing_summary.md,dev/phase2_testing_summary.md,testing; development,2025-11-13
+phase3_backend_complete.md,dev/phase3_backend_complete.md,dashboard: backend; development,2025-11-13
+phase3_complete.md,dev/phase3_complete.md,development,2025-11-13
+phase3_frontend_complete.md,dev/phase3_frontend_complete.md,dashboard: frontend; development,2025-11-13
+phase3_implementation_plan.md,dev/phase3_implementation_plan.md,development,2025-11-13
+phase3_testing_summary.md,dev/phase3_testing_summary.md,testing; development,2025-11-13
+phase3_ui_testing_complete.md,dev/phase3_ui_testing_complete.md,dashboard: frontend; testing; development,2025-11-13
+web_interface_analysis.md,dev/web_interface_analysis.md,miscellaneous,2025-11-13
+workflow_navigation_implementation.md,dev/workflow_navigation_implementation.md,dashboard: architecture; development,2025-11-13
+DEVELOPMENT_SETUP.md,development/DEVELOPMENT_SETUP.md,environment; development,2025-11-12
+ENVIRONMENT_ANALYSIS_REPORT.md,development/ENVIRONMENT_ANALYSIS_REPORT.md,environment; operations,2025-11-12
+documentation_inventory.csv,documentation_inventory.csv,documentation,2025-11-13
+real_world_examples.md,examples/real_world_examples.md,miscellaneous,2025-11-12
+vast_tools_source_example.py,examples/vast_tools_source_example.py,pipeline: crossmatching; tools,2025-11-09
+ADDITIONAL_AUTOMATED_CHECKS.md,how-to/ADDITIONAL_AUTOMATED_CHECKS.md,miscellaneous,2025-11-13
+AUTOMATED_GOTCHA_PREVENTION.md,how-to/AUTOMATED_GOTCHA_PREVENTION.md,miscellaneous,2025-11-13
+AUTOMATED_PROTECTIONS.md,how-to/AUTOMATED_PROTECTIONS.md,miscellaneous,2025-11-13
+AUTOMATION_GUIDE.md,how-to/AUTOMATION_GUIDE.md,dashboard: frontend; documentation,2025-11-13
+AUTOMATION_SETUP_QUICKSTART.md,how-to/AUTOMATION_SETUP_QUICKSTART.md,dashboard: frontend; environment,2025-11-13
+BLACK_PYLINT_PRE_COMMIT_HANDOVER.md,how-to/BLACK_PYLINT_PRE_COMMIT_HANDOVER.md,miscellaneous,2025-11-13
+BUILD_60MIN_MOSAIC_0834.md,how-to/BUILD_60MIN_MOSAIC_0834.md,pipeline: mosaicing; dashboard: frontend,2025-11-12
+CALIBRATION_DETAILED_PROCEDURE.md,how-to/CALIBRATION_DETAILED_PROCEDURE.md,pipeline: calibration,2025-11-13
+CRITICAL_HANDOVER_WARNINGS.md,how-to/CRITICAL_HANDOVER_WARNINGS.md,miscellaneous,2025-11-14
+DASHBOARD_PATH_MAP.md,how-to/DASHBOARD_PATH_MAP.md,miscellaneous,2025-11-14
+DEVELOPER_HANDOFF_WARNINGS.md,how-to/DEVELOPER_HANDOFF_WARNINGS.md,development,2025-11-14
+DEVELOPER_HANDOVER_WARNINGS.md,how-to/DEVELOPER_HANDOVER_WARNINGS.md,development,2025-11-13
+FAST_TESTING.md,how-to/FAST_TESTING.md,testing,2025-11-12
+FINAL_PROTECTIONS_ADDED.md,how-to/FINAL_PROTECTIONS_ADDED.md,miscellaneous,2025-11-13
+FIND_CALIBRATOR_TRANSIT_DATA.md,how-to/FIND_CALIBRATOR_TRANSIT_DATA.md,pipeline: calibration,2025-11-13
+IMAGE_0834_TRANSIT_5MIN.md,how-to/IMAGE_0834_TRANSIT_5MIN.md,pipeline: imaging,2025-11-13
+INSTALL_AEGEAN.md,how-to/INSTALL_AEGEAN.md,miscellaneous,2025-11-12
+LINEAR_INTEGRATION.md,how-to/LINEAR_INTEGRATION.md,pipeline: mosaicing; testing,2025-11-13
+LINEAR_SETUP_QUICKSTART.md,how-to/LINEAR_SETUP_QUICKSTART.md,pipeline: mosaicing; dashboard: frontend; environment,2025-11-13
+MAINTENANCE_SCHEDULE.md,how-to/MAINTENANCE_SCHEDULE.md,operations,2025-11-13
+PARAMETER_OPTIMIZATION_GUIDE.md,how-to/PARAMETER_OPTIMIZATION_GUIDE.md,dashboard: frontend; documentation; performance,2025-11-12
+PIPELINE_TESTING_GUIDE.md,how-to/PIPELINE_TESTING_GUIDE.md,dashboard: frontend; testing; documentation,2025-11-13
+PRETTIER_TROUBLESHOOTING.md,how-to/PRETTIER_TROUBLESHOOTING.md,troubleshooting,2025-11-13
+PRETTIER_WARNINGS.md,how-to/PRETTIER_WARNINGS.md,miscellaneous,2025-11-13
+PYRADIOSKY_BENEFITS.md,how-to/PYRADIOSKY_BENEFITS.md,tools,2025-11-12
+PYRADIOSKY_GUIDE.md,how-to/PYRADIOSKY_GUIDE.md,dashboard: frontend; documentation; tools,2025-11-12
+QUALITY_ASSURANCE_SETUP.md,how-to/QUALITY_ASSURANCE_SETUP.md,pipeline: qa; environment,2025-11-12
+QUICK_REFERENCE_CARD.md,how-to/QUICK_REFERENCE_CARD.md,dashboard: frontend; documentation,2025-11-14
+QUICK_REFERENCE_WARNINGS.md,how-to/QUICK_REFERENCE_WARNINGS.md,dashboard: frontend; documentation,2025-11-13
+README.md,how-to/README.md,documentation,2025-11-13
+REMAINING_GAPS_FIXED.md,how-to/REMAINING_GAPS_FIXED.md,troubleshooting,2025-11-13
+SKYMODEL_IMAGE_EXPECTATIONS.md,how-to/SKYMODEL_IMAGE_EXPECTATIONS.md,pipeline: imaging,2025-11-12
+SKYMODEL_IMAGING.md,how-to/SKYMODEL_IMAGING.md,pipeline: imaging,2025-11-12
+TEAM_TRAINING_OUTPUT_SUPPRESSION.md,how-to/TEAM_TRAINING_OUTPUT_SUPPRESSION.md,miscellaneous,2025-11-13
+TESTING_INDEX.md,how-to/TESTING_INDEX.md,testing; documentation,2025-11-12
+TEST_FLAG_SUBCOMMAND.md,how-to/TEST_FLAG_SUBCOMMAND.md,pipeline: flagging; testing,2025-11-12
+TROUBLESHOOTING_DASHBOARD_BLANK_PAGE.md,how-to/TROUBLESHOOTING_DASHBOARD_BLANK_PAGE.md,dashboard: frontend; troubleshooting,2025-11-14
+TROUBLESHOOTING_QUICK_REFERENCE.md,how-to/TROUBLESHOOTING_QUICK_REFERENCE.md,dashboard: frontend; documentation; troubleshooting,2025-11-13
+USING_ORCHESTRATOR_CLI.md,how-to/USING_ORCHESTRATOR_CLI.md,miscellaneous,2025-11-13
+VULNERABILITIES_FOR_NON_DETAIL_ORIENTED_DEVELOPERS.md,how-to/VULNERABILITIES_FOR_NON_DETAIL_ORIENTED_DEVELOPERS.md,development,2025-11-13
+adding-new-tests.md,how-to/adding-new-tests.md,testing,2025-11-13
+agentic-session-setup.md,how-to/agentic-session-setup.md,environment,2025-11-14
+auto-error-detection-non-interactive.md,how-to/auto-error-detection-non-interactive.md,pipeline: ese; troubleshooting,2025-11-13
+bash-shell-sourcing-behavior.md,how-to/bash-shell-sourcing-behavior.md,miscellaneous,2025-11-14
+batch_mode_execution_guide.md,how-to/batch_mode_execution_guide.md,dashboard: frontend; documentation,2025-11-13
+batch_mode_guide.md,how-to/batch_mode_guide.md,dashboard: frontend; documentation,2025-11-14
+batch_mosaic_creation.md,how-to/batch_mosaic_creation.md,pipeline: mosaicing,2025-11-14
+bug_fixes_task2.md,how-to/bug_fixes_task2.md,troubleshooting,2025-11-13
+build-first-rax-catalogs.md,how-to/build-first-rax-catalogs.md,pipeline: crossmatching; dashboard: frontend,2025-11-13
+build-vp-from-h5.md,how-to/build-vp-from-h5.md,dashboard: frontend,2025-11-12
+carta_integration_complete.md,how-to/carta_integration_complete.md,dashboard: visualization; testing,2025-11-13
+carta_integration_guide.md,how-to/carta_integration_guide.md,dashboard: frontend; dashboard: visualization; testing; documentation,2025-11-13
+carta_port_allocation.md,how-to/carta_port_allocation.md,dashboard: visualization; operations,2025-11-13
+carta_quick_start.md,how-to/carta_quick_start.md,dashboard: frontend; dashboard: visualization,2025-11-13
+carta_testing_guide.md,how-to/carta_testing_guide.md,dashboard: frontend; dashboard: visualization; testing; documentation,2025-11-13
+carta_user_access.md,how-to/carta_user_access.md,dashboard: visualization,2025-11-13
+carta_websocket_enhancements.md,how-to/carta_websocket_enhancements.md,dashboard: visualization,2025-11-13
+casa6-enforcement.md,how-to/casa6-enforcement.md,pipeline: imaging; environment,2025-11-14
+codeql_setup_and_usage.md,how-to/codeql_setup_and_usage.md,environment; security,2025-11-14
+command-chains-with-error-detection.md,how-to/command-chains-with-error-detection.md,pipeline: ese; troubleshooting,2025-11-13
+control-panel-quickstart.md,how-to/control-panel-quickstart.md,dashboard: frontend; dashboard: control,2025-11-13
+create_pipeline_stage.md,how-to/create_pipeline_stage.md,miscellaneous,2025-11-12
+cross-matching-guide.md,how-to/cross-matching-guide.md,pipeline: crossmatching; dashboard: frontend; documentation,2025-11-13
+dashboard-development.md,how-to/dashboard-development.md,development,2025-11-13
+dashboard-quickstart.md,how-to/dashboard-quickstart.md,dashboard: frontend,2025-11-13
+dashboard.md,how-to/dashboard.md,miscellaneous,2025-11-14
+dashboard_deployment.md,how-to/dashboard_deployment.md,deployment,2025-11-13
+dashboard_development_workflow.md,how-to/dashboard_development_workflow.md,dashboard: architecture; development,2025-11-13
+dashboard_testing.md,how-to/dashboard_testing.md,testing,2025-11-13
+deterministic-error-detection.md,how-to/deterministic-error-detection.md,pipeline: ese; troubleshooting,2025-11-13
+downsampling_guide.md,how-to/downsampling_guide.md,dashboard: frontend; documentation,2025-11-12
+enable-auto-error-detection.md,how-to/enable-auto-error-detection.md,pipeline: ese; troubleshooting,2025-11-13
+enable-carta-production.md,how-to/enable-carta-production.md,dashboard: visualization; deployment,2025-11-14
+error-handling-implementation-summary.md,how-to/error-handling-implementation-summary.md,development; troubleshooting,2025-11-14
+error-handling-resilience.md,how-to/error-handling-resilience.md,troubleshooting,2025-11-14
+ese_detection_advanced_features.md,how-to/ese_detection_advanced_features.md,pipeline: ese,2025-11-13
+ese_detection_guide.md,how-to/ese_detection_guide.md,pipeline: ese; dashboard: frontend; documentation,2025-11-13
+fixing_codeql_security_issues.md,how-to/fixing_codeql_security_issues.md,security; troubleshooting,2025-11-14
+frontend-initial-setup.md,how-to/frontend-initial-setup.md,dashboard: frontend; environment,2025-11-13
+full-path-commands-error-detection.md,how-to/full-path-commands-error-detection.md,pipeline: ese; troubleshooting,2025-11-13
+get_first_two_tiles_from_earliest_calibrator.md,how-to/get_first_two_tiles_from_earliest_calibrator.md,pipeline: calibration,2025-11-14
+github_copilot_setup.md,how-to/github_copilot_setup.md,environment,2025-11-14
+github_pages_troubleshooting.md,how-to/github_pages_troubleshooting.md,dashboard: frontend; troubleshooting,2025-11-13
+github_pages_walkthrough.md,how-to/github_pages_walkthrough.md,dashboard: frontend,2025-11-13
+immediate-error-termination.md,how-to/immediate-error-termination.md,troubleshooting,2025-11-13
+js9_casa_analysis.md,how-to/js9_casa_analysis.md,pipeline: imaging; dashboard: visualization,2025-11-13
+masking-guide.md,how-to/masking-guide.md,pipeline: masking; dashboard: frontend; documentation,2025-11-12
+migration_guide.md,how-to/migration_guide.md,dashboard: frontend; documentation,2025-11-12
+mosaic.md,how-to/mosaic.md,pipeline: mosaicing,2025-11-12
+mosaic_quickstart.md,how-to/mosaic_quickstart.md,pipeline: mosaicing; dashboard: frontend,2025-11-12
+ms_organization.md,how-to/ms_organization.md,miscellaneous,2025-11-13
+output-handling-validation.md,how-to/output-handling-validation.md,testing,2025-11-13
+package_installation.md,how-to/package_installation.md,miscellaneous,2025-11-13
+performance_and_scalability.md,how-to/performance_and_scalability.md,performance,2025-11-13
+performance_implementation_summary.md,how-to/performance_implementation_summary.md,development; performance,2025-11-13
+persistent-dashboard.md,how-to/persistent-dashboard.md,miscellaneous,2025-11-12
+playwright-conda-installation.md,how-to/playwright-conda-installation.md,environment,2025-11-14
+playwright-python-docker.md,how-to/playwright-python-docker.md,deployment,2025-11-14
+playwright-python-documentation-audit.md,how-to/playwright-python-documentation-audit.md,documentation,2025-11-14
+playwright-python-frontend-testing.md,how-to/playwright-python-frontend-testing.md,dashboard: frontend; testing,2025-11-14
+playwright-python-quick-start.md,how-to/playwright-python-quick-start.md,dashboard: frontend,2025-11-14
+playwright-python-testing-summary.md,how-to/playwright-python-testing-summary.md,testing,2025-11-14
+pointing-monitor-deployment.md,how-to/pointing-monitor-deployment.md,dashboard: monitoring; deployment,2025-11-13
+pointing-visualization-usage.md,how-to/pointing-visualization-usage.md,pipeline: qa; dashboard: monitoring; dashboard: visualization,2025-11-13
+pointing-visualization.md,how-to/pointing-visualization.md,pipeline: qa; dashboard: monitoring; dashboard: visualization,2025-11-13
+prettier_setup.md,how-to/prettier_setup.md,environment,2025-11-13
+professional_script_development.md,how-to/professional_script_development.md,development,2025-11-13
+quicklook.md,how-to/quicklook.md,dashboard: frontend,2025-11-12
+quickstart.md,how-to/quickstart.md,dashboard: frontend,2025-11-12
+quickstart_dashboard.md,how-to/quickstart_dashboard.md,dashboard: frontend,2025-11-14
+redis_configuration.md,how-to/redis_configuration.md,miscellaneous,2025-11-13
+remote-access-tools.md,how-to/remote-access-tools.md,tools,2025-11-12
+reprocess.md,how-to/reprocess.md,miscellaneous,2025-11-12
+run-all-frontend-tests.md,how-to/run-all-frontend-tests.md,dashboard: frontend; testing,2025-11-14
+sentry-setup.md,how-to/sentry-setup.md,environment,2025-11-14
+streaming-control.md,how-to/streaming-control.md,pipeline: streaming; dashboard: control,2025-11-13
+streaming-troubleshooting.md,how-to/streaming-troubleshooting.md,pipeline: streaming; troubleshooting,2025-11-13
+streaming.md,how-to/streaming.md,pipeline: streaming,2025-11-13
+streaming_converter_guide.md,how-to/streaming_converter_guide.md,pipeline: streaming; dashboard: frontend; documentation,2025-11-13
+system-wide-error-detection-setup.md,how-to/system-wide-error-detection-setup.md,pipeline: ese; environment; troubleshooting,2025-11-13
+system-wide-error-detection-verification.md,how-to/system-wide-error-detection-verification.md,pipeline: ese; troubleshooting,2025-11-13
+task3_architecture_refactoring.md,how-to/task3_architecture_refactoring.md,dashboard: architecture,2025-11-13
+task3_phase2_complete.md,how-to/task3_phase2_complete.md,development,2025-11-13
+task3_phase2_refactoring_plan.md,how-to/task3_phase2_refactoring_plan.md,development,2025-11-13
+task3_progress.md,how-to/task3_progress.md,miscellaneous,2025-11-13
+task3_ux_final_integration.md,how-to/task3_ux_final_integration.md,dashboard: frontend; testing,2025-11-13
+task3_ux_improvements.md,how-to/task3_ux_improvements.md,dashboard: frontend,2025-11-13
+task3_ux_integration_complete.md,how-to/task3_ux_integration_complete.md,dashboard: frontend; testing,2025-11-13
+task3_ux_pattern_opportunities.md,how-to/task3_ux_pattern_opportunities.md,dashboard: frontend; dashboard: architecture; testing; operations,2025-11-13
+testing.md,how-to/testing.md,testing,2025-11-12
+testing_crossmatch_stage_with_synthetic_data.md,how-to/testing_crossmatch_stage_with_synthetic_data.md,pipeline: crossmatching; testing,2025-11-13
+trigger_github_pages_deployment.md,how-to/trigger_github_pages_deployment.md,dashboard: frontend; deployment,2025-11-12
+troubleshooting.md,how-to/troubleshooting.md,troubleshooting,2025-11-12
+truly-automatic-error-detection.md,how-to/truly-automatic-error-detection.md,pipeline: ese; troubleshooting,2025-11-14
+using-pytest-safely.md,how-to/using-pytest-safely.md,testing,2025-11-13
+uvh5_to_ms_conversion.md,how-to/uvh5_to_ms_conversion.md,pipeline: streaming,2025-11-12
+validation_guide.md,how-to/validation_guide.md,dashboard: frontend; testing; documentation,2025-11-12
+verify-auto-error-detection.md,how-to/verify-auto-error-detection.md,pipeline: ese; troubleshooting,2025-11-13
+viewing_codeql_results.md,how-to/viewing_codeql_results.md,security,2025-11-14
+visual_improvements_task2.md,how-to/visual_improvements_task2.md,dashboard: visualization,2025-11-13
+warning-detection.md,how-to/warning-detection.md,pipeline: ese,2025-11-13
+workflow_troubleshooting_summary.md,how-to/workflow_troubleshooting_summary.md,dashboard: architecture; troubleshooting,2025-11-12
+data_registry_implementation.md,implementation/data_registry_implementation.md,development,2025-11-12
+high_priority_improvements.md,implementation/high_priority_improvements.md,miscellaneous,2025-11-12
+high_priority_improvements_summary.md,implementation/high_priority_improvements_summary.md,miscellaneous,2025-11-12
+potential_failure_points.md,implementation/potential_failure_points.md,miscellaneous,2025-11-12
+potential_issues_and_fixes.md,implementation/potential_issues_and_fixes.md,troubleshooting,2025-11-12
+scratch_to_stage_migration.md,implementation/scratch_to_stage_migration.md,miscellaneous,2025-11-12
+index.md,index.md,documentation,2025-11-13
+mathjax.js,javascripts/mathjax.js,miscellaneous,2025-10-25
+mermaid-init.js,javascripts/mermaid-init.js,miscellaneous,2025-11-08
+mermaid-zoom.js,javascripts/mermaid-zoom.js,miscellaneous,2025-11-12
+image-metadata-population.md,known-issues/image-metadata-population.md,pipeline: imaging,2025-11-12
+API_RESTART_GUIDE.md,operations/API_RESTART_GUIDE.md,dashboard: frontend; dashboard: backend; documentation,2025-11-12
+CASA_LOG_DAEMON_FIXES.md,operations/CASA_LOG_DAEMON_FIXES.md,pipeline: imaging; troubleshooting,2025-11-12
+CASA_LOG_DAEMON_MONITORING.md,operations/CASA_LOG_DAEMON_MONITORING.md,pipeline: imaging; dashboard: monitoring,2025-11-12
+CASA_LOG_DAEMON_PROTECTION_SUMMARY.md,operations/CASA_LOG_DAEMON_PROTECTION_SUMMARY.md,pipeline: imaging,2025-11-12
+MISSING_PORT_SAFEGUARDS.md,operations/MISSING_PORT_SAFEGUARDS.md,operations; security,2025-11-13
+PORT_ASSIGNMENTS_QUICK_REFERENCE.md,operations/PORT_ASSIGNMENTS_QUICK_REFERENCE.md,dashboard: frontend; documentation; operations,2025-11-13
+PORT_ENFORCEMENT_SUMMARY.md,operations/PORT_ENFORCEMENT_SUMMARY.md,operations,2025-11-13
+PORT_SYSTEM_ENFORCEMENT.md,operations/PORT_SYSTEM_ENFORCEMENT.md,operations,2025-11-13
+PORT_SYSTEM_SUMMARY.md,operations/PORT_SYSTEM_SUMMARY.md,operations,2025-11-13
+PROACTIVE_PREVENTION_SUMMARY.md,operations/PROACTIVE_PREVENTION_SUMMARY.md,miscellaneous,2025-11-13
+README.md,operations/README.md,documentation,2025-11-12
+api_server.md,operations/api_server.md,dashboard: backend,2025-11-12
+automatic_duplicate_prevention.md,operations/automatic_duplicate_prevention.md,miscellaneous,2025-11-13
+deploy-docker.md,operations/deploy-docker.md,deployment,2025-11-13
+deploy-systemd.md,operations/deploy-systemd.md,deployment,2025-11-13
+frontend_dev_fix_summary.md,operations/frontend_dev_fix_summary.md,dashboard: frontend; troubleshooting,2025-11-13
+frontend_dev_port_migration.md,operations/frontend_dev_port_migration.md,dashboard: frontend; operations,2025-11-13
+pm2_daemon_explanation.md,operations/pm2_daemon_explanation.md,miscellaneous,2025-11-13
+pm2_respawning_issue.md,operations/pm2_respawning_issue.md,troubleshooting,2025-11-13
+pm2_warning_expected.md,operations/pm2_warning_expected.md,miscellaneous,2025-11-13
+port-management.md,operations/port-management.md,operations,2025-11-12
+port_audit_report.md,operations/port_audit_report.md,operations,2025-11-13
+port_duplicate_detection_fix.md,operations/port_duplicate_detection_fix.md,pipeline: ese; operations; troubleshooting,2025-11-13
+port_duplicate_vite_explanation.md,operations/port_duplicate_vite_explanation.md,operations,2025-11-13
+port_organization_recommendations.md,operations/port_organization_recommendations.md,operations,2025-11-13
+port_safeguards_analysis.md,operations/port_safeguards_analysis.md,operations; security,2025-11-13
+port_system_implementation_guide.md,operations/port_system_implementation_guide.md,dashboard: frontend; documentation; development; operations,2025-11-13
+port_unknown_ports_resolution.md,operations/port_unknown_ports_resolution.md,operations,2025-11-13
+port_usage_unknown_ports.md,operations/port_usage_unknown_ports.md,operations,2025-11-13
+production_deployment_checklist.md,operations/production_deployment_checklist.md,deployment,2025-11-14
+production_deployment_summary.md,operations/production_deployment_summary.md,deployment,2025-11-14
+refant_quick_reference.md,operations/refant_quick_reference.md,pipeline: calibration; dashboard: frontend; documentation,2025-11-13
+service_restart_fix.md,operations/service_restart_fix.md,troubleshooting,2025-11-12
+starting_dashboard_safely.md,operations/starting_dashboard_safely.md,miscellaneous,2025-11-13
+systemd-migration.md,operations/systemd-migration.md,deployment,2025-11-12
+vite_respawning_fix.md,operations/vite_respawning_fix.md,troubleshooting,2025-11-13
+main.html,overrides/main.html,miscellaneous,2025-11-13
+API_TESTING_COMPLETE.md,reference/API_TESTING_COMPLETE.md,dashboard: backend; testing,2025-11-12
+API_TESTING_SUMMARY.md,reference/API_TESTING_SUMMARY.md,dashboard: backend; testing,2025-11-12
+API_TEST_COMMANDS.md,reference/API_TEST_COMMANDS.md,dashboard: backend; testing,2025-11-12
+CATALOG_CROSS_MATCHING_GUIDE.md,reference/CATALOG_CROSS_MATCHING_GUIDE.md,pipeline: crossmatching; dashboard: frontend; documentation,2025-11-12
+CATALOG_DOCUMENTATION_INDEX.md,reference/CATALOG_DOCUMENTATION_INDEX.md,pipeline: crossmatching; documentation,2025-11-13
+CATALOG_USAGE_GUIDE.md,reference/CATALOG_USAGE_GUIDE.md,pipeline: crossmatching; dashboard: frontend; documentation,2025-11-12
+CRITICAL_PYTHON_ENVIRONMENT.md,reference/CRITICAL_PYTHON_ENVIRONMENT.md,environment,2025-11-12
+CURRENT_CALIBRATION_PROCEDURE.md,reference/CURRENT_CALIBRATION_PROCEDURE.md,pipeline: calibration,2025-11-12
+EXISTING_CROSS_MATCHING_TOOLS.md,reference/EXISTING_CROSS_MATCHING_TOOLS.md,pipeline: crossmatching; tools,2025-11-12
+EXTERNAL_CROSS_MATCHING_TOOLS_SURVEY.md,reference/EXTERNAL_CROSS_MATCHING_TOOLS_SURVEY.md,pipeline: crossmatching; tools,2025-11-12
+FIRST_DECLINATION_COVERAGE.md,reference/FIRST_DECLINATION_COVERAGE.md,miscellaneous,2025-11-12
+LINEARMOSAIC_PARAMETERS.md,reference/LINEARMOSAIC_PARAMETERS.md,pipeline: mosaicing,2025-11-12
+RADIO_SURVEY_CATALOG_COMPARISON.md,reference/RADIO_SURVEY_CATALOG_COMPARISON.md,pipeline: crossmatching; tools,2025-11-12
+README.md,reference/README.md,documentation,2025-11-12
+TEST_EXECUTION_REPORT.md,reference/TEST_EXECUTION_REPORT.md,testing; operations,2025-11-12
+VAST_PIPELINE_CROSS_MATCHING_INTEGRATION.md,reference/VAST_PIPELINE_CROSS_MATCHING_INTEGRATION.md,pipeline: crossmatching; testing,2025-11-12
+api-endpoints.md,reference/api-endpoints.md,dashboard: backend,2025-11-13
+api_reference.md,reference/api_reference.md,dashboard: backend; documentation,2025-11-12
+api_reference_generated.md,reference/api_reference_generated.md,dashboard: backend; documentation,2025-11-12
+backend_integration_snippets.md,reference/backend_integration_snippets.md,dashboard: backend; testing,2025-11-13
+calibration-overview.md,reference/calibration-overview.md,pipeline: calibration,2025-11-12
+cli.md,reference/cli.md,miscellaneous,2025-11-12
+control-panel-cheatsheet.md,reference/control-panel-cheatsheet.md,dashboard: control,2025-11-13
+coverage_improvement_plan.md,reference/coverage_improvement_plan.md,miscellaneous,2025-11-12
+dashboard_backend_api.md,reference/dashboard_backend_api.md,dashboard: backend; dashboard: monitoring,2025-11-13
+dashboard_documentation_verification.md,reference/dashboard_documentation_verification.md,documentation,2025-11-13
+dashboard_implementation_status.md,reference/dashboard_implementation_status.md,development,2025-11-13
+dashboard_pages_and_features.md,reference/dashboard_pages_and_features.md,dashboard: frontend,2025-11-13
+database_schema.md,reference/database_schema.md,dashboard: backend,2025-11-13
+developer_guide.md,reference/developer_guide.md,dashboard: frontend; documentation; development,2025-11-12
+docker-client.md,reference/docker-client.md,deployment,2025-11-12
+documentation_improvements_summary.md,reference/documentation_improvements_summary.md,documentation,2025-11-12
+env.md,reference/env.md,miscellaneous,2025-11-12
+html_reports_in_pipeline.md,reference/html_reports_in_pipeline.md,operations,2025-11-12
+image_filters_backend_implementation.md,reference/image_filters_backend_implementation.md,pipeline: imaging; dashboard: backend; development,2025-11-12
+image_filters_implementation_status.md,reference/image_filters_implementation_status.md,pipeline: imaging; development,2025-11-12
+image_filters_manual_testing_guide.md,reference/image_filters_manual_testing_guide.md,pipeline: imaging; dashboard: frontend; testing; documentation,2025-11-12
+image_filters_test_report.md,reference/image_filters_test_report.md,pipeline: imaging; testing; operations,2025-11-13
+image_filters_test_results.md,reference/image_filters_test_results.md,pipeline: imaging; testing,2025-11-13
+js9_casa_analysis_api.md,reference/js9_casa_analysis_api.md,pipeline: imaging; dashboard: backend; dashboard: visualization,2025-11-13
+mcp-tools.md,reference/mcp-tools.md,tools,2025-11-12
+OPTIMIZATION_API.md,reference/optimizations/OPTIMIZATION_API.md,dashboard: backend; performance,2025-11-05
+PROFILING_GUIDE.md,reference/optimizations/PROFILING_GUIDE.md,dashboard: frontend; documentation; performance,2025-11-05
+streaming-api.md,reference/streaming-api.md,pipeline: streaming; dashboard: backend,2025-11-13
+test_coverage_analysis.md,reference/test_coverage_analysis.md,testing,2025-11-12
+validation_api.md,reference/validation_api.md,dashboard: backend; testing,2025-11-13
+scientific_ui_templates.md,scientific_ui_templates.md,dashboard: frontend,2025-11-12
+COMPLETION_SUMMARY.md,testing/COMPLETION_SUMMARY.md,miscellaneous,2025-11-12
+COMPREHENSIVE_TESTING_PLAN.md,testing/COMPREHENSIVE_TESTING_PLAN.md,testing,2025-11-12
+CURRENT_STATUS.md,testing/CURRENT_STATUS.md,development,2025-11-12
+DATA_DETAIL_TESTING_STATUS.md,testing/DATA_DETAIL_TESTING_STATUS.md,testing; development,2025-11-12
+DEMONSTRATION.md,testing/DEMONSTRATION.md,miscellaneous,2025-11-12
+DOCKER_TESTING_GUIDE.md,testing/DOCKER_TESTING_GUIDE.md,dashboard: frontend; testing; documentation; deployment,2025-11-12
+EXECUTION_COMPLETE.md,testing/EXECUTION_COMPLETE.md,miscellaneous,2025-11-12
+FINAL_EXECUTION_REPORT.md,testing/FINAL_EXECUTION_REPORT.md,operations,2025-11-12
+FINAL_TEST_REPORT.md,testing/FINAL_TEST_REPORT.md,testing; operations,2025-11-12
+IMPLEMENTATION_SUMMARY.md,testing/IMPLEMENTATION_SUMMARY.md,development,2025-11-12
+MERMAID_DIAGRAM_TESTING_STRATEGY.md,testing/MERMAID_DIAGRAM_TESTING_STRATEGY.md,testing,2025-11-12
+MERMAID_SPECIAL_CHARACTERS_SOLUTION.md,testing/MERMAID_SPECIAL_CHARACTERS_SOLUTION.md,miscellaneous,2025-11-12
+MERMAID_TESTING_SUMMARY.md,testing/MERMAID_TESTING_SUMMARY.md,testing,2025-11-12
+MIDPOINT_SUMMARY.md,testing/MIDPOINT_SUMMARY.md,miscellaneous,2025-11-12
+MOSAIC_PIECEWISE_TESTING.md,testing/MOSAIC_PIECEWISE_TESTING.md,pipeline: mosaicing; testing,2025-11-12
+MS_LOCKING_IMPLEMENTATION.md,testing/MS_LOCKING_IMPLEMENTATION.md,development,2025-11-12
+PHASE1_16SPW_TEST_RESULTS.md,testing/PHASE1_16SPW_TEST_RESULTS.md,testing; development,2025-11-12
+PHASE1_MULTIPLE_SOURCES_TEST_RESULTS.md,testing/PHASE1_MULTIPLE_SOURCES_TEST_RESULTS.md,testing; development,2025-11-12
+PHASE1_TESTING_RESULTS.md,testing/PHASE1_TESTING_RESULTS.md,testing; development,2025-11-12
+PHASE1_WIDER_BINS_TEST_RESULTS.md,testing/PHASE1_WIDER_BINS_TEST_RESULTS.md,testing; development,2025-11-12
+PRACTICAL_APPROACH.md,testing/PRACTICAL_APPROACH.md,miscellaneous,2025-11-12
+PROGRESS_UPDATE.md,testing/PROGRESS_UPDATE.md,miscellaneous,2025-11-12
+PROXY_ISSUE_NOTES.md,testing/PROXY_ISSUE_NOTES.md,troubleshooting,2025-11-12
+QUICK_START.md,testing/QUICK_START.md,dashboard: frontend,2025-11-12
+README.md,testing/README.md,documentation,2025-11-12
+READY_TO_USE.md,testing/READY_TO_USE.md,miscellaneous,2025-11-12
+REMAINING_TESTS_ANALYSIS.md,testing/REMAINING_TESTS_ANALYSIS.md,testing,2025-11-12
+REMAINING_TESTS_STATUS.md,testing/REMAINING_TESTS_STATUS.md,testing; development,2025-11-12
+REVISED_STRATEGY.md,testing/REVISED_STRATEGY.md,miscellaneous,2025-11-12
+SCIENCE_MS_INVENTORY.md,testing/SCIENCE_MS_INVENTORY.md,miscellaneous,2025-11-12
+STREAMING_TESTS_COMPLETION.md,testing/STREAMING_TESTS_COMPLETION.md,pipeline: streaming; testing,2025-11-12
+SYSTEM_ANALYSIS.md,testing/SYSTEM_ANALYSIS.md,miscellaneous,2025-11-12
+TEST_APPROACHES_ANALYSIS.md,testing/TEST_APPROACHES_ANALYSIS.md,testing,2025-11-12
+TEST_EXECUTION_LOG.md,testing/TEST_EXECUTION_LOG.md,testing,2025-11-12
+TEST_EXECUTION_SUMMARY.md,testing/TEST_EXECUTION_SUMMARY.md,testing,2025-11-12
+VERIFICATION_RESULTS.md,testing/VERIFICATION_RESULTS.md,miscellaneous,2025-11-12
+unit_test_suite_summary.md,testing/unit_test_suite_summary.md,dashboard: frontend; testing,2025-11-13
+frontend-restart-needed.md,troubleshooting/frontend-restart-needed.md,dashboard: frontend,2025-11-12
+HDF5_TO_MS_TUTORIAL.md,tutorials/HDF5_TO_MS_TUTORIAL.md,miscellaneous,2025-11-12
+calibrate-apply.md,tutorials/calibrate-apply.md,pipeline: calibration,2025-11-12
+convert-standalone.md,tutorials/convert-standalone.md,miscellaneous,2025-11-12
+calibrator_helper.py,tutorials/notebooks/calibrator_helper.py,pipeline: calibration,2025-11-05
+simulation-tutorial.md,tutorials/simulation-tutorial.md,miscellaneous,2025-11-12
+streaming.md,tutorials/streaming.md,pipeline: streaming,2025-11-13
+user_guide_qa_visualization.md,user_guide_qa_visualization.md,pipeline: qa; dashboard: frontend; dashboard: visualization; documentation,2025-11-13

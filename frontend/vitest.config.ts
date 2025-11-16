@@ -103,5 +103,28 @@ export default defineConfig({
     // Use node environment for backend API/client smoke tests to avoid jsdom/webcrypto issues
     environmentMatchGlobs: [["src/api/**", "node"]],
     setupFiles: "./src/test/setup.ts",
+    // Explicitly include test files (Vitest 4.0.9 may need this)
+    include: ["**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    // Exclude Playwright E2E tests from the Vitest runner
+    exclude: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/e2e/**",
+      "**/tests/e2e/**",
+      "**/tests/playwright/**",
+      "**/tests-examples/**",
+      "**/.{idea,git,cache,output,temp}/**",
+      "**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build,playwright}.config.*",
+    ],
+    // Workaround for worker timeout issues in Vitest 4.0.9 on FUSE filesystems
+    // Run in single thread mode to avoid worker process communication issues
+    pool: "threads",
+    poolOptions: {
+      threads: {
+        singleThread: true,
+      },
+    },
+    // Increase timeout for test execution
+    testTimeout: 10000,
   },
 });

@@ -1,5 +1,6 @@
 import { Container, Typography, Box, Alert, Stack } from "@mui/material";
 import { alpha } from "@mui/material/styles";
+import { useState } from "react";
 import { usePipelineStatus, useSystemMetrics } from "../api/queries";
 import ESECandidatesPanel from "../components/ESECandidatesPanel";
 import PointingVisualization from "../components/PointingVisualization";
@@ -9,21 +10,25 @@ import { MetricWithSparkline } from "../components/Sparkline";
 import { SkeletonLoader } from "../components/SkeletonLoader";
 import CollapsibleSection from "../components/CollapsibleSection";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
+import QueueDetailsPanel from "../components/QueueDetailsPanel";
 import { useMetricHistory } from "../hooks/useMetricHistory";
+
+type QueueStatusType = "total" | "pending" | "in_progress" | "completed" | "failed" | "collecting";
 
 export default function DashboardPage() {
   const { data: status, isLoading: statusLoading, error: statusError } = usePipelineStatus();
   const { data: metrics, isLoading: metricsLoading, error: metricsError } = useSystemMetrics();
+  const [selectedQueueStatus, setSelectedQueueStatus] = useState<QueueStatusType>("in_progress");
 
   // Track metric history for sparklines
-  const cpuHistory = useMetricHistory(metrics?.cpu_percent);
-  const memHistory = useMetricHistory(metrics?.mem_percent);
+  const cpuHistory = useMetricHistory(metrics?.cpu_percent ?? undefined);
+  const memHistory = useMetricHistory(metrics?.mem_percent ?? undefined);
   const diskHistory = useMetricHistory(
     metrics?.disk_total && metrics?.disk_used
       ? (metrics.disk_used / metrics.disk_total) * 100
       : undefined
   );
-  const loadHistory = useMetricHistory(metrics?.load_1);
+  const loadHistory = useMetricHistory(metrics?.load_1 ?? undefined);
 
   if (statusLoading || metricsLoading) {
     return (
@@ -61,7 +66,7 @@ export default function DashboardPage() {
         </Box>
 
         <Stack spacing={3}>
-          {/* Row 1: Pipeline Status + System Health */}
+          {/* Row 1: Pipeline Status + Queue Details + System Health */}
           <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
             <CollapsibleSection title="Pipeline Status" defaultExpanded={true} variant="outlined">
               <Box sx={{ mt: 2 }}>
@@ -75,42 +80,120 @@ export default function DashboardPage() {
                     gap: 2,
                   }}
                 >
-                  <MetricCard
-                    label="Total"
-                    value={status?.queue?.total || 0}
-                    color="primary"
-                    size="small"
-                  />
-                  <MetricCard
-                    label="Pending"
-                    value={status?.queue?.pending || 0}
-                    color="info"
-                    size="small"
-                  />
-                  <MetricCard
-                    label="In Progress"
-                    value={status?.queue?.in_progress || 0}
-                    color="warning"
-                    size="small"
-                  />
-                  <MetricCard
-                    label="Completed"
-                    value={status?.queue?.completed || 0}
-                    color="success"
-                    size="small"
-                  />
-                  <MetricCard
-                    label="Failed"
-                    value={status?.queue?.failed || 0}
-                    color="error"
-                    size="small"
-                  />
-                  <MetricCard
-                    label="Collecting"
-                    value={status?.queue?.collecting || 0}
-                    color="info"
-                    size="small"
-                  />
+                  <Box
+                    onClick={() => setSelectedQueueStatus("total")}
+                    sx={{
+                      cursor: "pointer",
+                      "&:hover": { opacity: 0.8, transform: "translateY(-2px)" },
+                      transition: "all 0.2s ease-in-out",
+                      border: selectedQueueStatus === "total" ? 2 : 0,
+                      borderColor: "primary.main",
+                      borderRadius: 1,
+                      p: selectedQueueStatus === "total" ? 0.5 : 0,
+                    }}
+                  >
+                    <MetricCard
+                      label="Total"
+                      value={status?.queue?.total || 0}
+                      color="primary"
+                      size="small"
+                    />
+                  </Box>
+                  <Box
+                    onClick={() => setSelectedQueueStatus("pending")}
+                    sx={{
+                      cursor: "pointer",
+                      "&:hover": { opacity: 0.8, transform: "translateY(-2px)" },
+                      transition: "all 0.2s ease-in-out",
+                      border: selectedQueueStatus === "pending" ? 2 : 0,
+                      borderColor: "info.main",
+                      borderRadius: 1,
+                      p: selectedQueueStatus === "pending" ? 0.5 : 0,
+                    }}
+                  >
+                    <MetricCard
+                      label="Pending"
+                      value={status?.queue?.pending || 0}
+                      color="info"
+                      size="small"
+                    />
+                  </Box>
+                  <Box
+                    onClick={() => setSelectedQueueStatus("in_progress")}
+                    sx={{
+                      cursor: "pointer",
+                      "&:hover": { opacity: 0.8, transform: "translateY(-2px)" },
+                      transition: "all 0.2s ease-in-out",
+                      border: selectedQueueStatus === "in_progress" ? 2 : 0,
+                      borderColor: "warning.main",
+                      borderRadius: 1,
+                      p: selectedQueueStatus === "in_progress" ? 0.5 : 0,
+                    }}
+                  >
+                    <MetricCard
+                      label="In Progress"
+                      value={status?.queue?.in_progress || 0}
+                      color="warning"
+                      size="small"
+                    />
+                  </Box>
+                  <Box
+                    onClick={() => setSelectedQueueStatus("completed")}
+                    sx={{
+                      cursor: "pointer",
+                      "&:hover": { opacity: 0.8, transform: "translateY(-2px)" },
+                      transition: "all 0.2s ease-in-out",
+                      border: selectedQueueStatus === "completed" ? 2 : 0,
+                      borderColor: "success.main",
+                      borderRadius: 1,
+                      p: selectedQueueStatus === "completed" ? 0.5 : 0,
+                    }}
+                  >
+                    <MetricCard
+                      label="Completed"
+                      value={status?.queue?.completed || 0}
+                      color="success"
+                      size="small"
+                    />
+                  </Box>
+                  <Box
+                    onClick={() => setSelectedQueueStatus("failed")}
+                    sx={{
+                      cursor: "pointer",
+                      "&:hover": { opacity: 0.8, transform: "translateY(-2px)" },
+                      transition: "all 0.2s ease-in-out",
+                      border: selectedQueueStatus === "failed" ? 2 : 0,
+                      borderColor: "error.main",
+                      borderRadius: 1,
+                      p: selectedQueueStatus === "failed" ? 0.5 : 0,
+                    }}
+                  >
+                    <MetricCard
+                      label="Failed"
+                      value={status?.queue?.failed || 0}
+                      color="error"
+                      size="small"
+                    />
+                  </Box>
+                  <Box
+                    onClick={() => setSelectedQueueStatus("collecting")}
+                    sx={{
+                      cursor: "pointer",
+                      "&:hover": { opacity: 0.8, transform: "translateY(-2px)" },
+                      transition: "all 0.2s ease-in-out",
+                      border: selectedQueueStatus === "collecting" ? 2 : 0,
+                      borderColor: "info.main",
+                      borderRadius: 1,
+                      p: selectedQueueStatus === "collecting" ? 0.5 : 0,
+                    }}
+                  >
+                    <MetricCard
+                      label="Collecting"
+                      value={status?.queue?.collecting || 0}
+                      color="info"
+                      size="small"
+                    />
+                  </Box>
                 </Box>
 
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
@@ -120,6 +203,15 @@ export default function DashboardPage() {
                   Active: <strong>{status?.calibration_sets?.length || 0}</strong>
                 </Typography>
               </Box>
+            </CollapsibleSection>
+
+            {/* Queue Details Panel */}
+            <CollapsibleSection title="Queue Details" defaultExpanded={true} variant="outlined">
+              <QueueDetailsPanel
+                selectedStatus={selectedQueueStatus}
+                queueGroups={status?.recent_groups || []}
+                isLoading={statusLoading}
+              />
             </CollapsibleSection>
 
             {/* System Health */}
@@ -263,7 +355,7 @@ export default function DashboardPage() {
             defaultExpanded={true}
             variant="outlined"
           >
-            <PointingVisualization height={500} showHistory={true} historyDays={7} />
+            <PointingVisualization height={500} showHistory={true} />
           </CollapsibleSection>
 
           {/* ESE Candidates Panel */}

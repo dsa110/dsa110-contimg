@@ -16,7 +16,7 @@ import HealthPage from "./HealthPage";
 import QAVisualizationPage from "./QAVisualizationPage";
 import CachePage from "./CachePage";
 import { StatCard } from "../components/StatCard";
-import { useSystemMetrics } from "../api/queries";
+import { useSystemMetrics, useDatabaseMetrics } from "../api/queries";
 import { useDLQStats } from "../api/queries";
 import UnifiedSearch from "../components/UnifiedSearch";
 
@@ -46,6 +46,7 @@ export default function SystemDiagnosticsPage() {
   const initialTab = parseInt(searchParams.get("tab") || "0", 10);
   const [tabValue, setTabValue] = useState(initialTab);
   const { data: systemMetrics } = useSystemMetrics();
+  const { data: databaseMetrics } = useDatabaseMetrics();
 
   // Sync URL with tab changes
   useEffect(() => {
@@ -166,6 +167,65 @@ export default function SystemDiagnosticsPage() {
                     dlqStats.pending > 5 ? "error" : dlqStats.pending > 0 ? "warning" : "success"
                   }
                   icon={<HealthIcon />}
+                />
+              </Grid>
+            </>
+          )}
+          {databaseMetrics && (
+            <>
+              <Grid item xs={12}>
+                <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+                  Database Performance
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <StatCard
+                  title="Total Operations"
+                  value={databaseMetrics.total_operations.toLocaleString()}
+                  color="info"
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <StatCard
+                  title="Error Rate"
+                  value={
+                    databaseMetrics.error_rate > 0
+                      ? `${(databaseMetrics.error_rate * 100).toFixed(2)}%`
+                      : "0%"
+                  }
+                  color={
+                    databaseMetrics.error_rate > 0.01
+                      ? "error"
+                      : databaseMetrics.error_rate > 0.001
+                        ? "warning"
+                        : "success"
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <StatCard
+                  title="Avg Duration"
+                  value={`${(databaseMetrics.avg_duration * 1000).toFixed(1)}ms`}
+                  color={
+                    databaseMetrics.avg_duration > 0.1
+                      ? "error"
+                      : databaseMetrics.avg_duration > 0.05
+                        ? "warning"
+                        : "success"
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <StatCard
+                  title="P95 Duration"
+                  value={`${(databaseMetrics.p95_duration * 1000).toFixed(1)}ms`}
+                  color={
+                    databaseMetrics.p95_duration > 0.1
+                      ? "error"
+                      : databaseMetrics.p95_duration > 0.05
+                        ? "warning"
+                        : "success"
+                  }
                 />
               </Grid>
             </>

@@ -30,9 +30,16 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   const theme = useTheme();
 
   const getStatus = (): "success" | "warning" | "error" => {
-    if (value >= thresholds.good) return "success";
-    if (value >= thresholds.warning) return "warning";
-    return "error";
+    // For resource usage metrics (CPU, Memory, Disk), lower is better
+    // High usage is critical, low usage is healthy
+    // Thresholds represent maximum values for each state
+    const maxGood = Math.max(thresholds.good, thresholds.warning);
+    const maxWarning = Math.min(thresholds.good, thresholds.warning);
+
+    // Check in order: critical (highest) -> warning -> good (lowest)
+    if (value >= maxGood) return "error"; // Above max threshold = critical
+    if (value >= maxWarning) return "warning"; // Between thresholds = warning
+    return "success"; // Below both thresholds = healthy
   };
 
   const status = getStatus();

@@ -52,7 +52,6 @@ const navItems = [
   { path: "/operations", label: "Operations", icon: Build },
   { path: "/control", label: "Control", icon: Settings },
   { path: "/calibration", label: "Calibration", icon: Build },
-  { path: "/ms-browser", label: "MS Browser", icon: FolderOpen },
   { path: "/streaming", label: "Streaming", icon: PlayArrow },
   { path: "/data", label: "Data Browser", icon: Storage },
   { path: "/sources", label: "Sources", icon: TableChart },
@@ -122,11 +121,22 @@ export default function Navigation() {
         sx={{
           bgcolor: "#1e1e1e",
           width: "100%",
+          maxWidth: "none",
           left: 0,
           right: 0,
+          margin: 0,
+          padding: 0,
+          boxSizing: "border-box",
         }}
       >
-        <Toolbar sx={{ width: "100%", maxWidth: "100%", px: { xs: 1, sm: 2 } }}>
+        <Toolbar
+          sx={{
+            width: "100%",
+            maxWidth: "100%",
+            px: { xs: 1, sm: 2 },
+            margin: 0,
+          }}
+        >
           {isMobile && (
             <IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2 }}>
               <MenuIcon />

@@ -25,6 +25,14 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
     path.parent.mkdir(parents=True, exist_ok=True)
     # Add timeout to prevent hanging on locked database
     conn = sqlite3.connect(os.fspath(path), timeout=30.0)
+    # Enable WAL mode for better concurrent access (readers don't block writers)
+    try:
+        conn.execute("PRAGMA journal_mode=WAL")
+    except sqlite3.OperationalError:
+        # If WAL mode can't be enabled (e.g., on network filesystems), continue with default
+        pass
+    # Set busy timeout explicitly
+    conn.execute("PRAGMA busy_timeout=30000")  # 30 seconds in milliseconds
     # Base tables
     conn.execute(
         """
@@ -94,6 +102,38 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
     except Exception:
         pass
 
+    # HDF5 file index for fast subband group queries
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS hdf5_file_index (
+            path TEXT PRIMARY KEY,
+            filename TEXT NOT NULL,
+            group_id TEXT NOT NULL,
+            subband_code TEXT NOT NULL,
+            timestamp_iso TEXT,
+            timestamp_mjd REAL,
+            file_size_bytes INTEGER,
+            modified_time REAL,
+            indexed_at REAL NOT NULL,
+            stored INTEGER DEFAULT 1,
+            UNIQUE(path)
+        )
+        """
+    )
+    # Add stored column if it doesn't exist (for existing databases)
+    try:
+        conn.execute("ALTER TABLE hdf5_file_index ADD COLUMN stored INTEGER DEFAULT 1")
+    except sqlite3.OperationalError:
+        pass  # Column already exists
+    # Indexes for fast queries
+    try:
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_hdf5_group_id ON hdf5_file_index(group_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_hdf5_timestamp_mjd ON hdf5_file_index(timestamp_mjd)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_hdf5_group_subband ON hdf5_file_index(group_id, subband_code)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_hdf5_stored ON hdf5_file_index(stored)")
+    except Exception:
+        pass
+
     # Storage locations registry for recovery
     conn.execute(
         """
@@ -122,6 +162,156 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
         pass
 
     conn.commit()
+
+    # Batch jobs table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS batch_jobs (
+            id INTEGER PRIMARY KEY,
+            type TEXT NOT NULL,
+            created_at REAL NOT NULL,
+            status TEXT NOT NULL,
+            total_items INTEGER NOT NULL,
+            completed_items INTEGER DEFAULT 0,
+            failed_items INTEGER DEFAULT 0,
+            params TEXT
+        )
+        """
+    )
+
+    # Batch job items table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS batch_job_items (
+            id INTEGER PRIMARY KEY,
+            batch_id INTEGER NOT NULL,
+            ms_path TEXT NOT NULL,
+            job_id INTEGER,
+            status TEXT NOT NULL,
+            error TEXT,
+            started_at REAL,
+            completed_at REAL,
+            data_id TEXT DEFAULT NULL,
+            FOREIGN KEY (batch_id) REFERENCES batch_jobs(id)
+        )
+        """
+    )
+    # Migrate existing tables to add data_id column if it doesn't exist
+    try:
+        conn.execute("SELECT data_id FROM batch_job_items LIMIT 1")
+    except sqlite3.OperationalError:
+        # Column doesn't exist, add it
+        try:
+            conn.execute("ALTER TABLE batch_job_items ADD COLUMN data_id TEXT DEFAULT NULL")
+        except sqlite3.OperationalError:
+            pass  # Column may already exist from concurrent creation
+
+    # Calibration QA metrics table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS calibration_qa (
+            id INTEGER PRIMARY KEY,
+            ms_path TEXT NOT NULL,
+            job_id INTEGER NOT NULL,
+            k_metrics TEXT,
+            bp_metrics TEXT,
+            g_metrics TEXT,
+            overall_quality TEXT,
+            flags_total REAL,
+            per_spw_stats TEXT,
+            timestamp REAL NOT NULL
+        )
+        """
+    )
+
+    # Image QA metrics table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS image_qa (
+            id INTEGER PRIMARY KEY,
+            ms_path TEXT NOT NULL,
+            job_id INTEGER NOT NULL,
+            image_path TEXT NOT NULL,
+            rms_noise REAL,
+            peak_flux REAL,
+            dynamic_range REAL,
+            beam_major REAL,
+            beam_minor REAL,
+            beam_pa REAL,
+            num_sources INTEGER,
+            thumbnail_path TEXT,
+            overall_quality TEXT,
+            timestamp REAL NOT NULL
+        )
+        """
+    )
+
+    # Indices for batch jobs
+    try:
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_batch_items_batch_id ON batch_job_items(batch_id)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_batch_items_ms_path ON batch_job_items(ms_path)"
+        )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_cal_qa_ms_path ON calibration_qa(ms_path)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_img_qa_ms_path ON image_qa(ms_path)")
+    except Exception:
+        pass
+    # Table for pointing history
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pointing_history (
+            timestamp REAL PRIMARY KEY,
+            ra_deg REAL,
+            dec_deg REAL
+        )
+        """
+    )
+    # Lightweight migrations to add missing columns
+    # Only migrate if table exists (it's created above)
+    try:
+        cur = conn.cursor()
+        # Check if table exists
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='ms_index'")
+        if cur.fetchone() is None:
+            # Table doesn't exist yet, no migration needed
+            return conn
+
+        cur.execute("PRAGMA table_info(ms_index)")
+        cols = {r[1] for r in cur.fetchall()}
+        migrations_applied = False
+        if "stage" not in cols:
+            cur.execute("ALTER TABLE ms_index ADD COLUMN stage TEXT")
+            migrations_applied = True
+        if "stage_updated_at" not in cols:
+            cur.execute("ALTER TABLE ms_index ADD COLUMN stage_updated_at REAL")
+            migrations_applied = True
+        if "cal_applied" not in cols:
+            cur.execute("ALTER TABLE ms_index ADD COLUMN cal_applied INTEGER DEFAULT 0")
+            migrations_applied = True
+        if "imagename" not in cols:
+            cur.execute("ALTER TABLE ms_index ADD COLUMN imagename TEXT")
+            migrations_applied = True
+        if "ra_deg" not in cols:
+            cur.execute("ALTER TABLE ms_index ADD COLUMN ra_deg REAL")
+            migrations_applied = True
+        if "dec_deg" not in cols:
+            cur.execute("ALTER TABLE ms_index ADD COLUMN dec_deg REAL")
+            migrations_applied = True
+        if migrations_applied:
+            conn.commit()
+    except Exception as e:
+        # Log the error but don't fail - migration errors are non-fatal
+        # The table will still work, just without the new columns
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Failed to migrate ms_index table: {e}")
+        # Re-raise if it's a critical error (like table doesn't exist when it should)
+        if "no such table" not in str(e).lower():
+            raise
+
     return conn
 
 
@@ -275,156 +465,6 @@ def get_storage_locations(
         }
         for row in rows
     ]
-
-    # Batch jobs table
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS batch_jobs (
-            id INTEGER PRIMARY KEY,
-            type TEXT NOT NULL,
-            created_at REAL NOT NULL,
-            status TEXT NOT NULL,
-            total_items INTEGER NOT NULL,
-            completed_items INTEGER DEFAULT 0,
-            failed_items INTEGER DEFAULT 0,
-            params TEXT
-        )
-        """
-    )
-
-    # Batch job items table
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS batch_job_items (
-            id INTEGER PRIMARY KEY,
-            batch_id INTEGER NOT NULL,
-            ms_path TEXT NOT NULL,
-            job_id INTEGER,
-            status TEXT NOT NULL,
-            error TEXT,
-            started_at REAL,
-            completed_at REAL,
-            data_id TEXT DEFAULT NULL,
-            FOREIGN KEY (batch_id) REFERENCES batch_jobs(id)
-        )
-        """
-    )
-    # Migrate existing tables to add data_id column if it doesn't exist
-    try:
-        conn.execute("SELECT data_id FROM batch_job_items LIMIT 1")
-    except sqlite3.OperationalError:
-        # Column doesn't exist, add it
-        try:
-            conn.execute("ALTER TABLE batch_job_items ADD COLUMN data_id TEXT DEFAULT NULL")
-        except sqlite3.OperationalError:
-            pass  # Column may already exist from concurrent creation
-
-    # Calibration QA metrics table
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS calibration_qa (
-            id INTEGER PRIMARY KEY,
-            ms_path TEXT NOT NULL,
-            job_id INTEGER NOT NULL,
-            k_metrics TEXT,
-            bp_metrics TEXT,
-            g_metrics TEXT,
-            overall_quality TEXT,
-            flags_total REAL,
-            per_spw_stats TEXT,
-            timestamp REAL NOT NULL
-        )
-        """
-    )
-
-    # Image QA metrics table
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS image_qa (
-            id INTEGER PRIMARY KEY,
-            ms_path TEXT NOT NULL,
-            job_id INTEGER NOT NULL,
-            image_path TEXT NOT NULL,
-            rms_noise REAL,
-            peak_flux REAL,
-            dynamic_range REAL,
-            beam_major REAL,
-            beam_minor REAL,
-            beam_pa REAL,
-            num_sources INTEGER,
-            thumbnail_path TEXT,
-            overall_quality TEXT,
-            timestamp REAL NOT NULL
-        )
-        """
-    )
-
-    # Indices for batch jobs
-    try:
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_batch_items_batch_id ON batch_job_items(batch_id)"
-        )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_batch_items_ms_path ON batch_job_items(ms_path)"
-        )
-        conn.execute("CREATE INDEX IF NOT EXISTS idx_cal_qa_ms_path ON calibration_qa(ms_path)")
-        conn.execute("CREATE INDEX IF NOT EXISTS idx_img_qa_ms_path ON image_qa(ms_path)")
-    except Exception:
-        pass
-    # Table for pointing history
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS pointing_history (
-            timestamp REAL PRIMARY KEY,
-            ra_deg REAL,
-            dec_deg REAL
-        )
-        """
-    )
-    # Lightweight migrations to add missing columns
-    # Only migrate if table exists (it's created above)
-    try:
-        cur = conn.cursor()
-        # Check if table exists
-        cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='ms_index'")
-        if cur.fetchone() is None:
-            # Table doesn't exist yet, no migration needed
-            return conn
-
-        cur.execute("PRAGMA table_info(ms_index)")
-        cols = {r[1] for r in cur.fetchall()}
-        migrations_applied = False
-        if "stage" not in cols:
-            cur.execute("ALTER TABLE ms_index ADD COLUMN stage TEXT")
-            migrations_applied = True
-        if "stage_updated_at" not in cols:
-            cur.execute("ALTER TABLE ms_index ADD COLUMN stage_updated_at REAL")
-            migrations_applied = True
-        if "cal_applied" not in cols:
-            cur.execute("ALTER TABLE ms_index ADD COLUMN cal_applied INTEGER DEFAULT 0")
-            migrations_applied = True
-        if "imagename" not in cols:
-            cur.execute("ALTER TABLE ms_index ADD COLUMN imagename TEXT")
-            migrations_applied = True
-        if "ra_deg" not in cols:
-            cur.execute("ALTER TABLE ms_index ADD COLUMN ra_deg REAL")
-            migrations_applied = True
-        if "dec_deg" not in cols:
-            cur.execute("ALTER TABLE ms_index ADD COLUMN dec_deg REAL")
-            migrations_applied = True
-        if migrations_applied:
-            conn.commit()
-    except Exception as e:
-        # Log the error but don't fail - migration errors are non-fatal
-        # The table will still work, just without the new columns
-        import logging
-
-        logger = logging.getLogger(__name__)
-        logger.warning(f"Failed to migrate ms_index table: {e}")
-        # Re-raise if it's a critical error (like table doesn't exist when it should)
-        if "no such table" not in str(e).lower():
-            raise
-    return conn
 
 
 def ms_index_upsert(

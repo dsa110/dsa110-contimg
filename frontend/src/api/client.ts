@@ -7,13 +7,15 @@ import { logger } from "../utils/logger";
 import { classifyError, getUserFriendlyMessage } from "../utils/errorUtils";
 import { createCircuitBreaker } from "./circuitBreaker";
 
-// Use current origin when served from API at /ui, otherwise use relative URL (proxied by Vite)
-// In Docker, Vite proxy handles /api -> backend service
-// If VITE_API_URL is explicitly set, use it; otherwise use /api for Vite proxy
+// API base URL configuration
+// - If VITE_API_URL is explicitly set, use it (e.g., "http://localhost:8000/api")
+// - When served from /ui, use origin + /api (e.g., "http://localhost:8000/api")
+// - Otherwise use relative /api for Vite proxy
 const API_BASE_URL =
-  typeof window !== "undefined" && window.location.pathname.startsWith("/ui")
-    ? window.location.origin
-    : import.meta.env.VITE_API_URL || "/api"; // Use VITE_API_URL if set, otherwise /api for Vite proxy
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== "undefined" && window.location.pathname.startsWith("/ui")
+    ? `${window.location.origin}/api`
+    : "/api");
 
 // Create circuit breaker for API calls
 const circuitBreaker = createCircuitBreaker({

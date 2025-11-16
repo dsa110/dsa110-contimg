@@ -41,6 +41,7 @@ from dsa110_contimg.qa.visualization import (
 )
 from dsa110_contimg.qa.visualization_qa import run_ms_qa_with_visualization
 from dsa110_contimg.utils.path_validation import sanitize_filename, validate_path
+from dsa110_contimg.api.carta_service import get_carta_service_manager
 
 logger = logging.getLogger(__name__)
 
@@ -186,7 +187,12 @@ def browse_directory(
 
         for base_dir in [base_state, qa_base, output_dir]:
             try:
-                target_path = validate_path(path, base_dir)
+                # Allow absolute paths if the base directory resolves to an absolute path
+                # This is necessary because output_dir is typically an absolute path,
+                # and relative base directories like "state" resolve to absolute paths
+                resolved_base = Path(base_dir).resolve()
+                allow_absolute = resolved_base.is_absolute()
+                target_path = validate_path(path, base_dir, allow_absolute=allow_absolute)
                 break
             except ValueError as e:
                 validation_errors.append(str(e))
@@ -230,7 +236,7 @@ def browse_directory(
                 name=item.basename,
                 path=item.fullpath,
                 type=file_type,
-                size=item.size,
+                size=str(item.size) if item.size is not None else None,
                 modified_time=(datetime.fromtimestamp(item.mtime) if item.mtime else None),
                 is_dir=item.isdir,
             )
@@ -879,7 +885,7 @@ def browse_qa_directory(
                     name=item.basename,
                     path=item.fullpath,
                     type=file_type,
-                    size=item.size,
+                    size=str(item.size) if item.size is not None else None,
                     modified_time=(datetime.fromtimestamp(item.mtime) if item.mtime else None),
                     is_dir=item.is_dir,
                 )
@@ -1500,6 +1506,82 @@ def _convert_to_json_serializable(obj: Any) -> Any:
     else:
         # Try to convert to string as fallback
         return str(obj)
+
+
+# CARTA Service Management
+# ============================================================================
+
+
+class CARTAServiceStatus(BaseModel):
+    """CARTA service status response."""
+
+    running: bool
+    backend_port_open: bool
+    frontend_port_open: bool
+    backend_healthy: bool
+    container_running: bool
+    method: str
+
+
+class CARTAServiceControlResponse(BaseModel):
+    """CARTA service control response."""
+
+    success: bool
+    message: str
+    method: Optional[str] = None
+
+
+@router.get("/carta/status", response_model=CARTAServiceStatus)
+def get_carta_status():
+    """
+    Get the current status of CARTA services.
+
+    Returns information about whether CARTA backend and frontend are running,
+    ports are open, and services are healthy.
+    """
+    manager = get_carta_service_manager()
+    status = manager.get_status()
+    return CARTAServiceStatus(**status)
+
+
+@router.post("/carta/start", response_model=CARTAServiceControlResponse)
+def start_carta_service():
+    """
+    Start CARTA services.
+
+    Attempts to start CARTA backend and frontend services. If Docker is available,
+    will create and start a CARTA container. Otherwise, checks if services are
+    already running.
+    """
+    manager = get_carta_service_manager()
+    result = manager.start_service()
+    return CARTAServiceControlResponse(**result)
+
+
+@router.post("/carta/stop", response_model=CARTAServiceControlResponse)
+def stop_carta_service():
+    """
+    Stop CARTA services.
+
+    Stops CARTA services if they are managed by Docker. If services are running
+    standalone, returns an error message indicating manual stop is required.
+    """
+    manager = get_carta_service_manager()
+    result = manager.stop_service()
+    return CARTAServiceControlResponse(**result)
+
+
+@router.post("/carta/restart", response_model=CARTAServiceControlResponse)
+def restart_carta_service():
+    """
+    Restart CARTA services.
+
+    Stops and then starts CARTA services. Useful for recovering from errors
+    or applying configuration changes.
+    """
+    manager = get_carta_service_manager()
+    result = manager.restart_service()
+    return CARTAServiceControlResponse(**result)
 
 
 # Demo/Viewer Page

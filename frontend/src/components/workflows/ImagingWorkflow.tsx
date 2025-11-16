@@ -18,7 +18,9 @@ import {
   Switch,
   Tooltip,
   CircularProgress,
+  useTheme,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { PlayArrow } from "@mui/icons-material";
 import { useCreateImageJob, useMSMetadata } from "../../api/queries";
 import { useNotifications } from "../../contexts/NotificationContext";
@@ -31,6 +33,7 @@ interface ImagingWorkflowProps {
 }
 
 export function ImagingWorkflow({ selectedMS, onJobCreated, onRefreshJobs }: ImagingWorkflowProps) {
+  const theme = useTheme();
   const { showError, showSuccess } = useNotifications();
 
   // Imaging parameters state
@@ -78,7 +81,7 @@ export function ImagingWorkflow({ selectedMS, onJobCreated, onRefreshJobs }: Ima
       { ms_path: selectedMS, params: imageParams },
       {
         onSuccess: (job) => {
-          onJobCreated?.(job.id);
+          onJobCreated?.(parseInt(job.id, 10));
           onRefreshJobs?.();
           showSuccess(`Imaging job #${job.id} started successfully`);
         },
@@ -103,11 +106,11 @@ export function ImagingWorkflow({ selectedMS, onJobCreated, onRefreshJobs }: Ima
           sx={{
             mb: 2,
             p: 1.5,
-            bgcolor: "#1e1e1e",
+            bgcolor: alpha(theme.palette.background.paper, 0.5),
             borderRadius: 1,
             fontFamily: "monospace",
             fontSize: "0.75rem",
-            color: "#ffffff",
+            color: theme.palette.text.primary,
           }}
         >
           <Box sx={{ mb: 0.5 }}>• Auto-detects pixel size and image dimensions</Box>
@@ -172,7 +175,7 @@ export function ImagingWorkflow({ selectedMS, onJobCreated, onRefreshJobs }: Ima
         {selectedMS && msMetadata && (
           <>
             {(() => {
-              const hasCorrectedData = msMetadata.data_columns.includes("CORRECTED_DATA");
+              const hasCorrectedData = msMetadata.data_columns?.includes("CORRECTED_DATA") ?? false;
               const usingDataColumn = imageParams.datacolumn === "data";
 
               if (hasCorrectedData && usingDataColumn) {
@@ -181,12 +184,15 @@ export function ImagingWorkflow({ selectedMS, onJobCreated, onRefreshJobs }: Ima
                     sx={{
                       mb: 2,
                       p: 1.5,
-                      bgcolor: "#3e2723",
+                      bgcolor: alpha(theme.palette.warning.main, 0.12),
                       borderRadius: 1,
-                      border: "1px solid #ff9800",
+                      border: `1px solid ${theme.palette.warning.main}`,
                     }}
                   >
-                    <Typography variant="caption" sx={{ color: "#ffccbc", fontWeight: "bold" }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: theme.palette.warning.light, fontWeight: "bold" }}
+                    >
                       Warning: CORRECTED_DATA column exists but you're imaging DATA column. Consider
                       using CORRECTED_DATA for calibrated data.
                     </Typography>
@@ -200,12 +206,15 @@ export function ImagingWorkflow({ selectedMS, onJobCreated, onRefreshJobs }: Ima
                     sx={{
                       mb: 2,
                       p: 1.5,
-                      bgcolor: "#3e2723",
+                      bgcolor: alpha(theme.palette.error.main, 0.12),
                       borderRadius: 1,
-                      border: "1px solid #d32f2f",
+                      border: `1px solid ${theme.palette.error.main}`,
                     }}
                   >
-                    <Typography variant="caption" sx={{ color: "#ffccbc", fontWeight: "bold" }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: theme.palette.error.light, fontWeight: "bold" }}
+                    >
                       Error: CORRECTED_DATA column does not exist. Please apply calibration first or
                       use DATA column.
                     </Typography>

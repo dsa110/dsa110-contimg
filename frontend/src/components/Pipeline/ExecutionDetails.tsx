@@ -9,7 +9,7 @@ import {
   AccordionDetails,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { PipelineExecutionResponse } from "../../api/types";
+import type { PipelineExecutionResponse } from "../../api/types";
 import { usePipelineExecution } from "../../api/queries";
 
 interface ExecutionDetailsProps {

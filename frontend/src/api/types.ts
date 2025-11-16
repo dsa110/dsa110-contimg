@@ -1,69 +1,3 @@
-// ... existing code ...
-
-// Dead Letter Queue Types
-export interface DLQItem {
-  id: number;
-  component: string;
-  operation: string;
-  error_type: string;
-  error_message: string;
-  context: Record<string, any>;
-  created_at: number;
-  retry_count: number;
-  status: "pending" | "retrying" | "resolved" | "failed";
-  resolved_at?: number;
-  resolution_note?: string;
-}
-
-export interface DLQStats {
-  total: number;
-  pending: number;
-  retrying: number;
-  resolved: number;
-  failed: number;
-}
-
-export interface DLQRetryRequest {
-  note?: string;
-}
-
-export interface DLQResolveRequest {
-  note?: string;
-}
-
-// Circuit Breaker Types
-export interface CircuitBreakerState {
-  name: string;
-  state: "closed" | "open" | "half_open";
-  failure_count: number;
-  last_failure_time?: number;
-  recovery_timeout: number;
-}
-
-export interface CircuitBreakerList {
-  circuit_breakers: CircuitBreakerState[];
-}
-
-// Health Check Types
-export interface HealthCheck {
-  healthy: boolean;
-  error?: string;
-  type?: string;
-  [key: string]: any;
-}
-
-export interface HealthSummary {
-  status: "healthy" | "degraded" | "unhealthy";
-  timestamp: number;
-  checks: Record<string, HealthCheck>;
-  circuit_breakers: Array<{
-    name: string;
-    state: string;
-    failure_count: number;
-  }>;
-  dlq_stats: DLQStats;
-}
-
 // Dead Letter Queue Types
 export interface DLQItem {
   id: number;
@@ -244,6 +178,7 @@ export interface CachePerformance {
 // Source Search Types
 export interface SourceFluxPoint {
   mjd: number;
+  time?: string;
   flux_jy: number;
   flux_err_jy: number;
   image_id?: string;
@@ -312,6 +247,7 @@ export interface ImageInfo {
 }
 
 // Additional types from backend API models
+// QueueGroup interface for queue item details
 export interface QueueGroup {
   group_id: string;
   state: string;
@@ -360,6 +296,18 @@ export interface SystemMetrics {
   load_15?: number | null;
 }
 
+export interface DatabaseMetrics {
+  total_operations: number;
+  error_count: number;
+  error_rate: number;
+  avg_duration: number;
+  min_duration: number;
+  max_duration: number;
+  p50_duration: number;
+  p95_duration: number;
+  p99_duration: number;
+}
+
 export interface DiskInfo {
   mount_point: string;
   total: number;
@@ -389,7 +337,10 @@ export interface ESECandidate {
   first_detection?: string;
   last_detection?: string;
   last_detection_at?: string;
+  first_detection_at?: string;
   max_sigma_dev?: number;
+  current_flux_jy?: number;
+  baseline_flux_jy?: number;
   status?: string;
 }
 
@@ -458,6 +409,14 @@ export interface MSListEntry {
   cal_applied?: number | null;
   imagename?: string | null;
   has_calibrator?: boolean;
+  calibrator_name?: string | null;
+  calibrator_quality?: string | null;
+  is_calibrated?: boolean | null;
+  is_imaged?: boolean | null;
+  calibration_quality?: string | null;
+  image_quality?: string | null;
+  size_gb?: number | null;
+  start_time?: string | null;
 }
 
 export interface MSListFilters {
@@ -611,14 +570,27 @@ export interface WorkflowJobCreateRequest {
   params: Record<string, unknown>;
 }
 
+export interface PerSPWStats {
+  spw_id?: number;
+  total_solutions?: number;
+  flagged_solutions?: number;
+  fraction_flagged?: number;
+  n_channels?: number;
+  channels_with_high_flagging?: number;
+  avg_flagged_per_channel?: number;
+  max_flagged_in_channel?: number;
+  is_problematic?: boolean;
+}
+
 export interface CalibrationQA {
   group_id: string;
   artifacts: QAArtifact[];
   overall_quality?: string;
   flags_total?: number;
   k_metrics?: Record<string, unknown>;
+  g_metrics?: Record<string, unknown>;
   bp_metrics?: Record<string, unknown>;
-  per_spw_stats?: Record<string, unknown>;
+  per_spw_stats?: PerSPWStats[] | Record<string, unknown>;
 }
 
 export interface QAArtifact {
@@ -659,6 +631,8 @@ export interface QAMetrics {
 
 export interface BandpassPlotsList {
   items: BandpassPlot[];
+  plots?: BandpassPlot[];
+  count?: number;
 }
 
 export interface BandpassPlot {
@@ -766,9 +740,22 @@ export interface PointingHistoryEntry {
   dec_deg: number;
 }
 
+export interface DirectoryEntry {
+  name: string;
+  type: "file" | "directory";
+  size?: number;
+  modified_at?: string;
+  path?: string;
+}
+
 export interface DirectoryListing {
   path: string;
   items: DirectoryItem[];
+  entries?: DirectoryEntry[];
+  total_files?: number;
+  total_dirs?: number;
+  fits_count?: number;
+  casatable_count?: number;
 }
 
 export interface DirectoryItem {
@@ -780,16 +767,27 @@ export interface DirectoryItem {
 
 export interface FITSInfo {
   path: string;
+  exists?: boolean;
   header?: Record<string, unknown>;
   data_shape?: number[];
+  shape?: number[];
   wcs?: Record<string, unknown>;
+  summary?: Record<string, unknown>;
+  naxis?: number[];
+  header_keys?: string[];
 }
 
 export interface CasaTableInfo {
   path: string;
-  type: string;
+  type?: string;
+  exists?: boolean;
   rows?: number;
+  nrows?: number;
   columns?: string[];
+  keywords?: Record<string, any>;
+  subtables?: string[];
+  is_writable?: boolean;
+  error?: string;
 }
 
 export interface NotebookGenerateRequest {

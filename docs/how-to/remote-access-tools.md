@@ -1,6 +1,7 @@
 # Remote Access Tools Guide
 
-This guide documents the available tools for accessing and working with the lxd110h17 HPC server.
+This guide documents the available tools for accessing and working with the
+lxd110h17 HPC server.
 
 ## Overview
 
@@ -21,15 +22,18 @@ ssh h17
 ### SSH Configuration
 
 The SSH config is set up in `~/.ssh/config` on your local Mac with:
+
 - Multi-hop connection: `ovro` → `dsa110maas` → `h23` → `h17`
 - Compression enabled for better performance
-- X11 forwarding **disabled** (to allow Cursor Browser tool to use native Chrome)
+- X11 forwarding **disabled** (to allow Cursor Browser tool to use native
+  Chrome)
 
 ### Persistent Sessions
 
 Use `tmux` or `screen` to keep sessions running after disconnecting:
 
 **tmux:**
+
 ```bash
 # Create new session
 tmux new -s sessionname
@@ -41,6 +45,7 @@ tmux attach -t sessionname
 ```
 
 **screen:**
+
 ```bash
 # Create new session
 screen -S sessionname
@@ -56,12 +61,13 @@ screen -r sessionname
 To access web services running on the server:
 
 ```bash
-ssh -L 8000:localhost:8000 -L 5173:localhost:5173 h17
+ssh -L 8000:localhost:8000 -L 3210:localhost:3210 h17
 ```
 
 Then access:
+
 - Backend API: `http://localhost:8000`
-- Frontend dev server: `http://localhost:5173`
+- Frontend dev server: `http://localhost:3210`
 
 ## 2. Chrome Remote Desktop (Full GUI Access)
 
@@ -82,11 +88,13 @@ If Chrome Remote Desktop is stopped, start it with:
 /opt/google/chrome-remote-desktop/chrome-remote-desktop --start --new-session
 ```
 
-**Note:** Use `--start --new-session` to bypass pkexec/systemctl authentication requirements.
+**Note:** Use `--start --new-session` to bypass pkexec/systemctl authentication
+requirements.
 
 ### Running Persistently
 
-Chrome Remote Desktop runs as a background service and persists across SSH disconnections. To start it in a tmux/screen session for monitoring:
+Chrome Remote Desktop runs as a background service and persists across SSH
+disconnections. To start it in a tmux/screen session for monitoring:
 
 ```bash
 tmux new -s crd
@@ -114,7 +122,9 @@ ps aux | grep chrome-remote-desktop-host | grep -v grep
 
 ### What It Is
 
-Cursor's Browser tool allows you to interact with web pages directly from Cursor. When X11 forwarding is **disabled** in SSH, it uses native Chrome on your Mac (fast, native UI).
+Cursor's Browser tool allows you to interact with web pages directly from
+Cursor. When X11 forwarding is **disabled** in SSH, it uses native Chrome on
+your Mac (fast, native UI).
 
 ### Requirements
 
@@ -125,6 +135,7 @@ Cursor's Browser tool allows you to interact with web pages directly from Cursor
 ### Using the Browser Tool
 
 The Browser tool is available in Cursor's MCP tools. It will:
+
 - Open Chrome on your Mac (not XQuartz/xterm)
 - Provide fast, native macOS UI
 - Allow web testing/debugging directly from Cursor
@@ -132,27 +143,31 @@ The Browser tool is available in Cursor's MCP tools. It will:
 ### Troubleshooting
 
 **If Browser tool uses XQuartz/xterm instead of Chrome:**
+
 1. Check SSH config: Ensure `ForwardX11 yes` is commented out for `h17`
 2. Reconnect SSH without `-XY` flags
 3. Verify: `echo $DISPLAY` should be empty
 4. Restart Cursor if needed
 
 **If DISPLAY keeps getting set:**
-- Check all jump hosts in SSH config (`ovro`, `dsa110maas`, `h23`) for `ForwardX11 yes`
+
+- Check all jump hosts in SSH config (`ovro`, `dsa110maas`, `h23`) for
+  `ForwardX11 yes`
 - Comment out X11 forwarding in all relevant hosts
 - Reconnect SSH
 
 ## When to Use Each Tool
 
-| Tool | Use Case | Performance |
-|------|----------|-------------|
-| **SSH** | Command-line work, code editing, running scripts | Fast |
+| Tool                      | Use Case                                                     | Performance                   |
+| ------------------------- | ------------------------------------------------------------ | ----------------------------- |
+| **SSH**                   | Command-line work, code editing, running scripts             | Fast                          |
 | **Chrome Remote Desktop** | Full GUI desktop, running GUI applications, visual debugging | Good (through Google servers) |
-| **Cursor Browser Tool** | Web testing, debugging web apps, checking web pages | Fastest (native Chrome) |
+| **Cursor Browser Tool**   | Web testing, debugging web apps, checking web pages          | Fastest (native Chrome)       |
 
 ## Quick Reference
 
 ### SSH Commands
+
 ```bash
 ssh h17                                    # Connect
 tmux new -s name                           # Create persistent session
@@ -161,6 +176,7 @@ ssh -L 8000:localhost:8000 h17           # Port forwarding
 ```
 
 ### Chrome Remote Desktop
+
 ```bash
 # Start
 /opt/google/chrome-remote-desktop/chrome-remote-desktop --start --new-session
@@ -173,6 +189,7 @@ ssh -L 8000:localhost:8000 h17           # Port forwarding
 ```
 
 ### Verification Commands
+
 ```bash
 # Check DISPLAY (should be empty for Cursor Browser)
 echo $DISPLAY
@@ -189,11 +206,13 @@ netstat -an | grep 6010 || ss -an | grep 6010
 ### Chrome Remote Desktop Shows as Offline
 
 1. Check if process is running:
+
    ```bash
    ps aux | grep chrome-remote-desktop-host | grep -v grep
    ```
 
 2. If not running, start it:
+
    ```bash
    /opt/google/chrome-remote-desktop/chrome-remote-desktop --start --new-session
    ```
@@ -206,6 +225,7 @@ netstat -an | grep 6010 || ss -an | grep 6010
 ### Cursor Browser Tool Uses XQuartz Instead of Chrome
 
 1. Verify DISPLAY is unset:
+
    ```bash
    echo $DISPLAY  # Should be empty
    ```
@@ -225,13 +245,16 @@ netstat -an | grep 6010 || ss -an | grep 6010
 ## Configuration Files
 
 ### SSH Config Location
+
 `~/.ssh/config` on your local Mac
 
 ### Chrome Remote Desktop Config
+
 `~/.config/chrome-remote-desktop/host#*.json` on lxd110h17
 
 ## Related Documentation
 
-- [Persistent Dashboard Setup](persistent-dashboard.md) - Running services persistently
-- [Development Setup](../development/DEVELOPMENT_SETUP.md) - Development environment setup
-
+- [Persistent Dashboard Setup](persistent-dashboard.md) - Running services
+  persistently
+- [Development Setup](../development/DEVELOPMENT_SETUP.md) - Development
+  environment setup

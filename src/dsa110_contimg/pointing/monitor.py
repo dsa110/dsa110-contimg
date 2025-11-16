@@ -160,6 +160,51 @@ class PointingMonitor:
         except Exception as e:
             logger.warning(f"Failed to write status file: {e}")
 
+    def _scan_existing_files(self):
+        """Scan and process existing files in the watch directory."""
+        logger.info(f"Scanning existing files in {self.watch_dir}...")
+        
+        # Find all _sb00.hdf5 files and .ms directories
+        existing_files = []
+        for pattern in ["*_sb00.hdf5", "*.ms"]:
+            existing_files.extend(self.watch_dir.rglob(pattern))
+        
+        # Filter to only files (not directories for .ms pattern)
+        existing_files = [
+            f for f in existing_files 
+            if f.is_file() or (f.is_dir() and f.name.endswith(".ms"))
+        ]
+        
+        logger.info(f"Found {len(existing_files)} existing files to process")
+        
+        # Process each file
+        for file_path in sorted(existing_files):
+            # Check if already processed by querying database
+            try:
+                if self.conn is None:
+                    self.conn = ensure_products_db(self.products_db)
+                
+                # Try to load pointing to get timestamp
+                info = load_pointing(file_path)
+                if info and "mid_time" in info:
+                    # Check if this timestamp already exists
+                    cursor = self.conn.execute(
+                        "SELECT COUNT(*) FROM pointing_history WHERE timestamp = ?",
+                        (info["mid_time"].mjd,)
+                    )
+                    count = cursor.fetchone()[0]
+                    
+                    if count > 0:
+                        logger.debug(f"Skipping already processed file: {file_path}")
+                        continue
+            except Exception as e:
+                logger.debug(f"Could not check if file already processed: {file_path}, error: {e}")
+            
+            # Process the file
+            self.log_pointing_from_file(file_path)
+        
+        logger.info(f"Finished scanning existing files. Processed {self.metrics.files_processed} files total.")
+
     def log_pointing_from_file(self, file_path: Path):
         """Extracts pointing from a file and logs it to the database."""
         try:
@@ -214,6 +259,9 @@ class PointingMonitor:
         except Exception as e:
             logger.error(f"Failed to connect to database: {e}")
             raise
+
+        # Scan and process existing files on startup
+        self._scan_existing_files()
 
         # Setup file watcher
         event_handler = NewFileHandler(self)

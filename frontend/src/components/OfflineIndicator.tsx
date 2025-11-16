@@ -3,11 +3,12 @@
  * Shows when the application is offline
  */
 
-import { Alert, Snackbar, Slide, SlideProps } from "@mui/material";
+import { Alert, Snackbar, Slide } from "@mui/material";
+import type { ComponentProps } from "react";
 import { CloudOff, CloudDone } from "@mui/icons-material";
 import { useOfflineDetection } from "../hooks/useOfflineDetection";
 
-function SlideTransition(props: SlideProps) {
+function SlideTransition(props: ComponentProps<typeof Slide>) {
   return <Slide {...props} direction="down" />;
 }
 

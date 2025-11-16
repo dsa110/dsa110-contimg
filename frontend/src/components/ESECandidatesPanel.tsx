@@ -106,11 +106,11 @@ export default function ESECandidatesPanel() {
                   </TableCell>
                   <TableCell align="right">
                     <Chip
-                      label={`${candidate.max_sigma_dev.toFixed(1)}σ`}
+                      label={`${(candidate.max_sigma_dev ?? 0).toFixed(1)}σ`}
                       color={
-                        candidate.max_sigma_dev >= 8
+                        (candidate.max_sigma_dev ?? 0) >= 8
                           ? "error"
-                          : candidate.max_sigma_dev >= 6
+                          : (candidate.max_sigma_dev ?? 0) >= 6
                             ? "warning"
                             : "default"
                       }
@@ -120,23 +120,25 @@ export default function ESECandidatesPanel() {
                   </TableCell>
                   <TableCell align="right">
                     <Typography variant="body2">
-                      {(candidate.current_flux_jy * 1000).toFixed(1)} mJy
+                      {((candidate.current_flux_jy ?? 0) * 1000).toFixed(1)} mJy
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
                     <Typography variant="body2" color="text.secondary">
-                      {(candidate.baseline_flux_jy * 1000).toFixed(1)} mJy
+                      {((candidate.baseline_flux_jy ?? 0) * 1000).toFixed(1)} mJy
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
                     <Typography variant="body2" color="text.secondary">
-                      {new Date(candidate.first_detection_at).toLocaleString()}
+                      {candidate.first_detection_at
+                        ? new Date(candidate.first_detection_at).toLocaleString()
+                        : "N/A"}
                     </Typography>
                   </TableCell>
                   <TableCell>
                     <Chip
-                      label={candidate.status.replace("_", " ")}
-                      color={getStatusColor(candidate.status)}
+                      label={(candidate.status ?? "unknown").replace("_", " ")}
+                      color={getStatusColor(candidate.status ?? "unknown")}
                       size="small"
                     />
                   </TableCell>

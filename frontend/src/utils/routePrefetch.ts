@@ -10,7 +10,8 @@ export const routeComponentMap: Record<string, () => Promise<any>> = {
   "/operations": () => import("../pages/OperationsPage"),
   "/control": () => import("../pages/ControlPage"),
   "/calibration": () => import("../pages/CalibrationWorkflowPage"),
-  "/ms-browser": () => import("../pages/MSBrowserPage"),
+  // "/ms-browser": MS Browser functionality merged into Control page
+  // "/ms-browser": () => import("../pages/MSBrowserPage"),
   "/streaming": () => import("../pages/StreamingPage"),
   "/data": () => import("../pages/DataBrowserPage"),
   "/sources": () => import("../pages/SourceMonitoringPage"),

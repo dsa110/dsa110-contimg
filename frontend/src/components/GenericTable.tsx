@@ -397,7 +397,7 @@ export default function GenericTable<T = any>({
                 </TableCell>
               </TableRow>
             ) : (
-              rows.map((row, idx) => (
+              rows.map((row: any, idx: number) => (
                 <TableRow
                   key={idx}
                   hover={!!onRowClick}

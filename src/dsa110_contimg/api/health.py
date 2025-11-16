@@ -66,6 +66,56 @@ def _check_master_sources_database() -> tuple[bool, Optional[str]]:
     return _check_database(master_sources_path)
 
 
+def _check_casa_wrapper_config() -> tuple[bool, Optional[str], Optional[Dict[str, str]]]:
+    """Check if casa_wrapper.sh location matches expected path from environment.
+    
+    Reads from environment variable or falls back to reading contimg.env file.
+    
+    Returns:
+        Tuple of (healthy, error_message, details_dict)
+    """
+    # Try environment variable first
+    expected_path = os.getenv("CONTIMG_CASA_WRAPPER")
+    
+    # If not in environment, try reading from contimg.env file
+    if not expected_path:
+        env_file = Path("/data/dsa110-contimg/ops/systemd/contimg.env")
+        if env_file.exists():
+            try:
+                with open(env_file, "r") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line.startswith("CONTIMG_CASA_WRAPPER=") and not line.startswith("#"):
+                            expected_path = line.split("=", 1)[1].strip()
+                            # Remove quotes if present
+                            expected_path = expected_path.strip('"\'')
+                            break
+            except Exception as e:
+                return False, f"Error reading contimg.env: {e}", {"error_type": "file_read"}
+    
+    if not expected_path:
+        return True, None, {"note": "CONTIMG_CASA_WRAPPER not configured"}
+    
+    expected = Path(expected_path)
+    if not expected.exists():
+        return False, f"Expected casa_wrapper.sh not found: {expected_path}", {
+            "expected": str(expected_path),
+            "exists": False
+        }
+    
+    if not os.access(expected, os.X_OK):
+        return False, f"casa_wrapper.sh is not executable: {expected_path}", {
+            "expected": str(expected_path),
+            "executable": False
+        }
+    
+    return True, None, {
+        "expected": str(expected_path),
+        "exists": True,
+        "executable": True
+    }
+
+
 @router.get("/health/liveness")
 def liveness_check():
     """Liveness probe - indicates service is running."""
@@ -97,6 +147,12 @@ def readiness_check():
     if not healthy:
         all_healthy = False
 
+    # System configuration check (casa_wrapper path)
+    healthy, error, details = _check_casa_wrapper_config()
+    checks["system_config"] = {"healthy": healthy, "error": error, **details}
+    if not healthy:
+        all_healthy = False
+
     status_code = 200 if all_healthy else 503
     return {
         "status": "ready" if all_healthy else "not_ready",
@@ -116,6 +172,7 @@ def startup_check():
 def detailed_health_check():
     """Detailed health check with all components."""
     checks: Dict[str, Dict[str, any]] = {}
+    all_healthy = True
 
     # Database checks
     healthy, error = _check_products_database()
@@ -131,6 +188,17 @@ def detailed_health_check():
     data_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/stage/dsa110-contimg"))
     healthy, error = _check_disk_space(data_dir)
     checks["disk_space"] = {"healthy": healthy, "error": error, "type": "resource"}
+
+    # System configuration check (casa_wrapper path)
+    healthy, error, details = _check_casa_wrapper_config()
+    checks["system_config"] = {
+        "healthy": healthy,
+        "error": error,
+        "type": "configuration",
+        **details
+    }
+    if not healthy:
+        all_healthy = False
 
     # Memory check (if psutil available)
     try:

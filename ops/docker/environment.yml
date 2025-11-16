@@ -27,3 +27,4 @@ dependencies:
   - click
   - pip:
       - typing-extensions
+      - uncertainties

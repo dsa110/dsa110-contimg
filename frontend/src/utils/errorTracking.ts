@@ -12,7 +12,7 @@
 // To enable: npm install @sentry/react and uncomment the import
 // import * as Sentry from "@sentry/react";
 
-let sentryInitialized = false;
+const sentryInitialized = false;
 
 /**
  * Initialize Sentry error tracking

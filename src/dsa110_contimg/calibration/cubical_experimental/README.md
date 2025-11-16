@@ -50,8 +50,8 @@ python scripts/compare_calibration_results.py \
 
 ## Status
 
-**Experimental** - This is a proof-of-concept implementation.
-The existing CASA-based pipeline remains the production system.
+**Experimental** - This is a proof-of-concept implementation. The existing
+CASA-based pipeline remains the production system.
 
 ## Benefits
 

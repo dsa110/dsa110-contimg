@@ -182,7 +182,7 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
               >
                 <MetricCard
                   label="K-Cal SNR"
-                  value={qa.k_metrics.avg_snr}
+                  value={qa.k_metrics.avg_snr as number | null | undefined}
                   goodThreshold={10}
                   warningThreshold={5}
                 />
@@ -196,7 +196,7 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
               >
                 <MetricCard
                   label="K-Cal Flagged"
-                  value={qa.k_metrics.flag_fraction}
+                  value={qa.k_metrics.flag_fraction as number | null | undefined}
                   unit="%"
                   goodThreshold={0.9}
                   warningThreshold={0.7}
@@ -216,7 +216,7 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
               >
                 <MetricCard
                   label="BP Amplitude Mean"
-                  value={qa.bp_metrics.amp_mean}
+                  value={qa.bp_metrics.amp_mean as number | null | undefined}
                   goodThreshold={0.9}
                   warningThreshold={0.7}
                 />
@@ -230,7 +230,7 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
               >
                 <MetricCard
                   label="BP Amplitude Std"
-                  value={qa.bp_metrics.amp_std}
+                  value={qa.bp_metrics.amp_std as number | null | undefined}
                   goodThreshold={0.1}
                   warningThreshold={0.2}
                 />
@@ -253,7 +253,7 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
             >
               <MetricCard
                 label="Average SNR"
-                value={qa.k_metrics.avg_snr}
+                value={qa.k_metrics.avg_snr as number | null | undefined}
                 goodThreshold={10}
                 warningThreshold={5}
               />
@@ -266,7 +266,7 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
             >
               <MetricCard
                 label="Flagged Fraction"
-                value={qa.k_metrics.flag_fraction}
+                value={qa.k_metrics.flag_fraction as number | null | undefined}
                 unit="%"
                 goodThreshold={0.9}
                 warningThreshold={0.7}
@@ -289,7 +289,7 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
             >
               <MetricCard
                 label="Amplitude Mean"
-                value={qa.bp_metrics.amp_mean}
+                value={qa.bp_metrics.amp_mean as number | null | undefined}
                 goodThreshold={0.9}
                 warningThreshold={0.7}
               />
@@ -302,7 +302,7 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
             >
               <MetricCard
                 label="Amplitude Std Dev"
-                value={qa.bp_metrics.amp_std}
+                value={qa.bp_metrics.amp_std as number | null | undefined}
                 goodThreshold={0.1}
                 warningThreshold={0.2}
               />
@@ -315,7 +315,7 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
             >
               <MetricCard
                 label="Flagged Fraction"
-                value={qa.bp_metrics.flag_fraction}
+                value={qa.bp_metrics.flag_fraction as number | null | undefined}
                 unit="%"
                 goodThreshold={0.9}
                 warningThreshold={0.7}
@@ -329,7 +329,7 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
                 Per-SPW Statistics
               </Typography>
               <Box sx={{ maxHeight: "300px", overflow: "auto" }}>
-                {qa.per_spw_stats.map((spw, idx) => (
+                {qa.per_spw_stats.map((spw: PerSPWStats, idx: number) => (
                   <Box
                     key={idx}
                     sx={{
@@ -380,7 +380,7 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
             >
               <MetricCard
                 label="Flagged Fraction"
-                value={qa.g_metrics.flag_fraction}
+                value={qa.g_metrics.flag_fraction as number | null | undefined}
                 unit="%"
                 goodThreshold={0.9}
                 warningThreshold={0.7}

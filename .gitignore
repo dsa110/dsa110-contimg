@@ -112,6 +112,15 @@ env/
 # Pyre type checker
 .pyre/
 
+# Cache
+.cache/
+.pytest_cache/
+src/.mypy_cache/
+src/.pytest_cache/
+src/.cache/
+src/.pyre/
+src/.pyre_cache/
+src/.pyre_cache/
 
 # Logs
 logs/

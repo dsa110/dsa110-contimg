@@ -13,13 +13,11 @@ import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import astropy.units as u
 import pandas as pd
 from astropy.time import Time
-
-from dsa110_contimg.calibration.catalogs import read_vla_parsed_catalog_csv
 from dsa110_contimg.calibration.schedule import previous_transits
 from dsa110_contimg.conversion.config import CalibratorMSConfig
 from dsa110_contimg.conversion.exceptions import (
@@ -32,7 +30,7 @@ from dsa110_contimg.conversion.exceptions import (
 from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
 from dsa110_contimg.conversion.progress import ProgressReporter
 from dsa110_contimg.conversion.strategies.direct_subband import write_ms_from_subbands
-from dsa110_contimg.conversion.strategies.hdf5_orchestrator import find_subband_groups
+from dsa110_contimg.database.hdf5_index import query_subband_groups
 from dsa110_contimg.database.products import ensure_products_db, ms_index_upsert
 
 logger = logging.getLogger(__name__)
@@ -50,6 +48,20 @@ class CalibratorMSResult:
     error: Optional[str] = None
     metrics: Optional[dict] = None
     progress_summary: Optional[dict] = None
+
+
+@dataclass
+class GenerateMSConfig:
+    """Configuration for MS generation from transit."""
+
+    window_minutes: int = 60
+    max_days_back: int = 14
+    dec_tolerance_deg: float = 2.0
+    auto_naming: bool = True
+    output_name: Optional[str] = None
+    configure_for_imaging: bool = True
+    register_in_db: bool = True
+    stage_to_tmpfs: bool = True
 
 
 class CalibratorMSGenerator:
@@ -99,6 +111,64 @@ class CalibratorMSGenerator:
             verbose=verbose,
         )
 
+    def _validate_calibrator_name(self, calibrator_name: str) -> None:
+        """Validate calibrator name.
+
+        Raises:
+            ValidationError: If calibrator name is invalid
+        """
+        if not calibrator_name or not calibrator_name.strip():
+            raise ValidationError("Calibrator name cannot be empty")
+
+    def _validate_window_minutes(self, window_minutes: int) -> None:
+        """Validate window_minutes parameter.
+
+        Raises:
+            ValidationError: If window_minutes is invalid
+        """
+        if window_minutes <= 0:
+            raise ValidationError(
+                f"window_minutes must be positive, got {window_minutes}"
+            )
+
+    def _validate_max_days_back(self, max_days_back: int) -> None:
+        """Validate max_days_back parameter.
+
+        Raises:
+            ValidationError: If max_days_back is invalid
+        """
+        if max_days_back <= 0:
+            raise ValidationError(
+                f"max_days_back must be positive, got {max_days_back}"
+            )
+
+    def _validate_transit_time(self, transit_time: Optional[Time]) -> None:
+        """Validate transit_time parameter.
+
+        Raises:
+            ValidationError: If transit_time is invalid
+        """
+        if transit_time is not None and transit_time > Time.now():
+            raise ValidationError(
+                f"transit_time cannot be in the future: {transit_time}"
+            )
+
+    def _validate_input_directory(self) -> None:
+        """Validate input directory exists and is a directory.
+
+        Raises:
+            ValidationError: If input directory is invalid
+        """
+        if not self.input_dir.exists():
+            raise ValidationError(
+                f"Input directory does not exist: {self.input_dir}"
+            )
+
+        if not self.input_dir.is_dir():
+            raise ValidationError(
+                f"Input directory is not a directory: {self.input_dir}"
+            )
+
     def _validate_inputs(
         self,
         calibrator_name: str,
@@ -111,77 +181,301 @@ class CalibratorMSGenerator:
         Raises:
             ValidationError: If any input is invalid
         """
-        if not calibrator_name or not calibrator_name.strip():
-            raise ValidationError("Calibrator name cannot be empty")
+        self._validate_calibrator_name(calibrator_name)
+        self._validate_window_minutes(window_minutes)
+        self._validate_max_days_back(max_days_back)
+        self._validate_transit_time(transit_time)
+        self._validate_input_directory()
 
-        if window_minutes <= 0:
-            raise ValidationError(
-                f"window_minutes must be positive, got {window_minutes}"
-            )
+    def _load_catalog_dataframe(self, catalog_path: Path) -> Optional[pd.DataFrame]:
+        """Load catalog as DataFrame from SQLite or CSV.
 
-        if max_days_back <= 0:
-            raise ValidationError(
-                f"max_days_back must be positive, got {max_days_back}"
-            )
+        Args:
+            catalog_path: Path to catalog file
 
-        if transit_time is not None and transit_time > Time.now():
-            raise ValidationError(
-                f"transit_time cannot be in the future: {transit_time}"
-            )
+        Returns:
+            DataFrame if successfully loaded, None otherwise
+        """
+        from dsa110_contimg.calibration.catalogs import (
+            load_vla_catalog_from_sqlite,
+            read_vla_parsed_catalog_csv,
+        )
 
-        if not self.input_dir.exists():
-            raise ValidationError(f"Input directory does not exist: {self.input_dir}")
+        if not catalog_path.exists():
+            return None
 
-        if not self.input_dir.is_dir():
-            raise ValidationError(
-                f"Input directory is not a directory: {self.input_dir}"
-            )
+        try:
+            # Handle SQLite database (preferred)
+            if str(catalog_path).endswith(".sqlite3"):
+                return load_vla_catalog_from_sqlite(str(catalog_path))
+            # Handle CSV file
+            return read_vla_parsed_catalog_csv(catalog_path)
+        except Exception as e:
+            logger.debug(f"Failed to read catalog {catalog_path}: {e}")
+            return None
+
+    def _extract_coordinates_from_row(self, row: pd.Series) -> Optional[Tuple[float, float]]:
+        """Extract RA/Dec coordinates from a catalog row.
+
+        Args:
+            row: Pandas Series or DataFrame row
+
+        Returns:
+            Tuple of (ra, dec) in degrees if valid, None otherwise
+        """
+        import numpy as np
+
+        # Handle both Series and DataFrame cases
+        if isinstance(row, pd.DataFrame):
+            row = row.iloc[0]
+
+        try:
+            ra = float(row["ra_deg"])
+            dec = float(row["dec_deg"])
+        except (TypeError, KeyError):
+            # Try attribute access for Series
+            try:
+                ra = float(row.ra_deg)
+                dec = float(row.dec_deg)
+            except (TypeError, AttributeError):
+                return None
+
+        # Validate coordinates are finite
+        if np.isfinite(ra) and np.isfinite(dec):
+            return ra, dec
+
+        return None
 
     def _load_radec(self, name: str) -> Tuple[float, float]:
         """Load RA/Dec for calibrator from catalogs.
 
         Always prefers SQLite database over CSV files. Iterates through catalogs
         in order until the calibrator is found.
+
+        Args:
+            name: Calibrator name to look up
+
+        Returns:
+            Tuple of (ra_deg, dec_deg)
+
+        Raises:
+            CalibratorNotFoundError: If calibrator not found in any catalog
         """
-        import numpy as np
-
-        from dsa110_contimg.calibration.catalogs import (
-            load_vla_catalog_from_sqlite,
-            read_vla_parsed_catalog_csv,
-        )
-
         for catalog_path in self.catalogs:
-            if not catalog_path.exists():
+            df = self._load_catalog_dataframe(catalog_path)
+            if df is None:
                 continue
-            try:
-                # Handle SQLite database (preferred)
-                if str(catalog_path).endswith(".sqlite3"):
-                    df = load_vla_catalog_from_sqlite(str(catalog_path))
-                else:
-                    # Handle CSV file
-                    df = read_vla_parsed_catalog_csv(catalog_path)
 
-                if name in df.index:
-                    row = df.loc[name]
-                    # Handle both Series and DataFrame cases
-                    if isinstance(row, pd.DataFrame):
-                        row = row.iloc[0]
-                    try:
-                        ra = float(row["ra_deg"])
-                        dec = float(row["dec_deg"])
-                    except (TypeError, KeyError):
-                        # Try attribute access for Series
-                        ra = float(row.ra_deg)
-                        dec = float(row.dec_deg)
-                    if np.isfinite(ra) and np.isfinite(dec):
-                        return ra, dec
-            except Exception as e:
-                logger.debug(f"Failed to read catalog {catalog_path}: {e}")
+            if name not in df.index:
                 continue
+
+            row = df.loc[name]
+            coords = self._extract_coordinates_from_row(row)
+            if coords is not None:
+                return coords
 
         raise CalibratorNotFoundError(
             f"Calibrator {name} not found in catalogs: {self.catalogs}"
         )
+
+    def _calculate_transit_window(
+        self, transit: Time, window_minutes: int
+    ) -> Tuple[str, str]:
+        """Calculate search window around a transit time.
+
+        Args:
+            transit: Transit time
+            window_minutes: Search window in minutes
+
+        Returns:
+            Tuple of (start_time_str, end_time_str) in format "YYYY-MM-DD HH:MM:SS"
+        """
+        half = window_minutes // 2
+        t0 = (transit - half * u.min).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+        t1 = (transit + half * u.min).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+        return t0, t1
+
+    def _get_transit_times(
+        self, ra_deg: float, transit_time: Optional[Time], max_days_back: int
+    ) -> List[Time]:
+        """Get list of transit times to search.
+
+        Args:
+            ra_deg: Right ascension in degrees
+            transit_time: Optional specific transit time to use
+            max_days_back: Maximum days to search back
+
+        Returns:
+            List of transit times
+        """
+        if transit_time is None:
+            return previous_transits(ra_deg, start_time=Time.now(), n=max_days_back)
+        return [transit_time]
+
+    def _log_search_window(
+        self, transit: Time, t0: str, t1: str, window_minutes: int
+    ) -> None:
+        """Log search window information.
+
+        Args:
+            transit: Transit time
+            t0: Start time string
+            t1: End time string
+            window_minutes: Search window in minutes
+        """
+        t0_date = t0.split()[0]
+        t0_time = t0.split()[1] if len(t0.split()) > 1 else ""
+        t1_time = t1.split()[1] if len(t1.split()) > 1 else ""
+
+        if t0.split()[0] == t1.split()[0]:
+            logger.info(
+                f"Search window: {t0_date} {t0_time} to {t1_time} "
+                f"(±{window_minutes//2} minutes around transit at {transit.to_datetime().strftime('%H:%M:%S')}). "
+                f"Selecting group closest to transit time..."
+            )
+        else:
+            logger.info(
+                f"Search window: {t0} to {t1} (±{window_minutes//2} minutes around transit). "
+                f"Selecting group closest to transit time..."
+            )
+
+    def _find_best_candidate_group(
+        self, groups: List[List[str]], transit: Time
+    ) -> Optional[Tuple[float, List[str], Time]]:
+        """Find the group whose mid-time is closest to transit.
+
+        Args:
+            groups: List of file groups
+            transit: Transit time
+
+        Returns:
+            Tuple of (delta_minutes, best_group, mid_time) or None if no valid candidates
+        """
+        candidates = []
+        for g in groups:
+            base = os.path.basename(g[0])
+            ts_str = base.split("_sb")[0]
+            try:
+                mid = Time(ts_str)
+                dt_min = abs((mid - transit).to(u.min)).value
+                candidates.append((dt_min, g, mid))
+            except Exception:
+                continue
+
+        if not candidates:
+            return None
+
+        candidates.sort(key=lambda x: x[0])
+        return candidates[0]
+
+    def _is_complete_subband_group(self, group: List[str]) -> Tuple[bool, List[str]]:
+        """Check if group has complete 16 subbands and return sorted files.
+
+        Args:
+            group: List of file paths
+
+        Returns:
+            Tuple of (is_complete, sorted_files)
+        """
+        from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+            _extract_subband_code,
+        )
+
+        sb_codes = sorted(_extract_subband_code(
+            os.path.basename(p)) for p in group)
+
+        def sort_by_subband(fpath):
+            sb_code = _extract_subband_code(os.path.basename(fpath))
+            if sb_code:
+                sb_num = int(sb_code.replace("sb", ""))
+                return sb_num
+            return 999
+
+        group_sorted = sorted(group, key=sort_by_subband, reverse=True)
+        is_complete = len(group) == 16 and all(
+            code and code.startswith("sb") for code in sb_codes
+        )
+
+        return is_complete, group_sorted
+
+    def _calculate_primary_beam_metrics(
+        self,
+        group_file: str,
+        ra_deg: float,
+        dec_deg: float,
+        freq_ghz: float,
+    ) -> Dict[str, float]:
+        """Calculate primary beam metrics for calibrator validation.
+
+        Args:
+            group_file: Path to first file in group
+            ra_deg: Calibrator RA in degrees
+            dec_deg: Calibrator Dec in degrees
+            freq_ghz: Frequency in GHz
+
+        Returns:
+            Dictionary with metrics (pb_response, sep_deg, pt_ra_deg, pt_dec_deg)
+        """
+        import numpy as np
+        from dsa110_contimg.calibration.catalogs import airy_primary_beam_response
+        from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+            _peek_uvh5_phase_and_midtime,
+        )
+        from astropy.coordinates import SkyCoord
+
+        pt_ra_rad, pt_dec_rad, _ = _peek_uvh5_phase_and_midtime(group_file)
+        pt_ra_deg = float(pt_ra_rad.to_value(u.deg))
+        pt_dec_deg = float(pt_dec_rad.to_value(u.deg))
+
+        cal_ra_rad = np.deg2rad(ra_deg)
+        cal_dec_rad = np.deg2rad(dec_deg)
+        pt_ra_rad_val = float(pt_ra_rad.to_value(u.rad))
+        pt_dec_rad_val = float(pt_dec_rad.to_value(u.rad))
+
+        pb_response = airy_primary_beam_response(
+            pt_ra_rad_val, pt_dec_rad_val, cal_ra_rad, cal_dec_rad, freq_ghz
+        )
+
+        pt_coord = SkyCoord(ra=pt_ra_rad_val * u.rad,
+                            dec=pt_dec_rad_val * u.rad)
+        cal_coord = SkyCoord(ra=cal_ra_rad * u.rad, dec=cal_dec_rad * u.rad)
+        sep = pt_coord.separation(cal_coord)
+        sep_deg = float(sep.to_value(u.deg))
+
+        return {
+            "pb_response": pb_response,
+            "sep_deg": sep_deg,
+            "pt_ra_deg": pt_ra_deg,
+            "pt_dec_deg": pt_dec_deg,
+        }
+
+    def _validate_primary_beam(
+        self,
+        group_file: str,
+        ra_deg: float,
+        dec_deg: float,
+        min_pb_response: float,
+        freq_ghz: float,
+    ) -> Optional[Dict[str, float]]:
+        """Validate that calibrator is in primary beam.
+
+        Args:
+            group_file: Path to first file in group
+            ra_deg: Calibrator RA in degrees
+            dec_deg: Calibrator Dec in degrees
+            min_pb_response: Minimum primary beam response required
+            freq_ghz: Frequency in GHz
+
+        Returns:
+            Dictionary with validation results (pb_response, sep_deg, pt_ra_deg, pt_dec_deg) or None if invalid
+        """
+        metrics = self._calculate_primary_beam_metrics(
+            group_file, ra_deg, dec_deg, freq_ghz)
+
+        if metrics["pb_response"] < min_pb_response:
+            return None
+
+        return metrics
 
     def find_transit(
         self,
@@ -210,180 +504,91 @@ class CalibratorMSGenerator:
             Transit info dict or None if not found (or calibrator not in beam)
         """
         ra_deg, dec_deg = self._load_radec(calibrator_name)
-
-        if transit_time is None:
-            transits = previous_transits(ra_deg, start_time=Time.now(), n=max_days_back)
-        else:
-            transits = [transit_time]
+        transits = self._get_transit_times(ra_deg, transit_time, max_days_back)
 
         for t in transits:
-            half = window_minutes // 2
-            t0 = (t - half * u.min).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
-            t1 = (t + half * u.min).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+            t0, t1 = self._calculate_transit_window(t, window_minutes)
 
-            # Use 1-second tolerance to match pipeline standard (filename precision is to the second)
-            # This matches the streaming converter's timestamp string grouping (same second = same group)
-            groups = find_subband_groups(
-                os.fspath(self.input_dir),
-                t0,
-                t1,
-                tolerance_s=1.0,  # 1-second tolerance matches filename precision (YYYY-MM-DDTHH:MM:SS)
+            # Query for groups in search window
+            groups = query_subband_groups(
+                self.products_db, t0, t1, tolerance_s=1.0
             )
 
             if not groups:
-                # No groups found - find_subband_groups already logged this
                 continue
 
-            # Count total files found (not groups) for clearer logging
+            # Log found groups
             total_files = sum(len(g) for g in groups)
             logger.info(
                 f"Found {len(groups)} complete 16-subband group(s) ({total_files} total files) "
                 f"for transit {t.isot}"
             )
-            # Format search window more clearly to show it's a time range, not date range
-            t0_date = t0.split()[0]  # Extract date part
-            t0_time = t0.split()[1] if len(t0.split()) > 1 else ""
-            t1_time = t1.split()[1] if len(t1.split()) > 1 else ""
+            self._log_search_window(t, t0, t1, window_minutes)
 
-            if t0.split()[0] == t1.split()[0]:
-                # Same day - show time range more clearly
+            # Find best candidate group (closest to transit)
+            candidate_result = self._find_best_candidate_group(groups, t)
+            if not candidate_result:
+                continue
+
+            dt_min, gbest, mid = candidate_result
+
+            # Check if group is complete
+            is_complete, gbest_sorted = self._is_complete_subband_group(gbest)
+            if not is_complete:
                 logger.info(
-                    f"Search window: {t0_date} {t0_time} to {t1_time} "
-                    f"(±{window_minutes//2} minutes around transit at {t.to_datetime().strftime('%H:%M:%S')}). "
-                    f"Selecting group closest to transit time..."
+                    f"Skipping transit {t.isot}: found group with {len(gbest)} subbands "
+                    f"(need 16 complete), best candidate: {os.path.basename(gbest[0])}"
                 )
-            else:
-                # Different days - show full date/time
-                logger.info(
-                    f"Search window: {t0} to {t1} (±{window_minutes//2} minutes around transit). "
-                    f"Selecting group closest to transit time..."
+                continue
+
+            # Validate primary beam
+            pb_validation = self._validate_primary_beam(
+                gbest[0], ra_deg, dec_deg, min_pb_response, freq_ghz
+            )
+            if not pb_validation:
+                # Calculate metrics for logging (validation failed)
+                metrics = self._calculate_primary_beam_metrics(
+                    gbest[0], ra_deg, dec_deg, freq_ghz
                 )
-
-            # Prefer groups whose mid-time is closest to transit
-            candidates = []
-            for g in groups:
-                # Extract timestamp from first file
-                base = os.path.basename(g[0])
-                ts_str = base.split("_sb")[0]
-                try:
-                    mid = Time(ts_str)
-                    dt_min = abs((mid - t).to(u.min)).value
-                    candidates.append((dt_min, g, mid))
-                except Exception:
-                    continue
-
-            # Sort by time proximity
-            candidates.sort(key=lambda x: x[0])
-            if candidates:
-                dt_min, gbest, mid = candidates[0]
-
-                # Check for complete 16-subband group
-                # Use _extract_subband_code to match the grouping algorithm's logic
-                from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-                    _extract_subband_code,
+                logger.warning(
+                    f"REJECTING transit {t.isot}: Calibrator {calibrator_name} "
+                    f"is NOT in primary beam\n"
+                    f"  Calibrator: RA={ra_deg:.4f}°, Dec={dec_deg:.4f}°\n"
+                    f"  Pointing: RA={metrics['pt_ra_deg']:.4f}°, Dec={metrics['pt_dec_deg']:.4f}°\n"
+                    f"  Separation: {metrics['sep_deg']:.4f}° ({metrics['sep_deg']*60:.1f} arcmin)\n"
+                    f"  Primary beam response: {metrics['pb_response']:.4f} (minimum required: {min_pb_response:.2f})\n"
+                    f"  This group will be skipped - calibrator is outside usable beam."
                 )
+                continue
 
-                sb_codes = sorted(
-                    _extract_subband_code(os.path.basename(p)) for p in gbest
-                )
+            # Success! Calibrator is in beam
+            logger.info(
+                f"✓ Found complete 16-subband group for transit {t.isot}: "
+                f"{os.path.basename(gbest[0]).split('_sb')[0]} "
+                f"({dt_min:.1f} min from transit)"
+            )
+            logger.info(
+                f"✓ Pointing validation PASSED: Calibrator in primary beam\n"
+                f"  Pointing: RA={pb_validation['pt_ra_deg']:.4f}°, Dec={pb_validation['pt_dec_deg']:.4f}°\n"
+                f"  Calibrator: RA={ra_deg:.4f}°, Dec={dec_deg:.4f}°\n"
+                f"  Separation: {pb_validation['sep_deg']:.4f}° ({pb_validation['sep_deg']*60:.1f} arcmin)\n"
+                f"  Primary beam response: {pb_validation['pb_response']:.4f}"
+            )
 
-                # CRITICAL: DSA-110 subbands use DESCENDING frequency order (sb00=highest, sb15=lowest).
-                # For proper frequency ordering (ascending, low to high), REVERSE the sort.
-                # This ensures files are in correct order even if they have different timestamps
-                def sort_by_subband(fpath):
-                    sb_code = _extract_subband_code(os.path.basename(fpath))
-                    if sb_code:
-                        sb_num = int(sb_code.replace("sb", ""))
-                        return sb_num
-                    return 999  # Put files without subband code at end
-
-                gbest_sorted = sorted(gbest, key=sort_by_subband, reverse=True)
-                full = len(gbest) == 16 and all(
-                    code and code.startswith("sb") for code in sb_codes
-                )
-
-                if full:
-                    # IRON-CLAD SAFEGUARD: Verify calibrator is in primary beam
-                    # Extract ACTUAL pointing RA and Dec from first file (not assumed)
-                    import numpy as np
-
-                    from dsa110_contimg.calibration.catalogs import (
-                        airy_primary_beam_response,
-                    )
-                    from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-                        _peek_uvh5_phase_and_midtime,
-                    )
-
-                    pt_ra_rad, pt_dec_rad, _ = _peek_uvh5_phase_and_midtime(gbest[0])
-                    pt_ra_deg = float(pt_ra_rad.to_value(u.deg))
-                    pt_dec_deg = float(pt_dec_rad.to_value(u.deg))
-
-                    # Calculate primary beam response using ACTUAL pointing coordinates
-                    # This fixes the bug where we assumed pointing RA = calibrator RA at transit
-                    cal_ra_rad = np.deg2rad(ra_deg)
-                    cal_dec_rad = np.deg2rad(dec_deg)
-                    pt_ra_rad_val = float(pt_ra_rad.to_value(u.rad))
-                    pt_dec_rad_val = float(pt_dec_rad.to_value(u.rad))
-
-                    pb_response = airy_primary_beam_response(
-                        pt_ra_rad_val, pt_dec_rad_val, cal_ra_rad, cal_dec_rad, freq_ghz
-                    )
-
-                    # Calculate angular separation
-                    from astropy.coordinates import SkyCoord
-
-                    pt_coord = SkyCoord(
-                        ra=pt_ra_rad_val * u.rad, dec=pt_dec_rad_val * u.rad
-                    )
-                    cal_coord = SkyCoord(ra=cal_ra_rad * u.rad, dec=cal_dec_rad * u.rad)
-                    sep = pt_coord.separation(cal_coord)
-                    sep_deg = float(sep.to_value(u.deg))
-
-                    if pb_response < min_pb_response:
-                        logger.warning(
-                            f"REJECTING transit {t.isot}: Calibrator {calibrator_name} "
-                            f"is NOT in primary beam\n"
-                            f"  Calibrator: RA={ra_deg:.4f}°, Dec={dec_deg:.4f}°\n"
-                            f"  Pointing: RA={pt_ra_deg:.4f}°, Dec={pt_dec_deg:.4f}°\n"
-                            f"  Separation: {sep_deg:.4f}° ({sep_deg*60:.1f} arcmin)\n"
-                            f"  Primary beam response: {pb_response:.4f} (minimum required: {min_pb_response:.2f})\n"
-                            f"  This group will be skipped - calibrator is outside usable beam."
-                        )
-                        continue
-
-                    # Success! Calibrator is in beam
-                    logger.info(
-                        f"✓ Found complete 16-subband group for transit {t.isot}: "
-                        f"{os.path.basename(gbest[0]).split('_sb')[0]} "
-                        f"({dt_min:.1f} min from transit)"
-                    )
-                    logger.info(
-                        f"✓ Pointing validation PASSED: Calibrator in primary beam\n"
-                        f"  Pointing: RA={pt_ra_deg:.4f}°, Dec={pt_dec_deg:.4f}°\n"
-                        f"  Calibrator: RA={ra_deg:.4f}°, Dec={dec_deg:.4f}°\n"
-                        f"  Separation: {sep_deg:.4f}° ({sep_deg*60:.1f} arcmin)\n"
-                        f"  Primary beam response: {pb_response:.4f}"
-                    )
-                    return {
-                        "name": calibrator_name,
-                        "transit_iso": t.isot,
-                        "start_iso": t0,
-                        "end_iso": t1,
-                        "group_id": os.path.basename(gbest[0]).split("_sb")[0],
-                        "mid_iso": mid.isot,
-                        "delta_minutes": dt_min,
-                        "files": gbest_sorted,
-                        "pointing_dec_deg": pt_dec_deg,
-                        "calibrator_dec_deg": dec_deg,
-                        "separation_deg": sep_deg,
-                        "pb_response": pb_response,
-                    }
-                else:
-                    # Groups found but incomplete - log this as a skip reason
-                    logger.info(
-                        f"Skipping transit {t.isot}: found group with {len(gbest)} subbands "
-                        f"(need 16 complete), best candidate: {os.path.basename(gbest[0])}"
-                    )
+            return {
+                "name": calibrator_name,
+                "transit_iso": t.isot,
+                "start_iso": t0,
+                "end_iso": t1,
+                "group_id": os.path.basename(gbest[0]).split("_sb")[0],
+                "mid_iso": mid.isot,
+                "delta_minutes": dt_min,
+                "files": gbest_sorted,
+                "pointing_dec_deg": pb_validation["pt_dec_deg"],
+                "calibrator_dec_deg": dec_deg,
+                "separation_deg": pb_validation["sep_deg"],
+                "pb_response": pb_validation["pb_response"],
+            }
 
         return None
 
@@ -599,6 +804,340 @@ class CalibratorMSGenerator:
             for row in rows
         ]
 
+    def _calculate_search_window(
+        self, max_days_back: int
+    ) -> Tuple[str, str, Time]:
+        """Calculate time range for HDF5 index query.
+
+        Args:
+            max_days_back: Maximum days to search back
+
+        Returns:
+            Tuple of (start_time_str, end_time_str, cutoff_time)
+        """
+        now = Time.now()
+        start_time = (now - max_days_back * u.day).to_datetime().strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+        end_time = now.to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+        cutoff_time = now - max_days_back * u.day
+        return start_time, end_time, cutoff_time
+
+    def _query_hdf5_groups_in_window(
+        self, transit: Time, window_minutes: int
+    ) -> List[List[str]]:
+        """Query database for HDF5 groups in a window around a transit.
+
+        Args:
+            transit: Transit time
+            window_minutes: Window size in minutes
+
+        Returns:
+            List of group file lists
+        """
+        half_window = window_minutes // 2
+        t0 = (
+            (transit - half_window * u.min)
+            .to_datetime()
+            .strftime("%Y-%m-%d %H:%M:%S")
+        )
+        t1 = (
+            (transit + half_window * u.min)
+            .to_datetime()
+            .strftime("%Y-%m-%d %H:%M:%S")
+        )
+
+        groups = query_subband_groups(
+            self.products_db, t0, t1, tolerance_s=1.0
+        )
+        return groups if groups else []
+
+    def _extract_group_time_and_dec(
+        self, group_files: List[str], group_id: str
+    ) -> Tuple[Time, Optional[float]]:
+        """Extract group mid-time and declination from HDF5 file.
+
+        Args:
+            group_files: List of HDF5 file paths
+            group_id: Group identifier (used as fallback for time)
+
+        Returns:
+            Tuple of (group_mid_time, declination_deg or None)
+        """
+        from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+            _peek_uvh5_phase_and_midtime,
+        )
+
+        group_start = Time(group_id)
+
+        try:
+            _, pt_dec_rad, mid_mjd = _peek_uvh5_phase_and_midtime(
+                group_files[0])
+            # Check if mid_mjd is valid (not None and not 0.0)
+            if mid_mjd is not None and mid_mjd > 0:
+                pt_dec_deg = (
+                    pt_dec_rad.to(
+                        u.deg).value if pt_dec_rad is not None else None
+                )
+                group_mid = Time(mid_mjd, format="mjd")
+            else:
+                # Invalid mid_mjd, fallback to group_start
+                group_mid = group_start
+                pt_dec_deg = (
+                    pt_dec_rad.to(
+                        u.deg).value if pt_dec_rad is not None else None
+                )
+        except Exception:
+            # Fallback: use group_start as mid-time, skip dec check
+            group_mid = group_start
+            pt_dec_deg = None
+
+        return group_mid, pt_dec_deg
+
+    def _validate_transit_in_window(
+        self, group_id: str, transit: Time, filelength: u.Quantity
+    ) -> bool:
+        """Check if transit falls within group's observation window.
+
+        Args:
+            group_id: Group identifier
+            transit: Transit time
+            filelength: Typical observation file length
+
+        Returns:
+            True if transit is within window, False otherwise
+        """
+        from dsa110_contimg.calibration.schedule import cal_in_datetime
+
+        return cal_in_datetime(
+            group_id,
+            transit,
+            duration=0 * u.min,  # Transit must be within file
+            filelength=filelength,
+        )
+
+    def _check_declination_match(
+        self, group_id: str, pt_dec_deg: Optional[float], dec_deg: float
+    ) -> None:
+        """Check and log declination match (warning only, doesn't filter).
+
+        Args:
+            group_id: Group identifier for logging
+            pt_dec_deg: Declination from file (degrees) or None
+            dec_deg: Expected declination (degrees)
+        """
+        if pt_dec_deg is not None:
+            dec_match = abs(pt_dec_deg - dec_deg) <= 2.0
+            if not dec_match:
+                # Log warning but don't filter out - transit time match is more reliable
+                logger.warning(
+                    f"Group {group_id} transit time matches but declination mismatch: "
+                    f"file dec={pt_dec_deg:.2f}°, expected {dec_deg:.2f}° "
+                    f"(diff={abs(pt_dec_deg - dec_deg):.2f}°). "
+                    f"Trusting transit time match."
+                )
+
+    def _validate_complete_subband_group(self, group_files: List[str]) -> bool:
+        """Verify group has complete 16-subband coverage.
+
+        Args:
+            group_files: List of HDF5 file paths
+
+        Returns:
+            True if group has exactly 16 files with valid subband codes (00-15)
+        """
+        sb_codes = sorted(
+            os.path.basename(p).rsplit("_sb", 1)[1].split(".")[0]
+            for p in group_files
+        )
+        expected_codes = {f"{i:02d}" for i in range(16)}
+        return len(group_files) == 16 and set(sb_codes) == expected_codes
+
+    def _sort_files_by_subband(self, group_files: List[str]) -> List[str]:
+        """Sort files by subband number for proper spectral order.
+
+        Args:
+            group_files: List of HDF5 file paths
+
+        Returns:
+            Sorted list of file paths (descending subband order for ascending frequency)
+        """
+        def sort_by_subband(fpath):
+            fname = os.path.basename(fpath)
+            # Extract subband number from filename (e.g., "2025-10-29T13:54:17_sb03.hdf5" -> 3)
+            if "_sb" in fname:
+                sb_part = fname.rsplit("_sb", 1)[1].split(".")[0]
+                try:
+                    return int(sb_part)
+                except ValueError:
+                    pass
+            return 999  # Put files without subband code at end
+
+        # CRITICAL: DSA-110 subbands use DESCENDING frequency order (sb00=highest, sb15=lowest).
+        # For proper frequency ordering (ascending, low to high), REVERSE the sort.
+        return sorted(group_files, key=sort_by_subband, reverse=True)
+
+    def _match_transit_to_group(
+        self,
+        transit: Time,
+        group_files: List[str],
+        group_id: str,
+        dec_deg: float,
+        cutoff_time: Time,
+        filelength: u.Quantity,
+    ) -> Optional[dict]:
+        """Check if a transit matches a group and extract group metadata.
+
+        Args:
+            transit: Transit time
+            group_files: List of HDF5 file paths for the group
+            group_id: Group identifier
+            dec_deg: Expected declination in degrees
+            cutoff_time: Cutoff time for filtering old groups
+            filelength: Typical observation file length
+
+        Returns:
+            Transit info dict if match found, None otherwise
+        """
+        try:
+            # Parse timestamp from group ID (this is the start time)
+            group_start = Time(group_id)
+
+            # Skip if too old
+            if group_start < cutoff_time:
+                return None
+
+            # Get actual mid-time and declination from file
+            group_mid, pt_dec_deg = self._extract_group_time_and_dec(
+                group_files, group_id
+            )
+
+            # Check if this transit falls within group's observation window
+            if not self._validate_transit_in_window(group_id, transit, filelength):
+                return None
+
+            # Check declination match (warning only, doesn't filter)
+            self._check_declination_match(group_id, pt_dec_deg, dec_deg)
+
+            # Verify complete 16-subband group
+            if not self._validate_complete_subband_group(group_files):
+                return None
+
+            # Sort files by subband number for proper spectral order
+            group_files_sorted = self._sort_files_by_subband(group_files)
+
+            dt_min = abs((group_mid - transit).to(u.min).value)
+
+            return {
+                "group_id": group_id,
+                "group_mid": group_mid,
+                "group_files_sorted": group_files_sorted,
+                "delta_minutes": dt_min,
+            }
+
+        except Exception as e:
+            logger.debug(f"Failed to process group {group_id}: {e}")
+            return None
+
+    def _enrich_transit_info(
+        self,
+        transit: Time,
+        calibrator_name: str,
+        group_info: dict,
+    ) -> dict:
+        """Enrich transit info with additional metadata.
+
+        Args:
+            transit: Transit time
+            calibrator_name: Name of calibrator
+            group_info: Group info dict from _match_transit_to_group
+
+        Returns:
+            Complete transit info dict
+        """
+        return {
+            "transit_iso": transit.isot,
+            "transit_mjd": transit.mjd,
+            "group_id": group_info["group_id"],
+            "group_mid_iso": group_info["group_mid"].isot,
+            "delta_minutes": group_info["delta_minutes"],
+            "subband_count": len(group_info["group_files_sorted"]),
+            "files": group_info["group_files_sorted"],
+            "days_ago": (Time.now() - transit).to(u.day).value,
+            "has_ms": self.has_ms_for_transit(
+                calibrator_name, transit, tolerance_minutes=5.0
+            ),
+        }
+
+    def _convert_groups_list_to_dict(
+        self, complete_groups_list: List[List[str]]
+    ) -> dict:
+        """Convert list of group file lists to dict keyed by group_id.
+
+        Args:
+            complete_groups_list: List of group file lists from database query
+
+        Returns:
+            Dict mapping group_id to list of file paths
+        """
+        complete_groups = {}
+        for group_files in complete_groups_list:
+            if not group_files:
+                continue
+            # Extract group_id from first file
+            base = os.path.basename(group_files[0])
+            if "_sb" not in base:
+                continue
+            group_id = base.split("_sb")[0]
+            complete_groups[group_id] = group_files
+        return complete_groups
+
+    def _find_matching_group_for_transit(
+        self,
+        transit: Time,
+        groups: List[List[str]],
+        dec_deg: float,
+        cutoff_time: Time,
+        filelength: u.Quantity,
+        calibrator_name: str,
+    ) -> Optional[dict]:
+        """Find first matching group for a transit.
+
+        Args:
+            transit: Transit time
+            groups: List of group file lists
+            dec_deg: Expected declination in degrees
+            cutoff_time: Cutoff time for filtering old groups
+            filelength: Typical observation file length
+            calibrator_name: Name of calibrator
+
+        Returns:
+            Transit info dict if match found, None otherwise
+        """
+        for group_files in groups:
+            base = os.path.basename(group_files[0])
+            group_id = base.split("_sb")[0]
+
+            # Match transit to group
+            group_info = self._match_transit_to_group(
+                transit=transit,
+                group_files=group_files,
+                group_id=group_id,
+                dec_deg=dec_deg,
+                cutoff_time=cutoff_time,
+                filelength=filelength,
+            )
+
+            if group_info:
+                # Enrich with additional metadata
+                return self._enrich_transit_info(
+                    transit=transit,
+                    calibrator_name=calibrator_name,
+                    group_info=group_info,
+                )
+
+        return None
+
     def list_available_transits(
         self, calibrator_name: str, *, max_days_back: int = 30, window_minutes: int = 60
     ) -> List[dict]:
@@ -625,203 +1164,55 @@ class CalibratorMSGenerator:
             - 'days_ago': Days since transit
             - 'has_ms': Boolean indicating if MS already exists
         """
-        from collections import defaultdict
-
-        import numpy as np
-
-        from dsa110_contimg.calibration.schedule import cal_in_datetime
-
         # Load RA/Dec for calibrator
         ra_deg, dec_deg = self._load_radec(calibrator_name)
 
-        # First, scan directory for all complete groups
-        groups_dict = defaultdict(dict)
-        for root, dirs, files in os.walk(os.fspath(self.input_dir)):
-            for fn in files:
-                if not fn.endswith(".hdf5") or "_sb" not in fn:
-                    continue
-                full_path = os.path.join(root, fn)
-                # Extract group ID (timestamp part before _sb)
-                base = os.path.basename(fn)
-                if "_sb" not in base:
-                    continue
-                group_id = base.split("_sb")[0]
-                # Extract subband code
-                sb_part = base.rsplit("_sb", 1)[1].split(".")[0]
-                if sb_part.startswith("sb"):
-                    sb_code = sb_part
-                else:
-                    sb_code = f"sb{sb_part.zfill(2)}"
+        # Calculate search window
+        start_time, end_time, cutoff_time = self._calculate_search_window(
+            max_days_back
+        )
 
-                groups_dict[group_id][sb_code] = full_path
+        # Query database for all complete groups in time range
+        complete_groups_list = query_subband_groups(
+            self.products_db, start_time, end_time, tolerance_s=1.0
+        )
 
-        # Filter to complete 16-subband groups
-        complete_groups = {}
-        expected_sb = [f"sb{idx:02d}" for idx in range(16)]
-        for group_id, sb_map in groups_dict.items():
-            if set(sb_map.keys()) == set(expected_sb):
-                # Sort by subband code
-                complete_groups[group_id] = [sb_map[sb] for sb in sorted(expected_sb)]
+        # Convert to dict keyed by group_id for compatibility
+        complete_groups = self._convert_groups_list_to_dict(
+            complete_groups_list)
 
         if not complete_groups:
-            logger.debug(f"No complete 16-subband groups found in {self.input_dir}")
+            logger.debug(
+                f"No complete 16-subband groups found in database for time range "
+                f"{start_time} to {end_time}. Consider running index_hdf5_files() "
+                f"to index the input directory."
+            )
             return []
 
         # Find transits first, then check if groups contain them
-        transits = previous_transits(ra_deg, start_time=Time.now(), n=max_days_back)
+        transits = previous_transits(
+            ra_deg, start_time=Time.now(), n=max_days_back)
         available_transits = []
         filelength = 5 * u.min  # Typical observation file length
 
-        # Calculate cutoff time for filtering old groups
-        cutoff_time = Time.now() - max_days_back * u.day
-
         for transit in transits:
-            # Search for groups in a window around the transit
-            half_window = window_minutes // 2
-            t0 = (
-                (transit - half_window * u.min)
-                .to_datetime()
-                .strftime("%Y-%m-%d %H:%M:%S")
-            )
-            t1 = (
-                (transit + half_window * u.min)
-                .to_datetime()
-                .strftime("%Y-%m-%d %H:%M:%S")
-            )
-
-            # Find groups in this window
-            # Use 1-second tolerance to match pipeline standard (filename precision is to the second)
-            groups = find_subband_groups(
-                os.fspath(self.input_dir),
-                t0,
-                t1,
-                tolerance_s=1.0,  # 1-second tolerance matches filename precision (YYYY-MM-DDTHH:MM:SS)
-            )
+            # Query database for groups in window around transit
+            groups = self._query_hdf5_groups_in_window(transit, window_minutes)
             if not groups:
                 continue
 
-            # Check each group to see if transit falls within its observation window
-            for group_files in groups:
-                base = os.path.basename(group_files[0])
-                group_id = base.split("_sb")[0]
+            # Find first matching group for this transit
+            transit_info = self._find_matching_group_for_transit(
+                transit=transit,
+                groups=groups,
+                dec_deg=dec_deg,
+                cutoff_time=cutoff_time,
+                filelength=filelength,
+                calibrator_name=calibrator_name,
+            )
 
-                try:
-                    # Parse timestamp from group ID (this is the start time)
-                    group_start = Time(group_id)
-
-                    # Skip if too old
-                    if group_start < cutoff_time:
-                        continue
-
-                    # Get actual mid-time and declination from file
-                    try:
-                        from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-                            _peek_uvh5_phase_and_midtime,
-                        )
-
-                        _, pt_dec_rad, mid_mjd = _peek_uvh5_phase_and_midtime(
-                            group_files[0]
-                        )
-                        # Check if mid_mjd is valid (not None and not 0.0)
-                        if mid_mjd is not None and mid_mjd > 0:
-                            pt_dec_deg = (
-                                pt_dec_rad.to(u.deg).value
-                                if pt_dec_rad is not None
-                                else None
-                            )
-                            group_mid = Time(mid_mjd, format="mjd")
-                        else:
-                            # Invalid mid_mjd, fallback to group_start
-                            group_mid = group_start
-                            pt_dec_deg = (
-                                pt_dec_rad.to(u.deg).value
-                                if pt_dec_rad is not None
-                                else None
-                            )
-                    except Exception:
-                        # Fallback: use group_start as mid-time, skip dec check
-                        group_mid = group_start
-                        pt_dec_deg = None
-
-                    # Check if this transit falls within group's observation window
-                    transit_in_window = cal_in_datetime(
-                        group_id,
-                        transit,
-                        duration=0 * u.min,  # Transit must be within file
-                        filelength=filelength,
-                    )
-
-                    if not transit_in_window:
-                        continue
-
-                    # Check declination match (only if transit time matches)
-                    # Transit time matching is the primary indicator; declination is secondary
-                    if pt_dec_deg is not None:
-                        dec_match = abs(pt_dec_deg - dec_deg) <= 2.0
-                        if not dec_match:
-                            # Log warning but don't filter out - transit time match is more reliable
-                            logger.warning(
-                                f"Group {group_id} transit time matches but declination mismatch: "
-                                f"file dec={pt_dec_deg:.2f}°, expected {dec_deg:.2f}° "
-                                f"(diff={abs(pt_dec_deg - dec_deg):.2f}°). "
-                                f"Trusting transit time match."
-                            )
-
-                    # Verify complete 16-subband group
-                    sb_codes = sorted(
-                        os.path.basename(p).rsplit("_sb", 1)[1].split(".")[0]
-                        for p in group_files
-                    )
-                    # Check that we have exactly 16 files and all subband codes are valid (00-15)
-                    expected_codes = {f"{i:02d}" for i in range(16)}
-                    full = len(group_files) == 16 and set(sb_codes) == expected_codes
-
-                    if not full:
-                        continue
-
-                    # Sort files by subband number (0-15) for proper spectral order
-                    # This ensures files are in correct order even if they have different timestamps
-                    def sort_by_subband(fpath):
-                        fname = os.path.basename(fpath)
-                        # Extract subband number from filename (e.g., "2025-10-29T13:54:17_sb03.hdf5" -> 3)
-                        if "_sb" in fname:
-                            sb_part = fname.rsplit("_sb", 1)[1].split(".")[0]
-                            try:
-                                return int(sb_part)
-                            except ValueError:
-                                pass
-                        return 999  # Put files without subband code at end
-
-                    # CRITICAL: DSA-110 subbands use DESCENDING frequency order (sb00=highest, sb15=lowest).
-                    # For proper frequency ordering (ascending, low to high), REVERSE the sort.
-                    group_files_sorted = sorted(
-                        group_files, key=sort_by_subband, reverse=True
-                    )
-
-                    dt_min = abs((group_mid - transit).to(u.min).value)
-
-                    available_transits.append(
-                        {
-                            "transit_iso": transit.isot,
-                            "transit_mjd": transit.mjd,
-                            "group_id": group_id,
-                            "group_mid_iso": group_mid.isot,
-                            "delta_minutes": dt_min,
-                            "subband_count": len(group_files_sorted),
-                            "files": group_files_sorted,  # List of 16 HDF5 file paths sorted by subband number
-                            "days_ago": (Time.now() - transit).to(u.day).value,
-                            "has_ms": self.has_ms_for_transit(
-                                calibrator_name, transit, tolerance_minutes=5.0
-                            ),
-                        }
-                    )
-
-                    # Only take first matching group per transit
-                    break
-
-                except Exception as e:
-                    logger.debug(f"Failed to process group {group_id}: {e}")
-                    continue
+            if transit_info:
+                available_transits.append(transit_info)
 
         # Sort by most recent first (by transit time)
         available_transits.sort(key=lambda x: x["transit_mjd"], reverse=True)
@@ -845,11 +1236,12 @@ class CalibratorMSGenerator:
 
         # Fallback: search using transit time window
         # Use 1-second tolerance to match pipeline standard (filename precision is to the second)
-        groups = find_subband_groups(
-            os.fspath(self.input_dir),
+        groups = query_subband_groups(
+            self.products_db,
             transit_info["start_iso"],
             transit_info["end_iso"],
-            tolerance_s=1.0,  # 1-second tolerance matches filename precision (YYYY-MM-DDTHH:MM:SS)
+            # 1-second tolerance matches filename precision (YYYY-MM-DDTHH:MM:SS)
+            tolerance_s=1.0,
         )
 
         if not groups:
@@ -891,7 +1283,8 @@ class CalibratorMSGenerator:
             )
         except Exception as e:
             logger.error(f"Conversion failed: {e}", exc_info=True)
-            raise ConversionError(f"Failed to convert subband group to MS: {e}") from e
+            raise ConversionError(
+                f"Failed to convert subband group to MS: {e}") from e
 
     def _register_ms_in_db(
         self,
@@ -926,6 +1319,211 @@ class CalibratorMSGenerator:
         conn.commit()
         conn.close()
 
+    def _validate_and_check_existing_ms(
+        self,
+        calibrator_name: str,
+        transit_time: Optional[Time],
+        config: GenerateMSConfig,
+        progress: ProgressReporter,
+    ) -> Optional[CalibratorMSResult]:
+        """Validate inputs and check for existing MS.
+
+        Args:
+            calibrator_name: Name of calibrator
+            transit_time: Optional specific transit time
+            config: Generation configuration
+            progress: Progress reporter
+
+        Returns:
+            CalibratorMSResult if existing MS found, None otherwise
+        """
+        progress.info("Validating inputs...")
+        self._validate_inputs(
+            calibrator_name, transit_time, config.window_minutes, config.max_days_back
+        )
+        progress.success("Inputs validated")
+
+        if transit_time is not None:
+            progress.info("Checking for existing MS for this transit...")
+            existing = self.find_existing_ms_for_transit(
+                calibrator_name,
+                transit_time,
+                tolerance_minutes=config.window_minutes / 2,
+            )
+            if existing:
+                progress.success(f"Found existing MS: {existing['ms_path']}")
+                return CalibratorMSResult(
+                    success=True,
+                    ms_path=existing["ms_path"],
+                    transit_info=None,
+                    group_id=None,
+                    already_exists=True,
+                    metrics={
+                        "exist_reason": "database_query",
+                        "status": existing["status"],
+                    },
+                    progress_summary=progress.get_summary(),
+                )
+        return None
+
+    def _find_transit_and_group(
+        self,
+        calibrator_name: str,
+        transit_time: Optional[Time],
+        config: GenerateMSConfig,
+        progress: ProgressReporter,
+    ) -> Tuple[dict, List[str]]:
+        """Find transit and locate subband group.
+
+        Args:
+            calibrator_name: Name of calibrator
+            transit_time: Optional specific transit time
+            config: Generation configuration
+            progress: Progress reporter
+
+        Returns:
+            Tuple of (transit_info, file_list)
+
+        Raises:
+            TransitNotFoundError: If no transit found
+            GroupNotFoundError: If no complete group found
+        """
+        progress.info(f"Finding transit for {calibrator_name}...")
+        transit_info = self.find_transit(
+            calibrator_name,
+            transit_time=transit_time,
+            window_minutes=config.window_minutes,
+            max_days_back=config.max_days_back,
+        )
+
+        if not transit_info:
+            error_msg = (
+                f"No transit found for {calibrator_name} "
+                f"within {config.max_days_back} days"
+            )
+            progress.error(error_msg)
+            raise TransitNotFoundError(error_msg)
+
+        progress.success(f"Found transit: {transit_info['transit_iso']}")
+
+        transit_time_obj = Time(transit_info["transit_iso"])
+        existing = self.find_existing_ms_for_transit(
+            calibrator_name,
+            transit_time_obj,
+            tolerance_minutes=config.window_minutes / 2,
+        )
+        if existing:
+            progress.success(
+                f"Found existing MS for transit: {existing['ms_path']}"
+            )
+            return (
+                {
+                    **transit_info,
+                    "existing_ms": existing,
+                },
+                [],
+            )
+
+        progress.info("Locating subband group...")
+        file_list = self.locate_group(
+            transit_info, dec_tolerance_deg=config.dec_tolerance_deg
+        )
+
+        if not file_list:
+            error_msg = "No complete subband group found for transit"
+            progress.error(error_msg)
+            raise GroupNotFoundError(error_msg)
+
+        progress.success(f"Found {len(file_list)} subband files")
+        return transit_info, file_list
+
+    def _execute_conversion_workflow(
+        self,
+        calibrator_name: str,
+        transit_info: dict,
+        file_list: List[str],
+        config: GenerateMSConfig,
+        progress: ProgressReporter,
+        metrics: dict,
+    ) -> CalibratorMSResult:
+        """Execute the conversion workflow.
+
+        Args:
+            calibrator_name: Name of calibrator
+            transit_info: Transit information dictionary
+            file_list: List of subband file paths
+            config: Generation configuration
+            progress: Progress reporter
+            metrics: Metrics dictionary to update
+
+        Returns:
+            CalibratorMSResult with conversion results
+        """
+        ms_path = self._derive_output_path(
+            calibrator_name,
+            transit_info,
+            auto_naming=config.auto_naming,
+            output_name=config.output_name,
+        )
+
+        progress.info(f"Checking for existing MS: {ms_path}")
+        exists, exist_info = self._check_existing_ms(ms_path, transit_info)
+
+        if exists:
+            progress.success(
+                f"MS already exists (reason: {exist_info['reason']})")
+            metrics["already_exists"] = True
+            metrics["exist_reason"] = exist_info["reason"]
+
+            return CalibratorMSResult(
+                success=True,
+                ms_path=ms_path,
+                transit_info=transit_info,
+                group_id=transit_info["group_id"],
+                already_exists=True,
+                metrics=metrics,
+                progress_summary=progress.get_summary(),
+            )
+
+        progress.info(f"Converting {len(file_list)} subbands to MS...")
+        convert_start = time.time()
+
+        try:
+            self.convert_group(file_list, ms_path,
+                               stage_to_tmpfs=config.stage_to_tmpfs)
+        except ConversionError:
+            raise
+        except Exception as e:
+            raise ConversionError(f"Conversion failed: {e}") from e
+
+        convert_time = time.time() - convert_start
+        progress.success(f"Conversion completed in {convert_time:.1f}s")
+        metrics["conversion_time_seconds"] = convert_time
+
+        if config.configure_for_imaging:
+            progress.info("Configuring MS for imaging...")
+            configure_ms_for_imaging(os.fspath(ms_path))
+            progress.success("MS configured for imaging")
+            metrics["configured"] = True
+
+        if config.register_in_db:
+            progress.info("Registering MS in products database...")
+            self._register_ms_in_db(ms_path, transit_info)
+            progress.success("MS registered in database")
+            metrics["registered"] = True
+
+        progress.success(f"MS ready: {ms_path}")
+
+        return CalibratorMSResult(
+            success=True,
+            ms_path=ms_path,
+            transit_info=transit_info,
+            group_id=transit_info["group_id"],
+            already_exists=False,
+            metrics=metrics,
+            progress_summary=progress.get_summary(),
+        )
+
     def generate_from_transit(
         self,
         calibrator_name: str,
@@ -957,65 +1555,32 @@ class CalibratorMSGenerator:
         Returns:
             CalibratorMSResult with success status and details
         """
+        config = GenerateMSConfig(
+            window_minutes=window_minutes,
+            max_days_back=max_days_back,
+            dec_tolerance_deg=dec_tolerance_deg,
+            auto_naming=auto_naming,
+            output_name=output_name,
+            configure_for_imaging=configure_for_imaging,
+            register_in_db=register_in_db,
+            stage_to_tmpfs=stage_to_tmpfs,
+        )
         progress = ProgressReporter(verbose=self.verbose)
         metrics = {}
 
         try:
-            # Step 0: Validate inputs
-            progress.info("Validating inputs...")
-            self._validate_inputs(
-                calibrator_name, transit_time, window_minutes, max_days_back
+            existing_result = self._validate_and_check_existing_ms(
+                calibrator_name, transit_time, config, progress
             )
-            progress.success("Inputs validated")
+            if existing_result:
+                return existing_result
 
-            # Step 1: Check if MS already exists for this transit
-            if transit_time is not None:
-                progress.info("Checking for existing MS for this transit...")
-                existing = self.find_existing_ms_for_transit(
-                    calibrator_name, transit_time, tolerance_minutes=window_minutes / 2
-                )
-                if existing:
-                    progress.success(f"Found existing MS: {existing['ms_path']}")
-                    return CalibratorMSResult(
-                        success=True,
-                        ms_path=existing["ms_path"],
-                        transit_info=None,  # Would need to reconstruct from transit_time
-                        group_id=None,
-                        already_exists=True,
-                        metrics={
-                            "exist_reason": "database_query",
-                            "status": existing["status"],
-                        },
-                        progress_summary=progress.get_summary(),
-                    )
-
-            # Step 2: Find transit
-            progress.info(f"Finding transit for {calibrator_name}...")
-            transit_info = self.find_transit(
-                calibrator_name,
-                transit_time=transit_time,
-                window_minutes=window_minutes,
-                max_days_back=max_days_back,
+            transit_info, file_list = self._find_transit_and_group(
+                calibrator_name, transit_time, config, progress
             )
 
-            if not transit_info:
-                error_msg = f"No transit found for {calibrator_name} within {max_days_back} days"
-                progress.error(error_msg)
-                raise TransitNotFoundError(error_msg)
-
-            progress.success(f"Found transit: {transit_info['transit_iso']}")
-            metrics["transit_found"] = True
-            metrics["transit_time"] = transit_info["transit_iso"]
-
-            # Step 3: Check if MS exists for this transit (by transit time)
-            transit_time_obj = Time(transit_info["transit_iso"])
-            existing = self.find_existing_ms_for_transit(
-                calibrator_name, transit_time_obj, tolerance_minutes=window_minutes / 2
-            )
-            if existing:
-                progress.success(
-                    f"Found existing MS for transit: {existing['ms_path']}"
-                )
+            if "existing_ms" in transit_info:
+                existing = transit_info["existing_ms"]
                 return CalibratorMSResult(
                     success=True,
                     ms_path=existing["ms_path"],
@@ -1029,86 +1594,12 @@ class CalibratorMSGenerator:
                     progress_summary=progress.get_summary(),
                 )
 
-            # Step 4: Locate group
-            progress.info("Locating subband group...")
-            file_list = self.locate_group(
-                transit_info, dec_tolerance_deg=dec_tolerance_deg
-            )
-
-            if not file_list:
-                error_msg = f"No complete subband group found for transit"
-                progress.error(error_msg)
-                raise GroupNotFoundError(error_msg)
-
-            progress.success(f"Found {len(file_list)} subband files")
+            metrics["transit_found"] = True
+            metrics["transit_time"] = transit_info["transit_iso"]
             metrics["subbands"] = len(file_list)
 
-            # Step 5: Derive output path
-            ms_path = self._derive_output_path(
-                calibrator_name,
-                transit_info,
-                auto_naming=auto_naming,
-                output_name=output_name,
-            )
-
-            # Step 6: Check if already exists (by path)
-            progress.info(f"Checking for existing MS: {ms_path}")
-            exists, exist_info = self._check_existing_ms(ms_path, transit_info)
-
-            if exists:
-                progress.success(f"MS already exists (reason: {exist_info['reason']})")
-                metrics["already_exists"] = True
-                metrics["exist_reason"] = exist_info["reason"]
-
-                return CalibratorMSResult(
-                    success=True,
-                    ms_path=ms_path,
-                    transit_info=transit_info,
-                    group_id=transit_info["group_id"],
-                    already_exists=True,
-                    metrics=metrics,
-                    progress_summary=progress.get_summary(),
-                )
-
-            # Step 7: Convert
-            progress.info(f"Converting {len(file_list)} subbands to MS...")
-            convert_start = time.time()
-
-            try:
-                self.convert_group(file_list, ms_path, stage_to_tmpfs=stage_to_tmpfs)
-            except ConversionError:
-                raise  # Re-raise conversion errors
-            except Exception as e:
-                raise ConversionError(f"Conversion failed: {e}") from e
-
-            convert_time = time.time() - convert_start
-            progress.success(f"Conversion completed in {convert_time:.1f}s")
-            metrics["conversion_time_seconds"] = convert_time
-
-            # Step 8: Configure for imaging
-            if configure_for_imaging:
-                progress.info("Configuring MS for imaging...")
-                configure_ms_for_imaging(os.fspath(ms_path))
-                progress.success("MS configured for imaging")
-                metrics["configured"] = True
-
-            # Step 9: Register in database
-            if register_in_db:
-                progress.info("Registering MS in products database...")
-                self._register_ms_in_db(ms_path, transit_info)
-                progress.success("MS registered in database")
-                metrics["registered"] = True
-
-            progress.success(f"MS ready: {ms_path}")
-
-            return CalibratorMSResult(
-                success=True,
-                ms_path=ms_path,
-                transit_info=transit_info,
-                group_id=transit_info["group_id"],
-                already_exists=False,
-                metrics=metrics,
-                progress_summary=progress.get_summary(),
+            return self._execute_conversion_workflow(
+                calibrator_name, transit_info, file_list, config, progress, metrics
             )
 
         except (

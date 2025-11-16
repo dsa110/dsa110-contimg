@@ -129,7 +129,7 @@ export function CalibrationSPWPanel({
   }
 
   const problematicSPWs = spwStats.filter((s) => s.is_problematic);
-  const sortedStats = [...spwStats].sort((a, b) => a.spw_id - b.spw_id);
+  const sortedStats = [...spwStats].sort((a, b) => (a.spw_id ?? 0) - (b.spw_id ?? 0));
 
   return (
     <Box>
@@ -184,7 +184,7 @@ export function CalibrationSPWPanel({
       )}
 
       {/* Bandpass Plots Section */}
-      {bandpassPlots && bandpassPlots.plots.length > 0 && (
+      {bandpassPlots && bandpassPlots.plots && bandpassPlots.plots.length > 0 && (
         <Box mb={2}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="subtitle2" gutterBottom>
@@ -206,7 +206,7 @@ export function CalibrationSPWPanel({
               }}
             >
               {bandpassPlots.plots
-                .filter(
+                ?.filter(
                   (p) =>
                     (bandpassPlotTab === 0 && p.type === "amplitude") ||
                     (bandpassPlotTab === 1 && p.type === "phase")
@@ -239,7 +239,7 @@ export function CalibrationSPWPanel({
                   </Card>
                 ))}
             </Box>
-            {bandpassPlots.plots.filter(
+            {bandpassPlots.plots?.filter(
               (p) =>
                 (bandpassPlotTab === 0 && p.type === "amplitude") ||
                 (bandpassPlotTab === 1 && p.type === "phase")
@@ -296,13 +296,13 @@ export function CalibrationSPWPanel({
                   <strong>{stats.spw_id}</strong>
                 </TableCell>
                 <TableCell align="right">
-                  {`${(stats.fraction_flagged * 100).toFixed(1)}%`}
+                  {`${((stats.fraction_flagged ?? 0) * 100).toFixed(1)}%`}
                   <Typography variant="caption" color="text.secondary" display="block">
-                    ({stats.flagged_solutions}/{stats.total_solutions})
+                    ({stats.flagged_solutions ?? 0}/{stats.total_solutions ?? 0})
                   </Typography>
                 </TableCell>
                 <TableCell align="right">
-                  {`${(stats.avg_flagged_per_channel * 100).toFixed(1)}%`}
+                  {`${((stats.avg_flagged_per_channel ?? 0) * 100).toFixed(1)}%`}
                 </TableCell>
                 <TableCell align="right">
                   {`${stats.channels_with_high_flagging}/${stats.n_channels}`}

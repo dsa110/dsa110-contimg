@@ -32,7 +32,8 @@ router = APIRouter()
 async def test_streaming_broadcast(message: Optional[dict] = None):
     """Trigger WebSocket broadcast (disabled in production)."""
     if os.getenv("ENVIRONMENT") == "production":
-        raise HTTPException(status_code=404, detail="Not available in production")
+        raise HTTPException(
+            status_code=404, detail="Not available in production")
 
     from time import time
     from dsa110_contimg.api.websocket_manager import manager
@@ -109,6 +110,7 @@ async def websocket_status(websocket: WebSocket):
     """WebSocket endpoint for real-time status updates."""
     from dsa110_contimg.api.websocket_manager import manager
 
+    await websocket.accept()
     await manager.connect(websocket)
     try:
         while True:

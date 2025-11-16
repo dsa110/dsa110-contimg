@@ -377,9 +377,11 @@ export default function MSTable({
                     <Checkbox checked={isSelected} onChange={() => handleSelectOne(ms.path)} />
                   </TableCell>
                   <TableCell sx={{ fontFamily: "monospace", fontSize: "0.8rem" }}>
-                    {getFilename(ms.path)}
+                    {getFilename(ms.path ?? "")}
                   </TableCell>
-                  <TableCell sx={{ fontSize: "0.75rem" }}>{formatTime(ms.start_time)}</TableCell>
+                  <TableCell sx={{ fontSize: "0.75rem" }}>
+                    {formatTime(ms.start_time ?? undefined)}
+                  </TableCell>
                   <TableCell>
                     {ms.has_calibrator ? (
                       <Stack direction="row" spacing={0.5} alignItems="center">
@@ -447,7 +449,7 @@ export default function MSTable({
                     )}
                   </TableCell>
                   <TableCell align="right" sx={{ fontSize: "0.75rem" }}>
-                    {formatSize(ms.size_gb)}
+                    {formatSize(ms.size_gb ?? undefined)}
                   </TableCell>
                 </TableRow>
               );

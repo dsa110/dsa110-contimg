@@ -3,14 +3,14 @@
  */
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
+import type {
   WorkflowType,
   WorkflowContext as WorkflowContextType,
   NavigationItem,
   QuickAction,
   BreadcrumbItem,
-  NAVIGATION_RULES,
 } from "../types/workflow";
+import { NAVIGATION_RULES } from "../types/workflow";
 
 interface WorkflowContextValue {
   currentWorkflow: WorkflowType | null;

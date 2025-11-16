@@ -85,6 +85,54 @@ test.describe('Control Page', () => {
     await controlPage.clickTab('Calibrate');
     await controlPage.selectOption('Reference Antenna', 'Antenna 1');
   });
+
+  test('should display MS Details panel when MS is selected', async ({ page }) => {
+    const controlPage = new ControlPage(page);
+    await controlPage.navigate();
+    
+    // Select an MS from the table
+    await controlPage.selectMSFromTable(0);
+    
+    // Verify MS Details panel is visible
+    await controlPage.verifyMSDetailsPanelVisible();
+  });
+
+  test('should switch between MS Details panel tabs', async ({ page }) => {
+    const controlPage = new ControlPage(page);
+    await controlPage.navigate();
+    
+    // Select an MS
+    await controlPage.selectMSFromTable(0);
+    await controlPage.verifyMSDetailsPanelVisible();
+    
+    // Test each tab
+    const tabs = ['MS Inspection', 'MS Comparison', 'Related Products'];
+    for (const tabName of tabs) {
+      await controlPage.clickMSDetailsTab(tabName);
+      // Tab should be visible
+      await expect(page.locator(`text=${tabName}`)).toBeVisible();
+    }
+  });
+
+  test('should toggle MS Details panel collapse/expand', async ({ page }) => {
+    const controlPage = new ControlPage(page);
+    await controlPage.navigate();
+    
+    // Select an MS
+    await controlPage.selectMSFromTable(0);
+    await controlPage.verifyMSDetailsPanelVisible();
+    
+    // Collapse panel
+    await controlPage.toggleMSDetailsPanel();
+    await page.waitForTimeout(500);
+    
+    // Expand panel
+    await controlPage.toggleMSDetailsPanel();
+    await page.waitForTimeout(500);
+    
+    // Panel should still be accessible
+    await controlPage.verifyMSDetailsPanelVisible();
+  });
 });
 
 test.describe('Sky View Page', () => {

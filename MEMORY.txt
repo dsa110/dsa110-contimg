@@ -651,6 +651,172 @@ results.
 
 ---
 
+## Documentation Format Standards (2025-11-15)
+
+**Tiered Format System:** Use YAML frontmatter for structured docs, simple markdown for basic docs.
+
+### Format Decision Tree
+
+```
+Does this doc need structured metadata?
+├─ YES → Use YAML Frontmatter
+│   ├─ Status reports (internal/docs/dev/status/)
+│   ├─ Analysis reports (internal/docs/dev/analysis/)
+│   ├─ Concept docs (docs/concepts/)
+│   ├─ Reference docs (docs/reference/)
+│   └─ Changelogs
+│
+└─ NO → Use Simple Markdown
+    ├─ Basic how-to guides (docs/how-to/)
+    ├─ Tutorials (docs/tutorials/)
+    └─ Quick reference snippets
+```
+
+### YAML Frontmatter Format (For Structured Docs)
+
+**When to use:**
+- ✅ Status reports (`internal/docs/dev/status/`)
+- ✅ Analysis reports (`internal/docs/dev/analysis/`)
+- ✅ Concept docs (`docs/concepts/`)
+- ✅ Reference docs (`docs/reference/`)
+- ✅ Changelogs and tracking docs
+
+**Template:**
+
+```markdown
+---
+date: YYYY-MM-DD
+title: Document Title
+type: [status-report|analysis|concept|reference|how-to|tutorial]
+status: [draft|review|complete|archived]
+tags: [tag1, tag2, tag3]
+related: [path/to/doc1.md, path/to/doc2.md]
+affected_areas: [area1, area2]
+---
+
+# Document Title
+
+## Overview
+Content here...
+```
+
+**Benefits for AI Agents:**
+- ✅ Structured parsing - Easy to extract metadata programmatically
+- ✅ Filtering - Find docs by type, status, tags, date
+- ✅ Relationships - Map document connections
+- ✅ Consistency - Predictable structure across docs
+- ✅ Automation - Enable tooling and CI/CD integration
+
+### Simple Markdown Format (For Basic Docs)
+
+**When to use:**
+- ✅ Simple how-to guides (`docs/how-to/`)
+- ✅ Step-by-step tutorials (`docs/tutorials/`)
+- ✅ Quick reference snippets
+- ✅ Standalone documentation
+
+**Template:**
+
+```markdown
+# Document Title
+
+**Date:** YYYY-MM-DD  
+**Status:** draft | review | complete | archived  
+**Related:** [link to related docs]
+
+---
+
+## Overview
+Content here...
+```
+
+**Benefits:**
+- ✅ Simplicity - Easy to write and read
+- ✅ No overhead - No need for structured metadata
+- ✅ Quick creation - Faster for simple docs
+- ✅ Human-friendly - Natural for step-by-step guides
+
+### Key Principles
+
+1. **Use frontmatter for structured docs** - Status, analysis, concepts, reference
+2. **Use simple format for basic how-tos** - Step-by-step guides, tutorials
+3. **Include date and status** in all docs
+4. **Add tags for searchability** - Especially in frontmatter docs
+5. **Link related docs** - Use `related` field or "See Also" section
+
+### Common Frontmatter Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `date` | string (YYYY-MM-DD) | ✅ | Creation or last update date |
+| `title` | string | ✅ | Document title |
+| `type` | enum | ✅ | Document category |
+| `status` | enum | ✅ | Current status |
+| `tags` | array | ⚠️ | Topic tags for filtering |
+| `related` | array | ⚠️ | Links to related documents |
+| `affected_areas` | array | ⚠️ | Code/components affected |
+
+### Document Types
+
+- `status-report` - Development status updates
+- `analysis` - Investigation or analysis reports
+- `concept` - Conceptual explanations
+- `reference` - API, CLI, schema reference
+- `how-to` - Step-by-step procedures
+- `tutorial` - Guided tutorials
+- `changelog` - Change tracking entries
+
+### Status Values
+
+- `draft` - Work in progress
+- `review` - Under review
+- `complete` - Finalized
+- `archived` - Historical/superseded
+
+### Examples
+
+**Status Report (Frontmatter):**
+```markdown
+---
+date: 2025-11-15
+title: Dashboard Implementation Status
+type: status-report
+status: in-progress
+tags: [dashboard, frontend, react]
+related: [docs/concepts/dashboard_architecture.md]
+affected_areas: [DashboardPage, StatCard]
+---
+
+# Dashboard Implementation Status
+## Current Status
+Implementation is 75% complete...
+```
+
+**How-To Guide (Simple):**
+```markdown
+# How to Calibrate an MS File
+
+**Date:** 2025-11-15  
+**Status:** complete  
+**Related:** [docs/concepts/calibration.md]
+
+---
+
+## Steps
+1. Open the MS file
+2. Run calibration command
+3. Verify results
+```
+
+### Related Documentation
+
+- **[Documentation Format Recommendation](.cursor/rules/DOCUMENTATION_FORMAT_RECOMMENDATION.md)** - Complete format guide with examples
+- **[Documentation Quick Reference](docs/DOCUMENTATION_QUICK_REFERENCE.md)** - Location and format templates
+- **[Design System Changelog](.cursor/rules/DESIGN_SYSTEM_CHANGELOG.md)** - Example of frontmatter usage
+- **[Changelog Parser Examples](.cursor/rules/CHANGELOG_PARSER_EXAMPLE.md)** - How to parse frontmatter programmatically
+
+---
+
 ## Related Documentation
 
 - **Quick Start**: `docs/quickstart.md`

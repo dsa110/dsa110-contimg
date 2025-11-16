@@ -222,7 +222,7 @@ function MSInspectionPanel({
             <CardHeader title="Flagging Statistics" />
             <CardContent>
               <Typography variant="body2" gutterBottom>
-                Total flagged: {(metadata.flagging_stats.total_fraction * 100).toFixed(1)}%
+                Total flagged: {((metadata.flagging_stats.total_fraction ?? 0) * 100).toFixed(1)}%
               </Typography>
               {metadata.flagging_stats.per_antenna &&
                 Object.keys(metadata.flagging_stats.per_antenna).length > 0 && (
@@ -314,7 +314,7 @@ export default function MSBrowserPage() {
     const metrics = {
       calibrated: msMetadata.calibrated,
       flaggingPercent: msMetadata.flagging_stats
-        ? msMetadata.flagging_stats.total_fraction * 100
+        ? (msMetadata.flagging_stats.total_fraction ?? 0) * 100
         : 0,
       numAntennas: msMetadata.antennas?.length || msMetadata.num_antennas || 0,
       numFields: msMetadata.fields?.length || msMetadata.num_fields || 0,

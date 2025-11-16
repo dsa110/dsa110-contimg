@@ -16,6 +16,14 @@ class ControlPage(BasePage):
     CONVERT_TAB = "text=Convert"
     CALIBRATE_TAB = "text=Calibrate"
     IMAGE_TAB = "text=Image"
+    
+    # MS Details Panel selectors
+    MS_DETAILS_PANEL = "#ms-details-panel"
+    MS_DETAILS_PANEL_TOGGLE = "#ms-details-panel [aria-expanded]"
+    MS_DETAILS_TABS = "#ms-details-panel [role='tab']"
+    MS_INSPECTION_TAB = "text=MS Inspection"
+    MS_COMPARISON_TAB = "text=MS Comparison"
+    RELATED_PRODUCTS_TAB = "text=Related Products"
 
     def __init__(self, page: Page):
         super().__init__(page)
@@ -52,3 +60,26 @@ class ControlPage(BasePage):
         if tab.count() > 0:
             tab.click()
             self.page.wait_for_timeout(500)  # Wait for tab content to load
+
+    def get_ms_details_panel(self) -> Locator:
+        """Get the MS Details panel locator."""
+        return self.page.locator(self.MS_DETAILS_PANEL).first
+
+    def toggle_ms_details_panel(self) -> None:
+        """Toggle the MS Details panel (expand/collapse)."""
+        toggle = self.page.locator(self.MS_DETAILS_PANEL_TOGGLE).first
+        if toggle.count() > 0:
+            toggle.click()
+            self.page.wait_for_timeout(300)  # Wait for animation
+
+    def click_ms_details_tab(self, tab_name: str) -> None:
+        """Click a tab in MS Details panel (MS Inspection, MS Comparison, Related Products)."""
+        tab = self.page.locator(f"text={tab_name}").first
+        if tab.count() > 0:
+            tab.click()
+            self.page.wait_for_timeout(300)  # Wait for tab content to load
+
+    def is_ms_details_panel_visible(self) -> bool:
+        """Check if MS Details panel is visible."""
+        panel = self.get_ms_details_panel()
+        return panel.count() > 0 and panel.is_visible()

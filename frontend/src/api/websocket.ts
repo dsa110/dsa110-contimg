@@ -60,10 +60,20 @@ export class WebSocketClient {
    */
   private connectWebSocket(): void {
     const wsUrl = this.url.replace(/^http/, "ws");
+
+    // Validate WebSocket URL before attempting connection
+    if (!wsUrl || (!wsUrl.startsWith("ws://") && !wsUrl.startsWith("wss://"))) {
+      logger.error("Invalid WebSocket URL:", wsUrl);
+      this.isConnecting = false;
+      this.scheduleReconnect();
+      return;
+    }
+
+    logger.info(`Attempting WebSocket connection to: ${wsUrl}`);
     this.ws = new WebSocket(wsUrl);
 
     this.ws.onopen = () => {
-      logger.info("WebSocket connected");
+      logger.info("WebSocket connected", { url: wsUrl });
       this.isConnecting = false;
       this.isConnected = true;
       this.reconnectAttempts = 0;
@@ -82,18 +92,105 @@ export class WebSocketClient {
     };
 
     this.ws.onerror = (error) => {
-      logger.error("WebSocket error:", error);
+      // WebSocket error events don't provide detailed information,
+      // but we can log the connection state and URL for diagnostics
+      const errorInfo: Record<string, unknown> = {
+        url: wsUrl,
+        readyState: this.ws?.readyState,
+        readyStateText: this.getReadyStateText(this.ws?.readyState),
+        reconnectAttempt: this.reconnectAttempts,
+      };
+
+      // Try to extract any available error information
+      if (error && typeof error === "object") {
+        if ("message" in error) {
+          errorInfo.message = (error as { message: string }).message;
+        }
+        if ("type" in error) {
+          errorInfo.type = (error as { type: string }).type;
+        }
+      }
+
+      logger.error("WebSocket error:", errorInfo);
       this.isConnecting = false;
       this.isConnected = false;
     };
 
-    this.ws.onclose = () => {
-      logger.info("WebSocket closed");
+    this.ws.onclose = (event) => {
+      // The onclose event provides more diagnostic information than onerror
+      const closeInfo: Record<string, unknown> = {
+        url: wsUrl,
+        code: event.code,
+        reason: event.reason || "No reason provided",
+        wasClean: event.wasClean,
+        reconnectAttempt: this.reconnectAttempts,
+      };
+
+      // Add human-readable close code description
+      closeInfo.codeDescription = this.getCloseCodeDescription(event.code);
+
+      if (event.wasClean) {
+        logger.info("WebSocket closed cleanly", closeInfo);
+      } else {
+        logger.error("WebSocket connection closed unexpectedly", closeInfo);
+      }
+
       this.isConnecting = false;
       this.isConnected = false;
       this.stopPingInterval();
       this.scheduleReconnect();
     };
+  }
+
+  /**
+   * Get human-readable ready state text
+   */
+  private getReadyStateText(readyState: number | undefined): string {
+    if (readyState === undefined) return "UNKNOWN";
+    const states: Record<number, string> = {
+      0: "CONNECTING",
+      1: "OPEN",
+      2: "CLOSING",
+      3: "CLOSED",
+    };
+    return states[readyState] || `UNKNOWN(${readyState})`;
+  }
+
+  /**
+   * Get human-readable close code description
+   */
+  private getCloseCodeDescription(code: number): string {
+    const codes: Record<number, string> = {
+      1000: "Normal Closure",
+      1001: "Going Away",
+      1002: "Protocol Error",
+      1003: "Unsupported Data",
+      1004: "Reserved",
+      1005: "No Status Received",
+      1006: "Abnormal Closure",
+      1007: "Invalid Frame Payload Data",
+      1008: "Policy Violation",
+      1009: "Message Too Big",
+      1010: "Mandatory Extension",
+      1011: "Internal Server Error",
+      1012: "Service Restart",
+      1013: "Try Again Later",
+      1014: "Bad Gateway",
+      1015: "TLS Handshake",
+    };
+
+    // Check for reserved ranges
+    if (code >= 1000 && code <= 1015) {
+      return codes[code] || `Reserved(${code})`;
+    } else if (code >= 1016 && code <= 2999) {
+      return `Reserved for WebSocket standard(${code})`;
+    } else if (code >= 3000 && code <= 3999) {
+      return `Reserved for libraries and frameworks(${code})`;
+    } else if (code >= 4000 && code <= 4999) {
+      return `Reserved for applications(${code})`;
+    }
+
+    return `Unknown close code(${code})`;
   }
 
   /**

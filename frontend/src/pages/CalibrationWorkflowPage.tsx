@@ -247,7 +247,10 @@ export default function CalibrationWorkflowPage() {
                                   {msMetadata.flagging_stats && (
                                     <Typography variant="body2">
                                       Total flagged:{" "}
-                                      {(msMetadata.flagging_stats.total_fraction * 100).toFixed(1)}%
+                                      {(
+                                        (msMetadata.flagging_stats.total_fraction ?? 0) * 100
+                                      ).toFixed(1)}
+                                      %
                                     </Typography>
                                   )}
                                 </Paper>

@@ -34,6 +34,7 @@ import {
 } from "@mui/icons-material";
 import { useDirectoryListing, useDirectoryThumbnails } from "../../api/queries";
 import type { DirectoryEntry } from "../../api/types";
+import DOMPurify from "dompurify";
 
 /**
  * Check if a path looks complete (not being actively typed).
@@ -127,7 +128,7 @@ export default function DirectoryBrowser({
       setDebouncedPath(path);
       onSelectDirectory?.(path);
     } else {
-      const entry = data?.entries.find((e) => e.path === path);
+      const entry = data?.entries?.find((e) => e.path === path);
       if (entry) {
         onSelectFile?.(path, entry.type);
       }
@@ -323,7 +324,7 @@ export default function DirectoryBrowser({
 
       {viewMode === "list" && data && !isLoading && (
         <List sx={{ flex: 1, overflow: "auto", bgcolor: "background.paper" }}>
-          {data.entries.length === 0 ? (
+          {!data.entries || data.entries.length === 0 ? (
             <Alert severity="info">No entries found</Alert>
           ) : (
             data.entries.map((entry: DirectoryEntry) => (
@@ -336,7 +337,7 @@ export default function DirectoryBrowser({
                 }}
               >
                 <ListItemButton
-                  onClick={() => handlePathClick(entry.path, entry.is_dir)}
+                  onClick={() => handlePathClick(entry.path ?? "", entry.is_dir)}
                   sx={{
                     bgcolor: "background.paper",
                     "&:hover": { bgcolor: "action.hover" },
@@ -368,9 +369,11 @@ export default function DirectoryBrowser({
                         <Chip label={entry.type} size="small" color={getTypeColor(entry.type)} />
                       </Box>
                       <Box sx={{ display: "flex", gap: 2 }}>
-                        <Typography variant="caption" color="text.secondary" component="span">
-                          {entry.size || "N/A"}
-                        </Typography>
+                        {!entry.is_dir && (
+                          <Typography variant="caption" color="text.secondary" component="span">
+                            {entry.size || "N/A"}
+                          </Typography>
+                        )}
                         {entry.modified_time && (
                           <Typography variant="caption" color="text.secondary" component="span">
                             {new Date(entry.modified_time).toLocaleString()}
@@ -383,7 +386,7 @@ export default function DirectoryBrowser({
                         size="small"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handlePathClick(entry.path, true);
+                          handlePathClick(entry.path ?? "", true);
                         }}
                         sx={{ ml: "auto" }}
                       >
@@ -412,8 +415,53 @@ export default function DirectoryBrowser({
               <CircularProgress />
             </Box>
           ) : thumbnailHtml ? (
+            // Security: HTML is sanitized with DOMPurify before rendering to prevent XSS attacks.
+            // The HTML comes from our trusted backend API (/api/visualization/directory/thumbnails),
+            // but we sanitize it as a defense-in-depth measure. DOMPurify removes any potentially
+            // dangerous scripts, event handlers, and unsafe attributes while preserving safe HTML
+            // elements needed for thumbnail display.
             <Box
-              dangerouslySetInnerHTML={{ __html: thumbnailHtml }}
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(thumbnailHtml, {
+                  // Allow common HTML elements and attributes needed for thumbnails
+                  ALLOWED_TAGS: [
+                    "div",
+                    "img",
+                    "a",
+                    "span",
+                    "p",
+                    "h1",
+                    "h2",
+                    "h3",
+                    "h4",
+                    "h5",
+                    "h6",
+                    "ul",
+                    "ol",
+                    "li",
+                    "table",
+                    "tr",
+                    "td",
+                    "th",
+                    "tbody",
+                    "thead",
+                  ],
+                  ALLOWED_ATTR: [
+                    "class",
+                    "id",
+                    "style",
+                    "src",
+                    "alt",
+                    "href",
+                    "target",
+                    "title",
+                    "width",
+                    "height",
+                  ],
+                  // Allow safe CSS in style attributes
+                  ALLOW_DATA_ATTR: false,
+                }),
+              }}
               sx={{
                 "& .qa-thumb-item": {
                   cursor: "pointer",

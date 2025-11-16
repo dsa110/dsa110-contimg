@@ -16,7 +16,7 @@ ALL_PAGES: List[Tuple[str, str, str]] = [
     ("/operations", "Operations", "Operations"),
     ("/control", "Control", "Control"),
     ("/calibration", "Calibration", "Calibration"),
-    ("/ms-browser", "MS Browser", "MS"),
+    # MS Browser functionality merged into Control page - /ms-browser redirects to /control
     ("/streaming", "Streaming", "Streaming"),
     ("/data", "Data Browser", "Data"),
     ("/sources", "Sources", "Sources"),
@@ -27,6 +27,11 @@ ALL_PAGES: List[Tuple[str, str, str]] = [
     ("/health", "Health", "Health"),
     ("/events", "Events", "Events"),
     ("/cache", "Cache", "Cache"),
+]
+
+# Routes that redirect to other pages
+REDIRECTED_ROUTES: List[Tuple[str, str]] = [
+    ("/ms-browser", "/control"),  # MS Browser redirected to Control
 ]
 
 
@@ -153,12 +158,27 @@ class TestAllPagesSmoke:
         page.wait_for_load_state("networkidle", timeout=15000)
 
         # Get all navigation items
+        # Note: MS Browser removed from navigation - functionality merged into Control
         nav_items = page.locator("[role='button'], button, a").filter(
             has_text=page.locator(
-                "text=/Dashboard|Control|Streaming|Data|Sources|Mosaics|Sky|QA|Health|Events|Cache|Pipeline|Operations|Calibration|MS Browser|CARTA/"
+                "text=/Dashboard|Control|Streaming|Data|Sources|Mosaics|Sky|QA|Health|Events|Cache|Pipeline|Operations|Calibration|CARTA/"
             )
         )
 
         # This is a basic check - navigation items should be present
         # More detailed navigation testing is in individual page tests
         assert nav_items.count() > 0, "Navigation items not found"
+
+    @pytest.mark.parametrize("from_route,to_route", REDIRECTED_ROUTES)
+    def test_redirect_route(self, page: Page, from_route: str, to_route: str):
+        """Test that redirected routes redirect correctly."""
+        # Navigate to the route that should redirect
+        page.goto(from_route)
+        page.wait_for_load_state("networkidle", timeout=15000)
+
+        # Should redirect to target route
+        expect(page).to_have_url(containing=to_route, timeout=5000)
+
+        # Should have content after redirect
+        main_content = page.locator("main, [role='main'], .MuiContainer-root")
+        expect(main_content.first).to_be_visible(timeout=10000)

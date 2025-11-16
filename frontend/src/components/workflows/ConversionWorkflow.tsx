@@ -19,7 +19,9 @@ import {
   Alert,
   Tooltip,
   CircularProgress,
+  useTheme,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { PlayArrow } from "@mui/icons-material";
 import {
   useCreateConvertJob,
@@ -43,6 +45,7 @@ export function ConversionWorkflow({
   onJobCreated,
   onRefreshJobs,
 }: ConversionWorkflowProps) {
+  const theme = useTheme();
   const { showError, showSuccess } = useNotifications();
 
   // Conversion parameters state
@@ -99,7 +102,7 @@ export function ConversionWorkflow({
       { params: convertParams },
       {
         onSuccess: (job) => {
-          onJobCreated?.(job.id);
+          onJobCreated?.(parseInt(job.id, 10));
           onRefreshJobs?.();
           showSuccess(`Conversion job #${job.id} started successfully`);
         },
@@ -118,7 +121,7 @@ export function ConversionWorkflow({
       { params: workflowParams },
       {
         onSuccess: (job) => {
-          onJobCreated?.(job.id);
+          onJobCreated?.(parseInt(job.id, 10));
           onRefreshJobs?.();
           showSuccess(`Pipeline workflow job #${job.id} started successfully`);
         },
@@ -133,8 +136,8 @@ export function ConversionWorkflow({
   return (
     <Box>
       {/* Full Pipeline Workflow Form */}
-      <Paper sx={{ p: 2, mb: 2, bgcolor: "#f5f5f5" }}>
-        <Typography variant="h6" sx={{ mb: 2, color: "#1565c0" }}>
+      <Paper sx={{ p: 2, mb: 2 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>
           Full Pipeline Workflow
         </Typography>
         <Stack direction="row" spacing={2} alignItems="center">
@@ -157,10 +160,10 @@ export function ConversionWorkflow({
               ),
             ]}
             sx={{
-              bgcolor: "white",
+              bgcolor: theme.palette.background.paper,
               borderRadius: 1,
-              "& .MuiInputBase-root": { color: "#000" },
-              "& .MuiInputLabel-root": { color: "#666" },
+              "& .MuiInputBase-root": { color: theme.palette.text.primary },
+              "& .MuiInputLabel-root": { color: theme.palette.text.secondary },
             }}
           />
           <ValidatedTextField
@@ -190,10 +193,10 @@ export function ConversionWorkflow({
               },
             ]}
             sx={{
-              bgcolor: "white",
+              bgcolor: theme.palette.background.paper,
               borderRadius: 1,
-              "& .MuiInputBase-root": { color: "#000" },
-              "& .MuiInputLabel-root": { color: "#666" },
+              "& .MuiInputBase-root": { color: theme.palette.text.primary },
+              "& .MuiInputLabel-root": { color: theme.palette.text.secondary },
             }}
           />
           <Tooltip
@@ -222,9 +225,9 @@ export function ConversionWorkflow({
                   workflowMutation.isPending
                 }
                 sx={{
-                  bgcolor: "#fff",
-                  color: "#1565c0",
-                  "&:hover": { bgcolor: "#f5f5f5" },
+                  bgcolor: theme.palette.background.paper,
+                  color: theme.palette.primary.main,
+                  "&:hover": { bgcolor: alpha(theme.palette.action.hover, 0.1) },
                   whiteSpace: "nowrap",
                 }}
               >
@@ -416,7 +419,7 @@ export function ConversionWorkflow({
               sx={{
                 maxHeight: 200,
                 overflow: "auto",
-                bgcolor: "#1e1e1e",
+                bgcolor: alpha(theme.palette.background.paper, 0.5),
                 p: 1,
                 borderRadius: 1,
                 fontFamily: "monospace",
@@ -424,7 +427,7 @@ export function ConversionWorkflow({
               }}
             >
               {uvh5Files.items.map((file) => (
-                <Box key={file.path} sx={{ color: "#ffffff", mb: 0.3 }}>
+                <Box key={file.path} sx={{ color: theme.palette.text.primary, mb: 0.3 }}>
                   {file.path.split("/").pop()} ({file.size_mb?.toFixed(1)} MB)
                 </Box>
               ))}

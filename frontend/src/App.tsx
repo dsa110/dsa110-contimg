@@ -39,7 +39,8 @@ const EventsPage = lazy(() => import("./pages/EventsPage"));
 const CachePage = lazy(() => import("./pages/CachePage"));
 const DataLineagePage = lazy(() => import("./pages/DataLineagePage"));
 const CalibrationWorkflowPage = lazy(() => import("./pages/CalibrationWorkflowPage"));
-const MSBrowserPage = lazy(() => import("./pages/MSBrowserPage"));
+// MSBrowserPage functionality merged into ControlPage - kept for backward compatibility
+// const MSBrowserPage = lazy(() => import("./pages/MSBrowserPage"));
 const ErrorAnalyticsPage = lazy(() => import("./pages/ErrorAnalyticsPage"));
 
 // Loading fallback component
@@ -154,8 +155,17 @@ function AppContent() {
                 <WorkflowProvider>
                   <LoadingProgress />
                   <OfflineIndicator />
-                  <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-                    <Navigation />
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      minHeight: "100vh",
+                      width: "100%",
+                    }}
+                  >
+                    <Box sx={{ width: "100%", margin: 0, padding: 0 }}>
+                      <Navigation />
+                    </Box>
                     <WorkflowBreadcrumbs />
                     <Box
                       component="main"
@@ -221,7 +231,10 @@ function AppContent() {
                               {/* Domain-specific pages */}
                               <Route path="/lineage/:id" element={<DataLineagePage />} />
                               <Route path="/calibration" element={<CalibrationWorkflowPage />} />
-                              <Route path="/ms-browser" element={<MSBrowserPage />} />
+                              <Route
+                                path="/ms-browser"
+                                element={<Navigate to="/control" replace />}
+                              />
                             </Routes>
                           </Suspense>
                         </ErrorBoundary>

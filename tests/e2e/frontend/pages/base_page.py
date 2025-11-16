@@ -10,11 +10,20 @@ class BasePage:
 
     def __init__(self, page: Page):
         self.page = page
-        self.base_url = page.context.base_url or "http://localhost:5174"
+        # Get base_url from environment or use default
+        import os
+        self.base_url = os.getenv("FRONTEND_BASE_URL", "http://localhost:5174")
 
     def goto(self, path: str = "/") -> None:
         """Navigate to a page."""
-        self.page.goto(path)
+        # Construct full URL if path is relative
+        if path.startswith("/"):
+            url = f"{self.base_url}{path}"
+        elif path.startswith("http"):
+            url = path
+        else:
+            url = f"{self.base_url}/{path}"
+        self.page.goto(url)
         self.page.wait_for_load_state("networkidle")
 
     def wait_for_selector(self, selector: str, timeout: int = 30000) -> Locator:

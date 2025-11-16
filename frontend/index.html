@@ -25,7 +25,9 @@
       // Set base path and worker file early to prevent JS9 from using default paths
       // WORKERFILE and PREFSFILE must be absolute paths to prevent JS9 from resolving relative to current page URL
       // Set these BEFORE js9support.js loads so JS9 uses them during initialization
-      const js9Base = "/ui/js9";
+      // Detect base path: /ui in production, empty in development
+      const basePath = window.location.pathname.startsWith("/ui/") ? "/ui" : "";
+      const js9Base = basePath + "/js9";
       window.JS9.INSTALLDIR = js9Base + "/";
       window.JS9.WORKERFILE = js9Base + "/js9worker.js";
       window.JS9.PREFSFILE = js9Base + "/js9Prefs.json";
@@ -167,11 +169,15 @@
                 // Ensure INSTALLDIR is set correctly
                 value.INSTALLDIR = js9Base + "/";
 
-                console.debug("JS9 intercepted and patched synchronously:", {
-                  PREFSFILE: value.PREFSFILE,
-                  WORKERFILE: value.WORKERFILE,
-                  INSTALLDIR: value.INSTALLDIR,
-                });
+                // Log JS9 configuration (only in development to reduce console noise)
+                // In development, pathname doesn't start with /ui/
+                if (!window.location.pathname.startsWith("/ui/")) {
+                  console.debug("JS9 intercepted and patched synchronously:", {
+                    PREFSFILE: value.PREFSFILE,
+                    WORKERFILE: value.WORKERFILE,
+                    INSTALLDIR: value.INSTALLDIR,
+                  });
+                }
               } catch (e) {
                 console.warn("Failed to patch JS9 synchronously:", e);
               }

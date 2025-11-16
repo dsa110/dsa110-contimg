@@ -27,8 +27,12 @@ SECONDARY_PAGES = [
     "/cache",
     "/operations",
     "/calibration",
-    "/ms-browser",
     "/carta",
+]
+
+# Redirected routes - verify they redirect correctly
+REDIRECTED_ROUTES = [
+    ("/ms-browser", "/control"),  # MS Browser redirected to Control
 ]
 
 
@@ -64,3 +68,17 @@ class TestPageSmoke:
         body = page.locator("body")
         expect(body).to_be_visible(timeout=5000)
         assert len(body.inner_text()) > 10, f"Page {route} appears empty"
+
+    @pytest.mark.parametrize("from_route,to_route", REDIRECTED_ROUTES)
+    def test_redirect_routes(self, page: Page, from_route: str, to_route: str):
+        """Test that redirected routes redirect correctly."""
+        # Navigate to the route that should redirect
+        page.goto(from_route, wait_until="domcontentloaded", timeout=10000)
+
+        # Should redirect to target route
+        expect(page).to_have_url(containing=to_route, timeout=5000)
+
+        # Should have content after redirect
+        body = page.locator("body")
+        expect(body).to_be_visible(timeout=5000)
+        assert len(body.inner_text()) > 10, f"Redirected page {to_route} appears empty"

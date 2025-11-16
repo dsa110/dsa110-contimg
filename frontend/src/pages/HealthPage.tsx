@@ -693,7 +693,7 @@ export default function HealthPage() {
                           {eseCandidates.candidates.slice(0, 10).map((candidate) => (
                             <TableRow key={candidate.source_id}>
                               <TableCell>{candidate.source_id}</TableCell>
-                              <TableCell>{candidate.max_sigma_dev.toFixed(2)}</TableCell>
+                              <TableCell>{(candidate.max_sigma_dev ?? 0).toFixed(2)}</TableCell>
                               <TableCell>
                                 <Chip
                                   label={candidate.status}
