@@ -288,7 +288,7 @@ export default function ProfileTool({ displayId, imageId, onProfileExtracted }: 
             }
           }
           // Auto-complete for point profile (1 point)
-          else if (profileType === "point" && newCoords.length >= 1) {
+          else if ((profileType as string) === "point" && newCoords.length >= 1) {
             setIsDrawing(false);
             if (clickHandlerRef.current) {
               canvas.removeEventListener("click", clickHandlerRef.current);

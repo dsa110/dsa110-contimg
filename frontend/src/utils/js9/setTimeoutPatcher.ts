@@ -5,6 +5,7 @@
  * to break up long-running promise resolution chains into chunks.
  */
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface PatchedSetTimeout {
   original: typeof setTimeout;
   patched: typeof setTimeout;

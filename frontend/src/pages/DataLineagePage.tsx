@@ -304,7 +304,7 @@ export default function DataLineagePage() {
                                     : item.relation.includes("image")
                                       ? "image"
                                       : "ms";
-                                handleNavigateToData(item.id ?? "", dataType);
+                                handleNavigateToData(String(item.id ?? ""), dataType);
                               }}
                             >
                               View

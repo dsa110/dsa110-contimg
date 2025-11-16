@@ -194,7 +194,7 @@ interface WorkflowTemplatesProps {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function WorkflowTemplates({ _onTemplateSelect }: WorkflowTemplatesProps) {
+export function WorkflowTemplates({ onTemplateSelect: _onTemplateSelect }: WorkflowTemplatesProps) {
   const navigate = useNavigate();
   const [selectedTemplate, setSelectedTemplate] = useState<WorkflowTemplate | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);

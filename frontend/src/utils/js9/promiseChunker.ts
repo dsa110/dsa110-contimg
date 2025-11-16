@@ -79,10 +79,8 @@ export function chunkedPromise<T extends (...args: any[]) => Promise<any>>(
 
     const execute = async (): Promise<ReturnType<T>> => {
       const startTime = performance.now();
-      let result: ReturnType<T> | null = null;
-
       try {
-        result = await fn(...args);
+        const result = await fn(...args);
         return result;
       } catch (error) {
         throw error;
