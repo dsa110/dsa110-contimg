@@ -512,7 +512,7 @@ export default function PointingVisualization({
 
           {timeSeriesData.length > 0 || skyMapData.length > 0 ? (
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <PlotlyLazy
                   data={timeSeriesData}
                   layout={timeSeriesLayout}
@@ -525,7 +525,7 @@ export default function PointingVisualization({
                   style={{ width: "100%" }}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <PlotlyLazy
                   data={skyMapData}
                   layout={skyMapLayout}

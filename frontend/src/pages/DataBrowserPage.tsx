@@ -281,6 +281,8 @@ function DataTable({
   onPageChange,
   onRowsPerPageChange,
 }: DataTableProps) {
+  const navigate = useNavigate();
+  
   if (error) {
     return <Alert severity="error">Failed to load data: {error.message}</Alert>;
   }

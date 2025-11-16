@@ -138,7 +138,7 @@ export default function QuickAnalysisPanel({ displayId = "js9Display" }: QuickAn
             y: Math.round(y),
             value: pixelValue,
           });
-          setMousePosition({ x, y });
+          _setMousePosition({ x, y });
         }
       } catch (e) {
         // Ignore errors during mouse move

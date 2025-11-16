@@ -333,13 +333,13 @@ export default function CASAnalysisPlugin({
   }, [imagePath]);
 
   useEffect(() => {
-    if (regionPolling && pluginRef.current) {
+    if (_regionPolling && pluginRef.current) {
       const interval = setInterval(() => {
         pluginRef.current?.updateRegion();
       }, 500);
       return () => clearInterval(interval);
     }
-  }, [regionPolling]);
+  }, [_regionPolling]);
 
   const initializePlugin = () => {
     try {

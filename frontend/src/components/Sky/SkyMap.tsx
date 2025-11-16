@@ -157,7 +157,7 @@ export default function SkyMap({
       const fieldDecs = fieldsWithCoords.map((img) => img.center_dec_deg!);
 
       // Color code by observation time (created_at)
-      const fieldTimes = fieldsWithCoords.map((img) => new Date(img.created_at).getTime());
+      const fieldTimes = fieldsWithCoords.map((img) => new Date(img.created_at || 0).getTime());
       const minFieldTime = Math.min(...fieldTimes);
       const maxFieldTime = Math.max(...fieldTimes);
       const fieldTimeRange = maxFieldTime - minFieldTime || 1;
