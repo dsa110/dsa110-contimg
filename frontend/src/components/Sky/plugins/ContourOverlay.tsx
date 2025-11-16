@@ -51,6 +51,7 @@ const getContourColor = (
 
   // Use different shades/intensities based on level
   // Higher levels get brighter colors
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _intensity = Math.floor(128 + normalized * 127);
 
   // Convert hex color to RGB if needed

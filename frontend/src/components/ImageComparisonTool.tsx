@@ -147,9 +147,8 @@ export default function ImageComparisonTool({
                     />
                     <CardContent>
                       <ImageBrowser
-                        selectedImage={beforeAfterImages.before}
-                        onImageSelect={setImageA}
-                        images={imagesData?.items || []}
+                        selectedImageId={beforeAfterImages.before?.id}
+                        onSelectImage={setImageA}
                       />
                       <Button
                         variant="outlined"
@@ -176,9 +175,8 @@ export default function ImageComparisonTool({
                     />
                     <CardContent>
                       <ImageBrowser
-                        selectedImage={beforeAfterImages.after}
-                        onImageSelect={setImageB}
-                        images={imagesData?.items || []}
+                        selectedImageId={beforeAfterImages.after?.id}
+                        onSelectImage={setImageB}
                       />
                       <Button
                         variant="outlined"
@@ -314,9 +312,8 @@ export default function ImageComparisonTool({
                   <CardHeader title="Image A" />
                   <CardContent>
                     <ImageBrowser
-                      selectedImage={imageA}
-                      onImageSelect={setImageA}
-                      images={imagesData?.items || []}
+                      selectedImageId={imageA?.id}
+                      onSelectImage={setImageA}
                     />
                   </CardContent>
                 </Card>
@@ -331,9 +328,8 @@ export default function ImageComparisonTool({
                   <CardHeader title="Image B" />
                   <CardContent>
                     <ImageBrowser
-                      selectedImage={imageB}
-                      onImageSelect={setImageB}
-                      images={imagesData?.items || []}
+                      selectedImageId={imageB?.id}
+                      onSelectImage={setImageB}
                     />
                   </CardContent>
                 </Card>

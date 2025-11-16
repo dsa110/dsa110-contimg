@@ -56,6 +56,7 @@ export default function RegionTools({
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _handleRegionDrawn = (regionData: any) => {
     setPendingRegion(regionData);
     setNameDialogOpen(true);

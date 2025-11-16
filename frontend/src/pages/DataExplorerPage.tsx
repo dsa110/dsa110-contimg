@@ -45,6 +45,7 @@ export default function DataExplorerPage() {
   const initialTab = parseInt(searchParams.get("tab") || "0", 10);
   const [tabValue, setTabValue] = useState(initialTab);
   const [workspaceMode, setWorkspaceMode] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
 
   // Sync URL with tab changes
@@ -63,6 +64,7 @@ export default function DataExplorerPage() {
     setSearchParams({ tab: newValue.toString() }, { replace: true });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _handleSourceSelect = (sourceId: string) => {
     setSelectedSource(sourceId);
     // Optionally switch to sky view when source is selected

@@ -43,6 +43,7 @@ export default function CachePage() {
     },
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };

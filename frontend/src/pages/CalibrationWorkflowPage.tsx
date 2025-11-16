@@ -107,6 +107,7 @@ export default function CalibrationWorkflowPage() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _handleBack = () => {
     if (activeStep > 0) {
       setActiveStep(activeStep - 1);

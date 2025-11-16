@@ -8,6 +8,7 @@
 class JS9PromisePatcher {
   private isPatched: boolean = false;
   private originalSetTimeout: typeof setTimeout;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private readonly _MAX_HANDLER_TIME_MS: number = 5; // Target max time per handler
   private readonly YIELD_THRESHOLD_MS: number = 10; // Yield if handler exceeds this
   private aggressiveMode: boolean = false; // Patch all immediate setTimeout calls
@@ -43,6 +44,7 @@ class JS9PromisePatcher {
     }
 
     const self = this;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _handlerExecutionTimes = new WeakMap<Function, number>();
 
     window.setTimeout = function (handler: TimerHandler, timeout?: number, ...args: any[]): number {
@@ -105,7 +107,9 @@ class JS9PromisePatcher {
    */
   private createOptimizedHandler(handler: Function): Function {
     const self = this;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _CHUNK_TIME_MS = 5; // Max time per execution chunk
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _YIELD_DELAY_MS = 1; // Delay between chunks
 
     return function (this: any, ...args: any[]) {

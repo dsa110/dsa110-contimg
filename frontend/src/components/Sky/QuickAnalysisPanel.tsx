@@ -199,6 +199,7 @@ export default function QuickAnalysisPanel({ displayId = "js9Display" }: QuickAn
 
       // Extract spectrum from region (simplified: average along one axis)
       // For a proper spectrum, you'd extract along a specific axis
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const _region = regions[0];
       const x = [];
       const y = [];

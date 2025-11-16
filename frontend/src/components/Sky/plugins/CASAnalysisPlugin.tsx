@@ -75,6 +75,7 @@ interface RegionInfo {
  */
 class DSACASAnalysisPlugin {
   private displayId: string;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private _pluginName: string = "DSA CASA Analysis";
   private resultCallback: ((result: CASAnalysisResult | null) => void) | null = null;
   private currentImagePath: string | null = null;

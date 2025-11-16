@@ -28,6 +28,7 @@ function a11yProps(index: number) {
 export default function EventsPage() {
   const [value, setValue] = useState(0);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
