@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "bash scripts/start-dev.sh",
+    "restart": "bash scripts/restart-dev.sh",
     "dev:safe": "bash scripts/start-dev-safe.sh",
     "dev:unsafe": "vite",
     "build": "npx tsc -b && vite build",

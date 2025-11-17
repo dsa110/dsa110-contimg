@@ -23,16 +23,12 @@ setup_casa_environment()
 
 from dsa110_contimg.calibration.applycal import apply_to_target
 from dsa110_contimg.conversion.streaming.streaming_converter import QueueDB
-from dsa110_contimg.database.products import (ensure_products_db,
-                                              images_insert, ms_index_upsert)
+from dsa110_contimg.database.products import ensure_products_db, images_insert, ms_index_upsert
 from dsa110_contimg.database.registry import ensure_db as ensure_cal_db
 from dsa110_contimg.database.registry import get_active_applylist
 from dsa110_contimg.imaging.cli import image_ms
 from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
-from dsa110_contimg.utils.ms_organization import (create_path_mapper,
-                                                  determine_ms_type,
-                                                  extract_date_from_filename,
-                                                  organize_ms_file)
+from dsa110_contimg.utils.ms_organization import create_path_mapper
 from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
 logging.basicConfig(
@@ -67,7 +63,6 @@ def process_one_group(
     end_time = end_dt.strftime("%Y-%m-%d %H:%M:%S")
 
     # Create path mapper for organized output
-    date_str = extract_date_from_filename(gid)
     ms_base_dir = Path(args.output_dir)
     path_mapper = create_path_mapper(ms_base_dir, is_calibrator=False, is_failed=False)
 
@@ -93,9 +88,7 @@ def process_one_group(
             log.info(f"MS already exists and is valid, skipping conversion: {ms_path}")
             writer_type = "skipped"
         except Exception as val_exc:
-            log.warning(
-                f"MS exists but is invalid ({val_exc}), removing and re-converting"
-            )
+            log.warning(f"MS exists but is invalid ({val_exc}), removing and re-converting")
             # Remove invalid MS directory
             import shutil
 
@@ -110,8 +103,9 @@ def process_one_group(
     writer_type = "skipped"  # Default if MS already exists
     if not ms_path_obj.exists():
         try:
-            from dsa110_contimg.conversion.strategies.hdf5_orchestrator import \
-              convert_subband_groups_to_ms
+            from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+                convert_subband_groups_to_ms,
+            )
 
             convert_subband_groups_to_ms(
                 args.input_dir,
@@ -169,9 +163,7 @@ def process_one_group(
         try:
             start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path)
         except Exception as e:
-            log.debug(
-                f"Failed to extract time range from {ms_path}: {e} (will use fallback)"
-            )
+            log.debug(f"Failed to extract time range from {ms_path}: {e} (will use fallback)")
             # Fallback: Use observation time from filename, not current time
             try:
                 from datetime import datetime
@@ -222,9 +214,7 @@ def process_one_group(
                         f"Using filename timestamp for calibration lookup: mid_mjd={mid_mjd:.6f}"
                     )
                 except Exception:
-                    log.error(
-                        f"Cannot determine observation time for {gid}, skipping calibration"
-                    )
+                    log.error(f"Cannot determine observation time for {gid}, skipping calibration")
                     mid_mjd = None
 
         applylist = []
@@ -237,9 +227,7 @@ def process_one_group(
             except Exception:
                 applylist = []
         else:
-            log.warning(
-                f"Skipping calibration application for {gid} due to missing time"
-            )
+            log.warning(f"Skipping calibration application for {gid} due to missing time")
 
         cal_applied = 0
         if applylist:
@@ -312,9 +300,7 @@ def process_groups_until_count(
     while processed_count < target_count:
         gid = queue.acquire_next_pending()
         if gid is None:
-            log.info(
-                f"No pending groups. Processed {processed_count}/{target_count} groups."
-            )
+            log.info(f"No pending groups. Processed {processed_count}/{target_count} groups.")
             time.sleep(5.0)
             continue
 
@@ -332,9 +318,7 @@ def process_groups_until_count(
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Process first 10 groups and create one mosaic"
-    )
+    parser = argparse.ArgumentParser(description="Process first 10 groups and create one mosaic")
     parser.add_argument(
         "--input-dir",
         default="/data/incoming",
@@ -495,9 +479,7 @@ def main():
 
     # Process first 10 groups
     logger.info("=" * 80)
-    logger.info(
-        "PHASE 1: Processing first 10 groups (convert → MS → calibrate → image)"
-    )
+    logger.info("PHASE 1: Processing first 10 groups (convert → MS → calibrate → image)")
     logger.info("=" * 80)
 
     processed = process_groups_until_count(args, queue, target_count=10)

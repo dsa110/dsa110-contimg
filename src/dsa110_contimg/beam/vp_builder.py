@@ -125,6 +125,8 @@ def build_vp_table(
         import shutil
 
         shutil.rmtree(complex_img, ignore_errors=True)
+    from casatools import image as _image  # type: ignore[import]
+
     ia = _image()
     try:
         ia.fromarray(outfile=complex_img, pixels=jones, csys=cs_rec)  # type: ignore[arg-type]

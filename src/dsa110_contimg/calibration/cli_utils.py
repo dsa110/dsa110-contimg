@@ -4,12 +4,12 @@
 import casacore.tables as casatables
 
 table = casatables.table  # noqa: N816
-from astropy.coordinates import Angle, SkyCoord
-from astropy import units as u
 import os
 import shutil
 
 import numpy as np
+from astropy import units as u
+from astropy.coordinates import Angle, SkyCoord
 
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
@@ -67,9 +67,7 @@ def rephase_ms_to_calibrator(
 
         print(f"Separation: {sep_arcmin:.2f} arcmin")
         if sep_arcmin < 1.0:
-            print(
-                f"✓ MS already phased to calibrator position (offset: {sep_arcmin:.2f} arcmin)"
-            )
+            print(f"✓ MS already phased to calibrator position (offset: {sep_arcmin:.2f} arcmin)")
             print("=" * 70)
             return True
         else:
@@ -112,15 +110,15 @@ def rephase_ms_to_calibrator(
             shutil.rmtree(ms_phased, ignore_errors=True)
 
         # Run phaseshift - this rephases ALL fields to the calibrator position
-        print(f"Running phaseshift (rephasing all fields to calibrator position)...")
-        print(f"This may take a while...")
+        print("Running phaseshift (rephasing all fields to calibrator position)...")
+        print("This may take a while...")
         casa_phaseshift(
             vis=ms_path,
             outputvis=ms_phased,
             phasecenter=phasecenter_str,
             # No field parameter = rephase ALL fields
         )
-        print(f"✓ phaseshift completed successfully")
+        print("✓ phaseshift completed successfully")
 
         # Update REFERENCE_DIR for all fields to match PHASE_DIR
         try:
@@ -146,9 +144,9 @@ def rephase_ms_to_calibrator(
                             f"Updating REFERENCE_DIR for all {nfields} fields to match PHASE_DIR..."
                         )
                         tf.putcol("REFERENCE_DIR", phase_dir_all)
-                        print(f"✓ REFERENCE_DIR updated for all fields")
+                        print("✓ REFERENCE_DIR updated for all fields")
                     else:
-                        print(f"✓ REFERENCE_DIR already correct for all fields")
+                        print("✓ REFERENCE_DIR already correct for all fields")
         except Exception as refdir_error:
             print(f"WARNING: Could not verify/update REFERENCE_DIR: {refdir_error}")
             logger.warning(f"Could not verify/update REFERENCE_DIR: {refdir_error}")
@@ -165,9 +163,7 @@ def rephase_ms_to_calibrator(
                     cal_coord = SkyCoord(ra=cal_ra_deg * u.deg, dec=cal_dec_deg * u.deg)
                     separation = ms_coord.separation(cal_coord)
 
-                    print(
-                        f"Final phase center: RA={ref_ra_deg:.6f}°, Dec={ref_dec_deg:.6f}°"
-                    )
+                    print(f"Final phase center: RA={ref_ra_deg:.6f}°, Dec={ref_dec_deg:.6f}°")
                     print(f"Separation from calibrator: {separation.to(u.arcmin):.4f}")
 
                     if separation.to(u.arcmin).value > 1.0:
@@ -175,15 +171,15 @@ def rephase_ms_to_calibrator(
                             f"WARNING: Phase center still offset by {separation.to(u.arcmin):.4f}"
                         )
                     else:
-                        print(f"✓ Phase center correctly aligned")
+                        print("✓ Phase center correctly aligned")
         except Exception as verify_error:
             print(f"WARNING: Could not verify phase center: {verify_error}")
 
         # Replace original MS with rephased version
-        print(f"Replacing original MS with rephased version...")
+        print("Replacing original MS with rephased version...")
         shutil.rmtree(ms_path, ignore_errors=True)
         shutil.move(ms_phased, ms_path)
-        print(f"✓ MS rephased to calibrator position")
+        print("✓ MS rephased to calibrator position")
         print("=" * 70)
         return True
 
@@ -202,9 +198,7 @@ def rephase_ms_to_calibrator(
         return False
 
 
-def clear_all_calibration_artifacts(
-    ms_path: str, logger, restore_field_names: bool = True
-) -> None:
+def clear_all_calibration_artifacts(ms_path: str, logger, restore_field_names: bool = True) -> None:
     """Clear all calibration artifacts from MS and directory.
 
     Clears:
@@ -300,7 +294,7 @@ def clear_all_calibration_artifacts(
             if len(removed_tables) > 5:
                 print(f"    ... and {len(removed_tables) - 5} more")
         else:
-            print(f"  ✓ No calibration tables found to remove")
+            print("  ✓ No calibration tables found to remove")
     except Exception as e:
         logger.warning(f"Could not remove calibration tables: {e}")
 
@@ -309,21 +303,17 @@ def clear_all_calibration_artifacts(
         try:
             with table(f"{ms_path}::FIELD", readonly=False, ack=False) as field_tb:
                 field_names = field_tb.getcol("NAME")
-                if len(field_names) > 0 and not field_names[0].startswith(
-                    "meridian_icrs_t"
-                ):
+                if len(field_names) > 0 and not field_names[0].startswith("meridian_icrs_t"):
                     # Field 0 was renamed to calibrator name, restore to meridian_icrs_t0
                     original_name = field_names[0]
                     field_names[0] = "meridian_icrs_t0"
                     field_tb.putcol("NAME", field_names)
-                    cleared_items.append(
-                        f"field_0_name (restored from '{original_name}')"
-                    )
-                    print(f"  ✓ Restored field 0 name to 'meridian_icrs_t0'")
+                    cleared_items.append(f"field_0_name (restored from '{original_name}')")
+                    print("  ✓ Restored field 0 name to 'meridian_icrs_t0'")
                 else:
-                    print(f"  ✓ Field 0 name is already correct")
+                    print("  ✓ Field 0 name is already correct")
         except Exception as e:
             logger.warning(f"Could not restore field names: {e}")
 
     if not cleared_items:
-        print(f"  ℹ No calibration artifacts found to clear")
+        print("  ℹ No calibration artifacts found to clear")

@@ -30,7 +30,7 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, List, Optional
 
 LOG = logging.getLogger(__name__)
 
@@ -85,9 +85,7 @@ def convert_nvss_to_dp3_skymodel(
         Format = Name, Type, Ra, Dec, I, SpectralIndex, LogarithmicSI, ReferenceFrequency='1400000000.0', MajorAxis, MinorAxis, Orientation
         s0c0,POINT,07:02:53.6790,+44:31:11.940,2.4,[-0.7],false,1400000000.0,,,
     """
-    import astropy.units as u
     import numpy as np
-    from astropy.coordinates import SkyCoord
 
     # Use SQLite-first query function (falls back to CSV if needed)
     from dsa110_contimg.calibration.catalogs import query_nvss_sources
@@ -108,6 +106,7 @@ def convert_nvss_to_dp3_skymodel(
     ref_freq_hz = float(freq_ghz) * 1e9
 
     out_file = Path(out_path)
+    num_sources = int(len(df))
     with open(out_file, "w") as f:
         # Write header
         f.write(
@@ -141,7 +140,7 @@ def convert_nvss_to_dp3_skymodel(
 
     LOG.info(
         "Created DP3 sky model with %d sources (>%.1f mJy, radius %.2f deg)",
-        keep.sum(),
+        num_sources,
         min_mjy,
         radius_deg,
     )
@@ -169,7 +168,6 @@ def concatenate_fields_in_ms(ms_path: str, output_ms_path: str) -> str:
     import casacore.tables as casatables
 
     table = casatables.table
-    from casatasks import concat
 
     # Check field count
     field_table = table(ms_path + "/FIELD", readonly=True)
@@ -306,7 +304,7 @@ def prepare_ms_for_dp3(
 
 
 def convert_skymodel_to_dp3(
-    sky: "SkyModel",
+    sky: "Any",  # pyradiosky.SkyModel - imported conditionally
     *,
     out_path: str,
     spectral_index: float = -0.7,
@@ -326,14 +324,13 @@ def convert_skymodel_to_dp3(
     Example: s0c0,POINT,07:02:53.6790,+44:31:11.940,2.4,[-0.7],false,1400000000.0,,,
     """
     try:
-        from pyradiosky import SkyModel
+        from pyradiosky import SkyModel  # noqa: F401
     except ImportError:
         raise ImportError(
             "pyradiosky is required for convert_skymodel_to_dp3(). "
             "Install with: pip install pyradiosky"
         )
 
-    import astropy.units as u
     from astropy.coordinates import Angle
 
     with open(out_path, "w") as f:

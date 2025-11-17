@@ -311,10 +311,10 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
 
 def get_products_db_connection(path: Path) -> sqlite3.Connection:
     """Get connection to the products database.
-    
+
     Args:
         path: Path to the products database file
-        
+
     Returns:
         Connection to the products database
     """
@@ -649,8 +649,8 @@ def discover_ms_files(
     for ms_path in ms_files:
         ms_path_str = os.fspath(ms_path)
 
-        # Check if already registered
-        existing = conn.execute(
+        # Check if already registered (result not used, just checking existence)
+        _ = conn.execute(
             "SELECT path FROM ms_index WHERE path = ?", (ms_path_str,)
         ).fetchone()
 

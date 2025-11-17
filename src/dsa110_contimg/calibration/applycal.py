@@ -1,4 +1,3 @@
-import os
 from typing import List, Optional, Union
 
 # Ensure CASAPATH is set before importing CASA modules
@@ -10,8 +9,6 @@ ensure_casa_path()
 # See: docs/dev/analysis/casa_log_handling_investigation.md
 
 from dsa110_contimg.calibration.validate import (
-    validate_caltable_compatibility,
-    validate_caltable_exists,
     validate_caltables_for_use,
 )
 
@@ -29,8 +26,8 @@ def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -
     Raises:
         RuntimeError: If CORRECTED_DATA is not populated
     """
-    import numpy as np  # type: ignore[import]
     import casacore.tables as casatables  # type: ignore[import]
+    import numpy as np  # type: ignore[import]
 
     table = casatables.table  # noqa: N816
 

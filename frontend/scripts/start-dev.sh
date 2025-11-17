@@ -34,7 +34,7 @@ REQUIRED_VERSION="22.0.0"
 if [ "$(printf '%s\n' "$REQUIRED_VERSION" "$CURRENT_VERSION" | sort -V | head -n1)" != "$REQUIRED_VERSION" ]; then
   echo "❌ ERROR: Node.js version $CURRENT_VERSION < required $REQUIRED_VERSION" >&2
   echo "   Please use casa6 Node.js v22.6.0" >&2
-  exit 1
+    exit 1
 fi
 
 # Success - start Vite

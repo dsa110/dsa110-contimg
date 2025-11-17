@@ -6,7 +6,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 # Ensure headless operation before any CASA imports (prevents casaplotserver X server errors)
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -16,42 +16,23 @@ if os.environ.get("DISPLAY"):
 # Use shared CLI utilities
 from dsa110_contimg.utils.cli_helpers import (
     add_common_logging_args,
-    add_common_ms_args,
     configure_logging_from_args,
     ensure_scratch_dirs,
     setup_casa_environment,
 )
-from dsa110_contimg.utils.validation import (
-    ValidationError,
-    validate_corrected_data_quality,
-    validate_ms_for_calibration,
-)
 
-from .applycal import apply_to_target
 from .calibration import (
     solve_bandpass,
     solve_delay,
     solve_gains,
-    solve_prebandpass_phase,
 )
 
 # Note: Delay QA functions moved to qa.calibration_quality (imported inline where needed)
-from .diagnostics import compare_calibration_tables, generate_calibration_diagnostics
 from .flagging import (
-    flag_antenna,
-    flag_baselines,
-    flag_clip,
-    flag_elevation,
-    flag_extend,
-    flag_manual,
-    flag_quack,
     flag_rfi,
-    flag_shadow,
-    flag_summary,
     flag_zeros,
     reset_flags,
 )
-from .selection import select_bandpass_fields, select_bandpass_from_catalog
 
 # Note: CASA environment setup moved to main() to avoid import-time side effects
 # CASA imports deferred until needed
@@ -111,10 +92,6 @@ from .cli_qa import (
 )
 
 # Helper functions moved to cli_utils.py
-from .cli_utils import (
-    clear_all_calibration_artifacts as _clear_all_calibration_artifacts,
-)
-from .cli_utils import rephase_ms_to_calibrator as _rephase_ms_to_calibrator
 
 
 def main():
@@ -132,9 +109,7 @@ def main():
     # Best-effort: route TempLattice and similar to scratch
     try:
         if prepare_temp_environment is not None:
-            prepare_temp_environment(
-                os.getenv("CONTIMG_SCRATCH_DIR") or "/stage/dsa110-contimg"
-            )
+            prepare_temp_environment(os.getenv("CONTIMG_SCRATCH_DIR") or "/stage/dsa110-contimg")
     except Exception:
         pass
 
@@ -246,9 +221,7 @@ def main():
         return 1
 
 
-def handle_find_calibrators_in_ms(
-    args: argparse.Namespace, logger: logging.Logger
-) -> int:
+def handle_find_calibrators_in_ms(args: argparse.Namespace, logger: logging.Logger) -> int:
     """Handle the find-calibrators-in-ms subcommand."""
     import astropy.units as u
     from astropy.time import Time
@@ -336,14 +309,9 @@ def handle_find_calibrators_in_ms(
             match = re.search(r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})", ms_path.name)
             if match:
                 try:
-                    filename_timestamp = Time(
-                        match.group(1), format="isot", scale="utc"
-                    )
-                    filename_mjd = filename_timestamp.mjd
+                    filename_timestamp = Time(match.group(1), format="isot", scale="utc")
                     time_mjd = Time(mid_mjd, format="mjd")
-                    time_diff_hours = abs(
-                        (time_mjd - filename_timestamp).to(u.hour).value
-                    )
+                    time_diff_hours = abs((time_mjd - filename_timestamp).to(u.hour).value)
 
                     # If difference is more than 30 minutes, this indicates a serious data quality issue
                     if time_diff_hours > 0.5:
@@ -358,9 +326,7 @@ def handle_find_calibrators_in_ms(
                         logger.error(error_msg)
                         # Continue processing but log the error - don't silently work around it
                 except Exception as e:
-                    logger.debug(
-                        f"Could not validate filename timestamp for {ms_path.name}: {e}"
-                    )
+                    logger.debug(f"Could not validate filename timestamp for {ms_path.name}: {e}")
 
             ms_times[str(ms_path)] = mid_mjd
 
@@ -390,9 +356,7 @@ def handle_find_calibrators_in_ms(
                     )
 
                     # Use meridian RA at observation time for PB calculation
-                    t = Time(
-                        mid_mjd, format="mjd", scale="utc", location=DSA110_LOCATION
-                    )
+                    t = Time(mid_mjd, format="mjd", scale="utc", location=DSA110_LOCATION)
                     ra_meridian = t.sidereal_time("apparent").to_value(u.deg)
 
                     w = []
@@ -476,10 +440,7 @@ def handle_find_calibrators_in_ms(
                     )
 
                     # Skip if outside time window (if window is specified)
-                    if (
-                        window_half_minutes is not None
-                        and delta_minutes > window_half_minutes
-                    ):
+                    if window_half_minutes is not None and delta_minutes > window_half_minutes:
                         continue
 
                     if min_delta_minutes is None or delta_minutes < min_delta_minutes:
@@ -511,9 +472,7 @@ def handle_find_calibrators_in_ms(
         )
         for cal_name, cal_info in sorted(all_calibrators.items()):
             logger.info(f"  {cal_name}")
-            logger.info(
-                f"    RA: {cal_info['ra_deg']:.4f}°, Dec: {cal_info['dec_deg']:.4f}°"
-            )
+            logger.info(f"    RA: {cal_info['ra_deg']:.4f}°, Dec: {cal_info['dec_deg']:.4f}°")
             if cal_info.get("weighted_flux", 0) > 0:
                 logger.info(f"    Weighted flux: {cal_info['weighted_flux']:.2f} Jy")
             logger.info(f"    Found in {len(cal_info['ms_files'])} MS file(s)")

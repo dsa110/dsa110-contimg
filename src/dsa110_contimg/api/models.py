@@ -46,18 +46,16 @@ class CalibrationSet(BaseModel):
 
 class CatalogCoverageStatus(BaseModel):
     """Status of catalog databases for current declination."""
+
     dec_deg: Optional[float] = Field(None, description="Current declination in degrees")
     nvss: Dict[str, Union[bool, str]] = Field(
-        default_factory=dict,
-        description="NVSS catalog status: exists, within_coverage, db_path"
+        default_factory=dict, description="NVSS catalog status: exists, within_coverage, db_path"
     )
     first: Dict[str, Union[bool, str]] = Field(
-        default_factory=dict,
-        description="FIRST catalog status: exists, within_coverage, db_path"
+        default_factory=dict, description="FIRST catalog status: exists, within_coverage, db_path"
     )
     rax: Dict[str, Union[bool, str]] = Field(
-        default_factory=dict,
-        description="RACS catalog status: exists, within_coverage, db_path"
+        default_factory=dict, description="RACS catalog status: exists, within_coverage, db_path"
     )
 
 
@@ -67,8 +65,7 @@ class PipelineStatus(BaseModel):
     calibration_sets: List[CalibrationSet]
     matched_recent: int = Field(0, description="Number of recent groups with calibrator matches")
     catalog_coverage: Optional[CatalogCoverageStatus] = Field(
-        None,
-        description="Catalog database coverage status for current declination"
+        None, description="Catalog database coverage status for current declination"
     )
 
 
@@ -1030,7 +1027,7 @@ class ImageDetail(BaseModel):
     dec: Optional[float] = Field(None, description="Declination in degrees")
     ra_hms: Optional[str] = None
     dec_dms: Optional[str] = None
-    l: Optional[float] = Field(None, description="Galactic longitude in degrees")
+    gal_l: Optional[float] = Field(None, description="Galactic longitude in degrees", alias="l")
     b: Optional[float] = Field(None, description="Galactic latitude in degrees")
     beam_bmaj: Optional[float] = Field(None, description="Beam major axis in degrees")
     beam_bmin: Optional[float] = Field(None, description="Beam minor axis in degrees")

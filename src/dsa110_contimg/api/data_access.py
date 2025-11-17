@@ -12,10 +12,16 @@ from typing import List, Optional
 
 from dsa110_contimg.api.config import ApiConfig
 from dsa110_contimg.api.db_utils import db_operation, retry_db_operation
-from dsa110_contimg.api.models import (CalibrationSet, CalibratorMatch,
-                                       CalibratorMatchGroup,
-                                       ObservationTimeline, ProductEntry,
-                                       QueueGroup, QueueStats, TimelineSegment)
+from dsa110_contimg.api.models import (
+    CalibrationSet,
+    CalibratorMatch,
+    CalibratorMatchGroup,
+    ObservationTimeline,
+    ProductEntry,
+    QueueGroup,
+    QueueStats,
+    TimelineSegment,
+)
 
 from .models import PointingHistoryEntry
 
@@ -198,8 +204,7 @@ def fetch_recent_queue_groups(
                         last_update=datetime.fromtimestamp(r["last_update"]),
                         subbands_present=r["subbands"] or 0,
                         expected_subbands=r["expected_subbands"] or config.expected_subbands,
-                        has_calibrator=bool(
-                            has_cal) if has_cal is not None else None,
+                        has_calibrator=bool(has_cal) if has_cal is not None else None,
                         matches=matches_parsed or None,
                     )
                 )
@@ -296,8 +301,7 @@ def fetch_recent_calibrator_matches(
         rows = conn.execute(query, (limit,)).fetchall()
     groups: List[CalibratorMatchGroup] = []
     for r in rows:
-        matched = bool(r["has_calibrator"]
-                       ) if r["has_calibrator"] is not None else False
+        matched = bool(r["has_calibrator"]) if r["has_calibrator"] is not None else False
         calib_json = r["calibrators"] or "[]"
         try:
             parsed = _json.loads(calib_json)
@@ -359,7 +363,7 @@ def _is_synthetic_pointing_data(timestamp: float, data_registry_db: Optional[Pat
                 # Check if there's a data_registry entry with synthetic markers
                 # Note: This is a simplified check - ideally pointing_history would have
                 # a direct link to data_registry, but for now we filter by timestamp
-                cursor = reg_conn.execute(
+                _ = reg_conn.execute(  # Execute query, result not needed
                     """
                     SELECT COUNT(*) FROM data_registry dr
                     LEFT JOIN data_tags dt ON dr.data_id = dt.data_id
@@ -383,7 +387,7 @@ def fetch_pointing_history(
     start_mjd: float,
     end_mjd: float,
     exclude_synthetic: bool = True,
- ) -> List[PointingHistoryEntry]:
+) -> List[PointingHistoryEntry]:
     """Fetch pointing history from the database AND directly from HDF5 files in /data/incoming/.
 
     This function queries:
@@ -407,8 +411,7 @@ def fetch_pointing_history(
     # Get data_registry path if available
     data_registry_db = None
     if exclude_synthetic:
-        registry_path = Path(
-            os.getenv("PIPELINE_DATA_REGISTRY_DB", "state/data_registry.sqlite3"))
+        registry_path = Path(os.getenv("PIPELINE_DATA_REGISTRY_DB", "state/data_registry.sqlite3"))
         if registry_path.exists():
             data_registry_db = registry_path
 
@@ -440,8 +443,7 @@ def fetch_pointing_history(
                 from dsa110_contimg.pointing.utils import load_pointing
 
                 hdf5_files = list(incoming_dir.glob("*.hdf5"))
-                logger.debug(
-                    f"Found {len(hdf5_files)} HDF5 files in /data/incoming/")
+                logger.debug(f"Found {len(hdf5_files)} HDF5 files in /data/incoming/")
 
                 for hdf5_file in hdf5_files:
                     try:
@@ -466,8 +468,7 @@ def fetch_pointing_history(
                                             dec_deg=pointing_info["dec_deg"],
                                         )
                     except Exception as e:
-                        logger.warning(
-                            f"Failed to read pointing from {hdf5_file}: {e}")
+                        logger.warning(f"Failed to read pointing from {hdf5_file}: {e}")
                         continue
             except ImportError as e:
                 logger.warning(f"Could not import pointing utilities: {e}")
@@ -546,23 +547,18 @@ def fetch_ese_candidates(products_db: Path, limit: int = 50, min_sigma: float = 
     for r in rows:
         # Convert timestamps
         flagged_at = (
-            datetime.fromtimestamp(
-                r["flagged_at"]) if r["flagged_at"] else datetime.utcnow()
+            datetime.fromtimestamp(r["flagged_at"]) if r["flagged_at"] else datetime.utcnow()
         )
         last_measured = (
-            datetime.fromtimestamp(
-                r["last_measured_at"]) if r["last_measured_at"] else flagged_at
+            datetime.fromtimestamp(r["last_measured_at"]) if r["last_measured_at"] else flagged_at
         )
         first_measured = (
-            datetime.fromtimestamp(
-                r["first_measured_at"]) if r["first_measured_at"] else flagged_at
+            datetime.fromtimestamp(r["first_measured_at"]) if r["first_measured_at"] else flagged_at
         )
 
         # Calculate current and baseline flux
-        current_flux_jy = (r["mean_flux_mjy"] /
-                           1000.0) if r["mean_flux_mjy"] else 0.0
-        baseline_flux_jy = (r["nvss_flux_mjy"] /
-                            1000.0) if r["nvss_flux_mjy"] else current_flux_jy
+        current_flux_jy = (r["mean_flux_mjy"] / 1000.0) if r["mean_flux_mjy"] else 0.0
+        baseline_flux_jy = (r["nvss_flux_mjy"] / 1000.0) if r["nvss_flux_mjy"] else current_flux_jy
 
         candidates.append(
             {
@@ -638,8 +634,7 @@ def fetch_mosaics(products_db: Path, start_time: str, end_time: str) -> List[dic
         start_dt = Time(r["start_mjd"], format="mjd").datetime
         end_dt = Time(r["end_mjd"], format="mjd").datetime
         created_dt = (
-            datetime.fromtimestamp(
-                r["created_at"]) if r["created_at"] else datetime.utcnow()
+            datetime.fromtimestamp(r["created_at"]) if r["created_at"] else datetime.utcnow()
         )
 
         mosaics.append(
@@ -709,8 +704,7 @@ def fetch_mosaic_by_id(products_db: Path, mosaic_id: int) -> Optional[dict]:
         start_dt = Time(row["start_mjd"], format="mjd").datetime
         end_dt = Time(row["end_mjd"], format="mjd").datetime
         created_dt = (
-            datetime.fromtimestamp(
-                row["created_at"]) if row["created_at"] else datetime.utcnow()
+            datetime.fromtimestamp(row["created_at"]) if row["created_at"] else datetime.utcnow()
         )
 
         return {
@@ -760,8 +754,7 @@ def fetch_source_timeseries(products_db: Path, source_id: str) -> Optional[dict]
         # Get photometry measurements for this source
         # Try to match by source_id first, then by name pattern if source_id column exists
         # Check if source_id column exists
-        columns = {row[1] for row in conn.execute(
-            "PRAGMA table_info(photometry)").fetchall()}
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(photometry)").fetchall()}
 
         if "source_id" in columns:
             rows = conn.execute(
@@ -793,8 +786,7 @@ def fetch_source_timeseries(products_db: Path, source_id: str) -> Optional[dict]
         fluxes = []
 
         for r in rows:
-            mjd = r["mjd"] if r["mjd"] else Time(
-                datetime.fromtimestamp(r["measured_at"])).mjd
+            mjd = r["mjd"] if r["mjd"] else Time(datetime.fromtimestamp(r["measured_at"])).mjd
             flux_jy = r["peak_jyb"] if r["peak_jyb"] else 0.0
             flux_err_jy = r["peak_err_jyb"] if r["peak_err_jyb"] else None
 
@@ -885,8 +877,7 @@ def fetch_alert_history(products_db: Path, limit: int = 50) -> List[dict]:
 
     alerts = []
     for r in rows:
-        sent_at = datetime.fromtimestamp(
-            r["sent_at"]) if r["sent_at"] else datetime.utcnow()
+        sent_at = datetime.fromtimestamp(r["sent_at"]) if r["sent_at"] else datetime.utcnow()
 
         alerts.append(
             {
@@ -925,8 +916,7 @@ def fetch_observation_timeline(
 
     # Get products database path
     if products_db is None:
-        products_db = Path(
-            os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        products_db = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
 
     if not products_db.exists():
         return ObservationTimeline()

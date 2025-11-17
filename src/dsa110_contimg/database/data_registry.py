@@ -184,11 +184,12 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
 
 def get_data_registry_connection() -> sqlite3.Connection:
     """Get connection to the default data registry database.
-    
+
     Returns:
         Connection to the data registry database at STATE_BASE/data_registry.db
     """
     from dsa110_contimg.database.data_config import STATE_BASE
+
     db_path = STATE_BASE / "data_registry.db"
     return ensure_data_registry_db(db_path)
 

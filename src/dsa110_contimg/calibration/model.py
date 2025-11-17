@@ -354,7 +354,7 @@ def write_point_model_with_ft(
     if use_manual:
         # Use manual calculation to bypass ft() phase center issues
         logger.info(
-            f"Writing point model using manual calculation (bypasses ft() phase center issues)"
+            "Writing point model using manual calculation (bypasses ft() phase center issues)"
         )
         _calculate_manual_model_data(ms_path, ra_deg, dec_deg, flux_jy, field=field)
         return
@@ -363,9 +363,9 @@ def write_point_model_with_ft(
     from casatools import componentlist as cltool
 
     logger.info(
-        f"Writing point model using ft() (use_manual=False). "
-        f"WARNING: ft() uses one phase center for all fields. "
-        f"Use use_manual=True for per-field phase centers."
+        "Writing point model using ft() (use_manual=False). "
+        "WARNING: ft() uses one phase center for all fields. "
+        "Use use_manual=True for per-field phase centers."
     )
     _ensure_imaging_columns(ms_path)
 
@@ -396,8 +396,8 @@ def write_point_model_with_ft(
                 which=0,
                 type="spectral index",
                 index=[float(spectral_index)],
-                reffreq=f"{reffreq_hz}Hz",
             )
+            cl.setfreq(which=0, value=reffreq_hz, unit="Hz")
         except Exception:
             pass
     cl.rename(comp_path)
@@ -547,7 +547,6 @@ def export_model_as_fits(
     import logging
 
     from casatasks import exportfits, tclean
-    from casatools import image as imtool
 
     LOG = logging.getLogger(__name__)
 
@@ -778,4 +777,4 @@ def populate_model_from_image(
 
     logger.info(f"Populating MODEL_DATA from image: {model_image}")
     write_image_model_with_ft(ms_path, model_image)
-    logger.info(f"✓ MODEL_DATA populated from image")
+    logger.info("✓ MODEL_DATA populated from image")

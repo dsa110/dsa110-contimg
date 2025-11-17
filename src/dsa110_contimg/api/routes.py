@@ -24,7 +24,6 @@ from fastapi import (
     Request,
     WebSocket,
     WebSocketDisconnect,
-    status,
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, StreamingResponse
@@ -36,17 +35,14 @@ from dsa110_contimg.api.data_access import (
     fetch_alert_history,
     fetch_calibration_sets,
     fetch_ese_candidates,
-    fetch_mosaic_by_id,
-    fetch_mosaics,
     fetch_observation_timeline,
     fetch_pointing_history,
     fetch_queue_stats,
     fetch_recent_calibrator_matches,
-    fetch_recent_products,
     fetch_recent_queue_groups,
     fetch_source_timeseries,
 )
-from dsa110_contimg.api.image_utils import convert_casa_to_fits, get_fits_path, resolve_image_path
+from dsa110_contimg.api.image_utils import get_fits_path, resolve_image_path
 from dsa110_contimg.api.models import (
     AlertHistory,
     AntennaInfo,
@@ -62,21 +58,18 @@ from dsa110_contimg.api.models import (
     BatchPhotometryParams,
     BatchPublishParams,
     CalibrateJobCreateRequest,
-    CalibrateJobParams,
     CalibrationQA,
     CalibratorMatchList,
     CalTableCompatibility,
     CalTableInfo,
     CalTableList,
     ConversionJobCreateRequest,
-    ConversionJobParams,
     Detection,
     DetectionList,
     DiskInfo,
     ESECandidate,
     ESECandidatesResponse,
     ESEDetectJobCreateRequest,
-    ESEDetectJobParams,
     ExistingCalTable,
     ExistingCalTables,
     ExternalCatalogMatch,
@@ -84,9 +77,6 @@ from dsa110_contimg.api.models import (
     FieldInfo,
     FlaggingStats,
     GroupDetail,
-    ImageDetail,
-    ImageInfo,
-    ImageList,
     ImageQA,
     Job,
     JobCreateRequest,
@@ -95,8 +85,6 @@ from dsa110_contimg.api.models import (
     LightCurveData,
     Measurement,
     MeasurementList,
-    Mosaic,
-    MosaicQueryResponse,
     MSCalibratorMatch,
     MSCalibratorMatchList,
     MsIndexEntry,
@@ -105,11 +93,9 @@ from dsa110_contimg.api.models import (
     MSListEntry,
     MSMetadata,
     ObservationTimeline,
-    PipelineStatus,
     PointingHistoryList,
     PostageStampInfo,
     PostageStampsResponse,
-    ProductList,
     QAArtifact,
     QAList,
     QAMetrics,
@@ -122,7 +108,6 @@ from dsa110_contimg.api.models import (
     StreamingStatusResponse,
     SystemMetrics,
     UVH5FileEntry,
-    UVH5FileList,
     VariabilityMetrics,
     WorkflowJobCreateRequest,
 )
@@ -238,7 +223,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     # Add exception handler for 404s that might be path traversal attempts
     import urllib.parse
 
-    from fastapi.exceptions import RequestValidationError
     from fastapi.responses import JSONResponse
 
     @app.exception_handler(404)
@@ -1039,7 +1023,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         Returns list of regions, optionally filtered by image_path or type.
         """
-        from dsa110_contimg.utils.regions import json_to_region, region_to_json
 
         db_path = cfg.products_db
         if not db_path.exists():
@@ -1141,7 +1124,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/regions/{region_id}")
     def get_region(region_id: int):
         """Get a specific region by ID."""
-        from dsa110_contimg.utils.regions import json_to_region, region_to_json
 
         db_path = cfg.products_db
         if not db_path.exists():
@@ -1361,7 +1343,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Creates a plot similar to pointing_timeline.png showing time ranges where
         HDF5 observation data exists on disk.
         """
-        import io
         import tempfile
 
         import matplotlib
@@ -2642,7 +2623,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         limit = max(1, min(limit, 1000)) if limit > 0 else 100
         offset = max(0, offset) if offset >= 0 else 0
 
-        import astropy.units as u  # pylint: disable=no-member
         from astropy.time import Time
 
         from dsa110_contimg.database.products import discover_ms_files, ensure_products_db
@@ -2830,7 +2810,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Returns:
             Dictionary with count of discovered MS files and list of paths
         """
-        from dsa110_contimg.database.products import discover_ms_files, ensure_products_db
+        from dsa110_contimg.database.products import discover_ms_files
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
 
@@ -2933,7 +2913,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             while True:
                 jd = db_get_job(conn, job_id)
                 if not jd:
-                    yield f'event: error\ndata: {{"message": "Job not found"}}\n\n'
+                    yield 'event: error\ndata: {"message": "Job not found"}\n\n'
                     break
 
                 logs = jd.get("logs", "")
@@ -3088,7 +3068,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Returns:
             Dict with 'items' (list of UVH5 files), 'total' (total count), 'limit', 'offset'
         """
-        import glob as _glob
         import re
         import time
 
@@ -3242,7 +3221,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     ) -> Job:
         """Create and run a UVH5 → MS conversion job."""
         from dsa110_contimg.api.job_runner import run_convert_job
-        from dsa110_contimg.api.models import ConversionJobParams, JobParams
+        from dsa110_contimg.api.models import JobParams
         from dsa110_contimg.database.jobs import create_job
         from dsa110_contimg.database.products import ensure_products_db
 
@@ -3283,7 +3262,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     def list_caltables(cal_dir: str | None = None) -> CalTableList:
         """List available calibration tables."""
         import glob as _glob
-        import re
 
         from dsa110_contimg.api.models import CalTableInfo, CalTableList
 
@@ -3349,15 +3327,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/ms/{ms_path:path}/metadata", response_model=MSMetadata)
     def get_ms_metadata(ms_path: str) -> MSMetadata:
         """Get metadata for an MS file."""
-        from dsa110_contimg.api.models import AntennaInfo, FieldInfo, FlaggingStats, MSMetadata
-        from dsa110_contimg.utils.cli_helpers import casa_log_environment
+        from dsa110_contimg.api.models import MSMetadata
 
         # Ensure CASAPATH is set before importing CASA modules
         from dsa110_contimg.utils.casa_init import ensure_casa_path
+        from dsa110_contimg.utils.cli_helpers import casa_log_environment
 
         ensure_casa_path()
-
-        from dsa110_contimg.api.models import AntennaInfo, FieldInfo, FlaggingStats, MSMetadata
 
         # Validate and sanitize path to prevent path traversal
         try:
@@ -3391,7 +3367,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         # Use context manager to ensure CASA logs go to correct directory
         with casa_log_environment():
             import numpy as np
-            from casatools import ms as casams
             from casatools import table
 
             try:
@@ -3541,8 +3516,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         ms_path: str, catalog: str = "vla", radius_deg: float = 1.5, top_n: int = 5
     ) -> MSCalibratorMatchList:
         """Find calibrator candidates for an MS."""
-        from dsa110_contimg.utils.cli_helpers import casa_log_environment
         from dsa110_contimg.utils.casa_init import ensure_casa_path
+        from dsa110_contimg.utils.cli_helpers import casa_log_environment
 
         ensure_casa_path()
 
@@ -3553,7 +3528,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.calibration.catalogs import (
             airy_primary_beam_response,
             calibrator_match,
-            read_vla_parsed_catalog_csv,
         )
         from dsa110_contimg.pointing.utils import load_pointing
 
@@ -3638,6 +3612,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     calibrator_clean = calibrator_name.replace("+", "").replace("-", "")
                     # Extract numeric part (e.g., "0834" from "0834555")
                     calibrator_parts = [p for p in calibrator_clean.split() if len(p) >= 4]
+                    name_in_dir = False
                     if not calibrator_parts:
                         # Try to extract first 4 digits
                         import re
@@ -3645,6 +3620,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         digits = re.findall(r"\d{4,}", calibrator_clean)
                         # Use first 4+ digit sequence
                         calibrator_parts = digits[:1]
+                        name_in_dir = any(part in ms_dirname for part in calibrator_parts)
+                    else:
                         name_in_dir = any(part in ms_dirname for part in calibrator_parts)
 
                     # For phased MS, use calibrator coordinates if:
@@ -3675,7 +3652,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             )
                         else:
                             # Use telescope pointing (meridian) for unphased MS files
-                            from astropy.coordinates import Angle
 
                             t = Time(mid_mjd, format="mjd", scale="utc")
                             from dsa110_contimg.utils.constants import DSA110_LOCATION
@@ -3821,8 +3797,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         - Frequency ranges overlap
         - Table structure is valid
         """
-        from dsa110_contimg.utils.cli_helpers import casa_log_environment
         from dsa110_contimg.utils.casa_init import ensure_casa_path
+        from dsa110_contimg.utils.cli_helpers import casa_log_environment
 
         ensure_casa_path()
 
@@ -3841,61 +3817,61 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         if not os.path.exists(cal_full_path):
             raise HTTPException(status_code=404, detail="Calibration table not found")
 
-            issues = []
-            warnings = []
-            is_compatible = True
+        issues = []
+        warnings = []
+        is_compatible = True
 
-            ms_antennas = []
-            caltable_antennas = []
-            ms_freq_min_ghz = None
-            ms_freq_max_ghz = None
-            caltable_freq_min_ghz = None
-            caltable_freq_max_ghz = None
+        ms_antennas = []
+        caltable_antennas = []
+        ms_freq_min_ghz = None
+        ms_freq_max_ghz = None
+        caltable_freq_min_ghz = None
+        caltable_freq_max_ghz = None
 
-            try:
-                # Get MS antennas
-                tb = table()
-                tb.open(f"{ms_full_path}/ANTENNA", nomodify=True)
-                ms_antennas = list(range(tb.nrows()))
+        try:
+            # Get MS antennas
+            tb = table()
+            tb.open(f"{ms_full_path}/ANTENNA", nomodify=True)
+            ms_antennas = list(range(tb.nrows()))
+            tb.close()
+
+            # Get MS frequency range
+            tb.open(f"{ms_full_path}/SPECTRAL_WINDOW", nomodify=True)
+            chan_freqs = tb.getcol("CHAN_FREQ")
+            if len(chan_freqs) > 0:
+                ms_freq_min_ghz = float(chan_freqs.min() / 1e9)
+                ms_freq_max_ghz = float(chan_freqs.max() / 1e9)
+            tb.close()
+
+            # Get calibration table antennas and frequencies
+            tb.open(cal_full_path, nomodify=True)
+            if tb.nrows() == 0:
+                issues.append("Calibration table has no solutions")
+                is_compatible = False
+            else:
+                # Get antennas from cal table
+                if "ANTENNA1" in tb.colnames():
+                    cal_ant1 = tb.getcol("ANTENNA1")
+                    caltable_antennas = sorted(list(set(cal_ant1.tolist())))
+
+                # Get spectral window from cal table
+                if "SPECTRAL_WINDOW_ID" in tb.colnames():
+                    spw_ids = tb.getcol("SPECTRAL_WINDOW_ID")
+                    _ = np.unique(spw_ids)  # Available for future use
+
+                # Try to get frequency info from cal table's SPECTRAL_WINDOW subtable
+                try:
+                    tb_spw = table()
+                    tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
+                    if tb_spw.nrows() > 0:
+                        cal_chan_freqs = tb_spw.getcol("CHAN_FREQ")
+                        if len(cal_chan_freqs) > 0:
+                            caltable_freq_min_ghz = float(cal_chan_freqs.min() / 1e9)
+                            caltable_freq_max_ghz = float(cal_chan_freqs.max() / 1e9)
+                    tb_spw.close()
+                except Exception:
+                    warnings.append("Could not extract frequency range from calibration table")
                 tb.close()
-
-                # Get MS frequency range
-                tb.open(f"{ms_full_path}/SPECTRAL_WINDOW", nomodify=True)
-                chan_freqs = tb.getcol("CHAN_FREQ")
-                if len(chan_freqs) > 0:
-                    ms_freq_min_ghz = float(chan_freqs.min() / 1e9)
-                    ms_freq_max_ghz = float(chan_freqs.max() / 1e9)
-                tb.close()
-
-                # Get calibration table antennas and frequencies
-                tb.open(cal_full_path, nomodify=True)
-                if tb.nrows() == 0:
-                    issues.append("Calibration table has no solutions")
-                    is_compatible = False
-                else:
-                    # Get antennas from cal table
-                    if "ANTENNA1" in tb.colnames():
-                        cal_ant1 = tb.getcol("ANTENNA1")
-                        caltable_antennas = sorted(list(set(cal_ant1.tolist())))
-
-                    # Get spectral window from cal table
-                    if "SPECTRAL_WINDOW_ID" in tb.colnames():
-                        spw_ids = tb.getcol("SPECTRAL_WINDOW_ID")
-                        unique_spws = np.unique(spw_ids)
-
-                    # Try to get frequency info from cal table's SPECTRAL_WINDOW subtable
-                    try:
-                        tb_spw = table()
-                        tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
-                        if tb_spw.nrows() > 0:
-                            cal_chan_freqs = tb_spw.getcol("CHAN_FREQ")
-                            if len(cal_chan_freqs) > 0:
-                                caltable_freq_min_ghz = float(cal_chan_freqs.min() / 1e9)
-                                caltable_freq_max_ghz = float(cal_chan_freqs.max() / 1e9)
-                        tb_spw.close()
-                    except Exception:
-                        warnings.append("Could not extract frequency range from calibration table")
-                    tb.close()
 
                 # Validate antenna compatibility
                 if ms_antennas and caltable_antennas:
@@ -3940,24 +3916,24 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                                 "Frequency ranges have different widths (may indicate different observations)"
                             )
 
-            except Exception as e:
-                logger.error(f"Error validating calibration table compatibility: {e}")
-                issues.append(f"Validation error: {e}")
-                is_compatible = False
+        except Exception as e:
+            logger.error(f"Error validating calibration table compatibility: {e}")
+            issues.append(f"Validation error: {e}")
+            is_compatible = False
 
-            return CalTableCompatibility(
-                is_compatible=is_compatible,
-                caltable_path=caltable_path,
-                ms_path=ms_path,
-                issues=issues,
-                warnings=warnings,
-                ms_antennas=ms_antennas,
-                caltable_antennas=caltable_antennas,
-                ms_freq_min_ghz=ms_freq_min_ghz,
-                ms_freq_max_ghz=ms_freq_max_ghz,
-                caltable_freq_min_ghz=caltable_freq_min_ghz,
-                caltable_freq_max_ghz=caltable_freq_max_ghz,
-            )
+        return CalTableCompatibility(
+            is_compatible=is_compatible,
+            caltable_path=caltable_path,
+            ms_path=ms_path,
+            issues=issues,
+            warnings=warnings,
+            ms_antennas=ms_antennas,
+            caltable_antennas=caltable_antennas,
+            ms_freq_min_ghz=ms_freq_min_ghz,
+            ms_freq_max_ghz=ms_freq_max_ghz,
+            caltable_freq_min_ghz=caltable_freq_min_ghz,
+            caltable_freq_max_ghz=caltable_freq_max_ghz,
+        )
 
     @router.get("/qa/calibration/{ms_path:path}/bandpass-plots")
     def list_bandpass_plots(ms_path: str):
@@ -4174,7 +4150,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     media_type="image/png",
                     filename=f"spw_flagging_{os.path.basename(ms_full_path)}.png",
                 )
-            except Exception as e:
+            except Exception:
                 # Clean up temp file on error
                 if os.path.exists(plot_path):
                     try:
@@ -4685,7 +4661,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from fastapi.responses import HTMLResponse
 
         from dsa110_contimg.qa.catalog_validation import run_full_validation
-        from dsa110_contimg.qa.html_reports import ValidationReport, generate_validation_report
+        from dsa110_contimg.qa.html_reports import ValidationReport
 
         # Resolve image ID to path
         try:
@@ -5077,8 +5053,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         - phase_vs_time: Phase vs time (for gain tables)
         - phase_vs_freq: Phase vs frequency (for bandpass tables)
         """
-        from dsa110_contimg.utils.cli_helpers import casa_log_environment
         from dsa110_contimg.utils.casa_init import ensure_casa_path
+        from dsa110_contimg.utils.cli_helpers import casa_log_environment
 
         ensure_casa_path()
 
@@ -5111,16 +5087,16 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         status_code=400, detail="Calibration table has no solutions"
                     )
 
-                    # Get data columns
-                    antenna_ids = tb.getcol("ANTENNA1") if "ANTENNA1" in tb.colnames() else None
-                    spw_ids = (
-                        tb.getcol("SPECTRAL_WINDOW_ID")
-                        if "SPECTRAL_WINDOW_ID" in tb.colnames()
-                        else None
-                    )
-                    times = tb.getcol("TIME") if "TIME" in tb.colnames() else None
-                    gains = tb.getcol("CPARAM") if "CPARAM" in tb.colnames() else None
-                    flags = tb.getcol("FLAG") if "FLAG" in tb.colnames() else None
+                # Get data columns
+                antenna_ids = tb.getcol("ANTENNA1") if "ANTENNA1" in tb.colnames() else None
+                spw_ids = (
+                    tb.getcol("SPECTRAL_WINDOW_ID")
+                    if "SPECTRAL_WINDOW_ID" in tb.colnames()
+                    else None
+                )
+                times = tb.getcol("TIME") if "TIME" in tb.colnames() else None
+                gains = tb.getcol("CPARAM") if "CPARAM" in tb.colnames() else None
+                flags = tb.getcol("FLAG") if "FLAG" in tb.colnames() else None
 
                 if gains is None:
                     raise HTTPException(
@@ -5128,19 +5104,17 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         detail="Calibration table does not contain CPARAM column",
                     )
 
-                    # Convert to numpy arrays
-                    antenna_ids = np.asarray(antenna_ids) if antenna_ids is not None else None
-                    spw_ids = np.asarray(spw_ids) if spw_ids is not None else None
-                    times = np.asarray(times) if times is not None else None
-                    gains = np.asarray(gains)
-                    flags = (
-                        np.asarray(flags)
-                        if flags is not None
-                        else np.zeros(gains.shape, dtype=bool)
-                    )
+                # Convert to numpy arrays
+                antenna_ids = np.asarray(antenna_ids) if antenna_ids is not None else None
+                spw_ids = np.asarray(spw_ids) if spw_ids is not None else None
+                times = np.asarray(times) if times is not None else None
+                gains = np.asarray(gains)
+                flags = (
+                    np.asarray(flags) if flags is not None else np.zeros(gains.shape, dtype=bool)
+                )
 
-                    # Mask flagged values
-                    gains_masked = np.where(flags, np.nan + 0j, gains)
+                # Mask flagged values
+                gains_masked = np.where(flags, np.nan + 0j, gains)
 
                 # Filter by antenna if specified
                 if antenna is not None and antenna_ids is not None:
@@ -6453,14 +6427,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         sp_ok, sp_out, sp_err = _run_py(
             "import sys, json; print(json.dumps({'executable': sys.executable, 'version': sys.version}))"
         )
-        interp = {}
+        # Parse output if available (for future use)
         try:
             if sp_out:
                 import json as _json
 
-                interp = _json.loads(sp_out)
+                _ = _json.loads(sp_out)  # Parsed output available if needed
         except Exception:
-            interp = {"raw": sp_out}
+            _ = {"raw": sp_out}  # Fallback available if needed
 
         # 2) CASA availability in job env
         casa_code = (
@@ -6554,7 +6528,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-            DataRecord,
             ensure_data_registry_db,
             list_data,
         )

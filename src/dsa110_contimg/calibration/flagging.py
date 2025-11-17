@@ -1,5 +1,3 @@
-from dsa110_contimg.utils.error_context import format_ms_error_with_suggestions
-
 # CASA import moved to function level to prevent logs in workspace root
 # See: docs/dev/analysis/casa_log_handling_investigation.md
 import logging
@@ -14,6 +12,7 @@ from typing import Dict, List, Optional
 
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+from dsa110_contimg.utils.error_context import format_ms_error_with_suggestions
 
 ensure_casa_path()
 
@@ -670,8 +669,8 @@ def _extend_flags_direct(
     For more complex extension (growaround, growtime, etc.), use CASA flagdata.
     """
     try:
-        import numpy as np
         import casacore.tables as casatables
+        import numpy as np
 
         table = casatables.table
 
@@ -746,8 +745,8 @@ def analyze_channel_flagging_stats(ms_path: str, threshold: float = 0.5) -> Dict
         >>> problematic = analyze_channel_flagging_stats('data.ms', threshold=0.5)
         >>> # Returns: {1: [5, 10, 15, 20], 12: [3, 7, 11]}
     """
-    import numpy as np
     import casacore.tables as casatables
+    import numpy as np
 
     table = casatables.table
 
@@ -911,8 +910,8 @@ def flag_summary(
 
     # Parse summary statistics directly from MS (faster and avoids casaplotserver)
     try:
-        import numpy as np
         import casacore.tables as casatables
+        import numpy as np
 
         table = casatables.table
 

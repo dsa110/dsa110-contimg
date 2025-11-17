@@ -24,7 +24,6 @@ from dsa110_contimg.pipeline.stages import PipelineStage
 from dsa110_contimg.utils.ms_organization import (
     create_path_mapper,
     determine_ms_type,
-    extract_date_from_filename,
     organize_ms_file,
 )
 from dsa110_contimg.utils.runtime_safeguards import (
@@ -718,21 +717,8 @@ class CalibrationSolveStage(PipelineStage):
     @progress_monitor(operation_name="Calibration Solving", warn_threshold=600.0)
     def execute(self, context: PipelineContext) -> PipelineContext:
         """Execute calibration solve stage."""
-        import time
-
-        start_time_sec = time.time()
         log_progress("Starting calibration solve stage...")
 
-        import glob
-        import os
-
-        from dsa110_contimg.calibration.calibration import (
-            solve_bandpass,
-            solve_delay,
-            solve_gains,
-            solve_prebandpass_phase,
-        )
-        from dsa110_contimg.calibration.flagging import flag_rfi, flag_zeros, reset_flags
         from dsa110_contimg.utils.locking import LockError, file_lock
 
         ms_path = context.outputs["ms_path"]
@@ -768,6 +754,8 @@ class CalibrationSolveStage(PipelineStage):
             solve_prebandpass_phase,
         )
         from dsa110_contimg.calibration.flagging import flag_rfi, flag_zeros, reset_flags
+
+        start_time_sec = time.time()
 
         # Get calibration parameters from context inputs or config
         params = context.inputs.get("calibration_params", {})
@@ -1452,7 +1440,6 @@ class ImagingStage(PipelineStage):
         log_progress("Starting imaging stage...")
 
         import casacore.tables as casatables
-        import numpy as np
 
         table = casatables.table
 
@@ -1649,7 +1636,6 @@ class ImagingStage(PipelineStage):
         from dsa110_contimg.qa.catalog_validation import validate_flux_scale
 
         # Find FITS image (prefer PB-corrected)
-        image_path_obj = Path(image_path)
         fits_image = None
 
         # Try PB-corrected FITS first
@@ -1937,17 +1923,12 @@ class ValidationStage(PipelineStage):
 
         from dsa110_contimg.qa.catalog_validation import (
             run_full_validation,
-            validate_astrometry,
-            validate_flux_scale,
-            validate_source_counts,
         )
-        from dsa110_contimg.qa.html_reports import generate_validation_report
 
         image_path = context.outputs["image_path"]
         logger.info(f"Validation stage: {image_path}")
 
         # Find FITS image (prefer PB-corrected)
-        image_path_obj = Path(image_path)
         fits_image = None
 
         # Try PB-corrected FITS first
@@ -2121,20 +2102,15 @@ class CrossMatchStage(PipelineStage):
         Returns:
             Updated context with cross-match results
         """
-        import time
 
-        from astropy.coordinates import Angle
-        from astropy.time import Time
 
         from dsa110_contimg.catalog.crossmatch import (
             calculate_flux_scale,
             calculate_positional_offsets,
-            cross_match_dataframes,
             identify_duplicate_catalog_sources,
             multi_catalog_match,
         )
         from dsa110_contimg.catalog.query import query_sources
-        from dsa110_contimg.database.products import ensure_products_db
         from dsa110_contimg.qa.catalog_validation import extract_sources_from_image
 
         if not self.config.crossmatch.enabled:
@@ -2570,12 +2546,6 @@ class AdaptivePhotometryStage(PipelineStage):
         start_time_sec = time.time()
         log_progress("Starting adaptive photometry stage...")
 
-        import astropy.coordinates as acoords
-        import casacore.tables as casatables
-        import numpy as np
-
-        table = casatables.table
-
         from dsa110_contimg.photometry.adaptive_binning import AdaptiveBinningConfig
         from dsa110_contimg.photometry.adaptive_photometry import measure_with_adaptive_binning
 
@@ -2693,7 +2663,6 @@ class AdaptivePhotometryStage(PipelineStage):
 
         # Otherwise, query NVSS catalog for sources in the field
         try:
-            import astropy.coordinates as acoords
             import casacore.tables as casatables
             import numpy as np
 

@@ -41,6 +41,7 @@ from dsa110_contimg.qa.visualization import (
     ls,
 )
 from dsa110_contimg.qa.visualization_qa import run_ms_qa_with_visualization
+from dsa110_contimg.utils.cli_helpers import casa_log_environment
 from dsa110_contimg.utils.path_validation import sanitize_filename, validate_path
 
 logger = logging.getLogger(__name__)
@@ -1111,15 +1112,16 @@ def _run_imstat(
     image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Run imstat CASA task."""
-    from casatasks import imstat
-
     # Convert JS9 region to CASA region string if provided
     region_str = None
     if region:
         region_str = _js9_region_to_casa(region)
 
     # Run imstat
-    stats = imstat(imagename=image_path, region=region_str, **parameters)
+    with casa_log_environment():
+        from casatasks import imstat
+
+        stats = imstat(imagename=image_path, region=region_str, **parameters)
 
     # Convert to JSON-serializable format
     result = {}
@@ -1141,14 +1143,15 @@ def _run_imfit(
     image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Run imfit CASA task for source fitting."""
-    from casatasks import imfit
-
     region_str = None
     if region:
         region_str = _js9_region_to_casa(region)
 
     # Run imfit
-    fit_result = imfit(imagename=image_path, region=region_str, **parameters)
+    with casa_log_environment():
+        from casatasks import imfit
+
+        fit_result = imfit(imagename=image_path, region=region_str, **parameters)
 
     # Convert to JSON-serializable format
     return {"fit": _convert_to_json_serializable(fit_result)}
@@ -1231,13 +1234,15 @@ def _run_imview(
             }
         except ImportError:
             # Fallback: return statistics if matplotlib not available
-            from casatasks import imstat
-
             region_str = None
             if region:
                 region_str = _js9_region_to_casa(region)
 
-            stats = imstat(imagename=image_path, region=region_str, **parameters)
+            with casa_log_environment():
+                from casatasks import imstat
+
+                stats = imstat(imagename=image_path, region=region_str, **parameters)
+
             return {
                 "contour_data": _convert_to_json_serializable(stats),
                 "note": ("Matplotlib not available, " "returning statistics instead"),

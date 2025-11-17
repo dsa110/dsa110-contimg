@@ -157,13 +157,12 @@ export default defineConfig({
     dedupe: ["react", "react-dom", "date-fns"],
   },
   optimizeDeps: {
-    include: ["date-fns", "react", "react-dom"],
+    include: ["date-fns", "react", "react-dom", "react-plotly.js"],
     // CRITICAL: Exclude large libraries that cause build hangs
-    // Plotly.js is 106MB+ and should be lazy-loaded, not transformed during build
-    // BUT: Ensure React is pre-optimized so it's available before Plotly loads
+    // plotly.js is 106MB+ and should be lazy-loaded, not transformed during build
+    // BUT: react-plotly.js wrapper is small and needs to be pre-transformed from CommonJS
     exclude: [
       "plotly.js",
-      "react-plotly.js",
       "golden-layout",
       // Exclude other large dependencies that are lazy-loaded
     ],

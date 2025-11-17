@@ -31,7 +31,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Iterable, Optional, Tuple
+from typing import Any, Iterable, Tuple
 
 
 def make_point_skymodel(
@@ -41,7 +41,7 @@ def make_point_skymodel(
     *,
     flux_jy: float,
     freq_ghz: float | str = 1.4,
-) -> "SkyModel":
+) -> "Any":  # pyradiosky.SkyModel - imported conditionally
     """Create a pyradiosky SkyModel for a single point source.
 
     Args:
@@ -55,7 +55,7 @@ def make_point_skymodel(
         pyradiosky SkyModel object
     """
     try:
-        from pyradiosky import SkyModel
+        from pyradiosky import SkyModel  # noqa: F401
     except ImportError:
         raise ImportError(
             "pyradiosky is required for make_point_skymodel(). "
@@ -233,7 +233,7 @@ def make_multi_point_cl(
     # Convert to list to check if empty
     points_list = list(points)
     if not points_list:
-        raise ValueError(f"Cannot create componentlist: no points provided")
+        raise ValueError("Cannot create componentlist: no points provided")
 
     freq_str = f"{float(freq_ghz)}GHz" if isinstance(freq_ghz, (int, float)) else str(freq_ghz)
     cl = casa_cl()
@@ -260,7 +260,7 @@ def make_multi_point_cl(
 
 
 def convert_skymodel_to_componentlist(
-    sky: "SkyModel",
+    sky: "Any",  # pyradiosky.SkyModel - imported conditionally
     *,
     out_path: str,
     freq_ghz: float | str = 1.4,
@@ -276,7 +276,7 @@ def convert_skymodel_to_componentlist(
         Path to created componentlist
     """
     try:
-        from pyradiosky import SkyModel
+        from pyradiosky import SkyModel  # noqa: F401
     except ImportError:
         raise ImportError(
             "pyradiosky is required for convert_skymodel_to_componentlist(). "
@@ -346,7 +346,6 @@ def convert_skymodel_to_componentlist(
                     shape="point",
                     spectrumtype="spectral index",
                     index=spec_idx,
-                    referencerefreq=f"{ref_freq_hz}Hz",
                 )
             else:
                 cl.addcomponent(
@@ -376,7 +375,7 @@ def make_nvss_skymodel(
     *,
     min_mjy: float = 10.0,
     freq_ghz: float | str = 1.4,
-) -> "SkyModel":
+) -> "Any":  # pyradiosky.SkyModel - imported conditionally
     """Create a pyradiosky SkyModel from NVSS sources in a sky region.
 
     Selects NVSS sources with flux >= min_mjy within radius_deg of (RA,Dec)
@@ -393,7 +392,7 @@ def make_nvss_skymodel(
         pyradiosky SkyModel object
     """
     try:
-        from pyradiosky import SkyModel
+        from pyradiosky import SkyModel  # noqa: F401
     except ImportError:
         raise ImportError(
             "pyradiosky is required for make_nvss_skymodel(). "

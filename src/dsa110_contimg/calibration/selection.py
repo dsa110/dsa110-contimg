@@ -9,10 +9,10 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
 import astropy.units as u
+import casacore.tables as casatables
 import numpy as np
 import pandas as pd
 from astropy.coordinates import Angle
-import casacore.tables as casatables
 
 table = casatables.table  # noqa: N816
 
@@ -20,7 +20,6 @@ from .catalogs import (
     airy_primary_beam_response,
     load_vla_catalog,
     read_vla_calibrator_catalog,
-    resolve_vla_catalog_path,
 )
 
 
@@ -142,7 +141,7 @@ def select_bandpass_from_catalog(
             df = read_vla_calibrator_catalog(catalog_path)
 
     if df.empty:
-        raise RuntimeError(f"Catalog contains no entries")
+        raise RuntimeError("Catalog contains no entries")
 
     ra_field, dec_field = _read_field_dirs(ms_path)
     if ra_field.size == 0:
@@ -188,8 +187,8 @@ def select_bandpass_from_catalog(
     field_ra = field_coords[0].rad
     field_dec = field_coords[1].rad
 
-    best = None
-    best_wflux = None
+    best: Optional[Tuple[float, int, str, float, float, float]] = None
+    best_wflux: Optional[np.ndarray] = None
 
     for name, row in df.iterrows():
         try:
@@ -246,11 +245,14 @@ def select_bandpass_from_catalog(
         peak_idx = int(np.nanargmax(wflux))
         peak_val = float(wflux[peak_idx])
 
-        if best is None or peak_val > best[0]:
+        if best is None:
+            best = (peak_val, peak_idx, name, ra_deg, dec_deg, flux_jy)
+            best_wflux = wflux
+        elif peak_val > best[0]:
             best = (peak_val, peak_idx, name, ra_deg, dec_deg, flux_jy)
             best_wflux = wflux
 
-    if best is None:
+    if best is None or best_wflux is None:
         raise RuntimeError("No calibrator candidates found within search radius")
 
     _, peak_idx_filtered, name, ra_deg, dec_deg, flux_jy = best
