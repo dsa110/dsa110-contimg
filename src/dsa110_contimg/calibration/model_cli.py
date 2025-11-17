@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 CLI to inject a calibrator point-source model into an MS using a VLA CSV.
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Generate mkdocs.yml with metadata from pyproject.toml.
 
 This script reads package metadata from pyproject.toml and updates

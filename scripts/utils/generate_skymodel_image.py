@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Generate FITS and PNG images from a sky model.
 
@@ -7,12 +7,14 @@ Usage:
     python generate_skymodel_image.py --nvss --center-ra 165.0 --center-dec 55.5 --output nvss_region
 """
 
-import sys
 import argparse
+import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from pyradiosky import SkyModel
+
 from dsa110_contimg.calibration.skymodel_image import write_skymodel_images
 
 
@@ -41,10 +43,11 @@ def main():
             return 1
         
         print(f"Creating NVSS sky model (center: {args.center_ra}°, {args.center_dec}°, radius: {args.radius}°)")
-        from dsa110_contimg.calibration.catalogs import read_nvss_catalog
-        from astropy.coordinates import SkyCoord
         import astropy.units as u
         import numpy as np
+        from astropy.coordinates import SkyCoord
+
+        from dsa110_contimg.calibration.catalogs import read_nvss_catalog
         
         df = read_nvss_catalog()
         sc_all = SkyCoord(df["ra"].to_numpy() * u.deg, df["dec"].to_numpy() * u.deg, frame="icrs")

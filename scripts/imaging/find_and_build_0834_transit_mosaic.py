@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Find available 0834+555 transits before a target date and build a 60-minute mosaic.
 
@@ -11,20 +11,23 @@ Usage:
     PYTHONPATH=/data/dsa110-contimg/src python scripts/find_and_build_0834_transit_mosaic.py [--before-date YYYY-MM-DD]
 """
 
-import sys
 import os
-from pathlib import Path
-from astropy.time import Time
+import sys
 from datetime import datetime
+from pathlib import Path
+
+from astropy.time import Time
 
 # Add src to path
 repo_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(repo_root / "src"))
 
-from dsa110_contimg.conversion.calibrator_ms_service import CalibratorMSGenerator
-from dsa110_contimg.conversion.config import CalibratorMSConfig
-from dsa110_contimg.mosaic.cli import cmd_plan, cmd_build
 import argparse
+
+from dsa110_contimg.conversion.calibrator_ms_service import \
+  CalibratorMSGenerator
+from dsa110_contimg.conversion.config import CalibratorMSConfig
+from dsa110_contimg.mosaic.cli import cmd_build, cmd_plan
 
 
 def find_transit_before_date(calibrator_name: str, target_date: str, max_days_back: int = 60):

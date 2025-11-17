@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Test pyradiosky + DP3 integration workflow.
 
@@ -14,12 +14,13 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from pyradiosky import SkyModel
-from astropy.coordinates import SkyCoord
+import os
+import tempfile
+
 import astropy.units as u
 import numpy as np
-import tempfile
-import os
+from astropy.coordinates import SkyCoord
+from pyradiosky import SkyModel
 
 
 def convert_skymodel_to_dp3(sky: SkyModel, out_path: str, spectral_index: float = -0.7) -> str:
@@ -148,10 +149,8 @@ def test_dp3_predict_integration():
     print("=" * 60)
     
     from dsa110_contimg.calibration.dp3_wrapper import (
-        _find_dp3_executable,
-        predict_from_skymodel_dp3,
-    )
-    
+      _find_dp3_executable, predict_from_skymodel_dp3)
+
     # Check DP3 availability
     dp3_cmd = _find_dp3_executable()
     if not dp3_cmd:

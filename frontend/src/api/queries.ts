@@ -1,12 +1,13 @@
 /**
  * React Query hooks for API data fetching.
  */
+import React, { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { UseQueryResult } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
 import { apiClient } from "./client";
 import { createWebSocketClient, WebSocketClient } from "./websocket";
 import { logger } from "../utils/logger";
+import { env } from "../config/env";
 import type {
   PipelineStatus,
   SystemMetrics,
@@ -139,7 +140,7 @@ function getWebSocketClient(): WebSocketClient | null {
 
   if (!wsClientInstance) {
     // Use VITE_API_URL if set, otherwise use relative /api for Vite proxy
-    const apiUrl = import.meta.env.VITE_API_URL || "/api";
+    const apiUrl = env.VITE_API_URL || "/api";
     // For WebSocket, convert http:// to ws:// or use relative path
     const wsUrl = apiUrl.startsWith("http")
       ? `${apiUrl.replace(/^http/, "ws")}/ws/status`

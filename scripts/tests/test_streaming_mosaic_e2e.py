@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 End-to-end test for streaming mosaic mode with PB correction fix.
 
@@ -9,11 +9,12 @@ This test verifies that:
 4. Both manual and streaming modes produce consistent results
 """
 
-from dsa110_contimg.mosaic.validation import TileQualityMetrics
-from dsa110_contimg.mosaic.cli import _build_weighted_mosaic
-import sys
 import logging
+import sys
 from pathlib import Path
+
+from dsa110_contimg.mosaic.cli import _build_weighted_mosaic
+from dsa110_contimg.mosaic.validation import TileQualityMetrics
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))

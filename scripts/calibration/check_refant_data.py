@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Check if reference antenna has data in a Measurement Set.
 
@@ -13,8 +13,8 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from casacore.tables import table
 import numpy as np
+from casacore.tables import table
 
 
 def check_refant_data(ms_path, refant):

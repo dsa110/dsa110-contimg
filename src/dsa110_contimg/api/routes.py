@@ -13,133 +13,74 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import (
-    APIRouter,
-    BackgroundTasks,
-    Body,
-    FastAPI,
-    HTTPException,
-    Query,
-    Request,
-    WebSocket,
-    WebSocketDisconnect,
-    status,
-)
+from fastapi import (APIRouter, BackgroundTasks, Body, FastAPI, HTTPException,
+                     Query, Request, WebSocket, WebSocketDisconnect, status)
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import (
-    FileResponse,
-    HTMLResponse,
-    RedirectResponse,
-    StreamingResponse,
-)
+from fastapi.responses import (FileResponse, HTMLResponse, RedirectResponse,
+                               StreamingResponse)
 from fastapi.staticfiles import StaticFiles
 
 from dsa110_contimg.api.config import ApiConfig
-from dsa110_contimg.api.data_access import (
-    _connect,
-    fetch_alert_history,
-    fetch_calibration_sets,
-    fetch_ese_candidates,
-    fetch_mosaic_by_id,
-    fetch_mosaics,
-    fetch_observation_timeline,
-    fetch_pointing_history,
-    fetch_queue_stats,
-    fetch_recent_calibrator_matches,
-    fetch_recent_products,
-    fetch_recent_queue_groups,
-    fetch_source_timeseries,
-)
-from dsa110_contimg.api.image_utils import (
-    convert_casa_to_fits,
-    get_fits_path,
-    resolve_image_path,
-)
-from dsa110_contimg.api.models import (
-    AlertHistory,
-    AntennaInfo,
-    BatchApplyParams,
-    BatchCalibrateParams,
-    BatchConversionParams,
-    BatchESEDetectParams,
-    BatchImageParams,
-    BatchJob,
-    BatchJobCreateRequest,
-    BatchJobList,
-    BatchJobStatus,
-    BatchPhotometryParams,
-    BatchPublishParams,
-    CalibrateJobCreateRequest,
-    CalibrateJobParams,
-    CalibrationQA,
-    CalibratorMatchList,
-    CalTableCompatibility,
-    CalTableInfo,
-    CalTableList,
-    ConversionJobCreateRequest,
-    ConversionJobParams,
-    Detection,
-    DetectionList,
-    DiskInfo,
-    ESECandidate,
-    ESECandidatesResponse,
-    ESEDetectJobCreateRequest,
-    ESEDetectJobParams,
-    ExistingCalTable,
-    ExistingCalTables,
-    ExternalCatalogMatch,
-    ExternalCatalogsResponse,
-    FieldInfo,
-    FlaggingStats,
-    GroupDetail,
-    ImageDetail,
-    ImageInfo,
-    ImageList,
-    ImageQA,
-    Job,
-    JobCreateRequest,
-    JobList,
-    JobParams,
-    LightCurveData,
-    Measurement,
-    MeasurementList,
-    Mosaic,
-    MosaicQueryResponse,
-    MSCalibratorMatch,
-    MSCalibratorMatchList,
-    MsIndexEntry,
-    MsIndexList,
-    MSList,
-    MSListEntry,
-    MSMetadata,
-    ObservationTimeline,
-    PipelineStatus,
-    PointingHistoryList,
-    PostageStampInfo,
-    PostageStampsResponse,
-    ProductList,
-    QAArtifact,
-    QAList,
-    QAMetrics,
-    SourceDetail,
-    SourceSearchResponse,
-    SourceTimeseries,
-    StreamingConfigRequest,
-    StreamingControlResponse,
-    StreamingHealthResponse,
-    StreamingStatusResponse,
-    SystemMetrics,
-    UVH5FileEntry,
-    UVH5FileList,
-    VariabilityMetrics,
-    WorkflowJobCreateRequest,
-)
-from dsa110_contimg.api.streaming_service import (
-    StreamingConfig,
-    StreamingServiceManager,
-)
+from dsa110_contimg.api.data_access import (_connect, fetch_alert_history,
+                                            fetch_calibration_sets,
+                                            fetch_ese_candidates,
+                                            fetch_mosaic_by_id, fetch_mosaics,
+                                            fetch_observation_timeline,
+                                            fetch_pointing_history,
+                                            fetch_queue_stats,
+                                            fetch_recent_calibrator_matches,
+                                            fetch_recent_products,
+                                            fetch_recent_queue_groups,
+                                            fetch_source_timeseries)
+from dsa110_contimg.api.image_utils import (convert_casa_to_fits,
+                                            get_fits_path, resolve_image_path)
+from dsa110_contimg.api.models import (AlertHistory, AntennaInfo,
+                                       BatchApplyParams, BatchCalibrateParams,
+                                       BatchConversionParams,
+                                       BatchESEDetectParams, BatchImageParams,
+                                       BatchJob, BatchJobCreateRequest,
+                                       BatchJobList, BatchJobStatus,
+                                       BatchPhotometryParams,
+                                       BatchPublishParams,
+                                       CalibrateJobCreateRequest,
+                                       CalibrateJobParams, CalibrationQA,
+                                       CalibratorMatchList,
+                                       CalTableCompatibility, CalTableInfo,
+                                       CalTableList,
+                                       ConversionJobCreateRequest,
+                                       ConversionJobParams, Detection,
+                                       DetectionList, DiskInfo, ESECandidate,
+                                       ESECandidatesResponse,
+                                       ESEDetectJobCreateRequest,
+                                       ESEDetectJobParams, ExistingCalTable,
+                                       ExistingCalTables, ExternalCatalogMatch,
+                                       ExternalCatalogsResponse, FieldInfo,
+                                       FlaggingStats, GroupDetail, ImageDetail,
+                                       ImageInfo, ImageList, ImageQA, Job,
+                                       JobCreateRequest, JobList, JobParams,
+                                       LightCurveData, Measurement,
+                                       MeasurementList, Mosaic,
+                                       MosaicQueryResponse, MSCalibratorMatch,
+                                       MSCalibratorMatchList, MsIndexEntry,
+                                       MsIndexList, MSList, MSListEntry,
+                                       MSMetadata, ObservationTimeline,
+                                       PipelineStatus, PointingHistoryList,
+                                       PostageStampInfo, PostageStampsResponse,
+                                       ProductList, QAArtifact, QAList,
+                                       QAMetrics, SourceDetail,
+                                       SourceSearchResponse, SourceTimeseries,
+                                       StreamingConfigRequest,
+                                       StreamingControlResponse,
+                                       StreamingHealthResponse,
+                                       StreamingStatusResponse, SystemMetrics,
+                                       UVH5FileEntry, UVH5FileList,
+                                       VariabilityMetrics,
+                                       WorkflowJobCreateRequest)
+from dsa110_contimg.api.streaming_service import (StreamingConfig,
+                                                  StreamingServiceManager)
 from dsa110_contimg.qa.html_reports import generate_html_report
-from dsa110_contimg.utils.path_validation import sanitize_filename, validate_path
+from dsa110_contimg.utils.path_validation import (sanitize_filename,
+                                                  validate_path)
 
 # Module-level cache for UVH5 file listings (TTL: 30 seconds)
 # Shared across all requests for fast file discovery
@@ -328,8 +269,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Start background task to broadcast status updates and pre-warm database connections."""
         from pathlib import Path
 
-        from dsa110_contimg.api.websocket_manager import create_status_update, manager
-        from dsa110_contimg.database.data_registry import ensure_data_registry_db
+        from dsa110_contimg.api.websocket_manager import (create_status_update,
+                                                          manager)
+        from dsa110_contimg.database.data_registry import \
+          ensure_data_registry_db
 
         # Pre-warm database connection to avoid cold-start delays
         try:
@@ -352,9 +295,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
                 products_db = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
                 if products_db.exists():
-                    conn = None
-                    try:
-                        conn = ensure_products_db(products_db)
+                    # Use context manager to ensure connection is always closed
+                    with ensure_products_db(products_db) as conn:
                         query = """
                         SELECT path FROM hdf5_file_index
                         WHERE stored = 1
@@ -370,9 +312,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         logger.info(
                             f"Pre-warmed UVH5 file cache from database: {len(all_files)} files"
                         )
-                    finally:
-                        if conn is not None:
-                            conn.close()
                 elif search_path.exists():
                     # Fallback to filesystem scan if database doesn't exist
                     all_files = []
@@ -445,7 +384,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         metrics = None
 
                     try:
-                        from dsa110_contimg.api.data_access import fetch_ese_candidates
+                        from dsa110_contimg.api.data_access import \
+                          fetch_ese_candidates
 
                         ese_data = fetch_ese_candidates(cfg.products_db, limit=50)
                         ese_candidates = {
@@ -601,8 +541,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     from dsa110_contimg.api.routers.catalogs import router as catalogs_router
     from dsa110_contimg.api.routers.images import router as images_router
     from dsa110_contimg.api.routers.mosaics import router as mosaics_router
-    from dsa110_contimg.api.routers.operations import router as operations_router
-    from dsa110_contimg.api.routers.photometry import router as photometry_router
+    from dsa110_contimg.api.routers.operations import \
+      router as operations_router
+    from dsa110_contimg.api.routers.photometry import \
+      router as photometry_router
     from dsa110_contimg.api.routers.pipeline import router as pipeline_router
     from dsa110_contimg.api.routers.products import router as products_router
     from dsa110_contimg.api.routers.status import router as status_router
@@ -639,7 +581,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     # Events and Cache monitoring (Phase 3)
     from dsa110_contimg.api.routers import cache as cache_router_module
     from dsa110_contimg.api.routers import events as events_router_module
-    from dsa110_contimg.api.routers import performance as performance_router_module
+    from dsa110_contimg.api.routers import \
+      performance as performance_router_module
     from dsa110_contimg.api.routers import tasks as tasks_router_module
 
     app.include_router(events_router_module.router, prefix="/api/events", tags=["events"])
@@ -766,13 +709,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """
         import json
 
-        from dsa110_contimg.utils.profiling import (
-            extract_line_profile,
-            extract_point_profile,
-            extract_polyline_profile,
-            fit_gaussian_profile,
-            fit_moffat_profile,
-        )
+        from dsa110_contimg.utils.profiling import (extract_line_profile,
+                                                    extract_point_profile,
+                                                    extract_polyline_profile,
+                                                    fit_gaussian_profile,
+                                                    fit_moffat_profile)
 
         db_path = cfg.products_db
         if not db_path.exists():
@@ -912,7 +853,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from astropy.wcs import WCS
 
         from dsa110_contimg.utils.fitting import fit_2d_gaussian, fit_2d_moffat
-        from dsa110_contimg.utils.regions import create_region_mask, json_to_region
+        from dsa110_contimg.utils.regions import (create_region_mask,
+                                                  json_to_region)
 
         db_path = cfg.products_db
         if not db_path.exists():
@@ -1237,10 +1179,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     def get_region_statistics(region_id: int):
         """Get statistics for pixels within a region."""
         from dsa110_contimg.api.image_utils import get_fits_path
-        from dsa110_contimg.utils.regions import (
-            calculate_region_statistics,
-            json_to_region,
-        )
+        from dsa110_contimg.utils.regions import (calculate_region_statistics,
+                                                  json_to_region)
 
         db_path = cfg.products_db
         if not db_path.exists():
@@ -1316,9 +1256,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Uses Global Sky Model (GSM) if available, otherwise falls back to synthetic data.
         """
         from dsa110_contimg.pointing.sky_map_generator import (
-            generate_gsm_sky_map_data,
-            generate_synthetic_sky_map_data,
-        )
+          generate_gsm_sky_map_data, generate_synthetic_sky_map_data)
 
         if map_type == "gsm":
             try:
@@ -2652,10 +2590,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         import astropy.units as u
         from astropy.time import Time
 
-        from dsa110_contimg.database.products import (
-            discover_ms_files,
-            ensure_products_db,
-        )
+        from dsa110_contimg.database.products import (discover_ms_files,
+                                                      ensure_products_db)
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
 
@@ -2840,10 +2776,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Returns:
             Dictionary with count of discovered MS files and list of paths
         """
-        from dsa110_contimg.database.products import (
-            discover_ms_files,
-            ensure_products_db,
-        )
+        from dsa110_contimg.database.products import (discover_ms_files,
+                                                      ensure_products_db)
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
 
@@ -3362,13 +3296,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/ms/{ms_path:path}/metadata", response_model=MSMetadata)
     def get_ms_metadata(ms_path: str) -> MSMetadata:
         """Get metadata for an MS file."""
-        from dsa110_contimg.api.models import (
-            AntennaInfo,
-            FieldInfo,
-            FlaggingStats,
-            MSMetadata,
-        )
-
+        from dsa110_contimg.api.models import (AntennaInfo, FieldInfo,
+                                               FlaggingStats, MSMetadata)
         # Ensure CASAPATH is set before importing CASA modules
         from dsa110_contimg.utils.casa_init import ensure_casa_path
 
@@ -3378,12 +3307,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from casatools import ms as casams
         from casatools import table
 
-        from dsa110_contimg.api.models import (
-            AntennaInfo,
-            FieldInfo,
-            FlaggingStats,
-            MSMetadata,
-        )
+        from dsa110_contimg.api.models import (AntennaInfo, FieldInfo,
+                                               FlaggingStats, MSMetadata)
 
         # Validate and sanitize path to prevent path traversal
         try:
@@ -3565,10 +3490,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from casatools import table
 
         from dsa110_contimg.calibration.catalogs import (
-            airy_primary_beam_response,
-            calibrator_match,
-            read_vla_parsed_catalog_csv,
-        )
+          airy_primary_beam_response, calibrator_match,
+          read_vla_parsed_catalog_csv)
         from dsa110_contimg.pointing.utils import load_pointing
 
         # Validate and sanitize path to prevent path traversal
@@ -3614,7 +3537,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
             # Load catalog
             if catalog == "vla":
-                from dsa110_contimg.calibration.catalogs import load_vla_catalog
+                from dsa110_contimg.calibration.catalogs import \
+                  load_vla_catalog
 
                 try:
                     df = load_vla_catalog()
@@ -4105,9 +4029,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         import tempfile
 
         from dsa110_contimg.qa.calibration_quality import (
-            analyze_per_spw_flagging,
-            plot_per_spw_flagging,
-        )
+          analyze_per_spw_flagging, plot_per_spw_flagging)
 
         # Validate and sanitize path to prevent path traversal
         try:
@@ -4217,7 +4139,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         except ValueError as e:
             raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
-        from dsa110_contimg.qa.calibration_quality import check_caltable_completeness
+        from dsa110_contimg.qa.calibration_quality import \
+          check_caltable_completeness
 
         result = check_caltable_completeness(str(ms_full_path))
         return result
@@ -4335,7 +4258,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from astropy.wcs import WCS
 
         from dsa110_contimg.catalog.query import query_sources
-        from dsa110_contimg.qa.catalog_validation import get_catalog_overlay_pixels
+        from dsa110_contimg.qa.catalog_validation import \
+          get_catalog_overlay_pixels
 
         # Resolve image ID to path (handles both integer IDs and string paths)
         try:
@@ -4409,10 +4333,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             Dict with validation results
         """
         from dsa110_contimg.qa.catalog_validation import (
-            validate_astrometry,
-            validate_flux_scale,
-            validate_source_counts,
-        )
+          validate_astrometry, validate_flux_scale, validate_source_counts)
 
         # Resolve image ID to path (handles both integer IDs and string paths)
         try:
@@ -4546,10 +4467,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             Dict with validation results
         """
         from dsa110_contimg.qa.catalog_validation import (
-            validate_astrometry,
-            validate_flux_scale,
-            validate_source_counts,
-        )
+          validate_astrometry, validate_flux_scale, validate_source_counts)
 
         # Resolve image ID to path (handles both integer IDs and string paths)
         try:
@@ -4604,10 +4522,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from fastapi.responses import HTMLResponse
 
         from dsa110_contimg.qa.catalog_validation import run_full_validation
-        from dsa110_contimg.qa.html_reports import (
-            ValidationReport,
-            generate_validation_report,
-        )
+        from dsa110_contimg.qa.html_reports import (ValidationReport,
+                                                    generate_validation_report)
 
         # Resolve image ID to path
         try:
@@ -5170,7 +5086,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             spw_phases = phases[spw_mask]
                             if spw_phases.ndim > 1:
                                 spw_phases = np.nanmean(spw_phases, axis=-1)
-                            from dsa110_contimg.utils.angles import wrap_phase_deg
+                            from dsa110_contimg.utils.angles import \
+                              wrap_phase_deg
 
                             freq_data.extend(spw_freqs.tolist())
                             phase_data.extend(wrap_phase_deg(np.degrees(spw_phases)).tolist())
@@ -6335,11 +6252,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         import shutil as _shutil
         import subprocess as _subprocess
 
-        from dsa110_contimg.api.job_runner import (
-            _python_cmd_for_jobs,
-            _src_path_for_env,
-        )
-        from dsa110_contimg.database.products import ensure_products_db as _ensure_products_db
+        from dsa110_contimg.api.job_runner import (_python_cmd_for_jobs,
+                                                   _src_path_for_env)
+        from dsa110_contimg.database.products import \
+          ensure_products_db as _ensure_products_db
 
         # Prepare environment for child process imports
         child_env = os.environ.copy()
@@ -6471,10 +6387,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-            DataRecord,
-            ensure_data_registry_db,
-            list_data,
-        )
+          DataRecord, ensure_data_registry_db, list_data)
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6517,9 +6430,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-            ensure_data_registry_db,
-            get_data,
-        )
+          ensure_data_registry_db, get_data)
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6555,10 +6466,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-            ensure_data_registry_db,
-            finalize_data,
-            get_data,
-        )
+          ensure_data_registry_db, finalize_data, get_data)
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6587,10 +6495,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-            ensure_data_registry_db,
-            get_data,
-            publish_data_manual,
-        )
+          ensure_data_registry_db, get_data, publish_data_manual)
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6618,10 +6523,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Enable auto-publish for a data instance."""
         from pathlib import Path
 
-        from dsa110_contimg.database.data_registry import enable_auto_publish as enable_ap
-        from dsa110_contimg.database.data_registry import (
-            ensure_data_registry_db,
-        )
+        from dsa110_contimg.database.data_registry import \
+          enable_auto_publish as enable_ap
+        from dsa110_contimg.database.data_registry import \
+          ensure_data_registry_db
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6637,10 +6542,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Disable auto-publish for a data instance."""
         from pathlib import Path
 
-        from dsa110_contimg.database.data_registry import disable_auto_publish as disable_ap
-        from dsa110_contimg.database.data_registry import (
-            ensure_data_registry_db,
-        )
+        from dsa110_contimg.database.data_registry import \
+          disable_auto_publish as disable_ap
+        from dsa110_contimg.database.data_registry import \
+          ensure_data_registry_db
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6657,9 +6562,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-            check_auto_publish_criteria,
-            ensure_data_registry_db,
-        )
+          check_auto_publish_criteria, ensure_data_registry_db)
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6673,10 +6576,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-            ensure_data_registry_db,
-            get_data,
-            get_data_lineage,
-        )
+          ensure_data_registry_db, get_data, get_data_lineage)
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6703,9 +6603,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-            ensure_data_registry_db,
-            list_data,
-        )
+          ensure_data_registry_db, list_data)
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6770,9 +6668,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-            ensure_data_registry_db,
-            list_data,
-        )
+          ensure_data_registry_db, list_data)
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6824,10 +6720,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-            ensure_data_registry_db,
-            get_data,
-            trigger_auto_publish,
-        )
+          ensure_data_registry_db, get_data, trigger_auto_publish)
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6889,10 +6782,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-            ensure_data_registry_db,
-            list_data,
-            trigger_auto_publish,
-        )
+          ensure_data_registry_db, list_data, trigger_auto_publish)
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6955,7 +6845,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     app.include_router(router)
 
     # Include visualization routes
-    from dsa110_contimg.api.visualization_routes import router as visualization_router
+    from dsa110_contimg.api.visualization_routes import \
+      router as visualization_router
 
     app.include_router(visualization_router)
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Re-embed Graphiti nodes and edges that have mismatched (legacy) embedding dimensions.
 
@@ -25,10 +25,9 @@ import os
 from typing import Iterable
 
 from dotenv import load_dotenv
-
 from graphiti_core import Graphiti
-from graphiti_core.nodes import EntityNode, create_entity_node_embeddings
 from graphiti_core.edges import EntityEdge, create_entity_edge_embeddings
+from graphiti_core.nodes import EntityNode, create_entity_node_embeddings
 
 
 async def _chunked(it: Iterable[str], size: int):

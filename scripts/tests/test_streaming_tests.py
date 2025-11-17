@@ -1,14 +1,15 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Test script to execute the remaining 6 streaming tests using backend test endpoints.
 
 This script uses backend test endpoints to simulate different states and verify
 frontend behavior for the remaining 6 tests.
 """
 
-import requests
-import time
 import sys
+import time
 from typing import Optional
+
+import requests
 
 API_BASE = "http://127.0.0.1:8000/api"
 

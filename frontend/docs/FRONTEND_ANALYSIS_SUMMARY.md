@@ -1,7 +1,8 @@
 # DSA-110 Dashboard Frontend Analysis Summary
 
-**Date:** 2025-01-XX  
-**Purpose:** Comprehensive analysis of frontend structure, patterns, and implementation status
+**Date:** 2025-11-16  
+**Purpose:** Comprehensive analysis of frontend structure, patterns, and
+implementation status
 
 ---
 
@@ -23,17 +24,20 @@
    - Job submission forms with validation
    - Real-time job logs via SSE
    - Calibration QA panels
-   - Uses: Multiple hooks (`useMSList`, `useJobs`, `useCreateCalibrateJob`, etc.)
+   - Uses: Multiple hooks (`useMSList`, `useJobs`, `useCreateCalibrateJob`,
+     etc.)
 
 3. **StreamingPage.tsx** (`/streaming`)
    - Service control (start/stop/restart)
    - Configuration management dialog
    - Resource usage monitoring
    - Queue statistics display
-   - Uses: `useStreamingStatus()`, `useStreamingHealth()`, `useStreamingConfig()`
+   - Uses: `useStreamingStatus()`, `useStreamingHealth()`,
+     `useStreamingConfig()`
 
 4. **QAVisualizationPage.tsx** (`/qa`)
-   - Tabbed interface (Directory Browser, FITS Viewer, CASA Table Viewer, Notebook Generator)
+   - Tabbed interface (Directory Browser, FITS Viewer, CASA Table Viewer,
+     Notebook Generator)
    - File selection and navigation
    - Uses: Component-based architecture
 
@@ -69,10 +73,18 @@
 - **DataDetailPage.tsx** - Data instance detail view
 - **MosaicViewPage.tsx** - Mosaic detail view
 
-### Planned Pages (📋)
+### Additional Implemented Pages
 
 - **ObservingPage.tsx** (`/observing`) - Telescope status, calibrator tracking
+  - Uses: `usePointingHistory()`, `usePipelineStatus()`
+  - Status: ✅ Implemented (modified Nov 15, 2025)
 - **HealthPage.tsx** (`/health`) - System diagnostics, QA gallery
+  - Uses: `useSystemMetrics()`, `usePipelineStatus()`, `useQAMetrics()`
+  - Status: ✅ Implemented (modified Nov 15, 2025)
+
+### Planned Pages (📋)
+
+_(All previously planned pages are now implemented)_
 
 ---
 
@@ -94,6 +106,7 @@
 All API hooks are defined in `frontend/src/api/queries.ts` using React Query:
 
 **Query Hooks (Data Fetching):**
+
 - `usePipelineStatus()` - Pipeline queue status
 - `useSystemMetrics()` - System health metrics
 - `useESECandidates()` - ESE detection alerts
@@ -113,6 +126,7 @@ All API hooks are defined in `frontend/src/api/queries.ts` using React Query:
 - And 30+ more specialized hooks
 
 **Mutation Hooks (Data Modification):**
+
 - `useCreateCalibrateJob()` - Create calibration job
 - `useCreateApplyJob()` - Create apply calibration job
 - `useCreateImageJob()` - Create imaging job
@@ -126,6 +140,7 @@ All API hooks are defined in `frontend/src/api/queries.ts` using React Query:
 - And more...
 
 **Real-Time Updates:**
+
 - Hooks use `useRealtimeQuery()` wrapper
 - WebSocket client with polling fallback
 - Automatic reconnection logic
@@ -138,6 +153,7 @@ All API hooks are defined in `frontend/src/api/queries.ts` using React Query:
 ### API Client (`client.ts`)
 
 **Configuration:**
+
 - Base URL: Handles `/ui` prefix for Docker, falls back to proxy in dev
 - Timeout: 30 seconds
 - Circuit breaker integration
@@ -145,6 +161,7 @@ All API hooks are defined in `frontend/src/api/queries.ts` using React Query:
 - Error classification and user-friendly messages
 
 **Features:**
+
 - Request/response interceptors
 - Circuit breaker for fault tolerance
 - Retry logic for transient failures
@@ -154,6 +171,7 @@ All API hooks are defined in `frontend/src/api/queries.ts` using React Query:
 ### WebSocket Client (`websocket.ts`)
 
 **Implementation:**
+
 - WebSocket with SSE fallback
 - Automatic reconnection with exponential backoff
 - Message handler system (subscribe/unsubscribe)
@@ -161,14 +179,16 @@ All API hooks are defined in `frontend/src/api/queries.ts` using React Query:
 - Singleton pattern for connection management
 
 **Usage Pattern:**
+
 ```typescript
 const wsClient = getWebSocketClient();
-useRealtimeQuery(['pipeline', 'status'], fetchFn, wsClient, 10000);
+useRealtimeQuery(["pipeline", "status"], fetchFn, wsClient, 10000);
 ```
 
 ### Query Hooks (`queries.ts`)
 
 **Pattern:**
+
 - All hooks use `@tanstack/react-query`
 - Query hooks return `UseQueryResult<T>`
 - Mutation hooks return `UseMutationResult<T>`
@@ -176,13 +196,14 @@ useRealtimeQuery(['pipeline', 'status'], fetchFn, wsClient, 10000);
 - Error handling built-in
 
 **Real-Time Query Pattern:**
+
 ```typescript
 function useRealtimeQuery<T>(
   queryKey: string[],
   queryFn: () => Promise<T>,
   wsClient: WebSocketClient | null,
   pollInterval: number = 10000
-): UseQueryResult<T>
+): UseQueryResult<T>;
 ```
 
 ---
@@ -244,17 +265,17 @@ function useRealtimeQuery<T>(
 export default function PageName() {
   // 1. State management
   const [localState, setLocalState] = useState();
-  
+
   // 2. React Query hooks
   const { data, isLoading, error } = useQueryHook();
   const mutation = useMutationHook();
-  
+
   // 3. Loading state
   if (isLoading) return <CircularProgress />;
-  
+
   // 4. Error state
   if (error) return <Alert severity="error">...</Alert>;
-  
+
   // 5. Main render
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -267,6 +288,7 @@ export default function PageName() {
 ### Material-UI Component Usage
 
 **Common Components:**
+
 - `Container` - Page wrapper with max width
 - `Paper` - Elevated content sections
 - `Typography` - Text with variant system
@@ -284,6 +306,7 @@ export default function PageName() {
 - `Dialog` - Modals
 
 **Styling Pattern:**
+
 - Uses `sx` prop for styling (not CSS modules)
 - Theme-aware colors (`text.secondary`, `error.main`, etc.)
 - Responsive breakpoints (`xs`, `md`, `lg`)
@@ -298,8 +321,12 @@ const { data, isLoading, error, refetch } = useQueryHook(params);
 // Mutation hook
 const mutation = useMutationHook();
 mutation.mutate(data, {
-  onSuccess: (result) => { /* handle success */ },
-  onError: (error) => { /* handle error */ }
+  onSuccess: (result) => {
+    /* handle success */
+  },
+  onError: (error) => {
+    /* handle error */
+  },
 });
 ```
 
@@ -309,17 +336,14 @@ mutation.mutate(data, {
 
 ### Planned Features Not Yet Implemented
 
-1. **Observing Page** (`/observing`)
-   - Telescope status monitoring
-   - Calibrator tracking
-   - Observation scheduling
-   - Status: 📋 Planned (no code exists)
+_(ObservingPage and HealthPage are now implemented as of Nov 15, 2025)_
 
-2. **Health Page** (`/health`)
-   - System diagnostics dashboard
-   - QA gallery
-   - Performance metrics
-   - Status: 📋 Planned (no code exists)
+1. **Advanced Sky Map Features**
+   - Interactive sky map (JS9 viewer exists, map enhancements planned)
+   - Advanced region editing capabilities
+2. **Enhanced Source Monitoring**
+   - Additional source search filters
+   - Advanced flux timeseries analysis
 
 3. **Sky View - Interactive Map**
    - Coverage visualization
@@ -362,35 +386,41 @@ mutation.mutate(data, {
 ## 7. Key Patterns to Follow
 
 ### 1. Page Structure
+
 - Use `Container maxWidth="xl"` for page wrapper
 - Use `Paper` for content sections
 - Implement loading and error states
 - Use React Query hooks for data fetching
 
 ### 2. Material-UI Components
+
 - Always use MUI v7 components (not v5 or v6)
 - Use `sx` prop for styling (not CSS modules)
 - Follow MUI theme system
 - Use responsive breakpoints
 
 ### 3. API Integration
+
 - Use hooks from `api/queries.ts`
 - Handle loading/error states
 - Use mutations for data modification
 - Leverage React Query caching
 
 ### 4. State Management
+
 - Use React Query for server state
 - Use `useState` for local UI state
 - Use `useLocalStorage` for persistent local state
 - Avoid global state unless necessary
 
 ### 5. Type Safety
+
 - All API types defined in `api/types.ts`
 - Use TypeScript interfaces for props
 - Leverage React Query type inference
 
 ### 6. Real-Time Updates
+
 - Use `useRealtimeQuery` wrapper for real-time data
 - WebSocket client handles reconnection
 - Polling fallback automatically enabled
@@ -448,6 +478,7 @@ mutation.mutate(data, {
 ### Most Used Hooks
 
 **Data Fetching:**
+
 - `usePipelineStatus()` - Dashboard status
 - `useSystemMetrics()` - System health
 - `useESECandidates()` - ESE alerts
@@ -456,6 +487,7 @@ mutation.mutate(data, {
 - `useSourceSearch(request)` - Source search
 
 **Mutations:**
+
 - `useCreateCalibrateJob()` - Calibration
 - `useCreateImageJob()` - Imaging
 - `useCreateConvertJob()` - Conversion
@@ -490,6 +522,7 @@ mutation.mutate(data, {
 ## Summary
 
 The DSA-110 dashboard frontend is built with:
+
 - **React 19** + **TypeScript**
 - **Material-UI v7** (latest version)
 - **React Query v5** for server state
@@ -498,11 +531,14 @@ The DSA-110 dashboard frontend is built with:
 - **WebSocket** client for real-time updates
 
 **Implementation Status:**
-- ✅ 5 pages fully implemented
+
+- ✅ 7 pages fully implemented (including HealthPage and ObservingPage as of Nov
+  15, 2025)
 - 🔄 3 pages partially implemented
-- 📋 2 pages planned but not implemented
+- 📋 Advanced features planned (all core pages are implemented)
 
 **Key Patterns:**
+
 - React Query hooks for all API calls
 - Material-UI components throughout
 - Consistent page structure
@@ -510,8 +546,8 @@ The DSA-110 dashboard frontend is built with:
 - Type-safe API integration
 
 **Gaps:**
+
 - Observing and Health pages not implemented
 - Some advanced features missing
 - WebSocket not fully utilized
 - Some error handling improvements needed
-

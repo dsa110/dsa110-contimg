@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Imaging worker: watches a directory of freshly converted 5-minute MS files,
 looks up an active calibration apply list from the registry by observation
@@ -16,11 +16,8 @@ import time
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-from dsa110_contimg.database.products import (
-    ensure_products_db,
-    images_insert,
-    ms_index_upsert,
-)
+from dsa110_contimg.database.products import (ensure_products_db,
+                                              images_insert, ms_index_upsert)
 from dsa110_contimg.database.registry import get_active_applylist
 
 logger = logging.getLogger("imaging_worker")

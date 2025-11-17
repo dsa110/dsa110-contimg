@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Verify that calibration workflow is complete and leads to good bandpass solutions.
 
 This script:
@@ -8,10 +8,11 @@ This script:
 4. Compares before/after results
 """
 
-import sys
-import os
 import argparse
+import os
+import sys
 from pathlib import Path
+
 import numpy as np
 
 # Add src to path
@@ -76,11 +77,8 @@ def verify_uvw_verification_function():
     
     try:
         from dsa110_contimg.calibration.uvw_verification import (
-            verify_uvw_transformation,
-            get_uvw_statistics,
-            calculate_expected_uvw_change,
-            get_phase_center_from_ms,
-        )
+          calculate_expected_uvw_change, get_phase_center_from_ms,
+          get_uvw_statistics, verify_uvw_transformation)
         
         checks = {
             "verify_uvw_transformation exists": True,
@@ -141,7 +139,7 @@ def test_bandpass_solution_quality(ms_path: str, cal_table_path: str = None):
     
     try:
         from casacore.tables import table
-        
+
         # Read bandpass table
         with table(cal_table_path, readonly=True) as cal_tb:
             # Get solution statistics

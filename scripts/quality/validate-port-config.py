@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Validate port configuration and detect hardcoded ports.
 
 This script enforces the port organization system by:

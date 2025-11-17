@@ -1,5 +1,7 @@
 # Pointing Visualization Background Image
 
+**Date:** 2025-11-15
+
 ## Overview
 
 The PointingVisualization component now supports displaying an all-sky radio map

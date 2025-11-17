@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Test CASA verbosity settings to see if we can get bandpass to print all channels.
 """
 
-import sys
 import os
+import sys
 
 # Test different CASA logging configurations
 print("Testing CASA verbosity options...")
@@ -28,8 +28,9 @@ try:
     
     # Check if there's a verbosity parameter
     print("\n3. Checking for bandpass verbosity parameter...")
-    from casatasks import bandpass
     import inspect
+
+    from casatasks import bandpass
     sig = inspect.signature(bandpass)
     params = list(sig.parameters.keys())
     

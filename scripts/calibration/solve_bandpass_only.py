@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Solve bandpass WITHOUT pre-bandpass phase correction.
 
@@ -6,16 +6,18 @@ Usage:
     python scripts/solve_bandpass_only.py --ms /path/to/ms.ms --field 0 --refant 103
 """
 
-import sys
 import argparse
+import sys
 from pathlib import Path
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from casacore.tables import table
 import numpy as np
+from casacore.tables import table
+
 from dsa110_contimg.calibration.calibration import solve_bandpass
+
 
 def main():
     parser = argparse.ArgumentParser(description='Solve bandpass without pre-bandpass phase correction')
@@ -90,7 +92,8 @@ def main():
         # Check bandpass quality
         if bp_tables:
             try:
-                from dsa110_contimg.qa.calibration_quality import validate_caltable_quality
+                from dsa110_contimg.qa.calibration_quality import \
+                  validate_caltable_quality
                 metrics = validate_caltable_quality(bp_tables[0])
                 print(f'\n3. Bandpass Quality Metrics:')
                 print(f'   Flagged fraction: {metrics.fraction_flagged*100:.1f}%')

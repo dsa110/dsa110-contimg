@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Generate synthetic DSA-110 UVH5 subband files for end-to-end testing."""
 
 import argparse
@@ -226,9 +226,7 @@ def make_visibilities(
         Visibility array with shape (nblts, nspws, nfreqs, npols)
     """
     from dsa110_contimg.simulation.visibility_models import (
-        disk_source_visibility,
-        gaussian_source_visibility,
-    )
+      disk_source_visibility, gaussian_source_visibility)
 
     shape = (nblts, nspws, nfreqs, npols)
 
@@ -506,7 +504,8 @@ def write_subband_uvh5(
 
     # Add thermal noise if requested
     if add_noise:
-        from dsa110_contimg.simulation.visibility_models import add_thermal_noise
+        from dsa110_contimg.simulation.visibility_models import \
+          add_thermal_noise
 
         # Get integration time and channel width
         int_time = config.integration_time_sec
@@ -531,9 +530,7 @@ def write_subband_uvh5(
     # Add calibration errors if requested
     if add_cal_errors:
         from dsa110_contimg.simulation.visibility_models import (
-            add_calibration_errors,
-            apply_calibration_errors_to_visibilities,
-        )
+          add_calibration_errors, apply_calibration_errors_to_visibilities)
 
         _, complex_gains, _ = add_calibration_errors(
             uv.data_array,
@@ -838,9 +835,8 @@ def main() -> None:
 
     # Create synthetic catalog if requested
     if args.create_catalog:
-        from dsa110_contimg.simulation.synthetic_catalog import (
-            create_synthetic_catalog_from_uvh5,
-        )
+        from dsa110_contimg.simulation.synthetic_catalog import \
+          create_synthetic_catalog_from_uvh5
 
         # Use first output file to extract source positions
         uvh5_path = outputs[0]
@@ -886,7 +882,8 @@ def main() -> None:
 
     # Validate generated files if validation module is available
     try:
-        from dsa110_contimg.simulation.validate_synthetic import validate_uvh5_file
+        from dsa110_contimg.simulation.validate_synthetic import \
+          validate_uvh5_file
 
         print("\nValidating generated files...")
         all_valid = True

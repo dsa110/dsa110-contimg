@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Milestone 1: Create 60-minute science-quality mosaic using pipeline infrastructure
 
@@ -26,12 +26,15 @@ from astropy.time import Time
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from dsa110_contimg.calibration.catalogs import get_calibrator_radec, load_vla_catalog
+from dsa110_contimg.calibration.catalogs import (get_calibrator_radec,
+                                                 load_vla_catalog)
 from dsa110_contimg.calibration.schedule import next_transit_time
-from dsa110_contimg.pipeline.config import PipelineConfig, PathsConfig, ConversionConfig, CalibrationConfig, ImagingConfig
+from dsa110_contimg.pipeline.config import (CalibrationConfig,
+                                            ConversionConfig, ImagingConfig,
+                                            PathsConfig, PipelineConfig)
 from dsa110_contimg.pipeline.context import PipelineContext
-from dsa110_contimg.pipeline.workflows import standard_imaging_workflow
 from dsa110_contimg.pipeline.resilience import RetryPolicy, RetryStrategy
+from dsa110_contimg.pipeline.workflows import standard_imaging_workflow
 
 logging.basicConfig(
     level=logging.INFO,
@@ -204,7 +207,8 @@ def solve_calibration_on_ms(
     )
     
     from dsa110_contimg.pipeline import stages_impl
-    from dsa110_contimg.pipeline.orchestrator import PipelineOrchestrator, StageDefinition
+    from dsa110_contimg.pipeline.orchestrator import (PipelineOrchestrator,
+                                                      StageDefinition)
     
     retry_policy = RetryPolicy(
         max_attempts=2,
@@ -257,7 +261,8 @@ def apply_calibration_to_ms(
     )
     
     from dsa110_contimg.pipeline import stages_impl
-    from dsa110_contimg.pipeline.orchestrator import PipelineOrchestrator, StageDefinition
+    from dsa110_contimg.pipeline.orchestrator import (PipelineOrchestrator,
+                                                      StageDefinition)
     
     retry_policy = RetryPolicy(
         max_attempts=2,
@@ -308,7 +313,8 @@ def image_ms(
     )
     
     from dsa110_contimg.pipeline import stages_impl
-    from dsa110_contimg.pipeline.orchestrator import PipelineOrchestrator, StageDefinition
+    from dsa110_contimg.pipeline.orchestrator import (PipelineOrchestrator,
+                                                      StageDefinition)
     
     retry_policy = RetryPolicy(
         max_attempts=2,
@@ -417,8 +423,9 @@ def main():
     update_progress(stage="conversion")
     
     from dsa110_contimg.pipeline import stages_impl
-    from dsa110_contimg.pipeline.orchestrator import PipelineOrchestrator, StageDefinition
-    
+    from dsa110_contimg.pipeline.orchestrator import (PipelineOrchestrator,
+                                                      StageDefinition)
+
     # Use ConversionStage to convert (or discover existing) MS files
     conversion_context = PipelineContext(
         config=config,
@@ -584,8 +591,9 @@ def main():
     mosaic_dir.mkdir(parents=True, exist_ok=True)
     mosaic_path = mosaic_dir / f"{mosaic_name}.image"
     
-    from dsa110_contimg.mosaic.cli import cmd_build
     import argparse
+
+    from dsa110_contimg.mosaic.cli import cmd_build
     
     try:
         args = argparse.Namespace(

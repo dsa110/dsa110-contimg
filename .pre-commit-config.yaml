@@ -57,6 +57,30 @@ repos:
         types: [python]
         exclude: ^(archive/|notebooks/|\.venv/|venv/|env/)
 
+      - id: flake8
+        name: flake8 (casa6) - Style guide enforcement
+        entry: /opt/miniforge/envs/casa6/bin/flake8
+        language: system
+        types: [python]
+        args: [--max-line-length=88, --extend-ignore=E203, W503]
+        exclude: ^(archive/|notebooks/|\.venv/|venv/|env/)
+
+      - id: mypy
+        name: mypy (casa6) - Static type checking
+        entry: /opt/miniforge/envs/casa6/bin/mypy
+        language: system
+        types: [python]
+        args: [--ignore-missing-imports, --no-strict-optional]
+        exclude: ^(archive/|notebooks/|\.venv/|venv/|env/|tests/)
+
+      - id: bandit
+        name: bandit (casa6) - Security linting
+        entry: /opt/miniforge/envs/casa6/bin/bandit
+        language: system
+        types: [python]
+        args: [-r, ., -f, json, -o, /dev/null, --skip, B101, B601]
+        exclude: ^(archive/|notebooks/|\.venv/|venv/|env/|tests/)
+
   # Port configuration validation
   - repo: local
     hooks:

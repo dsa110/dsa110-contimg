@@ -6,13 +6,14 @@ import type { InternalAxiosRequestConfig } from "axios";
 import { logger } from "../utils/logger";
 import { classifyError, getUserFriendlyMessage } from "../utils/errorUtils";
 import { createCircuitBreaker } from "./circuitBreaker";
+import { env } from "../config/env";
 
 // API base URL configuration
 // - If VITE_API_URL is explicitly set, use it (e.g., "http://localhost:8000/api")
 // - When served from /ui, use origin + /api (e.g., "http://localhost:8000/api")
 // - Otherwise use relative /api for Vite proxy
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL ||
+  env.VITE_API_URL ||
   (typeof window !== "undefined" && window.location.pathname.startsWith("/ui")
     ? `${window.location.origin}/api`
     : "/api");

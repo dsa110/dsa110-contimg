@@ -1,20 +1,20 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Direct test of SkyView functionality without requiring API to be running.
 Tests database queries, image path resolution, and FITS conversion logic.
 """
 
-import sys
 import os
-from pathlib import Path
 import sqlite3
-from typing import Optional, List, Dict
+import sys
+from pathlib import Path
+from typing import Dict, List, Optional
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from dsa110_contimg.api.image_utils import get_fits_path, is_casa_image
 from dsa110_contimg.api.data_access import _connect
+from dsa110_contimg.api.image_utils import get_fits_path, is_casa_image
 
 PRODUCTS_DB = Path(os.getenv("PIPELINE_PRODUCTS_DB", "/data/dsa110-contimg/state/products.sqlite3"))
 

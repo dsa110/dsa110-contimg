@@ -1,17 +1,20 @@
 # Image Gallery Filters Implementation
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-14  
 **Component:** `ImageBrowser.tsx` (Sky View Page)
 
 ## Summary
 
-Extended the Image Gallery filtering system with advanced filters including date range, declination range, quality threshold, and calibrator detection flag. All filters are synchronized with URL query parameters for shareable filtered views.
+Extended the Image Gallery filtering system with advanced filters including date
+range, declination range, quality threshold, and calibrator detection flag. All
+filters are synchronized with URL query parameters for shareable filtered views.
 
 ## Changes Made
 
 ### 1. Extended `ImageFilters` Type (`frontend/src/api/types.ts`)
 
 Added new filter fields:
+
 - `start_date?: string` - ISO date string (UTC) for start date
 - `end_date?: string` - ISO date string (UTC) for end date
 - `dec_min?: number` - Declination minimum (degrees)
@@ -22,6 +25,7 @@ Added new filter fields:
 ### 2. Updated `useImages` Hook (`frontend/src/api/queries.ts`)
 
 Extended the hook to pass new filter parameters to the API:
+
 - `start_date` - ISO date string
 - `end_date` - ISO date string
 - `dec_min` - Declination minimum (degrees)
@@ -67,12 +71,14 @@ Extended the hook to pass new filter parameters to the API:
 ## Filter Implementation Details
 
 ### Date Range Filter
+
 - **Component:** `DateTimePicker` from `@mui/x-date-pickers`
 - **Format:** ISO 8601 date strings (UTC)
 - **Storage:** Stored as ISO strings in filters, converted from Dayjs objects
 - **URL Param:** `start_date`, `end_date`
 
 ### Declination Range Filter
+
 - **Component:** `Slider` from `@mui/material`
 - **Range:** -90° to +90°
 - **Step:** 0.1 degrees
@@ -80,12 +86,14 @@ Extended the hook to pass new filter parameters to the API:
 - **URL Params:** `dec_min`, `dec_max`
 
 ### Quality Threshold Filter
+
 - **Component:** `TextField` (number type)
 - **Unit:** mJy (display) → Jy (API)
 - **Conversion:** User input in mJy, converted to Jy for API call
 - **URL Param:** `noise_max` (stored in Jy)
 
 ### Calibrator Detected Flag
+
 - **Component:** `Checkbox` with `FormControlLabel`
 - **Type:** Boolean
 - **URL Param:** `has_calibrator` (true/false string)
@@ -93,13 +101,16 @@ Extended the hook to pass new filter parameters to the API:
 ## URL Query Parameter Format
 
 Example URL with filters:
+
 ```
 /sky?start_date=2025-01-01T00:00:00Z&end_date=2025-01-31T23:59:59Z&dec_min=-30&dec_max=30&noise_max=0.001&has_calibrator=true&image_type=image&pbcor=true
 ```
 
 ## API Endpoint Support
 
-The implementation assumes the backend `GET /api/images` endpoint supports these query parameters:
+The implementation assumes the backend `GET /api/images` endpoint supports these
+query parameters:
+
 - `start_date` - ISO date string
 - `end_date` - ISO date string
 - `dec_min` - Float (degrees)
@@ -107,13 +118,17 @@ The implementation assumes the backend `GET /api/images` endpoint supports these
 - `noise_max` - Float (Jy)
 - `has_calibrator` - Boolean string ("true"/"false")
 
-**Note:** If the backend doesn't support these parameters yet, they will be sent but may be ignored. The frontend implementation is complete and ready for backend support.
+**Note:** If the backend doesn't support these parameters yet, they will be sent
+but may be ignored. The frontend implementation is complete and ready for
+backend support.
 
 ## Testing
 
-Test file location: `/data/dsa110-contimg/src/dsa110_contimg/frontend/src/pages/SkyView/__tests__/ImageGallery.test.tsx`
+Test file location:
+`/data/dsa110-contimg/src/dsa110_contimg/frontend/src/pages/SkyView/__tests__/ImageGallery.test.tsx`
 
 Test cases should verify:
+
 1. Declination range filtering
 2. Quality threshold (noise level) filtering
 3. Calibrator detected flag filtering
@@ -150,4 +165,3 @@ Test cases should verify:
 
 **Status:** ✅ Implementation Complete  
 **Backend Support:** ⚠️ Pending verification
-

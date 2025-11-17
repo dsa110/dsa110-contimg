@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Build MS files for a 60-minute window centered on VLA calibrator 0834+555 transit on 2025-11-02.
 
@@ -9,18 +9,20 @@ Usage:
     PYTHONPATH=/data/dsa110-contimg/src python scripts/build_0834_transit_ms.py
 """
 
-import sys
 import os
 import subprocess
+import sys
 from pathlib import Path
-from astropy.time import Time
+
 import astropy.units as u
+from astropy.time import Time
 
 # Add src to path
 repo_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(repo_root / "src"))
 
-from dsa110_contimg.calibration.catalogs import load_vla_catalog, get_calibrator_radec
+from dsa110_contimg.calibration.catalogs import (get_calibrator_radec,
+                                                 load_vla_catalog)
 from dsa110_contimg.calibration.schedule import previous_transits
 
 

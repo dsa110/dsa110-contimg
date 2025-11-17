@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Test script for performance and scalability improvements
 Tests caching, rate limiting, and timeout handling
@@ -219,10 +219,8 @@ def test_task_queue():
     print("Testing Task Queue")
     print("=" * 60)
 
-    from dsa110_contimg.api.task_queue import (
-        get_queue_stats,
-        is_task_queue_available,
-    )
+    from dsa110_contimg.api.task_queue import (get_queue_stats,
+                                               is_task_queue_available)
 
     available = is_task_queue_available()
     print(f"\n✓ Task queue available: {available}")

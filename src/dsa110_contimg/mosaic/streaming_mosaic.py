@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Streaming mosaic generation workflow for DSA-110 continuum imaging.
 
@@ -29,26 +29,18 @@ from dsa110_contimg.calibration.applycal import apply_to_target
 from dsa110_contimg.calibration.calibration import solve_bandpass, solve_gains
 from dsa110_contimg.calibration.model import populate_model_from_catalog
 from dsa110_contimg.calibration.selection import select_bandpass_from_catalog
-from dsa110_contimg.database.products import (
-    ensure_products_db,
-    get_storage_locations,
-    images_insert,
-    ms_index_upsert,
-    register_storage_location,
-)
+from dsa110_contimg.database.products import (ensure_products_db,
+                                              get_storage_locations,
+                                              images_insert, ms_index_upsert,
+                                              register_storage_location)
 from dsa110_contimg.database.registry import ensure_db as ensure_cal_db
-from dsa110_contimg.database.registry import (
-    get_active_applylist,
-    register_set_from_prefix,
-)
+from dsa110_contimg.database.registry import (get_active_applylist,
+                                              register_set_from_prefix)
 from dsa110_contimg.imaging.cli import image_ms
 from dsa110_contimg.mosaic.validation import validate_tiles_consistency
-from dsa110_contimg.utils.ms_organization import (
-    determine_ms_type,
-    get_organized_ms_path,
-    organize_ms_file,
-)
-
+from dsa110_contimg.utils.ms_organization import (determine_ms_type,
+                                                  get_organized_ms_path,
+                                                  organize_ms_file)
 # Lazy import to avoid syntax errors in cli.py
 # from dsa110_contimg.mosaic.cli import _build_weighted_mosaic, _ensure_mosaics_table
 from dsa110_contimg.utils.time_utils import extract_ms_time_range
@@ -394,6 +386,28 @@ class StreamingMosaicManager:
             f"(RA={ra_deg:.6f}, Dec={dec_deg:.6f}) "
             f"for Dec range [{dec_range_min:.2f}, {dec_range_max:.2f}]"
         )
+        
+        # Pre-calculate transit times for this calibrator
+        try:
+            from dsa110_contimg.conversion.transit_precalc import \
+              precalculate_transits_for_calibrator
+            
+            logger.info(f"Pre-calculating transit times for {calibrator_name}...")
+            transits_with_data = precalculate_transits_for_calibrator(
+                products_db=self.products_db,
+                calibrator_name=calibrator_name,
+                ra_deg=ra_deg,
+                dec_deg=dec_deg,
+                max_days_back=60,
+            )
+            logger.info(
+                f"✓ Pre-calculated transit times: {transits_with_data} transits have available data"
+            )
+        except Exception as e:
+            logger.warning(
+                f"Failed to pre-calculate transit times for {calibrator_name}: {e}. "
+                f"Transit times will be calculated on-demand."
+            )
 
     def get_bandpass_calibrator_for_dec(self, dec_deg: float) -> Optional[Dict]:
         """Get active bandpass calibrator for a given Dec.
@@ -1723,7 +1737,8 @@ class StreamingMosaicManager:
         for ms_path in ms_paths:
             try:
                 # Derive image name from MS path using validated naming
-                from dsa110_contimg.utils.naming import construct_image_basename
+                from dsa110_contimg.utils.naming import \
+                  construct_image_basename
 
                 ms_path_obj = Path(ms_path)
                 img_basename = construct_image_basename(ms_path_obj)
@@ -1994,10 +2009,8 @@ class StreamingMosaicManager:
 
             # Generate PNG visualization automatically
             try:
-                from dsa110_contimg.imaging.export import (
-                    export_fits,
-                    save_png_from_fits,
-                )
+                from dsa110_contimg.imaging.export import (export_fits,
+                                                           save_png_from_fits)
 
                 # If we have a CASA image but no FITS, export to FITS first
                 png_source_path = fits_path if Path(fits_path).exists() else None
@@ -2080,11 +2093,10 @@ class StreamingMosaicManager:
             True if successful, False otherwise
         """
         try:
-            from dsa110_contimg.database.data_registration import register_pipeline_data
+            from dsa110_contimg.database.data_registration import \
+              register_pipeline_data
             from dsa110_contimg.database.data_registry import (
-                ensure_data_registry_db,
-                finalize_data,
-            )
+              ensure_data_registry_db, finalize_data)
             from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
             # Determine data_registry DB path (same precedence as products DB)

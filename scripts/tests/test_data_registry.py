@@ -1,20 +1,16 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Test script for data registry functionality."""
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from dsa110_contimg.database.data_registry import (
-    ensure_data_registry_db,
-    register_data,
-    finalize_data,
-    get_data,
-    list_data,
-    link_data,
-    get_data_lineage,
-)
-from dsa110_contimg.database.data_config import STAGE_BASE, PRODUCTS_BASE
+from dsa110_contimg.database.data_config import PRODUCTS_BASE, STAGE_BASE
+from dsa110_contimg.database.data_registry import (ensure_data_registry_db,
+                                                   finalize_data, get_data,
+                                                   get_data_lineage, link_data,
+                                                   list_data, register_data)
+
 
 def test_data_registry():
     """Test basic data registry operations."""

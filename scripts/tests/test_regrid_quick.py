@@ -1,13 +1,15 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Quick 30-second test: Regrid one tile to another's coordinate system."""
 
-import shutil
-import tempfile
-from casacore.images import image as casaimage
-from casatasks import imregrid, importfits
-import sys
 import os
+import shutil
+import sys
+import tempfile
 from pathlib import Path
+
+from casacore.images import image as casaimage
+from casatasks import importfits, imregrid
+
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 

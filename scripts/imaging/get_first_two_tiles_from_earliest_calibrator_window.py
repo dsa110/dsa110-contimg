@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Get the first two tiles from the first validity window of the calibrator assigned to the Dec of earliest observations.
 
 This script:
@@ -20,12 +20,9 @@ from astropy.time import Time, TimeDelta
 
 from dsa110_contimg.api.data_access import fetch_observation_timeline
 from dsa110_contimg.conversion.calibrator_ms_service import (
-    CalibratorMSConfig,
-    CalibratorMSGenerator,
-)
-from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-    _peek_uvh5_phase_and_midtime,
-)
+  CalibratorMSConfig, CalibratorMSGenerator)
+from dsa110_contimg.conversion.strategies.hdf5_orchestrator import \
+  _peek_uvh5_phase_and_midtime
 from dsa110_contimg.database.products import ensure_products_db
 from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
 from dsa110_contimg.pointing.utils import load_pointing

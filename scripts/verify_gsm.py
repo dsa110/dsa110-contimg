@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Simple verification script for GSM generation.
 
 This script verifies that the exact code from the user's example works:

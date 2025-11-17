@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 # -*- coding: utf-8 -*-
 """
 DSA-110 UVH5 (in HDF5) → CASA MS orchestrator.
@@ -23,22 +23,21 @@ import numpy as np
 from astropy.time import Time  # type: ignore[import]
 from pyuvdata import UVData  # type: ignore[import]
 
-from dsa110_contimg.conversion.helpers import (
-    cleanup_casa_file_handles,
-    get_meridian_coords,
-    phase_to_meridian,
-    set_model_column,
-    set_telescope_identity,
-    validate_antenna_positions,
-    validate_model_data_quality,
-    validate_ms_frequency_order,
-    validate_phase_center_coherence,
-    validate_uvw_precision,
-)
+from dsa110_contimg.conversion.helpers import (cleanup_casa_file_handles,
+                                               get_meridian_coords,
+                                               phase_to_meridian,
+                                               set_model_column,
+                                               set_telescope_identity,
+                                               validate_antenna_positions,
+                                               validate_model_data_quality,
+                                               validate_ms_frequency_order,
+                                               validate_phase_center_coherence,
+                                               validate_uvw_precision)
 from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
 from dsa110_contimg.qa.pipeline_quality import check_ms_after_conversion
 from dsa110_contimg.utils.cli_helpers import ensure_scratch_dirs
-from dsa110_contimg.utils.error_context import format_file_error_with_suggestions
+from dsa110_contimg.utils.error_context import \
+  format_file_error_with_suggestions
 from dsa110_contimg.utils.exceptions import ConversionError, ValidationError
 from dsa110_contimg.utils.performance import track_performance
 
@@ -761,7 +760,8 @@ def convert_subband_groups_to_ms(
                 logger.debug(f"Stale tmpfs cleanup check failed (non-fatal): {cleanup_err}")
 
     # Add progress indicator for group processing
-    from dsa110_contimg.utils.progress import get_progress_bar, should_disable_progress
+    from dsa110_contimg.utils.progress import (get_progress_bar,
+                                               should_disable_progress)
 
     show_progress = not should_disable_progress(
         None,  # No args in this function scope - use env var
@@ -897,7 +897,8 @@ def convert_subband_groups_to_ms(
         if selected_writer not in ("parallel-subband", "direct-subband"):
             t0 = time.perf_counter()
             # Determine if progress should be shown
-            from dsa110_contimg.utils.progress import get_progress_bar, should_disable_progress
+            from dsa110_contimg.utils.progress import (get_progress_bar,
+                                                       should_disable_progress)
 
             show_progress = not should_disable_progress(
                 None,  # No args in this function scope
@@ -1028,9 +1029,8 @@ def convert_subband_groups_to_ms(
                 # are EXPECTED to be incoherent across fields because each field tracks LST at
                 # different times. See conversion/README.md for details.
                 try:
-                    from dsa110_contimg.conversion.ms_utils import (
-                        _fix_field_phase_centers_from_times,
-                    )
+                    from dsa110_contimg.conversion.ms_utils import \
+                      _fix_field_phase_centers_from_times
 
                     _fix_field_phase_centers_from_times(ms_path)
                     logger.info("Fixed FIELD table phase centers after concatenation")
@@ -1495,9 +1495,8 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
             )
 
         try:
-            from dsa110_contimg.conversion.calibrator_ms_service import (
-                CalibratorMSGenerator,
-            )
+            from dsa110_contimg.conversion.calibrator_ms_service import \
+              CalibratorMSGenerator
             from dsa110_contimg.conversion.config import CalibratorMSConfig
 
             logger.info(f"Finding transit for calibrator: {args.calibrator}")
@@ -1539,7 +1538,8 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
 
                     # Calculate transit time for that specific date
                     # Use end of target date as search start, then find previous transit
-                    from dsa110_contimg.calibration.schedule import previous_transits
+                    from dsa110_contimg.calibration.schedule import \
+                      previous_transits
 
                     target_date_end = Time(f"{args.transit_date}T23:59:59")
 

@@ -28,6 +28,7 @@ import FitScreenIcon from "@mui/icons-material/FitScreen";
 import { CARTAClient } from "../../services/cartaClient";
 import type { CARTAConfig } from "../../services/cartaClient";
 import { logger } from "../../utils/logger";
+import { env } from "../../config/env";
 import { CARTAImageRenderer } from "./CARTAImageRenderer";
 import { CARTAZoomPan } from "./CARTAZoomPan";
 import CARTAProfilePlot from "./CARTAProfilePlot";
@@ -95,8 +96,7 @@ export default function CARTAViewer({
 
   // Get backend URL from props or environment
   // Port 9002 is in the 9000-9099 range for External Integrations
-  const cartaBackendUrl =
-    backendUrl || import.meta.env.VITE_CARTA_BACKEND_URL || "ws://localhost:9002";
+  const cartaBackendUrl = backendUrl || env.VITE_CARTA_BACKEND_URL || "ws://localhost:9002";
 
   useEffect(() => {
     // Ensure we have a WebSocket URL

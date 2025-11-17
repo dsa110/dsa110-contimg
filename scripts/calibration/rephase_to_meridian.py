@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Rephase MS back to meridian phase center.
 
@@ -16,15 +16,16 @@ Example:
         /stage/dsa110-contimg/uvh5/2025-10-29T13:54:17.uvh5
 """
 
-import sys
 import os
+import sys
+from pathlib import Path
+
 import numpy as np
+from astropy import units as u
+from astropy.coordinates import Angle, EarthLocation, SkyCoord
+from astropy.time import Time
 from casacore.tables import table
 from casatasks import phaseshift
-from astropy.coordinates import SkyCoord, Angle, EarthLocation
-from astropy.time import Time
-from astropy import units as u
-from pathlib import Path
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))

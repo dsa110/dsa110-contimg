@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Wrapper script that monitors output for warnings and stops immediately if detected.
 
@@ -18,7 +18,7 @@ import sys
 import threading
 import time
 from pathlib import Path
-from queue import Queue, Empty
+from queue import Empty, Queue
 
 
 class WarningMonitor:

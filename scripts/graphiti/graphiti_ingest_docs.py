@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Ingest core documentation files into the Graphiti knowledge graph and link them
 to key scripts via DOCUMENTS edges for easy navigation by agents.
@@ -19,18 +19,16 @@ from __future__ import annotations
 import argparse
 import asyncio
 import os
+# Reuse embedder selection logic from the MCP server
+import sys
 from pathlib import Path
 from typing import Dict, List
 
 from dotenv import load_dotenv
-
 from graphiti_core import Graphiti
 
-# Reuse embedder selection logic from the MCP server
-import sys
 sys.path.insert(0, "/home/ubuntu/proj/mcps/graphiti/mcp_server")
 from graphiti_mcp_server import GraphitiEmbedderConfig  # type: ignore
-
 
 DOC_BASENAMES = [
     "README.md",

@@ -1,12 +1,14 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Create mock data for dashboard testing."""
 
+import random
 import sqlite3
 import time
-import random
-from pathlib import Path
 from datetime import datetime, timedelta
+from pathlib import Path
+
 from astropy.time import Time
+
 
 def create_mock_data(db_path: Path):
     """Create mock data for dashboard endpoints."""

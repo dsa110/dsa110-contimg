@@ -1,14 +1,24 @@
 # DSA-110 Continuum Pipeline - Frontend
 
-React + TypeScript web interface for monitoring the DSA-110 continuum imaging pipeline.
+**Date:** 2025-11-16
+
+> 📚 **Documentation Index**: For complete documentation navigation, see
+> [INDEX.md](./INDEX.md)  
+> 📝 **Quick Reference**: For formatting and structure guidelines, see
+> [DOCUMENTATION_QUICK_REFERENCE.md](./DOCUMENTATION_QUICK_REFERENCE.md)  
+> 🤖 **AI Agent Guidelines**: For creating/updating docs, see
+> [AGENT_GUIDELINES.md](./AGENT_GUIDELINES.md)
+
+React + TypeScript web interface for monitoring the DSA-110 continuum imaging
+pipeline.
 
 ## Tech Stack
 
-- **Framework**: React 18 + TypeScript
-- **Build Tool**: Vite 7
-- **UI Library**: Material-UI (MUI) v6
+- **Framework**: React 19 + TypeScript
+- **Build Tool**: Vite 6
+- **UI Library**: Material-UI (MUI) v7
 - **State Management**: TanStack React Query (for API state)
-- **Routing**: React Router v6
+- **Routing**: React Router v7
 - **Visualization**: Plotly.js, D3.js
 - **Tables**: AG Grid
 - **HTTP Client**: Axios
@@ -65,14 +75,21 @@ frontend/
 │   │   ├── types.ts        # TypeScript interfaces
 │   │   └── queries.ts      # React Query hooks
 │   ├── components/         # React components
-│   │   ├── Dashboard/      # Dashboard-specific components
+│   │   ├── CARTA/          # CARTA integration components
+│   │   ├── Cache/          # Cache management components
+│   │   ├── CircuitBreaker/ # Circuit breaker components
+│   │   ├── DeadLetterQueue/# Dead letter queue components
+│   │   ├── Events/         # Event handling components
+│   │   ├── MSDetails/      # Measurement set detail components
+│   │   ├── Pipeline/       # Pipeline workflow components
+│   │   ├── QA/             # Quality assurance components
 │   │   ├── Sky/            # Sky/image gallery components
-│   │   ├── Sources/        # Source monitoring components
-│   │   ├── Observing/      # Telescope status components
-│   │   ├── Health/         # System health components
-│   │   └── shared/         # Shared/reusable components
+│   │   └── workflows/      # Workflow orchestration components
 │   ├── pages/              # Page-level components
-│   │   └── DashboardPage.tsx
+│   │   ├── DashboardPage.tsx
+│   │   ├── HealthPage.tsx
+│   │   ├── ObservingPage.tsx
+│   │   └── [many more page components...]
 │   ├── theme/              # MUI theme configuration
 │   │   └── darkTheme.ts    # Dark mode theme
 │   ├── utils/              # Utility functions
@@ -109,6 +126,7 @@ See `src/api/types.ts` for complete interface definitions.
 ## Features
 
 ### Implemented (Phase 1)
+
 - [x] Dashboard with pipeline status
 - [x] System health metrics
 - [x] Recent observations table
@@ -116,6 +134,7 @@ See `src/api/types.ts` for complete interface definitions.
 - [x] Dark mode optimized for astronomy
 
 ### Planned (Phase 2-4)
+
 - [ ] ESE candidate panel with >5σ auto-flagging
 - [ ] Mosaic gallery (display existing mosaics)
 - [ ] Source monitoring table with NVSS IDs
@@ -128,9 +147,12 @@ See `src/api/types.ts` for complete interface definitions.
 
 ### Ubuntu 18.x Compatibility
 
-This project uses the `casa6` conda environment which provides Node.js v22.6.0. While Vite officially requires v22.12.0+, v22.6.0 works fine for our use case. If you encounter issues:
+This project uses the `casa6` conda environment which provides Node.js v22.6.0.
+While Vite officially requires v22.12.0+, v22.6.0 works fine for our use case.
+If you encounter issues:
 
 1. Use Docker alternative:
+
    ```bash
    docker run -it -v /data/dsa110-contimg:/workspace -w /workspace/frontend node:22 npm install
    ```

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 # pyright: reportAttributeAccessIssue=false, reportUndefinedVariable=false, reportUnusedVariable=false, reportUnusedImport=false
 # pylint: disable=no-member,undefined-variable,unused-variable,unused-import
 """Validate pipeline source recovery by simulating a 10-minute (2-tile) NVSS field.
@@ -29,15 +29,12 @@ from astropy.coordinates import SkyCoord
 from astropy.time import Time
 
 from dsa110_contimg.calibration.catalogs import query_nvss_sources
-from dsa110_contimg.mosaic.cli import _build_weighted_mosaic_linearmosaic  # noqa: F401
+from dsa110_contimg.mosaic.cli import \
+  _build_weighted_mosaic_linearmosaic  # noqa: F401
 from dsa110_contimg.mosaic.validation import TileQualityMetrics  # noqa: F401
 from dsa110_contimg.simulation.make_synthetic_uvh5 import (
-    build_time_arrays,
-    build_uvdata_from_scratch,
-    build_uvw,
-    load_reference_layout,
-    load_telescope_config,
-)
+  build_time_arrays, build_uvdata_from_scratch, build_uvw,
+  load_reference_layout, load_telescope_config)
 from dsa110_contimg.simulation.visibility_models import add_thermal_noise
 
 # Add src to path before importing project modules
@@ -282,9 +279,8 @@ def simulate_two_tiles_with_sources(
             # Add calibration errors if requested
             if add_cal_errors:
                 from dsa110_contimg.simulation.visibility_models import (
-                    add_calibration_errors,
-                    apply_calibration_errors_to_visibilities,
-                )
+                  add_calibration_errors,
+                  apply_calibration_errors_to_visibilities)
 
                 _, complex_gains, _ = add_calibration_errors(
                     uv.data_array,
@@ -541,7 +537,8 @@ def main():
     print("=" * 60)
 
     # Find complete groups from staged files
-    from dsa110_contimg.conversion.strategies.hdf5_orchestrator import find_subband_groups
+    from dsa110_contimg.conversion.strategies.hdf5_orchestrator import \
+      find_subband_groups
 
     # Get time window from synthetic files
     first_file_time = start_time
@@ -583,9 +580,8 @@ def main():
         ms_path = ms_output_dir / f"{timestamp}.ms"
 
         # Use conversion helper to convert group
-        from ops.pipeline.helpers_ms_conversion import (
-            write_ms_group_via_uvh5_to_ms,
-        )
+        from ops.pipeline.helpers_ms_conversion import \
+          write_ms_group_via_uvh5_to_ms
 
         try:
             write_ms_group_via_uvh5_to_ms(
@@ -717,7 +713,8 @@ def main():
 
     # Run photometry
     print("  Running photometry on mosaic...")
-    from dsa110_contimg.photometry.manager import PhotometryConfig, PhotometryManager
+    from dsa110_contimg.photometry.manager import (PhotometryConfig,
+                                                   PhotometryManager)
 
     photometry_manager = PhotometryManager()
     photometry_config = PhotometryConfig(

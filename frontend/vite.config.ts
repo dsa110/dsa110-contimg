@@ -1,6 +1,21 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
+import { webcrypto } from "node:crypto";
+
+// Ensure Web Crypto API exists early for Vite startup
+// Node 16+ requires explicit setup for crypto.getRandomValues
+// This is required because Vite 6 needs crypto.getRandomValues which isn't available in Node 16
+if (typeof globalThis.crypto === "undefined") {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any).crypto = webcrypto as any;
+}
+
+// Ensure getRandomValues is available (required by Vite)
+if (globalThis.crypto && !globalThis.crypto.getRandomValues) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis.crypto as any).getRandomValues = webcrypto.getRandomValues.bind(webcrypto);
+}
 
 // https://vite.dev/config/
 // In Docker, use service name 'api' or container name 'contimg-api'; locally, use localhost
@@ -30,12 +45,14 @@ export default defineConfig({
   plugins: [
     react(),
     nodePolyfills({
-      // Enable buffer polyfill
+      // Enable buffer and crypto polyfills
       globals: {
         Buffer: true,
         global: true,
         process: true,
       },
+      // Enable crypto polyfill for browser environment
+      include: ["crypto", "stream", "util"],
     }),
   ],
   // Use /ui/ base path for production builds (when served from FastAPI at /ui)

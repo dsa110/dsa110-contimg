@@ -45,6 +45,11 @@ export function NotificationProvider({
 
   const showNotification = useCallback(
     (msg: string, sev: AlertColor = "info", autoHideDuration = 6000) => {
+      // Generate a unique notification ID
+      // Note: Math.random() is acceptable here since notification IDs only need to be unique
+      // for React keys, not cryptographically secure. If you need cryptographically secure
+      // IDs (e.g., for security-sensitive features), use crypto.randomUUID() instead:
+      // const id = crypto.randomUUID();
       const id = `${Date.now()}-${Math.random()}`;
       const notification: Notification = {
         id,

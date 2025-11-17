@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """CLI tool for recommending reference antennas for DSA-110 calibration.
 
 This script provides intelligent reference antenna selection for CASA
@@ -23,11 +23,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.dsa110_contimg.calibration.refant_selection import (
-    get_default_outrigger_refants,
-    recommend_refants_from_ms,
-    recommend_outrigger_refants,
-    analyze_antenna_health_from_caltable,
-)
+  analyze_antenna_health_from_caltable, get_default_outrigger_refants,
+  recommend_outrigger_refants, recommend_refants_from_ms)
 
 
 def main():

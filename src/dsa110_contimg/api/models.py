@@ -44,11 +44,32 @@ class CalibrationSet(BaseModel):
     total: int = Field(..., description="Total tables registered for the set")
 
 
+class CatalogCoverageStatus(BaseModel):
+    """Status of catalog databases for current declination."""
+    dec_deg: Optional[float] = Field(None, description="Current declination in degrees")
+    nvss: Dict[str, Union[bool, str]] = Field(
+        default_factory=dict,
+        description="NVSS catalog status: exists, within_coverage, db_path"
+    )
+    first: Dict[str, Union[bool, str]] = Field(
+        default_factory=dict,
+        description="FIRST catalog status: exists, within_coverage, db_path"
+    )
+    rax: Dict[str, Union[bool, str]] = Field(
+        default_factory=dict,
+        description="RACS catalog status: exists, within_coverage, db_path"
+    )
+
+
 class PipelineStatus(BaseModel):
     queue: QueueStats
     recent_groups: List[QueueGroup]
     calibration_sets: List[CalibrationSet]
     matched_recent: int = Field(0, description="Number of recent groups with calibrator matches")
+    catalog_coverage: Optional[CatalogCoverageStatus] = Field(
+        None,
+        description="Catalog database coverage status for current declination"
+    )
 
 
 class ProductEntry(BaseModel):

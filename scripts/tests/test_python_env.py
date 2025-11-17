@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Test script to verify Python environment and CASA availability.
 
@@ -9,8 +9,9 @@ This script checks:
 4. Whether required scientific packages are available
 """
 
-import sys
 import os
+import sys
+
 
 def main():
     print("=" * 60)

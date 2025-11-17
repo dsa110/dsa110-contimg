@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Create FITS and PNG visualizations for mosaic and individual tiles.
 
@@ -9,17 +9,20 @@ This script:
 """
 import sys
 from pathlib import Path
+
+import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import fits
-from astropy.wcs import WCS
-import matplotlib.pyplot as plt
 from astropy.visualization import ZScaleInterval
+from astropy.wcs import WCS
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from casatasks import exportfits
 import os
+
+from casatasks import exportfits
+
 
 def create_png_with_wcs(fits_path, output_png, title=""):
     """Create PNG with WCS coordinates and zscale normalization."""

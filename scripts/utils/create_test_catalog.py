@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Create a test master_sources.sqlite3 database for development/testing.
 
@@ -6,9 +6,10 @@ This creates a minimal catalog with a few reference sources for testing
 the photometry normalization without requiring the full NVSS catalog download.
 """
 
-import sqlite3
 import os
+import sqlite3
 from pathlib import Path
+
 
 def create_test_catalog(db_path: str = "state/catalogs/master_sources.sqlite3"):
     """Create a test catalog database with minimal reference sources."""

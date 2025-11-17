@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Build a master reference catalog by crossmatching NVSS with VLASS and FIRST.
 

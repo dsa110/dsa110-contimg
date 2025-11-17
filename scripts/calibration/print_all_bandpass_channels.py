@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Print all bandpass channels with flagging statistics (post-solve).
 
@@ -6,9 +6,10 @@ This script provides the complete picture that CASA doesn't print,
 showing ALL channels regardless of flagging threshold.
 """
 
-import sys
 import argparse
+import sys
 from pathlib import Path
+
 import numpy as np
 
 try:

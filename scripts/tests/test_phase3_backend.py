@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Test script for Phase 3 backend API endpoints (Events and Cache).
 """
@@ -11,7 +11,8 @@ import time
 from datetime import datetime
 
 from dsa110_contimg.pipeline.caching import get_cache_backend
-from dsa110_contimg.pipeline.event_bus import EventType, PipelineEvent, get_event_bus
+from dsa110_contimg.pipeline.event_bus import (EventType, PipelineEvent,
+                                               get_event_bus)
 
 
 def test_event_bus():
@@ -26,7 +27,8 @@ def test_event_bus():
     print("\n1. Publishing test events...")
     import time
 
-    from dsa110_contimg.pipeline.event_bus import EventType, PhotometryMeasurementCompleted
+    from dsa110_contimg.pipeline.event_bus import (
+      EventType, PhotometryMeasurementCompleted)
 
     for i in range(5):
         event = PhotometryMeasurementCompleted(

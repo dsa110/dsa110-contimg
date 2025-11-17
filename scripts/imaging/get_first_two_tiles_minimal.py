@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Minimal: Get first 2 tiles, build mosaic, run photometry.
 
 Supports --dry-run flag for complete workflow simulation.
@@ -19,16 +19,13 @@ sys.path.insert(0, str(repo_root / "src"))
 
 from dsa110_contimg.calibration.schedule import next_transit_time
 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-    _peek_uvh5_phase_and_midtime,
-    find_subband_groups,
-)
-from dsa110_contimg.mosaic.cli import (
-    _build_weighted_mosaic_linearmosaic,
-    _fetch_tiles,
-)
+  _peek_uvh5_phase_and_midtime, find_subband_groups)
+from dsa110_contimg.mosaic.cli import (_build_weighted_mosaic_linearmosaic,
+                                       _fetch_tiles)
 from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
 from dsa110_contimg.mosaic.validation import TileQualityMetrics
-from dsa110_contimg.photometry.manager import PhotometryConfig, PhotometryManager
+from dsa110_contimg.photometry.manager import (PhotometryConfig,
+                                               PhotometryManager)
 from dsa110_contimg.pointing.utils import load_pointing
 
 # Suppress ERFA warnings about "dubious years" (harmless for dates in 2025+)

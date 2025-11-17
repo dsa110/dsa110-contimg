@@ -415,11 +415,13 @@ export default function DirectoryBrowser({
               <CircularProgress />
             </Box>
           ) : thumbnailHtml ? (
-            // Security: HTML is sanitized with DOMPurify before rendering to prevent XSS attacks.
-            // The HTML comes from our trusted backend API (/api/visualization/directory/thumbnails),
-            // but we sanitize it as a defense-in-depth measure. DOMPurify removes any potentially
-            // dangerous scripts, event handlers, and unsafe attributes while preserving safe HTML
-            // elements needed for thumbnail display.
+            /* Security: HTML is sanitized with DOMPurify before rendering to prevent XSS attacks.
+               The HTML comes from our trusted backend API (/api/visualization/directory/thumbnails),
+               but we sanitize it as a defense-in-depth measure. DOMPurify removes any potentially
+               dangerous scripts, event handlers, and unsafe attributes while preserving safe HTML
+               elements needed for thumbnail display. This sanitization ensures that even if
+               the backend were compromised or if user-controlled data somehow entered the HTML
+               generation pipeline, we prevent XSS attacks at the client side. */
             <Box
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(thumbnailHtml, {

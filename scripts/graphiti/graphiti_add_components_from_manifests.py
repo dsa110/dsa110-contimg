@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Add SoftwareComponent nodes and DEPENDS_ON edges by scanning dependency manifests
 in a repository (requirements*.txt, package.json) without running a full importer.
@@ -21,7 +21,6 @@ from pathlib import Path
 from typing import Iterable
 
 from dotenv import load_dotenv
-
 from graphiti_core import Graphiti
 
 

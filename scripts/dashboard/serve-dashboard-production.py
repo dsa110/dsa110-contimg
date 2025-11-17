@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Production Dashboard HTTP Server
 Serves the frontend build with proper /ui/ base path handling and SPA routing

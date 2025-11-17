@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Build FIRST SQLite database for a declination strip based on HDF5 file declination.
 

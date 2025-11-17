@@ -1,5 +1,7 @@
 # ESLint Config Node Version Compatibility Issue
 
+**Date:** 2025-11-14
+
 ## Issue
 
 ESLint 9 with flat config requires Node.js 18+ due to use of `structuredClone`

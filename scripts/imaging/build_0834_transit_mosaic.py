@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Build a 60-minute mosaic centered on VLA calibrator 0834+555 transit.
 
@@ -14,14 +14,17 @@ Usage:
 """
 
 import argparse
-from dsa110_contimg.mosaic.cli import cmd_plan, cmd_build
-from dsa110_contimg.conversion.config import CalibratorMSConfig
-from dsa110_contimg.conversion.calibrator_ms_service import CalibratorMSGenerator
-import sys
 import os
-from pathlib import Path
-from astropy.time import Time
+import sys
 from datetime import datetime
+from pathlib import Path
+
+from astropy.time import Time
+
+from dsa110_contimg.conversion.calibrator_ms_service import \
+  CalibratorMSGenerator
+from dsa110_contimg.conversion.config import CalibratorMSConfig
+from dsa110_contimg.mosaic.cli import cmd_build, cmd_plan
 
 # Add src to path
 repo_root = Path(__file__).resolve().parent.parent

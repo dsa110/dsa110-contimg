@@ -1,19 +1,19 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Comprehensive test suite for DSA-110 pipeline dashboard and API.
 Tests various scenarios, edge cases, and potential bugs.
 """
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-import sqlite3
 import json
-from typing import Any, Dict, List
+import sqlite3
 from datetime import datetime
+from typing import Any, Dict, List
 
 # Test results storage
 test_results: List[Dict[str, Any]] = []

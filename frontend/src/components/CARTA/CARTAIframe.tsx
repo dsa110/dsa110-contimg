@@ -8,9 +8,10 @@
 import { Box, Paper, Alert, CircularProgress, Typography, Button } from "@mui/material";
 import { useState, useEffect, useRef } from "react";
 import { logger } from "../../utils/logger";
+import { env } from "../../config/env";
 
 // API base URL - use environment variable or default to localhost
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE = env.VITE_API_URL || "http://localhost:8000";
 
 interface CARTAIframeProps {
   /** CARTA backend URL (e.g., "http://localhost:9002") */
@@ -56,7 +57,7 @@ export default function CARTAIframe({
       // Port 9003 is in the 9000-9099 range for External Integrations
       // Prop takes precedence over environment variable
       const frontendUrl =
-        cartaFrontendUrl || import.meta.env.VITE_CARTA_FRONTEND_URL || "http://localhost:9003";
+        cartaFrontendUrl || env.VITE_CARTA_FRONTEND_URL || "http://localhost:9003";
       const url = new URL(frontendUrl);
 
       // Add backend URL if provided
@@ -64,7 +65,7 @@ export default function CARTAIframe({
         url.searchParams.set("backend", cartaBackendUrl);
       } else {
         // Use environment variable as fallback
-        const envBackendUrl = import.meta.env.VITE_CARTA_BACKEND_URL;
+        const envBackendUrl = env.VITE_CARTA_BACKEND_URL;
         if (envBackendUrl) {
           url.searchParams.set("backend", envBackendUrl);
         }
@@ -92,7 +93,7 @@ export default function CARTAIframe({
           setConnectionChecked(true);
           // Check CARTA status and try to start if needed
           const frontendUrlCheck =
-            cartaFrontendUrl || import.meta.env.VITE_CARTA_FRONTEND_URL || "http://localhost:9003";
+            cartaFrontendUrl || env.VITE_CARTA_FRONTEND_URL || "http://localhost:9003";
           await checkAndStartCARTA(frontendUrlCheck);
         }
       }, 5000); // Reduced timeout to 5 seconds for faster auto-start
@@ -205,7 +206,7 @@ export default function CARTAIframe({
                   `CARTA services started but not ready after ${maxAttempts} seconds. ` +
                     `Please check CARTA services manually:\n` +
                     `- CARTA Frontend: ${frontendUrl}\n` +
-                    `- CARTA Backend: ${cartaBackendUrl || import.meta.env.VITE_CARTA_BACKEND_URL || "ws://localhost:9002"}`
+                    `- CARTA Backend: ${cartaBackendUrl || env.VITE_CARTA_BACKEND_URL || "ws://localhost:9002"}`
                 );
               }
             }
@@ -227,7 +228,7 @@ export default function CARTAIframe({
           `Failed to start CARTA: ${startResult.message}\n\n` +
             `Please ensure CARTA services are running:\n` +
             `- CARTA Frontend: ${frontendUrl}\n` +
-            `- CARTA Backend: ${cartaBackendUrl || import.meta.env.VITE_CARTA_BACKEND_URL || "ws://localhost:9002"}`
+            `- CARTA Backend: ${cartaBackendUrl || env.VITE_CARTA_BACKEND_URL || "ws://localhost:9002"}`
         );
       }
     } catch (err) {
@@ -238,7 +239,7 @@ export default function CARTAIframe({
         `${errorMessage}\n\n` +
           `Please ensure CARTA services are running:\n` +
           `- CARTA Frontend: ${frontendUrl}\n` +
-          `- CARTA Backend: ${cartaBackendUrl || import.meta.env.VITE_CARTA_BACKEND_URL || "ws://localhost:9002"}`
+          `- CARTA Backend: ${cartaBackendUrl || env.VITE_CARTA_BACKEND_URL || "ws://localhost:9002"}`
       );
     }
   };
@@ -247,8 +248,7 @@ export default function CARTAIframe({
    * Manual retry to start CARTA
    */
   const handleRetryStart = async () => {
-    const frontendUrl =
-      cartaFrontendUrl || import.meta.env.VITE_CARTA_FRONTEND_URL || "http://localhost:9003";
+    const frontendUrl = cartaFrontendUrl || env.VITE_CARTA_FRONTEND_URL || "http://localhost:9003";
     setAutoStartAttempted(false);
     setError(null);
     await checkAndStartCARTA(frontendUrl);
@@ -295,8 +295,8 @@ export default function CARTAIframe({
             To use CARTA, you need to have CARTA services running:
           </Typography>
           <Typography component="pre" variant="body2" sx={{ mt: 1, fontSize: "0.875rem" }}>
-            {`CARTA Frontend: ${cartaFrontendUrl || import.meta.env.VITE_CARTA_FRONTEND_URL || "http://localhost:9003"}
-CARTA Backend: ${cartaBackendUrl || import.meta.env.VITE_CARTA_BACKEND_URL || "ws://localhost:9002"}`}
+            {`CARTA Frontend: ${cartaFrontendUrl || env.VITE_CARTA_FRONTEND_URL || "http://localhost:9003"}
+CARTA Backend: ${cartaBackendUrl || env.VITE_CARTA_BACKEND_URL || "ws://localhost:9002"}`}
           </Typography>
         </Box>
       </Alert>
@@ -341,7 +341,7 @@ CARTA Backend: ${cartaBackendUrl || import.meta.env.VITE_CARTA_BACKEND_URL || "w
           logger.error("CARTA iframe failed to load", e);
           setConnectionChecked(true);
           setError(
-            `Failed to load CARTA viewer from ${cartaFrontendUrl || import.meta.env.VITE_CARTA_FRONTEND_URL || "http://localhost:9003"}. ` +
+            `Failed to load CARTA viewer from ${cartaFrontendUrl || env.VITE_CARTA_FRONTEND_URL || "http://localhost:9003"}. ` +
               `Please ensure CARTA frontend service is running.`
           );
         }}

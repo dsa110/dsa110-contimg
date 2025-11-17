@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Dedicated tool to fix syntax errors, particularly indentation issues,
 in Python files using AST parsing and systematic correction.

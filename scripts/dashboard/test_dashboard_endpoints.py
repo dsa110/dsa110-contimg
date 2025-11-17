@@ -1,21 +1,20 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Test dashboard endpoints with real database."""
 
-import sys
 import json
-from pathlib import Path
+import sys
 from datetime import datetime, timedelta
+from pathlib import Path
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from dsa110_contimg.api.config import ApiConfig
-from dsa110_contimg.api.data_access import (
-    fetch_ese_candidates,
-    fetch_mosaics,
-    fetch_source_timeseries,
-    fetch_alert_history,
-)
+from dsa110_contimg.api.data_access import (fetch_alert_history,
+                                            fetch_ese_candidates,
+                                            fetch_mosaics,
+                                            fetch_source_timeseries)
+
 
 def test_ese_candidates():
     """Test ESE candidates endpoint."""

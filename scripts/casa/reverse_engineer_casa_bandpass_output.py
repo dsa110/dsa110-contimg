@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Reverse-engineer CASA's bandpass output format.
 
@@ -9,9 +9,10 @@ This script investigates:
 4. Why does it say "1" when there are 53 flagged?
 """
 
-import sys
 import argparse
+import sys
 from pathlib import Path
+
 import numpy as np
 
 try:

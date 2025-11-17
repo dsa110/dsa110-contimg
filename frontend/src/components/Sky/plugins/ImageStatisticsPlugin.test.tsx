@@ -43,7 +43,10 @@ describe("ImageStatisticsPlugin", () => {
     if (fillValue !== undefined) {
       data.fill(fillValue);
     } else {
-      // Random values between 1 and 11
+      // Random values between 1 and 11 for test data
+      // Security note: Math.random() is acceptable here since this is a test file generating
+      // mock test data. Test data generation does not require cryptographic security.
+      // For security-sensitive production code, use crypto.randomUUID() or crypto.randomBytes().
       for (let i = 0; i < data.length; i++) {
         data[i] = Math.random() * 10 + 1;
       }

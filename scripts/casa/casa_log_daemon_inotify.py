@@ -1,18 +1,19 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 CASA Log Daemon using inotifywait - Low CPU, recursive monitoring
 Uses kernel-level inotify for efficient monitoring of all subdirectories
 """
 
+import logging
 import os
+import shutil
+import signal
+import subprocess
 import sys
 import time
-import logging
-import signal
-import shutil
-import subprocess
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
 
 class CasaLogHandler:
     """Handler for casa-*.log files"""

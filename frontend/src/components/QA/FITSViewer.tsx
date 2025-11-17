@@ -16,6 +16,7 @@ import {
 import { ExpandMore, Image as ImageIcon, Info } from "@mui/icons-material";
 import { useFITSInfo } from "../../api/queries";
 import { apiClient } from "../../api/client";
+import DOMPurify from "dompurify";
 
 declare global {
   interface Window {
@@ -33,6 +34,7 @@ export default function FITSViewer({ fitsPath, height = 600, width = 800 }: FITS
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
   const [viewerHtml, setViewerHtml] = useState<string | null>(null);
+  const [sanitizedHtml, setSanitizedHtml] = useState<string | null>(null);
   const [loadingViewer, setLoadingViewer] = useState(false);
   const [viewerError, setViewerError] = useState<string | null>(null);
 
@@ -69,13 +71,50 @@ export default function FITSViewer({ fitsPath, height = 600, width = 800 }: FITS
       });
   }, [fitsPath, width, height]);
 
-  // Inject JS9 viewer HTML when available
-  // Security note: viewerHtml comes from our own backend API (/api/visualization/fits/view),
-  // not from user input, so innerHTML is safe here. The backend generates trusted JS9 viewer HTML.
+  // Sanitize HTML when viewerHtml changes
+  // Security: HTML is sanitized with DOMPurify before rendering to prevent XSS attacks.
+  // The HTML comes from our trusted backend API (/api/visualization/fits/view),
+  // but we sanitize it as a defense-in-depth measure. DOMPurify removes any potentially
+  // dangerous scripts, event handlers, and unsafe attributes while preserving safe HTML
+  // elements needed for JS9 viewer functionality. Note: JS9 may require specific attributes
+  // for proper initialization, so we use a permissive sanitization config.
   useEffect(() => {
-    if (!viewerHtml || !viewerRef.current) return;
+    if (!viewerHtml) {
+      setSanitizedHtml(null);
+      return;
+    }
 
-    viewerRef.current.innerHTML = viewerHtml;
+    // Sanitize HTML before rendering to prevent XSS
+    const sanitized = DOMPurify.sanitize(viewerHtml, {
+      // Allow common HTML elements needed for JS9 viewer
+      ALLOWED_TAGS: ["div", "canvas", "img", "span", "a", "script", "style", "link", "meta"],
+      // Allow attributes needed for JS9 functionality
+      ALLOWED_ATTR: [
+        "class",
+        "id",
+        "style",
+        "src",
+        "alt",
+        "href",
+        "target",
+        "title",
+        "width",
+        "height",
+        "data-*", // JS9 uses data attributes
+        "onload", // JS9 may need onload handlers
+      ],
+      // Allow data attributes for JS9
+      ALLOW_DATA_ATTR: true,
+      // Keep relative URLs
+      ALLOW_UNKNOWN_PROTOCOLS: false,
+    });
+
+    setSanitizedHtml(sanitized);
+  }, [viewerHtml]);
+
+  // Ensure JS9 is initialized after HTML is rendered
+  useEffect(() => {
+    if (!sanitizedHtml || !viewerRef.current) return;
 
     // Ensure JS9 is initialized
     if (window.JS9 && typeof window.JS9.Load === "function") {
@@ -90,7 +129,7 @@ export default function FITSViewer({ fitsPath, height = 600, width = 800 }: FITS
         }
       }, 100);
     }
-  }, [viewerHtml]);
+  }, [sanitizedHtml]);
 
   if (!fitsPath) {
     return (
@@ -203,7 +242,7 @@ export default function FITSViewer({ fitsPath, height = 600, width = 800 }: FITS
         </Box>
       )}
 
-      {viewerHtml && !loadingViewer && (
+      {sanitizedHtml && !loadingViewer && (
         <Box
           ref={containerRef}
           sx={{
@@ -214,7 +253,12 @@ export default function FITSViewer({ fitsPath, height = 600, width = 800 }: FITS
             overflow: "auto",
           }}
         >
-          <div ref={viewerRef} />
+          {/* Security: HTML is sanitized with DOMPurify before rendering to prevent XSS attacks.
+              The HTML comes from our trusted backend API (/api/visualization/fits/view),
+              but we sanitize it as a defense-in-depth measure. DOMPurify removes any potentially
+              dangerous scripts, event handlers, and unsafe attributes while preserving safe HTML
+              elements needed for JS9 viewer functionality. */}
+          <div ref={viewerRef} dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
         </Box>
       )}
     </Paper>

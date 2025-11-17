@@ -1,15 +1,16 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Test script for SkyView functionality.
 Tests the /api/images endpoint and /api/images/{id}/fits endpoint.
 """
 
-import sys
 import os
-from pathlib import Path
 import sqlite3
-import requests
+import sys
+from pathlib import Path
 from typing import Optional
+
+import requests
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))

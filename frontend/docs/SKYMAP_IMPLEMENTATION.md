@@ -1,15 +1,19 @@
 # Interactive Sky Map Implementation
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-14  
 **Component:** `SkyMap.tsx` (Sky View Page)
 
 ## Summary
 
-Implemented an interactive sky coverage map component that displays telescope pointing history and observed field positions. The component uses Plotly.js for visualization and follows the existing `PointingVisualization` component patterns.
+Implemented an interactive sky coverage map component that displays telescope
+pointing history and observed field positions. The component uses Plotly.js for
+visualization and follows the existing `PointingVisualization` component
+patterns.
 
 ## API Endpoints Used
 
 ### 1. `/api/pointing_history`
+
 - **Endpoint:** `GET /api/pointing_history?start_mjd={start}&end_mjd={end}`
 - **Hook:** `usePointingHistory(startMjd, endMjd)`
 - **Returns:** `PointingHistoryList` with items containing:
@@ -19,6 +23,7 @@ Implemented an interactive sky coverage map component that displays telescope po
 - **Purpose:** Telescope pointing positions over time
 
 ### 2. `/api/images`
+
 - **Endpoint:** `GET /api/images?limit=1000`
 - **Hook:** `useImages({ limit: 1000 })`
 - **Returns:** `ImageList` with items containing:
@@ -83,10 +88,10 @@ Implemented an interactive sky coverage map component that displays telescope po
 
 ```typescript
 interface SkyMapProps {
-  height?: number;              // Plot height in pixels (default: 600)
-  historyDays?: number;         // Days of pointing history to show (default: 7)
+  height?: number; // Plot height in pixels (default: 600)
+  historyDays?: number; // Days of pointing history to show (default: 7)
   showPointingHistory?: boolean; // Show telescope pointing trail (default: true)
-  showObservedFields?: boolean;  // Show observed field positions (default: true)
+  showObservedFields?: boolean; // Show observed field positions (default: true)
 }
 ```
 
@@ -108,11 +113,13 @@ Placed at the top of the Sky View page, above the image browser and viewer.
 ## Data Processing
 
 ### Pointing History
+
 - Converts MJD range to Unix timestamps for date range calculation
 - Normalizes timestamps for color interpolation
 - Filters to recent points for marker display (performance)
 
 ### Observed Fields
+
 - Filters images to only those with RA/Dec coordinates
 - Normalizes observation times for color interpolation
 - Calculates marker sizes based on noise level (inverted: lower noise = larger)
@@ -121,10 +128,12 @@ Placed at the top of the Sky View page, above the image browser and viewer.
 ## Color Coding
 
 ### Pointing History
+
 - **Color Scale:** Blue (old) → Red (recent)
 - **Interpolation:** RGB(0, 100, 255) → RGB(255, 100, 0)
 
 ### Observed Fields
+
 - **Color Scale:** Purple (old) → Yellow (recent)
 - **Interpolation:** RGB(0, 0, 255) → RGB(255, 200, 0)
 
@@ -186,6 +195,7 @@ Placed at the top of the Sky View page, above the image browser and viewer.
 ## Testing
 
 Test cases should verify:
+
 1. Pointing history displays correctly
 2. Observed fields display correctly
 3. Click handling opens dialog with correct data
@@ -213,4 +223,3 @@ Test cases should verify:
 
 **Status:** ✅ Implementation Complete  
 **Backend Support:** ✅ Endpoints Available
-

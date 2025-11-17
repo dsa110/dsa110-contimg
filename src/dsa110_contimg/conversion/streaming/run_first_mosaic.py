@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Unified script to process first 10 groups and create one mosaic.
 
@@ -21,25 +21,18 @@ from dsa110_contimg.utils.cli_helpers import setup_casa_environment
 
 setup_casa_environment()
 
-from dsa110_contimg.conversion.streaming.streaming_converter import QueueDB
-from dsa110_contimg.utils.ms_organization import (
-    extract_date_from_filename,
-    create_path_mapper,
-    determine_ms_type,
-    organize_ms_file,
-)
-from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
-from dsa110_contimg.database.products import (
-    ensure_products_db,
-    ms_index_upsert,
-    images_insert,
-)
-from dsa110_contimg.database.registry import (
-    ensure_db as ensure_cal_db,
-    get_active_applylist,
-)
 from dsa110_contimg.calibration.applycal import apply_to_target
+from dsa110_contimg.conversion.streaming.streaming_converter import QueueDB
+from dsa110_contimg.database.products import (ensure_products_db,
+                                              images_insert, ms_index_upsert)
+from dsa110_contimg.database.registry import ensure_db as ensure_cal_db
+from dsa110_contimg.database.registry import get_active_applylist
 from dsa110_contimg.imaging.cli import image_ms
+from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
+from dsa110_contimg.utils.ms_organization import (create_path_mapper,
+                                                  determine_ms_type,
+                                                  extract_date_from_filename,
+                                                  organize_ms_file)
 from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
 logging.basicConfig(
@@ -116,9 +109,8 @@ def process_one_group(
     # Convert subband group to MS (only if MS doesn't exist or was invalid)
     if not ms_path_obj.exists():
         try:
-            from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-                convert_subband_groups_to_ms,
-            )
+            from dsa110_contimg.conversion.strategies.hdf5_orchestrator import \
+              convert_subband_groups_to_ms
 
             convert_subband_groups_to_ms(
                 args.input_dir,
@@ -180,8 +172,9 @@ def process_one_group(
             )
             # Fallback: Use observation time from filename, not current time
             try:
-                from astropy.time import Time
                 from datetime import datetime
+
+                from astropy.time import Time
 
                 # Parse timestamp from group ID (format: YYYY-MM-DDTHH:MM:SS)
                 obs_time_str = gid.replace("T", " ")
@@ -216,8 +209,9 @@ def process_one_group(
             except Exception:
                 # Fallback: Use observation time from filename
                 try:
-                    from astropy.time import Time
                     from datetime import datetime
+
+                    from astropy.time import Time
 
                     obs_time_str = gid.replace("T", " ")
                     obs_dt = datetime.strptime(obs_time_str, "%Y-%m-%d %H:%M:%S")

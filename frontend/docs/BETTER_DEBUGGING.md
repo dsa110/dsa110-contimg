@@ -1,7 +1,11 @@
 # Better Debugging Approach for React State Management
 
+**Date:** 2025-11-14
+
 ## Current Problem
-Manual testing is slow and error-prone. We need automated tests to catch state management bugs before they reach production.
+
+Manual testing is slow and error-prone. We need automated tests to catch state
+management bugs before they reach production.
 
 ## Solution: Test-Driven Development with Docker
 
@@ -33,7 +37,9 @@ docker-compose -f docker-compose.test.yml run --rm frontend-test -- --watch
    - Cleaner, more maintainable code
 
 ### 1. **Extract Pure Functions**
-The selection logic is now in `frontend/src/utils/selectionLogic.ts` - a pure function that's easy to test:
+
+The selection logic is now in `frontend/src/utils/selectionLogic.ts` - a pure
+function that's easy to test:
 
 ```typescript
 // Pure function - no side effects, easy to test
@@ -47,21 +53,23 @@ export function computeSelectedMS(
 ```
 
 ### 2. **Write Tests First**
+
 Before fixing bugs, write a test that reproduces the issue:
 
 ```typescript
 // useSelectionState.test.ts
-it('should deselect MS when checkbox is unchecked', () => {
+it("should deselect MS when checkbox is unchecked", () => {
   const result = computeSelectedMS(
-    [],                    // paths (empty)
-    ['/data/ms1.ms'],      // prevList
-    '/data/ms1.ms'         // currentSelectedMS
+    [], // paths (empty)
+    ["/data/ms1.ms"], // prevList
+    "/data/ms1.ms" // currentSelectedMS
   );
-  expect(result).toBe(''); // Should be empty
+  expect(result).toBe(""); // Should be empty
 });
 ```
 
 ### 3. **Run Tests in Docker**
+
 ```bash
 cd frontend
 
@@ -73,7 +81,9 @@ docker-compose -f docker-compose.test.yml run --rm frontend-test -- --watch
 ```
 
 ### 4. **Use React DevTools**
+
 Install React DevTools browser extension to inspect state in real-time:
+
 - View component props and state
 - Track state changes
 - Inspect React Query cache
@@ -81,6 +91,7 @@ Install React DevTools browser extension to inspect state in real-time:
 ## Quick Setup
 
 1. **Run tests with Docker** (no local Node version needed):
+
    ```bash
    cd frontend
    docker-compose -f docker-compose.test.yml run --rm frontend-test
@@ -121,6 +132,7 @@ frontend/
 ## Immediate Benefits
 
 Even without running tests yet, extracting the logic provides:
+
 - **Easier debugging** - You can test the logic in isolation
 - **Better code organization** - Logic separated from UI
 - **Easier to understand** - Pure functions are easier to reason about
@@ -141,5 +153,3 @@ docker-compose -f docker-compose.test.yml run --rm -p 51204:51204 frontend-test 
 # Build production bundle
 docker-compose -f docker-compose.test.yml run --rm frontend-build
 ```
-
-

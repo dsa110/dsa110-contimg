@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Doc audit utility:
  - extracts API endpoint paths from Markdown and checks they exist in FastAPI routes

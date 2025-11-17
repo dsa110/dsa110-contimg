@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Analyze what determines if a baseline is "affected" (has flagged solutions).
 
@@ -8,9 +8,10 @@ This script investigates:
 3. Relationship between MS flags and calibration table flags
 """
 
-import sys
 import argparse
+import sys
 from pathlib import Path
+
 import numpy as np
 
 try:

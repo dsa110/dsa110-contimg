@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { Container, Typography, Box, Alert, Stack } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { useState } from "react";
 import { usePipelineStatus, useSystemMetrics } from "../api/queries";
 import ESECandidatesPanel from "../components/ESECandidatesPanel";
 import PointingVisualization from "../components/PointingVisualization";
+import { env } from "../config/env";
 import { StatusIndicator } from "../components/StatusIndicator";
 import { MetricCard } from "../components/MetricCard";
 import { MetricWithSparkline } from "../components/Sparkline";
@@ -43,10 +44,8 @@ export default function DashboardPage() {
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Alert severity="error">
           Failed to connect to DSA-110 pipeline API.{" "}
-          {import.meta.env.VITE_API_URL
-            ? `Using API URL: ${import.meta.env.VITE_API_URL}`
-            : "Using Vite proxy (/api)."}{" "}
-          Is the backend running?
+          {env.VITE_API_URL ? `Using API URL: ${env.VITE_API_URL}` : "Using Vite proxy (/api)."} Is
+          the backend running?
         </Alert>
       </Container>
     );

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Test rephasing + concatenation approach for DP3.
 
@@ -10,20 +10,22 @@ This script:
 
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from casacore.tables import table
-import numpy as np
-from astropy.coordinates import SkyCoord
-import astropy.units as u
-from pyradiosky import SkyModel
-from dsa110_contimg.calibration.dp3_wrapper import (
-    convert_skymodel_to_dp3,
-    predict_from_skymodel_dp3,
-)
-import tempfile
 import os
 import shutil
+import tempfile
+
+import astropy.units as u
+import numpy as np
+from astropy.coordinates import SkyCoord
+from casacore.tables import table
+from pyradiosky import SkyModel
+
+from dsa110_contimg.calibration.dp3_wrapper import (convert_skymodel_to_dp3,
+                                                    predict_from_skymodel_dp3)
+
 
 def get_ms_phase_center(ms_path: str, field_id: int = 0):
     """Get phase center of a field."""
@@ -66,8 +68,10 @@ def test_rephase_concat_approach():
     # Step 3: Rephase (using existing function)
     print("\n3. Rephasing all fields to common phase center...")
     try:
-        from dsa110_contimg.calibration.cli_utils import rephase_ms_to_calibrator
         import logging
+
+        from dsa110_contimg.calibration.cli_utils import \
+          rephase_ms_to_calibrator
         logger = logging.getLogger(__name__)
         
         success = rephase_ms_to_calibrator(

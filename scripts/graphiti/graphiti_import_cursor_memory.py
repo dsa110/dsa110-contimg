@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Import a Cursor agent-memory export (JSON) into the Graphiti knowledge graph (Neo4j).
 
@@ -26,21 +26,20 @@ Notes:
 from __future__ import annotations
 
 import argparse
-import json
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Dict, Any, Set, Optional
-
-from dotenv import load_dotenv
-import os
 import asyncio
+import json
+import os
 import re
 from collections import defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, Optional, Set
 
+from dotenv import load_dotenv
 # Import Graphiti core
 from graphiti_core import Graphiti
-from graphiti_core.nodes import EntityNode
 from graphiti_core.edges import EntityEdge
+from graphiti_core.nodes import EntityNode
 
 
 def load_input(path: Path) -> Dict[str, Any]:

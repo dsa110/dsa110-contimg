@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/opt/miniforge/envs/casa6/bin/python
 """Benchmark NVSS query performance: SQLite vs CSV.
 
 This script measures the performance improvement of using SQLite databases
@@ -14,7 +14,8 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dsa110_contimg.calibration.catalogs import query_nvss_sources, read_nvss_catalog
+from dsa110_contimg.calibration.catalogs import (query_nvss_sources,
+                                                 read_nvss_catalog)
 
 
 def benchmark_query(

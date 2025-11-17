@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Create a mosaic centered on a calibrator transit.
 
@@ -28,7 +28,6 @@ repo_root = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(repo_root / "src"))
 
 from dsa110_contimg.mosaic.orchestrator import MosaicOrchestrator
-
 
 logging.basicConfig(
     level=logging.INFO,

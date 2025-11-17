@@ -105,8 +105,8 @@ def check_python_scripts():
                     if first_line.startswith("#!/usr/bin/env python3") or first_line.startswith(
                         "#!/usr/bin/python3"
                     ):
-                        shebang_warnings.append(
-                            f"{py_file.relative_to(project_root)}: Uses generic python3 shebang"
+                        shebang_issues.append(
+                            f"{py_file.relative_to(project_root)}: Uses generic python3 shebang (should use CASA6 Python)"
                         )
                     elif CASA6_PYTHON in first_line:
                         shebang_passes.append(
@@ -222,10 +222,7 @@ def main():
     print()
 
     if len(issues) + len(shebang_issues) == 0:
-        print(f"{GREEN}✓ All critical issues resolved!{NC}")
-        print(
-            f"{YELLOW}⚠ Note: Some scripts use generic 'python3' shebang but are safe if PATH is configured correctly.{NC}"
-        )
+        print(f"{GREEN}✓ All issues resolved! All Python scripts use CASA6 Python 3.11.13.{NC}")
         return 0
     else:
         print(

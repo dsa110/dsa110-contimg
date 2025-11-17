@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Test pyradiosky functionality and compatibility with casa6 environment.
 
@@ -11,6 +11,7 @@ This script tests:
 
 import sys
 from pathlib import Path
+
 
 def test_import():
     """Test pyradiosky import."""
@@ -35,11 +36,11 @@ def test_skymodel_creation(pyradiosky):
     print("=" * 60)
     
     try:
-        from pyradiosky import SkyModel
-        from astropy.coordinates import SkyCoord
         import astropy.units as u
         import numpy as np
-        
+        from astropy.coordinates import SkyCoord
+        from pyradiosky import SkyModel
+
         # Create a simple point source sky model
         n_sources = 3
         ra = np.array([83.633208, 83.7, 83.8]) * u.deg
@@ -108,7 +109,7 @@ def test_casa_compatibility():
     try:
         # Import pyradiosky first
         import pyradiosky
-        
+
         # Then try to import CASA tools
         try:
             from casatools import componentlist
@@ -139,13 +140,14 @@ def test_skymodel_io():
     print("=" * 60)
     
     try:
-        from pyradiosky import SkyModel
-        from astropy.coordinates import SkyCoord
+        import os
+        import tempfile
+
         import astropy.units as u
         import numpy as np
-        import tempfile
-        import os
-        
+        from astropy.coordinates import SkyCoord
+        from pyradiosky import SkyModel
+
         # Create a simple sky model
         ra = np.array([83.633208]) * u.deg
         dec = np.array([55.778611]) * u.deg

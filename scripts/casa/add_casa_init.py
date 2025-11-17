@@ -1,12 +1,13 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Script to add ensure_casa_path() initialization to files that import CASA modules.
 This ensures CASAPATH is set before CASA modules are imported.
 """
 
-import sys
 import re
+import sys
 from pathlib import Path
+
 
 def add_casa_init_to_file(filepath: Path) -> bool:
     """Add ensure_casa_path() before first CASA import. Returns True if modified."""

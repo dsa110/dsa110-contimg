@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Test sky model image generation (FITS and PNG).
 
@@ -7,19 +7,21 @@ This script tests creating images from sky models for visualization.
 
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from pyradiosky import SkyModel
-from astropy.coordinates import SkyCoord
+import os
+import tempfile
+
 import astropy.units as u
 import numpy as np
-from dsa110_contimg.calibration.skymodel_image import (
-    write_skymodel_images,
-    write_skymodel_fits,
-    write_skymodel_png,
-)
-import tempfile
-import os
+from astropy.coordinates import SkyCoord
+from pyradiosky import SkyModel
+
+from dsa110_contimg.calibration.skymodel_image import (write_skymodel_fits,
+                                                       write_skymodel_images,
+                                                       write_skymodel_png)
+
 
 def test_single_source():
     """Test imaging a single point source."""
@@ -125,10 +127,11 @@ def test_with_nvss_region():
     print("=" * 60)
     
     try:
-        from dsa110_contimg.calibration.catalogs import read_nvss_catalog
-        from astropy.coordinates import SkyCoord
         import astropy.units as u
         import numpy as np
+        from astropy.coordinates import SkyCoord
+
+        from dsa110_contimg.calibration.catalogs import read_nvss_catalog
         
         center_ra = 165.0
         center_dec = 55.5

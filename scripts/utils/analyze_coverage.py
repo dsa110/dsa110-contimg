@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Analyze test coverage report and identify gaps.
 
@@ -10,6 +10,7 @@ import re
 import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
+
 
 def parse_coverage_report(report_path: Path) -> Dict:
     """Parse coverage report text output."""

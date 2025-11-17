@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 End-to-end test script for the new pipeline framework.
 
@@ -23,9 +23,9 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
+from dsa110_contimg.api.job_runner import run_workflow_job
 from dsa110_contimg.database.jobs import create_job, get_job
 from dsa110_contimg.database.products import ensure_products_db
-from dsa110_contimg.api.job_runner import run_workflow_job
 
 
 def main():

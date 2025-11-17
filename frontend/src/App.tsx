@@ -1,7 +1,8 @@
 import { useState, lazy, Suspense, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { ThemeProvider, CssBaseline, Box, CircularProgress } from "@mui/material";
+import { ThemeProvider, CssBaseline, Box, CircularProgress, Alert } from "@mui/material";
+import { env } from "./config/env";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { darkTheme } from "./theme/darkTheme";
 import { NotificationProvider } from "./contexts/NotificationContext";
@@ -121,32 +122,59 @@ function getQueryClient() {
 
 function AppContent() {
   // Use useState with lazy initialization to ensure QueryClient is only created once
-  const [queryClient] = useState(() => getQueryClient());
+  // This ensures QueryClient is stable across re-renders and properly initialized
+  const [queryClient] = useState(() => {
+    try {
+      return getQueryClient();
+    } catch (error) {
+      // If QueryClient creation fails, create a new one as fallback
+      console.error("Failed to get QueryClient, creating new one:", error);
+      return makeQueryClient();
+    }
+  });
 
   // Set basename for production builds served from /ui/
   // Ensure basename is always a string or undefined (never an object)
   // Use explicit type guard to prevent object coercion errors in React Router
-  const basename: string | undefined =
-    typeof import.meta.env.PROD === "boolean" && import.meta.env.PROD ? "/ui" : undefined;
+  const basename: string | undefined = env.PROD ? "/ui" : undefined;
 
   // Initialize error tracking and service worker
   useEffect(() => {
     // Initialize error tracking (Sentry) if DSN is provided
-    const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
-    if (sentryDsn) {
-      initErrorTracking(sentryDsn);
+    if (env.VITE_SENTRY_DSN) {
+      initErrorTracking(env.VITE_SENTRY_DSN);
     }
 
     // Register service worker for offline support
-    if (import.meta.env.PROD) {
+    if (env.PROD) {
       registerServiceWorker();
     }
   }, []);
 
+  // Ensure QueryClient is valid before rendering
+  if (!queryClient) {
+    console.error("QueryClient is null, creating new one");
+    const fallbackClient = makeQueryClient();
+    return (
+      <ErrorBoundary>
+        <QueryClientProvider client={fallbackClient}>
+          <ThemeProvider theme={darkTheme}>
+            <CssBaseline />
+            <Box sx={{ p: 3 }}>
+              <Alert severity="warning">
+                QueryClient initialization error. Please refresh the page.
+              </Alert>
+            </Box>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+        {env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
         <ThemeProvider theme={darkTheme}>
           <CssBaseline />
           <NotificationProvider>

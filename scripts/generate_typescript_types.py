@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Generate TypeScript types from Pydantic models.
 This script reads Pydantic models and generates corresponding TypeScript interfaces.
@@ -14,12 +14,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 try:
     from dsa110_contimg.api.models import *
-    from dsa110_contimg.api.visualization_routes import (
-        CasaTableInfo,
-        DirectoryEntry,
-        DirectoryListing,
-        FITSInfo,
-    )
+    from dsa110_contimg.api.visualization_routes import (CasaTableInfo,
+                                                         DirectoryEntry,
+                                                         DirectoryListing,
+                                                         FITSInfo)
 except ImportError as e:
     print(f"Error importing models: {e}", file=sys.stderr)
     sys.exit(1)

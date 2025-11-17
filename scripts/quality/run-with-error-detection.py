@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Error Detection Wrapper (pexpect or subprocess backend)
 Runs any command and kills execution immediately if errors are detected in output

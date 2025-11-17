@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Graphiti guardrails checker/fixer for a group.
 
@@ -22,14 +22,13 @@ from __future__ import annotations
 import argparse
 import asyncio
 import os
+# Ensure the MCP server module is importable for embedder config
+import sys
 from typing import Dict, List, Optional
 
 from dotenv import load_dotenv
-
 from graphiti_core import Graphiti
 
-# Ensure the MCP server module is importable for embedder config
-import sys
 sys.path.insert(0, "/home/ubuntu/proj/mcps/graphiti/mcp_server")
 # Prefer the embedder selection logic from the MCP server (supports Vertex/OpenAI/Gemini)
 from graphiti_mcp_server import GraphitiEmbedderConfig

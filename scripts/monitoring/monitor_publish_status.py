@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Monitor publish status and alert on failures.
 
 This script monitors the publish status of the DSA-110 Continuum Imaging Pipeline
@@ -32,11 +32,9 @@ from typing import Optional
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from dsa110_contimg.database.data_registry import (
-    ensure_data_registry_db,
-    list_data,
-    trigger_auto_publish,
-)
+from dsa110_contimg.database.data_registry import (ensure_data_registry_db,
+                                                   list_data,
+                                                   trigger_auto_publish)
 
 logging.basicConfig(
     level=logging.INFO,

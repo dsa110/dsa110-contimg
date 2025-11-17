@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 CLI utilities for calibrator catalog queries (transit times and in-beam matches).
 
@@ -19,13 +19,9 @@ import argparse
 import astropy.units as u
 from astropy.time import Time
 
-from .catalogs import (
-    calibrator_match,
-    get_calibrator_radec,
-    load_vla_catalog,
-    read_vla_parsed_catalog_csv,
-    resolve_vla_catalog_path,
-)
+from .catalogs import (calibrator_match, get_calibrator_radec,
+                       load_vla_catalog, read_vla_parsed_catalog_csv,
+                       resolve_vla_catalog_path)
 from .schedule import previous_transits
 
 

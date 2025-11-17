@@ -1,12 +1,16 @@
 # Node.js v16 Compatibility Issue - Prevention Safeguards
 
+**Date:** 2025-11-14
+
 ## Problem
 
-Frontend tests fail with `crypto$2.getRandomValues is not a function` when using system Node.js v16.20.2 instead of casa6 Node.js v22.6.0.
+Frontend tests fail with `crypto$2.getRandomValues is not a function` when using
+system Node.js v16.20.2 instead of casa6 Node.js v22.6.0.
 
 ## Solution: Multi-Layer Safeguards
 
 ### Layer 1: Pre-flight Check Script ✅
+
 **File**: `frontend/scripts/check-casa6-node.sh`
 
 - **Purpose**: Verifies casa6 Node.js is active before running tests
@@ -14,6 +18,7 @@ Frontend tests fail with `crypto$2.getRandomValues is not a function` when using
 - **Behavior**: Fails fast with clear error message if wrong Node.js detected
 
 **Example Error**:
+
 ```
 ERROR: Not using casa6 Node.js
 Current: /usr/bin/node (v16.20.2)
@@ -23,6 +28,7 @@ Fix: source /opt/miniforge/etc/profile.d/conda.sh && conda activate casa6
 ```
 
 ### Layer 2: npm test Integration ✅
+
 **File**: `frontend/package.json`
 
 ```json
@@ -34,15 +40,19 @@ Fix: source /opt/miniforge/etc/profile.d/conda.sh && conda activate casa6
 - **Impact**: Cannot accidentally run tests without casa6
 
 ### Layer 3: Error Detection Framework ✅
+
 **File**: `scripts/lib/error-detection.sh`
 
 - **Purpose**: Detects frontend test context and enforces casa6 Node.js
-- **Behavior**: Checks for `package.json` + `vitest.config.ts` to identify frontend tests
+- **Behavior**: Checks for `package.json` + `vitest.config.ts` to identify
+  frontend tests
 - **Integration**: Used by `run-safe.sh` wrapper script
 - **Impact**: Catches issue during pre-flight checks in CI/CD
 
 ### Layer 4: Documentation ✅
-**Files**: 
+
+**Files**:
+
 - `frontend/NODE_VERSION_REQUIREMENT.md` - User guide
 - `docs/dev/casa6_test_execution.md` - Complete casa6 guide
 - `frontend/UNIT_TEST_STATUS.md` - Test status with solution
@@ -50,6 +60,7 @@ Fix: source /opt/miniforge/etc/profile.d/conda.sh && conda activate casa6
 ## How It Works
 
 ### Normal Flow (Correct)
+
 ```bash
 # User activates casa6
 source /opt/miniforge/etc/profile.d/conda.sh
@@ -64,6 +75,7 @@ npm test
 ```
 
 ### Error Flow (Wrong Node.js)
+
 ```bash
 # User forgets to activate casa6
 cd frontend
@@ -77,6 +89,7 @@ npm test
 ## Testing the Safeguards
 
 ### Test 1: Correct Node.js (Should Pass)
+
 ```bash
 source /opt/miniforge/etc/profile.d/conda.sh
 conda activate casa6
@@ -86,6 +99,7 @@ bash scripts/check-casa6-node.sh
 ```
 
 ### Test 2: Wrong Node.js (Should Fail)
+
 ```bash
 conda deactivate  # Use system Node.js
 cd frontend
@@ -94,6 +108,7 @@ bash scripts/check-casa6-node.sh
 ```
 
 ### Test 3: npm test Integration
+
 ```bash
 conda deactivate
 cd frontend
@@ -110,7 +125,7 @@ Ensure CI/CD pipelines activate casa6:
   run: |
     source /opt/miniforge/etc/profile.d/conda.sh
     conda activate casa6
-    
+
 - name: Run frontend tests
   run: |
     cd frontend
@@ -136,4 +151,3 @@ Ensure CI/CD pipelines activate casa6:
 - `frontend/package.json` - npm test integration
 - `scripts/lib/error-detection.sh` - Error detection framework
 - `docs/dev/casa6_test_execution.md` - Complete guide
-

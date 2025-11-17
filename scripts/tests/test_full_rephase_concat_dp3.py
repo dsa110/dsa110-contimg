@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Full test of rephasing + concatenation + DP3 workflow.
 
@@ -11,21 +11,23 @@ This script:
 
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from pyradiosky import SkyModel
-from astropy.coordinates import SkyCoord
+import os
+import tempfile
+import time
+
 import astropy.units as u
 import numpy as np
-from dsa110_contimg.calibration.dp3_wrapper import (
-    prepare_ms_for_dp3,
-    convert_skymodel_to_dp3,
-    predict_from_skymodel_dp3,
-)
+from astropy.coordinates import SkyCoord
 from casacore.tables import table
-import tempfile
-import os
-import time
+from pyradiosky import SkyModel
+
+from dsa110_contimg.calibration.dp3_wrapper import (convert_skymodel_to_dp3,
+                                                    predict_from_skymodel_dp3,
+                                                    prepare_ms_for_dp3)
+
 
 def check_model_data(ms_path: str):
     """Check if MODEL_DATA was populated."""

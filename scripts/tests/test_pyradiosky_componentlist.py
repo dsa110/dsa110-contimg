@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Test pyradiosky → componentlist → CASA ft() workflow.
 
@@ -7,20 +7,22 @@ This is the recommended workflow since DP3 cannot handle 2-pol MS files.
 
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from pyradiosky import SkyModel
-from astropy.coordinates import SkyCoord
+import os
+import tempfile
+import time
+
 import astropy.units as u
 import numpy as np
-from dsa110_contimg.calibration.skymodels import (
-    convert_skymodel_to_componentlist,
-    ft_from_cl,
-)
+from astropy.coordinates import SkyCoord
 from casacore.tables import table
-import tempfile
-import os
-import time
+from pyradiosky import SkyModel
+
+from dsa110_contimg.calibration.skymodels import (
+  convert_skymodel_to_componentlist, ft_from_cl)
+
 
 def check_model_data(ms_path: str):
     """Check if MODEL_DATA was populated."""

@@ -6,8 +6,10 @@ import { Component } from "react";
 import type { ErrorInfo, ReactNode } from "react";
 import { Box, Typography, Button, Paper, Alert, Stack, Card, CardContent } from "@mui/material";
 import { ErrorOutline, Refresh, Home, Lightbulb } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
-import { classifyError, getUserFriendlyMessage } from "../utils/errorUtils";
+// Note: We don't import useNavigate here because ErrorBoundary might be used
+// outside BrowserRouter (like the outer ErrorBoundary in App.tsx).
+// Instead, we use a dynamic import pattern to conditionally use Router when available.
+import { classifyError, getUserFriendlyMessage, sanitizePath } from "../utils/errorUtils";
 import { captureError } from "../utils/errorTracking";
 import { getRecoverySuggestions } from "../utils/errorRecovery";
 
@@ -181,23 +183,33 @@ class ErrorBoundaryInner extends Component<Props & { navigate: (path: string) =>
   }
 }
 
-// Wrapper to use hooks
+// Wrapper component
+// Note: ErrorBoundary might be used both inside and outside BrowserRouter.
+// To avoid hook issues (useNavigate() requires Router context), we use
+// window.location navigation which works everywhere.
 function ErrorBoundary(props: Props) {
-  // Try to get navigate, but handle case where Router context might not be available
-  let navigate: ((path: string) => void) | null = null;
-  try {
-    navigate = useNavigate();
-  } catch (e) {
-    // Router context not available, navigate will be null
-    navigate = null;
-  }
-
-  const safeNavigate =
-    navigate ||
-    ((path: string) => {
-      // Fallback: use window.location if navigate not available
-      window.location.href = path;
-    });
+  // Create safe navigation function that uses window.location
+  // This works both inside and outside Router context, avoiding hook issues
+  const safeNavigate = (path: string) => {
+    // Security: Validate path to prevent open redirect and XSS attacks
+    // sanitizePath() validates that the path is a safe relative path:
+    // - Rejects absolute URLs (http://, https://, javascript:, etc.)
+    // - Rejects protocol-relative URLs (//example.com)
+    // - Only allows relative paths starting with /
+    // - Rejects path traversal sequences (..)
+    // - Validates with regex pattern
+    const sanitizedPath = sanitizePath(path);
+    if (sanitizedPath) {
+      // Path has been validated by sanitizePath() - safe to use
+      // eslint-disable-next-line no-restricted-globals
+      window.location.href = sanitizedPath;
+    } else {
+      // If path is invalid, default to dashboard
+      console.warn(`Invalid navigation path: ${path}. Redirecting to dashboard.`);
+      // eslint-disable-next-line no-restricted-globals
+      window.location.href = "/dashboard";
+    }
+  };
 
   return <ErrorBoundaryInner {...props} navigate={safeNavigate} />;
 }

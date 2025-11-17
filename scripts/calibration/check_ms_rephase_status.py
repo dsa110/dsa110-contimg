@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Check if MS is safe to use with --skip-rephase workflow.
 
@@ -15,10 +15,12 @@ Example:
 """
 
 import sys
-from casacore.tables import table
+
+import astropy.units as u
 import numpy as np
 from astropy.coordinates import SkyCoord
-import astropy.units as u
+from casacore.tables import table
+
 
 def check_ms_rephase_status(ms_path, cal_ra_deg=None, cal_dec_deg=None):
     """Check if MS is safe to use with --skip-rephase."""

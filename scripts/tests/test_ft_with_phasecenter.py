@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Test ft() with explicit phasecenter parameter to see if it fixes phase center issues.
 
@@ -7,12 +7,14 @@ Usage:
 """
 
 import sys
-from casatools import componentlist as cltool
-from casatasks import ft
-from casacore.tables import table
+
+import astropy.units as u
 import numpy as np
 from astropy.coordinates import SkyCoord
-import astropy.units as u
+from casacore.tables import table
+from casatasks import ft
+from casatools import componentlist as cltool
+
 
 def test_ft_with_phasecenter(ms_path, cal_ra_deg, cal_dec_deg, flux_jy):
     """Test ft() with explicit phasecenter parameter."""

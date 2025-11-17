@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Full integration test of pyradiosky + DP3 with actual MS file.
 
@@ -15,19 +15,20 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from pyradiosky import SkyModel
-from astropy.coordinates import SkyCoord
+import os
+import tempfile
+import time
+
 import astropy.units as u
 import numpy as np
-from dsa110_contimg.calibration.dp3_wrapper import (
-    convert_skymodel_to_dp3,
-    predict_from_skymodel_dp3,
-    _find_dp3_executable,
-)
+from astropy.coordinates import SkyCoord
 from casacore.tables import table
-import tempfile
-import os
-import time
+from pyradiosky import SkyModel
+
+from dsa110_contimg.calibration.dp3_wrapper import (_find_dp3_executable,
+                                                    convert_skymodel_to_dp3,
+                                                    predict_from_skymodel_dp3)
+
 
 def get_ms_info(ms_path: str):
     """Get basic info about the MS."""

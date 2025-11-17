@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Unit tests to validate run_first_mosaic.py workflow logic.
 
@@ -8,15 +8,13 @@ file existence issues, and database/filesystem mismatches.
 
 import os
 import tempfile
+import time
 import unittest
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
-import time
+from unittest.mock import MagicMock, Mock, patch
 
 from dsa110_contimg.conversion.streaming.run_first_mosaic import (
-    process_one_group,
-    process_groups_until_count,
-)
+  process_groups_until_count, process_one_group)
 from dsa110_contimg.conversion.streaming.streaming_converter import QueueDB
 from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
 
@@ -185,7 +183,8 @@ class TestDatabaseFilesystemConsistency(unittest.TestCase):
 
     def test_check_for_new_group_verifies_file_existence(self):
         """Verify that check_for_new_group validates MS files exist."""
-        from dsa110_contimg.database.products import ensure_products_db, ms_index_upsert
+        from dsa110_contimg.database.products import (ensure_products_db,
+                                                      ms_index_upsert)
 
         # Create database with non-existent MS path
         conn = ensure_products_db(self.products_db)
@@ -224,7 +223,8 @@ class TestDatabaseFilesystemConsistency(unittest.TestCase):
 
     def test_get_group_ms_paths_validates_file_existence(self):
         """Verify that get_group_ms_paths checks files exist before time extraction."""
-        from dsa110_contimg.database.products import ensure_products_db, ms_index_upsert
+        from dsa110_contimg.database.products import (ensure_products_db,
+                                                      ms_index_upsert)
 
         # Create database with non-existent MS path
         conn = ensure_products_db(self.products_db)
@@ -283,6 +283,7 @@ class TestTimeExtractionFallback(unittest.TestCase):
         # NOT time.time() which is the current system time
 
         from datetime import datetime
+
         from astropy.time import Time
 
         # Parse timestamp from filename
@@ -332,7 +333,8 @@ class TestPathMapperConsistency(unittest.TestCase):
         )
 
         # Path should be findable by extract_date_from_filename
-        from dsa110_contimg.utils.ms_organization import extract_date_from_filename
+        from dsa110_contimg.utils.ms_organization import \
+          extract_date_from_filename
 
         date_str = extract_date_from_filename(ms_path)
         self.assertEqual(date_str, "2025-10-02")

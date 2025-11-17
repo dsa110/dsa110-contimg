@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 UVH5 to CASA Measurement Set Converter.
 
@@ -18,16 +18,12 @@ from typing import List, Optional
 import numpy as np
 from pyuvdata import UVData
 
-from dsa110_contimg.conversion.helpers import (
-    phase_to_meridian,
-    set_telescope_identity,
-)
+from dsa110_contimg.conversion.helpers import (phase_to_meridian,
+                                               set_telescope_identity)
 from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
 from dsa110_contimg.utils.exceptions import ConversionError, ValidationError
-from dsa110_contimg.utils.runtime_safeguards import (
-    log_progress,
-    progress_monitor,
-)
+from dsa110_contimg.utils.runtime_safeguards import (log_progress,
+                                                     progress_monitor)
 
 # Configure logging
 logging.basicConfig(

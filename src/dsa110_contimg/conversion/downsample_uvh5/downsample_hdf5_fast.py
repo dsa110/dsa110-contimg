@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Fast downsampling for UVH5 files by merging integrations and/or frequency channels.
 

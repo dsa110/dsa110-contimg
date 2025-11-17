@@ -1,12 +1,12 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Test imregrid functionality using tiles from /stage/.
 
 This script tests the mosaic building process using tiles from /stage/
 to verify imregrid works correctly.
 """
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Add src to path
@@ -14,8 +14,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import sqlite3
 import tempfile
-from dsa110_contimg.mosaic.cli import _fetch_tiles, _build_weighted_mosaic_linearmosaic
+
+from dsa110_contimg.mosaic.cli import (_build_weighted_mosaic_linearmosaic,
+                                       _fetch_tiles)
 from dsa110_contimg.mosaic.validation import TileQualityMetrics
+
 
 def test_imregrid_with_stage_tiles():
     """Test imregrid using tiles from /stage/."""

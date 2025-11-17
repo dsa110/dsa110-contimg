@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Test script for Dead Letter Queue endpoints.
 Creates test DLQ items and verifies API endpoints.

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/opt/miniforge/envs/casa6/bin/python
 """Test script for pipeline monitoring API endpoints."""
 
 import json

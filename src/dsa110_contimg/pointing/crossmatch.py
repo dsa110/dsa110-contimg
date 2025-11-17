@@ -16,7 +16,8 @@ import numpy as np
 from astropy.time import Time
 
 from dsa110_contimg.calibration.catalogs import read_vla_parsed_catalog_csv
-from dsa110_contimg.calibration.schedule import DSA110_LOCATION, previous_transits
+from dsa110_contimg.calibration.schedule import (DSA110_LOCATION,
+                                                 previous_transits)
 from dsa110_contimg.database.products import ensure_ingest_db
 
 SB_RE = re.compile(r"^(.+)_sb(\d{2})\.hdf5$")
@@ -195,7 +196,7 @@ def find_transit_groups(
         windows[gid] = (jd0, jd1)
         meta[gid] = {"dec_deg": d, "files": files}
 
-    pad_days = (time_pad_minutes * u.min).to(u.day).value
+    pad_days = (time_pad_minutes * u.min).to(u.day).value  # pylint: disable=no-member
 
     # Cross-match
     rows = conn.execute(
@@ -211,7 +212,7 @@ def find_transit_groups(
             if (jd0 - pad_days) <= tmjd <= (jd1 + pad_days):
                 dt_min = abs(
                     (Time(0.5 * (jd0 + jd1), format="jd") - Time(tmjd, format="mjd"))
-                    .to(u.min)
+                    .to(u.min)  # pylint: disable=no-member
                     .value
                 )
                 results.append(

@@ -1,13 +1,14 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Test script to verify image display functionality in SkyView.
 Tests the full flow: database -> API endpoint -> FITS file serving -> JS9 compatibility
 """
 
-import sys
 import os
-import requests
+import sys
 from pathlib import Path
+
+import requests
 from astropy.io import fits
 
 # Add src to path

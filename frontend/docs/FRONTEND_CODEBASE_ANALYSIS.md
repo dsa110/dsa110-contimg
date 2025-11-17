@@ -1,7 +1,8 @@
 # DSA-110 Dashboard Frontend Codebase Analysis
 
-**Date:** 2025-01-XX  
-**Purpose:** Analysis of existing frontend implementation vs. documented features
+**Date:** 2025-11-16  
+**Purpose:** Analysis of existing frontend implementation vs. documented
+features
 
 ---
 
@@ -70,19 +71,23 @@
     - Image detail view
     - Status: ✅ Implemented
 
+14. **ObservingPage.tsx** (`/observing`)
+    - Telescope status display
+    - Pointing history visualization
+    - Calibrator tracking
+    - Uses: `usePointingHistory()`, `usePipelineStatus()`
+    - Status: ✅ Implemented (modified Nov 15, 2025)
+
+15. **HealthPage.tsx** (`/health`)
+    - System diagnostics
+    - Queue monitoring
+    - QA diagnostic gallery
+    - Uses: `useSystemMetrics()`, `usePipelineStatus()`, `useQAMetrics()`
+    - Status: ✅ Implemented (modified Nov 15, 2025)
+
 ### 📋 Missing Pages (Planned but Not Implemented)
 
-1. **ObservingPage.tsx** (`/observing`)
-   - Telescope status display
-   - Pointing history visualization
-   - Calibrator tracking
-   - Status: 📋 Not implemented (empty `components/Observing/` directory)
-
-2. **HealthPage.tsx** (`/health`)
-   - System diagnostics
-   - Queue monitoring
-   - QA diagnostic gallery
-   - Status: 📋 Not implemented (empty `components/Health/` directory)
+_(No missing pages - all planned pages are now implemented)_
 
 ---
 
@@ -100,7 +105,8 @@
 
 ### Note on React Query Hooks
 
-All API hooks are in `frontend/src/api/queries.ts` (not in `hooks/` directory). See Section 3 for complete list.
+All API hooks are in `frontend/src/api/queries.ts` (not in `hooks/` directory).
+See Section 3 for complete list.
 
 ---
 
@@ -109,6 +115,7 @@ All API hooks are in `frontend/src/api/queries.ts` (not in `hooks/` directory). 
 ### API Client (`client.ts`)
 
 **Features:**
+
 - Axios-based client with interceptors
 - Circuit breaker pattern (`circuitBreaker.ts`)
 - Retry logic with exponential backoff (3 retries: 1s, 2s, 4s)
@@ -117,6 +124,7 @@ All API hooks are in `frontend/src/api/queries.ts` (not in `hooks/` directory). 
 - Base URL handling for dev/prod
 
 **Configuration:**
+
 - Timeout: 30 seconds
 - Circuit breaker: 5 failures threshold, 30s reset timeout
 - Retry: Up to 3 attempts for retryable errors
@@ -124,6 +132,7 @@ All API hooks are in `frontend/src/api/queries.ts` (not in `hooks/` directory). 
 ### WebSocket Client (`websocket.ts`)
 
 **Features:**
+
 - WebSocket client with SSE fallback
 - Automatic reconnection with exponential backoff
 - Message handler system (subscribe/unsubscribe)
@@ -131,6 +140,7 @@ All API hooks are in `frontend/src/api/queries.ts` (not in `hooks/` directory). 
 - Connection state tracking
 
 **Usage Pattern:**
+
 ```typescript
 const wsClient = createWebSocketClient({
   url: wsUrl,
@@ -147,22 +157,26 @@ wsClient.on('status_update', (data) => { ... });
 **69+ hooks available** organized by feature:
 
 #### Pipeline Status & Metrics
+
 - `usePipelineStatus()` - Pipeline queue status (real-time)
 - `useSystemMetrics()` - System health metrics (real-time)
 - `useESECandidates()` - ESE detection alerts (real-time)
 - `useAlertHistory(limit)` - Alert history
 
 #### Mosaics
+
 - `useMosaicQuery(request)` - Query mosaics by time range
 - `useMosaic(mosaicId)` - Get mosaic details
 - `useCreateMosaic()` - Create new mosaic (mutation)
 
 #### Sources
+
 - `useSourceSearch(request)` - Search sources
 - `useSourceDetail(sourceId)` - Get source details
 - `useSourceDetections(sourceId)` - Get source detections
 
 #### Control Panel (MS & Jobs)
+
 - `useMSList(filters?)` - List Measurement Sets
 - `useDiscoverMS()` - Discover MS files (mutation)
 - `useMSMetadata(msPath)` - Get MS metadata
@@ -176,6 +190,7 @@ wsClient.on('status_update', (data) => { ... });
 - `useCreateConvertJob()` - Create conversion job (mutation)
 
 #### Calibration
+
 - `useCalTables(calDir?)` - List calibration tables
 - `useExistingCalTables(msPath)` - Get existing cal tables for MS
 - `useValidateCalTable()` - Validate cal table (mutation)
@@ -183,12 +198,14 @@ wsClient.on('status_update', (data) => { ... });
 - `useBandpassPlots(msPath)` - Get bandpass plots
 
 #### Images
+
 - `useImages(filters?)` - List images with filters
 - `useImageDetail(imageId)` - Get image details
 - `useImageMeasurements(imageId)` - Get image measurements
 - `useImageQA(msPath)` - Get image QA
 
 #### Streaming Service
+
 - `useStreamingStatus()` - Get service status
 - `useStreamingHealth()` - Get health check
 - `useStreamingConfig()` - Get configuration
@@ -199,16 +216,19 @@ wsClient.on('status_update', (data) => { ... });
 - `useUpdateStreamingConfig()` - Update config (mutation)
 
 #### Pointing
+
 - `usePointingMonitorStatus()` - Get pointing monitor status
 - `usePointingHistory(startMjd, endMjd)` - Get pointing history
 
 #### Data Browser
+
 - `useDataInstances(filters?)` - List data instances
 - `useDataInstance(dataId)` - Get data instance details
 - `useAutoPublishStatus(dataId)` - Get auto-publish status
 - `useDataLineage(dataId)` - Get data lineage
 
 #### Catalog & Regions
+
 - `useCatalogValidation(msPath)` - Get catalog validation
 - `useCatalogOverlay(msPath)` - Get catalog overlay data
 - `useRunCatalogValidation()` - Run validation (mutation)
@@ -220,10 +240,12 @@ wsClient.on('status_update', (data) => { ... });
 - `useRegionStatistics(regionId)` - Get region statistics
 
 #### Image Analysis
+
 - `useProfileExtraction()` - Extract profile (mutation)
 - `useImageFitting()` - Fit image (mutation)
 
 #### QA Visualization
+
 - `useDirectoryListing(path)` - Browse directories
 - `useDirectoryThumbnails(path)` - Get directory thumbnails
 - `useFITSInfo(path)` - Get FITS file info
@@ -233,6 +255,7 @@ wsClient.on('status_update', (data) => { ... });
 - `useQAMetrics(msPath)` - Get QA metrics
 
 #### Batch Jobs
+
 - `useBatchJobs(limit, status?)` - List batch jobs
 - `useBatchJob(batchId)` - Get batch job details
 - `useCreateBatchCalibrateJob()` - Create batch calibrate job (mutation)
@@ -241,16 +264,18 @@ wsClient.on('status_update', (data) => { ... });
 - `useCancelBatchJob()` - Cancel batch job (mutation)
 
 #### UVH5 Files
+
 - `useUVH5Files(inputDir?)` - List UVH5 files
 
 **Real-Time Query Pattern:**
+
 ```typescript
 function useRealtimeQuery<T>(
   queryKey: string[],
   queryFn: () => Promise<T>,
   wsClient: WebSocketClient | null,
   pollInterval: number = 10000
-): UseQueryResult<T>
+): UseQueryResult<T>;
 ```
 
 - Automatically subscribes to WebSocket updates
@@ -262,11 +287,13 @@ function useRealtimeQuery<T>(
 ## 4. Dependencies (`frontend/package.json`)
 
 ### Core Framework
+
 - **React:** `^19.1.1` (latest)
 - **React DOM:** `^19.1.1`
 - **TypeScript:** `~5.9.3`
 
 ### UI Framework
+
 - **Material-UI (MUI):** `^7.3.4` ✅ **Version 7** (not v6 as docs suggest)
 - **@mui/icons-material:** `^7.3.4`
 - **@mui/x-date-pickers:** `^8.15.0`
@@ -274,14 +301,17 @@ function useRealtimeQuery<T>(
 - **@emotion/styled:** `^11.14.1`
 
 ### State Management & Data Fetching
+
 - **@tanstack/react-query:** `^5.90.5` (React Query v5)
 - **@tanstack/react-query-devtools:** `^5.62.0`
 - **zustand:** `^5.0.8` (state management)
 
 ### Routing
+
 - **react-router-dom:** `^7.9.4` (v7, latest)
 
 ### Data Visualization
+
 - **plotly.js:** `^3.1.2`
 - **react-plotly.js:** `^2.6.0`
 - **d3:** `^7.9.0`
@@ -289,17 +319,21 @@ function useRealtimeQuery<T>(
 - **ag-grid-react:** `^34.3.0`
 
 ### HTTP Client
+
 - **axios:** `^1.12.2`
 
 ### Utilities
+
 - **dayjs:** `^1.11.18` (date handling)
 - **golden-layout:** `^2.6.0` (layout manager)
 
 ### Build Tools
+
 - **vite:** `^4.5.14`
 - **vitest:** `^2.1.8` (testing)
 
 ### Testing
+
 - **@testing-library/react:** `^16.1.0`
 - **@testing-library/jest-dom:** `^6.6.3`
 - **@testing-library/user-event:** `^14.5.2`
@@ -379,29 +413,37 @@ export default function SomePage() {
 **Documentation says:** Material-UI v6  
 **Actual version:** Material-UI v7.3.4 ✅
 
-**Note:** MUI v7 is the latest version and is backward compatible with v6 patterns. The codebase uses v7 features.
+**Note:** MUI v7 is the latest version and is backward compatible with v6
+patterns. The codebase uses v7 features.
 
 ### Available MUI Components (Based on Usage)
 
 **Layout:**
+
 - `Container`, `Box`, `Stack`, `Grid`, `Paper`
 
 **Navigation:**
+
 - `AppBar`, `Toolbar`, `Drawer`, `Button`, `IconButton`
 
 **Data Display:**
+
 - `Typography`, `Alert`, `Chip`, `Card`, `CardContent`
 
 **Feedback:**
+
 - `CircularProgress`, `LinearProgress`, `Snackbar`, `Dialog`
 
 **Inputs:**
+
 - `TextField`, `Select`, `Switch`, `Checkbox`, `Radio`
 
 **Date Pickers:**
+
 - `@mui/x-date-pickers` components (DateTimePicker, DatePicker)
 
 **Icons:**
+
 - `@mui/icons-material` (comprehensive icon set)
 
 ---
@@ -492,8 +534,10 @@ export default function SomePage() {
 
 1. **Observing:**
    - `GET /api/observing/status` - Telescope status
-   - `GET /api/observing/pointing` - Pointing history (but `usePointingHistory` exists)
-   - `GET /api/calibrator_matches` - Calibrator detection history (but `useCalibratorMatches` exists)
+   - `GET /api/observing/pointing` - Pointing history (but `usePointingHistory`
+     exists)
+   - `GET /api/calibrator_matches` - Calibrator detection history (but
+     `useCalibratorMatches` exists)
 
 2. **Health:**
    - `GET /api/health/diagnostics` - System diagnostics
@@ -549,8 +593,8 @@ export default function SomePage() {
 
 ### Gaps
 
-- 📋 Observing Page not implemented
-- 📋 Health Page not implemented
+- ✅ Observing Page implemented (as of Nov 15, 2025)
+- ✅ Health Page implemented (as of Nov 15, 2025)
 - 🔄 Some advanced features partially implemented
 - 📋 Some API endpoints referenced in docs not found in hooks
 
@@ -563,5 +607,4 @@ export default function SomePage() {
 
 ---
 
-**Last Updated:** 2025-01-XX
-
+**Last Updated:** 2025-11-16

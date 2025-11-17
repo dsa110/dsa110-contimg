@@ -1,18 +1,20 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 CASA Log Daemon - Continuously monitors for casa-*.log files and moves them to state directory
 """
 
+import logging
 import os
+import shutil
+import signal
 import sys
 import time
-import logging
-import signal
-import shutil
-from pathlib import Path
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 from datetime import datetime
+from pathlib import Path
+
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+
 
 class CasaLogHandler(FileSystemEventHandler):
     """Handler for file system events related to casa-*.log files"""

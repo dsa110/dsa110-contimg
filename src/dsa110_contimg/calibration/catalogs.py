@@ -991,6 +991,9 @@ def query_nvss_sources(
 
     This function requires SQLite databases for optimal performance (~170× faster than CSV).
     CSV fallback is available but disabled by default. Set use_csv_fallback=True to enable.
+    
+    When NVSS is used, this function also checks for FIRST and RACS databases and warns
+    if they are missing but should exist (within coverage limits).
 
     Args:
         ra_deg: Field center RA in degrees
@@ -1004,7 +1007,19 @@ def query_nvss_sources(
     Returns:
         DataFrame with columns: ra_deg, dec_deg, flux_mjy
     """
+    import logging
     import sqlite3
+    
+    logger = logging.getLogger(__name__)
+    
+    # Check for missing FIRST and RACS databases when NVSS is used
+    # Auto-build if missing (helps during pipeline debugging)
+    from dsa110_contimg.catalog.builders import check_missing_catalog_databases
+    missing_dbs = check_missing_catalog_databases(
+        dec_deg, 
+        logger_instance=logger,
+        auto_build=True,  # Auto-build missing databases
+    )
 
     # Try SQLite first (much faster)
     db_path = None
@@ -1392,7 +1407,8 @@ def query_rax_sources(
                 df_full = read_rax_catalog()
 
                 # Normalize column names for RAX
-                from dsa110_contimg.catalog.build_master import _normalize_columns
+                from dsa110_contimg.catalog.build_master import \
+                  _normalize_columns
 
                 RAX_CANDIDATES = {
                     "ra": ["ra", "ra_deg", "raj2000", "ra_hms"],
@@ -1661,7 +1677,8 @@ def query_vlass_sources(
                 df_full = _read_table(vlass_path)
 
                 # Normalize column names for VLASS
-                from dsa110_contimg.catalog.build_master import _normalize_columns
+                from dsa110_contimg.catalog.build_master import \
+                  _normalize_columns
 
                 VLASS_CANDIDATES = {
                     "ra": ["ra", "ra_deg", "raj2000"],

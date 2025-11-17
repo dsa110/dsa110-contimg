@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Clear all calibration artifacts from MS before calibration.
 
 This ensures a clean slate:
@@ -8,10 +8,10 @@ This ensures a clean slate:
 - Flag tables
 """
 
-import sys
-import os
 import argparse
+import os
 import shutil
+import sys
 from pathlib import Path
 
 # Add src to path
@@ -23,8 +23,8 @@ def clear_model_data(ms_path: str) -> bool:
     print(f"\nClearing MODEL_DATA from {ms_path}...")
     
     try:
-        from casacore.tables import table
         import numpy as np
+        from casacore.tables import table
         
         with table(ms_path, readonly=False) as tb:
             if "MODEL_DATA" not in tb.colnames():

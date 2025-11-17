@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Sync TODO.md items to Linear issues.
 
@@ -6,13 +6,13 @@ This script parses TODO.md and creates/updates Linear issues based on the TODO i
 Supports both creating new issues and updating existing ones based on IDs stored in TODO.md.
 """
 
+import argparse
+import json
 import re
 import sys
-import json
-import argparse
-from pathlib import Path
-from typing import List, Dict, Optional, Tuple
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
 try:
     import requests

@@ -1,27 +1,26 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Test script for coordinate_utils module.
 
 Tests the pre-validation fix for imregrid RuntimeError.
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
 
-from dsa110_contimg.mosaic.coordinate_utils import (
-    get_tile_coordinate_bounds,
-    compute_tiles_bounding_box,
-    check_tile_overlaps_template,
-    filter_tiles_by_overlap
-)
 import logging
+
+from dsa110_contimg.mosaic.coordinate_utils import (
+  check_tile_overlaps_template, compute_tiles_bounding_box,
+  filter_tiles_by_overlap, get_tile_coordinate_bounds)
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)

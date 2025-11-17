@@ -26,6 +26,7 @@ import {
 import { CARTAIframe, CARTAViewer } from "../components/CARTA";
 import DirectoryBrowser from "../components/QA/DirectoryBrowser";
 import { logger } from "../utils/logger";
+import { env } from "../config/env";
 
 type IntegrationMode = "iframe" | "websocket";
 type TabValue = "viewer" | "browser";
@@ -38,10 +39,10 @@ export default function CARTAPage() {
   // Ports follow allocation strategy: 9000-9099 for External Integrations
   // CARTA Backend: 9002, CARTA Frontend: 9003
   const [backendUrl, setBackendUrl] = useState<string>(
-    import.meta.env.VITE_CARTA_BACKEND_URL || "http://localhost:9002"
+    env.VITE_CARTA_BACKEND_URL || "http://localhost:9002"
   );
   const [frontendUrl, setFrontendUrl] = useState<string>(
-    import.meta.env.VITE_CARTA_FRONTEND_URL || "http://localhost:9003"
+    env.VITE_CARTA_FRONTEND_URL || "http://localhost:9003"
   );
 
   // Handle file parameter from URL query string

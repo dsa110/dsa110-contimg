@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Diagnostic script to understand CASA bandpass output vs actual calibration table.
 
@@ -9,9 +9,10 @@ This script:
 4. Identifies discrepancies
 """
 
-import sys
 import argparse
+import sys
 from pathlib import Path
+
 import numpy as np
 
 try:

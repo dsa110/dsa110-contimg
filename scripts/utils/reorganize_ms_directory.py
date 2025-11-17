@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Reorganize MS directory structure to match pipeline conventions.
 
@@ -16,11 +16,11 @@ import argparse
 import re
 import shutil
 import sqlite3
+# Use casa6 Python
+import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-# Use casa6 Python
-import sys
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from casacore.tables import table  # type: ignore[import]

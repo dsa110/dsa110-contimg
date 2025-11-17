@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Generate a pyuvsim-compatible antenna layout from antpos_local data."""
 
 import argparse

@@ -1,5 +1,7 @@
 # Frontend Testing with Docker
 
+**Date:** 2025-11-14
+
 ## Quick Start
 
 ### Option 1: Use Test Script (Easiest)
@@ -54,7 +56,7 @@ npm test
 ✅ **No Node version conflicts** - Uses Node 22 in Docker  
 ✅ **Consistent environment** - Same setup everywhere  
 ✅ **Isolated dependencies** - Doesn't affect host system  
-✅ **Easy CI/CD** - Same commands work in CI pipelines  
+✅ **Easy CI/CD** - Same commands work in CI pipelines
 
 ## Writing Tests
 
@@ -62,13 +64,13 @@ When you find a bug, write a test first:
 
 ```typescript
 // In useSelectionState.test.ts
-it('should handle unchecking checkbox', () => {
+it("should handle unchecking checkbox", () => {
   const result = computeSelectedMS(
-    [],                    // paths (empty after uncheck)
-    ['/data/ms1.ms'],      // prevList (had one selected)
-    '/data/ms1.ms'         // currentSelectedMS
+    [], // paths (empty after uncheck)
+    ["/data/ms1.ms"], // prevList (had one selected)
+    "/data/ms1.ms" // currentSelectedMS
   );
-  expect(result).toBe(''); // Should be empty
+  expect(result).toBe(""); // Should be empty
 });
 ```
 
@@ -77,6 +79,7 @@ Then fix the code and verify the test passes.
 ## Troubleshooting
 
 **Docker not found:**
+
 ```bash
 # Check Docker is installed
 docker --version
@@ -87,6 +90,7 @@ node --version  # Should be 22.6.0
 ```
 
 **Tests fail:**
+
 ```bash
 # Rebuild Docker image
 docker build --no-cache -t dsa110-frontend-test -f Dockerfile.dev .
@@ -96,9 +100,9 @@ docker run --rm -v "$PWD:/app" dsa110-frontend-test npm ci
 ```
 
 **Port conflicts:**
+
 ```bash
 # Change port in test.sh if 51204 is in use
 # Or use different port:
 docker run --rm -it -v "$PWD:/app" -v /app/node_modules -p 3000:51204 dsa110-frontend-test npm test -- --ui
 ```
-

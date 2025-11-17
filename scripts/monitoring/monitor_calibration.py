@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Monitor bandpass calibration progress.
 
@@ -12,11 +12,12 @@ Usage:
     python monitor_calibration.py <ms_path> [--watch]
 """
 
+import os
 import sys
 import time
-import os
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
 
 def check_process():
     """Check if calibration process is running."""

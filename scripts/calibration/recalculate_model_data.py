@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Recalculate MODEL_DATA using manual calculation method.
 
@@ -12,9 +12,12 @@ Example:
 """
 
 import sys
-from dsa110_contimg.calibration.model import _calculate_manual_model_data
-from casacore.tables import table
+
 import numpy as np
+from casacore.tables import table
+
+from dsa110_contimg.calibration.model import _calculate_manual_model_data
+
 
 def recalculate_model_data(ms_path, cal_ra_deg, cal_dec_deg, flux_jy):
     """Recalculate MODEL_DATA using manual calculation."""

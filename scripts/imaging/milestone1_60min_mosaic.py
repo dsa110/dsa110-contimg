@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Milestone 1: Create 60-minute science-quality mosaic for 0834+555 transit on 2025-10-29
 
@@ -27,12 +27,11 @@ from astropy.time import Time
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from dsa110_contimg.calibration.catalogs import get_calibrator_radec, load_vla_catalog
+from dsa110_contimg.calibration.catalogs import (get_calibrator_radec,
+                                                 load_vla_catalog)
 from dsa110_contimg.calibration.schedule import next_transit_time
 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-    find_subband_groups,
-    convert_subband_groups_to_ms,
-)
+  convert_subband_groups_to_ms, find_subband_groups)
 from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
 logging.basicConfig(
@@ -174,8 +173,9 @@ def convert_groups_to_ms(
         
         try:
             # Use write_ms_from_subbands which accepts a file list directly
-            from dsa110_contimg.conversion.strategies.direct_subband import write_ms_from_subbands
-            
+            from dsa110_contimg.conversion.strategies.direct_subband import \
+              write_ms_from_subbands
+
             # Convert group to MS
             write_ms_from_subbands(
                 file_list=group,
@@ -220,8 +220,10 @@ def calibrate_ms_files(
         
         try:
             # Run calibration with science-quality settings
-            from dsa110_contimg.calibration.cli_calibrate import handle_calibrate
             import argparse
+
+            from dsa110_contimg.calibration.cli_calibrate import \
+              handle_calibrate
             
             args = argparse.Namespace(
                 ms=str(ms_path),
@@ -341,9 +343,10 @@ def create_mosaic(
         return output_path
     
     try:
-        from dsa110_contimg.mosaic.cli import cmd_build
         import argparse
-        
+
+        from dsa110_contimg.mosaic.cli import cmd_build
+
         # Convert image paths to strings
         tile_paths = [str(p) for p in image_paths]
         

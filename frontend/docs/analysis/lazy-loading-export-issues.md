@@ -1,5 +1,7 @@
 # Lazy-Loading Export Pattern Issues - Root Cause Analysis
 
+**Date:** 2025-11-14
+
 ## Summary
 
 The `OperationsPage` export issue reflects several fundamental gaps in the

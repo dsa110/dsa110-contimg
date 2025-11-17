@@ -25,18 +25,18 @@ from typing import Any, Dict, List, Optional, Tuple
 from astropy.coordinates import EarthLocation
 from astropy.time import Time
 
-from dsa110_contimg.conversion.calibrator_ms_service import CalibratorMSGenerator
+from dsa110_contimg.conversion.calibrator_ms_service import \
+  CalibratorMSGenerator
 from dsa110_contimg.conversion.config import CalibratorMSConfig
-from dsa110_contimg.database.data_registry import (
-    ensure_data_registry_db,
-    get_data,
-    link_photometry_to_data,
-)
+from dsa110_contimg.database.data_registry import (ensure_data_registry_db,
+                                                   get_data,
+                                                   link_photometry_to_data)
 from dsa110_contimg.database.hdf5_index import query_subband_groups
 from dsa110_contimg.database.products import ensure_products_db
 from dsa110_contimg.mosaic.error_handling import check_disk_space
 from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
-from dsa110_contimg.photometry.manager import PhotometryConfig, PhotometryManager
+from dsa110_contimg.photometry.manager import (PhotometryConfig,
+                                               PhotometryManager)
 from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
 logger = logging.getLogger(__name__)
@@ -303,20 +303,170 @@ class MosaicOrchestrator:
             "ms_count": len(earliest_ms_paths),
         }
 
+    def check_existing_mosaic(
+        self,
+        calibrator_name: str,
+        start_time: Time,
+        end_time: Time,
+        timespan_minutes: int,
+    ) -> Optional[Dict]:
+        """Check if a mosaic with exact parameters already exists.
+
+        Args:
+            calibrator_name: Name of calibrator
+            start_time: Start time of mosaic window
+            end_time: End time of mosaic window
+            timespan_minutes: Mosaic timespan in minutes
+
+        Returns:
+            Dict with mosaic info if found, None otherwise
+        """
+        if not self.products_db.exists():
+            return None
+
+        cursor = self.products_db.cursor()
+        start_mjd = start_time.mjd
+        end_mjd = end_time.mjd
+
+        # Check if mosaics table exists
+        tables = {
+            row[0]
+            for row in cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            ).fetchall()
+        }
+
+        if "mosaics" not in tables:
+            return None
+
+        # Find mosaics with exact time range match (within 1 second tolerance)
+        # and matching calibrator (if stored in metadata)
+        rows = cursor.execute(
+            """
+            SELECT id, name, path, created_at, start_mjd, end_mjd,
+                   center_ra_deg, center_dec_deg, n_images
+            FROM mosaics
+            WHERE ABS(start_mjd - ?) < 0.00001 AND ABS(end_mjd - ?) < 0.00001
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            (start_mjd, end_mjd),
+        ).fetchall()
+
+        if rows:
+            r = rows[0]
+            return {
+                "id": r[0],
+                "name": r[1],
+                "path": r[2],
+                "created_at": r[3],
+                "start_mjd": r[4],
+                "end_mjd": r[5],
+                "center_ra_deg": r[6],
+                "center_dec_deg": r[7],
+                "n_images": r[8],
+            }
+        return None
+
+    def list_available_transits_with_quality(
+        self,
+        calibrator_name: str,
+        max_days_back: int = 60,
+        min_pb_response: Optional[float] = None,
+        min_ms_count: Optional[int] = None,
+    ) -> List[Dict]:
+        """List available transits with quality metrics.
+
+        Args:
+            calibrator_name: Name of calibrator
+            max_days_back: Maximum days to search back
+            min_pb_response: Minimum primary beam response (optional filter)
+            min_ms_count: Minimum MS file count (optional filter)
+
+        Returns:
+            List of transit dictionaries with quality metrics
+        """
+        if not self.calibrator_service:
+            logger.error("Calibrator service not available")
+            return []
+
+        transits = self.calibrator_service.list_available_transits(
+            calibrator_name, max_days_back=max_days_back
+        )
+
+        if not transits:
+            return []
+
+        # Enrich with MS count for each transit
+        enriched_transits = []
+        for transit in transits:
+            transit_time = Time(transit["transit_iso"])
+            # Calculate window (use default timespan for MS count check)
+            from astropy.time import TimeDelta
+
+            half_span = TimeDelta(DEFAULT_MOSAIC_SPAN_MINUTES / 2.0 * 60, format="sec")
+            start_time = transit_time - half_span
+            end_time = transit_time + half_span
+
+            # Count MS files in window
+            cursor = self.products_db.cursor()
+            start_mjd = start_time.mjd
+            end_mjd = end_time.mjd
+            rows = cursor.execute(
+                """
+                SELECT COUNT(*) as count
+                FROM ms_index
+                WHERE mid_mjd >= ? AND mid_mjd <= ?
+                AND status IN ('converted', 'calibrated', 'imaged', 'done')
+                """,
+                (start_mjd, end_mjd),
+            ).fetchone()
+            ms_count = rows[0] if rows else 0
+
+            # Apply filters
+            if min_pb_response is not None:
+                pb_response = transit.get("pb_response", 0.0)
+                if pb_response < min_pb_response:
+                    continue
+
+            if min_ms_count is not None:
+                if ms_count < min_ms_count:
+                    continue
+
+            enriched_transits.append(
+                {
+                    **transit,
+                    "ms_count": ms_count,
+                    "transit_time": transit_time,
+                }
+            )
+
+        return enriched_transits
+
     def find_transit_centered_window(
         self,
         calibrator_name: str,
         timespan_minutes: int = DEFAULT_MOSAIC_SPAN_MINUTES,
         max_days_back: int = 60,
+        transit_time: Optional[Time] = None,
+        start_time: Optional[Time] = None,
+        end_time: Optional[Time] = None,
     ) -> Optional[Dict]:
-        """Find window centered on earliest transit of specified calibrator.
+        """Find window centered on transit of specified calibrator.
 
         This implements the override behavior: center mosaic on specific RA (via calibrator).
+        Defaults to earliest transit if transit_time is not specified.
+        Supports time range override: if start_time and end_time are provided,
+        uses those directly instead of calculating from transit.
 
         Args:
             calibrator_name: Name of calibrator (e.g., "0834+555")
             timespan_minutes: Mosaic timespan in minutes (default: 50)
             max_days_back: Maximum days to search back
+            transit_time: Optional Time object specifying which transit to use.
+                         If None, defaults to earliest available transit.
+            start_time: Optional Time object for explicit start time (overrides transit-centered)
+            end_time: Optional Time object for explicit end time (overrides transit-centered)
 
         Returns:
             Dict with window info: {
@@ -333,26 +483,49 @@ class MosaicOrchestrator:
             logger.error("Calibrator service not available")
             return None
 
-        # List all available transits for this calibrator
-        transits = self.calibrator_service.list_available_transits(
-            calibrator_name, max_days_back=max_days_back
-        )
+        # Time range override: if both start_time and end_time provided, use them directly
+        if start_time is not None and end_time is not None:
+            logger.info(f"Using explicit time range: {start_time.isot} to {end_time.isot}")
+            # Calculate transit time as midpoint for reference
+            from astropy.time import TimeDelta
 
-        if not transits:
-            logger.warning(f"No transits found for {calibrator_name}")
-            return None
+            transit_time = start_time + (end_time - start_time) / 2.0
+            logger.info(f"Calculated transit time (midpoint): {transit_time.isot}")
+        else:
+            # If user specified a transit time, use it directly
+            if transit_time is not None:
+                logger.info(f"Using user-specified transit time: {transit_time.isot}")
+                # Validate that this transit is for the correct calibrator
+                # (We'll still list transits to check, but use the user-specified time)
+                transits = self.calibrator_service.list_available_transits(
+                    calibrator_name, max_days_back=max_days_back
+                )
+                if not transits:
+                    logger.warning(
+                        f"No transits found for {calibrator_name}, but using user-specified transit"
+                    )
+            else:
+                # List all available transits for this calibrator
+                transits = self.calibrator_service.list_available_transits(
+                    calibrator_name, max_days_back=max_days_back
+                )
 
-        # Find earliest transit (list is sorted most recent first, so get last)
-        earliest_transit = transits[-1]
-        transit_iso = earliest_transit["transit_iso"]
-        transit_time = Time(transit_iso)
+                if not transits:
+                    logger.warning(f"No transits found for {calibrator_name}")
+                    return None
 
-        # Calculate window centered on transit
-        from astropy.time import TimeDelta
+                # Find earliest transit (list is sorted most recent first, so get last)
+                earliest_transit = transits[-1]
+                transit_iso = earliest_transit["transit_iso"]
+                transit_time = Time(transit_iso)
+                logger.info(f"Using default (earliest) transit: {transit_time.isot}")
 
-        half_span = TimeDelta(timespan_minutes / 2.0 * 60, format="sec")
-        start_time = transit_time - half_span
-        end_time = transit_time + half_span
+            # Calculate window centered on transit
+            from astropy.time import TimeDelta
+
+            half_span = TimeDelta(timespan_minutes / 2.0 * 60, format="sec")
+            start_time = transit_time - half_span
+            end_time = transit_time + half_span
 
         # Get Dec from calibrator
         _, dec_deg = self.calibrator_service._load_radec(calibrator_name)
@@ -457,9 +630,8 @@ class MosaicOrchestrator:
             True if conversion triggered successfully, False otherwise
         """
         try:
-            from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-                convert_subband_groups_to_ms,
-            )
+            from dsa110_contimg.conversion.strategies.hdf5_orchestrator import \
+              convert_subband_groups_to_ms
             from dsa110_contimg.utils.ms_organization import create_path_mapper
 
             # Get input/output directories from environment
@@ -1343,10 +1515,16 @@ class MosaicOrchestrator:
         poll_interval_seconds: int = 5,
         max_wait_hours: float = 24.0,
         dry_run: bool = False,
+        transit_time: Optional[Time] = None,
+        start_time: Optional[Time] = None,
+        end_time: Optional[Time] = None,
+        overwrite: bool = False,
     ) -> Optional[str]:
-        """Create mosaic centered on earliest transit of specified calibrator.
+        """Create mosaic centered on transit of specified calibrator.
 
         Single trigger, hands-off operation: returns only when mosaic is published.
+        Defaults to earliest transit if transit_time is not specified.
+        Supports time range override and checks for existing mosaics.
 
         Args:
             calibrator_name: Name of calibrator (e.g., "0834+555")
@@ -1355,28 +1533,87 @@ class MosaicOrchestrator:
             poll_interval_seconds: Polling interval for published status (default: 5)
             max_wait_hours: Maximum hours to wait (default: 24)
             dry_run: If True, validate and plan without creating mosaic (default: False)
+            transit_time: Optional Time object specifying which transit to use.
+                         If None, defaults to earliest available transit.
+                         Can be a Time object or ISO string (e.g., "2025-11-12T10:00:00").
+            start_time: Optional Time object for explicit start time (overrides transit-centered)
+            end_time: Optional Time object for explicit end time (overrides transit-centered)
+            overwrite: If True, allow overwriting existing mosaics (default: False)
 
         Returns:
             Published mosaic path, or None if failed (or "DRY_RUN" if dry_run=True)
         """
         logger.info(f"Creating {timespan_minutes}-minute mosaic centered on {calibrator_name}")
 
-        # Find transit-centered window
-        window_info = self.find_transit_centered_window(calibrator_name, timespan_minutes)
+        # Convert transit_time to Time object if it's a string
+        if transit_time is not None and isinstance(transit_time, str):
+            try:
+                transit_time = Time(transit_time, format="isot", scale="utc")
+            except Exception as e:
+                logger.error(f"Invalid transit_time format: {e}")
+                return None
+
+        # Convert start_time/end_time to Time objects if they're strings
+        if start_time is not None and isinstance(start_time, str):
+            try:
+                start_time = Time(start_time, format="isot", scale="utc")
+            except Exception as e:
+                logger.error(f"Invalid start_time format: {e}")
+                return None
+
+        if end_time is not None and isinstance(end_time, str):
+            try:
+                end_time = Time(end_time, format="isot", scale="utc")
+            except Exception as e:
+                logger.error(f"Invalid end_time format: {e}")
+                return None
+
+        # Find transit-centered window (or use explicit time range)
+        window_info = self.find_transit_centered_window(
+            calibrator_name,
+            timespan_minutes,
+            max_days_back=60,
+            transit_time=transit_time,
+            start_time=start_time,
+            end_time=end_time,
+        )
         if not window_info:
             logger.error(f"Could not find transit window for {calibrator_name}")
             return None
 
-        transit_time = window_info["transit_time"]
+        selected_transit_time = window_info["transit_time"]
         start_time = window_info["start_time"]
         end_time = window_info["end_time"]
         required_ms_count = int(timespan_minutes / MS_DURATION_MINUTES)
 
         logger.info(
-            f"Transit time: {transit_time.isot}\n"
+            f"Transit time: {selected_transit_time.isot}\n"
             f"Window: {start_time.isot} to {end_time.isot}\n"
             f"Required MS files: {required_ms_count}"
         )
+
+        # Check for existing mosaic with exact parameters (unless overwrite is True)
+        if not overwrite and not dry_run:
+            existing_mosaic = self.check_existing_mosaic(
+                calibrator_name, start_time, end_time, timespan_minutes
+            )
+            if existing_mosaic:
+                logger.error("=" * 60)
+                logger.error("EXISTING MOSAIC FOUND")
+                logger.error("=" * 60)
+                logger.error(
+                    f"A mosaic with these exact parameters already exists:\n"
+                    f"  ID: {existing_mosaic['id']}\n"
+                    f"  Name: {existing_mosaic['name']}\n"
+                    f"  Path: {existing_mosaic['path']}\n"
+                    f"  Created: {Time(existing_mosaic['created_at'], format='unix').isot}\n"
+                    f"  Start: {Time(existing_mosaic['start_mjd'], format='mjd').isot}\n"
+                    f"  End: {Time(existing_mosaic['end_mjd'], format='mjd').isot}\n"
+                    f"  Images: {existing_mosaic['n_images']}"
+                )
+                logger.error("")
+                logger.error("To overwrite this mosaic, add the --overwrite flag to your command.")
+                return None
 
         # Ensure MS files exist in window (skip conversion in dry_run mode)
         ms_paths = self.ensure_ms_files_in_window(
@@ -1384,7 +1621,9 @@ class MosaicOrchestrator:
         )
 
         # Form group ID (sanitize transit time for use as identifier)
-        transit_str = transit_time.isot.replace(":", "-").replace(".", "-").replace("T", "_")
+        transit_str = (
+            selected_transit_time.isot.replace(":", "-").replace(".", "-").replace("T", "_")
+        )
         group_id = f"mosaic_{transit_str}"
 
         # Dry-run mode: validate and plan without creating
@@ -1396,7 +1635,7 @@ class MosaicOrchestrator:
             # Run comprehensive validation
             validation_errors, validation_warnings = self._validate_mosaic_plan(
                 calibrator_name=calibrator_name,
-                transit_time=transit_time,
+                transit_time=selected_transit_time,
                 start_time=start_time,
                 end_time=end_time,
                 timespan_minutes=timespan_minutes,
@@ -1409,7 +1648,7 @@ class MosaicOrchestrator:
             logger.info("")
             logger.info(f"Mosaic plan:")
             logger.info(f"  - Calibrator: {calibrator_name}")
-            logger.info(f"  - Transit time: {transit_time.isot}")
+            logger.info(f"  - Transit time: {selected_transit_time.isot}")
             logger.info(f"  - Window: {start_time.isot} to {end_time.isot}")
             logger.info(f"  - Timespan: {timespan_minutes} minutes")
             logger.info(f"  - Required MS files: {required_ms_count}")
@@ -1462,7 +1701,7 @@ class MosaicOrchestrator:
         # Normal mode: execute mosaic creation workflow
         return self._execute_mosaic_creation(
             calibrator_name=calibrator_name,
-            transit_time=transit_time,
+            transit_time=selected_transit_time,
             start_time=start_time,
             end_time=end_time,
             timespan_minutes=timespan_minutes,
@@ -1472,6 +1711,133 @@ class MosaicOrchestrator:
             poll_interval_seconds=poll_interval_seconds,
             max_wait_hours=max_wait_hours,
         )
+
+    def create_mosaics_batch(
+        self,
+        calibrator_name: str,
+        transit_indices: Optional[List[int]] = None,
+        all_transits: bool = False,
+        timespan_minutes: int = DEFAULT_MOSAIC_SPAN_MINUTES,
+        max_days_back: int = 60,
+        min_pb_response: Optional[float] = None,
+        min_ms_count: Optional[int] = None,
+        wait_for_published: bool = False,
+        overwrite: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """Create mosaics for multiple transits in batch.
+
+        Args:
+            calibrator_name: Name of calibrator
+            transit_indices: List of transit indices to process (0-based)
+            all_transits: If True, process all available transits
+            timespan_minutes: Mosaic timespan in minutes
+            max_days_back: Maximum days to search back
+            min_pb_response: Minimum primary beam response filter
+            min_ms_count: Minimum MS file count filter
+            wait_for_published: Wait until each mosaic is published
+            overwrite: Allow overwriting existing mosaics
+
+        Returns:
+            List of results: [{"transit_index": int, "transit_time": str, "status": str, "path": str}, ...]
+        """
+        # Get list of available transits with quality metrics
+        transits = self.list_available_transits_with_quality(
+            calibrator_name,
+            max_days_back=max_days_back,
+            min_pb_response=min_pb_response,
+            min_ms_count=min_ms_count,
+        )
+
+        if not transits:
+            logger.error(f"No transits found for {calibrator_name}")
+            return []
+
+        # Determine which transits to process
+        if all_transits:
+            transit_indices = list(range(len(transits)))
+        elif transit_indices is None:
+            logger.error("Must specify either --transit-indices or --all-transits")
+            return []
+
+        results = []
+        for idx in transit_indices:
+            if idx < 0 or idx >= len(transits):
+                logger.warning(f"Transit index {idx} out of range (0-{len(transits)-1})")
+                results.append(
+                    {
+                        "transit_index": idx,
+                        "transit_time": None,
+                        "status": "skipped",
+                        "path": None,
+                        "error": "Index out of range",
+                    }
+                )
+                continue
+
+            transit = transits[idx]
+            transit_time = transit["transit_time"]
+
+            logger.info(
+                f"\n{'='*60}\n"
+                f"Processing transit {idx+1}/{len(transit_indices)}: {transit_time.isot}\n"
+                f"{'='*60}"
+            )
+
+            try:
+                mosaic_path = self.create_mosaic_centered_on_calibrator(
+                    calibrator_name=calibrator_name,
+                    timespan_minutes=timespan_minutes,
+                    wait_for_published=wait_for_published,
+                    dry_run=False,
+                    transit_time=transit_time,
+                    overwrite=overwrite,
+                )
+
+                if mosaic_path:
+                    results.append(
+                        {
+                            "transit_index": idx,
+                            "transit_time": transit_time.isot,
+                            "status": "success",
+                            "path": mosaic_path,
+                        }
+                    )
+                    logger.info(f"✓ Successfully created mosaic: {mosaic_path}")
+                else:
+                    results.append(
+                        {
+                            "transit_index": idx,
+                            "transit_time": transit_time.isot,
+                            "status": "failed",
+                            "path": None,
+                            "error": "Mosaic creation returned None",
+                        }
+                    )
+                    logger.error(f"✗ Failed to create mosaic for transit {idx+1}")
+            except Exception as e:
+                logger.error(f"✗ Exception creating mosaic for transit {idx+1}: {e}")
+                results.append(
+                    {
+                        "transit_index": idx,
+                        "transit_time": transit_time.isot,
+                        "status": "error",
+                        "path": None,
+                        "error": str(e),
+                    }
+                )
+
+        # Summary
+        logger.info("\n" + "=" * 60)
+        logger.info("BATCH PROCESSING SUMMARY")
+        logger.info("=" * 60)
+        success_count = sum(1 for r in results if r["status"] == "success")
+        failed_count = len(results) - success_count
+        logger.info(f"Total: {len(results)}")
+        logger.info(f"Success: {success_count}")
+        logger.info(f"Failed: {failed_count}")
+        logger.info("=" * 60)
+
+        return results
 
     def create_mosaic_default_behavior(
         self,

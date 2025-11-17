@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Comprehensive 60-minute mosaic generation script.
 
@@ -20,22 +20,25 @@ Usage:
         --output-dir /data/output
 """
 
-import sys
+import argparse
 import os
 import subprocess
-import argparse
+import sys
 from pathlib import Path
-from astropy.time import Time
 from typing import List, Optional, Tuple
+
+from astropy.time import Time
 
 # Add src to path
 repo_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(repo_root / "src"))
 
-from dsa110_contimg.calibration.catalogs import load_vla_catalog, get_calibrator_radec
-from dsa110_contimg.calibration.schedule import previous_transits
-from dsa110_contimg.mosaic.cli import cmd_plan, cmd_build
 from casacore.tables import table
+
+from dsa110_contimg.calibration.catalogs import (get_calibrator_radec,
+                                                 load_vla_catalog)
+from dsa110_contimg.calibration.schedule import previous_transits
+from dsa110_contimg.mosaic.cli import cmd_build, cmd_plan
 
 
 def find_transit_on_date(calibrator_name: str, target_date: str, n: int = 10) -> Optional[Time]:
@@ -365,8 +368,10 @@ def image_ms(ms_path: Path, output_dir: Path, imsize: int = 2048,
 def register_image_in_db(image_path: Path, ms_path: Path, products_db: Path, 
                          integration_time: str = "60min", pbcor: bool = True):
     """Register image in products database."""
-    from dsa110_contimg.database.products import ensure_products_db, images_insert
     import time
+
+    from dsa110_contimg.database.products import (ensure_products_db,
+                                                  images_insert)
     
     conn = ensure_products_db(products_db)
     now = time.time()

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Quick diagnostic script to verify phase center alignment for all fields.
 
@@ -10,10 +10,12 @@ Example:
 """
 
 import sys
-from casacore.tables import table
-from astropy.coordinates import SkyCoord
+
 import astropy.units as u
 import numpy as np
+from astropy.coordinates import SkyCoord
+from casacore.tables import table
+
 
 def check_field_phase_centers(ms_path, cal_ra_deg, cal_dec_deg):
     """Check phase centers for all fields in MS."""

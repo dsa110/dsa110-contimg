@@ -1,8 +1,12 @@
 # Combined Testing Strategy: Playwright + Cursor Browser Tools
 
+**Date:** 2025-11-14
+
 ## Overview
 
-This document outlines a comprehensive testing strategy that combines automated testing (Playwright) with interactive testing (Cursor Browser Tools) to ensure robust, efficient, and thorough frontend testing.
+This document outlines a comprehensive testing strategy that combines automated
+testing (Playwright) with interactive testing (Cursor Browser Tools) to ensure
+robust, efficient, and thorough frontend testing.
 
 ## Table of Contents
 
@@ -21,6 +25,7 @@ This document outlines a comprehensive testing strategy that combines automated 
 ### Playwright (Automated Testing)
 
 **Strengths:**
+
 - ✅ Programmatic test execution
 - ✅ Multi-browser testing (Chromium, Firefox, WebKit)
 - ✅ Mobile viewport simulation
@@ -32,6 +37,7 @@ This document outlines a comprehensive testing strategy that combines automated 
 - ✅ Performance testing capabilities
 
 **Limitations:**
+
 - ❌ Requires test code maintenance
 - ❌ Less suitable for exploratory testing
 - ❌ Visual verification requires screenshots
@@ -40,6 +46,7 @@ This document outlines a comprehensive testing strategy that combines automated 
 ### Cursor Browser Tools (Interactive Testing)
 
 **Strengths:**
+
 - ✅ Real-time visual inspection
 - ✅ Interactive debugging
 - ✅ Console message monitoring
@@ -51,6 +58,7 @@ This document outlines a comprehensive testing strategy that combines automated 
 - ✅ User flow simulation
 
 **Limitations:**
+
 - ❌ Manual process (not automated)
 - ❌ Single browser at a time
 - ❌ Not suitable for CI/CD
@@ -116,6 +124,7 @@ This document outlines a comprehensive testing strategy that combines automated 
 ### Workflow 1: Feature Development
 
 **Phase 1: Initial Development (Cursor Browser Tools)**
+
 1. Implement feature
 2. Use Cursor browser tools to visually verify
 3. Check console for errors
@@ -123,12 +132,14 @@ This document outlines a comprehensive testing strategy that combines automated 
 5. Make adjustments based on visual feedback
 
 **Phase 2: Test Creation (Playwright)**
+
 1. Write Playwright tests for the feature
 2. Test happy path scenarios
 3. Test error cases
 4. Test edge cases
 
 **Phase 3: Validation (Both Tools)**
+
 1. Run Playwright tests to ensure automation
 2. Use Cursor browser tools for final visual check
 3. Verify cross-browser compatibility with Playwright
@@ -137,6 +148,7 @@ This document outlines a comprehensive testing strategy that combines automated 
 ### Workflow 2: Bug Fix
 
 **Phase 1: Investigation (Cursor Browser Tools)**
+
 1. Reproduce bug in browser
 2. Inspect console for errors
 3. Check network requests
@@ -144,11 +156,13 @@ This document outlines a comprehensive testing strategy that combines automated 
 5. Identify root cause
 
 **Phase 2: Fix Implementation**
+
 1. Implement fix
 2. Use Cursor browser tools to verify fix visually
 3. Check console for new errors
 
 **Phase 3: Regression Testing (Playwright)**
+
 1. Add/update Playwright test for bug
 2. Run full test suite
 3. Verify fix doesn't break other features
@@ -157,34 +171,40 @@ This document outlines a comprehensive testing strategy that combines automated 
 ### Workflow 3: Pre-Commit Validation
 
 **Step 1: Quick Visual Check (Cursor Browser Tools)**
+
 - Navigate to affected pages
 - Verify no obvious visual issues
 - Check console for errors
 
 **Step 2: Automated Testing (Playwright)**
+
 - Run affected test suites
 - Run full regression suite
 - Verify all tests pass
 
 **Step 3: Final Verification (Cursor Browser Tools)**
+
 - Quick visual check of critical paths
 - Verify user flows work correctly
 
 ### Workflow 4: Release Preparation
 
 **Phase 1: Automated Testing (Playwright)**
+
 1. Run full test suite
 2. Test all browsers (Chromium, Firefox, WebKit)
 3. Test mobile viewports
 4. Generate test report
 
 **Phase 2: Manual Verification (Cursor Browser Tools)**
+
 1. Visual check of all pages
 2. Test critical user flows
 3. Verify responsive design
 4. Check accessibility features
 
 **Phase 3: Cross-Browser Verification (Playwright)**
+
 1. Run tests on all configured browsers
 2. Compare screenshots across browsers
 3. Document any browser-specific issues
@@ -208,12 +228,14 @@ Cursor Browser Tools (Visual Verification)
 ### 2. Bug Reporting
 
 **Cursor Browser Tools:**
+
 - Capture console errors
 - Take screenshots
 - Document visual issues
 - Record network requests
 
 **Playwright:**
+
 - Convert to automated test
 - Add to regression suite
 - Verify fix
@@ -221,11 +243,13 @@ Cursor Browser Tools (Visual Verification)
 ### 3. Visual Regression Testing
 
 **Playwright:**
+
 - Capture screenshots automatically
 - Compare across browsers
 - Detect layout changes
 
 **Cursor Browser Tools:**
+
 - Verify visual changes are intentional
 - Check design consistency
 - Validate responsive behavior
@@ -233,11 +257,13 @@ Cursor Browser Tools (Visual Verification)
 ### 4. Performance Testing
 
 **Playwright:**
+
 - Measure load times
 - Track performance metrics
 - Compare across browsers
 
 **Cursor Browser Tools:**
+
 - Verify perceived performance
 - Check animation smoothness
 - Validate user experience
@@ -319,6 +345,7 @@ Cursor Browser Tools (Visual Verification)
 ### Example 1: New Component Development
 
 **Step 1: Development with Cursor Browser Tools**
+
 ```bash
 # Navigate to page
 http://localhost:5174/sky
@@ -330,15 +357,17 @@ http://localhost:5174/sky
 ```
 
 **Step 2: Create Playwright Test**
+
 ```typescript
-test('SkyView component renders correctly', async ({ page }) => {
-  await page.goto('/sky');
-  await expect(page.locator('#skyViewDisplay')).toBeVisible();
+test("SkyView component renders correctly", async ({ page }) => {
+  await page.goto("/sky");
+  await expect(page.locator("#skyViewDisplay")).toBeVisible();
   // ... more assertions
 });
 ```
 
 **Step 3: Run Tests**
+
 ```bash
 docker compose exec dashboard-dev npx playwright test skyview
 ```
@@ -346,23 +375,26 @@ docker compose exec dashboard-dev npx playwright test skyview
 ### Example 2: Bug Fix Verification
 
 **Step 1: Reproduce with Cursor Browser Tools**
+
 - Navigate to buggy page
 - Reproduce issue
 - Check console for errors
 - Inspect problematic element
 
 **Step 2: Fix and Verify**
+
 - Implement fix
 - Use Cursor tools to verify fix
 - Check console for new errors
 
 **Step 3: Add Playwright Test**
+
 ```typescript
-test('fixes className.split TypeError', async ({ page }) => {
-  await page.goto('/sky');
+test("fixes className.split TypeError", async ({ page }) => {
+  await page.goto("/sky");
   const errors = [];
-  page.on('console', msg => {
-    if (msg.type() === 'error' && msg.text().includes('className.split')) {
+  page.on("console", (msg) => {
+    if (msg.type() === "error" && msg.text().includes("className.split")) {
       errors.push(msg.text());
     }
   });
@@ -374,6 +406,7 @@ test('fixes className.split TypeError', async ({ page }) => {
 ### Example 3: Cross-Browser Testing
 
 **Playwright:**
+
 ```bash
 # Test all browsers
 docker compose exec dashboard-dev npx playwright test --project=chromium
@@ -381,6 +414,7 @@ docker compose exec dashboard-dev npx playwright test --project=firefox
 ```
 
 **Cursor Browser Tools:**
+
 - Manually verify visual consistency
 - Check browser-specific features
 - Verify responsive design
@@ -392,6 +426,7 @@ docker compose exec dashboard-dev npx playwright test --project=firefox
 ### Playwright in CI/CD
 
 **GitHub Actions Example:**
+
 ```yaml
 name: Playwright Tests
 on: [push, pull_request]
@@ -413,6 +448,7 @@ jobs:
 ### Cursor Browser Tools in Development
 
 **Local Development Workflow:**
+
 1. Make code changes
 2. Use Cursor browser tools for quick verification
 3. Run Playwright tests before commit
@@ -421,12 +457,14 @@ jobs:
 ### Test Reporting
 
 **Playwright Reports:**
+
 - HTML test reports
 - Screenshot comparisons
 - Video recordings
 - Test coverage metrics
 
 **Cursor Browser Tools Documentation:**
+
 - Screenshots of visual issues
 - Console error logs
 - Network request captures
@@ -472,15 +510,18 @@ jobs:
 ## Maintenance Schedule
 
 ### Daily
+
 - Run Playwright tests before commits
 - Use Cursor tools for quick visual checks
 
 ### Weekly
+
 - Review Playwright test coverage
 - Update tests for new features
 - Clean up obsolete tests
 
 ### Monthly
+
 - Review test performance
 - Optimize slow tests
 - Update browser versions
@@ -493,12 +534,14 @@ jobs:
 ### Playwright Issues
 
 **Tests Failing:**
+
 1. Check error messages
 2. Review screenshots/videos
 3. Verify test environment
 4. Check for flaky tests
 
 **Browser Issues:**
+
 1. Verify browser installation
 2. Check Docker container
 3. Review browser logs
@@ -506,11 +549,13 @@ jobs:
 ### Cursor Browser Tools Issues
 
 **Browser Not Available:**
+
 - Check if browser is already in use
 - Restart browser instance
 - Verify URL accessibility
 
 **Console Errors:**
+
 - Document errors
 - Convert to Playwright tests
 - Fix root cause
@@ -519,7 +564,8 @@ jobs:
 
 ## Conclusion
 
-By combining Playwright (automated testing) with Cursor Browser Tools (interactive testing), we achieve:
+By combining Playwright (automated testing) with Cursor Browser Tools
+(interactive testing), we achieve:
 
 - ✅ Comprehensive test coverage
 - ✅ Fast feedback during development
@@ -528,5 +574,5 @@ By combining Playwright (automated testing) with Cursor Browser Tools (interacti
 - ✅ Cross-browser compatibility
 - ✅ Efficient debugging workflow
 
-Both tools complement each other, providing a robust testing strategy that covers automated testing, visual verification, and interactive debugging.
-
+Both tools complement each other, providing a robust testing strategy that
+covers automated testing, visual verification, and interactive debugging.

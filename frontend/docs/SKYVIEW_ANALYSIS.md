@@ -1,13 +1,15 @@
 # Sky View Page (`/sky`) - Implementation Analysis
 
-**Date:** 2025-01-XX  
-**Purpose:** Detailed analysis of SkyViewPage implementation vs. documented features
+**Date:** 2025-11-14  
+**Purpose:** Detailed analysis of SkyViewPage implementation vs. documented
+features
 
 ---
 
 ## 1. Components Already Implemented
 
 ### Page Component
+
 - **`SkyViewPage.tsx`** (`frontend/src/pages/SkyViewPage.tsx`)
   - Main page component
   - Layout: ImageBrowser sidebar (4 cols) + Main display (8 cols)
@@ -16,6 +18,7 @@
 ### Sky Components (`frontend/src/components/Sky/`)
 
 #### Image Browser & Selection
+
 - **`ImageBrowser.tsx`** ✅
   - Image list with filters
   - Search by MS path
@@ -25,6 +28,7 @@
   - Pagination support (limit/offset)
 
 #### Image Display
+
 - **`SkyViewer.tsx`** ✅
   - JS9 FITS viewer integration
   - Display ID: `skyViewDisplay`
@@ -45,6 +49,7 @@
   - WCS coordinate display
 
 #### Catalog Features
+
 - **`CatalogOverlayJS9.tsx`** ✅
   - Catalog overlay for JS9 display
   - Uses `useCatalogOverlayByCoords(ra, dec, radius, catalog)`
@@ -62,6 +67,7 @@
   - Not currently used in SkyViewPage
 
 #### Region Management
+
 - **`RegionTools.tsx`** ✅
   - Create/edit regions on image
   - Display ID: `skyViewDisplay`
@@ -70,10 +76,12 @@
 
 - **`RegionList.tsx`** ✅
   - List regions for image
-  - Uses `useRegions(imagePath)`, `useDeleteRegion()`, `useUpdateRegion()`, `useRegionStatistics()`
+  - Uses `useRegions(imagePath)`, `useDeleteRegion()`, `useUpdateRegion()`,
+    `useRegionStatistics()`
   - Selection support: `onRegionSelect(region)`, `selectedRegionId`
 
 #### Analysis Tools
+
 - **`ProfileTool.tsx`** ✅
   - Profile extraction tool
   - Uses `useProfileExtraction()` mutation
@@ -102,6 +110,7 @@
 ### Direct API Calls (via React Query Hooks)
 
 #### Image Queries
+
 - **`useImages(filters)`** ✅
   - Endpoint: `GET /api/images`
   - Filters supported:
@@ -113,8 +122,10 @@
   - Returns: `ImageList` with `items[]` and `total`
 
 #### Catalog Queries
+
 - **`useCatalogOverlayByCoords(ra, dec, radius, catalog)`** ✅
-  - Endpoint: `GET /api/catalog/overlay?ra={ra}&dec={dec}&radius={radius}&catalog={catalog}`
+  - Endpoint:
+    `GET /api/catalog/overlay?ra={ra}&dec={dec}&radius={radius}&catalog={catalog}`
   - Used in: `CatalogOverlayJS9`
   - Parameters:
     - `ra`: Image center RA (from `selectedImage.center_ra_deg`)
@@ -123,6 +134,7 @@
     - `catalog`: "all"
 
 #### Region Queries
+
 - **`useRegions(imagePath)`** ✅
   - Endpoint: `GET /api/regions?image_path={imagePath}`
   - Used in: `RegionList`, `ImageFittingTool`
@@ -144,6 +156,7 @@
   - Used in: `RegionList`
 
 #### Analysis Mutations
+
 - **`useProfileExtraction()`** ✅ (Mutation)
   - Endpoint: `POST /api/images/{image_id}/profile`
   - Used in: `ProfileTool`
@@ -161,18 +174,22 @@
 ### Missing API Calls (Not Used in SkyViewPage)
 
 #### Image Detail
+
 - **`useImageDetail(imageId)`** ❌
   - Endpoint: `GET /api/images/{image_id}`
   - **Status:** Available but not used
-  - **Gap:** SkyViewPage uses `selectedImage` from ImageBrowser, but doesn't fetch full details
+  - **Gap:** SkyViewPage uses `selectedImage` from ImageBrowser, but doesn't
+    fetch full details
 
 #### Image Measurements
+
 - **`useImageMeasurements(imageId)`** ❌
   - Endpoint: `GET /api/images/{image_id}/measurements`
   - **Status:** Available but not used
   - **Gap:** Source statistics not displayed
 
 #### Mosaic Queries (Separate Page)
+
 - **`useMosaicQuery(request)`** ✅
   - Endpoint: `POST /api/mosaics/query`
   - **Status:** Used in `MosaicGalleryPage.tsx` (separate page)
@@ -190,6 +207,7 @@
 ### ❌ Missing: Interactive Sky Map
 
 **Documentation Requirements:**
+
 - Observed fields (color-coded by observation time)
 - Source density heatmap
 - Calibrator positions
@@ -200,12 +218,14 @@
 - Declination range filtering
 
 **Current Status:** 📋 **Not Implemented**
+
 - No sky map component exists
 - No coverage visualization
 - No heatmap display
 - No telescope pointing display
 
 **Gap Analysis:**
+
 - **Component:** No `SkyMap.tsx` or similar component
 - **API:** No API calls for field coverage or pointing data
 - **Data:** No integration with pointing history or field coverage endpoints
@@ -217,6 +237,7 @@
 **Documentation Requirements:**
 
 #### Grid View
+
 - ✅ Thumbnail grid (4-6 images per row, responsive)
 - ✅ Each thumbnail shows:
   - ✅ Observation timestamp
@@ -226,17 +247,22 @@
   - ❌ Calibrator status (not displayed)
 
 **Current Implementation:**
+
 - **`ImageBrowser.tsx`** uses **List** layout (not grid)
 - Displays: filename, type chip, PB chip, timestamp, noise, beam
 - Missing: Field ID, source count, calibrator status
 
 **Gap Analysis:**
+
 - **Layout:** List view instead of grid thumbnails
-- **Data:** `ImageInfo` type may not include `field_id`, `source_count`, `calibrator_status`
+- **Data:** `ImageInfo` type may not include `field_id`, `source_count`,
+  `calibrator_status`
 - **Display:** Missing thumbnail images (only text list)
 
 #### Filters
+
 **Documentation Requirements:**
+
 - ❌ Date range (start/end UTC)
 - ❌ Declination range
 - ❌ Quality threshold (noise level)
@@ -245,6 +271,7 @@
 - ✅ Search by field ID or coordinates (partial: MS path search only)
 
 **Current Implementation:**
+
 - ✅ Image type filter (`image_type`)
 - ✅ PB corrected filter (`pbcor`)
 - ✅ MS path search (`ms_path`)
@@ -256,6 +283,7 @@
 - ❌ Coordinate search (not in `ImageFilters` type)
 
 **Gap Analysis:**
+
 - **Type Definition:** `ImageFilters` interface missing:
   ```typescript
   start_date?: string;
@@ -271,6 +299,7 @@
   ```
 
 #### Pagination
+
 - ✅ Configurable items per page (`limit`)
 - ✅ Page navigation (via `offset`)
 - ✅ Total count display
@@ -284,6 +313,7 @@
 **Documentation Requirements:**
 
 #### Full-Resolution Display
+
 - ✅ Large image viewer (JS9 integration)
 - ✅ Zoom and pan controls (`ImageControls`)
 - ✅ Colormap selection (`ImageControls`)
@@ -294,41 +324,51 @@
 **Status:** ✅ **Fully Implemented**
 
 #### Metadata Panel
+
 **Documentation Requirements:**
 
 **Observation Details:**
+
 - ❌ Date (not displayed in `ImageMetadata`)
 - ❌ MJD (not displayed)
 - ❌ Integration time (not displayed)
 
 **Pointing Center:**
-- ✅ RA/Dec (from `selectedImage.center_ra_deg/dec_deg`, displayed in cursor info)
+
+- ✅ RA/Dec (from `selectedImage.center_ra_deg/dec_deg`, displayed in cursor
+  info)
 
 **Field Size:**
+
 - ❌ Field size (not displayed)
 
 **Image Quality Metrics:**
+
 - ✅ Noise level (mJy/beam) - displayed
 - ✅ Synthesized beam (major, minor, PA) - displayed
 - ❌ Noise/thermal ratio (not displayed)
 - ❌ Dynamic range (not displayed)
 
 **Frequency Information:**
+
 - ❌ Center frequency (not displayed)
 - ❌ Bandwidth (not displayed)
 
 **Source Statistics:**
+
 - ❌ Detected sources count (not displayed)
 - ❌ NVSS matches count (not displayed)
 - ❌ Variable sources count (not displayed)
 
 **Calibration Information:**
+
 - ❌ Calibrator name (not displayed)
 - ❌ Separation from pointing center (not displayed)
 - ❌ Measured vs. expected flux (not displayed)
 - ❌ Calibration tables used (not displayed)
 
 **Current Implementation:**
+
 - **`ImageMetadata.tsx`** displays:
   - Path, type
   - Noise level (mJy)
@@ -336,13 +376,16 @@
   - Cursor position (pixel, RA/Dec, flux)
 
 **Gap Analysis:**
+
 - **Data Source:** `ImageInfo` type may not include all required fields
 - **API:** `useImageDetail(imageId)` available but not used
 - **API:** `useImageMeasurements(imageId)` available but not used
 - **Display:** Missing comprehensive metadata panel
 
 #### Actions
+
 **Documentation Requirements:**
+
 - ✅ Download FITS file (via JS9 or direct URL)
 - ❌ Download PNG image (not implemented)
 - ❌ View source list (not implemented)
@@ -350,6 +393,7 @@
 - ❌ View QA plots (not implemented)
 
 **Gap Analysis:**
+
 - **FITS Download:** Available via `/api/images/{image_id}/fits`
 - **PNG Download:** No endpoint or UI button
 - **Source List:** No link to source detail page or source list
@@ -361,6 +405,7 @@
 ### ✅ Implemented: Mosaic Builder (Separate Page)
 
 **Documentation Requirements:**
+
 - ✅ Time-Range Query (`MosaicGalleryPage.tsx`)
 - ✅ Start/End DateTime pickers (UTC timezone)
 - ✅ MJD conversion support
@@ -378,8 +423,11 @@
 **Status:** ✅ **Fully Implemented** (but in separate page `/mosaics`)
 
 **Gap Analysis:**
-- **Location:** Mosaic builder is in `MosaicGalleryPage.tsx`, not integrated into `SkyViewPage.tsx`
-- **Integration:** Documentation suggests mosaic builder should be part of Sky View page
+
+- **Location:** Mosaic builder is in `MosaicGalleryPage.tsx`, not integrated
+  into `SkyViewPage.tsx`
+- **Integration:** Documentation suggests mosaic builder should be part of Sky
+  View page
 - **Missing:** Declination range filter in mosaic query
 - **Missing:** Preview coverage map before generation
 
@@ -429,6 +477,7 @@
 ### Type Definition Gaps
 
 **`ImageFilters` interface missing:**
+
 ```typescript
 start_date?: string;        // Date range start
 end_date?: string;          // Date range end
@@ -443,6 +492,7 @@ radius?: number;           // Coordinate search radius
 ```
 
 **`ImageInfo` type may be missing:**
+
 ```typescript
 field_id?: string;          // Field identifier
 source_count?: number;      // Detected sources count
@@ -481,7 +531,8 @@ variable_sources_count?: number; // Variable sources
    - Add missing fields (field_id, source_count, calibrator_status)
 
 3. **Add Advanced Filters**
-   - Extend `ImageFilters` type with date range, declination range, quality threshold
+   - Extend `ImageFilters` type with date range, declination range, quality
+     threshold
    - Add filter UI components (DatePicker, RangeSlider, etc.)
    - Update `ImageBrowser` to use new filters
 
@@ -522,5 +573,4 @@ variable_sources_count?: number; // Variable sources
 
 ---
 
-**Last Updated:** 2025-01-XX
-
+**Last Updated:** 2025-11-14

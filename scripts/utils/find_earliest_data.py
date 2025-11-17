@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Find the earliest visibility data stored in the pipeline.
 
 This script queries multiple data sources to determine the earliest

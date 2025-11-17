@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Check MS phasing and model alignment for calibrator.
 
@@ -13,10 +13,10 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from casacore.tables import table
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
+from casacore.tables import table
 
 
 def check_ms_phasing(ms_path, calibrator_name=None, calibrator_ra=None, calibrator_dec=None):
@@ -232,7 +232,8 @@ def main():
     if args.calibrator and not args.cal_ra:
         # Try to load calibrator catalog
         try:
-            from dsa110_contimg.calibration.catalog import load_calibrator_catalog
+            from dsa110_contimg.calibration.catalog import \
+              load_calibrator_catalog
             catalog = load_calibrator_catalog()
             if catalog is not None:
                 cal_info = catalog.get(args.calibrator.upper())

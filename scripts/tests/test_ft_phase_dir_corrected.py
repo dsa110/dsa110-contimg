@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Corrected test scenario: Component at PHASE_DIR position.
 
 This tests if ft() uses PHASE_DIR correctly by:
@@ -11,13 +11,15 @@ Usage:
     python test_ft_phase_dir_corrected.py <ms_path>
 """
 
-import sys
 import os
+import shutil
+import sys
+
 import numpy as np
 from casacore.tables import table
 from casatasks import ft
 from casatools import componentlist as cltool
-import shutil
+
 
 def test_ft_phase_dir_corrected(ms_path):
     """Test if ft() uses PHASE_DIR correctly with component at PHASE_DIR position."""

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Validate that calibration improves data quality.
 
@@ -9,9 +9,10 @@ This script:
 4. Reports on calibration effectiveness
 """
 
-import sys
 import argparse
+import sys
 from pathlib import Path
+
 import numpy as np
 
 try:

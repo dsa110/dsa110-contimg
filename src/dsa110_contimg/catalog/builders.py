@@ -7,16 +7,185 @@ drift scan operations at fixed declinations.
 
 from __future__ import annotations
 
+import logging
 import os
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 import astropy.units as u
 import numpy as np
 import pandas as pd
 from astropy.coordinates import SkyCoord
+
+logger = logging.getLogger(__name__)
+
+# Catalog coverage limits (declination ranges)
+CATALOG_COVERAGE_LIMITS = {
+    "nvss": {"dec_min": -40.0, "dec_max": 90.0},
+    "first": {"dec_min": -40.0, "dec_max": 90.0},
+    "rax": {"dec_min": -90.0, "dec_max": 49.9},
+}
+
+
+def check_catalog_database_exists(
+    catalog_type: str,
+    dec_deg: float,
+    tolerance_deg: float = 1.0,
+) -> Tuple[bool, Optional[Path]]:
+    """Check if a catalog database exists for the given declination.
+    
+    Args:
+        catalog_type: One of "nvss", "first", "rax"
+        dec_deg: Declination in degrees
+        tolerance_deg: Tolerance for matching declination (default: 1.0°)
+        
+    Returns:
+        Tuple of (exists: bool, db_path: Optional[Path])
+    """
+    from dsa110_contimg.catalog.query import resolve_catalog_path
+    
+    try:
+        db_path = resolve_catalog_path(catalog_type, dec_strip=dec_deg)
+        if db_path.exists():
+            return True, db_path
+    except FileNotFoundError:
+        pass
+    
+    return False, None
+
+
+def check_missing_catalog_databases(
+    dec_deg: float,
+    logger_instance: Optional[logging.Logger] = None,
+    auto_build: bool = False,
+    dec_range_deg: float = 6.0,
+) -> Dict[str, bool]:
+    """Check which catalog databases are missing when they should exist.
+    
+    Args:
+        dec_deg: Declination in degrees
+        logger_instance: Optional logger instance (uses module logger if None)
+        auto_build: If True, automatically build missing databases (default: False)
+        dec_range_deg: Declination range (±degrees) for building databases (default: 6.0)
+        
+    Returns:
+        Dictionary mapping catalog_type -> exists (bool)
+    """
+    if logger_instance is None:
+        logger_instance = logger
+    
+    results = {}
+    built_databases = []
+    
+    for catalog_type, limits in CATALOG_COVERAGE_LIMITS.items():
+        dec_min = limits.get("dec_min", -90.0)
+        dec_max = limits.get("dec_max", 90.0)
+        
+        # Check if declination is within coverage
+        within_coverage = dec_deg >= dec_min and dec_deg <= dec_max
+        
+        if within_coverage:
+            exists, db_path = check_catalog_database_exists(catalog_type, dec_deg)
+            results[catalog_type] = exists
+            
+            if not exists:
+                logger_instance.warning(
+                    f"⚠️  {catalog_type.upper()} catalog database is missing for declination {dec_deg:.2f}°, "
+                    f"but should exist (within coverage limits: {dec_min:.1f}° to {dec_max:.1f}°)."
+                )
+                
+                if auto_build:
+                    try:
+                        logger_instance.info(
+                            f"🔨 Auto-building {catalog_type.upper()} catalog database for declination {dec_deg:.2f}°..."
+                        )
+                        dec_range = (dec_deg - dec_range_deg, dec_deg + dec_range_deg)
+                        
+                        if catalog_type == "nvss":
+                            db_path = build_nvss_strip_db(
+                                dec_center=dec_deg,
+                                dec_range=dec_range,
+                            )
+                        elif catalog_type == "first":
+                            db_path = build_first_strip_db(
+                                dec_center=dec_deg,
+                                dec_range=dec_range,
+                            )
+                        elif catalog_type == "rax":
+                            db_path = build_rax_strip_db(
+                                dec_center=dec_deg,
+                                dec_range=dec_range,
+                            )
+                        else:
+                            logger_instance.warning(
+                                f"Unknown catalog type for auto-build: {catalog_type}"
+                            )
+                            continue
+                        
+                        built_databases.append((catalog_type, db_path))
+                        results[catalog_type] = True
+                        logger_instance.info(
+                            f"✓ Successfully built {catalog_type.upper()} database: {db_path}"
+                        )
+                    except Exception as e:
+                        logger_instance.error(
+                            f"✗ Failed to auto-build {catalog_type.upper()} database: {e}",
+                            exc_info=True,
+                        )
+                        results[catalog_type] = False
+                else:
+                    logger_instance.warning(
+                        f"   Database should be built by CatalogSetupStage or use auto_build=True."
+                    )
+        else:
+            # Outside coverage, so database is not expected
+            results[catalog_type] = False
+    
+    if auto_build and built_databases:
+        logger_instance.info(
+            f"✓ Auto-built {len(built_databases)} catalog database(s): "
+            f"{', '.join([f'{cat.upper()}' for cat, _ in built_databases])}"
+        )
+    
+    return results
+
+
+def auto_build_missing_catalog_databases(
+    dec_deg: float,
+    dec_range_deg: float = 6.0,
+    logger_instance: Optional[logging.Logger] = None,
+) -> Dict[str, Path]:
+    """Automatically build missing catalog databases for a given declination.
+    
+    Args:
+        dec_deg: Declination in degrees
+        dec_range_deg: Declination range (±degrees) for building databases (default: 6.0)
+        logger_instance: Optional logger instance (uses module logger if None)
+        
+    Returns:
+        Dictionary mapping catalog_type -> db_path for successfully built databases
+    """
+    if logger_instance is None:
+        logger_instance = logger
+    
+    # Use check_missing_catalog_databases with auto_build=True
+    check_missing_catalog_databases(
+        dec_deg=dec_deg,
+        logger_instance=logger_instance,
+        auto_build=True,
+        dec_range_deg=dec_range_deg,
+    )
+    
+    # Return paths of databases that now exist
+    built_paths = {}
+    for catalog_type in CATALOG_COVERAGE_LIMITS.keys():
+        exists, db_path = check_catalog_database_exists(catalog_type, dec_deg)
+        if exists and db_path:
+            built_paths[catalog_type] = db_path
+    
+    return built_paths
 
 
 def build_nvss_strip_db(
@@ -61,12 +230,35 @@ def build_nvss_strip_db(
         # For now, use the cached read function
         df_full = read_nvss_catalog()
 
+    # Check coverage limits
+    coverage_limits = CATALOG_COVERAGE_LIMITS.get("nvss", {})
+    if dec_center < coverage_limits.get("dec_min", -90.0):
+        logger.warning(
+            f"⚠️  Declination {dec_center:.2f}° is outside NVSS coverage "
+            f"(southern limit: {coverage_limits.get('dec_min', -40.0)}°). "
+            f"Database may be empty or have very few sources."
+        )
+    if dec_center > coverage_limits.get("dec_max", 90.0):
+        logger.warning(
+            f"⚠️  Declination {dec_center:.2f}° is outside NVSS coverage "
+            f"(northern limit: {coverage_limits.get('dec_max', 90.0)}°). "
+            f"Database may be empty or have very few sources."
+        )
+
     # Filter to declination strip
     dec_col = "dec" if "dec" in df_full.columns else "dec_deg"
     df_strip = df_full[(df_full[dec_col] >= dec_min) & (df_full[dec_col] <= dec_max)].copy()
 
     print(f"Filtered NVSS catalog: {len(df_full)} → {len(df_strip)} sources")
     print(f"Declination range: {dec_min:.6f} to {dec_max:.6f} degrees")
+    
+    # Warn if result is empty
+    if len(df_strip) == 0:
+        logger.warning(
+            f"⚠️  No NVSS sources found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]. "
+            f"This may indicate declination {dec_center:.2f}° is outside NVSS coverage limits "
+            f"(southern limit: {coverage_limits.get('dec_min', -40.0)}°)."
+        )
 
     # Apply flux threshold if specified
     if min_flux_mjy is not None:
@@ -165,6 +357,17 @@ def build_nvss_strip_db(
                 "INSERT OR REPLACE INTO meta(key, value) VALUES('min_flux_mjy', ?)",
                 (str(min_flux_mjy),),
             )
+        
+        # Store coverage status
+        coverage_limits = CATALOG_COVERAGE_LIMITS.get("nvss", {})
+        within_coverage = (
+            dec_center >= coverage_limits.get("dec_min", -90.0) and
+            dec_center <= coverage_limits.get("dec_max", 90.0)
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES('within_coverage', ?)",
+            ("true" if within_coverage else "false",),
+        )
 
         conn.commit()
 
@@ -212,6 +415,21 @@ def build_first_strip_db(
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # Check coverage limits
+    coverage_limits = CATALOG_COVERAGE_LIMITS.get("first", {})
+    if dec_center < coverage_limits.get("dec_min", -90.0):
+        logger.warning(
+            f"⚠️  Declination {dec_center:.2f}° is outside FIRST coverage "
+            f"(southern limit: {coverage_limits.get('dec_min', -40.0)}°). "
+            f"Database may be empty or have very few sources."
+        )
+    if dec_center > coverage_limits.get("dec_max", 90.0):
+        logger.warning(
+            f"⚠️  Declination {dec_center:.2f}° is outside FIRST coverage "
+            f"(northern limit: {coverage_limits.get('dec_max', 90.0)}°). "
+            f"Database may be empty or have very few sources."
+        )
+
     # Load FIRST catalog (auto-downloads if needed, similar to NVSS)
     df_full = read_first_catalog(cache_dir=cache_dir, first_catalog_path=first_catalog_path)
 
@@ -248,6 +466,15 @@ def build_first_strip_db(
 
     print(f"Filtered FIRST catalog: {len(df_full)} → {len(df_strip)} sources")
     print(f"Declination range: {dec_min:.6f} to {dec_max:.6f} degrees")
+    
+    # Warn if result is empty
+    if len(df_strip) == 0:
+        coverage_limits = CATALOG_COVERAGE_LIMITS.get("first", {})
+        logger.warning(
+            f"⚠️  No FIRST sources found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]. "
+            f"This may indicate declination {dec_center:.2f}° is outside FIRST coverage limits "
+            f"(southern limit: {coverage_limits.get('dec_min', -40.0)}°)."
+        )
 
     # Apply flux threshold if specified
     if min_flux_mjy is not None and flux_col:
@@ -356,6 +583,18 @@ def build_first_strip_db(
             "INSERT OR REPLACE INTO meta(key, value) VALUES('n_sources', ?)",
             (str(len(insert_data)),),
         )
+        
+        # Store coverage status
+        coverage_limits = CATALOG_COVERAGE_LIMITS.get("first", {})
+        within_coverage = (
+            dec_center >= coverage_limits.get("dec_min", -90.0) and
+            dec_center <= coverage_limits.get("dec_max", 90.0)
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES('within_coverage', ?)",
+            ("true" if within_coverage else "false",),
+        )
+        
         source_file_str = (
             str(first_catalog_path) if first_catalog_path else "auto-downloaded/cached"
         )
@@ -415,6 +654,21 @@ def build_rax_strip_db(
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # Check coverage limits
+    coverage_limits = CATALOG_COVERAGE_LIMITS.get("rax", {})
+    if dec_center < coverage_limits.get("dec_min", -90.0):
+        logger.warning(
+            f"⚠️  Declination {dec_center:.2f}° is outside RACS coverage "
+            f"(southern limit: {coverage_limits.get('dec_min', -90.0)}°). "
+            f"Database may be empty or have very few sources."
+        )
+    if dec_center > coverage_limits.get("dec_max", 90.0):
+        logger.warning(
+            f"⚠️  Declination {dec_center:.2f}° is outside RACS coverage "
+            f"(northern limit: {coverage_limits.get('dec_max', 49.9)}°). "
+            f"Database may be empty or have very few sources."
+        )
+
     # Load RAX catalog (uses cached or provided path)
     df_full = read_rax_catalog(cache_dir=cache_dir, rax_catalog_path=rax_catalog_path)
 
@@ -440,6 +694,15 @@ def build_rax_strip_db(
 
     print(f"Filtered RAX catalog: {len(df_full)} → {len(df_strip)} sources")
     print(f"Declination range: {dec_min:.6f} to {dec_max:.6f} degrees")
+    
+    # Warn if result is empty
+    if len(df_strip) == 0:
+        coverage_limits = CATALOG_COVERAGE_LIMITS.get("rax", {})
+        logger.warning(
+            f"⚠️  No RACS sources found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]. "
+            f"This may indicate declination {dec_center:.2f}° is outside RACS coverage limits "
+            f"(northern limit: {coverage_limits.get('dec_max', 49.9)}°)."
+        )
 
     # Apply flux threshold if specified
     if min_flux_mjy is not None and flux_col:
@@ -533,6 +796,18 @@ def build_rax_strip_db(
             "INSERT OR REPLACE INTO meta(key, value) VALUES('n_sources', ?)",
             (str(len(insert_data)),),
         )
+        
+        # Store coverage status
+        coverage_limits = CATALOG_COVERAGE_LIMITS.get("rax", {})
+        within_coverage = (
+            dec_center >= coverage_limits.get("dec_min", -90.0) and
+            dec_center <= coverage_limits.get("dec_max", 90.0)
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES('within_coverage', ?)",
+            ("true" if within_coverage else "false",),
+        )
+        
         source_file_str = str(rax_catalog_path) if rax_catalog_path else "auto-downloaded/cached"
         conn.execute(
             "INSERT OR REPLACE INTO meta(key, value) VALUES('source_file', ?)",
@@ -576,7 +851,8 @@ def build_vlass_strip_db(
     Returns:
         Path to created SQLite database
     """
-    from dsa110_contimg.catalog.build_master import _normalize_columns, _read_table
+    from dsa110_contimg.catalog.build_master import (_normalize_columns,
+                                                     _read_table)
 
     dec_min, dec_max = dec_range
 

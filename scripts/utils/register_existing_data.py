@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Retroactively register existing staged data files in the data registry."""
 import sys
 from pathlib import Path
@@ -6,10 +6,11 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from dsa110_contimg.database.data_registration import register_pipeline_data
-from dsa110_contimg.database.data_config import get_staging_dir
-from dsa110_contimg.utils.time_utils import extract_ms_time_range
 import logging
+
+from dsa110_contimg.database.data_config import get_staging_dir
+from dsa110_contimg.database.data_registration import register_pipeline_data
+from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

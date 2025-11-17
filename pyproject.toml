@@ -164,6 +164,20 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     "@abstractmethod",
 ]
+# Coverage thresholds: 80% for critical modules, 60% overall
+fail_under = 60
+precision = 2
+show_missing = true
+skip_covered = false
+
+[tool.coverage.report.fail_under]
+# Critical modules should have 80% coverage
+critical_modules = [
+    "src/dsa110_contimg/api/routes.py",
+    "src/dsa110_contimg/database/data_registry.py",
+    "src/dsa110_contimg/pipeline/stages_impl.py",
+    "src/dsa110_contimg/api/websocket_manager.py",
+]
 
 # MyPy type checking
 [tool.mypy]

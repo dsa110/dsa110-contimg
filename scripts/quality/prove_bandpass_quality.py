@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Prove that calibration workflow produces good bandpass solutions.
 
 This script:
@@ -9,10 +9,11 @@ This script:
 5. Provides proof of correctness
 """
 
-import sys
-import os
 import argparse
+import os
+import sys
 from pathlib import Path
+
 import numpy as np
 
 # Add src to path
@@ -46,7 +47,8 @@ def measure_model_data_phase_scatter(ms_path: str) -> dict:
             phase_scatter_deg = np.std(phases_deg)
             
             # Check phase center alignment
-            from dsa110_contimg.calibration.uvw_verification import get_phase_center_from_ms
+            from dsa110_contimg.calibration.uvw_verification import \
+              get_phase_center_from_ms
             
             try:
                 phase_center = get_phase_center_from_ms(ms_path, field=0)
@@ -54,8 +56,8 @@ def measure_model_data_phase_scatter(ms_path: str) -> dict:
                 # For 0834+555, check if phase center is correct
                 cal_ra = 128.7287
                 cal_dec = 55.5725
-                from astropy.coordinates import SkyCoord
                 import astropy.units as u
+                from astropy.coordinates import SkyCoord
                 
                 ms_coord = SkyCoord(ra=phase_center[0]*u.deg, dec=phase_center[1]*u.deg, frame='icrs')
                 cal_coord = SkyCoord(ra=cal_ra*u.deg, dec=cal_dec*u.deg, frame='icrs')

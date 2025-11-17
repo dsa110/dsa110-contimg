@@ -1,10 +1,11 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Test dashboard endpoints via HTTP API."""
 
-import sys
 import json
-import requests
+import sys
 from datetime import datetime, timedelta
+
+import requests
 
 API_BASE = "http://localhost:8010"
 

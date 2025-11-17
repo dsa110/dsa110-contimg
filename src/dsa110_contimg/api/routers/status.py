@@ -12,20 +12,92 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi import (APIRouter, HTTPException, Request, WebSocket,
+                     WebSocketDisconnect)
 from fastapi.responses import HTMLResponse, StreamingResponse
 
-from dsa110_contimg.api.data_access import (
-    _connect,
-    fetch_calibration_sets,
-    fetch_queue_stats,
-    fetch_recent_queue_groups,
-)
-from dsa110_contimg.api.models import PipelineStatus
+from dsa110_contimg.api.data_access import (_connect, fetch_calibration_sets,
+                                            fetch_queue_stats,
+                                            fetch_recent_queue_groups)
+from dsa110_contimg.api.models import CatalogCoverageStatus, PipelineStatus
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+def get_catalog_coverage_status(
+    ingest_db_path: Optional[Path] = None,
+) -> Optional[CatalogCoverageStatus]:
+    """Get catalog coverage status for current declination.
+    
+    Args:
+        ingest_db_path: Path to ingest database (default: from config)
+        
+    Returns:
+        CatalogCoverageStatus if declination is available, None otherwise
+    """
+    try:
+        import sqlite3
+
+        from dsa110_contimg.catalog.builders import (
+          CATALOG_COVERAGE_LIMITS, check_catalog_database_exists)
+
+        # Get current declination from pointing history
+        if ingest_db_path is None:
+            # Try to find ingest DB from common locations
+            for path_str in [
+                "/data/dsa110-contimg/state/ingest.sqlite3",
+                "state/ingest.sqlite3",
+            ]:
+                candidate = Path(path_str)
+                if candidate.exists():
+                    ingest_db_path = candidate
+                    break
+        
+        if ingest_db_path is None or not ingest_db_path.exists():
+            logger.debug("Ingest database not found, skipping catalog coverage status")
+            return None
+        
+        with sqlite3.connect(str(ingest_db_path)) as conn:
+            cursor = conn.execute(
+                "SELECT dec_deg FROM pointing_history ORDER BY timestamp DESC LIMIT 1"
+            )
+            result = cursor.fetchone()
+            if not result:
+                return None
+            
+            dec_deg = float(result[0])
+        
+        # Check each catalog
+        coverage_status = CatalogCoverageStatus(dec_deg=dec_deg)
+        
+        for catalog_type in ["nvss", "first", "rax"]:
+            limits = CATALOG_COVERAGE_LIMITS.get(catalog_type, {})
+            dec_min = limits.get("dec_min", -90.0)
+            dec_max = limits.get("dec_max", 90.0)
+            
+            within_coverage = dec_deg >= dec_min and dec_deg <= dec_max
+            exists, db_path = check_catalog_database_exists(catalog_type, dec_deg)
+            
+            status_dict = {
+                "exists": exists,
+                "within_coverage": within_coverage,
+                "db_path": str(db_path) if db_path else None,
+            }
+            
+            if catalog_type == "nvss":
+                coverage_status.nvss = status_dict
+            elif catalog_type == "first":
+                coverage_status.first = status_dict
+            elif catalog_type == "rax":
+                coverage_status.rax = status_dict
+        
+        return coverage_status
+        
+    except Exception as e:
+        logger.warning(f"Failed to get catalog coverage status: {e}", exc_info=True)
+        return None
 
 
 @router.post("/test/streaming/broadcast")
@@ -149,9 +221,15 @@ def status(request: Request, limit: int = 20) -> PipelineStatus:
     recent_groups = fetch_recent_queue_groups(cfg.queue_db, cfg, limit=limit)
     cal_sets = fetch_calibration_sets(cfg.registry_db)
     matched_recent = sum(1 for g in recent_groups if getattr(g, "has_calibrator", False))
+    
+    # Get catalog coverage status
+    ingest_db_path = Path(cfg.ingest_db) if hasattr(cfg, "ingest_db") else None
+    catalog_coverage = get_catalog_coverage_status(ingest_db_path=ingest_db_path)
+    
     return PipelineStatus(
         queue=queue_stats,
         recent_groups=recent_groups,
         calibration_sets=cal_sets,
         matched_recent=matched_recent,
+        catalog_coverage=catalog_coverage,
     )

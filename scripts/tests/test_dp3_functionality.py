@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Test DP3 functionality for sky model prediction.
 
@@ -14,13 +14,13 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from dsa110_contimg.calibration.dp3_wrapper import (
-    _find_dp3_executable,
-    convert_nvss_to_dp3_skymodel,
-    convert_calibrator_to_dp3_skymodel,
-)
-import tempfile
 import os
+import tempfile
+
+from dsa110_contimg.calibration.dp3_wrapper import (
+  _find_dp3_executable, convert_calibrator_to_dp3_skymodel,
+  convert_nvss_to_dp3_skymodel)
+
 
 def test_dp3_detection():
     """Test DP3 executable detection."""
@@ -35,8 +35,8 @@ def test_dp3_detection():
     else:
         print("✗ DP3 not found")
         print("  Checking Docker images...")
-        import subprocess
         import shutil
+        import subprocess
         docker_cmd = shutil.which("docker")
         if docker_cmd:
             result = subprocess.run(
@@ -141,8 +141,9 @@ def test_dp3_predict_parset():
     print("Test 3: DP3 Predict Parset Generation")
     print("=" * 60)
     
-    from dsa110_contimg.calibration.dp3_wrapper import predict_from_skymodel_dp3
-    
+    from dsa110_contimg.calibration.dp3_wrapper import \
+      predict_from_skymodel_dp3
+
     # Create a dummy sky model
     with tempfile.NamedTemporaryFile(mode='w', suffix='.skymodel', delete=False) as f:
         f.write("s0c0,POINT,05:34:31.9380,+22:00:52.200,2.3,[-0.7],false,1400000000.0,,,\n")

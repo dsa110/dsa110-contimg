@@ -24,6 +24,7 @@ import {
 import { ExpandMore, TableChart, Info, Refresh } from "@mui/icons-material";
 import { useCasaTableInfo } from "../../api/queries";
 import { apiClient } from "../../api/client";
+import DOMPurify from "dompurify";
 
 interface CasaTableViewerProps {
   tablePath: string | null;
@@ -293,8 +294,13 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
           )}
 
           {viewerHtml && !loadingViewer && (
-            /* Security note: viewerHtml comes from our own backend API (/api/visualization/casatable/view),
-               not from user input, so dangerouslySetInnerHTML is safe here. The backend generates trusted HTML. */
+            /* Security: HTML is sanitized with DOMPurify before rendering to prevent XSS attacks.
+               The HTML comes from our trusted backend API (/api/visualization/casatable/view),
+               but we sanitize it as a defense-in-depth measure. DOMPurify removes any potentially
+               dangerous scripts, event handlers, and unsafe attributes while preserving safe HTML
+               elements needed for table viewer display. This sanitization ensures that even if
+               the backend were compromised or if user-controlled data somehow entered the HTML
+               generation pipeline, we prevent XSS attacks at the client side. */
             <Box
               sx={{
                 mt: 2,
@@ -304,7 +310,48 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
                 overflow: "auto",
                 p: 2,
               }}
-              dangerouslySetInnerHTML={{ __html: viewerHtml }}
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(viewerHtml, {
+                  // Allow common HTML elements needed for table viewer
+                  ALLOWED_TAGS: [
+                    "div",
+                    "table",
+                    "thead",
+                    "tbody",
+                    "tr",
+                    "th",
+                    "td",
+                    "span",
+                    "p",
+                    "h1",
+                    "h2",
+                    "h3",
+                    "h4",
+                    "h5",
+                    "h6",
+                    "a",
+                    "ul",
+                    "ol",
+                    "li",
+                  ],
+                  // Allow attributes needed for table styling and functionality
+                  ALLOWED_ATTR: [
+                    "class",
+                    "id",
+                    "style",
+                    "colspan",
+                    "rowspan",
+                    "scope",
+                    "href",
+                    "target",
+                    "title",
+                    "alt",
+                  ],
+                  // Disallow data attributes and unknown protocols
+                  ALLOW_DATA_ATTR: false,
+                  ALLOW_UNKNOWN_PROTOCOLS: false,
+                }),
+              }}
             />
           )}
         </>

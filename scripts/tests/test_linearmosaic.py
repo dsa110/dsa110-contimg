@@ -1,21 +1,20 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Test script for linearmosaic implementation.
 
 Tests the new _build_weighted_mosaic_linearmosaic function with real data.
 """
 
-from dsa110_contimg.mosaic.cli import (
-    _build_weighted_mosaic_linearmosaic,
-    _build_weighted_mosaic,
-)
-from dsa110_contimg.mosaic.validation import TileQualityMetrics
-import sqlite3
-import tempfile
 import logging
-import sys
 import os
+import sqlite3
+import sys
+import tempfile
 from pathlib import Path
+
+from dsa110_contimg.mosaic.cli import (_build_weighted_mosaic,
+                                       _build_weighted_mosaic_linearmosaic)
+from dsa110_contimg.mosaic.validation import TileQualityMetrics
 
 # Add src to path BEFORE importing dsa110_contimg modules
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
@@ -46,8 +45,9 @@ def get_test_tiles(mosaic_id=None, max_tiles=3):
 
         if fits_tiles:
             # Convert FITS to CASA format
-            import tempfile
             import shutil
+            import tempfile
+
             from casatasks import importfits
 
             temp_dir = tempfile.mkdtemp(prefix="linearmosaic_test_")
@@ -95,8 +95,9 @@ def get_test_tiles(mosaic_id=None, max_tiles=3):
 
         if fits_tiles:
             # Convert FITS to CASA images for testing
-            import tempfile
             import shutil
+            import tempfile
+
             from casatasks import importfits
 
             temp_dir = tempfile.mkdtemp(prefix="linearmosaic_test_")
@@ -161,7 +162,8 @@ def get_test_tiles(mosaic_id=None, max_tiles=3):
 
 def get_metrics_dict(tiles):
     """Get metrics dict for tiles."""
-    from dsa110_contimg.mosaic.validation import _find_pb_path, TileQualityMetrics
+    from dsa110_contimg.mosaic.validation import (TileQualityMetrics,
+                                                  _find_pb_path)
 
     metrics_dict = {}
     stage_dir = Path("/stage/dsa110-contimg/images")
@@ -180,6 +182,7 @@ def get_metrics_dict(tiles):
                 pb_fits = pb_fits_files[int(tile_idx)]
                 # Convert PB FITS to CASA image
                 import tempfile
+
                 from casatasks import importfits
                 temp_dir = os.path.dirname(tile)
                 pb_casa = os.path.join(temp_dir, f"pb_{tile_idx}.image")
@@ -245,6 +248,7 @@ def test_linearmosaic():
     if Path(output_path).exists():
         import shutil
         import time
+
         # Try multiple times with delay (CASA images can be slow to release)
         for attempt in range(3):
             try:
@@ -319,6 +323,7 @@ def test_fallback():
     if Path(output_path).exists():
         import shutil
         import time
+
         # Try multiple times with delay (CASA images can be slow to release)
         for attempt in range(3):
             try:
@@ -375,6 +380,7 @@ def test_wrapper():
     if Path(output_path).exists():
         import shutil
         import time
+
         # Try multiple times with delay (CASA images can be slow to release)
         for attempt in range(3):
             try:
@@ -429,9 +435,9 @@ def test_wrapper():
 
 
 if __name__ == '__main__':
-    import signal
     import os
-    
+    import signal
+
     # Set strict timeout: 30 minutes (1800 seconds)
     TIMEOUT_SECONDS = 1800
     

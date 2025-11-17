@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Helper script to lookup calibrator coordinates from catalog and register them.
 
@@ -12,8 +12,9 @@ import os
 import sys
 from pathlib import Path
 
+from dsa110_contimg.calibration.catalogs import (get_calibrator_radec,
+                                                 load_vla_catalog)
 from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
-from dsa110_contimg.calibration.catalogs import load_vla_catalog, get_calibrator_radec
 
 logging.basicConfig(
     level=logging.INFO,

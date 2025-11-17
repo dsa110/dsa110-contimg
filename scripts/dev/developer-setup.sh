@@ -7,11 +7,17 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source casa6 environment enforcement FIRST (before error detection)
-if [ -f "${SCRIPT_DIR}/casa6-env.sh" ]; then
-    source "${SCRIPT_DIR}/casa6-env.sh"
+# Check in casa/ directory (correct location) first, then fallback to dev/ directory
+CASA6_ENV_PATH="${SCRIPT_DIR}/../casa/casa6-env.sh"
+if [ ! -f "${CASA6_ENV_PATH}" ]; then
+    CASA6_ENV_PATH="${SCRIPT_DIR}/casa6-env.sh"
+fi
+
+if [ -f "${CASA6_ENV_PATH}" ]; then
+    source "${CASA6_ENV_PATH}"
     CASA6_STATUS="✅"
 else
-    echo "⚠️  WARNING: casa6-env.sh not found at ${SCRIPT_DIR}/casa6-env.sh" >&2
+    echo "⚠️  WARNING: casa6-env.sh not found at ${CASA6_ENV_PATH}" >&2
     CASA6_STATUS="❌"
 fi
 

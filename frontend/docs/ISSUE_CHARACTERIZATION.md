@@ -1,5 +1,7 @@
 # Issue Characterization: Node.js v16 Compatibility
 
+**Date:** 2025-11-14
+
 ## Broad Category
 
 **Environment Dependency Mismatch with Silent Failure Pattern**
@@ -7,12 +9,14 @@
 ## Detailed Characterization
 
 ### Primary Classification
+
 **Environment Configuration Drift**
 
 ### Key Characteristics
 
 1. **Silent Failure Pattern**
-   - Error message (`crypto$2.getRandomValues is not a function`) doesn't clearly indicate root cause
+   - Error message (`crypto$2.getRandomValues is not a function`) doesn't
+     clearly indicate root cause
    - Failure occurs deep in dependency chain (Vite/Vitest startup)
    - Not immediately obvious that Node.js version is the issue
 
@@ -39,16 +43,19 @@
 ## Why This Pattern Is Problematic
 
 ### 1. High Debugging Cost
+
 - Error message points to symptom, not cause
 - Requires knowledge of casa6 environment requirement
 - Time wasted investigating wrong areas (test code, config files)
 
 ### 2. Easy to Recur
+
 - No automatic prevention
 - Human error (forgetting to activate casa6)
 - Silent until tests actually run
 
 ### 3. Context Loss
+
 - Developer may not remember casa6 requirement
 - New team members unaware of requirement
 - CI/CD may not enforce it
@@ -56,20 +63,24 @@
 ## Prevention Strategy Applied
 
 ### 1. Fail Fast with Clear Errors
+
 - Pre-flight checks catch issue before tests run
 - Error messages explain exactly what's wrong and how to fix
 
 ### 2. Automatic Enforcement
+
 - npm test automatically checks environment
 - Cannot accidentally run tests with wrong Node.js
 
 ### 3. Multiple Detection Points
+
 - Script-level check
 - npm integration
 - Error detection framework
 - Documentation
 
 ### 4. Explicit Documentation
+
 - Clear requirements documented
 - Examples of correct vs incorrect usage
 - Troubleshooting guide
@@ -85,15 +96,20 @@
 
 ## Broader Lesson
 
-**Principle**: When a system has non-obvious prerequisites or environment dependencies, enforce them automatically rather than relying on documentation or human memory.
+**Principle**: When a system has non-obvious prerequisites or environment
+dependencies, enforce them automatically rather than relying on documentation or
+human memory.
 
-**Pattern**: Silent failures due to environment mismatches are particularly costly because:
+**Pattern**: Silent failures due to environment mismatches are particularly
+costly because:
+
 1. They waste debugging time
 2. They're easy to recur
 3. They're not immediately obvious
 4. They require domain knowledge to diagnose
 
-**Solution Pattern**: 
+**Solution Pattern**:
+
 - Fail fast with clear errors
 - Automatic enforcement at multiple layers
 - Explicit documentation as backup
@@ -105,4 +121,3 @@
 - **"Read the Docs"** - Relying on documentation instead of enforcement
 - **"Silent Failure"** - Errors that don't clearly indicate root cause
 - **"Configuration Drift"** - Easy to forget required setup steps
-

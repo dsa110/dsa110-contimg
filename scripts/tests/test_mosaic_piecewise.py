@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Piecewise mosaic build test script for efficient debugging.
 
@@ -11,19 +11,19 @@ Tests each stage of mosaic building separately:
 6. Full mosaic build (if all previous pass)
 """
 
-import shutil
-import tempfile
-import numpy as np
-from casatasks import imregrid
-from casacore.images import image as casaimage
-from dsa110_contimg.mosaic.cache import get_cache
-from dsa110_contimg.mosaic.cli import (
-    _calculate_mosaic_bounds,
-    _create_common_coordinate_system,
-)
-import sys
 import os
+import shutil
+import sys
+import tempfile
 from pathlib import Path
+
+import numpy as np
+from casacore.images import image as casaimage
+from casatasks import imregrid
+
+from dsa110_contimg.mosaic.cache import get_cache
+from dsa110_contimg.mosaic.cli import (_calculate_mosaic_bounds,
+                                       _create_common_coordinate_system)
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))

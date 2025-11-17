@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Verify that the spwmap fix is working correctly.
 
@@ -14,10 +14,11 @@ Usage:
 import sys
 from pathlib import Path
 
+
 def get_caltable_spw_count(caltable_path: str):
     """Get the number of unique spectral windows in a calibration table."""
-    from casacore.tables import table
     import numpy as np
+    from casacore.tables import table
     
     try:
         with table(caltable_path, readonly=True, ack=False) as tb:
@@ -41,8 +42,8 @@ def get_ms_spw_count(ms_path: str):
 
 def check_gain_solutions(gain_table: str):
     """Check if gain table has solutions for all SPWs."""
-    from casacore.tables import table
     import numpy as np
+    from casacore.tables import table
     
     try:
         with table(gain_table, readonly=True, ack=False) as tb:

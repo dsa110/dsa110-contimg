@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Check MODEL_DATA phase scatter and DATA vs MODEL_DATA alignment.
 
@@ -7,10 +7,12 @@ Usage:
 """
 
 import sys
-from casacore.tables import table
-from astropy.coordinates import SkyCoord
+
 import astropy.units as u
 import numpy as np
+from astropy.coordinates import SkyCoord
+from casacore.tables import table
+
 
 def check_model_data_phase(ms_path, cal_ra_deg, cal_dec_deg):
     """Check MODEL_DATA phase scatter and alignment with DATA."""

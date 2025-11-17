@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Validation utility for generated synthetic UVH5 files.
 
 Checks that generated files are readable and, when layout metadata is

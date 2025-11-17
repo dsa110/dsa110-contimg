@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Ingest a parsed VLA calibrator catalog CSV into SQLite for fast lookups and provenance.
 
