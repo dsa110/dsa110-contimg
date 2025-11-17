@@ -173,8 +173,12 @@ def precalculate_transits_for_calibrator(
 
         # Calculate transit window
         half_window = window_minutes // 2
-        t0 = (transit - half_window * u.min).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
-        t1 = (transit + half_window * u.min).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+        t0 = (
+            (transit - half_window * u.minute).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+        )  # pylint: disable=no-member
+        t1 = (
+            (transit + half_window * u.minute).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+        )  # pylint: disable=no-member
 
         # Query for groups in window
         groups = query_subband_groups(products_db_path, t0, t1, tolerance_s=1.0)
@@ -206,7 +210,9 @@ def precalculate_transits_for_calibrator(
 
                         _, pt_dec_rad, _ = _peek_uvh5_phase_and_midtime(gbest[0])
                         pt_dec_deg = (
-                            float(pt_dec_rad.to_value(u.deg)) if pt_dec_rad is not None else None
+                            float(pt_dec_rad.to_value(u.deg))
+                            if pt_dec_rad is not None
+                            else None  # pylint: disable=no-member
                         )
                     except Exception:
                         pass

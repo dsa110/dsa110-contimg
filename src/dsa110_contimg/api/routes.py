@@ -600,7 +600,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
     except ImportError:
-        logger.warning("Prometheus client not available, /metrics endpoint disabled")
+        logging.getLogger(__name__).warning(
+            "Prometheus client not available, /metrics endpoint disabled"
+        )
 
     # Include routers at /api prefix (standard location)
     app.include_router(status_router, prefix="/api")

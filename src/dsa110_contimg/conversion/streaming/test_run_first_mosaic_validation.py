@@ -6,15 +6,13 @@ These tests verify critical assumptions and prevent race conditions,
 file existence issues, and database/filesystem mismatches.
 """
 
-import os
 import tempfile
 import time
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 from dsa110_contimg.conversion.streaming.run_first_mosaic import (
-    process_groups_until_count,
     process_one_group,
 )
 from dsa110_contimg.conversion.streaming.streaming_converter import QueueDB
@@ -54,13 +52,14 @@ class TestMSFileExistenceValidation(unittest.TestCase):
 
             # Add a group
             gid = "2025-10-02T10:02:45"
-            queue.add_group(gid, ["test.hdf5"])
+            for i in range(16):
+                queue.record_subband(gid, i, Path(self.temp_dir) / f"test_sb{i:02d}.hdf5")
 
             with patch(
                 "dsa110_contimg.conversion.streaming.run_first_mosaic.extract_ms_time_range"
             ) as mock_extract:
                 # Process group - should fail gracefully if MS doesn't exist
-                result = process_one_group(gid, self.args, queue)
+                process_one_group(gid, self.args, queue)
 
                 # If MS doesn't exist, extract_ms_time_range should not be called
                 # OR if called, should handle the error gracefully
@@ -89,12 +88,13 @@ class TestMSFileExistenceValidation(unittest.TestCase):
             )
 
             gid = "2025-10-02T10:02:45"
-            queue.add_group(gid, ["test.hdf5"])
+            for i in range(16):
+                queue.record_subband(gid, i, Path(self.temp_dir) / f"test_sb{i:02d}.hdf5")
 
             with patch(
                 "dsa110_contimg.conversion.streaming.run_first_mosaic.apply_to_target"
             ) as mock_apply:
-                result = process_one_group(gid, self.args, queue)
+                process_one_group(gid, self.args, queue)
 
                 # If MS doesn't exist, apply_to_target should not be called
                 if mock_apply.called:
@@ -121,12 +121,13 @@ class TestMSFileExistenceValidation(unittest.TestCase):
             )
 
             gid = "2025-10-02T10:02:45"
-            queue.add_group(gid, ["test.hdf5"])
+            for i in range(16):
+                queue.record_subband(gid, i, Path(self.temp_dir) / f"test_sb{i:02d}.hdf5")
 
             with patch(
                 "dsa110_contimg.conversion.streaming.run_first_mosaic.image_ms"
             ) as mock_image:
-                result = process_one_group(gid, self.args, queue)
+                process_one_group(gid, self.args, queue)
 
                 # If MS doesn't exist, image_ms should not be called
                 if mock_image.called:

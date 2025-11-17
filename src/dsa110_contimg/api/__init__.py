@@ -42,8 +42,10 @@ class _LazyApp:
     def __getattr__(self, name):
         return getattr(_get_app(), name)
 
-    def __call__(self, *args, **kwargs):
-        return _get_app()(*args, **kwargs)
+    async def __call__(self, scope, receive, send):
+        """ASGI protocol handler - properly delegate to FastAPI app."""
+        app = _get_app()
+        await app(scope, receive, send)
 
 
 app = _LazyApp()
