@@ -321,9 +321,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             conn = ensure_data_registry_db(db_path)
             # Execute a simple query to initialize the connection
             conn.execute("SELECT 1").fetchone()
-            logger.info("Pre-warmed data registry database connection")
+            logging.getLogger(__name__).info("Pre-warmed data registry database connection")
         except Exception as e:
-            logger.warning(f"Failed to pre-warm database connection: {e}")
+            logging.getLogger(__name__).warning(f"Failed to pre-warm database connection: {e}")
 
         # Pre-warm UVH5 file cache in background
         async def pre_warm_uvh5_cache():
