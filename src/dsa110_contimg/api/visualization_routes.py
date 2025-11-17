@@ -180,7 +180,7 @@ def browse_directory(
         # Validate path is within allowed directories using path validation utility
         base_state = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
         qa_base = base_state / "qa"
-        output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/ms"))
+        output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
 
         # Try validation against each allowed base directory
         target_path = None
@@ -288,7 +288,7 @@ def get_directory_thumbnails(
         allowed_bases = [
             base_state.resolve(),
             qa_base.resolve(),
-            Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/ms")).resolve(),
+            Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms")).resolve(),
         ]
 
         if not any(str(target_path).startswith(str(base)) for base in allowed_bases):
@@ -350,7 +350,7 @@ def get_fits_info(
         try:
             target_path = validate_path(path, base_dir)
         except ValueError:
-            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/ms"))
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
             try:
                 target_path = validate_path(path, output_dir)
             except ValueError as e:
@@ -408,7 +408,7 @@ def view_fits_file(
             target_path = validate_path(path, base_dir)
         except ValueError:
             # Try other allowed directories
-            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/ms"))
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
             try:
                 target_path = validate_path(path, output_dir)
             except ValueError as e:
@@ -530,7 +530,7 @@ def get_image_info(
         try:
             target_path = validate_path(path, base_dir)
         except ValueError:
-            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/ms"))
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
             try:
                 target_path = validate_path(path, output_dir)
             except ValueError as e:
@@ -588,7 +588,7 @@ def view_image_file(
         try:
             target_path = validate_path(path, base_dir)
         except ValueError:
-            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/ms"))
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
             try:
                 target_path = validate_path(path, output_dir)
             except ValueError as e:
@@ -625,7 +625,7 @@ def get_image_thumbnail(
         try:
             target_path = validate_path(path, base_dir)
         except ValueError:
-            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/ms"))
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
             try:
                 target_path = validate_path(path, output_dir)
             except ValueError as e:
@@ -662,7 +662,7 @@ def get_text_info(
         try:
             target_path = validate_path(path, base_dir)
         except ValueError:
-            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/ms"))
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
             try:
                 target_path = validate_path(path, output_dir)
             except ValueError as e:
@@ -712,7 +712,7 @@ def view_text_file(
         try:
             target_path = validate_path(path, base_dir)
         except ValueError:
-            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/ms"))
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
             try:
                 target_path = validate_path(path, output_dir)
             except ValueError as e:
@@ -826,7 +826,7 @@ def serve_notebook(notebook_path: str):
         try:
             target_path = validate_path(notebook_path, base_dir)
         except ValueError:
-            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/ms"))
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
             try:
                 target_path = validate_path(notebook_path, output_dir)
             except ValueError as e:
@@ -1253,14 +1253,15 @@ def _run_specflux(
     image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Run spectral flux extraction."""
-    from casatasks import imstat
-
     region_str = None
     if region:
         region_str = _js9_region_to_casa(region)
 
     # Extract flux statistics
-    stats = imstat(imagename=image_path, region=region_str, **parameters)
+    with casa_log_environment():
+        from casatasks import imstat
+
+        stats = imstat(imagename=image_path, region=region_str, **parameters)
 
     return {
         "flux": _convert_to_json_serializable(stats),
@@ -1272,8 +1273,6 @@ def _run_imval(
     image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Run imval CASA task for pixel value extraction."""
-    from casatasks import imval
-
     region_str = None
     if region:
         region_str = _js9_region_to_casa(region)
@@ -1284,12 +1283,15 @@ def _run_imval(
 
     # Run imval
     try:
-        val_result = imval(
-            imagename=image_path,
-            region=region_str,
-            box=box,
-            stokes=stokes,
-        )
+        with casa_log_environment():
+            from casatasks import imval
+
+            val_result = imval(
+                imagename=image_path,
+                region=region_str,
+                box=box,
+                stokes=stokes,
+            )
 
         # imval returns a dictionary with keys like 'data', 'mask', 'coords'
         result = {}
@@ -1339,8 +1341,8 @@ def _run_imval(
                     )()
 
                     mask = create_region_mask(
-                        data.shape, region_data, wcs, hdul[0].header
-                    )  # pylint: disable=no-member
+                        data.shape, region_data, wcs, hdul[0].header  # pylint: disable=no-member
+                    )
                     values = data[mask].tolist()
                 else:
                     # Return all values (flattened)
@@ -1362,23 +1364,24 @@ def _run_imhead(
     image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Run imhead CASA task to get image header information."""
-    from casatasks import imhead
-
     try:
-        # Get mode (list, get, put)
-        mode = parameters.get("mode", "list")
+        with casa_log_environment():
+            from casatasks import imhead
 
-        if mode == "list":
-            # List all header keywords
-            header_info = imhead(imagename=image_path, mode="list")
-        elif mode == "get":
-            # Get specific keyword
-            keyword = parameters.get("keyword", None)
-            if not keyword:
-                return {"error": "keyword parameter required for mode='get'"}
-            header_info = imhead(imagename=image_path, mode="get", hdkey=keyword)
-        else:
-            return {"error": f"Unsupported mode: {mode}"}
+            # Get mode (list, get, put)
+            mode = parameters.get("mode", "list")
+
+            if mode == "list":
+                # List all header keywords
+                header_info = imhead(imagename=image_path, mode="list")
+            elif mode == "get":
+                # Get specific keyword
+                keyword = parameters.get("keyword", None)
+                if not keyword:
+                    return {"error": "keyword parameter required for mode='get'"}
+                header_info = imhead(imagename=image_path, mode="get", hdkey=keyword)
+            else:
+                return {"error": f"Unsupported mode: {mode}"}
 
         return {"header": _convert_to_json_serializable(header_info)}
     except Exception as e:
@@ -1387,7 +1390,7 @@ def _run_imhead(
             from astropy.io import fits
 
             with fits.open(image_path) as hdul:
-                header = hdul[0].header
+                header = hdul[0].header  # pylint: disable=no-member
                 header_dict = {}
                 for key, value in header.items():
                     # Skip COMMENT and HISTORY cards
@@ -1419,8 +1422,6 @@ def _run_immath(
     import os
     import tempfile
 
-    from casatasks import immath
-
     try:
         # Get expression and output name
         expr = parameters.get("expr", None)
@@ -1434,18 +1435,18 @@ def _run_immath(
             temp_dir = tempfile.gettempdir()
             output_path = os.path.join(temp_dir, f"immath_temp_{os.getpid()}.fits")
 
-        # Run immath
-        immath(
-            imagename=image_path,
-            expr=expr,
-            outfile=output_path,
-            **{k: v for k, v in parameters.items() if k not in ["expr", "output"]},
-        )
+        # Run immath and gather stats
+        with casa_log_environment():
+            from casatasks import immath, imstat
 
-        # Read result statistics
-        from casatasks import imstat
+            immath(
+                imagename=image_path,
+                expr=expr,
+                outfile=output_path,
+                **{k: v for k, v in parameters.items() if k not in ["expr", "output"]},
+            )
 
-        stats = imstat(imagename=output_path)
+            stats = imstat(imagename=output_path)
 
         result = {
             "output_path": output_path,

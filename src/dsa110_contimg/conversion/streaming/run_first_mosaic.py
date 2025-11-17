@@ -326,8 +326,8 @@ def main():
     )
     parser.add_argument(
         "--output-dir",
-        default="/stage/dsa110-contimg/ms",
-        help="Output directory for MS files (default: /stage/dsa110-contimg/ms)",
+        default="/stage/dsa110-contimg/raw/ms",
+        help="Output directory for MS files (default: /stage/dsa110-contimg/raw/ms)",
     )
     parser.add_argument(
         "--images-dir",

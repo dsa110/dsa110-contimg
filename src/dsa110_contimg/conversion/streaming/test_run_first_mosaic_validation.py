@@ -14,7 +14,9 @@ from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 from dsa110_contimg.conversion.streaming.run_first_mosaic import (
-  process_groups_until_count, process_one_group)
+    process_groups_until_count,
+    process_one_group,
+)
 from dsa110_contimg.conversion.streaming.streaming_converter import QueueDB
 from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
 
@@ -183,8 +185,7 @@ class TestDatabaseFilesystemConsistency(unittest.TestCase):
 
     def test_check_for_new_group_verifies_file_existence(self):
         """Verify that check_for_new_group validates MS files exist."""
-        from dsa110_contimg.database.products import (ensure_products_db,
-                                                      ms_index_upsert)
+        from dsa110_contimg.database.products import ensure_products_db, ms_index_upsert
 
         # Create database with non-existent MS path
         conn = ensure_products_db(self.products_db)
@@ -223,8 +224,7 @@ class TestDatabaseFilesystemConsistency(unittest.TestCase):
 
     def test_get_group_ms_paths_validates_file_existence(self):
         """Verify that get_group_ms_paths checks files exist before time extraction."""
-        from dsa110_contimg.database.products import (ensure_products_db,
-                                                      ms_index_upsert)
+        from dsa110_contimg.database.products import ensure_products_db, ms_index_upsert
 
         # Create database with non-existent MS path
         conn = ensure_products_db(self.products_db)
@@ -316,13 +316,11 @@ class TestPathMapperConsistency(unittest.TestCase):
         """Verify that path_mapper creates paths that can be found later."""
         from dsa110_contimg.utils.ms_organization import create_path_mapper
 
-        ms_base_dir = Path("/stage/dsa110-contimg/ms")
-        path_mapper = create_path_mapper(
-            ms_base_dir, is_calibrator=False, is_failed=False
-        )
+        ms_base_dir = Path("/stage/dsa110-contimg/raw/ms")
+        path_mapper = create_path_mapper(ms_base_dir, is_calibrator=False, is_failed=False)
 
         base_name = "2025-10-02T10:02:45"
-        ms_path = path_mapper(base_name, "/stage/dsa110-contimg/ms")
+        ms_path = path_mapper(base_name, "/stage/dsa110-contimg/raw/ms")
 
         # Path should be in organized location
         expected_path = ms_base_dir / "science" / "2025-10-02" / f"{base_name}.ms"
@@ -333,8 +331,7 @@ class TestPathMapperConsistency(unittest.TestCase):
         )
 
         # Path should be findable by extract_date_from_filename
-        from dsa110_contimg.utils.ms_organization import \
-          extract_date_from_filename
+        from dsa110_contimg.utils.ms_organization import extract_date_from_filename
 
         date_str = extract_date_from_filename(ms_path)
         self.assertEqual(date_str, "2025-10-02")

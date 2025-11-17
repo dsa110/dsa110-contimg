@@ -516,7 +516,7 @@ class WorkflowParams(BaseModel):
     start_time: str
     end_time: str
     input_dir: str = "/data/incoming"
-    output_dir: str = "/stage/dsa110-contimg/ms"
+    output_dir: str = "/stage/dsa110-contimg/raw/ms"
     # 'parallel-subband' (production), 'pyuvdata' (testing only), or 'auto'
     writer: str = "auto"
     stage_to_tmpfs: bool = True

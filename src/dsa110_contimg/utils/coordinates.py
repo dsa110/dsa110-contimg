@@ -14,7 +14,6 @@ from astropy.time import Time
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
 
-
 ensure_casa_path()
 
 

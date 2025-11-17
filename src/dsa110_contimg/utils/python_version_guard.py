@@ -12,8 +12,11 @@ REQUIRED_VERSION = (3, 11, 13)
 REQUIRED_VERSION_STR = "3.11.13"
 REQUIRED_PYTHON_PATH = "/opt/miniforge/envs/casa6/bin/python"
 
-# Casa6 environment path
-CASA6_ENV_PATH = "/opt/miniforge/envs/casa6"
+# Casa6 environment paths (accept both miniforge for local dev and conda for Docker)
+CASA6_ENV_PATHS = [
+    "/opt/miniforge/envs/casa6",  # Local development (miniforge)
+    "/opt/conda/envs/casa6",  # Docker container (micromamba)
+]
 
 
 def check_python_version():
@@ -44,8 +47,8 @@ def check_python_version():
         print(error_msg, file=sys.stderr)
         sys.exit(1)
 
-    # Check Python executable path
-    if not sys.executable.startswith(CASA6_ENV_PATH):
+    # Check Python executable path (accept both miniforge and conda paths)
+    if not any(sys.executable.startswith(path) for path in CASA6_ENV_PATHS):
         error_msg = (
             f"\n{'='*80}\n"
             f"CRITICAL ERROR: Wrong Python Executable\n"
@@ -66,14 +69,20 @@ def check_python_version():
         print(error_msg, file=sys.stderr)
         sys.exit(1)
 
-    # Verify casa6 environment exists
-    casa6_python = Path(CASA6_ENV_PATH) / "bin" / "python"
-    if not casa6_python.exists():
+    # Verify casa6 environment exists (check all possible paths)
+    casa6_python_found = False
+    for env_path in CASA6_ENV_PATHS:
+        casa6_python = Path(env_path) / "bin" / "python"
+        if casa6_python.exists():
+            casa6_python_found = True
+            break
+
+    if not casa6_python_found:
         error_msg = (
             f"\n{'='*80}\n"
             f"CRITICAL ERROR: Casa6 Environment Not Found\n"
             f"{'='*80}\n"
-            f"Required: casa6 conda environment at {CASA6_ENV_PATH}\n"
+            f"Required: casa6 conda environment at one of: {', '.join(CASA6_ENV_PATHS)}\n"
             f"Detected: Environment not found\n"
             f"\n"
             f"This pipeline REQUIRES casa6 Python 3.11.13.\n"

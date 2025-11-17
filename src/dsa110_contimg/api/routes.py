@@ -2615,7 +2615,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         Args:
             scan: If True, scan filesystem for MS files before listing
-            scan_dir: Directory to scan (defaults to CONTIMG_OUTPUT_DIR or /stage/dsa110-contimg/ms)
+            scan_dir: Directory to scan (defaults to CONTIMG_OUTPUT_DIR or /stage/dsa110-contimg/raw/ms)
             limit: Maximum number of results (1-1000, default: 100)
             offset: Offset for pagination (>= 0, default: 0)
         """
@@ -2632,7 +2632,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         # Optionally scan filesystem for MS files
         if scan:
             if scan_dir is None:
-                scan_dir = os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms")
+                scan_dir = os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms")
             try:
                 discovered = discover_ms_files(db_path, scan_dir, recursive=True)
                 logger.info(f"Discovered {len(discovered)} MS files from {scan_dir}")
@@ -2804,7 +2804,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Scan filesystem for MS files and register them in the database.
 
         Request body (optional):
-            scan_dir: Directory to scan (defaults to CONTIMG_OUTPUT_DIR or /stage/dsa110-contimg/ms)
+            scan_dir: Directory to scan (defaults to CONTIMG_OUTPUT_DIR or /stage/dsa110-contimg/raw/ms)
             recursive: If True, scan subdirectories recursively (default: True)
 
         Returns:
@@ -2821,7 +2821,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         recursive = request.get("recursive", True)
 
         if scan_dir is None:
-            scan_dir = os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms")
+            scan_dir = os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms")
 
         try:
             discovered = discover_ms_files(db_path, scan_dir, recursive=recursive)
@@ -6193,7 +6193,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             # Return defaults
             return StreamingConfigRequest(
                 input_dir=os.getenv("CONTIMG_INPUT_DIR", "/data/incoming"),
-                output_dir=os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms"),
+                output_dir=os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"),
                 queue_db=os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
                 registry_db=os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
                 scratch_dir=os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg"),

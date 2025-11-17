@@ -138,7 +138,7 @@ def precalculate_transits_for_calibrator(
         )
         service = CalibratorMSGenerator(
             input_dir=Path(os.getenv("CONTIMG_INPUT_DIR", "/data/incoming")),
-            output_dir=Path(os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms")),
+            output_dir=Path(os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms")),
             products_db=products_db_path,
             catalogs=[products_db_path.parent / "catalogs" / "vla_calibrators.sqlite3"],
             scratch_dir=None,

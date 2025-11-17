@@ -79,9 +79,7 @@ class StreamingStatus:
             "uptime_seconds": self.uptime_seconds,
             "cpu_percent": self.cpu_percent,
             "memory_mb": self.memory_mb,
-            "last_heartbeat": (
-                self.last_heartbeat.isoformat() if self.last_heartbeat else None
-            ),
+            "last_heartbeat": (self.last_heartbeat.isoformat() if self.last_heartbeat else None),
             "error": self.error,
         }
         if self.config:
@@ -92,9 +90,7 @@ class StreamingStatus:
 class StreamingServiceManager:
     """Manages the streaming converter service lifecycle."""
 
-    def __init__(
-        self, pid_file: Optional[Path] = None, config_file: Optional[Path] = None
-    ):
+    def __init__(self, pid_file: Optional[Path] = None, config_file: Optional[Path] = None):
         """
         Initialize the streaming service manager.
 
@@ -102,12 +98,9 @@ class StreamingServiceManager:
             pid_file: Path to PID file for tracking service process
             config_file: Path to configuration file
         """
-        self.pid_file = (
-            pid_file or Path(os.getenv("PIPELINE_STATE_DIR", "state")) / "streaming.pid"
-        )
+        self.pid_file = pid_file or Path(os.getenv("PIPELINE_STATE_DIR", "state")) / "streaming.pid"
         self.config_file = (
-            config_file
-            or Path(os.getenv("PIPELINE_STATE_DIR", "state")) / "streaming_config.json"
+            config_file or Path(os.getenv("PIPELINE_STATE_DIR", "state")) / "streaming_config.json"
         )
         self.pid_file.parent.mkdir(parents=True, exist_ok=True)
         self.config_file.parent.mkdir(parents=True, exist_ok=True)
@@ -216,12 +209,8 @@ class StreamingServiceManager:
             if info.get("started_at"):
                 try:
                     started_at_str = info["started_at"]
-                    started_at = datetime.fromisoformat(
-                        started_at_str.replace("Z", "+00:00")
-                    )
-                    uptime = (
-                        datetime.now() - started_at.replace(tzinfo=None)
-                    ).total_seconds()
+                    started_at = datetime.fromisoformat(started_at_str.replace("Z", "+00:00"))
+                    uptime = (datetime.now() - started_at.replace(tzinfo=None)).total_seconds()
                 except (ValueError, AttributeError):
                     pass
 
@@ -289,10 +278,7 @@ class StreamingServiceManager:
             return True
         # Check if docker-compose.yml exists nearby
         docker_compose = (
-            Path(__file__).parent.parent.parent.parent
-            / "ops"
-            / "docker"
-            / "docker-compose.yml"
+            Path(__file__).parent.parent.parent.parent / "ops" / "docker" / "docker-compose.yml"
         )
         return docker_compose.exists()
 
@@ -323,9 +309,7 @@ class StreamingServiceManager:
             config = self._load_config()
         if config is None:
             # Use defaults from environment with validation
-            def safe_int(
-                env_var: str, default: str, min_val: int = 1, max_val: int = 32
-            ) -> int:
+            def safe_int(env_var: str, default: str, min_val: int = 1, max_val: int = 32) -> int:
                 """Safely convert environment variable to integer with validation."""
                 value_str = os.getenv(env_var, default)
                 try:
@@ -361,20 +345,16 @@ class StreamingServiceManager:
 
             config = StreamingConfig(
                 input_dir=os.getenv("CONTIMG_INPUT_DIR", "/data/incoming"),
-                output_dir=os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms"),
+                output_dir=os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"),
                 queue_db=os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
-                registry_db=os.getenv(
-                    "CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"
-                ),
+                registry_db=os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
                 scratch_dir=os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg"),
                 expected_subbands=safe_int("CONTIMG_EXPECTED_SUBBANDS", "16"),
                 chunk_duration=safe_float("CONTIMG_CHUNK_MINUTES", "5.0", min_val=0.1),
                 log_level=os.getenv("CONTIMG_LOG_LEVEL", "INFO"),
                 use_subprocess=True,
                 monitoring=True,
-                monitor_interval=safe_float(
-                    "CONTIMG_MONITOR_INTERVAL", "60.0", min_val=1.0
-                ),
+                monitor_interval=safe_float("CONTIMG_MONITOR_INTERVAL", "60.0", min_val=1.0),
             )
 
         # Save config
@@ -542,9 +522,7 @@ class StreamingServiceManager:
                 }
 
         stop_result = self.stop()
-        if not stop_result.get("success") and "not running" not in stop_result.get(
-            "message", ""
-        ):
+        if not stop_result.get("success") and "not running" not in stop_result.get("message", ""):
             return {
                 "success": False,
                 "message": f"Failed to stop service: {stop_result.get('message')}",

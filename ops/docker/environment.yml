@@ -8,7 +8,7 @@ name: casa6
 channels:
   - conda-forge
 dependencies:
-  - python=3.11
+  - python=3.11.13
   - pip
   - casatools
   - casatasks

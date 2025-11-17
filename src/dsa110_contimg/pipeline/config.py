@@ -20,12 +20,8 @@ class PathsConfig(BaseModel):
 
     input_dir: Path = Field(..., description="Input directory for UVH5 files")
     output_dir: Path = Field(..., description="Output directory for MS files")
-    scratch_dir: Optional[Path] = Field(
-        None, description="Scratch directory for temporary files"
-    )
-    state_dir: Path = Field(
-        default=Path("state"), description="State directory for databases"
-    )
+    scratch_dir: Optional[Path] = Field(None, description="Scratch directory for temporary files")
+    state_dir: Path = Field(default=Path("state"), description="State directory for databases")
 
     @property
     def products_db(self) -> Path:
@@ -63,9 +59,7 @@ class ConversionConfig(BaseModel):
     max_workers: int = Field(
         default=16, ge=1, le=32, description="Maximum number of parallel workers"
     )
-    stage_to_tmpfs: bool = Field(
-        default=True, description="Stage files to tmpfs for faster I/O"
-    )
+    stage_to_tmpfs: bool = Field(default=True, description="Stage files to tmpfs for faster I/O")
     expected_subbands: int = Field(
         default=16, ge=1, le=32, description="Expected number of subbands"
     )
@@ -96,9 +90,7 @@ class ImagingConfig(BaseModel):
     field: Optional[str] = Field(None, description="Field name or coordinates")
     refant: Optional[str] = Field(default="103", description="Reference antenna")
     gridder: str = Field(default="wproject", description="Gridding algorithm")
-    wprojplanes: int = Field(
-        default=-1, description="W-projection planes (-1 for auto)"
-    )
+    wprojplanes: int = Field(default=-1, description="W-projection planes (-1 for auto)")
     run_catalog_validation: bool = Field(
         default=True,
         description="Run catalog-based flux scale validation after imaging",
@@ -130,9 +122,7 @@ class ValidationConfig(BaseModel):
         default=["astrometry", "flux_scale", "source_counts"],
         description="Types of validation to run",
     )
-    generate_html_report: bool = Field(
-        default=True, description="Generate HTML validation report"
-    )
+    generate_html_report: bool = Field(default=True, description="Generate HTML validation report")
     min_snr: float = Field(default=5.0, description="Minimum SNR for source detection")
     search_radius_arcsec: float = Field(
         default=10.0, description="Search radius for source matching (arcsec)"
@@ -179,15 +169,11 @@ class CrossMatchConfig(BaseModel):
 class PhotometryConfig(BaseModel):
     """Configuration for adaptive binning photometry stage."""
 
-    enabled: bool = Field(
-        default=False, description="Enable adaptive binning photometry stage"
-    )
+    enabled: bool = Field(default=False, description="Enable adaptive binning photometry stage")
     target_snr: float = Field(
         default=5.0, ge=1.0, description="Target SNR threshold for detections"
     )
-    max_width: int = Field(
-        default=16, ge=1, le=32, description="Maximum bin width in channels"
-    )
+    max_width: int = Field(default=16, ge=1, le=32, description="Maximum bin width in channels")
     sources: Optional[List[Dict[str, float]]] = Field(
         default=None,
         description="List of source coordinates [{'ra': 124.526, 'dec': 54.620}, ...]. "
@@ -196,9 +182,7 @@ class PhotometryConfig(BaseModel):
     min_flux_mjy: float = Field(
         default=10.0, description="Minimum NVSS flux (mJy) for catalog sources"
     )
-    parallel: bool = Field(
-        default=True, description="Image SPWs in parallel for faster processing"
-    )
+    parallel: bool = Field(default=True, description="Image SPWs in parallel for faster processing")
     max_workers: Optional[int] = Field(
         default=None,
         description="Maximum number of parallel workers (default: CPU count)",
@@ -212,9 +196,7 @@ class PhotometryConfig(BaseModel):
         default="standard",
         description="Imaging quality tier: 'development', 'standard', or 'high_precision'",
     )
-    backend: str = Field(
-        default="tclean", description="Imaging backend: 'tclean' or 'wsclean'"
-    )
+    backend: str = Field(default="tclean", description="Imaging backend: 'tclean' or 'wsclean'")
 
 
 class PipelineConfig(BaseModel):
@@ -260,9 +242,7 @@ class PipelineConfig(BaseModel):
             HealthCheckError: If path validation fails (when validate_paths=True)
         """
         base_state = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
-        synthetic_dir = Path(
-            os.getenv("PIPELINE_SYNTHETIC_DIR", str(base_state / "synth"))
-        )
+        synthetic_dir = Path(os.getenv("PIPELINE_SYNTHETIC_DIR", str(base_state / "synth")))
 
         input_dir = os.getenv("PIPELINE_INPUT_DIR")
         output_dir = os.getenv("PIPELINE_OUTPUT_DIR")
@@ -332,11 +312,8 @@ class PipelineConfig(BaseModel):
             ),
             conversion=ConversionConfig(
                 writer=os.getenv("PIPELINE_WRITER", "auto"),
-                max_workers=safe_int(
-                    "PIPELINE_MAX_WORKERS", "4", min_val=1, max_val=32
-                ),
-                stage_to_tmpfs=os.getenv("PIPELINE_STAGE_TO_TMPFS", "true").lower()
-                == "true",
+                max_workers=safe_int("PIPELINE_MAX_WORKERS", "4", min_val=1, max_val=32),
+                stage_to_tmpfs=os.getenv("PIPELINE_STAGE_TO_TMPFS", "true").lower() == "true",
                 expected_subbands=safe_int(
                     "PIPELINE_EXPECTED_SUBBANDS", "16", min_val=1, max_val=32
                 ),
@@ -347,9 +324,7 @@ class PipelineConfig(BaseModel):
                 ),
                 cal_gain_solint=os.getenv("PIPELINE_CAL_GAIN_SOLINT", "inf"),
                 default_refant=os.getenv("PIPELINE_DEFAULT_REFANT", "103"),
-                auto_select_refant=os.getenv(
-                    "PIPELINE_AUTO_SELECT_REFANT", "true"
-                ).lower()
+                auto_select_refant=os.getenv("PIPELINE_AUTO_SELECT_REFANT", "true").lower()
                 == "true",
             ),
             imaging=ImagingConfig(
@@ -357,8 +332,7 @@ class PipelineConfig(BaseModel):
                 refant=os.getenv("PIPELINE_REFANT", "103"),
                 gridder=os.getenv("PIPELINE_GRIDDER", "wproject"),
                 wprojplanes=safe_int("PIPELINE_WPROJPLANES", "-1"),
-                use_nvss_mask=os.getenv("PIPELINE_USE_NVSS_MASK", "true").lower()
-                == "true",
+                use_nvss_mask=os.getenv("PIPELINE_USE_NVSS_MASK", "true").lower() == "true",
                 mask_radius_arcsec=safe_float(
                     "PIPELINE_MASK_RADIUS_ARCSEC", "60.0", min_val=10.0, max_val=300.0
                 ),
@@ -387,7 +361,7 @@ class PipelineConfig(BaseModel):
         if "input_dir" in data and "paths" not in data:
             paths_data = {
                 "input_dir": data.pop("input_dir", "/data/incoming"),
-                "output_dir": data.pop("output_dir", "/stage/dsa110-contimg/ms"),
+                "output_dir": data.pop("output_dir", "/stage/dsa110-contimg/raw/ms"),
                 "scratch_dir": data.pop("scratch_dir", None),
                 "state_dir": data.pop("state_dir", "state"),
             }
@@ -442,7 +416,7 @@ class PipelineConfig(BaseModel):
         ```yaml
         paths:
           input_dir: "/data/incoming"
-          output_dir: "/stage/dsa110-contimg/ms"
+          output_dir: "/stage/dsa110-contimg/raw/ms"
           scratch_dir: "/tmp"
           state_dir: "state"
 

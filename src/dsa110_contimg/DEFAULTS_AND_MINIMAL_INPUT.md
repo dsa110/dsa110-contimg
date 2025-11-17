@@ -77,7 +77,7 @@ dsa110-contimg-streaming-mosaic
 | --------------------- | ------------------------------- | -------------------------------------------- |
 | `--products-db`       | `state/products.sqlite3`        | Index of MS files and images                 |
 | `--registry-db`       | `state/cal_registry.sqlite3`    | Calibration table registry                   |
-| `--ms-dir`            | `/stage/dsa110-contimg/ms`      | Where MS files live (from converter)         |
+| `--ms-dir`            | `/stage/dsa110-contimg/raw/ms`  | Where raw MS files live (from converter)     |
 | `--images-dir`        | `/stage/dsa110-contimg/images`  | Output individual images                     |
 | `--mosaic-dir`        | `/stage/dsa110-contimg/mosaics` | Output mosaics (staging)                     |
 | `--no-sliding-window` | `False`                         | Use sliding window grouping (allows overlap) |

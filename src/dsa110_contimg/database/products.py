@@ -328,13 +328,13 @@ def _register_default_storage_locations(conn: sqlite3.Connection) -> None:
     default_locations = [
         (
             "ms_files",
-            "/stage/dsa110-contimg/ms",
+            "/stage/dsa110-contimg/raw/ms",
             "Measurement Set files (converted from HDF5)",
             "Default location for MS files after conversion",
         ),
         (
             "calibration_tables",
-            "/stage/dsa110-contimg/ms",
+            "/stage/dsa110-contimg/raw/ms",
             "Calibration tables (BP, GP, 2G) stored alongside MS files",
             "Calibration tables are stored in same directory as MS files",
         ),
@@ -650,9 +650,7 @@ def discover_ms_files(
         ms_path_str = os.fspath(ms_path)
 
         # Check if already registered (result not used, just checking existence)
-        _ = conn.execute(
-            "SELECT path FROM ms_index WHERE path = ?", (ms_path_str,)
-        ).fetchone()
+        _ = conn.execute("SELECT path FROM ms_index WHERE path = ?", (ms_path_str,)).fetchone()
 
         # Extract time range from MS using standardized utility
         from dsa110_contimg.utils.time_utils import extract_ms_time_range

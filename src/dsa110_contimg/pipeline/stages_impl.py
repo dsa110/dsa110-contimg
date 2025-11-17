@@ -2103,7 +2103,6 @@ class CrossMatchStage(PipelineStage):
             Updated context with cross-match results
         """
 
-
         from dsa110_contimg.catalog.crossmatch import (
             calculate_flux_scale,
             calculate_positional_offsets,
