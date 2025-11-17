@@ -1,6 +1,37 @@
 #!/opt/miniforge/envs/casa6/bin/python
 """Create 12-minute mosaic with specified parameters.
 
+CRITICAL: This script REQUIRES casa6 Python 3.11.13.
+Do not run with any other Python version.
+"""
+# Enforce casa6 Python version - MUST be first import
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+from dsa110_contimg.utils.python_version_guard import enforce_casa6_python
+
+enforce_casa6_python()
+
+# CRITICAL: Set up CASA log environment BEFORE any CASA imports
+# This ensures CASA logs go to /data/dsa110-contimg/state/logs/ not workspace root
+import os
+
+from dsa110_contimg.utils.tempdirs import casa_log_environment, setup_casa_logging
+
+log_dir = setup_casa_logging()
+
+# Change CWD to log directory before importing MosaicOrchestrator
+# CASA logs are created at import time based on CWD
+old_cwd = os.getcwd()
+try:
+    os.chdir(log_dir)
+    print(f"✓ Changed CWD to log directory: {log_dir}")
+except (OSError, IOError, PermissionError) as e:
+    print(f"⚠️  Warning: Could not change CWD to {log_dir}: {e}", file=sys.stderr)
+
+"""Create 12-minute mosaic with specified parameters.
+
 Parameters:
 - Calibrator: 0834+555
 - Output: default (/stage/dsa110-contimg/mosaics/)
@@ -21,7 +52,6 @@ This script now supports:
 """
 
 import argparse
-import os
 import sys
 import traceback
 from datetime import datetime
@@ -31,7 +61,15 @@ from typing import List, Optional
 from astropy.time import Time
 
 from dsa110_contimg.database.products import ensure_products_db
+
+# Import MosaicOrchestrator after CWD change (CASA may be imported here)
 from dsa110_contimg.mosaic.orchestrator import MosaicOrchestrator
+
+# Restore original CWD after imports
+try:
+    os.chdir(old_cwd)
+except (OSError, IOError, PermissionError):
+    pass
 
 # Error log file location
 ERROR_LOG = Path("/data/dsa110-contimg/src/mosaic_errors.log")
@@ -73,8 +111,7 @@ def check_transit_database(calibrator_name: str, products_db_path: Path) -> dict
         Dict with database status information
     """
     try:
-        from dsa110_contimg.conversion.transit_precalc import \
-          get_calibrator_transits
+        from dsa110_contimg.conversion.transit_precalc import get_calibrator_transits
 
         products_db = ensure_products_db(products_db_path)
         stored_transits = get_calibrator_transits(
@@ -90,21 +127,21 @@ def check_transit_database(calibrator_name: str, products_db_path: Path) -> dict
                 "has_data": True,
                 "count": len(stored_transits),
                 "transits": stored_transits,
-                "message": f"Found {len(stored_transits)} stored transit(s) with available data in database"
+                "message": f"Found {len(stored_transits)} stored transit(s) with available data in database",
             }
         else:
             return {
                 "has_data": False,
                 "count": 0,
                 "transits": [],
-                "message": "No stored transit times found in database (will calculate on-demand)"
+                "message": "No stored transit times found in database (will calculate on-demand)",
             }
     except Exception as e:
         return {
             "has_data": False,
             "count": 0,
             "transits": [],
-            "message": f"Could not check database: {e} (will calculate on-demand)"
+            "message": f"Could not check database: {e} (will calculate on-demand)",
         }
 
 
@@ -146,9 +183,7 @@ def list_transits_interactive(
         ms_count = transit.get("ms_count", 0)
         days_ago = transit.get("days_ago", 0.0)
 
-        print(
-            f"{i:<8} {transit_iso:<25} {pb_response:<10.3f} {ms_count:<10} {days_ago:<10.1f}"
-        )
+        print(f"{i:<8} {transit_iso:<25} {pb_response:<10.3f} {ms_count:<10} {days_ago:<10.1f}")
 
     print("\nSelect a transit by index (0-based), or 'q' to quit:")
     while True:
@@ -211,7 +246,7 @@ Examples:
         type=str,
         default=None,
         help="Transit time in ISO format (e.g., '2025-11-12T10:00:00'). "
-             "If not specified, uses earliest available transit (default).",
+        "If not specified, uses earliest available transit (default).",
     )
     transit_group.add_argument(
         "--transit-index",
@@ -231,14 +266,14 @@ Examples:
         type=str,
         default=None,
         help="Explicit start time in ISO format (overrides transit-centered calculation). "
-             "Must be used with --end-time.",
+        "Must be used with --end-time.",
     )
     parser.add_argument(
         "--end-time",
         type=str,
         default=None,
         help="Explicit end time in ISO format (overrides transit-centered calculation). "
-             "Must be used with --start-time.",
+        "Must be used with --start-time.",
     )
 
     # Quality filtering
@@ -247,7 +282,7 @@ Examples:
         type=float,
         default=None,
         help="Minimum primary beam response (0.0-1.0). Note: For drift scans at constant Dec, "
-             "PB response may be constant for a given calibrator.",
+        "PB response may be constant for a given calibrator.",
     )
     parser.add_argument(
         "--min-ms-count",
@@ -451,4 +486,6 @@ Examples:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    # Use casa_log_environment context manager as additional safety measure
+    with casa_log_environment():
+        sys.exit(main())
