@@ -210,10 +210,8 @@ def precalculate_transits_for_calibrator(
 
                         _, pt_dec_rad, _ = _peek_uvh5_phase_and_midtime(gbest[0])
                         pt_dec_deg = (
-                            float(pt_dec_rad.to_value(u.deg))
-                            if pt_dec_rad is not None
-                            else None  # pylint: disable=no-member
-                        )
+                            float(pt_dec_rad.to_value(u.deg)) if pt_dec_rad is not None else None
+                        )  # pylint: disable=no-member
                     except Exception:
                         pass
 
