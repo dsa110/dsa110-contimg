@@ -6,7 +6,8 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 
 ensure_casa_path()
 
-from casatasks import applycal as casa_applycal
+# CASA import moved to function level to prevent logs in workspace root
+# See: docs/dev/analysis/casa_log_handling_investigation.md
 
 from dsa110_contimg.calibration.validate import (
     validate_caltable_compatibility,
@@ -43,9 +44,7 @@ def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -
 
             n_rows = tb.nrows()
             if n_rows == 0:
-                raise RuntimeError(
-                    f"MS has zero rows: {ms_path}. Cannot verify calibration."
-                )
+                raise RuntimeError(f"MS has zero rows: {ms_path}. Cannot verify calibration.")
 
             # Sample data (up to 10000 rows for efficiency)
             sample_size = min(10000, n_rows)
@@ -62,9 +61,7 @@ def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -
 
             # Check fraction non-zero
             nonzero_count = np.count_nonzero(np.abs(unflagged) > 1e-10)
-            nonzero_fraction = (
-                nonzero_count / len(unflagged) if len(unflagged) > 0 else 0.0
-            )
+            nonzero_fraction = nonzero_count / len(unflagged) if len(unflagged) > 0 else 0.0
 
             if nonzero_fraction < min_fraction:
                 raise RuntimeError(
@@ -82,8 +79,7 @@ def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -
         raise
     except Exception as e:
         raise RuntimeError(
-            f"Failed to verify CORRECTED_DATA population in MS: {ms_path}. "
-            f"Error: {e}"
+            f"Failed to verify CORRECTED_DATA population in MS: {ms_path}. " f"Error: {e}"
         ) from e
 
 
@@ -157,6 +153,8 @@ def apply_to_target(
         kwargs["spwmap"] = spwmap
 
     print(f"Applying {len(gaintables)} calibration table(s) to {ms_target}...")
+    from casatasks import applycal as casa_applycal
+
     casa_applycal(**kwargs)
 
     # POSTCONDITION CHECK: Verify CORRECTED_DATA was populated successfully

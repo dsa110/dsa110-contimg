@@ -4,6 +4,8 @@ Provides data registry tables and functions for tracking all data instances
 through their lifecycle from staging to published.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import os
@@ -178,6 +180,17 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
 
     conn.commit()
     return conn
+
+
+def get_data_registry_connection() -> sqlite3.Connection:
+    """Get connection to the default data registry database.
+    
+    Returns:
+        Connection to the data registry database at STATE_BASE/data_registry.db
+    """
+    from dsa110_contimg.database.data_config import STATE_BASE
+    db_path = STATE_BASE / "data_registry.db"
+    return ensure_data_registry_db(db_path)
 
 
 def register_data(

@@ -380,23 +380,18 @@ def _is_synthetic_pointing_data(timestamp: float, data_registry_db: Optional[Pat
 
 def fetch_pointing_history(
     ingest_db_path: str,
-    products_db_path: str,
     start_mjd: float,
     end_mjd: float,
     exclude_synthetic: bool = True,
-) -> List[PointingHistoryEntry]:
+ ) -> List[PointingHistoryEntry]:
     """Fetch pointing history from the database AND directly from HDF5 files in /data/incoming/.
 
     This function queries:
     1. The pointing_history table (monitoring data) from ingest database
-    2. The ms_index table (processed HDF5 observations) from products database
-    3. Directly scans /data/incoming/ for HDF5 files and extracts pointing data
-
-    This ensures complete coverage of ALL observations, including those not yet indexed.
+    2. Directly scans /data/incoming/ for HDF5 files and extracts pointing data
 
     Args:
         ingest_db_path: Path to ingest database (contains pointing_history table)
-        products_db_path: Path to products database (contains ms_index table)
         start_mjd: Start MJD timestamp
         end_mjd: End MJD timestamp
         exclude_synthetic: If True, filter out synthetic/simulated data (default: True)
@@ -435,26 +430,6 @@ def fetch_pointing_history(
                     ra_deg=r["ra_deg"],
                     dec_deg=r["dec_deg"],
                 )
-
-    # Query ms_index table from products database (processed HDF5 observations)
-    products_db = Path(products_db_path)
-    if products_db.exists():
-        with closing(_connect(products_db)) as conn:
-            # Use mid_mjd as the timestamp for observations
-            ms_rows = conn.execute(
-                "SELECT mid_mjd, ra_deg, dec_deg FROM ms_index WHERE mid_mjd BETWEEN ? AND ? AND ra_deg IS NOT NULL AND dec_deg IS NOT NULL ORDER BY mid_mjd",
-                (start_mjd, end_mjd),
-            ).fetchall()
-
-            for r in ms_rows:
-                timestamp = r["mid_mjd"]
-                # Only add if not already present (pointing_history takes precedence for same timestamp)
-                if timestamp not in entries_dict:
-                    entries_dict[timestamp] = PointingHistoryEntry(
-                        timestamp=timestamp,
-                        ra_deg=r["ra_deg"],
-                        dec_deg=r["dec_deg"],
-                    )
 
     # Scan /data/incoming/ for HDF5 files and extract pointing data directly
     # Skip during tests to avoid scanning large directories (80k+ files)

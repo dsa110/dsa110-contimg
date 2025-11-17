@@ -1,62 +1,44 @@
 #!/bin/bash
-# Start dev server in a persistent way
-# Usage: ./scripts/start-dev.sh [screen|tmux|nohup|pm2]
+# Start dev server with casa6 Node.js check
+# Provides clear error messages if casa6 is not activated
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FRONTEND_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-cd "$FRONTEND_DIR"
+CASA6_NODE="/opt/miniforge/envs/casa6/bin/node"
 
-METHOD="${1:-screen}"
+# Check if casa6 Node.js exists
+if [ ! -x "$CASA6_NODE" ]; then
+  echo "❌ ERROR: casa6 Node.js not found at $CASA6_NODE" >&2
+  echo "   Please activate casa6: conda activate casa6" >&2
+  exit 1
+fi
 
-case "$METHOD" in
-  screen)
-    echo "Starting dev server in screen session 'frontend-dev'..."
-    screen -dmS frontend-dev bash -c "cd '$FRONTEND_DIR' && npm run dev"
-    echo "Dev server started in screen session 'frontend-dev'"
-    echo "To attach: screen -r frontend-dev"
-    echo "To detach: Press Ctrl+A then D"
-    echo "To kill: screen -X -S frontend-dev quit"
-    ;;
-  tmux)
-    echo "Starting dev server in tmux session 'frontend-dev'..."
-    tmux new-session -d -s frontend-dev "cd '$FRONTEND_DIR' && npm run dev"
-    echo "Dev server started in tmux session 'frontend-dev'"
-    echo "To attach: tmux attach -t frontend-dev"
-    echo "To detach: Press Ctrl+B then D"
-    echo "To kill: tmux kill-session -t frontend-dev"
-    ;;
-  nohup)
-    echo "Starting dev server with nohup..."
-    nohup npm run dev > dev-server.log 2>&1 &
-    PID=$!
-    echo "Dev server started with PID: $PID"
-    echo "Logs: tail -f dev-server.log"
-    echo "To stop: kill $PID"
-    ;;
-  pm2)
-    if ! command -v pm2 &> /dev/null; then
-      echo "PM2 not installed. Installing..."
-      npm install -g pm2
-    fi
-    echo "Starting dev server with PM2..."
-    # Use --cwd to ensure PM2 runs from the correct directory
-    pm2 start npm --name "frontend-dev" --cwd "$FRONTEND_DIR" -- run dev
-    echo "Dev server started with PM2"
-    echo "To view logs: pm2 logs frontend-dev"
-    echo "To stop: pm2 stop frontend-dev"
-    echo "To restart: pm2 restart frontend-dev"
-    echo "To delete: pm2 delete frontend-dev"
-    echo ""
-    echo "Viewing logs (Ctrl+C to exit)..."
-    sleep 2
-    pm2 logs frontend-dev --lines 10
-    ;;
-  *)
-    echo "Unknown method: $METHOD"
-    echo "Usage: $0 [screen|tmux|nohup|pm2]"
-    exit 1
-    ;;
-esac
+# Get current Node.js version
+CURRENT_NODE=$(which node)
+CURRENT_VERSION=$(node --version | sed 's/v//')
 
+# Check if we're using casa6 Node.js
+if [ "$CURRENT_NODE" != "$CASA6_NODE" ]; then
+  echo "❌ ERROR: Not using casa6 Node.js" >&2
+  echo "   Current: $CURRENT_NODE (v$CURRENT_VERSION)" >&2
+  echo "   Required: $CASA6_NODE (v22.6.0)" >&2
+  echo "" >&2
+  echo "   Fix: source /opt/miniforge/etc/profile.d/conda.sh && conda activate casa6" >&2
+  echo "" >&2
+  echo "   Then run: npm run dev" >&2
+  exit 1
+fi
+
+# Check version meets minimum requirement
+REQUIRED_VERSION="22.0.0"
+if [ "$(printf '%s\n' "$REQUIRED_VERSION" "$CURRENT_VERSION" | sort -V | head -n1)" != "$REQUIRED_VERSION" ]; then
+  echo "❌ ERROR: Node.js version $CURRENT_VERSION < required $REQUIRED_VERSION" >&2
+  echo "   Please use casa6 Node.js v22.6.0" >&2
+  exit 1
+fi
+
+# Success - start Vite
+echo "✓ Using casa6 Node.js: $CURRENT_VERSION"
+echo "🚀 Starting Vite dev server on port 3210..."
+echo "   Access at: http://localhost:3210"
+exec node -r ./scripts/setup-crypto.cjs node_modules/.bin/vite "$@"

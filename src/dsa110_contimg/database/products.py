@@ -309,6 +309,18 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
     return conn
 
 
+def get_products_db_connection(path: Path) -> sqlite3.Connection:
+    """Get connection to the products database.
+    
+    Args:
+        path: Path to the products database file
+        
+    Returns:
+        Connection to the products database
+    """
+    return ensure_products_db(path)
+
+
 def _register_default_storage_locations(conn: sqlite3.Connection) -> None:
     """Register default storage locations for recovery."""
     import time

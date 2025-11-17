@@ -1,3 +1,4 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, etc.)
 """Streaming calibration utilities for autonomous pipeline operation.
 
 This module provides functions for calibrator detection and calibration solving

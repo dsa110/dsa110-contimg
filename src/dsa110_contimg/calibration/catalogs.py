@@ -1,3 +1,4 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, etc.)
 import gzip
 import logging
 import os
@@ -293,7 +294,7 @@ def read_first_catalog(
     # Try astroquery first if enabled
     if use_astroquery:
         try:
-            import astropy.units as u
+            import astropy.units as u  # pylint: disable=no-member
             from astropy.coordinates import SkyCoord
             from astroquery.vizier import Vizier
 
@@ -575,7 +576,7 @@ def read_vla_parsed_catalog_csv(path: str) -> pd.DataFrame:
     dec_deg_col = next((c for c in df.columns if "dec_deg" in c.lower()), None)
 
     def _to_deg(ra_val, dec_val) -> Tuple[float, float]:
-        import astropy.units as u
+        import astropy.units as u  # pylint: disable=no-member
         from astropy.coordinates import SkyCoord
 
         # try sexagesimal first
@@ -991,7 +992,7 @@ def query_nvss_sources(
 
     This function requires SQLite databases for optimal performance (~170× faster than CSV).
     CSV fallback is available but disabled by default. Set use_csv_fallback=True to enable.
-    
+
     When NVSS is used, this function also checks for FIRST and RACS databases and warns
     if they are missing but should exist (within coverage limits).
 
@@ -1009,14 +1010,15 @@ def query_nvss_sources(
     """
     import logging
     import sqlite3
-    
+
     logger = logging.getLogger(__name__)
-    
+
     # Check for missing FIRST and RACS databases when NVSS is used
     # Auto-build if missing (helps during pipeline debugging)
     from dsa110_contimg.catalog.builders import check_missing_catalog_databases
+
     missing_dbs = check_missing_catalog_databases(
-        dec_deg, 
+        dec_deg,
         logger_instance=logger,
         auto_build=True,  # Auto-build missing databases
     )
@@ -1407,8 +1409,7 @@ def query_rax_sources(
                 df_full = read_rax_catalog()
 
                 # Normalize column names for RAX
-                from dsa110_contimg.catalog.build_master import \
-                  _normalize_columns
+                from dsa110_contimg.catalog.build_master import _normalize_columns
 
                 RAX_CANDIDATES = {
                     "ra": ["ra", "ra_deg", "raj2000", "ra_hms"],
@@ -1677,8 +1678,7 @@ def query_vlass_sources(
                 df_full = _read_table(vlass_path)
 
                 # Normalize column names for VLASS
-                from dsa110_contimg.catalog.build_master import \
-                  _normalize_columns
+                from dsa110_contimg.catalog.build_master import _normalize_columns
 
                 VLASS_CANDIDATES = {
                     "ra": ["ra", "ra_deg", "raj2000"],

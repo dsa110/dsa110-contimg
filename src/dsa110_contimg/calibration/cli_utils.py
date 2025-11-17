@@ -1,3 +1,4 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, etc.)
 """Utility functions for calibration CLI."""
 
 import casacore.tables as casatables

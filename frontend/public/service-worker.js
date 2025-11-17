@@ -3,84 +3,118 @@
  * Provides caching and offline functionality
  */
 
-const CACHE_NAME = "dsa110-dashboard-v1";
-const STATIC_ASSETS = ["/", "/dashboard", "/static/css/main.css", "/static/js/main.js"];
+const SW_VERSION = "2025-02-17";
+const CACHE_NAME = `dsa110-dashboard-${SW_VERSION}`;
 
-// Install event - cache static assets
+// The scope is set when the worker is registered (e.g. http://host/ui/)
+// We use it to derive absolute URLs for assets we want to cache.
+const scopeUrl = new URL(self.registration?.scope ?? self.location.origin + "/");
+const APP_ROOT_URL = scopeUrl.href.endsWith("/") ? scopeUrl.href : `${scopeUrl.href}/`;
+
+const CORE_ASSETS = [APP_ROOT_URL];
+
+function toAbsolute(path) {
+  return new URL(path, scopeUrl).toString();
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS).catch((error) => {
-        console.warn("Failed to cache some assets:", error);
-      });
-    })
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(CORE_ASSETS))
+      .catch((error) => {
+        console.warn("[SW] Failed to pre-cache core assets", error);
+      })
   );
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))
-      );
-    })
+    caches
+      .keys()
+      .then((cacheNames) =>
+        Promise.all(
+          cacheNames.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))
+        )
+      )
   );
   self.clients.claim();
 });
 
-// Fetch event - serve from cache when offline
-self.addEventListener("fetch", (event) => {
-  // Only handle GET requests
-  if (event.request.method !== "GET") {
-    return;
-  }
-
-  // Skip API requests (let them fail gracefully)
-  if (event.request.url.includes("/api/")) {
-    return;
-  }
-
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      // Return cached version if available
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      // Otherwise, fetch from network
-      return fetch(event.request)
-        .then((response) => {
-          // Don't cache non-successful responses
-          if (!response || response.status !== 200 || response.type !== "basic") {
-            return response;
-          }
-
-          // Clone the response for caching
-          const responseToCache = response.clone();
-
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-
-          return response;
-        })
-        .catch(() => {
-          // If fetch fails and we're offline, return a fallback
-          if (event.request.destination === "document") {
-            return caches.match("/");
-          }
-          return new Response("Offline", {
-            status: 503,
-            statusText: "Service Unavailable",
-          });
-        });
-    })
+function isNavigationRequest(request) {
+  return (
+    request.mode === "navigate" ||
+    (request.destination === "document" &&
+      request.method === "GET" &&
+      request.headers.get("accept")?.includes("text/html"))
   );
+}
+
+self.addEventListener("fetch", (event) => {
+  const { request } = event;
+
+  if (request.method !== "GET") {
+    return;
+  }
+
+  const url = new URL(request.url);
+  const isSameOrigin = url.origin === self.location.origin;
+
+  if (!isSameOrigin) {
+    return;
+  }
+
+  if (request.url.includes("/api/")) {
+    return;
+  }
+
+  if (isNavigationRequest(request)) {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+
+  event.respondWith(cacheFirst(request));
 });
 
-// Message handler for cache updates
+function networkFirst(request) {
+  return fetch(request)
+    .then((response) => {
+      if (response && response.ok) {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+      }
+      return response;
+    })
+    .catch(() => caches.match(request).then((cached) => cached || caches.match(toAbsolute("./"))));
+}
+
+function cacheFirst(request) {
+  return caches.match(request).then((cachedResponse) => {
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
+    return fetch(request)
+      .then((response) => {
+        if (response && response.status === 200 && response.type === "basic") {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        }
+        return response;
+      })
+      .catch(() => {
+        if (request.destination === "document") {
+          return caches.match(toAbsolute("./"));
+        }
+        return new Response("Offline", {
+          status: 503,
+          statusText: "Service Unavailable",
+        });
+      });
+  });
+}
+
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();

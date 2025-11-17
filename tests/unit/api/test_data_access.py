@@ -549,12 +549,11 @@ class TestFetchPointingHistory:
     """Test fetch_pointing_history function."""
 
     @patch.dict("os.environ", {"SKIP_INCOMING_SCAN": "true"})
-    def test_fetch_pointing_history_success(self, mock_queue_db, mock_products_db):
+    def test_fetch_pointing_history_success(self, mock_queue_db):
         """Test successful pointing history retrieval."""
         # Skip scanning /data/incoming/ (which has 80k+ files) via environment variable
         import os
 
-        # Function now expects both ingest_db_path and products_db_path
         # Need to convert timestamp to MJD for query
         from astropy.time import Time
 
@@ -562,8 +561,7 @@ class TestFetchPointingHistory:
         now_mjd = Time(now).mjd
 
         history = fetch_pointing_history(
-            str(mock_queue_db),  # ingest_db_path
-            str(mock_products_db),  # products_db_path
+            str(mock_queue_db),
             start_mjd=now_mjd - 1.0,
             end_mjd=now_mjd + 1.0,
         )
@@ -575,13 +573,12 @@ class TestFetchPointingHistory:
             assert hasattr(history[0], "timestamp")
 
     @patch.dict("os.environ", {"SKIP_INCOMING_SCAN": "true"})
-    def test_fetch_pointing_history_time_range(self, mock_queue_db, mock_products_db):
+    def test_fetch_pointing_history_time_range(self, mock_queue_db):
         """Test pointing history with time range filter."""
         # Skip scanning /data/incoming/ (which has 80k+ files) via environment variable
         # Use far future MJD that won't match
         history = fetch_pointing_history(
-            str(mock_queue_db),  # ingest_db_path
-            str(mock_products_db),  # products_db_path
+            str(mock_queue_db),
             start_mjd=70000.0,
             end_mjd=70001.0,
         )

@@ -1,3 +1,4 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, Jy, etc.)
 """Image-related API routes extracted from routes.py."""
 
 from __future__ import annotations

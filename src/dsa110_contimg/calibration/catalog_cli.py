@@ -1,4 +1,5 @@
 #!/opt/miniforge/envs/casa6/bin/python
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, etc.)
 """
 CLI utilities for calibrator catalog queries (transit times and in-beam matches).
 

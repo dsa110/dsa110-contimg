@@ -15,8 +15,10 @@ from unittest.mock import MagicMock, patch
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 from dsa110_contimg.catalog.builders import (
-  CATALOG_COVERAGE_LIMITS, auto_build_missing_catalog_databases,
-  check_missing_catalog_databases)
+    CATALOG_COVERAGE_LIMITS,
+    auto_build_missing_catalog_databases,
+    check_missing_catalog_databases,
+)
 
 
 def test_auto_build_detects_missing_databases():

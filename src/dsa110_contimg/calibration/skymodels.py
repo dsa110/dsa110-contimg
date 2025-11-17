@@ -1,3 +1,4 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, Jy, etc.)
 """
 Skymodel helpers: create CASA component lists (.cl) and apply via ft().
 

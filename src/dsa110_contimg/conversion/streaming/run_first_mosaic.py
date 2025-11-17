@@ -107,6 +107,7 @@ def process_one_group(
             # Fall through to conversion
 
     # Convert subband group to MS (only if MS doesn't exist or was invalid)
+    writer_type = "skipped"  # Default if MS already exists
     if not ms_path_obj.exists():
         try:
             from dsa110_contimg.conversion.strategies.hdf5_orchestrator import \
@@ -130,6 +131,7 @@ def process_one_group(
         except Exception as exc:
             log.error(f"Conversion failed for {gid}: {exc}", exc_info=True)
             queue.update_state(gid, "failed", error=str(exc))
+            writer_type = "failed"
             return False
 
     total = time.perf_counter() - t0

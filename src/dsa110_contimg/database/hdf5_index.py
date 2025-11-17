@@ -509,7 +509,7 @@ def query_subband_groups(
     start_time: str,
     end_time: str,
     *,
-    tolerance_s: float = 1.0,
+    tolerance_s: float = 60.0,
     cluster_tolerance_s: float = 60.0,
     only_stored: bool = True,
 ) -> List[List[str]]:
@@ -519,7 +519,7 @@ def query_subband_groups(
         products_db: Path to products database
         start_time: Start time (ISO format: "YYYY-MM-DD HH:MM:SS")
         end_time: End time (ISO format: "YYYY-MM-DD HH:MM:SS")
-        tolerance_s: Time tolerance in seconds for query window expansion (default: 1.0)
+        tolerance_s: Time tolerance in seconds for query window expansion (default: 60.0)
         cluster_tolerance_s: Time tolerance in seconds for clustering files into groups (default: 60.0)
         only_stored: If True, only return groups where all files are still stored on disk
 

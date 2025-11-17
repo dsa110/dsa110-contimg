@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime as dt
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from pydantic import BaseModel, Field
 

@@ -1,3 +1,4 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, etc.)
 """
 DP3 wrappers for sky model seeding and calibration application.
 

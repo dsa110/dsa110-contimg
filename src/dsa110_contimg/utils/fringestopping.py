@@ -11,7 +11,8 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 
 ensure_casa_path()
 
-import casatools as cc
+# CASA import moved to function level to prevent logs in workspace root
+# See: docs/dev/analysis/casa_log_handling_investigation.md
 import numpy as np
 from astropy.coordinates import angular_separation
 from numba import jit
@@ -51,6 +52,7 @@ def calc_uvw_blt(blen, tobs, src_epoch, src_lon, src_lat, obs="OVRO_MMA"):
     buvw = np.zeros((nblt, 3))
 
     # Define the reference frame
+    import casatools as cc
     me = cc.measures()
     qa = cc.quanta()
 
@@ -150,6 +152,7 @@ def calc_uvw(blen, tobs, src_epoch, src_lon, src_lat, obs="OVRO_MMA"):
     bw = np.zeros((nt, nb))
 
     # Define the reference frame
+    import casatools as cc
     me = cc.measures()
     qa = cc.quanta()
     if obs is not None:

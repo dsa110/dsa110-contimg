@@ -92,7 +92,7 @@ EOF
 Update the existing unit tests in `tests/unit/api/test_data_access.py`:
 
 ```python
-def test_fetch_pointing_history_success(self, mock_ingest_db, mock_products_db):
+def test_fetch_pointing_history_success(self, mock_ingest_db):
     """Test successful pointing history retrieval."""
     from astropy.time import Time
 
@@ -100,8 +100,7 @@ def test_fetch_pointing_history_success(self, mock_ingest_db, mock_products_db):
     now_mjd = Time(now).mjd
 
     history = fetch_pointing_history(
-        str(mock_ingest_db),  # ingest_db_path
-        str(mock_products_db),  # products_db_path
+        str(mock_ingest_db),
         start_mjd=now_mjd - 1.0,
         end_mjd=now_mjd + 1.0
     )

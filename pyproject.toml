@@ -170,19 +170,24 @@ precision = 2
 show_missing = true
 skip_covered = false
 
-[tool.coverage.report.fail_under]
-# Critical modules should have 80% coverage
-critical_modules = [
-    "src/dsa110_contimg/api/routes.py",
-    "src/dsa110_contimg/database/data_registry.py",
-    "src/dsa110_contimg/pipeline/stages_impl.py",
-    "src/dsa110_contimg/api/websocket_manager.py",
-]
-
 # MyPy type checking
 [tool.mypy]
 python_version = "3.11"
 warn_return_any = true
+
+# Pylint configuration
+[tool.pylint.main]
+# Suppress false positives for astropy.units dynamic attributes
+# Note: astropy.units dynamically creates unit attributes (deg, arcsec, etc.)
+# at import time, which pylint's static analysis cannot detect
+extension-pkg-whitelist=["astropy"]
+
+[tool.pylint."messages control"]
+# Note: We cannot selectively disable no-member for just astropy.units
+# The astropy.units errors are false positives - units exist at runtime
+# but are created dynamically, so pylint's static analysis can't see them.
+# Consider adding # pylint: disable=no-member to specific lines using astropy.units
+# or use a more targeted approach with inline suppressions
 warn_unused_configs = true
 disallow_untyped_defs = false
 ignore_missing_imports = true

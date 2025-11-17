@@ -6,8 +6,16 @@
  * By lazy loading it, we improve initial page load performance.
  */
 
-import { lazy, Suspense } from "react";
+import React, { lazy, Suspense } from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
+
+// Ensure React is available globally before loading Plotly
+// This prevents "Cannot set properties of undefined" errors when Plotly
+// tries to access React internals during module initialization
+// react-plotly.js may access React at module load time, so we ensure it's ready
+if (typeof window !== "undefined" && typeof (window as any).React === "undefined") {
+  (window as any).React = React;
+}
 
 // Lazy load the Plot component
 // react-plotly.js exports Plot as default, so React.lazy works directly
@@ -31,6 +39,7 @@ interface PlotlyLazyProps {
 
 /**
  * Lazy-loaded Plotly component with loading fallback
+ * React is ensured to be available globally before Plotly loads
  */
 export function PlotlyLazy(props: PlotlyLazyProps) {
   return (

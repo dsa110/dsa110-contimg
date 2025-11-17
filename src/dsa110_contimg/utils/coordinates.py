@@ -6,7 +6,8 @@ Adapted from dsacalib.utils
 
 from . import constants as ct
 import astropy.units as u
-import casatools as cc
+# CASA import moved to function level to prevent logs in workspace root
+# See: docs/dev/analysis/casa_log_handling_investigation.md
 import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
@@ -61,6 +62,7 @@ class Direction:
             self.obstime = None
 
         # Set up CASA tools
+        import casatools as cc
         self.me = cc.measures()
         self.qa = cc.quanta()
 

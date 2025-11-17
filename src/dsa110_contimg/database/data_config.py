@@ -20,16 +20,12 @@ DATA_BASE = Path(os.getenv("CONTIMG_DATA_BASE", "/data/dsa110-contimg"))
 PRODUCTS_BASE = DATA_BASE / "products"  # Published products
 STATE_BASE = DATA_BASE / "state"  # Pipeline state (databases)
 
-# Feature flag for new structure (set CONTIMG_USE_NEW_STRUCTURE=1 to enable)
-USE_NEW_STRUCTURE = os.getenv(
-    "CONTIMG_USE_NEW_STRUCTURE", "0").lower() in ("1", "true", "yes")
-
 # Auto-publish configuration
 AUTO_PUBLISH_ENABLED_BY_DEFAULT = True
 AUTO_PUBLISH_DELAY_SECONDS = 0  # Delay before auto-publish (0 = immediate)
 
-# New structure: Stage-based organization
-NEW_DATA_TYPES: Dict[str, Dict[str, Any]] = {
+# Stage-based organization (new structure – now default)
+DATA_TYPES: Dict[str, Dict[str, Any]] = {
     "raw_ms": {
         "staging_dir": STAGE_BASE / "raw" / "ms",
         "published_dir": None,  # Raw MS not published
@@ -109,7 +105,7 @@ NEW_DATA_TYPES: Dict[str, Dict[str, Any]] = {
     },
     # Legacy types for backward compatibility
     "ms": {
-        "staging_dir": STAGE_BASE / "raw" / "ms" if USE_NEW_STRUCTURE else STAGE_BASE / "ms",
+        "staging_dir": STAGE_BASE / "raw" / "ms",
         "published_dir": PRODUCTS_BASE / "ms",
         "auto_publish_criteria": {
             "qa_required": False,
@@ -117,7 +113,7 @@ NEW_DATA_TYPES: Dict[str, Dict[str, Any]] = {
         },
     },
     "calib_ms": {
-        "staging_dir": STAGE_BASE / "calibrated" / "ms" if USE_NEW_STRUCTURE else STAGE_BASE / "calib_ms",
+        "staging_dir": STAGE_BASE / "calibrated" / "ms",
         "published_dir": PRODUCTS_BASE / "ms",
         "auto_publish_criteria": {
             "qa_required": True,
@@ -126,7 +122,7 @@ NEW_DATA_TYPES: Dict[str, Dict[str, Any]] = {
         },
     },
     "caltable": {
-        "staging_dir": STAGE_BASE / "calibrated" / "tables" if USE_NEW_STRUCTURE else STAGE_BASE / "caltables",
+        "staging_dir": STAGE_BASE / "calibrated" / "tables",
         "published_dir": PRODUCTS_BASE / "caltables",
         "auto_publish_criteria": {
             "qa_required": True,
@@ -135,90 +131,6 @@ NEW_DATA_TYPES: Dict[str, Dict[str, Any]] = {
         },
     },
 }
-
-# Legacy structure (for backward compatibility)
-LEGACY_DATA_TYPES: Dict[str, Dict[str, Any]] = {
-    "ms": {
-        "staging_dir": STAGE_BASE / "ms",
-        "published_dir": PRODUCTS_BASE / "ms",
-        "auto_publish_criteria": {
-            "qa_required": False,
-            "validation_required": True,
-        },
-    },
-    "calib_ms": {
-        "staging_dir": STAGE_BASE / "calib_ms",
-        "published_dir": PRODUCTS_BASE / "calib_ms",
-        "auto_publish_criteria": {
-            "qa_required": True,
-            "qa_status": "passed",
-            "validation_required": True,
-        },
-    },
-    "caltable": {
-        "staging_dir": STAGE_BASE / "caltables",
-        "published_dir": PRODUCTS_BASE / "caltables",
-        "auto_publish_criteria": {
-            "qa_required": True,
-            "qa_status": "passed",
-            "validation_required": True,
-        },
-    },
-    "image": {
-        "staging_dir": STAGE_BASE / "images",
-        "published_dir": PRODUCTS_BASE / "images",
-        "auto_publish_criteria": {
-            "qa_required": True,
-            "qa_status": "passed",
-            "validation_required": True,
-        },
-    },
-    "mosaic": {
-        "staging_dir": STAGE_BASE / "mosaics",
-        "published_dir": PRODUCTS_BASE / "mosaics",
-        "auto_publish_criteria": {
-            "qa_required": True,
-            "qa_status": "passed",
-            "validation_required": True,
-        },
-    },
-    "catalog": {
-        "staging_dir": STAGE_BASE / "catalogs",
-        "published_dir": PRODUCTS_BASE / "catalogs",
-        "auto_publish_criteria": {
-            "qa_required": False,
-            "validation_required": True,
-        },
-    },
-    "qa": {
-        "staging_dir": STAGE_BASE / "qa",
-        "published_dir": PRODUCTS_BASE / "qa",
-        "subdirs": ["cal_qa", "ms_qa", "image_qa"],
-        "auto_publish_criteria": {
-            "qa_required": False,
-            "validation_required": False,
-        },
-    },
-    "metadata": {
-        "staging_dir": STAGE_BASE / "metadata",
-        "published_dir": PRODUCTS_BASE / "metadata",
-        "subdirs": [
-            "pipe_meta",
-            "cal_meta",
-            "ms_meta",
-            "catalog_meta",
-            "image_meta",
-            "mosaic_meta",
-        ],
-        "auto_publish_criteria": {
-            "qa_required": False,
-            "validation_required": False,
-        },
-    },
-}
-
-# Use new structure if enabled, otherwise use legacy
-DATA_TYPES = NEW_DATA_TYPES if USE_NEW_STRUCTURE else LEGACY_DATA_TYPES
 
 
 def get_staging_dir(data_type: str) -> Path:
@@ -246,17 +158,17 @@ def get_auto_publish_criteria(data_type: str) -> Dict[str, Any]:
 # New structure helper functions
 def get_raw_ms_dir() -> Path:
     """Get directory for raw (uncalibrated) MS files."""
-    return STAGE_BASE / "raw" / "ms" if USE_NEW_STRUCTURE else STAGE_BASE / "ms"
+    return STAGE_BASE / "raw" / "ms"
 
 
 def get_calibrated_ms_dir() -> Path:
     """Get directory for calibrated MS files."""
-    return STAGE_BASE / "calibrated" / "ms" if USE_NEW_STRUCTURE else STAGE_BASE / "calib_ms"
+    return STAGE_BASE / "calibrated" / "ms"
 
 
 def get_calibration_tables_dir() -> Path:
     """Get directory for calibration tables."""
-    return STAGE_BASE / "calibrated" / "tables" if USE_NEW_STRUCTURE else STAGE_BASE / "caltables"
+    return STAGE_BASE / "calibrated" / "tables"
 
 
 def get_groups_dir() -> Path:
@@ -291,7 +203,7 @@ def get_workspace_failed_dir() -> Path:
 
 def get_products_dir() -> Path:
     """Get directory for validated products ready to publish."""
-    return STAGE_BASE / "products" if USE_NEW_STRUCTURE else STAGE_BASE
+    return STAGE_BASE / "products"
 
 
 def ensure_staging_directories() -> None:

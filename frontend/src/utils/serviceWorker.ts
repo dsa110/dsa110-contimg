@@ -3,11 +3,26 @@
  * Registers the service worker for offline support
  */
 
+function getBasePath(): string {
+  const rawBase = import.meta.env.BASE_URL ?? "/";
+  let normalized = rawBase.trim();
+  if (!normalized.startsWith("/")) {
+    normalized = `/${normalized}`;
+  }
+  if (!normalized.endsWith("/")) {
+    normalized = `${normalized}/`;
+  }
+  return normalized;
+}
+
 export function registerServiceWorker(): void {
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
+      const basePath = getBasePath();
+      const swUrl = `${basePath}service-worker.js`;
+
       navigator.serviceWorker
-        .register("/service-worker.js")
+        .register(swUrl, { scope: basePath })
         .then((registration) => {
           console.log("Service Worker registered:", registration.scope);
 

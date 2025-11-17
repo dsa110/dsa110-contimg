@@ -1,3 +1,4 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, etc.)
 """MODEL_DATA validation utilities.
 
 Provides comprehensive validation of MODEL_DATA column to ensure calibration correctness.

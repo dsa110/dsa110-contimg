@@ -7,7 +7,8 @@
 
     <!-- Security Headers -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN" />
+    <!-- X-Frame-Options should be set via HTTP header, not meta tag -->
+    <!-- Removed meta tag - set via server HTTP headers instead -->
     <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
     <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()" />
@@ -19,10 +20,10 @@
       http-equiv="Content-Security-Policy"
       content="
       default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://code.jquery.com;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://code.jquery.com http://localhost:2718;
       style-src 'self' 'unsafe-inline';
       img-src 'self' data: blob:;
-      connect-src 'self' ws: wss: http://127.0.0.1:8000 http://localhost:8000;
+      connect-src 'self' ws: wss: http://127.0.0.1:8000 http://localhost:8000 http://localhost:2718 ws://localhost:2718;
       font-src 'self' data:;
       worker-src 'self' blob:;
       frame-src 'self';

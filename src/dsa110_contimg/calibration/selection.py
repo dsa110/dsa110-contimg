@@ -1,3 +1,4 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, etc.)
 from __future__ import annotations
 
 from typing import List, Optional, Tuple
@@ -157,8 +158,7 @@ def select_bandpass_from_catalog(
 
     # Check if ALL fields are meridian phase centers
     all_meridian = all(
-        isinstance(name, str) and name.startswith("meridian_icrs_t")
-        for name in field_names
+        isinstance(name, str) and name.startswith("meridian_icrs_t") for name in field_names
     )
 
     if all_meridian:
@@ -169,8 +169,7 @@ def select_bandpass_from_catalog(
         # Field 0 is kept as a fallback even if it's a meridian phase center
         valid_field_mask = np.array(
             [
-                (i == 0)
-                or not (isinstance(name, str) and name.startswith("meridian_icrs_t"))
+                (i == 0) or not (isinstance(name, str) and name.startswith("meridian_icrs_t"))
                 for i, name in enumerate(field_names)
             ]
         )
@@ -277,14 +276,10 @@ def select_bandpass_from_catalog(
         thr = float(min_pb) * max(resp_peak, 1e-12)
         start_filtered = peak_idx_filtered
         end_filtered = peak_idx_filtered
-        while (
-            start_filtered - 1 >= 0
-            and (wflux[start_filtered - 1] / max(flux_jy, 1e-12)) >= thr
-        ):
+        while start_filtered - 1 >= 0 and (wflux[start_filtered - 1] / max(flux_jy, 1e-12)) >= thr:
             start_filtered -= 1
         while (
-            end_filtered + 1 < len(wflux)
-            and (wflux[end_filtered + 1] / max(flux_jy, 1e-12)) >= thr
+            end_filtered + 1 < len(wflux) and (wflux[end_filtered + 1] / max(flux_jy, 1e-12)) >= thr
         ):
             end_filtered += 1
     else:
@@ -301,8 +296,6 @@ def select_bandpass_from_catalog(
         if start_original != end_original
         else f"{start_original}"
     )
-    indices = [
-        int(valid_field_indices[i]) for i in range(start_filtered, end_filtered + 1)
-    ]
+    indices = [int(valid_field_indices[i]) for i in range(start_filtered, end_filtered + 1)]
     cal_info = (name, ra_deg, dec_deg, flux_jy)
     return sel_str, indices, wflux, cal_info, peak_idx_original

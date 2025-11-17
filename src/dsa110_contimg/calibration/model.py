@@ -1,3 +1,4 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, etc.)
 import logging
 import os
 import time
@@ -196,9 +197,7 @@ def _calculate_manual_model_data(
             field_mask = np.ones(nrows, dtype=bool)
 
         nselected = np.sum(field_mask)
-        logger.debug(
-            f"Processing {nselected:,} rows ({nselected/nrows*100:.1f}% of total)"
-        )
+        logger.debug(f"Processing {nselected:,} rows ({nselected/nrows*100:.1f}% of total)")
 
         # Read DATA shape to create MODEL_DATA with matching shape
         data_sample = main_tb.getcell("DATA", 0)
@@ -293,9 +292,7 @@ def _calculate_manual_model_data(
         # Create complex model: amplitude * exp(i*phase)
         # Shape: (nselected, nchan)
         amplitude = float(flux_jy)
-        model_complex = amplitude * (
-            np.cos(phase) + 1j * np.sin(phase)
-        )  # (nselected, nchan)
+        model_complex = amplitude * (np.cos(phase) + 1j * np.sin(phase))  # (nselected, nchan)
 
         # Broadcast to all polarizations: (nselected, nchan) -> (nselected, nchan, npol)
         model_complex_pol = model_complex[:, :, np.newaxis]  # (nselected, nchan, 1)
@@ -632,9 +629,7 @@ def write_setjy_model(
     from casatasks import setjy
 
     _ensure_imaging_columns(ms_path)
-    setjy(
-        vis=ms_path, field=str(field), spw=spw, standard=standard, usescratch=usescratch
-    )
+    setjy(vis=ms_path, field=str(field), spw=spw, standard=standard, usescratch=usescratch)
     _initialize_corrected_from_data(ms_path)
 
 
@@ -709,15 +704,10 @@ def populate_model_from_catalog(
                     # Look for common calibrator names in field names
                     common_calibrators = ["0834+555", "3C286", "3C48", "3C147", "3C138"]
                     for cal_name in common_calibrators:
-                        if any(
-                            cal_name.lower() in str(name).lower()
-                            for name in field_names
-                        ):
+                        if any(cal_name.lower() in str(name).lower() for name in field_names):
                             catalog = load_vla_catalog()
                             ra_deg, dec_deg = get_calibrator_radec(catalog, cal_name)
-                            flux_jy = (
-                                float(cal_flux_jy) if cal_flux_jy is not None else 2.5
-                            )
+                            flux_jy = float(cal_flux_jy) if cal_flux_jy is not None else 2.5
                             name = cal_name
                             logger.info(
                                 f"Auto-detected calibrator from field names: {name} @ ({ra_deg:.4f}°, {dec_deg:.4f}°), {flux_jy:.2f} Jy"

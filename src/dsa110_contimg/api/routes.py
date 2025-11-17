@@ -1,3 +1,4 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, Jy, etc.)
 """FastAPI routing for the pipeline monitoring API."""
 
 from __future__ import annotations
@@ -13,74 +14,121 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import (APIRouter, BackgroundTasks, Body, FastAPI, HTTPException,
-                     Query, Request, WebSocket, WebSocketDisconnect, status)
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Body,
+    FastAPI,
+    HTTPException,
+    Query,
+    Request,
+    WebSocket,
+    WebSocketDisconnect,
+    status,
+)
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import (FileResponse, HTMLResponse, RedirectResponse,
-                               StreamingResponse)
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from dsa110_contimg.api.config import ApiConfig
-from dsa110_contimg.api.data_access import (_connect, fetch_alert_history,
-                                            fetch_calibration_sets,
-                                            fetch_ese_candidates,
-                                            fetch_mosaic_by_id, fetch_mosaics,
-                                            fetch_observation_timeline,
-                                            fetch_pointing_history,
-                                            fetch_queue_stats,
-                                            fetch_recent_calibrator_matches,
-                                            fetch_recent_products,
-                                            fetch_recent_queue_groups,
-                                            fetch_source_timeseries)
-from dsa110_contimg.api.image_utils import (convert_casa_to_fits,
-                                            get_fits_path, resolve_image_path)
-from dsa110_contimg.api.models import (AlertHistory, AntennaInfo,
-                                       BatchApplyParams, BatchCalibrateParams,
-                                       BatchConversionParams,
-                                       BatchESEDetectParams, BatchImageParams,
-                                       BatchJob, BatchJobCreateRequest,
-                                       BatchJobList, BatchJobStatus,
-                                       BatchPhotometryParams,
-                                       BatchPublishParams,
-                                       CalibrateJobCreateRequest,
-                                       CalibrateJobParams, CalibrationQA,
-                                       CalibratorMatchList,
-                                       CalTableCompatibility, CalTableInfo,
-                                       CalTableList,
-                                       ConversionJobCreateRequest,
-                                       ConversionJobParams, Detection,
-                                       DetectionList, DiskInfo, ESECandidate,
-                                       ESECandidatesResponse,
-                                       ESEDetectJobCreateRequest,
-                                       ESEDetectJobParams, ExistingCalTable,
-                                       ExistingCalTables, ExternalCatalogMatch,
-                                       ExternalCatalogsResponse, FieldInfo,
-                                       FlaggingStats, GroupDetail, ImageDetail,
-                                       ImageInfo, ImageList, ImageQA, Job,
-                                       JobCreateRequest, JobList, JobParams,
-                                       LightCurveData, Measurement,
-                                       MeasurementList, Mosaic,
-                                       MosaicQueryResponse, MSCalibratorMatch,
-                                       MSCalibratorMatchList, MsIndexEntry,
-                                       MsIndexList, MSList, MSListEntry,
-                                       MSMetadata, ObservationTimeline,
-                                       PipelineStatus, PointingHistoryList,
-                                       PostageStampInfo, PostageStampsResponse,
-                                       ProductList, QAArtifact, QAList,
-                                       QAMetrics, SourceDetail,
-                                       SourceSearchResponse, SourceTimeseries,
-                                       StreamingConfigRequest,
-                                       StreamingControlResponse,
-                                       StreamingHealthResponse,
-                                       StreamingStatusResponse, SystemMetrics,
-                                       UVH5FileEntry, UVH5FileList,
-                                       VariabilityMetrics,
-                                       WorkflowJobCreateRequest)
-from dsa110_contimg.api.streaming_service import (StreamingConfig,
-                                                  StreamingServiceManager)
+from dsa110_contimg.api.data_access import (
+    _connect,
+    fetch_alert_history,
+    fetch_calibration_sets,
+    fetch_ese_candidates,
+    fetch_mosaic_by_id,
+    fetch_mosaics,
+    fetch_observation_timeline,
+    fetch_pointing_history,
+    fetch_queue_stats,
+    fetch_recent_calibrator_matches,
+    fetch_recent_products,
+    fetch_recent_queue_groups,
+    fetch_source_timeseries,
+)
+from dsa110_contimg.api.image_utils import convert_casa_to_fits, get_fits_path, resolve_image_path
+from dsa110_contimg.api.models import (
+    AlertHistory,
+    AntennaInfo,
+    BatchApplyParams,
+    BatchCalibrateParams,
+    BatchConversionParams,
+    BatchESEDetectParams,
+    BatchImageParams,
+    BatchJob,
+    BatchJobCreateRequest,
+    BatchJobList,
+    BatchJobStatus,
+    BatchPhotometryParams,
+    BatchPublishParams,
+    CalibrateJobCreateRequest,
+    CalibrateJobParams,
+    CalibrationQA,
+    CalibratorMatchList,
+    CalTableCompatibility,
+    CalTableInfo,
+    CalTableList,
+    ConversionJobCreateRequest,
+    ConversionJobParams,
+    Detection,
+    DetectionList,
+    DiskInfo,
+    ESECandidate,
+    ESECandidatesResponse,
+    ESEDetectJobCreateRequest,
+    ESEDetectJobParams,
+    ExistingCalTable,
+    ExistingCalTables,
+    ExternalCatalogMatch,
+    ExternalCatalogsResponse,
+    FieldInfo,
+    FlaggingStats,
+    GroupDetail,
+    ImageDetail,
+    ImageInfo,
+    ImageList,
+    ImageQA,
+    Job,
+    JobCreateRequest,
+    JobList,
+    JobParams,
+    LightCurveData,
+    Measurement,
+    MeasurementList,
+    Mosaic,
+    MosaicQueryResponse,
+    MSCalibratorMatch,
+    MSCalibratorMatchList,
+    MsIndexEntry,
+    MsIndexList,
+    MSList,
+    MSListEntry,
+    MSMetadata,
+    ObservationTimeline,
+    PipelineStatus,
+    PointingHistoryList,
+    PostageStampInfo,
+    PostageStampsResponse,
+    ProductList,
+    QAArtifact,
+    QAList,
+    QAMetrics,
+    SourceDetail,
+    SourceSearchResponse,
+    SourceTimeseries,
+    StreamingConfigRequest,
+    StreamingControlResponse,
+    StreamingHealthResponse,
+    StreamingStatusResponse,
+    SystemMetrics,
+    UVH5FileEntry,
+    UVH5FileList,
+    VariabilityMetrics,
+    WorkflowJobCreateRequest,
+)
+from dsa110_contimg.api.streaming_service import StreamingConfig, StreamingServiceManager
 from dsa110_contimg.qa.html_reports import generate_html_report
-from dsa110_contimg.utils.path_validation import (sanitize_filename,
-                                                  validate_path)
+from dsa110_contimg.utils.path_validation import sanitize_filename, validate_path
 
 # Module-level cache for UVH5 file listings (TTL: 30 seconds)
 # Shared across all requests for fast file discovery
@@ -170,6 +218,17 @@ def _build_safe_where_clause(field: str, value: Any, operator: str = "=") -> tup
 
 def create_app(config: ApiConfig | None = None) -> FastAPI:
     """Factory for the monitoring API application."""
+
+    # Set up CASA logging directory BEFORE any CASA imports
+    # This ensures CASA logs go to /data/dsa110-contimg/state/logs instead of workspace root
+    try:
+        from dsa110_contimg.utils.cli_helpers import setup_casa_environment
+
+        setup_casa_environment()
+    except Exception as e:
+        # Non-critical: continue if setup fails, but log the issue
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Failed to set up CASA logging environment: {e}")
 
     cfg = config or ApiConfig.from_env()
     app = FastAPI(title="DSA-110 Continuum Pipeline API", version="0.1.0")
@@ -269,10 +328,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Start background task to broadcast status updates and pre-warm database connections."""
         from pathlib import Path
 
-        from dsa110_contimg.api.websocket_manager import (create_status_update,
-                                                          manager)
-        from dsa110_contimg.database.data_registry import \
-          ensure_data_registry_db
+        from dsa110_contimg.api.websocket_manager import create_status_update, manager
+        from dsa110_contimg.database.data_registry import ensure_data_registry_db
 
         # Pre-warm database connection to avoid cold-start delays
         try:
@@ -384,8 +441,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         metrics = None
 
                     try:
-                        from dsa110_contimg.api.data_access import \
-                          fetch_ese_candidates
+                        from dsa110_contimg.api.data_access import fetch_ese_candidates
 
                         ese_data = fetch_ese_candidates(cfg.products_db, limit=50)
                         ese_candidates = {
@@ -541,10 +597,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     from dsa110_contimg.api.routers.catalogs import router as catalogs_router
     from dsa110_contimg.api.routers.images import router as images_router
     from dsa110_contimg.api.routers.mosaics import router as mosaics_router
-    from dsa110_contimg.api.routers.operations import \
-      router as operations_router
-    from dsa110_contimg.api.routers.photometry import \
-      router as photometry_router
+    from dsa110_contimg.api.routers.operations import router as operations_router
+    from dsa110_contimg.api.routers.photometry import router as photometry_router
     from dsa110_contimg.api.routers.pipeline import router as pipeline_router
     from dsa110_contimg.api.routers.products import router as products_router
     from dsa110_contimg.api.routers.status import router as status_router
@@ -581,8 +635,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     # Events and Cache monitoring (Phase 3)
     from dsa110_contimg.api.routers import cache as cache_router_module
     from dsa110_contimg.api.routers import events as events_router_module
-    from dsa110_contimg.api.routers import \
-      performance as performance_router_module
+    from dsa110_contimg.api.routers import performance as performance_router_module
     from dsa110_contimg.api.routers import tasks as tasks_router_module
 
     app.include_router(events_router_module.router, prefix="/api/events", tags=["events"])
@@ -637,7 +690,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             offset = (page - 1) * page_size
             rows = conn.execute(
                 """
-                SELECT 
+                SELECT
                     ra_deg, dec_deg, source_id,
                     peak_jyb, peak_err_jyb,
                     flux_int_jy, flux_int_err_jy,
@@ -709,11 +762,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """
         import json
 
-        from dsa110_contimg.utils.profiling import (extract_line_profile,
-                                                    extract_point_profile,
-                                                    extract_polyline_profile,
-                                                    fit_gaussian_profile,
-                                                    fit_moffat_profile)
+        from dsa110_contimg.utils.profiling import (
+            extract_line_profile,
+            extract_point_profile,
+            extract_polyline_profile,
+            fit_gaussian_profile,
+            fit_moffat_profile,
+        )
 
         db_path = cfg.products_db
         if not db_path.exists():
@@ -853,8 +908,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from astropy.wcs import WCS
 
         from dsa110_contimg.utils.fitting import fit_2d_gaussian, fit_2d_moffat
-        from dsa110_contimg.utils.regions import (create_region_mask,
-                                                  json_to_region)
+        from dsa110_contimg.utils.regions import create_region_mask, json_to_region
 
         db_path = cfg.products_db
         if not db_path.exists():
@@ -1179,8 +1233,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     def get_region_statistics(region_id: int):
         """Get statistics for pixels within a region."""
         from dsa110_contimg.api.image_utils import get_fits_path
-        from dsa110_contimg.utils.regions import (calculate_region_statistics,
-                                                  json_to_region)
+        from dsa110_contimg.utils.regions import calculate_region_statistics, json_to_region
 
         db_path = cfg.products_db
         if not db_path.exists():
@@ -1223,7 +1276,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
     @router.get("/pointing_history", response_model=PointingHistoryList)
     def pointing_history(start_mjd: float, end_mjd: float) -> PointingHistoryList:
-        items = fetch_pointing_history(cfg.queue_db, cfg.products_db, start_mjd, end_mjd)
+        items = fetch_pointing_history(cfg.queue_db, start_mjd, end_mjd)
         return PointingHistoryList(items=items)
 
     @router.get("/pointing/sky-map")
@@ -1256,7 +1309,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Uses Global Sky Model (GSM) if available, otherwise falls back to synthetic data.
         """
         from dsa110_contimg.pointing.sky_map_generator import (
-          generate_gsm_sky_map_data, generate_synthetic_sky_map_data)
+            generate_gsm_sky_map_data,
+            generate_synthetic_sky_map_data,
+        )
 
         if map_type == "gsm":
             try:
@@ -2587,11 +2642,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         limit = max(1, min(limit, 1000)) if limit > 0 else 100
         offset = max(0, offset) if offset >= 0 else 0
 
-        import astropy.units as u
+        import astropy.units as u  # pylint: disable=no-member
         from astropy.time import Time
 
-        from dsa110_contimg.database.products import (discover_ms_files,
-                                                      ensure_products_db)
+        from dsa110_contimg.database.products import discover_ms_files, ensure_products_db
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
 
@@ -2687,7 +2741,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
             # Main query with joins (simplified - no calibrator info from pointing_history)
             query = f"""
-                SELECT 
+                SELECT
                     m.path,
                     m.mid_mjd,
                     m.status,
@@ -2776,8 +2830,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Returns:
             Dictionary with count of discovered MS files and list of paths
         """
-        from dsa110_contimg.database.products import (discover_ms_files,
-                                                      ensure_products_db)
+        from dsa110_contimg.database.products import discover_ms_files, ensure_products_db
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
 
@@ -3235,7 +3288,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.api.models import CalTableInfo, CalTableList
 
         if cal_dir is None:
-            cal_dir = os.getenv("CONTIMG_CAL_DIR", "/stage/dsa110-contimg/caltables")
+            cal_dir = os.getenv("CONTIMG_CAL_DIR", "/stage/dsa110-contimg/calibrated/tables")
 
         entries: list[CalTableInfo] = []
 
@@ -3296,19 +3349,15 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/ms/{ms_path:path}/metadata", response_model=MSMetadata)
     def get_ms_metadata(ms_path: str) -> MSMetadata:
         """Get metadata for an MS file."""
-        from dsa110_contimg.api.models import (AntennaInfo, FieldInfo,
-                                               FlaggingStats, MSMetadata)
+        from dsa110_contimg.api.models import AntennaInfo, FieldInfo, FlaggingStats, MSMetadata
+        from dsa110_contimg.utils.cli_helpers import casa_log_environment
+
         # Ensure CASAPATH is set before importing CASA modules
         from dsa110_contimg.utils.casa_init import ensure_casa_path
 
         ensure_casa_path()
 
-        import numpy as np
-        from casatools import ms as casams
-        from casatools import table
-
-        from dsa110_contimg.api.models import (AntennaInfo, FieldInfo,
-                                               FlaggingStats, MSMetadata)
+        from dsa110_contimg.api.models import AntennaInfo, FieldInfo, FlaggingStats, MSMetadata
 
         # Validate and sanitize path to prevent path traversal
         try:
@@ -3339,143 +3388,151 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         metadata = MSMetadata(path=ms_full_path)
 
-        try:
-            # Get basic info from MAIN table
-            tb = table()
-            tb.open(ms_full_path, nomodify=True)
+        # Use context manager to ensure CASA logs go to correct directory
+        with casa_log_environment():
+            import numpy as np
+            from casatools import ms as casams
+            from casatools import table
 
-            # Extract time range using standardized utility (handles format detection)
-            from dsa110_contimg.utils.time_utils import extract_ms_time_range
-
-            start_mjd, end_mjd, _ = extract_ms_time_range(str(ms_path))
-            if start_mjd is not None and end_mjd is not None:
-                from astropy.time import Time
-
-                start_time_obj = Time(start_mjd, format="mjd")
-                end_time_obj = Time(end_mjd, format="mjd")
-                metadata.start_time = start_time_obj.isot
-                metadata.end_time = end_time_obj.isot
-                metadata.duration_sec = (end_mjd - start_mjd) * 86400.0
-
-            # Get available data columns
-            colnames = tb.colnames()
-            data_cols = [col for col in colnames if "DATA" in col]
-            metadata.data_columns = data_cols
-            metadata.calibrated = "CORRECTED_DATA" in data_cols
-
-            # Get flagging statistics
             try:
-                flags = tb.getcol("FLAG")
-                if flags.size > 0:
-                    total_flagged = np.sum(flags)
-                    total_data = flags.size
-                    flag_fraction = float(total_flagged / total_data) if total_data > 0 else 0.0
+                # Get basic info from MAIN table
+                tb = table()
+                tb.open(ms_full_path, nomodify=True)
 
-                    # Per-antenna flagging
-                    ant1 = tb.getcol("ANTENNA1")
-                    ant2 = tb.getcol("ANTENNA2")
-                    per_antenna = {}
-                    unique_ants = np.unique(np.concatenate([ant1, ant2]))
-                    for ant_id in unique_ants:
-                        ant_mask = (ant1 == ant_id) | (ant2 == ant_id)
-                        if np.any(ant_mask):
-                            ant_flags = flags[ant_mask]
-                            ant_frac = (
-                                float(np.sum(ant_flags) / ant_flags.size)
-                                if ant_flags.size > 0
-                                else 0.0
-                            )
-                            per_antenna[str(int(ant_id))] = ant_frac
+                # Extract time range using standardized utility (handles format detection)
+                from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
-                    # Per-field flagging
-                    field_ids = tb.getcol("FIELD_ID")
-                    per_field = {}
-                    unique_fields = np.unique(field_ids)
-                    for field_id in unique_fields:
-                        field_mask = field_ids == field_id
-                        if np.any(field_mask):
-                            field_flags = flags[field_mask]
-                            field_frac = (
-                                float(np.sum(field_flags) / field_flags.size)
-                                if field_flags.size > 0
-                                else 0.0
-                            )
-                            per_field[str(int(field_id))] = field_frac
+                start_mjd, end_mjd, _ = extract_ms_time_range(str(ms_path))
+                if start_mjd is not None and end_mjd is not None:
+                    from astropy.time import Time
 
-                    metadata.flagging_stats = FlaggingStats(
-                        total_fraction=flag_fraction,
-                        per_antenna=per_antenna if per_antenna else None,
-                        per_field=per_field if per_field else None,
+                    start_time_obj = Time(start_mjd, format="mjd")
+                    end_time_obj = Time(end_mjd, format="mjd")
+                    metadata.start_time = start_time_obj.isot
+                    metadata.end_time = end_time_obj.isot
+                    metadata.duration_sec = (end_mjd - start_mjd) * 86400.0
+
+                # Get available data columns
+                colnames = tb.colnames()
+                data_cols = [col for col in colnames if "DATA" in col]
+                metadata.data_columns = data_cols
+                metadata.calibrated = "CORRECTED_DATA" in data_cols
+
+                # Get flagging statistics
+                try:
+                    flags = tb.getcol("FLAG")
+                    if flags.size > 0:
+                        total_flagged = np.sum(flags)
+                        total_data = flags.size
+                        flag_fraction = float(total_flagged / total_data) if total_data > 0 else 0.0
+
+                        # Per-antenna flagging
+                        ant1 = tb.getcol("ANTENNA1")
+                        ant2 = tb.getcol("ANTENNA2")
+                        per_antenna = {}
+                        unique_ants = np.unique(np.concatenate([ant1, ant2]))
+                        for ant_id in unique_ants:
+                            ant_mask = (ant1 == ant_id) | (ant2 == ant_id)
+                            if np.any(ant_mask):
+                                ant_flags = flags[ant_mask]
+                                ant_frac = (
+                                    float(np.sum(ant_flags) / ant_flags.size)
+                                    if ant_flags.size > 0
+                                    else 0.0
+                                )
+                                per_antenna[str(int(ant_id))] = ant_frac
+
+                        # Per-field flagging
+                        field_ids = tb.getcol("FIELD_ID")
+                        per_field = {}
+                        unique_fields = np.unique(field_ids)
+                        for field_id in unique_fields:
+                            field_mask = field_ids == field_id
+                            if np.any(field_mask):
+                                field_flags = flags[field_mask]
+                                field_frac = (
+                                    float(np.sum(field_flags) / field_flags.size)
+                                    if field_flags.size > 0
+                                    else 0.0
+                                )
+                                per_field[str(int(field_id))] = field_frac
+
+                        metadata.flagging_stats = FlaggingStats(
+                            total_fraction=flag_fraction,
+                            per_antenna=per_antenna if per_antenna else None,
+                            per_field=per_field if per_field else None,
+                        )
+                except Exception as e:
+                    logger.warning(f"Could not extract flagging stats: {e}")
+
+                tb.close()
+
+                # Get field info with coordinates
+                tb.open(f"{ms_full_path}/FIELD", nomodify=True)
+                field_names = tb.getcol("NAME").tolist()
+                phase_dir = tb.getcol("PHASE_DIR")
+
+                fields = []
+                for i, name in enumerate(field_names):
+                    # Extract RA/Dec from PHASE_DIR (handles various shapes)
+                    pd = np.asarray(phase_dir[i])
+                    if pd.ndim == 3 and pd.shape[-1] == 2:
+                        ra_rad = float(pd[0, 0, 0])
+                        dec_rad = float(pd[0, 0, 1])
+                    elif pd.ndim == 2 and pd.shape[-1] == 2:
+                        ra_rad = float(pd[0, 0])
+                        dec_rad = float(pd[0, 1])
+                    elif pd.ndim == 1 and pd.shape[0] == 2:
+                        ra_rad = float(pd[0])
+                        dec_rad = float(pd[1])
+                    else:
+                        ra_rad = float(pd.ravel()[-2])
+                        dec_rad = float(pd.ravel()[-1])
+
+                    # Convert radians to degrees
+                    ra_deg = np.degrees(ra_rad)
+                    dec_deg = np.degrees(dec_rad)
+
+                    fields.append(
+                        FieldInfo(field_id=i, name=str(name), ra_deg=ra_deg, dec_deg=dec_deg)
                     )
+
+                metadata.num_fields = len(field_names)
+                metadata.field_names = field_names
+                metadata.fields = fields
+                tb.close()
+
+                # Get spectral window info
+                tb.open(f"{ms_full_path}/SPECTRAL_WINDOW", nomodify=True)
+                chan_freqs = tb.getcol("CHAN_FREQ")
+                if len(chan_freqs) > 0:
+                    metadata.freq_min_ghz = float(chan_freqs.min() / 1e9)
+                    metadata.freq_max_ghz = float(chan_freqs.max() / 1e9)
+                    metadata.num_channels = int(chan_freqs.shape[0])
+                tb.close()
+
+                # Get antenna info with names
+                tb.open(f"{ms_full_path}/ANTENNA", nomodify=True)
+                antenna_names = tb.getcol("NAME").tolist()
+                antennas = []
+                for i, name in enumerate(antenna_names):
+                    antennas.append(AntennaInfo(antenna_id=i, name=str(name)))
+                metadata.num_antennas = len(antennas)
+                metadata.antennas = antennas
+                tb.close()
+
+                # Get size
+                size_bytes = sum(
+                    os.path.getsize(os.path.join(dirpath, filename))
+                    for dirpath, _, filenames in os.walk(ms_full_path)
+                    for filename in filenames
+                )
+                metadata.size_gb = round(size_bytes / (1024**3), 2)
+
             except Exception as e:
-                logger.warning(f"Could not extract flagging stats: {e}")
-
-            tb.close()
-
-            # Get field info with coordinates
-            tb.open(f"{ms_full_path}/FIELD", nomodify=True)
-            field_names = tb.getcol("NAME").tolist()
-            phase_dir = tb.getcol("PHASE_DIR")
-
-            fields = []
-            for i, name in enumerate(field_names):
-                # Extract RA/Dec from PHASE_DIR (handles various shapes)
-                pd = np.asarray(phase_dir[i])
-                if pd.ndim == 3 and pd.shape[-1] == 2:
-                    ra_rad = float(pd[0, 0, 0])
-                    dec_rad = float(pd[0, 0, 1])
-                elif pd.ndim == 2 and pd.shape[-1] == 2:
-                    ra_rad = float(pd[0, 0])
-                    dec_rad = float(pd[0, 1])
-                elif pd.ndim == 1 and pd.shape[0] == 2:
-                    ra_rad = float(pd[0])
-                    dec_rad = float(pd[1])
-                else:
-                    ra_rad = float(pd.ravel()[-2])
-                    dec_rad = float(pd.ravel()[-1])
-
-                # Convert radians to degrees
-                ra_deg = np.degrees(ra_rad)
-                dec_deg = np.degrees(dec_rad)
-
-                fields.append(FieldInfo(field_id=i, name=str(name), ra_deg=ra_deg, dec_deg=dec_deg))
-
-            metadata.num_fields = len(field_names)
-            metadata.field_names = field_names
-            metadata.fields = fields
-            tb.close()
-
-            # Get spectral window info
-            tb.open(f"{ms_full_path}/SPECTRAL_WINDOW", nomodify=True)
-            chan_freqs = tb.getcol("CHAN_FREQ")
-            if len(chan_freqs) > 0:
-                metadata.freq_min_ghz = float(chan_freqs.min() / 1e9)
-                metadata.freq_max_ghz = float(chan_freqs.max() / 1e9)
-                metadata.num_channels = int(chan_freqs.shape[0])
-            tb.close()
-
-            # Get antenna info with names
-            tb.open(f"{ms_full_path}/ANTENNA", nomodify=True)
-            antenna_names = tb.getcol("NAME").tolist()
-            antennas = []
-            for i, name in enumerate(antenna_names):
-                antennas.append(AntennaInfo(antenna_id=i, name=str(name)))
-            metadata.num_antennas = len(antennas)
-            metadata.antennas = antennas
-            tb.close()
-
-            # Get size
-            size_bytes = sum(
-                os.path.getsize(os.path.join(dirpath, filename))
-                for dirpath, _, filenames in os.walk(ms_full_path)
-                for filename in filenames
-            )
-            metadata.size_gb = round(size_bytes / (1024**3), 2)
-
-        except Exception as e:
-            logger.error(f"Error extracting MS metadata: {e}")
-            # Return partial metadata if some operations fail
-            pass
+                logger.error(f"Error extracting MS metadata: {e}")
+                # Return partial metadata if some operations fail
+                pass
 
         return metadata
 
@@ -3484,14 +3541,20 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         ms_path: str, catalog: str = "vla", radius_deg: float = 1.5, top_n: int = 5
     ) -> MSCalibratorMatchList:
         """Find calibrator candidates for an MS."""
-        import astropy.units as u
+        from dsa110_contimg.utils.cli_helpers import casa_log_environment
+        from dsa110_contimg.utils.casa_init import ensure_casa_path
+
+        ensure_casa_path()
+
+        import astropy.units as u  # pylint: disable=no-member
         import numpy as np
         from astropy.time import Time
-        from casatools import table
 
         from dsa110_contimg.calibration.catalogs import (
-          airy_primary_beam_response, calibrator_match,
-          read_vla_parsed_catalog_csv)
+            airy_primary_beam_response,
+            calibrator_match,
+            read_vla_parsed_catalog_csv,
+        )
         from dsa110_contimg.pointing.utils import load_pointing
 
         # Validate and sanitize path to prevent path traversal
@@ -3521,151 +3584,154 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         if not os.path.isdir(ms_full_path):
             raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
 
-        try:
-            # Get pointing declination
-            pointing_info = load_pointing(ms_full_path)
-            pt_dec = pointing_info["dec_deg"] * u.deg  # pylint: disable=no-member
+        # Use context manager to ensure CASA logs go to correct directory
+        with casa_log_environment():
+            try:
+                # Get pointing declination
+                pointing_info = load_pointing(ms_full_path)
+                pt_dec = pointing_info["dec_deg"] * u.deg  # pylint: disable=no-member
 
-            # Get mid MJD from MS using standardized utility function
-            # This handles both TIME formats (seconds since MJD 0 vs MJD 51544.0)
-            from dsa110_contimg.utils.time_utils import extract_ms_time_range
+                # Get mid MJD from MS using standardized utility function
+                # This handles both TIME formats (seconds since MJD 0 vs MJD 51544.0)
+                from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
-            start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_full_path)
+                start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_full_path)
 
-            if mid_mjd is None:
-                raise HTTPException(status_code=400, detail="MS has no valid time data")
+                if mid_mjd is None:
+                    raise HTTPException(status_code=400, detail="MS has no valid time data")
 
-            # Load catalog
-            if catalog == "vla":
-                from dsa110_contimg.calibration.catalogs import \
-                  load_vla_catalog
+                # Load catalog
+                if catalog == "vla":
+                    from dsa110_contimg.calibration.catalogs import load_vla_catalog
 
-                try:
-                    df = load_vla_catalog()
-                except FileNotFoundError as e:
-                    raise HTTPException(status_code=500, detail=f"VLA catalog not found: {e}")
-            else:
-                raise HTTPException(status_code=400, detail="Unknown catalog")
+                    try:
+                        df = load_vla_catalog()
+                    except FileNotFoundError as e:
+                        raise HTTPException(status_code=500, detail=f"VLA catalog not found: {e}")
+                else:
+                    raise HTTPException(status_code=400, detail="Unknown catalog")
 
-            # Get top matches
-            matches_raw = calibrator_match(
-                df, pt_dec, mid_mjd, radius_deg=radius_deg, freq_ghz=1.4, top_n=top_n
-            )
+                # Get top matches
+                matches_raw = calibrator_match(
+                    df, pt_dec, mid_mjd, radius_deg=radius_deg, freq_ghz=1.4, top_n=top_n
+                )
 
-            # Determine PB response reference point
-            # For phased MS files, if a calibrator is found, assume MS is phased to it
-            # Otherwise use telescope pointing (meridian)
-            use_calibrator_as_phase_center = False
-            phase_center_ra_deg = None
-            phase_center_dec_deg = None
+                # Determine PB response reference point
+                # For phased MS files, if a calibrator is found, assume MS is phased to it
+                # Otherwise use telescope pointing (meridian)
+                use_calibrator_as_phase_center = False
+                phase_center_ra_deg = None
+                phase_center_dec_deg = None
 
-            # Check if MS filename suggests it's phased (heuristic)
-            ms_basename = os.path.basename(ms_full_path).lower()
-            ms_dirname = os.path.basename(os.path.dirname(ms_full_path)).lower()
-            is_phased_ms = "phased" in ms_basename
+                # Check if MS filename suggests it's phased (heuristic)
+                ms_basename = os.path.basename(ms_full_path).lower()
+                ms_dirname = os.path.basename(os.path.dirname(ms_full_path)).lower()
+                is_phased_ms = "phased" in ms_basename
 
-            # If MS appears phased and we have matches, check if calibrator name matches directory
-            # or if calibrator is reasonably close (< 0.2 deg for phased MS)
-            if is_phased_ms and matches_raw:
-                best_match = matches_raw[0]  # Already sorted by weighted_flux
-                calibrator_name = best_match["name"].lower()
-                # Check if calibrator name appears in directory name (e.g., "0834_transit" contains "0834")
-                # Clean calibrator name: remove + and -, split by spaces
-                calibrator_clean = calibrator_name.replace("+", "").replace("-", "")
-                # Extract numeric part (e.g., "0834" from "0834555")
-                calibrator_parts = [p for p in calibrator_clean.split() if len(p) >= 4]
-                if not calibrator_parts:
-                    # Try to extract first 4 digits
-                    import re
+                # If MS appears phased and we have matches, check if calibrator name matches directory
+                # or if calibrator is reasonably close (< 0.2 deg for phased MS)
+                if is_phased_ms and matches_raw:
+                    best_match = matches_raw[0]  # Already sorted by weighted_flux
+                    calibrator_name = best_match["name"].lower()
+                    # Check if calibrator name appears in directory name (e.g., "0834_transit" contains "0834")
+                    # Clean calibrator name: remove + and -, split by spaces
+                    calibrator_clean = calibrator_name.replace("+", "").replace("-", "")
+                    # Extract numeric part (e.g., "0834" from "0834555")
+                    calibrator_parts = [p for p in calibrator_clean.split() if len(p) >= 4]
+                    if not calibrator_parts:
+                        # Try to extract first 4 digits
+                        import re
 
-                    digits = re.findall(r"\d{4,}", calibrator_clean)
-                    # Use first 4+ digit sequence
-                    calibrator_parts = digits[:1]
-                name_in_dir = any(part in ms_dirname for part in calibrator_parts)
+                        digits = re.findall(r"\d{4,}", calibrator_clean)
+                        # Use first 4+ digit sequence
+                        calibrator_parts = digits[:1]
+                        name_in_dir = any(part in ms_dirname for part in calibrator_parts)
 
-                # For phased MS, use calibrator coordinates if:
-                # 1. Calibrator name matches directory, OR
-                # 2. Separation is small (< 0.2 deg = 12 arcmin)
-                if name_in_dir or best_match.get("sep_deg", 999) < 0.2:
-                    use_calibrator_as_phase_center = True
+                    # For phased MS, use calibrator coordinates if:
+                    # 1. Calibrator name matches directory, OR
+                    # 2. Separation is small (< 0.2 deg = 12 arcmin)
+                    if name_in_dir or best_match.get("sep_deg", 999) < 0.2:
+                        use_calibrator_as_phase_center = True
                     phase_center_ra_deg = best_match["ra_deg"]
                     phase_center_dec_deg = best_match["dec_deg"]
 
-            # Convert to MSCalibratorMatch with quality assessment
-            matches = []
-            for m in matches_raw:
-                # Get flux from catalog - use flux_jy column (already in Jy)
-                flux_jy = df.loc[m["name"], "flux_jy"] if m["name"] in df.index else 0.0
+                    # Convert to MSCalibratorMatch with quality assessment
+                    matches = []
+                    for m in matches_raw:
+                        # Get flux from catalog - use flux_jy column (already in Jy)
+                        flux_jy = df.loc[m["name"], "flux_jy"] if m["name"] in df.index else 0.0
 
-                # Compute PB response
-                # For phased MS files phased to a calibrator, use calibrator coordinates
-                # Otherwise use telescope pointing (meridian)
-                if use_calibrator_as_phase_center and phase_center_ra_deg is not None:
-                    # Use calibrator coordinates (MS is phased to this calibrator)
-                    pb_response = airy_primary_beam_response(
-                        np.deg2rad(phase_center_ra_deg),
-                        np.deg2rad(phase_center_dec_deg),
-                        np.deg2rad(m["ra_deg"]),
-                        np.deg2rad(m["dec_deg"]),
-                        1.4,
-                    )
-                else:
-                    # Use telescope pointing (meridian) for unphased MS files
-                    from astropy.coordinates import Angle
+                        # Compute PB response
+                        # For phased MS files phased to a calibrator, use calibrator coordinates
+                        # Otherwise use telescope pointing (meridian)
+                        if use_calibrator_as_phase_center and phase_center_ra_deg is not None:
+                            # Use calibrator coordinates (MS is phased to this calibrator)
+                            pb_response = airy_primary_beam_response(
+                                np.deg2rad(phase_center_ra_deg),
+                                np.deg2rad(phase_center_dec_deg),
+                                np.deg2rad(m["ra_deg"]),
+                                np.deg2rad(m["dec_deg"]),
+                                1.4,
+                            )
+                        else:
+                            # Use telescope pointing (meridian) for unphased MS files
+                            from astropy.coordinates import Angle
 
-                    t = Time(mid_mjd, format="mjd", scale="utc")
-                    from dsa110_contimg.utils.constants import DSA110_LOCATION
+                            t = Time(mid_mjd, format="mjd", scale="utc")
+                            from dsa110_contimg.utils.constants import DSA110_LOCATION
 
-                    t.location = DSA110_LOCATION
-                    ra_meridian = t.sidereal_time("apparent").to_value(
-                        u.deg  # pylint: disable=no-member
-                    )
-                    dec_meridian = float(pt_dec.to_value(u.deg))  # pylint: disable=no-member
+                            t.location = DSA110_LOCATION
+                            ra_meridian = t.sidereal_time("apparent").to_value(
+                                u.deg  # pylint: disable=no-member
+                            )
+                            dec_meridian = float(
+                                pt_dec.to_value(u.deg)
+                            )  # pylint: disable=no-member
 
-                    pb_response = airy_primary_beam_response(
-                        np.deg2rad(ra_meridian),
-                        np.deg2rad(dec_meridian),
-                        np.deg2rad(m["ra_deg"]),
-                        np.deg2rad(m["dec_deg"]),
-                        1.4,
-                    )
+                            pb_response = airy_primary_beam_response(
+                                np.deg2rad(ra_meridian),
+                                np.deg2rad(dec_meridian),
+                                np.deg2rad(m["ra_deg"]),
+                                np.deg2rad(m["dec_deg"]),
+                                1.4,
+                            )
 
-                # Determine quality
-                if pb_response >= 0.8:
-                    quality = "excellent"
-                elif pb_response >= 0.5:
-                    quality = "good"
-                elif pb_response >= 0.3:
-                    quality = "marginal"
-                else:
-                    quality = "poor"
+                        # Determine quality
+                        if pb_response >= 0.8:
+                            quality = "excellent"
+                        elif pb_response >= 0.5:
+                            quality = "good"
+                        elif pb_response >= 0.3:
+                            quality = "marginal"
+                        else:
+                            quality = "poor"
 
-                matches.append(
-                    MSCalibratorMatch(
-                        name=m["name"],
-                        ra_deg=m["ra_deg"],
-                        dec_deg=m["dec_deg"],
-                        flux_jy=float(flux_jy),
-                        sep_deg=m["sep_deg"],
-                        pb_response=float(pb_response),
-                        weighted_flux=m.get("weighted_flux", 0.0),
-                        quality=quality,
-                        recommended_fields=None,  # Could add field detection here
-                    )
-                )
+                        matches.append(
+                            MSCalibratorMatch(
+                                name=m["name"],
+                                ra_deg=m["ra_deg"],
+                                dec_deg=m["dec_deg"],
+                                flux_jy=float(flux_jy),
+                                sep_deg=m["sep_deg"],
+                                pb_response=float(pb_response),
+                                weighted_flux=m.get("weighted_flux", 0.0),
+                                quality=quality,
+                                recommended_fields=None,  # Could add field detection here
+                            )
+                        )
 
-            has_calibrator = len(matches) > 0 and matches[0].pb_response > 0.3
+                        has_calibrator = len(matches) > 0 and matches[0].pb_response > 0.3
 
-            return MSCalibratorMatchList(
-                ms_path=ms_full_path,
-                pointing_dec=float(pt_dec.to_value(u.deg)),  # pylint: disable=no-member
-                mid_mjd=float(mid_mjd),
-                matches=matches,
-                has_calibrator=has_calibrator,
-            )
+                        return MSCalibratorMatchList(
+                            ms_path=ms_full_path,
+                            pointing_dec=float(pt_dec.to_value(u.deg)),  # pylint: disable=no-member
+                            mid_mjd=float(mid_mjd),
+                            matches=matches,
+                            has_calibrator=has_calibrator,
+                        )
 
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error finding calibrators: {str(e)}")
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Error finding calibrators: {str(e)}")
 
     @router.get("/ms/{ms_path:path}/existing-caltables", response_model=ExistingCalTables)
     def get_existing_caltables(ms_path: str) -> ExistingCalTables:
@@ -3755,8 +3821,16 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         - Frequency ranges overlap
         - Table structure is valid
         """
+        from dsa110_contimg.utils.cli_helpers import casa_log_environment
+        from dsa110_contimg.utils.casa_init import ensure_casa_path
+
+        ensure_casa_path()
+
         import numpy as np
-        from casatools import table
+
+        # Use context manager to ensure CASA logs go to correct directory
+        with casa_log_environment():
+            from casatools import table
 
         # Decode paths
         ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
@@ -3767,47 +3841,47 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         if not os.path.exists(cal_full_path):
             raise HTTPException(status_code=404, detail="Calibration table not found")
 
-        issues = []
-        warnings = []
-        is_compatible = True
+            issues = []
+            warnings = []
+            is_compatible = True
 
-        ms_antennas = []
-        caltable_antennas = []
-        ms_freq_min_ghz = None
-        ms_freq_max_ghz = None
-        caltable_freq_min_ghz = None
-        caltable_freq_max_ghz = None
+            ms_antennas = []
+            caltable_antennas = []
+            ms_freq_min_ghz = None
+            ms_freq_max_ghz = None
+            caltable_freq_min_ghz = None
+            caltable_freq_max_ghz = None
 
-        try:
-            # Get MS antennas
-            tb = table()
-            tb.open(f"{ms_full_path}/ANTENNA", nomodify=True)
-            ms_antennas = list(range(tb.nrows()))
-            tb.close()
+            try:
+                # Get MS antennas
+                tb = table()
+                tb.open(f"{ms_full_path}/ANTENNA", nomodify=True)
+                ms_antennas = list(range(tb.nrows()))
+                tb.close()
 
-            # Get MS frequency range
-            tb.open(f"{ms_full_path}/SPECTRAL_WINDOW", nomodify=True)
-            chan_freqs = tb.getcol("CHAN_FREQ")
-            if len(chan_freqs) > 0:
-                ms_freq_min_ghz = float(chan_freqs.min() / 1e9)
-                ms_freq_max_ghz = float(chan_freqs.max() / 1e9)
-            tb.close()
+                # Get MS frequency range
+                tb.open(f"{ms_full_path}/SPECTRAL_WINDOW", nomodify=True)
+                chan_freqs = tb.getcol("CHAN_FREQ")
+                if len(chan_freqs) > 0:
+                    ms_freq_min_ghz = float(chan_freqs.min() / 1e9)
+                    ms_freq_max_ghz = float(chan_freqs.max() / 1e9)
+                tb.close()
 
-            # Get calibration table antennas and frequencies
-            tb.open(cal_full_path, nomodify=True)
-            if tb.nrows() == 0:
-                issues.append("Calibration table has no solutions")
-                is_compatible = False
-            else:
-                # Get antennas from cal table
-                if "ANTENNA1" in tb.colnames():
-                    cal_ant1 = tb.getcol("ANTENNA1")
-                    caltable_antennas = sorted(list(set(cal_ant1.tolist())))
+                # Get calibration table antennas and frequencies
+                tb.open(cal_full_path, nomodify=True)
+                if tb.nrows() == 0:
+                    issues.append("Calibration table has no solutions")
+                    is_compatible = False
+                else:
+                    # Get antennas from cal table
+                    if "ANTENNA1" in tb.colnames():
+                        cal_ant1 = tb.getcol("ANTENNA1")
+                        caltable_antennas = sorted(list(set(cal_ant1.tolist())))
 
-                # Get spectral window from cal table
-                if "SPECTRAL_WINDOW_ID" in tb.colnames():
-                    spw_ids = tb.getcol("SPECTRAL_WINDOW_ID")
-                    unique_spws = np.unique(spw_ids)
+                    # Get spectral window from cal table
+                    if "SPECTRAL_WINDOW_ID" in tb.colnames():
+                        spw_ids = tb.getcol("SPECTRAL_WINDOW_ID")
+                        unique_spws = np.unique(spw_ids)
 
                     # Try to get frequency info from cal table's SPECTRAL_WINDOW subtable
                     try:
@@ -3821,69 +3895,69 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         tb_spw.close()
                     except Exception:
                         warnings.append("Could not extract frequency range from calibration table")
-            tb.close()
+                    tb.close()
 
-            # Validate antenna compatibility
-            if caltable_antennas:
-                missing_ants = set(caltable_antennas) - set(ms_antennas)
-                if missing_ants:
-                    issues.append(
-                        f"Calibration table contains antennas not in MS: {sorted(missing_ants)}"
-                    )
-                    is_compatible = False
+                # Validate antenna compatibility
+                if ms_antennas and caltable_antennas:
+                    missing_ants = set(caltable_antennas) - set(ms_antennas)
+                    if missing_ants:
+                        issues.append(
+                            f"Calibration table contains antennas not in MS: {sorted(missing_ants)}"
+                        )
+                        is_compatible = False
 
-                extra_ants = set(ms_antennas) - set(caltable_antennas)
-                if extra_ants:
-                    warnings.append(
-                        f"MS contains antennas not in calibration table: {sorted(extra_ants)}"
-                    )
-
-            # Validate frequency compatibility
-            if (
-                ms_freq_min_ghz
-                and ms_freq_max_ghz
-                and caltable_freq_min_ghz
-                and caltable_freq_max_ghz
-            ):
-                # Check if frequency ranges overlap
-                freq_overlap = not (
-                    ms_freq_max_ghz < caltable_freq_min_ghz
-                    or caltable_freq_max_ghz < ms_freq_min_ghz
-                )
-                if not freq_overlap:
-                    issues.append(
-                        f"Frequency ranges do not overlap: "
-                        f"MS={ms_freq_min_ghz:.3f}-{ms_freq_max_ghz:.3f} GHz, "
-                        f"Cal={caltable_freq_min_ghz:.3f}-{caltable_freq_max_ghz:.3f} GHz"
-                    )
-                    is_compatible = False
-                else:
-                    # Check if ranges are significantly different
-                    ms_range = ms_freq_max_ghz - ms_freq_min_ghz
-                    cal_range = caltable_freq_max_ghz - caltable_freq_min_ghz
-                    if abs(ms_range - cal_range) / max(ms_range, cal_range) > 0.2:
+                    extra_ants = set(ms_antennas) - set(caltable_antennas)
+                    if extra_ants:
                         warnings.append(
-                            "Frequency ranges have different widths (may indicate different observations)"
+                            f"MS contains antennas not in calibration table: {sorted(extra_ants)}"
                         )
 
-        except Exception as e:
-            logger.error(f"Error validating calibration table compatibility: {e}")
-            issues.append(f"Validation error: {e}")
-            is_compatible = False
+                # Validate frequency compatibility
+                if (
+                    ms_freq_min_ghz
+                    and ms_freq_max_ghz
+                    and caltable_freq_min_ghz
+                    and caltable_freq_max_ghz
+                ):
+                    # Check if frequency ranges overlap
+                    freq_overlap = not (
+                        ms_freq_max_ghz < caltable_freq_min_ghz
+                        or caltable_freq_max_ghz < ms_freq_min_ghz
+                    )
+                    if not freq_overlap:
+                        issues.append(
+                            f"Frequency ranges do not overlap: "
+                            f"MS={ms_freq_min_ghz:.3f}-{ms_freq_max_ghz:.3f} GHz, "
+                            f"Cal={caltable_freq_min_ghz:.3f}-{caltable_freq_max_ghz:.3f} GHz"
+                        )
+                        is_compatible = False
+                    else:
+                        # Check if ranges are significantly different
+                        ms_range = ms_freq_max_ghz - ms_freq_min_ghz
+                        cal_range = caltable_freq_max_ghz - caltable_freq_min_ghz
+                        if abs(ms_range - cal_range) / max(ms_range, cal_range) > 0.2:
+                            warnings.append(
+                                "Frequency ranges have different widths (may indicate different observations)"
+                            )
 
-        return CalTableCompatibility(
-            is_compatible=is_compatible,
-            caltable_path=caltable_path,
-            ms_path=ms_path,
-            issues=issues,
-            warnings=warnings,
-            ms_antennas=ms_antennas,
-            caltable_antennas=caltable_antennas,
-            ms_freq_min_ghz=ms_freq_min_ghz,
-            ms_freq_max_ghz=ms_freq_max_ghz,
-            caltable_freq_min_ghz=caltable_freq_min_ghz,
-            caltable_freq_max_ghz=caltable_freq_max_ghz,
-        )
+            except Exception as e:
+                logger.error(f"Error validating calibration table compatibility: {e}")
+                issues.append(f"Validation error: {e}")
+                is_compatible = False
+
+            return CalTableCompatibility(
+                is_compatible=is_compatible,
+                caltable_path=caltable_path,
+                ms_path=ms_path,
+                issues=issues,
+                warnings=warnings,
+                ms_antennas=ms_antennas,
+                caltable_antennas=caltable_antennas,
+                ms_freq_min_ghz=ms_freq_min_ghz,
+                ms_freq_max_ghz=ms_freq_max_ghz,
+                caltable_freq_min_ghz=caltable_freq_min_ghz,
+                caltable_freq_max_ghz=caltable_freq_max_ghz,
+            )
 
     @router.get("/qa/calibration/{ms_path:path}/bandpass-plots")
     def list_bandpass_plots(ms_path: str):
@@ -4029,7 +4103,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         import tempfile
 
         from dsa110_contimg.qa.calibration_quality import (
-          analyze_per_spw_flagging, plot_per_spw_flagging)
+            analyze_per_spw_flagging,
+            plot_per_spw_flagging,
+        )
 
         # Validate and sanitize path to prevent path traversal
         try:
@@ -4139,8 +4215,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         except ValueError as e:
             raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
-        from dsa110_contimg.qa.calibration_quality import \
-          check_caltable_completeness
+        from dsa110_contimg.qa.calibration_quality import check_caltable_completeness
 
         result = check_caltable_completeness(str(ms_full_path))
         return result
@@ -4186,7 +4261,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             # Get latest calibration QA for this MS
             cursor = conn.execute(
                 """
-                SELECT id, ms_path, job_id, k_metrics, bp_metrics, g_metrics, 
+                SELECT id, ms_path, job_id, k_metrics, bp_metrics, g_metrics,
                        overall_quality, flags_total, per_spw_stats, timestamp
                 FROM calibration_qa
                 WHERE ms_path = ?
@@ -4258,8 +4333,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from astropy.wcs import WCS
 
         from dsa110_contimg.catalog.query import query_sources
-        from dsa110_contimg.qa.catalog_validation import \
-          get_catalog_overlay_pixels
+        from dsa110_contimg.qa.catalog_validation import get_catalog_overlay_pixels
 
         # Resolve image ID to path (handles both integer IDs and string paths)
         try:
@@ -4333,7 +4407,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             Dict with validation results
         """
         from dsa110_contimg.qa.catalog_validation import (
-          validate_astrometry, validate_flux_scale, validate_source_counts)
+            validate_astrometry,
+            validate_flux_scale,
+            validate_source_counts,
+        )
 
         # Resolve image ID to path (handles both integer IDs and string paths)
         try:
@@ -4359,8 +4436,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 conn.row_factory = sqlite3.Row
                 cached = conn.execute(
                     """
-                    SELECT results_json, expires_at 
-                    FROM validation_cache 
+                    SELECT results_json, expires_at
+                    FROM validation_cache
                     WHERE cache_key = ? AND expires_at > ?
                 """,
                     (cache_key, time.time()),
@@ -4413,13 +4490,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 )
                 conn.execute(
                     """
-                    CREATE INDEX IF NOT EXISTS idx_validation_cache_image 
+                    CREATE INDEX IF NOT EXISTS idx_validation_cache_image
                     ON validation_cache(image_path)
                 """
                 )
                 conn.execute(
                     """
-                    CREATE INDEX IF NOT EXISTS idx_validation_cache_expires 
+                    CREATE INDEX IF NOT EXISTS idx_validation_cache_expires
                     ON validation_cache(expires_at)
                 """
                 )
@@ -4428,7 +4505,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 expires_at = time.time() + (24 * 3600)  # 24 hours
                 conn.execute(
                     """
-                    INSERT OR REPLACE INTO validation_cache 
+                    INSERT OR REPLACE INTO validation_cache
                     (cache_key, image_path, catalog, validation_type, results_json, created_at, expires_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
@@ -4467,7 +4544,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             Dict with validation results
         """
         from dsa110_contimg.qa.catalog_validation import (
-          validate_astrometry, validate_flux_scale, validate_source_counts)
+            validate_astrometry,
+            validate_flux_scale,
+            validate_source_counts,
+        )
 
         # Resolve image ID to path (handles both integer IDs and string paths)
         try:
@@ -4477,6 +4557,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         except ValueError:
             # Not an integer, treat as path
             image_path = resolve_image_path(image_id)
+
+        if validation_types is None:
+            validation_types = ["astrometry", "flux_scale", "source_counts"]
 
         results = {}
 
@@ -4489,7 +4572,87 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         if "source_counts" in validation_types:
             results["source_counts"] = validate_source_counts(image_path, catalog=catalog)
 
-        # TODO: Store results in database for future retrieval
+        try:
+            import hashlib
+            import json
+            import sqlite3
+            import time
+
+            allowed_validation_types = {"astrometry", "flux_scale", "source_counts"}
+            seen_types: list[str] = []
+            seen_set: set[str] = set()
+            for validation_type in validation_types:
+                if validation_type in allowed_validation_types and validation_type not in seen_set:
+                    seen_set.add(validation_type)
+                    seen_types.append(validation_type)
+
+            cache_validation_types = seen_types[:]
+            if allowed_validation_types.issubset(seen_set):
+                cache_validation_types.append("all")
+
+            if cache_validation_types and results:
+                now = time.time()
+                expires_at = now + (24 * 3600)
+                with sqlite3.connect(cfg.products_db) as conn:
+                    conn.execute(
+                        """
+                        CREATE TABLE IF NOT EXISTS validation_cache (
+                            cache_key TEXT PRIMARY KEY,
+                            image_path TEXT NOT NULL,
+                            catalog TEXT NOT NULL,
+                            validation_type TEXT NOT NULL,
+                            results_json TEXT NOT NULL,
+                            created_at REAL NOT NULL,
+                            expires_at REAL
+                        )
+                    """
+                    )
+                    conn.execute(
+                        """
+                        CREATE INDEX IF NOT EXISTS idx_validation_cache_image
+                        ON validation_cache(image_path)
+                    """
+                    )
+                    conn.execute(
+                        """
+                        CREATE INDEX IF NOT EXISTS idx_validation_cache_expires
+                        ON validation_cache(expires_at)
+                    """
+                    )
+
+                    for cache_type in cache_validation_types:
+                        if cache_type == "all":
+                            if not allowed_validation_types.issubset(results.keys()):
+                                continue
+                            payload = results
+                        else:
+                            value = results.get(cache_type)
+                            if value is None:
+                                continue
+                            payload = {cache_type: value}
+
+                        cache_key = hashlib.sha256(
+                            f"{image_path}:{catalog}:{cache_type}".encode()
+                        ).hexdigest()
+                        conn.execute(
+                            """
+                            INSERT OR REPLACE INTO validation_cache
+                            (cache_key, image_path, catalog, validation_type, results_json, created_at, expires_at)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """,
+                            (
+                                cache_key,
+                                image_path,
+                                catalog,
+                                cache_type,
+                                json.dumps(payload),
+                                now,
+                                expires_at,
+                            ),
+                        )
+                    conn.commit()
+        except Exception as e:
+            logger.debug(f"Could not cache validation results: {e}")
 
         return results
 
@@ -4522,8 +4685,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from fastapi.responses import HTMLResponse
 
         from dsa110_contimg.qa.catalog_validation import run_full_validation
-        from dsa110_contimg.qa.html_reports import (ValidationReport,
-                                                    generate_validation_report)
+        from dsa110_contimg.qa.html_reports import ValidationReport, generate_validation_report
 
         # Resolve image ID to path
         try:
@@ -4915,84 +5077,104 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         - phase_vs_time: Phase vs time (for gain tables)
         - phase_vs_freq: Phase vs frequency (for bandpass tables)
         """
+        from dsa110_contimg.utils.cli_helpers import casa_log_environment
+        from dsa110_contimg.utils.casa_init import ensure_casa_path
+
+        ensure_casa_path()
+
         import matplotlib
         import numpy as np
-        from casatools import table
 
-        matplotlib.use("Agg")
-        from io import BytesIO
+        # Use context manager to ensure CASA logs go to correct directory
+        with casa_log_environment():
+            from casatools import table
 
-        import matplotlib.pyplot as plt
+            matplotlib.use("Agg")
+            from io import BytesIO
 
-        # Decode path
-        cal_full_path = f"/{caltable_path}" if not caltable_path.startswith("/") else caltable_path
+            import matplotlib.pyplot as plt
 
-        if not os.path.exists(cal_full_path):
-            raise HTTPException(status_code=404, detail="Calibration table not found")
-
-        try:
-            tb = table()
-            tb.open(cal_full_path, nomodify=True)
-
-            if tb.nrows() == 0:
-                raise HTTPException(status_code=400, detail="Calibration table has no solutions")
-
-            # Get data columns
-            antenna_ids = tb.getcol("ANTENNA1") if "ANTENNA1" in tb.colnames() else None
-            spw_ids = (
-                tb.getcol("SPECTRAL_WINDOW_ID") if "SPECTRAL_WINDOW_ID" in tb.colnames() else None
+            # Decode path
+            cal_full_path = (
+                f"/{caltable_path}" if not caltable_path.startswith("/") else caltable_path
             )
-            times = tb.getcol("TIME") if "TIME" in tb.colnames() else None
-            gains = tb.getcol("CPARAM") if "CPARAM" in tb.colnames() else None
-            flags = tb.getcol("FLAG") if "FLAG" in tb.colnames() else None
 
-            if gains is None:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Calibration table does not contain CPARAM column",
-                )
+            if not os.path.exists(cal_full_path):
+                raise HTTPException(status_code=404, detail="Calibration table not found")
 
-            # Convert to numpy arrays
-            antenna_ids = np.asarray(antenna_ids) if antenna_ids is not None else None
-            spw_ids = np.asarray(spw_ids) if spw_ids is not None else None
-            times = np.asarray(times) if times is not None else None
-            gains = np.asarray(gains)
-            flags = np.asarray(flags) if flags is not None else np.zeros(gains.shape, dtype=bool)
+            try:
+                tb = table()
+                tb.open(cal_full_path, nomodify=True)
 
-            # Mask flagged values
-            gains_masked = np.where(flags, np.nan + 0j, gains)
-
-            # Filter by antenna if specified
-            if antenna is not None and antenna_ids is not None:
-                ant_mask = antenna_ids == antenna
-                if not np.any(ant_mask):
+                if tb.nrows() == 0:
                     raise HTTPException(
-                        status_code=404,
-                        detail=f"Antenna {antenna} not found in calibration table",
+                        status_code=400, detail="Calibration table has no solutions"
                     )
-                gains_masked = gains_masked[ant_mask]
-                if spw_ids is not None:
-                    spw_ids = spw_ids[ant_mask]
-                if times is not None:
-                    times = times[ant_mask]
 
-            # Generate plot based on type
-            fig, ax = plt.subplots(figsize=(10, 6))
+                    # Get data columns
+                    antenna_ids = tb.getcol("ANTENNA1") if "ANTENNA1" in tb.colnames() else None
+                    spw_ids = (
+                        tb.getcol("SPECTRAL_WINDOW_ID")
+                        if "SPECTRAL_WINDOW_ID" in tb.colnames()
+                        else None
+                    )
+                    times = tb.getcol("TIME") if "TIME" in tb.colnames() else None
+                    gains = tb.getcol("CPARAM") if "CPARAM" in tb.colnames() else None
+                    flags = tb.getcol("FLAG") if "FLAG" in tb.colnames() else None
 
-            if plot_type == "amp_vs_freq":
-                # For bandpass: amplitude vs frequency
-                if spw_ids is None:
+                if gains is None:
                     raise HTTPException(
                         status_code=400,
-                        detail="Cannot plot amplitude vs frequency: no SPW information",
+                        detail="Calibration table does not contain CPARAM column",
                     )
 
-                # Get frequencies from SPW subtable
-                try:
-                    tb_spw = table()
-                    tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
-                    chan_freqs = tb_spw.getcol("CHAN_FREQ")
-                    tb_spw.close()
+                    # Convert to numpy arrays
+                    antenna_ids = np.asarray(antenna_ids) if antenna_ids is not None else None
+                    spw_ids = np.asarray(spw_ids) if spw_ids is not None else None
+                    times = np.asarray(times) if times is not None else None
+                    gains = np.asarray(gains)
+                    flags = (
+                        np.asarray(flags)
+                        if flags is not None
+                        else np.zeros(gains.shape, dtype=bool)
+                    )
+
+                    # Mask flagged values
+                    gains_masked = np.where(flags, np.nan + 0j, gains)
+
+                # Filter by antenna if specified
+                if antenna is not None and antenna_ids is not None:
+                    ant_mask = antenna_ids == antenna
+                    if not np.any(ant_mask):
+                        raise HTTPException(
+                            status_code=404,
+                            detail=f"Antenna {antenna} not found in calibration table",
+                        )
+                    gains_masked = gains_masked[ant_mask]
+                    if spw_ids is not None:
+                        spw_ids = spw_ids[ant_mask]
+                    if times is not None:
+                        times = times[ant_mask]
+
+                # Generate plot based on type
+                fig, ax = plt.subplots(figsize=(10, 6))
+
+                if plot_type == "amp_vs_freq":
+                    # For bandpass: amplitude vs frequency
+                    if spw_ids is None:
+                        raise HTTPException(
+                            status_code=400,
+                            detail="Cannot plot amplitude vs frequency: no SPW information",
+                        )
+
+                    # Get frequencies from SPW subtable
+                    try:
+                        tb_spw = table()
+                        tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
+                        chan_freqs = tb_spw.getcol("CHAN_FREQ")
+                        tb_spw.close()
+                    except Exception:
+                        chan_freqs = None
 
                     # Flatten gains and create frequency array
                     amplitudes = np.abs(gains_masked)
@@ -5016,7 +5198,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             if spw_amps.ndim > 1:
                                 spw_amps = np.nanmean(spw_amps, axis=-1)
                             freq_data.extend(spw_freqs.tolist())
-                            amp_data.extend(spw_amps.tolist())
+                    amp_data.extend(spw_amps.tolist())
 
                     ax.plot(freq_data, amp_data, "b-", alpha=0.7, linewidth=0.5)
                     ax.set_xlabel("Frequency (GHz)")
@@ -5026,49 +5208,47 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     )
                     ax.grid(True, alpha=0.3)
 
-                except Exception as e:
-                    logger.error(f"Error plotting amplitude vs frequency: {e}")
-                    raise HTTPException(status_code=500, detail=f"Error generating plot: {e}")
+                elif plot_type == "phase_vs_time":
+                    # For gain: phase vs time
+                    if times is None:
+                        raise HTTPException(
+                            status_code=400,
+                            detail="Cannot plot phase vs time: no TIME column",
+                        )
 
-            elif plot_type == "phase_vs_time":
-                # For gain: phase vs time
-                if times is None:
-                    raise HTTPException(
-                        status_code=400,
-                        detail="Cannot plot phase vs time: no TIME column",
+                    phases = np.angle(gains_masked)
+                    if phases.ndim > 1:
+                        phases = np.nanmean(phases, axis=-1)
+
+                    # Convert CASA time to hours since start
+                    time_hours = (times - times.min()) / 3600.0
+                    from dsa110_contimg.utils.angles import wrap_phase_deg
+
+                    phases_deg = wrap_phase_deg(np.degrees(phases))
+
+                    ax.plot(time_hours, phases_deg, "b-", alpha=0.7, linewidth=0.5)
+                    ax.set_xlabel("Time (hours since start)")
+                    ax.set_ylabel("Phase (degrees)")
+                    ax.set_title(
+                        f'Gain Phase vs Time{(" (Antenna " + str(antenna) + ")") if antenna is not None else ""}'
                     )
+                    ax.grid(True, alpha=0.3)
 
-                phases = np.angle(gains_masked)
-                if phases.ndim > 1:
-                    phases = np.nanmean(phases, axis=-1)
+                elif plot_type == "phase_vs_freq":
+                    # For bandpass: phase vs frequency
+                    if spw_ids is None:
+                        raise HTTPException(
+                            status_code=400,
+                            detail="Cannot plot phase vs frequency: no SPW information",
+                        )
 
-                # Convert CASA time to hours since start
-                time_hours = (times - times.min()) / 3600.0
-                from dsa110_contimg.utils.angles import wrap_phase_deg
-
-                phases_deg = wrap_phase_deg(np.degrees(phases))
-
-                ax.plot(time_hours, phases_deg, "b-", alpha=0.7, linewidth=0.5)
-                ax.set_xlabel("Time (hours since start)")
-                ax.set_ylabel("Phase (degrees)")
-                ax.set_title(
-                    f'Gain Phase vs Time{(" (Antenna " + str(antenna) + ")") if antenna is not None else ""}'
-                )
-                ax.grid(True, alpha=0.3)
-
-            elif plot_type == "phase_vs_freq":
-                # For bandpass: phase vs frequency
-                if spw_ids is None:
-                    raise HTTPException(
-                        status_code=400,
-                        detail="Cannot plot phase vs frequency: no SPW information",
-                    )
-
-                try:
-                    tb_spw = table()
-                    tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
-                    chan_freqs = tb_spw.getcol("CHAN_FREQ")
-                    tb_spw.close()
+                    try:
+                        tb_spw = table()
+                        tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
+                        chan_freqs = tb_spw.getcol("CHAN_FREQ")
+                        tb_spw.close()
+                    except Exception:
+                        chan_freqs = None
 
                     phases = np.angle(gains_masked)
                     if phases.ndim > 1:
@@ -5086,8 +5266,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             spw_phases = phases[spw_mask]
                             if spw_phases.ndim > 1:
                                 spw_phases = np.nanmean(spw_phases, axis=-1)
-                            from dsa110_contimg.utils.angles import \
-                              wrap_phase_deg
+                            from dsa110_contimg.utils.angles import wrap_phase_deg
 
                             freq_data.extend(spw_freqs.tolist())
                             phase_data.extend(wrap_phase_deg(np.degrees(spw_phases)).tolist())
@@ -5100,11 +5279,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     )
                     ax.grid(True, alpha=0.3)
 
-                except Exception as e:
-                    logger.error(f"Error plotting phase vs frequency: {e}")
-                    raise HTTPException(status_code=500, detail=f"Error generating plot: {e}")
-            else:
-                raise HTTPException(status_code=400, detail=f"Unknown plot type: {plot_type}")
+                else:
+                    raise HTTPException(status_code=400, detail=f"Unknown plot type: {plot_type}")
+
+            except Exception as e:
+                logger.error(f"Error generating calibration plot: {e}")
+                raise HTTPException(status_code=500, detail=f"Error generating plot: {e}")
 
             tb.close()
 
@@ -5119,17 +5299,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 media_type="image/png",
                 filename=f"{os.path.basename(cal_full_path)}_{plot_type}.png",
             )
-
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Error generating calibration plot: {e}")
-            raise HTTPException(status_code=500, detail=f"Error generating plot: {str(e)}")
-        finally:
-            try:
-                tb.close()
-            except Exception:
-                pass  # Ignore errors during cleanup
 
     @router.post("/jobs/workflow", response_model=Job)
     def create_workflow_job(
@@ -6252,10 +6421,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         import shutil as _shutil
         import subprocess as _subprocess
 
-        from dsa110_contimg.api.job_runner import (_python_cmd_for_jobs,
-                                                   _src_path_for_env)
-        from dsa110_contimg.database.products import \
-          ensure_products_db as _ensure_products_db
+        from dsa110_contimg.api.job_runner import _python_cmd_for_jobs, _src_path_for_env
+        from dsa110_contimg.database.products import ensure_products_db as _ensure_products_db
 
         # Prepare environment for child process imports
         child_env = os.environ.copy()
@@ -6387,7 +6554,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-          DataRecord, ensure_data_registry_db, list_data)
+            DataRecord,
+            ensure_data_registry_db,
+            list_data,
+        )
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6429,8 +6599,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Get a specific data instance."""
         from pathlib import Path
 
-        from dsa110_contimg.database.data_registry import (
-          ensure_data_registry_db, get_data)
+        from dsa110_contimg.database.data_registry import ensure_data_registry_db, get_data
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6466,7 +6635,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-          ensure_data_registry_db, finalize_data, get_data)
+            ensure_data_registry_db,
+            finalize_data,
+            get_data,
+        )
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6495,7 +6667,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-          ensure_data_registry_db, get_data, publish_data_manual)
+            ensure_data_registry_db,
+            get_data,
+            publish_data_manual,
+        )
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6523,10 +6698,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Enable auto-publish for a data instance."""
         from pathlib import Path
 
-        from dsa110_contimg.database.data_registry import \
-          enable_auto_publish as enable_ap
-        from dsa110_contimg.database.data_registry import \
-          ensure_data_registry_db
+        from dsa110_contimg.database.data_registry import enable_auto_publish as enable_ap
+        from dsa110_contimg.database.data_registry import ensure_data_registry_db
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6542,10 +6715,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Disable auto-publish for a data instance."""
         from pathlib import Path
 
-        from dsa110_contimg.database.data_registry import \
-          disable_auto_publish as disable_ap
-        from dsa110_contimg.database.data_registry import \
-          ensure_data_registry_db
+        from dsa110_contimg.database.data_registry import disable_auto_publish as disable_ap
+        from dsa110_contimg.database.data_registry import ensure_data_registry_db
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6562,7 +6733,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-          check_auto_publish_criteria, ensure_data_registry_db)
+            check_auto_publish_criteria,
+            ensure_data_registry_db,
+        )
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6576,7 +6749,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-          ensure_data_registry_db, get_data, get_data_lineage)
+            ensure_data_registry_db,
+            get_data,
+            get_data_lineage,
+        )
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6602,8 +6778,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from datetime import datetime
         from pathlib import Path
 
-        from dsa110_contimg.database.data_registry import (
-          ensure_data_registry_db, list_data)
+        from dsa110_contimg.database.data_registry import ensure_data_registry_db, list_data
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6667,8 +6842,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """
         from pathlib import Path
 
-        from dsa110_contimg.database.data_registry import (
-          ensure_data_registry_db, list_data)
+        from dsa110_contimg.database.data_registry import ensure_data_registry_db, list_data
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6720,7 +6894,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-          ensure_data_registry_db, get_data, trigger_auto_publish)
+            ensure_data_registry_db,
+            get_data,
+            trigger_auto_publish,
+        )
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6782,7 +6959,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-          ensure_data_registry_db, list_data, trigger_auto_publish)
+            ensure_data_registry_db,
+            list_data,
+            trigger_auto_publish,
+        )
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6845,8 +7025,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     app.include_router(router)
 
     # Include visualization routes
-    from dsa110_contimg.api.visualization_routes import \
-      router as visualization_router
+    from dsa110_contimg.api.visualization_routes import router as visualization_router
 
     app.include_router(visualization_router)
 
@@ -6920,7 +7099,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     ) -> PointingHistoryList:
         """Root-level /pointing_history endpoint (also available at /api/pointing_history)."""
         cfg = request.app.state.cfg
-        items = fetch_pointing_history(cfg.queue_db, cfg.products_db, start_mjd, end_mjd)
+        items = fetch_pointing_history(cfg.queue_db, start_mjd, end_mjd)
         return PointingHistoryList(items=items)
 
     @app.get("/ese/candidates", response_model=ESECandidatesResponse)
