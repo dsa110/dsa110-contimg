@@ -1,20 +1,21 @@
 """HDF5 file indexing service for fast subband group queries.
 
-This module provides functions to scan and index HDF5 files in the input directory,
-enabling fast database queries instead of filesystem scans.
+This module provides functions to scan and index HDF5 files in the
+input directory, enabling fast database queries instead of filesystem
+scans.
 """
 
 import logging
 import os
 import sqlite3
 import time
-from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+import numpy as np
 from astropy.time import Time
 
-from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.database.hdf5_db import ensure_hdf5_db
 
 logger = logging.getLogger(__name__)
 
@@ -100,6 +101,10 @@ def _scan_hdf5_files(
 def _parse_hdf5_metadata(full_path: str, filename: str) -> Optional[Dict[str, Any]]:
     """Parse metadata from HDF5 filename and file stats.
 
+    For sb00 files (first subband in group), also extracts:
+    - Sky coordinates (RA/Dec in degrees)
+    - Observation date and time
+
     Args:
         full_path: Full path to HDF5 file
         filename: Filename of HDF5 file
@@ -107,6 +112,7 @@ def _parse_hdf5_metadata(full_path: str, filename: str) -> Optional[Dict[str, An
     Returns:
         Dictionary with metadata or None if parsing fails.
         Keys: group_id, subband_code, file_size, modified_time, timestamp_iso, timestamp_mjd
+              ra_deg, dec_deg, obs_date, obs_time (only for sb00 files)
     """
     # Parse filename
     parsed = parse_hdf5_filename(filename)
@@ -114,6 +120,14 @@ def _parse_hdf5_metadata(full_path: str, filename: str) -> Optional[Dict[str, An
         return None
 
     group_id, subband_code = parsed
+
+    # Extract subband number from subband_code (e.g., "sb00" -> 0, "sb15" -> 15)
+    subband_num = None
+    try:
+        if subband_code.startswith("sb"):
+            subband_num = int(subband_code[2:])
+    except (ValueError, IndexError):
+        logger.debug(f"Could not parse subband number from {subband_code}")
 
     # Get file metadata
     try:
@@ -135,14 +149,50 @@ def _parse_hdf5_metadata(full_path: str, filename: str) -> Optional[Dict[str, An
     except Exception:
         pass
 
-    return {
+    metadata = {
         "group_id": group_id,
         "subband_code": subband_code,
+        "subband_num": subband_num,
         "file_size": file_size,
         "modified_time": modified_time,
         "timestamp_iso": timestamp_iso,
         "timestamp_mjd": timestamp_mjd,
+        "ra_deg": None,
+        "dec_deg": None,
+        "obs_date": None,
+        "obs_time": None,
     }
+
+    # Extract sky coordinates and time only for sb00 files
+    if subband_code == "sb00":
+        try:
+            from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+                _peek_uvh5_phase_and_midtime,
+            )
+
+            # Extract RA, Dec, and mid_time from HDF5 file
+            pt_ra, pt_dec, mid_mjd = _peek_uvh5_phase_and_midtime(full_path)
+
+            # Convert to degrees (check for non-zero/non-None)
+            # Note: Can't use "if pt_ra" because Quantity truthiness is ambiguous
+            if pt_ra is not None and pt_ra.value != 0:
+                metadata["ra_deg"] = pt_ra.to("deg").value
+            if pt_dec is not None and pt_dec.value != 0:
+                metadata["dec_deg"] = pt_dec.to("deg").value
+
+            # Extract date and time from timestamp
+            if timestamp_iso:
+                try:
+                    t = Time(timestamp_iso, format="isot")
+                    metadata["obs_date"] = t.to_value("iso", subfmt="date")
+                    metadata["obs_time"] = t.to_value("iso", subfmt="date_hm")
+                except Exception:
+                    pass
+
+        except Exception as e:
+            logger.debug(f"Could not extract sky coordinates from {full_path}: {e}")
+
+    return metadata
 
 
 def _is_path_under_directory(db_path: str, input_dir_path: Path) -> Tuple[bool, Optional[Path]]:
@@ -274,7 +324,7 @@ def _mark_deleted_files(conn: sqlite3.Connection, input_dir: Path, current_paths
 
 def index_hdf5_files(
     input_dir: Path,
-    products_db: Path,
+    hdf5_db: Path,
     *,
     force_rescan: bool = False,
     max_files: Optional[int] = None,
@@ -287,7 +337,7 @@ def index_hdf5_files(
 
     Args:
         input_dir: Directory containing HDF5 files
-        products_db: Path to products database
+        hdf5_db: Path to HDF5 database
         force_rescan: If True, re-index all files even if already indexed
         max_files: Maximum number of files to index (for testing/partial scans)
 
@@ -313,7 +363,7 @@ def index_hdf5_files(
         logger.warning(f"Input directory does not exist: {input_dir}")
         return stats
 
-    conn = ensure_products_db(products_db)
+    conn = ensure_hdf5_db(hdf5_db)
     indexed_at = time.time()
 
     logger.info(f"Scanning HDF5 files in {input_dir}...")
@@ -351,7 +401,10 @@ def index_hdf5_files(
 
 
 def _check_file_index_status(
-    conn: sqlite3.Connection, full_path: str, modified_time: float, force_rescan: bool
+    conn: sqlite3.Connection,
+    full_path: str,
+    modified_time: float,
+    force_rescan: bool,
 ) -> Optional[str]:
     """Check if file is already indexed and determine its status.
 
@@ -368,7 +421,8 @@ def _check_file_index_status(
         return "new"
 
     existing = conn.execute(
-        "SELECT modified_time FROM hdf5_file_index WHERE path = ?", (full_path,)
+        "SELECT modified_time FROM hdf5_file_index WHERE path = ?",
+        (full_path,),
     ).fetchone()
 
     if not existing:
@@ -399,20 +453,26 @@ def _insert_or_update_file_entry(
     conn.execute(
         """
         INSERT OR REPLACE INTO hdf5_file_index
-        (path, filename, group_id, subband_code, timestamp_iso, timestamp_mjd,
-         file_size_bytes, modified_time, indexed_at, stored)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+        (path, filename, group_id, subband_code, subband_num,
+         timestamp_iso, timestamp_mjd, file_size_bytes, modified_time,
+         indexed_at, stored, ra_deg, dec_deg, obs_date, obs_time)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)
         """,
         (
             full_path,
             filename,
             metadata["group_id"],
             metadata["subband_code"],
+            metadata["subband_num"],
             metadata["timestamp_iso"],
             metadata["timestamp_mjd"],
             metadata["file_size"],
             metadata["modified_time"],
             indexed_at,
+            metadata["ra_deg"],
+            metadata["dec_deg"],
+            metadata["obs_date"],
+            metadata["obs_time"],
         ),
     )
 
@@ -505,7 +565,7 @@ def _update_database_batch(
 
 
 def query_subband_groups(
-    products_db: Path,
+    hdf5_db: Path,
     start_time: str,
     end_time: str,
     *,
@@ -516,7 +576,7 @@ def query_subband_groups(
     """Query database for complete subband groups in time range.
 
     Args:
-        products_db: Path to products database
+        hdf5_db: Path to HDF5 database
         start_time: Start time (ISO format: "YYYY-MM-DD HH:MM:SS")
         end_time: End time (ISO format: "YYYY-MM-DD HH:MM:SS")
         tolerance_s: Time tolerance in seconds for query window expansion (default: 60.0)
@@ -527,7 +587,7 @@ def query_subband_groups(
         List of complete 16-subband groups, each group is a list of file paths
         sorted by subband code.
     """
-    conn = ensure_products_db(products_db)
+    conn = ensure_hdf5_db(hdf5_db)
 
     # Convert times to MJD
     try:
@@ -566,56 +626,72 @@ def query_subband_groups(
     if not rows:
         return []
 
-    # Cluster files by timestamp within a tolerance window
-    # This handles cases where filenames have slightly different timestamps
-    cluster_tolerance_days = cluster_tolerance_s / 86400.0
+    # CRITICAL: Use the correct proximity-based grouping algorithm from hdf5_orchestrator.py
+    # This algorithm is proven to work correctly in production.
+    #
+    # Algorithm:
+    # 1. Sort files by timestamp
+    # 2. For each file, find all files within cluster_tolerance_s
+    # 3. Build subband map and check if complete (16 subbands)
+    # 4. Mark used files to avoid duplicate groups
 
-    # Group files by time clusters
-    # Each cluster is represented by its earliest timestamp
-    time_clusters = {}  # cluster_mjd -> {subband_code: path}
+    # Convert to numpy arrays for efficient proximity search
+    times_sec = np.array([mjd * 86400.0 for mjd, _, _ in rows])  # MJD to seconds
+    subband_codes = np.array([sb for _, sb, _ in rows])
+    paths = np.array([path for _, _, path in rows])
 
-    for timestamp_mjd, subband_code, path in rows:
-        # Find existing cluster within tolerance, or create new one
-        cluster_found = False
-        for cluster_mjd in sorted(time_clusters.keys()):
-            if abs(timestamp_mjd - cluster_mjd) <= cluster_tolerance_days:
-                # Add to existing cluster
-                time_clusters[cluster_mjd][subband_code] = path
-                cluster_found = True
-                break
-
-        if not cluster_found:
-            # Create new cluster
-            time_clusters[timestamp_mjd] = {subband_code: path}
-
-    # Filter to complete 16-subband groups
-    expected_sb = [f"sb{idx:02d}" for idx in range(16)]
+    expected_sb = set([f"sb{idx:02d}" for idx in range(16)])
     complete_groups = []
-    for cluster_mjd, sb_map in time_clusters.items():
-        if set(sb_map.keys()) == set(expected_sb):
-            # Sort by subband code
-            group_files = [sb_map[sb] for sb in sorted(expected_sb)]
+    used = np.zeros(len(times_sec), dtype=bool)
+
+    for i in range(len(times_sec)):
+        if used[i]:
+            continue
+
+        # Find all files within tolerance of this file
+        close_indices = np.where(np.abs(times_sec - times_sec[i]) <= cluster_tolerance_s)[0]
+        group_indices = [idx for idx in close_indices if not used[idx]]
+
+        # Build subband map for this potential group
+        subband_map = {}
+        for idx in group_indices:
+            sb_code = subband_codes[idx]
+            if sb_code in subband_map:
+                logger.debug(f"Duplicate subband {sb_code}, using latest file")
+            subband_map[sb_code] = paths[idx]
+
+        # Check if group is complete (has all 16 subbands)
+        if set(subband_map.keys()) == expected_sb:
+            # Sort by subband code (sb00 to sb15)
+            group_files = [subband_map[f"sb{idx:02d}"] for idx in range(16)]
+
             # If only_stored is True, verify all files still exist
             if only_stored:
                 all_exist = all(os.path.exists(f) for f in group_files)
                 if not all_exist:
-                    continue  # Skip incomplete groups
+                    # Don't mark as used - allow partial groups to be tried again
+                    continue
+
             complete_groups.append(group_files)
+
+            # Mark all files in this group as used
+            for idx in group_indices:
+                used[idx] = True
 
     return complete_groups
 
 
-def get_group_count(products_db: Path, group_id: str) -> int:
+def get_group_count(hdf5_db: Path, group_id: str) -> int:
     """Get count of subbands for a specific group_id.
 
     Args:
-        products_db: Path to products database
+        hdf5_db: Path to HDF5 database
         group_id: Group ID to query
 
     Returns:
         Number of subbands found for this group_id
     """
-    conn = ensure_products_db(products_db)
+    conn = ensure_hdf5_db(hdf5_db)
     count = conn.execute(
         "SELECT COUNT(*) FROM hdf5_file_index WHERE group_id = ?",
         (group_id,),
@@ -623,17 +699,17 @@ def get_group_count(products_db: Path, group_id: str) -> int:
     return count
 
 
-def is_group_complete(products_db: Path, group_id: str) -> bool:
+def is_group_complete(hdf5_db: Path, group_id: str) -> bool:
     """Check if a group has all 16 subbands.
 
     Args:
-        products_db: Path to products database
+        hdf5_db: Path to HDF5 database
         group_id: Group ID to check
 
     Returns:
         True if group has all 16 subbands, False otherwise
     """
-    return get_group_count(products_db, group_id) == 16
+    return get_group_count(hdf5_db, group_id) == 16
 
 
 __all__ = [

@@ -16,13 +16,6 @@ from typing import Optional
 if "/data/dsa110-contimg/src" not in sys.path:
     sys.path.insert(0, "/data/dsa110-contimg/src")
 
-from dsa110_contimg.conversion.helpers import (
-    _ensure_antenna_diameters,
-    get_meridian_coords,
-    set_antenna_positions,
-    set_model_column,
-)
-from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
 
 # Import production modules
 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
@@ -30,7 +23,6 @@ from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
     find_subband_groups,
 )
 from dsa110_contimg.conversion.validation import (
-    find_calibrator_sources_in_data,
     validate_calibrator_transit,
     validate_hdf5_files,
 )
@@ -102,9 +94,7 @@ def main() -> int:
     parser.add_argument("start_time", help="YYYY-MM-DD HH:MM:SS")
     parser.add_argument("end_time", help="YYYY-MM-DD HH:MM:SS")
     parser.add_argument("--flux", type=float)
-    parser.add_argument(
-        "--cal-catalog", default=None, help="Path to VLA calibrator CSV"
-    )
+    parser.add_argument("--cal-catalog", default=None, help="Path to VLA calibrator CSV")
     parser.add_argument("--cal-search-radius-deg", type=float, default=0.0)
     parser.add_argument("--cal-output-dir", default=None)
     parser.add_argument("--log-level", default="INFO")

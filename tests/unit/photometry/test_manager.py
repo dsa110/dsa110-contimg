@@ -1,8 +1,7 @@
 """Unit tests for PhotometryManager and PhotometryConfig."""
 
-import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, call, patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest

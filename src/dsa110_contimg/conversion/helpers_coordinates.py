@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 
 import astropy.units as u
 import numpy as np
-from astropy.coordinates import EarthLocation, SkyCoord
+from astropy.coordinates import SkyCoord
 
 try:
     from astropy.coordinates import angular_separation  # type: ignore
@@ -18,9 +18,7 @@ except Exception:  # pragma: no cover - fallback for older astropy
         dec1 = _np.asarray(dec1, dtype=float)
         ra2 = _np.asarray(ra2, dtype=float)
         dec2 = _np.asarray(dec2, dtype=float)
-        cossep = _np.sin(dec1) * _np.sin(dec2) + _np.cos(dec1) * _np.cos(
-            dec2
-        ) * _np.cos(ra1 - ra2)
+        cossep = _np.sin(dec1) * _np.sin(dec2) + _np.cos(dec1) * _np.cos(dec2) * _np.cos(ra1 - ra2)
         cossep = _np.clip(cossep, -1.0, 1.0)
         return _np.arccos(cossep)
 
@@ -41,9 +39,7 @@ from dsa110_contimg.conversion.helpers_antenna import (
 logger = logging.getLogger("dsa110_contimg.conversion.helpers")
 
 
-def get_meridian_coords(
-    pt_dec: u.Quantity, time_mjd: float
-) -> Tuple[u.Quantity, u.Quantity]:
+def get_meridian_coords(pt_dec: u.Quantity, time_mjd: float) -> Tuple[u.Quantity, u.Quantity]:
     """Compute the right ascension/declination of the meridian at DSA-110."""
     # Use DSA-110 coordinates from constants.py (single source of truth)
     from dsa110_contimg.utils.constants import OVRO_LOCATION
@@ -165,9 +161,7 @@ def compute_and_set_uvw(uvdata, pt_dec: u.Quantity) -> None:
     ant_pos = _np.asarray(ant_pos) if ant_pos is not None else None
     ant_nums = _np.asarray(ant_nums) if ant_nums is not None else None
 
-    utime, _, uinvert = _np.unique(
-        uvdata.time_array, return_index=True, return_inverse=True
-    )
+    utime, _, uinvert = _np.unique(uvdata.time_array, return_index=True, return_inverse=True)
     mjd_unique = _Time(utime, format="jd").mjd.astype(float)
 
     # Compute apparent coords + frame PA per unique time at meridian

@@ -166,7 +166,9 @@ class CatalogSetupStage(PipelineStage):
                             from dsa110_contimg.conversion.transit_precalc import (
                                 precalculate_transits_for_calibrator,
                             )
-                            from dsa110_contimg.database.products import get_products_db_connection
+                            from dsa110_contimg.database.products import (
+                                get_products_db_connection,
+                            )
 
                             products_db = get_products_db_connection(self.config.paths.products_db)
                             cursor = products_db.cursor()
@@ -753,7 +755,11 @@ class CalibrationSolveStage(PipelineStage):
             solve_gains,
             solve_prebandpass_phase,
         )
-        from dsa110_contimg.calibration.flagging import flag_rfi, flag_zeros, reset_flags
+        from dsa110_contimg.calibration.flagging import (
+            flag_rfi,
+            flag_zeros,
+            reset_flags,
+        )
 
         start_time_sec = time.time()
 
@@ -969,8 +975,8 @@ class CalibrationSolveStage(PipelineStage):
                     start_mjd = start_mjd - window_hours / 24.0
                     end_mjd = end_mjd + window_hours / 24.0
                     logger.debug(
-                        f"Extended validity window from {duration*24*60:.1f} min to "
-                        f"{(end_mjd - start_mjd)*24*60:.1f} min (±{window_hours}h)"
+                        f"Extended validity window from {duration * 24 * 60:.1f} min to "
+                        f"{(end_mjd - start_mjd) * 24 * 60:.1f} min (±{window_hours}h)"
                     )
 
             # Generate set name from MS filename and time
@@ -1278,7 +1284,9 @@ class CalibrationStage(PipelineStage):
         # Move to calibrated directory in the new layout
         if cal_applied:
             try:
-                from dsa110_contimg.database.data_registration import register_pipeline_data
+                from dsa110_contimg.database.data_registration import (
+                    register_pipeline_data,
+                )
                 from dsa110_contimg.utils.path_utils import (
                     extract_date_from_path,
                     move_ms_to_calibrated,
@@ -1676,7 +1684,7 @@ class ImagingStage(PipelineStage):
                     f"Catalog validation ({catalog.upper()}): "
                     f"{result.n_matched} sources matched, "
                     f"flux ratio={result.mean_flux_ratio:.3f}±{result.rms_flux_ratio:.3f}, "
-                    f"scale error={result.flux_scale_error*100:.1f}%"
+                    f"scale error={result.flux_scale_error * 100:.1f}%"
                 )
 
                 if result.has_issues:
@@ -1806,7 +1814,9 @@ class OrganizationStage(PipelineStage):
                     )
                 else:
                     # Just get the organized path without moving/updating DB
-                    from dsa110_contimg.utils.ms_organization import get_organized_ms_path
+                    from dsa110_contimg.utils.ms_organization import (
+                        get_organized_ms_path,
+                    )
 
                     organized_path = get_organized_ms_path(
                         ms_path_obj,
@@ -1995,14 +2005,14 @@ class ValidationStage(PipelineStage):
             if flux_scale_result:
                 logger.info(
                     f"Flux scale validation: Mean ratio: {flux_scale_result.mean_flux_ratio:.3f}, "
-                    f"Error: {flux_scale_result.flux_scale_error*100:.1f}%"
+                    f"Error: {flux_scale_result.flux_scale_error * 100:.1f}%"
                     if flux_scale_result.mean_flux_ratio and flux_scale_result.flux_scale_error
                     else "N/A"
                 )
 
             if source_counts_result:
                 logger.info(
-                    f"Source counts validation: Completeness: {source_counts_result.completeness*100:.1f}%"
+                    f"Source counts validation: Completeness: {source_counts_result.completeness * 100:.1f}%"
                     if source_counts_result.completeness
                     else "N/A"
                 )
@@ -2546,7 +2556,9 @@ class AdaptivePhotometryStage(PipelineStage):
         log_progress("Starting adaptive photometry stage...")
 
         from dsa110_contimg.photometry.adaptive_binning import AdaptiveBinningConfig
-        from dsa110_contimg.photometry.adaptive_photometry import measure_with_adaptive_binning
+        from dsa110_contimg.photometry.adaptive_photometry import (
+            measure_with_adaptive_binning,
+        )
 
         ms_path = context.outputs["ms_path"]
         logger.info(f"Adaptive photometry stage: {ms_path}")
@@ -2581,10 +2593,10 @@ class AdaptivePhotometryStage(PipelineStage):
         results = []
         for i, (ra_deg, dec_deg) in enumerate(sources):
             logger.info(
-                f"Running adaptive binning for source {i+1}/{len(sources)}: RA={ra_deg:.6f}, Dec={dec_deg:.6f}"
+                f"Running adaptive binning for source {i + 1}/{len(sources)}: RA={ra_deg:.6f}, Dec={dec_deg:.6f}"
             )
 
-            source_output_dir = output_dir / f"source_{i+1:03d}"
+            source_output_dir = output_dir / f"source_{i + 1:03d}"
             source_output_dir.mkdir(parents=True, exist_ok=True)
 
             try:
@@ -2599,7 +2611,7 @@ class AdaptivePhotometryStage(PipelineStage):
 
                 if result.success:
                     logger.info(
-                        f"Source {i+1}: Found {len(result.detections)} detection(s) "
+                        f"Source {i + 1}: Found {len(result.detections)} detection(s) "
                         f"(best SNR: {max([d.snr for d in result.detections], default=0.0):.2f})"
                     )
                     results.append(
@@ -2622,9 +2634,11 @@ class AdaptivePhotometryStage(PipelineStage):
                         }
                     )
                 else:
-                    logger.warning(f"Source {i+1}: Adaptive binning failed: {result.error_message}")
+                    logger.warning(
+                        f"Source {i + 1}: Adaptive binning failed: {result.error_message}"
+                    )
             except Exception as e:
-                logger.error(f"Source {i+1}: Error during adaptive binning: {e}", exc_info=True)
+                logger.error(f"Source {i + 1}: Error during adaptive binning: {e}", exc_info=True)
 
         # Store results in context
         photometry_results = {

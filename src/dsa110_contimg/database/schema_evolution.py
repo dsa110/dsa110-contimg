@@ -6,9 +6,7 @@ These are idempotent operations that can be run multiple times safely.
 """
 
 import sqlite3
-import time
 from pathlib import Path
-from typing import Optional
 
 
 def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
@@ -66,9 +64,7 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
             )
         """
         )
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_variability_chi2 ON variability_stats(chi2_nu)"
-        )
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_variability_chi2 ON variability_stats(chi2_nu)")
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_variability_sigma ON variability_stats(sigma_deviation)"
         )
@@ -96,15 +92,9 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
             )
         """
         )
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_ese_source ON ese_candidates(source_id)"
-        )
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_ese_status ON ese_candidates(status)"
-        )
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_ese_flagged ON ese_candidates(flagged_at)"
-        )
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_ese_source ON ese_candidates(source_id)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_ese_status ON ese_candidates(status)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_ese_flagged ON ese_candidates(flagged_at)")
 
         # Table: mosaics
         if verbose:
@@ -133,12 +123,8 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
             )
         """
         )
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_mosaics_created ON mosaics(created_at)"
-        )
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_mosaics_mjd ON mosaics(start_mjd, end_mjd)"
-        )
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_mosaics_created ON mosaics(created_at)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_mosaics_mjd ON mosaics(start_mjd, end_mjd)")
 
         # Table: alert_history
         if verbose:
@@ -158,15 +144,9 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
             )
         """
         )
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_alert_source ON alert_history(source_id)"
-        )
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_alert_sent ON alert_history(sent_at)"
-        )
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_alert_type ON alert_history(alert_type)"
-        )
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_alert_source ON alert_history(source_id)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_alert_sent ON alert_history(sent_at)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_alert_type ON alert_history(alert_type)")
 
         # Table: regions
         if verbose:
@@ -186,13 +166,9 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
             )
         """
         )
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_regions_image ON regions(image_path)"
-        )
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_regions_image ON regions(image_path)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_regions_type ON regions(type)")
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_regions_created ON regions(created_at)"
-        )
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_regions_created ON regions(created_at)")
 
         # Table: cross_matches
         if verbose:
@@ -315,9 +291,7 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
                     f"CREATE INDEX IF NOT EXISTS idx_ms_index_field ON {ms_table}(field_name)"
                 )
             if "mid_mjd" in ms_columns:
-                cur.execute(
-                    f"CREATE INDEX IF NOT EXISTS idx_ms_index_mjd ON {ms_table}(mid_mjd)"
-                )
+                cur.execute(f"CREATE INDEX IF NOT EXISTS idx_ms_index_mjd ON {ms_table}(mid_mjd)")
 
         # Run data registry setup (this will add registry tables and ensure consistent naming)
         # We do this AFTER adding columns to avoid conflicts
@@ -343,17 +317,13 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
 def _table_exists(cursor: sqlite3.Cursor, table: str) -> bool:
     """Check if a table exists."""
     try:
-        cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table,)
-        )
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table,))
         return cursor.fetchone() is not None
     except Exception:
         return False
 
 
-def _add_column_if_missing(
-    cursor: sqlite3.Cursor, table: str, column: str, col_type: str
-):
+def _add_column_if_missing(cursor: sqlite3.Cursor, table: str, column: str, col_type: str):
     """Add column to table if it doesn't exist (SQLite safe schema evolution)."""
     try:
         # Check if table exists first
@@ -402,9 +372,7 @@ def evolve_ingest_schema(db_path: Path, verbose: bool = True) -> bool:
         conn.close()
 
 
-def evolve_all_schemas(
-    state_dir: Path = Path("/data/dsa110-contimg/state"), verbose: bool = True
-):
+def evolve_all_schemas(state_dir: Path = Path("/data/dsa110-contimg/state"), verbose: bool = True):
     """Evolve all database schemas to latest version.
 
     Runs schema evolution on all standard database locations.
@@ -444,8 +412,6 @@ migrate_all = evolve_all_schemas
 if __name__ == "__main__":
     import sys
 
-    state_dir = (
-        Path(sys.argv[1]) if len(sys.argv) > 1 else Path("/data/dsa110-contimg/state")
-    )
+    state_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("/data/dsa110-contimg/state")
     success = migrate_all(state_dir, verbose=True)
     sys.exit(0 if success else 1)

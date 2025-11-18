@@ -7,7 +7,7 @@ Generates diagnostic plots for astrometry, flux scale, and completeness validati
 import base64
 import io
 import logging
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -57,9 +57,7 @@ def plot_astrometry_scatter(
 
                     # Convert to arcsec (assuming degrees)
                     offset_ra = (
-                        (detected_ra - catalog_ra)
-                        * 3600.0
-                        * np.cos(np.radians(catalog_dec))
+                        (detected_ra - catalog_ra) * 3600.0 * np.cos(np.radians(catalog_dec))
                     )
                     offset_dec = (detected_dec - catalog_dec) * 3600.0
                     offsets_ra.append(offset_ra)
@@ -98,9 +96,7 @@ def plot_astrometry_scatter(
         if result.mean_offset_arcsec is not None:
             stats_text = f'Mean: {result.mean_offset_arcsec:.2f}"\n'
             stats_text += (
-                f'RMS: {result.rms_offset_arcsec:.2f}"'
-                if result.rms_offset_arcsec
-                else ""
+                f'RMS: {result.rms_offset_arcsec:.2f}"' if result.rms_offset_arcsec else ""
             )
             ax1.text(
                 0.05,
@@ -113,9 +109,7 @@ def plot_astrometry_scatter(
             )
 
         # Plot 2: Offset histogram
-        ax2.hist(
-            offsets_total, bins=20, edgecolor="black", alpha=0.7, color="steelblue"
-        )
+        ax2.hist(offsets_total, bins=20, edgecolor="black", alpha=0.7, color="steelblue")
         ax2.axvline(
             x=result.mean_offset_arcsec if result.mean_offset_arcsec else 0,
             color="red",
@@ -196,9 +190,7 @@ def plot_flux_ratio_histogram(
 
         # Plot 1: Flux ratio histogram
         ax1.hist(ratios, bins=20, edgecolor="black", alpha=0.7, color="steelblue")
-        ax1.axvline(
-            x=1.0, color="green", linestyle="--", linewidth=2, label="Perfect (1.0)"
-        )
+        ax1.axvline(x=1.0, color="green", linestyle="--", linewidth=2, label="Perfect (1.0)")
         if result.mean_flux_ratio:
             ax1.axvline(
                 x=result.mean_flux_ratio,
@@ -218,7 +210,7 @@ def plot_flux_ratio_histogram(
             stats_text = f"Mean: {result.mean_flux_ratio:.3f}\n"
             stats_text += f"RMS: {result.rms_flux_ratio:.3f}\n"
             if result.flux_scale_error:
-                stats_text += f"Error: {result.flux_scale_error*100:.1f}%"
+                stats_text += f"Error: {result.flux_scale_error * 100:.1f}%"
             ax1.text(
                 0.05,
                 0.95,
@@ -366,7 +358,7 @@ def plot_completeness_curve(
             ax1.text(
                 0.05,
                 0.05,
-                f"Overall: {result.completeness*100:.1f}%",
+                f"Overall: {result.completeness * 100:.1f}%",
                 transform=ax1.transAxes,
                 bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.8),
                 fontsize=10,
@@ -480,9 +472,7 @@ def plot_spatial_distribution(
         cbar1.set_label("Offset (arcsec)", fontsize=10)
 
         # Plot 2: Offset vs RA (to check for systematic trends)
-        ax2.scatter(
-            detected_ras, offsets, alpha=0.6, s=50, edgecolors="black", linewidths=0.5
-        )
+        ax2.scatter(detected_ras, offsets, alpha=0.6, s=50, edgecolors="black", linewidths=0.5)
         ax2.axhline(y=0, color="red", linestyle="--", linewidth=1, alpha=0.5)
         ax2.set_xlabel("RA (degrees)", fontsize=11)
         ax2.set_ylabel("Offset (arcsec)", fontsize=11)
@@ -647,9 +637,7 @@ def plot_validation_summary(
                 ("Max Offset", astrometry_result.max_offset_arcsec),
             ]
             names, values = zip(*metrics)
-            bars = ax1.barh(
-                names, values, color=["steelblue", "steelblue", "orange", "red"]
-            )
+            ax1.barh(names, values, color=["steelblue", "steelblue", "orange", "red"])
             ax1.axvline(x=0, color="black", linestyle="-", linewidth=0.5)
             ax1.set_xlabel("Offset (arcsec)", fontsize=10)
             ax1.set_title("Astrometry Metrics", fontsize=11, fontweight="bold")
@@ -681,7 +669,7 @@ def plot_validation_summary(
                 ),
             ]
             names, values = zip(*metrics)
-            bars = ax2.barh(names, values, color=["green", "orange", "red"])
+            ax2.barh(names, values, color=["green", "orange", "red"])
             ax2.axvline(x=1.0, color="black", linestyle="--", linewidth=1, alpha=0.5)
             ax2.set_xlabel("Value", fontsize=10)
             ax2.set_title("Flux Scale Metrics", fontsize=11, fontweight="bold")
@@ -714,9 +702,7 @@ def plot_validation_summary(
                 ("Catalog Sources", source_counts_result.n_catalog),
             ]
             names, values = zip(*metrics)
-            bars = ax3.barh(
-                names, values, color=["green", "orange", "steelblue", "steelblue"]
-            )
+            ax3.barh(names, values, color=["green", "orange", "steelblue", "steelblue"])
             ax3.set_xlabel("Value", fontsize=10)
             ax3.set_title("Source Counts Metrics", fontsize=11, fontweight="bold")
             ax3.grid(True, alpha=0.3, axis="x")

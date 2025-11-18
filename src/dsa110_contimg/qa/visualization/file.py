@@ -5,11 +5,9 @@ Provides base functionality for file handling, similar to RadioPadre's FileBase.
 """
 
 import os
-from datetime import datetime
-from pathlib import Path
 from typing import Optional
 
-from .thumbnail import get_cache_file, render_thumbnail_html
+from .thumbnail import get_cache_file
 
 
 class FileBase:

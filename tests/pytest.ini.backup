@@ -1,0 +1,34 @@
+[pytest]
+addopts = -ra
+testpaths =
+    tests/smoke
+    tests/unit
+    tests/integration
+    src/dsa110_contimg
+pythonpath =
+    src
+filterwarnings =
+    ignore::DeprecationWarning
+    ignore::PendingDeprecationWarning
+    ignore:Benchmarks are automatically disabled.*
+markers =
+    unit: Unit tests (fast, isolated, mocked)
+    integration: Integration tests (component interactions)
+    smoke: Smoke tests (quick sanity checks, < 10s)
+    science: Science validation tests (algorithm correctness)
+    e2e: End-to-end tests (full workflows)
+    e2e_frontend: Frontend-specific E2E tests (Playwright)
+    e2e_slow: Slow E2E tests (> 30 seconds)
+    e2e_critical: Critical user workflows
+    e2e_ui: UI interaction tests
+    slow: Slow tests (> 1 minute)
+    casa: Tests requiring CASA environment
+norecursedirs =
+    archive
+    docs
+    references
+    state
+    scripts
+    utils
+
+

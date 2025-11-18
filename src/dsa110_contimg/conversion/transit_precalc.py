@@ -161,7 +161,11 @@ def precalculate_transits_for_calibrator(
             WHERE calibrator_name = ? AND transit_mjd = ?
             AND updated_at > ? - 86400
             """,
-            (calibrator_name, transit_mjd, calculated_at - 86400),  # Refresh if older than 24 hours
+            (
+                calibrator_name,
+                transit_mjd,
+                calculated_at - 86400,
+            ),  # Refresh if older than 24 hours
         ).fetchone()
 
         if existing:
@@ -181,7 +185,7 @@ def precalculate_transits_for_calibrator(
         )  # pylint: disable=no-member
 
         # Query for groups in window
-        groups = query_subband_groups(products_db_path, t0, t1, tolerance_s=1.0)
+        groups = query_subband_groups(service.hdf5_db, t0, t1, tolerance_s=1.0)
 
         has_data = 0
         group_id = None

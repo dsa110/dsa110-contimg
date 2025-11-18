@@ -229,7 +229,7 @@ DOCKER_CONFIG_UPDATE.md,archive/status_reports/DOCKER_CONFIG_UPDATE.md,deploymen
 DOCKER_CONFIG_VERIFICATION.md,archive/status_reports/DOCKER_CONFIG_VERIFICATION.md,deployment,2025-11-06
 task3_ux_pattern_opportunities.md,archive/task3_ux_pattern_opportunities.md,dashboard: frontend; dashboard: architecture; testing; operations,2025-11-13
 user_guide_qa_visualization.md,archive/user_guide_qa_visualization.md,pipeline: qa; dashboard: frontend; dashboard: visualization; documentation,2025-11-12
-processpool-pickling-fix.md,bugfixes/processpool-pickling-fix.md,troubleshooting,2025-11-12
+processpool_pickling_fix.md,internal/docs/dev/analysis/processpool_pickling_fix.md,troubleshooting,2025-11-12
 2025-11-06-model-py-optimization.md,changelog/2025-11-06-model-py-optimization.md,performance,2025-11-13
 CALIBRATION_IMPROVEMENTS_2024.md,changelog/CALIBRATION_IMPROVEMENTS_2024.md,pipeline: calibration,2025-11-12
 PYRADIOSKY_DEFAULT_UPDATE.md,changelog/PYRADIOSKY_DEFAULT_UPDATE.md,tools,2025-11-12

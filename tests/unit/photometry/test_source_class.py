@@ -4,18 +4,15 @@ Unit tests for Source class (VAST Tools adoption).
 Tests the Source class pattern adopted from VAST Tools for DSA-110.
 """
 
-import pytest
 import pandas as pd
-import numpy as np
-from pathlib import Path
+import pytest
 from astropy.coordinates import SkyCoord
-from astropy import units as u
 
 from dsa110_contimg.photometry.source import Source, SourceError
 from dsa110_contimg.photometry.variability import (
     calculate_eta_metric,
-    calculate_vs_metric,
     calculate_m_metric,
+    calculate_vs_metric,
 )
 
 
@@ -35,9 +32,7 @@ class TestSourceClass:
 
     def test_source_creation_with_name(self):
         """Test Source creation with custom name."""
-        source = Source(
-            source_id="TEST001", ra_deg=123.0, dec_deg=45.0, name="Test Source"
-        )
+        source = Source(source_id="TEST001", ra_deg=123.0, dec_deg=45.0, name="Test Source")
         assert source.name == "Test Source"
         assert source.source_id == "TEST001"
 
@@ -105,18 +100,14 @@ class TestVariabilityMetrics:
 
     def test_eta_metric_single_point(self):
         """Test η metric with single point returns 0."""
-        df = pd.DataFrame(
-            {"normalized_flux_jy": [1.0], "normalized_flux_err_jy": [0.05]}
-        )
+        df = pd.DataFrame({"normalized_flux_jy": [1.0], "normalized_flux_err_jy": [0.05]})
 
         eta = calculate_eta_metric(df)
         assert eta == 0.0
 
     def test_vs_metric(self):
         """Test Vs metric calculation."""
-        vs = calculate_vs_metric(
-            flux_a=1.0, flux_b=1.1, flux_err_a=0.05, flux_err_b=0.05
-        )
+        vs = calculate_vs_metric(flux_a=1.0, flux_b=1.1, flux_err_a=0.05, flux_err_b=0.05)
         assert isinstance(vs, float)
         # Should be negative since flux_a < flux_b
         assert vs < 0

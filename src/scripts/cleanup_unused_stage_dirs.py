@@ -32,14 +32,12 @@ def check_state_directory() -> bool:
         return False
 
     # Check if files in stage/state are older or same as in data/state
-    stage_files = {
-        f.name: f.stat().st_mtime for f in stage_state.iterdir() if f.is_file()}
-    data_files = {
-        f.name: f.stat().st_mtime for f in data_state.iterdir() if f.is_file()}
+    stage_files = {f.name: f.stat().st_mtime for f in stage_state.iterdir() if f.is_file()}
+    data_files = {f.name: f.stat().st_mtime for f in data_state.iterdir() if f.is_file()}
 
     # If stage has same files but older, it's likely a duplicate
     if stage_files.keys() == data_files.keys():
-        print(f"Found duplicate state directory:")
+        print("Found duplicate state directory:")
         print(f"  Stage: {stage_state}")
         print(f"  Data: {data_state}")
         print(f"  Files: {', '.join(stage_files.keys())}")
@@ -61,8 +59,7 @@ def cleanup_tmp_directory(days_old: int = 7) -> int:
     cutoff_time = datetime.now() - timedelta(days=days_old)
     removed_count = 0
 
-    print(
-        f"\nCleaning tmp/ directory (removing files older than {days_old} days)...")
+    print(f"\nCleaning tmp/ directory (removing files older than {days_old} days)...")
 
     for item in tmp_dir.iterdir():
         try:
@@ -101,11 +98,9 @@ def main():
     state_dir = STAGE_BASE / "state"
     if state_dir.exists() and check_state_directory():
         size = get_directory_size(state_dir)
-        directories_to_remove.append(
-            ("state", state_dir, f"Duplicate state directory {size}"))
+        directories_to_remove.append(("state", state_dir, f"Duplicate state directory {size}"))
     elif state_dir.exists():
-        print(
-            f"⚠ Keeping {state_dir} - appears to be in use or different from {DATA_STATE_DIR}")
+        print(f"⚠ Keeping {state_dir} - appears to be in use or different from {DATA_STATE_DIR}")
 
     # 3. tmp/ - clean old files
     tmp_dir = STAGE_BASE / "tmp"
@@ -131,7 +126,7 @@ def main():
     print("\n" + "=" * 80)
     response = input("Remove these directories? (yes/no): ").strip().lower()
 
-    if response not in ['yes', 'y']:
+    if response not in ["yes", "y"]:
         print("Aborted.")
         return 0
 
@@ -168,7 +163,7 @@ def get_directory_size(path: Path) -> str:
                     pass
 
         # Convert to human-readable format
-        for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        for unit in ["B", "KB", "MB", "GB", "TB"]:
             if total < 1024.0:
                 return f"({total:.1f} {unit})"
             total /= 1024.0

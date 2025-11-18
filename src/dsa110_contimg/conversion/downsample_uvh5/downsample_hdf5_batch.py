@@ -14,13 +14,8 @@ import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
-import h5py  # type: ignore
-import numpy as np
-
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -45,9 +40,7 @@ def find_uvh5_files(input_dir):
     return uvh5_files
 
 
-def process_single_file(
-    input_file, output_file, time_factor, freq_factor, method, chunk_size
-):
+def process_single_file(input_file, output_file, time_factor, freq_factor, method, chunk_size):
     """Process a single UVH5 file."""
     try:
         import sys
@@ -200,21 +193,17 @@ def downsample_uvh5_batch(
     successful = [r for r in results if r["success"]]
     failed = [r for r in results if not r["success"]]
 
-    logger.info(f"\nBatch processing complete:")
+    logger.info("\nBatch processing complete:")
     logger.info(f"  Successful: {len(successful)}/{len(results)} files")
     logger.info(f"  Failed: {len(failed)} files")
 
     if successful:
-        overall_compression = (
-            total_input_size / total_output_size if total_output_size > 0 else 0
-        )
-        logger.info(
-            f"  Total size: {total_input_size:.1f} MB -> {total_output_size:.1f} MB"
-        )
+        overall_compression = total_input_size / total_output_size if total_output_size > 0 else 0
+        logger.info(f"  Total size: {total_input_size:.1f} MB -> {total_output_size:.1f} MB")
         logger.info(f"  Overall compression: {overall_compression:.1f}x")
 
     if failed:
-        logger.error(f"  Failed files:")
+        logger.error("  Failed files:")
         for result in failed:
             logger.error(f"    {result['input_file']}: {result['error']}")
 
@@ -273,9 +262,7 @@ Examples:
         default=None,
         help="Maximum number of parallel workers (default: CPU count)",
     )
-    parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Enable verbose logging"
-    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
 
     args = parser.parse_args()
 

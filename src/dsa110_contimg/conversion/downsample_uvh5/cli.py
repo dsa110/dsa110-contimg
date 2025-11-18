@@ -7,6 +7,7 @@ Subcommands:
   - fast: optimized single-file path
   - batch: directory batch driver (parallel), uses fast path under the hood
 """
+
 import argparse
 import sys
 from pathlib import Path
@@ -47,9 +48,7 @@ def add_batch_args(p: argparse.ArgumentParser) -> None:
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
 
-    parser = argparse.ArgumentParser(
-        prog="downsample", description="UVH5 downsampling toolkit"
-    )
+    parser = argparse.ArgumentParser(prog="downsample", description="UVH5 downsampling toolkit")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     p_single = sub.add_parser("single", help="Reference single-file downsample")
@@ -68,9 +67,7 @@ def main(argv: list[str] | None = None) -> int:
         )
     )
 
-    p_batch = sub.add_parser(
-        "batch", help="Parallel directory downsample (uses fast path)"
-    )
+    p_batch = sub.add_parser("batch", help="Parallel directory downsample (uses fast path)")
     add_batch_args(p_batch)
     p_batch.set_defaults(
         func=lambda a: downsample_uvh5_batch(
@@ -104,7 +101,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("freq-factor must be >= 1")
 
     try:
-        res = args.func(args)
+        args.func(args)
     except Exception as e:
         print(f"ERROR: {e}", file=sys.stderr)
         return 1

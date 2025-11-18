@@ -24,9 +24,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 class TestImageMSLogic:
     """Test image_ms function logic with mocked dependencies."""
 
-    def test_quality_tier_development_cell_size(
-        self, mock_table_factory, temp_work_dir
-    ):
+    def test_quality_tier_development_cell_size(self, mock_table_factory, temp_work_dir):
         """Test that development tier uses 4x coarser cell size."""
         from dsa110_contimg.imaging.cli_imaging import image_ms
 
@@ -37,27 +35,33 @@ class TestImageMSLogic:
         Path(ms_path).mkdir(parents=True, exist_ok=True)
 
         # Mock MS structure with default cell size calculation
-        with patch("casacore.tables.table", side_effect=mock_table_factory), patch(
-            "dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.table", side_effect=mock_table_factory
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.run_wsclean"
-        ) as mock_wsclean, patch(
-            "dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None
-        ), patch(
-            "dsa110_contimg.utils.validation.validate_corrected_data_quality",
-            return_value=[],
+        with (
+            patch("casacore.tables.table", side_effect=mock_table_factory),
+            patch("dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.table",
+                side_effect=mock_table_factory,
+            ),
+            patch("dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec",
+                return_value=2.0,
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_utils.detect_datacolumn",
+                return_value="data",
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.detect_datacolumn",
+                return_value="data",
+            ),
+            patch("dsa110_contimg.imaging.cli_imaging.run_wsclean") as mock_wsclean,
+            patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
+            patch(
+                "dsa110_contimg.utils.validation.validate_corrected_data_quality",
+                return_value=[],
+            ),
         ):
-
             # Call with development tier
             image_ms(
                 ms_path,
@@ -71,9 +75,7 @@ class TestImageMSLogic:
             call_args = mock_wsclean.call_args
             assert call_args[1]["cell_arcsec"] == 8.0  # 4x coarser
 
-    def test_quality_tier_development_iterations(
-        self, mock_table_factory, temp_work_dir
-    ):
+    def test_quality_tier_development_iterations(self, mock_table_factory, temp_work_dir):
         """Test that development tier limits iterations to 300."""
         from dsa110_contimg.imaging.cli_imaging import image_ms
 
@@ -83,27 +85,33 @@ class TestImageMSLogic:
         # Create a dummy MS directory
         Path(ms_path).mkdir(parents=True, exist_ok=True)
 
-        with patch("casacore.tables.table", side_effect=mock_table_factory), patch(
-            "dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.table", side_effect=mock_table_factory
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.run_wsclean"
-        ) as mock_wsclean, patch(
-            "dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None
-        ), patch(
-            "dsa110_contimg.utils.validation.validate_corrected_data_quality",
-            return_value=[],
+        with (
+            patch("casacore.tables.table", side_effect=mock_table_factory),
+            patch("dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.table",
+                side_effect=mock_table_factory,
+            ),
+            patch("dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec",
+                return_value=2.0,
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_utils.detect_datacolumn",
+                return_value="data",
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.detect_datacolumn",
+                return_value="data",
+            ),
+            patch("dsa110_contimg.imaging.cli_imaging.run_wsclean") as mock_wsclean,
+            patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
+            patch(
+                "dsa110_contimg.utils.validation.validate_corrected_data_quality",
+                return_value=[],
+            ),
         ):
-
             # Call with development tier and high niter
             image_ms(
                 ms_path,
@@ -126,27 +134,33 @@ class TestImageMSLogic:
         # Create a dummy MS directory
         Path(ms_path).mkdir(parents=True, exist_ok=True)
 
-        with patch("casacore.tables.table", side_effect=mock_table_factory), patch(
-            "dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.table", side_effect=mock_table_factory
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.run_wsclean"
-        ) as mock_wsclean, patch(
-            "dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None
-        ), patch(
-            "dsa110_contimg.utils.validation.validate_corrected_data_quality",
-            return_value=[],
+        with (
+            patch("casacore.tables.table", side_effect=mock_table_factory),
+            patch("dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.table",
+                side_effect=mock_table_factory,
+            ),
+            patch("dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec",
+                return_value=2.0,
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_utils.detect_datacolumn",
+                return_value="data",
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.detect_datacolumn",
+                return_value="data",
+            ),
+            patch("dsa110_contimg.imaging.cli_imaging.run_wsclean") as mock_wsclean,
+            patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
+            patch(
+                "dsa110_contimg.utils.validation.validate_corrected_data_quality",
+                return_value=[],
+            ),
         ):
-
             # Call with standard tier
             image_ms(
                 ms_path,
@@ -171,38 +185,40 @@ class TestImageMSLogic:
         # Create a dummy MS directory
         Path(ms_path).mkdir(parents=True, exist_ok=True)
 
-        with patch("casacore.tables.table", side_effect=mock_table_factory), patch(
-            "dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.table", side_effect=mock_table_factory
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.detect_datacolumn",
-            return_value="corrected",
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.detect_datacolumn",
-            return_value="corrected",
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.run_wsclean"
-        ) as mock_wsclean, patch(
-            "dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None
-        ), patch(
-            "dsa110_contimg.utils.validation.validate_corrected_data_quality",
-            return_value=[],
+        with (
+            patch("casacore.tables.table", side_effect=mock_table_factory),
+            patch("dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.table",
+                side_effect=mock_table_factory,
+            ),
+            patch("dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec",
+                return_value=2.0,
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_utils.detect_datacolumn",
+                return_value="corrected",
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.detect_datacolumn",
+                return_value="corrected",
+            ),
+            patch("dsa110_contimg.imaging.cli_imaging.run_wsclean") as mock_wsclean,
+            patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
+            patch(
+                "dsa110_contimg.utils.validation.validate_corrected_data_quality",
+                return_value=[],
+            ),
         ):
-
             image_ms(ms_path, imagename=imagename)
 
             # Verify WSClean called with corrected datacolumn
             call_args = mock_wsclean.call_args
             assert call_args[1]["datacolumn"] == "corrected"
 
-    def test_datacolumn_detection_data_fallback(
-        self, mock_table_factory, temp_work_dir
-    ):
+    def test_datacolumn_detection_data_fallback(self, mock_table_factory, temp_work_dir):
         """Test that DATA is used when CORRECTED_DATA not available."""
         from dsa110_contimg.imaging.cli_imaging import image_ms
 
@@ -212,27 +228,33 @@ class TestImageMSLogic:
         # Create a dummy MS directory
         Path(ms_path).mkdir(parents=True, exist_ok=True)
 
-        with patch("casacore.tables.table", side_effect=mock_table_factory), patch(
-            "dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.table", side_effect=mock_table_factory
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.run_wsclean"
-        ) as mock_wsclean, patch(
-            "dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None
-        ), patch(
-            "dsa110_contimg.utils.validation.validate_corrected_data_quality",
-            return_value=[],
+        with (
+            patch("casacore.tables.table", side_effect=mock_table_factory),
+            patch("dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.table",
+                side_effect=mock_table_factory,
+            ),
+            patch("dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec",
+                return_value=2.0,
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_utils.detect_datacolumn",
+                return_value="data",
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.detect_datacolumn",
+                return_value="data",
+            ),
+            patch("dsa110_contimg.imaging.cli_imaging.run_wsclean") as mock_wsclean,
+            patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
+            patch(
+                "dsa110_contimg.utils.validation.validate_corrected_data_quality",
+                return_value=[],
+            ),
         ):
-
             image_ms(ms_path, imagename=imagename)
 
             # Verify WSClean called with data datacolumn
@@ -251,10 +273,10 @@ class TestRunWSCleanLogic:
         ms_path = "/fake/test.ms"
         imagename = str(temp_work_dir / "test.img")
 
-        with patch(
-            "subprocess.run", side_effect=mock_wsclean_subprocess
-        ) as mock_subprocess, patch("shutil.which", return_value="/usr/bin/wsclean"):
-
+        with (
+            patch("subprocess.run", side_effect=mock_wsclean_subprocess) as mock_subprocess,
+            patch("shutil.which", return_value="/usr/bin/wsclean"),
+        ):
             run_wsclean(
                 ms_path=ms_path,
                 imagename=imagename,
@@ -285,23 +307,18 @@ class TestRunWSCleanLogic:
             # Verify -reorder is in the command (regardless of quality tier)
             assert "-reorder" in cmd
 
-    def test_wsclean_development_tier_memory(
-        self, mock_wsclean_subprocess, temp_work_dir
-    ):
+    def test_wsclean_development_tier_memory(self, mock_wsclean_subprocess, temp_work_dir):
         """Test that development tier uses appropriate memory settings."""
         from dsa110_contimg.imaging.cli_imaging import run_wsclean
 
         ms_path = "/fake/test.ms"
         imagename = str(temp_work_dir / "test.img")
 
-        with patch(
-            "subprocess.run", side_effect=mock_wsclean_subprocess
-        ) as mock_subprocess, patch(
-            "shutil.which", return_value="/usr/bin/wsclean"
-        ), patch.dict(
-            os.environ, {}, clear=True
+        with (
+            patch("subprocess.run", side_effect=mock_wsclean_subprocess) as mock_subprocess,
+            patch("shutil.which", return_value="/usr/bin/wsclean"),
+            patch.dict(os.environ, {}, clear=True),
         ):  # Clear WSCLEAN_ABS_MEM
-
             run_wsclean(
                 ms_path=ms_path,
                 imagename=imagename,
@@ -339,10 +356,10 @@ class TestRunWSCleanLogic:
         ms_path = "/fake/test.ms"
         imagename = str(temp_work_dir / "test.img")
 
-        with patch(
-            "subprocess.run", side_effect=mock_wsclean_subprocess
-        ) as mock_subprocess, patch("shutil.which", return_value="/usr/bin/wsclean"):
-
+        with (
+            patch("subprocess.run", side_effect=mock_wsclean_subprocess) as mock_subprocess,
+            patch("shutil.which", return_value="/usr/bin/wsclean"),
+        ):
             run_wsclean(
                 ms_path=ms_path,
                 imagename=imagename,
@@ -402,9 +419,7 @@ class TestImagingUtils:
             ctx.__exit__ = Mock(return_value=None)
 
             # Return non-zero corrected data
-            corrected_data = np.random.random((100, 1, 4)) + 1j * np.random.random(
-                (100, 1, 4)
-            )
+            corrected_data = np.random.random((100, 1, 4)) + 1j * np.random.random((100, 1, 4))
             flags = np.zeros((100, 1, 4), dtype=bool)
 
             def mock_getcol(colname, start=0, n=100):
@@ -470,8 +485,9 @@ class TestImagingUtils:
                 ctx.nrows.return_value = 1000
             return ctx
 
-        with patch("casacore.tables.table", side_effect=mock_table_with_uvw), patch(
-            "daskms.xds_from_ms", side_effect=ImportError("daskms not available")
+        with (
+            patch("casacore.tables.table", side_effect=mock_table_with_uvw),
+            patch("daskms.xds_from_ms", side_effect=ImportError("daskms not available")),
         ):
             cell = default_cell_arcsec(ms_path)
             # Should return a reasonable cell size (0.1 to 60 arcsec)

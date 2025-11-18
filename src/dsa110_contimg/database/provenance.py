@@ -7,7 +7,6 @@ including source MS paths, solver parameters, commands, and quality metrics.
 
 import json
 import logging
-import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional

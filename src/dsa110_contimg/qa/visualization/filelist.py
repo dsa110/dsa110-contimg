@@ -21,18 +21,17 @@ except ImportError:
 
     HTML = str
 
+from .executor import executor, ncpu
 from .file import FileBase, autodetect_file_type
 from .render import (
-    render_table,
-    rich_string,
-    render_titled_content,
+    RenderingProxy,
     render_preamble,
     render_status_message,
-    RenderingProxy,
+    render_table,
+    render_titled_content,
 )
-from .table import tabulate
-from .executor import executor, ncpu
 from .settings_manager import settings
+from .table import tabulate
 
 # Import file type classes (lazy import to avoid circular dependencies)
 _FITSFile = None
@@ -153,9 +152,7 @@ class FileList(FileBase, list):
         if content is not None:
             self._set_list(content, sort)
 
-    def _set_list(
-        self, content: List[Union[str, FileBase]], sort: Optional[str] = None
-    ) -> None:
+    def _set_list(self, content: List[Union[str, FileBase]], sort: Optional[str] = None) -> None:
         """
         Set the list content from a list of paths or FileBase objects.
 
@@ -351,9 +348,7 @@ class FileList(FileBase, list):
         import fnmatch
 
         def matches(item: FileBase) -> bool:
-            return fnmatch.fnmatch(item.basename, pattern) or fnmatch.fnmatch(
-                item.path, pattern
-            )
+            return fnmatch.fnmatch(item.basename, pattern) or fnmatch.fnmatch(item.path, pattern)
 
         return self.filter(matches)
 
@@ -374,8 +369,7 @@ class FileList(FileBase, list):
 
         def matches(item: FileBase) -> bool:
             return not (
-                fnmatch.fnmatch(item.basename, pattern)
-                or fnmatch.fnmatch(item.path, pattern)
+                fnmatch.fnmatch(item.basename, pattern) or fnmatch.fnmatch(item.path, pattern)
             )
 
         return self.filter(matches)
@@ -389,9 +383,7 @@ class FileList(FileBase, list):
         self.mark_shown()
 
         if len(self) == 0:
-            display(
-                HTML(f'<p class="qa-status-message">No files found in {self.title}</p>')
-            )
+            display(HTML(f'<p class="qa-status-message">No files found in {self.title}</p>'))
             return
 
         # Prepare table data
@@ -512,9 +504,7 @@ class FileList(FileBase, list):
             thumb_html = item.render_thumb(**kwargs)
             if titles:
                 title_html = f'<div class="qa-thumb-title">{item.basename}</div>'
-                thumb_html = (
-                    f'<div class="qa-thumb-item">{thumb_html}{title_html}</div>'
-                )
+                thumb_html = f'<div class="qa-thumb-item">{thumb_html}{title_html}</div>'
             return HTMLString(thumb_html)
 
         # Use parallel processing if multiple CPUs available
@@ -524,9 +514,7 @@ class FileList(FileBase, list):
             thumbs = list(executor().map(_make_thumb, enumerate(self)))
 
         if not thumbs:
-            return render_status_message(
-                "No thumbnails generated", message_type="warning"
-            )
+            return render_status_message("No thumbnails generated", message_type="warning")
 
         # Determine number of columns
         if ncol is None:
@@ -703,10 +691,7 @@ class FileList(FileBase, list):
                 matching = [
                     f
                     for f in self
-                    if (
-                        fnmatch.fnmatch(f.basename, patt)
-                        or fnmatch.fnmatch(f.path, patt)
-                    )
+                    if (fnmatch.fnmatch(f.basename, patt) or fnmatch.fnmatch(f.path, patt))
                 ]
                 if files:
                     # Intersection with previous matches

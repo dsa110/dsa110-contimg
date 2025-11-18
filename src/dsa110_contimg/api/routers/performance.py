@@ -8,8 +8,7 @@ import logging
 import time
 from typing import Any, Dict
 
-from fastapi import APIRouter, Request
-from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi import APIRouter
 
 from dsa110_contimg.api.caching import get_cache
 from dsa110_contimg.api.rate_limiting import SLOWAPI_AVAILABLE, get_limiter

@@ -6,13 +6,7 @@ Tests the group detection functionality with focus on:
 - Edge case handling (incomplete groups, time windows)
 """
 
-import sqlite3
-import tempfile
-import time
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-
-import pytest
 
 from dsa110_contimg.conversion.streaming.streaming_converter import (
     check_for_complete_group,

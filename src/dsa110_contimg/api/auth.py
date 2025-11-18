@@ -5,7 +5,6 @@ Implements JWT token-based authentication with role-based access control (RBAC).
 
 from __future__ import annotations
 
-import hashlib
 import logging
 import os
 import sqlite3
@@ -55,9 +54,7 @@ class UserRole:
     @staticmethod
     def has_permission(user_role: str, required_role: str) -> bool:
         """Check if user role has permission for required role."""
-        return UserRole.get_hierarchy(user_role) >= UserRole.get_hierarchy(
-            required_role
-        )
+        return UserRole.get_hierarchy(user_role) >= UserRole.get_hierarchy(required_role)
 
 
 # Pydantic models
@@ -187,9 +184,7 @@ def get_user_by_username(username: str) -> Optional[User]:
                 email=row["email"],
                 role=row["role"],
                 created_at=(
-                    datetime.fromisoformat(row["created_at"])
-                    if row["created_at"]
-                    else None
+                    datetime.fromisoformat(row["created_at"]) if row["created_at"] else None
                 ),
             )
     return None
@@ -232,9 +227,7 @@ def authenticate_user(username: str, password: str) -> Optional[User]:
             username=row["username"],
             email=row["email"],
             role=row["role"],
-            created_at=(
-                datetime.fromisoformat(row["created_at"]) if row["created_at"] else None
-            ),
+            created_at=(datetime.fromisoformat(row["created_at"]) if row["created_at"] else None),
         )
 
 
@@ -264,9 +257,7 @@ def verify_token(token: str) -> TokenData:
             )
         return TokenData(username=username, role=role)
     except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired")
     except jwt.JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -281,9 +272,7 @@ async def get_current_user(
     token_data = verify_token(credentials.credentials)
     user = get_user_by_username(token_data.username)
     if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
 
 

@@ -7,9 +7,6 @@ Task 1.2: Comprehensive Validation Test Suite
 from __future__ import annotations
 
 import sqlite3
-import tempfile
-import time
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -357,7 +354,8 @@ class TestESEDetectionPipeline:
         conn = sqlite3.connect(temp_products_db)
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT peak_jyb FROM photometry WHERE source_id = ? ORDER BY mjd", (source_id,)
+            "SELECT peak_jyb FROM photometry WHERE source_id = ? ORDER BY mjd",
+            (source_id,),
         )
         stored_fluxes = [row[0] for row in cursor.fetchall()]
         conn.close()

@@ -5,7 +5,6 @@ Focus: Fast tests for batch conversion and publishing endpoints with mocked depe
 
 from __future__ import annotations
 
-import json
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -86,7 +85,15 @@ class TestBatchConvertEndpoint:
             INSERT INTO batch_jobs (type, created_at, status, total_items, completed_items, failed_items, params)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            ("batch_convert", 1234567890.0, "pending", 2, 0, 0, '{"output_dir": "/stage/ms"}'),
+            (
+                "batch_convert",
+                1234567890.0,
+                "pending",
+                2,
+                0,
+                0,
+                '{"output_dir": "/stage/ms"}',
+            ),
         )
         batch_id = cursor.lastrowid
 
@@ -96,14 +103,22 @@ class TestBatchConvertEndpoint:
             INSERT INTO batch_job_items (batch_id, ms_path, status)
             VALUES (?, ?, ?)
             """,
-            (batch_id, "time_window_2025-11-12T10:00:00_2025-11-12T10:50:00", "pending"),
+            (
+                batch_id,
+                "time_window_2025-11-12T10:00:00_2025-11-12T10:50:00",
+                "pending",
+            ),
         )
         cursor.execute(
             """
             INSERT INTO batch_job_items (batch_id, ms_path, status)
             VALUES (?, ?, ?)
             """,
-            (batch_id, "time_window_2025-11-12T11:00:00_2025-11-12T11:50:00", "pending"),
+            (
+                batch_id,
+                "time_window_2025-11-12T11:00:00_2025-11-12T11:50:00",
+                "pending",
+            ),
         )
         conn.commit()
 

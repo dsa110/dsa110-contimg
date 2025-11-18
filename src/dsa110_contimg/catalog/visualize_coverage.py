@@ -14,14 +14,15 @@ import argparse
 import logging
 import sqlite3
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import matplotlib.pyplot as plt
-import numpy as np
 from matplotlib.patches import Rectangle
 
-from dsa110_contimg.catalog.builders import (CATALOG_COVERAGE_LIMITS,
-                                             check_catalog_database_exists)
+from dsa110_contimg.catalog.builders import (
+    CATALOG_COVERAGE_LIMITS,
+    check_catalog_database_exists,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -33,13 +34,13 @@ def plot_catalog_coverage(
     ingest_db_path: Optional[Path] = None,
 ) -> Path:
     """Plot catalog coverage limits and current status.
-    
+
     Args:
         dec_deg: Current declination (if None, tries to get from pointing history)
         output_path: Output file path (default: auto-generated)
         show_database_status: If True, show database existence status
         ingest_db_path: Path to ingest database for getting current declination
-        
+
     Returns:
         Path to generated plot
     """
@@ -56,10 +57,10 @@ def plot_catalog_coverage(
                         dec_deg = float(result[0])
         except Exception as e:
             logger.warning(f"Failed to get declination from pointing history: {e}")
-    
+
     # Create figure
     fig, ax = plt.subplots(figsize=(12, 8))
-    
+
     # Plot coverage ranges
     y_pos = 0
     colors = {
@@ -72,14 +73,14 @@ def plot_catalog_coverage(
         "first": "FIRST",
         "rax": "RACS (RAX)",
     }
-    
+
     catalog_info = []
-    
+
     for catalog_type in ["nvss", "first", "rax"]:
         limits = CATALOG_COVERAGE_LIMITS.get(catalog_type, {})
         dec_min = limits.get("dec_min", -90.0)
         dec_max = limits.get("dec_max", 90.0)
-        
+
         # Check database status
         db_exists = False
         within_coverage = True
@@ -87,12 +88,12 @@ def plot_catalog_coverage(
             within_coverage = dec_deg >= dec_min and dec_deg <= dec_max
             if within_coverage:
                 db_exists, _ = check_catalog_database_exists(catalog_type, dec_deg)
-        
+
         # Draw coverage bar
         width = dec_max - dec_min
         color = colors.get(catalog_type, "gray")
         alpha = 0.7 if db_exists else 0.3
-        
+
         rect = Rectangle(
             (dec_min, y_pos - 0.4),
             width,
@@ -103,7 +104,7 @@ def plot_catalog_coverage(
             linewidth=1.5,
         )
         ax.add_patch(rect)
-        
+
         # Add label
         label = labels.get(catalog_type, catalog_type.upper())
         status_text = ""
@@ -114,7 +115,7 @@ def plot_catalog_coverage(
                 status_text = " ✓ DB exists"
             else:
                 status_text = " ✗ DB missing"
-        
+
         ax.text(
             dec_min + width / 2,
             y_pos,
@@ -124,7 +125,7 @@ def plot_catalog_coverage(
             fontsize=10,
             fontweight="bold",
         )
-        
+
         # Add coverage limits text
         ax.text(
             dec_min,
@@ -142,17 +143,19 @@ def plot_catalog_coverage(
             va="top",
             fontsize=8,
         )
-        
-        catalog_info.append({
-            "type": catalog_type,
-            "dec_min": dec_min,
-            "dec_max": dec_max,
-            "db_exists": db_exists,
-            "within_coverage": within_coverage,
-        })
-        
+
+        catalog_info.append(
+            {
+                "type": catalog_type,
+                "dec_min": dec_min,
+                "dec_max": dec_max,
+                "db_exists": db_exists,
+                "within_coverage": within_coverage,
+            }
+        )
+
         y_pos += 1.5
-    
+
     # Plot current declination if available
     if dec_deg is not None:
         ax.axvline(
@@ -173,7 +176,7 @@ def plot_catalog_coverage(
             fontweight="bold",
             color="red",
         )
-    
+
     # Set axis properties
     ax.set_xlim(-95, 95)
     ax.set_ylim(-1, y_pos)
@@ -182,7 +185,7 @@ def plot_catalog_coverage(
     ax.set_title("Catalog Coverage Limits and Database Status", fontsize=14, fontweight="bold")
     ax.grid(True, alpha=0.3, axis="x")
     ax.set_yticks([])
-    
+
     # Add legend
     legend_elements = [
         plt.Rectangle((0, 0), 1, 1, facecolor="gray", alpha=0.7, label="Database exists"),
@@ -193,20 +196,20 @@ def plot_catalog_coverage(
             plt.Line2D([0], [0], color="red", linestyle="--", label="Current declination")
         )
     ax.legend(handles=legend_elements, loc="upper right")
-    
+
     plt.tight_layout()
-    
+
     # Save plot
     if output_path is None:
         output_path = Path("state/catalogs/coverage_plot.png")
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    
+
     plt.savefig(output_path, dpi=150, bbox_inches="tight")
     logger.info(f"Coverage plot saved to: {output_path}")
-    
+
     plt.close()
-    
+
     return output_path
 
 
@@ -216,12 +219,12 @@ def plot_coverage_summary_table(
     ingest_db_path: Optional[Path] = None,
 ) -> Path:
     """Create a summary table showing catalog coverage status.
-    
+
     Args:
         dec_deg: Current declination (if None, tries to get from pointing history)
         output_path: Output file path (default: auto-generated)
         ingest_db_path: Path to ingest database for getting current declination
-        
+
     Returns:
         Path to generated plot
     """
@@ -238,28 +241,34 @@ def plot_coverage_summary_table(
                         dec_deg = float(result[0])
         except Exception as e:
             logger.warning(f"Failed to get declination from pointing history: {e}")
-    
+
     # Create figure
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.axis("off")
-    
+
     # Prepare table data
     table_data = []
-    headers = ["Catalog", "Coverage Range", "Within Coverage", "Database Exists", "Status"]
-    
+    headers = [
+        "Catalog",
+        "Coverage Range",
+        "Within Coverage",
+        "Database Exists",
+        "Status",
+    ]
+
     for catalog_type in ["nvss", "first", "rax"]:
         limits = CATALOG_COVERAGE_LIMITS.get(catalog_type, {})
         dec_min = limits.get("dec_min", -90.0)
         dec_max = limits.get("dec_max", 90.0)
-        
+
         catalog_name = {
             "nvss": "NVSS",
             "first": "FIRST",
             "rax": "RACS (RAX)",
         }.get(catalog_type, catalog_type.upper())
-        
+
         coverage_range = f"{dec_min:.1f}° to {dec_max:.1f}°"
-        
+
         if dec_deg is None:
             within_coverage = "N/A"
             db_exists = "N/A"
@@ -273,15 +282,17 @@ def plot_coverage_summary_table(
             else:
                 db_exists = "N/A"
                 status = "Outside coverage"
-        
-        table_data.append([
-            catalog_name,
-            coverage_range,
-            within_coverage,
-            db_exists,
-            status,
-        ])
-    
+
+        table_data.append(
+            [
+                catalog_name,
+                coverage_range,
+                within_coverage,
+                db_exists,
+                status,
+            ]
+        )
+
     # Create table
     table = ax.table(
         cellText=table_data,
@@ -290,12 +301,12 @@ def plot_coverage_summary_table(
         loc="center",
         bbox=[0, 0, 1, 1],
     )
-    
+
     # Style table
     table.auto_set_font_size(False)
     table.set_fontsize(10)
     table.scale(1, 2)
-    
+
     # Color code cells
     for i in range(len(table_data)):
         status_cell = table[(i + 1, 4)]  # Status column
@@ -305,32 +316,32 @@ def plot_coverage_summary_table(
             status_cell.set_facecolor("#FFB6C1")  # Light red
         else:
             status_cell.set_facecolor("#D3D3D3")  # Light gray
-    
+
     # Header styling
     for i in range(len(headers)):
         header_cell = table[(0, i)]
         header_cell.set_facecolor("#4CAF50")
         header_cell.set_text_props(weight="bold", color="white")
-    
+
     # Title
     title = "Catalog Coverage Status"
     if dec_deg is not None:
         title += f" (Current Dec: {dec_deg:.2f}°)"
     ax.set_title(title, fontsize=14, fontweight="bold", pad=20)
-    
+
     plt.tight_layout()
-    
+
     # Save plot
     if output_path is None:
         output_path = Path("state/catalogs/coverage_table.png")
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    
+
     plt.savefig(output_path, dpi=150, bbox_inches="tight")
     logger.info(f"Coverage table saved to: {output_path}")
-    
+
     plt.close()
-    
+
     return output_path
 
 
@@ -368,15 +379,15 @@ def main():
         action="store_true",
         help="Don't show database existence status",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Set up logging
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
-    
+
     # Find ingest DB if not provided
     ingest_db_path = args.ingest_db
     if ingest_db_path is None:
@@ -388,11 +399,11 @@ def main():
             if candidate.exists():
                 ingest_db_path = candidate
                 break
-    
+
     # Generate plots
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     if args.plot_type in ["both", "coverage"]:
         plot_path = plot_catalog_coverage(
             dec_deg=args.dec,
@@ -401,7 +412,7 @@ def main():
             ingest_db_path=ingest_db_path,
         )
         print(f"✓ Coverage plot: {plot_path}")
-    
+
     if args.plot_type in ["both", "table"]:
         table_path = plot_coverage_summary_table(
             dec_deg=args.dec,
@@ -415,4 +426,3 @@ if __name__ == "__main__":
     import sys
 
     sys.exit(main())
-

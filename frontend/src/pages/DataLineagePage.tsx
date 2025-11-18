@@ -3,7 +3,7 @@
  * Visualizes data flow: UVH5 → MS → Calibrated MS → Image → Mosaic
  * Shows calibration chain and processing parameters
  */
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Container,
   Typography,

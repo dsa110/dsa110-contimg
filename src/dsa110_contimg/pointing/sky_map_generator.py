@@ -9,12 +9,63 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import numpy as np
 from PIL import Image
 
 logger = logging.getLogger(__name__)
+
+
+def get_or_generate_gsm_cache(
+    frequency_mhz: float = 1400.0,
+    force_regenerate: bool = False,
+) -> np.ndarray:
+    """Get cached GSM numpy array or generate if not exists.
+
+    This function caches the Global Sky Model as a numpy array for fast loading.
+    The GSM generation takes 20-30 seconds, but loading from numpy is instant.
+
+    Args:
+        frequency_mhz: Frequency in MHz (default: 1400.0)
+        force_regenerate: Force regeneration even if cache exists
+
+    Returns:
+        HEALPix sky map numpy array (log10 scale, masked for <= 0 values)
+    """
+    state_dir = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
+    cache_dir = state_dir / "pointing" / "gsm_cache"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+
+    cache_file = cache_dir / f"gsm_{int(frequency_mhz)}mhz.npy"
+
+    # Check if cache exists and is valid
+    if not force_regenerate and cache_file.exists():
+        logger.info(f"Loading cached GSM from {cache_file}")
+        try:
+            log_sky = np.load(cache_file)
+            logger.info(f"Loaded GSM cache: shape={log_sky.shape}, dtype={log_sky.dtype}")
+            return log_sky
+        except Exception as e:
+            logger.warning(f"Failed to load GSM cache: {e}. Regenerating...")
+
+    # Generate GSM
+    logger.info(f"Generating GSM at {frequency_mhz} MHz (this may take 20-30 seconds)...")
+    import pygdsm
+
+    gsm = pygdsm.GlobalSkyModel16()
+    sky_map = gsm.generate(frequency_mhz)
+
+    # Convert to log scale, mask invalid pixels
+    log_sky = np.full_like(sky_map, np.nan, dtype=float)
+    mask = sky_map > 0
+    log_sky[mask] = np.log10(sky_map[mask])
+
+    # Cache for future use
+    np.save(cache_file, log_sky)
+    logger.info(f"Cached GSM to {cache_file} (size: {cache_file.stat().st_size / 1024:.1f} KB)")
+
+    return log_sky
 
 
 def generate_synthetic_radio_sky_map(
@@ -155,8 +206,8 @@ def load_haslam_408mhz_map(
     try:
         # Load FITS file
         with fits.open(fits_path) as hdul:
-            data = hdul[0].data  # pylint: disable=no-member
-            wcs = WCS(hdul[0].header)  # pylint: disable=no-member
+            hdul[0].data  # pylint: disable=no-member
+            WCS(hdul[0].header)  # pylint: disable=no-member
 
         # Reproject to Aitoff
         # This is a simplified version - full reprojection requires more setup
@@ -429,7 +480,7 @@ def generate_gsm_sky_map_data(
 
         # Get HEALPix resolution
         nside = hp.get_nside(sky_map)
-        npix = hp.nside2npix(nside)
+        hp.nside2npix(nside)
 
         # Convert to log scale for better visualization
         # Add small value to avoid log(0)
@@ -618,42 +669,467 @@ def generate_synthetic_sky_map_data(
 
 
 def get_sky_map_path(
-    map_type: str = "synthetic",
-    output_dir: Optional[Path] = None,
+    map_type: str = "synthetic", state_dir: Optional[Path] = None
 ) -> Optional[Path]:
-    """Get path to all-sky radio map, generating if necessary.
+    """Get path to generated sky map PNG.
 
     Args:
-        map_type: Type of map ("synthetic" or "haslam")
-        output_dir: Directory where map should be stored
+        map_type: Map type ('synthetic' or 'haslam')
+        state_dir: State directory (defaults to env var PIPELINE_STATE_DIR)
 
     Returns:
-        Path to sky map image, or None if unavailable
+        Path to map PNG file, or None if not available
     """
-    if output_dir is None:
-        # Use absolute path from project root, not relative to current working directory
-        project_root = Path(__file__).parent.parent.parent.parent
-        state_dir = Path(os.getenv("PIPELINE_STATE_DIR", str(project_root / "state")))
-        output_dir = state_dir / "pointing"
+    if state_dir is None:
+        state_dir = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
 
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    maps_dir = state_dir / "pointing" / "maps"
 
     if map_type == "synthetic":
-        output_path = output_dir / "synthetic_radio_sky_map.png"
-        if not output_path.exists():
-            generate_synthetic_radio_sky_map(output_path)
-        return output_path
+        path = maps_dir / "synthetic_radio_sky_map.png"
+        if not path.exists():
+            # Generate on demand
+            try:
+                maps_dir.mkdir(parents=True, exist_ok=True)
+                generate_synthetic_radio_sky_map(path)
+            except Exception as e:
+                logger.error(f"Failed to generate synthetic sky map: {e}")
+                return None
+        return path
     elif map_type == "haslam":
-        output_path = output_dir / "haslam_408mhz_aitoff.png"
-        result = load_haslam_408mhz_map(
-            output_path=output_path
-        )  # pylint: disable=assignment-from-none
-        if result is None:
-            # Fall back to synthetic if Haslam unavailable
-            logger.info("Falling back to synthetic map")
-            return get_sky_map_path("synthetic", output_dir)
-        return result
+        # Haslam 408 MHz map not implemented yet
+        logger.warning("Haslam 408 MHz map not yet implemented")
+        return None
     else:
         logger.warning(f"Unknown map type: {map_type}")
         return None
+
+
+def generate_mollweide_sky_map_with_pointing(
+    frequency_mhz: float = 1400.0,
+    pointing_data: Optional[List[Dict[str, float]]] = None,
+    output_path: Optional[Path] = None,
+    cmap: str = "inferno",
+) -> Path:
+    """Generate Mollweide sky map with gridlines and pointing traces.
+
+    All rendering done in backend with healpy's Mollweide projection.
+    """
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib import patheffects
+
+    try:
+        import healpy as hp
+    except ImportError as e:
+        raise ImportError(f"healpy not available: {e}")
+
+    if output_path is None:
+        import tempfile
+
+        fd, tmp_path = tempfile.mkstemp(suffix=".png")
+        os.close(fd)
+        output_path = Path(tmp_path)
+
+    logger.info(f"Generating Mollweide sky map with pointing at {frequency_mhz} MHz...")
+
+    # Load cached GSM numpy array (fast: <1 second)
+    log_sky = get_or_generate_gsm_cache(frequency_mhz)
+
+    # Create figure with transparent background
+    fig = plt.figure(figsize=(12, 6), dpi=150)
+    fig.patch.set_alpha(0)
+    fig.patch.set_facecolor("none")
+
+    # Plot sky map with coordinate transformation from Galactic to Celestial
+    # GSM is in Galactic coordinates, but we want to display in RA/Dec (Celestial)
+    hp.mollview(
+        log_sky,
+        title="",
+        unit="",
+        cmap=cmap,
+        cbar=False,
+        notext=True,
+        hold=True,
+        fig=fig.number,
+        coord=["G", "C"],  # Convert from Galactic (G) to Celestial/Equatorial (C)
+    )
+
+    ax = plt.gca()
+    ax.set_facecolor("none")
+    ax.patch.set_alpha(0)
+    ax.patch.set_facecolor("none")
+
+    # Make all axes elements transparent
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["bottom"].set_visible(False)
+    ax.spines["left"].set_visible(False)
+
+    # Set the figure background to transparent - more thorough approach
+    fig.patch.set_visible(False)
+    for item in fig.get_children():
+        if hasattr(item, "set_facecolor"):
+            try:
+                item.set_facecolor("none")
+            except (ValueError, AttributeError):
+                pass
+        if hasattr(item, "set_alpha"):
+            try:
+                item.set_alpha(0)
+            except (ValueError, AttributeError):
+                pass
+
+    # Add RA/Dec gridlines using healpy's graticule function
+    # This automatically handles the correct coordinate system and projection
+    hp.graticule(
+        dpar=30,  # Dec gridlines every 30 degrees
+        dmer=60,  # RA gridlines every 60 degrees (4 hours)
+        coord="C",  # Celestial/Equatorial coordinates
+        color="white",
+        alpha=0.8,  # Higher alpha for better visibility
+        linewidth=1.5,  # Thicker lines for better visibility
+        linestyle=":",
+    )
+
+    # Add gridline labels for RA and Dec with better visibility
+    # RA labels along the equator (Dec=0) - enhanced styling
+    for ra in range(0, 360, 60):  # Every 60 degrees (4 hours)
+        ra_hours = ra // 15  # Convert to hours (0-23h)
+        # Add text with outline/shadow for better visibility
+        # Background/outline text (black)
+        hp.projtext(
+            ra,
+            0,  # RA, Dec in degrees
+            f"{ra_hours}h",
+            lonlat=True,
+            coord="C",
+            color="black",
+            fontsize=12,
+            fontweight="bold",
+            ha="center",
+            va="bottom",
+            path_effects=[patheffects.withStroke(linewidth=4, foreground="black")],
+        )
+        # Foreground text (white)
+        hp.projtext(
+            ra,
+            0,  # RA, Dec in degrees
+            f"{ra_hours}h",
+            lonlat=True,
+            coord="C",
+            color="white",
+            fontsize=12,
+            fontweight="bold",
+            ha="center",
+            va="bottom",
+        )
+
+    # Dec labels along the prime meridian (RA=0) - enhanced styling
+    for dec in range(-60, 90, 30):  # Every 30 degrees
+        if dec != 0:  # Skip 0 to avoid overlap with RA label
+            # Background/outline text (black)
+            hp.projtext(
+                0,
+                dec,  # RA, Dec in degrees
+                f"{dec}°",
+                lonlat=True,
+                coord="C",
+                color="black",
+                fontsize=12,
+                fontweight="bold",
+                ha="right",
+                va="center",
+                path_effects=[patheffects.withStroke(linewidth=4, foreground="black")],
+            )
+            # Foreground text (white)
+            hp.projtext(
+                0,
+                dec,  # RA, Dec in degrees
+                f"{dec}°",
+                lonlat=True,
+                coord="C",
+                color="white",
+                fontsize=12,
+                fontweight="bold",
+                ha="right",
+                va="center",
+            )
+
+    # Add pointing traces if provided
+    # The frontend will now handle rendering of pointing traces dynamically.
+    # if pointing_data and len(pointing_data) > 0:
+    #     logger.info(f"Adding {len(pointing_data)} pointing points...")
+
+    #     # Extract RA/Dec arrays from pointing data
+    #     ra_list = []
+    #     dec_list = []
+    #     for pt in pointing_data:
+    #         ra = pt.get("ra_deg")
+    #         dec = pt.get("dec_deg")
+    #         if ra is not None and dec is not None:
+    #             ra_list.append(ra)
+    #             dec_list.append(dec)
+
+    #     if ra_list:
+    #         # Convert to numpy arrays
+    #         ra_arr = np.array(ra_list)
+    #         dec_arr = np.array(dec_list)
+
+    #         # Draw trace line using healpy's projplot
+    #         # lonlat=True means input is (lon, lat) = (RA, Dec) in degrees
+    #         # coord="C" means Celestial/Equatorial coordinates
+    #         # Use thick black outline, white middle, and bright colored center
+    #         # for maximum visibility against any background
+
+    #         # Black outline (outermost)
+    #         hp.projplot(
+    #             ra_arr,
+    #             dec_arr,
+    #             "-",
+    #             lonlat=True,
+    #             coord="C",
+    #             color="black",
+    #             linewidth=7,  # Thick black outline
+    #             alpha=1.0,
+    #         )
+    #         # White middle layer
+    #         hp.projplot(
+    #             ra_arr,
+    #             dec_arr,
+    #             "-",
+    #             lonlat=True,
+    #             coord="C",
+    #             color="white",
+    #             linewidth=5,  # White outline
+    #             alpha=1.0,
+    #         )
+    #         # Bright cyan center line
+    #         hp.projplot(
+    #             ra_arr,
+    #             dec_arr,
+    #             "-",
+    #             lonlat=True,
+    #             coord="C",
+    #             color="cyan",
+    #             linewidth=3.5,  # Cyan center
+    #             alpha=1.0,
+    #         )
+
+    #         # Draw marker at last point (current position)
+    #         # Use larger, more visible marker with multiple outlines
+    #         hp.projplot(
+    #             ra_arr[-1],
+    #             dec_arr[-1],
+    #             "o",
+    #             lonlat=True,
+    #             coord="C",
+    #             color="lime",
+    #             markersize=16,  # Larger marker
+    #             markeredgecolor="black",
+    #             markeredgewidth=3,  # Black outline
+    #             alpha=1.0,
+    #         )
+    #         # Add inner white ring for better visibility
+    #         hp.projplot(
+    #             ra_arr[-1],
+    #             dec_arr[-1],
+    #             "o",
+    #             lonlat=True,
+    #             coord="C",
+    #             color="lime",
+    #             markersize=14,
+    #             markeredgecolor="white",
+    #             markeredgewidth=2,
+    #             alpha=1.0,
+    #         )
+
+    # Save with transparent background
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_path, bbox_inches="tight", dpi=150, transparent=True, facecolor="none")
+    plt.close(fig)
+
+    logger.info(f"Generated sky map: {output_path}")
+    return output_path
+
+
+def generate_mollweide_sky_map_image(
+    frequency_mhz: float = 1400.0,
+    output_path: Optional[Path] = None,
+    use_cache: bool = True,
+    cmap: str = "inferno",
+) -> Path:
+    """Generate Mollweide-projected HEALPix sky map image using pygdsm.
+
+    This function follows the user's example:
+    ```
+    import healpy as hp
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import pygdsm
+    sky_map = pygdsm.GlobalSkyModel16().generate(1400)
+    hp.mollview(np.log10(sky_map), title="GSM at 1.4 GHz (log10 scale)",
+                unit="log$_{10}$(K)", cmap="inferno")
+    plt.show()
+    ```
+
+    Args:
+        frequency_mhz: Frequency in MHz (default: 1400.0)
+        output_path: Path to save the image (default: auto-generated in state/pointing/maps/)
+        use_cache: If True, use cached image if available (default: True)
+        cmap: Colormap for visualization (default: "inferno")
+
+    Returns:
+        Path to the generated image file
+    """
+    import matplotlib
+
+    matplotlib.use("Agg")  # Use non-interactive backend
+    import matplotlib.pyplot as plt
+
+    try:
+        import healpy as hp
+        import pygdsm
+    except ImportError as e:
+        raise ImportError(
+            f"pygdsm or healpy not available: {e}. " "Install with: pip install pygdsm healpy"
+        )
+
+    # Generate output path if not provided
+    if output_path is None:
+        state_dir = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
+        maps_dir = state_dir / "pointing" / "maps"
+        maps_dir.mkdir(parents=True, exist_ok=True)
+        output_path = maps_dir / f"gsm_mollweide_{int(frequency_mhz)}mhz.png"
+
+    # Check cache
+    if use_cache and output_path.exists():
+        logger.info(f"Using cached Mollweide sky map: {output_path}")
+        return output_path
+
+    logger.info(f"Generating Mollweide HEALPix sky map at {frequency_mhz} MHz...")
+
+    # Generate Global Sky Model at specified frequency
+    gsm = pygdsm.GlobalSkyModel16()
+    sky_map = gsm.generate(frequency_mhz)
+
+    # Create Mollweide projection with healpy
+    # Avoid log10(<=0): mask those pixels
+    log_sky = np.full_like(sky_map, np.nan, dtype=float)
+    mask = sky_map > 0
+    log_sky[mask] = np.log10(sky_map[mask])
+
+    # Create transparent figure for overlay on frontend grid
+    fig = plt.figure(figsize=(6, 3), dpi=300)
+    fig.patch.set_alpha(0)  # transparent figure background
+
+    hp.mollview(
+        log_sky,
+        title="",  # no title
+        unit="",  # no unit label
+        cmap=cmap,
+        cbar=False,  # no colorbar
+        notext=True,  # no labels on the map
+        hold=True,
+        fig=fig.number,
+    )
+
+    # Make the axes background transparent as well
+    ax = plt.gca()
+    ax.set_facecolor("none")
+
+    # Save to file with transparent background
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_path, bbox_inches="tight", dpi=300, transparent=True)
+    plt.close(fig)
+
+    logger.info(f"Generated Mollweide sky map: {output_path}")
+    return output_path
+
+
+def get_mollweide_sky_map_data(
+    frequency_mhz: float = 1400.0,
+    nside: int = 64,
+    use_cache: bool = True,
+) -> Dict:
+    """Get HEALPix sky map data in Mollweide projection for frontend display.
+
+    Returns the HEALPix map data and projection information that can be
+    used by the frontend to render the sky map.
+
+    Args:
+        frequency_mhz: Frequency in MHz (default: 1400.0)
+        nside: HEALPix NSIDE parameter (default: 64)
+        use_cache: If True, use cached data if available (default: True)
+
+    Returns:
+        Dictionary with:
+            - pixels: HEALPix pixel values (log10 scale)
+            - nside: HEALPix NSIDE parameter
+            - frequency_mhz: Frequency
+            - unit: Data unit
+            - projection: "mollweide"
+    """
+    try:
+        import healpy as hp
+        import pygdsm
+    except ImportError as e:
+        raise ImportError(
+            f"pygdsm or healpy not available: {e}. " "Install with: pip install pygdsm healpy"
+        )
+
+    # Check cache
+    cache_dir = Path(os.getenv("PIPELINE_STATE_DIR", "state")) / "pointing" / "cache"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_file = cache_dir / f"gsm_healpix_{int(frequency_mhz)}mhz_nside{nside}.npz"
+
+    if use_cache and cache_file.exists():
+        try:
+            logger.info(f"Loading cached HEALPix sky map: {cache_file}")
+            data = np.load(cache_file)
+            return {
+                "pixels": data["pixels"].tolist(),
+                "nside": int(data["nside"]),
+                "frequency_mhz": float(data["frequency_mhz"]),
+                "unit": "log10(K)",
+                "projection": "mollweide",
+            }
+        except Exception as e:
+            logger.warning(f"Failed to load cache, regenerating: {e}")
+
+    logger.info(f"Generating HEALPix sky map at {frequency_mhz} MHz (NSIDE={nside})...")
+
+    # Generate Global Sky Model at specified frequency
+    gsm = pygdsm.GlobalSkyModel16()
+    sky_map = gsm.generate(frequency_mhz)
+
+    # Resample to desired NSIDE if needed
+    sky_map_nside = hp.get_nside(sky_map)
+    if sky_map_nside != nside:
+        logger.info(f"Resampling from NSIDE={sky_map_nside} to NSIDE={nside}")
+        sky_map = hp.ud_grade(sky_map, nside)
+
+    # Convert to log10 scale
+    sky_map_log = np.log10(sky_map)
+
+    # Save to cache
+    try:
+        np.savez_compressed(
+            cache_file,
+            pixels=sky_map_log,
+            nside=nside,
+            frequency_mhz=frequency_mhz,
+        )
+        logger.info(f"Cached HEALPix sky map: {cache_file}")
+    except Exception as e:
+        logger.warning(f"Failed to cache sky map: {e}")
+
+    return {
+        "pixels": sky_map_log.tolist(),
+        "nside": nside,
+        "frequency_mhz": frequency_mhz,
+        "unit": "log10(K)",
+        "projection": "mollweide",
+    }

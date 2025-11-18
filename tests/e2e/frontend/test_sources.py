@@ -13,7 +13,6 @@ import re
 
 import pytest
 from playwright.sync_api import Page, expect
-
 from tests.e2e.frontend.pages.sources_page import SourcesPage
 
 
@@ -225,7 +224,7 @@ class TestSourcesPage:
         sources_page.click_search()
 
         # Button should be disabled during loading
-        search_button = sources_page.get_search_button()
+        sources_page.get_search_button()
         # Note: The button may re-enable quickly, so we check immediately after click
         # The fix ensures button is disabled when isLoading is true
 

@@ -31,7 +31,6 @@ from .exceptions import (
     GridMismatchError,
     ImageCorruptionError,
     ImageReadError,
-    IncompatibleImageFormatError,
     MetricsGenerationError,
     MissingPrimaryBeamError,
     MosaicError,
@@ -155,6 +154,148 @@ def _fetch_tiles(
     return tiles
 
 
+def cmd_create(args: argparse.Namespace) -> int:
+    """Create mosaic using explicit time range (manual mode)."""
+    from dsa110_contimg.mosaic.orchestrator import MosaicOrchestrator
+
+    logging.basicConfig(
+        level=logging.DEBUG if args.verbose else logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+
+    orchestrator = MosaicOrchestrator()
+
+    try:
+        mosaic_path = orchestrator.create_mosaic_centered_on_calibrator(
+            calibrator_name=args.calibrator,
+            start_time=args.start_time,
+            end_time=args.end_time,
+            timespan_minutes=args.timespan_minutes,
+            min_ms_count=args.min_ms_count,
+            overwrite=args.overwrite,
+            dry_run=args.dry_run,
+        )
+
+        if mosaic_path:
+            print(f"✓ Mosaic created: {mosaic_path}")
+            return 0
+        else:
+            print("✗ Mosaic creation failed")
+            return 1
+
+    except Exception as e:
+        logging.error(f"Mosaic creation failed: {e}", exc_info=args.verbose)
+        return 1
+
+
+def cmd_create_auto(args: argparse.Namespace) -> int:
+    """Create mosaic automatically from earliest incomplete window."""
+    from dsa110_contimg.mosaic.orchestrator import MosaicOrchestrator
+
+    logging.basicConfig(
+        level=logging.DEBUG if args.verbose else logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+
+    orchestrator = MosaicOrchestrator()
+
+    try:
+        mosaic_path = orchestrator.create_mosaic_default_behavior(
+            timespan_minutes=args.timespan_minutes,
+            wait_for_published=args.wait_for_published,
+            poll_interval_seconds=args.poll_interval,
+            max_wait_hours=args.max_wait_hours,
+        )
+
+        if mosaic_path:
+            print(f"✓ Mosaic created: {mosaic_path}")
+            return 0
+        else:
+            print("✗ Mosaic creation failed")
+            return 1
+
+    except Exception as e:
+        logging.error(f"Mosaic creation failed: {e}", exc_info=args.verbose)
+        return 1
+
+
+def cmd_create_all_transits(args: argparse.Namespace) -> int:
+    """Create mosaics for all available transits of a calibrator."""
+    from dsa110_contimg.mosaic.orchestrator import MosaicOrchestrator
+
+    logging.basicConfig(
+        level=logging.DEBUG if args.verbose else logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+
+    orchestrator = MosaicOrchestrator()
+
+    try:
+        results = orchestrator.create_all_transits(
+            calibrator_name=args.calibrator,
+            timespan_minutes=args.timespan_minutes,
+            max_days_back=args.max_days_back,
+            min_pb_response=args.min_pb_response,
+            min_ms_count=args.min_ms_count,
+            wait_for_published=args.wait_for_published,
+            overwrite=args.overwrite,
+        )
+
+        if results:
+            print(f"✓ Created {len(results)} mosaics")
+            for result in results:
+                print(f"  - {result.get('mosaic_path', 'N/A')}")
+            return 0
+        else:
+            print("✗ No mosaics created")
+            return 1
+
+    except Exception as e:
+        logging.error(f"Batch mosaic creation failed: {e}", exc_info=args.verbose)
+        return 1
+
+
+def cmd_list_transits(args: argparse.Namespace) -> int:
+    """List available transits for a calibrator with quality metrics."""
+    from dsa110_contimg.mosaic.orchestrator import MosaicOrchestrator
+
+    logging.basicConfig(
+        level=logging.DEBUG if args.verbose else logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+
+    orchestrator = MosaicOrchestrator()
+
+    try:
+        transits = orchestrator.list_available_transits_with_quality(
+            calibrator_name=args.calibrator,
+            max_days_back=args.max_days_back,
+            min_pb_response=args.min_pb_response,
+            min_ms_count=args.min_ms_count,
+        )
+
+        if not transits:
+            print(f"No transits found for {args.calibrator}")
+            return 0
+
+        print(f"\nAvailable transits for {args.calibrator}:")
+        print(f"{'Index':<6} {'Transit Time':<20} {'MS Count':<10} {'PB Response':<12}")
+        print("-" * 60)
+
+        for idx, transit in enumerate(transits):
+            transit_time = transit.get("transit_time", "N/A")
+            ms_count = transit.get("ms_count", 0)
+            pb_response = transit.get("pb_response", 0.0)
+            print(f"{idx:<6} {transit_time:<20} {ms_count:<10} {pb_response:<12.3f}")
+
+        print(f"\nTotal: {len(transits)} transits")
+        return 0
+
+    except Exception as e:
+        logging.error(f"Failed to list transits: {e}", exc_info=args.verbose)
+        return 1
+
+
 def cmd_plan(args: argparse.Namespace) -> int:
     # Input validation
     if not hasattr(args, "products_db") or not args.products_db:
@@ -232,7 +373,6 @@ def _check_consistent_tiles(tiles: List[str]) -> Tuple[bool, Optional[str]]:
                 # Try to parse it - handle both numpy-style and list-style strings
                 try:
                     import ast
-                    import re
 
                     # First try direct ast.literal_eval for list-style "[512, 512]"
                     shape_list = ast.literal_eval(shape)
@@ -558,7 +698,7 @@ def _calculate_mosaic_bounds(tiles: List[str]) -> Tuple[float, float, float, flo
             try:
                 img = casaimage(str(tile))
                 # Use coordinates() directly (correct API for casacore.images.image)
-                coordsys = img.coordinates()
+                img.coordinates()
 
                 # Get image shape
                 shape = img.shape()
@@ -660,7 +800,10 @@ def _calculate_mosaic_bounds(tiles: List[str]) -> Tuple[float, float, float, flo
                 if data.ndim >= 2:
                     ny, nx = data.shape[-2], data.shape[-1]
                 else:
-                    ny, nx = data.shape[0], (data.shape[1] if data.ndim > 1 else data.shape[0])
+                    ny, nx = (
+                        data.shape[0],
+                        (data.shape[1] if data.ndim > 1 else data.shape[0]),
+                    )
 
                 # Get corner coordinates
                 corners_pix = [[0, 0], [nx - 1, 0], [0, ny - 1], [nx - 1, ny - 1]]
@@ -722,7 +865,6 @@ def _create_common_coordinate_system(
 
     import numpy as np
     from casacore.images import image as casaimage
-    from casatasks import immath, imregrid
 
     if template_tile is None:
         raise ValueError("template_tile is required to create coordinate system")
@@ -983,7 +1125,7 @@ def _build_weighted_mosaic_linearmosaic(
         LOG.info("=" * 60)
         LOG.info("DRY-RUN MODE: Validating mosaic plan without building")
         LOG.info("=" * 60)
-        LOG.info(f"Mosaic plan:")
+        LOG.info("Mosaic plan:")
         LOG.info(f"  - Tiles: {len(tiles)}")
         LOG.info(f"  - Output: {output_path}")
         for i, tile in enumerate(tiles, 1):
@@ -998,7 +1140,7 @@ def _build_weighted_mosaic_linearmosaic(
     LOG.debug(f"Output path: {output_path}")
     LOG.debug("Tile paths:")
     for i, tile in enumerate(tiles):
-        LOG.debug(f"  [{i+1}] {tile}")
+        LOG.debug(f"  [{i + 1}] {tile}")
     LOG.debug("=" * 50)
 
     # AGGRESSIVE VALIDATION: Fail immediately on invalid inputs
@@ -1010,18 +1152,18 @@ def _build_weighted_mosaic_linearmosaic(
             raise MosaicError("Empty tiles list", "Must provide at least one tile")
         for i, tile in enumerate(tiles):
             if not tile:
-                raise MosaicError(f"Tile {i+1} is empty", "All tiles must be non-empty paths")
+                raise MosaicError(f"Tile {i + 1} is empty", "All tiles must be non-empty paths")
             if not isinstance(tile, str):
-                raise MosaicError(f"Tile {i+1} is not a string", f"Got {type(tile)}")
+                raise MosaicError(f"Tile {i + 1} is not a string", f"Got {type(tile)}")
             if not os.path.exists(tile):
                 raise MosaicError(
-                    f"Tile {i+1} does not exist: {tile}",
+                    f"Tile {i + 1} does not exist: {tile}",
                     "All tiles must exist before building mosaic",
                 )
         if not output_path:
             raise MosaicError("Output path is empty", "Must provide output_path")
         if not isinstance(output_path, str):
-            raise MosaicError(f"Output path is not a string", f"Got {type(output_path)}")
+            raise MosaicError("Output path is not a string", f"Got {type(output_path)}")
         print(
             f"[DEBUG] ✓ Aggressive validation passed: {len(tiles)} tiles, all exist",
             file=sys.stderr,
@@ -1032,7 +1174,7 @@ def _build_weighted_mosaic_linearmosaic(
     for i, tile in enumerate(tiles):
         if not os.path.exists(tile):
             raise MosaicError(
-                f"Tile {i+1} does not exist: {tile}",
+                f"Tile {i + 1} does not exist: {tile}",
                 "All tiles must exist before building mosaic",
             )
 
@@ -1073,7 +1215,7 @@ def _build_weighted_mosaic_linearmosaic(
         for tile in tiles:
             try:
                 img = casaimage(str(tile))
-                coordsys = img.coordinates()
+                img.coordinates()
                 shape = img.shape()
                 if len(shape) >= 2:
                     ny, nx = shape[-2], shape[-1]
@@ -1145,7 +1287,7 @@ def _build_weighted_mosaic_linearmosaic(
                     tile_dec_span = max(decs) - min(decs)
                     max_tile_dec_span = max(max_tile_dec_span, tile_dec_span)
                     LOG.debug(
-                        f'Tile {Path(tile).name}: Dec span = {tile_dec_span:.6f}° ({tile_dec_span*3600:.1f}")'
+                        f'Tile {Path(tile).name}: Dec span = {tile_dec_span:.6f}° ({tile_dec_span * 3600:.1f}")'
                     )
                 else:
                     LOG.debug(f"Tile {Path(tile).name}: Could not extract Dec values from corners")
@@ -1179,7 +1321,7 @@ def _build_weighted_mosaic_linearmosaic(
             f"Mosaic bounds: RA=[{ra_min:.6f}°, {ra_max:.6f}°], "
             f"Dec=[{dec_min:.6f}°, {dec_max:.6f}°]"
         )
-        LOG.info(f"Mosaic span: RA={ra_max-ra_min:.6f}°, Dec={dec_max-dec_min:.6f}°")
+        LOG.info(f"Mosaic span: RA={ra_max - ra_min:.6f}°, Dec={dec_max - dec_min:.6f}°")
     except Exception as e:
         LOG.error(f"Failed to calculate mosaic bounds: {e}")
         raise MosaicError(
@@ -1238,11 +1380,10 @@ def _build_weighted_mosaic_linearmosaic(
         nx = int(np.ceil(ra_span / pixel_scale_deg)) + 2 * padding_pixels
         ny = int(np.ceil(dec_span / pixel_scale_deg)) + 2 * padding_pixels
 
-        LOG.info(f"Mosaic output size: {nx}x{ny} pixels " f'(pixel scale: {pixel_scale_arcsec}")')
+        LOG.info(f'Mosaic output size: {nx}x{ny} pixels (pixel scale: {pixel_scale_arcsec}")')
 
         # Get PB images and prepare for linearmosaic
         from .coordinate_utils import (
-            check_tile_overlaps_template,
             filter_tiles_by_overlap,
         )
         from .validation import _find_pb_path
@@ -1535,14 +1676,14 @@ def _build_weighted_mosaic_linearmosaic(
     LOG.info(
         f"Template coordinate system bounds: "
         f"RA=[{template_ra_min_deg:.6f}°, {template_ra_max_deg:.6f}°] "
-        f"(span: {abs(template_ra_max_deg-template_ra_min_deg):.6f}°), "
+        f"(span: {abs(template_ra_max_deg - template_ra_min_deg):.6f}°), "
         f"Dec=[{template_dec_min_deg:.6f}°, {template_dec_max_deg:.6f}°] "
-        f"(span: {abs(template_dec_max_deg-template_dec_min_deg):.6f}°)"
+        f"(span: {abs(template_dec_max_deg - template_dec_min_deg):.6f}°)"
     )
     LOG.info(
         f"Calculated mosaic bounds: "
-        f"RA=[{ra_min:.6f}°, {ra_max:.6f}°] (span: {ra_max-ra_min:.6f}°), "
-        f"Dec=[{dec_min:.6f}°, {dec_max:.6f}°] (span: {dec_max-dec_min:.6f}°)"
+        f"RA=[{ra_min:.6f}°, {ra_max:.6f}°] (span: {ra_max - ra_min:.6f}°), "
+        f"Dec=[{dec_min:.6f}°, {dec_max:.6f}°] (span: {dec_max - dec_min:.6f}°)"
     )
 
     # Warn if template bounds don't match calculated bounds
@@ -1763,16 +1904,13 @@ def _build_weighted_mosaic_imregrid_immath(
     """
     import os
     import tempfile
-    import time
     from pathlib import Path
 
     import numpy as np
-    from casacore.images import image as casaimage
     from casatasks import immath, imregrid
 
     from .coordinate_utils import filter_tiles_by_overlap
     from .error_handling import MosaicError, safe_casaimage_open
-    from .validation import _find_pb_path
 
     LOG.info("Using fallback method: imregrid + immath")
 
@@ -1802,7 +1940,7 @@ def _build_weighted_mosaic_imregrid_immath(
     nx = int(np.ceil(ra_span / pixel_scale_deg)) + 2 * padding_pixels
     ny = int(np.ceil(dec_span / pixel_scale_deg)) + 2 * padding_pixels
 
-    LOG.info(f"Mosaic output size: {nx}x{ny} pixels " f'(pixel scale: {pixel_scale_arcsec}")')
+    LOG.info(f'Mosaic output size: {nx}x{ny} pixels (pixel scale: {pixel_scale_arcsec}")')
 
     # Convert FITS tiles to CASA format if needed
     casa_tiles = []
@@ -1888,7 +2026,7 @@ def _build_weighted_mosaic_imregrid_immath(
             except RuntimeError as e:
                 if "All output pixels are masked" in str(e):
                     LOG.warning(
-                        f"Skipping tile {i+1}: {Path(casa_tile).name} - no overlap with template"
+                        f"Skipping tile {i + 1}: {Path(casa_tile).name} - no overlap with template"
                     )
                     continue
                 raise MosaicError(
@@ -1932,7 +2070,7 @@ def _build_weighted_mosaic_imregrid_immath(
                     regridded_pbs.append(regridded_pb)
                 except RuntimeError as e:
                     if "All output pixels are masked" in str(e):
-                        LOG.warning(f"Skipping PB {i+1}: {Path(pb_path).name} - no overlap")
+                        LOG.warning(f"Skipping PB {i + 1}: {Path(pb_path).name} - no overlap")
                         continue
                     LOG.warning(f"Failed to regrid PB {pb_path}: {e}")
                     continue
@@ -2095,10 +2233,10 @@ def cmd_build(args: argparse.Namespace) -> int:
                 tile_times[i] <= tile_times[i + 1] for i in range(len(tile_times) - 1)
             )
             if not is_chronological:
-                print(f"ERROR: Tiles are NOT in chronological order!")
+                print("ERROR: Tiles are NOT in chronological order!")
                 print(f"  Validated {len(tile_times)}/{len(tiles)} tiles")
                 print(f"  Observation times (MJD): {[f'{t:.6f}' for t in tile_times]}")
-                print(f"  This will cause mosaic artifacts and incorrect coordinate system.")
+                print("  This will cause mosaic artifacts and incorrect coordinate system.")
                 if not args.ignore_validation:
                     print("  Use --ignore-validation to proceed anyway (NOT RECOMMENDED).")
                     return 4
@@ -2109,8 +2247,8 @@ def cmd_build(args: argparse.Namespace) -> int:
                     f"✓ Validated: Tiles are in chronological order ({len(tile_times)}/{len(tiles)} tiles validated)"
                 )
         elif len(tile_times) == 0:
-            print(f"  Warning: Could not validate chronological order (no MS times extracted)")
-            print(f"  Proceeding assuming tiles are in correct order from plan")
+            print("  Warning: Could not validate chronological order (no MS times extracted)")
+            print("  Proceeding assuming tiles are in correct order from plan")
     except Exception as e:
         LOG.debug(f"Could not validate chronological order: {e}")
         print(f"  Warning: Could not validate chronological order: {e}")
@@ -2146,7 +2284,7 @@ def cmd_build(args: argparse.Namespace) -> int:
     # Report resource estimates
     try:
         estimates = estimate_resources(tiles, str(out))
-        print(f"\nResource estimates:")
+        print("\nResource estimates:")
         print(f"  - Tiles: {estimates['num_tiles']}")
         print(f"  - Estimated disk space: {estimates['estimated_disk_gb']:.1f} GB")
         print(f"  - Estimated operations: {estimates['estimated_operations']}")
@@ -2310,13 +2448,13 @@ def cmd_build(args: argparse.Namespace) -> int:
         print("\n" + "=" * 60)
         print("DRY-RUN MODE: Validation complete, not building mosaic")
         print("=" * 60)
-        print(f"\nMosaic plan summary:")
+        print("\nMosaic plan summary:")
         print(f"  - Name: {name}")
         print(f"  - Method: {method}")
         print(f"  - Tiles: {len(tiles)}")
         print(f"  - Output: {out}")
-        print(f"\n✓ All validations passed. Ready to build.")
-        print(f"\nTo build this mosaic, run:")
+        print("\n✓ All validations passed. Ready to build.")
+        print("\nTo build this mosaic, run:")
         print(f"  mosaic build --name {name} --output {out}")
         return 0
 
@@ -2343,7 +2481,7 @@ def cmd_build(args: argparse.Namespace) -> int:
                 MissingPrimaryBeamError,
                 CASAToolError,
                 GridMismatchError,
-            ) as e:
+            ):
                 # Re-raise with context
                 raise
         else:

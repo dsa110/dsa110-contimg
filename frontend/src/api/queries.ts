@@ -954,13 +954,14 @@ export function usePointingMonitorStatus(): UseQueryResult<PointingMonitorStatus
 
 export function usePointingHistory(
   startMjd: number,
-  endMjd: number
+  endMjd: number,
+  timeIntervalHours: number = 6.0
 ): UseQueryResult<PointingHistoryList> {
   return useQuery({
-    queryKey: ["pointing-history", startMjd, endMjd],
+    queryKey: ["pointing-history", startMjd, endMjd, timeIntervalHours],
     queryFn: async () => {
       const response = await apiClient.get<PointingHistoryList>(
-        `/pointing_history?start_mjd=${startMjd}&end_mjd=${endMjd}`
+        `/pointing_history?start_mjd=${startMjd}&end_mjd=${endMjd}&time_interval_hours=${timeIntervalHours}`
       );
       return response.data;
     },

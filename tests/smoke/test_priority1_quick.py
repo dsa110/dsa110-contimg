@@ -7,8 +7,10 @@ Tests:
 2. Region mask creation with synthetic data
 3. API endpoint structure verification
 """
+
 import sys
 from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -24,25 +26,18 @@ def test_imports():
     print("=" * 60)
 
     try:
-        from dsa110_contimg.utils.regions import create_region_mask, RegionData
-
         print("✓ Region utilities imported")
     except Exception as e:
         print(f"✗ Failed to import region utilities: {e}")
         return False
 
     try:
-        from dsa110_contimg.utils.fitting import fit_2d_gaussian, fit_2d_moffat
-
         print("✓ Fitting utilities imported")
     except Exception as e:
         print(f"✗ Failed to import fitting utilities: {e}")
         return False
 
     try:
-        from astropy.io import fits
-        from astropy.wcs import WCS
-
         print("✓ Astropy imports work")
     except Exception as e:
         print(f"✗ Failed to import astropy: {e}")
@@ -52,11 +47,9 @@ def test_imports():
     try:
         import importlib.util
 
-        routes_path = (
-            Path(__file__).parent / "src" / "dsa110_contimg" / "api" / "routes.py"
-        )
+        routes_path = Path(__file__).parent / "src" / "dsa110_contimg" / "api" / "routes.py"
         spec = importlib.util.spec_from_file_location("routes", routes_path)
-        routes = importlib.util.module_from_spec(spec)
+        importlib.util.module_from_spec(spec)
         # Just check syntax, don't execute
         with open(routes_path) as f:
             code = f.read()
@@ -76,9 +69,10 @@ def test_region_mask_synthetic():
     print("Test 2: Region Mask Creation (Synthetic Data)")
     print("=" * 60)
 
-    from dsa110_contimg.utils.regions import create_region_mask, RegionData
     from astropy.io import fits
     from astropy.wcs import WCS
+
+    from dsa110_contimg.utils.regions import RegionData, create_region_mask
 
     # Create a simple synthetic FITS header
     header = fits.Header()
@@ -117,13 +111,11 @@ def test_region_mask_synthetic():
     )
 
     try:
-        circle_mask = create_region_mask(
-            shape=shape, region=circle_region, wcs=wcs, header=header
-        )
+        circle_mask = create_region_mask(shape=shape, region=circle_region, wcs=wcs, header=header)
 
         n_pixels = np.sum(circle_mask)
         print(
-            f"✓ Circle mask created: {n_pixels} pixels ({100*n_pixels/np.prod(shape):.1f}% of image)"
+            f"✓ Circle mask created: {n_pixels} pixels ({100 * n_pixels / np.prod(shape):.1f}% of image)"
         )
 
         if n_pixels == 0:
@@ -160,13 +152,11 @@ def test_region_mask_synthetic():
     )
 
     try:
-        rect_mask = create_region_mask(
-            shape=shape, region=rect_region, wcs=wcs, header=header
-        )
+        rect_mask = create_region_mask(shape=shape, region=rect_region, wcs=wcs, header=header)
 
         n_pixels = np.sum(rect_mask)
         print(
-            f"✓ Rectangle mask created: {n_pixels} pixels ({100*n_pixels/np.prod(shape):.1f}% of image)"
+            f"✓ Rectangle mask created: {n_pixels} pixels ({100 * n_pixels / np.prod(shape):.1f}% of image)"
         )
 
         if n_pixels == 0:

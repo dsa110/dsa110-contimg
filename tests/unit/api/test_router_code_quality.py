@@ -17,11 +17,10 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from dsa110_contimg.api.routes import create_app
 from dsa110_contimg.api.config import ApiConfig
+from dsa110_contimg.api.routes import create_app
 
 
 @pytest.fixture
@@ -83,7 +82,6 @@ class TestExceptionHandling:
 
     def test_status_health_disk_error_handling(self, test_client, caplog):
         """Test that disk usage errors are caught with specific exceptions."""
-        from dsa110_contimg.api.routers.status import router
 
         # Mock shutil.disk_usage to raise OSError
         with patch("shutil.disk_usage", side_effect=OSError("Disk error")):
@@ -95,7 +93,6 @@ class TestExceptionHandling:
 
     def test_status_health_disk_value_error(self, test_client, caplog):
         """Test that ValueError in disk check is handled."""
-        from dsa110_contimg.api.routers.status import router
 
         with patch("shutil.disk_usage", side_effect=ValueError("Invalid path")):
             response = test_client.get("/health")
@@ -108,9 +105,7 @@ class TestExceptionHandling:
             "dsa110_contimg.catalog.query.query_sources",
             side_effect=KeyError("Missing column"),
         ):
-            response = test_client.get(
-                "/api/catalog/overlay?ra=0.0&dec=0.0&radius=1.0&catalog=all"
-            )
+            response = test_client.get("/api/catalog/overlay?ra=0.0&dec=0.0&radius=1.0&catalog=all")
             # Should return 500 with error message
             assert response.status_code == 500
             assert "Failed to query catalog" in response.json()["detail"]
@@ -121,9 +116,7 @@ class TestExceptionHandling:
             "dsa110_contimg.catalog.query.query_sources",
             side_effect=ValueError("Invalid coordinates"),
         ):
-            response = test_client.get(
-                "/api/catalog/overlay?ra=0.0&dec=0.0&radius=1.0&catalog=all"
-            )
+            response = test_client.get("/api/catalog/overlay?ra=0.0&dec=0.0&radius=1.0&catalog=all")
             assert response.status_code == 500
 
 
@@ -132,7 +125,6 @@ class TestExceptionChaining:
 
     def test_photometry_exception_chaining(self, test_client):
         """Test that exceptions are properly chained in photometry endpoints."""
-        from dsa110_contimg.photometry.source import Source
 
         # Mock Source to raise ValueError
         with patch(
@@ -164,7 +156,6 @@ class TestLoggingFormat:
 
     def test_photometry_logging_format(self, test_client, caplog):
         """Test that photometry router uses lazy logging format."""
-        from dsa110_contimg.photometry.source import Source
 
         caplog.set_level(logging.DEBUG)
 
@@ -175,7 +166,7 @@ class TestLoggingFormat:
         ):
             # This should trigger logging in the exception handler
             try:
-                response = test_client.get("/sources/test_id/variability")
+                test_client.get("/sources/test_id/variability")
             except Exception:
                 pass
 

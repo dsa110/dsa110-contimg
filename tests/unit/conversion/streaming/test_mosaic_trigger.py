@@ -6,10 +6,7 @@ Tests the mosaic creation trigger functionality with focus on:
 - Error handling and edge cases
 """
 
-from pathlib import Path
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from dsa110_contimg.conversion.streaming.streaming_converter import (
     trigger_group_mosaic_creation,

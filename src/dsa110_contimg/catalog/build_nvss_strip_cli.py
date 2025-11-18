@@ -21,21 +21,15 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         description="Build NVSS SQLite database for declination strip from HDF5 file"
     )
-    ap.add_argument(
-        "--hdf5", required=True, help="Path to HDF5 file to read declination from"
-    )
+    ap.add_argument("--hdf5", required=True, help="Path to HDF5 file to read declination from")
     ap.add_argument(
         "--dec-range",
         type=float,
         default=6.0,
         help="Declination range (±degrees around center, default: 6.0)",
     )
-    ap.add_argument(
-        "--output", help="Output SQLite database path (auto-generated if not provided)"
-    )
-    ap.add_argument(
-        "--min-flux-mjy", type=float, help="Minimum flux threshold in mJy (optional)"
-    )
+    ap.add_argument("--output", help="Output SQLite database path (auto-generated if not provided)")
+    ap.add_argument("--min-flux-mjy", type=float, help="Minimum flux threshold in mJy (optional)")
 
     args = ap.parse_args(argv)
 
@@ -64,7 +58,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # Build declination range
     dec_range = (dec_center - args.dec_range, dec_center + args.dec_range)
-    print(f"Building NVSS catalog for declination strip:")
+    print("Building NVSS catalog for declination strip:")
     print(f"  Center: {dec_center:.6f}°")
     print(f"  Range: {dec_range[0]:.6f}° to {dec_range[1]:.6f}°")
     print(f"  Width: {2 * args.dec_range:.1f}°")
@@ -77,7 +71,7 @@ def main(argv: list[str] | None = None) -> int:
             output_path=args.output,
             min_flux_mjy=args.min_flux_mjy,
         )
-        print(f"\n✓ Successfully built NVSS declination strip database")
+        print("\n✓ Successfully built NVSS declination strip database")
         print(f"  Database: {output_path}")
         return 0
 

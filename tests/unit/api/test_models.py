@@ -11,7 +11,6 @@ import pytest
 from pydantic import ValidationError
 
 from dsa110_contimg.api.models import (
-    AlertHistory,
     CalibrationSet,
     CalibratorMatch,
     ESECandidate,
@@ -21,7 +20,6 @@ from dsa110_contimg.api.models import (
     Mosaic,
     PipelineStatus,
     ProductEntry,
-    ProductList,
     QueueGroup,
     QueueStats,
     SourceDetail,

@@ -26,7 +26,7 @@ import os
 import sys
 import time
 import warnings
-from typing import Any, Callable, Optional, Tuple
+from typing import Callable, Optional, Tuple
 
 import numpy as np
 from astropy.wcs import WCS
@@ -208,14 +208,13 @@ def filter_non_finite(
 
     if n_finite < min_points:
         raise ValueError(
-            f"Insufficient finite values: {n_finite} < {min_points}. "
-            f"Total points: {len(data)}"
+            f"Insufficient finite values: {n_finite} < {min_points}. " f"Total points: {len(data)}"
         )
 
     if warn and n_finite < len(data):
         n_filtered = len(data) - n_finite
         warnings.warn(
-            f"Filtered {n_filtered} non-finite values ({100*n_filtered/len(data):.1f}%)",
+            f"Filtered {n_filtered} non-finite values ({100 * n_filtered / len(data):.1f}%)",
             UserWarning,
         )
 
@@ -252,14 +251,12 @@ def filter_non_finite_2d(
     n_finite = np.sum(finite_mask)
 
     if n_finite < min_points:
-        raise ValueError(
-            f"Insufficient finite values for fitting: {n_finite} < {min_points}"
-        )
+        raise ValueError(f"Insufficient finite values for fitting: {n_finite} < {min_points}")
 
     if warn and n_finite < len(data):
         n_filtered = len(data) - n_finite
         warnings.warn(
-            f"Filtered {n_filtered} non-finite values ({100*n_filtered/len(data):.1f}%) before fitting",
+            f"Filtered {n_filtered} non-finite values ({100 * n_filtered / len(data):.1f}%) before fitting",
             UserWarning,
         )
 
@@ -381,21 +378,15 @@ def validate_image_shape(
     ny, nx = data.shape[:2]
 
     if ny < min_size or nx < min_size:
-        raise ValueError(
-            f"Image dimensions too small: {ny}x{nx} < {min_size}x{min_size}"
-        )
+        raise ValueError(f"Image dimensions too small: {ny}x{nx} < {min_size}x{min_size}")
 
     if max_size and (ny > max_size or nx > max_size):
-        raise ValueError(
-            f"Image dimensions too large: {ny}x{nx} > {max_size}x{max_size}"
-        )
+        raise ValueError(f"Image dimensions too large: {ny}x{nx} > {max_size}x{max_size}")
 
     return ny, nx
 
 
-def validate_region_mask(
-    mask: Optional[np.ndarray], image_shape: Tuple[int, int]
-) -> np.ndarray:
+def validate_region_mask(mask: Optional[np.ndarray], image_shape: Tuple[int, int]) -> np.ndarray:
     """Validate region mask and ensure it matches image shape.
 
     Args:
@@ -413,9 +404,7 @@ def validate_region_mask(
 
     ny, nx = image_shape
     if mask.shape != (ny, nx):
-        raise ValueError(
-            f"Mask shape {mask.shape} doesn't match image shape ({ny}, {nx})"
-        )
+        raise ValueError(f"Mask shape {mask.shape} doesn't match image shape ({ny}, {nx})")
 
     if not np.any(mask):
         warnings.warn("Region mask contains no valid pixels", UserWarning)

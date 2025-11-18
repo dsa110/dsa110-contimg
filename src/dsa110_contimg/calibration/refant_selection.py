@@ -111,9 +111,7 @@ def analyze_antenna_health_from_caltable(caltable_path: str) -> List[Dict[str, A
 
         table = casatables.table
     except ImportError as e:
-        raise ImportError(
-            "casacore.tables not available - cannot analyze antenna health"
-        ) from e
+        raise ImportError("casacore.tables not available - cannot analyze antenna health") from e
 
     caltable = Path(caltable_path)
     if not caltable.exists():
@@ -201,25 +199,17 @@ def recommend_outrigger_refants(
     # If no antenna statistics provided, return defaults
     if not antenna_analysis:
         recommendations["recommended_refant"] = DEFAULT_OUTRIGGER_PRIORITY[0]
-        recommendations["recommended_refant_string"] = recommendations[
-            "default_refant_string"
-        ]
-        recommendations["note"] = (
-            "No antenna statistics available - using default priority order"
-        )
+        recommendations["recommended_refant_string"] = recommendations["default_refant_string"]
+        recommendations["note"] = "No antenna statistics available - using default priority order"
         return recommendations
 
     # Extract outrigger antenna stats
-    outrigger_stats = [
-        ant for ant in antenna_analysis if ant["antenna_id"] in OUTRIGGER_ANTENNAS
-    ]
+    outrigger_stats = [ant for ant in antenna_analysis if ant["antenna_id"] in OUTRIGGER_ANTENNAS]
 
     if not outrigger_stats:
         logger.warning("No outrigger antennas found in antenna statistics")
         recommendations["recommended_refant"] = DEFAULT_OUTRIGGER_PRIORITY[0]
-        recommendations["recommended_refant_string"] = recommendations[
-            "default_refant_string"
-        ]
+        recommendations["recommended_refant_string"] = recommendations["default_refant_string"]
         recommendations["note"] = "No outrigger stats found - using default priority"
         return recommendations
 
@@ -227,9 +217,7 @@ def recommend_outrigger_refants(
     healthy_outriggers = sorted(outrigger_stats, key=lambda x: x["flagged_fraction"])
 
     # Filter to reasonably healthy antennas (<50% flagged)
-    good_outriggers = [
-        ant for ant in healthy_outriggers if ant["flagged_fraction"] < 0.5
-    ]
+    good_outriggers = [ant for ant in healthy_outriggers if ant["flagged_fraction"] < 0.5]
 
     if good_outriggers:
         # Determine health status
@@ -258,17 +246,13 @@ def recommend_outrigger_refants(
 
         note = (
             f"Top choice: antenna {top_ant['antenna_id']} "
-            f"({top_ant['flagged_fraction']*100:.1f}% flagged)"
+            f"({top_ant['flagged_fraction'] * 100:.1f}% flagged)"
         )
         recommendations["note"] = note
     else:
-        recommendations["warning"] = (
-            "No healthy outrigger antennas found (<50% flagged)"
-        )
+        recommendations["warning"] = "No healthy outrigger antennas found (<50% flagged)"
         recommendations["recommended_refant"] = DEFAULT_OUTRIGGER_PRIORITY[0]
-        recommendations["recommended_refant_string"] = recommendations[
-            "default_refant_string"
-        ]
+        recommendations["recommended_refant_string"] = recommendations["default_refant_string"]
         recommendations["note"] = "Using default priority - check array status"
 
     # Identify problematic outriggers (>80% flagged)
@@ -335,9 +319,7 @@ def recommend_refants_from_ms(
         recs = recommend_outrigger_refants(antenna_stats)
 
         # Use recommended chain if available, otherwise default
-        refant_string = recs.get(
-            "recommended_refant_string", recs["default_refant_string"]
-        )
+        refant_string = recs.get("recommended_refant_string", recs["default_refant_string"])
 
         logger.info(
             f"Recommended refant chain: {refant_string} "
@@ -348,10 +330,7 @@ def recommend_refants_from_ms(
 
     except Exception as e:
         if use_defaults_on_error:
-            logger.warning(
-                f"Failed to analyze antenna health: {e}. "
-                f"Using default outrigger chain."
-            )
+            logger.warning(f"Failed to analyze antenna health: {e}. Using default outrigger chain.")
             return get_default_outrigger_refants()
         else:
             raise

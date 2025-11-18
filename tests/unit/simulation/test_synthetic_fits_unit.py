@@ -8,11 +8,7 @@ Tests focus on:
 - Provenance marking
 """
 
-import tempfile
-from pathlib import Path
-
 import numpy as np
-import pytest
 from astropy.io import fits
 from astropy.wcs import WCS
 
@@ -55,7 +51,10 @@ class TestCreateSyntheticFits:
         pixel_scale_arcsec = 2.0
 
         create_synthetic_fits(
-            output_path, ra_deg=ra_deg, dec_deg=dec_deg, pixel_scale_arcsec=pixel_scale_arcsec
+            output_path,
+            ra_deg=ra_deg,
+            dec_deg=dec_deg,
+            pixel_scale_arcsec=pixel_scale_arcsec,
         )
 
         with fits.open(output_path) as hdul:

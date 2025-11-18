@@ -4,13 +4,14 @@ Tests the _calculate_mosaic_bounds function with various image types
 (2D/4D, FITS/CASA) to ensure correct coordinate extraction.
 """
 
-from dsa110_contimg.mosaic.cli import _calculate_mosaic_bounds
 import sys
-import os
 from pathlib import Path
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, patch
+
 import numpy as np
 import pytest
+
+from dsa110_contimg.mosaic.cli import _calculate_mosaic_bounds
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
@@ -178,9 +179,7 @@ class TestBoundsCalculation:
 
         # Verify toworld was called with correct order for 4D images
         # Should be called with [0, 0, y, x] for 4D images
-        assert (
-            mock_img._corner_idx == 4
-        ), "toworld should be called 4 times (once per corner)"
+        assert mock_img._corner_idx == 4, "toworld should be called 4 times (once per corner)"
 
     def test_bounds_handles_missing_corners(self):
         """Test that bounds calculation handles missing corner coordinates gracefully."""

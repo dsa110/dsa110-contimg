@@ -19,7 +19,6 @@ from dsa110_contimg.database.data_config import (
     STAGE_BASE,
     STATE_BASE,
     ensure_staging_directories,
-    get_products_dir,
 )
 
 

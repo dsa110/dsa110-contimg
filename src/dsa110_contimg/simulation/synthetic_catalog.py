@@ -13,7 +13,6 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 import numpy as np
-import pandas as pd
 
 
 def create_synthetic_catalog_db(

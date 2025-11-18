@@ -1,11 +1,7 @@
 """Tests for enhanced synthetic data generation (noise, extended sources, cal errors)."""
 
-import tempfile
-from pathlib import Path
-
 import numpy as np
 import pytest
-from pyuvdata import UVData
 
 from dsa110_contimg.simulation.visibility_models import (
     add_calibration_errors,

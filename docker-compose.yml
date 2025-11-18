@@ -12,6 +12,9 @@ services:
       - ./src:/app/src
       - ./state:/app/state
       - /scratch:/scratch
+      - /stage:/stage:ro
+      - /data:/data:ro
+      - /data/incoming:/data/incoming:ro
     environment:
       - PYTHONPATH=/app/src
       - PIPELINE_PRODUCTS_DB=/app/state/products.sqlite3
@@ -20,10 +23,17 @@ services:
     restart: unless-stopped
     command: uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8000 --reload
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/status"]
+      test:
+        [
+          "CMD",
+          "python3",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/status').read()",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
 
   dashboard:
     image: continuumdevs/dsa110-dashboard:latest

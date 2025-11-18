@@ -10,26 +10,24 @@ The queue is persisted in SQLite so the service can resume after restarts.
 """
 
 import argparse
-import json
 import logging
 import os
 import re
-import shutil
 import sqlite3
 import subprocess
 import sys
-import tempfile
 import threading
 import time
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, Iterator, List, Optional, Sequence, Set, Tuple
+from typing import Dict, Iterator, List, Optional, Tuple
 
-from dsa110_contimg.database.registry import (get_active_applylist,
-                                              register_set_from_prefix)
-from dsa110_contimg.photometry.manager import (PhotometryConfig,
-                                               PhotometryManager)
+from dsa110_contimg.database.registry import (
+    get_active_applylist,
+    register_set_from_prefix,
+)
+from dsa110_contimg.photometry.manager import PhotometryConfig, PhotometryManager
 
 try:
     from dsa110_contimg.utils.graphiti_logging import GraphitiRunLogger
@@ -63,20 +61,30 @@ table = casatables.table  # noqa: N816
 from casatasks import concat as casa_concat  # noqa
 
 from dsa110_contimg.calibration.applycal import apply_to_target  # noqa
-from dsa110_contimg.calibration.calibration import (solve_bandpass,  # noqa
-                                                    solve_delay, solve_gains)
-from dsa110_contimg.calibration.streaming import (has_calibrator,  # noqa
-                                                  solve_calibration_for_ms)
-from dsa110_contimg.database.products import (ensure_ingest_db,  # noqa
-                                              ensure_products_db,
-                                              images_insert, log_pointing,
-                                              ms_index_upsert)
+from dsa110_contimg.calibration.calibration import solve_bandpass  # noqa
+from dsa110_contimg.calibration.calibration import (
+    solve_delay,
+    solve_gains,
+)
+from dsa110_contimg.calibration.streaming import has_calibrator  # noqa
+from dsa110_contimg.calibration.streaming import (
+    solve_calibration_for_ms,
+)
+from dsa110_contimg.database.products import ensure_ingest_db  # noqa
+from dsa110_contimg.database.products import (
+    ensure_products_db,
+    images_insert,
+    log_pointing,
+    ms_index_upsert,
+)
 from dsa110_contimg.database.registry import ensure_db as ensure_cal_db  # noqa
 from dsa110_contimg.imaging.cli import image_ms  # noqa
-from dsa110_contimg.utils.ms_organization import (create_path_mapper,  # noqa
-                                                  determine_ms_type,
-                                                  extract_date_from_filename,
-                                                  organize_ms_file)
+from dsa110_contimg.utils.ms_organization import create_path_mapper  # noqa
+from dsa110_contimg.utils.ms_organization import (
+    determine_ms_type,
+    extract_date_from_filename,
+    organize_ms_file,
+)
 
 try:  # Optional dependency for efficient file watching
     from watchdog.events import FileSystemEventHandler
@@ -228,10 +236,8 @@ class QueueDB:
                 logging.error("Failed to inspect ingest_queue schema: %s", exc)
                 return
 
-            altered = False
             if "checkpoint_path" not in columns:
                 self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN checkpoint_path TEXT")
-                altered = True
             if "processing_stage" not in columns:
                 self._conn.execute(
                     "ALTER TABLE ingest_queue ADD COLUMN processing_stage TEXT DEFAULT 'collecting'"
@@ -239,10 +245,8 @@ class QueueDB:
                 self._conn.execute(
                     "UPDATE ingest_queue SET processing_stage = 'collecting' WHERE processing_stage IS NULL"
                 )
-                altered = True
             if "chunk_minutes" not in columns:
                 self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN chunk_minutes REAL")
-                altered = True
             if "expected_subbands" not in columns:
                 self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN expected_subbands INTEGER")
                 try:
@@ -835,7 +839,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
 
             # Create path mapper for organized output (default to science, will be corrected if needed)
             # Extract date from group ID to determine organized path
-            date_str = extract_date_from_filename(gid)
+            extract_date_from_filename(gid)
             ms_base_dir = Path(args.output_dir)  # pylint: disable=used-before-assignment
             path_mapper = create_path_mapper(ms_base_dir, is_calibrator=False, is_failed=False)
 
@@ -909,8 +913,9 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     ret = result.returncode
                     writer_type = "auto"
                 else:
-                    from dsa110_contimg.conversion.strategies.hdf5_orchestrator import \
-                      convert_subband_groups_to_ms
+                    from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+                        convert_subband_groups_to_ms,
+                    )
 
                     convert_subband_groups_to_ms(
                         args.input_dir,
@@ -954,8 +959,9 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 try:
                     import astropy.units as u
 
-                    from dsa110_contimg.conversion.strategies.hdf5_orchestrator import \
-                      _peek_uvh5_phase_and_midtime
+                    from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+                        _peek_uvh5_phase_and_midtime,
+                    )
 
                     pt_ra, pt_dec, _ = _peek_uvh5_phase_and_midtime(files[0])
                     ra_deg = float(pt_ra.to(u.deg).value)  # pylint: disable=no-member
@@ -1048,8 +1054,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 # Extract time range
                 start_mjd = end_mjd = mid_mjd = None
                 try:
-                    from dsa110_contimg.utils.time_utils import \
-                      extract_ms_time_range
+                    from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
                     start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path)
                 except Exception:
@@ -1090,13 +1095,11 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 log.debug("ms_index conversion upsert failed", exc_info=True)
 
             # Solve calibration if this is a calibrator MS (before applying to science MS)
-            cal_solved = 0
             if is_calibrator and getattr(args, "enable_calibration_solving", False):
                 try:
                     log.info(f"Solving calibration for calibrator MS: {ms_path}")
                     success, error_msg = solve_calibration_for_ms(ms_path, do_k=False)
                     if success:
-                        cal_solved = 1
                         # Register calibration tables in registry
                         try:
                             # Extract calibration table prefix (MS path without .ms extension)
@@ -1144,8 +1147,9 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 if mid_mjd is None:
                     # fallback: try extract_ms_time_range again (it has multiple fallbacks)
                     try:
-                        from dsa110_contimg.utils.time_utils import \
-                          extract_ms_time_range
+                        from dsa110_contimg.utils.time_utils import (
+                            extract_ms_time_range,
+                        )
 
                         _, _, mid_mjd = extract_ms_time_range(ms_path)
                     except Exception:
@@ -1184,8 +1188,9 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     try:
                         from pathlib import Path
 
-                        from dsa110_contimg.qa.catalog_validation import \
-                          validate_flux_scale
+                        from dsa110_contimg.qa.catalog_validation import (
+                            validate_flux_scale,
+                        )
 
                         # Find PB-corrected FITS image (preferred for validation)
                         pbcor_fits = f"{imgroot}.pbcor.fits"
@@ -1207,7 +1212,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                                 log.info(
                                     f"Catalog validation (NVSS): {result.n_matched} sources matched, "
                                     f"flux ratio={result.mean_flux_ratio:.3f}±{result.rms_flux_ratio:.3f}, "
-                                    f"scale error={result.flux_scale_error*100:.1f}%"
+                                    f"scale error={result.flux_scale_error * 100:.1f}%"
                                 )
                                 if result.has_issues:
                                     log.warning(
@@ -1282,8 +1287,9 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                                     # Link photometry job to data registry if possible
                                     try:
                                         from dsa110_contimg.database.data_registry import (
-                                          ensure_data_registry_db,
-                                          link_photometry_to_data)
+                                            ensure_data_registry_db,
+                                            link_photometry_to_data,
+                                        )
 
                                         registry_db_path = Path(
                                             os.getenv(
@@ -1298,7 +1304,9 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                                         # Generate data_id from image path (stem without extension)
                                         image_data_id = Path(fits_image).stem
                                         if link_photometry_to_data(
-                                            registry_conn, image_data_id, str(photometry_job_id)
+                                            registry_conn,
+                                            image_data_id,
+                                            str(photometry_job_id),
                                         ):
                                             log.debug(
                                                 f"Linked photometry job {photometry_job_id} to data_id {image_data_id}"
@@ -1322,7 +1330,8 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                                 )
                         except Exception as e:
                             log.warning(
-                                f"Photometry trigger failed (non-fatal): {e}", exc_info=True
+                                f"Photometry trigger failed (non-fatal): {e}",
+                                exc_info=True,
                             )
 
                     # Check for complete group and trigger mosaic creation if enabled
@@ -1348,9 +1357,10 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                                         if getattr(args, "enable_auto_qa", False):
                                             try:
                                                 from dsa110_contimg.database.data_registry import (
-                                                  ensure_data_registry_db,
-                                                  finalize_data,
-                                                  trigger_auto_publish)
+                                                    ensure_data_registry_db,
+                                                    finalize_data,
+                                                    trigger_auto_publish,
+                                                )
 
                                                 registry_conn = ensure_data_registry_db(
                                                     Path(products_db_path)

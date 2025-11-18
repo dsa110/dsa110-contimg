@@ -24,8 +24,6 @@ import {
 import {
   Folder,
   InsertDriveFile,
-  Image as ImageIcon,
-  TableChart,
   NavigateNext,
   Refresh,
   Home,
@@ -146,17 +144,45 @@ export default function DirectoryBrowser({
     setDebouncedPath(currentPath);
   };
 
-  const getIcon = (type: string) => {
-    switch (type) {
-      case "directory":
-        return <Folder />;
-      case "fits":
-        return <ImageIcon />;
-      case "casatable":
-        return <TableChart />;
-      default:
-        return <InsertDriveFile />;
-    }
+  const getIcon = (entry: DirectoryEntry) => {
+    // Use backend-generated file type icons for better visual representation
+    const filePath = entry.path || entry.name;
+    const iconUrl = `/api/visualization/file/icon?path=${encodeURIComponent(filePath)}&size=32&format=svg`;
+
+    // Fallback Material-UI icon based on type
+    const FallbackIcon = entry.type === "directory" ? Folder : InsertDriveFile;
+
+    return (
+      <Box
+        sx={{
+          width: 32,
+          height: 32,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <img
+          src={iconUrl}
+          alt={entry.name}
+          width={32}
+          height={32}
+          style={{ display: "block" }}
+          onError={(e) => {
+            // On error, hide image and show fallback icon
+            e.currentTarget.style.display = "none";
+          }}
+        />
+        <Box
+          sx={{
+            display: "none",
+            "[img][style*='display: none'] ~ &": { display: "flex" },
+          }}
+        >
+          <FallbackIcon />
+        </Box>
+      </Box>
+    );
   };
 
   const getTypeColor = (
@@ -353,7 +379,7 @@ export default function DirectoryBrowser({
                       width: "100%",
                     }}
                   >
-                    <ListItemIcon sx={{ minWidth: 40 }}>{getIcon(entry.type)}</ListItemIcon>
+                    <ListItemIcon sx={{ minWidth: 40 }}>{getIcon(entry)}</ListItemIcon>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Box
                         sx={{

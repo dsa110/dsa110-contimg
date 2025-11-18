@@ -2,7 +2,6 @@
 
 import pytest
 from playwright.sync_api import expect
-
 from tests.e2e.frontend.pages.dashboard_page import DashboardPage
 
 
@@ -91,7 +90,7 @@ class TestDashboard:
         dashboard.navigate()
 
         # Get initial metrics
-        initial_metrics = dashboard.get_system_metrics()
+        dashboard.get_system_metrics()
 
         # Wait for potential update (polling interval is ~10s)
         page.wait_for_timeout(12000)

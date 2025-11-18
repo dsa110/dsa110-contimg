@@ -2,7 +2,6 @@
 Unit tests for QA configuration system.
 """
 
-import pytest
 from dsa110_contimg.qa.config import (
     AstrometryConfig,
     FastValidationConfig,

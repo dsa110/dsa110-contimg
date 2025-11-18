@@ -10,9 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 print("=" * 70)
 print("TESTING QA INTEGRATION END-TO-END")
@@ -43,9 +41,7 @@ else:
 
 # Test 2: Image QA on existing image
 print("\n2. Testing Image QA on production data...")
-image_path = (
-    "/stage/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:28:03.wproj.image"
-)
+image_path = "/stage/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:28:03.wproj.image"
 
 if Path(image_path).exists():
     try:
@@ -90,7 +86,7 @@ if caltables:
     except Exception as e:
         print(f"  ✗ CALIBRATION QA ERROR: {e}")
 else:
-    print(f"  ○ No caltables found (skipped)")
+    print("  ○ No caltables found (skipped)")
 
 # Test 4: Alerting system
 print("\n4. Testing Alert System...")

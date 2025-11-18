@@ -6,10 +6,7 @@ Focus: Fast tests for automatic ESE detection after photometry measurements.
 from __future__ import annotations
 
 import sqlite3
-import tempfile
 import time
-from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
@@ -103,10 +100,50 @@ def sample_photometry_data(temp_products_db):
 
     # Add multiple measurements for same source (showing variability)
     measurements = [
-        ("image1.fits", 120.0, 45.0, 100.0, 0.05, 0.002, now - 86400 * 5, source_id, mjd_base - 5),
-        ("image2.fits", 120.0, 45.0, 100.0, 0.06, 0.002, now - 86400 * 4, source_id, mjd_base - 4),
-        ("image3.fits", 120.0, 45.0, 100.0, 0.07, 0.002, now - 86400 * 3, source_id, mjd_base - 3),
-        ("image4.fits", 120.0, 45.0, 100.0, 0.08, 0.002, now - 86400 * 2, source_id, mjd_base - 2),
+        (
+            "image1.fits",
+            120.0,
+            45.0,
+            100.0,
+            0.05,
+            0.002,
+            now - 86400 * 5,
+            source_id,
+            mjd_base - 5,
+        ),
+        (
+            "image2.fits",
+            120.0,
+            45.0,
+            100.0,
+            0.06,
+            0.002,
+            now - 86400 * 4,
+            source_id,
+            mjd_base - 4,
+        ),
+        (
+            "image3.fits",
+            120.0,
+            45.0,
+            100.0,
+            0.07,
+            0.002,
+            now - 86400 * 3,
+            source_id,
+            mjd_base - 3,
+        ),
+        (
+            "image4.fits",
+            120.0,
+            45.0,
+            100.0,
+            0.08,
+            0.002,
+            now - 86400 * 2,
+            source_id,
+            mjd_base - 2,
+        ),
         (
             "image5.fits",
             120.0,
@@ -181,7 +218,7 @@ class TestUpdateVariabilityStatsForSource:
             "SELECT sigma_deviation FROM variability_stats WHERE source_id = ?",
             (source_id,),
         )
-        sigma1 = cursor.fetchone()[0]
+        cursor.fetchone()[0]
 
         # Second update (should update, not duplicate)
         result2 = update_variability_stats_for_source(conn, source_id)

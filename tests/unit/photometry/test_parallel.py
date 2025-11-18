@@ -7,9 +7,7 @@ Task 3.2: Parallel Processing
 from __future__ import annotations
 
 import sqlite3
-import tempfile
 import time
-from pathlib import Path
 
 import pytest
 
@@ -102,7 +100,7 @@ class TestParallelProcessing:
 
         # Act: Measure parallel time
         start_time = time.time()
-        results_parallel = detect_ese_parallel(source_ids, temp_products_db, min_sigma=3.0)
+        detect_ese_parallel(source_ids, temp_products_db, min_sigma=3.0)
         parallel_time = time.time() - start_time
 
         # Assert: Should be faster than sequential (rough check)

@@ -8,7 +8,6 @@ import os
 import re
 from collections import OrderedDict
 from contextlib import contextmanager
-from typing import Optional
 
 
 class DocString(str):
@@ -34,11 +33,7 @@ class Section(OrderedDict):
     def __setattr__(self, key: str, value):
         if key[0] == "_":
             return super().__setattr__(key, value)
-        if (
-            isinstance(value, tuple)
-            and len(value) == 2
-            and isinstance(value[1], DocString)
-        ):
+        if isinstance(value, tuple) and len(value) == 2 and isinstance(value[1], DocString):
             self._docs[key] = value[1]
             value = value[0]
         self[key] = value
@@ -55,9 +50,7 @@ class Section(OrderedDict):
             Single value if one kwarg, tuple if multiple
         """
         if not kw:
-            raise RuntimeError(
-                "Section.get() must be called with at least one keyword argument"
-            )
+            raise RuntimeError("Section.get() must be called with at least one keyword argument")
         retval = []
         for key, value in kw.items():
             if value is None:
@@ -91,6 +84,7 @@ class Section(OrderedDict):
         """Display settings as HTML table."""
         try:
             from IPython.display import HTML, display
+
             from .render import render_table
 
             data = []
@@ -99,9 +93,7 @@ class Section(OrderedDict):
                 doc = self._docs.get(key, "")
                 data.append((f"{self._name}.{key}", repr(value), doc))
 
-            html = render_table(
-                data, headers=["Setting", "Value", "Description"], numbering=False
-            )
+            html = render_table(data, headers=["Setting", "Value", "Description"], numbering=False)
             display(HTML(html))
         except ImportError:
             print(self.__repr__())
@@ -143,6 +135,7 @@ class SettingsManager:
         """Display all settings as HTML table."""
         try:
             from IPython.display import HTML, display
+
             from .render import render_table
 
             data = []
@@ -157,13 +150,9 @@ class SettingsManager:
                     )
                     for key, value in section.items():
                         doc = section._docs.get(key, "")
-                        data.append(
-                            (f"{self._name}.{sec_name}.{key}", repr(value), doc)
-                        )
+                        data.append((f"{self._name}.{sec_name}.{key}", repr(value), doc))
 
-            html = render_table(
-                data, headers=["Setting", "Value", "Description"], numbering=False
-            )
+            html = render_table(data, headers=["Setting", "Value", "Description"], numbering=False)
             display(HTML(html))
         except ImportError:
             print(self.__repr__())
@@ -178,8 +167,9 @@ class QAVisualizationSettingsManager(SettingsManager):
 
         # General settings
         gen = self.add_section("gen", "General QA visualization settings")
-        gen.twocolumn_list_width = 40, D(
-            "File lists default to dual-column if names within this length"
+        gen.twocolumn_list_width = (
+            40,
+            D("File lists default to dual-column if names within this length"),
         )
         gen.timeformat = "%H:%M:%S %b %d", D("Time format")
         gen.collapsible = True, D("Enable collapsible displays by default")

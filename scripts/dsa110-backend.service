@@ -1,0 +1,34 @@
+[Unit]
+Description=DSA-110 Backend API Service
+Documentation=https://github.com/dsa110/dsa110-contimg
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/data/dsa110-contimg
+User=root
+Group=root
+
+# Start the backend API
+ExecStart=/usr/bin/docker compose up -d api
+
+# Stop the backend API
+ExecStop=/usr/bin/docker compose stop api
+
+# Reload configuration
+ExecReload=/usr/bin/docker compose restart api
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=dsa110-backend
+
+# Security settings
+PrivateTmp=false
+NoNewPrivileges=false
+
+[Install]
+WantedBy=multi-user.target

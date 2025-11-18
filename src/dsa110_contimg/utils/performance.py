@@ -24,7 +24,7 @@ Example:
 import logging
 import time
 from functools import wraps
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -80,9 +80,7 @@ def track_performance(operation_name: str, log_result: bool = False):
                 _performance_metrics.setdefault(error_name, []).append(elapsed)
 
                 if log_result:
-                    logger.debug(
-                        f"Performance: {operation_name} failed after {elapsed:.3f}s: {e}"
-                    )
+                    logger.debug(f"Performance: {operation_name} failed after {elapsed:.3f}s: {e}")
 
                 raise
 
@@ -119,9 +117,7 @@ def get_performance_stats(
     """
     stats = {}
 
-    operations = (
-        [operation_name] if operation_name else list(_performance_metrics.keys())
-    )
+    operations = [operation_name] if operation_name else list(_performance_metrics.keys())
 
     for op in operations:
         if op not in _performance_metrics:

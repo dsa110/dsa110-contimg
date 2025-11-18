@@ -1,5 +1,9 @@
 """Flag subcommand handler."""
 
+import casacore.tables as casatables
+
+from dsa110_contimg.utils.validation import ValidationError, validate_ms
+
 from .flagging import (
     flag_antenna,
     flag_baselines,
@@ -14,11 +18,8 @@ from .flagging import (
     flag_zeros,
     reset_flags,
 )
-from dsa110_contimg.utils.validation import ValidationError, validate_ms
-import casacore.tables as casatables
 
 table = casatables.table  # noqa: N816
-import numpy as np
 import argparse
 import logging
 import sys
@@ -263,9 +264,7 @@ def handle_flag(args: argparse.Namespace) -> int:
         logger.info("✓ RFI flagging complete")
 
     elif mode == "shadow":
-        logger.info(
-            f"Flagging shadowed baselines (tolerance: {args.shadow_tolerance} deg)..."
-        )
+        logger.info(f"Flagging shadowed baselines (tolerance: {args.shadow_tolerance} deg)...")
         flag_shadow(args.ms, tolerance=args.shadow_tolerance)
         logger.info("✓ Shadow flagging complete")
 
@@ -277,9 +276,7 @@ def handle_flag(args: argparse.Namespace) -> int:
             quackmode=args.quack_mode,
             datacolumn=args.datacolumn,
         )
-        logger.info(
-            f"✓ Quack flagging complete ({args.quack_mode}, {args.quack_interval}s)"
-        )
+        logger.info(f"✓ Quack flagging complete ({args.quack_mode}, {args.quack_interval}s)")
 
     elif mode == "elevation":
         limits = []
@@ -304,8 +301,7 @@ def handle_flag(args: argparse.Namespace) -> int:
         clip_range = [args.clip_min, args.clip_max]
         direction = "outside" if args.clip_outside else "inside"
         logger.info(
-            f"Flagging amplitudes {direction} range "
-            f"[{clip_range[0]}, {clip_range[1]}] Jy..."
+            f"Flagging amplitudes {direction} range " f"[{clip_range[0]}, {clip_range[1]}] Jy..."
         )
         flag_clip(
             args.ms,
@@ -314,8 +310,7 @@ def handle_flag(args: argparse.Namespace) -> int:
             datacolumn=args.datacolumn,
         )
         logger.info(
-            f"✓ Clip flagging complete ({direction} "
-            f"[{clip_range[0]}, {clip_range[1]}] Jy)"
+            f"✓ Clip flagging complete ({direction} " f"[{clip_range[0]}, {clip_range[1]}] Jy)"
         )
 
     elif mode == "extend":
@@ -391,8 +386,7 @@ def handle_flag(args: argparse.Namespace) -> int:
         logger.info("=" * 70)
         logger.info(f"MS: {args.ms}")
         logger.info(
-            f"Total fraction flagged: "
-            f"{stats.get('total_fraction_flagged', 0.0)*100:.2f}%"
+            f"Total fraction flagged: " f"{stats.get('total_fraction_flagged', 0.0) * 100:.2f}%"
         )
         logger.info(f"Total rows: {stats.get('n_rows', 0):,}")
         logger.info("=" * 70)
@@ -403,9 +397,7 @@ def handle_flag(args: argparse.Namespace) -> int:
         try:
             from dsa110_contimg.utils.ms_helpers import validate_ms_unflagged_fraction
 
-            unflagged_fraction = validate_ms_unflagged_fraction(
-                args.ms, sample_size=10000
-            )
+            unflagged_fraction = validate_ms_unflagged_fraction(args.ms, sample_size=10000)
             flagged_pct = (1.0 - unflagged_fraction) * 100
             logger.info(
                 f"\nFlagging complete. Total flagged: {flagged_pct:.2f}% "

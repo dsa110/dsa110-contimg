@@ -4,25 +4,21 @@
  */
 
 // Route to component mapping for prefetching
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const routeComponentMap: Record<string, () => Promise<any>> = {
   "/dashboard": () => import("../pages/DashboardPage"),
   "/pipeline": () => import("../pages/PipelinePage"),
-  "/operations": () => import("../pages/OperationsPage"),
-  "/control": () => import("../pages/ControlPage"),
+  "/operations": () => import("../pages/PipelineOperationsPage"),
+  "/control": () => import("../pages/PipelineControlPage"),
   "/calibration": () => import("../pages/CalibrationWorkflowPage"),
-  // "/ms-browser": MS Browser functionality merged into Control page
-  // "/ms-browser": () => import("../pages/MSBrowserPage"),
-  "/streaming": () => import("../pages/StreamingPage"),
   "/data": () => import("../pages/DataBrowserPage"),
   "/sources": () => import("../pages/SourceMonitoringPage"),
   "/mosaics": () => import("../pages/MosaicGalleryPage"),
   "/sky": () => import("../pages/SkyViewPage"),
   "/carta": () => import("../pages/CARTAPage"),
-  "/qa": () => import("../pages/QAVisualizationPage"),
-  "/health": () => import("../pages/HealthPage"),
+  "/qa": () => import("../pages/QAPage"),
+  "/health": () => import("../pages/SystemDiagnosticsPage"),
   "/events": () => import("../pages/EventsPage"),
-  "/cache": () => import("../pages/CachePage"),
-  "/observing": () => import("../pages/ObservingPage"),
 };
 
 /**

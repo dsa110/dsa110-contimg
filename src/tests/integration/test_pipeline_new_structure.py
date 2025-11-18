@@ -19,7 +19,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("pipeline_test_new_structure.log"), logging.StreamHandler()],
+    handlers=[
+        logging.FileHandler("pipeline_test_new_structure.log"),
+        logging.StreamHandler(),
+    ],
 )
 
 logger = logging.getLogger(__name__)
@@ -32,7 +35,6 @@ def check_directory_structure():
     logger.info("=" * 80)
 
     from dsa110_contimg.database.data_config import (
-        STAGE_BASE,
         get_calibrated_ms_dir,
         get_calibration_tables_dir,
         get_raw_ms_dir,
@@ -90,7 +92,8 @@ def check_calibrated_ms_files():
 
         data_type = "calibrated_ms"
         cursor.execute(
-            "SELECT data_id, file_path, status FROM data_registry WHERE data_type = ?", (data_type,)
+            "SELECT data_id, file_path, status FROM data_registry WHERE data_type = ?",
+            (data_type,),
         )
         rows = cursor.fetchall()
 
@@ -170,7 +173,7 @@ def main():
     logger.info("=" * 80)
     logger.info("Test Summary")
     logger.info("=" * 80)
-    logger.info(f"✓ Directory structure: OK")
+    logger.info("✓ Directory structure: OK")
     logger.info(
         f"{'✓' if has_calibrated else '⚠'} Calibrated MS files: {'Found' if has_calibrated else 'None found (expected if no calibration has run)'}"
     )

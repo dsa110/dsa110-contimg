@@ -15,7 +15,7 @@
  * @module pages/ImageDetailPage
  */
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate, Link as RouterLink } from "react-router-dom";
 import {
   Container,

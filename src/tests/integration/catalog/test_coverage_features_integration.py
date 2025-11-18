@@ -8,6 +8,7 @@ Tests the full integration of:
 
 These tests verify the features work together in realistic scenarios.
 """
+
 import os
 import shutil
 import sys
@@ -24,9 +25,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 from dsa110_contimg.api.routers.status import get_catalog_coverage_status
 from dsa110_contimg.calibration.catalogs import query_nvss_sources
 from dsa110_contimg.catalog.builders import (
-  CATALOG_COVERAGE_LIMITS, auto_build_missing_catalog_databases,
-  build_first_strip_db, build_nvss_strip_db, build_rax_strip_db,
-  check_missing_catalog_databases)
+    CATALOG_COVERAGE_LIMITS,
+    auto_build_missing_catalog_databases,
+    check_missing_catalog_databases,
+)
 from dsa110_contimg.catalog.visualize_coverage import plot_catalog_coverage
 from dsa110_contimg.pointing.auto_calibrator import find_brightest_nvss_source
 
@@ -40,7 +42,7 @@ class TestAutoBuildIntegration:
         self.test_dir = tempfile.mkdtemp(prefix="test_catalog_coverage_")
         self.state_dir = Path(self.test_dir) / "state" / "catalogs"
         self.state_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Mock state directory path
         self.original_state = os.environ.get("DSA110_CONTIMG_STATE", None)
         os.environ["DSA110_CONTIMG_STATE"] = str(self.test_dir)
@@ -58,28 +60,29 @@ class TestAutoBuildIntegration:
         """Test that auto-build triggers when NVSS is queried."""
         # Test with a declination within coverage
         dec_deg = 54.6  # Within NVSS/FIRST coverage
-        
+
         # Check that databases are missing
         missing = check_missing_catalog_databases(
             dec_deg,
             auto_build=False,  # Don't auto-build yet
         )
-        
+
         # Verify FIRST and RAX are missing (if not already built)
         assert isinstance(missing, list)
-        
+
         # Now query NVSS with auto-build enabled
         # This should trigger auto-build for missing databases
-        with patch('dsa110_contimg.catalog.builders.build_first_strip_db') as mock_build_first, \
-             patch('dsa110_contimg.catalog.builders.build_rax_strip_db') as mock_build_rax:
-            
+        with (
+            patch("dsa110_contimg.catalog.builders.build_first_strip_db") as mock_build_first,
+            patch("dsa110_contimg.catalog.builders.build_rax_strip_db") as mock_build_rax,
+        ):
             # Mock the build functions to avoid actual database creation
             mock_build_first.return_value = None
             mock_build_rax.return_value = None
-            
+
             # Query NVSS - this should check and attempt to build missing databases
             try:
-                sources = query_nvss_sources(
+                query_nvss_sources(
                     ra_deg=180.0,
                     dec_deg=dec_deg,
                     radius_deg=1.0,
@@ -87,7 +90,7 @@ class TestAutoBuildIntegration:
             except Exception:
                 # Expected to fail if catalogs don't exist, but auto-build should be attempted
                 pass
-            
+
             # Verify auto-build was attempted (if databases were missing)
             # Note: This depends on the actual implementation
 
@@ -95,12 +98,12 @@ class TestAutoBuildIntegration:
         """Test that auto-build only occurs within coverage limits."""
         # Test with declination outside coverage
         dec_deg = 95.0  # Outside NVSS/FIRST coverage (max is 90.0)
-        
+
         missing = check_missing_catalog_databases(
             dec_deg,
             auto_build=False,
         )
-        
+
         # Should not attempt to build databases outside coverage
         # The function should detect out-of-coverage and not build
         assert isinstance(missing, list)
@@ -108,22 +111,25 @@ class TestAutoBuildIntegration:
     def test_auto_build_in_calibrator_selection(self):
         """Test that auto-build triggers during calibrator selection."""
         dec_deg = 54.6  # Within coverage
-        
-        with patch('dsa110_contimg.catalog.builders.build_first_strip_db') as mock_build_first, \
-             patch('dsa110_contimg.catalog.builders.build_rax_strip_db') as mock_build_rax, \
-             patch('dsa110_contimg.calibration.catalogs.query_nvss_sources') as mock_query:
-            
+
+        with (
+            patch("dsa110_contimg.catalog.builders.build_first_strip_db") as mock_build_first,
+            patch("dsa110_contimg.catalog.builders.build_rax_strip_db") as mock_build_rax,
+            patch("dsa110_contimg.calibration.catalogs.query_nvss_sources") as mock_query,
+        ):
             mock_build_first.return_value = None
             mock_build_rax.return_value = None
-            mock_query.return_value = pd.DataFrame({
-                'ra': [180.0],
-                'dec': [54.6],
-                'flux': [100.0],
-            })
-            
+            mock_query.return_value = pd.DataFrame(
+                {
+                    "ra": [180.0],
+                    "dec": [54.6],
+                    "flux": [100.0],
+                }
+            )
+
             # Call find_brightest_nvss_source - should trigger auto-build check
             try:
-                result = find_brightest_nvss_source(dec_deg)
+                find_brightest_nvss_source(dec_deg)
             except Exception:
                 # May fail if catalogs don't exist, but should attempt auto-build
                 pass
@@ -136,26 +142,25 @@ class TestAPICoverageStatus:
     def test_get_catalog_coverage_status(self):
         """Test that get_catalog_coverage_status returns correct structure."""
         # Mock ingest database path
-        with patch('dsa110_contimg.api.routers.status.Path') as mock_path, \
-             patch('dsa110_contimg.api.routers.status.sqlite3') as mock_sqlite3:
-            
+        with (
+            patch("dsa110_contimg.api.routers.status.Path"),
+            patch("dsa110_contimg.api.routers.status.sqlite3") as mock_sqlite3,
+        ):
             # Mock database connection
             mock_conn = MagicMock()
             mock_cursor = MagicMock()
             mock_conn.cursor.return_value = mock_cursor
             mock_sqlite3.connect.return_value = mock_conn
-            
+
             # Mock pointing history query
             mock_cursor.fetchone.return_value = (54.6,)  # Current declination
-            
+
             # Call the function
-            status = get_catalog_coverage_status(
-                ingest_db_path=Path("/tmp/test_ingest.db")
-            )
-            
+            status = get_catalog_coverage_status(ingest_db_path=Path("/tmp/test_ingest.db"))
+
             # Verify structure (may be None if database doesn't exist)
             if status is not None:
-                assert hasattr(status, 'dec_deg') or status is None
+                assert hasattr(status, "dec_deg") or status is None
                 # Status may be None if database doesn't exist, which is expected in tests
 
 
@@ -167,9 +172,9 @@ class TestVisualizationIntegration:
         """Test that plot_catalog_coverage function is callable."""
         # Verify function exists and is callable
         assert callable(plot_catalog_coverage)
-        
+
         # Test with mock data
-        with patch('dsa110_contimg.catalog.visualize_coverage.plt') as mock_plt:
+        with patch("dsa110_contimg.catalog.visualize_coverage.plt"):
             try:
                 plot_catalog_coverage(dec_deg=54.6)
                 # If no exception, function works
@@ -185,26 +190,25 @@ class TestFullPipelineIntegration:
     def test_coverage_features_work_together(self):
         """Test that all coverage features work together."""
         dec_deg = 54.6  # Within coverage
-        
+
         # 1. Check missing databases
         missing = check_missing_catalog_databases(dec_deg, auto_build=False)
         assert isinstance(missing, list)
-        
+
         # 2. Verify coverage limits are defined
-        assert 'nvss' in CATALOG_COVERAGE_LIMITS
-        assert 'first' in CATALOG_COVERAGE_LIMITS
-        assert 'rax' in CATALOG_COVERAGE_LIMITS
-        
+        assert "nvss" in CATALOG_COVERAGE_LIMITS
+        assert "first" in CATALOG_COVERAGE_LIMITS
+        assert "rax" in CATALOG_COVERAGE_LIMITS
+
         # 3. Verify auto-build function exists
         assert callable(auto_build_missing_catalog_databases)
-        
+
         # 4. Verify API status function exists
         assert callable(get_catalog_coverage_status)
-        
+
         # 5. Verify visualization function exists
         assert callable(plot_catalog_coverage)
 
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

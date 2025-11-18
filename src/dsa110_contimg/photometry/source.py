@@ -11,27 +11,26 @@ from __future__ import annotations
 
 import logging
 import sqlite3
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Any, List
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from astropy.coordinates import SkyCoord
 from astropy import units as u
+from astropy.coordinates import SkyCoord
 from astropy.time import Time
 
 try:
+    from dsa110_contimg.catalog.external import (
+        gaia_search,
+        ned_search,
+        query_all_catalogs,
+        simbad_search,
+    )
     from dsa110_contimg.photometry.variability import (
         calculate_eta_metric,
-        calculate_vs_metric,
         calculate_m_metric,
-    )
-    from dsa110_contimg.catalog.external import (
-        simbad_search,
-        ned_search,
-        gaia_search,
-        query_all_catalogs,
+        calculate_vs_metric,
     )
 except ImportError:
     # Fallback if variability module not available
@@ -169,16 +168,13 @@ class Source:
 
                 # Rename columns for consistency
                 if "flux_jy" in df.columns:
-                    df = df.rename(
-                        columns={"flux_jy": "peak_jyb", "flux_err_jy": "peak_err_jyb"}
-                    )
+                    df = df.rename(columns={"flux_jy": "peak_jyb", "flux_err_jy": "peak_err_jyb"})
 
             # Fallback to photometry table
             elif "photometry" in tables:
                 # Check if source_id column exists
                 columns = {
-                    row[1]
-                    for row in conn.execute("PRAGMA table_info(photometry)").fetchall()
+                    row[1] for row in conn.execute("PRAGMA table_info(photometry)").fetchall()
                 }
 
                 if "source_id" in columns:
@@ -224,17 +220,13 @@ class Source:
 
             # Convert measured_at to datetime if present
             if "measured_at" in df.columns:
-                df["measured_at"] = pd.to_datetime(
-                    df["measured_at"], unit="s", errors="coerce"
-                )
+                df["measured_at"] = pd.to_datetime(df["measured_at"], unit="s", errors="coerce")
 
             return df
 
         except Exception as e:
             conn.close()
-            raise SourceError(
-                f"Failed to load measurements for {self.source_id}: {e}"
-            ) from e
+            raise SourceError(f"Failed to load measurements for {self.source_id}: {e}") from e
 
     @property
     def coord(self) -> SkyCoord:
@@ -273,10 +265,7 @@ class Source:
             else "peak_err_jyb"
         )
 
-        if (
-            flux_col in self.measurements.columns
-            and err_col in self.measurements.columns
-        ):
+        if flux_col in self.measurements.columns and err_col in self.measurements.columns:
             flux = self.measurements[flux_col]
             err = self.measurements[err_col]
             # Detection if flux > 3*error and error is finite
@@ -327,9 +316,7 @@ class Source:
 
         flux = self.measurements[flux_col].values
         flux_err = (
-            self.measurements[err_col].values
-            if err_col in self.measurements.columns
-            else None
+            self.measurements[err_col].values if err_col in self.measurements.columns else None
         )
 
         # Filter out NaN/inf values
@@ -350,19 +337,13 @@ class Source:
         flux_err_valid = flux_err[valid_mask] if flux_err is not None else None
 
         # V metric (coefficient of variation)
-        v = (
-            float(np.std(flux_valid) / np.mean(flux_valid))
-            if np.mean(flux_valid) > 0
-            else 0.0
-        )
+        v = float(np.std(flux_valid) / np.mean(flux_valid)) if np.mean(flux_valid) > 0 else 0.0
 
         # η metric (weighted variance)
         if flux_err_valid is not None and len(flux_valid) >= 2:
             df_for_eta = pd.DataFrame({flux_col: flux_valid, err_col: flux_err_valid})
             try:
-                eta = calculate_eta_metric(
-                    df_for_eta, flux_col=flux_col, err_col=err_col
-                )
+                eta = calculate_eta_metric(df_for_eta, flux_col=flux_col, err_col=err_col)
             except Exception as e:
                 logger.warning(f"Failed to calculate η metric: {e}")
                 eta = 0.0
@@ -467,10 +448,7 @@ class Source:
                 time = pd.to_datetime(self.measurements["measured_at"])
             elif "mjd" in self.measurements.columns:
                 time = pd.to_datetime(
-                    [
-                        Time(mjd, format="mjd").datetime
-                        for mjd in self.measurements["mjd"]
-                    ]
+                    [Time(mjd, format="mjd").datetime for mjd in self.measurements["mjd"]]
                 )
             else:
                 raise SourceError("No time column found in measurements")
@@ -478,9 +456,7 @@ class Source:
 
         # Get flux and errors
         flux = self.measurements[flux_col]
-        flux_err = (
-            self.measurements[err_col] if err_col in self.measurements.columns else None
-        )
+        flux_err = self.measurements[err_col] if err_col in self.measurements.columns else None
 
         # Filter out NaN/inf
         valid_mask = np.isfinite(flux)
@@ -508,9 +484,7 @@ class Source:
                 alpha=0.7,
             )
         else:
-            ax.plot(
-                time_valid, flux_valid, "o", label=flux_label, markersize=6, alpha=0.7
-            )
+            ax.plot(time_valid, flux_valid, "o", label=flux_label, markersize=6, alpha=0.7)
 
         # Highlight baseline period (first 10 epochs)
         if highlight_baseline and len(time_valid) >= 10:
@@ -538,9 +512,7 @@ class Source:
             if mjd:
                 time_range_days = float(time_valid.max() - time_valid.min())
             else:
-                time_range_days = (
-                    time_valid.max() - time_valid.min()
-                ).total_seconds() / 86400
+                time_range_days = (time_valid.max() - time_valid.min()).total_seconds() / 86400
 
             if 14 <= time_range_days <= 180:
                 ax.axvspan(
@@ -604,13 +576,11 @@ class Source:
             >>> if results['ned'] and results['ned']['redshift']:
             ...     print(f"Redshift: {results['ned']['redshift']}")
         """
-        from astropy.coordinates import SkyCoord
         import astropy.units as u
+        from astropy.coordinates import SkyCoord
 
         if self.ra_deg is None or self.dec_deg is None:
-            logger.warning(
-                f"Cannot cross-match source {self.source_id}: " "RA/Dec not available"
-            )
+            logger.warning(f"Cannot cross-match source {self.source_id}: RA/Dec not available")
             return {"simbad": None, "ned": None, "gaia": None}
 
         coord = SkyCoord(ra=self.ra_deg * u.deg, dec=self.dec_deg * u.deg)

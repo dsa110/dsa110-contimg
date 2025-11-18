@@ -2,7 +2,6 @@
 from typing import List, Optional, Tuple
 
 import astropy.units as u
-import numpy as np
 from astropy.coordinates import Angle, EarthLocation
 from astropy.time import Time
 

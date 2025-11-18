@@ -1,16 +1,16 @@
 """Integration tests for CrossMatchStage."""
 
-import pytest
-import numpy as np
-import pandas as pd
-from pathlib import Path
-import tempfile
 import sqlite3
+import tempfile
+from pathlib import Path
 
-from dsa110_contimg.pipeline.config import PipelineConfig, PathsConfig, CrossMatchConfig
+import pandas as pd
+import pytest
+
+from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.pipeline.config import CrossMatchConfig, PathsConfig, PipelineConfig
 from dsa110_contimg.pipeline.context import PipelineContext
 from dsa110_contimg.pipeline.stages_impl import CrossMatchStage
-from dsa110_contimg.database.products import ensure_products_db
 
 
 @pytest.fixture
@@ -110,8 +110,6 @@ class TestCrossMatchStage:
     ):
         """Test stage execution with mock sources."""
         # Mock catalog query by creating a simple catalog database
-        from dsa110_contimg.catalog.query import resolve_catalog_path
-        import shutil
 
         # Create mock catalog database
         catalog_dir = temp_state_dir / "catalogs"
@@ -145,9 +143,7 @@ class TestCrossMatchStage:
         # Note: This is a simplified test - in practice, catalog paths are resolved differently
 
         stage = CrossMatchStage(test_config)
-        test_context = test_context.with_output(
-            "detected_sources", mock_detected_sources
-        )
+        test_context = test_context.with_output("detected_sources", mock_detected_sources)
 
         # Mock the catalog query to return our mock sources
         import dsa110_contimg.catalog.query as query_module
@@ -179,9 +175,7 @@ class TestCrossMatchStage:
         finally:
             query_module.query_sources = original_query
 
-    def test_stage_execution_no_matches(
-        self, test_config, test_context, temp_state_dir
-    ):
+    def test_stage_execution_no_matches(self, test_config, test_context, temp_state_dir):
         """Test stage execution when no matches found."""
         # Create detected sources far from catalog
         detected_sources = pd.DataFrame(
@@ -304,9 +298,10 @@ class TestCrossMatchStage:
         self, test_config, test_context, mock_detected_sources, temp_state_dir
     ):
         """Test that master catalog IDs are stored in database."""
+        import sqlite3
+
         from dsa110_contimg.database.products import ensure_products_db
         from dsa110_contimg.database.schema_evolution import evolve_products_schema
-        import sqlite3
 
         products_db = test_config.paths.products_db
         ensure_products_db(products_db)
@@ -356,9 +351,10 @@ class TestCrossMatchStage:
         self, test_config, test_context, mock_detected_sources, temp_state_dir
     ):
         """Test that UNIQUE constraint prevents duplicate entries."""
+        import sqlite3
+
         from dsa110_contimg.database.products import ensure_products_db
         from dsa110_contimg.database.schema_evolution import evolve_products_schema
-        import sqlite3
 
         products_db = test_config.paths.products_db
         ensure_products_db(products_db)

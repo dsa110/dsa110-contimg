@@ -2,6 +2,7 @@
  * Mosaic View Page
  * JS9 FITS mosaic viewer
  */
+import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Container, Typography, Paper, Box, Alert, Chip, Button } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";

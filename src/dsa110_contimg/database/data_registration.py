@@ -10,7 +10,6 @@ from dsa110_contimg.database.data_registry import (
     link_data,
     register_data,
 )
-from dsa110_contimg.database.products import ensure_products_db
 
 logger = logging.getLogger(__name__)
 

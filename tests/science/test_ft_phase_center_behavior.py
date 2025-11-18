@@ -8,7 +8,6 @@ This test creates a controlled experiment to determine:
 
 import os
 import shutil
-import tempfile
 
 import numpy as np
 import pytest
@@ -51,8 +50,8 @@ def test_ft_uses_reference_dir_or_phase_dir(ms_path):
     try:
         # Read current phase centers
         with table(f"{test_ms}::FIELD", readonly=False) as field_tb:
-            ref_dir = field_tb.getcol("REFERENCE_DIR")[0][0].copy()
-            phase_dir = field_tb.getcol("PHASE_DIR")[0][0].copy()
+            field_tb.getcol("REFERENCE_DIR")[0][0].copy()
+            field_tb.getcol("PHASE_DIR")[0][0].copy()
 
             # Set REFERENCE_DIR to position A (calibrator position)
             cal_ra_rad = 128.7287 * np.pi / 180.0
@@ -71,10 +70,10 @@ def test_ft_uses_reference_dir_or_phase_dir(ms_path):
             field_tb.putcol("PHASE_DIR", position_b.reshape(1, 1, 2))
 
             print(
-                f"Set REFERENCE_DIR to position A: RA={position_a[0]*180/np.pi:.6f}°, Dec={position_a[1]*180/np.pi:.6f}°"
+                f"Set REFERENCE_DIR to position A: RA={position_a[0] * 180 / np.pi:.6f}°, Dec={position_a[1] * 180 / np.pi:.6f}°"
             )
             print(
-                f"Set PHASE_DIR to position B: RA={position_b[0]*180/np.pi:.6f}°, Dec={position_b[1]*180/np.pi:.6f}°"
+                f"Set PHASE_DIR to position B: RA={position_b[0] * 180 / np.pi:.6f}°, Dec={position_b[1] * 180 / np.pi:.6f}°"
             )
 
         # Create component list at position A
@@ -87,8 +86,8 @@ def test_ft_uses_reference_dir_or_phase_dir(ms_path):
             dir={
                 "refer": "J2000",
                 "type": "direction",
-                "long": f"{position_a[0]*180/np.pi}deg",
-                "lat": f"{position_a[1]*180/np.pi}deg",
+                "long": f"{position_a[0] * 180 / np.pi}deg",
+                "lat": f"{position_a[1] * 180 / np.pi}deg",
             },
             flux=2.5,
             fluxunit="Jy",
@@ -125,15 +124,10 @@ def test_ft_uses_reference_dir_or_phase_dir(ms_path):
                 wavelength = 3e8 / 1.4e9
 
                 # Calculate expected phase for position A (REFERENCE_DIR)
-                offset_ra_a = (
-                    0.0  # Component at position A, MS phase center at position A
-                )
+                offset_ra_a = 0.0  # Component at position A, MS phase center at position A
                 offset_dec_a = 0.0
                 expected_phase_a = (
-                    2
-                    * np.pi
-                    * (u_coord * offset_ra_a + v_coord * offset_dec_a)
-                    / wavelength
+                    2 * np.pi * (u_coord * offset_ra_a + v_coord * offset_dec_a) / wavelength
                 )
                 expected_phase_a = np.mod(expected_phase_a + np.pi, 2 * np.pi) - np.pi
 
@@ -141,10 +135,7 @@ def test_ft_uses_reference_dir_or_phase_dir(ms_path):
                 offset_ra_b = (position_a[0] - position_b[0]) * np.cos(position_b[1])
                 offset_dec_b = position_a[1] - position_b[1]
                 expected_phase_b = (
-                    2
-                    * np.pi
-                    * (u_coord * offset_ra_b + v_coord * offset_dec_b)
-                    / wavelength
+                    2 * np.pi * (u_coord * offset_ra_b + v_coord * offset_dec_b) / wavelength
                 )
                 expected_phase_b = np.mod(expected_phase_b + np.pi, 2 * np.pi) - np.pi
 
@@ -160,24 +151,20 @@ def test_ft_uses_reference_dir_or_phase_dir(ms_path):
                 scatter_a = np.std(diff_a_deg)
                 scatter_b = np.std(diff_b_deg)
 
-                print(f"\nPhase comparison:")
-                print(
-                    f"  MODEL_DATA vs REFERENCE_DIR (position A): {scatter_a:.1f}° scatter"
-                )
-                print(
-                    f"  MODEL_DATA vs PHASE_DIR (position B): {scatter_b:.1f}° scatter"
-                )
+                print("\nPhase comparison:")
+                print(f"  MODEL_DATA vs REFERENCE_DIR (position A): {scatter_a:.1f}° scatter")
+                print(f"  MODEL_DATA vs PHASE_DIR (position B): {scatter_b:.1f}° scatter")
 
                 # Determine which phase center ft() used
                 if scatter_a < 10:
-                    print(f"\n✓ ft() USES REFERENCE_DIR for phase calculations")
+                    print("\n✓ ft() USES REFERENCE_DIR for phase calculations")
                     assert scatter_a < 10, "ft() should use REFERENCE_DIR"
                 elif scatter_b < 10:
-                    print(f"\n✓ ft() USES PHASE_DIR for phase calculations")
+                    print("\n✓ ft() USES PHASE_DIR for phase calculations")
                     assert scatter_b < 10, "ft() should use PHASE_DIR"
                 else:
-                    print(f"\n✗ ft() does NOT match either REFERENCE_DIR or PHASE_DIR")
-                    print(f"  This suggests ft() uses a different source or has a bug")
+                    print("\n✗ ft() does NOT match either REFERENCE_DIR or PHASE_DIR")
+                    print("  This suggests ft() uses a different source or has a bug")
                     pytest.fail("ft() phase center behavior unclear")
 
     finally:

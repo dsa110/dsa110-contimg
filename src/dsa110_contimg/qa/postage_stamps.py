@@ -11,24 +11,24 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Optional, Tuple, List, Dict, Any
+from typing import Any, Dict, List, Optional, Tuple
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.patches import Circle
-from astropy.io import fits
-from astropy.wcs import WCS
-from astropy.nddata.utils import Cutout2D
-from astropy.coordinates import SkyCoord
 from astropy import units as u
+from astropy.coordinates import SkyCoord
+from astropy.io import fits
+from astropy.nddata.utils import Cutout2D
 from astropy.visualization import (
-    ZScaleInterval,
-    ImageNormalize,
-    PercentileInterval,
     AsinhStretch,
+    ImageNormalize,
     LinearStretch,
+    PercentileInterval,
+    ZScaleInterval,
 )
+from astropy.wcs import WCS
+from matplotlib.patches import Circle
 
 from dsa110_contimg.photometry.source import Source
 
@@ -131,9 +131,7 @@ def normalize_cutout(
 
     if len(valid_data) == 0:
         # Fallback to simple normalization
-        return ImageNormalize(
-            data=data, interval=PercentileInterval(99.0), stretch=LinearStretch()
-        )
+        return ImageNormalize(data=data, interval=PercentileInterval(99.0), stretch=LinearStretch())
 
     # Choose interval
     if method == "zscale":
@@ -217,10 +215,7 @@ def plot_cutout(
             if "ra" in source and "dec" in source:
                 coord = SkyCoord(source["ra"], source["dec"], unit="deg")
                 pix_coords = wcs.world_to_pixel(coord)
-                if (
-                    0 <= pix_coords[0] < data.shape[1]
-                    and 0 <= pix_coords[1] < data.shape[0]
-                ):
+                if 0 <= pix_coords[0] < data.shape[1] and 0 <= pix_coords[1] < data.shape[0]:
                     ax.plot(
                         pix_coords[0],
                         pix_coords[1],
@@ -241,8 +236,9 @@ def plot_cutout(
     # Add catalog overlay if requested
     if overlay_catalog:
         try:
-            from dsa110_contimg.catalog.query import query_sources
             from astropy.coordinates import SkyCoord
+
+            from dsa110_contimg.catalog.query import query_sources
 
             # Get cutout center and size
             center_coord = SkyCoord(wcs.wcs.crval[0], wcs.wcs.crval[1], unit="deg")
@@ -262,10 +258,7 @@ def plot_cutout(
             for _, row in catalog_sources.iterrows():
                 cat_coord = SkyCoord(row["ra_deg"], row["dec_deg"], unit="deg")
                 pix_coords = wcs.world_to_pixel(cat_coord)
-                if (
-                    0 <= pix_coords[0] < data.shape[1]
-                    and 0 <= pix_coords[1] < data.shape[0]
-                ):
+                if 0 <= pix_coords[0] < data.shape[1] and 0 <= pix_coords[1] < data.shape[0]:
                     ax.plot(
                         pix_coords[0],
                         pix_coords[1],
@@ -280,7 +273,7 @@ def plot_cutout(
     if show_beam and metadata:
         bmaj = metadata.get("beam_major_arcsec")
         bmin = metadata.get("beam_minor_arcsec")
-        bpa = metadata.get("beam_pa_deg")
+        metadata.get("beam_pa_deg")
 
         if bmaj and bmin:
             # Convert arcsec to degrees
@@ -383,9 +376,7 @@ def show_all_cutouts(
         raise ValueError(f"Source {source.source_id} has no measurements")
 
     # Filter measurements with valid image paths
-    valid_measurements = source.measurements[
-        source.measurements["image_path"].notna()
-    ].copy()
+    valid_measurements = source.measurements[source.measurements["image_path"].notna()].copy()
 
     if valid_measurements.empty:
         raise ValueError(f"Source {source.source_id} has no valid image paths")
@@ -403,7 +394,6 @@ def show_all_cutouts(
 
     # Create shared normalization from first detection (if autoscaling enabled)
     shared_norm = None
-    first_data = None
 
     # Plot each cutout
     for idx, (_, row) in enumerate(valid_measurements.iterrows()):
@@ -411,8 +401,6 @@ def show_all_cutouts(
 
         # Get time label
         if "mjd" in row and pd.notna(row["mjd"]):
-            from astropy.time import Time
-
             time_label = f"MJD {row['mjd']:.1f}"
         elif "measured_at" in row and pd.notna(row["measured_at"]):
             time_label = f"{row['measured_at']}"
@@ -450,7 +438,6 @@ def show_all_cutouts(
                         contrast=contrast,
                         percentile=percentile,
                     )
-                    first_data = cutout_data
                 cutout_norm = shared_norm
 
             # Create subplot with WCS projection

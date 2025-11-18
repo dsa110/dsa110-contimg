@@ -87,7 +87,6 @@ def Title(
     if rootdir.startswith(homedir):
         rootdir = rootdir[len(homedir) :]
 
-    logo_html = ""
     logo_style = ""
 
     if logo and os.path.exists(logo):
@@ -96,7 +95,6 @@ def Title(
         _logo_image = f'<img src="{logo_url}" alt=""{logo_width_attr}></img>'
         logo_style = f"padding-right: {logo_padding}px; vertical-align: middle; min-width: {logo_width + logo_padding}px"
 
-    icon_html = ""
     if icon:
         if os.path.exists(icon):
             icon_url = render_url(icon)
@@ -104,7 +102,6 @@ def Title(
             icon_url = icon
         icon_width_attr = f' width="{icon_width}"' if icon_width else ""
         _icon_image = f'<img src="{icon_url}" alt=""{icon_width_attr}></img>'
-        icon_html = _icon_image
 
     html = f"""
         <div class="qa-title-block" style="display: table-row; margin-top: 0.5em; width: 100%">
@@ -156,7 +153,9 @@ def Section(name: str, refreshable: bool = False) -> None:
     # Refresh button
     refresh_html = ""
     if refreshable and _icon_image:
-        refresh_html = f'<div style="float: left;">{_render_refresh_button(content=_icon_image)}</div>'
+        refresh_html = (
+            f'<div style="float: left;">{_render_refresh_button(content=_icon_image)}</div>'
+        )
 
     html = f"""
         {bookmarks_html}
@@ -176,9 +175,7 @@ def Section(name: str, refreshable: bool = False) -> None:
         display(HTML(html))
 
 
-def _render_refresh_button(
-    content: Optional[str] = None, style: Optional[str] = None
-) -> str:
+def _render_refresh_button(content: Optional[str] = None, style: Optional[str] = None) -> str:
     """
     Render a refresh button (internal use).
 

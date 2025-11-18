@@ -116,13 +116,13 @@ export default defineConfig({
     // sourcemap is defined below in rollupOptions
     chunkSizeWarningLimit: 5000, // Increased to accommodate plotly-vendor (4.8MB) which is expected
     // CRITICAL FIX: Increase build timeout and disable problematic optimizations
-    // The hang is caused by Vite trying to transform plotly.js (106MB) during build
-    // By increasing resources and simplifying the build, we can complete it
+    // Using plotly.js-dist-min (pre-built browser bundle) instead of plotly.js source
+    // By using the pre-built version and lazy-loading, we keep build times manageable
     rollupOptions: {
       output: {
         // Separate only the heaviest libraries to keep build times manageable
         manualChunks(id) {
-          if (id.includes("plotly.js") || id.includes("react-plotly.js")) {
+          if (id.includes("plotly.js-dist-min") || id.includes("react-plotly.js")) {
             return "plotly-vendor";
           }
           if (id.includes("golden-layout")) {
@@ -140,7 +140,7 @@ export default defineConfig({
       },
     },
     // CRITICAL: Disable sourcemap for large libraries to speed up build
-    // Sourcemaps for plotly.js are huge and slow down the build significantly
+    // Sourcemaps for plotly.js-dist-min are huge and slow down the build significantly
     sourcemap: process.env.NODE_ENV === "development" ? "inline" : false,
     // Suppress warnings for asset paths that resolve at runtime
     assetsInlineLimit: 4096,
@@ -157,14 +157,14 @@ export default defineConfig({
     dedupe: ["react", "react-dom", "date-fns"],
   },
   optimizeDeps: {
-    include: ["date-fns", "react", "react-dom", "react-plotly.js"],
-    // CRITICAL: Exclude large libraries that cause build hangs
-    // plotly.js is 106MB+ and should be lazy-loaded, not transformed during build
-    // BUT: react-plotly.js wrapper is small and needs to be pre-transformed from CommonJS
+    // CRITICAL: Include all dependencies that need CommonJS -> ESM transformation
+    // plotly.js must be pre-transformed because it contains CommonJS code
+    // This happens once at startup, then the transformed version is cached
+    include: ["date-fns", "react", "react-dom", "react-plotly.js", "plotly.js"],
+    // Exclude only dependencies that are already ESM and don't need transformation
     exclude: [
-      "plotly.js",
       "golden-layout",
-      // Exclude other large dependencies that are lazy-loaded
+      // Exclude other large dependencies that are already ESM-compatible
     ],
     esbuildOptions: {
       // Ensure date-fns is treated as ESM

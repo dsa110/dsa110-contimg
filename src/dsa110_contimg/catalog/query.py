@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 import sqlite3
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 import astropy.units as u
 import numpy as np
@@ -276,7 +276,7 @@ def _query_sqlite(
             query = f"""
             SELECT ra_deg, dec_deg, flux_mjy
             FROM sources
-            WHERE {' AND '.join(where_clauses)}
+            WHERE {" AND ".join(where_clauses)}
             ORDER BY flux_mjy DESC
             """
 
@@ -307,7 +307,7 @@ def _query_sqlite(
             query = f"""
             SELECT ra_deg, dec_deg, flux_mjy, maj_arcsec, min_arcsec
             FROM sources
-            WHERE {' AND '.join(where_clauses)}
+            WHERE {" AND ".join(where_clauses)}
             ORDER BY flux_mjy DESC
             """
 
@@ -338,7 +338,7 @@ def _query_sqlite(
             query = f"""
             SELECT ra_deg, dec_deg, flux_mjy
             FROM sources
-            WHERE {' AND '.join(where_clauses)}
+            WHERE {" AND ".join(where_clauses)}
             ORDER BY flux_mjy DESC
             """
 
@@ -369,7 +369,7 @@ def _query_sqlite(
             query = f"""
             SELECT ra_deg, dec_deg, flux_mjy
             FROM sources
-            WHERE {' AND '.join(where_clauses)}
+            WHERE {" AND ".join(where_clauses)}
             ORDER BY flux_mjy DESC
             """
 
@@ -400,7 +400,7 @@ def _query_sqlite(
             SELECT ra_deg, dec_deg, s_nvss * 1000.0 as flux_mjy,
                    snr_nvss, s_vlass, alpha, resolved_flag, confusion_flag
             FROM sources
-            WHERE {' AND '.join(where_clauses)}
+            WHERE {" AND ".join(where_clauses)}
             ORDER BY snr_nvss DESC
             """
 
@@ -438,7 +438,9 @@ def _query_sqlite(
                 frame="icrs",
             )
             center = SkyCoord(
-                ra_center * u.deg, dec_center * u.deg, frame="icrs"  # pylint: disable=no-member
+                ra_center * u.deg,
+                dec_center * u.deg,
+                frame="icrs",  # pylint: disable=no-member
             )  # pylint: disable=no-member
             sep = sc.separation(center).deg
             df = df[sep <= radius_deg].copy()
@@ -466,7 +468,9 @@ def _query_nvss_csv(
         frame="icrs",
     )
     center = SkyCoord(
-        ra_center * u.deg, dec_center * u.deg, frame="icrs"  # pylint: disable=no-member
+        ra_center * u.deg,
+        dec_center * u.deg,
+        frame="icrs",  # pylint: disable=no-member
     )  # pylint: disable=no-member
     sep = sc.separation(center).deg
 

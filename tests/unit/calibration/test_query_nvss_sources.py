@@ -14,10 +14,9 @@ Run with: pytest tests/unit/calibration/test_query_nvss_sources.py -v
 """
 
 import sqlite3
-import tempfile
 import time
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import astropy.units as u
 import numpy as np
@@ -25,7 +24,7 @@ import pandas as pd
 import pytest
 from astropy.coordinates import SkyCoord
 
-from dsa110_contimg.calibration.catalogs import query_nvss_sources, read_nvss_catalog
+from dsa110_contimg.calibration.catalogs import query_nvss_sources
 
 
 @pytest.fixture
@@ -546,7 +545,7 @@ class TestQueryNVSSSourcesSmoke:
         times = []
         for _ in range(5):
             start = time.perf_counter()
-            df = query_nvss_sources(ra_deg=83.5, dec_deg=54.6, radius_deg=1.0, min_flux_mjy=10.0)
+            query_nvss_sources(ra_deg=83.5, dec_deg=54.6, radius_deg=1.0, min_flux_mjy=10.0)
             elapsed = time.perf_counter() - start
             times.append(elapsed)
 
@@ -554,8 +553,8 @@ class TestQueryNVSSSourcesSmoke:
         max_time = max(times)
 
         # Should be fast (<100ms average, <200ms max)
-        assert avg_time < 0.1, f"Average query time {avg_time*1000:.1f}ms exceeds 100ms"
-        assert max_time < 0.2, f"Max query time {max_time*1000:.1f}ms exceeds 200ms"
+        assert avg_time < 0.1, f"Average query time {avg_time * 1000:.1f}ms exceeds 100ms"
+        assert max_time < 0.2, f"Max query time {max_time * 1000:.1f}ms exceeds 200ms"
 
     def test_smoke_typical_workflow(self):
         """Smoke test: Typical workflow (multiple queries with different parameters)."""
@@ -599,8 +598,8 @@ class TestQueryNVSSSourcesSmoke:
     def test_smoke_result_consistency(self):
         """Smoke test: Multiple queries with same parameters return consistent results."""
         # Query same field twice (using SQLite, not CSV fallback)
-        df1 = query_nvss_sources(ra_deg=83.5, dec_deg=54.6, radius_deg=1.0, min_flux_mjy=10.0)
-        df2 = query_nvss_sources(ra_deg=83.5, dec_deg=54.6, radius_deg=1.0, min_flux_mjy=10.0)
+        query_nvss_sources(ra_deg=83.5, dec_deg=54.6, radius_deg=1.0, min_flux_mjy=10.0)
+        query_nvss_sources(ra_deg=83.5, dec_deg=54.6, radius_deg=1.0, min_flux_mjy=10.0)
 
     def test_smoke_csv_fallback_disabled_by_default(self):
         """Smoke test: CSV fallback is disabled by default."""

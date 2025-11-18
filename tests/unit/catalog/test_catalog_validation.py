@@ -11,20 +11,14 @@ Tests the catalog_validation module functions for:
 - Catalog overlay pixel conversion
 """
 
-import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import astropy.units as u
 import numpy as np
 import pandas as pd
 import pytest
-from astropy.coordinates import SkyCoord
 from astropy.io import fits
-from astropy.wcs import WCS
 
 from dsa110_contimg.qa.catalog_validation import (
-    CatalogValidationResult,
     extract_sources_from_image,
     get_catalog_overlay_pixels,
     get_image_frequency,
@@ -56,9 +50,7 @@ class TestScaleFluxToFrequency:
     def test_different_spectral_index(self):
         """Test scaling with different spectral index."""
         flux_1_4 = 1.0
-        flux_3_0_flat = scale_flux_to_frequency(
-            flux_1_4, 1.4e9, 3.0e9, spectral_index=0.0
-        )
+        flux_3_0_flat = scale_flux_to_frequency(flux_1_4, 1.4e9, 3.0e9, spectral_index=0.0)
         assert flux_3_0_flat == pytest.approx(1.0)
 
 
@@ -200,9 +192,7 @@ class TestGetCatalogOverlayPixels:
         image_path = tmp_path / "test.fits"
         hdu.writeto(image_path, overwrite=True)
 
-        catalog_sources = pd.DataFrame(
-            {"ra": [180.0], "dec": [0.0]}  # Wrong column name
-        )
+        catalog_sources = pd.DataFrame({"ra": [180.0], "dec": [0.0]})  # Wrong column name
 
         pixels = get_catalog_overlay_pixels(str(image_path), catalog_sources)
         assert len(pixels) == 0
@@ -260,7 +250,7 @@ class TestValidateAstrometry:
         assert result.validation_type == "astrometry"
         assert result.n_matched > 0
         assert result.mean_offset_arcsec is not None
-        assert result.has_issues == False  # Good astrometry
+        assert not result.has_issues  # Good astrometry
 
     @patch("dsa110_contimg.qa.catalog_validation.query_sources")
     @patch("dsa110_contimg.qa.catalog_validation.extract_sources_from_image")
@@ -273,17 +263,13 @@ class TestValidateAstrometry:
         image_path = tmp_path / "test.fits"
         hdu.writeto(image_path, overwrite=True)
 
-        mock_extract.return_value = pd.DataFrame(
-            columns=["ra_deg", "dec_deg", "flux_jy", "snr"]
-        )
-        mock_query.return_value = pd.DataFrame(
-            columns=["ra_deg", "dec_deg", "flux_mjy"]
-        )
+        mock_extract.return_value = pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_jy", "snr"])
+        mock_query.return_value = pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
 
         result = validate_astrometry(str(image_path))
 
         assert result.n_detected == 0
-        assert result.has_issues == True
+        assert result.has_issues
         assert "No sources detected" in result.issues[0]
 
 
@@ -348,9 +334,7 @@ class TestValidateFluxScale:
 
         mock_forced_peak.side_effect = mock_forced_peak_side_effect
 
-        result = validate_flux_scale(
-            str(image_path), catalog="nvss", max_flux_ratio_error=0.2
-        )
+        result = validate_flux_scale(str(image_path), catalog="nvss", max_flux_ratio_error=0.2)
 
         assert result.validation_type == "flux_scale"
         assert result.mean_flux_ratio is not None
@@ -392,13 +376,11 @@ class TestValidateSourceCounts:
             }
         )
 
-        result = validate_source_counts(
-            str(image_path), catalog="nvss", completeness_threshold=0.7
-        )
+        result = validate_source_counts(str(image_path), catalog="nvss", completeness_threshold=0.7)
 
         assert result.validation_type == "source_counts"
         assert result.completeness == pytest.approx(0.75)
-        assert result.has_issues == False  # Above threshold
+        assert not result.has_issues  # Above threshold
 
     @patch("dsa110_contimg.qa.catalog_validation.extract_sources_from_image")
     @patch("dsa110_contimg.qa.catalog_validation.query_sources")
@@ -425,9 +407,7 @@ class TestValidateSourceCounts:
             }
         )
 
-        result = validate_source_counts(
-            str(image_path), catalog="nvss", completeness_threshold=0.7
-        )
+        result = validate_source_counts(str(image_path), catalog="nvss", completeness_threshold=0.7)
 
         assert result.completeness == pytest.approx(0.1)
-        assert result.has_issues == True  # Below threshold
+        assert result.has_issues  # Below threshold

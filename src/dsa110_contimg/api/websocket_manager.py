@@ -10,7 +10,7 @@ import json
 import logging
 from collections.abc import AsyncIterator
 from datetime import datetime
-from typing import Dict, Set
+from typing import Set
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +34,7 @@ class ConnectionManager:
         """Remove a connection."""
         async with self._lock:
             self.active_connections.discard(websocket)
-            logger.info(
-                f"Connection closed. Total connections: {len(self.active_connections)}"
-            )
+            logger.info(f"Connection closed. Total connections: {len(self.active_connections)}")
 
     async def broadcast(self, message: dict):
         """Broadcast a message to all connected clients."""

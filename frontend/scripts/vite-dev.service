@@ -1,0 +1,29 @@
+[Unit]
+Description=DSA-110 Frontend Vite Dev Server
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/data/dsa110-contimg/frontend
+Environment="NODE_ENV=development"
+Environment="PATH=/opt/miniforge/envs/casa6/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/bin/bash /data/dsa110-contimg/frontend/scripts/start-dev.sh
+ExecStop=/bin/kill -TERM $MAINPID
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/tmp/vite-dev-server.log
+StandardError=append:/tmp/vite-dev-server.log
+
+# Resource limits
+MemoryMax=2G
+CPUQuota=200%
+
+# Restart policy
+RestartPreventExitStatus=0
+StartLimitInterval=5min
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target

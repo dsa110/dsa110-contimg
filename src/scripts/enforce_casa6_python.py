@@ -8,7 +8,6 @@ This script:
 """
 
 import re
-import sys
 from pathlib import Path
 
 # Casa6 Python path

@@ -7,7 +7,6 @@ This should be imported before any CASA imports.
 
 import os
 import warnings
-from pathlib import Path
 
 # Suppress SWIG-generated deprecation warnings from casacore
 # These warnings come from SWIG bindings missing __module__ attributes
@@ -119,7 +118,7 @@ def ensure_casa_path() -> None:
                 if os.path.exists(geodetic_src) and not os.path.exists(geodetic_dest):
                     try:
                         os.symlink(geodetic_src, geodetic_dest)
-                    except (OSError, PermissionError) as e:
+                    except (OSError, PermissionError):
                         # Symlink creation failed (might not have permissions or already exists)
                         # This is non-critical - CASAPATH should be sufficient
                         pass
@@ -127,7 +126,7 @@ def ensure_casa_path() -> None:
                 if os.path.exists(ephemerides_src) and not os.path.exists(ephemerides_dest):
                     try:
                         os.symlink(ephemerides_src, ephemerides_dest)
-                    except (OSError, PermissionError) as e:
+                    except (OSError, PermissionError):
                         # Symlink creation failed
                         # This is non-critical - CASAPATH should be sufficient
                         pass

@@ -7,7 +7,6 @@ and thumbnail generation, similar to RadioPadre's HTMLFile.
 
 import os
 import subprocess
-import sys
 from typing import Optional
 
 try:
@@ -25,16 +24,13 @@ except ImportError:
 from .file import FileBase
 from .render import render_error, render_preamble, render_titled_content, render_url
 from .settings_manager import settings
-from .thumbnail import get_cache_file
 
 
 def _find_chromium() -> Optional[str]:
     """Find Chromium executable."""
     for cmd in ["chromium", "chromium-browser", "google-chrome", "chrome"]:
         try:
-            result = subprocess.run(
-                ["which", cmd], capture_output=True, check=True, text=True
-            )
+            result = subprocess.run(["which", cmd], capture_output=True, check=True, text=True)
             return result.stdout.strip()
         except (subprocess.CalledProcessError, FileNotFoundError):
             continue
@@ -114,12 +110,8 @@ class HTMLFile(FileBase):
         height = height or settings.display.window_height
 
         url = render_url(self.fullpath)
-        title_html = (
-            f"<h3>{title or self.basename}</h3>" if title or self.basename else ""
-        )
-        content_html = (
-            f'<iframe width="{width}" height="{height}" src="{url}"></iframe>'
-        )
+        title_html = f"<h3>{title or self.basename}</h3>" if title or self.basename else ""
+        content_html = f'<iframe width="{width}" height="{height}" src="{url}"></iframe>'
 
         if collapsed is None:
             collapsed = settings.gen.collapsible
@@ -157,9 +149,7 @@ class HTMLFile(FileBase):
         if needs_update or refresh:
             try:
                 url = "file://" + os.path.abspath(self.fullpath)
-                _render_html_thumbnail(
-                    url, img_representation, width, height, timeout=200
-                )
+                _render_html_thumbnail(url, img_representation, width, height, timeout=200)
             except Exception as e:
                 return render_error(str(e))
 
@@ -210,9 +200,7 @@ class URL(FileBase):
         height = height or settings.display.window_height
 
         title_html = f"<h3>{title or self.url}</h3>" if title or self.url else ""
-        content_html = (
-            f'<iframe width="{width}" height="{height}" src="{self.url}"></iframe>'
-        )
+        content_html = f'<iframe width="{width}" height="{height}" src="{self.url}"></iframe>'
 
         if collapsed is None:
             collapsed = settings.gen.collapsible

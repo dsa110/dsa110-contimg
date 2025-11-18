@@ -85,23 +85,19 @@ def test_relative_photometry_logic():
         )
 
     # Test visualization data extraction
-    source_names = [r["source"]["name"] for r in relative_results]
-    measured_fluxes = [r["measured_flux"] for r in relative_results]
+    [r["source"]["name"] for r in relative_results]
+    [r["measured_flux"] for r in relative_results]
     relative_fluxes = [r["relative_flux"] for r in relative_results]
     expected_relative = [r["expected_relative"] for r in relative_results]
     ratio_errors_pct = [
-        r["ratio_error"] * 100
-        for r in relative_results
-        if np.isfinite(r["ratio_error"])
+        r["ratio_error"] * 100 for r in relative_results if np.isfinite(r["ratio_error"])
     ]
 
     # Calculate SNRs
     snrs = []
     for r in relative_results:
         src_idx = next(
-            i
-            for i, res in enumerate(results)
-            if res["source"]["name"] == r["source"]["name"]
+            i for i, res in enumerate(results) if res["source"]["name"] == r["source"]["name"]
         )
         res = results[src_idx]["result"]
         if np.isfinite(res.peak_err_jyb) and res.peak_err_jyb > 0:
@@ -110,17 +106,13 @@ def test_relative_photometry_logic():
             snrs.append(np.nan)
 
     # Test visualization indices
-    valid_indices = [
-        i for i, r in enumerate(relative_results) if np.isfinite(r["ratio_error"])
-    ]
+    valid_indices = [i for i, r in enumerate(relative_results) if np.isfinite(r["ratio_error"])]
     valid_relative_fluxes = [relative_fluxes[i] for i in valid_indices]
     valid_errors = [ratio_errors_pct[i] for i in valid_indices]
-    valid_snrs = [snrs[i] for i in valid_indices if np.isfinite(snrs[i])]
+    [snrs[i] for i in valid_indices if np.isfinite(snrs[i])]
 
     # Test SNR plot indices
-    valid_snr_indices = [
-        i for i in valid_indices if i < len(snrs) and np.isfinite(snrs[i])
-    ]
+    valid_snr_indices = [i for i in valid_indices if i < len(snrs) and np.isfinite(snrs[i])]
 
     print("\n✓ All data structures created successfully")
     print(f"  - {len(relative_results)} relative results")

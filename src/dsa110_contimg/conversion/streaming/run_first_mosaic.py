@@ -23,7 +23,11 @@ setup_casa_environment()
 
 from dsa110_contimg.calibration.applycal import apply_to_target
 from dsa110_contimg.conversion.streaming.streaming_converter import QueueDB
-from dsa110_contimg.database.products import ensure_products_db, images_insert, ms_index_upsert
+from dsa110_contimg.database.products import (
+    ensure_products_db,
+    images_insert,
+    ms_index_upsert,
+)
 from dsa110_contimg.database.registry import ensure_db as ensure_cal_db
 from dsa110_contimg.database.registry import get_active_applylist
 from dsa110_contimg.imaging.cli import image_ms

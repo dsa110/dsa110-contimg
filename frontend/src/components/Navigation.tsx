@@ -51,7 +51,6 @@ const navItems = [
   { path: "/operations", label: "Operations", icon: Build },
   { path: "/control", label: "Control", icon: Settings },
   { path: "/calibration", label: "Calibration", icon: Build },
-  { path: "/streaming", label: "Streaming", icon: PlayArrow },
   { path: "/data", label: "Data Browser", icon: Storage },
   { path: "/sources", label: "Sources", icon: TableChart },
   { path: "/mosaics", label: "Mosaics", icon: Image },
@@ -60,7 +59,7 @@ const navItems = [
   { path: "/qa", label: "QA Tools", icon: Science },
   { path: "/health", label: "Health", icon: Assessment },
   { path: "/events", label: "Events", icon: EventNote },
-  { path: "/cache", label: "Cache", icon: Cached },
+  // Note: Streaming, Observing, and Cache are now consolidated into Control and Health pages
 ];
 
 export default function Navigation() {

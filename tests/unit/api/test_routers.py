@@ -7,14 +7,12 @@ from __future__ import annotations
 
 import sqlite3
 from datetime import datetime, timezone
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 from dsa110_contimg.api.routes import create_app
-from dsa110_contimg.api.config import ApiConfig
 
 
 @pytest.fixture
@@ -387,9 +385,7 @@ class TestPhotometryRouter:
             }
             mock_source.return_value = mock_instance
 
-            response = test_client.get(
-                "/api/sources/NVSS%20J123456.7%2B420312/variability"
-            )
+            response = test_client.get("/api/sources/NVSS%20J123456.7%2B420312/variability")
             assert response.status_code == 200
             data = response.json()
             assert "v" in data

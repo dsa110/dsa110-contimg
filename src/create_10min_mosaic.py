@@ -1,9 +1,11 @@
 #!/opt/miniforge/envs/casa6/bin/python
+# -*- coding: utf-8 -*-
 """Create 12-minute mosaic with specified parameters.
 
 CRITICAL: This script REQUIRES casa6 Python 3.11.13.
 Do not run with any other Python version.
 """
+
 # Enforce casa6 Python version - MUST be first import
 import sys
 from pathlib import Path
@@ -56,7 +58,7 @@ import sys
 import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from astropy.time import Time
 
@@ -195,7 +197,7 @@ def list_transits_interactive(
             if 0 <= idx < len(transits):
                 return idx
             else:
-                print(f"Invalid index. Please enter 0-{len(transits)-1} or 'q' to quit.")
+                print(f"Invalid index. Please enter 0-{len(transits) - 1} or 'q' to quit.")
         except ValueError:
             print("Invalid input. Please enter a number or 'q' to quit.")
         except KeyboardInterrupt:
@@ -338,7 +340,7 @@ Examples:
         write_status("RUNNING", "Starting mosaic creation")
 
         calibrator_name = "0834+555"
-        products_db_path = Path("state/products.sqlite3")
+        products_db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
 
         # Set imaging parameters (applies to individual tiles)
         os.environ["IMG_IMSIZE"] = "1024"
@@ -376,7 +378,10 @@ Examples:
 
             success_count = sum(1 for r in results if r["status"] == "success")
             print(f"\n✓ Batch processing complete: {success_count}/{len(results)} successful")
-            write_status("SUCCESS", f"Batch processing: {success_count}/{len(results)} successful")
+            write_status(
+                "SUCCESS",
+                f"Batch processing: {success_count}/{len(results)} successful",
+            )
             return 0 if success_count > 0 else 1
 
         # Handle list-transits mode
@@ -410,7 +415,7 @@ Examples:
                 min_ms_count=args.min_ms_count,
             )
             if args.transit_index < 0 or args.transit_index >= len(transits):
-                print(f"✗ Transit index {args.transit_index} out of range (0-{len(transits)-1})")
+                print(f"✗ Transit index {args.transit_index} out of range (0-{len(transits) - 1})")
                 return 1
             transit = transits[args.transit_index]
             transit_time = transit.get("transit_time")
@@ -456,14 +461,14 @@ Examples:
             if mosaic_path == "DRY_RUN":
                 success_msg = "Dry run completed successfully - mosaic plan validated"
                 print(f"✓ {success_msg}")
-                print(f"  Run without --preview/--dry-run to create the mosaic")
+                print("  Run without --preview/--dry-run to create the mosaic")
                 write_status("SUCCESS", success_msg)
                 return 0
             else:
                 success_msg = f"Mosaic created successfully at: {mosaic_path}"
                 print(f"✓ {success_msg}")
-                print(f"  Location: /stage/dsa110-contimg/mosaics/")
-                print(f"  Method: pbweighted (default)")
+                print("  Location: /stage/dsa110-contimg/mosaics/")
+                print("  Method: pbweighted (default)")
                 write_status("SUCCESS", success_msg)
                 return 0
         else:

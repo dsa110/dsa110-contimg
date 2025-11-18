@@ -660,7 +660,10 @@ def normalize_photometry(
         # Query reference sources
         cfg = request.app.state.cfg
         master_sources_db = Path(
-            os.getenv("MASTER_SOURCES_DB", str(cfg.products_db.parent / "master_sources.sqlite3"))
+            os.getenv(
+                "MASTER_SOURCES_DB",
+                str(cfg.products_db.parent / "master_sources.sqlite3"),
+            )
         )
 
         ref_sources = query_reference_sources(

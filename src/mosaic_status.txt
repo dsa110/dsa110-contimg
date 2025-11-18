@@ -1,3 +1,0 @@
-Status: SUCCESS
-Timestamp: 2025-11-17T00:22:10.136429
-Details: Dry run completed successfully - mosaic plan validated

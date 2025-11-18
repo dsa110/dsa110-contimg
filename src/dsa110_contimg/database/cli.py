@@ -297,7 +297,7 @@ def main(argv: list = None) -> int:
         """Index HDF5 files in input directory for fast queries."""
 
         input_dir = Path(args.input_dir)
-        products_db = Path(args.products_db)
+        hdf5_db = Path(args.hdf5_db)
 
         if not input_dir.exists():
             print(f"Error: Input directory does not exist: {input_dir}")
@@ -306,12 +306,12 @@ def main(argv: list = None) -> int:
         print(f"Indexing HDF5 files in {input_dir}...")
         stats = index_hdf5_files(
             input_dir,
-            products_db,
+            hdf5_db,
             force_rescan=args.force,
             max_files=args.max_files,
         )
 
-        print(f"\nIndexing complete:")
+        print("\nIndexing complete:")
         print(f"  Total scanned: {stats['total_scanned']}")
         print(f"  New indexed: {stats['new_indexed']}")
         print(f"  Updated: {stats['updated']}")
@@ -333,10 +333,10 @@ def main(argv: list = None) -> int:
         help="Directory containing HDF5 files",
     )
     index_parser.add_argument(
-        "--products-db",
+        "--hdf5-db",
         type=str,
-        default=os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"),
-        help="Path to products database",
+        default=os.getenv("HDF5_DB_PATH", "/data/dsa110-contimg/state/hdf5.sqlite3"),
+        help="Path to HDF5 index database",
     )
     index_parser.add_argument(
         "--force",

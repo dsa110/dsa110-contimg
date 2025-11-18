@@ -127,7 +127,12 @@ def fetch_queue_stats(queue_db: Path) -> QueueStats:
             ).fetchone()
             if row is None:
                 return QueueStats(
-                    total=0, pending=0, in_progress=0, failed=0, completed=0, collecting=0
+                    total=0,
+                    pending=0,
+                    in_progress=0,
+                    failed=0,
+                    completed=0,
+                    collecting=0,
                 )
             return QueueStats(
                 total=row["total"] or 0,
@@ -387,26 +392,31 @@ def fetch_pointing_history(
     start_mjd: float,
     end_mjd: float,
     exclude_synthetic: bool = True,
+    time_interval_hours: float = 6.0,
 ) -> List[PointingHistoryEntry]:
-    """Fetch pointing history from the database AND directly from HDF5 files in /data/incoming/.
+    """Fetch pointing history with time-based sampling.
 
-    This function queries:
-    1. The pointing_history table (monitoring data) from ingest database
-    2. Directly scans /data/incoming/ for HDF5 files and extracts pointing data
+    This function queries the HDF5 index database at regular time intervals
+    to get a uniform distribution of pointing data across the time range.
 
     Args:
         ingest_db_path: Path to ingest database (contains pointing_history table)
         start_mjd: Start MJD timestamp
         end_mjd: End MJD timestamp
         exclude_synthetic: If True, filter out synthetic/simulated data (default: True)
+        time_interval_hours: Sample interval in hours (default: 6 hours = 0.25 MJD)
 
     Returns:
-        List of pointing history entries (real observations only), sorted by timestamp
+        List of pointing history entries sampled at regular time intervals, sorted by timestamp
     """
     import logging
     import os
 
     logger = logging.getLogger(__name__)
+    logger.info(
+        f"fetch_pointing_history: start_mjd={start_mjd}, end_mjd={end_mjd}, "
+        f"time_interval_hours={time_interval_hours}"
+    )
 
     # Get data_registry path if available
     data_registry_db = None
@@ -434,46 +444,81 @@ def fetch_pointing_history(
                     dec_deg=r["dec_deg"],
                 )
 
-    # Scan /data/incoming/ for HDF5 files and extract pointing data directly
-    # Skip during tests to avoid scanning large directories (80k+ files)
-    if os.getenv("SKIP_INCOMING_SCAN", "false").lower() != "true":
-        incoming_dir = Path("/data/incoming")
-        if incoming_dir.exists() and incoming_dir.is_dir():
-            try:
-                from dsa110_contimg.pointing.utils import load_pointing
+    # Query HDF5 index database for files within the time range
+    # This is much faster than scanning /data/incoming/ directly (80k+ files)
+    # In Docker: /app/state/hdf5.sqlite3, on host: /data/dsa110-contimg/state/hdf5.sqlite3
+    hdf5_db_path = Path(os.getenv("HDF5_DB_PATH", "state/hdf5.sqlite3"))
+    if not hdf5_db_path.is_absolute():
+        # Resolve relative to project root, not CWD (which may be /app/state/logs in API)
+        # Try Docker path first, then host path
+        if Path("/app/state/hdf5.sqlite3").exists():
+            hdf5_db_path = Path("/app/state/hdf5.sqlite3")
+        elif Path("/data/dsa110-contimg/state/hdf5.sqlite3").exists():
+            hdf5_db_path = Path("/data/dsa110-contimg/state/hdf5.sqlite3")
+        else:
+            hdf5_db_path = Path.cwd() / hdf5_db_path  # Fallback to CWD
 
-                hdf5_files = list(incoming_dir.glob("*.hdf5"))
-                logger.debug(f"Found {len(hdf5_files)} HDF5 files in /data/incoming/")
+    logger.error(f"🔍 HDF5 DB path: {hdf5_db_path}")
+    logger.error(f"🔍 HDF5 DB exists: {hdf5_db_path.exists()}")
 
-                for hdf5_file in hdf5_files:
-                    try:
-                        pointing_info = load_pointing(hdf5_file)
+    if hdf5_db_path.exists():
+        try:
+            with closing(_connect(hdf5_db_path)) as conn:
+                # Time-based sampling: sample at regular intervals
+                time_interval_mjd = time_interval_hours / 24.0  # Convert hours to MJD
 
-                        if (
-                            pointing_info.get("ra_deg") is not None
-                            and pointing_info.get("dec_deg") is not None
-                        ):
-                            mid_time = pointing_info.get("mid_time")
-                            if mid_time is not None:
-                                # Convert Time object to MJD
-                                timestamp = mid_time.mjd
+                # Calculate expected number of points
+                time_span = end_mjd - start_mjd
+                expected_points = int(time_span / time_interval_mjd) + 1
+                logger.info(
+                    f"Time-based sampling: interval={time_interval_hours}h ({time_interval_mjd:.4f} MJD), "
+                    f"expected_points={expected_points}"
+                )
 
-                                # Only include if within the requested time range
-                                if start_mjd <= timestamp <= end_mjd:
-                                    # Only add if not already present (database takes precedence)
-                                    if timestamp not in entries_dict:
-                                        entries_dict[timestamp] = PointingHistoryEntry(
-                                            timestamp=timestamp,
-                                            ra_deg=pointing_info["ra_deg"],
-                                            dec_deg=pointing_info["dec_deg"],
-                                        )
-                    except Exception as e:
-                        logger.warning(f"Failed to read pointing from {hdf5_file}: {e}")
-                        continue
-            except ImportError as e:
-                logger.warning(f"Could not import pointing utilities: {e}")
-            except Exception as e:
-                logger.warning(f"Error scanning /data/incoming/: {e}")
+                # Generate regular time points and find closest observation for each
+                current_mjd = start_mjd
+                sampled_count = 0
+
+                while current_mjd <= end_mjd:
+                    # Find closest observation to this time point
+                    # We use a window of ±time_interval_mjd to find nearby observations
+                    window = time_interval_mjd
+
+                    # Query for closest observation within the window
+                    row = conn.execute(
+                        """SELECT timestamp_mjd, ra_deg, dec_deg,
+                           ABS(timestamp_mjd - ?) as time_diff
+                           FROM hdf5_file_index
+                           WHERE timestamp_mjd BETWEEN ? AND ?
+                           AND path LIKE '%sb00.hdf5'
+                           AND ra_deg IS NOT NULL 
+                           AND dec_deg IS NOT NULL
+                           ORDER BY time_diff ASC
+                           LIMIT 1""",
+                        (current_mjd, current_mjd - window, current_mjd + window),
+                    ).fetchone()
+
+                    if row:
+                        timestamp_mjd = row[0]
+                        ra_deg = row[1]
+                        dec_deg = row[2]
+
+                        # Only add if we don't already have this exact timestamp
+                        if timestamp_mjd not in entries_dict:
+                            entries_dict[timestamp_mjd] = PointingHistoryEntry(
+                                timestamp=timestamp_mjd,
+                                ra_deg=ra_deg,
+                                dec_deg=dec_deg,
+                            )
+                            sampled_count += 1
+
+                    current_mjd += time_interval_mjd
+
+                logger.info(
+                    f"Time-based sampling: found {sampled_count} observations at regular intervals"
+                )
+        except Exception as e:
+            logger.error(f"Failed to query HDF5 index database: {e}", exc_info=True)
 
     # Convert to list and sort by timestamp
     entries = sorted(entries_dict.values(), key=lambda e: e.timestamp)
@@ -486,6 +531,7 @@ def fetch_pointing_history(
             if not _is_synthetic_pointing_data(entry.timestamp, data_registry_db)
         ]
 
+    logger.error(f"🔍 Returning {len(entries)} entries after filtering")
     return entries
 
 
@@ -895,7 +941,9 @@ def fetch_alert_history(products_db: Path, limit: int = 50) -> List[dict]:
 
 
 def fetch_observation_timeline(
-    data_dir: Path, gap_threshold_hours: float = 24.0, products_db: Optional[Path] = None
+    data_dir: Path,
+    gap_threshold_hours: float = 24.0,
+    products_db: Optional[Path] = None,
 ) -> ObservationTimeline:
     """Query database for HDF5 files and compute timeline segments.
 

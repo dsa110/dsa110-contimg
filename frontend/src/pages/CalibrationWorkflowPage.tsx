@@ -7,7 +7,7 @@
  * 4. Apply calibration
  * 5. Verify calibrated data
  */
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Container,
   Typography,
@@ -82,7 +82,7 @@ export default function CalibrationWorkflowPage() {
 
   const { data: msList, refetch: refetchMS } = useMSList({
     scan: String(true),
-    scan_dir: "/scratch/dsa110-contimg/ms",
+    scan_dir: "/stage/dsa110-contimg/ms",
   });
   const { data: msMetadata } = useMSMetadata(selectedMS);
   const { data: _calibrationQA } = useCalibrationQA(selectedMS);
@@ -270,7 +270,6 @@ export default function CalibrationWorkflowPage() {
                           <CalibrationWorkflow
                             selectedMS={selectedMS}
                             selectedMSList={[selectedMS]}
-                            msMetadata={msMetadata}
                             onJobCreated={(jobId) => {
                               // Navigate to job or show success
                               navigate(`/control?job=${jobId}`);

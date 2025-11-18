@@ -31,7 +31,6 @@ def main() -> int:
 
     ensure_casa_path()
 
-    from casatools import componentlist  # type: ignore  # noqa: E402
     from casatasks import simobserve  # type: ignore  # noqa: E402
     from casatools import componentlist  # type: ignore  # noqa: E402
 

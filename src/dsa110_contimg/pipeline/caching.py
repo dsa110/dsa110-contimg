@@ -10,8 +10,7 @@ from __future__ import annotations
 import json
 import os
 import time
-from functools import lru_cache, wraps
-from pathlib import Path
+from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 T = TypeVar("T")
@@ -170,7 +169,7 @@ class RedisCache(CacheBackend):
     def get_statistics(self) -> Dict[str, Any]:
         """Get cache statistics."""
         info = self.client.info("stats")
-        keyspace = self.client.info("keyspace")
+        self.client.info("keyspace")
 
         # Count keys
         total_keys = self.client.dbsize()
@@ -270,7 +269,12 @@ def cached_with_ttl(ttl_seconds: float = 3600.0, key_prefix: str = ""):
         wrapper.cache_clear = lambda: cache.clear()
         wrapper.cache_delete = lambda *a, **kw: cache.delete(
             ":".join(
-                [key_prefix, func.__name__, str(hash(a)), str(hash(tuple(sorted(kw.items()))))]
+                [
+                    key_prefix,
+                    func.__name__,
+                    str(hash(a)),
+                    str(hash(tuple(sorted(kw.items())))),
+                ]
             )
         )
 

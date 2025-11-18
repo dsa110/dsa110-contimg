@@ -26,7 +26,12 @@ from fastapi import (
     WebSocketDisconnect,
 )
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    RedirectResponse,
+    StreamingResponse,
+)
 from fastapi.staticfiles import StaticFiles
 
 from dsa110_contimg.api.config import ApiConfig
@@ -111,7 +116,10 @@ from dsa110_contimg.api.models import (
     VariabilityMetrics,
     WorkflowJobCreateRequest,
 )
-from dsa110_contimg.api.streaming_service import StreamingConfig, StreamingServiceManager
+from dsa110_contimg.api.streaming_service import (
+    StreamingConfig,
+    StreamingServiceManager,
+)
 from dsa110_contimg.qa.html_reports import generate_html_report
 from dsa110_contimg.utils.path_validation import sanitize_filename, validate_path
 
@@ -314,6 +322,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         from dsa110_contimg.api.websocket_manager import create_status_update, manager
         from dsa110_contimg.database.data_registry import ensure_data_registry_db
+        from dsa110_contimg.database.products import ensure_ingest_db
 
         # Pre-warm database connection to avoid cold-start delays
         try:
@@ -324,6 +333,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             logging.getLogger(__name__).info("Pre-warmed data registry database connection")
         except Exception as e:
             logging.getLogger(__name__).warning(f"Failed to pre-warm database connection: {e}")
+
+        # Ensure ingest database exists with pointing_history table
+        try:
+            ingest_conn = ensure_ingest_db(cfg.queue_db)
+            ingest_conn.execute("SELECT 1").fetchone()
+            logging.getLogger(__name__).info(f"Initialized ingest database: {cfg.queue_db}")
+        except Exception as e:
+            logging.getLogger(__name__).warning(f"Failed to initialize ingest database: {e}")
 
         # Pre-warm UVH5 file cache in background
         async def pre_warm_uvh5_cache():
@@ -349,8 +366,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         # Access module-level cache (defined at top of file)
                         import dsa110_contimg.api.routes as routes_module
 
-                        routes_module._uvh5_file_cache[str(search_path)] = (time.time(), all_files)
-                        logger.info(
+                        routes_module._uvh5_file_cache[str(search_path)] = (
+                            time.time(),
+                            all_files,
+                        )
+                        logging.getLogger(__name__).info(
                             f"Pre-warmed UVH5 file cache from database: {len(all_files)} files"
                         )
                 elif search_path.exists():
@@ -363,10 +383,15 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     all_files.sort(reverse=True)
                     import dsa110_contimg.api.routes as routes_module
 
-                    routes_module._uvh5_file_cache[str(search_path)] = (time.time(), all_files)
-                    logger.info(f"Pre-warmed UVH5 file cache: {len(all_files)} files")
+                    routes_module._uvh5_file_cache[str(search_path)] = (
+                        time.time(),
+                        all_files,
+                    )
+                    logging.getLogger(__name__).info(
+                        f"Pre-warmed UVH5 file cache: {len(all_files)} files"
+                    )
             except Exception as e:
-                logger.warning(f"Failed to pre-warm UVH5 cache: {e}")
+                logging.getLogger(__name__).warning(f"Failed to pre-warm UVH5 cache: {e}")
 
         # Start pre-warming in background (don't await to avoid blocking startup)
         asyncio.create_task(pre_warm_uvh5_cache())
@@ -402,7 +427,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             "matched_recent": matched_recent,
                         }
                     except Exception as e:
-                        logger.warning(f"Failed to fetch pipeline status: {e}")
+                        logging.getLogger(__name__).warning(f"Failed to fetch pipeline status: {e}")
 
                     try:
                         # Use the shared metrics function to ensure consistency
@@ -421,7 +446,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                                 metrics_dict["ts"] = metrics_dict["ts"].isoformat()
                             metrics = metrics_dict
                     except Exception as e:
-                        logger.warning(f"Failed to fetch metrics: {e}")
+                        logging.getLogger(__name__).warning(f"Failed to fetch metrics: {e}")
                         metrics = None
 
                     try:
@@ -432,7 +457,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             "candidates": [c.dict() if hasattr(c, "dict") else c for c in ese_data],
                         }
                     except Exception as e:
-                        logger.warning(f"Failed to fetch ESE candidates: {e}")
+                        logging.getLogger(__name__).warning(f"Failed to fetch ESE candidates: {e}")
 
                     # Broadcast update
                     if pipeline_status or metrics or ese_candidates:
@@ -442,7 +467,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 except asyncio.CancelledError:
                     break
                 except Exception as e:
-                    logger.error(f"Error in status broadcaster: {e}")
+                    logging.getLogger(__name__).error(f"Error in status broadcaster: {e}")
                     await asyncio.sleep(10)
 
         # Start background task
@@ -627,7 +652,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     app.include_router(events_router_module.router, prefix="/api/events", tags=["events"])
     app.include_router(cache_router_module.router, prefix="/api/cache", tags=["cache"])
     app.include_router(
-        performance_router_module.router, prefix="/api/performance", tags=["performance"]
+        performance_router_module.router,
+        prefix="/api/performance",
+        tags=["performance"],
     )
     app.include_router(tasks_router_module.router, prefix="/api/tasks", tags=["tasks"])
 
@@ -1217,7 +1244,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     def get_region_statistics(region_id: int):
         """Get statistics for pixels within a region."""
         from dsa110_contimg.api.image_utils import get_fits_path
-        from dsa110_contimg.utils.regions import calculate_region_statistics, json_to_region
+        from dsa110_contimg.utils.regions import (
+            calculate_region_statistics,
+            json_to_region,
+        )
 
         db_path = cfg.products_db
         if not db_path.exists():
@@ -1259,13 +1289,39 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         return CalibratorMatchList(items=items)
 
     @router.get("/pointing_history", response_model=PointingHistoryList)
-    def pointing_history(start_mjd: float, end_mjd: float) -> PointingHistoryList:
-        items = fetch_pointing_history(cfg.queue_db, start_mjd, end_mjd)
+    def pointing_history(
+        start_mjd: float,
+        end_mjd: float,
+        time_interval_hours: float = 6.0,
+    ) -> PointingHistoryList:
+        """
+        Get pointing history with time-based sampling.
+
+        Args:
+            start_mjd: Start MJD timestamp
+            end_mjd: End MJD timestamp
+            time_interval_hours: Sample interval in hours (default: 6 hours)
+                                 Returns 1 point every N hours
+
+        Returns:
+            List of pointing entries sampled at regular time intervals
+        """
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.info(
+            f"pointing_history: start={start_mjd}, end={end_mjd}, "
+            f"time_interval_hours={time_interval_hours}"
+        )
+        items = fetch_pointing_history(
+            cfg.queue_db, start_mjd, end_mjd, time_interval_hours=time_interval_hours
+        )
+        logger.info(f"Returned {len(items)} observations")
         return PointingHistoryList(items=items)
 
     @router.get("/pointing/sky-map")
     def get_sky_map(
-        map_type: str = Query("synthetic", description="Map type: 'synthetic' or 'haslam'")
+        map_type: str = Query("synthetic", description="Map type: 'synthetic' or 'haslam'"),
     ) -> FileResponse:
         """Get all-sky radio map in Aitoff projection for pointing visualization.
 
@@ -1311,6 +1367,76 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             data = generate_synthetic_sky_map_data(resolution=resolution)
 
         return data
+
+    @router.get("/pointing/mollweide-sky-map")
+    def get_mollweide_sky_map(
+        frequency_mhz: float = Query(1400.0, description="Frequency in MHz (default: 1400)"),
+        cmap: str = Query("inferno", description="Colormap (default: inferno)"),
+    ) -> FileResponse:
+        """Get Mollweide-projected HEALPix sky map image.
+
+        Returns a PNG image of the Global Sky Model in Mollweide projection
+        using healpy and pygdsm, following the user's example:
+        ```
+        import healpy as hp
+        import matplotlib.pyplot as plt
+        import numpy as np
+        import pygdsm
+        sky_map = pygdsm.GlobalSkyModel16().generate(1400)
+        hp.mollview(np.log10(sky_map), title="GSM at 1.4 GHz (log10 scale)",
+                    unit="log$_{10}$(K)", cmap="inferno")
+        ```
+        """
+        from fastapi import HTTPException
+
+        from dsa110_contimg.pointing.sky_map_generator import (
+            generate_mollweide_sky_map_image,
+        )
+
+        try:
+            image_path = generate_mollweide_sky_map_image(
+                frequency_mhz=frequency_mhz,
+                cmap=cmap,
+            )
+            return FileResponse(
+                str(image_path),
+                media_type="image/png",
+                filename=image_path.name,
+            )
+        except Exception as e:
+            logger.error(f"Failed to generate Mollweide sky map: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to generate Mollweide sky map: {str(e)}",
+            )
+
+    @router.get("/pointing/mollweide-sky-map-data")
+    def get_mollweide_sky_map_data_endpoint(
+        frequency_mhz: float = Query(1400.0, description="Frequency in MHz (default: 1400)"),
+        nside: int = Query(64, description="HEALPix NSIDE parameter (default: 64)"),
+    ) -> dict:
+        """Get HEALPix sky map data for Mollweide projection visualization.
+
+        Returns HEALPix pixel data (log10 scale) that can be used by the frontend
+        to render the Global Sky Model in Mollweide projection.
+        """
+        from fastapi import HTTPException
+
+        from dsa110_contimg.pointing.sky_map_generator import (
+            get_mollweide_sky_map_data,
+        )
+
+        try:
+            return get_mollweide_sky_map_data(
+                frequency_mhz=frequency_mhz,
+                nside=nside,
+            )
+        except Exception as e:
+            logger.error(f"Failed to get Mollweide sky map data: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to get Mollweide sky map data: {str(e)}",
+            )
 
     @router.get("/observation_timeline", response_model=ObservationTimeline)
     def observation_timeline(
@@ -1393,7 +1519,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         # Set y-axis
         ax.set_yticks(range(len(timeline.segments)))
-        ax.set_yticklabels([f"Segment {i+1}" for i in range(len(timeline.segments))])
+        ax.set_yticklabels([f"Segment {i + 1}" for i in range(len(timeline.segments))])
         ax.set_ylim(-0.5, len(timeline.segments) - 0.5)
 
         # Title
@@ -1543,9 +1669,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             pass
 
         # Collect disk usage for multiple mount points
+        # Note: /stage is a directory on root (/), not a separate mount point
+        # So we collect:
+        #   - / (root) = SSD with /stage directory
+        #   - /data = HDD bulk storage
         disk_paths = [
-            ("/stage/", "/stage"),
-            ("/data/", "/data"),
+            ("/ (SSD)", "/"),  # Root filesystem (NVMe SSD) - includes /stage
+            ("/data/ (HDD)", "/data"),  # Separate HDD mount point
         ]
 
         for mount_label, mount_path in disk_paths:
@@ -1555,6 +1685,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 used = int(du.used)
                 free = int(du.free)
                 percent = (used / total * 100.0) if total > 0 else 0.0
+
+                # DEBUG: Log what we're collecting
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.info(
+                    f"Disk collection: {mount_label} @ {mount_path} = {total / 1024**3:.1f} GB total, {percent:.1f}% used"
+                )
 
                 disks.append(
                     DiskInfo(
@@ -1566,12 +1704,17 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     )
                 )
 
-                # Keep backward compatibility: use /stage/ for legacy disk_total/disk_used
-                if mount_label == "/stage/":
+                # Keep backward compatibility: use root (SSD) for legacy disk_total/disk_used
+                if mount_path == "/":
                     disk_total = total
                     disk_used = used
-            except Exception:
-                # If mount point doesn't exist or isn't accessible, skip it
+            except Exception as e:
+                # Log error but continue to next disk
+                import logging
+
+                logging.getLogger(__name__).warning(
+                    f"Failed to get disk usage for {mount_label} ({mount_path}): {e}"
+                )
                 pass
 
         # Fallback to root disk if no disks were found
@@ -1814,7 +1957,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 match_html = (
                     "<ul>"
                     + "".join(
-                        f"<li>{m.name} (sep {m.sep_deg:.2f}°; RA {m.ra_deg:.4f}°, Dec {m.dec_deg:.4f}°; wflux {'' if m.weighted_flux is None else f'{m.weighted_flux:.2f} Jy' })</li>"
+                        f"<li>{m.name} (sep {m.sep_deg:.2f}°; RA {m.ra_deg:.4f}°, Dec {m.dec_deg:.4f}°; wflux {'' if m.weighted_flux is None else f'{m.weighted_flux:.2f} Jy'})</li>"
                         for m in g.matches
                     )
                     + "</ul>"
@@ -1835,7 +1978,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         <h2>Recent Calibrator Matches</h2>
         <table>
           <tr><th>Group</th><th>Matched</th><th>Received</th><th>Last Update</th><th>Matches</th></tr>
-          {''.join(rows)}
+          {"".join(rows)}
         </table>
         </body></html>
         """
@@ -1868,7 +2011,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 "archive",
             }  # Add valid stages as needed
             # Add valid statuses as needed
-            allowed_statuses = {"pending", "processing", "completed", "failed", "skipped"}
+            allowed_statuses = {
+                "pending",
+                "processing",
+                "completed",
+                "failed",
+                "skipped",
+            }
 
             validated_stage = _validate_enum_value(stage, allowed_stages)
             validated_status = _validate_enum_value(status, allowed_statuses)
@@ -2627,7 +2776,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         from astropy.time import Time
 
-        from dsa110_contimg.database.products import discover_ms_files, ensure_products_db
+        from dsa110_contimg.database.products import (
+            discover_ms_files,
+            ensure_products_db,
+        )
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
 
@@ -2926,7 +3078,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
                 # Check if job is done
                 if jd["status"] in ["done", "failed"]:
-                    yield f"event: complete\ndata: {{\"status\": \"{jd['status']}\"}}\n\n"
+                    yield f'event: complete\ndata: {{"status": "{jd["status"]}"}}\n\n'
                     break
 
                 await asyncio.sleep(1)
@@ -3589,7 +3741,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
                 # Get top matches
                 matches_raw = calibrator_match(
-                    df, pt_dec, mid_mjd, radius_deg=radius_deg, freq_ghz=1.4, top_n=top_n
+                    df,
+                    pt_dec,
+                    mid_mjd,
+                    radius_deg=radius_deg,
+                    freq_ghz=1.4,
+                    top_n=top_n,
                 )
 
                 # Determine PB response reference point
@@ -5180,7 +5337,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     ax.set_xlabel("Frequency (GHz)")
                     ax.set_ylabel("Amplitude")
                     ax.set_title(
-                        f'Bandpass Amplitude vs Frequency{(" (Antenna " + str(antenna) + ")") if antenna is not None else ""}'
+                        f"Bandpass Amplitude vs Frequency{(' (Antenna ' + str(antenna) + ')') if antenna is not None else ''}"
                     )
                     ax.grid(True, alpha=0.3)
 
@@ -5206,7 +5363,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     ax.set_xlabel("Time (hours since start)")
                     ax.set_ylabel("Phase (degrees)")
                     ax.set_title(
-                        f'Gain Phase vs Time{(" (Antenna " + str(antenna) + ")") if antenna is not None else ""}'
+                        f"Gain Phase vs Time{(' (Antenna ' + str(antenna) + ')') if antenna is not None else ''}"
                     )
                     ax.grid(True, alpha=0.3)
 
@@ -5251,7 +5408,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     ax.set_xlabel("Frequency (GHz)")
                     ax.set_ylabel("Phase (degrees)")
                     ax.set_title(
-                        f'Bandpass Phase vs Frequency{(" (Antenna " + str(antenna) + ")") if antenna is not None else ""}'
+                        f"Bandpass Phase vs Frequency{(' (Antenna ' + str(antenna) + ')') if antenna is not None else ''}"
                     )
                     ax.grid(True, alpha=0.3)
 
@@ -6397,7 +6554,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         import shutil as _shutil
         import subprocess as _subprocess
 
-        from dsa110_contimg.api.job_runner import _python_cmd_for_jobs, _src_path_for_env
+        from dsa110_contimg.api.job_runner import (
+            _python_cmd_for_jobs,
+            _src_path_for_env,
+        )
         from dsa110_contimg.database.products import ensure_products_db as _ensure_products_db
 
         # Prepare environment for child process imports
@@ -6574,7 +6734,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Get a specific data instance."""
         from pathlib import Path
 
-        from dsa110_contimg.database.data_registry import ensure_data_registry_db, get_data
+        from dsa110_contimg.database.data_registry import (
+            ensure_data_registry_db,
+            get_data,
+        )
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6674,7 +6837,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import enable_auto_publish as enable_ap
-        from dsa110_contimg.database.data_registry import ensure_data_registry_db
+        from dsa110_contimg.database.data_registry import (
+            ensure_data_registry_db,
+        )
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6691,7 +6856,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import disable_auto_publish as disable_ap
-        from dsa110_contimg.database.data_registry import ensure_data_registry_db
+        from dsa110_contimg.database.data_registry import (
+            ensure_data_registry_db,
+        )
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6753,7 +6920,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from datetime import datetime
         from pathlib import Path
 
-        from dsa110_contimg.database.data_registry import ensure_data_registry_db, list_data
+        from dsa110_contimg.database.data_registry import (
+            ensure_data_registry_db,
+            list_data,
+        )
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -6817,7 +6987,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """
         from pathlib import Path
 
-        from dsa110_contimg.database.data_registry import ensure_data_registry_db, list_data
+        from dsa110_contimg.database.data_registry import (
+            ensure_data_registry_db,
+            list_data,
+        )
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)

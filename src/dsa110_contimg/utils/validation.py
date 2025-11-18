@@ -181,7 +181,7 @@ def validate_ms(
     try:
         table  # ensure symbol exists
     except Exception:
-        raise ValidationError([f"Cannot import casacore.tables. Is CASA installed?"])
+        raise ValidationError(["Cannot import casacore.tables. Is CASA installed?"])
 
     try:
         with table(ms_path, readonly=True) as tb:
@@ -354,7 +354,7 @@ def validate_ms_for_calibration(
             flags = tb.getcol("FLAG")
             unflagged_fraction = np.sum(~flags) / flags.size if flags.size > 0 else 0
             if unflagged_fraction < 0.1:
-                warnings.append(f"Very little unflagged data: {unflagged_fraction*100:.1f}%")
+                warnings.append(f"Very little unflagged data: {unflagged_fraction * 100:.1f}%")
     except Exception:
         pass  # Non-fatal check
 
@@ -412,7 +412,7 @@ def validate_corrected_data_quality(ms_path: str, sample_size: int = 10000) -> L
                     if nonzero_fraction < 0.01:
                         warnings.append(
                             f"CORRECTED_DATA column exists but appears unpopulated "
-                            f"({nonzero_fraction*100:.1f}% non-zero in sampled data) - "
+                            f"({nonzero_fraction * 100:.1f}% non-zero in sampled data) - "
                             f"calibration appears to have failed"
                         )
     except Exception as e:
@@ -442,8 +442,8 @@ def check_disk_space(path: str, min_bytes: Optional[int] = None) -> List[str]:
 
         if min_bytes and available < min_bytes:
             warnings.append(
-                f"Insufficient disk space: need {min_bytes/1e9:.1f} GB, "
-                f"available {available/1e9:.1f} GB"
+                f"Insufficient disk space: need {min_bytes / 1e9:.1f} GB, "
+                f"available {available / 1e9:.1f} GB"
             )
     except Exception as e:
         warnings.append(f"Failed to check disk space: {e}")

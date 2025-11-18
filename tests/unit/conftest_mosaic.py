@@ -1,7 +1,7 @@
 """Optimized conftest for mosaic tests - mocks CASA imports early."""
 
 import sys
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock
 
 # Mock CASA modules BEFORE any imports to speed up tests
 sys.modules["casatasks"] = MagicMock()

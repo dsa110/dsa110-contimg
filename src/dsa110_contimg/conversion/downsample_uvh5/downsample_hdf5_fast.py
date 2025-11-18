@@ -14,9 +14,7 @@ import h5py  # type: ignore
 import numpy as np
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -60,17 +58,12 @@ def downsample_uvh5_fast(
         n_downsampled_freq = n_channels // freq_factor
 
         if n_downsampled_time == 0:
-            raise ValueError(
-                f"Cannot downsample time: only {n_integrations} integrations"
-            )
+            raise ValueError(f"Cannot downsample time: only {n_integrations} integrations")
         if n_downsampled_freq == 0:
             raise ValueError(f"Cannot downsample frequency: only {n_channels} channels")
 
         logger.info(f"Input: {n_integrations} integrations, {n_channels} channels")
-        logger.info(
-            f"Output: {n_downsampled_time} integrations, "
-            f"{n_downsampled_freq} channels"
-        )
+        logger.info(f"Output: {n_downsampled_time} integrations, {n_downsampled_freq} channels")
 
         # Create output file with optimized structure
         with h5py.File(output_file, "w") as f_out:
@@ -91,9 +84,7 @@ def downsample_uvh5_fast(
             )
 
 
-def copy_header_fast(
-    f_in, f_out, n_downsampled_time, n_downsampled_freq, freq_factor, n_pols
-):
+def copy_header_fast(f_in, f_out, n_downsampled_time, n_downsampled_freq, freq_factor, n_pols):
     """Efficiently copy header structure."""
 
     # Create Header group
@@ -108,9 +99,7 @@ def copy_header_fast(
     # Update dimensions
     header_out.create_dataset("Ntimes", data=n_downsampled_time)
     header_out.create_dataset("Nfreqs", data=n_downsampled_freq)
-    header_out.create_dataset(
-        "Nblts", data=n_downsampled_time * f_in["Header/Nbls"][()]
-    )
+    header_out.create_dataset("Nblts", data=n_downsampled_time * f_in["Header/Nbls"][()])
 
     # Create time arrays with proper chunking
     header_out.create_dataset(
@@ -149,9 +138,7 @@ def copy_header_fast(
 
         # Update channel width
         original_channel_width = f_in["Header/channel_width"][()]
-        header_out.create_dataset(
-            "channel_width", data=original_channel_width * freq_factor
-        )
+        header_out.create_dataset("channel_width", data=original_channel_width * freq_factor)
     else:
         # Copy frequency array as-is
         header_out.create_dataset(
@@ -160,9 +147,7 @@ def copy_header_fast(
             dtype=f_in["Header/freq_array"].dtype,
             chunks=(1, n_downsampled_freq),
         )
-        header_out.create_dataset(
-            "channel_width", data=f_in["Header/channel_width"][()]
-        )
+        header_out.create_dataset("channel_width", data=f_in["Header/channel_width"][()])
 
     # Copy antenna and polarization arrays
     for key in ["ant_1_array", "ant_2_array", "polarization_array"]:
@@ -181,9 +166,7 @@ def average_frequency_channels(freq_array, freq_factor):
     n_downsampled = n_channels // freq_factor
 
     # Reshape and average
-    freq_reshaped = freq_array[: n_downsampled * freq_factor].reshape(
-        n_downsampled, freq_factor
-    )
+    freq_reshaped = freq_array[: n_downsampled * freq_factor].reshape(n_downsampled, freq_factor)
     freq_averaged = np.mean(freq_reshaped, axis=1)
 
     return freq_averaged
@@ -249,9 +232,7 @@ def process_data_bulk(
     for chunk_start in range(0, n_downsampled_time, chunk_size):
         chunk_end = min(chunk_start + chunk_size, n_downsampled_time)
 
-        logger.info(
-            f"Processing chunk {chunk_start}-{chunk_end} of {n_downsampled_time}"
-        )
+        logger.info(f"Processing chunk {chunk_start}-{chunk_end} of {n_downsampled_time}")
 
         # Process this chunk
         process_chunk_bulk(
@@ -259,18 +240,14 @@ def process_data_bulk(
         )
 
 
-def process_chunk_bulk(
-    f_in, f_out, chunk_start, chunk_end, time_factor, freq_factor, method, nbls
-):
+def process_chunk_bulk(f_in, f_out, chunk_start, chunk_end, time_factor, freq_factor, method, nbls):
     """Process a large chunk of data efficiently."""
 
     n_downsampled_time = chunk_end - chunk_start
 
     # Pre-allocate arrays for this chunk
     start_idx = chunk_start * time_factor
-    end_idx = min(
-        start_idx + n_downsampled_time * time_factor, f_in["Header/time_array"].shape[0]
-    )
+    end_idx = min(start_idx + n_downsampled_time * time_factor, f_in["Header/time_array"].shape[0])
 
     # Read all data for this chunk at once
     vis_data = f_in["Data/visdata"][start_idx:end_idx]
@@ -305,9 +282,7 @@ def process_chunk_bulk(
             n_time_groups, time_factor
         )
         # Reshape UVW data properly
-        uvw_data = uvw_data[: n_time_groups * time_factor].reshape(
-            n_time_groups, time_factor, 3
-        )
+        uvw_data = uvw_data[: n_time_groups * time_factor].reshape(n_time_groups, time_factor, 3)
 
         # Average over time
         if method == "weighted":
@@ -342,9 +317,7 @@ def process_chunk_bulk(
             freq_factor,
             flags.shape[3],
         )
-        nsamples_reshaped = nsamples[
-            :, :, : n_downsampled_freq * freq_factor, :
-        ].reshape(
+        nsamples_reshaped = nsamples[:, :, : n_downsampled_freq * freq_factor, :].reshape(
             nsamples.shape[0],
             nsamples.shape[1],
             n_downsampled_freq,
@@ -354,9 +327,7 @@ def process_chunk_bulk(
 
         # Average over frequency
         if method == "weighted":
-            weights = nsamples_reshaped / np.sum(
-                nsamples_reshaped, axis=3, keepdims=True
-            )
+            weights = nsamples_reshaped / np.sum(nsamples_reshaped, axis=3, keepdims=True)
             vis_data = np.sum(vis_reshaped * weights, axis=3)
         else:
             vis_data = np.mean(vis_reshaped, axis=3)
@@ -418,9 +389,7 @@ Examples:
         default=10000,
         help="Chunk size for processing (default: 10000)",
     )
-    parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Enable verbose logging"
-    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
 
     args = parser.parse_args()
 

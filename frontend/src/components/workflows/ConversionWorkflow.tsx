@@ -51,7 +51,7 @@ export function ConversionWorkflow({
   // Conversion parameters state
   const [convertParams, setConvertParams] = useState<ConversionJobParams>({
     input_dir: "/data/incoming",
-    output_dir: "/scratch/dsa110-contimg/ms",
+    output_dir: "/stage/dsa110-contimg/ms",
     start_time: "",
     end_time: "",
     writer: "auto",

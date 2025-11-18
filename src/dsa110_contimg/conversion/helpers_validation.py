@@ -4,7 +4,6 @@ import logging
 from typing import Optional
 
 import numpy as np
-from astropy.time import Time
 
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
@@ -25,9 +24,7 @@ except Exception:  # pragma: no cover - fallback for older astropy
         dec1 = _np.asarray(dec1, dtype=float)
         ra2 = _np.asarray(ra2, dtype=float)
         dec2 = _np.asarray(dec2, dtype=float)
-        cossep = _np.sin(dec1) * _np.sin(dec2) + _np.cos(dec1) * _np.cos(
-            dec2
-        ) * _np.cos(ra1 - ra2)
+        cossep = _np.sin(dec1) * _np.sin(dec2) + _np.cos(dec1) * _np.cos(dec2) * _np.cos(ra1 - ra2)
         cossep = _np.clip(cossep, -1.0, 1.0)
         return _np.arccos(cossep)
 
@@ -75,20 +72,16 @@ def validate_ms_frequency_order(ms_path: str) -> None:
 
             logger.info(
                 f"✓ Frequency order validation passed: {chan_freq.shape[0]} SPW(s), "
-                f"range {chan_freq.min()/1e6:.1f}-{chan_freq.max()/1e6:.1f} MHz"
+                f"range {chan_freq.min() / 1e6:.1f}-{chan_freq.max() / 1e6:.1f} MHz"
             )
     except Exception as e:
-        if "incorrect frequency order" in str(
-            e
-        ) or "frequencies are in DESCENDING order" in str(e):
+        if "incorrect frequency order" in str(e) or "frequencies are in DESCENDING order" in str(e):
             raise  # Re-raise our validation errors
         else:
             logger.warning(f"Frequency order validation failed (non-fatal): {e}")
 
 
-def validate_phase_center_coherence(
-    ms_path: str, tolerance_arcsec: float = 1.0
-) -> None:
+def validate_phase_center_coherence(ms_path: str, tolerance_arcsec: float = 1.0) -> None:
     """Verify all subbands in MS have coherent phase centers.
 
     This checks that all spectral windows (former subbands) have phase centers
@@ -119,9 +112,7 @@ def validate_phase_center_coherence(
                 # Time-dependent phasing: phase centers should track LST (RA changes with time)
                 # Get observation time range from main table
                 try:
-                    with _helpers.table(
-                        ms_path, readonly=True, ack=False
-                    ) as main_table:
+                    with _helpers.table(ms_path, readonly=True, ack=False) as main_table:
                         if main_table.nrows() > 0:
                             times = main_table.getcol("TIME")
                             if times.size > 0:
@@ -132,9 +123,7 @@ def validate_phase_center_coherence(
                                 # Over time_span, LST changes by: 15° × time_span_hours
                                 time_span_hours = time_span_days * 24.0
                                 expected_lst_change_deg = 15.0 * time_span_hours
-                                expected_lst_change_arcsec = (
-                                    expected_lst_change_deg * 3600.0
-                                )
+                                expected_lst_change_arcsec = expected_lst_change_deg * 3600.0
 
                                 # Check if phase center separation matches expected LST tracking
                                 ref_ra = phase_dirs[0, 0, 0]  # Reference RA (radians)
@@ -146,25 +135,17 @@ def validate_phase_center_coherence(
                                     dec = phase_dirs[i, 0, 1]
 
                                     # Calculate angular separation
-                                    separation_rad = angular_separation(
-                                        ref_ra, ref_dec, ra, dec
-                                    )
-                                    max_separation_rad = max(
-                                        max_separation_rad, separation_rad
-                                    )
+                                    separation_rad = angular_separation(ref_ra, ref_dec, ra, dec)
+                                    max_separation_rad = max(max_separation_rad, separation_rad)
 
-                                max_separation_arcsec = (
-                                    np.rad2deg(max_separation_rad) * 3600
-                                )
+                                max_separation_arcsec = np.rad2deg(max_separation_rad) * 3600
 
                                 # If separation is close to expected LST change, this is time-dependent phasing
                                 # Allow 20% tolerance for time-dependent phasing
                                 if (
                                     max_separation_arcsec > 60.0  # More than 1 arcmin
-                                    and max_separation_arcsec
-                                    < expected_lst_change_arcsec * 1.2
-                                    and max_separation_arcsec
-                                    > expected_lst_change_arcsec * 0.8
+                                    and max_separation_arcsec < expected_lst_change_arcsec * 1.2
+                                    and max_separation_arcsec > expected_lst_change_arcsec * 0.8
                                 ):
                                     logger.info(
                                         f"✓ Time-dependent phase centers detected: "
@@ -220,7 +201,7 @@ def validate_phase_center_coherence(
                     f"max separation {max_separation_arcsec:.2f} arcsec"
                 )
             else:
-                logger.info(f"✓ Single field MS - phase center coherence OK")
+                logger.info("✓ Single field MS - phase center coherence OK")
 
     except Exception as e:
         if "incoherent" in str(e):
@@ -266,27 +247,21 @@ def validate_uvw_precision(ms_path: str, tolerance_lambda: float = 0.1) -> None:
             sample_rows = list(range(0, n_rows, max(1, n_rows // 1000)))[:1000]
 
             uvw_data = tb.getcol("UVW", startrow=sample_rows[0], nrow=len(sample_rows))
-            antenna1 = tb.getcol(
-                "ANTENNA1", startrow=sample_rows[0], nrow=len(sample_rows)
-            )
-            antenna2 = tb.getcol(
-                "ANTENNA2", startrow=sample_rows[0], nrow=len(sample_rows)
-            )
-            time_data = tb.getcol(
-                "TIME", startrow=sample_rows[0], nrow=len(sample_rows)
-            )
+            tb.getcol("ANTENNA1", startrow=sample_rows[0], nrow=len(sample_rows))
+            tb.getcol("ANTENNA2", startrow=sample_rows[0], nrow=len(sample_rows))
+            tb.getcol("TIME", startrow=sample_rows[0], nrow=len(sample_rows))
 
         # Check for obvious UVW coordinate problems
-        uvw_u = uvw_data[:, 0]  # U coordinates
-        uvw_v = uvw_data[:, 1]  # V coordinates
-        uvw_w = uvw_data[:, 2]  # W coordinates
+        uvw_data[:, 0]  # U coordinates
+        uvw_data[:, 1]  # V coordinates
+        uvw_data[:, 2]  # W coordinates
 
         # Detect unreasonably large UVW values (> 100km indicates error)
         max_reasonable_uvw_m = 100e3  # 100 km
         if np.any(np.abs(uvw_data) > max_reasonable_uvw_m):
             raise RuntimeError(
-                f"UVW coordinates contain unreasonably large values (>{max_reasonable_uvw_m/1000:.0f}km) "
-                f"in {ms_path}. Max |UVW|: {np.max(np.abs(uvw_data))/1000:.1f}km. "
+                f"UVW coordinates contain unreasonably large values (>{max_reasonable_uvw_m / 1000:.0f}km) "
+                f"in {ms_path}. Max |UVW|: {np.max(np.abs(uvw_data)) / 1000:.1f}km. "
                 f"This indicates UVW computation errors that will cause calibration failures."
             )
 
@@ -336,9 +311,7 @@ def validate_uvw_precision(ms_path: str, tolerance_lambda: float = 0.1) -> None:
             logger.warning(f"UVW coordinate validation failed (non-fatal): {e}")
 
 
-def validate_antenna_positions(
-    ms_path: str, position_tolerance_m: float = 0.05
-) -> None:
+def validate_antenna_positions(ms_path: str, position_tolerance_m: float = 0.05) -> None:
     """Validate antenna positions are accurate enough for calibration.
 
     This checks that antenna positions in the MS match expected DSA-110 positions
@@ -389,22 +362,20 @@ def validate_antenna_positions(
             if np.any(position_magnitudes < expected_min_radius):
                 raise RuntimeError(
                     f"Antenna positions too close to Earth center in {ms_path}. "
-                    f"Min radius: {np.min(position_magnitudes)/1000:.1f}km "
-                    f"(expected >{expected_min_radius/1000:.1f}km). "
+                    f"Min radius: {np.min(position_magnitudes) / 1000:.1f}km "
+                    f"(expected >{expected_min_radius / 1000:.1f}km). "
                     f"This indicates position coordinate errors."
                 )
 
             if np.any(position_magnitudes > expected_max_radius):
                 raise RuntimeError(
                     f"Antenna positions too far from Earth center in {ms_path}. "
-                    f"Max radius: {np.max(position_magnitudes)/1000:.1f}km "
-                    f"(expected <{expected_max_radius/1000:.1f}km). "
+                    f"Max radius: {np.max(position_magnitudes) / 1000:.1f}km "
+                    f"(expected <{expected_max_radius / 1000:.1f}km). "
                     f"This indicates position coordinate errors."
                 )
 
-            logger.info(
-                f"✓ Basic antenna position validation passed: {n_antennas} antennas"
-            )
+            logger.info(f"✓ Basic antenna position validation passed: {n_antennas} antennas")
             return
 
         # Compare MS positions with reference positions
@@ -422,7 +393,7 @@ def validate_antenna_positions(
         position_error_magnitudes = np.sqrt(np.sum(position_errors**2, axis=1))
 
         max_error_m = float(np.max(position_error_magnitudes))
-        median_error_m = float(np.median(position_error_magnitudes))
+        float(np.median(position_error_magnitudes))
         rms_error_m = float(np.sqrt(np.mean(position_error_magnitudes**2)))
 
         # Check if errors exceed tolerance
@@ -432,25 +403,25 @@ def validate_antenna_positions(
             bad_indices = np.where(position_error_magnitudes > position_tolerance_m)[0]
             error_summary = ", ".join(
                 [
-                    f"ant{i}:{position_error_magnitudes[i]*100:.1f}cm"
+                    f"ant{i}:{position_error_magnitudes[i] * 100:.1f}cm"
                     for i in bad_indices[:5]  # Show first 5
                 ]
             )
             if len(bad_indices) > 5:
-                error_summary += f" (and {len(bad_indices)-5} more)"
+                error_summary += f" (and {len(bad_indices) - 5} more)"
 
             raise RuntimeError(
                 f"Antenna position errors exceed tolerance in {ms_path}. "
                 f"{n_bad_antennas}/{len(position_error_magnitudes)} antennas have errors "
-                f">{position_tolerance_m*100:.1f}cm (tolerance for calibration). "
-                f"Errors: {error_summary}. Max error: {max_error_m*100:.1f}cm. "
+                f">{position_tolerance_m * 100:.1f}cm (tolerance for calibration). "
+                f"Errors: {error_summary}. Max error: {max_error_m * 100:.1f}cm. "
                 f"This will cause decorrelation and flagged calibration solutions."
             )
 
         logger.info(
             f"✓ Antenna position validation passed: {n_antennas} antennas, "
-            f"max error {max_error_m*100:.1f}cm, RMS {rms_error_m*100:.1f}cm "
-            f"(tolerance {position_tolerance_m*100:.1f}cm)"
+            f"max error {max_error_m * 100:.1f}cm, RMS {rms_error_m * 100:.1f}cm "
+            f"(tolerance {position_tolerance_m * 100:.1f}cm)"
         )
 
     except Exception as e:
@@ -493,9 +464,7 @@ def validate_model_data_quality(
             if field_id is not None:
                 field_mask = field_col == field_id
                 if not np.any(field_mask):
-                    raise RuntimeError(
-                        f"Field ID {field_id} not found in MS: {ms_path}"
-                    )
+                    raise RuntimeError(f"Field ID {field_id} not found in MS: {ms_path}")
             else:
                 field_mask = np.ones(len(field_col), dtype=bool)
 
@@ -503,9 +472,7 @@ def validate_model_data_quality(
             n_selected = np.sum(field_mask)
             sample_size = min(1000, n_selected)  # Sample for performance
             selected_indices = np.where(field_mask)[0]
-            sample_indices = selected_indices[
-                :: max(1, len(selected_indices) // sample_size)
-            ]
+            sample_indices = selected_indices[:: max(1, len(selected_indices) // sample_size)]
 
             model_sample = tb.getcol(
                 "MODEL_DATA", startrow=int(sample_indices[0]), nrow=len(sample_indices)
@@ -559,17 +526,13 @@ def validate_model_data_quality(
             # For point sources, flux should be relatively flat across frequency
             # For resolved sources, may vary but should not have sharp discontinuities
             if model_amplitudes.ndim >= 2:
-                channel_fluxes = np.mean(
-                    model_amplitudes, axis=-1
-                )  # Average over baselines
+                channel_fluxes = np.mean(model_amplitudes, axis=-1)  # Average over baselines
                 if channel_fluxes.size > 1:
                     # Look for sudden flux jumps between channels (>50% change)
                     flux_ratios = channel_fluxes[1:] / (channel_fluxes[:-1] + 1e-12)
                     large_jumps = np.sum((flux_ratios > 2.0) | (flux_ratios < 0.5))
 
-                    if (
-                        large_jumps > len(flux_ratios) * 0.1
-                    ):  # >10% of channels have jumps
+                    if large_jumps > len(flux_ratios) * 0.1:  # >10% of channels have jumps
                         logger.warning(
                             f"MODEL_DATA has discontinuous flux structure in {ms_path}. "
                             f"{large_jumps}/{len(flux_ratios)} channel pairs have >50% flux changes. "
@@ -647,16 +610,8 @@ def validate_reference_antenna_stability(ms_path: str, refant_list: list = None)
                     ant_flags = flags[ant_mask]
 
                     # Use first polarization for phase check
-                    pol_data = (
-                        ant_data[:, :, 0]
-                        if ant_data.shape[2] > 0
-                        else ant_data[:, :, 0]
-                    )
-                    pol_flags = (
-                        ant_flags[:, :, 0]
-                        if ant_flags.shape[2] > 0
-                        else ant_flags[:, :, 0]
-                    )
+                    pol_data = ant_data[:, :, 0] if ant_data.shape[2] > 0 else ant_data[:, :, 0]
+                    pol_flags = ant_flags[:, :, 0] if ant_flags.shape[2] > 0 else ant_flags[:, :, 0]
 
                     # Calculate phase stability (std of phase)
                     valid_data = pol_data[~pol_flags]

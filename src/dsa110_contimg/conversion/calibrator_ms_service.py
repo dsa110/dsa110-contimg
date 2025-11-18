@@ -31,9 +31,14 @@ from dsa110_contimg.conversion.exceptions import (
 )
 from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
 from dsa110_contimg.conversion.progress import ProgressReporter
-from dsa110_contimg.conversion.strategies.direct_subband import write_ms_from_subbands
+from dsa110_contimg.conversion.strategies.direct_subband import (
+    write_ms_from_subbands,
+)
 from dsa110_contimg.database.hdf5_index import query_subband_groups
-from dsa110_contimg.database.products import ensure_products_db, ms_index_upsert
+from dsa110_contimg.database.products import (
+    ensure_products_db,
+    ms_index_upsert,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +72,24 @@ class GenerateMSConfig:
 
 
 class CalibratorMSGenerator:
-    """Service for generating MS files from calibrator transits."""
+    """Service for generating MS files from calibrator transits.
+
+    Example Usage:
+        >>> gen = CalibratorMSGenerator(
+        ...     input_dir=Path('/data/incoming'),
+        ...     output_dir=Path('/stage/dsa110-contimg/ms/calibrators'),
+        ...     products_db=Path('/data/dsa110-contimg/state/products.sqlite3'),
+        ...     hdf5_db=Path('/data/dsa110-contimg/state/hdf5.sqlite3'),
+        ...     catalogs=[Path('/data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3')]
+        ... )
+        >>> result = gen.generate_from_transit(
+        ...     calibrator_name='0834+555',
+        ...     transit_time=Time('2025-10-02T01:12:00'),
+        ...     window_minutes=12
+        ... )
+
+    Note: calibrator_name is passed to generate_from_transit(), NOT to __init__()
+    """
 
     def __init__(
         self,
@@ -75,6 +97,7 @@ class CalibratorMSGenerator:
         input_dir: Path,
         output_dir: Path,
         products_db: Path,
+        hdf5_db: Optional[Path] = None,
         catalogs: List[Path],
         scratch_dir: Optional[Path] = None,
         verbose: bool = True,
@@ -86,14 +109,32 @@ class CalibratorMSGenerator:
             input_dir: Directory containing UVH5 files
             output_dir: Directory for output MS files
             products_db: Path to products database
-            catalogs: List of calibrator catalog paths
+            hdf5_db: Path to HDF5 file index database (default: infer from environment or use products_db)
+            catalogs: List of calibrator catalog paths (SQLite databases, CSV fallback disabled)
             scratch_dir: Optional scratch directory for staging
-            verbose: Whether to print progress messages
+            verbose: Whether to print progress messages (NOTE: not used by convert_subband_groups_to_ms)
             dec_tolerance_deg: Declination tolerance in degrees (default: 2.5)
         """
         self.input_dir = Path(input_dir)
         self.output_dir = Path(output_dir)
         self.products_db = Path(products_db)
+
+        # Determine HDF5 database path
+        if hdf5_db is not None:
+            self.hdf5_db = Path(hdf5_db)
+        else:
+            # Try to infer from environment variable
+            import os
+
+            hdf5_db_env = os.getenv("HDF5_DB_PATH")
+            if hdf5_db_env:
+                self.hdf5_db = Path(hdf5_db_env)
+            else:
+                # Default to hdf5.sqlite3 in same directory as products_db
+                # This is the correct default since HDF5 index is in a separate database
+                products_db_path = Path(products_db)
+                self.hdf5_db = products_db_path.parent / "hdf5.sqlite3"
+
         self.catalogs = [Path(c) for c in catalogs]
         self.scratch_dir = Path(scratch_dir) if scratch_dir else None
         self.verbose = verbose
@@ -190,20 +231,32 @@ class CalibratorMSGenerator:
         Returns:
             DataFrame if successfully loaded, None otherwise
         """
-        from dsa110_contimg.calibration.catalogs import (
+        from dsa110_contimg.calibration.catalogs import (  # read_vla_parsed_catalog_csv,  # DISABLED: CSV fallback should not be used
             load_vla_catalog_from_sqlite,
-            read_vla_parsed_catalog_csv,
         )
 
         if not catalog_path.exists():
             return None
 
         try:
-            # Handle SQLite database (preferred)
+            # Handle SQLite database (preferred and REQUIRED)
             if str(catalog_path).endswith(".sqlite3"):
                 return load_vla_catalog_from_sqlite(str(catalog_path))
-            # Handle CSV file
-            return read_vla_parsed_catalog_csv(catalog_path)
+
+            # CSV fallback DISABLED - SQLite database should be properly populated instead
+            # If you're seeing this error, the SQLite database needs to be populated with
+            # calibrators for the declination range of your observations.
+            logger.error(
+                f"CSV catalog fallback is disabled. Only SQLite databases are supported: {catalog_path}"
+            )
+            logger.error(
+                "Please ensure /data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3 "
+                "is populated with calibrators for your observation declinations."
+            )
+            return None
+
+            # OLD CSV CODE (disabled):
+            # return read_vla_parsed_catalog_csv(catalog_path)
         except Exception as e:
             logger.debug(f"Failed to read catalog {catalog_path}: {e}")
             return None
@@ -322,12 +375,12 @@ class CalibratorMSGenerator:
         if t0.split()[0] == t1.split()[0]:
             logger.info(
                 f"Search window: {t0_date} {t0_time} to {t1_time} "
-                f"(±{window_minutes//2} minutes around transit at {transit.to_datetime().strftime('%H:%M:%S')}). "
+                f"(±{window_minutes // 2} minutes around transit at {transit.to_datetime().strftime('%H:%M:%S')}). "
                 f"Selecting group closest to transit time..."
             )
         else:
             logger.info(
-                f"Search window: {t0} to {t1} (±{window_minutes//2} minutes around transit). "
+                f"Search window: {t0} to {t1} (±{window_minutes // 2} minutes around transit). "
                 f"Selecting group closest to transit time..."
             )
 
@@ -369,7 +422,9 @@ class CalibratorMSGenerator:
         Returns:
             Tuple of (is_complete, sorted_files)
         """
-        from dsa110_contimg.conversion.strategies.hdf5_orchestrator import _extract_subband_code
+        from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+            _extract_subband_code,
+        )
 
         sb_codes = sorted(_extract_subband_code(os.path.basename(p)) for p in group)
 
@@ -406,7 +461,9 @@ class CalibratorMSGenerator:
         import numpy as np
         from astropy.coordinates import SkyCoord
 
-        from dsa110_contimg.calibration.catalogs import airy_primary_beam_response
+        from dsa110_contimg.calibration.catalogs import (
+            airy_primary_beam_response,
+        )
         from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
             _peek_uvh5_phase_and_midtime,
         )
@@ -464,7 +521,12 @@ class CalibratorMSGenerator:
         return metrics
 
     def _log_found_groups(
-        self, groups: List[List[str]], transit: Time, t0: str, t1: str, window_minutes: int
+        self,
+        groups: List[List[str]],
+        transit: Time,
+        t0: str,
+        t1: str,
+        window_minutes: int,
     ) -> None:
         """Log information about found groups for a transit.
 
@@ -506,7 +568,7 @@ class CalibratorMSGenerator:
             f"is NOT in primary beam\n"
             f"  Calibrator: RA={ra_deg:.4f}°, Dec={dec_deg:.4f}°\n"
             f"  Pointing: RA={metrics['pt_ra_deg']:.4f}°, Dec={metrics['pt_dec_deg']:.4f}°\n"
-            f"  Separation: {metrics['sep_deg']:.4f}° ({metrics['sep_deg']*60:.1f} arcmin)\n"
+            f"  Separation: {metrics['sep_deg']:.4f}° ({metrics['sep_deg'] * 60:.1f} arcmin)\n"
             f"  Primary beam response: {metrics['pb_response']:.4f} (minimum required: {min_pb_response:.2f})\n"
             f"  This group will be skipped - calibrator is outside usable beam."
         )
@@ -539,7 +601,7 @@ class CalibratorMSGenerator:
             f"✓ Pointing validation PASSED: Calibrator in primary beam\n"
             f"  Pointing: RA={pb_validation['pt_ra_deg']:.4f}°, Dec={pb_validation['pt_dec_deg']:.4f}°\n"
             f"  Calibrator: RA={ra_deg:.4f}°, Dec={dec_deg:.4f}°\n"
-            f"  Separation: {pb_validation['sep_deg']:.4f}° ({pb_validation['sep_deg']*60:.1f} arcmin)\n"
+            f"  Separation: {pb_validation['sep_deg']:.4f}° ({pb_validation['sep_deg'] * 60:.1f} arcmin)\n"
             f"  Primary beam response: {pb_validation['pb_response']:.4f}"
         )
 
@@ -613,7 +675,7 @@ class CalibratorMSGenerator:
             Transit info dict if found, None otherwise
         """
         t0, t1 = self._calculate_transit_window(t, window_minutes)
-        groups = query_subband_groups(self.products_db, t0, t1, tolerance_s=1.0)
+        groups = query_subband_groups(self.hdf5_db, t0, t1, tolerance_s=1.0)
 
         if not groups:
             return None
@@ -648,7 +710,10 @@ class CalibratorMSGenerator:
 
         if pt_dec_deg is not None:
             if not self._check_declination_match(
-                gbest[0], pt_dec_deg, dec_deg, dec_tolerance_deg=self.dec_tolerance_deg
+                gbest[0],
+                pt_dec_deg,
+                dec_deg,
+                dec_tolerance_deg=self.dec_tolerance_deg,
             ):
                 logger.warning(
                     f"Transit {t.isot}: Declination mismatch for group {os.path.basename(gbest[0])}, "
@@ -682,7 +747,16 @@ class CalibratorMSGenerator:
         self._log_primary_beam_success(t, gbest, dt_min, pb_validation, ra_deg, dec_deg)
 
         return self._build_transit_result_dict(
-            calibrator_name, t, t0, t1, gbest, mid, dt_min, gbest_sorted, pb_validation, dec_deg
+            calibrator_name,
+            t,
+            t0,
+            t1,
+            gbest,
+            mid,
+            dt_min,
+            gbest_sorted,
+            pb_validation,
+            dec_deg,
         )
 
     def find_transit(
@@ -716,7 +790,13 @@ class CalibratorMSGenerator:
 
         for t in transits:
             result = self._process_single_transit(
-                t, calibrator_name, ra_deg, dec_deg, window_minutes, min_pb_response, freq_ghz
+                t,
+                calibrator_name,
+                ra_deg,
+                dec_deg,
+                window_minutes,
+                min_pb_response,
+                freq_ghz,
             )
             if result:
                 return result
@@ -759,7 +839,11 @@ class CalibratorMSGenerator:
         conn.close()
 
         if row:
-            return True, {"reason": "database", "status": row[1], "stage": row[2]}
+            return True, {
+                "reason": "database",
+                "status": row[1],
+                "stage": row[2],
+            }
 
         return False, None
 
@@ -1010,7 +1094,7 @@ class CalibratorMSGenerator:
             (transit + half_window * u.min).to_datetime().strftime("%Y-%m-%d %H:%M:%S")
         )  # pylint: disable=no-member
 
-        groups = query_subband_groups(self.products_db, t0, t1, tolerance_s=1.0)
+        groups = query_subband_groups(self.hdf5_db, t0, t1, tolerance_s=1.0)
         return groups if groups else []
 
     def _extract_group_time_and_dec(
@@ -1194,7 +1278,10 @@ class CalibratorMSGenerator:
 
             # Check declination match (enforced with tolerance)
             if not self._check_declination_match(
-                group_id, pt_dec_deg, dec_deg, dec_tolerance_deg=self.dec_tolerance_deg
+                group_id,
+                pt_dec_deg,
+                dec_deg,
+                dec_tolerance_deg=self.dec_tolerance_deg,
             ):
                 return None
 
@@ -1357,7 +1444,11 @@ class CalibratorMSGenerator:
         return available_transits
 
     def list_available_transits(
-        self, calibrator_name: str, *, max_days_back: int = 30, window_minutes: int = 60
+        self,
+        calibrator_name: str,
+        *,
+        max_days_back: int = 30,
+        window_minutes: int = 60,
     ) -> List[dict]:
         """List all available transits for a calibrator that have data in input directory.
 
@@ -1385,7 +1476,9 @@ class CalibratorMSGenerator:
         """
         # Try to use stored transit times from database first
         try:
-            from dsa110_contimg.conversion.transit_precalc import get_calibrator_transits
+            from dsa110_contimg.conversion.transit_precalc import (
+                get_calibrator_transits,
+            )
 
             # Convert max_days_back to min_transit_mjd (search back from now)
             min_transit_mjd = Time.now().mjd - max_days_back
@@ -1440,7 +1533,7 @@ class CalibratorMSGenerator:
         start_time, end_time, cutoff_time = self._calculate_search_window(max_days_back)
 
         complete_groups_list = query_subband_groups(
-            self.products_db, start_time, end_time, tolerance_s=1.0
+            self.hdf5_db, start_time, end_time, tolerance_s=1.0
         )
 
         if not complete_groups_list:
@@ -1455,7 +1548,12 @@ class CalibratorMSGenerator:
         filelength = 5 * u.min  # Typical observation file length  # pylint: disable=no-member
 
         return self._process_transits_for_available_data(
-            transits, calibrator_name, dec_deg, cutoff_time, filelength, window_minutes
+            transits,
+            calibrator_name,
+            dec_deg,
+            cutoff_time,
+            filelength,
+            window_minutes,
         )
 
     def locate_group(
@@ -1476,7 +1574,7 @@ class CalibratorMSGenerator:
         # Fallback: search using transit time window
         # Use 1-second tolerance to match pipeline standard (filename precision is to the second)
         groups = query_subband_groups(
-            self.products_db,
+            self.hdf5_db,
             transit_info["start_iso"],
             transit_info["end_iso"],
             # 1-second tolerance matches filename precision (YYYY-MM-DDTHH:MM:SS)
@@ -1490,7 +1588,11 @@ class CalibratorMSGenerator:
         return groups[0] if groups else None
 
     def convert_group(
-        self, file_list: List[str], output_ms: Path, *, stage_to_tmpfs: bool = True
+        self,
+        file_list: List[str],
+        output_ms: Path,
+        *,
+        stage_to_tmpfs: bool = True,
     ) -> None:
         """Convert group to MS.
 
@@ -1575,7 +1677,10 @@ class CalibratorMSGenerator:
         """
         progress.info("Validating inputs...")
         self._validate_inputs(
-            calibrator_name, transit_time, config.window_minutes, config.max_days_back
+            calibrator_name,
+            transit_time,
+            config.window_minutes,
+            config.max_days_back,
         )
         progress.success("Inputs validated")
 
@@ -1694,7 +1799,11 @@ class CalibratorMSGenerator:
         return transit_info, file_list
 
     def _handle_existing_ms(
-        self, ms_path: Path, transit_info: dict, metrics: dict, progress: ProgressReporter
+        self,
+        ms_path: Path,
+        transit_info: dict,
+        metrics: dict,
+        progress: ProgressReporter,
     ) -> Optional[CalibratorMSResult]:
         """Handle case where MS already exists.
 
@@ -1909,7 +2018,12 @@ class CalibratorMSGenerator:
             metrics["subbands"] = len(file_list)
 
             return self._execute_conversion_workflow(
-                calibrator_name, transit_info, file_list, config, progress, metrics
+                calibrator_name,
+                transit_info,
+                file_list,
+                config,
+                progress,
+                metrics,
             )
 
         except (

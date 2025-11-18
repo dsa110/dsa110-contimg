@@ -40,7 +40,7 @@ echo ""
 
 # 1. Check Python environment
 echo "1. Checking Python environment..."
-CURRENT_PYTHON=$(which python 2>/dev/null || echo "")
+CURRENT_PYTHON=$(python -c "import sys; print(sys.executable)" 2>/dev/null || echo "")
 CASA6_PYTHON="/opt/miniforge/envs/casa6/bin/python"
 
 if [ -z "$CURRENT_PYTHON" ]; then

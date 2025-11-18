@@ -184,9 +184,9 @@ def handle_check_delays(args: argparse.Namespace) -> int:
     if "error" in results:
         sys.exit(1)
     rec = results.get("recommendation", "unknown")
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print("Summary:")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
     if rec == "likely_corrected":
         print("Recommendation: K-calibration may be skipped")
         print("  Delays appear to be corrected upstream")

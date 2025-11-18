@@ -161,7 +161,7 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
                         if (val is None) or (getattr(val, "shape", None) != data_shape):
                             tb.putcell(col, r, _np.zeros(data_shape, dtype=data_dtype))
                             fixed += 1
-                    except Exception as e:
+                    except Exception:
                         try:
                             tb.putcell(col, r, _np.zeros(data_shape, dtype=data_dtype))
                             fixed += 1

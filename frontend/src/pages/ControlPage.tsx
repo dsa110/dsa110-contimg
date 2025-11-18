@@ -2,9 +2,16 @@
  * Control Page - Manual job execution interface
  * Refactored to use workflow components for better maintainability
  */
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Paper, Typography, Tabs, Tab } from "@mui/material";
-import { useMSList, useJobs, useMSMetadata, useCalibratorMatches } from "../api/queries";
+import {
+  useMSList,
+  useJobs,
+  useMSMetadata,
+  useCalibratorMatches,
+  usePipelineMetricsSummary,
+  useActivePipelineExecutions,
+} from "../api/queries";
 import type { MSListEntry } from "../api/types";
 import MSTable from "../components/MSTable";
 import { computeSelectedMS } from "../utils/selectionLogic";
@@ -15,17 +22,20 @@ import { ImagingWorkflow } from "../components/workflows/ImagingWorkflow";
 import { WorkflowTemplates } from "../components/workflows/WorkflowTemplates";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
 import { MSDetailsPanel } from "../components/MSDetails";
+import { LiveOperationsCard } from "../components/Pipeline";
+import { useNavigate } from "react-router-dom";
 
 export default function ControlPage() {
   const [selectedMS, setSelectedMS] = useState("");
   const [selectedMSList, setSelectedMSList] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState(0);
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   // Queries
   const { data: msList, refetch: refetchMS } = useMSList({
     scan: String(true),
-    scan_dir: "/scratch/dsa110-contimg/ms",
+    scan_dir: "/stage/dsa110-contimg/ms",
   });
   const { data: msMetadata } = useMSMetadata(selectedMS);
   const {
@@ -34,6 +44,9 @@ export default function ControlPage() {
     error: calMatchesError,
   } = useCalibratorMatches(selectedMS);
   const { refetch: refetchJobs } = useJobs();
+  const { data: pipelineSummary, isLoading: pipelineSummaryLoading } = usePipelineMetricsSummary();
+  const { data: activeExecutions, isLoading: activeExecutionsLoading } =
+    useActivePipelineExecutions();
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -68,7 +81,7 @@ export default function ControlPage() {
           Control Panel
         </Typography>
 
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Box sx={{ display: "flex", flexDirection: { xs: "column", lg: "row" }, gap: 2 }}>
           {/* Left column - MS selection and workflows */}
           <Box sx={{ flex: 1 }}>
             <Paper sx={{ p: 2, mb: 2 }}>
@@ -180,8 +193,23 @@ export default function ControlPage() {
             </Paper>
           </Box>
 
-          {/* Right column - Job management */}
-          <JobManagement selectedJobId={selectedJobId} onJobSelect={setSelectedJobId} />
+          <Box
+            sx={{
+              width: { xs: "100%", lg: 360 },
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
+            <LiveOperationsCard
+              summary={pipelineSummary}
+              isSummaryLoading={pipelineSummaryLoading}
+              executions={activeExecutions}
+              isExecutionsLoading={activeExecutionsLoading}
+              onOpenPipeline={() => navigate("/pipeline")}
+            />
+            <JobManagement selectedJobId={selectedJobId} onJobSelect={setSelectedJobId} />
+          </Box>
         </Box>
       </Box>
     </>

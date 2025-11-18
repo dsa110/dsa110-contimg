@@ -6,12 +6,7 @@ Tests the QA CLI commands with focus on:
 - Error handling and validation
 """
 
-import json
-import tempfile
-from pathlib import Path
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from dsa110_contimg.qa.cli import cmd_calibration, cmd_image, cmd_mosaic, cmd_report
 

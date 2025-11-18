@@ -5,10 +5,8 @@ Focus: Fast tests for POST /api/jobs/ese-detect and POST /api/batch/ese-detect e
 
 from __future__ import annotations
 
-import json
 import sqlite3
 import tempfile
-import time
 from pathlib import Path
 from unittest.mock import patch
 

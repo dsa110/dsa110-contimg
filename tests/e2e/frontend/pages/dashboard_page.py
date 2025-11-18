@@ -1,7 +1,6 @@
 """Dashboard page object."""
 
-from playwright.sync_api import Locator, Page
-
+from playwright.sync_api import Page
 from tests.e2e.frontend.pages.base_page import BasePage
 
 

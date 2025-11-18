@@ -2,7 +2,7 @@
  * Mosaic Gallery Page
  * Time-range query interface for hour-long mosaics
  */
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Container,
   Typography,

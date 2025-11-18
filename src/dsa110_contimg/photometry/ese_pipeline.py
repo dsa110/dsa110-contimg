@@ -14,14 +14,12 @@ from typing import List, Optional
 
 from dsa110_contimg.database.products import ensure_products_db
 from dsa110_contimg.photometry.caching import (
-    get_cached_variability_stats,
     invalidate_cache,
 )
 from dsa110_contimg.photometry.ese_detection import detect_ese_candidates
 from dsa110_contimg.photometry.variability import (
     calculate_eta_metric,
     calculate_sigma_deviation,
-    calculate_v_metric,
 )
 
 logger = logging.getLogger(__name__)

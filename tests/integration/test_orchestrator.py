@@ -5,15 +5,14 @@ Tests orchestrator behavior with multiple stages, dependencies, and error handli
 """
 
 import pytest
+from tests.fixtures.mock_stages import FailingValidationStage, MockStage
 
 from dsa110_contimg.pipeline import (
-    PipelineContext,
     PipelineOrchestrator,
     PipelineStatus,
     StageDefinition,
     StageStatus,
 )
-from tests.fixtures.mock_stages import FailingValidationStage, MockStage
 
 
 class TestOrchestratorExecution:
@@ -78,9 +77,7 @@ class TestOrchestratorErrorHandling:
         """Test that stage failure stops pipeline execution."""
         stages = [
             StageDefinition("stage1", MockStage("stage1"), []),
-            StageDefinition(
-                "stage2", MockStage("stage2", should_fail=True), ["stage1"]
-            ),
+            StageDefinition("stage2", MockStage("stage2", should_fail=True), ["stage1"]),
             StageDefinition("stage3", MockStage("stage3"), ["stage2"]),
         ]
         orchestrator = PipelineOrchestrator(stages)
@@ -94,9 +91,7 @@ class TestOrchestratorErrorHandling:
     def test_validation_failure(self, test_context):
         """Test that validation failure prevents execution."""
         stages = [
-            StageDefinition(
-                "stage1", FailingValidationStage("stage1", "Invalid input"), []
-            ),
+            StageDefinition("stage1", FailingValidationStage("stage1", "Invalid input"), []),
         ]
         orchestrator = PipelineOrchestrator(stages)
         result = orchestrator.execute(test_context)
@@ -107,7 +102,7 @@ class TestOrchestratorErrorHandling:
 
     def test_prerequisite_failure_skips_stage(self, test_context):
         """Test that failed prerequisites cause stage to be skipped."""
-        from dsa110_contimg.pipeline import RetryPolicy, RetryStrategy
+        from dsa110_contimg.pipeline import RetryPolicy
 
         # Use retry policy that allows continuation to test skip behavior
         stages = [

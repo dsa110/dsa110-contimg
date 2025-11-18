@@ -4,6 +4,7 @@
 This phase-only gaincal output can be used as input to bandpass() via gaintable.
 The .gcal extension follows CASA naming conventions for gain calibration tables.
 """
+
 import os
 
 from casatasks import gaincal
@@ -18,10 +19,10 @@ print("=" * 70)
 print("Running gaincal on phased MS")
 print("=" * 70)
 print(f"MS: {os.path.basename(ms_path)}")
-print(f"Field: 0")
+print("Field: 0")
 print(f"Refant: {refant}")
-print(f"Mode: phase-only (p)")
-print(f"Solint: 30s")
+print("Mode: phase-only (p)")
+print("Solint: 30s")
 print(f"Output: {os.path.basename(caltable)}")
 print("=" * 70)
 
@@ -47,9 +48,9 @@ gaincal(
 )
 
 if os.path.exists(caltable):
-    print(f"\n✓ SUCCESS: Calibration table created")
+    print("\n✓ SUCCESS: Calibration table created")
     print(f"  Location: {caltable}")
 else:
-    print(f"\n✗ ERROR: Calibration table was not created")
+    print("\n✗ ERROR: Calibration table was not created")
 
 print("=" * 70)

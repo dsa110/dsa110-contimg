@@ -14,8 +14,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from dsa110_contimg.database.products import ensure_products_db
-
 
 class DLQStatus(Enum):
     """Dead letter queue status."""

@@ -17,9 +17,19 @@ if (typeof window !== "undefined" && typeof (window as any).React === "undefined
   (window as any).React = React;
 }
 
-// Lazy load the Plot component
-// react-plotly.js exports Plot as default, so React.lazy works directly
-const Plot = lazy(() => import("react-plotly.js"));
+// Lazy load the Plot component with explicit Plotly.js import
+// Vite doesn't support dynamic requires, so we explicitly import both:
+// 1. plotly.js - the plotly library (Vite will handle optimization)
+// 2. react-plotly.js/factory - the React wrapper factory
+// We use a custom loader that combines them
+const Plot = lazy(() =>
+  import("plotly.js").then((Plotly) =>
+    import("react-plotly.js/factory").then((factory) => ({
+      // plotly.js exports the Plotly object as default
+      default: factory.default(Plotly),
+    }))
+  )
+);
 
 // Re-export Plotly types
 export type { Data, Layout } from "plotly.js";

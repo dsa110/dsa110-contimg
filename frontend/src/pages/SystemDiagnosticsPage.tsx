@@ -11,9 +11,10 @@ import {
   Assessment as QAIcon,
   Cached as CacheIcon,
   Dashboard as DashboardIcon,
+  Storage as StorageIcon,
 } from "@mui/icons-material";
 import HealthPage from "./HealthPage";
-import QAVisualizationPage from "./QAVisualizationPage";
+import QAPage from "./QAPage";
 import CachePage from "./CachePage";
 import { StatCard } from "../components/StatCard";
 import { useSystemMetrics, useDatabaseMetrics } from "../api/queries";
@@ -131,20 +132,20 @@ export default function SystemDiagnosticsPage() {
                 <StatCard
                   title="Disk Usage"
                   value={
-                    systemMetrics.disk_total && systemMetrics.disk_used
-                      ? `${((systemMetrics.disk_used / systemMetrics.disk_total) * 100).toFixed(1)}%`
+                    systemMetrics.disks?.[0]?.percent
+                      ? `${systemMetrics.disks[0].percent.toFixed(1)}%`
                       : "N/A"
                   }
                   color={
-                    systemMetrics.disk_total && systemMetrics.disk_used
-                      ? (systemMetrics.disk_used / systemMetrics.disk_total) * 100 > 90
+                    systemMetrics.disks?.[0]?.percent
+                      ? systemMetrics.disks[0].percent > 90
                         ? "error"
-                        : (systemMetrics.disk_used / systemMetrics.disk_total) * 100 > 75
+                        : systemMetrics.disks[0].percent > 75
                           ? "warning"
                           : "success"
                       : "default"
                   }
-                  icon={<HealthIcon />}
+                  icon={<StorageIcon />}
                 />
               </Grid>
             </>
@@ -241,7 +242,7 @@ export default function SystemDiagnosticsPage() {
 
       <TabPanel value={tabValue} index={2}>
         <Box sx={{ mt: -4 }}>
-          <QAVisualizationPage />
+          <QAPage />
         </Box>
       </TabPanel>
 

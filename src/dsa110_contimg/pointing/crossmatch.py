@@ -16,8 +16,7 @@ import numpy as np
 from astropy.time import Time
 
 from dsa110_contimg.calibration.catalogs import read_vla_parsed_catalog_csv
-from dsa110_contimg.calibration.schedule import (DSA110_LOCATION,
-                                                 previous_transits)
+from dsa110_contimg.calibration.schedule import DSA110_LOCATION, previous_transits
 from dsa110_contimg.database.products import ensure_ingest_db
 
 SB_RE = re.compile(r"^(.+)_sb(\d{2})\.hdf5$")

@@ -49,13 +49,16 @@ class CatalogCoverageStatus(BaseModel):
 
     dec_deg: Optional[float] = Field(None, description="Current declination in degrees")
     nvss: Dict[str, Union[bool, str]] = Field(
-        default_factory=dict, description="NVSS catalog status: exists, within_coverage, db_path"
+        default_factory=dict,
+        description="NVSS catalog status: exists, within_coverage, db_path",
     )
     first: Dict[str, Union[bool, str]] = Field(
-        default_factory=dict, description="FIRST catalog status: exists, within_coverage, db_path"
+        default_factory=dict,
+        description="FIRST catalog status: exists, within_coverage, db_path",
     )
     rax: Dict[str, Union[bool, str]] = Field(
-        default_factory=dict, description="RACS catalog status: exists, within_coverage, db_path"
+        default_factory=dict,
+        description="RACS catalog status: exists, within_coverage, db_path",
     )
 
 
@@ -535,7 +538,8 @@ class ESEDetectJobParams(BaseModel):
     """Parameters for ESE detection job."""
 
     min_sigma: Optional[float] = Field(
-        None, description="Minimum sigma deviation threshold (ignored if preset is provided)"
+        None,
+        description="Minimum sigma deviation threshold (ignored if preset is provided)",
     )
     preset: Optional[str] = Field(
         None,
@@ -560,7 +564,8 @@ class BatchESEDetectParams(BaseModel):
     """Parameters for batch ESE detection job."""
 
     min_sigma: Optional[float] = Field(
-        None, description="Minimum sigma deviation threshold (ignored if preset is provided)"
+        None,
+        description="Minimum sigma deviation threshold (ignored if preset is provided)",
     )
     preset: Optional[str] = Field(
         None,
@@ -568,21 +573,24 @@ class BatchESEDetectParams(BaseModel):
     )
     recompute: bool = Field(False, description="Recompute variability statistics before detection")
     source_ids: Optional[List[str]] = Field(
-        None, description="Optional list of specific source IDs to check (if None, checks all)"
+        None,
+        description="Optional list of specific source IDs to check (if None, checks all)",
     )
     use_composite_scoring: bool = Field(False, description="Enable multi-metric composite scoring")
     scoring_weights: Optional[Dict[str, float]] = Field(
         None, description="Custom weights for composite scoring"
     )
     use_parallel: bool = Field(
-        False, description="Use parallel processing for batch detection (faster for many sources)"
+        False,
+        description="Use parallel processing for batch detection (faster for many sources)",
     )
     use_multi_frequency: bool = Field(
         False,
         description="Enable multi-frequency analysis (correlate variability across frequencies)",
     )
     use_multi_observable: bool = Field(
-        False, description="Enable multi-observable correlation (correlate with scintillation/DM)"
+        False,
+        description="Enable multi-observable correlation (correlate with scintillation/DM)",
     )
 
 
@@ -805,7 +813,8 @@ class MosaicCreateRequest(BaseModel):
     """Request to create a mosaic."""
 
     calibrator_name: Optional[str] = Field(
-        None, description="Calibrator name for calibrator-centered mosaic (e.g., '0834+555')"
+        None,
+        description="Calibrator name for calibrator-centered mosaic (e.g., '0834+555')",
     )
     start_time: Optional[str] = Field(
         None, description="Start time for time-window mosaic (ISO format)"

@@ -6,7 +6,7 @@ import { defineConfig, devices } from "@playwright/test";
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: "/app/tests/e2e", // Absolute path to E2E tests
+  testDir: "./tests/e2e", // Absolute path to E2E tests
 
   /* Only match Playwright test files */
   testMatch: /.*\.(test|spec)\.(js|ts|tsx)$/,
@@ -45,8 +45,8 @@ export default defineConfig({
     /* Screenshot on failure */
     screenshot: "only-on-failure",
 
-    /* Video on failure */
-    video: "retain-on-failure",
+    /* Video on failure - disabled in Docker (no FFmpeg) */
+    video: process.env.CI ? "off" : "retain-on-failure",
   },
 
   /* Configure projects for major browsers */
@@ -56,6 +56,14 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         args: ["--no-sandbox", "--disable-setuid-sandbox"], // Required for Docker
+        // Use installed Playwright browser if PLAYWRIGHT_BROWSERS_PATH is set (Docker)
+        ...(process.env.PLAYWRIGHT_BROWSERS_PATH
+          ? {
+              // Playwright installs to /ms-playwright/chromium-{version}/chrome-linux/chrome
+              // We'll let Playwright find it automatically via PLAYWRIGHT_BROWSERS_PATH
+              // But if needed, we can set executablePath explicitly
+            }
+          : {}),
       },
     },
 

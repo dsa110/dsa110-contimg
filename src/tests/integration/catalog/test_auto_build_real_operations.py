@@ -4,12 +4,8 @@ Integration tests for auto-build functionality with real operations.
 Tests that auto-build actually works when triggered during catalog queries.
 """
 
-import os
-import shutil
 import sys
-import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))

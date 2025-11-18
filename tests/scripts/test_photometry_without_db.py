@@ -23,7 +23,7 @@ try:
         min_snr=50.0,
         max_sources=20,
     )
-    print(f"✓ Query succeeded (should have failed!)")
+    print("✓ Query succeeded (should have failed!)")
     print(f"  Found {len(refs)} reference sources")
 
 except Exception as e:

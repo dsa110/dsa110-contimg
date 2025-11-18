@@ -1,7 +1,7 @@
 /**
  * Data Browser Page - Main data management interface
  */
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -25,6 +25,7 @@ import {
   Alert,
   Button,
   TextField,
+  Stack,
 } from "@mui/material";
 import {
   CloudUpload,
@@ -38,12 +39,13 @@ import {
   FolderOpen,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import { useDataInstances, useUVH5Files } from "../api/queries";
+import { useDataInstances, useUVH5Files, useESECandidates } from "../api/queries";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
 import type { DataInstance } from "../api/types";
 import { EmptyState } from "../components/EmptyState";
 import { SkeletonLoader } from "../components/SkeletonLoader";
 import { alpha } from "@mui/material/styles";
+import { QASnapshotCard } from "../components/QA/QASnapshotCard";
 
 const DATA_TYPE_LABELS: Record<string, string> = {
   ms: "MS",
@@ -95,6 +97,7 @@ export default function DataBrowserPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [subbandFilter, setSubbandFilter] = useState<string>("");
   const navigate = useNavigate();
+  const { data: eseCandidates, isLoading: eseLoading, refetch: refetchESE } = useESECandidates();
 
   // Reset page when switching tabs or changing filter
   useEffect(() => {
@@ -238,18 +241,26 @@ export default function DataBrowserPage() {
           />
         </TabPanel>
         <TabPanel value={tabValue} index={2}>
-          <DataTable
-            instances={publishedQuery.data?.items || []}
-            total={publishedQuery.data?.total || 0}
-            isLoading={publishedQuery.isLoading}
-            error={publishedQuery.error}
-            onViewDetails={handleViewDetails}
-            status="published"
-            page={page}
-            rowsPerPage={rowsPerPage}
-            onPageChange={setPage}
-            onRowsPerPageChange={setRowsPerPage}
-          />
+          <Stack spacing={2}>
+            <QASnapshotCard
+              data={eseCandidates}
+              isLoading={eseLoading}
+              onRefresh={refetchESE}
+              onOpenQA={() => navigate("/qa")}
+            />
+            <DataTable
+              instances={publishedQuery.data?.items || []}
+              total={publishedQuery.data?.total || 0}
+              isLoading={publishedQuery.isLoading}
+              error={publishedQuery.error}
+              onViewDetails={handleViewDetails}
+              status="published"
+              page={page}
+              rowsPerPage={rowsPerPage}
+              onPageChange={setPage}
+              onRowsPerPageChange={setRowsPerPage}
+            />
+          </Stack>
         </TabPanel>
       </Box>
     </>

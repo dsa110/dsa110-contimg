@@ -37,9 +37,7 @@ class TestBatchSubbandLoading:
         file_list = [f"subband_sb{i:02d}.uvh5" for i in range(16)]
 
         # Mock UVData and file reading
-        with patch(
-            "dsa110_contimg.conversion.strategies.hdf5_orchestrator.UVData"
-        ) as MockUVData:
+        with patch("dsa110_contimg.conversion.strategies.hdf5_orchestrator.UVData") as MockUVData:
             mock_uv = Mock()
             mock_uv.fast_concat = Mock()
             mock_uv.reorder_freqs = Mock()
@@ -54,9 +52,7 @@ class TestBatchSubbandLoading:
 
             with patch.object(mock_uv.__class__, "read", mock_read):
                 # Test with batch_size=4 (should process 4 batches of 4)
-                result = _load_and_merge_subbands(
-                    file_list, batch_size=4, show_progress=False
-                )
+                _load_and_merge_subbands(file_list, batch_size=4, show_progress=False)
 
                 # Verify batching occurred (should have multiple concat calls)
                 # With batch_size=4 and 16 files, we expect 4 batches
@@ -72,17 +68,13 @@ class TestBatchSubbandLoading:
         # Create small file list (2 subbands)
         file_list = ["subband_sb00.uvh5", "subband_sb01.uvh5"]
 
-        with patch(
-            "dsa110_contimg.conversion.strategies.hdf5_orchestrator.UVData"
-        ) as MockUVData:
+        with patch("dsa110_contimg.conversion.strategies.hdf5_orchestrator.UVData") as MockUVData:
             mock_uv = Mock()
             mock_uv.fast_concat = Mock()
             mock_uv.reorder_freqs = Mock()
             MockUVData.return_value = mock_uv
 
-            result = _load_and_merge_subbands(
-                file_list, batch_size=4, show_progress=False
-            )
+            result = _load_and_merge_subbands(file_list, batch_size=4, show_progress=False)
 
             # With 2 files and batch_size=4, should use single-batch path
             # (no batching needed)
@@ -97,7 +89,6 @@ class TestMSMetadataCaching:
         from dsa110_contimg.utils.ms_helpers import (
             clear_ms_metadata_cache,
             get_ms_metadata,
-            get_ms_metadata_cached,
         )
 
         # Clear cache first
@@ -121,9 +112,7 @@ class TestMSMetadataCaching:
             mock_table.colnames.return_value = ["CHAN_FREQ", "PHASE_DIR", "NAME"]
             mock_table.nrows.return_value = 1
 
-            with patch(
-                "dsa110_contimg.utils.ms_helpers.table", return_value=mock_table
-            ):
+            with patch("dsa110_contimg.utils.ms_helpers.table", return_value=mock_table):
                 # First call - should read from table
                 result1 = get_ms_metadata(ms_path)
 
@@ -141,7 +130,6 @@ class TestMSMetadataCaching:
         from dsa110_contimg.utils.ms_helpers import (
             clear_ms_metadata_cache,
             get_ms_metadata,
-            get_ms_metadata_cached,
         )
 
         clear_ms_metadata_cache()
@@ -163,11 +151,9 @@ class TestMSMetadataCaching:
             mock_table.colnames.return_value = ["CHAN_FREQ", "PHASE_DIR", "NAME"]
             mock_table.nrows.return_value = 1
 
-            with patch(
-                "dsa110_contimg.utils.ms_helpers.table", return_value=mock_table
-            ):
+            with patch("dsa110_contimg.utils.ms_helpers.table", return_value=mock_table):
                 # First call
-                result1 = get_ms_metadata(ms_path)
+                get_ms_metadata(ms_path)
                 call_count_1 = mock_table.getcol.call_count
 
                 # Simulate file modification by changing mtime
@@ -175,7 +161,7 @@ class TestMSMetadataCaching:
                 os.utime(ms_path, None)  # Update modification time
 
                 # Second call - should invalidate cache and re-read
-                result2 = get_ms_metadata(ms_path)
+                get_ms_metadata(ms_path)
                 call_count_2 = mock_table.getcol.call_count
 
                 # Verify cache was invalidated (additional table reads)
@@ -188,7 +174,6 @@ class TestFlagValidationCaching:
     def test_flag_validation_cache_hit(self):
         """Verify flag validation cache is used on second call."""
         from dsa110_contimg.utils.ms_helpers import (
-            _validate_ms_unflagged_fraction_cached,
             clear_flag_validation_cache,
             validate_ms_unflagged_fraction,
         )
@@ -211,9 +196,7 @@ class TestFlagValidationCaching:
             flags[:5000] = True  # First half flagged
             mock_table.getcol.return_value = flags
 
-            with patch(
-                "dsa110_contimg.utils.ms_helpers.table", return_value=mock_table
-            ):
+            with patch("dsa110_contimg.utils.ms_helpers.table", return_value=mock_table):
                 # First call
                 result1 = validate_ms_unflagged_fraction(ms_path, sample_size=1000)
                 call_count_1 = mock_table.getcol.call_count
@@ -248,11 +231,9 @@ class TestFlagValidationCaching:
             flags = np.zeros((10000, 4, 128), dtype=bool)
             mock_table.getcol.return_value = flags
 
-            with patch(
-                "dsa110_contimg.utils.ms_helpers.table", return_value=mock_table
-            ):
+            with patch("dsa110_contimg.utils.ms_helpers.table", return_value=mock_table):
                 # First call
-                result1 = validate_ms_unflagged_fraction(ms_path)
+                validate_ms_unflagged_fraction(ms_path)
                 call_count_1 = mock_table.getcol.call_count
 
                 # Simulate file modification
@@ -260,7 +241,7 @@ class TestFlagValidationCaching:
                 os.utime(ms_path, None)
 
                 # Second call - should invalidate cache
-                result2 = validate_ms_unflagged_fraction(ms_path)
+                validate_ms_unflagged_fraction(ms_path)
                 call_count_2 = mock_table.getcol.call_count
 
                 # Verify cache was invalidated
@@ -295,9 +276,7 @@ class TestParallelProcessing:
         items = [1, 2, 3, 4, 5]
 
         # Should log error and continue (returns None for failed items)
-        results = process_parallel(
-            items, fails_on_three, max_workers=2, show_progress=False
-        )
+        results = process_parallel(items, fails_on_three, max_workers=2, show_progress=False)
 
         # Results should include None for failed item
         assert len(results) == 5

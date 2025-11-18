@@ -7,7 +7,7 @@ import json
 import random
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import astropy.units as u  # pylint: disable=no-member
 import h5py
@@ -564,7 +564,7 @@ def write_subband_uvh5(
     uv.phase_center_frame = "icrs"
     uv.phase_center_epoch = 2000.0
 
-    anchor = start_time.iso.replace("-", "").replace(":", "")
+    start_time.iso.replace("-", "").replace(":", "")
     anchor_str = start_time.strftime("%Y-%m-%dT%H:%M:%S")
     filename = f"{anchor_str}_sb{subband_index:02d}.hdf5"
     output_path = output_dir / filename
@@ -839,7 +839,9 @@ def main() -> None:
 
     # Create synthetic catalog if requested
     if args.create_catalog:
-        from dsa110_contimg.simulation.synthetic_catalog import create_synthetic_catalog_from_uvh5
+        from dsa110_contimg.simulation.synthetic_catalog import (
+            create_synthetic_catalog_from_uvh5,
+        )
 
         # Use first output file to extract source positions
         uvh5_path = outputs[0]
@@ -862,7 +864,7 @@ def main() -> None:
             rng=rng,
         )
         print(f"  Created: {catalog_path}")
-        print(f"\nTo use in pipeline testing, set environment variable:")
+        print("\nTo use in pipeline testing, set environment variable:")
         print(f"  export {args.catalog_type.upper()}_CATALOG={catalog_path}")
 
     # Print summary of features used

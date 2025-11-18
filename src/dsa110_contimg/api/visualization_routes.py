@@ -11,7 +11,6 @@ Provides endpoints for:
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 from datetime import datetime
@@ -19,30 +18,22 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import numpy as np
-from fastapi import APIRouter, HTTPException
-from fastapi import Path as PathParam
-from fastapi import Query
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel, Field
 
 from dsa110_contimg.api.carta_service import get_carta_service_manager
-from dsa110_contimg.qa.casa_ms_qa import QaResult, QaThresholds, run_ms_qa
+from dsa110_contimg.qa.casa_ms_qa import QaThresholds, run_ms_qa
 from dsa110_contimg.qa.visualization import (
     CasaTable,
-    FileList,
     FITSFile,
     ImageFile,
     TextFile,
-    browse_qa_outputs,
-    display_qa_summary,
-    generate_fits_viewer_notebook,
     generate_qa_notebook,
     generate_qa_notebook_from_result,
-    ls,
 )
-from dsa110_contimg.qa.visualization_qa import run_ms_qa_with_visualization
 from dsa110_contimg.utils.cli_helpers import casa_log_environment
-from dsa110_contimg.utils.path_validation import sanitize_filename, validate_path
+from dsa110_contimg.utils.path_validation import validate_path
 
 logger = logging.getLogger(__name__)
 
@@ -646,6 +637,60 @@ def get_image_thumbnail(
         raise HTTPException(status_code=500, detail=f"Error generating thumbnail: {str(e)}")
 
 
+@router.get("/file/icon")
+def get_file_type_icon(
+    path: str = Query(..., description="Path to file or directory"),
+    size: int = Query(64, description="Icon size in pixels (default: 64)"),
+    format: str = Query("svg", description="Format: 'svg', 'data-uri', or 'html'"),
+):
+    """
+    Get file type icon for a file or directory.
+
+    Returns an SVG icon, data URI, or HTML img tag representing the file type
+    (folder, FITS, MS, image, etc.) instead of an actual thumbnail.
+    This provides a cleaner visual representation for file browsers.
+    """
+    from dsa110_contimg.api.file_type_icons import (
+        get_file_type_icon_data_uri,
+        get_file_type_icon_html,
+        get_file_type_icon_svg,
+    )
+
+    try:
+        # Validate path to prevent path traversal
+        base_dir = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
+        try:
+            target_path = validate_path(path, base_dir)
+        except ValueError:
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg"))
+            try:
+                target_path = validate_path(path, output_dir)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=f"Invalid path: {str(e)}")
+
+        if not target_path.exists():
+            raise HTTPException(status_code=404, detail=f"File not found: {path}")
+
+        # Generate icon based on format
+        if format == "svg":
+            svg = get_file_type_icon_svg(str(target_path), size=size)
+            return Response(content=svg, media_type="image/svg+xml")
+        elif format == "data-uri":
+            data_uri = get_file_type_icon_data_uri(str(target_path), size=size)
+            return {"data_uri": data_uri}
+        elif format == "html":
+            html = get_file_type_icon_html(str(target_path), size=size)
+            return HTMLResponse(content=html)
+        else:
+            raise HTTPException(status_code=400, detail=f"Invalid format: {format}")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error generating file icon for {path}")
+        raise HTTPException(status_code=500, detail=f"Error generating file icon: {str(e)}")
+
+
 # ============================================================================
 # Text File Endpoints
 # ============================================================================
@@ -1161,7 +1206,6 @@ def _run_imview(
     image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Run imview CASA task for contour generation."""
-    import numpy as np
     from astropy.io import fits
     from scipy.ndimage import gaussian_filter
 
@@ -1245,7 +1289,7 @@ def _run_imview(
 
             return {
                 "contour_data": _convert_to_json_serializable(stats),
-                "note": ("Matplotlib not available, " "returning statistics instead"),
+                "note": ("Matplotlib not available, returning statistics instead"),
             }
 
 
@@ -1304,7 +1348,6 @@ def _run_imval(
         return result
     except Exception as e:
         # Fallback: try to extract pixel values directly from FITS
-        import numpy as np
         from astropy.io import fits
 
         try:
@@ -1341,7 +1384,10 @@ def _run_imval(
                     )()
 
                     mask = create_region_mask(
-                        data.shape, region_data, wcs, hdul[0].header  # pylint: disable=no-member
+                        data.shape,
+                        region_data,
+                        wcs,
+                        hdul[0].header,  # pylint: disable=no-member
                     )
                     values = data[mask].tolist()
                 else:
@@ -1351,7 +1397,7 @@ def _run_imval(
                 return {
                     "values": values,
                     "shape": list(data.shape),
-                    "note": ("Extracted directly from FITS file " "(imval fallback)"),
+                    "note": ("Extracted directly from FITS file (imval fallback)"),
                 }
         except Exception as e2:
             return {
@@ -1499,7 +1545,6 @@ def _js9_region_to_casa(region: Dict[str, Any]) -> str:
 
 def _convert_to_json_serializable(obj: Any) -> Any:
     """Convert numpy types and other non-JSON-serializable objects to JSON-compatible types."""
-    import numpy as np
 
     if isinstance(obj, (np.integer, np.floating)):
         return float(obj)

@@ -11,7 +11,7 @@ Tests:
 """
 
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -43,7 +43,6 @@ def mock_casa_tasks():
         patch("dsa110_contimg.api.visualization_routes.immath") as mock_immath,
         patch("dsa110_contimg.api.visualization_routes.imval") as mock_imval,
     ):
-
         mock_imstat.return_value = {
             "DATA": {
                 "mean": 0.001,
@@ -156,7 +155,6 @@ class TestTaskExecution:
             patch("os.path.exists", return_value=True),
             patch("os.remove"),
         ):
-
             response = client.post(
                 "/api/visualization/js9/analysis",
                 json={
@@ -290,7 +288,6 @@ class TestErrorHandling:
             ),
             patch("astropy.io.fits.open") as mock_fits,
         ):
-
             mock_hdul = MagicMock()
             mock_hdul.__enter__.return_value = [MagicMock()]
             mock_hdul[0].header = {

@@ -2,7 +2,7 @@
  * Health Page
  * Deep diagnostics for pipeline and data quality monitoring
  */
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Container,
   Typography,
@@ -163,11 +163,14 @@ export default function HealthPage() {
   // Track metric history for sparklines
   const cpuHistory = useMetricHistory(metrics ?? undefined?.cpu_percent);
   const memHistory = useMetricHistory(metrics ?? undefined?.mem_percent);
-  const diskHistory = useMetricHistory(
-    metrics?.disk_total && metrics?.disk_used
-      ? (metrics.disk_used / metrics.disk_total) * 100
-      : undefined
-  );
+
+  // Use new disks array format - track both / (SSD) and /data/ (HDD)
+  // Note: / (SSD) is the root filesystem which includes /stage directory
+  const ssdDisk = metrics?.disks?.find((d) => d.mount_point.startsWith("/ (SSD)"));
+  const hddDisk = metrics?.disks?.find((d) => d.mount_point.startsWith("/data/"));
+  const ssdDiskHistory = useMetricHistory(ssdDisk?.percent ?? undefined);
+  const hddDiskHistory = useMetricHistory(hddDisk?.percent ?? undefined);
+
   const loadHistory = useMetricHistory(metrics ?? undefined?.load_1);
 
   // Prepare system metrics plot data
@@ -291,18 +294,41 @@ export default function HealthPage() {
                     }}
                   >
                     <StatusIndicator
-                      value={
-                        metrics?.disk_total && metrics?.disk_used
-                          ? (metrics.disk_used / metrics.disk_total) * 100
-                          : 0
-                      }
+                      value={ssdDisk?.percent ?? 0}
                       thresholds={{ good: 75, warning: 90 }}
-                      label="Disk Usage"
+                      label="SSD (root)"
                       unit="%"
                       size="medium"
-                      showTrend={diskHistory.length > 1}
+                      showTrend={ssdDiskHistory.length > 1}
                       previousValue={
-                        diskHistory.length > 1 ? diskHistory[diskHistory.length - 2] : undefined
+                        ssdDiskHistory.length > 1
+                          ? ssdDiskHistory[ssdDiskHistory.length - 2]
+                          : undefined
+                      }
+                    />
+                  </Grid>
+                  <Grid
+                    item
+                    xs={12}
+                    sm={6}
+                    md={3}
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <StatusIndicator
+                      value={hddDisk?.percent ?? 0}
+                      thresholds={{ good: 75, warning: 90 }}
+                      label="HDD (/data/)"
+                      unit="%"
+                      size="medium"
+                      showTrend={hddDiskHistory.length > 1}
+                      previousValue={
+                        hddDiskHistory.length > 1
+                          ? hddDiskHistory[hddDiskHistory.length - 2]
+                          : undefined
                       }
                     />
                   </Grid>
@@ -397,36 +423,73 @@ export default function HealthPage() {
                 }}
               >
                 <Card>
-                  <CardHeader title="Disk Details" />
+                  <CardHeader title="Disk Details - SSD (root)" />
                   <CardContent>
                     <Stack spacing={2}>
                       <Box>
                         <Typography variant="body2" color="text.secondary">
-                          Total Disk Space
+                          Total Space
                         </Typography>
                         <Typography variant="h6">
-                          {metrics?.disk_total
-                            ? `${(metrics.disk_total / 1024 / 1024 / 1024).toFixed(2)} GB`
+                          {ssdDisk?.total
+                            ? `${(ssdDisk.total / 1024 / 1024 / 1024).toFixed(2)} GB`
                             : "N/A"}
                         </Typography>
                       </Box>
                       <Box>
                         <Typography variant="body2" color="text.secondary">
-                          Used Disk Space
+                          Used Space
                         </Typography>
                         <Typography variant="h6">
-                          {metrics?.disk_used
-                            ? `${(metrics.disk_used / 1024 / 1024 / 1024).toFixed(2)} GB`
+                          {ssdDisk?.used
+                            ? `${(ssdDisk.used / 1024 / 1024 / 1024).toFixed(2)} GB`
                             : "N/A"}
                         </Typography>
                       </Box>
                       <Box>
                         <Typography variant="body2" color="text.secondary">
-                          Available Disk Space
+                          Available Space
                         </Typography>
                         <Typography variant="h6">
-                          {metrics?.disk_total && metrics?.disk_used
-                            ? `${((metrics.disk_total - metrics.disk_used) / 1024 / 1024 / 1024).toFixed(2)} GB`
+                          {ssdDisk?.free
+                            ? `${(ssdDisk.free / 1024 / 1024 / 1024).toFixed(2)} GB`
+                            : "N/A"}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader title="Disk Details - HDD (/data/)" />
+                  <CardContent>
+                    <Stack spacing={2}>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          Total Space
+                        </Typography>
+                        <Typography variant="h6">
+                          {hddDisk?.total
+                            ? `${(hddDisk.total / 1024 / 1024 / 1024).toFixed(2)} GB`
+                            : "N/A"}
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          Used Space
+                        </Typography>
+                        <Typography variant="h6">
+                          {hddDisk?.used
+                            ? `${(hddDisk.used / 1024 / 1024 / 1024).toFixed(2)} GB`
+                            : "N/A"}
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          Available Space
+                        </Typography>
+                        <Typography variant="h6">
+                          {hddDisk?.free
+                            ? `${(hddDisk.free / 1024 / 1024 / 1024).toFixed(2)} GB`
                             : "N/A"}
                         </Typography>
                       </Box>
@@ -445,98 +508,64 @@ export default function HealthPage() {
               <CircularProgress />
             </Box>
           ) : (
-            <Grid container spacing={3}>
-              {/* Queue Statistics */}
-              <Grid size={12}>
-                <Card>
-                  <CardHeader title="Queue Statistics" />
-                  <CardContent>
-                    <Grid container spacing={2}>
-                      <Grid
-                        size={{
-                          xs: 12,
-                          sm: 6,
-                          md: 2.4,
-                        }}
-                      >
-                        <Box textAlign="center">
-                          <Typography variant="h4">{status?.queue.total || 0}</Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Total Groups
-                          </Typography>
-                        </Box>
-                      </Grid>
-                      <Grid
-                        size={{
-                          xs: 12,
-                          sm: 6,
-                          md: 2.4,
-                        }}
-                      >
-                        <Box textAlign="center">
-                          <Typography variant="h4" color="warning.main">
-                            {status?.queue.pending || 0}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Pending
-                          </Typography>
-                        </Box>
-                      </Grid>
-                      <Grid
-                        size={{
-                          xs: 12,
-                          sm: 6,
-                          md: 2.4,
-                        }}
-                      >
-                        <Box textAlign="center">
-                          <Typography variant="h4" color="info.main">
-                            {status?.queue.in_progress || 0}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            In Progress
-                          </Typography>
-                        </Box>
-                      </Grid>
-                      <Grid
-                        size={{
-                          xs: 12,
-                          sm: 6,
-                          md: 2.4,
-                        }}
-                      >
-                        <Box textAlign="center">
-                          <Typography variant="h4" color="success.main">
-                            {status?.queue.completed || 0}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Completed
-                          </Typography>
-                        </Box>
-                      </Grid>
-                      <Grid
-                        size={{
-                          xs: 12,
-                          sm: 6,
-                          md: 2.4,
-                        }}
-                      >
-                        <Box textAlign="center">
-                          <Typography variant="h4" color="error.main">
-                            {status?.queue.failed || 0}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Failed
-                          </Typography>
-                        </Box>
-                      </Grid>
-                    </Grid>
-                  </CardContent>
-                </Card>
-              </Grid>
+            <>
+              <Alert severity="info" sx={{ mb: 3 }}>
+                Queue overview has moved to the Dashboard diagnostics section for faster access.
+              </Alert>
+              <Grid container spacing={3}>
+                {/* State Distribution */}
+                {queueDistribution && queueDistribution.length > 0 && (
+                  <Grid
+                    size={{
+                      xs: 12,
+                      md: 6,
+                    }}
+                  >
+                    <Card>
+                      <CardHeader title="State Distribution" />
+                      <CardContent>
+                        <Stack spacing={2}>
+                          {queueDistribution.map((state) => (
+                            <Box key={state.name}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  mb: 0.5,
+                                }}
+                              >
+                                <Typography variant="body2">{state.name}</Typography>
+                                <Typography variant="body2">
+                                  {state.value} (
+                                  {status?.queue.total
+                                    ? ((state.value / status.queue.total) * 100).toFixed(1)
+                                    : 0}
+                                  %)
+                                </Typography>
+                              </Box>
+                              <LinearProgress
+                                variant="determinate"
+                                value={
+                                  status?.queue.total ? (state.value / status.queue.total) * 100 : 0
+                                }
+                                sx={{
+                                  height: 8,
+                                  borderRadius: 4,
+                                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                                  "& .MuiLinearProgress-bar": {
+                                    backgroundColor: state.color,
+                                  },
+                                }}
+                              />
+                            </Box>
+                          ))}
+                        </Stack>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                )}
 
-              {/* State Distribution */}
-              {queueDistribution && queueDistribution.length > 0 && (
+                {/* Recent Groups */}
                 <Grid
                   size={{
                     xs: 12,
@@ -544,105 +573,55 @@ export default function HealthPage() {
                   }}
                 >
                   <Card>
-                    <CardHeader title="State Distribution" />
+                    <CardHeader title="Recent Groups" />
                     <CardContent>
-                      <Stack spacing={2}>
-                        {queueDistribution.map((state) => (
-                          <Box key={state.name}>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                mb: 0.5,
-                              }}
-                            >
-                              <Typography variant="body2">{state.name}</Typography>
-                              <Typography variant="body2">
-                                {state.value} (
-                                {status?.queue.total
-                                  ? ((state.value / status.queue.total) * 100).toFixed(1)
-                                  : 0}
-                                %)
-                              </Typography>
-                            </Box>
-                            <LinearProgress
-                              variant="determinate"
-                              value={
-                                status?.queue.total ? (state.value / status.queue.total) * 100 : 0
-                              }
-                              sx={{
-                                height: 8,
-                                borderRadius: 4,
-                                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                                "& .MuiLinearProgress-bar": {
-                                  backgroundColor: state.color,
-                                },
-                              }}
-                            />
-                          </Box>
-                        ))}
-                      </Stack>
+                      {status?.recent_groups && status.recent_groups.length > 0 ? (
+                        <TableContainer>
+                          <Table size="small">
+                            <TableHead>
+                              <TableRow>
+                                <TableCell>Group ID</TableCell>
+                                <TableCell>State</TableCell>
+                                <TableCell>Subbands</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {status.recent_groups.slice(0, 10).map((group) => (
+                                <TableRow key={group.group_id}>
+                                  <TableCell>{group.group_id}</TableCell>
+                                  <TableCell>
+                                    <Chip
+                                      label={group.state}
+                                      size="small"
+                                      color={
+                                        group.state === "completed"
+                                          ? "success"
+                                          : group.state === "failed"
+                                            ? "error"
+                                            : group.state === "in_progress"
+                                              ? "info"
+                                              : "warning"
+                                      }
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    {group.subbands_present}/{group.expected_subbands}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </TableContainer>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No recent groups
+                        </Typography>
+                      )}
                     </CardContent>
                   </Card>
                 </Grid>
-              )}
-
-              {/* Recent Groups */}
-              <Grid
-                size={{
-                  xs: 12,
-                  md: 6,
-                }}
-              >
-                <Card>
-                  <CardHeader title="Recent Groups" />
-                  <CardContent>
-                    {status?.recent_groups && status.recent_groups.length > 0 ? (
-                      <TableContainer>
-                        <Table size="small">
-                          <TableHead>
-                            <TableRow>
-                              <TableCell>Group ID</TableCell>
-                              <TableCell>State</TableCell>
-                              <TableCell>Subbands</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {status.recent_groups.slice(0, 10).map((group) => (
-                              <TableRow key={group.group_id}>
-                                <TableCell>{group.group_id}</TableCell>
-                                <TableCell>
-                                  <Chip
-                                    label={group.state}
-                                    size="small"
-                                    color={
-                                      group.state === "completed"
-                                        ? "success"
-                                        : group.state === "failed"
-                                          ? "error"
-                                          : group.state === "in_progress"
-                                            ? "info"
-                                            : "warning"
-                                    }
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  {group.subbands_present}/{group.expected_subbands}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        No recent groups
-                      </Typography>
-                    )}
-                  </CardContent>
-                </Card>
               </Grid>
-            </Grid>
+            </>
           )}
         </TabPanel>
 

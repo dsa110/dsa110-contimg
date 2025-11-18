@@ -5,8 +5,6 @@ Focus: Fast validation tests for batch conversion, publishing, and photometry mo
 
 from __future__ import annotations
 
-from typing import Tuple
-
 import pytest
 from pydantic import ValidationError
 

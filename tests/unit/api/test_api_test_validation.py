@@ -5,7 +5,6 @@ Unit tests for api module.
 Tests:
 - test_validation functionality
 """
-from unittest.mock import Mock, patch
 
 import pytest
 

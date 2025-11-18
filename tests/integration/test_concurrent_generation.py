@@ -16,7 +16,6 @@ import pytest
 from dsa110_contimg.simulation.visibility_models import (
     add_calibration_errors,
     add_thermal_noise,
-    calculate_thermal_noise_rms,
 )
 
 

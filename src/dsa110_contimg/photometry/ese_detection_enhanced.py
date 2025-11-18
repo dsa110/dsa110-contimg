@@ -13,12 +13,11 @@ from typing import List, Optional
 # Import original function
 from dsa110_contimg.photometry.ese_detection import detect_ese_candidates as _detect_ese_candidates
 from dsa110_contimg.pipeline.caching import (
-    cache_variability_stats_for_source,
     get_cached_variability_stats,
 )
 from dsa110_contimg.pipeline.circuit_breaker import ese_detection_circuit_breaker
 from dsa110_contimg.pipeline.dead_letter_queue import get_dlq
-from dsa110_contimg.pipeline.event_bus import EventType, get_event_bus, publish_ese_candidate
+from dsa110_contimg.pipeline.event_bus import publish_ese_candidate
 from dsa110_contimg.pipeline.metrics import record_ese_detection
 from dsa110_contimg.pipeline.retry_enhanced import retry_ese_detection
 from dsa110_contimg.pipeline.structured_logging import (
@@ -116,7 +115,10 @@ def detect_ese_candidates_enhanced(
 
         # Record failure metrics
         record_ese_detection(
-            duration=duration, candidates=0, source=source_id or "all", min_sigma=min_sigma
+            duration=duration,
+            candidates=0,
+            source=source_id or "all",
+            min_sigma=min_sigma,
         )
 
         # Log error
@@ -177,7 +179,10 @@ def detect_ese_with_caching(
 
     # Fall back to full detection
     candidates = detect_ese_candidates_enhanced(
-        products_db=products_db, min_sigma=min_sigma, source_id=source_id, recompute=False
+        products_db=products_db,
+        min_sigma=min_sigma,
+        source_id=source_id,
+        recompute=False,
     )
 
     if candidates:

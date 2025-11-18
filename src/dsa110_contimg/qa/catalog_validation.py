@@ -13,27 +13,26 @@ from typing import Dict, List, Optional, Tuple
 import astropy.units as u
 import numpy as np
 import pandas as pd
-from astropy.coordinates import SkyCoord, match_coordinates_sky
 from astropy.io import fits
 from astropy.wcs import WCS
 
-from dsa110_contimg.catalog.query import query_sources
 from dsa110_contimg.catalog.crossmatch import (
-    cross_match_dataframes,
     calculate_positional_offsets,
+    cross_match_dataframes,
 )
+from dsa110_contimg.catalog.query import query_sources
 from dsa110_contimg.photometry.forced import measure_forced_peak
-from dsa110_contimg.utils.runtime_safeguards import (
-    validate_wcs_4d,
-    wcs_pixel_to_world_safe,
-    wcs_world_to_pixel_safe,
-)
 from dsa110_contimg.qa.base import ValidationInputError
 from dsa110_contimg.qa.config import (
     AstrometryConfig,
     FluxScaleConfig,
     SourceCountsConfig,
     get_default_config,
+)
+from dsa110_contimg.utils.runtime_safeguards import (
+    validate_wcs_4d,
+    wcs_pixel_to_world_safe,
+    wcs_world_to_pixel_safe,
 )
 
 logger = logging.getLogger(__name__)
@@ -70,9 +69,7 @@ class CatalogValidationResult:
     completeness_bins_jy: Optional[List[float]] = None  # Flux bin edges (mJy)
     completeness_per_bin: Optional[List[float]] = None  # Completeness fraction per bin
     catalog_counts_per_bin: Optional[List[int]] = None  # Catalog source counts per bin
-    detected_counts_per_bin: Optional[List[int]] = (
-        None  # Detected source counts per bin
-    )
+    detected_counts_per_bin: Optional[List[int]] = None  # Detected source counts per bin
 
     # Quality flags
     has_issues: bool = False
@@ -170,9 +167,7 @@ def extract_sources_from_image(
                 labeled, n_features = label(peaks)
             except ImportError:
                 # Fallback: simple flood-fill clustering without scipy
-                logger.warning(
-                    "scipy not available, using simple flood-fill clustering"
-                )
+                logger.warning("scipy not available, using simple flood-fill clustering")
                 # Use a simple flood-fill approach to group nearby pixels
                 y_coords, x_coords = np.where(above_threshold)
                 if len(x_coords) == 0:
@@ -271,9 +266,7 @@ def get_image_frequency(image_path: str) -> Optional[float]:
         return None
 
 
-def get_catalog_overlay_pixels(
-    image_path: str, catalog_sources: pd.DataFrame
-) -> List[Dict]:
+def get_catalog_overlay_pixels(image_path: str, catalog_sources: pd.DataFrame) -> List[Dict]:
     """
     Convert catalog RA/Dec to pixel coordinates using image WCS.
 
@@ -291,10 +284,7 @@ def get_catalog_overlay_pixels(
         sources_pixels = []
 
         # Ensure we have the right column names
-        if (
-            "ra_deg" not in catalog_sources.columns
-            or "dec_deg" not in catalog_sources.columns
-        ):
+        if "ra_deg" not in catalog_sources.columns or "dec_deg" not in catalog_sources.columns:
             logger.warning("Catalog sources missing ra_deg or dec_deg columns")
             return []
 
@@ -453,14 +443,12 @@ def validate_astrometry(
         return result
 
     # Calculate offsets using standalone utility
-    dra_median, ddec_median, dra_madfm, ddec_madfm = calculate_positional_offsets(
-        matches
-    )
+    dra_median, ddec_median, dra_madfm, ddec_madfm = calculate_positional_offsets(matches)
 
     # Extract offsets for compatibility with existing result structure
     matched_sep = matches["separation_arcsec"].values
-    ra_offsets = matches["dra_arcsec"].values
-    dec_offsets = matches["ddec_arcsec"].values
+    matches["dra_arcsec"].values
+    matches["ddec_arcsec"].values
 
     mean_offset = np.mean(matched_sep)
     rms_offset = np.std(matched_sep)
@@ -484,9 +472,7 @@ def validate_astrometry(
         )
 
     if mean_offset > max_offset_arcsec * 0.5:
-        warnings.append(
-            f"Mean astrometric offset ({mean_offset:.2f} arcsec) is significant"
-        )
+        warnings.append(f"Mean astrometric offset ({mean_offset:.2f} arcsec) is significant")
 
     match_fraction = n_matched / n_detected if n_detected > 0 else 0.0
     if match_fraction < config.min_match_fraction:
@@ -497,9 +483,7 @@ def validate_astrometry(
 
     matched_pairs = [
         ((det.ra.deg, det.dec.deg), (cat.ra.deg, cat.dec.deg), sep.value)
-        for det, cat, sep in zip(
-            matched_detected, matched_catalog, matched_sep * u.arcsec
-        )
+        for det, cat, sep in zip(matched_detected, matched_catalog, matched_sep * u.arcsec)
     ]
 
     result = CatalogValidationResult(
@@ -737,21 +721,17 @@ def validate_flux_scale(
 
     if flux_scale_error > max_flux_ratio_error:
         issues.append(
-            f"Flux scale error ({flux_scale_error*100:.1f}%) exceeds threshold ({max_flux_ratio_error*100:.1f}%)"
+            f"Flux scale error ({flux_scale_error * 100:.1f}%) exceeds threshold ({max_flux_ratio_error * 100:.1f}%)"
         )
 
     if rms_flux_ratio > 0.3:
         warnings.append(f"High scatter in flux ratios (RMS={rms_flux_ratio:.2f})")
 
     if n_failed > len(catalog_sources) * 0.5:
-        warnings.append(
-            f"High failure rate: {n_failed}/{len(catalog_sources)} measurements failed"
-        )
+        warnings.append(f"High failure rate: {n_failed}/{len(catalog_sources)} measurements failed")
 
     if n_valid < 3:
-        warnings.append(
-            f"Low number of valid measurements: {n_valid} (recommend at least 3)"
-        )
+        warnings.append(f"Low number of valid measurements: {n_valid} (recommend at least 3)")
 
     result = CatalogValidationResult(
         validation_type="flux_scale",
@@ -851,7 +831,7 @@ def validate_source_counts(
     )
 
     if len(catalog_sources) == 0:
-        logger.warning(f"No catalog sources found in field")
+        logger.warning("No catalog sources found in field")
         return CatalogValidationResult(
             validation_type="source_counts",
             image_path=image_path,
@@ -881,16 +861,13 @@ def validate_source_counts(
 
     # Filter catalog sources by flux range
     catalog_filtered = catalog_sources[
-        (catalog_sources["flux_jy"] >= min_flux_jy)
-        & (catalog_sources["flux_jy"] <= max_flux_jy)
+        (catalog_sources["flux_jy"] >= min_flux_jy) & (catalog_sources["flux_jy"] <= max_flux_jy)
     ].copy()
 
     n_catalog = len(catalog_filtered)
 
     if n_catalog == 0:
-        logger.warning(
-            f"No catalog sources in flux range [{min_flux_jy}, {max_flux_jy}] Jy"
-        )
+        logger.warning(f"No catalog sources in flux range [{min_flux_jy}, {max_flux_jy}] Jy")
         return CatalogValidationResult(
             validation_type="source_counts",
             image_path=image_path,
@@ -900,9 +877,7 @@ def validate_source_counts(
             n_detected=n_detected,
             completeness=0.0,
             has_issues=True,
-            issues=[
-                f"No catalog sources in flux range [{min_flux_jy}, {max_flux_jy}] Jy"
-            ],
+            issues=[f"No catalog sources in flux range [{min_flux_jy}, {max_flux_jy}] Jy"],
         )
 
     # Match detected sources to catalog sources using standalone utility
@@ -978,9 +953,7 @@ def validate_source_counts(
     completeness_limit_jy = None
     if len(bin_stats) > 0:
         # Find highest flux bin where completeness >= threshold
-        above_threshold = bin_stats[
-            bin_stats["completeness"] >= completeness_limit_threshold
-        ]
+        above_threshold = bin_stats[bin_stats["completeness"] >= completeness_limit_threshold]
         if len(above_threshold) > 0:
             # Use the highest flux bin that meets threshold
             highest_bin = above_threshold.index[-1]
@@ -999,20 +972,16 @@ def validate_source_counts(
 
     if completeness < completeness_threshold:
         issues.append(
-            f"Overall completeness ({completeness*100:.1f}%) below threshold ({completeness_threshold*100:.1f}%)"
+            f"Overall completeness ({completeness * 100:.1f}%) below threshold ({completeness_threshold * 100:.1f}%)"
         )
 
     if n_detected == 0:
         issues.append("No sources detected in image")
 
     if completeness_limit_jy is None:
-        warnings.append(
-            "Could not determine completeness limit (no bins meet threshold)"
-        )
+        warnings.append("Could not determine completeness limit (no bins meet threshold)")
     elif completeness_limit_jy < min_flux_jy * 2:
-        warnings.append(
-            f"Completeness limit ({completeness_limit_jy*1000:.1f} mJy) is very low"
-        )
+        warnings.append(f"Completeness limit ({completeness_limit_jy * 1000:.1f} mJy) is very low")
 
     if n_matched < 3:
         warnings.append(

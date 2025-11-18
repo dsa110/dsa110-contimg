@@ -113,17 +113,28 @@ if command -v npx >/dev/null 2>&1; then
     cd frontend || exit 1
     if [ -f "package.json" ]; then
       # Format staged frontend files (strip frontend/ prefix for paths inside frontend/)
-      echo "$STAGED_FRONTEND_FILES" | sed 's|^frontend/||' | xargs -r npx prettier --write 2>/dev/null || true
+      # Use while loop to safely handle filenames with spaces
+      echo "$STAGED_FRONTEND_FILES" | while IFS= read -r file; do
+        [ -n "$file" ] && npx prettier --write "${file#frontend/}" 2>/dev/null || true
+      done
       
       # Re-stage formatted files so changes are included in commit
       # Need to cd back to repo root for git add to work with full paths
       cd .. || exit 1
-      echo "$STAGED_FRONTEND_FILES" | xargs -r git add 2>/dev/null || true
+      echo "$STAGED_FRONTEND_FILES" | while IFS= read -r file; do
+        [ -n "$file" ] && git add "$file" 2>/dev/null || true
+      done
       cd frontend || exit 1
       
       # Check formatting (fail if files still need formatting)
       # Strip frontend/ prefix since we're inside frontend/ directory
-      if ! echo "$STAGED_FRONTEND_FILES" | sed 's|^frontend/||' | xargs -r npx prettier --check 2>/dev/null; then
+      PRETTIER_CHECK_FAILED=false
+      echo "$STAGED_FRONTEND_FILES" | while IFS= read -r file; do
+        if [ -n "$file" ] && ! npx prettier --check "${file#frontend/}" 2>/dev/null; then
+          PRETTIER_CHECK_FAILED=true
+        fi
+      done
+      if [ "$PRETTIER_CHECK_FAILED" = "true" ]; then
         echo "" >&2
         echo "❌ Prettier formatting check failed for frontend files!" >&2
         echo "Please run: cd frontend && npx prettier --write 'src/**/*.{js,jsx,ts,tsx,json,css,scss,less,html,md,graphql,vue}'" >&2
@@ -137,12 +148,24 @@ if command -v npx >/dev/null 2>&1; then
   STAGED_ROOT_FILES=$(echo "$STAGED_FILES" | grep -E "\.(js|json|yaml|yml|md|html|css|scss|less)$" | grep -v "^frontend/" || true)
   
   if [ -n "$STAGED_ROOT_FILES" ]; then
-    echo "$STAGED_ROOT_FILES" | xargs -r npx prettier --write 2>/dev/null || true
+    # Use while loop to safely handle filenames with spaces
+    echo "$STAGED_ROOT_FILES" | while IFS= read -r file; do
+      [ -n "$file" ] && npx prettier --write "$file" 2>/dev/null || true
+    done
     
     # Re-stage formatted files so changes are included in commit
-    echo "$STAGED_ROOT_FILES" | xargs -r git add 2>/dev/null || true
+    echo "$STAGED_ROOT_FILES" | while IFS= read -r file; do
+      [ -n "$file" ] && git add "$file" 2>/dev/null || true
+    done
     
-    if ! echo "$STAGED_ROOT_FILES" | xargs -r npx prettier --check 2>/dev/null; then
+    # Check formatting (fail if files still need formatting)
+    PRETTIER_CHECK_FAILED=false
+    echo "$STAGED_ROOT_FILES" | while IFS= read -r file; do
+      if [ -n "$file" ] && ! npx prettier --check "$file" 2>/dev/null; then
+        PRETTIER_CHECK_FAILED=true
+      fi
+    done
+    if [ "$PRETTIER_CHECK_FAILED" = "true" ]; then
       echo "" >&2
       echo "❌ Prettier formatting check failed for root files!" >&2
       echo "Please run: npx prettier --write '*.{js,json,yaml,yml,md}'" >&2
@@ -204,7 +227,14 @@ if [ -n "$STAGED_PYTHON_FILES" ]; then
         ISORT_FAILED=false
         if command -v /opt/miniforge/envs/casa6/bin/isort >/dev/null 2>&1; then
             echo "Auto-sorting imports with isort..." >&2
-            if ! echo "$FORMATTABLE_PYTHON_FILES" | xargs -r /opt/miniforge/envs/casa6/bin/isort 2>/dev/null; then
+            # Use while loop to safely handle filenames with spaces
+            ISORT_TEMP_FAILED=false
+            echo "$FORMATTABLE_PYTHON_FILES" | while IFS= read -r file; do
+                if [ -n "$file" ] && ! /opt/miniforge/envs/casa6/bin/isort "$file" 2>/dev/null; then
+                    ISORT_TEMP_FAILED=true
+                fi
+            done
+            if [ "$ISORT_TEMP_FAILED" = "true" ]; then
                 echo "Warning: isort encountered errors (continuing anyway)" >&2
                 ISORT_FAILED=true
             fi
@@ -217,7 +247,14 @@ if [ -n "$STAGED_PYTHON_FILES" ]; then
         BLACK_FAILED=false
         if command -v /opt/miniforge/envs/casa6/bin/black >/dev/null 2>&1; then
             echo "Auto-formatting Python files with Black..." >&2
-            if ! echo "$FORMATTABLE_PYTHON_FILES" | xargs -r /opt/miniforge/envs/casa6/bin/black 2>/dev/null; then
+            # Use while loop to safely handle filenames with spaces
+            BLACK_TEMP_FAILED=false
+            echo "$FORMATTABLE_PYTHON_FILES" | while IFS= read -r file; do
+                if [ -n "$file" ] && ! /opt/miniforge/envs/casa6/bin/black "$file" 2>/dev/null; then
+                    BLACK_TEMP_FAILED=true
+                fi
+            done
+            if [ "$BLACK_TEMP_FAILED" = "true" ]; then
                 echo "Warning: black encountered errors (continuing anyway)" >&2
                 BLACK_FAILED=true
             fi
@@ -229,7 +266,10 @@ if [ -n "$STAGED_PYTHON_FILES" ]; then
         # Only re-stage if formatting succeeded (at least partially)
         if [ "$ISORT_FAILED" = "false" ] || [ "$BLACK_FAILED" = "false" ]; then
             # Re-stage formatted files so changes are included in commit
-            echo "$FORMATTABLE_PYTHON_FILES" | xargs -r git add 2>/dev/null || true
+            # Use while loop to safely handle filenames with spaces
+            echo "$FORMATTABLE_PYTHON_FILES" | while IFS= read -r file; do
+                [ -n "$file" ] && git add "$file" 2>/dev/null || true
+            done
         fi
         
     fi

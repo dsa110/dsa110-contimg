@@ -4,11 +4,7 @@ These tests verify all code paths and edge cases are handled correctly.
 """
 
 import os
-import shutil
-import tempfile
-from unittest.mock import MagicMock, Mock, patch
 
-import numpy as np
 import pytest
 
 
@@ -32,9 +28,7 @@ class TestUVWVerificationCompleteness:
         new_phase = (128.7287, 55.5725)
 
         # Should return (bool, Optional[str]) - error_msg will be None or string
-        is_valid, error_msg = verify_uvw_transformation(
-            ms_before, ms_after, old_phase, new_phase
-        )
+        is_valid, error_msg = verify_uvw_transformation(ms_before, ms_after, old_phase, new_phase)
 
         # error_msg is always defined (either None or string)
         assert error_msg is None or isinstance(error_msg, str)
@@ -84,7 +78,7 @@ class TestUVWVerificationCompleteness:
             phaseshift_succeeded = True
             if phaseshift_succeeded:
                 # Simulate verification
-                is_valid, error_msg = True, None
+                is_valid, _error_msg = True, None
                 if is_valid:
                     uv_transformation_valid = True
                     paths["rephasing_needed_verification_succeeds"] = True
@@ -107,7 +101,7 @@ class TestUVWVerificationCompleteness:
         try:
             phaseshift_succeeded = True
             if phaseshift_succeeded:
-                is_valid, error_msg = False, "UVW transformation failed"
+                is_valid, _error_msg = False, "UVW transformation failed"
                 if not is_valid:
                     uv_transformation_valid = False
                     paths["rephasing_needed_verification_fails"] = True
@@ -120,9 +114,7 @@ class TestUVWVerificationCompleteness:
             paths["rephasing_not_needed"] = True
 
         # All paths should be covered
-        assert all(
-            paths.values()
-        ), f"Missing code paths: {[k for k, v in paths.items() if not v]}"
+        assert all(paths.values()), f"Missing code paths: {[k for k, v in paths.items() if not v]}"
 
 
 class TestBandpassSolutionQuality:
@@ -150,9 +142,7 @@ class TestBandpassSolutionQuality:
         # 3. Verify SNR is > threshold (e.g., > 3.0)
 
         # For now, we document what should be tested
-        pytest.skip(
-            "Requires full calibration workflow - see test_calibration_workflow.py"
-        )
+        pytest.skip("Requires full calibration workflow - see test_calibration_workflow.py")
 
     def test_model_data_phase_scatter_with_correct_uvw(self):
         """Test that MODEL_DATA has low phase scatter when UVW is correct."""
@@ -235,9 +225,6 @@ class TestUVWVerificationLogic:
         from pathlib import Path
 
         sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
-        from dsa110_contimg.calibration.uvw_verification import (
-            verify_uvw_transformation,
-        )
 
         # Mock MS paths (will fail to read, but tests logic)
         # In real test, would use actual MS files

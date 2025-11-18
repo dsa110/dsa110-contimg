@@ -7,10 +7,8 @@ similar to RadioPadre's executor functionality.
 
 import os
 from concurrent.futures import ThreadPoolExecutor
-from typing import Optional
 
 from .settings_manager import settings
-
 
 _executor = None
 _executor_ncpu_settings = None

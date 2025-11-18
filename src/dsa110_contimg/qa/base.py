@@ -4,7 +4,6 @@ Base classes and protocols for QA validation system.
 Provides abstraction layer for consistent validation patterns.
 """
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Protocol, runtime_checkable
 

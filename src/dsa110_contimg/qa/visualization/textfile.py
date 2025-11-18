@@ -5,7 +5,6 @@ Provides TextFile class for viewing text files with line-by-line display,
 grep, head/tail, and pattern extraction, similar to RadioPadre's TextFile.
 """
 
-import io
 import os
 import re
 from typing import List, Optional, Tuple, Union
@@ -23,7 +22,7 @@ except ImportError:
 
 
 from .file import FileBase
-from .render import render_error, render_preamble, render_table, rich_string, htmlize
+from .render import htmlize, render_preamble
 
 
 class NumberedLineList:
@@ -35,9 +34,7 @@ class NumberedLineList:
 
     MAX_SIZE = 1_000_000  # 1MB limit for full file loading
 
-    def __init__(
-        self, lines: Optional[List[Tuple[int, str]]] = None, title: Optional[str] = None
-    ):
+    def __init__(self, lines: Optional[List[Tuple[int, str]]] = None, title: Optional[str] = None):
         """
         Initialize a numbered line list.
 
@@ -149,10 +146,7 @@ class NumberedLineList:
                 matched_groups = match.groups()
                 if isinstance(groups, slice):
                     results.append(
-                        [
-                            matched_groups[i]
-                            for i in range(*groups.indices(len(matched_groups)))
-                        ]
+                        [matched_groups[i] for i in range(*groups.indices(len(matched_groups)))]
                     )
                 else:
                     results.append([matched_groups[i] for i in groups])
@@ -202,14 +196,9 @@ class TextFile(FileBase, NumberedLineList):
                     self.lines = (
                         [(i + 1, line) for i, line in enumerate(head_lines)]
                         + [(tail_start_num, "...\n")]
-                        + [
-                            (tail_start_num + i + 1, line)
-                            for i, line in enumerate(tail_lines)
-                        ]
+                        + [(tail_start_num + i + 1, line) for i, line in enumerate(tail_lines)]
                     )
-                    self.description = (
-                        f"large text ({self.size}), modified {self.mtime_str}"
-                    )
+                    self.description = f"large text ({self.size}), modified {self.mtime_str}"
                     return
 
             self.description = f"{len(self.lines)} lines, modified {self.mtime_str}"

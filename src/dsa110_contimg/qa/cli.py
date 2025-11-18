@@ -13,7 +13,6 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Optional
 
 from dsa110_contimg.utils.cli_helpers import (
     add_common_logging_args,
@@ -150,7 +149,7 @@ def cmd_image(args: argparse.Namespace) -> int:
             logger.info(
                 f"  Matched sources: {result.n_matched}\n"
                 f"  Flux ratio: {result.mean_flux_ratio:.3f}±{result.rms_flux_ratio:.3f}\n"
-                f"  Scale error: {result.flux_scale_error*100:.1f}%"
+                f"  Scale error: {result.flux_scale_error * 100:.1f}%"
             )
 
             if result.has_issues:

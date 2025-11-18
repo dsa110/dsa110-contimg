@@ -11,12 +11,9 @@ This script:
 """
 
 import argparse
-import os
-import signal
 import subprocess
 import sys
 import threading
-import time
 from pathlib import Path
 from queue import Empty, Queue
 
@@ -172,9 +169,9 @@ class WarningMonitor:
                 if self._is_warning(line):
                     self.warning_detected = True
                     self.warning_line = line
-                    print(f"\n{'='*80}")
+                    print(f"\n{'=' * 80}")
                     print(f"WARNING DETECTED: {line}")
-                    print(f"{'='*80}\n")
+                    print(f"{'=' * 80}\n")
                     break
 
             except Empty:
@@ -244,7 +241,7 @@ def main():
 
     print(f"Running: {' '.join(cmd)}")
     print(f"Log file: {args.log_file}")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     # Start process
     process = subprocess.Popen(
@@ -261,18 +258,18 @@ def main():
     exit_code = monitor.monitor_process(process)
 
     if monitor.warning_detected:
-        print(f"\n{'='*80}")
+        print(f"\n{'=' * 80}")
         print("PROCESS STOPPED DUE TO WARNING DETECTION")
         print(f"Warning line: {monitor.warning_line}")
         print(f"Full log: {args.log_file}")
-        print(f"{'='*80}\n")
+        print(f"{'=' * 80}\n")
         return 1
 
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("PROCESS COMPLETED SUCCESSFULLY")
     print(f"Exit code: {exit_code}")
     print(f"Full log: {args.log_file}")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     return exit_code
 

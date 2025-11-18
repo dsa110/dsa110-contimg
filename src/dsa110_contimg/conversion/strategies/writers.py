@@ -8,7 +8,6 @@ Production use: Always use 'parallel-subband' (or 'direct-subband' alias).
 Testing use: 'pyuvdata' is available for testing scenarios with ≤2 subbands.
 """
 
-from .base import MSWriter
 from .direct_subband import DirectSubbandWriter
 from .pyuvdata_monolithic import PyuvdataMonolithicWriter
 

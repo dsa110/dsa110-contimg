@@ -5,6 +5,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import unusedImports from "eslint-plugin-unused-imports";
 import tseslint from "typescript-eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
+import requireReactForRouterHooks from "./scripts/eslint-rules/require-react-for-router-hooks.js";
 
 export default defineConfig([
   globalIgnores(["dist"]),
@@ -22,6 +23,12 @@ export default defineConfig([
     },
     plugins: {
       "unused-imports": unusedImports,
+      "require-react-for-router-hooks": {
+        rules: {
+          "require-react-for-router-hooks":
+            requireReactForRouterHooks.default || requireReactForRouterHooks,
+        },
+      },
     },
     rules: {
       // Prevent console.log usage - use logger instead
@@ -36,6 +43,8 @@ export default defineConfig([
       // Turn off base rule to avoid conflicts
       "@typescript-eslint/no-unused-vars": "off",
       "no-unused-vars": "off",
+      // Require React import when using react-router-dom hooks (React 19 requirement)
+      "require-react-for-router-hooks/require-react-for-router-hooks": "error",
     },
   },
   // Note: ESLint import plugin doesn't fully support flat config (ESLint 9) yet

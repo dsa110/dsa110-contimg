@@ -197,7 +197,7 @@ def _calculate_manual_model_data(
             field_mask = np.ones(nrows, dtype=bool)
 
         nselected = np.sum(field_mask)
-        logger.debug(f"Processing {nselected:,} rows ({nselected/nrows*100:.1f}% of total)")
+        logger.debug(f"Processing {nselected:,} rows ({nselected / nrows * 100:.1f}% of total)")
 
         # Read DATA shape to create MODEL_DATA with matching shape
         data_sample = main_tb.getcell("DATA", 0)
@@ -302,7 +302,7 @@ def _calculate_manual_model_data(
 
         calc_time = time.time() - start_time
         logger.info(
-            f"MODEL_DATA calculation completed in {calc_time:.2f}s ({nselected:,} rows, {calc_time/nselected*1e6:.2f} μs/row)"
+            f"MODEL_DATA calculation completed in {calc_time:.2f}s ({nselected:,} rows, {calc_time / nselected * 1e6:.2f} μs/row)"
         )
 
         # Write MODEL_DATA column

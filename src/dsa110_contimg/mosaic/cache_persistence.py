@@ -8,9 +8,9 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Optional
 
-from .validation import TileQualityMetrics, asdict
+from .validation import TileQualityMetrics
 
 logger = logging.getLogger(__name__)
 
@@ -81,9 +81,7 @@ def validate_tiles_consistency_cached(
                     pb_response_min=cached_metrics.get("pb_response_min"),
                     pb_response_max=cached_metrics.get("pb_response_max"),
                     ms_path=cached_metrics.get("ms_path"),
-                    calibration_applied=cached_metrics.get(
-                        "calibration_applied", False
-                    ),
+                    calibration_applied=cached_metrics.get("calibration_applied", False),
                     ra_center=cached_metrics.get("ra_center"),
                     dec_center=cached_metrics.get("dec_center"),
                     issues=cached_metrics.get("issues", []),
@@ -99,9 +97,7 @@ def validate_tiles_consistency_cached(
     # Recompute for tiles not in cache
     if tiles_to_recompute:
         logger.info(f"Recomputing validation for {len(tiles_to_recompute)} tiles")
-        _, _, recomputed_metrics = validate_tiles_consistency(
-            tiles_to_recompute, products_db
-        )
+        _, _, recomputed_metrics = validate_tiles_consistency(tiles_to_recompute, products_db)
 
         # Update cache and metrics dict
         for tile in tiles_to_recompute:

@@ -15,10 +15,9 @@ without requiring actual execution.
 from __future__ import annotations
 
 import sqlite3
-import tempfile
 import time
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 

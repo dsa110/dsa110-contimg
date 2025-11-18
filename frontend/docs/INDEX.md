@@ -75,17 +75,21 @@ started
 
 **Purpose:** Debugging guides and issue resolution
 
-| Document                                                                           | Date       | Description                                          | Status      |
-| ---------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------- | ----------- |
-| [DEBUGGING.md](./DEBUGGING.md)                                                     | 2025-11-14 | Frontend debugging guide - quick strategies          | ✅ Current  |
-| [BETTER_DEBUGGING.md](./BETTER_DEBUGGING.md)                                       | 2025-11-14 | Better debugging approach for React state management | ✅ Current  |
-| [ISSUE_CHARACTERIZATION.md](./ISSUE_CHARACTERIZATION.md)                           | 2025-11-14 | Node.js v16 compatibility issue characterization     | ✅ Current  |
-| [NODE_VERSION_REQUIREMENT.md](./NODE_VERSION_REQUIREMENT.md)                       | 2025-11-14 | Node.js version requirement for frontend tests       | ✅ Current  |
-| [NODE_VERSION_SAFEGUARDS.md](./NODE_VERSION_SAFEGUARDS.md)                         | 2025-11-14 | Node.js v16 compatibility prevention safeguards      | ✅ Current  |
-| [analysis/eslint-node-version-issue.md](./analysis/eslint-node-version-issue.md)   | 2025-11-14 | ESLint config Node version compatibility issue       | ✅ Current  |
-| [analysis/lazy-loading-export-issues.md](./analysis/lazy-loading-export-issues.md) | 2025-11-14 | Lazy-loading export pattern issues - root cause      | ✅ Complete |
-| [health-check-fix.md](./health-check-fix.md)                                       | 2025-11-14 | Docker health check fix documentation                | ✅ Complete |
-| [hot-reload-verification.md](./hot-reload-verification.md)                         | 2025-11-14 | Hot reload verification documentation                | ✅ Complete |
+| Document                                                                           | Date       | Description                                          | Status       |
+| ---------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------- | ------------ |
+| [DEBUGGING.md](./DEBUGGING.md)                                                     | 2025-11-14 | Frontend debugging guide - quick strategies          | ✅ Current   |
+| [BETTER_DEBUGGING.md](./BETTER_DEBUGGING.md)                                       | 2025-11-14 | Better debugging approach for React state management | ✅ Current   |
+| [ISSUE_CHARACTERIZATION.md](./ISSUE_CHARACTERIZATION.md)                           | 2025-11-14 | Node.js v16 compatibility issue characterization     | ✅ Current   |
+| [NODE_VERSION_REQUIREMENT.md](./NODE_VERSION_REQUIREMENT.md)                       | 2025-11-14 | Node.js version requirement for frontend tests       | ✅ Current   |
+| [NODE_VERSION_SAFEGUARDS.md](./NODE_VERSION_SAFEGUARDS.md)                         | 2025-11-14 | Node.js v16 compatibility prevention safeguards      | ✅ Current   |
+| [analysis/eslint-node-version-issue.md](./analysis/eslint-node-version-issue.md)   | 2025-11-14 | ESLint config Node version compatibility issue       | ✅ Current   |
+| [analysis/lazy-loading-export-issues.md](./analysis/lazy-loading-export-issues.md) | 2025-11-14 | Lazy-loading export pattern issues - root cause      | ✅ Complete  |
+| [health-check-fix.md](./health-check-fix.md)                                       | 2025-11-14 | Docker health check fix documentation                | ✅ Complete  |
+| [hot-reload-verification.md](./hot-reload-verification.md)                         | 2025-11-14 | Hot reload verification documentation                | ✅ Complete  |
+| [PLOTLY_FIX.md](./PLOTLY_FIX.md)                                                   | 2025-11-17 | Plotly module export fix - Plotly.purge error        | ✅ Fixed     |
+| [PLOTLY_COMMONJS_FIX.md](./PLOTLY_COMMONJS_FIX.md)                                 | 2025-11-17 | Plotly CommonJS transformation fix - require error   | ✅ Fixed     |
+| [PLOTLY_FIXES_SUMMARY.md](./PLOTLY_FIXES_SUMMARY.md)                               | 2025-11-17 | Complete Plotly integration fix summary              | ✅ Reference |
+| [POINTING_SKY_MAP_FIX.md](./POINTING_SKY_MAP_FIX.md)                               | 2025-11-17 | Mollweide projection alignment fix                   | ✅ Reference |
 
 ---
 

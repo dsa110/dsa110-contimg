@@ -23,8 +23,10 @@ def test_auto_build_integration():
     print("=" * 60)
 
     from dsa110_contimg.catalog.builders import (
-      CATALOG_COVERAGE_LIMITS, auto_build_missing_catalog_databases,
-      check_missing_catalog_databases)
+        CATALOG_COVERAGE_LIMITS,
+        auto_build_missing_catalog_databases,
+        check_missing_catalog_databases,
+    )
 
     # Test with declination within coverage
     dec_deg = 54.6

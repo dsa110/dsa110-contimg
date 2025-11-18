@@ -18,17 +18,14 @@ os.chdir(script_dir)
 import warnings
 from pathlib import Path
 
-import astropy.units as u
 import matplotlib.pyplot as plt
 
 # ======================================================================
 # Cell 1
 # ======================================================================
 import numpy as np
-from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.wcs import WCS
-from matplotlib.patches import Circle
 
 warnings.filterwarnings("ignore")
 
@@ -43,7 +40,7 @@ except NameError:
     # Notebook is in notebooks/, module is in src/dsa110_contimg/
     sys.path.append(str(Path.cwd().parent / "src"))
 
-from dsa110_contimg.photometry.forced import ForcedPhotometryResult, measure_forced_peak
+from dsa110_contimg.photometry.forced import measure_forced_peak
 
 
 # ======================================================================
@@ -131,7 +128,6 @@ def create_synthetic_fits(
 print("Function defined: create_synthetic_fits")
 
 if __name__ == "__main__":
-
     # ======================================================================
     # Cell 5
     # ======================================================================
@@ -200,10 +196,10 @@ if __name__ == "__main__":
 
     print(f"\nCreated synthetic FITS image: {fits_path}")
     print(f"Field center: RA={center_ra:.5f}°, Dec={center_dec:.5f}°")
-    print(f"Image size: 512x512 pixels")
-    print(f"Pixel scale: 0.001 deg/pixel (~3.6 arcsec/pixel)")
-    print(f"Beam FWHM: 3 pixels")
-    print(f"RMS noise: 0.001 Jy/beam")
+    print("Image size: 512x512 pixels")
+    print("Pixel scale: 0.001 deg/pixel (~3.6 arcsec/pixel)")
+    print("Beam FWHM: 3 pixels")
+    print("RMS noise: 0.001 Jy/beam")
     print(f"\nNVSS sources in field ({len(test_sources)} total):")
     for src in test_sources[:10]:  # Show top 10
         print(
@@ -277,14 +273,14 @@ if __name__ == "__main__":
     # Perform forced photometry on each source
     results = []
 
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     print("Forced Photometry Results:")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     print(
         f"{'Source':<20s} {'Expected':>10s} {'Measured':>10s} {'Error':>10s} "
         f"{'SNR':>8s} {'Recovered':>10s}"
     )
-    print(f"{'-'*80}")
+    print(f"{'-' * 80}")
 
     for src in test_sources:
         result = measure_forced_peak(
@@ -336,17 +332,17 @@ if __name__ == "__main__":
         reference_source = results[reference_idx]["source"]
         reference_flux = reference_result["result"].peak_jyb
 
-        print(f"{'='*80}")
+        print(f"{'=' * 80}")
         print("Relative Photometry Results (normalized to brightest source):")
-        print(f"{'='*80}")
+        print(f"{'=' * 80}")
         print(f"Reference source: {reference_source['name']}")
         print(f"Reference flux: {reference_flux:.4f} Jy/beam (arbitrary units)")
-        print(f"{'='*80}")
+        print(f"{'=' * 80}")
         print(
             f"{'Source':<20s} {'Measured':>12s} {'Relative':>12s} {'Expected':>12s} {'Ratio':>10s}"
         )
         print(f"{'':20s} {'Flux':>12s} {'Flux':>12s} {'Ratio':>12s} {'Error':>10s}")
-        print(f"{'-'*80}")
+        print(f"{'-' * 80}")
 
         relative_results = []
         for r in results:
@@ -378,7 +374,7 @@ if __name__ == "__main__":
 
             print(
                 f"{src['name']:<20s} {res.peak_jyb:12.6f} {relative_flux:12.6f} "
-                f"{expected_relative:12.6f} {ratio_error*100:9.2f}%"
+                f"{expected_relative:12.6f} {ratio_error * 100:9.2f}%"
             )
 
         # Summary statistics
@@ -386,10 +382,10 @@ if __name__ == "__main__":
         if ratio_errors:
             mean_error = np.mean(ratio_errors)
             median_error = np.median(ratio_errors)
-            print(f"\n{'='*80}")
+            print(f"\n{'=' * 80}")
             print("Relative Photometry Summary:")
-            print(f"  Mean ratio error: {mean_error*100:.2f}%")
-            print(f"  Median ratio error: {median_error*100:.2f}%")
+            print(f"  Mean ratio error: {mean_error * 100:.2f}%")
+            print(f"  Median ratio error: {median_error * 100:.2f}%")
             print(
                 f"  Sources with <5% error: {sum(1 for e in ratio_errors if e < 0.05)}/{len(ratio_errors)}"
             )
@@ -557,10 +553,10 @@ if __name__ == "__main__":
 
             plt.show()
 
-            print(f"\nKey Insight: Fainter sources (lower relative flux) and lower SNR sources")
-            print(f"show larger ratio errors, as expected. Relative photometry works best")
-            print(f"for bright sources with high SNR, but can still achieve <10% precision")
-            print(f"even for sources 100-1000x fainter than the reference.")
+            print("\nKey Insight: Fainter sources (lower relative flux) and lower SNR sources")
+            print("show larger ratio errors, as expected. Relative photometry works best")
+            print("for bright sources with high SNR, but can still achieve <10% precision")
+            print("even for sources 100-1000x fainter than the reference.")
 
     # ======================================================================
     # Cell 15
@@ -569,9 +565,9 @@ if __name__ == "__main__":
     n_recovered = sum(1 for r in results if r["recovered"])
     n_total = len(results)
 
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("Summary:")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     print(f"Sources recovered: {n_recovered}/{n_total}")
 
     # Calculate flux ratio statistics
@@ -587,7 +583,7 @@ if __name__ == "__main__":
         mean_ratio = np.mean(flux_ratios)
         std_ratio = np.std(flux_ratios)
         print(f"Mean flux ratio (measured/expected): {mean_ratio:.4f} ± {std_ratio:.4f}")
-        print(f"Expected: 1.0000")
+        print("Expected: 1.0000")
 
         ratio_ok = abs(mean_ratio - 1.0) < 0.1
         print(f"Flux scale accuracy: {'✓ PASS' if ratio_ok else '✗ FAIL'}")
@@ -609,7 +605,14 @@ if __name__ == "__main__":
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
     # Plot 1: Measured vs Expected
-    ax1.errorbar(expected_fluxes, measured_fluxes, yerr=flux_errors, fmt="o", capsize=5, capthick=2)
+    ax1.errorbar(
+        expected_fluxes,
+        measured_fluxes,
+        yerr=flux_errors,
+        fmt="o",
+        capsize=5,
+        capthick=2,
+    )
     ax1.plot(
         [0, max(expected_fluxes)],
         [0, max(expected_fluxes)],
@@ -650,9 +653,9 @@ if __name__ == "__main__":
     # Cell 19
     # ======================================================================
     # Print detailed results for each source
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     print("Detailed Results:")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     for r in results:
         src = r["source"]
         res = r["result"]

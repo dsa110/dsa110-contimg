@@ -10,7 +10,6 @@ import astropy.units as u
 import h5py
 import numpy as np
 from astropy.time import Time
-import astropy.units as u
 
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
@@ -154,8 +153,7 @@ def load_pointing(path: str | Path, field_id: Optional[int] = None) -> Dict[str,
                 if fid not in [f["field_id"] for f in fields]:
                     available = [f["field_id"] for f in fields]
                     raise ValueError(
-                        f"Field {fid} not present in MS {path}. "
-                        f"Available fields: {available}"
+                        f"Field {fid} not present in MS {path}. " f"Available fields: {available}"
                     )
 
             info["selected_field_id"] = int(fid)
@@ -179,9 +177,7 @@ def load_pointing(path: str | Path, field_id: Optional[int] = None) -> Dict[str,
                 if header is None:
                     raise ValueError("No Header group found in UVH5 file")
 
-                time_arr = (
-                    np.asarray(header["time_array"]) if "time_array" in header else None
-                )
+                time_arr = np.asarray(header["time_array"]) if "time_array" in header else None
                 info["mid_time"] = _time_from_seconds(time_arr)
 
                 dec_val = None
@@ -199,15 +195,11 @@ def load_pointing(path: str | Path, field_id: Optional[int] = None) -> Dict[str,
                     logger.warning("No phase_center_dec found in UVH5 extra_keywords")
 
                 if info["mid_time"] is not None and ha_val is not None:
-                    lst = info["mid_time"].sidereal_time(
-                        "apparent", longitude=DSA110_LOCATION.lon
-                    )
+                    lst = info["mid_time"].sidereal_time("apparent", longitude=DSA110_LOCATION.lon)
                     ra = (lst - ha_val * u.rad).wrap_at(360 * u.deg)
                     info["ra_deg"] = float(ra.deg)
                 else:
-                    logger.warning(
-                        "Cannot compute RA: missing mid_time or " "ha_phase_center"
-                    )
+                    logger.warning("Cannot compute RA: missing mid_time or ha_phase_center")
 
             return info
 
@@ -215,6 +207,4 @@ def load_pointing(path: str | Path, field_id: Optional[int] = None) -> Dict[str,
             logger.error("Failed to read UVH5 %s: %s", path, e)
             raise RuntimeError(f"Error reading UVH5 {path}: {e}") from e
 
-    raise ValueError(
-        f"Unsupported file format: {path}. " f"Expected .ms directory or .hdf5 file"
-    )
+    raise ValueError(f"Unsupported file format: {path}. Expected .ms directory or .hdf5 file")

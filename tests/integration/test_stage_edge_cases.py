@@ -6,17 +6,17 @@ Tests edge cases, error handling, and failure modes across stage interactions.
 
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
 import pytest
 
-from dsa110_contimg.pipeline.config import PipelineConfig, PathsConfig
+from dsa110_contimg.pipeline.config import PathsConfig, PipelineConfig
 from dsa110_contimg.pipeline.context import PipelineContext
 from dsa110_contimg.pipeline.orchestrator import PipelineOrchestrator, StageDefinition
 from dsa110_contimg.pipeline.stages_impl import (
-    ConversionStage,
     CalibrationSolveStage,
     CalibrationStage,
+    ConversionStage,
     ImagingStage,
     ValidationStage,
 )
@@ -137,7 +137,6 @@ class TestStageErrorRecovery:
         stage.cleanup = MagicMock()
 
         # Mock execute to raise exception
-        original_execute = stage.execute
 
         def failing_execute(ctx):
             raise Exception("Execution failed")
@@ -155,7 +154,7 @@ class TestStageErrorRecovery:
 
     def test_partial_outputs_on_failure(self, config):
         """Test that partial outputs are handled correctly on failure."""
-        context = PipelineContext(config=config, outputs={"ms_path": "/mock/ms"})
+        PipelineContext(config=config, outputs={"ms_path": "/mock/ms"})
 
         # Stage that might produce partial outputs
         stage = ImagingStage(config)
@@ -247,7 +246,8 @@ class TestStageOutputValidation:
     def test_validate_outputs_with_invalid_outputs(self, config):
         """Test validate_outputs with invalid output values."""
         context = PipelineContext(
-            config=config, outputs={"ms_path": ""}  # Empty string
+            config=config,
+            outputs={"ms_path": ""},  # Empty string
         )
         stage = ConversionStage(config)
 
@@ -304,7 +304,7 @@ class TestStageConfigurationEdgeCases:
                 output_dir=Path("/tmp/output"),
             )
         )
-        context = PipelineContext(config=minimal_config)
+        PipelineContext(config=minimal_config)
         stage = ConversionStage(minimal_config)
 
         # Should handle minimal config

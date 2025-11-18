@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Run gaincal with solint=inf (default, no time interval)."""
+
 import os
 import sys
 
-from casatasks import gaincal, listobs
+from casatasks import gaincal
 
 ms_path = "/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased_concat_spws_fields.ms"
 
@@ -46,14 +47,14 @@ try:
 
     # Check if table was created
     if os.path.exists(caltable):
-        print(f"\n✓ SUCCESS: Calibration table created")
+        print("\n✓ SUCCESS: Calibration table created")
         print(f"  Location: {caltable}")
         # Just check if directory exists and has files
         if os.path.isdir(caltable):
             files = os.listdir(caltable)
             print(f"  Table directory contains {len(files)} items")
     else:
-        print(f"\n✗ ERROR: Table was not created")
+        print("\n✗ ERROR: Table was not created")
 
 except Exception as e:
     print(f"\n✗ ERROR: {e}")

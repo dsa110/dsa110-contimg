@@ -2,7 +2,7 @@
  * Source Monitoring Page
  * AG Grid table for per-source flux timeseries monitoring with advanced filtering
  */
-import { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import {
   Container,
   Typography,

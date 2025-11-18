@@ -24,7 +24,6 @@ if os.environ.get("DISPLAY"):
     os.environ.pop("DISPLAY", None)
 
 from dsa110_contimg.utils.cli_helpers import (
-    configure_logging_from_args,
     setup_casa_environment,
 )
 from dsa110_contimg.utils.tempdirs import prepare_temp_environment
@@ -48,11 +47,9 @@ print("Logging configured", flush=True)
 from dsa110_contimg.calibration.applycal import apply_to_target
 from dsa110_contimg.calibration.calibration import (
     solve_bandpass,
-    solve_delay,
     solve_gains,
 )
 from dsa110_contimg.calibration.flagging import flag_rfi, flag_zeros, reset_flags
-from dsa110_contimg.calibration.selection import select_bandpass_fields
 
 # Import pipeline modules
 from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
@@ -198,14 +195,12 @@ def test_pipeline_stages(ms_path, output_dir, skip_calibration=False):
             cal_field = "0"  # Use first field
             refant = "103"  # Default reference antenna
 
-            LOG.info(
-                f"Attempting calibration on field {cal_field} with refant {refant}"
-            )
+            LOG.info(f"Attempting calibration on field {cal_field} with refant {refant}")
             LOG.info("Using fast mode (phase-only gains, uvrange cut)")
 
             # Note: K-calibration skipped by default for DSA-110
             # BP calibration with fast mode
-            bp_table = str(output_dir / "test_1min.bpcal")
+            str(output_dir / "test_1min.bpcal")
             LOG.info("Solving bandpass...")
             bp_tabs = solve_bandpass(
                 str(ms_path),

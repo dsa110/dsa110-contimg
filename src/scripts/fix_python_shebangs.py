@@ -1,7 +1,6 @@
 #!/opt/miniforge/envs/casa6/bin/python
 """Script to fix generic python3 shebangs to use CASA6 Python explicitly."""
 
-import os
 import sys
 from pathlib import Path
 

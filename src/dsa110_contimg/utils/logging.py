@@ -37,7 +37,6 @@ class DsaSyslogger:
         logger_name=__name__,
         log_stream=None,
     ):
-
         self.proj_name = proj_name
         self.subsystem_name = subsystem_name
         self._log_level = log_level
@@ -56,8 +55,7 @@ class DsaSyslogger:
 
             # Create formatter
             formatter = logging.Formatter(
-                f"%(asctime)s - {proj_name}/{subsystem_name} - "
-                "%(levelname)s - %(message)s"
+                f"%(asctime)s - {proj_name}/{subsystem_name} - " "%(levelname)s - %(message)s"
             )
             handler.setFormatter(formatter)
             self.logger.addHandler(handler)
@@ -107,9 +105,7 @@ def exception_logger(logger, task, exception, throw):
     throw : bool
         Whether to re-raise the exception
     """
-    error_msg = (
-        f"{task} failed with exception: {type(exception).__name__}: {str(exception)}"
-    )
+    error_msg = f"{task} failed with exception: {type(exception).__name__}: {str(exception)}"
 
     if hasattr(logger, "error"):
         logger.error(error_msg)

@@ -4,14 +4,12 @@ Tests the complete workflow with real database operations and mocked FITS files.
 """
 
 import sqlite3
-import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest
 from astropy.io import fits
-from astropy.wcs import WCS
 
 from dsa110_contimg.photometry.manager import (
     PhotometryConfig,

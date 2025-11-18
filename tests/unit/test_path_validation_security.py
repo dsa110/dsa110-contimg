@@ -4,8 +4,6 @@ Security tests for path validation utilities.
 Tests that path validation correctly prevents path traversal attacks.
 """
 
-from pathlib import Path
-
 import pytest
 
 from dsa110_contimg.utils.path_validation import (

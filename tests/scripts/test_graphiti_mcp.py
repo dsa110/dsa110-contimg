@@ -6,7 +6,7 @@ import sys
 try:
     from mcp.client.session import ClientSession
     from mcp.client.stdio import StdioServerParameters, stdio_client
-except Exception as e:
+except Exception:
     print(
         "Missing mcp client library. Run with: uv run --with mcp scripts/test_graphiti_mcp.py",
         file=sys.stderr,
@@ -68,31 +68,17 @@ async def main() -> int:
             print(tidy(tools.model_dump() if hasattr(tools, "model_dump") else tools))
 
             print("\nResources:")
-            print(
-                tidy(
-                    resources.model_dump()
-                    if hasattr(resources, "model_dump")
-                    else resources
-                )
-            )
+            print(tidy(resources.model_dump() if hasattr(resources, "model_dump") else resources))
 
             print("\nPrompts:")
-            print(
-                tidy(
-                    prompts.model_dump() if hasattr(prompts, "model_dump") else prompts
-                )
-            )
+            print(tidy(prompts.model_dump() if hasattr(prompts, "model_dump") else prompts))
 
             # Try reading the status resource if available
             try:
                 status_uri = "http://graphiti/status"
                 status = await session.read_resource(status_uri)
                 print("\nStatus resource:")
-                print(
-                    tidy(
-                        status.model_dump() if hasattr(status, "model_dump") else status
-                    )
-                )
+                print(tidy(status.model_dump() if hasattr(status, "model_dump") else status))
             except Exception as e:
                 print(f"Failed to read status resource: {e}", file=sys.stderr)
 
@@ -121,9 +107,7 @@ async def main() -> int:
                     {"query": "calibration pipeline", "max_nodes": 5},
                 )
                 print("\nsearch_memory_nodes:")
-                print(
-                    tidy(nodes.model_dump() if hasattr(nodes, "model_dump") else nodes)
-                )
+                print(tidy(nodes.model_dump() if hasattr(nodes, "model_dump") else nodes))
             except Exception as e:
                 print(f"Failed calling search_memory_nodes: {e}", file=sys.stderr)
 
@@ -133,9 +117,7 @@ async def main() -> int:
                     "search_memory_facts", {"query": "calibration", "max_facts": 5}
                 )
                 print("\nsearch_memory_facts:")
-                print(
-                    tidy(facts.model_dump() if hasattr(facts, "model_dump") else facts)
-                )
+                print(tidy(facts.model_dump() if hasattr(facts, "model_dump") else facts))
             except Exception as e:
                 print(f"Failed calling search_memory_facts: {e}", file=sys.stderr)
 

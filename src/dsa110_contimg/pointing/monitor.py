@@ -19,8 +19,7 @@ from dsa110_contimg.pointing.utils import load_pointing
 
 # Configure logging
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO,
-                    format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
 class PointingMonitorMetrics:
@@ -51,15 +50,13 @@ class PointingMonitorMetrics:
         self.last_processed_time = time.time()
         self.last_error_time = time.time()
         self.last_error_message = error_message
-        self.recent_errors.append(
-            {"time": time.time(), "message": error_message})
+        self.recent_errors.append({"time": time.time(), "message": error_message})
 
     def get_stats(self) -> Dict:
         """Get current statistics."""
         uptime = time.time() - self.start_time
         success_rate = (
-            (self.files_succeeded / self.files_processed *
-             100) if self.files_processed > 0 else 0.0
+            (self.files_succeeded / self.files_processed * 100) if self.files_processed > 0 else 0.0
         )
 
         return {
@@ -93,8 +90,7 @@ class PointingMonitor:
         """Setup signal handlers for graceful shutdown."""
 
         def signal_handler(signum, frame):
-            logger.info(
-                f"Received signal {signum}, shutting down gracefully...")
+            logger.info(f"Received signal {signum}, shutting down gracefully...")
             self.stop()
             sys.exit(0)
 
@@ -192,12 +188,10 @@ class PointingMonitor:
                     count = cursor.fetchone()[0]
 
                     if count > 0:
-                        logger.debug(
-                            f"Skipping already processed file: {file_path}")
+                        logger.debug(f"Skipping already processed file: {file_path}")
                         continue
             except Exception as e:
-                logger.debug(
-                    f"Could not check if file already processed: {file_path}, error: {e}")
+                logger.debug(f"Could not check if file already processed: {file_path}, error: {e}")
 
             # Process the file
             self.log_pointing_from_file(file_path)
@@ -228,12 +222,13 @@ class PointingMonitor:
                 self.metrics.record_success()
 
                 # Trigger auto-calibrator algorithm if HDF5 file
-                if file_path.suffix == '.hdf5' or 'hdf5' in file_path.name.lower():
+                if file_path.suffix == ".hdf5" or "hdf5" in file_path.name.lower():
                     try:
                         from pathlib import Path
 
-                        from dsa110_contimg.pointing.auto_calibrator import \
-                          on_new_hdf5_file
+                        from dsa110_contimg.pointing.auto_calibrator import (
+                            on_new_hdf5_file,
+                        )
 
                         # Products DB is typically in same directory as ingest DB
                         # Default: state/products.sqlite3
@@ -241,7 +236,7 @@ class PointingMonitor:
                         if not products_db_path.exists():
                             # Try alternative location
                             products_db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
-                        
+
                         if products_db_path.exists():
                             on_new_hdf5_file(
                                 file_path=file_path,
@@ -249,8 +244,7 @@ class PointingMonitor:
                                 dec_change_threshold=0.1,
                             )
                     except Exception as e:
-                        logger.warning(
-                            f"Auto-calibrator algorithm failed: {e}", exc_info=True)
+                        logger.warning(f"Auto-calibrator algorithm failed: {e}", exc_info=True)
             else:
                 error_msg = f"Missing required fields in pointing info: {list(info.keys()) if info else 'None'}"
                 logger.warning(error_msg)
@@ -274,8 +268,7 @@ class PointingMonitor:
         is_healthy, issues = self._check_health()
         if not is_healthy:
             logger.warning(f"Health check failed on startup: {issues}")
-            logger.warning(
-                "Continuing anyway, but monitor may not function correctly")
+            logger.warning("Continuing anyway, but monitor may not function correctly")
         else:
             logger.info("Health check passed")
 
@@ -295,8 +288,7 @@ class PointingMonitor:
         self.observer = Observer()
         self.observer.schedule(event_handler, self.watch_dir, recursive=True)
 
-        logger.info(
-            f"Starting to monitor {self.watch_dir} for new observation files...")
+        logger.info(f"Starting to monitor {self.watch_dir} for new observation files...")
         logger.info(f"Status file: {self.status_file}")
         self.running = True
         self.observer.start()
@@ -402,8 +394,7 @@ Examples:
         type=Path,
         help="Directory to watch for new files (e.g., /data/incoming/).",
     )
-    parser.add_argument("products_db", type=Path,
-                        help="Path to the products database.")
+    parser.add_argument("products_db", type=Path, help="Path to the products database.")
     parser.add_argument(
         "--status-file",
         type=Path,

@@ -24,12 +24,10 @@ from dsa110_contimg.api.batch_jobs import create_batch_photometry_job
 from dsa110_contimg.database.data_registry import (
     ensure_data_registry_db,
     link_photometry_to_data,
-    update_photometry_status,
 )
 from dsa110_contimg.database.products import ensure_products_db
 from dsa110_contimg.photometry.forced import ForcedPhotometryResult, measure_many
 from dsa110_contimg.photometry.helpers import (
-    get_field_center_from_fits,
     query_sources_for_fits,
     query_sources_for_mosaic,
 )

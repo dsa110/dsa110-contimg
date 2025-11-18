@@ -6,21 +6,19 @@ Tests the plotting functions and HTML report generation with embedded plots.
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add src to path BEFORE importing dsa110_contimg modules
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 import logging
+
 import numpy as np
+
 from dsa110_contimg.qa.catalog_validation import CatalogValidationResult
 from dsa110_contimg.qa.html_reports import generate_validation_report
 
-
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -50,9 +48,7 @@ def test_validation_plots():
             offset_arcsec = np.random.normal(1.5, 0.8)  # Mean 1.5", RMS 0.8"
             offset_ra_arcsec = np.random.normal(0.5, 0.5)
             offset_dec_arcsec = np.random.normal(1.0, 0.5)
-            detected_ra = catalog_ra + offset_ra_arcsec / (
-                3600.0 * np.cos(np.radians(catalog_dec))
-            )
+            detected_ra = catalog_ra + offset_ra_arcsec / (3600.0 * np.cos(np.radians(catalog_dec)))
             detected_dec = catalog_dec + offset_dec_arcsec / 3600.0
             matched_pairs.append(
                 (detected_ra, detected_dec, catalog_ra, catalog_dec, abs(offset_arcsec))
@@ -116,9 +112,7 @@ def test_validation_plots():
         detected_counts = []
         completeness_per_bin = []
 
-        for i, (catalog_count, bin_center) in enumerate(
-            zip(catalog_counts, bin_centers)
-        ):
+        for i, (catalog_count, bin_center) in enumerate(zip(catalog_counts, bin_centers)):
             completeness = max(0.0, min(1.0, 0.98 - (i * 0.08)))
             detected = int(catalog_count * completeness)
             detected_counts.append(detected)
@@ -158,9 +152,7 @@ def test_validation_plots():
             catalog="nvss",
         )
 
-        logger.info(
-            f"✓ HTML report created: {output_dir / 'test_validation_plots_report.html'}"
-        )
+        logger.info(f"✓ HTML report created: {output_dir / 'test_validation_plots_report.html'}")
         logger.info(f"  Report status: {report.overall_status}")
         logger.info(f"  Report score: {report.score:.1%}")
 

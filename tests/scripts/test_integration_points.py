@@ -7,7 +7,6 @@ This identifies WHERE in the pipeline QA needs to be integrated.
 """
 
 import re
-import sys
 from pathlib import Path
 
 # Test 1: Search for conversion completion points

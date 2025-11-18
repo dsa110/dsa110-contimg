@@ -3,7 +3,6 @@
 Simple test to verify implementations are syntactically correct and work as intended.
 """
 
-import ast
 import importlib.util
 import sys
 from pathlib import Path
@@ -119,9 +118,7 @@ def test_parallel_direct():
         return x * x
 
     # Test without progress bar (to avoid import issues)
-    results = par.process_parallel(
-        [1, 2, 3], square, max_workers=2, show_progress=False
-    )
+    results = par.process_parallel([1, 2, 3], square, max_workers=2, show_progress=False)
     assert results == [1, 4, 9], f"Expected [1,4,9], got {results}"
 
     print("✓ Parallel processing works correctly")

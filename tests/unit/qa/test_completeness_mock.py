@@ -6,21 +6,19 @@ Tests the enhanced completeness analysis logic without requiring catalog databas
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add src to path BEFORE importing dsa110_contimg modules
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 import logging
+
 import numpy as np
-import pandas as pd
+
 from dsa110_contimg.qa.catalog_validation import CatalogValidationResult
 from dsa110_contimg.qa.html_reports import generate_validation_report
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -51,9 +49,7 @@ def test_enhanced_completeness_mock():
         detected_counts = []
         completeness_per_bin = []
 
-        for i, (catalog_count, bin_center) in enumerate(
-            zip(catalog_counts, bin_centers)
-        ):
+        for i, (catalog_count, bin_center) in enumerate(zip(catalog_counts, bin_centers)):
             # Completeness decreases with fainter fluxes
             completeness = max(0.0, min(1.0, 0.98 - (i * 0.08)))
             detected = int(catalog_count * completeness)
@@ -69,9 +65,7 @@ def test_enhanced_completeness_mock():
         # Overall completeness
         total_catalog = sum(catalog_counts)
         total_detected = sum(detected_counts)
-        overall_completeness = (
-            total_detected / total_catalog if total_catalog > 0 else 0.0
-        )
+        overall_completeness = total_detected / total_catalog if total_catalog > 0 else 0.0
 
         logger.info("Creating mock completeness analysis result...")
         result = CatalogValidationResult(
@@ -94,9 +88,9 @@ def test_enhanced_completeness_mock():
         )
 
         logger.info("✓ Mock result created")
-        logger.info(f"  Overall completeness: {result.completeness*100:.1f}%")
+        logger.info(f"  Overall completeness: {result.completeness * 100:.1f}%")
         logger.info(
-            f"  Completeness limit: {result.completeness_limit_jy*1000:.2f} mJy"
+            f"  Completeness limit: {result.completeness_limit_jy * 1000:.2f} mJy"
             if result.completeness_limit_jy
             else "  Completeness limit: N/A"
         )
@@ -116,7 +110,7 @@ def test_enhanced_completeness_mock():
             result.completeness_per_bin,
         ):
             logger.info(
-                f"  {bin_center*1000:8.2f}  |  {catalog_count:7d}  |  {detected_count:9d}  |  {completeness*100:6.1f}%"
+                f"  {bin_center * 1000:8.2f}  |  {catalog_count:7d}  |  {detected_count:9d}  |  {completeness * 100:6.1f}%"
             )
 
         # Generate HTML report
@@ -130,9 +124,7 @@ def test_enhanced_completeness_mock():
             catalog="nvss",
         )
 
-        logger.info(
-            f"✓ HTML report created: {output_dir / 'test_completeness_mock_report.html'}"
-        )
+        logger.info(f"✓ HTML report created: {output_dir / 'test_completeness_mock_report.html'}")
         logger.info(f"  Report status: {report.overall_status}")
         logger.info(f"  Report score: {report.score:.1%}")
 

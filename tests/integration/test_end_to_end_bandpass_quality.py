@@ -57,9 +57,7 @@ class TestEndToEndBandpassQuality:
         # 3. Check MODEL_DATA quality
         # 4. Check bandpass solution quality
 
-        pytest.skip(
-            "Requires running full calibration workflow - see test_calibration_workflow.py"
-        )
+        pytest.skip("Requires running full calibration workflow - see test_calibration_workflow.py")
 
 
 def measure_bandpass_quality(caltable_path: str) -> dict:
@@ -264,9 +262,7 @@ def test_complete_workflow_produces_good_bandpass(ms_path, calibration_output_di
         bp_quality = measure_bandpass_quality(bp_table)
     else:
         bp_quality = {"error": "Bandpass table not found - run calibration first"}
-        pytest.skip(
-            "Bandpass calibration table not found - run calibration workflow first"
-        )
+        pytest.skip("Bandpass calibration table not found - run calibration workflow first")
 
     # Quality thresholds (from scientific standards)
     thresholds = {
@@ -281,7 +277,7 @@ def test_complete_workflow_produces_good_bandpass(ms_path, calibration_output_di
     print("QUALITY METRICS")
     print("=" * 70)
 
-    print(f"\nMODEL_DATA Quality:")
+    print("\nMODEL_DATA Quality:")
     if "error" in model_quality:
         print(f"  ✗ {model_quality['error']}")
         model_quality_ok = False
@@ -289,25 +285,24 @@ def test_complete_workflow_produces_good_bandpass(ms_path, calibration_output_di
         print(f"  Phase scatter: {model_quality['phase_scatter_deg']:.1f}°")
         print(f"  Median amplitude: {model_quality['median_amplitude_jy']:.3f} Jy")
         model_quality_ok = (
-            model_quality["phase_scatter_deg"]
-            < thresholds["model_data_phase_scatter_max"]
+            model_quality["phase_scatter_deg"] < thresholds["model_data_phase_scatter_max"]
         )
         status = "✓" if model_quality_ok else "✗"
         print(
             f"  {status} Phase scatter acceptable (< {thresholds['model_data_phase_scatter_max']}°)"
         )
 
-    print(f"\nUVW Verification Status:")
+    print("\nUVW Verification Status:")
     if "error" in uvw_status:
         print(f"  ✗ {uvw_status['error']}")
     else:
         status = "✓" if uvw_status.get("phase_center_verified", False) else "?"
         print(f"  {status} {uvw_status.get('note', 'Unknown')}")
         print(
-            f"  Phase center: RA={uvw_status.get('phase_center', (0,0))[0]:.6f}°, Dec={uvw_status.get('phase_center', (0,0))[1]:.6f}°"
+            f"  Phase center: RA={uvw_status.get('phase_center', (0, 0))[0]:.6f}°, Dec={uvw_status.get('phase_center', (0, 0))[1]:.6f}°"
         )
 
-    print(f"\nBandpass Solution Quality:")
+    print("\nBandpass Solution Quality:")
     if "error" in bp_quality:
         print(f"  ✗ {bp_quality['error']}")
         bp_quality_ok = False
@@ -347,9 +342,7 @@ def test_complete_workflow_produces_good_bandpass(ms_path, calibration_output_di
             f"  - Bandpass flagging rate: {bp_quality.get('flagging_rate', 'N/A'):.1%} (< 50% required)"
         )
         if bp_quality.get("median_snr"):
-            print(
-                f"  - Bandpass median SNR: {bp_quality['median_snr']:.1f} (>= 3.0 required)"
-            )
+            print(f"  - Bandpass median SNR: {bp_quality['median_snr']:.1f} (>= 3.0 required)")
     else:
         print("✗ WORKFLOW NEEDS IMPROVEMENT")
         print("\nIssues:")
@@ -358,14 +351,9 @@ def test_complete_workflow_produces_good_bandpass(ms_path, calibration_output_di
                 f"  - MODEL_DATA phase scatter too high: {model_quality.get('phase_scatter_deg', 'N/A'):.1f}°"
             )
         if not bp_quality_ok:
-            print(f"  - Bandpass quality issues:")
-            if (
-                bp_quality.get("flagging_rate", 1.0)
-                >= thresholds["bandpass_flagging_rate_max"]
-            ):
-                print(
-                    f"    * Flagging rate too high: {bp_quality['flagging_rate']:.1%}"
-                )
+            print("  - Bandpass quality issues:")
+            if bp_quality.get("flagging_rate", 1.0) >= thresholds["bandpass_flagging_rate_max"]:
+                print(f"    * Flagging rate too high: {bp_quality['flagging_rate']:.1%}")
             if (
                 bp_quality.get("median_snr")
                 and bp_quality["median_snr"] < thresholds["bandpass_median_snr_min"]

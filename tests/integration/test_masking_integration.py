@@ -66,15 +66,11 @@ class TestMaskingIntegration:
             # If NVSS catalog is not available, skip test
             pytest.skip(f"NVSS catalog not available: {e}")
 
-    def test_imaging_stage_with_masking(
-        self, test_config, context_with_repo, temp_work_dir
-    ):
+    def test_imaging_stage_with_masking(self, test_config, context_with_repo, temp_work_dir):
         """Test ImagingStage with masking enabled."""
-        from dsa110_contimg.pipeline.config import ImagingConfig, PathsConfig
-        from dsa110_contimg.pipeline.stages_impl import ImagingStage
-
         # Create config with masking enabled and temp paths
-        from dsa110_contimg.pipeline.config import PipelineConfig
+        from dsa110_contimg.pipeline.config import ImagingConfig, PathsConfig, PipelineConfig
+        from dsa110_contimg.pipeline.stages_impl import ImagingStage
 
         config = PipelineConfig(
             paths=PathsConfig(
@@ -86,11 +82,7 @@ class TestMaskingIntegration:
                 use_nvss_mask=True,
                 mask_radius_arcsec=60.0,
             ),
-            **{
-                k: v
-                for k, v in test_config.__dict__.items()
-                if k != "paths" and k != "imaging"
-            },
+            **{k: v for k, v in test_config.__dict__.items() if k != "paths" and k != "imaging"},
         )
 
         # Create mock MS
@@ -116,9 +108,7 @@ class TestMaskingIntegration:
             ctx.__exit__ = MagicMock(return_value=None)
 
             if "FIELD" in path:
-                ctx.getcol.return_value = np.array(
-                    [[[np.radians(120.0), np.radians(45.0)]]]
-                )
+                ctx.getcol.return_value = np.array([[[np.radians(120.0), np.radians(45.0)]]])
                 ctx.colnames.return_value = ["PHASE_DIR"]
                 ctx.nrows.return_value = 1
             elif "SPECTRAL_WINDOW" in path:
@@ -136,9 +126,9 @@ class TestMaskingIntegration:
                     "UVW",
                 ]
                 ctx.nrows.return_value = 1000
-                ctx.getcol.return_value = np.random.random(
+                ctx.getcol.return_value = np.random.random((1000, 1, 4)) + 1j * np.random.random(
                     (1000, 1, 4)
-                ) + 1j * np.random.random((1000, 1, 4))
+                )
             return ctx
 
         mask_generated = []
@@ -147,11 +137,13 @@ class TestMaskingIntegration:
             mask_generated.append(True)
             return str(temp_work_dir / "test.img.nvss_mask.fits")
 
-        with patch("casacore.tables.table", side_effect=mock_table_factory), patch(
-            "dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None
-        ), patch(
-            "dsa110_contimg.utils.validation.validate_corrected_data_quality",
-            return_value=[],
+        with (
+            patch("casacore.tables.table", side_effect=mock_table_factory),
+            patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
+            patch(
+                "dsa110_contimg.utils.validation.validate_corrected_data_quality",
+                return_value=[],
+            ),
         ):
 
             def mock_image_ms_side_effect(*args, **kwargs):
@@ -163,26 +155,29 @@ class TestMaskingIntegration:
                     Path(primary_image).parent.mkdir(parents=True, exist_ok=True)
                     Path(primary_image).touch()
 
-        with patch("casacore.tables.table", side_effect=mock_table_factory), patch(
-            "dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None
-        ), patch(
-            "dsa110_contimg.utils.validation.validate_corrected_data_quality",
-            return_value=[],
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.image_ms",
-            side_effect=mock_image_ms_side_effect,
-        ) as mock_image_ms, patch(
-            "dsa110_contimg.imaging.nvss_tools.create_nvss_fits_mask",
-            side_effect=mock_create_mask,
+        with (
+            patch("casacore.tables.table", side_effect=mock_table_factory),
+            patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
+            patch(
+                "dsa110_contimg.utils.validation.validate_corrected_data_quality",
+                return_value=[],
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.image_ms",
+                side_effect=mock_image_ms_side_effect,
+            ) as mock_image_ms,
+            patch(
+                "dsa110_contimg.imaging.nvss_tools.create_nvss_fits_mask",
+                side_effect=mock_create_mask,
+            ),
         ):
-
             stage = ImagingStage(config)
             is_valid, error_msg = stage.validate(context)
             assert is_valid, f"Validation failed: {error_msg}"
 
             # Execute stage (will call image_ms internally)
             try:
-                result_context = stage.execute(context)
+                stage.execute(context)
                 # Verify image_ms was called with masking parameters
                 assert mock_image_ms.called
                 call_kwargs = mock_image_ms.call_args[1]
@@ -220,7 +215,6 @@ class TestMaskingIntegration:
 
     def test_mask_generation_failure_handling(self, temp_work_dir):
         """Test that imaging continues when mask generation fails."""
-        from casacore.tables import table
 
         from dsa110_contimg.imaging.cli_imaging import image_ms
 
@@ -235,9 +229,7 @@ class TestMaskingIntegration:
             ctx.__exit__ = MagicMock(return_value=None)
 
             if "FIELD" in path:
-                ctx.getcol.return_value = np.array(
-                    [[[np.radians(120.0), np.radians(45.0)]]]
-                )
+                ctx.getcol.return_value = np.array([[[np.radians(120.0), np.radians(45.0)]]])
                 ctx.colnames.return_value = ["PHASE_DIR"]
                 ctx.nrows.return_value = 1
             elif "SPECTRAL_WINDOW" in path:
@@ -255,33 +247,38 @@ class TestMaskingIntegration:
                     "UVW",
                 ]
                 ctx.nrows.return_value = 1000
-                ctx.getcol.return_value = np.random.random(
+                ctx.getcol.return_value = np.random.random((1000, 1, 4)) + 1j * np.random.random(
                     (1000, 1, 4)
-                ) + 1j * np.random.random((1000, 1, 4))
+                )
             return ctx
 
-        with patch("casacore.tables.table", side_effect=mock_table_factory), patch(
-            "dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.run_wsclean"
-        ) as mock_wsclean, patch(
-            "dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None
-        ), patch(
-            "dsa110_contimg.utils.validation.validate_corrected_data_quality",
-            return_value=[],
-        ), patch(
-            "dsa110_contimg.imaging.nvss_tools.create_nvss_fits_mask",
-            side_effect=RuntimeError("Catalog unavailable"),
+        with (
+            patch("casacore.tables.table", side_effect=mock_table_factory),
+            patch("dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory),
+            patch("dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec",
+                return_value=2.0,
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_utils.detect_datacolumn",
+                return_value="data",
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.detect_datacolumn",
+                return_value="data",
+            ),
+            patch("dsa110_contimg.imaging.cli_imaging.run_wsclean") as mock_wsclean,
+            patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
+            patch(
+                "dsa110_contimg.utils.validation.validate_corrected_data_quality",
+                return_value=[],
+            ),
+            patch(
+                "dsa110_contimg.imaging.nvss_tools.create_nvss_fits_mask",
+                side_effect=RuntimeError("Catalog unavailable"),
+            ),
         ):
-
             # Should not raise exception
             image_ms(
                 ms_path,

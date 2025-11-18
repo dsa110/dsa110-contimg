@@ -16,12 +16,9 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
-import astropy.units as u
 import numpy as np
 import pytest
-from astropy.coordinates import SkyCoord
 from astropy.io import fits
-from astropy.wcs import WCS
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
@@ -94,10 +91,7 @@ class TestCreateNVSSFitsMask:
             mask_data = hdul[0].data
             assert mask_data.shape == (imsize, imsize)
             # FITS may read as big-endian float32 (">f4"); accept any float32
-            assert (
-                np.issubdtype(mask_data.dtype, np.floating)
-                and mask_data.dtype.itemsize == 4
-            )
+            assert np.issubdtype(mask_data.dtype, np.floating) and mask_data.dtype.itemsize == 4
 
             # Verify WCS header
             header = hdul[0].header
@@ -301,28 +295,33 @@ class TestMaskingIntegration:
             mask_generated.append(True)
             return str(temp_work_dir / "test.img.nvss_mask.fits")
 
-        with patch("casacore.tables.table", side_effect=mock_table_factory), patch(
-            "dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.run_wsclean"
-        ) as mock_wsclean, patch(
-            "dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None
-        ), patch(
-            "dsa110_contimg.utils.validation.validate_corrected_data_quality",
-            return_value=[],
-        ), patch(
-            "dsa110_contimg.imaging.nvss_tools.create_nvss_fits_mask",
-            side_effect=mock_create_mask,
+        with (
+            patch("casacore.tables.table", side_effect=mock_table_factory),
+            patch("dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory),
+            patch("dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec",
+                return_value=2.0,
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_utils.detect_datacolumn",
+                return_value="data",
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.detect_datacolumn",
+                return_value="data",
+            ),
+            patch("dsa110_contimg.imaging.cli_imaging.run_wsclean") as mock_wsclean,
+            patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
+            patch(
+                "dsa110_contimg.utils.validation.validate_corrected_data_quality",
+                return_value=[],
+            ),
+            patch(
+                "dsa110_contimg.imaging.nvss_tools.create_nvss_fits_mask",
+                side_effect=mock_create_mask,
+            ),
         ):
-
             image_ms(
                 ms_path,
                 imagename=imagename,
@@ -348,27 +347,30 @@ class TestMaskingIntegration:
         imagename = str(temp_work_dir / "test.img")
         Path(ms_path).mkdir(parents=True, exist_ok=True)
 
-        with patch("casacore.tables.table", side_effect=mock_table_factory), patch(
-            "dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.run_wsclean"
-        ) as mock_wsclean, patch(
-            "dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None
-        ), patch(
-            "dsa110_contimg.utils.validation.validate_corrected_data_quality",
-            return_value=[],
-        ), patch(
-            "dsa110_contimg.imaging.nvss_tools.create_nvss_fits_mask"
-        ) as mock_create_mask:
-
+        with (
+            patch("casacore.tables.table", side_effect=mock_table_factory),
+            patch("dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory),
+            patch("dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec",
+                return_value=2.0,
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_utils.detect_datacolumn",
+                return_value="data",
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.detect_datacolumn",
+                return_value="data",
+            ),
+            patch("dsa110_contimg.imaging.cli_imaging.run_wsclean") as mock_wsclean,
+            patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
+            patch(
+                "dsa110_contimg.utils.validation.validate_corrected_data_quality",
+                return_value=[],
+            ),
+            patch("dsa110_contimg.imaging.nvss_tools.create_nvss_fits_mask") as mock_create_mask,
+        ):
             image_ms(
                 ms_path,
                 imagename=imagename,
@@ -385,9 +387,7 @@ class TestMaskingIntegration:
         call_kwargs = mock_wsclean.call_args[1]
         assert call_kwargs.get("mask_path") is None
 
-    def test_image_ms_mask_generation_failure_fallback(
-        self, mock_table_factory, temp_work_dir
-    ):
+    def test_image_ms_mask_generation_failure_fallback(self, mock_table_factory, temp_work_dir):
         """Test image_ms continues without mask if generation fails."""
         from dsa110_contimg.imaging.cli_imaging import image_ms
 
@@ -395,28 +395,33 @@ class TestMaskingIntegration:
         imagename = str(temp_work_dir / "test.img")
         Path(ms_path).mkdir(parents=True, exist_ok=True)
 
-        with patch("casacore.tables.table", side_effect=mock_table_factory), patch(
-            "dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.run_wsclean"
-        ) as mock_wsclean, patch(
-            "dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None
-        ), patch(
-            "dsa110_contimg.utils.validation.validate_corrected_data_quality",
-            return_value=[],
-        ), patch(
-            "dsa110_contimg.imaging.nvss_tools.create_nvss_fits_mask",
-            side_effect=Exception("Mask generation failed"),
+        with (
+            patch("casacore.tables.table", side_effect=mock_table_factory),
+            patch("dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory),
+            patch("dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec",
+                return_value=2.0,
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_utils.detect_datacolumn",
+                return_value="data",
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.detect_datacolumn",
+                return_value="data",
+            ),
+            patch("dsa110_contimg.imaging.cli_imaging.run_wsclean") as mock_wsclean,
+            patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
+            patch(
+                "dsa110_contimg.utils.validation.validate_corrected_data_quality",
+                return_value=[],
+            ),
+            patch(
+                "dsa110_contimg.imaging.nvss_tools.create_nvss_fits_mask",
+                side_effect=Exception("Mask generation failed"),
+            ),
         ):
-
             # Should not raise exception
             image_ms(
                 ms_path,
@@ -451,10 +456,10 @@ class TestMaskingIntegration:
             mock_result.stderr = b""
             return mock_result
 
-        with patch("subprocess.run", side_effect=mock_subprocess_run), patch(
-            "shutil.which", return_value="/usr/bin/wsclean"
+        with (
+            patch("subprocess.run", side_effect=mock_subprocess_run),
+            patch("shutil.which", return_value="/usr/bin/wsclean"),
         ):
-
             run_wsclean(
                 ms_path=ms_path,
                 imagename=imagename,
@@ -499,10 +504,10 @@ class TestMaskingIntegration:
             mock_result.stderr = b""
             return mock_result
 
-        with patch("subprocess.run", side_effect=mock_subprocess_run), patch(
-            "shutil.which", return_value="/usr/bin/wsclean"
+        with (
+            patch("subprocess.run", side_effect=mock_subprocess_run),
+            patch("shutil.which", return_value="/usr/bin/wsclean"),
         ):
-
             run_wsclean(
                 ms_path=ms_path,
                 imagename=imagename,
@@ -574,7 +579,7 @@ class TestMaskingConfiguration:
 
     def test_pipeline_config_from_dict_with_masking(self):
         """Test PipelineConfig.from_dict extracts masking parameters."""
-        from dsa110_contimg.pipeline.config import PathsConfig, PipelineConfig
+        from dsa110_contimg.pipeline.config import PipelineConfig
 
         # Test with masking parameters at top level
         params = {

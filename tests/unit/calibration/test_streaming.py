@@ -1,11 +1,11 @@
 """Unit tests for streaming calibration utilities."""
 
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
-import pytest
-
-from dsa110_contimg.calibration.streaming import has_calibrator, solve_calibration_for_ms
+from dsa110_contimg.calibration.streaming import (
+    has_calibrator,
+    solve_calibration_for_ms,
+)
 
 
 class TestHasCalibrator:
@@ -84,7 +84,13 @@ class TestSolveCalibrationForMs:
     @patch("dsa110_contimg.calibration.refant_selection.get_default_outrigger_refants")
     def test_solve_calibration_success_with_auto_detect(self, mock_refant, mock_select, mock_run):
         """Test successful calibration solve with auto-detection."""
-        mock_select.return_value = ("0~2", [0, 1, 2], Mock(), ("3C286", 200.0, 50.0, 10.0), 1)
+        mock_select.return_value = (
+            "0~2",
+            [0, 1, 2],
+            Mock(),
+            ("3C286", 200.0, 50.0, 10.0),
+            1,
+        )
         mock_refant.return_value = "104,105,106"
         mock_run.return_value = ["/path/to/bp.cal", "/path/to/g.cal"]
 

@@ -13,7 +13,7 @@ import pytest
 # Import monitoring script functions
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
 
-from monitor_publish_status import (  # noqa: E402
+from monitoring.monitor_publish_status import (  # noqa: E402
     check_alerts,
     get_failed_publishes,
     get_publish_status,
@@ -44,7 +44,8 @@ def temp_registry_db(tmp_path):
     # Set publish attempts
     cur = conn.cursor()
     cur.execute(
-        "UPDATE data_registry SET publish_attempts = 1, publish_error = 'Test error' WHERE data_id = 'test_mosaic_001'"
+        "UPDATE data_registry SET publish_attempts = 1, "
+        "publish_error = 'Test error' WHERE data_id = 'test_mosaic_001'"
     )
     conn.commit()
     conn.close()
@@ -205,12 +206,13 @@ def test_retry_all_failed_with_limit(temp_registry_db):
         register_data(
             conn,
             data_type="mosaic",
-            data_id=f"test_mosaic_{i+2}",
-            stage_path=f"/stage/test_mosaic_{i+2}.fits",
+            data_id=f"test_mosaic_{i + 2}",
+            stage_path=f"/stage/test_mosaic_{i + 2}.fits",
         )
         cur = conn.cursor()
         cur.execute(
-            f"UPDATE data_registry SET publish_attempts = 1 WHERE data_id = 'test_mosaic_{i+2}'"
+            f"UPDATE data_registry SET publish_attempts = 1 "
+            f"WHERE data_id = 'test_mosaic_{i + 2}'"
         )
     conn.commit()
     conn.close()

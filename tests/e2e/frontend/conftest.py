@@ -33,13 +33,60 @@ except ImportError:
     BROWSER = os.getenv("PLAYWRIGHT_BROWSER", "chromium")
 
 
+def _check_browser_available():
+    """Check if Playwright browsers are available."""
+    import os
+
+    from playwright.sync_api import sync_playwright
+
+    try:
+        p = sync_playwright().start()
+        browser_type = getattr(p, BROWSER)
+        # Try to launch browser - this will fail if browsers aren't installed
+        try:
+            # Check if executable exists
+            exec_path = browser_type.executable_path
+            if exec_path and os.path.exists(exec_path):
+                p.stop()
+                return True
+            p.stop()
+            return False
+        except Exception as e:
+            p.stop()
+            # Check if error is about missing browser
+            if "Executable doesn't exist" in str(e) or "executable" in str(e).lower():
+                return False
+            return False
+    except Exception as e:
+        # If we can't even start playwright, browsers aren't available
+        if "Executable doesn't exist" in str(e) or "executable" in str(e).lower():
+            return False
+        return False
+
+
 @pytest.fixture(scope="session")
 def playwright() -> Generator[Playwright, None, None]:
     """Playwright instance (session-scoped)."""
     from playwright.sync_api import sync_playwright
 
-    with sync_playwright() as p:
-        yield p
+    # Check if browsers are available before trying to use them
+    if not _check_browser_available():
+        pytest.skip(
+            "Playwright browsers not installed. "
+            "Install with: playwright install chromium "
+            "Or skip e2e tests with: pytest -m 'not e2e_frontend'"
+        )
+
+    try:
+        with sync_playwright() as p:
+            yield p
+    except Exception as e:
+        if "Executable doesn't exist" in str(e) or "executable" in str(e).lower():
+            pytest.skip(
+                f"Playwright browsers not available: {e}. "
+                "Install with: playwright install chromium"
+            )
+        raise
 
 
 @pytest.fixture(scope="session")
@@ -66,7 +113,7 @@ def browser(playwright: Playwright) -> Generator[Browser, None, None]:
 
     try:
         browser = browser_type.launch(**launch_options)
-    except Exception as e:
+    except Exception:
         # If launch fails, try with system browser
         if BROWSER == "chromium" and "executable_path" not in launch_options:
             system_chromium = "/usr/bin/chromium-browser"
@@ -103,7 +150,10 @@ def page(context: BrowserContext) -> Generator[Page, None, None]:
 
     # Listen for console errors (optional, for debugging)
     console_errors = []
-    page.on("console", lambda msg: console_errors.append(msg) if msg.type == "error" else None)
+    page.on(
+        "console",
+        lambda msg: console_errors.append(msg) if msg.type == "error" else None,
+    )
 
     yield page
 

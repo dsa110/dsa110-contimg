@@ -8,7 +8,6 @@ instead of renaming to *_all variants).
 import logging
 import sqlite3
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -124,9 +123,7 @@ def setup_data_registry(db_path: Path, verbose: bool = True) -> bool:
         # If images_all exists, migrate data back to images if needed
         if "images_all" in existing_tables and "images" not in existing_tables:
             if verbose:
-                logger.info(
-                    "Renaming images_all -> images (reverting previous migration)..."
-                )
+                logger.info("Renaming images_all -> images (reverting previous migration)...")
             try:
                 cur.execute("ALTER TABLE images_all RENAME TO images")
                 existing_tables.remove("images_all")
@@ -171,16 +168,12 @@ def setup_data_registry(db_path: Path, verbose: bool = True) -> bool:
                         )
             except Exception as e:
                 if verbose:
-                    logger.warning(
-                        f"Failed to migrate data from images_all to images: {e}"
-                    )
+                    logger.warning(f"Failed to migrate data from images_all to images: {e}")
 
         # Similar handling for ms_index/ms_all if needed
         if "ms_all" in existing_tables and "ms_index" not in existing_tables:
             if verbose:
-                logger.info(
-                    "Renaming ms_all -> ms_index (reverting previous migration)..."
-                )
+                logger.info("Renaming ms_all -> ms_index (reverting previous migration)...")
             try:
                 cur.execute("ALTER TABLE ms_all RENAME TO ms_index")
                 existing_tables.remove("ms_all")
@@ -192,9 +185,7 @@ def setup_data_registry(db_path: Path, verbose: bool = True) -> bool:
         # Similar handling for mosaics/mosaics_all if needed
         if "mosaics_all" in existing_tables and "mosaics" not in existing_tables:
             if verbose:
-                logger.info(
-                    "Renaming mosaics_all -> mosaics (reverting previous migration)..."
-                )
+                logger.info("Renaming mosaics_all -> mosaics (reverting previous migration)...")
             try:
                 cur.execute("ALTER TABLE mosaics_all RENAME TO mosaics")
                 existing_tables.remove("mosaics_all")

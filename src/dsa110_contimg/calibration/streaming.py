@@ -5,8 +5,6 @@ This module provides functions for calibrator detection and calibration solving
 in the streaming converter context, borrowing from batch mode implementations.
 """
 
-import logging
-from pathlib import Path
 from typing import Optional, Tuple
 
 import structlog
@@ -29,7 +27,6 @@ def has_calibrator(ms_path: str, radius_deg: float = 2.0) -> bool:
     """
     try:
         import astropy.units as u
-        from astropy.time import Time
 
         from dsa110_contimg.calibration.catalogs import (
             calibrator_match,

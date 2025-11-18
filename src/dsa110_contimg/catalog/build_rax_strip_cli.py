@@ -16,21 +16,15 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         description="Build RAX SQLite database for declination strip from HDF5 file"
     )
-    ap.add_argument(
-        "--hdf5", required=True, help="Path to HDF5 file to read declination from"
-    )
+    ap.add_argument("--hdf5", required=True, help="Path to HDF5 file to read declination from")
     ap.add_argument(
         "--dec-range",
         type=float,
         default=6.0,
         help="Declination range (±degrees around center, default: 6.0)",
     )
-    ap.add_argument(
-        "--output", help="Output SQLite database path (auto-generated if not provided)"
-    )
-    ap.add_argument(
-        "--min-flux-mjy", type=float, help="Minimum flux threshold in mJy (optional)"
-    )
+    ap.add_argument("--output", help="Output SQLite database path (auto-generated if not provided)")
+    ap.add_argument("--min-flux-mjy", type=float, help="Minimum flux threshold in mJy (optional)")
     ap.add_argument(
         "--rax-catalog-path",
         help="Path to RAX catalog file (CSV/FITS). If not provided, attempts to find cached catalog.",
@@ -71,7 +65,7 @@ def main(argv: list[str] | None = None) -> int:
     dec_max = dec_center + args.dec_range
     dec_range = (dec_min, dec_max)
 
-    print(f"Building RAX SQLite database for declination strip:")
+    print("Building RAX SQLite database for declination strip:")
     print(f"  Center: {dec_center:.6f} degrees")
     print(f"  Range: {dec_min:.6f} to {dec_max:.6f} degrees (±{args.dec_range}°)")
 

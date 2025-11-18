@@ -2,8 +2,6 @@
 
 from typing import List, Optional, Set
 
-import numpy as np
-
 # DSA-110 array configuration
 # Based on DSA110_Station_Coordinates.csv analysis:
 # - Core antennas: 1-102 (arranged in T-shaped layout)

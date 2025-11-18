@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from dsa110_contimg.pipeline.context import PipelineContext
@@ -44,9 +44,7 @@ class PipelineObserver:
     Can be extended to integrate with monitoring systems (Prometheus, etc.).
     """
 
-    def __init__(
-        self, logger_name: str = "pipeline", collect_resource_metrics: bool = True
-    ):
+    def __init__(self, logger_name: str = "pipeline", collect_resource_metrics: bool = True):
         """Initialize pipeline observer.
 
         Args:
@@ -80,9 +78,7 @@ class PipelineObserver:
                     "cpu_percent": cpu_percent,
                 }
             except Exception as e:
-                self.logger.debug(
-                    f"Could not collect start resources for {stage_name}: {e}"
-                )
+                self.logger.debug(f"Could not collect start resources for {stage_name}: {e}")
 
         self.logger.info(
             "stage_started",
@@ -93,9 +89,7 @@ class PipelineObserver:
             },
         )
 
-    def stage_completed(
-        self, stage_name: str, context: PipelineContext, duration: float
-    ) -> None:
+    def stage_completed(self, stage_name: str, context: PipelineContext, duration: float) -> None:
         """Called when a stage completes successfully.
 
         Args:
@@ -122,9 +116,7 @@ class PipelineObserver:
                     start_mem = self._stage_start_resources[stage_name]["memory_mb"]
                     memory_peak_mb = max(memory_peak_mb, start_mem)
             except Exception as e:
-                self.logger.debug(
-                    f"Could not collect completion resources for {stage_name}: {e}"
-                )
+                self.logger.debug(f"Could not collect completion resources for {stage_name}: {e}")
 
         metrics = StageMetrics(
             stage_name=stage_name,
@@ -187,9 +179,7 @@ class PipelineObserver:
             exc_info=error,
         )
 
-    def stage_skipped(
-        self, stage_name: str, context: PipelineContext, reason: str
-    ) -> None:
+    def stage_skipped(self, stage_name: str, context: PipelineContext, reason: str) -> None:
         """Called when a stage is skipped.
 
         Args:
@@ -220,9 +210,7 @@ class PipelineObserver:
             },
         )
 
-    def pipeline_completed(
-        self, context: PipelineContext, duration: float, status: str
-    ) -> None:
+    def pipeline_completed(self, context: PipelineContext, duration: float, status: str) -> None:
         """Called when pipeline execution completes.
 
         Args:
@@ -259,7 +247,5 @@ class PipelineObserver:
             "completed_stages": completed,
             "failed_stages": failed,
             "total_duration_seconds": total_duration,
-            "average_duration_seconds": (
-                total_duration / len(self.metrics) if self.metrics else 0
-            ),
+            "average_duration_seconds": (total_duration / len(self.metrics) if self.metrics else 0),
         }

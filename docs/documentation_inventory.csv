@@ -945,7 +945,7 @@ docs/concepts/aoflagger.md,2025-11-06,# AOFlagger Strategy Files for DSA-110,kee
 docs/analysis/VALIDATION_FOCUS_SUMMARY.md,2025-11-09,# Validation Focus Summary,archive,Status/analysis docs better suited for internal archive.
 docs/concepts/anti_patterns_reference.md,2025-11-12,# Anti-Patterns: Standard Concept Reference,keep,User-facing documentation section.
 docs/concepts/GLOSSARY.md,2025-11-06,# Definition: Tile,keep,User-facing documentation section.
-docs/bugfixes/processpool-pickling-fix.md,2025-11-11,# ProcessPoolExecutor Pickling Error Fix,keep,Default keep until manual review.
+internal/docs/dev/analysis/processpool_pickling_fix.md,2025-11-11,# ProcessPoolExecutor Pickling Error Fix,keep,Default keep until manual review.
 docs/concepts/control-panel.md,2025-11-06,# DSA-110 Control Panel,keep,User-facing documentation section.
 docs/dev/fallback_notification_analysis.md,untracked,# Fallback Notification Analysis,archive,Status/analysis docs better suited for internal archive.
 docs/analysis/VALIDATION_ISSUES.md,2025-11-09,# Validation Issues and Solutions,archive,Status/analysis docs better suited for internal archive.

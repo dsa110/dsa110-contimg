@@ -20,14 +20,14 @@ if not hasattr(sys, "_dsa110_python_checked"):
             "/opt/miniforge/envs/casa6"
         ):
             print(
-                f"\n{'='*80}\n"
+                f"\n{'=' * 80}\n"
                 f"CRITICAL ERROR: Wrong Python Version\n"
-                f"{'='*80}\n"
+                f"{'=' * 80}\n"
                 f"Required: Python 3.11.13 (casa6) at {required_path}\n"
                 f"Detected: Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro} at {sys.executable}\n"
                 f"\nThis pipeline REQUIRES casa6 Python 3.11.13.\n"
                 f"Source: source /data/dsa110-contimg/scripts/dev/developer-setup.sh\n"
-                f"{'='*80}\n",
+                f"{'=' * 80}\n",
                 file=sys.stderr,
             )
             sys.exit(1)

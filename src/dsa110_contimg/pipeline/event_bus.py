@@ -11,7 +11,7 @@ import logging
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -148,7 +148,8 @@ class EventBus:
                 handler(event)
             except Exception as e:
                 logger.error(
-                    f"Error in event handler for {event.event_type.value}: {e}", exc_info=True
+                    f"Error in event handler for {event.event_type.value}: {e}",
+                    exc_info=True,
                 )
 
         logger.debug(f"Published event {event.event_type.value} to {len(handlers)} subscribers")

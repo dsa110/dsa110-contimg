@@ -236,7 +236,7 @@ def create_nvss_overlay(
     if np.any(m_data):
         vals = data[m_data]
         vmin, vmax = np.percentile(vals, [1, 99])
-        im = ax.imshow(data, origin="lower", cmap="gray", vmin=vmin, vmax=vmax)
+        ax.imshow(data, origin="lower", cmap="gray", vmin=vmin, vmax=vmax)
         if pb_mask is not None and pb_mask.shape == data.shape:
             ax.contour(pb_mask, levels=[0.5], colors="cyan", linewidths=1, alpha=0.5)
 

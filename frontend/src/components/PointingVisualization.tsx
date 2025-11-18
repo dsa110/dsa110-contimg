@@ -17,7 +17,7 @@ import {
 import { RadioButtonChecked as PointIcon, Refresh as RefreshIcon } from "@mui/icons-material";
 import { PlotlyLazy } from "./PlotlyLazy";
 import type { Data, Layout } from "./PlotlyLazy";
-import { usePointingMonitorStatus, usePointingHistory, useSkyMapData } from "../api/queries";
+import { usePointingMonitorStatus, usePointingHistory } from "../api/queries";
 
 interface PointingVisualizationProps {
   height?: number;
@@ -35,22 +35,22 @@ export default function PointingVisualization({
   const { data: monitorStatus, isLoading: statusLoading } = usePointingMonitorStatus();
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
-  // Calculate MJD range for history - use full range if historyDays is null/undefined or very large
-  const { startMjd, endMjd, useFullRange } = useMemo(() => {
-    if (!showHistory) return { startMjd: 0, endMjd: 0, useFullRange: false };
-
-    // If historyDays is very large (>1000) or undefined, query full range
-    // Use a wide range that should capture all data (MJD 0 to 100000 covers ~274 years)
-    if (!historyDays || historyDays > 1000) {
-      return { startMjd: 0, endMjd: 100000, useFullRange: true };
+  // Calculate MJD range for history - use reasonable default (30 days) if historyDays is null/undefined or very large
+  const { startMjd, endMjd, useFullRange, effectiveHistoryDays } = useMemo(() => {
+    if (!showHistory) {
+      return { startMjd: 0, endMjd: 0, useFullRange: false, effectiveHistoryDays: null };
     }
 
+    // If historyDays is very large (>1000) or undefined, use last 30 days as default
+    // This prevents querying 80k+ files which causes API timeouts
+    const effectiveHistoryDays = !historyDays || historyDays > 1000 ? 30 : historyDays;
+
     const now = new Date();
-    const startDate = new Date(now.getTime() - historyDays * 24 * 60 * 60 * 1000);
+    const startDate = new Date(now.getTime() - effectiveHistoryDays * 24 * 60 * 60 * 1000);
     // Convert to MJD (Unix epoch to MJD offset is 40587)
     const startMjd = startDate.getTime() / 86400000 + 40587;
     const endMjd = now.getTime() / 86400000 + 40587;
-    return { startMjd, endMjd, useFullRange: false };
+    return { startMjd, endMjd, useFullRange: false, effectiveHistoryDays };
   }, [showHistory, historyDays]);
 
   const { data: historyResponse, isLoading: historyLoading } = usePointingHistory(startMjd, endMjd);
@@ -78,6 +78,23 @@ export default function PointingVisualization({
     };
   }, [historyData]);
 
+  const historyRangeLabel = useMemo(() => {
+    if (!showHistory) {
+      return "";
+    }
+
+    if (useFullRange && actualDataRange) {
+      return ` (full range: ${actualDataRange.minMjd.toFixed(2)} - ${actualDataRange.maxMjd.toFixed(2)} MJD)`;
+    }
+
+    const displayDays = effectiveHistoryDays ?? historyDays;
+    if (displayDays) {
+      return ` from the last ${displayDays} days`;
+    }
+
+    return "";
+  }, [showHistory, useFullRange, actualDataRange, effectiveHistoryDays, historyDays]);
+
   // Update last update time when data changes
   useEffect(() => {
     if (historyData.length > 0 || monitorStatus) {
@@ -98,20 +115,29 @@ export default function PointingVisualization({
     return null;
   }, [historyData]);
 
-  // Convert RA/Dec to Aitoff projection coordinates
-  const aitoffProjection = useMemo(() => {
+  // Convert RA/Dec to Mollweide projection coordinates
+  // This matches the backend's Mollweide sky map projection
+  const mollweideProjection = useMemo(() => {
     return (ra: number, dec: number): [number, number] => {
       // Convert to radians
       const lambda = ((ra - 180) * Math.PI) / 180; // Longitude (RA centered at 180)
       const phi = (dec * Math.PI) / 180; // Latitude (Dec)
 
-      // Aitoff projection formulas
-      const alpha = Math.acos(Math.cos(phi) * Math.cos(lambda / 2));
-      const sinc = alpha !== 0 ? Math.sin(alpha) / alpha : 1;
-      const R = 180 / Math.PI; // Scale factor
+      // Mollweide projection: iteratively solve for theta
+      let theta = phi;
+      const epsilon = 1e-6;
+      const maxIterations = 50;
 
-      const x = ((2 * Math.cos(phi) * Math.sin(lambda / 2)) / sinc) * R;
-      const y = (Math.sin(phi) / sinc) * R;
+      for (let i = 0; i < maxIterations; i++) {
+        const delta = -(theta + Math.sin(theta) - Math.PI * Math.sin(phi)) / (1 + Math.cos(theta));
+        theta += delta;
+        if (Math.abs(delta) < epsilon) break;
+      }
+
+      // Mollweide projection formulas
+      const R = 180 / Math.PI; // Scale factor to match coordinate system
+      const x = ((2 * Math.SQRT2) / Math.PI) * lambda * Math.cos(theta / 2) * R;
+      const y = Math.SQRT2 * Math.sin(theta / 2) * R;
 
       return [x, y];
     };
@@ -231,12 +257,9 @@ export default function PointingVisualization({
     return { timeSeriesData: data, timeSeriesLayout: layout };
   }, [historyData, showHistory, height]);
 
-  // Fetch sky map data from backend (GSM or synthetic)
-  const { data: skyMapHeatmapData, isLoading: _skyMapLoading } = useSkyMapData(
-    1400.0, // 1.4 GHz frequency
-    90, // Resolution (reduced from 180 to avoid potential issues)
-    "gsm" // Use GSM, falls back to synthetic if unavailable
-  );
+  // Note: Sky map background now uses Mollweide projection from backend
+  // Endpoint: /api/pointing/mollweide-sky-map provides pre-rendered GSM at 1.4 GHz
+  // This is more efficient than client-side HEALPix rendering
 
   // Helper function to check if Aitoff coordinates are within the elliptical boundary
   const isWithinAitoffBoundary = (x: number, y: number): boolean => {
@@ -252,64 +275,14 @@ export default function PointingVisualization({
     try {
       const data: Data[] = [];
 
-      // Always ensure we have at least grid lines, even if other data fails
-
-      // Add sky map background as heatmap (if enabled and data available)
-      // Use heatmap with mask to properly constrain visualization within the Aitoff ellipse
-      if (
-        enableSkyMapBackground &&
-        skyMapHeatmapData &&
-        skyMapHeatmapData.x &&
-        skyMapHeatmapData.y &&
-        skyMapHeatmapData.z
-      ) {
-        try {
-          // Create a masked z array where values outside the ellipse are set to a very low value
-          // Using a very low value instead of null ensures smooth rendering
-          const maskedZ: number[][] = skyMapHeatmapData.z.map((row, i) => {
-            const y = skyMapHeatmapData.y[i];
-            return row.map((zValue, j) => {
-              const x = skyMapHeatmapData.x[j];
-              // Set values outside the ellipse to a very low value (near black)
-              // This ensures the heatmap renders smoothly without gaps
-              if (isWithinAitoffBoundary(x, y)) {
-                return zValue;
-              }
-              return 0.0; // Use 0 instead of null for smooth rendering
-            });
-          });
-
-          // Create heatmap with masked data
-          // The axis scaling (scaleanchor: "x", scaleratio: 0.5) ensures elliptical appearance
-          data.push({
-            type: "heatmap",
-            x: skyMapHeatmapData.x,
-            y: skyMapHeatmapData.y,
-            z: maskedZ,
-            colorscale: [
-              [0, "rgb(20, 20, 20)"], // Dark background for masked areas
-              [0.01, "rgb(20, 20, 20)"], // Ensure masked areas stay dark
-              [0.3, "rgb(60, 20, 40)"],
-              [0.6, "rgb(120, 40, 60)"],
-              [1, "rgb(255, 100, 80)"],
-            ],
-            showscale: false,
-            hoverinfo: "skip" as any,
-            zmin: 0,
-            zmax: 1,
-            zsmooth: "best" as any,
-            layer: "below" as any,
-          });
-        } catch (error) {
-          console.error("Error processing sky map data:", error);
-          // Continue without sky map background if there's an error
-        }
-      }
+      // Note: Sky map background will be added as a layout image
+      // The Mollweide projection is served pre-rendered from the backend
+      // This is simpler and more efficient than client-side HEALPix processing
 
       if (showHistory && historyData.length > 0) {
         // Project all points to Aitoff coordinates
         const projectedPoints = historyData.map((p) => {
-          const [x, y] = aitoffProjection(p.ra_deg, p.dec_deg);
+          const [x, y] = mollweideProjection(p.ra_deg, p.dec_deg);
           return { x, y, ra: p.ra_deg, dec: p.dec_deg };
         });
 
@@ -355,7 +328,7 @@ export default function PointingVisualization({
 
       // Add current pointing position
       if (currentPointing) {
-        const [x, y] = aitoffProjection(currentPointing.ra, currentPointing.dec);
+        const [x, y] = mollweideProjection(currentPointing.ra, currentPointing.dec);
         data.push({
           type: "scatter",
           mode: "markers",
@@ -383,13 +356,13 @@ export default function PointingVisualization({
       for (let ra = 0; ra < 360; ra += 60) {
         const decs = Array.from({ length: 91 }, (_, i) => -90 + i * 2); // Sparse sampling
         const ras = decs.map(() => ra);
-        const projected = ras.map((r, i) => aitoffProjection(r, decs[i]));
+        const projected = ras.map((r, i) => mollweideProjection(r, decs[i]));
         gridLines.push({
           type: "scatter",
           mode: "lines",
           x: projected.map((p) => p[0]),
           y: projected.map((p) => p[1]),
-          line: { color: "rgba(128, 128, 128, 0.15)", width: 1, dash: "dot" },
+          line: { color: "rgba(255, 255, 255, 0.4)", width: 1, dash: "dot" },
           showlegend: false,
           hoverinfo: "skip" as any,
         });
@@ -398,13 +371,13 @@ export default function PointingVisualization({
       for (let dec = -90; dec <= 90; dec += 30) {
         const ras = Array.from({ length: 181 }, (_, i) => i * 2); // Sparse sampling
         const decs = ras.map(() => dec);
-        const projected = ras.map((r, i) => aitoffProjection(r, decs[i]));
+        const projected = ras.map((r, i) => mollweideProjection(r, decs[i]));
         gridLines.push({
           type: "scatter",
           mode: "lines",
           x: projected.map((p) => p[0]),
           y: projected.map((p) => p[1]),
-          line: { color: "rgba(128, 128, 128, 0.15)", width: 1, dash: "dot" },
+          line: { color: "rgba(255, 255, 255, 0.4)", width: 1, dash: "dot" },
           showlegend: false,
           hoverinfo: "skip" as any,
         });
@@ -412,7 +385,7 @@ export default function PointingVisualization({
 
       const layout: Partial<Layout> = {
         title: {
-          text: "Sky Map (Aitoff Projection)",
+          text: "Sky Map (Mollweide Projection - 1.4 GHz GSM)",
           font: { size: 14 },
         },
         xaxis: {
@@ -420,16 +393,16 @@ export default function PointingVisualization({
           showgrid: false,
           zeroline: false,
           showticklabels: false,
-          range: [-180, 180],
+          range: [-162, 162], // Mollweide X range: ±2√2 * R ≈ ±162
         },
         yaxis: {
           title: { text: "" },
           showgrid: false,
           zeroline: false,
           showticklabels: false,
-          range: [-90, 90],
+          range: [-81, 81], // Mollweide Y range: ±√2 * R ≈ ±81
           scaleanchor: "x" as any,
-          scaleratio: 0.5,
+          scaleratio: 1, // Mollweide is 2:1 naturally, so 1:1 in these coordinates
         },
         plot_bgcolor: "#1e1e1e",
         paper_bgcolor: "#1e1e1e",
@@ -438,6 +411,27 @@ export default function PointingVisualization({
         height: height,
         hovermode: "closest" as any,
         showlegend: false,
+        // Add Mollweide projection background image from backend
+        images: enableSkyMapBackground
+          ? [
+              {
+                source:
+                  "/api/pointing/mollweide-sky-map?frequency_mhz=1400&cmap=inferno&width=1200&height=600",
+                xref: "x",
+                yref: "y",
+                // Mollweide projection coordinate ranges (with R = 180/π ≈ 57.3)
+                // X: ±2√2 * R ≈ ±162
+                // Y: ±√2 * R ≈ ±81
+                x: -162,
+                y: -81,
+                sizex: 324, // 2 * 162
+                sizey: 162, // 2 * 81
+                sizing: "stretch",
+                opacity: 0.8, // Higher opacity for better visibility with transparent background
+                layer: "below",
+              },
+            ]
+          : [],
       };
 
       return { skyMapData: [...gridLines, ...data], skyMapLayout: layout };
@@ -450,13 +444,13 @@ export default function PointingVisualization({
         for (let ra = 0; ra < 360; ra += 60) {
           const decs = Array.from({ length: 91 }, (_, i) => -90 + i * 2);
           const ras = decs.map(() => ra);
-          const projected = ras.map((r, i) => aitoffProjection(r, decs[i]));
+          const projected = ras.map((r, i) => mollweideProjection(r, decs[i]));
           gridLines.push({
             type: "scatter",
             mode: "lines",
             x: projected.map((p) => p[0]),
             y: projected.map((p) => p[1]),
-            line: { color: "rgba(128, 128, 128, 0.15)", width: 1, dash: "dot" },
+            line: { color: "rgba(255, 255, 255, 0.4)", width: 1, dash: "dot" },
             showlegend: false,
             hoverinfo: "skip" as any,
           });
@@ -465,20 +459,20 @@ export default function PointingVisualization({
         for (let dec = -90; dec <= 90; dec += 30) {
           const ras = Array.from({ length: 181 }, (_, i) => i * 2);
           const decs = ras.map(() => dec);
-          const projected = ras.map((r, i) => aitoffProjection(r, decs[i]));
+          const projected = ras.map((r, i) => mollweideProjection(r, decs[i]));
           gridLines.push({
             type: "scatter",
             mode: "lines",
             x: projected.map((p) => p[0]),
             y: projected.map((p) => p[1]),
-            line: { color: "rgba(128, 128, 128, 0.15)", width: 1, dash: "dot" },
+            line: { color: "rgba(255, 255, 255, 0.4)", width: 1, dash: "dot" },
             showlegend: false,
             hoverinfo: "skip" as any,
           });
         }
         const fallbackLayout: Partial<Layout> = {
           title: {
-            text: "Sky Map (Aitoff Projection)",
+            text: "Sky Map (Mollweide Projection - 1.4 GHz GSM)",
             font: { size: 14 },
           },
           xaxis: {
@@ -511,7 +505,7 @@ export default function PointingVisualization({
         // Last resort: return empty but valid structure
         const fallbackLayout: Partial<Layout> = {
           title: {
-            text: "Sky Map (Aitoff Projection)",
+            text: "Sky Map (Mollweide Projection - 1.4 GHz GSM)",
             font: { size: 14 },
           },
           xaxis: {
@@ -546,9 +540,8 @@ export default function PointingVisualization({
     historyData,
     showHistory,
     height,
-    aitoffProjection,
+    mollweideProjection,
     enableSkyMapBackground,
-    skyMapHeatmapData,
   ]);
 
   if (statusLoading) {
@@ -721,9 +714,7 @@ export default function PointingVisualization({
         <Box mt={2}>
           <Typography variant="caption" color="text.secondary">
             Showing {historyData.length} pointing measurements
-            {useFullRange && actualDataRange
-              ? ` (full range: ${actualDataRange.minMjd.toFixed(2)} - ${actualDataRange.maxMjd.toFixed(2)} MJD)`
-              : ` from the last ${historyDays} days`}
+            {historyRangeLabel}
           </Typography>
         </Box>
       )}

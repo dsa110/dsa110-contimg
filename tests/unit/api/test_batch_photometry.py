@@ -6,10 +6,7 @@ Tests the batch photometry functionality with focus on:
 - Error handling and edge cases
 """
 
-import sqlite3
-from pathlib import Path
-from typing import Tuple
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -134,7 +131,10 @@ class TestBatchPhotometryJobAdapter:
         """Test batch photometry job with normalization enabled."""
         from dsa110_contimg.api import job_adapters
         from dsa110_contimg.photometry.forced import ForcedPhotometryResult
-        from dsa110_contimg.photometry.normalize import CorrectionResult, ReferenceSource
+        from dsa110_contimg.photometry.normalize import (
+            CorrectionResult,
+            ReferenceSource,
+        )
 
         products_db = tmp_path / "products.sqlite3"
         conn = ensure_products_db(products_db)
@@ -229,7 +229,8 @@ class TestBatchPhotometryJobAdapter:
         # Verify batch job status shows failure
         conn = ensure_products_db(products_db)
         cursor = conn.execute(
-            "SELECT status, failed_items, completed_items FROM batch_jobs WHERE id = ?", (batch_id,)
+            "SELECT status, failed_items, completed_items FROM batch_jobs WHERE id = ?",
+            (batch_id,),
         )
         status, failed_items, completed_items = cursor.fetchone()
         # With 1 item that fails, we should have failed_items=1, completed_items=0, status='failed'

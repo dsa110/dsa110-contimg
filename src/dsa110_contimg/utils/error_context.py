@@ -75,7 +75,7 @@ def format_error_with_context(
                 # Get MS metadata
                 try:
                     metadata = get_ms_metadata(ms_path)
-                    lines.append(f"\nMS Metadata:")
+                    lines.append("\nMS Metadata:")
                     lines.append(f"  Path: {ms_path}")
                     if "nspw" in metadata:
                         lines.append(f"  Spectral Windows: {metadata['nspw']}")
@@ -87,9 +87,7 @@ def format_error_with_context(
                     # Get size estimates
                     size_info = estimate_ms_size(ms_path)
                     if size_info:
-                        lines.append(
-                            f"  Estimated Rows: {size_info.get('n_rows', 'N/A'):,}"
-                        )
+                        lines.append(f"  Estimated Rows: {size_info.get('n_rows', 'N/A'):,}")
                         if "estimated_memory_gb" in size_info:
                             lines.append(
                                 f"  Estimated Memory: {size_info['estimated_memory_gb']:.2f} GB"
@@ -135,7 +133,7 @@ def format_error_with_context(
             elapsed = context["elapsed_time"]
             if elapsed > 300:  # 5 minutes
                 lines.append(
-                    f"\nPerformance Hint: This operation took {elapsed/60:.1f} minutes. "
+                    f"\nPerformance Hint: This operation took {elapsed / 60:.1f} minutes. "
                     f"Consider using --fast mode or --preset=fast for faster execution."
                 )
 

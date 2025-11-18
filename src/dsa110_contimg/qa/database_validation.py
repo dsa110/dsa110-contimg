@@ -8,10 +8,9 @@ import logging
 import sqlite3
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional
 
 from dsa110_contimg.qa.base import (
-    ValidationContext,
     ValidationError,
     ValidationInputError,
     ValidationResult,
@@ -155,9 +154,7 @@ def validate_database_consistency(
                     }
                 )
 
-                orphaned_records.extend(
-                    [(table_name, i) for i in range(orphaned_count)]
-                )
+                orphaned_records.extend([(table_name, i) for i in range(orphaned_count)])
                 n_tables_validated += 1
 
             except Exception as e:
@@ -166,13 +163,10 @@ def validate_database_consistency(
 
         # Calculate completeness
         total_expected = sum(
-            len(file_registry.get(table, [])) if file_registry else 100
-            for table in expected_tables
+            len(file_registry.get(table, [])) if file_registry else 100 for table in expected_tables
         )
         total_actual = sum(r["n_records"] for r in table_results)
-        completeness_fraction = (
-            total_actual / total_expected if total_expected > 0 else 1.0
-        )
+        completeness_fraction = total_actual / total_expected if total_expected > 0 else 1.0
 
         n_orphaned = len(orphaned_records)
         n_missing = len(set(missing_files))
@@ -274,9 +268,7 @@ def validate_referential_integrity(
             orphans = cursor.fetchall()
             orphaned_records.extend([(table, row[0]) for row in orphans])
         except Exception as e:
-            logger.warning(
-                f"Error checking referential integrity for {table}.{column}: {e}"
-            )
+            logger.warning(f"Error checking referential integrity for {table}.{column}: {e}")
 
     conn.close()
 

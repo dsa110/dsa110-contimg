@@ -7,14 +7,13 @@ Validates mosaic image quality, overlap handling, and consistency.
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
 
 from dsa110_contimg.qa.base import (
-    ValidationContext,
     ValidationError,
     ValidationInputError,
     ValidationResult,
@@ -150,12 +149,8 @@ def validate_mosaic_quality(
         n_overlaps = len(overlap_regions)
         n_seams = sum(1 for r in overlap_results if r["has_seam"])
 
-        mean_seam_deviation = (
-            np.mean(seam_flux_deviations) if seam_flux_deviations else 0.0
-        )
-        max_seam_deviation = (
-            np.max(seam_flux_deviations) if seam_flux_deviations else 0.0
-        )
+        mean_seam_deviation = np.mean(seam_flux_deviations) if seam_flux_deviations else 0.0
+        max_seam_deviation = np.max(seam_flux_deviations) if seam_flux_deviations else 0.0
 
         # Validate noise consistency
         noise_ratios = _validate_noise_consistency(mosaic_data, tile_data_list)
@@ -258,16 +253,14 @@ def _validate_wcs_alignment(
     # Sample points in each tile and check alignment with mosaic
     for tile_wcs in tile_wcs_list:
         # Get center pixel of tile
-        tile_shape = (
-            tile_wcs.pixel_shape if hasattr(tile_wcs, "pixel_shape") else (100, 100)
-        )
+        tile_shape = tile_wcs.pixel_shape if hasattr(tile_wcs, "pixel_shape") else (100, 100)
         center_pix = (tile_shape[0] / 2, tile_shape[1] / 2)
 
         # Convert to world coordinates
         tile_ra, tile_dec = tile_wcs.pixel_to_world_values(center_pix[0], center_pix[1])
 
         # Convert to mosaic pixel coordinates
-        mosaic_pix = mosaic_wcs.world_to_pixel_values(tile_ra, tile_dec)
+        mosaic_wcs.world_to_pixel_values(tile_ra, tile_dec)
 
         # Calculate offset (simplified - would need proper coordinate conversion)
         # For now, return small offset
@@ -348,15 +341,11 @@ def _validate_noise_consistency(
         List of noise ratios (mosaic/tile)
     """
     # Calculate noise in mosaic (RMS of background)
-    mosaic_noise = np.std(
-        mosaic_data[np.abs(mosaic_data) < np.percentile(np.abs(mosaic_data), 50)]
-    )
+    mosaic_noise = np.std(mosaic_data[np.abs(mosaic_data) < np.percentile(np.abs(mosaic_data), 50)])
 
     noise_ratios = []
     for tile_data in tile_data_list:
-        tile_noise = np.std(
-            tile_data[np.abs(tile_data) < np.percentile(np.abs(tile_data), 50)]
-        )
+        tile_noise = np.std(tile_data[np.abs(tile_data) < np.percentile(np.abs(tile_data), 50)])
         if tile_noise > 0:
             noise_ratio = mosaic_noise / tile_noise
         else:

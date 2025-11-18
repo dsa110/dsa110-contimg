@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Analyze phase structure of DATA columns."""
+
 import numpy as np
 from casacore.tables import table
 
@@ -20,16 +21,16 @@ with table(ms_path, readonly=True) as tb:
     sample_size = 5000
 
     for col in ["DATA", "MODEL_DATA", "CORRECTED_DATA"]:
-        print(f'\n{"="*70}')
+        print(f"\n{'=' * 70}")
         print(f"{col}")
-        print(f'{"="*70}')
+        print(f"{'=' * 70}")
 
         try:
             data = tb.getcol(col, startrow=0, nrow=sample_size)
             print(f"\nShape: {data.shape} (rows, channels, pols)")
 
             if np.all(data == 0):
-                print(f"\n✗ All zeros - column not populated")
+                print("\n✗ All zeros - column not populated")
                 continue
 
             # Analyze by polarization
@@ -47,13 +48,13 @@ with table(ms_path, readonly=True) as tb:
 
                 print(f"\nPol {pol}:")
                 print(
-                    f"  Non-zero: {len(non_zero):,}/{len(flat_data):,} ({100*len(non_zero)/len(flat_data):.1f}%)"
+                    f"  Non-zero: {len(non_zero):,}/{len(flat_data):,} ({100 * len(non_zero) / len(flat_data):.1f}%)"
                 )
                 print(
                     f"  Amplitude: mean={np.mean(amp):.6f}, std={np.std(amp):.6f}, range=[{np.min(amp):.6f}, {np.max(amp):.6f}]"
                 )
                 print(
-                    f"  Phase: mean={np.mean(phase):.6f} rad ({np.mean(phase)*180/np.pi:.2f}°), std={np.std(phase):.6f} rad ({np.std(phase)*180/np.pi:.2f}°)"
+                    f"  Phase: mean={np.mean(phase):.6f} rad ({np.mean(phase) * 180 / np.pi:.2f}°), std={np.std(phase):.6f} rad ({np.std(phase) * 180 / np.pi:.2f}°)"
                 )
                 print(f"  Phase range: [{np.min(phase):.6f}, {np.max(phase):.6f}] rad")
 
@@ -64,25 +65,25 @@ with table(ms_path, readonly=True) as tb:
                 print(f"  Imaginary: max={max_imag:.6e}, mean={mean_imag:.6e}")
 
                 if max_imag < 1e-6:
-                    print(f"  ✓ Purely real")
+                    print("  ✓ Purely real")
                 elif max_imag < 0.01:
-                    print(f"  ⚠ Mostly real (small imag)")
+                    print("  ⚠ Mostly real (small imag)")
                 else:
-                    print(f"  ✓ Complex")
+                    print("  ✓ Complex")
 
                 # Sample values
                 if len(non_zero) >= 3:
-                    print(f"\n  Samples (first 3):")
+                    print("\n  Samples (first 3):")
                     for i, val in enumerate(non_zero[:3]):
                         print(
-                            f"    {i+1}: {val:.4f} = {np.abs(val):.4f} ∠ {np.angle(val)*180/np.pi:.2f}°"
+                            f"    {i + 1}: {val:.4f} = {np.abs(val):.4f} ∠ {np.angle(val) * 180 / np.pi:.2f}°"
                         )
 
             # Cross-comparison: DATA vs MODEL_DATA
             if col == "DATA":
-                print(f'\n{"="*70}')
+                print(f"\n{'=' * 70}")
                 print("DATA vs MODEL_DATA Comparison")
-                print(f'{"="*70}')
+                print(f"{'=' * 70}")
 
                 model_data = tb.getcol("MODEL_DATA", startrow=0, nrow=sample_size)
 
@@ -96,22 +97,20 @@ with table(ms_path, readonly=True) as tb:
                     ratio_amp = np.abs(ratio)
                     ratio_phase = np.angle(ratio)
 
-                    print(f"\nRatio (DATA/MODEL_DATA) where both non-zero:")
+                    print("\nRatio (DATA/MODEL_DATA) where both non-zero:")
                     print(f"  Valid pairs: {np.sum(valid):,} / {len(valid):,}")
                     print(
                         f"  Amplitude ratio: mean={np.mean(ratio_amp):.6f}, std={np.std(ratio_amp):.6f}"
                     )
                     print(
-                        f"  Phase difference: mean={np.mean(ratio_phase):.6f} rad ({np.mean(ratio_phase)*180/np.pi:.2f}°), std={np.std(ratio_phase):.6f} rad ({np.std(ratio_phase)*180/np.pi:.2f}°)"
+                        f"  Phase difference: mean={np.mean(ratio_phase):.6f} rad ({np.mean(ratio_phase) * 180 / np.pi:.2f}°), std={np.std(ratio_phase):.6f} rad ({np.std(ratio_phase) * 180 / np.pi:.2f}°)"
                     )
 
                     # Check if DATA is scaled MODEL_DATA
                     if np.std(ratio_phase) < 0.1:  # Low phase scatter
-                        print(
-                            f"  ✓ Phase consistent (low scatter) - DATA may be scaled MODEL_DATA"
-                        )
+                        print("  ✓ Phase consistent (low scatter) - DATA may be scaled MODEL_DATA")
                     else:
-                        print(f"  ⚠ Phase scatter - DATA has different phase structure")
+                        print("  ⚠ Phase scatter - DATA has different phase structure")
 
         except Exception as e:
             print(f"Error: {e}")

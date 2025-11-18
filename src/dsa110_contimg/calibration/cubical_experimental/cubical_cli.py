@@ -8,7 +8,6 @@ It can be used to test CubiCal performance and compare results.
 import argparse
 import logging
 from pathlib import Path
-from typing import Optional
 
 # Note: These imports will fail until CubiCal is installed
 # That's intentional - this is experimental code
@@ -84,7 +83,7 @@ def main():
 
     try:
         # Step 1: Bandpass calibration
-        print(f"[1/2] Solving bandpass with CubiCal...")
+        print("[1/2] Solving bandpass with CubiCal...")
         bp_solution = solve_bandpass_cubical(
             ms_path=str(ms_path), cal_field=cal_field, refant=args.refant
         )
@@ -94,7 +93,7 @@ def main():
         print(f"✓ Bandpass solution saved: {bp_output}")
 
         # Step 2: Gain calibration
-        print(f"[2/2] Solving gains with CubiCal...")
+        print("[2/2] Solving gains with CubiCal...")
         gain_solution = solve_gains_cubical(
             ms_path=str(ms_path),
             cal_field=cal_field,
@@ -115,7 +114,7 @@ def main():
             cubical_to_casa_table(bp_solution, str(ms_path), str(casa_bp))
             cubical_to_casa_table(gain_solution, str(ms_path), str(casa_gain))
 
-            print(f"✓ CASA format tables created:")
+            print("✓ CASA format tables created:")
             print(f"  - {casa_bp}")
             print(f"  - {casa_gain}")
 
@@ -126,7 +125,7 @@ def main():
         print(f"Results saved to: {output_dir}")
         print()
         print("To compare with CASA results, run:")
-        print(f"  python -m dsa110_contimg.calibration.cli calibrate \\")
+        print("  python -m dsa110_contimg.calibration.cli calibrate \\")
         print(f"    --ms {ms_path} --field {cal_field} --preset standard")
 
         return 0

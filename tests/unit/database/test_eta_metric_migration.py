@@ -2,7 +2,6 @@
 Test eta_metric column migration in variability_stats table.
 """
 
-import pytest
 import sqlite3
 import tempfile
 from pathlib import Path
@@ -37,8 +36,7 @@ def test_eta_metric_column_added():
         # Verify eta_metric column was added
         conn = sqlite3.connect(str(db_path), timeout=30.0)
         columns = {
-            row[1]
-            for row in conn.execute("PRAGMA table_info(variability_stats)").fetchall()
+            row[1] for row in conn.execute("PRAGMA table_info(variability_stats)").fetchall()
         }
         conn.close()
 
@@ -74,14 +72,11 @@ def test_eta_metric_column_idempotent():
         # Verify eta_metric column exists
         conn = sqlite3.connect(str(db_path), timeout=30.0)
         columns = {
-            row[1]
-            for row in conn.execute("PRAGMA table_info(variability_stats)").fetchall()
+            row[1] for row in conn.execute("PRAGMA table_info(variability_stats)").fetchall()
         }
         conn.close()
 
-        assert (
-            "eta_metric" in columns
-        ), "eta_metric column should exist after multiple runs"
+        assert "eta_metric" in columns, "eta_metric column should exist after multiple runs"
 
     finally:
         if db_path.exists():

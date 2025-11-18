@@ -45,10 +45,10 @@ conda run -n casa6 npm install
 conda run -n casa6 npm run dev
 
 # Or specify custom port
-conda run -n casa6 npm run dev -- --port 3000
+conda run -n casa6 npm run dev
 ```
 
-Frontend will be available at http://localhost:5173
+Frontend will be available at http://localhost:3210
 
 ### Build for Production
 

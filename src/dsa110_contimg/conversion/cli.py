@@ -43,9 +43,7 @@ def main(argv: list = None) -> int:
     # Add common logging arguments
     add_common_logging_args(parser)
 
-    subparsers = parser.add_subparsers(
-        dest="command", required=True, help="Subcommand to run"
-    )
+    subparsers = parser.add_subparsers(dest="command", required=True, help="Subcommand to run")
 
     # Subparser for the 'single' command
     single_parser = subparsers.add_parser(
@@ -84,9 +82,7 @@ def main(argv: list = None) -> int:
     validate_parser.add_argument(
         "--input-dir", required=True, help="Directory containing UVH5 files"
     )
-    validate_parser.add_argument(
-        "--start-time", help="Start time (YYYY-MM-DD HH:MM:SS)"
-    )
+    validate_parser.add_argument("--start-time", help="Start time (YYYY-MM-DD HH:MM:SS)")
     validate_parser.add_argument("--end-time", help="End time (YYYY-MM-DD HH:MM:SS)")
     validate_parser.add_argument(
         "--validate-calibrator",
@@ -301,14 +297,13 @@ def main(argv: list = None) -> int:
             return 0 if valid_count == total_count else 1
 
     elif args.command == "verify-ms":
-        from dsa110_contimg.utils.validation import (
-            validate_ms,
-            validate_corrected_data_quality,
-        )
-        from dsa110_contimg.utils.validation import ValidationError
-
         # Ensure CASAPATH is set before importing CASA modules
         from dsa110_contimg.utils.casa_init import ensure_casa_path
+        from dsa110_contimg.utils.validation import (
+            ValidationError,
+            validate_corrected_data_quality,
+            validate_ms,
+        )
 
         ensure_casa_path()
 
@@ -316,18 +311,10 @@ def main(argv: list = None) -> int:
 
         table = casatables.table
 
-        from dsa110_contimg.utils.validation import (
-            ValidationError,
-            validate_corrected_data_quality,
-            validate_ms,
-        )
-
         try:
             check_columns = ["DATA", "ANTENNA1", "ANTENNA2", "TIME", "UVW"]
             if args.check_imaging_columns:
-                check_columns.extend(
-                    ["CORRECTED_DATA", "MODEL_DATA", "WEIGHT_SPECTRUM"]
-                )
+                check_columns.extend(["CORRECTED_DATA", "MODEL_DATA", "WEIGHT_SPECTRUM"])
 
             validate_ms(args.ms, check_empty=True, check_columns=check_columns)
             logger.info("✓ MS structure validation passed")
@@ -340,7 +327,7 @@ def main(argv: list = None) -> int:
 
             # Additional checks
             with table(args.ms, readonly=True) as tb:
-                logger.info(f"\nMS Statistics:")
+                logger.info("\nMS Statistics:")
                 logger.info(f"  Rows: {tb.nrows():,}")
                 logger.info(f"  Columns: {len(tb.colnames())}")
 
@@ -383,16 +370,12 @@ def main(argv: list = None) -> int:
         if args.json:
             # JSON output is user-facing, keep print() for stdout
             print(json.dumps(results, indent=2, default=str))
-            logger.debug(
-                f"Found {len(results)} calibrator(s) with available data (JSON output)"
-            )
+            logger.debug(f"Found {len(results)} calibrator(s) with available data (JSON output)")
         else:
             logger.info(f"Found {len(results)} calibrator(s) with available data:\n")
             for result in results:
                 logger.info(f"  {result['calibrator']}")
-                logger.info(
-                    f"    RA: {result['ra_deg']:.4f}°, Dec: {result['dec_deg']:.4f}°"
-                )
+                logger.info(f"    RA: {result['ra_deg']:.4f}°, Dec: {result['dec_deg']:.4f}°")
                 logger.info(f"    Flux: {result['flux_jy']:.2f} Jy")
                 logger.info(f"    Transit: {result['transit_time']}")
                 logger.info(f"    Files: {len(result['files'])} subbands")

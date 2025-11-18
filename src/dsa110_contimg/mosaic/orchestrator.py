@@ -8,6 +8,7 @@ This module implements the high-level logic for creating mosaics with minimal us
 - Auto-inference: Dec from data → BP calibrator → validity windows → skymodels
 - Hands-off operation: Single trigger → wait until published
 """
+
 # Version guard - prevent use of Python 2.7 or 3.6
 import sys
 
@@ -25,18 +26,23 @@ from typing import Any, Dict, List, Optional, Tuple
 from astropy.coordinates import EarthLocation
 from astropy.time import Time
 
-from dsa110_contimg.conversion.calibrator_ms_service import \
-  CalibratorMSGenerator
+from dsa110_contimg.conversion.calibrator_ms_service import (
+    CalibratorMSGenerator,
+)
 from dsa110_contimg.conversion.config import CalibratorMSConfig
-from dsa110_contimg.database.data_registry import (ensure_data_registry_db,
-                                                   get_data,
-                                                   link_photometry_to_data)
+from dsa110_contimg.database.data_registry import (
+    ensure_data_registry_db,
+    get_data,
+    link_photometry_to_data,
+)
 from dsa110_contimg.database.hdf5_index import query_subband_groups
 from dsa110_contimg.database.products import ensure_products_db
 from dsa110_contimg.mosaic.error_handling import check_disk_space
 from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
-from dsa110_contimg.photometry.manager import (PhotometryConfig,
-                                               PhotometryManager)
+from dsa110_contimg.photometry.manager import (
+    PhotometryConfig,
+    PhotometryManager,
+)
 from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
 logger = logging.getLogger(__name__)
@@ -54,6 +60,7 @@ class MosaicOrchestrator:
     def __init__(
         self,
         products_db_path: Optional[Path] = None,
+        hdf5_db_path: Optional[Path] = None,
         registry_db_path: Optional[Path] = None,
         data_registry_db_path: Optional[Path] = None,
         ms_output_dir: Optional[Path] = None,
@@ -68,6 +75,7 @@ class MosaicOrchestrator:
 
         Args:
             products_db_path: Path to products database (defaults from env)
+            hdf5_db_path: Path to HDF5 file index database (defaults from env)
             registry_db_path: Path to calibration registry (defaults from env)
             data_registry_db_path: Path to data registry (defaults from env)
             ms_output_dir: Directory for MS files (defaults from env)
@@ -86,6 +94,9 @@ class MosaicOrchestrator:
         state_dir = Path(os.getenv("PIPELINE_STATE_DIR", "/data/dsa110-contimg/state"))
         self.products_db_path = products_db_path or Path(
             os.getenv("PIPELINE_PRODUCTS_DB", str(state_dir / "products.sqlite3"))
+        )
+        self.hdf5_db_path = hdf5_db_path or Path(
+            os.getenv("HDF5_DB_PATH", str(state_dir / "hdf5.sqlite3"))
         )
         self.registry_db_path = registry_db_path or Path(
             os.getenv(
@@ -321,7 +332,7 @@ class MosaicOrchestrator:
         Returns:
             Dict with mosaic info if found, None otherwise
         """
-        if not self.products_db.exists():
+        if not self.products_db_path.exists():
             return None
 
         cursor = self.products_db.cursor()
@@ -630,8 +641,9 @@ class MosaicOrchestrator:
             True if conversion triggered successfully, False otherwise
         """
         try:
-            from dsa110_contimg.conversion.strategies.hdf5_orchestrator import \
-              convert_subband_groups_to_ms
+            from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+                convert_subband_groups_to_ms,
+            )
             from dsa110_contimg.utils.ms_organization import create_path_mapper
 
             # Get input/output directories from environment
@@ -672,7 +684,11 @@ class MosaicOrchestrator:
             return False
 
     def ensure_ms_files_in_window(
-        self, start_time: Time, end_time: Time, required_count: int, dry_run: bool = False
+        self,
+        start_time: Time,
+        end_time: Time,
+        required_count: int,
+        dry_run: bool = False,
     ) -> List[str]:
         """Ensure MS files exist in window, converting HDF5 if needed.
 
@@ -781,11 +797,14 @@ class MosaicOrchestrator:
             logger.error(f"Failed to create group {group_id}: {e}")
             return False
 
-    def _process_group_workflow(self, group_id: str) -> Optional[str]:
+    def _process_group_workflow(
+        self, group_id: str, min_ms_count: Optional[int] = None
+    ) -> Optional[str]:
         """Process a group through full workflow: calibration → imaging → mosaic.
 
         Args:
             group_id: Group identifier
+            min_ms_count: Minimum MS count (defaults to DEFAULT_MS_PER_MOSAIC for streaming mode)
 
         Returns:
             Mosaic path if successful, None otherwise
@@ -794,10 +813,13 @@ class MosaicOrchestrator:
 
         # Get MS paths
         ms_paths = manager.get_group_ms_paths(group_id)
-        if len(ms_paths) < DEFAULT_MS_PER_MOSAIC:
+
+        # Use provided min_ms_count for manual mode, otherwise use DEFAULT for streaming
+        required_count = min_ms_count if min_ms_count is not None else DEFAULT_MS_PER_MOSAIC
+
+        if len(ms_paths) < required_count:
             logger.warning(
-                f"Group {group_id} has only {len(ms_paths)} MS files, "
-                f"need {DEFAULT_MS_PER_MOSAIC}"
+                f"Group {group_id} has only {len(ms_paths)} MS files, " f"need {required_count}"
             )
             # Allow asymmetric mosaics if data availability requires it
             if len(ms_paths) < 3:
@@ -805,7 +827,7 @@ class MosaicOrchestrator:
                 return None
 
         # Select calibration MS (5th MS, index 4)
-        calibration_ms = manager.select_calibration_ms(ms_paths)
+        calibration_ms = manager.select_calibration_ms(ms_paths, min_required=min_ms_count)
         if not calibration_ms:
             logger.error(f"Could not select calibration MS for group {group_id}")
             return None
@@ -846,7 +868,9 @@ class MosaicOrchestrator:
                 try:
                     mosaic_data_id = Path(mosaic_path).stem
                     if link_photometry_to_data(
-                        self.data_registry_db, mosaic_data_id, str(photometry_job_id)
+                        self.data_registry_db,
+                        mosaic_data_id,
+                        str(photometry_job_id),
                     ):
                         logger.debug(
                             f"Linked photometry job {photometry_job_id} to mosaic data_id {mosaic_data_id}"
@@ -1221,7 +1245,8 @@ class MosaicOrchestrator:
         try:
             cursor = self.products_db.cursor()
             existing = cursor.execute(
-                "SELECT group_id FROM mosaic_groups WHERE group_id = ?", (group_id,)
+                "SELECT group_id FROM mosaic_groups WHERE group_id = ?",
+                (group_id,),
             ).fetchone()
             if existing:
                 warnings.append(
@@ -1263,16 +1288,16 @@ class MosaicOrchestrator:
                 input_dir = Path(os.getenv("CONTIMG_INPUT_DIR", "/data/incoming"))
                 if input_dir.exists():
                     try:
-                        products_db = Path(
-                            os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3")
-                        )
-                        if products_db.exists():
+                        # Use HDF5 database for querying subband groups
+                        hdf5_db = self.hdf5_db_path
+
+                        if hdf5_db.exists():
                             # Query for complete groups in the specific time window
                             start_time_str = start_time.to_datetime().strftime("%Y-%m-%d %H:%M:%S")
                             end_time_str = end_time.to_datetime().strftime("%Y-%m-%d %H:%M:%S")
 
                             groups = query_subband_groups(
-                                products_db,
+                                hdf5_db,
                                 start_time_str,
                                 end_time_str,
                                 tolerance_s=1.0,
@@ -1287,7 +1312,11 @@ class MosaicOrchestrator:
                                 )
                             else:
                                 # Fallback: check total count for informational purposes
-                                conn = ensure_products_db(products_db)
+                                from dsa110_contimg.database.hdf5_db import (
+                                    ensure_hdf5_db,
+                                )
+
+                                conn = ensure_hdf5_db(self.hdf5_db_path)
                                 count = conn.execute(
                                     "SELECT COUNT(*) FROM hdf5_file_index WHERE stored = 1"
                                 ).fetchone()[0]
@@ -1482,7 +1511,7 @@ class MosaicOrchestrator:
 
         # Process the group: calibration → imaging → mosaic creation
         logger.info(f"Processing group {group_id}...")
-        mosaic_path = self._process_group_workflow(group_id)
+        mosaic_path = self._process_group_workflow(group_id, min_ms_count=required_ms_count)
 
         if not mosaic_path:
             logger.error("Mosaic creation failed")
@@ -1646,7 +1675,7 @@ class MosaicOrchestrator:
 
             # Display plan
             logger.info("")
-            logger.info(f"Mosaic plan:")
+            logger.info("Mosaic plan:")
             logger.info(f"  - Calibrator: {calibrator_name}")
             logger.info(f"  - Transit time: {selected_transit_time.isot}")
             logger.info(f"  - Window: {start_time.isot} to {end_time.isot}")
@@ -1665,11 +1694,11 @@ class MosaicOrchestrator:
                     )
             logger.info(f"  - Group ID: {group_id}")
             if ms_paths:
-                logger.info(f"  - MS file paths:")
+                logger.info("  - MS file paths:")
                 for i, ms_path in enumerate(ms_paths, 1):
                     logger.info(f"      {i}. {ms_path}")
             else:
-                logger.info(f"  - MS file paths: (none - would be created from HDF5)")
+                logger.info("  - MS file paths: (none - would be created from HDF5)")
 
             # Display validation results
             logger.info("")
@@ -1762,7 +1791,7 @@ class MosaicOrchestrator:
         results = []
         for idx in transit_indices:
             if idx < 0 or idx >= len(transits):
-                logger.warning(f"Transit index {idx} out of range (0-{len(transits)-1})")
+                logger.warning(f"Transit index {idx} out of range (0-{len(transits) - 1})")
                 results.append(
                     {
                         "transit_index": idx,
@@ -1778,9 +1807,9 @@ class MosaicOrchestrator:
             transit_time = transit["transit_time"]
 
             logger.info(
-                f"\n{'='*60}\n"
-                f"Processing transit {idx+1}/{len(transit_indices)}: {transit_time.isot}\n"
-                f"{'='*60}"
+                f"\n{'=' * 60}\n"
+                f"Processing transit {idx + 1}/{len(transit_indices)}: {transit_time.isot}\n"
+                f"{'=' * 60}"
             )
 
             try:
@@ -1813,9 +1842,9 @@ class MosaicOrchestrator:
                             "error": "Mosaic creation returned None",
                         }
                     )
-                    logger.error(f"✗ Failed to create mosaic for transit {idx+1}")
+                    logger.error(f"✗ Failed to create mosaic for transit {idx + 1}")
             except Exception as e:
-                logger.error(f"✗ Exception creating mosaic for transit {idx+1}: {e}")
+                logger.error(f"✗ Exception creating mosaic for transit {idx + 1}: {e}")
                 results.append(
                     {
                         "transit_index": idx,
@@ -1897,7 +1926,8 @@ class MosaicOrchestrator:
 
         # Process the group: calibration → imaging → mosaic creation
         logger.info(f"Processing group {group_id}...")
-        mosaic_path = self._process_group_workflow(group_id)
+        # Pass required_ms_count for manual mode (len(ms_paths) for actual count)
+        mosaic_path = self._process_group_workflow(group_id, min_ms_count=len(ms_paths))
 
         if not mosaic_path:
             logger.error("Mosaic creation failed")
@@ -1980,7 +2010,7 @@ class MosaicOrchestrator:
 
         # Process the group: calibration → imaging → mosaic creation
         logger.info(f"Processing group {group_id}...")
-        mosaic_path = self._process_group_workflow(group_id)
+        mosaic_path = self._process_group_workflow(group_id, min_ms_count=required_ms_count)
 
         if not mosaic_path:
             logger.error("Mosaic creation failed")

@@ -6,12 +6,11 @@ Validates streaming data continuity, latency, and throughput.
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
 from dsa110_contimg.qa.base import (
-    ValidationContext,
     ValidationError,
     ValidationInputError,
     ValidationResult,
@@ -214,9 +213,7 @@ def validate_streaming_continuity(
             result.add_warning(f"{n_missing} files missing from stream")
 
         if len(time_gaps) > 0:
-            result.add_warning(
-                f"{len(time_gaps)} time gaps detected (max {max_gap:.1f}s)"
-            )
+            result.add_warning(f"{len(time_gaps)} time gaps detected (max {max_gap:.1f}s)")
 
         if max_latency > config.max_latency_seconds:
             result.add_error(

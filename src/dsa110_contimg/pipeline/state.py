@@ -18,9 +18,6 @@ from typing import Any, Dict, List, Optional
 
 from dsa110_contimg.database.jobs import append_job_log as db_append_job_log
 from dsa110_contimg.database.jobs import create_job as db_create_job
-from dsa110_contimg.database.jobs import (
-    ensure_jobs_table,
-)
 from dsa110_contimg.database.jobs import get_job as db_get_job
 from dsa110_contimg.database.jobs import list_jobs as db_list_jobs
 from dsa110_contimg.database.jobs import update_job_status as db_update_job_status
@@ -168,9 +165,7 @@ class SQLiteStateRepository(StateRepository):
                 started_at=updates.get("started_at"),
                 finished_at=updates.get("finished_at"),
                 artifacts=(
-                    json.dumps(updates.get("artifacts", []))
-                    if "artifacts" in updates
-                    else None
+                    json.dumps(updates.get("artifacts", [])) if "artifacts" in updates else None
                 ),
             )
 

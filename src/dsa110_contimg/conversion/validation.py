@@ -22,7 +22,6 @@ from dsa110_contimg.calibration.catalogs import read_vla_parsed_catalog_csv
 from dsa110_contimg.calibration.schedule import previous_transits
 from dsa110_contimg.conversion.calibrator_ms_service import CalibratorMSGenerator
 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-    _parse_timestamp_from_filename,
     _peek_uvh5_phase_and_midtime,
     find_subband_groups,
 )
@@ -61,9 +60,7 @@ class CalibratorTransitValidationResult:
     warnings: List[str] = None
 
 
-def validate_hdf5_file(
-    file_path: str, check_readable: bool = True
-) -> HDF5ValidationResult:
+def validate_hdf5_file(file_path: str, check_readable: bool = True) -> HDF5ValidationResult:
     """
     Validate a single UVH5 HDF5 file.
 
@@ -257,9 +254,7 @@ def validate_calibrator_transit(
                 f"No transit found for calibrator {calibrator_name} "
                 f"(searched last {max_days_back} days)"
             )
-            return CalibratorTransitValidationResult(
-                found=False, errors=errors, warnings=warnings
-            )
+            return CalibratorTransitValidationResult(found=False, errors=errors, warnings=warnings)
 
         # Validate data availability
         files = transit_info.get("files", [])
@@ -327,9 +322,7 @@ def validate_calibrator_transit(
 
     except Exception as e:
         errors.append(f"Validation failed: {e}")
-        return CalibratorTransitValidationResult(
-            found=False, errors=errors, warnings=warnings
-        )
+        return CalibratorTransitValidationResult(found=False, errors=errors, warnings=warnings)
 
 
 def find_calibrator_sources_in_data(
@@ -372,7 +365,7 @@ def find_calibrator_sources_in_data(
 
         # Scan for available data groups
         if time_range:
-            start_time = time_range[0].iso
+            time_range[0].iso
             end_time = time_range[1].iso
         else:
             # Scan all available data
@@ -395,7 +388,7 @@ def find_calibrator_sources_in_data(
             if not times:
                 return results
 
-            start_time = min(times).iso
+            min(times).iso
             end_time = max(times).iso
 
         # For each calibrator, check if data exists
@@ -407,7 +400,9 @@ def find_calibrator_sources_in_data(
 
                 # Find transit times in range
                 transits = previous_transits(
-                    ra_deg, start_time=Time(end_time), n=100  # Check many transits
+                    ra_deg,
+                    start_time=Time(end_time),
+                    n=100,  # Check many transits
                 )
 
                 # Filter to time range
@@ -430,9 +425,7 @@ def find_calibrator_sources_in_data(
                         # Check declination match
                         for group_files in groups:
                             try:
-                                _, pt_dec, _ = _peek_uvh5_phase_and_midtime(
-                                    group_files[0]
-                                )
+                                _, pt_dec, _ = _peek_uvh5_phase_and_midtime(group_files[0])
                                 actual_dec = float(pt_dec.to_value(u.deg))
                                 dec_diff = abs(actual_dec - dec_deg)
 

@@ -12,10 +12,9 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 
 ensure_casa_path()
 
-import numpy as np
-
 # Prefer module import so mocks on casacore.tables.table are respected at call time
 import casacore.tables as casatables
+import numpy as np
 
 # Back-compat symbol for tests that patch dsa110_contimg.imaging.cli_imaging.table
 table = casatables.table  # noqa: N816 (kept for test patchability)
@@ -87,7 +86,6 @@ def run_wsclean(
     """
     # Find WSClean executable
     # Priority: Prefer native WSClean over Docker for better performance (2-5x faster)
-    use_docker = False
     if wsclean_path:
         if wsclean_path == "docker":
             # Check for native WSClean first (faster than Docker)
@@ -95,15 +93,11 @@ def run_wsclean(
             if native_wsclean:
                 LOG.info("Using native WSClean (faster than Docker)")
                 wsclean_cmd = [native_wsclean]
-                use_docker = False
             else:
                 # Fall back to Docker if native not available
                 docker_cmd = shutil.which("docker")
                 if not docker_cmd:
-                    raise RuntimeError(
-                        "Docker not found but --wsclean-path=docker was specified"
-                    )
-                use_docker = True
+                    raise RuntimeError("Docker not found but --wsclean-path=docker was specified")
                 wsclean_cmd = [
                     docker_cmd,
                     "run",
@@ -126,7 +120,6 @@ def run_wsclean(
             # Fall back to Docker container if native not available
             docker_cmd = shutil.which("docker")
             if docker_cmd:
-                use_docker = True
                 wsclean_cmd = [
                     docker_cmd,
                     "run",
@@ -286,7 +279,7 @@ def run_wsclean(
     # Execute
     t0 = time.perf_counter()
     try:
-        result = subprocess.run(
+        subprocess.run(
             cmd,
             check=True,
             capture_output=False,
@@ -317,9 +310,7 @@ def run_wsclean(
             "Check disk space for output images",
             "Review WSClean parameters and configuration",
         ]
-        error_msg = format_ms_error_with_suggestions(
-            e, ms_path, "WSClean execution", suggestions
-        )
+        error_msg = format_ms_error_with_suggestions(e, ms_path, "WSClean execution", suggestions)
         raise RuntimeError(error_msg) from e
 
 
@@ -399,9 +390,7 @@ def image_ms(
             "Run validation: python -m dsa110_contimg.calibration.cli validate --ms <path>",
             "Check MS structure and integrity",
         ]
-        error_msg = format_ms_error_with_suggestions(
-            e, ms_path, "MS validation", suggestions
-        )
+        error_msg = format_ms_error_with_suggestions(e, ms_path, "MS validation", suggestions)
         raise RuntimeError(error_msg) from e
 
     # Validate CORRECTED_DATA quality if present - FAIL if calibration appears unapplied
@@ -532,9 +521,7 @@ def image_ms(
         calculated_imsize += 1
 
     # Warn if user specified imsize but we're overriding it
-    if (
-        user_imsize != 1024
-    ):  # 1024 is the default, so only warn if user explicitly set it
+    if user_imsize != 1024:  # 1024 is the default, so only warn if user explicitly set it
         if calculated_imsize != user_imsize:
             LOG.warning(
                 "User-specified imsize=%d overridden to maintain 3.5° extent: "
@@ -560,9 +547,7 @@ def image_ms(
         )
         # Coarser resolution (4x default cell size)
         default_cell = default_cell_arcsec(ms_path)
-        if (
-            abs(cell_arcsec - default_cell) < 0.01
-        ):  # Only adjust if using default cell size
+        if abs(cell_arcsec - default_cell) < 0.01:  # Only adjust if using default cell size
             cell_arcsec = cell_arcsec * 4.0
             # Recalculate imsize for new cell size
             calculated_imsize = int(np.ceil(desired_extent_arcsec / cell_arcsec))
@@ -725,9 +710,7 @@ def image_ms(
             # Mean observing frequency
             freq_ghz = 1.4
             try:
-                with casatables.table(
-                    f"{ms_path}::SPECTRAL_WINDOW", readonly=True
-                ) as spw:
+                with casatables.table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True) as spw:
                     ch = spw.getcol("CHAN_FREQ")[0]
                     freq_ghz = float(np.nanmean(ch)) / 1e9
             except Exception:
@@ -748,9 +731,7 @@ def image_ms(
             # Calculate radius at pblimit (Airy pattern: PB = (2*J1(x)/x)^2, solve for PB = pblimit)
             # Approximate: radius at pblimit ≈ FWHM * sqrt(-ln(pblimit)) / sqrt(-ln(0.5))
             if pbcor and pblimit > 0:
-                pb_radius_deg = (
-                    fwhm_deg * math.sqrt(-math.log(pblimit)) / math.sqrt(-math.log(0.5))
-                )
+                pb_radius_deg = fwhm_deg * math.sqrt(-math.log(pblimit)) / math.sqrt(-math.log(0.5))
                 # Use the smaller of image radius or primary beam radius
                 nvss_radius_deg = min(radius_deg, pb_radius_deg)
                 LOG.info(
@@ -860,9 +841,7 @@ def image_ms(
                     nvss_min_mjy,
                 )
             except Exception as exc:
-                LOG.warning(
-                    "Failed to generate NVSS mask, continuing without mask: %s", exc
-                )
+                LOG.warning("Failed to generate NVSS mask, continuing without mask: %s", exc)
                 import traceback
 
                 LOG.debug("Mask generation traceback: %s", traceback.format_exc())

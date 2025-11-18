@@ -28,9 +28,9 @@ def check_python_version():
     # Check Python version
     if sys.version_info[:3] != REQUIRED_VERSION:
         error_msg = (
-            f"\n{'='*80}\n"
+            f"\n{'=' * 80}\n"
             f"CRITICAL ERROR: Wrong Python Version\n"
-            f"{'='*80}\n"
+            f"{'=' * 80}\n"
             f"Required: Python {REQUIRED_VERSION_STR} (casa6)\n"
             f"Detected: Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}\n"
             f"Executable: {sys.executable}\n"
@@ -42,7 +42,7 @@ def check_python_version():
             f"  2. Or activate casa6: conda activate casa6\n"
             f"  3. Verify: which python3 should show {REQUIRED_PYTHON_PATH}\n"
             f"\n"
-            f"{'='*80}\n"
+            f"{'=' * 80}\n"
         )
         print(error_msg, file=sys.stderr)
         sys.exit(1)
@@ -50,9 +50,9 @@ def check_python_version():
     # Check Python executable path (accept both miniforge and conda paths)
     if not any(sys.executable.startswith(path) for path in CASA6_ENV_PATHS):
         error_msg = (
-            f"\n{'='*80}\n"
+            f"\n{'=' * 80}\n"
             f"CRITICAL ERROR: Wrong Python Executable\n"
-            f"{'='*80}\n"
+            f"{'=' * 80}\n"
             f"Required: Python from casa6 environment\n"
             f"Expected path: {REQUIRED_PYTHON_PATH}\n"
             f"Detected path: {sys.executable}\n"
@@ -64,7 +64,7 @@ def check_python_version():
             f"  2. Or activate casa6: conda activate casa6\n"
             f"  3. Verify: which python3 should show {REQUIRED_PYTHON_PATH}\n"
             f"\n"
-            f"{'='*80}\n"
+            f"{'=' * 80}\n"
         )
         print(error_msg, file=sys.stderr)
         sys.exit(1)
@@ -79,16 +79,16 @@ def check_python_version():
 
     if not casa6_python_found:
         error_msg = (
-            f"\n{'='*80}\n"
+            f"\n{'=' * 80}\n"
             f"CRITICAL ERROR: Casa6 Environment Not Found\n"
-            f"{'='*80}\n"
+            f"{'=' * 80}\n"
             f"Required: casa6 conda environment at one of: {', '.join(CASA6_ENV_PATHS)}\n"
             f"Detected: Environment not found\n"
             f"\n"
             f"This pipeline REQUIRES casa6 Python 3.11.13.\n"
             f"Please ensure casa6 conda environment is installed.\n"
             f"\n"
-            f"{'='*80}\n"
+            f"{'=' * 80}\n"
         )
         print(error_msg, file=sys.stderr)
         sys.exit(1)

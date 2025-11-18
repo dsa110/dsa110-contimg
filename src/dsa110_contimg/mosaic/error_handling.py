@@ -12,7 +12,7 @@ import logging
 import os
 import shutil
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -200,8 +200,7 @@ def validate_image_data(data, image_path: str, operation: str = "read") -> None:
         # Check for suspicious all-zero (might be valid, but warn)
         if np.all(data == 0):
             logger.warning(
-                f"Image contains only zeros: {image_path} "
-                f"(this may be valid but is unusual)"
+                f"Image contains only zeros: {image_path} " f"(this may be valid but is unusual)"
             )
 
 
@@ -314,9 +313,7 @@ def safe_imhead(imagename: str, mode: str = "list", **kwargs) -> Any:
     try:
         return imhead(imagename=imagename, mode=mode, **kwargs)
     except Exception as e:
-        handle_casa_tool_error(
-            "imhead", e, image_path=imagename, operation="read_header"
-        )
+        handle_casa_tool_error("imhead", e, image_path=imagename, operation="read_header")
 
 
 def safe_casaimage_open(image_path: str, operation: str = "read") -> Any:

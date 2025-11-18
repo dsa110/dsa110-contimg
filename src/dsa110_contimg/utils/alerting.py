@@ -11,11 +11,10 @@ import os
 import smtplib
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from email.mime.text import MIMEText
 from enum import Enum
-from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional
 from urllib import request
 from urllib.error import URLError
 
@@ -154,9 +153,7 @@ class SlackChannel(AlertChannel):
 
             with request.urlopen(req, timeout=10) as response:
                 if response.status == 200:
-                    logger.debug(
-                        f"Sent {alert.severity.name} alert to Slack: {alert.message}"
-                    )
+                    logger.debug(f"Sent {alert.severity.name} alert to Slack: {alert.message}")
                     return True
                 else:
                     logger.error(f"Slack webhook returned status {response.status}")

@@ -7,17 +7,17 @@ drift scan operations at fixed declinations.
 
 from __future__ import annotations
 
+import fcntl
 import logging
 import os
 import sqlite3
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
-import astropy.units as u
 import numpy as np
 import pandas as pd
-from astropy.coordinates import SkyCoord
 
 logger = logging.getLogger(__name__)
 
@@ -29,30 +29,100 @@ CATALOG_COVERAGE_LIMITS = {
 }
 
 
+def _acquire_db_lock(
+    lock_path: Path, timeout_sec: float = 300.0, max_retries: int = 10
+) -> Optional[int]:
+    """Acquire an exclusive lock on a database build operation.
+
+    Args:
+        lock_path: Path to lock file
+        timeout_sec: Maximum time to wait for lock (default: 300s = 5min)
+        max_retries: Maximum number of retry attempts (default: 10)
+
+    Returns:
+        File descriptor if lock acquired, None if timeout
+    """
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+
+    lock_file = open(lock_path, "w")
+    start_time = time.time()
+    retry_count = 0
+
+    while retry_count < max_retries:
+        try:
+            # Try to acquire exclusive lock (non-blocking)
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            # Success!
+            return lock_file.fileno()
+        except BlockingIOError:
+            # Lock is held by another process
+            elapsed = time.time() - start_time
+            if elapsed > timeout_sec:
+                logger.warning(
+                    f"Timeout waiting for database lock {lock_path} "
+                    f"(waited {elapsed:.1f}s, timeout={timeout_sec}s)"
+                )
+                lock_file.close()
+                return None
+
+            # Wait before retrying (exponential backoff)
+            wait_time = min(2.0**retry_count, 10.0)
+            time.sleep(wait_time)
+            retry_count += 1
+        except Exception as e:
+            logger.error(f"Error acquiring database lock {lock_path}: {e}")
+            lock_file.close()
+            return None
+
+    lock_file.close()
+    return None
+
+
+def _release_db_lock(lock_fd: Optional[int], lock_path: Path):
+    """Release a database lock.
+
+    Args:
+        lock_fd: File descriptor from _acquire_db_lock()
+        lock_path: Path to lock file
+    """
+    if lock_fd is not None:
+        try:
+            fcntl.flock(lock_fd, fcntl.LOCK_UN)
+        except Exception as e:
+            logger.warning(f"Error releasing database lock {lock_path}: {e}")
+
+    # Remove lock file if it exists
+    try:
+        if lock_path.exists():
+            lock_path.unlink()
+    except Exception as e:
+        logger.warning(f"Error removing lock file {lock_path}: {e}")
+
+
 def check_catalog_database_exists(
     catalog_type: str,
     dec_deg: float,
     tolerance_deg: float = 1.0,
 ) -> Tuple[bool, Optional[Path]]:
     """Check if a catalog database exists for the given declination.
-    
+
     Args:
         catalog_type: One of "nvss", "first", "rax"
         dec_deg: Declination in degrees
         tolerance_deg: Tolerance for matching declination (default: 1.0°)
-        
+
     Returns:
         Tuple of (exists: bool, db_path: Optional[Path])
     """
     from dsa110_contimg.catalog.query import resolve_catalog_path
-    
+
     try:
         db_path = resolve_catalog_path(catalog_type, dec_strip=dec_deg)
         if db_path.exists():
             return True, db_path
     except FileNotFoundError:
         pass
-    
+
     return False, None
 
 
@@ -63,46 +133,46 @@ def check_missing_catalog_databases(
     dec_range_deg: float = 6.0,
 ) -> Dict[str, bool]:
     """Check which catalog databases are missing when they should exist.
-    
+
     Args:
         dec_deg: Declination in degrees
         logger_instance: Optional logger instance (uses module logger if None)
         auto_build: If True, automatically build missing databases (default: False)
         dec_range_deg: Declination range (±degrees) for building databases (default: 6.0)
-        
+
     Returns:
         Dictionary mapping catalog_type -> exists (bool)
     """
     if logger_instance is None:
         logger_instance = logger
-    
+
     results = {}
     built_databases = []
-    
+
     for catalog_type, limits in CATALOG_COVERAGE_LIMITS.items():
         dec_min = limits.get("dec_min", -90.0)
         dec_max = limits.get("dec_max", 90.0)
-        
+
         # Check if declination is within coverage
         within_coverage = dec_deg >= dec_min and dec_deg <= dec_max
-        
+
         if within_coverage:
             exists, db_path = check_catalog_database_exists(catalog_type, dec_deg)
             results[catalog_type] = exists
-            
+
             if not exists:
                 logger_instance.warning(
                     f"⚠️  {catalog_type.upper()} catalog database is missing for declination {dec_deg:.2f}°, "
                     f"but should exist (within coverage limits: {dec_min:.1f}° to {dec_max:.1f}°)."
                 )
-                
+
                 if auto_build:
                     try:
                         logger_instance.info(
                             f"🔨 Auto-building {catalog_type.upper()} catalog database for declination {dec_deg:.2f}°..."
                         )
                         dec_range = (dec_deg - dec_range_deg, dec_deg + dec_range_deg)
-                        
+
                         if catalog_type == "nvss":
                             db_path = build_nvss_strip_db(
                                 dec_center=dec_deg,
@@ -123,7 +193,7 @@ def check_missing_catalog_databases(
                                 f"Unknown catalog type for auto-build: {catalog_type}"
                             )
                             continue
-                        
+
                         built_databases.append((catalog_type, db_path))
                         results[catalog_type] = True
                         logger_instance.info(
@@ -137,18 +207,18 @@ def check_missing_catalog_databases(
                         results[catalog_type] = False
                 else:
                     logger_instance.warning(
-                        f"   Database should be built by CatalogSetupStage or use auto_build=True."
+                        "   Database should be built by CatalogSetupStage or use auto_build=True."
                     )
         else:
             # Outside coverage, so database is not expected
             results[catalog_type] = False
-    
+
     if auto_build and built_databases:
         logger_instance.info(
             f"✓ Auto-built {len(built_databases)} catalog database(s): "
             f"{', '.join([f'{cat.upper()}' for cat, _ in built_databases])}"
         )
-    
+
     return results
 
 
@@ -158,18 +228,18 @@ def auto_build_missing_catalog_databases(
     logger_instance: Optional[logging.Logger] = None,
 ) -> Dict[str, Path]:
     """Automatically build missing catalog databases for a given declination.
-    
+
     Args:
         dec_deg: Declination in degrees
         dec_range_deg: Declination range (±degrees) for building databases (default: 6.0)
         logger_instance: Optional logger instance (uses module logger if None)
-        
+
     Returns:
         Dictionary mapping catalog_type -> db_path for successfully built databases
     """
     if logger_instance is None:
         logger_instance = logger
-    
+
     # Use check_missing_catalog_databases with auto_build=True
     check_missing_catalog_databases(
         dec_deg=dec_deg,
@@ -177,14 +247,14 @@ def auto_build_missing_catalog_databases(
         auto_build=True,
         dec_range_deg=dec_range_deg,
     )
-    
+
     # Return paths of databases that now exist
     built_paths = {}
     for catalog_type in CATALOG_COVERAGE_LIMITS.keys():
         exists, db_path = check_catalog_database_exists(catalog_type, dec_deg)
         if exists and db_path:
             built_paths[catalog_type] = db_path
-    
+
     return built_paths
 
 
@@ -251,7 +321,7 @@ def build_nvss_strip_db(
 
     print(f"Filtered NVSS catalog: {len(df_full)} → {len(df_strip)} sources")
     print(f"Declination range: {dec_min:.6f} to {dec_max:.6f} degrees")
-    
+
     # Warn if result is empty
     if len(df_strip) == 0:
         logger.warning(
@@ -282,13 +352,44 @@ def build_nvss_strip_db(
     else:
         df_strip["flux_mjy"] = None
 
-    # Create SQLite database
-    print(f"Creating SQLite database: {output_path}")
+    # Check if database already exists (another process may have created it)
+    if output_path.exists():
+        logger.info(f"Database {output_path} already exists, skipping build")
+        return output_path
 
-    with sqlite3.connect(str(output_path)) as conn:
-        # Create sources table
-        conn.execute(
-            """
+    # Acquire lock for database creation
+    lock_path = output_path.with_suffix(".lock")
+    lock_fd = _acquire_db_lock(lock_path, timeout_sec=300.0)
+
+    if lock_fd is None:
+        # Could not acquire lock - check if database was created by another process
+        if output_path.exists():
+            logger.info(f"Database {output_path} was created by another process")
+            return output_path
+        else:
+            raise RuntimeError(
+                f"Could not acquire lock for {output_path} and database does not exist"
+            )
+
+    try:
+        # Double-check database doesn't exist (another process may have created it while we waited)
+        if output_path.exists():
+            logger.info(
+                f"Database {output_path} was created by another process while waiting for lock"
+            )
+            return output_path
+
+        # Create SQLite database
+        print(f"Creating SQLite database: {output_path}")
+
+        # Enable WAL mode for concurrent reads
+        with sqlite3.connect(str(output_path)) as conn:
+            conn.execute("PRAGMA journal_mode=WAL")
+
+        with sqlite3.connect(str(output_path)) as conn:
+            # Create sources table
+            conn.execute(
+                """
             CREATE TABLE IF NOT EXISTS sources (
                 source_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 ra_deg REAL NOT NULL,
@@ -297,7 +398,7 @@ def build_nvss_strip_db(
                 UNIQUE(ra_deg, dec_deg)
             )
         """
-        )
+            )
 
         # Create spatial index
         conn.execute("CREATE INDEX IF NOT EXISTS idx_radec ON sources(ra_deg, dec_deg)")
@@ -357,13 +458,12 @@ def build_nvss_strip_db(
                 "INSERT OR REPLACE INTO meta(key, value) VALUES('min_flux_mjy', ?)",
                 (str(min_flux_mjy),),
             )
-        
+
         # Store coverage status
         coverage_limits = CATALOG_COVERAGE_LIMITS.get("nvss", {})
-        within_coverage = (
-            dec_center >= coverage_limits.get("dec_min", -90.0) and
-            dec_center <= coverage_limits.get("dec_max", 90.0)
-        )
+        within_coverage = dec_center >= coverage_limits.get(
+            "dec_min", -90.0
+        ) and dec_center <= coverage_limits.get("dec_max", 90.0)
         conn.execute(
             "INSERT OR REPLACE INTO meta(key, value) VALUES('within_coverage', ?)",
             ("true" if within_coverage else "false",),
@@ -371,12 +471,15 @@ def build_nvss_strip_db(
 
         conn.commit()
 
-    file_size_mb = output_path.stat().st_size / (1024 * 1024)
-    print(f"✓ Database created: {output_path}")
-    print(f"  Size: {file_size_mb:.2f} MB")
-    print(f"  Sources: {len(insert_data)}")
+        file_size_mb = output_path.stat().st_size / (1024 * 1024)
+        print(f"✓ Database created: {output_path}")
+        print(f"  Size: {file_size_mb:.2f} MB")
+        print(f"  Sources: {len(insert_data)}")
 
-    return output_path
+        return output_path
+    finally:
+        # Always release the lock
+        _release_db_lock(lock_fd, lock_path)
 
 
 def build_first_strip_db(
@@ -466,7 +569,7 @@ def build_first_strip_db(
 
     print(f"Filtered FIRST catalog: {len(df_full)} → {len(df_strip)} sources")
     print(f"Declination range: {dec_min:.6f} to {dec_max:.6f} degrees")
-    
+
     # Warn if result is empty
     if len(df_strip) == 0:
         coverage_limits = CATALOG_COVERAGE_LIMITS.get("first", {})
@@ -485,13 +588,44 @@ def build_first_strip_db(
         df_strip = df_strip[flux_val >= min_flux_mjy].copy()
         print(f"After flux cut ({min_flux_mjy} mJy): {len(df_strip)} sources")
 
-    # Create SQLite database
-    print(f"Creating SQLite database: {output_path}")
+    # Check if database already exists (another process may have created it)
+    if output_path.exists():
+        logger.info(f"Database {output_path} already exists, skipping build")
+        return output_path
 
-    with sqlite3.connect(str(output_path)) as conn:
-        # Create sources table with FIRST-specific columns
-        conn.execute(
-            """
+    # Acquire lock for database creation
+    lock_path = output_path.with_suffix(".lock")
+    lock_fd = _acquire_db_lock(lock_path, timeout_sec=300.0)
+
+    if lock_fd is None:
+        # Could not acquire lock - check if database was created by another process
+        if output_path.exists():
+            logger.info(f"Database {output_path} was created by another process")
+            return output_path
+        else:
+            raise RuntimeError(
+                f"Could not acquire lock for {output_path} and database does not exist"
+            )
+
+    try:
+        # Double-check database doesn't exist (another process may have created it while we waited)
+        if output_path.exists():
+            logger.info(
+                f"Database {output_path} was created by another process while waiting for lock"
+            )
+            return output_path
+
+        # Create SQLite database
+        print(f"Creating SQLite database: {output_path}")
+
+        # Enable WAL mode for concurrent reads
+        with sqlite3.connect(str(output_path)) as conn:
+            conn.execute("PRAGMA journal_mode=WAL")
+
+        with sqlite3.connect(str(output_path)) as conn:
+            # Create sources table with FIRST-specific columns
+            conn.execute(
+                """
             CREATE TABLE IF NOT EXISTS sources (
                 source_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 ra_deg REAL NOT NULL,
@@ -502,7 +636,7 @@ def build_first_strip_db(
                 UNIQUE(ra_deg, dec_deg)
             )
         """
-        )
+            )
 
         # Create spatial index
         conn.execute("CREATE INDEX IF NOT EXISTS idx_radec ON sources(ra_deg, dec_deg)")
@@ -583,18 +717,17 @@ def build_first_strip_db(
             "INSERT OR REPLACE INTO meta(key, value) VALUES('n_sources', ?)",
             (str(len(insert_data)),),
         )
-        
+
         # Store coverage status
         coverage_limits = CATALOG_COVERAGE_LIMITS.get("first", {})
-        within_coverage = (
-            dec_center >= coverage_limits.get("dec_min", -90.0) and
-            dec_center <= coverage_limits.get("dec_max", 90.0)
-        )
+        within_coverage = dec_center >= coverage_limits.get(
+            "dec_min", -90.0
+        ) and dec_center <= coverage_limits.get("dec_max", 90.0)
         conn.execute(
             "INSERT OR REPLACE INTO meta(key, value) VALUES('within_coverage', ?)",
             ("true" if within_coverage else "false",),
         )
-        
+
         source_file_str = (
             str(first_catalog_path) if first_catalog_path else "auto-downloaded/cached"
         )
@@ -610,12 +743,15 @@ def build_first_strip_db(
 
         conn.commit()
 
-    file_size_mb = output_path.stat().st_size / (1024 * 1024)
-    print(f"✓ Database created: {output_path}")
-    print(f"  Size: {file_size_mb:.2f} MB")
-    print(f"  Sources: {len(insert_data)}")
+        file_size_mb = output_path.stat().st_size / (1024 * 1024)
+        print(f"✓ Database created: {output_path}")
+        print(f"  Size: {file_size_mb:.2f} MB")
+        print(f"  Sources: {len(insert_data)}")
 
-    return output_path
+        return output_path
+    finally:
+        # Always release the lock
+        _release_db_lock(lock_fd, lock_path)
 
 
 def build_rax_strip_db(
@@ -694,7 +830,7 @@ def build_rax_strip_db(
 
     print(f"Filtered RAX catalog: {len(df_full)} → {len(df_strip)} sources")
     print(f"Declination range: {dec_min:.6f} to {dec_max:.6f} degrees")
-    
+
     # Warn if result is empty
     if len(df_strip) == 0:
         coverage_limits = CATALOG_COVERAGE_LIMITS.get("rax", {})
@@ -713,22 +849,53 @@ def build_rax_strip_db(
         df_strip = df_strip[flux_val >= min_flux_mjy].copy()
         print(f"After flux cut ({min_flux_mjy} mJy): {len(df_strip)} sources")
 
-    # Create SQLite database
-    print(f"Creating SQLite database: {output_path}")
+    # Check if database already exists (another process may have created it)
+    if output_path.exists():
+        logger.info(f"Database {output_path} already exists, skipping build")
+        return output_path
 
-    with sqlite3.connect(str(output_path)) as conn:
-        # Create sources table
-        conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS sources (
-                source_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                ra_deg REAL NOT NULL,
-                dec_deg REAL NOT NULL,
+    # Acquire lock for database creation
+    lock_path = output_path.with_suffix(".lock")
+    lock_fd = _acquire_db_lock(lock_path, timeout_sec=300.0)
+
+    if lock_fd is None:
+        # Could not acquire lock - check if database was created by another process
+        if output_path.exists():
+            logger.info(f"Database {output_path} was created by another process")
+            return output_path
+        else:
+            raise RuntimeError(
+                f"Could not acquire lock for {output_path} and database does not exist"
+            )
+
+    try:
+        # Double-check database doesn't exist (another process may have created it while we waited)
+        if output_path.exists():
+            logger.info(
+                f"Database {output_path} was created by another process while waiting for lock"
+            )
+            return output_path
+
+        # Create SQLite database
+        print(f"Creating SQLite database: {output_path}")
+
+        # Enable WAL mode for concurrent reads
+        with sqlite3.connect(str(output_path)) as conn:
+            conn.execute("PRAGMA journal_mode=WAL")
+
+        with sqlite3.connect(str(output_path)) as conn:
+            # Create sources table
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS sources (
+                    source_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ra_deg REAL NOT NULL,
+                    dec_deg REAL NOT NULL,
                 flux_mjy REAL,
                 UNIQUE(ra_deg, dec_deg)
             )
         """
-        )
+            )
 
         # Create spatial index
         conn.execute("CREATE INDEX IF NOT EXISTS idx_radec ON sources(ra_deg, dec_deg)")
@@ -796,18 +963,17 @@ def build_rax_strip_db(
             "INSERT OR REPLACE INTO meta(key, value) VALUES('n_sources', ?)",
             (str(len(insert_data)),),
         )
-        
+
         # Store coverage status
         coverage_limits = CATALOG_COVERAGE_LIMITS.get("rax", {})
-        within_coverage = (
-            dec_center >= coverage_limits.get("dec_min", -90.0) and
-            dec_center <= coverage_limits.get("dec_max", 90.0)
-        )
+        within_coverage = dec_center >= coverage_limits.get(
+            "dec_min", -90.0
+        ) and dec_center <= coverage_limits.get("dec_max", 90.0)
         conn.execute(
             "INSERT OR REPLACE INTO meta(key, value) VALUES('within_coverage', ?)",
             ("true" if within_coverage else "false",),
         )
-        
+
         source_file_str = str(rax_catalog_path) if rax_catalog_path else "auto-downloaded/cached"
         conn.execute(
             "INSERT OR REPLACE INTO meta(key, value) VALUES('source_file', ?)",
@@ -821,12 +987,15 @@ def build_rax_strip_db(
 
         conn.commit()
 
-    file_size_mb = output_path.stat().st_size / (1024 * 1024)
-    print(f"✓ Database created: {output_path}")
-    print(f"  Size: {file_size_mb:.2f} MB")
-    print(f"  Sources: {len(insert_data)}")
+        file_size_mb = output_path.stat().st_size / (1024 * 1024)
+        print(f"✓ Database created: {output_path}")
+        print(f"  Size: {file_size_mb:.2f} MB")
+        print(f"  Sources: {len(insert_data)}")
 
-    return output_path
+        return output_path
+    finally:
+        # Always release the lock
+        _release_db_lock(lock_fd, lock_path)
 
 
 def build_vlass_strip_db(
@@ -851,8 +1020,7 @@ def build_vlass_strip_db(
     Returns:
         Path to created SQLite database
     """
-    from dsa110_contimg.catalog.build_master import (_normalize_columns,
-                                                     _read_table)
+    from dsa110_contimg.catalog.build_master import _normalize_columns, _read_table
 
     dec_min, dec_max = dec_range
 

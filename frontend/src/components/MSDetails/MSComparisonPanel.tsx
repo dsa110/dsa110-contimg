@@ -29,7 +29,7 @@ export function MSComparisonPanel({ selectedMS, onMSSelect }: MSComparisonPanelP
 
   const { data: msList, refetch: refetchMS } = useMSList({
     scan: "true",
-    scan_dir: "/scratch/dsa110-contimg/ms",
+    scan_dir: "/stage/dsa110-contimg/ms",
   });
   const { data: msMetadata } = useMSMetadata(selectedMS);
   const { data: compareMetadata } = useMSMetadata(compareMS);

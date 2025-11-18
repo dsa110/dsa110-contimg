@@ -9,6 +9,12 @@ failure scenarios, and ensures proper error handling.
 Run with: pytest tests/unit/test_validation_functions.py -v
 """
 
+import sys
+from unittest.mock import MagicMock, patch
+
+import numpy as np
+import pytest
+
 # CRITICAL: Mock casacore, pyuvdata, casatasks, and matplotlib BEFORE any imports
 # that depend on them. These mocks must be set up before importing dsa110_contimg modules.
 from dsa110_contimg.conversion.helpers import (
@@ -20,12 +26,6 @@ from dsa110_contimg.conversion.helpers import (
     validate_reference_antenna_stability,
     validate_uvw_precision,
 )
-import pytest
-import numpy as np
-from unittest.mock import call, patch
-import logging
-import sys
-from unittest.mock import MagicMock
 
 sys.modules["casacore"] = MagicMock()
 sys.modules["casacore.tables"] = MagicMock()
@@ -91,23 +91,17 @@ class TestFrequencyOrderingValidation:
     def test_ascending_frequencies_pass(self):
         """Test that ascending frequencies pass validation."""
         mock_data = {
-            "spectral_window": {
-                "CHAN_FREQ": np.array([[1200e6, 1300e6, 1400e6, 1500e6]])
-            },
+            "spectral_window": {"CHAN_FREQ": np.array([[1200e6, 1300e6, 1400e6, 1500e6]])},
             "main_table": {"colnames": ["DATA", "ANTENNA1", "ANTENNA2", "TIME"]},
         }
 
         def mock_table(path, readonly=True):
             if "SPECTRAL_WINDOW" in path:
                 ctx = MockTableContext(mock_data["spectral_window"])
-                ctx.mock_table.getcol.return_value = mock_data["spectral_window"][
-                    "CHAN_FREQ"
-                ]
+                ctx.mock_table.getcol.return_value = mock_data["spectral_window"]["CHAN_FREQ"]
             else:
                 ctx = MockTableContext(mock_data["main_table"])
-                ctx.mock_table.colnames.return_value = mock_data["main_table"][
-                    "colnames"
-                ]
+                ctx.mock_table.colnames.return_value = mock_data["main_table"]["colnames"]
             return ctx
 
         with patch("dsa110_contimg.conversion.helpers.table", side_effect=mock_table):
@@ -117,29 +111,21 @@ class TestFrequencyOrderingValidation:
     def test_descending_frequencies_fail(self):
         """Test that descending frequencies fail validation."""
         mock_data = {
-            "spectral_window": {
-                "CHAN_FREQ": np.array([[1500e6, 1400e6, 1300e6, 1200e6]])
-            },
+            "spectral_window": {"CHAN_FREQ": np.array([[1500e6, 1400e6, 1300e6, 1200e6]])},
             "main_table": {"colnames": ["DATA", "ANTENNA1", "ANTENNA2", "TIME"]},
         }
 
         def mock_table(path, readonly=True):
             if "SPECTRAL_WINDOW" in path:
                 ctx = MockTableContext(mock_data["spectral_window"])
-                ctx.mock_table.getcol.return_value = mock_data["spectral_window"][
-                    "CHAN_FREQ"
-                ]
+                ctx.mock_table.getcol.return_value = mock_data["spectral_window"]["CHAN_FREQ"]
             else:
                 ctx = MockTableContext(mock_data["main_table"])
-                ctx.mock_table.colnames.return_value = mock_data["main_table"][
-                    "colnames"
-                ]
+                ctx.mock_table.colnames.return_value = mock_data["main_table"]["colnames"]
             return ctx
 
         with patch("dsa110_contimg.conversion.helpers.table", side_effect=mock_table):
-            with pytest.raises(
-                RuntimeError, match="frequencies are in DESCENDING order"
-            ):
+            with pytest.raises(RuntimeError, match="frequencies are in DESCENDING order"):
                 validate_ms_frequency_order("/fake/ms/path")
 
     def test_missing_spectral_window_table(self):
@@ -153,9 +139,7 @@ class TestFrequencyOrderingValidation:
                 ctx.mock_table.colnames.return_value = ["DATA"]
                 return ctx
 
-        with patch(
-            "dsa110_contimg.conversion.helpers.table", side_effect=mock_table_raises
-        ):
+        with patch("dsa110_contimg.conversion.helpers.table", side_effect=mock_table_raises):
             with pytest.raises(RuntimeError, match="Could not read spectral window"):
                 validate_ms_frequency_order("/fake/ms/path")
 
@@ -182,9 +166,7 @@ class TestUVWPrecisionValidation:
         def mock_table(path, readonly=True):
             if "SPECTRAL_WINDOW" in path:
                 ctx = MockTableContext(mock_data["spectral_window"])
-                ctx.mock_table.getcol.return_value = mock_data["spectral_window"][
-                    "CHAN_FREQ"
-                ]
+                ctx.mock_table.getcol.return_value = mock_data["spectral_window"]["CHAN_FREQ"]
             else:
                 ctx = MockTableContext(mock_data["main_table"])
                 ctx.mock_table.getcol.return_value = mock_data["main_table"]["UVW"]
@@ -213,9 +195,7 @@ class TestUVWPrecisionValidation:
         def mock_table(path, readonly=True):
             if "SPECTRAL_WINDOW" in path:
                 ctx = MockTableContext(mock_data["spectral_window"])
-                ctx.mock_table.getcol.return_value = mock_data["spectral_window"][
-                    "CHAN_FREQ"
-                ]
+                ctx.mock_table.getcol.return_value = mock_data["spectral_window"]["CHAN_FREQ"]
             else:
                 ctx = MockTableContext(mock_data["main_table"])
                 ctx.mock_table.getcol.return_value = mock_data["main_table"]["UVW"]
@@ -223,9 +203,7 @@ class TestUVWPrecisionValidation:
             return ctx
 
         with patch("dsa110_contimg.conversion.helpers.table", side_effect=mock_table):
-            with pytest.raises(
-                RuntimeError, match="UVW coordinates contain unreasonable values"
-            ):
+            with pytest.raises(RuntimeError, match="UVW coordinates contain unreasonable values"):
                 validate_uvw_precision("/fake/ms/path", tolerance_lambda=0.1)
 
     def test_all_zero_uvw_coordinates_fail(self):
@@ -245,9 +223,7 @@ class TestUVWPrecisionValidation:
         def mock_table(path, readonly=True):
             if "SPECTRAL_WINDOW" in path:
                 ctx = MockTableContext(mock_data["spectral_window"])
-                ctx.mock_table.getcol.return_value = mock_data["spectral_window"][
-                    "CHAN_FREQ"
-                ]
+                ctx.mock_table.getcol.return_value = mock_data["spectral_window"]["CHAN_FREQ"]
             else:
                 ctx = MockTableContext(mock_data["main_table"])
                 ctx.mock_table.getcol.return_value = mock_data["main_table"]["UVW"]
@@ -302,12 +278,9 @@ class TestAntennaPositionValidation:
         }[key]
 
         with patch("dsa110_contimg.conversion.helpers.table", side_effect=mock_table):
-            with patch(
-                "dsa110_contimg.conversion.helpers.get_itrf", return_value=mock_ref_df
-            ):
+            with patch("dsa110_contimg.conversion.helpers.get_itrf", return_value=mock_ref_df):
                 # Should not raise exception
-                validate_antenna_positions(
-                    "/fake/ms/path", position_tolerance_m=0.05)
+                validate_antenna_positions("/fake/ms/path", position_tolerance_m=0.05)
 
     def test_excessive_antenna_position_errors_fail(self):
         """Test that excessive antenna position errors fail validation."""
@@ -347,15 +320,9 @@ class TestAntennaPositionValidation:
         }[key]
 
         with patch("dsa110_contimg.conversion.helpers.table", side_effect=mock_table):
-            with patch(
-                "dsa110_contimg.conversion.helpers.get_itrf", return_value=mock_ref_df
-            ):
-                with pytest.raises(
-                    RuntimeError, match="Antenna position errors exceed tolerance"
-                ):
-                    validate_antenna_positions(
-                        "/fake/ms/path", position_tolerance_m=0.05
-                    )
+            with patch("dsa110_contimg.conversion.helpers.get_itrf", return_value=mock_ref_df):
+                with pytest.raises(RuntimeError, match="Antenna position errors exceed tolerance"):
+                    validate_antenna_positions("/fake/ms/path", position_tolerance_m=0.05)
 
 
 class TestModelDataQualityValidation:
@@ -384,9 +351,7 @@ class TestModelDataQualityValidation:
 
         with patch("dsa110_contimg.conversion.helpers.table", side_effect=mock_table):
             # Should not raise exception
-            validate_model_data_quality(
-                "/fake/ms/path", min_flux_jy=0.1, max_flux_jy=1000.0
-            )
+            validate_model_data_quality("/fake/ms/path", min_flux_jy=0.1, max_flux_jy=1000.0)
 
     def test_weak_model_data_fails(self):
         """Test that weak MODEL_DATA fails validation."""
@@ -500,8 +465,7 @@ class TestReferenceAntennaStability:
                 "dsa110_contimg.conversion.helpers.os.path.join",
                 return_value="/fake/antenna",
             ):
-                best_ant = validate_reference_antenna_stability(
-                    "/fake/ms/path")
+                best_ant = validate_reference_antenna_stability("/fake/ms/path")
 
                 # Should select ea01 or ea02 (not ea03 which is heavily flagged)
                 assert best_ant in ["ea01", "ea02"]
@@ -519,8 +483,7 @@ class TestCasaFileHandleCleanup:
         mock_casa_tasks = MagicMock()
 
         with patch.dict(
-            "sys.modules", {"casatools": mock_casa_tools,
-                            "casatasks": mock_casa_tasks}
+            "sys.modules", {"casatools": mock_casa_tools, "casatasks": mock_casa_tasks}
         ):
             with patch("dsa110_contimg.conversion.helpers.gc.collect") as mock_gc:
                 cleanup_casa_file_handles()
@@ -554,9 +517,7 @@ class TestValidationIntegration:
         def mock_table_raises(path, readonly=True):
             raise Exception("Mock exception")
 
-        with patch(
-            "dsa110_contimg.conversion.helpers.table", side_effect=mock_table_raises
-        ):
+        with patch("dsa110_contimg.conversion.helpers.table", side_effect=mock_table_raises):
             # Functions should either raise RuntimeError or handle exceptions gracefully
 
             with pytest.raises((RuntimeError, Exception)):

@@ -63,20 +63,20 @@ def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -
             if nonzero_fraction < min_fraction:
                 raise RuntimeError(
                     f"CORRECTED_DATA appears unpopulated in MS: {ms_path}. "
-                    f"Only {nonzero_fraction*100:.1f}% of unflagged data is non-zero "
-                    f"(minimum {min_fraction*100:.1f}% required). "
+                    f"Only {nonzero_fraction * 100:.1f}% of unflagged data is non-zero "
+                    f"(minimum {min_fraction * 100:.1f}% required). "
                     f"Calibration may not have been applied successfully."
                 )
 
             print(
-                f"✓ Verified CORRECTED_DATA populated: {nonzero_fraction*100:.1f}% "
+                f"✓ Verified CORRECTED_DATA populated: {nonzero_fraction * 100:.1f}% "
                 f"non-zero ({nonzero_count}/{len(unflagged)} unflagged samples)"
             )
     except RuntimeError:
         raise
     except Exception as e:
         raise RuntimeError(
-            f"Failed to verify CORRECTED_DATA population in MS: {ms_path}. " f"Error: {e}"
+            f"Failed to verify CORRECTED_DATA population in MS: {ms_path}. Error: {e}"
         ) from e
 
 

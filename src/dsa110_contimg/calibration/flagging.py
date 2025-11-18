@@ -788,7 +788,7 @@ def analyze_channel_flagging_stats(ms_path: str, threshold: float = 0.5) -> Dict
                     problematic_channels[int(spw)] = problematic
                     logger.debug(
                         f"SPW {spw}: {len(problematic)}/{len(channel_flagging)} channels "
-                        f"above {threshold*100:.1f}% flagging threshold"
+                        f"above {threshold * 100:.1f}% flagging threshold"
                     )
 
     except Exception as e:

@@ -11,7 +11,7 @@ import logging
 import os
 import sqlite3
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -305,7 +305,7 @@ def validate_tiles_consistency(
 
     cache = get_cache()
     print(
-        f"[DEBUG] validate_tiles_consistency: Cache obtained",
+        "[DEBUG] validate_tiles_consistency: Cache obtained",
         file=sys.stderr,
         flush=True,
     )
@@ -314,7 +314,7 @@ def validate_tiles_consistency(
 
     # Batch database query for all tiles
     print(
-        f"[DEBUG] validate_tiles_consistency: Starting database query",
+        "[DEBUG] validate_tiles_consistency: Starting database query",
         file=sys.stderr,
         flush=True,
     )
@@ -361,7 +361,7 @@ def validate_tiles_consistency(
     # Validate each tile
     for i, tile in enumerate(tiles):
         print(
-            f"[DEBUG] validate_tiles_consistency: Validating tile {i+1}/{len(tiles)}: {Path(tile).name}",
+            f"[DEBUG] validate_tiles_consistency: Validating tile {i + 1}/{len(tiles)}: {Path(tile).name}",
             file=sys.stderr,
             flush=True,
         )
@@ -531,8 +531,8 @@ def validate_tiles_consistency(
             if maj_diff > 0.2 or min_diff > 0.2:
                 all_issues.append(
                     f"Tile {tile} has unusual synthesized beam: "
-                    f"major={info['major']:.2f}\" (median: {median_major:.2f}\"), "
-                    f"minor={info['minor']:.2f}\" (median: {median_minor:.2f}\")"
+                    f'major={info["major"]:.2f}" (median: {median_major:.2f}"), '
+                    f'minor={info["minor"]:.2f}" (median: {median_minor:.2f}")'
                 )
 
     return len(all_issues) == 0, all_issues, metrics_dict
@@ -1193,7 +1193,7 @@ def check_primary_beam_consistency(
             if freq_range > 0.05:  # 50 MHz
                 issues.append(
                     f"Large frequency spread across tiles: "
-                    f"{freq_range*1000:.1f} MHz (median: {freq_median:.3f} GHz). "
+                    f"{freq_range * 1000:.1f} MHz (median: {freq_median:.3f} GHz). "
                     f"Frequency-dependent PB variations may cause flux errors."
                 )
 

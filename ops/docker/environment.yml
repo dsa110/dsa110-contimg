@@ -25,6 +25,7 @@ dependencies:
   - fastapi
   - uvicorn
   - click
+  - requests
   - pip:
       - typing-extensions
       - uncertainties

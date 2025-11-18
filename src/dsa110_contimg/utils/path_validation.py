@@ -5,7 +5,6 @@ This module provides utilities to validate and sanitize file paths to prevent
 path traversal attacks and ensure paths are within allowed directories.
 """
 
-import os
 from pathlib import Path
 from typing import Optional, Union
 

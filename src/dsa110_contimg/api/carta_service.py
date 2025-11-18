@@ -221,7 +221,10 @@ class CARTAServiceManager:
                             "message": "CARTA container started (was already created)",
                             "method": "docker",
                         }
-                return {"success": False, "message": f"Failed to create container: {error_msg}"}
+                return {
+                    "success": False,
+                    "message": f"Failed to create container: {error_msg}",
+                }
 
         except subprocess.TimeoutExpired:
             return {"success": False, "message": "Timeout creating CARTA container"}

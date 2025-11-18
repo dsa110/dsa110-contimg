@@ -60,7 +60,13 @@ def temp_db():
         (data_type, data_id, status, stage_path, created_at)
         VALUES (?, ?, ?, ?, ?)
         """,
-        ("mosaic", "mosaic_staging_001", "staging", "/stage/mosaics/mosaic_001.fits", now),
+        (
+            "mosaic",
+            "mosaic_staging_001",
+            "staging",
+            "/stage/mosaics/mosaic_001.fits",
+            now,
+        ),
     )
 
     conn.execute(

@@ -1,6 +1,5 @@
 """Tests for template-free synthetic UVH5 generation."""
 
-import tempfile
 from pathlib import Path
 
 import pytest

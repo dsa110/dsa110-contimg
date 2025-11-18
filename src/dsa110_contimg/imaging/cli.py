@@ -8,64 +8,30 @@ Performs primary-beam correction and exports FITS products.
 Supports hybrid workflow: CASA ft() for model seeding + WSClean for fast imaging.
 """
 
-from dsa110_contimg.utils.validation import (
-    validate_ms,
-    validate_corrected_data_quality,
-    ValidationError,
-)
-from dsa110_contimg.utils.cli_helpers import (
-    setup_casa_environment,
-    add_common_logging_args,
-    configure_logging_from_args,
-    ensure_scratch_dirs,
-)
-from .cli_imaging import image_ms, run_wsclean as _run_wsclean
-from .cli_utils import (
-    detect_datacolumn as _detect_datacolumn,
-    default_cell_arcsec as _default_cell_arcsec,
-)
-
 # Initialize CASA environment before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
-
-ensure_casa_path()
-
-from casatasks import tclean, exportfits  # type: ignore[import]
-import casacore.tables as casatables  # type: ignore[import]
-
-table = casatables.table  # noqa: N816
-import numpy as np
-import argparse
-import logging
-import os
-import shutil
-import subprocess
-import sys
-import time
-from typing import Optional
-
-import numpy as np
-import casacore.tables as casatables  # type: ignore[import]
-
-table = casatables.table  # noqa: N816
-from casatasks import exportfits, tclean  # type: ignore[import]
-
 from dsa110_contimg.utils.cli_helpers import (
-    add_common_logging_args,
     configure_logging_from_args,
     ensure_scratch_dirs,
     setup_casa_environment,
-)
-from dsa110_contimg.utils.validation import (
-    ValidationError,
-    validate_corrected_data_quality,
-    validate_ms,
 )
 
 from .cli_imaging import image_ms
-from .cli_imaging import run_wsclean as _run_wsclean
-from .cli_utils import default_cell_arcsec as _default_cell_arcsec
-from .cli_utils import detect_datacolumn as _detect_datacolumn
+
+ensure_casa_path()
+
+import casacore.tables as casatables  # type: ignore[import]
+
+table = casatables.table  # noqa: N816
+import argparse
+import logging
+import os
+from typing import Optional
+
+import casacore.tables as casatables  # type: ignore[import]
+
+table = casatables.table  # noqa: N816
+
 
 logger = logging.getLogger(__name__)
 
@@ -104,8 +70,6 @@ except Exception:  # pragma: no cover - defensive import
 
 
 def main(argv: Optional[list] = None) -> None:
-    from dsa110_contimg.utils.runtime_safeguards import validate_image_shape
-
     parser = argparse.ArgumentParser(description="DSA-110 Imaging CLI")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
@@ -125,9 +89,7 @@ def main(argv: Optional[list] = None) -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     img_parser.add_argument("--ms", required=True, help="Path to input MS")
-    img_parser.add_argument(
-        "--imagename", required=True, help="Output image name prefix"
-    )
+    img_parser.add_argument("--imagename", required=True, help="Output image name prefix")
     img_parser.add_argument("--field", default="", help="Field selection")
     img_parser.add_argument("--spw", default="", help="SPW selection")
     img_parser.add_argument("--imsize", type=int, default=1024)
@@ -185,7 +147,7 @@ def main(argv: Optional[list] = None) -> None:
         "--wprojplanes",
         type=int,
         default=0,
-        help=("Number of w-projection planes when gridder=wproject " "(-1 for auto)"),
+        help=("Number of w-projection planes when gridder=wproject (-1 for auto)"),
     )
     img_parser.add_argument(
         "--uvrange",
@@ -278,44 +240,26 @@ def main(argv: Optional[list] = None) -> None:
 
     # export subcommand
     exp_parser = sub.add_parser("export", help="Export CASA images to FITS and PNG")
-    exp_parser.add_argument(
-        "--source", required=True, help="Directory containing CASA images"
-    )
+    exp_parser.add_argument("--source", required=True, help="Directory containing CASA images")
     exp_parser.add_argument("--prefix", required=True, help="Prefix of image set")
-    exp_parser.add_argument(
-        "--make-fits", action="store_true", help="Export FITS from CASA images"
-    )
-    exp_parser.add_argument(
-        "--make-png", action="store_true", help="Convert FITS to PNGs"
-    )
+    exp_parser.add_argument("--make-fits", action="store_true", help="Export FITS from CASA images")
+    exp_parser.add_argument("--make-png", action="store_true", help="Convert FITS to PNGs")
 
     # create-nvss-mask subcommand
-    mask_parser = sub.add_parser(
-        "create-nvss-mask", help="Create CRTF mask around NVSS sources"
-    )
-    mask_parser.add_argument(
-        "--image", required=True, help="CASA-exported FITS image path"
-    )
-    mask_parser.add_argument(
-        "--min-mjy", type=float, default=1.0, help="Minimum NVSS flux (mJy)"
-    )
+    mask_parser = sub.add_parser("create-nvss-mask", help="Create CRTF mask around NVSS sources")
+    mask_parser.add_argument("--image", required=True, help="CASA-exported FITS image path")
+    mask_parser.add_argument("--min-mjy", type=float, default=1.0, help="Minimum NVSS flux (mJy)")
     mask_parser.add_argument(
         "--radius-arcsec", type=float, default=6.0, help="Mask circle radius (arcsec)"
     )
-    mask_parser.add_argument(
-        "--out", help="Output CRTF path (defaults to <image>.nvss_mask.crtf)"
-    )
+    mask_parser.add_argument("--out", help="Output CRTF path (defaults to <image>.nvss_mask.crtf)")
 
     # create-nvss-overlay subcommand
     overlay_parser = sub.add_parser(
         "create-nvss-overlay", help="Overlay NVSS sources on FITS image"
     )
-    overlay_parser.add_argument(
-        "--image", required=True, help="Input FITS image (CASA export)"
-    )
-    overlay_parser.add_argument(
-        "--pb", help="Primary beam FITS to mask detections (optional)"
-    )
+    overlay_parser.add_argument("--image", required=True, help="Input FITS image (CASA export)")
+    overlay_parser.add_argument("--pb", help="Primary beam FITS to mask detections (optional)")
     overlay_parser.add_argument(
         "--pblimit", type=float, default=0.2, help="PB cutoff when --pb is provided"
     )
@@ -331,9 +275,7 @@ def main(argv: Optional[list] = None) -> None:
         if not os.path.exists(args.ms):
             raise FileNotFoundError(f"MS file not found: {args.ms}")
     if hasattr(args, "imagename") and args.imagename:
-        output_dir = (
-            os.path.dirname(args.imagename) if os.path.dirname(args.imagename) else "."
-        )
+        output_dir = os.path.dirname(args.imagename) if os.path.dirname(args.imagename) else "."
         if not os.path.exists(output_dir):
             raise ValueError(f"Output directory does not exist: {output_dir}")
 

@@ -12,7 +12,7 @@ import time
 from pathlib import Path
 from typing import Dict, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 router = APIRouter()
 
@@ -37,7 +37,10 @@ def _check_disk_space(path: Path, min_free_gb: float = 1.0) -> tuple[bool, Optio
         stat = shutil.disk_usage(path)
         free_gb = stat.free / (1024**3)
         if free_gb < min_free_gb:
-            return False, f"Insufficient disk space: {free_gb:.2f} GB free (need {min_free_gb} GB)"
+            return (
+                False,
+                f"Insufficient disk space: {free_gb:.2f} GB free (need {min_free_gb} GB)",
+            )
         return True, None
     except Exception as e:
         return False, f"Cannot check disk space: {e}"
@@ -91,7 +94,11 @@ def _check_casa_wrapper_config() -> tuple[bool, Optional[str], Optional[Dict[str
                             expected_path = expected_path.strip("\"'")
                             break
             except Exception as e:
-                return False, f"Error reading contimg.env: {e}", {"error_type": "file_read"}
+                return (
+                    False,
+                    f"Error reading contimg.env: {e}",
+                    {"error_type": "file_read"},
+                )
 
     if not expected_path:
         return True, None, {"note": "CONTIMG_CASA_WRAPPER not configured"}
@@ -111,7 +118,11 @@ def _check_casa_wrapper_config() -> tuple[bool, Optional[str], Optional[Dict[str
             {"expected": str(expected_path), "executable": False},
         )
 
-    return True, None, {"expected": str(expected_path), "exists": True, "executable": True}
+    return (
+        True,
+        None,
+        {"expected": str(expected_path), "exists": True, "executable": True},
+    )
 
 
 @router.get("/health/liveness")
@@ -151,7 +162,6 @@ def readiness_check():
     if not healthy:
         all_healthy = False
 
-    status_code = 200 if all_healthy else 503
     return {
         "status": "ready" if all_healthy else "not_ready",
         "checks": checks,
@@ -174,13 +184,25 @@ def detailed_health_check():
 
     # Database checks
     healthy, error = _check_products_database()
-    checks["products_database"] = {"healthy": healthy, "error": error, "type": "database"}
+    checks["products_database"] = {
+        "healthy": healthy,
+        "error": error,
+        "type": "database",
+    }
 
     healthy, error = _check_calibration_registry()
-    checks["calibration_registry"] = {"healthy": healthy, "error": error, "type": "database"}
+    checks["calibration_registry"] = {
+        "healthy": healthy,
+        "error": error,
+        "type": "database",
+    }
 
     healthy, error = _check_master_sources_database()
-    checks["master_sources_database"] = {"healthy": healthy, "error": error, "type": "database"}
+    checks["master_sources_database"] = {
+        "healthy": healthy,
+        "error": error,
+        "type": "database",
+    }
 
     # Disk space check
     data_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/stage/dsa110-contimg"))
@@ -212,7 +234,11 @@ def detailed_health_check():
             "type": "resource",
         }
     except ImportError:
-        checks["memory"] = {"healthy": True, "error": "psutil not available", "type": "resource"}
+        checks["memory"] = {
+            "healthy": True,
+            "error": "psutil not available",
+            "type": "resource",
+        }
 
     all_healthy = all(c["healthy"] for c in checks.values())
 
@@ -261,7 +287,10 @@ def ese_detection_health():
         except Exception as e:
             checks["table_check"] = {"healthy": False, "error": str(e)}
     else:
-        checks["table_check"] = {"healthy": False, "error": "Products database not found"}
+        checks["table_check"] = {
+            "healthy": False,
+            "error": "Products database not found",
+        }
 
     all_healthy = all(c.get("healthy", False) for c in checks.values())
 

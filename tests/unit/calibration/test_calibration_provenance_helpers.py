@@ -41,7 +41,6 @@ def test_get_casa_version_handles_list_format():
     mock_module.version.return_value = [6, 7, 2, 32]
 
     # Patch the import inside the function
-    import sys
 
     original_import = __import__
 

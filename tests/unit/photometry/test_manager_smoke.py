@@ -4,8 +4,7 @@ Quick validation that all components work together end-to-end.
 Focus: Fast execution, minimal setup, core functionality.
 """
 
-from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pytest

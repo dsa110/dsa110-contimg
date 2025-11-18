@@ -2,17 +2,17 @@
 Unit tests for photometry validation module.
 """
 
-import pytest
 from unittest.mock import Mock, patch
-from pathlib import Path
 
+import pytest
+
+from dsa110_contimg.qa.base import ValidationInputError
+from dsa110_contimg.qa.config import PhotometryConfig
 from dsa110_contimg.qa.photometry_validation import (
     PhotometryValidationResult,
     validate_forced_photometry,
     validate_photometry_consistency,
 )
-from dsa110_contimg.qa.base import ValidationInputError
-from dsa110_contimg.qa.config import PhotometryConfig, get_default_config
 
 
 class TestPhotometryValidationResult:
@@ -134,9 +134,7 @@ class TestValidateForcedPhotometry:
             {"ra": 0.0, "dec": 0.0, "flux": 0.95, "flux_err": 0.05},  # Close match
         ]
 
-        config = PhotometryConfig(
-            max_flux_error_fraction=0.1, max_position_offset_arcsec=1.0
-        )
+        config = PhotometryConfig(max_flux_error_fraction=0.1, max_position_offset_arcsec=1.0)
 
         result = validate_forced_photometry(
             image_path=str(image_path),

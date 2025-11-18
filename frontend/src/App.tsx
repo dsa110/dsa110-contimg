@@ -19,29 +19,33 @@ import { registerServiceWorker } from "./utils/serviceWorker";
 
 // Lazy load all page components for code splitting
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+// Merged pages - consolidated functionality
+const PipelineControlPage = lazy(() => import("./pages/PipelineControlPage"));
+const PipelineOperationsPage = lazy(() => import("./pages/PipelineOperationsPage"));
+const SystemDiagnosticsPage = lazy(() => import("./pages/SystemDiagnosticsPage"));
+const QAPage = lazy(() => import("./pages/QAPage"));
+
+// Component pages (used within consolidated pages, not as standalone routes)
 const ControlPage = lazy(() => import("./pages/ControlPage"));
+const StreamingPage = lazy(() => import("./pages/StreamingPage"));
+const ObservingPage = lazy(() => import("./pages/ObservingPage"));
+const HealthPage = lazy(() => import("./pages/HealthPage"));
+const CachePage = lazy(() => import("./pages/CachePage"));
+
+// Other pages
 const MosaicGalleryPage = lazy(() => import("./pages/MosaicGalleryPage"));
 const MosaicViewPage = lazy(() => import("./pages/MosaicViewPage"));
 const SourceMonitoringPage = lazy(() => import("./pages/SourceMonitoringPage"));
 const SourceDetailPage = lazy(() => import("./pages/SourceDetailPage"));
 const ImageDetailPage = lazy(() => import("./pages/ImageDetailPage"));
 const SkyViewPage = lazy(() => import("./pages/SkyViewPage"));
-const StreamingPage = lazy(() => import("./pages/StreamingPage"));
 const DataBrowserPage = lazy(() => import("./pages/DataBrowserPage"));
 const DataDetailPage = lazy(() => import("./pages/DataDetailPage"));
-const QAVisualizationPage = lazy(() => import("./pages/QAVisualizationPage"));
-const QACartaPage = lazy(() => import("./pages/QACartaPage"));
 const CARTAPage = lazy(() => import("./pages/CARTAPage"));
-const ObservingPage = lazy(() => import("./pages/ObservingPage"));
-const HealthPage = lazy(() => import("./pages/HealthPage"));
-const OperationsPage = lazy(() => import("./pages/OperationsPage"));
 const PipelinePage = lazy(() => import("./pages/PipelinePage"));
 const EventsPage = lazy(() => import("./pages/EventsPage"));
-const CachePage = lazy(() => import("./pages/CachePage"));
 const DataLineagePage = lazy(() => import("./pages/DataLineagePage"));
 const CalibrationWorkflowPage = lazy(() => import("./pages/CalibrationWorkflowPage"));
-// MSBrowserPage functionality merged into ControlPage - kept for backward compatibility
-// const MSBrowserPage = lazy(() => import("./pages/MSBrowserPage"));
 const ErrorAnalyticsPage = lazy(() => import("./pages/ErrorAnalyticsPage"));
 
 // Loading fallback component
@@ -236,33 +240,47 @@ function AppContent() {
                                 path="/system-diagnostics"
                                 element={<Navigate to="/health" replace />}
                               />
-                              <Route path="/control" element={<ControlPage />} />
+                              {/* Consolidated pages - primary routes */}
+                              <Route path="/control" element={<PipelineControlPage />} />
+                              <Route path="/operations" element={<PipelineOperationsPage />} />
+                              <Route path="/health" element={<SystemDiagnosticsPage />} />
+                              <Route path="/qa" element={<QAPage />} />
+
+                              {/* Redirects - old routes to consolidated pages */}
+                              <Route
+                                path="/streaming"
+                                element={<Navigate to="/control?tab=1" replace />}
+                              />
+                              <Route
+                                path="/observing"
+                                element={<Navigate to="/control?tab=2" replace />}
+                              />
+                              <Route
+                                path="/cache"
+                                element={<Navigate to="/health?tab=3" replace />}
+                              />
+                              <Route path="/qa/carta" element={<Navigate to="/qa" replace />} />
+                              <Route
+                                path="/ms-browser"
+                                element={<Navigate to="/control" replace />}
+                              />
+
+                              {/* Other pages */}
                               <Route path="/mosaics" element={<MosaicGalleryPage />} />
                               <Route path="/mosaics/:mosaicId" element={<MosaicViewPage />} />
                               <Route path="/sources" element={<SourceMonitoringPage />} />
                               <Route path="/sources/:sourceId" element={<SourceDetailPage />} />
                               <Route path="/images/:imageId" element={<ImageDetailPage />} />
                               <Route path="/sky" element={<SkyViewPage />} />
-                              <Route path="/streaming" element={<StreamingPage />} />
                               <Route path="/data" element={<DataBrowserPage />} />
                               <Route path="/data/:type/:id" element={<DataDetailPage />} />
-                              <Route path="/qa" element={<QAVisualizationPage />} />
-                              <Route path="/qa/carta" element={<QACartaPage />} />
                               <Route path="/carta" element={<CARTAPage />} />
-                              <Route path="/observing" element={<ObservingPage />} />
-                              <Route path="/health" element={<HealthPage />} />
-                              <Route path="/operations" element={<OperationsPage />} />
                               <Route path="/error-analytics" element={<ErrorAnalyticsPage />} />
                               <Route path="/pipeline" element={<PipelinePage />} />
                               <Route path="/events" element={<EventsPage />} />
-                              <Route path="/cache" element={<CachePage />} />
                               {/* Domain-specific pages */}
                               <Route path="/lineage/:id" element={<DataLineagePage />} />
                               <Route path="/calibration" element={<CalibrationWorkflowPage />} />
-                              <Route
-                                path="/ms-browser"
-                                element={<Navigate to="/control" replace />}
-                              />
                             </Routes>
                           </Suspense>
                         </ErrorBoundary>

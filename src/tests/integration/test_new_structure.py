@@ -5,7 +5,6 @@ import sys
 from pathlib import Path
 
 from dsa110_contimg.database.data_config import (
-    DATA_BASE,
     STAGE_BASE,
     get_calibrated_ms_dir,
     get_calibration_tables_dir,

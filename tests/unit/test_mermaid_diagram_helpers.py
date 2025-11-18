@@ -15,9 +15,8 @@ Run with: pytest tests/unit/test_mermaid_diagram_helpers.py -v
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Union
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
-import pytest
 import yaml
 
 # Copy helper functions from test_mermaid_diagrams.py to avoid import issues
@@ -210,14 +209,8 @@ class TestToUrl:
 
     def test_standard_markdown_path(self):
         """Test converting standard markdown paths to URLs."""
-        assert (
-            _to_url("concepts/architecture.md")
-            == "http://127.0.0.1:8001/concepts/architecture/"
-        )
-        assert (
-            _to_url("how-to/quickstart.md")
-            == "http://127.0.0.1:8001/how-to/quickstart/"
-        )
+        assert _to_url("concepts/architecture.md") == "http://127.0.0.1:8001/concepts/architecture/"
+        assert _to_url("how-to/quickstart.md") == "http://127.0.0.1:8001/how-to/quickstart/"
 
     def test_paths_with_docs_prefix(self):
         """Test paths that start with docs/ prefix."""
@@ -314,9 +307,7 @@ nav:
   - Concepts: concepts/architecture.md
 """
         mock_path = MagicMock()
-        mock_path.open.return_value.__enter__.return_value.read.return_value = (
-            yaml_content
-        )
+        mock_path.open.return_value.__enter__.return_value.read.return_value = yaml_content
         mock_path.open.return_value.__exit__ = lambda *args: None
         mock_path_class.return_value.resolve.return_value.parents = [MagicMock()] * 3
         mock_path_class.return_value.resolve.return_value.parents[2] = MagicMock()

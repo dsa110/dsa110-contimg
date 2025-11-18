@@ -2,22 +2,16 @@
 """Calibrate subcommand handler."""
 
 import argparse
-import glob
-import json
 import logging
 import os
-import shutil
 import sys
 import time
-from typing import List
 
 from dsa110_contimg.calibration.performance import (
     estimate_memory_requirements,
     optimize_memory_usage,
 )
-from dsa110_contimg.utils.cli_helpers import configure_logging_from_args
 from dsa110_contimg.utils.error_context import (
-    format_error_with_context,
     format_ms_error_with_suggestions,
 )
 from dsa110_contimg.utils.performance import track_performance
@@ -27,29 +21,25 @@ from dsa110_contimg.utils.validation import (
     validate_ms_for_calibration,
 )
 
-from .calibration import solve_bandpass, solve_delay, solve_gains, solve_prebandpass_phase
+from .calibration import (
+    solve_bandpass,
+    solve_delay,
+    solve_gains,
+    solve_prebandpass_phase,
+)
 from .cli_utils import clear_all_calibration_artifacts as _clear_all_calibration_artifacts
 from .cli_utils import rephase_ms_to_calibrator as _rephase_ms_to_calibrator
 from .diagnostics import generate_calibration_diagnostics
 from .flagging import (
     analyze_channel_flagging_stats,
-    flag_antenna,
-    flag_baselines,
-    flag_clip,
-    flag_elevation,
-    flag_extend,
-    flag_manual,
     flag_problematic_channels,
-    flag_quack,
     flag_rfi,
-    flag_shadow,
-    flag_summary,
     flag_zeros,
     reset_flags,
 )
 from .model_validation import comprehensive_model_data_validation
 from .plotting import generate_bandpass_plots, generate_gain_plots
-from .selection import select_bandpass_fields, select_bandpass_from_catalog
+from .selection import select_bandpass_from_catalog
 
 # Ensure headless operation before any CASA imports
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -164,7 +154,7 @@ def add_calibrate_parser(
         "--bp-min-pb",
         type=float,
         default=None,
-        help=("Primary-beam gain threshold [0-1] to auto-size field window " "around peak"),
+        help=("Primary-beam gain threshold [0-1] to auto-size field window around peak"),
     )
     parser.add_argument(
         "--bp-combine-field",
@@ -432,7 +422,7 @@ def add_calibrate_parser(
     parser.add_argument(
         "--no-flagging",
         action="store_true",
-        help=("Disable pre-solve flagging to avoid crashes on nonstandard " "polarizations"),
+        help=("Disable pre-solve flagging to avoid crashes on nonstandard polarizations"),
     )
     parser.add_argument(
         "--prebp-solint",
@@ -924,7 +914,9 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             else:
                 # Auto-resolve to SQLite database (preferred) or CSV fallback
                 try:
-                    from dsa110_contimg.calibration.catalogs import resolve_vla_catalog_path
+                    from dsa110_contimg.calibration.catalogs import (
+                        resolve_vla_catalog_path,
+                    )
 
                     catalog_path = str(resolve_vla_catalog_path(prefer_sqlite=True))
                     logger.info(f"Auto-resolved catalog to: {catalog_path}")
@@ -1008,7 +1000,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                     with table(f"{args.ms}::FIELD", readonly=True) as tb:
                         nfields = tb.nrows()
                     # Update field_sel to use all fields (0~N-1) for maximum integration time
-                    field_sel = f"0~{nfields-1}"
+                    field_sel = f"0~{nfields - 1}"
                     peak_field_idx = peak_field  # Keep peak field for reference
                     logger.debug(
                         f"Updated field selection to all {nfields} fields after rephasing: {field_sel}"
@@ -1033,7 +1025,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 ms_was_rephased = True
         except Exception as e:
             logger.warning(f"Auto field selection failed ({e}); falling back to --field")
-            print(("Auto field selection failed ({}); falling back to " "--field").format(e))
+            print(("Auto field selection failed ({}); falling back to --field").format(e))
             if field_sel is None:
                 logger.error("No --field provided and auto selection failed")
                 sys.exit(1)
@@ -1318,7 +1310,9 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             current_unflagged = validate_ms_unflagged_fraction(ms_in, sample_size=10000)
             # Estimate after flagging (conservative: 10-20% reduction)
             estimated_unflagged = current_unflagged * 0.85
-            logger.info(f"Estimated unflagged data after flagging: {estimated_unflagged*100:.1f}%")
+            logger.info(
+                f"Estimated unflagged data after flagging: {estimated_unflagged * 100:.1f}%"
+            )
             if estimated_unflagged < 0.1:
                 logger.warning("WARNING: May have insufficient unflagged data after flagging")
         except Exception as e:
@@ -1399,19 +1393,19 @@ def handle_calibrate(args: argparse.Namespace) -> int:
 
             if unflagged_fraction < 0.1:  # Less than 10% unflagged
                 logger.error(
-                    f"Insufficient unflagged data after flagging: {unflagged_fraction*100:.1f}%. "
+                    f"Insufficient unflagged data after flagging: {unflagged_fraction * 100:.1f}%. "
                     f"Calibration requires at least 10% unflagged data. "
                     f"Consider adjusting flagging parameters or checking data quality."
                 )
                 sys.exit(1)
             elif unflagged_fraction < 0.3:  # Less than 30% unflagged
                 print(
-                    f"Warning: Only {unflagged_fraction*100:.1f}% of data remains unflagged "
+                    f"Warning: Only {unflagged_fraction * 100:.1f}% of data remains unflagged "
                     f"after flagging. Calibration may be less reliable."
                 )
             else:
                 logger.info(
-                    f"✓ [2/6] Flagging complete: {unflagged_fraction*100:.1f}% data remains unflagged "
+                    f"✓ [2/6] Flagging complete: {unflagged_fraction * 100:.1f}% data remains unflagged "
                     f"({unflagged_points:,}/{total_points:,} points, estimated)"
                 )
 
@@ -1632,7 +1626,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             dec=ms_dec_deg * u.deg,  # pylint: disable=no-member
                         )
                         cal_coord = SkyCoord(
-                            ra=ra_deg * u.deg, dec=dec_deg * u.deg  # pylint: disable=no-member
+                            ra=ra_deg * u.deg,
+                            dec=dec_deg * u.deg,  # pylint: disable=no-member
                         )
                         sep_arcmin = (
                             ms_coord.separation(cal_coord)
@@ -1983,7 +1978,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                         and args.cal_ra_deg
                         and args.cal_dec_deg
                     ):
-                        logger.info(f"Using explicit calibrator coordinates for catalog model")
+                        logger.info("Using explicit calibrator coordinates for catalog model")
                         ra_deg = float(args.cal_ra_deg)
                         dec_deg = float(args.cal_dec_deg)
                         flux_jy = float(getattr(args, "cal_flux_jy", None) or 2.5)
@@ -2065,20 +2060,17 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                         and args.cal_ra_deg
                         and args.cal_dec_deg
                     ):
-                        print(
-                            f"Attempting to use manual calculation with calibrator coordinates..."
-                        )
+                        print("Attempting to use manual calculation with calibrator coordinates...")
                         # Get flux from setjy first, then use manual calculation
                         try:
                             import casacore.tables as casatables
 
                             table = casatables.table
-                            from casatasks import setjy as casa_setjy
 
                             # Call setjy with usescratch=False to get flux without populating MODEL_DATA
                             # Actually, setjy always populates MODEL_DATA, so we need a different approach
                             # Instead, let's read the flux from the standard catalog
-                            print(f"Using calibrator flux from standard catalog...")
+                            print("Using calibrator flux from standard catalog...")
 
                             # Use manual calculation with provided coordinates
                             # We need flux - try to get it from standard catalog or use default
@@ -2100,7 +2092,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             )
                         except Exception as e:
                             logger.warning(f"Failed to use manual calculation for setjy: {e}")
-                            print(f"Falling back to setjy (may have phase center issues)...")
+                            print("Falling back to setjy (may have phase center issues)...")
                             model_helpers.write_setjy_model(
                                 args.ms,
                                 field=args.model_field,
@@ -2109,7 +2101,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             )
                     else:
                         print(
-                            f"No calibrator coordinates available - falling back to setjy (may have phase issues)"
+                            "No calibrator coordinates available - falling back to setjy (may have phase issues)"
                         )
                         model_helpers.write_setjy_model(
                             args.ms,
@@ -2237,7 +2229,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             skip_slow=args.k_fast_only,
         )
         elapsed_k = time.perf_counter() - t_k0
-        logger.info(f"✓ [{step_num-1}/6] K-calibration completed in {elapsed_k:.2f}s")
+        logger.info(f"✓ [{step_num - 1}/6] K-calibration completed in {elapsed_k:.2f}s")
 
     # Flag autocorrelations before any solves unless disabled
     if not args.no_flagging and not getattr(args, "no_flag_autocorr", False):
@@ -2275,7 +2267,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             logger.info(
                 f"✓ [{step_num}/6] Pre-bandpass phase solve completed in {elapsed_prebp:.2f}s"
             )
-        except Exception as e:
+        except Exception:
             logger.warning("Pre-bandpass phase solve failed: {e}")
             logger.info("Continuing with bandpass solve without pre-bandpass phase correction...")
 
@@ -2329,7 +2321,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 )
 
                 _bp_metrics = validate_caltable_quality(bptabs[0])
-                print(f"Bandpass flagged solutions: {_bp_metrics.fraction_flagged*100:.1f}%")
+                print(f"Bandpass flagged solutions: {_bp_metrics.fraction_flagged * 100:.1f}%")
 
                 # Generate bandpass plots if requested
                 if getattr(args, "plot_bandpass", True) and bptabs:
@@ -2384,8 +2376,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
 
                         for stats in sorted(spw_stats, key=lambda x: x.spw_id):
                             status = "⚠ PROBLEMATIC" if stats.is_problematic else "✓ OK"
-                            flagged_str = f"{stats.fraction_flagged*100:>5.1f}% ({stats.flagged_solutions}/{stats.total_solutions})"
-                            avg_str = f"{stats.avg_flagged_per_channel*100:>5.1f}%"
+                            flagged_str = f"{stats.fraction_flagged * 100:>5.1f}% ({stats.flagged_solutions}/{stats.total_solutions})"
+                            avg_str = f"{stats.avg_flagged_per_channel * 100:>5.1f}%"
                             channels_str = f"{stats.channels_with_high_flagging}/{stats.n_channels}"
                             print(
                                 f"{stats.spw_id:<6} "
@@ -2401,8 +2393,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             print("=" * 70)
                             for stats in problematic_spws:
                                 logger.warning(
-                                    f"SPW {stats.spw_id}: {stats.fraction_flagged*100:.1f}% flagged "
-                                    f"(avg {stats.avg_flagged_per_channel*100:.1f}% per channel, "
+                                    f"SPW {stats.spw_id}: {stats.fraction_flagged * 100:.1f}% flagged "
+                                    f"(avg {stats.avg_flagged_per_channel * 100:.1f}% per channel, "
                                     f"{stats.channels_with_high_flagging}/{stats.n_channels} channels with >50% flagging). "
                                     f"Note: Per-channel flagging is preferred. Flag entire SPW only as last resort."
                                 )
@@ -2625,13 +2617,13 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         sys.exit(1)
 
     tabs = (ktabs[:1] if ktabs else []) + bptabs + gtabs
-    logger.info(f"[6/6] Calibration complete!")
+    logger.info("[6/6] Calibration complete!")
     logger.info("=" * 70)
     logger.info("Generated calibration tables:")
     for tab in tabs:
         logger.info(f"  - {tab}")
     total_time = time.time() - start_time
-    logger.info(f"Total calibration time: {total_time:.1f}s ({total_time/60:.1f} min)")
+    logger.info(f"Total calibration time: {total_time:.1f}s ({total_time / 60:.1f} min)")
     logger.info("=" * 70)
 
     # Validate expected calibration tables exist
@@ -2639,7 +2631,9 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         try:
             from pathlib import Path
 
-            from dsa110_contimg.calibration.caltable_paths import validate_caltables_exist
+            from dsa110_contimg.calibration.caltable_paths import (
+                validate_caltables_exist,
+            )
 
             # Determine caltable directory (same as MS directory by default)
             caltable_dir = Path(ms_in).parent
@@ -2669,7 +2663,10 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             import re
             from pathlib import Path
 
-            from dsa110_contimg.database.registry import ensure_db, register_set_from_prefix
+            from dsa110_contimg.database.registry import (
+                ensure_db,
+                register_set_from_prefix,
+            )
             from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
             # Determine registry DB path (same logic as apply_service)

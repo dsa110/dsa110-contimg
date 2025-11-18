@@ -12,12 +12,9 @@ can cause:
 - Data incompatibility with other CASA workflows
 """
 
-import os
 import sys
 from pathlib import Path
-from typing import Dict, List
 
-import numpy as np
 import pytest
 
 # Add src to path
@@ -43,9 +40,7 @@ class TestCASATableStructure:
         # "SNR" - Signal-to-noise ratio
         # "SOLINT" - Solution interval
 
-        assert (
-            len(required_columns) == 6
-        ), "Bandpass table must have 6 required CASA columns"
+        assert len(required_columns) == 6, "Bandpass table must have 6 required CASA columns"
 
     def test_gain_table_has_required_columns(self):
         """Gain table must have all required CASA columns."""
@@ -57,9 +52,7 @@ class TestCASATableStructure:
             "FLAG",  # Solution flags
         ]
 
-        assert (
-            len(required_columns) == 5
-        ), "Gain table must have 5 required CASA columns"
+        assert len(required_columns) == 5, "Gain table must have 5 required CASA columns"
 
     def test_cparam_shape_is_correct(self):
         """CPARAM column shape must match CASA standards."""
@@ -111,9 +104,7 @@ class TestCASACalibrationTaskParameters:
         # solnorm=False: No normalization (incorrect flux scale)
 
         use_solnorm = True
-        assert (
-            use_solnorm is True
-        ), "Bandpass task must use solnorm=True for correct flux scale"
+        assert use_solnorm is True, "Bandpass task must use solnorm=True for correct flux scale"
 
     def test_gaincal_uses_correct_calmode(self):
         """Gain calibration must use correct calmode."""
@@ -169,9 +160,7 @@ class TestCASAFieldStandards:
         # Otherwise calibration will fail
 
         max_separation_arcmin = 1.0
-        assert (
-            max_separation_arcmin < 60.0
-        ), "Field phase center must match source within 1 arcmin"
+        assert max_separation_arcmin < 60.0, "Field phase center must match source within 1 arcmin"
 
 
 class TestCASACalibrationApplication:
@@ -183,11 +172,8 @@ class TestCASACalibrationApplication:
         # Wrong order produces incorrect calibration
 
         correct_order = ["K", "BP", "G"]  # If K exists
-        no_k_order = ["BP", "G"]  # If K skipped
 
-        assert (
-            len(correct_order) >= 2
-        ), "Calibration tables must be applied in correct order"
+        assert len(correct_order) >= 2, "Calibration tables must be applied in correct order"
 
     def test_applycal_uses_correct_parameters(self):
         """applycal must use correct parameters for CASA standards."""
@@ -195,9 +181,7 @@ class TestCASACalibrationApplication:
         # interp='linear': Linear interpolation between solutions
 
         use_calwt = True
-        assert (
-            use_calwt is True
-        ), "applycal must use calwt=True for correct weight handling"
+        assert use_calwt is True, "applycal must use calwt=True for correct weight handling"
 
 
 if __name__ == "__main__":

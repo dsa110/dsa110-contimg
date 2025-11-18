@@ -1,34 +1,65 @@
-import { useState } from "react";
-import { Container, Typography, Box, Alert, Stack } from "@mui/material";
+import React, { useState } from "react";
+import {
+  Container,
+  Typography,
+  Box,
+  Alert,
+  Stack,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Chip,
+  Skeleton,
+} from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { usePipelineStatus, useSystemMetrics } from "../api/queries";
+import { usePipelineStatus, useSystemMetrics, useHealthSummary } from "../api/queries";
+import { useNavigate } from "react-router-dom";
 import ESECandidatesPanel from "../components/ESECandidatesPanel";
 import PointingVisualization from "../components/PointingVisualization";
 import { env } from "../config/env";
 import { StatusIndicator } from "../components/StatusIndicator";
-import { MetricCard } from "../components/MetricCard";
 import { MetricWithSparkline } from "../components/Sparkline";
 import { SkeletonLoader } from "../components/SkeletonLoader";
 import CollapsibleSection from "../components/CollapsibleSection";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
 import QueueDetailsPanel from "../components/QueueDetailsPanel";
 import { useMetricHistory } from "../hooks/useMetricHistory";
+import { QueueOverviewCard } from "../components/QueueOverviewCard";
+import { DeadLetterQueueStats } from "../components/DeadLetterQueue";
+import { CircuitBreakerStatus } from "../components/CircuitBreaker";
+import { PointingSummaryCard } from "../components/PointingSummaryCard";
 
 type QueueStatusType = "total" | "pending" | "in_progress" | "completed" | "failed" | "collecting";
+type HealthCheckRecord = Record<string, { healthy: boolean; error?: string }>;
 
 export default function DashboardPage() {
   const { data: status, isLoading: statusLoading, error: statusError } = usePipelineStatus();
   const { data: metrics, isLoading: metricsLoading, error: metricsError } = useSystemMetrics();
+  const { data: healthSummary, isLoading: healthSummaryLoading } = useHealthSummary();
+  const navigate = useNavigate();
   const [selectedQueueStatus, setSelectedQueueStatus] = useState<QueueStatusType>("in_progress");
+
+  const healthChecks = (healthSummary?.checks as HealthCheckRecord | undefined) ?? undefined;
+  const healthSummaryTimestampValue = (healthSummary as { timestamp?: number } | undefined)
+    ?.timestamp;
+  const healthSummaryTimestamp =
+    typeof healthSummaryTimestampValue === "number"
+      ? new Date(healthSummaryTimestampValue * 1000)
+      : undefined;
 
   // Track metric history for sparklines
   const cpuHistory = useMetricHistory(metrics?.cpu_percent ?? undefined);
   const memHistory = useMetricHistory(metrics?.mem_percent ?? undefined);
-  const diskHistory = useMetricHistory(
-    metrics?.disk_total && metrics?.disk_used
-      ? (metrics.disk_used / metrics.disk_total) * 100
-      : undefined
-  );
+
+  // Use new disks array format (supports multiple mount points)
+  // Track history for all available disks
+  // Note: / (SSD) is the root filesystem which includes /stage directory
+  const ssdDisk = metrics?.disks?.find((d) => d.mount_point.startsWith("/ (SSD)"));
+  const hddDisk = metrics?.disks?.find((d) => d.mount_point.startsWith("/data/"));
+  const ssdDiskHistory = useMetricHistory(ssdDisk?.percent ?? undefined);
+  const hddDiskHistory = useMetricHistory(hddDisk?.percent ?? undefined);
+
   const loadHistory = useMetricHistory(metrics?.load_1 ?? undefined);
 
   if (statusLoading || metricsLoading) {
@@ -69,131 +100,13 @@ export default function DashboardPage() {
           <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
             <CollapsibleSection title="Pipeline Status" defaultExpanded={true} variant="outlined">
               <Box sx={{ mt: 2 }}>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Queue Statistics
-                </Typography>
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)" },
-                    gap: 2,
-                  }}
-                >
-                  <Box
-                    onClick={() => setSelectedQueueStatus("total")}
-                    sx={{
-                      cursor: "pointer",
-                      "&:hover": { opacity: 0.8, transform: "translateY(-2px)" },
-                      transition: "all 0.2s ease-in-out",
-                      border: selectedQueueStatus === "total" ? 2 : 0,
-                      borderColor: "primary.main",
-                      borderRadius: 1,
-                      p: selectedQueueStatus === "total" ? 0.5 : 0,
-                    }}
-                  >
-                    <MetricCard
-                      label="Total"
-                      value={status?.queue?.total || 0}
-                      color="primary"
-                      size="small"
-                    />
-                  </Box>
-                  <Box
-                    onClick={() => setSelectedQueueStatus("pending")}
-                    sx={{
-                      cursor: "pointer",
-                      "&:hover": { opacity: 0.8, transform: "translateY(-2px)" },
-                      transition: "all 0.2s ease-in-out",
-                      border: selectedQueueStatus === "pending" ? 2 : 0,
-                      borderColor: "info.main",
-                      borderRadius: 1,
-                      p: selectedQueueStatus === "pending" ? 0.5 : 0,
-                    }}
-                  >
-                    <MetricCard
-                      label="Pending"
-                      value={status?.queue?.pending || 0}
-                      color="info"
-                      size="small"
-                    />
-                  </Box>
-                  <Box
-                    onClick={() => setSelectedQueueStatus("in_progress")}
-                    sx={{
-                      cursor: "pointer",
-                      "&:hover": { opacity: 0.8, transform: "translateY(-2px)" },
-                      transition: "all 0.2s ease-in-out",
-                      border: selectedQueueStatus === "in_progress" ? 2 : 0,
-                      borderColor: "warning.main",
-                      borderRadius: 1,
-                      p: selectedQueueStatus === "in_progress" ? 0.5 : 0,
-                    }}
-                  >
-                    <MetricCard
-                      label="In Progress"
-                      value={status?.queue?.in_progress || 0}
-                      color="warning"
-                      size="small"
-                    />
-                  </Box>
-                  <Box
-                    onClick={() => setSelectedQueueStatus("completed")}
-                    sx={{
-                      cursor: "pointer",
-                      "&:hover": { opacity: 0.8, transform: "translateY(-2px)" },
-                      transition: "all 0.2s ease-in-out",
-                      border: selectedQueueStatus === "completed" ? 2 : 0,
-                      borderColor: "success.main",
-                      borderRadius: 1,
-                      p: selectedQueueStatus === "completed" ? 0.5 : 0,
-                    }}
-                  >
-                    <MetricCard
-                      label="Completed"
-                      value={status?.queue?.completed || 0}
-                      color="success"
-                      size="small"
-                    />
-                  </Box>
-                  <Box
-                    onClick={() => setSelectedQueueStatus("failed")}
-                    sx={{
-                      cursor: "pointer",
-                      "&:hover": { opacity: 0.8, transform: "translateY(-2px)" },
-                      transition: "all 0.2s ease-in-out",
-                      border: selectedQueueStatus === "failed" ? 2 : 0,
-                      borderColor: "error.main",
-                      borderRadius: 1,
-                      p: selectedQueueStatus === "failed" ? 0.5 : 0,
-                    }}
-                  >
-                    <MetricCard
-                      label="Failed"
-                      value={status?.queue?.failed || 0}
-                      color="error"
-                      size="small"
-                    />
-                  </Box>
-                  <Box
-                    onClick={() => setSelectedQueueStatus("collecting")}
-                    sx={{
-                      cursor: "pointer",
-                      "&:hover": { opacity: 0.8, transform: "translateY(-2px)" },
-                      transition: "all 0.2s ease-in-out",
-                      border: selectedQueueStatus === "collecting" ? 2 : 0,
-                      borderColor: "info.main",
-                      borderRadius: 1,
-                      p: selectedQueueStatus === "collecting" ? 0.5 : 0,
-                    }}
-                  >
-                    <MetricCard
-                      label="Collecting"
-                      value={status?.queue?.collecting || 0}
-                      color="info"
-                      size="small"
-                    />
-                  </Box>
-                </Box>
+                <QueueOverviewCard
+                  queue={status?.queue}
+                  selectedStatus={selectedQueueStatus}
+                  onSelectStatus={setSelectedQueueStatus}
+                  helperText="Select a queue state to filter the details panel."
+                  variant="inline"
+                />
 
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
                   Calibration Sets
@@ -244,22 +157,34 @@ export default function DashboardPage() {
                       }
                     />
                   )}
-                  {metrics?.disk_total &&
-                    metrics?.disk_used &&
-                    typeof metrics.disk_total === "number" &&
-                    typeof metrics.disk_used === "number" &&
-                    metrics.disk_total > 0 && (
-                      <StatusIndicator
-                        value={(metrics.disk_used / metrics.disk_total) * 100}
-                        thresholds={{ good: 75, warning: 90 }}
-                        label="Disk"
-                        size="medium"
-                        showTrend={diskHistory.length > 1}
-                        previousValue={
-                          diskHistory.length > 1 ? diskHistory[diskHistory.length - 2] : undefined
-                        }
-                      />
-                    )}
+                  {ssdDisk && typeof ssdDisk.percent === "number" && (
+                    <StatusIndicator
+                      value={ssdDisk.percent}
+                      thresholds={{ good: 75, warning: 90 }}
+                      label="SSD (root)"
+                      size="medium"
+                      showTrend={ssdDiskHistory.length > 1}
+                      previousValue={
+                        ssdDiskHistory.length > 1
+                          ? ssdDiskHistory[ssdDiskHistory.length - 2]
+                          : undefined
+                      }
+                    />
+                  )}
+                  {hddDisk && typeof hddDisk.percent === "number" && (
+                    <StatusIndicator
+                      value={hddDisk.percent}
+                      thresholds={{ good: 75, warning: 90 }}
+                      label="HDD (/data/)"
+                      size="medium"
+                      showTrend={hddDiskHistory.length > 1}
+                      previousValue={
+                        hddDiskHistory.length > 1
+                          ? hddDiskHistory[hddDiskHistory.length - 2]
+                          : undefined
+                      }
+                    />
+                  )}
                   {metrics?.load_1 != null && typeof metrics.load_1 === "number" && (
                     <MetricWithSparkline
                       label="Load (1m)"
@@ -279,6 +204,105 @@ export default function DashboardPage() {
               </Box>
             </CollapsibleSection>
           </Stack>
+
+          {/* Diagnostics & Alerts */}
+          <CollapsibleSection
+            title="Diagnostics & Alerts"
+            defaultExpanded={true}
+            variant="outlined"
+          >
+            <Stack spacing={3} sx={{ mt: 2 }}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" },
+                  gap: 3,
+                }}
+              >
+                <QueueOverviewCard
+                  queue={status?.queue}
+                  title="Queue Snapshot"
+                  helperText="Monitor pipeline throughput at a glance."
+                />
+                <PointingSummaryCard />
+              </Box>
+
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" },
+                  gap: 3,
+                }}
+              >
+                <DeadLetterQueueStats />
+                <Card>
+                  <CardHeader
+                    title="Health Checks"
+                    subheader={
+                      healthSummaryTimestamp
+                        ? `Updated ${healthSummaryTimestamp.toLocaleString()}`
+                        : undefined
+                    }
+                    action={
+                      <Button size="small" onClick={() => navigate("/health")}>
+                        Open Health Page
+                      </Button>
+                    }
+                  />
+                  <CardContent>
+                    {healthSummaryLoading && <Skeleton variant="rectangular" height={96} />}
+                    {!healthSummaryLoading &&
+                      healthChecks &&
+                      Object.keys(healthChecks).length > 0 && (
+                        <Stack spacing={1.5}>
+                          {Object.entries(healthChecks).map(([name, check]) => (
+                            <Stack
+                              key={name}
+                              direction="row"
+                              spacing={2}
+                              alignItems="center"
+                              flexWrap="wrap"
+                            >
+                              <Chip
+                                label={check.healthy ? "Healthy" : "Investigate"}
+                                color={check.healthy ? "success" : "error"}
+                                size="small"
+                              />
+                              <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
+                                {name.replace(/_/g, " ")}
+                              </Typography>
+                              {!check.healthy && check.error && (
+                                <Typography variant="body2" color="text.secondary">
+                                  {check.error}
+                                </Typography>
+                              )}
+                            </Stack>
+                          ))}
+                        </Stack>
+                      )}
+                    {!healthSummaryLoading &&
+                      (!healthChecks || Object.keys(healthChecks).length === 0) && (
+                        <Typography variant="body2" color="text.secondary">
+                          Health summary data is not available right now.
+                        </Typography>
+                      )}
+                  </CardContent>
+                </Card>
+              </Box>
+
+              <Box>
+                <CircuitBreakerStatus />
+              </Box>
+
+              <ESECandidatesPanel />
+
+              <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                <Button variant="outlined" onClick={() => navigate("/health")}>
+                  View detailed diagnostics
+                </Button>
+              </Box>
+            </Stack>
+          </CollapsibleSection>
 
           {/* Recent Observations */}
           <CollapsibleSection title="Recent Observations" defaultExpanded={true} variant="outlined">
@@ -359,9 +383,6 @@ export default function DashboardPage() {
           >
             <PointingVisualization height={500} showHistory={true} />
           </CollapsibleSection>
-
-          {/* ESE Candidates Panel */}
-          <ESECandidatesPanel />
 
           {/* Status Summary */}
           <Alert severity="success">

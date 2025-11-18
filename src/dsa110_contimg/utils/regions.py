@@ -4,7 +4,6 @@ Region management utilities for DSA-110 pipeline.
 Supports CASA and DS9 region formats, coordinate transformations, and region-based statistics.
 """
 
-import json
 import logging
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -369,9 +368,7 @@ def create_region_mask(
             # Fallback to center
             import logging
 
-            logging.warning(
-                f"Could not convert WCS coordinates: {e}, using image center"
-            )
+            logging.warning(f"Could not convert WCS coordinates: {e}, using image center")
             x, y = nx // 2, ny // 2
     else:
         # Fallback to center
@@ -379,24 +376,14 @@ def create_region_mask(
 
     # Create mask based on region type
     if region.type == "circle":
-        radius_pix = (
-            region.coordinates.get("radius_deg", 0.01)
-            * 3600.0
-            / get_pixel_scale(header)
-        )
+        radius_pix = region.coordinates.get("radius_deg", 0.01) * 3600.0 / get_pixel_scale(header)
         y_coords, x_coords = np.ogrid[:ny, :nx]
         mask = (x_coords - x) ** 2 + (y_coords - y) ** 2 <= radius_pix**2
 
     elif region.type == "rectangle":
-        width_pix = (
-            region.coordinates.get("width_deg", 0.01) * 3600.0 / get_pixel_scale(header)
-        )
-        height_pix = (
-            region.coordinates.get("height_deg", 0.01)
-            * 3600.0
-            / get_pixel_scale(header)
-        )
-        angle = region.coordinates.get("angle_deg", 0.0)
+        width_pix = region.coordinates.get("width_deg", 0.01) * 3600.0 / get_pixel_scale(header)
+        height_pix = region.coordinates.get("height_deg", 0.01) * 3600.0 / get_pixel_scale(header)
+        region.coordinates.get("angle_deg", 0.0)
 
         # Simple rectangular mask (ignoring rotation for now)
         x_min = max(0, int(x - width_pix / 2))

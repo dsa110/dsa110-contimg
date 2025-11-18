@@ -369,7 +369,6 @@ def _get_aegean_command() -> List[str]:
     Prefers command-line script as it's the standard installation method.
     """
     import os
-    import sys
 
     # Try command-line script in ~/.local/bin (pip install --user)
     try:

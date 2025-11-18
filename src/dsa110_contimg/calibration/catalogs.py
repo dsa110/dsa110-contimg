@@ -304,10 +304,13 @@ def read_first_catalog(
 
             # Query FIRST catalog from Vizier
             # FIRST catalog name in Vizier: "VIII/92/first14"
+            # Note: Vizier.query_catalog() doesn't exist - use cached file instead
             print("Querying FIRST catalog via Vizier...")
-            catalog_list = Vizier.query_catalog("VIII/92/first14")  # pylint: disable=no-member
+            # Skip Vizier query for now - use cached file instead
+            # To query via Vizier, use: Vizier.query_region() with appropriate coordinates
+            catalog_list = None
 
-            if catalog_list:
+            if catalog_list and len(catalog_list) > 0:
                 # Convert first catalog to DataFrame
                 df = catalog_list[0].to_pandas()
                 print(f"Downloaded {len(df)} sources from FIRST via Vizier")
@@ -426,7 +429,7 @@ def read_vla_calibrator_catalog(path: str, cache_dir: Optional[str] = None) -> p
     records = []
     with open(path, encoding="utf-8") as f:
         # Skip the first 3 lines if they are header text (as in many files)
-        header_peek = [f.readline() for _ in range(3)]
+        [f.readline() for _ in range(3)]
         # Continue reading entries
         while True:
             line = f.readline()
@@ -455,7 +458,7 @@ def read_vla_calibrator_catalog(path: str, cache_dir: Optional[str] = None) -> p
             code_20_cm = None
             # Read frequency block until blank
             while True:
-                pos = f.tell()
+                f.tell()
                 fl = f.readline()
                 if (not fl) or fl.isspace():
                     break
@@ -552,7 +555,9 @@ def load_vla_catalog_from_sqlite(db_path: str) -> pd.DataFrame:
             df = pd.read_sql_query("SELECT name, ra_deg, dec_deg FROM calibrators", conn)
             df["flux_jy"] = None
 
-        df = df.set_index("name")
+        # Rename 'name' to 'source_name' for consistency
+        if "name" in df.columns:
+            df = df.rename(columns={"name": "source_name"})
         return df
     finally:
         conn.close()
@@ -648,7 +653,9 @@ def read_vla_parsed_catalog_with_flux(path: str, band: str = "20cm") -> pd.DataF
             # Try degrees
             try:
                 sc = SkyCoord(
-                    float(ra) * u.deg, float(dec) * u.deg, frame="icrs"  # pylint: disable=no-member
+                    float(ra) * u.deg,
+                    float(dec) * u.deg,
+                    frame="icrs",  # pylint: disable=no-member
                 )
                 ra_deg = float(sc.ra.deg)
                 dec_deg = float(sc.dec.deg)
@@ -709,7 +716,11 @@ def nearest_calibrator_within_radius(
     if sel.empty:
         return None
     row = sel.sort_values("sep").iloc[0]
-    name = str(row.name)
+    # Get name from source_name column if available, otherwise use index
+    if "source_name" in row.index:
+        name = str(row["source_name"])
+    else:
+        name = str(row.name)
     return (
         name,
         float(row["ra_deg"]),
@@ -993,9 +1004,6 @@ def query_nvss_sources(
     This function requires SQLite databases for optimal performance (~170× faster than CSV).
     CSV fallback is available but disabled by default. Set use_csv_fallback=True to enable.
 
-    When NVSS is used, this function also checks for FIRST and RACS databases and warns
-    if they are missing but should exist (within coverage limits).
-
     Args:
         ra_deg: Field center RA in degrees
         dec_deg: Field center Dec in degrees
@@ -1012,16 +1020,6 @@ def query_nvss_sources(
     import sqlite3
 
     logger = logging.getLogger(__name__)
-
-    # Check for missing FIRST and RACS databases when NVSS is used
-    # Auto-build if missing (helps during pipeline debugging)
-    from dsa110_contimg.catalog.builders import check_missing_catalog_databases
-
-    missing_dbs = check_missing_catalog_databases(
-        dec_deg,
-        logger_instance=logger,
-        auto_build=True,  # Auto-build missing databases
-    )
 
     # Try SQLite first (much faster)
     db_path = None
@@ -1089,7 +1087,9 @@ def query_nvss_sources(
                         dec_str = nvss_file.stem.replace("nvss_dec", "").replace("+", "")
                         file_dec = float(dec_str)
                         diff = abs(file_dec - float(dec_deg))
-                        if diff < best_diff and diff <= 1.0:  # Within 1 degree tolerance
+                        if (
+                            diff < best_diff and diff <= 6.0
+                        ):  # Within 6 degree tolerance (databases cover ±6°)
                             best_diff = diff
                             best_match = nvss_file
                     except (ValueError, AttributeError):
@@ -1130,7 +1130,7 @@ def query_nvss_sources(
                 query = f"""
                 SELECT ra_deg, dec_deg, flux_mjy
                 FROM sources
-                WHERE {' AND '.join(where_clauses)}
+                WHERE {" AND ".join(where_clauses)}
                 ORDER BY flux_mjy DESC
                 """
 
@@ -1193,7 +1193,9 @@ def query_nvss_sources(
                     frame="icrs",
                 )
                 center = SkyCoord(
-                    ra_deg * u.deg, dec_deg * u.deg, frame="icrs"  # pylint: disable=no-member
+                    ra_deg * u.deg,
+                    dec_deg * u.deg,
+                    frame="icrs",  # pylint: disable=no-member
                 )  # pylint: disable=no-member
                 sep = sc.separation(center).deg
 
@@ -1352,7 +1354,7 @@ def query_rax_sources(
                 query = f"""
                 SELECT ra_deg, dec_deg, flux_mjy
                 FROM sources
-                WHERE {' AND '.join(where_clauses)}
+                WHERE {" AND ".join(where_clauses)}
                 ORDER BY flux_mjy DESC
                 """
 
@@ -1414,7 +1416,14 @@ def query_rax_sources(
                 RAX_CANDIDATES = {
                     "ra": ["ra", "ra_deg", "raj2000", "ra_hms"],
                     "dec": ["dec", "dec_deg", "dej2000", "dec_dms"],
-                    "flux": ["flux", "flux_mjy", "flux_jy", "peak_flux", "fpeak", "s1.4"],
+                    "flux": [
+                        "flux",
+                        "flux_mjy",
+                        "flux_jy",
+                        "peak_flux",
+                        "fpeak",
+                        "s1.4",
+                    ],
                 }
                 col_map = _normalize_columns(df_full, RAX_CANDIDATES)
 
@@ -1431,7 +1440,9 @@ def query_rax_sources(
                     frame="icrs",
                 )  # pylint: disable=no-member
                 center = SkyCoord(
-                    ra_deg * u.deg, dec_deg * u.deg, frame="icrs"  # pylint: disable=no-member
+                    ra_deg * u.deg,
+                    dec_deg * u.deg,
+                    frame="icrs",  # pylint: disable=no-member
                 )  # pylint: disable=no-member
                 sep = sc.separation(center).deg
 
@@ -1597,7 +1608,7 @@ def query_vlass_sources(
                 query = f"""
                 SELECT ra_deg, dec_deg, flux_mjy
                 FROM sources
-                WHERE {' AND '.join(where_clauses)}
+                WHERE {" AND ".join(where_clauses)}
                 ORDER BY flux_mjy DESC
                 """
 
@@ -1683,7 +1694,13 @@ def query_vlass_sources(
                 VLASS_CANDIDATES = {
                     "ra": ["ra", "ra_deg", "raj2000"],
                     "dec": ["dec", "dec_deg", "dej2000"],
-                    "flux": ["peak_flux", "peak_mjy_per_beam", "flux_peak", "flux", "total_flux"],
+                    "flux": [
+                        "peak_flux",
+                        "peak_mjy_per_beam",
+                        "flux_peak",
+                        "flux",
+                        "total_flux",
+                    ],
                 }
                 col_map = _normalize_columns(df_full, VLASS_CANDIDATES)
 
@@ -1700,7 +1717,9 @@ def query_vlass_sources(
                     frame="icrs",
                 )  # pylint: disable=no-member
                 center = SkyCoord(
-                    ra_deg * u.deg, dec_deg * u.deg, frame="icrs"  # pylint: disable=no-member
+                    ra_deg * u.deg,
+                    dec_deg * u.deg,
+                    frame="icrs",  # pylint: disable=no-member
                 )  # pylint: disable=no-member
                 sep = sc.separation(center).deg
 

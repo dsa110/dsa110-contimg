@@ -7,8 +7,7 @@ from __future__ import annotations
 
 import sqlite3
 from datetime import datetime, timezone
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -552,7 +551,6 @@ class TestFetchPointingHistory:
     def test_fetch_pointing_history_success(self, mock_queue_db):
         """Test successful pointing history retrieval."""
         # Skip scanning /data/incoming/ (which has 80k+ files) via environment variable
-        import os
 
         # Need to convert timestamp to MJD for query
         from astropy.time import Time
@@ -735,7 +733,6 @@ class TestFetchObservationTimeline:
 
     def test_fetch_observation_timeline_custom_gap_threshold(self, tmp_path):
         """Test observation timeline with custom gap threshold."""
-        from datetime import datetime
 
         data_dir = tmp_path / "custom_gap"
         data_dir.mkdir()

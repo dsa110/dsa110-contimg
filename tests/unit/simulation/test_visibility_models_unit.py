@@ -8,7 +8,6 @@ Tests focus on:
 """
 
 import numpy as np
-import pytest
 
 from dsa110_contimg.simulation.visibility_models import (
     add_calibration_errors,
@@ -451,7 +450,7 @@ class TestEdgeCases:
         # Zero bandwidth should give infinite or very large noise
         # But function should not crash
         try:
-            noisy = add_thermal_noise(vis, 10.0, 0.0, 50.0)
+            add_thermal_noise(vis, 10.0, 0.0, 50.0)
             # If it doesn't crash, that's fine
         except (ZeroDivisionError, ValueError):
             # Expected for zero bandwidth

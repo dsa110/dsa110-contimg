@@ -2,17 +2,15 @@
 Unit tests for fast validation module.
 """
 
-import pytest
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch
 
-from dsa110_contimg.qa.config import FastValidationConfig, QAConfig, get_default_config
+from dsa110_contimg.qa.config import get_default_config
 from dsa110_contimg.qa.fast_validation import (
     TieredValidationResult,
-    validate_pipeline_fast,
     _run_tier1_validation,
     _run_tier2_validation,
     _run_tier3_validation,
+    validate_pipeline_fast,
 )
 
 
@@ -99,9 +97,7 @@ class TestTier2Validation:
     @patch("dsa110_contimg.qa.fast_validation._check_ms_quality_fast")
     @patch("dsa110_contimg.qa.fast_validation._check_calibration_quality_fast")
     @patch("dsa110_contimg.qa.fast_validation._check_image_quality_fast")
-    def test_tier2_validation_parallel(
-        self, mock_img_check, mock_cal_check, mock_ms_check
-    ):
+    def test_tier2_validation_parallel(self, mock_img_check, mock_cal_check, mock_ms_check):
         """Test Tier2 validation runs checks in parallel."""
         mock_ms_check.return_value = {"passed": True}
         mock_cal_check.return_value = {"passed": True}

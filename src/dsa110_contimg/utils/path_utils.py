@@ -4,13 +4,11 @@ This module provides utilities for working with the new stage-based
 directory structure while maintaining backward compatibility.
 """
 
-import os
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional
 
 from dsa110_contimg.database.data_config import (
-    STAGE_BASE,
     get_calibrated_ms_dir,
     get_raw_ms_dir,
     get_workspace_active_dir,

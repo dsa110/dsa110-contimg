@@ -4,15 +4,16 @@ from __future__ import annotations
 
 import asyncio
 import json
-from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 import pytest_asyncio
 
-from dsa110_contimg.api.websocket_manager import (ConnectionManager,
-                                                  create_status_update,
-                                                  event_generator, manager)
+from dsa110_contimg.api.websocket_manager import (
+    ConnectionManager,
+    create_status_update,
+    event_generator,
+    manager,
+)
 
 
 class MockWebSocket:
@@ -269,7 +270,9 @@ class TestCreateStatusUpdate:
         ese_candidates = {"count": 5}
 
         update = create_status_update(
-            pipeline_status=pipeline_status, metrics=metrics, ese_candidates=ese_candidates
+            pipeline_status=pipeline_status,
+            metrics=metrics,
+            ese_candidates=ese_candidates,
         )
 
         assert update["type"] == "status_update"
@@ -283,7 +286,6 @@ class TestGlobalManager:
 
     def test_manager_instance(self):
         """Test that global manager exists and is a ConnectionManager."""
-        from dsa110_contimg.api.websocket_manager import manager
 
         assert manager is not None
         assert isinstance(manager, ConnectionManager)

@@ -23,21 +23,22 @@ import numpy as np
 from astropy.time import Time  # type: ignore[import]
 from pyuvdata import UVData  # type: ignore[import]
 
-from dsa110_contimg.conversion.helpers import (cleanup_casa_file_handles,
-                                               get_meridian_coords,
-                                               phase_to_meridian,
-                                               set_model_column,
-                                               set_telescope_identity,
-                                               validate_antenna_positions,
-                                               validate_model_data_quality,
-                                               validate_ms_frequency_order,
-                                               validate_phase_center_coherence,
-                                               validate_uvw_precision)
+from dsa110_contimg.conversion.helpers import (
+    cleanup_casa_file_handles,
+    get_meridian_coords,
+    phase_to_meridian,
+    set_model_column,
+    set_telescope_identity,
+    validate_antenna_positions,
+    validate_model_data_quality,
+    validate_ms_frequency_order,
+    validate_phase_center_coherence,
+    validate_uvw_precision,
+)
 from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
 from dsa110_contimg.qa.pipeline_quality import check_ms_after_conversion
 from dsa110_contimg.utils.cli_helpers import ensure_scratch_dirs
-from dsa110_contimg.utils.error_context import \
-  format_file_error_with_suggestions
+from dsa110_contimg.utils.error_context import format_file_error_with_suggestions
 from dsa110_contimg.utils.exceptions import ConversionError, ValidationError
 from dsa110_contimg.utils.performance import track_performance
 
@@ -202,11 +203,11 @@ def find_subband_groups(
 
         from dsa110_contimg.database.hdf5_index import query_subband_groups
 
-        products_db = Path(_os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
-        if products_db.exists():
+        hdf5_db = Path(_os.getenv("HDF5_DB_PATH", "state/hdf5.sqlite3"))
+        if hdf5_db.exists():
             # Use database query with consistent clustering tolerance
             groups = query_subband_groups(
-                products_db,
+                hdf5_db,
                 start_time,
                 end_time,
                 tolerance_s=1.0,  # Small window expansion for query
@@ -553,8 +554,8 @@ def convert_subband_groups_to_ms(
     `write_ms_from_subbands()` directly with an explicit file list.
 
     Args:
-        input_dir: Directory containing UVH5 subband files
-        output_dir: Directory where MS files will be written
+        input_dir: Directory containing UVH5 subband files (NOT input_hdf5_dir)
+        output_dir: Directory where MS files will be written (NOT output_ms_dir)
         start_time: Start time in ISO format (e.g., "2025-10-29T13:53:00")
         end_time: End time in ISO format (must be after start_time)
         flux: Optional flux value for model population
@@ -567,6 +568,10 @@ def convert_subband_groups_to_ms(
                     If provided, MS files will be written directly to organized locations.
                     Function signature: (base_name: str, output_dir: str) -> str
                     Example: lambda name, dir: f"{dir}/science/2025-10-28/{name}.ms"
+
+    Note:
+        - No 'verbose' parameter exists (logging is controlled by logger level)
+        - Parameter names are 'input_dir' and 'output_dir', not 'input_hdf5_dir' or 'output_ms_dir'
 
     Raises:
         ValueError: If input/output directories are invalid or time range is invalid
@@ -697,7 +702,7 @@ def convert_subband_groups_to_ms(
         return
 
     # Print group filenames for visibility
-    logger.info(f"Found {len(groups)} complete subband group(s) ({len(groups)*16} total files)")
+    logger.info(f"Found {len(groups)} complete subband group(s) ({len(groups) * 16} total files)")
     for i, group in enumerate(groups, 1):
         logger.info(f"  Group {i}:")
         # Sort by subband number ONLY (0-15) to show correct spectral order
@@ -760,8 +765,7 @@ def convert_subband_groups_to_ms(
                 logger.debug(f"Stale tmpfs cleanup check failed (non-fatal): {cleanup_err}")
 
     # Add progress indicator for group processing
-    from dsa110_contimg.utils.progress import (get_progress_bar,
-                                               should_disable_progress)
+    from dsa110_contimg.utils.progress import get_progress_bar, should_disable_progress
 
     show_progress = not should_disable_progress(
         None,  # No args in this function scope - use env var
@@ -811,10 +815,87 @@ def convert_subband_groups_to_ms(
         if os.path.exists(ms_path):
             if skip_existing:
                 logger.info("MS already exists (--skip-existing), skipping: %s", ms_path)
-                continue
             else:
                 logger.info("MS already exists, skipping: %s", ms_path)
-                continue
+
+            # Register in database if not already present
+            try:
+                from pathlib import Path as PathLib
+
+                from dsa110_contimg.database.products import (
+                    ensure_products_db,
+                    ms_index_upsert,
+                )
+                from dsa110_contimg.utils.time_utils import extract_ms_time_range
+
+                # Find products database
+                products_db_path = PathLib(os.getenv("PRODUCTS_DB_PATH", "state/products.sqlite3"))
+                if not products_db_path.is_absolute():
+                    # Search in common locations
+                    for base_dir in [
+                        "/data/dsa110-contimg",
+                        "/stage/dsa110-contimg",
+                        os.getcwd(),
+                    ]:
+                        candidate = PathLib(base_dir) / products_db_path
+                        if candidate.exists():
+                            products_db_path = candidate
+                            break
+
+                if products_db_path.exists():
+                    conn = ensure_products_db(products_db_path)
+
+                    # Check if MS is already registered
+                    cursor = conn.cursor()
+                    existing = cursor.execute(
+                        "SELECT path FROM ms_index WHERE path = ?", (ms_path,)
+                    ).fetchone()
+
+                    if not existing:
+                        # Extract metadata from MS file
+                        start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path)
+
+                        # Get phase center from MS
+                        ra_deg = None
+                        dec_deg = None
+                        try:
+                            import casacore.tables as casatables
+
+                            with casatables.table(f"{ms_path}::FIELD", readonly=True) as field_tb:
+                                phase_dir = field_tb.getcol("PHASE_DIR")[
+                                    0, 0
+                                ]  # [field, poly_order, ra/dec]
+                                ra_deg = float(np.degrees(phase_dir[0]))
+                                dec_deg = float(np.degrees(phase_dir[1]))
+                        except Exception as e:
+                            logger.debug(f"Could not extract phase center from {ms_path}: {e}")
+
+                        # Register MS in database
+                        ms_index_upsert(
+                            conn,
+                            ms_path,
+                            start_mjd=start_mjd,
+                            end_mjd=end_mjd,
+                            mid_mjd=mid_mjd,
+                            status="converted",
+                            stage="converted",
+                            ra_deg=ra_deg,
+                            dec_deg=dec_deg,
+                        )
+                        conn.commit()
+                        logger.info(f"Registered existing MS in database: {ms_path}")
+                    else:
+                        logger.debug(f"MS already registered in database: {ms_path}")
+
+                    conn.close()
+                else:
+                    logger.debug(
+                        f"Products database not found at {products_db_path}, skipping registration"
+                    )
+            except Exception as e:
+                logger.warning(f"Failed to register existing MS in database: {e}")
+
+            continue
 
         # PRECONDITION CHECK: Estimate disk space requirement and verify availability
         # This ensures we follow "measure twice, cut once" - establish requirements upfront
@@ -897,8 +978,10 @@ def convert_subband_groups_to_ms(
         if selected_writer not in ("parallel-subband", "direct-subband"):
             t0 = time.perf_counter()
             # Determine if progress should be shown
-            from dsa110_contimg.utils.progress import (get_progress_bar,
-                                                       should_disable_progress)
+            from dsa110_contimg.utils.progress import (
+                get_progress_bar,
+                should_disable_progress,
+            )
 
             show_progress = not should_disable_progress(
                 None,  # No args in this function scope
@@ -1029,8 +1112,9 @@ def convert_subband_groups_to_ms(
                 # are EXPECTED to be incoherent across fields because each field tracks LST at
                 # different times. See conversion/README.md for details.
                 try:
-                    from dsa110_contimg.conversion.ms_utils import \
-                      _fix_field_phase_centers_from_times
+                    from dsa110_contimg.conversion.ms_utils import (
+                        _fix_field_phase_centers_from_times,
+                    )
 
                     _fix_field_phase_centers_from_times(ms_path)
                     logger.info("Fixed FIELD table phase centers after concatenation")
@@ -1495,8 +1579,9 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
             )
 
         try:
-            from dsa110_contimg.conversion.calibrator_ms_service import \
-              CalibratorMSGenerator
+            from dsa110_contimg.conversion.calibrator_ms_service import (
+                CalibratorMSGenerator,
+            )
             from dsa110_contimg.conversion.config import CalibratorMSConfig
 
             logger.info(f"Finding transit for calibrator: {args.calibrator}")
@@ -1538,8 +1623,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
 
                     # Calculate transit time for that specific date
                     # Use end of target date as search start, then find previous transit
-                    from dsa110_contimg.calibration.schedule import \
-                      previous_transits
+                    from dsa110_contimg.calibration.schedule import previous_transits
 
                     target_date_end = Time(f"{args.transit_date}T23:59:59")
 
@@ -1653,7 +1737,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                 logger.info("\n" + "=" * 60)
                 logger.info("FIND-ONLY MODE: Not converting to MS")
                 logger.info("=" * 60)
-                logger.info(f"\nTransit Information:")
+                logger.info("\nTransit Information:")
                 logger.info(f"  Calibrator: {args.calibrator}")
                 logger.info(f"  Transit Time: {transit_info['transit_iso']}")
                 logger.info(f"  Group ID: {transit_info['group_id']}")
@@ -1674,7 +1758,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                     sorted(transit_info.get("files", []), key=sort_key_files), 1
                 ):
                     logger.info(f"  {i:2d}. {os.path.basename(fpath)}")
-                logger.info(f"\nTime Window:")
+                logger.info("\nTime Window:")
                 logger.info(f"  Start: {start_time}")
                 logger.info(f"  End: {end_time}")
                 return 0
@@ -1702,10 +1786,10 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
         logger.info("\n" + "=" * 60)
         logger.info("FIND-ONLY MODE: Not converting to MS")
         logger.info("=" * 60)
-        logger.info(f"\nTime Window:")
+        logger.info("\nTime Window:")
         logger.info(f"  Start: {start_time}")
         logger.info(f"  End: {end_time}")
-        logger.info(f"\nTo convert, run without --find-only flag")
+        logger.info("\nTo convert, run without --find-only flag")
         return 0
 
     # Check for dry-run mode

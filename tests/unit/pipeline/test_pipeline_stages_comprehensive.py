@@ -11,23 +11,19 @@ Tests all stage implementations with focus on:
 
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 
 from dsa110_contimg.pipeline.config import (
-    CalibrationConfig,
-    ConversionConfig,
-    ImagingConfig,
     PathsConfig,
     PipelineConfig,
-    ValidationConfig,
 )
 from dsa110_contimg.pipeline.context import PipelineContext
 from dsa110_contimg.pipeline.stages_impl import (
     AdaptivePhotometryStage,
-    CalibrationStage,
     CalibrationSolveStage,
+    CalibrationStage,
     CatalogSetupStage,
     ConversionStage,
     CrossMatchStage,
@@ -57,9 +53,7 @@ class TestCatalogSetupStage:
         config = PipelineConfig(
             paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
         )
-        context = PipelineContext(
-            config=config, inputs={"input_path": "/nonexistent/file.hdf5"}
-        )
+        context = PipelineContext(config=config, inputs={"input_path": "/nonexistent/file.hdf5"})
         stage = CatalogSetupStage(config)
 
         is_valid, error_msg = stage.validate(context)
@@ -257,10 +251,7 @@ class TestCrossMatchStage:
 
         is_valid, error_msg = stage.validate(context)
         assert not is_valid
-        assert (
-            "detected sources" in error_msg.lower()
-            or "no detected sources" in error_msg.lower()
-        )
+        assert "detected sources" in error_msg.lower() or "no detected sources" in error_msg.lower()
 
     def test_get_name(self):
         """Test stage name."""

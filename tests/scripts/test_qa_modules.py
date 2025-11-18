@@ -69,13 +69,13 @@ def test_ms_quality():
     # Print key metrics
     if "data_quality" in metrics:
         dq = metrics["data_quality"]
-        print(f"\n  Data Columns:")
+        print("\n  Data Columns:")
         print(f"    DATA present: {dq.get('data_column_present', False)}")
         print(f"    MODEL_DATA present: {dq.get('model_data_present', False)}")
         print(f"    CORRECTED_DATA present: {dq.get('corrected_data_present', False)}")
-        print(f"  Data Quality:")
-        print(f"    Fraction flagged: {dq.get('fraction_flagged', 0)*100:.1f}%")
-        print(f"    Fraction zeros: {dq.get('fraction_zeros', 0)*100:.1f}%")
+        print("  Data Quality:")
+        print(f"    Fraction flagged: {dq.get('fraction_flagged', 0) * 100:.1f}%")
+        print(f"    Fraction zeros: {dq.get('fraction_zeros', 0) * 100:.1f}%")
         print(f"    Median amplitude: {dq.get('median_amplitude', 0):.3e}")
 
     if "quality" in metrics:
@@ -130,7 +130,7 @@ def test_calibration_quality():
         print(f"    Solutions: {metrics.get('n_solutions', 0)}")
 
         sol_q = metrics.get("solution_quality", {})
-        print(f"    Fraction flagged: {sol_q.get('fraction_flagged', 0)*100:.1f}%")
+        print(f"    Fraction flagged: {sol_q.get('fraction_flagged', 0) * 100:.1f}%")
         print(f"    Median amplitude: {sol_q.get('median_amplitude', 0):.3f}")
         print(f"    Phase scatter: {sol_q.get('phase_scatter_deg', 0):.1f}°")
 
@@ -189,20 +189,20 @@ def test_image_quality():
         print("✗ Image failed full validation")
 
     # Print key metrics
-    print(f"\n  Image Properties:")
+    print("\n  Image Properties:")
     print(f"    Type: {metrics.get('image_type', 'unknown')}")
     dims = metrics.get("dimensions", {})
     print(f"    Dimensions: {dims.get('nx', 0)} × {dims.get('ny', 0)} pixels")
     print(f"    Channels: {dims.get('n_channels', 0)}")
 
     pixel_stats = metrics.get("pixel_statistics", {})
-    print(f"  Pixel Statistics:")
+    print("  Pixel Statistics:")
     print(f"    Median: {pixel_stats.get('median', 0):.3e}")
     print(f"    RMS: {pixel_stats.get('rms', 0):.3e}")
     print(f"    Dynamic range: {pixel_stats.get('dynamic_range', 0):.1f}")
 
     sources = metrics.get("sources", {})
-    print(f"  Source Detection:")
+    print("  Source Detection:")
     print(f"    Peak value: {sources.get('peak_value', 0):.3e}")
     print(f"    Peak SNR: {sources.get('peak_snr', 0):.1f}")
     print(f"    Pixels >5σ: {sources.get('n_pixels_above_5sigma', 0)}")

@@ -22,7 +22,7 @@ test:
     "CMD",
     "node",
     "-e",
-    "require('http').get('http://localhost:5173', (r) =>
+    "require('http').get('http://localhost:3210', (r) =>
     process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () =>
     process.exit(1))",
   ]
@@ -31,7 +31,7 @@ test:
 To:
 
 ```yaml
-test: ["CMD", "curl", "-f", "http://localhost:5173/"]
+test: ["CMD", "curl", "-f", "http://localhost:3210/"]
 ```
 
 ## Additional Improvements

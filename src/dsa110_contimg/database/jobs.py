@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import sqlite3
 import time
-from pathlib import Path
 from typing import Any, Dict, Optional
 
 
@@ -48,9 +47,7 @@ def create_job(
     return cursor.lastrowid
 
 
-def update_job_status(
-    conn: sqlite3.Connection, job_id: int, status: str, **kwargs
-) -> None:
+def update_job_status(conn: sqlite3.Connection, job_id: int, status: str, **kwargs) -> None:
     """Update job status and optional fields (started_at, finished_at, artifacts).
 
     CRITICAL: Column names are whitelisted to prevent SQL injection.
@@ -120,9 +117,7 @@ def get_job(conn: sqlite3.Connection, job_id: int) -> Optional[Dict[str, Any]]:
     }
 
 
-def list_jobs(
-    conn: sqlite3.Connection, limit: int = 50, status: Optional[str] = None
-) -> list:
+def list_jobs(conn: sqlite3.Connection, limit: int = 50, status: Optional[str] = None) -> list:
     """List jobs with optional status filter."""
     ensure_jobs_table(conn)
 

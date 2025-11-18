@@ -1,7 +1,5 @@
 """Base page class for Page Object Model."""
 
-from typing import Optional
-
 from playwright.sync_api import Locator, Page
 
 
