@@ -274,9 +274,10 @@ def calculate_relative_flux(
     neighbor_fluxes = np.asarray(neighbor_fluxes)
     if neighbor_fluxes.ndim == 1:
         if len(neighbor_fluxes) != n_epochs:
-            neighbor_fluxes = neighbor_fluxes.reshape(n_epochs, 1)
-        else:
-            neighbor_fluxes = neighbor_fluxes.reshape(n_epochs, 1)
+            raise ValueError(
+                f"1D neighbor_fluxes length ({len(neighbor_fluxes)}) must match n_epochs ({n_epochs})"
+            )
+        neighbor_fluxes = neighbor_fluxes.reshape(n_epochs, 1)
 
     if neighbor_fluxes.shape[0] != n_epochs:
         raise ValueError(

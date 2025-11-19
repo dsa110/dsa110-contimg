@@ -60,7 +60,7 @@ export const BatchJobMonitor: React.FC = () => {
 
   return (
     <GenericTable<BatchJobItem>
-      apiEndpoint="/api/batch"
+      apiEndpoint="/batch"
       columns={columns}
       title=""
       searchable={true}

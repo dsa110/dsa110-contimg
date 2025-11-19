@@ -1,0 +1,2 @@
+format = Name, Type, Ra, Dec, I, Q, U, V, SpectralIndex, LogarithmicSI, ReferenceFrequency='150e6', MajorAxis, MinorAxis, Orientation
+TestSource, POINT, 00h00m00.0s, +00d00m00.0s, 1.0, 0, 0, 0, 0, false, 1.4e9, 0, 0, 0

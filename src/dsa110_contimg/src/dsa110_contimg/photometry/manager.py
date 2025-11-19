@@ -13,6 +13,7 @@ Workflow:
 """
 
 import logging
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -25,12 +26,16 @@ from dsa110_contimg.database.data_registry import (
     ensure_data_registry_db,
     link_photometry_to_data,
 )
-from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.database.products import (
+    ensure_products_db,
+    photometry_insert,
+)
 from dsa110_contimg.photometry.forced import ForcedPhotometryResult, measure_many
 from dsa110_contimg.photometry.helpers import (
     query_sources_for_fits,
     query_sources_for_mosaic,
 )
+from dsa110_contimg.photometry.ese_pipeline import auto_detect_ese_for_new_measurements
 
 logger = logging.getLogger(__name__)
 
@@ -243,6 +248,8 @@ class PhotometryManager:
                 {
                     "ra_deg": float(src.get("ra", src.get("ra_deg", 0.0))),
                     "dec_deg": float(src.get("dec", src.get("dec_deg", 0.0))),
+                    "source_id": src.get("source_id", src.get("name", None)),
+                    "nvss_flux_mjy": src.get("flux_peak", src.get("flux_int", None)),
                 }
                 for src in sources
             ]
@@ -283,12 +290,50 @@ class PhotometryManager:
                 return None
             else:
                 # Execute synchronously
-                results = measure_many(str(fits_path), coordinates)
+                # measure_many expects list of tuples
+                coords_tuples = [(c["ra_deg"], c["dec_deg"]) for c in coordinates]
+                results = measure_many(str(fits_path), coords_tuples)
                 successful = len([r for r in results if r.success])
 
-                # TODO: Store results in database
-                # TODO: Normalize if config.normalize
-                # TODO: Detect ESE if config.detect_ese
+                if self.products_db_path:
+                    conn = ensure_products_db(self.products_db_path)
+                    try:
+                        # Store results
+                        for i, res in enumerate(results):
+                            # Assuming results match input coordinates order
+                            if i >= len(coordinates):
+                                break
+
+                            source_id = coordinates[i].get("source_id")
+                            nvss_flux = coordinates[i].get("nvss_flux_mjy")
+
+                            # Insert into photometry table
+                            if res.success:
+                                photometry_insert(
+                                    conn,
+                                    image_path=str(fits_path),
+                                    ra_deg=res.ra_deg,
+                                    dec_deg=res.dec_deg,
+                                    nvss_flux_mjy=float(nvss_flux) if nvss_flux else None,
+                                    peak_jyb=res.peak_jyb,
+                                    peak_err_jyb=res.peak_err_jyb,
+                                    measured_at=time.time(),
+                                    source_id=source_id,
+                                )
+
+                                # Detect ESE if configured
+                                if config.detect_ese and source_id:
+                                    # We call this per source, but we might want to batch it later
+                                    # For now, simple sequential calls
+                                    auto_detect_ese_for_new_measurements(
+                                        products_db=self.products_db_path, source_id=source_id
+                                    )
+
+                        conn.commit()
+                    except Exception as e:
+                        logger.error(f"Failed to store results/detect ESE: {e}")
+                    finally:
+                        conn.close()
 
                 return PhotometryResult(
                     fits_path=fits_path,
@@ -378,6 +423,8 @@ class PhotometryManager:
                 {
                     "ra_deg": float(src.get("ra", src.get("ra_deg", 0.0))),
                     "dec_deg": float(src.get("dec", src.get("dec_deg", 0.0))),
+                    "source_id": src.get("source_id", src.get("name", None)),
+                    "nvss_flux_mjy": src.get("flux_peak", src.get("flux_int", None)),
                 }
                 for src in sources
             ]
@@ -418,12 +465,45 @@ class PhotometryManager:
                 return None
             else:
                 # Execute synchronously
-                results = measure_many(str(mosaic_path), coordinates)
+                # measure_many expects list of tuples
+                coords_tuples = [(c["ra_deg"], c["dec_deg"]) for c in coordinates]
+                results = measure_many(str(mosaic_path), coords_tuples)
                 successful = len([r for r in results if r.success])
 
-                # TODO: Store results in database
-                # TODO: Normalize if config.normalize
-                # TODO: Detect ESE if config.detect_ese
+                if self.products_db_path:
+                    conn = ensure_products_db(self.products_db_path)
+                    try:
+                        # Store results
+                        for i, res in enumerate(results):
+                            if i >= len(coordinates):
+                                break
+
+                            source_id = coordinates[i].get("source_id")
+                            nvss_flux = coordinates[i].get("nvss_flux_mjy")
+
+                            if res.success:
+                                photometry_insert(
+                                    conn,
+                                    image_path=str(mosaic_path),
+                                    ra_deg=res.ra_deg,
+                                    dec_deg=res.dec_deg,
+                                    nvss_flux_mjy=float(nvss_flux) if nvss_flux else None,
+                                    peak_jyb=res.peak_jyb,
+                                    peak_err_jyb=res.peak_err_jyb,
+                                    measured_at=time.time(),
+                                    source_id=source_id,
+                                )
+
+                                if config.detect_ese and source_id:
+                                    auto_detect_ese_for_new_measurements(
+                                        products_db=self.products_db_path, source_id=source_id
+                                    )
+
+                        conn.commit()
+                    except Exception as e:
+                        logger.error(f"Failed to store results/detect ESE: {e}")
+                    finally:
+                        conn.close()
 
                 return PhotometryResult(
                     fits_path=mosaic_path,

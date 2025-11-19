@@ -3,28 +3,42 @@
 
 This script starts an Absurd worker that processes tasks from the queue
 and executes pipeline stages.
-
-Usage:
-    python scripts/absurd/start_worker.py
-
-Environment Variables:
-    ABSURD_ENABLED: Enable Absurd (default: true)
-    ABSURD_DATABASE_URL: PostgreSQL connection URL
-    ABSURD_QUEUE_NAME: Queue name (default: dsa110-pipeline)
-    ABSURD_WORKER_CONCURRENCY: Worker concurrency (default: 4)
-    ABSURD_WORKER_POLL_INTERVAL: Poll interval in seconds (default: 1.0)
-    ABSURD_TASK_TIMEOUT: Task timeout in seconds (default: 3600)
-    ABSURD_MAX_RETRIES: Maximum retry attempts (default: 3)
 """
 
 import asyncio
 import logging
 import signal
 import sys
+import os
 from pathlib import Path
 
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+# DEBUG: Print sys.path and environment
+print(f"DEBUG: sys.path: {sys.path}")
+print(f"DEBUG: PYTHONPATH: {os.environ.get('PYTHONPATH')}")
+
+# Ensure src is in path (if PYTHONPATH failed)
+# We assume this script is in scripts/absurd/
+# We want to add src/ to path.
+# ../../src resolves to project_root/src
+src_path = str(Path(__file__).resolve().parent.parent.parent / "src")
+if src_path not in sys.path:
+    print(f"DEBUG: Adding {src_path} to sys.path")
+    sys.path.insert(0, src_path)
+
+try:
+    import dsa110_contimg
+
+    print(f"DEBUG: dsa110_contimg location: {dsa110_contimg.__file__}")
+    # Try to import pipeline to verify it's accessible
+    import dsa110_contimg.pipeline
+
+    print(f"DEBUG: dsa110_contimg.pipeline location: {dsa110_contimg.pipeline.__file__}")
+except ImportError as e:
+    print(f"DEBUG: Import failed: {e}")
+    # Traceback might help
+    import traceback
+
+    traceback.print_exc()
 
 from dsa110_contimg.absurd import AbsurdConfig
 from dsa110_contimg.absurd.adapter import execute_pipeline_task

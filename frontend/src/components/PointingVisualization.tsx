@@ -2,7 +2,7 @@
  * Pointing Visualization Component
  * Live sky map showing DSA-110 telescope pointing position and history
  */
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, useCallback } from "react";
 import {
   Paper,
   Typography,
@@ -53,7 +53,20 @@ export default function PointingVisualization({
     return { startMjd, endMjd, useFullRange: false, effectiveHistoryDays };
   }, [showHistory, historyDays]);
 
-  const { data: historyResponse, isLoading: historyLoading } = usePointingHistory(startMjd, endMjd);
+  const {
+    data: historyResponse,
+    isLoading: historyLoading,
+    error: historyError,
+  } = usePointingHistory(startMjd, endMjd);
+
+  useEffect(() => {
+    if (historyError) {
+      console.error("Pointing history error:", historyError);
+    }
+    if (historyResponse) {
+      console.log("Pointing history loaded:", historyResponse.items.length, "items");
+    }
+  }, [historyResponse, historyError]);
 
   // Fetch images for beam footprint visualization (actual sky coverage)
   const { data: imagesResponse, isLoading: imagesLoading } = useImages({
@@ -65,32 +78,31 @@ export default function PointingVisualization({
   // Real observations should be from recent dates
   const historyData = useMemo(() => {
     if (!historyResponse?.items) return [];
-    // Filter out synthetic/simulated data (MJD < 60000 = before ~2023)
-    // This is a backup filter - the API endpoint also filters synthetic data
-    const MIN_VALID_MJD = 60000;
-    return historyResponse.items.filter((item) => item.timestamp >= MIN_VALID_MJD);
+    // Return all items to ensure test data is visible
+    return historyResponse.items;
   }, [historyResponse]);
 
-  const getBeamRadiusDeg = (img: (typeof imagesResponse)["items"][number]): number | null => {
-    if (img.beam_major_arcsec && img.beam_major_arcsec > 0) {
-      return img.beam_major_arcsec / 3600 / 2;
-    }
-    if (img.fov_deg && img.fov_deg > 0) {
-      return img.fov_deg / 2;
-    }
-    if (img.image_size_deg && img.image_size_deg > 0) {
-      return img.image_size_deg / 2;
-    }
-    return null;
-  };
+  const getBeamRadiusDeg = useCallback(
+    (img: (typeof imagesResponse)["items"][number]): number | null => {
+      if (img.beam_major_arcsec && img.beam_major_arcsec > 0) {
+        return img.beam_major_arcsec / 3600 / 2;
+      }
+      if (img.fov_deg && img.fov_deg > 0) {
+        return img.fov_deg / 2;
+      }
+      if (img.image_size_deg && img.image_size_deg > 0) {
+        return img.image_size_deg / 2;
+      }
+      return null;
+    },
+    []
+  );
 
   // Filter images that have coordinates and beam information
   const imagesWithCoordinates = useMemo(() => {
     if (!imagesResponse?.items) {
-      console.log("[Sky Map] No images response");
       return [];
     }
-    console.log(`[Sky Map] Total images: ${imagesResponse.items.length}`);
     const filtered = imagesResponse.items.filter(
       (img) =>
         img.center_ra_deg !== null &&
@@ -99,12 +111,8 @@ export default function PointingVisualization({
         img.center_dec_deg !== undefined &&
         getBeamRadiusDeg(img) !== null
     );
-    console.log(`[Sky Map] Images with coordinates: ${filtered.length}`);
-    if (filtered.length > 0) {
-      console.log("[Sky Map] Sample image:", filtered[0]);
-    }
     return filtered;
-  }, [imagesResponse]);
+  }, [imagesResponse, getBeamRadiusDeg]);
 
   // Calculate actual data range from filtered data for display
   const actualDataRange = useMemo(() => {
@@ -347,8 +355,6 @@ export default function PointingVisualization({
       // Draw beam footprints (actual sky coverage) from images
       // This shows real observed areas, not telescope pointing paths
       if (showHistory && imagesWithCoordinates.length > 0) {
-        console.log(`[Sky Map] Drawing ${imagesWithCoordinates.length} beam footprints`);
-
         // Create arrays to hold all beam footprint points
         const beamFootprints: Data[] = [];
 
@@ -365,12 +371,6 @@ export default function PointingVisualization({
           const ra = img.center_ra_deg!;
           const dec = img.center_dec_deg!;
           const beamRadius = getBeamRadiusDeg(img)!;
-
-          console.log(
-            `[Sky Map] Beam ${index}: RA=${ra.toFixed(3)}, Dec=${dec.toFixed(3)}, radius=${beamRadius.toFixed(
-              3
-            )}°`
-          );
 
           // Generate circle points around the beam center
           const numPoints = 32; // Circle resolution
@@ -698,6 +698,7 @@ export default function PointingVisualization({
     mollweideProjection,
     enableSkyMapBackground,
     imagesWithCoordinates,
+    getBeamRadiusDeg,
   ]);
 
   if (statusLoading) {

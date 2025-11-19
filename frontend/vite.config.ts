@@ -151,6 +151,16 @@ export default defineConfig({
     // Always use /ui/ base path for preview to match production build
     // The build uses /ui/ base, so preview must match for assets to load correctly
     base: "/ui/",
+    proxy: {
+      "/api": {
+        target: API_PROXY_TARGET,
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+        timeout: 10000,
+        proxyTimeout: 10000,
+      },
+    },
   },
   resolve: {
     // Ensure proper module resolution and prevent multiple React copies

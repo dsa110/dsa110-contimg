@@ -682,13 +682,22 @@ def write_wsclean_source_list(
 ) -> str:
     """Write pyradiosky SkyModel to WSClean text format.
 
-    Format: Name,Type,Ra,Dec,I,SpectralIndex,LogarithmicSI,ReferenceFrequency,MajorAxis,MinorAxis,Orientation
+    Format: Name, Type, Ra, Dec, I, Q, U, V, SpectralIndex, LogarithmicSI, ReferenceFrequency, MajorAxis, MinorAxis, Orientation
     """
+    from astropy.coordinates import Angle
+
     try:
+        # Ensure we start with a fresh file
+        if os.path.exists(out_path):
+            try:
+                os.remove(out_path)
+            except OSError:
+                pass
+
         with open(out_path, "w") as f:
-            # Write Header
+            # Write Header (WSClean 3.6 requires 'format = ...')
             f.write(
-                "Name,Type,Ra,Dec,I,SpectralIndex,LogarithmicSI,ReferenceFrequency,MajorAxis,MinorAxis,Orientation\n"
+                "format = Name, Type, Ra, Dec, I, Q, U, V, SpectralIndex, LogarithmicSI, ReferenceFrequency, MajorAxis, MinorAxis, Orientation\n"
             )
 
             # Get ref freq
@@ -699,18 +708,62 @@ def write_wsclean_source_list(
 
             for i in range(sky.Ncomponents):
                 name = sky.name[i]
-                ra_deg = sky.skycoord[i].ra.deg
-                dec_deg = sky.skycoord[i].dec.deg
+                ra = sky.skycoord[i].ra
+                dec = sky.skycoord[i].dec
                 flux_jy = sky.stokes[0, 0, i].to("Jy").value
+
+                # Format RA/Dec as hms/dms (WSClean 3.6 requirement)
+                # Re-do formatting to be safe and match WSClean strictness
+                ra_hours = ra.hour
+                ra_h = int(ra_hours)
+                ra_m = int((ra_hours - ra_h) * 60)
+                ra_s = ((ra_hours - ra_h) * 60 - ra_m) * 60
+                ra_fmt = f"{ra_h:02d}h{ra_m:02d}m{ra_s:06.3f}s"
+
+                dec_deg = dec.deg
+                dec_sign = "+" if dec_deg >= 0 else "-"
+                dec_abs = abs(dec_deg)
+                dec_d = int(dec_abs)
+                dec_m = int((dec_abs - dec_d) * 60)
+                dec_s = ((dec_abs - dec_d) * 60 - dec_m) * 60
+                dec_fmt = f"{dec_sign}{dec_d:02d}d{dec_m:02d}m{dec_s:06.3f}s"
 
                 # Spectral Index
                 si = "[]"
                 if sky.spectral_type == "spectral_index" and hasattr(sky, "spectral_index"):
                     if sky.spectral_index is not None:
                         si = f"[{float(sky.spectral_index[i])}]"
+                else:
+                    # Default to -0.7 for radio sources if not specified
+                    si = "[-0.7]"
+
+                # Check for extended source shape (WSClean uses arcsec for axes, deg for PA)
+                major = 0.0
+                minor = 0.0
+                pa = 0.0
+                source_type = "POINT"
+
+                # PyRadioSky typically stores these in SkyModel.major_axis etc as Quantities
+                if hasattr(sky, "major_axis") and sky.major_axis is not None:
+                    # Access the i-th element
+                    maj_val = sky.major_axis[i]
+                    if maj_val is not None and maj_val.value > 0:
+                        major = maj_val.to("arcsec").value
+                        source_type = "GAUSSIAN"
+
+                if hasattr(sky, "minor_axis") and sky.minor_axis is not None:
+                    min_val = sky.minor_axis[i]
+                    if min_val is not None and min_val.value > 0:
+                        minor = min_val.to("arcsec").value
+
+                if hasattr(sky, "position_angle") and sky.position_angle is not None:
+                    pa_val = sky.position_angle[i]
+                    if pa_val is not None:
+                        pa = pa_val.to("deg").value
 
                 # Line
-                line = f"{name},POINT,{ra_deg},{dec_deg},{flux_jy},{si},[false],{ref_freq_hz},,,\n"
+                # Name, Type, Ra, Dec, I, Q, U, V, SpectralIndex, LogarithmicSI, ReferenceFrequency, MajorAxis, MinorAxis, Orientation
+                line = f"{name},{source_type},{ra_fmt},{dec_fmt},{flux_jy},0,0,0,{si},[false],{ref_freq_hz},{major},{minor},{pa}\n"
                 f.write(line)
 
     except Exception as e:

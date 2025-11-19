@@ -143,12 +143,12 @@ export const DataList: React.FC = () => {
 
       {activeTab === "images" && (
         <GenericTable<ImageItem>
-          apiEndpoint="/api/images"
+          apiEndpoint="/images"
           columns={imageColumns}
           title=""
           searchable={true}
           exportable={true}
-          filters={{ start_date: getStartDate() }}
+          queryParams={{ start_date: getStartDate() }}
           transformData={(data) => ({
             rows: data.items || [],
             total: data.total || 0,
@@ -159,12 +159,12 @@ export const DataList: React.FC = () => {
 
       {activeTab === "ms" && (
         <GenericTable<MSItem>
-          apiEndpoint="/api/ms"
+          apiEndpoint="/ms"
           columns={msColumns}
           title=""
           searchable={true}
           exportable={true}
-          filters={{ start_date: getStartDate(), scan_dir: "/stage/dsa110-contimg/ms" }}
+          queryParams={{ start_date: getStartDate(), scan_dir: "/stage/dsa110-contimg/ms" }}
           transformData={(data) => ({
             rows: data.items || [],
             total: data.total || 0,

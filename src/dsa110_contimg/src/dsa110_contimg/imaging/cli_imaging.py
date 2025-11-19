@@ -135,6 +135,8 @@ def run_wsclean(
                     "/data:/data",
                     "-v",
                     "/stage:/stage",
+                    "-v",
+                    "/dev/shm:/dev/shm",
                     "wsclean-everybeam-0.7.4",
                     "wsclean",
                 ]
@@ -157,6 +159,8 @@ def run_wsclean(
                     "/data:/data",
                     "-v",
                     "/stage:/stage",
+                    "-v",
+                    "/dev/shm:/dev/shm",
                     "wsclean-everybeam-0.7.4",
                     "wsclean",
                 ]
@@ -378,6 +382,7 @@ def image_ms(
     wsclean_path: Optional[str] = None,
     export_model_image: bool = False,
     use_nvss_mask: bool = True,
+    mask_path: Optional[str] = None,
     mask_radius_arcsec: float = 60.0,
     target_mask: Optional[str] = None,
     galvin_clip_mask: Optional[str] = None,
@@ -737,12 +742,17 @@ def image_ms(
             # Limit NVSS seeding radius to primary beam extent when pbcor is enabled
             # Primary beam FWHM at 1.4 GHz: ~3.2 degrees (1.22 * lambda / D)
             # Use pblimit to determine effective radius (typically 20% of peak = ~1.6 deg radius)
-            # Mean observing frequency
+            # Mean observing frequency and bandwidth
             freq_ghz = 1.4
+            bandwidth_hz = 250e6  # Default 250 MHz
             try:
                 with casatables.table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True) as spw:
                     ch = spw.getcol("CHAN_FREQ")[0]
                     freq_ghz = float(np.nanmean(ch)) / 1e9
+                    if len(ch) > 1:
+                        bandwidth_hz = float(np.max(ch) - np.min(ch) + abs(ch[1] - ch[0]))
+                    else:
+                        bandwidth_hz = float(spw.getcol("TOTAL_BANDWIDTH")[0])
             except Exception:
                 pass
 
@@ -774,8 +784,8 @@ def image_ms(
                 nvss_radius_deg = radius_deg
 
             # Note: wsclean -predict with -model-list is not supported by the installed wsclean version.
-            # Falling back to CASA ft() for all backends to ensure reliable seeding.
-            if False and backend == "wsclean":
+            # We use a 2-step process: -draw-model then -predict.
+            if backend == "wsclean":
                 # Use wsclean -predict (faster, multi-threaded)
                 txt_path = f"{imagename}.unified_{float(nvss_min_mjy):g}mJy.txt"
                 LOG.info(
@@ -818,8 +828,25 @@ def image_ms(
                         ms_name = os.path.basename(ms_path)
                         txt_dir = os.path.dirname(os.path.abspath(txt_path))
                         txt_name = os.path.basename(txt_path)
-
-                        cmd = [
+                        
+                        # Convert decimal degrees to h:m:s and d:m:s format
+                        # WSClean requires this format for -draw-centre
+                        ra_hours = ra0_deg / 15.0
+                        ra_h = int(ra_hours)
+                        ra_m = int((ra_hours - ra_h) * 60)
+                        ra_s = ((ra_hours - ra_h) * 60 - ra_m) * 60
+                        ra_str = f"{ra_h}h{ra_m}m{ra_s:.3f}s"
+                        
+                        dec_sign = "+" if dec0_deg >= 0 else "-"
+                        dec_abs = abs(dec0_deg)
+                        dec_d = int(dec_abs)
+                        dec_m = int((dec_abs - dec_d) * 60)
+                        dec_s = ((dec_abs - dec_d) * 60 - dec_m) * 60
+                        dec_str = f"{dec_sign}{dec_d}d{dec_m}m{dec_s:.3f}s"
+                        
+                        # Step 1: Render model image from text list
+                        # Output will be /data_txt/nvss_model-term-0.fits
+                        cmd_draw = [
                             "docker",
                             "run",
                             "--rm",
@@ -827,38 +854,123 @@ def image_ms(
                             f"{ms_dir}:/data_ms",
                             "-v",
                             f"{txt_dir}:/data_txt",
-                            "wsclean-everybeam-0.7.4",  # Use standard image tag
+                            "wsclean-everybeam-0.7.4",
+                            "wsclean",
+                            "-draw-model",
+                            f"/data_txt/{txt_name}",
+                            "-name",
+                            "/data_txt/nvss_model",
+                            "-draw-frequencies",
+                            f"{freq_ghz*1e9}",
+                            f"{bandwidth_hz}",
+                            "-draw-spectral-terms",
+                            "2",
+                            "-size",
+                            str(imsize),
+                            str(imsize),
+                            "-scale",
+                            f"{cell_arcsec}arcsec",
+                            "-draw-centre",
+                            ra_str,
+                            dec_str,
+                        ]
+                        
+                        LOG.info("Running wsclean -draw-model: %s", " ".join(cmd_draw))
+                        subprocess.run(cmd_draw, check=True)
+
+                        # Step 1.5: Rename output file for prediction
+                        # WSClean -draw-model creates prefix-term-0.fits
+                        # WSClean -predict expects prefix-model.fits
+                        term_file = os.path.join(txt_dir, "nvss_model-term-0.fits")
+                        model_file = os.path.join(txt_dir, "nvss_model-model.fits")
+                        if os.path.exists(term_file):
+                            shutil.move(term_file, model_file)
+                            LOG.info(f"Renamed {term_file} -> {model_file}")
+                        else:
+                            LOG.warning(f"Expected output file not found: {term_file}")
+
+                        # Step 2: Predict from rendered image
+                        cmd_predict = [
+                            "docker",
+                            "run",
+                            "--rm",
+                            "-v",
+                            f"{ms_dir}:/data_ms",
+                            "-v",
+                            f"{txt_dir}:/data_txt",
+                            "wsclean-everybeam-0.7.4",
                             "wsclean",
                             "-predict",
+                            "-reorder",  # Required for multi-SPW MS
                             "-name",
-                            "nvss_model",
-                            "-size",
-                            str(imsize),
-                            str(imsize),
-                            "-scale",
-                            f"{cell_arcsec}arcsec",
-                            "-model-list",
-                            f"/data_txt/{txt_name}",
+                            "/data_txt/nvss_model",
                             f"/data_ms/{ms_name}",
                         ]
+                        
+                        LOG.info("Running wsclean -predict: %s", " ".join(cmd_predict))
+                        subprocess.run(cmd_predict, check=True)
+                        
                     else:
-                        cmd = [
+                        # Native WSClean execution
+                        # Convert decimal degrees to h:m:s and d:m:s format
+                        ra_hours = ra0_deg / 15.0
+                        ra_h = int(ra_hours)
+                        ra_m = int((ra_hours - ra_h) * 60)
+                        ra_s = ((ra_hours - ra_h) * 60 - ra_m) * 60
+                        ra_str = f"{ra_h}h{ra_m}m{ra_s:.3f}s"
+                        
+                        dec_sign = "+" if dec0_deg >= 0 else "-"
+                        dec_abs = abs(dec0_deg)
+                        dec_d = int(dec_abs)
+                        dec_m = int((dec_abs - dec_d) * 60)
+                        dec_s = ((dec_abs - dec_d) * 60 - dec_m) * 60
+                        dec_str = f"{dec_sign}{dec_d}d{dec_m}m{dec_s:.3f}s"
+                        
+                        # Step 1: Render model
+                        cmd_draw = [
                             wsclean_exec,
-                            "-predict",
+                            "-draw-model",
+                            txt_path,
                             "-name",
-                            imagename,
+                            f"{imagename}.nvss_model",
+                            "-draw-frequencies",
+                            f"{freq_ghz*1e9}",
+                            f"{bandwidth_hz}",
+                            "-draw-spectral-terms",
+                            "2",
                             "-size",
                             str(imsize),
                             str(imsize),
                             "-scale",
                             f"{cell_arcsec}arcsec",
-                            "-model-list",
-                            txt_path,
+                            "-draw-centre",
+                            ra_str,
+                            dec_str,
+                        ]
+                        LOG.info("Running wsclean -draw-model: %s", " ".join(cmd_draw))
+                        subprocess.run(cmd_draw, check=True)
+
+                        # Step 1.5: Rename output file for prediction
+                        term_file = f"{imagename}.nvss_model-term-0.fits"
+                        model_file = f"{imagename}.nvss_model-model.fits"
+                        if os.path.exists(term_file):
+                            shutil.move(term_file, model_file)
+                            LOG.info(f"Renamed {term_file} -> {model_file}")
+                        else:
+                            LOG.warning(f"Expected output file not found: {term_file}")
+
+                        # Step 2: Predict
+                        cmd_predict = [
+                            wsclean_exec,
+                            "-predict",
+                            "-reorder",  # Required for multi-SPW MS
+                            "-name",
+                            f"{imagename}.nvss_model",
                             ms_path,
                         ]
+                        LOG.info("Running wsclean -predict: %s", " ".join(cmd_predict))
+                        subprocess.run(cmd_predict, check=True)
 
-                    LOG.info("Running wsclean -predict: %s", " ".join(cmd))
-                    subprocess.run(cmd, check=True)
                     LOG.info("Seeded MODEL_DATA with wsclean -predict")
 
                 except ImportError:
@@ -948,8 +1060,7 @@ def image_ms(
             LOG.debug("VP preload skipped: %s", exc)
 
     # Generate mask if requested (before imaging)
-    mask_path = None
-    if use_nvss_mask and nvss_min_mjy is not None and backend == "wsclean":
+    if mask_path is None and use_nvss_mask and nvss_min_mjy is not None and backend == "wsclean":
         if ra0_deg is not None and dec0_deg is not None:
             try:
                 from dsa110_contimg.imaging.nvss_tools import create_nvss_fits_mask

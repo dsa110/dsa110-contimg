@@ -68,7 +68,7 @@ export default function SkyViewPage() {
         <Box sx={{ mb: 4 }}>
           <SkyMap
             height={500}
-            historyDays={7}
+            historyDays={90}
             showPointingHistory={true}
             showObservedFields={true}
           />

@@ -4,14 +4,12 @@
  * Provides functions for spawning, querying, and managing Absurd tasks.
  */
 
-import axios from "axios";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+import { apiClient } from "./client";
 
 export interface SpawnTaskRequest {
   queue_name: string;
   task_name: string;
-  params: Record<string, any>;
+  params: Record<string, unknown>;
   priority?: number;
   timeout_sec?: number;
 }
@@ -20,13 +18,13 @@ export interface TaskInfo {
   task_id: string;
   queue_name: string;
   task_name: string;
-  params: Record<string, any>;
+  params: Record<string, unknown>;
   priority: number;
   status: string;
   created_at: string | null;
   claimed_at: string | null;
   completed_at: string | null;
-  result: Record<string, any> | null;
+  result: Record<string, unknown> | null;
   error: string | null;
   retry_count: number;
 }
@@ -56,10 +54,7 @@ export interface HealthStatus {
  * Spawn a new task in the Absurd queue.
  */
 export async function spawnTask(request: SpawnTaskRequest): Promise<string> {
-  const response = await axios.post<{ task_id: string }>(
-    `${API_BASE_URL}/api/absurd/tasks`,
-    request
-  );
+  const response = await apiClient.post<{ task_id: string }>("/absurd/tasks", request);
   return response.data.task_id;
 }
 
@@ -67,7 +62,7 @@ export async function spawnTask(request: SpawnTaskRequest): Promise<string> {
  * Get task details by ID.
  */
 export async function getTask(taskId: string): Promise<TaskInfo> {
-  const response = await axios.get<TaskInfo>(`${API_BASE_URL}/api/absurd/tasks/${taskId}`);
+  const response = await apiClient.get<TaskInfo>(`/absurd/tasks/${taskId}`);
   return response.data;
 }
 
@@ -84,9 +79,7 @@ export async function listTasks(
   if (status) params.append("status", status);
   params.append("limit", limit.toString());
 
-  const response = await axios.get<TaskListResponse>(
-    `${API_BASE_URL}/api/absurd/tasks?${params.toString()}`
-  );
+  const response = await apiClient.get<TaskListResponse>(`/absurd/tasks?${params.toString()}`);
   return response.data;
 }
 
@@ -94,16 +87,14 @@ export async function listTasks(
  * Cancel a pending task.
  */
 export async function cancelTask(taskId: string): Promise<void> {
-  await axios.delete(`${API_BASE_URL}/api/absurd/tasks/${taskId}`);
+  await apiClient.delete(`/absurd/tasks/${taskId}`);
 }
 
 /**
  * Get queue statistics.
  */
 export async function getQueueStats(queueName: string): Promise<QueueStats> {
-  const response = await axios.get<QueueStats>(
-    `${API_BASE_URL}/api/absurd/queues/${queueName}/stats`
-  );
+  const response = await apiClient.get<QueueStats>(`/absurd/queues/${queueName}/stats`);
   return response.data;
 }
 
@@ -111,6 +102,6 @@ export async function getQueueStats(queueName: string): Promise<QueueStats> {
  * Check Absurd health status.
  */
 export async function getHealthStatus(): Promise<HealthStatus> {
-  const response = await axios.get<HealthStatus>(`${API_BASE_URL}/api/absurd/health`);
+  const response = await apiClient.get<HealthStatus>("/absurd/health");
   return response.data;
 }

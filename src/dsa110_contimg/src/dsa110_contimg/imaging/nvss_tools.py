@@ -124,11 +124,11 @@ def create_nvss_fits_mask(
     """
     # Create WCS for mask
     wcs = WCS(naxis=2)
-    wcs.wcs.crpix = [imsize / 2.0, imsize / 2.0]
+    wcs.wcs.crpix = [imsize / 2.0 + 0.5, imsize / 2.0 + 0.5]
     wcs.wcs.crval = [ra0_deg, dec0_deg]
     # Negative RA for standard convention
     wcs.wcs.cdelt = [-cell_arcsec / 3600.0, cell_arcsec / 3600.0]
-    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    wcs.wcs.ctype = ["RA---SIN", "DEC--SIN"]
 
     # Initialize mask (all zeros = not cleaned)
     mask = np.zeros((imsize, imsize), dtype=np.float32)

@@ -384,7 +384,7 @@ export default function SourceDetailPage() {
             <Collapse in={expandedSections.detections}>
               <CardContent>
                 <GenericTable<any>
-                  apiEndpoint={`/api/sources/${sourceId}/detections`}
+                  apiEndpoint={`/sources/${sourceId}/detections`}
                   columns={detectionColumns}
                   title=""
                   searchable={true}

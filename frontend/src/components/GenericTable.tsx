@@ -192,8 +192,10 @@ export default function GenericTable<T = any>({
     queryKey,
     queryFn: async () => {
       const params = new URLSearchParams();
-      Object.entries(queryKey[2] as Record<string, any>).forEach(([key, value]) => {
-        params.append(key, String(value));
+      Object.entries(queryKey[2] as Record<string, unknown>).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          params.append(key, String(value));
+        }
       });
 
       const response = await apiClient.get(`${apiEndpoint}?${params.toString()}`);

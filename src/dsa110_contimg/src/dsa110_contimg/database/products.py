@@ -73,6 +73,7 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
         """
         CREATE TABLE IF NOT EXISTS photometry (
             id INTEGER PRIMARY KEY,
+            source_id TEXT,
             image_path TEXT NOT NULL,
             ra_deg REAL NOT NULL,
             dec_deg REAL NOT NULL,
@@ -91,6 +92,10 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
     # Index for photometry lookups by image
     try:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_photometry_image ON photometry(image_path)")
+    except Exception:
+        pass
+    try:
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_photometry_source_id ON photometry(source_id)")
     except Exception:
         pass
     # Index for stage filtering and path lookups
@@ -321,6 +326,20 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
             migrations_applied = True
         if migrations_applied:
             conn.commit()
+
+        # Migrate photometry table
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='photometry'")
+        if cur.fetchone() is not None:
+            cur.execute("PRAGMA table_info(photometry)")
+            cols = {r[1] for r in cur.fetchall()}
+            if "source_id" not in cols:
+                cur.execute("ALTER TABLE photometry ADD COLUMN source_id TEXT")
+                # Create index for new column
+                conn.execute(
+                    "CREATE INDEX IF NOT EXISTS idx_photometry_source_id ON photometry(source_id)"
+                )
+                conn.commit()
+
     except Exception as e:
         # Log the error but don't fail - migration errors are non-fatal
         # The table will still work, just without the new columns
@@ -656,12 +675,14 @@ def photometry_insert(
     peak_jyb: float,
     peak_err_jyb: float | None,
     measured_at: float,
+    source_id: str | None = None,
 ) -> None:
     """Insert a forced photometry measurement."""
     conn.execute(
-        "INSERT INTO photometry(image_path, ra_deg, dec_deg, nvss_flux_mjy, peak_jyb, peak_err_jyb, measured_at) "
-        "VALUES(?,?,?,?,?,?,?)",
+        "INSERT INTO photometry(source_id, image_path, ra_deg, dec_deg, nvss_flux_mjy, peak_jyb, peak_err_jyb, measured_at) "
+        "VALUES(?,?,?,?,?,?,?,?)",
         (
+            source_id,
             image_path,
             ra_deg,
             dec_deg,

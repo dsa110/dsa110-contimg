@@ -60,7 +60,14 @@ apiClient.interceptors.response.use(
 
     // Record failure for circuit breaker if retryable
     if (classified.retryable) {
-      circuitBreaker.recordFailure();
+      // Check for specific non-retryable messages
+      const data = error.response?.data as Record<string, unknown> | undefined;
+      const detail = data?.detail;
+      if (typeof detail === "string" && detail.includes("Absurd workflow manager is not enabled")) {
+        // Don't retry if service is explicitly disabled
+      } else {
+        circuitBreaker.recordFailure();
+      }
     }
 
     // Add user-friendly message to error
@@ -80,7 +87,18 @@ apiClient.interceptors.response.use(
     const retryCount = config._retryCount || 0;
     const maxRetries = 3;
 
-    if (classified.retryable && retryCount < maxRetries && circuitBreaker.canAttempt()) {
+    // Check for specific non-retryable messages
+    const data = error.response?.data as Record<string, unknown> | undefined;
+    const detail = data?.detail;
+    const isAbsurdDisabled =
+      typeof detail === "string" && detail.includes("Absurd workflow manager is not enabled");
+
+    if (
+      classified.retryable &&
+      !isAbsurdDisabled &&
+      retryCount < maxRetries &&
+      circuitBreaker.canAttempt()
+    ) {
       config._retryCount = retryCount + 1;
 
       // Exponential backoff: 1s, 2s, 4s

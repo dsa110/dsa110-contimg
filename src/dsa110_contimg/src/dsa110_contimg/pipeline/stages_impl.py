@@ -2740,7 +2740,9 @@ class AdaptivePhotometryStage(PipelineStage):
             return sources
 
         except Exception as e:
-            logger.error(ff"Error querying {self.config.photometry.catalog} catalog: {e}", exc_info=True)
+            logger.error(
+                f"Error querying {self.config.photometry.catalog} catalog: {e}", exc_info=True
+            )
             return []
 
     def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:

@@ -1,6 +1,7 @@
 # Frontend Restart Instructions
 
-The frontend dev server needs to be restarted to pick up the `.env.development` changes.
+The frontend dev server needs to be restarted to pick up the `.env.development`
+changes.
 
 ## Current Status
 
@@ -12,9 +13,11 @@ The frontend dev server needs to be restarted to pick up the `.env.development` 
 
 ## Restart Steps
 
-Since the frontend appears to be running in a container or as a background process, you'll need to:
+Since the frontend appears to be running in a container or as a background
+process, you'll need to:
 
 1. **Find the frontend process:**
+
    ```bash
    ps aux | grep -E "vite|npm.*dev"
    ```
@@ -31,11 +34,11 @@ Since the frontend appears to be running in a container or as a background proce
 
 ## Alternative: Direct API Connection
 
-If the proxy continues to have issues, you can temporarily modify `frontend/src/api/client.ts` to use the API URL directly:
+If the proxy continues to have issues, you can temporarily modify
+`frontend/src/api/client.ts` to use the API URL directly:
 
 ```typescript
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8010';
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8010";
 ```
 
 This bypasses the Vite proxy and connects directly to the API.
-

@@ -381,7 +381,7 @@ export default function ImageDetailPage() {
             <Collapse in={expandedSections.measurements}>
               <CardContent>
                 <GenericTable<any>
-                  apiEndpoint={`/api/images/${imageId}/measurements`}
+                  apiEndpoint={`/images/${imageId}/measurements`}
                   columns={measurementColumns}
                   title=""
                   searchable={true}

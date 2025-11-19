@@ -224,6 +224,12 @@ class Source:
             if missing_cols:
                 logger.warning(f"Missing columns in measurements: {missing_cols}")
 
+            # Ensure normalized flux columns exist (populate with None/NaN if missing)
+            if "normalized_flux_jy" not in df.columns:
+                df["normalized_flux_jy"] = np.nan
+            if "normalized_flux_err_jy" not in df.columns:
+                df["normalized_flux_err_jy"] = np.nan
+
             # Convert measured_at to datetime if present
             if "measured_at" in df.columns:
                 df["measured_at"] = pd.to_datetime(df["measured_at"], unit="s", errors="coerce")
@@ -352,7 +358,8 @@ class Source:
                 eta = calculate_eta_metric(df_for_eta, flux_col=flux_col, err_col=err_col)
             except Exception as e:
                 logger.warning(f"Failed to calculate η metric: {e}")
-                eta = 0.0
+                # Use None instead of 0.0 to avoid falsely labeling unstable sources as stable
+                eta = None
         else:
             eta = 0.0
 
@@ -435,24 +442,48 @@ class Source:
 
             # Spatial query + variability filter + flux filter
             # Note: doing Haversine in SQLite is hard, so we do box filter + post-filter
-            min_ra = self.ra_deg - radius_deg / np.cos(np.deg2rad(self.dec_deg))
-            max_ra = self.ra_deg + radius_deg / np.cos(np.deg2rad(self.dec_deg))
-            min_dec = self.dec_deg - radius_deg
-            max_dec = self.dec_deg + radius_deg
 
-            query = """
+            # Handle Pole Singularity
+            cos_dec = np.cos(np.deg2rad(self.dec_deg))
+            if abs(self.dec_deg) > 89.0 or abs(cos_dec) < 1e-6:
+                # Near pole: search all RA
+                min_ra, max_ra = 0.0, 360.0
+                ra_clause = "(1=1)"  # Always true for RA
+                ra_params = ()
+            else:
+                ra_range = radius_deg / cos_dec
+                min_ra = self.ra_deg - ra_range
+                max_ra = self.ra_deg + ra_range
+
+                # Check for RA wrapping
+                if min_ra < 0 or max_ra > 360:
+                    # Wrapped case: ranges overlap 0/360 boundary
+                    # We search (ra >= min_norm) OR (ra <= max_norm)
+                    min_ra_norm = min_ra % 360
+                    max_ra_norm = max_ra % 360
+                    ra_clause = "(ra_deg >= ? OR ra_deg <= ?)"
+                    ra_params = (min_ra_norm, max_ra_norm)
+                else:
+                    # Standard case
+                    ra_clause = "(ra_deg BETWEEN ? AND ?)"
+                    ra_params = (min_ra, max_ra)
+
+            min_dec = max(-90.0, self.dec_deg - radius_deg)
+            max_dec = min(90.0, self.dec_deg + radius_deg)
+
+            query = f"""
                 SELECT source_id, ra_deg, dec_deg, mean_flux_mjy, eta_metric
                 FROM variability_stats
-                WHERE ra_deg BETWEEN ? AND ?
+                WHERE {ra_clause}
                   AND dec_deg BETWEEN ? AND ?
                   AND eta_metric < ?
                   AND n_obs >= ?
                   AND source_id != ?
             """
 
-            cursor = conn.execute(
-                query, (min_ra, max_ra, min_dec, max_dec, max_eta, min_epochs, self.source_id)
-            )
+            params = ra_params + (min_dec, max_dec, max_eta, min_epochs, self.source_id)
+
+            cursor = conn.execute(query, params)
             candidates = cursor.fetchall()
 
             valid_neighbors = []
@@ -533,12 +564,19 @@ class Source:
         if self.measurements.empty:
             return {}
 
+        # Ensure required columns exist
+        required_cols = ["image_path", "mjd", "normalized_flux_jy"]
+        if not all(col in self.measurements.columns for col in required_cols):
+            logger.warning(f"Missing required columns for relative photometry: {required_cols}")
+            return {}
+
         target_epochs = self.measurements[["image_path", "mjd", "normalized_flux_jy"]].copy()
         target_epochs = target_epochs.set_index("image_path")
 
         neighbor_flux_matrix = []
         neighbor_error_matrix = []
         valid_neighbor_ids = []
+        load_errors = []
 
         for nid in neighbor_ids:
             try:
@@ -562,9 +600,14 @@ class Source:
 
             except Exception as e:
                 logger.warning(f"Error loading neighbor {nid}: {e}")
+                load_errors.append(str(e))
                 continue
 
         if not valid_neighbor_ids:
+            if neighbor_ids and len(load_errors) == len(neighbor_ids):
+                logger.error(
+                    f"All {len(neighbor_ids)} neighbors failed to load. First error: {load_errors[0]}"
+                )
             return {}
 
         # Transpose to (n_epochs, n_neighbors)

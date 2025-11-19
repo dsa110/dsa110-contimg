@@ -1,0 +1,20 @@
+[Unit]
+Description=DSA-110 Absurd Worker %i
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/data/dsa110-contimg
+Environment="ABSURD_ENABLED=true"
+Environment="ABSURD_DATABASE_URL=postgresql://user:password@localhost/dsa110_absurd"
+Environment="ABSURD_QUEUE_NAME=dsa110-pipeline"
+Environment="PYTHONPATH=/data/dsa110-contimg/src/dsa110_contimg/src"
+ExecStart=/opt/miniforge/envs/casa6/bin/python scripts/absurd/start_worker.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+
