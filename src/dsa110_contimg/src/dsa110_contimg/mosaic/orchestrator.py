@@ -277,8 +277,22 @@ class MosaicOrchestrator:
         ).fetchall()
 
         # Find earliest incomplete window (no published mosaic covering this time)
-        # For now, start from earliest MS file
-        # TODO: Check if published mosaics cover this time range and skip if covered
+        # Check if published mosaics already cover this time range
+        if self._is_time_range_covered_by_published_mosaics(earliest_mjd):
+            logger.info(
+                f"Time range at MJD {earliest_mjd} already covered by published mosaic, "
+                "finding next uncovered window"
+            )
+            # Find next uncovered window by iterating through MS files
+            for row in rows[DEFAULT_MS_PER_MOSAIC:]:
+                mjd = row[1]
+                if not self._is_time_range_covered_by_published_mosaics(mjd):
+                    earliest_mjd = mjd
+                    break
+            else:
+                logger.info("All available MS time ranges are covered by published mosaics")
+                return None
+
         start_time = Time(earliest_mjd, format="mjd")
 
         # Default: process earliest data in pre-transit half (12 hours before transit)
@@ -315,6 +329,60 @@ class MosaicOrchestrator:
             "transit_time": transit_time,
             "ms_count": len(earliest_ms_paths),
         }
+
+    def _is_time_range_covered_by_published_mosaics(
+        self, mjd: float, margin_hours: float = 1.0
+    ) -> bool:
+        """Check if a time (MJD) is covered by any published mosaic.
+
+        Args:
+            mjd: Modified Julian Date to check
+            margin_hours: Margin in hours to expand coverage check
+
+        Returns:
+            True if time range is covered by published mosaic
+        """
+        try:
+            from dsa110_contimg.database.data_registry import get_data_records_by_type
+
+            # Query published mosaics from data registry
+            records = get_data_records_by_type(
+                self.data_registry_db_path, data_type="mosaic", status="published"
+            )
+
+            if not records:
+                return False
+
+            # Convert margin to days
+            margin_days = margin_hours / 24.0
+
+            # Check if any published mosaic covers this time
+            for record in records:
+                # Parse mosaic metadata for time range
+                metadata = {}
+                if record.metadata_json:
+                    try:
+                        metadata = json.loads(record.metadata_json)
+                    except json.JSONDecodeError:
+                        continue
+
+                start_mjd = metadata.get("start_mjd")
+                end_mjd = metadata.get("end_mjd")
+
+                if start_mjd is not None and end_mjd is not None:
+                    # Check if mjd falls within mosaic coverage (with margin)
+                    if (start_mjd - margin_days) <= mjd <= (end_mjd + margin_days):
+                        logger.debug(
+                            f"MJD {mjd} covered by published mosaic {record.data_id} "
+                            f"(range: {start_mjd}-{end_mjd})"
+                        )
+                        return True
+
+            return False
+
+        except Exception as e:
+            logger.warning(f"Error checking published mosaic coverage: {e}")
+            return False  # Assume not covered on error
 
     def check_existing_mosaic(
         self,

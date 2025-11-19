@@ -51,9 +51,9 @@ def query_unified_catalog(
 
             nvss_results = query_sources(
                 catalog_type=catalog,
-                ra_deg,
-                dec_deg,
-                radius_deg,
+                ra_center=ra_deg,
+                dec_center=dec_deg,
+                radius_deg=radius_deg,
                 min_flux_mjy=min_flux_jy * 1000 if min_flux_jy else None,
             )
             if nvss_results is not None and len(nvss_results) > 0:
@@ -103,16 +103,80 @@ def query_unified_catalog(
     # Query FIRST (if available)
     if "first" in catalogs:
         try:
-            # TODO: Implement FIRST catalog query when available
-            logger.debug("FIRST catalog query not yet implemented")
+            # FIRST catalog database query
+            # FIRST covers declination > -40° with 1.4 GHz observations
+            if dec_deg < -40.0:
+                logger.debug(f"FIRST catalog does not cover Dec={dec_deg:.2f}° (min: -40°)")
+            else:
+                try:
+                    from dsa110_contimg.catalog.catalog_crossmatch_astropy import query_sources
+
+                    df = query_sources(
+                        catalog_type="first",
+                        ra_center=ra_deg,
+                        dec_center=dec_deg,
+                        radius_deg=radius_deg,
+                        min_flux_mjy=(
+                            min_flux_mjy * 1000 if min_flux_mjy else None
+                        ),  # Convert Jy to mJy
+                    )
+                    if not df.empty:
+                        for _, row in df.iterrows():
+                            all_sources.append(
+                                {
+                                    "ra_deg": float(row.get("ra", row.get("ra_deg", 0))),
+                                    "dec_deg": float(row.get("dec", row.get("dec_deg", 0))),
+                                    "flux_jy": float(
+                                        row.get("flux_jy", row.get("flux_mjy", 0) / 1000)
+                                    ),
+                                    "catalog": "FIRST",
+                                    "catalog_id": row.get(
+                                        "source_name", f"FIRST_J{ra_deg:.4f}{dec_deg:+.4f}"
+                                    ),
+                                }
+                            )
+                except ImportError:
+                    logger.debug("FIRST catalog query requires catalog_crossmatch_astropy module")
         except Exception as e:
             logger.warning(f"Failed to query FIRST catalog: {e}")
 
     # Query RACS (if available)
     if "racs" in catalogs:
         try:
-            # TODO: Implement RACS catalog query when available
-            logger.debug("RACS catalog query not yet implemented")
+            # RACS (Rapid ASKAP Continuum Survey) catalog database query
+            # RACS covers declination < +41° with 887.5 MHz observations
+            if dec_deg > 41.0:
+                logger.debug(f"RACS catalog does not cover Dec={dec_deg:.2f}° (max: +41°)")
+            else:
+                try:
+                    from dsa110_contimg.catalog.catalog_crossmatch_astropy import query_sources
+
+                    df = query_sources(
+                        catalog_type="racs",
+                        ra_center=ra_deg,
+                        dec_center=dec_deg,
+                        radius_deg=radius_deg,
+                        min_flux_mjy=(
+                            min_flux_mjy * 1000 if min_flux_mjy else None
+                        ),  # Convert Jy to mJy
+                    )
+                    if not df.empty:
+                        for _, row in df.iterrows():
+                            all_sources.append(
+                                {
+                                    "ra_deg": float(row.get("ra", row.get("ra_deg", 0))),
+                                    "dec_deg": float(row.get("dec", row.get("dec_deg", 0))),
+                                    "flux_jy": float(
+                                        row.get("flux_jy", row.get("flux_mjy", 0) / 1000)
+                                    ),
+                                    "catalog": "RACS",
+                                    "catalog_id": row.get(
+                                        "source_name", f"RACS_J{ra_deg:.4f}{dec_deg:+.4f}"
+                                    ),
+                                }
+                            )
+                except ImportError:
+                    logger.debug("RACS catalog query requires catalog_crossmatch_astropy module")
         except Exception as e:
             logger.warning(f"Failed to query RACS catalog: {e}")
 

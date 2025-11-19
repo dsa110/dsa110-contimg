@@ -10,7 +10,7 @@ import asyncio
 import logging
 import socket
 import uuid
-from typing import Any, Callable, Dict, Optional, Awaitable
+from typing import Any, Awaitable, Callable, Dict, Optional
 
 from dsa110_contimg.absurd.client import AbsurdClient
 from dsa110_contimg.absurd.config import AbsurdConfig
@@ -78,9 +78,7 @@ class AbsurdWorker:
 
     async def start(self):
         """Start the worker polling loop."""
-        logger.info(
-            f"Starting Absurd worker {self.worker_id} on queue {self.config.queue_name}"
-        )
+        logger.info(f"Starting Absurd worker {self.worker_id} on queue {self.config.queue_name}")
         self.running = True
 
         async with self.client:

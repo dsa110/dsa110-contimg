@@ -7,9 +7,9 @@ and executes pipeline stages.
 
 import asyncio
 import logging
+import os
 import signal
 import sys
-import os
 from pathlib import Path
 
 # Ensure we can import the package
@@ -25,20 +25,20 @@ except ImportError:
     # Assuming this script is in scripts/absurd/ relative to CWD
     # And CWD is /data/dsa110-contimg/src/dsa110_contimg
     # The code is in src/dsa110_contimg/src
-    
+
     # We can try to locate it relative to this file
     current_file = Path(__file__).resolve()
     # /data/.../scripts/absurd/start_worker.py
-    root = current_file.parent.parent.parent # /data/.../src/dsa110_contimg
-    nested_src = root / "src" 
+    root = current_file.parent.parent.parent  # /data/.../src/dsa110_contimg
+    nested_src = root / "src"
     if nested_src.exists():
         sys.path.insert(0, str(nested_src))
 
 import dsa110_contimg
-from dsa110_contimg.absurd.config import AbsurdConfig
-from dsa110_contimg.absurd.worker import AbsurdWorker
 from dsa110_contimg.absurd.adapter import execute_pipeline_task
 from dsa110_contimg.absurd.client import AbsurdClient
+from dsa110_contimg.absurd.config import AbsurdConfig
+from dsa110_contimg.absurd.worker import AbsurdWorker
 
 # Configure logging
 logging.basicConfig(
@@ -47,11 +47,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger("dsa110_absurd_worker")
 
+
 async def main():
     """Main entry point."""
     # Load configuration
     config = AbsurdConfig()
-    
+
     # Override with environment variables if needed (already handled by pydantic/config)
     # Ensure we have a worker ID
     worker_id = f"worker-{os.uname().nodename}-{os.getpid()}"
@@ -69,12 +70,12 @@ async def main():
         queue_name=config.queue_name,
         executor_func=execute_pipeline_task,
         worker_id=worker_id,
-        poll_interval=config.poll_interval
+        poll_interval=config.poll_interval,
     )
 
     # Handle shutdown signals
     stop_event = asyncio.Event()
-    
+
     def signal_handler():
         logger.info("Shutdown signal received")
         stop_event.set()
@@ -94,6 +95,6 @@ async def main():
         await client.close()
         logger.info("Shutdown complete")
 
+
 if __name__ == "__main__":
     asyncio.run(main())
-

@@ -11,6 +11,8 @@ Environment="ABSURD_ENABLED=true"
 Environment="ABSURD_DATABASE_URL=postgresql://user:password@localhost/dsa110_absurd"
 Environment="ABSURD_QUEUE_NAME=dsa110-pipeline"
 Environment="PYTHONPATH=/data/dsa110-contimg/src/dsa110_contimg/src"
+Environment="PIPELINE_INPUT_DIR=/data/incoming"
+Environment="PIPELINE_OUTPUT_DIR=/stage/dsa110-contimg"
 ExecStart=/opt/miniforge/envs/casa6/bin/python scripts/absurd/start_worker.py
 Restart=always
 RestartSec=5

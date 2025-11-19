@@ -828,7 +828,7 @@ def image_ms(
                         ms_name = os.path.basename(ms_path)
                         txt_dir = os.path.dirname(os.path.abspath(txt_path))
                         txt_name = os.path.basename(txt_path)
-                        
+
                         # Convert decimal degrees to h:m:s and d:m:s format
                         # WSClean requires this format for -draw-centre
                         ra_hours = ra0_deg / 15.0
@@ -836,14 +836,14 @@ def image_ms(
                         ra_m = int((ra_hours - ra_h) * 60)
                         ra_s = ((ra_hours - ra_h) * 60 - ra_m) * 60
                         ra_str = f"{ra_h}h{ra_m}m{ra_s:.3f}s"
-                        
+
                         dec_sign = "+" if dec0_deg >= 0 else "-"
                         dec_abs = abs(dec0_deg)
                         dec_d = int(dec_abs)
                         dec_m = int((dec_abs - dec_d) * 60)
                         dec_s = ((dec_abs - dec_d) * 60 - dec_m) * 60
                         dec_str = f"{dec_sign}{dec_d}d{dec_m}m{dec_s:.3f}s"
-                        
+
                         # Step 1: Render model image from text list
                         # Output will be /data_txt/nvss_model-term-0.fits
                         cmd_draw = [
@@ -874,7 +874,7 @@ def image_ms(
                             ra_str,
                             dec_str,
                         ]
-                        
+
                         LOG.info("Running wsclean -draw-model: %s", " ".join(cmd_draw))
                         subprocess.run(cmd_draw, check=True)
 
@@ -906,10 +906,10 @@ def image_ms(
                             "/data_txt/nvss_model",
                             f"/data_ms/{ms_name}",
                         ]
-                        
+
                         LOG.info("Running wsclean -predict: %s", " ".join(cmd_predict))
                         subprocess.run(cmd_predict, check=True)
-                        
+
                     else:
                         # Native WSClean execution
                         # Convert decimal degrees to h:m:s and d:m:s format
@@ -918,14 +918,14 @@ def image_ms(
                         ra_m = int((ra_hours - ra_h) * 60)
                         ra_s = ((ra_hours - ra_h) * 60 - ra_m) * 60
                         ra_str = f"{ra_h}h{ra_m}m{ra_s:.3f}s"
-                        
+
                         dec_sign = "+" if dec0_deg >= 0 else "-"
                         dec_abs = abs(dec0_deg)
                         dec_d = int(dec_abs)
                         dec_m = int((dec_abs - dec_d) * 60)
                         dec_s = ((dec_abs - dec_d) * 60 - dec_m) * 60
                         dec_str = f"{dec_sign}{dec_d}d{dec_m}m{dec_s:.3f}s"
-                        
+
                         # Step 1: Render model
                         cmd_draw = [
                             wsclean_exec,

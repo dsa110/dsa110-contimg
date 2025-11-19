@@ -170,11 +170,11 @@ def images(
                                 KeyError,
                             ) as e:
                                 logger.debug(
-                                    f"Could not parse WCS for dec filter (image {r.get('id', 'unknown')}): {e}"
+                                    f"Could not parse WCS for dec filter (image {r['id'] if 'id' in r.keys() else 'unknown'}): {e}"
                                 )
                     except (OSError, IOError, KeyError) as e:
                         logger.debug(
-                            f"Could not read FITS for dec filter (image {r.get('id', 'unknown')}): {e}"
+                            f"Could not read FITS for dec filter (image {r['id'] if 'id' in r.keys() else 'unknown'}): {e}"
                         )
 
             # Apply declination filter
@@ -234,11 +234,11 @@ def images(
                                     )
                         except (ValueError, TypeError, AttributeError, KeyError) as e:
                             logger.debug(
-                                f"Could not parse WCS for response (image {r.get('id', 'unknown')}): {e}"
+                                f"Could not parse WCS for response (image {r['id'] if 'id' in r.keys() else 'unknown'}): {e}"
                             )
                 except (OSError, IOError, KeyError) as e:
                     logger.debug(
-                        f"Could not read FITS for response (image {r.get('id', 'unknown')}): {e}"
+                        f"Could not read FITS for response (image {r['id'] if 'id' in r.keys() else 'unknown'}): {e}"
                     )
 
             items.append(

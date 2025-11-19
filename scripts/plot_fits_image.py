@@ -7,23 +7,27 @@ Usage:
 """
 
 import sys
-import numpy as np
+
 import matplotlib
-matplotlib.use('Agg')  # Headless backend
+import numpy as np
+
+matplotlib.use("Agg")  # Headless backend
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 from astropy.io import fits
-from astropy.wcs import WCS
 from astropy.visualization import (
     AsinhStretch,
     ImageNormalize,
     PercentileInterval,
 )
-from pathlib import Path
+from astropy.wcs import WCS
+
 
 def plot_fits_image(fits_path, output_path=None, percentile=99.5):
     """
     Create a nice plot of a FITS image.
-    
+
     Args:
         fits_path: Path to FITS file
         output_path: Output PNG path (default: same name as FITS with .png)
@@ -33,81 +37,82 @@ def plot_fits_image(fits_path, output_path=None, percentile=99.5):
     if not fits_path.exists():
         print(f"Error: File not found: {fits_path}")
         sys.exit(1)
-    
+
     if output_path is None:
-        output_path = fits_path.with_suffix('.png')
-    
+        output_path = fits_path.with_suffix(".png")
+
     # Read FITS
     with fits.open(fits_path) as hdul:
         data = hdul[0].data
         header = hdul[0].header
-        
+
         # Squeeze dimensions
         data = np.asarray(data).squeeze()
-        
+
         # Handle 3D/4D arrays (take first channel/stokes)
         if data.ndim > 2:
             data = data[0] if data.ndim == 3 else data[0, 0]
-        
+
         if data.ndim != 2:
             print(f"Error: Expected 2D data, got {data.ndim}D")
             sys.exit(1)
-        
+
         # Get WCS
         try:
             wcs = WCS(header).celestial
         except:
             wcs = None
             print("Warning: Could not parse WCS, plotting without coordinates")
-        
+
         # Get beam info
-        bmaj = header.get('BMAJ', None)
-        bmin = header.get('BMIN', None)
-        bpa = header.get('BPA', None)
-        bunit = header.get('BUNIT', 'Jy/beam')
-    
+        bmaj = header.get("BMAJ", None)
+        bmin = header.get("BMIN", None)
+        bpa = header.get("BPA", None)
+        bunit = header.get("BUNIT", "Jy/beam")
+
     # Create figure
     fig = plt.figure(figsize=(12, 10))
-    
+
     if wcs is not None:
         ax = fig.add_subplot(111, projection=wcs)
-        ax.set_xlabel('Right Ascension (J2000)', fontsize=12)
-        ax.set_ylabel('Declination (J2000)', fontsize=12)
+        ax.set_xlabel("Right Ascension (J2000)", fontsize=12)
+        ax.set_ylabel("Declination (J2000)", fontsize=12)
     else:
         ax = fig.add_subplot(111)
-        ax.set_xlabel('X pixel', fontsize=12)
-        ax.set_ylabel('Y pixel', fontsize=12)
-    
+        ax.set_xlabel("X pixel", fontsize=12)
+        ax.set_ylabel("Y pixel", fontsize=12)
+
     # Normalize data for display
     interval = PercentileInterval(percentile)
     stretch = AsinhStretch()
     norm = ImageNormalize(data, interval=interval, stretch=stretch)
-    
+
     # Plot image
-    im = ax.imshow(data, origin='lower', cmap='viridis', norm=norm, aspect='auto')
-    
+    im = ax.imshow(data, origin="lower", cmap="viridis", norm=norm, aspect="auto")
+
     # Add colorbar
     cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
     cbar.set_label(bunit, fontsize=12)
-    
+
     # Add title with statistics
     mean = np.nanmean(data)
     std = np.nanstd(data)
     peak = np.nanmax(data)
     rms = np.sqrt(np.nanmean(data**2))
-    
+
     title = f"{fits_path.name}\n"
     title += f"Peak: {peak:.3e} {bunit}, RMS: {rms:.3e} {bunit}, Mean: {mean:.3e} {bunit}"
     if bmaj and bmin:
-        title += f"\nBeam: {bmaj*3600:.2f}\" × {bmin*3600:.2f}\""
+        title += f'\nBeam: {bmaj*3600:.2f}" × {bmin*3600:.2f}"'
         if bpa:
             title += f" @ {bpa:.1f}°"
-    
+
     ax.set_title(title, fontsize=11, pad=10)
-    
+
     # Draw beam ellipse if available
     if bmaj and bmin and wcs is not None:
         from matplotlib.patches import Ellipse
+
         # Put beam in bottom left corner
         beam_x = 0.1
         beam_y = 0.1
@@ -117,18 +122,18 @@ def plot_fits_image(fits_path, output_path=None, percentile=99.5):
             height=bmaj * 3600,
             angle=bpa if bpa else 0,
             transform=ax.transAxes,
-            facecolor='white',
-            edgecolor='black',
-            linewidth=1.5
+            facecolor="white",
+            edgecolor="black",
+            linewidth=1.5,
         )
         ax.add_patch(beam)
-    
+
     plt.tight_layout()
-    
+
     # Save
-    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.savefig(output_path, dpi=50, bbox_inches="tight")  # Low-res for quick testing
     print(f"Saved plot to: {output_path}")
-    
+
     # Also print statistics
     print(f"\nImage statistics:")
     print(f"  Shape: {data.shape}")
@@ -137,18 +142,19 @@ def plot_fits_image(fits_path, output_path=None, percentile=99.5):
     print(f"  Mean: {mean:.6e} {bunit}")
     print(f"  Std: {std:.6e} {bunit}")
     if bmaj and bmin:
-        print(f"  Beam: {bmaj*3600:.2f}\" × {bmin*3600:.2f}\"")
-    
+        print(f'  Beam: {bmaj*3600:.2f}" × {bmin*3600:.2f}"')
+
     plt.close()
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python plot_fits_image.py <fits_file> [output_png] [percentile]")
         print("  percentile: contrast stretch percentile (default: 99.5)")
         sys.exit(1)
-    
+
     fits_file = sys.argv[1]
     output_file = sys.argv[2] if len(sys.argv) > 2 else None
     percentile = float(sys.argv[3]) if len(sys.argv) > 3 else 99.5
-    
+
     plot_fits_image(fits_file, output_file, percentile)

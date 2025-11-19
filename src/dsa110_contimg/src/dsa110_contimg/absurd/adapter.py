@@ -13,6 +13,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict
 
+from dsa110_contimg.calibration.cli_utils import rephase_ms_to_calibrator
 from dsa110_contimg.pipeline.config import PipelineConfig
 from dsa110_contimg.pipeline.context import PipelineContext
 from dsa110_contimg.pipeline.stages_impl import (
@@ -66,12 +67,9 @@ async def execute_pipeline_task(task_name: str, params: Dict[str, Any]) -> Dict[
         ...         "inputs": {
         ...             "input_path": "/data/obs.hdf5",
         ...             "start_time": "2025-01-01T00:00:00",
-        ...             "end_time": "2025-01-01T01:00:00"
         ...         }
         ...     }
         ... )
-        >>> print(result["status"])
-        "success"
     """
     logger.info(f"Executing Absurd task: {task_name}")
 
@@ -104,33 +102,7 @@ async def execute_pipeline_task(task_name: str, params: Dict[str, Any]) -> Dict[
 
 
 async def execute_conversion(params: Dict[str, Any]) -> Dict[str, Any]:
-    """Execute UVH5 to MS conversion.
-
-    Args:
-        params: Must contain:
-            - config: PipelineConfig dict or path
-            - inputs: Dict with:
-                - input_path: Path to UVH5 file
-                - start_time: Start time (ISO format)
-                - end_time: End time (ISO format)
-
-    Returns:
-        Result dict with:
-            - status: "success" or "error"
-            - outputs: Dict with ms_path, ms_groups, etc.
-            - message: Status message
-            - errors: Error list (if failed)
-
-    Example:
-        >>> result = await execute_conversion({
-        ...     "config": config_dict,
-        ...     "inputs": {
-        ...         "input_path": "/data/obs.hdf5",
-        ...         "start_time": "2025-01-01T00:00:00",
-        ...         "end_time": "2025-01-01T01:00:00"
-        ...     }
-        ... })
-    """
+    """Execute UVH5 to MS conversion."""
     logger.info("[Absurd] Starting UVH5 → MS conversion")
 
     try:
@@ -139,7 +111,7 @@ async def execute_conversion(params: Dict[str, Any]) -> Dict[str, Any]:
         inputs = params.get("inputs", {})
 
         # Validate required inputs
-        required = ["input_path", "start_time", "end_time"]
+        required = ["input_path"]
         missing = [k for k in required if k not in inputs]
         if missing:
             return {
@@ -189,20 +161,12 @@ async def execute_calibration_solve(params: Dict[str, Any]) -> Dict[str, Any]:
             - config: PipelineConfig dict or path
             - inputs: Dict with:
                 - ms_path: Path to MS (or in outputs from previous stage)
+                - calibrator_info: Dict with (name, ra_deg, dec_deg) (Optional, for rephasing)
 
     Returns:
         Result dict with:
             - status: "success" or "error"
             - outputs: Dict with calibration_tables (K, BP, G, etc.)
-            - message: Status message
-            - errors: Error list (if failed)
-
-    Example:
-        >>> result = await execute_calibration_solve({
-        ...     "config": config_dict,
-        ...     "inputs": {},
-        ...     "outputs": {"ms_path": "/data/obs.ms"}
-        ... })
     """
     logger.info("[Absurd] Starting calibration solve")
 
@@ -221,7 +185,43 @@ async def execute_calibration_solve(params: Dict[str, Any]) -> Dict[str, Any]:
                 "errors": ["ms_path not found in inputs or outputs"],
             }
 
+        # Handle rephasing if calibrator info is provided
+        cal_info = inputs.get("calibrator_info")
+        if cal_info:
+            cal_name = cal_info.get("name")
+            cal_ra = cal_info.get("ra_deg")
+            cal_dec = cal_info.get("dec_deg")
+
+            if cal_name and cal_ra is not None and cal_dec is not None:
+                logger.info(
+                    f"[Absurd] Rephasing MS to calibrator: {cal_name} "
+                    f"({cal_ra:.6f}°, {cal_dec:.6f}°)"
+                )
+                try:
+                    success = await asyncio.to_thread(
+                        rephase_ms_to_calibrator,
+                        ms_path,
+                        float(cal_ra),
+                        float(cal_dec),
+                        cal_name,
+                        logger,
+                    )
+                    if not success:
+                        return {
+                            "status": "error",
+                            "message": f"Failed to rephase MS to {cal_name}",
+                            "errors": ["rephase_ms_to_calibrator returned False"],
+                        }
+                except Exception as e:
+                    logger.error(f"Rephasing failed: {e}")
+                    return {
+                        "status": "error",
+                        "message": f"Rephasing exception: {e}",
+                        "errors": [str(e)],
+                    }
+
         # Create pipeline context with ms_path in outputs
+        # Pass updated inputs (which might contain calibration_params from Producer)
         context = PipelineContext(config=config, inputs=inputs, outputs={"ms_path": ms_path})
 
         # Initialize stage
@@ -257,32 +257,7 @@ async def execute_calibration_solve(params: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def execute_calibration_apply(params: Dict[str, Any]) -> Dict[str, Any]:
-    """Execute calibration application to MS.
-
-        Args:
-            params: Must contain:
-                - config: PipelineConfig dict or path
-                - inputs: Dict (optional)
-                             - outputs: Dict with:
-                     - ms_path: Path to MS
-                     - calibration_tables: Cal table paths dict
-
-        Returns:
-            Result dict with:
-                - status: "success" or "error"
-                - outputs: Dict with ms_path (calibrated)
-                - message: Status message
-                - errors: Error list (if failed)
-
-        Example:
-            >>> result = await execute_calibration_apply({
-            ...     "config": config_dict,
-            ...     "outputs": {
-            ...         "ms_path": "/data/obs.ms",
-    ...         "calibration_tables": {"K": "/cal/K.cal"}
-            ...     }
-            ... })
-    """
+    """Execute calibration application to MS."""
     logger.info("[Absurd] Starting calibration apply")
 
     try:
@@ -347,28 +322,7 @@ async def execute_calibration_apply(params: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def execute_imaging(params: Dict[str, Any]) -> Dict[str, Any]:
-    """Execute imaging from calibrated MS.
-
-    Args:
-        params: Must contain:
-            - config: PipelineConfig dict or path
-            - inputs: Dict (optional)
-            - outputs: Dict with:
-                - ms_path: Path to calibrated MS
-
-    Returns:
-        Result dict with:
-            - status: "success" or "error"
-            - outputs: Dict with image_path, image_metadata, etc.
-            - message: Status message
-            - errors: Error list (if failed)
-
-    Example:
-        >>> result = await execute_imaging({
-        ...     "config": config_dict,
-        ...     "outputs": {"ms_path": "/data/calibrated.ms"}
-        ... })
-    """
+    """Execute imaging from calibrated MS."""
     logger.info("[Absurd] Starting imaging")
 
     try:
@@ -420,28 +374,7 @@ async def execute_imaging(params: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def execute_validation(params: Dict[str, Any]) -> Dict[str, Any]:
-    """Execute image validation.
-
-    Args:
-        params: Must contain:
-            - config: PipelineConfig dict or path
-            - inputs: Dict (optional)
-            - outputs: Dict with:
-                - image_path: Path to FITS image
-
-    Returns:
-        Result dict with:
-            - status: "success" or "error"
-            - outputs: Dict with validation_results
-            - message: Status message
-            - errors: Error list (if failed)
-
-    Example:
-        >>> result = await execute_validation({
-        ...     "config": config_dict,
-        ...     "outputs": {"image_path": "/data/image.fits"}
-        ... })
-    """
+    """Execute image validation."""
     logger.info("[Absurd] Starting image validation")
 
     try:
@@ -495,29 +428,7 @@ async def execute_validation(params: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def execute_crossmatch(params: Dict[str, Any]) -> Dict[str, Any]:
-    """Execute source cross-matching.
-
-    Args:
-        params: Must contain:
-            - config: PipelineConfig dict or path
-            - inputs: Dict (optional)
-            - outputs: Dict with:
-                - image_path: Path to image (OR)
-                - detected_sources: DataFrame of detected sources
-
-    Returns:
-        Result dict with:
-            - status: "success" or "error"
-            - outputs: Dict with crossmatch_results
-            - message: Status message
-            - errors: Error list (if failed)
-
-    Example:
-        >>> result = await execute_crossmatch({
-        ...     "config": config_dict,
-        ...     "outputs": {"image_path": "/data/image.fits"}
-        ... })
-    """
+    """Execute source cross-matching."""
     logger.info("[Absurd] Starting source cross-matching")
 
     try:
@@ -584,32 +495,7 @@ async def execute_crossmatch(params: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def execute_photometry(params: Dict[str, Any]) -> Dict[str, Any]:
-    """Execute adaptive binning photometry.
-
-    Args:
-        params: Must contain:
-            - config: PipelineConfig dict or path
-            - inputs: Dict (optional)
-            - outputs: Dict with:
-                - ms_path: Path to calibrated MS
-                - image_path: Path to image (optional)
-
-    Returns:
-        Result dict with:
-            - status: "success" or "error"
-            - outputs: Dict with photometry_results (DataFrame)
-            - message: Status message
-            - errors: Error list (if failed)
-
-    Example:
-        >>> result = await execute_photometry({
-        ...     "config": config_dict,
-        ...     "outputs": {
-        ...         "ms_path": "/data/calibrated.ms",
-        ...         "image_path": "/data/image.fits"
-        ...     }
-        ... })
-    """
+    """Execute adaptive binning photometry."""
     logger.info("[Absurd] Starting adaptive photometry")
 
     try:
@@ -672,28 +558,7 @@ async def execute_photometry(params: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def execute_catalog_setup(params: Dict[str, Any]) -> Dict[str, Any]:
-    """Execute catalog setup for observation declination.
-
-    Args:
-        params: Must contain:
-            - config: PipelineConfig dict or path
-            - inputs: Dict with:
-                - input_path: Path to HDF5 observation file
-            - outputs: Dict (optional)
-
-    Returns:
-        Result dict with:
-            - status: "success" or "error"
-            - outputs: Dict with catalog_setup_status
-            - message: Status message
-            - errors: Error list (if failed)
-
-    Example:
-        >>> result = await execute_catalog_setup({
-        ...     "config": config_dict,
-        ...     "inputs": {"input_path": "/data/observation.hdf5"}
-        ... })
-    """
+    """Execute catalog setup for observation declination."""
     logger.info("[Absurd] Starting catalog setup")
 
     try:
@@ -746,29 +611,7 @@ async def execute_catalog_setup(params: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def execute_organize_files(params: Dict[str, Any]) -> Dict[str, Any]:
-    """Execute file organization for MS files.
-
-    Args:
-        params: Must contain:
-            - config: PipelineConfig dict or path
-            - inputs: Dict (optional)
-            - outputs: Dict with:
-                - ms_path: Path to MS file (OR)
-                - ms_paths: List of MS file paths
-
-    Returns:
-        Result dict with:
-            - status: "success" or "error"
-            - outputs: Dict with organized ms_path/ms_paths
-            - message: Status message
-            - errors: Error list (if failed)
-
-    Example:
-        >>> result = await execute_organize_files({
-        ...     "config": config_dict,
-        ...     "outputs": {"ms_path": "/data/raw/obs.ms"}
-        ... })
-    """
+    """Execute file organization for MS files."""
     logger.info("[Absurd] Starting file organization")
 
     try:

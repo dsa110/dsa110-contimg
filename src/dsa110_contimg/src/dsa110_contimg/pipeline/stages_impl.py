@@ -843,6 +843,29 @@ class CalibrationSolveStage(PipelineStage):
                 flagdata(vis=str(ms_path), autocorr=True, flagbackup=False)
                 logger.info("✓ Autocorrelations flagged")
 
+            # TEMPORAL TRACKING: Capture flag snapshot after Phase 1 (pre-calibration flagging)
+            try:
+                from dsa110_contimg.calibration.flagging_temporal import capture_flag_snapshot
+
+                phase1_snapshot = capture_flag_snapshot(
+                    ms_path=str(ms_path),
+                    phase="phase1_post_rfi",
+                    refant=refant,
+                )
+                logger.info(
+                    f"✓ Phase 1 flag snapshot captured: {phase1_snapshot.total_flagged_fraction * 100:.1f}% overall flagging"
+                )
+
+                # Store snapshot for later comparison (will be saved to database in later step)
+                if not hasattr(params, "_temporal_snapshots"):
+                    params["_temporal_snapshots"] = {}
+                params["_temporal_snapshots"]["phase1"] = phase1_snapshot
+            except Exception as e:
+                logger.warning(f"Failed to capture Phase 1 flag snapshot: {e}")
+                logger.warning(
+                    "Continuing with calibration (temporal tracking disabled for this run)"
+                )
+
         # Step 2: Model population (required for calibration)
         if model_source == "catalog":
             from dsa110_contimg.calibration.model import populate_model_from_catalog
@@ -950,6 +973,37 @@ class CalibrationSolveStage(PipelineStage):
         logger.info(f"Calibration solve complete. Generated {len(all_tables)} tables:")
         for tab in all_tables:
             logger.info(f"  - {tab}")
+
+        # TEMPORAL TRACKING: Capture flag snapshot after Phase 2 (post-solve, pre-applycal)
+        # NOTE: Flags should be UNCHANGED from Phase 1 at this point (solve doesn't change flags)
+        try:
+            from dsa110_contimg.calibration.flagging_temporal import capture_flag_snapshot
+
+            cal_table_paths = {}
+            if ktabs:
+                cal_table_paths["K"] = ktabs[0]
+            if bptabs:
+                cal_table_paths["BP"] = bptabs[0]
+            if gtabs:
+                cal_table_paths["G"] = gtabs[0]
+
+            phase2_snapshot = capture_flag_snapshot(
+                ms_path=str(ms_path),
+                phase="phase2_post_solve",
+                refant=refant,
+                cal_table_paths=cal_table_paths,
+            )
+            logger.info(
+                f"✓ Phase 2 flag snapshot captured: {phase2_snapshot.total_flagged_fraction * 100:.1f}% overall flagging"
+            )
+
+            # Store snapshot for later comparison
+            if "_temporal_snapshots" not in params:
+                params["_temporal_snapshots"] = {}
+            params["_temporal_snapshots"]["phase2"] = phase2_snapshot
+        except Exception as e:
+            logger.warning(f"Failed to capture Phase 2 flag snapshot: {e}")
+            logger.warning("Continuing with calibration (temporal tracking disabled for this run)")
 
         # Register calibration tables in registry database
         # CRITICAL: Registration is required for CalibrationStage to find tables via registry lookup
@@ -1225,6 +1279,28 @@ class CalibrationStage(PipelineStage):
             try:
                 apply_to_target(ms_path, field="", gaintables=caltables, calwt=True)
                 cal_applied = 1
+
+                # TEMPORAL TRACKING: Capture flag snapshot after Phase 3 (post-applycal)
+                try:
+                    from dsa110_contimg.calibration.flagging_temporal import capture_flag_snapshot
+
+                    phase3_snapshot = capture_flag_snapshot(
+                        ms_path=str(ms_path),
+                        phase="phase3_post_applycal",
+                        refant=refant,
+                        cal_table_paths={"applied": caltables},
+                    )
+                    logger.info(
+                        f"✓ Phase 3 flag snapshot captured: {phase3_snapshot.total_flagged_fraction * 100:.1f}% overall flagging"
+                    )
+
+                    # Store snapshot for later comparison
+                    if "_temporal_snapshots" not in params:
+                        params["_temporal_snapshots"] = {}
+                    params["_temporal_snapshots"]["phase3"] = phase3_snapshot
+                except Exception as e:
+                    logger.warning(f"Failed to capture Phase 3 flag snapshot: {e}")
+
             except Exception as e:
                 logger.error(f"applycal failed for {ms_path}: {e}")
                 raise RuntimeError(f"Calibration application failed: {e}") from e
@@ -1271,9 +1347,105 @@ class CalibrationStage(PipelineStage):
             try:
                 apply_to_target(ms_path, field="", gaintables=applylist, calwt=True)
                 cal_applied = 1
+
+                # TEMPORAL TRACKING: Capture flag snapshot after Phase 3 (post-applycal)
+                try:
+                    from dsa110_contimg.calibration.flagging_temporal import capture_flag_snapshot
+
+                    phase3_snapshot = capture_flag_snapshot(
+                        ms_path=str(ms_path),
+                        phase="phase3_post_applycal",
+                        refant=refant,
+                        cal_table_paths={"applied": applylist},
+                    )
+                    logger.info(
+                        f"✓ Phase 3 flag snapshot captured: {phase3_snapshot.total_flagged_fraction * 100:.1f}% overall flagging"
+                    )
+
+                    # Store snapshot for later comparison
+                    if "_temporal_snapshots" not in params:
+                        params["_temporal_snapshots"] = {}
+                    params["_temporal_snapshots"]["phase3"] = phase3_snapshot
+                except Exception as e:
+                    logger.warning(f"Failed to capture Phase 3 flag snapshot: {e}")
+
             except Exception as e:
                 logger.error(f"applycal failed for {ms_path}: {e}")
                 raise RuntimeError(f"Calibration application failed: {e}") from e
+
+        # TEMPORAL TRACKING: Compare snapshots and diagnose SPW failures
+        if (
+            "_temporal_snapshots" in params
+            and "phase1" in params["_temporal_snapshots"]
+            and "phase3" in params["_temporal_snapshots"]
+        ):
+            try:
+                from dsa110_contimg.calibration.flagging_temporal import (
+                    compare_flag_snapshots,
+                    diagnose_spw_failure,
+                    format_comparison_summary,
+                )
+
+                phase1_snap = params["_temporal_snapshots"]["phase1"]
+                phase3_snap = params["_temporal_snapshots"]["phase3"]
+
+                # Compare snapshots
+                comparison = compare_flag_snapshots(phase1_snap, phase3_snap)
+
+                # Log comparison summary
+                logger.info("=" * 80)
+                logger.info("TEMPORAL FLAGGING ANALYSIS")
+                logger.info("=" * 80)
+                logger.info(format_comparison_summary(comparison))
+
+                # Diagnose any SPWs that became fully flagged
+                if comparison["newly_fully_flagged_spws"]:
+                    logger.info("\nDIAGNOSIS of newly fully-flagged SPWs:")
+                    logger.info("-" * 80)
+
+                    for failed_spw in comparison["newly_fully_flagged_spws"]:
+                        diagnosis = diagnose_spw_failure(phase1_snap, phase3_snap, failed_spw)
+                        logger.info(f"\nSPW {failed_spw}:")
+                        logger.info(
+                            f"  Pre-calibration flagging: {diagnosis['phase1_flagging_pct']:.1f}%"
+                        )
+                        if diagnosis["refant_phase1_pct"] is not None:
+                            logger.info(
+                                f"  Pre-calibration refant flagging: {diagnosis['refant_phase1_pct']:.1f}%"
+                            )
+                        logger.info(
+                            f"  Post-applycal flagging: {diagnosis['phase3_flagging_pct']:.1f}%"
+                        )
+                        logger.info(f"  → CAUSE: {diagnosis['definitive_cause']}")
+
+                    logger.info("=" * 80)
+
+                # Store temporal analysis in params for database storage
+                params["_temporal_analysis"] = {
+                    "comparison": comparison,
+                    "phase1_snapshot": phase1_snap,
+                    "phase3_snapshot": phase3_snap,
+                }
+
+                # Store in database
+                try:
+                    from dsa110_contimg.calibration.flagging_temporal import (
+                        store_temporal_analysis_in_database,
+                    )
+
+                    products_db = context.config.paths.state_dir / "products.sqlite3"
+                    store_temporal_analysis_in_database(
+                        db_path=str(products_db),
+                        ms_path=str(ms_path),
+                        phase1_snapshot=phase1_snap,
+                        phase3_snapshot=phase3_snap,
+                        comparison=comparison,
+                    )
+                except Exception as db_e:
+                    logger.warning(f"Failed to store temporal analysis in database: {db_e}")
+
+            except Exception as e:
+                logger.warning(f"Failed to perform temporal flagging analysis: {e}")
 
         # Update MS index (consistent with streaming mode)
         if context.state_repository:

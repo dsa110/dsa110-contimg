@@ -7,9 +7,9 @@ and executes pipeline stages.
 
 import asyncio
 import logging
+import os
 import signal
 import sys
-import os
 from pathlib import Path
 
 # DEBUG: Print sys.path and environment

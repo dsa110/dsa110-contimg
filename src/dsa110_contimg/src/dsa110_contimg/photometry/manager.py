@@ -30,12 +30,12 @@ from dsa110_contimg.database.products import (
     ensure_products_db,
     photometry_insert,
 )
+from dsa110_contimg.photometry.ese_pipeline import auto_detect_ese_for_new_measurements
 from dsa110_contimg.photometry.forced import ForcedPhotometryResult, measure_many
 from dsa110_contimg.photometry.helpers import (
     query_sources_for_fits,
     query_sources_for_mosaic,
 )
-from dsa110_contimg.photometry.ese_pipeline import auto_detect_ese_for_new_measurements
 
 logger = logging.getLogger(__name__)
 
@@ -221,17 +221,16 @@ class PhotometryManager:
             # Determine search radii (support elongated mosaics)
             ra_radius, dec_radius = self._get_search_radii(fits_path, config)
 
-            # Query sources for the image field
-            # TODO: Update query_sources_for_fits to accept ra_radius_deg/dec_radius_deg
-            # For now, use max() which works but is less efficient for elongated mosaics
-            effective_radius = config.radius_deg or max(ra_radius, dec_radius)
+            # Query sources for the image field with separate RA/Dec radii for elongated mosaics
             sources = query_sources_for_fits(
                 fits_path,
                 catalog=config.catalog,
-                radius_deg=effective_radius,
+                radius_deg=config.radius_deg,
                 min_flux_mjy=config.min_flux_mjy,
                 max_sources=config.max_sources,
                 catalog_path=config.catalog_path,
+                ra_radius_deg=ra_radius,
+                dec_radius_deg=dec_radius,
             )
 
             if not sources:
@@ -396,17 +395,16 @@ class PhotometryManager:
             # Determine search radii (support elongated mosaics)
             ra_radius, dec_radius = self._get_search_radii(mosaic_path, config)
 
-            # Query sources for the mosaic field
-            # TODO: Update query_sources_for_mosaic to accept ra_radius_deg/dec_radius_deg
-            # For now, use max() which works but is less efficient for elongated mosaics
-            effective_radius = config.radius_deg or max(ra_radius, dec_radius)
+            # Query sources for the mosaic field with separate RA/Dec radii for elongated mosaics
             sources = query_sources_for_mosaic(
                 mosaic_path,
                 catalog=config.catalog,
-                radius_deg=effective_radius,
+                radius_deg=config.radius_deg,
                 min_flux_mjy=config.min_flux_mjy,
                 max_sources=config.max_sources,
                 catalog_path=config.catalog_path,
+                ra_radius_deg=ra_radius,
+                dec_radius_deg=dec_radius,
             )
 
             if not sources:
