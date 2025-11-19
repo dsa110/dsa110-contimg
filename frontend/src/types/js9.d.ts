@@ -16,6 +16,9 @@ declare global {
  */
 export interface JS9Instance {
   displays: JS9Display[];
+  images: JS9Image[];
+  opts: Record<string, any>;
+  InstallDir?: string;
 
   // Initialization
   Init(options?: JS9Options): void;
@@ -40,6 +43,7 @@ export interface JS9Instance {
   SetDisplay(displayId: string): void;
   GetDisplays(): JS9Display[];
   AddDivs(divId: string, opts?: Record<string, unknown>): void;
+  ResizeDisplay(width: number, height: number, display?: JS9Display | string): void;
 
   // Image data access
   GetImageData(imageId?: string, display?: JS9Display | string): ImageData | null;

@@ -169,6 +169,10 @@ class SelfCalConfig:
     calib_dec_deg: Optional[float] = None
     calib_flux_jy: Optional[float] = None
 
+    # Tight masking for fast self-cal on single source
+    use_tight_mask: bool = False  # Create circular mask around calibrator
+    mask_radius_arcmin: float = 3.0  # Mask radius in arcminutes
+
 
 class SelfCalibrator:
     """Iterative self-calibration for radio interferometric data."""
@@ -307,6 +311,73 @@ class SelfCalibrator:
             )
         else:
             return False, "Self-calibration did not improve results"
+
+    def _create_tight_calibrator_mask(self, reference_fits: str) -> Optional[str]:
+        """Create a tight circular mask around the calibrator position.
+
+        Args:
+            reference_fits: Path to reference FITS image for WCS/shape
+
+        Returns:
+            Path to mask FITS file, or None if mask creation failed
+        """
+        if not self.config.use_tight_mask:
+            return None
+
+        if self.config.calib_ra_deg is None or self.config.calib_dec_deg is None:
+            logger.warning("Tight mask requested but calibrator position not provided")
+            return None
+
+        try:
+            import numpy as np
+            from astropy.io import fits
+            from astropy.wcs import WCS
+
+            # Read reference image for WCS and shape
+            with fits.open(reference_fits) as hdul:
+                header = hdul[0].header
+                wcs = WCS(header, naxis=2)
+                shape = hdul[0].data.squeeze().shape[-2:]  # Get spatial dimensions
+
+            # Convert RA/Dec to pixel coordinates
+            ra_pix, dec_pix = wcs.all_world2pix(
+                self.config.calib_ra_deg, self.config.calib_dec_deg, 0
+            )
+
+            # Calculate mask radius in pixels
+            # Get pixel scale from WCS (degrees per pixel)
+            pixel_scale_deg = np.abs(header.get("CDELT1", header.get("CD1_1", 0.0)))
+            if pixel_scale_deg == 0:
+                logger.warning("Could not determine pixel scale from FITS header")
+                return None
+
+            radius_deg = self.config.mask_radius_arcmin / 60.0  # Convert arcmin to degrees
+            radius_pix = radius_deg / pixel_scale_deg
+
+            # Create circular mask
+            y, x = np.ogrid[0 : shape[0], 0 : shape[1]]
+            mask_array = ((x - ra_pix) ** 2 + (y - dec_pix) ** 2) <= radius_pix**2
+            mask_array = mask_array.astype(np.float32)
+
+            # Save mask as FITS
+            mask_path = self.output_dir / "tight_calibrator_mask.fits"
+            mask_hdu = fits.PrimaryHDU(data=mask_array, header=header)
+            mask_hdu.writeto(mask_path, overwrite=True)
+
+            logger.info(
+                f"Created tight mask: {radius_pix:.1f} pixels "
+                f"({self.config.mask_radius_arcmin:.1f} arcmin) around calibrator"
+            )
+            logger.info(
+                f"  Mask covers {mask_array.sum():.0f} / {mask_array.size} pixels "
+                f"({100*mask_array.sum()/mask_array.size:.2f}%)"
+            )
+
+            return str(mask_path)
+
+        except Exception as e:
+            logger.error(f"Failed to create tight mask: {e}")
+            return None
 
     def _run_initial_imaging(self) -> Optional[SelfCalIteration]:
         """Run initial imaging to establish baseline metrics."""

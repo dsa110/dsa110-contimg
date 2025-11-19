@@ -8,7 +8,6 @@
 class JS9PromisePatcher {
   private isPatched: boolean = false;
   private originalSetTimeout: typeof setTimeout;
-  private readonly MAX_HANDLER_TIME_MS: number = 5; // Target max time per handler
   private readonly YIELD_THRESHOLD_MS: number = 10; // Yield if handler exceeds this
   private aggressiveMode: boolean = false; // Patch all immediate setTimeout calls
 
@@ -36,14 +35,13 @@ class JS9PromisePatcher {
     if (this.isPatched) {
       // Silently return if already patched (e.g., by initPatcher)
       // Only log in development mode for debugging
-      if (process.env.NODE_ENV === "development") {
-        console.debug("[JS9PromisePatcher] Already patched, skipping");
+      if (import.meta.env.DEV) {
+        logger.debug("[JS9PromisePatcher] Already patched, skipping");
       }
       return;
     }
 
     const self = this;
-    const _handlerExecutionTimes = new WeakMap<Function, number>();
 
     window.setTimeout = function (handler: TimerHandler, timeout?: number, ...args: any[]): number {
       // Patch handlers called with no timeout or timeout=0 (immediate execution)
@@ -82,7 +80,7 @@ class JS9PromisePatcher {
           const optimizedHandler = self.createOptimizedHandler(handler);
 
           // Log in development mode for debugging
-          if (process.env.NODE_ENV === "development") {
+          if (import.meta.env.DEV) {
             const handlerName = (handler as any).name || "anonymous";
             console.debug(`[JS9PromisePatcher] Intercepted setTimeout handler: ${handlerName}`);
           }
@@ -105,8 +103,6 @@ class JS9PromisePatcher {
    */
   private createOptimizedHandler(handler: Function): Function {
     const self = this;
-    const _CHUNK_TIME_MS = 5; // Max time per execution chunk
-    const _YIELD_DELAY_MS = 1; // Delay between chunks
 
     return function (this: any, ...args: any[]) {
       // Strategy: Use requestIdleCallback if available for better yielding

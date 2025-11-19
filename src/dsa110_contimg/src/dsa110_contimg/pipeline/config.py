@@ -170,6 +170,83 @@ class CrossMatchConfig(BaseModel):
     )
 
 
+class TransientDetectionConfig(BaseModel):
+    """Configuration for transient detection stage."""
+
+    enabled: bool = Field(default=False, description="Enable transient detection stage")
+    detection_threshold_sigma: float = Field(
+        default=5.0,
+        ge=3.0,
+        description="Significance threshold for new sources [sigma]",
+    )
+    variability_threshold_sigma: float = Field(
+        default=3.0,
+        ge=2.0,
+        description="Threshold for flux variability [sigma]",
+    )
+    match_radius_arcsec: float = Field(
+        default=10.0,
+        ge=1.0,
+        le=30.0,
+        description="Matching radius for baseline catalog [arcsec]",
+    )
+    baseline_catalog: str = Field(
+        default="NVSS",
+        description=("Baseline catalog for transient detection: " "'NVSS', 'FIRST', 'RACS'"),
+    )
+    alert_threshold_sigma: float = Field(
+        default=7.0,
+        ge=5.0,
+        description="Minimum significance for generating alerts [sigma]",
+    )
+    store_lightcurves: bool = Field(
+        default=True,
+        description="Store flux measurements in lightcurves table",
+    )
+    min_baseline_flux_mjy: float = Field(
+        default=10.0,
+        ge=1.0,
+        description="Minimum baseline flux for fading source detection [mJy]",
+    )
+
+
+class AstrometricCalibrationConfig(BaseModel):
+    """Configuration for astrometric calibration."""
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable astrometric refinement in mosaic stage",
+    )
+    reference_catalog: str = Field(
+        default="FIRST",
+        description="High-precision reference catalog: 'FIRST'",
+    )
+    match_radius_arcsec: float = Field(
+        default=5.0,
+        ge=1.0,
+        le=15.0,
+        description="Matching radius for reference catalog [arcsec]",
+    )
+    min_matches: int = Field(
+        default=10,
+        ge=5,
+        description="Minimum number of matches required for solution",
+    )
+    flux_weight: bool = Field(
+        default=True,
+        description="Weight astrometric offsets by source flux",
+    )
+    apply_correction: bool = Field(
+        default=True,
+        description="Apply WCS correction to output mosaics",
+    )
+    accuracy_target_mas: float = Field(
+        default=1000.0,
+        ge=100.0,
+        description="Target astrometric accuracy [mas]",
+    )
+
+
 class PhotometryConfig(BaseModel):
     """Configuration for adaptive binning photometry stage."""
 
@@ -221,6 +298,10 @@ class PipelineConfig(BaseModel):
     validation: ValidationConfig = Field(default_factory=ValidationConfig)
     crossmatch: CrossMatchConfig = Field(default_factory=CrossMatchConfig)
     photometry: PhotometryConfig = Field(default_factory=PhotometryConfig)
+    transient_detection: TransientDetectionConfig = Field(default_factory=TransientDetectionConfig)
+    astrometric_calibration: AstrometricCalibrationConfig = Field(
+        default_factory=AstrometricCalibrationConfig
+    )
 
     @classmethod
     def from_env(

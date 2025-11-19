@@ -5,17 +5,12 @@
  * to break up long-running promise resolution chains into chunks.
  */
 
-interface PatchedSetTimeout {
-  original: typeof setTimeout;
-  patched: typeof setTimeout;
-  isPatched: boolean;
-}
+import { logger } from "../logger";
 
 class SetTimeoutPatcher {
   private originalSetTimeout: typeof setTimeout;
   private isPatched: boolean = false;
   private readonly CHUNK_TIME_MS: number = 5; // Max time per chunk
-  private readonly MAX_CHUNKS: number = 1000; // Safety limit
 
   constructor() {
     this.originalSetTimeout = window.setTimeout;
@@ -26,7 +21,7 @@ class SetTimeoutPatcher {
    */
   patch(): void {
     if (this.isPatched) {
-      console.warn("[SetTimeoutPatcher] Already patched");
+      logger.warn("[SetTimeoutPatcher] Already patched");
       return;
     }
 
@@ -57,7 +52,7 @@ class SetTimeoutPatcher {
     };
 
     this.isPatched = true;
-    console.log("[SetTimeoutPatcher] setTimeout patched for chunked execution");
+    logger.info("[SetTimeoutPatcher] setTimeout patched for chunked execution");
   }
 
   /**
@@ -79,7 +74,7 @@ class SetTimeoutPatcher {
                 const duration = performance.now() - startTime;
 
                 if (duration > self.CHUNK_TIME_MS) {
-                  console.warn(
+                  logger.warn(
                     `[SetTimeoutPatcher] Handler took ${duration.toFixed(2)}ms after deferral`
                   );
                 }
@@ -100,7 +95,7 @@ class SetTimeoutPatcher {
         const duration = performance.now() - startTime;
 
         if (duration > 50) {
-          console.warn(`[SetTimeoutPatcher] Handler took ${duration.toFixed(2)}ms`);
+          logger.warn(`[SetTimeoutPatcher] Handler took ${duration.toFixed(2)}ms`);
         }
 
         return result;
@@ -120,7 +115,7 @@ class SetTimeoutPatcher {
 
     window.setTimeout = this.originalSetTimeout;
     this.isPatched = false;
-    console.log("[SetTimeoutPatcher] setTimeout restored to original");
+    logger.info("[SetTimeoutPatcher] setTimeout restored to original");
   }
 
   /**

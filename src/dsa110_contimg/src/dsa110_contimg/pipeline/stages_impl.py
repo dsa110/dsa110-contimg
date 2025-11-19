@@ -3065,3 +3065,171 @@ class AdaptivePhotometryStage(PipelineStage):
     def get_name(self) -> str:
         """Get stage name."""
         return "adaptive_photometry"
+
+
+class TransientDetectionStage(PipelineStage):
+    """Transient detection stage: Detect and classify transient sources.
+
+    This stage compares detected sources with baseline catalogs to identify:
+    - New sources (not in baseline catalog)
+    - Variable sources (significant flux changes)
+    - Fading sources (baseline sources no longer detected)
+
+    Implements Proposal #2: Transient Detection & Classification
+
+    Example:
+        >>> config = PipelineConfig(paths=PathsConfig(...))
+        >>> config.transient_detection.enabled = True
+        >>> stage = TransientDetectionStage(config)
+        >>> context = PipelineContext(
+        ...     config=config,
+        ...     outputs={"detected_sources": pd.DataFrame([...])}
+        ... )
+        >>> result_context = stage.execute(context)
+        >>> transients = result_context.outputs["transient_results"]
+
+    Inputs:
+        - `detected_sources` (DataFrame): Sources from validation/cross-match
+        - `mosaic_id` (int, optional): Mosaic product ID for tracking
+
+    Outputs:
+        - `transient_results` (dict): Detection results with candidates
+        - `alert_ids` (list): List of alert IDs generated
+    """
+
+    def __init__(self, config: PipelineConfig):
+        """Initialize transient detection stage.
+
+        Args:
+            config: Pipeline configuration
+        """
+        self.config = config
+
+    def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
+        """Validate prerequisites for transient detection."""
+        if not self.config.transient_detection.enabled:
+            return False, "Transient detection stage is disabled"
+
+        if "detected_sources" not in context.outputs:
+            return (
+                False,
+                "No detected sources found for transient detection",
+            )
+
+        return True, None
+
+    def execute(self, context: PipelineContext) -> PipelineContext:
+        """Execute transient detection stage.
+
+        Args:
+            context: Pipeline context
+
+        Returns:
+            Updated context with transient detection results
+        """
+        from dsa110_contimg.catalog.query import query_sources
+        from dsa110_contimg.catalog.transient_detection import (
+            create_transient_detection_tables,
+            detect_transients,
+            generate_transient_alerts,
+            store_transient_candidates,
+        )
+
+        if not self.config.transient_detection.enabled:
+            logger.info("Transient detection stage is disabled, skipping")
+            return context.with_output("transient_status", "disabled")
+
+        logger.info("Starting transient detection stage...")
+
+        # Ensure tables exist
+        db_path = str(self.config.paths.state_dir / "products.sqlite3")
+        create_transient_detection_tables(db_path)
+
+        # Get detected sources
+        detected_sources = context.outputs["detected_sources"]
+        if len(detected_sources) == 0:
+            logger.warning("No detected sources for transient detection")
+            return context.with_output("transient_status", "skipped_no_sources")
+
+        # Get field center for catalog query
+        ra_center = detected_sources["ra_deg"].median()
+        dec_center = detected_sources["dec_deg"].median()
+
+        # Calculate field radius
+        ra_range = detected_sources["ra_deg"].max() - detected_sources["ra_deg"].min()
+        dec_range = detected_sources["dec_deg"].max() - detected_sources["dec_deg"].min()
+        field_radius_deg = max(ra_range, dec_range) / 2.0 + 0.1
+
+        # Query baseline catalog
+        baseline_catalog = self.config.transient_detection.baseline_catalog
+        logger.info(
+            f"Querying {baseline_catalog} for baseline sources "
+            f"(radius={field_radius_deg:.2f} deg)..."
+        )
+
+        baseline_sources = query_sources(
+            ra=ra_center,
+            dec=dec_center,
+            radius_arcmin=field_radius_deg * 60.0,
+            catalog=baseline_catalog.lower(),
+        )
+
+        if baseline_sources is None or len(baseline_sources) == 0:
+            logger.warning(f"No baseline sources found in {baseline_catalog}")
+            baseline_sources = pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
+
+        # Detect transients
+        logger.info("Running transient detection...")
+        new_sources, variable_sources, fading_sources = detect_transients(
+            observed_sources=detected_sources,
+            baseline_sources=baseline_sources,
+            detection_threshold_sigma=(self.config.transient_detection.detection_threshold_sigma),
+            variability_threshold=(self.config.transient_detection.variability_threshold_sigma),
+            match_radius_arcsec=(self.config.transient_detection.match_radius_arcsec),
+            baseline_catalog=baseline_catalog,
+        )
+
+        # Combine all candidates
+        all_candidates = new_sources + variable_sources + fading_sources
+
+        logger.info(
+            f"Found {len(new_sources)} new, {len(variable_sources)} "
+            f"variable, {len(fading_sources)} fading sources"
+        )
+
+        # Store candidates
+        mosaic_id = context.outputs.get("mosaic_id")
+        candidate_ids = store_transient_candidates(
+            all_candidates,
+            baseline_catalog=baseline_catalog,
+            mosaic_id=mosaic_id,
+            db_path=db_path,
+        )
+
+        # Generate alerts
+        alert_ids = generate_transient_alerts(
+            candidate_ids,
+            alert_threshold_sigma=(self.config.transient_detection.alert_threshold_sigma),
+            db_path=db_path,
+        )
+
+        logger.info(f"Generated {len(alert_ids)} transient alerts")
+
+        results = {
+            "n_new": len(new_sources),
+            "n_variable": len(variable_sources),
+            "n_fading": len(fading_sources),
+            "candidate_ids": candidate_ids,
+            "alert_ids": alert_ids,
+            "baseline_catalog": baseline_catalog,
+        }
+
+        return context.with_output("transient_results", results).with_output("alert_ids", alert_ids)
+
+    def cleanup(self, context: PipelineContext) -> None:
+        """Cleanup transient detection resources."""
+        pass
+
+    def get_name(self) -> str:
+        """Get stage name."""
+        return "transient_detection"

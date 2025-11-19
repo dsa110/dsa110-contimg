@@ -133,13 +133,13 @@ def create_nvss_fits_mask(
     # Initialize mask (all zeros = not cleaned)
     mask = np.zeros((imsize, imsize), dtype=np.float32)
 
-    # Query NVSS sources
+    # Query merged NVSS+FIRST sources for best sky model
     # Use SQLite-first query function (falls back to CSV if needed)
-    from dsa110_contimg.calibration.catalogs import query_nvss_sources
+    from dsa110_contimg.calibration.catalogs import query_merged_nvss_first_sources
 
     # Calculate FoV radius
     fov_radius_deg = (cell_arcsec * imsize) / 3600.0 / 2.0
-    df = query_nvss_sources(
+    df = query_merged_nvss_first_sources(
         ra_deg=ra0_deg,
         dec_deg=dec0_deg,
         radius_deg=fov_radius_deg,
