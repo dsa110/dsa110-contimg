@@ -20,6 +20,8 @@ import { StatCard } from "../components/StatCard";
 import { useSystemMetrics, useDatabaseMetrics } from "../api/queries";
 import { useDLQStats } from "../api/queries";
 import UnifiedSearch from "../components/UnifiedSearch";
+import { DLQMetricsPanel } from "../components/metrics/DLQMetricsPanel";
+import { DatabaseMetricsPanel } from "../components/metrics/DatabaseMetricsPanel";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -172,6 +174,12 @@ export default function SystemDiagnosticsPage() {
               </Grid>
             </>
           )}
+
+          {/* Grafana-style DLQ Metrics Panel */}
+          <Grid item xs={12}>
+            <DLQMetricsPanel />
+          </Grid>
+
           {databaseMetrics && (
             <>
               <Grid item xs={12}>
@@ -228,6 +236,11 @@ export default function SystemDiagnosticsPage() {
                         : "success"
                   }
                 />
+              </Grid>
+
+              {/* Grafana-style Database Metrics Panel */}
+              <Grid item xs={12}>
+                <DatabaseMetricsPanel />
               </Grid>
             </>
           )}

@@ -52,6 +52,12 @@ casa = [
     # "casaconfig",
     # "python-casacore",
 ]
+qa = [
+    # Optional QA tools for visualization and inspection
+    "ragavi>=0.5.2",  # Radio Astronomy Gain and Visibility Inspector (requires codex-africanus>=0.4.3)
+    # Note: codex-africanus is a transitive dependency of ragavi
+    # Version 0.4.3+ supports numba>=0.60 (compatible with numba 0.62+)
+]
 dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
@@ -82,6 +88,9 @@ dsa110-mosaic = "dsa110_contimg.mosaic.cli:main"
 dsa110-photometry = "dsa110_contimg.photometry.cli:main"
 dsa110-registry = "dsa110_contimg.database.registry_cli:main"
 dsa110-streaming = "dsa110_contimg.conversion.streaming.streaming_converter:main"
+# DOCUMENTATION FIX: Add CLI entry points referenced in documentation
+dsa110-contimg-convert-stream = "dsa110_contimg.conversion.streaming.streaming_converter:main"
+dsa110-contimg-streaming-mosaic = "dsa110_contimg.mosaic.streaming_mosaic:main"
 
 [tool.setuptools]
 # Package discovery - find all packages in src/
@@ -189,6 +198,13 @@ py-version=3.11
 # Note: astropy.units dynamically creates unit attributes (deg, arcsec, etc.)
 # at import time, which pylint's static analysis cannot detect
 extension-pkg-whitelist=["astropy"]
+
+[tool.pylint.format]
+max-line-length = 120
+
+[tool.flake8]
+max-line-length = 120
+extend-ignore = ["E203", "W503"]
 
 [tool.pylint."messages control"]
 # Note: We cannot selectively disable no-member for just astropy.units

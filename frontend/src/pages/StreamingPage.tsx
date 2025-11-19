@@ -3,38 +3,8 @@
  * Full control panel for managing the streaming converter service
  */
 import { useState } from "react";
-import {
-  Container,
-  Typography,
-  Box,
-  Button,
-  Alert,
-  Card,
-  CardContent,
-  Chip,
-  Stack,
-  TextField,
-  Switch,
-  FormControlLabel,
-  Divider,
-  LinearProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from "@mui/material";
-import Grid from "@mui/material/GridLegacy";
-import {
-  PlayArrow,
-  Stop,
-  Refresh,
-  Settings,
-  CheckCircle,
-  Error as ErrorIcon,
-  Memory,
-  Speed,
-  Schedule,
-} from "@mui/icons-material";
+import { Container, Typography, Box, Button, Alert, Stack, Grid } from "@mui/material";
+import { PlayArrow, Stop, Refresh, Settings } from "@mui/icons-material";
 import {
   useStreamingStatus,
   useStreamingHealth,
@@ -48,20 +18,12 @@ import {
 } from "../api/queries";
 import { SkeletonLoader } from "../components/SkeletonLoader";
 import { ConfirmationDialog } from "../components/ConfirmationDialog";
-
-function formatUptime(seconds?: number): string {
-  if (!seconds) return "N/A";
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-  if (hours > 0) {
-    return `${hours}h ${minutes}m ${secs}s`;
-  }
-  if (minutes > 0) {
-    return `${minutes}m ${secs}s`;
-  }
-  return `${secs}s`;
-}
+import { StreamingMetricsPanel } from "../components/metrics/StreamingMetricsPanel";
+import { ServiceStatusCard } from "../components/streaming/ServiceStatusCard";
+import { ResourceUsageCard } from "../components/streaming/ResourceUsageCard";
+import { QueueStatsCard } from "../components/streaming/QueueStatsCard";
+import { ConfigurationCard } from "../components/streaming/ConfigurationCard";
+import { StreamingConfigDialog } from "../components/streaming/StreamingConfigDialog";
 
 export default function StreamingPage() {
   const { data: status, isLoading: statusLoading } = useStreamingStatus();
@@ -77,7 +39,6 @@ export default function StreamingPage() {
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
   const [stopDialogOpen, setStopDialogOpen] = useState(false);
   const [restartDialogOpen, setRestartDialogOpen] = useState(false);
-  const [editedConfig, setEditedConfig] = useState<StreamingConfig | null>(null);
 
   const handleStart = () => {
     startMutation.mutate(undefined, {
@@ -121,25 +82,16 @@ export default function StreamingPage() {
     });
   };
 
-  const handleOpenConfig = () => {
-    if (config) {
-      setEditedConfig({ ...config });
-      setConfigDialogOpen(true);
-    }
-  };
-
-  const handleSaveConfig = () => {
-    if (editedConfig) {
-      updateConfigMutation.mutate(editedConfig, {
-        onSuccess: (data) => {
-          if (data.success) {
-            setConfigDialogOpen(false);
-          } else {
-            alert(`Failed to update config: ${data.message}`);
-          }
-        },
-      });
-    }
+  const handleSaveConfig = (editedConfig: StreamingConfig) => {
+    updateConfigMutation.mutate(editedConfig, {
+      onSuccess: (data) => {
+        if (data.success) {
+          setConfigDialogOpen(false);
+        } else {
+          alert(`Failed to update config: ${data.message}`);
+        }
+      },
+    });
   };
 
   if (statusLoading || configLoading) {
@@ -167,7 +119,11 @@ export default function StreamingPage() {
           Streaming Service Control
         </Typography>
         <Stack direction="row" spacing={2}>
-          <Button variant="outlined" startIcon={<Settings />} onClick={handleOpenConfig}>
+          <Button
+            variant="outlined"
+            startIcon={<Settings />}
+            onClick={() => setConfigDialogOpen(true)}
+          >
             Configure
           </Button>
           {isRunning ? (
@@ -226,192 +182,28 @@ export default function StreamingPage() {
 
       <Grid container spacing={3}>
         {/* Service Status Card */}
-        <Grid xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Service Status
-              </Typography>
-              <Stack spacing={2} sx={{ mt: 2 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Chip
-                    icon={isRunning ? <CheckCircle /> : <ErrorIcon />}
-                    label={isRunning ? "Running" : "Stopped"}
-                    color={isRunning ? "success" : "default"}
-                    size="small"
-                  />
-                  {isHealthy && (
-                    <Chip label="Healthy" color="success" size="small" variant="outlined" />
-                  )}
-                </Box>
-
-                {status?.pid && (
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>PID:</strong> {status.pid}
-                  </Typography>
-                )}
-
-                {status?.started_at && (
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>Started:</strong> {new Date(status.started_at).toLocaleString()}
-                  </Typography>
-                )}
-
-                {status?.uptime_seconds && (
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>Uptime:</strong> {formatUptime(status.uptime_seconds)}
-                  </Typography>
-                )}
-              </Stack>
-            </CardContent>
-          </Card>
+        <Grid item xs={12} md={6}>
+          <ServiceStatusCard status={status} isRunning={isRunning} isHealthy={isHealthy} />
         </Grid>
 
         {/* Resource Usage Card */}
-        <Grid xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Resource Usage
-              </Typography>
-              <Stack spacing={2} sx={{ mt: 2 }}>
-                {status?.cpu_percent != null && (
-                  <Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        mb: 0.5,
-                      }}
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        <Speed
-                          sx={{
-                            fontSize: 16,
-                            verticalAlign: "middle",
-                            mr: 0.5,
-                          }}
-                        />
-                        CPU
-                      </Typography>
-                      <Typography variant="body2">{status.cpu_percent.toFixed(1)}%</Typography>
-                    </Box>
-                    <LinearProgress
-                      variant="determinate"
-                      value={status.cpu_percent}
-                      color={
-                        status.cpu_percent > 80
-                          ? "error"
-                          : status.cpu_percent > 50
-                            ? "warning"
-                            : "primary"
-                      }
-                    />
-                  </Box>
-                )}
-
-                {status?.memory_mb != null && (
-                  <Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        mb: 0.5,
-                      }}
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        <Memory
-                          sx={{
-                            fontSize: 16,
-                            verticalAlign: "middle",
-                            mr: 0.5,
-                          }}
-                        />
-                        Memory
-                      </Typography>
-                      <Typography variant="body2">{status.memory_mb.toFixed(0)} MB</Typography>
-                    </Box>
-                  </Box>
-                )}
-              </Stack>
-            </CardContent>
-          </Card>
+        <Grid item xs={12} md={6}>
+          <ResourceUsageCard status={status} />
         </Grid>
 
         {/* Queue Statistics Card */}
-        <Grid xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Queue Statistics
-              </Typography>
-              {metrics?.queue_stats ? (
-                <Stack spacing={1} sx={{ mt: 2 }}>
-                  {Object.entries(metrics.queue_stats).map(([state, count]) => (
-                    <Box key={state} sx={{ display: "flex", justifyContent: "space-between" }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {state}
-                      </Typography>
-                      <Typography variant="body2" fontWeight="bold">
-                        {count}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Stack>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  No queue data available
-                </Typography>
-              )}
-
-              {metrics?.processing_rate_per_hour !== undefined && (
-                <>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant="body2" color="text.secondary">
-                    <Schedule sx={{ fontSize: 16, verticalAlign: "middle", mr: 0.5 }} />
-                    Processing Rate: {metrics.processing_rate_per_hour} groups/hour
-                  </Typography>
-                </>
-              )}
-            </CardContent>
-          </Card>
+        <Grid item xs={12} md={6}>
+          <QueueStatsCard metrics={metrics} />
         </Grid>
 
         {/* Configuration Card */}
-        <Grid xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Current Configuration
-              </Typography>
-              {config ? (
-                <Stack spacing={1} sx={{ mt: 2 }}>
-                  <Typography variant="body2">
-                    <strong>Input Directory:</strong> {config.input_dir}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Output Directory:</strong> {config.output_dir}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Expected Subbands:</strong> {config.expected_subbands}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Chunk Duration:</strong> {config.chunk_duration} minutes
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Max Workers:</strong> {config.max_workers}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Log Level:</strong> {config.log_level}
-                  </Typography>
-                </Stack>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  No configuration loaded
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
+        <Grid item xs={12} md={6}>
+          <ConfigurationCard config={config} />
+        </Grid>
+
+        {/* Grafana-style Streaming Metrics Panel */}
+        <Grid item xs={12}>
+          <StreamingMetricsPanel />
         </Grid>
       </Grid>
 
@@ -440,171 +232,13 @@ export default function StreamingPage() {
       />
 
       {/* Configuration Dialog */}
-      <Dialog
+      <StreamingConfigDialog
         open={configDialogOpen}
         onClose={() => setConfigDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>Streaming Service Configuration</DialogTitle>
-        <DialogContent>
-          {editedConfig && (
-            <Stack spacing={3} sx={{ mt: 1 }}>
-              <TextField
-                label="Input Directory"
-                value={editedConfig.input_dir}
-                onChange={(e) =>
-                  setEditedConfig({
-                    ...editedConfig,
-                    input_dir: e.target.value,
-                  })
-                }
-                fullWidth
-                required
-              />
-              <TextField
-                label="Output Directory"
-                value={editedConfig.output_dir}
-                onChange={(e) =>
-                  setEditedConfig({
-                    ...editedConfig,
-                    output_dir: e.target.value,
-                  })
-                }
-                fullWidth
-                required
-              />
-              <TextField
-                label="Scratch Directory"
-                value={editedConfig.scratch_dir || ""}
-                onChange={(e) =>
-                  setEditedConfig({
-                    ...editedConfig,
-                    scratch_dir: e.target.value,
-                  })
-                }
-                fullWidth
-              />
-              <Grid container spacing={2}>
-                <Grid xs={6}>
-                  <TextField
-                    label="Expected Subbands"
-                    type="number"
-                    value={editedConfig.expected_subbands}
-                    onChange={(e) =>
-                      setEditedConfig({
-                        ...editedConfig,
-                        expected_subbands: parseInt(e.target.value) || 16,
-                      })
-                    }
-                    fullWidth
-                  />
-                </Grid>
-                <Grid xs={6}>
-                  <TextField
-                    label="Chunk Duration (minutes)"
-                    type="number"
-                    value={editedConfig.chunk_duration}
-                    onChange={(e) =>
-                      setEditedConfig({
-                        ...editedConfig,
-                        chunk_duration: parseFloat(e.target.value) || 5.0,
-                      })
-                    }
-                    fullWidth
-                  />
-                </Grid>
-                <Grid xs={6}>
-                  <TextField
-                    label="Max Workers"
-                    type="number"
-                    value={editedConfig.max_workers}
-                    onChange={(e) =>
-                      setEditedConfig({
-                        ...editedConfig,
-                        max_workers: parseInt(e.target.value) || 4,
-                      })
-                    }
-                    fullWidth
-                  />
-                </Grid>
-                <Grid xs={6}>
-                  <TextField
-                    label="Log Level"
-                    select
-                    value={editedConfig.log_level}
-                    onChange={(e) =>
-                      setEditedConfig({
-                        ...editedConfig,
-                        log_level: e.target.value,
-                      })
-                    }
-                    fullWidth
-                    SelectProps={{ native: true }}
-                  >
-                    <option value="DEBUG">DEBUG</option>
-                    <option value="INFO">INFO</option>
-                    <option value="WARNING">WARNING</option>
-                    <option value="ERROR">ERROR</option>
-                  </TextField>
-                </Grid>
-              </Grid>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={editedConfig.use_subprocess}
-                    onChange={(e) =>
-                      setEditedConfig({
-                        ...editedConfig,
-                        use_subprocess: e.target.checked,
-                      })
-                    }
-                  />
-                }
-                label="Use Subprocess"
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={editedConfig.monitoring}
-                    onChange={(e) =>
-                      setEditedConfig({
-                        ...editedConfig,
-                        monitoring: e.target.checked,
-                      })
-                    }
-                  />
-                }
-                label="Enable Monitoring"
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={editedConfig.stage_to_tmpfs}
-                    onChange={(e) =>
-                      setEditedConfig({
-                        ...editedConfig,
-                        stage_to_tmpfs: e.target.checked,
-                      })
-                    }
-                  />
-                }
-                label="Stage to TMPFS"
-              />
-            </Stack>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfigDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleSaveConfig}
-            variant="contained"
-            disabled={updateConfigMutation.isPending}
-          >
-            {updateConfigMutation.isPending ? "Saving..." : "Save & Apply"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        config={config || null}
+        onSave={handleSaveConfig}
+        isSaving={updateConfigMutation.isPending}
+      />
     </Container>
   );
 }

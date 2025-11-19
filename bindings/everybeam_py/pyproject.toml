@@ -1,0 +1,20 @@
+[build-system]
+requires = ["scikit-build-core>=0.5", "pybind11"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "everybeam-py"
+version = "0.0.1"
+description = "Prototype EveryBeam bindings for DSA-110"
+authors = [{ name = "DSA-110" }]
+requires-python = ">=3.10"
+
+[tool.scikit-build]
+cmake.minimum-version = "3.18"
+cmake.verbose = true
+cmake.build-type = "Release"
+cmake.args = [
+  "-DEVERYBEAM_ROOT=${PROJECT_SOURCE_DIR}/../../external/everybeam",
+  "-DAOCOMMON_ROOT=${PROJECT_SOURCE_DIR}/../../external/aocommon",
+  "-DCASACORE_ROOT=/opt/miniforge/envs/casa6",
+]

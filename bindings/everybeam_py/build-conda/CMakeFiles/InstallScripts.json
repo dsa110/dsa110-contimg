@@ -1,0 +1,6 @@
+{
+  "InstallScripts": [
+    "/data/dsa110-contimg/bindings/everybeam_py/build-conda/cmake_install.cmake"
+  ],
+  "Parallel": false
+}

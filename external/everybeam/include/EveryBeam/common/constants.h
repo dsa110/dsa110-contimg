@@ -1,0 +1,19 @@
+// constants.h: (numeric/string) constants used in this library.
+//
+// Copyright (C) 2020 ASTRON (Netherlands Institute for Radio Astronomy)
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+#ifndef EVERYBEAM_CONSTANTS_H
+#define EVERYBEAM_CONSTANTS_H
+
+#include "types.h"
+
+namespace everybeam {
+namespace common {
+/** Speed of light (m/s) */
+constexpr double c = 2.99792458e+08;
+
+}  // namespace common
+}  // namespace everybeam
+
+#endif

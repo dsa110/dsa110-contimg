@@ -33,6 +33,7 @@ import {
 import { useDirectoryListing, useDirectoryThumbnails } from "../../api/queries";
 import type { DirectoryEntry } from "../../api/types";
 import DOMPurify from "dompurify";
+import { formatDateTime } from "../../utils/dateUtils";
 
 /**
  * Check if a path looks complete (not being actively typed).
@@ -402,7 +403,7 @@ export default function DirectoryBrowser({
                         )}
                         {entry.modified_at && (
                           <Typography variant="caption" color="text.secondary" component="span">
-                            {new Date(entry.modified_at).toLocaleString()}
+                            {formatDateTime(entry.modified_at)}
                           </Typography>
                         )}
                       </Box>

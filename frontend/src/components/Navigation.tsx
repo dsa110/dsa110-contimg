@@ -1,6 +1,6 @@
 /**
  * Main Navigation Component
- * Flattened navigation - all primary sections visible directly
+ * Grouped navigation for better organization
  */
 import {
   AppBar,
@@ -17,7 +17,9 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  ListSubheader,
   Chip,
+  Divider,
 } from "@mui/material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import { Menu as MenuIcon, Keyboard } from "@mui/icons-material";
@@ -29,13 +31,11 @@ import {
   Public,
   ShowChart,
   Settings,
-  PlayArrow,
   Storage,
   Assessment,
   Build,
   AccountTree,
   EventNote,
-  Cached,
   Science,
   Visibility,
 } from "@mui/icons-material";
@@ -44,29 +44,48 @@ import { useCommandPalette } from "../hooks/useCommandPalette";
 import { useWorkflow } from "../contexts/WorkflowContext";
 import { prefetchRoute } from "../utils/routePrefetch";
 
-// Flattened navigation items - all primary sections visible
-const navItems = [
-  { path: "/dashboard", label: "Dashboard", icon: Dashboard },
-  { path: "/pipeline", label: "Pipeline", icon: AccountTree },
-  { path: "/operations", label: "Operations", icon: Build },
-  { path: "/control", label: "Control", icon: Settings },
-  { path: "/calibration", label: "Calibration", icon: Build },
-  { path: "/data", label: "Data Browser", icon: Storage },
-  { path: "/sources", label: "Sources", icon: TableChart },
-  { path: "/mosaics", label: "Mosaics", icon: Image },
-  { path: "/sky", label: "Sky View", icon: Public },
-  { path: "/carta", label: "CARTA", icon: Visibility },
-  { path: "/qa", label: "QA Tools", icon: Science },
-  { path: "/health", label: "Health", icon: Assessment },
-  { path: "/events", label: "Events", icon: EventNote },
-  // Note: Streaming, Observing, and Cache are now consolidated into Control and Health pages
+// Grouped navigation items
+const navGroups = [
+  {
+    title: "Main",
+    items: [
+      { path: "/dashboard", label: "Dashboard", icon: Dashboard },
+      { path: "/pipeline", label: "Pipeline", icon: AccountTree },
+    ],
+  },
+  {
+    title: "Operations",
+    items: [
+      { path: "/control", label: "Control", icon: Settings },
+      { path: "/operations", label: "Operations", icon: Build },
+      { path: "/calibration", label: "Calibration", icon: Build },
+      { path: "/events", label: "Events", icon: EventNote },
+    ],
+  },
+  {
+    title: "Data & Analysis",
+    items: [
+      { path: "/data", label: "Data Browser", icon: Storage },
+      { path: "/sources", label: "Sources", icon: TableChart },
+      { path: "/mosaics", label: "Mosaics", icon: Image },
+      { path: "/sky", label: "Sky View", icon: Public },
+      { path: "/carta", label: "CARTA", icon: Visibility },
+    ],
+  },
+  {
+    title: "System",
+    items: [
+      { path: "/qa", label: "QA Tools", icon: Science },
+      { path: "/health", label: "Health", icon: Assessment },
+    ],
+  },
 ];
 
 export default function Navigation() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("lg")); // Changed from "md" to "lg" for better breakpoint
+  const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
   const { open: commandPaletteOpen, setOpen: setCommandPaletteOpen } = useCommandPalette();
   const { currentWorkflow } = useWorkflow();
 
@@ -78,37 +97,50 @@ export default function Navigation() {
     if (path === "/dashboard") {
       return location.pathname === "/dashboard";
     }
-    // For other routes, check if pathname starts with the route
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
   const drawer = (
-    <Box onClick={handleDrawerToggle} sx={{ textAlign: "center", pt: 2 }}>
+    <Box
+      sx={{ textAlign: "center", pt: 2, height: "100%", display: "flex", flexDirection: "column" }}
+    >
       <Typography variant="h6" sx={{ my: 2 }}>
         DSA-110
       </Typography>
-      <List>
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const active = isActive(item.path);
+      <Box sx={{ overflowY: "auto", flexGrow: 1 }}>
+        <List>
+          {navGroups.map((group, index) => (
+            <Box key={group.title}>
+              {index > 0 && <Divider />}
+              <ListSubheader sx={{ bgcolor: "transparent", lineHeight: "32px", pt: 1 }}>
+                {group.title}
+              </ListSubheader>
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.path);
 
-          return (
-            <ListItem key={item.path} disablePadding>
-              <ListItemButton
-                component={RouterLink}
-                to={item.path}
-                selected={active}
-                onMouseEnter={() => prefetchRoute(item.path)}
-              >
-                <ListItemIcon>
-                  <Icon color={active ? "primary" : "inherit"} />
-                </ListItemIcon>
-                <ListItemText primary={item.label} />
-              </ListItemButton>
-            </ListItem>
-          );
-        })}
-      </List>
+                return (
+                  <ListItem key={item.path} disablePadding>
+                    <ListItemButton
+                      component={RouterLink}
+                      to={item.path}
+                      selected={active}
+                      onClick={handleDrawerToggle}
+                      onMouseEnter={() => prefetchRoute(item.path)}
+                      sx={{ pl: 4 }}
+                    >
+                      <ListItemIcon>
+                        <Icon color={active ? "primary" : "inherit"} />
+                      </ListItemIcon>
+                      <ListItemText primary={item.label} />
+                    </ListItemButton>
+                  </ListItem>
+                );
+              })}
+            </Box>
+          ))}
+        </List>
+      </Box>
     </Box>
   );
 
@@ -156,42 +188,55 @@ export default function Navigation() {
                 gap: 0.5,
                 flexGrow: 1,
                 alignItems: "center",
-                flexWrap: "wrap",
+                flexWrap: "nowrap",
                 overflowX: "auto",
                 "&::-webkit-scrollbar": { display: "none" },
                 scrollbarWidth: "none",
               }}
             >
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.path);
+              {navGroups.map((group, groupIndex) => (
+                <Box key={group.title} sx={{ display: "flex", alignItems: "center" }}>
+                  {groupIndex > 0 && (
+                    <Divider
+                      orientation="vertical"
+                      flexItem
+                      sx={{ mx: 1, height: 24, borderColor: "rgba(255,255,255,0.2)" }}
+                    />
+                  )}
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const active = isActive(item.path);
 
-                return (
-                  <Button
-                    key={item.path}
-                    component={RouterLink}
-                    to={item.path}
-                    startIcon={<Icon />}
-                    onMouseEnter={() => prefetchRoute(item.path)}
-                    sx={{
-                      color: active ? "primary.main" : "text.secondary",
-                      bgcolor: active ? "rgba(144, 202, 249, 0.08)" : "transparent",
-                      fontWeight: active ? 600 : 400,
-                      fontSize: "0.875rem",
-                      px: 1.5,
-                      py: 0.75,
-                      minWidth: "auto",
-                      whiteSpace: "nowrap",
-                      "&:hover": {
-                        bgcolor: active ? "rgba(144, 202, 249, 0.12)" : "rgba(255, 255, 255, 0.05)",
-                      },
-                      transition: "all 0.2s ease-in-out",
-                    }}
-                  >
-                    {item.label}
-                  </Button>
-                );
-              })}
+                    return (
+                      <Button
+                        key={item.path}
+                        component={RouterLink}
+                        to={item.path}
+                        startIcon={<Icon />}
+                        onMouseEnter={() => prefetchRoute(item.path)}
+                        sx={{
+                          color: active ? "primary.main" : "text.secondary",
+                          bgcolor: active ? "rgba(144, 202, 249, 0.08)" : "transparent",
+                          fontWeight: active ? 600 : 400,
+                          fontSize: "0.875rem",
+                          px: 1.5,
+                          py: 0.75,
+                          minWidth: "auto",
+                          whiteSpace: "nowrap",
+                          "&:hover": {
+                            bgcolor: active
+                              ? "rgba(144, 202, 249, 0.12)"
+                              : "rgba(255, 255, 255, 0.05)",
+                          },
+                          transition: "all 0.2s ease-in-out",
+                        }}
+                      >
+                        {item.label}
+                      </Button>
+                    );
+                  })}
+                </Box>
+              ))}
             </Box>
           )}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, ml: "auto" }}>

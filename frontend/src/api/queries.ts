@@ -1,7 +1,7 @@
 /**
  * React Query hooks for API data fetching.
  */
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { apiClient } from "./client";
@@ -71,6 +71,8 @@ import type {
   CacheKeysResponse,
   CacheKeyDetail,
   CachePerformance,
+  CalibrationStatus,
+  CalibrationConfig,
 } from "./types";
 
 /**
@@ -133,7 +135,7 @@ function useRealtimeQuery<T>(
 // Create WebSocket client instance (singleton)
 let wsClientInstance: WebSocketClient | null = null;
 
-function getWebSocketClient(): WebSocketClient | null {
+export function getWebSocketClient(): WebSocketClient | null {
   if (typeof window === "undefined") {
     return null;
   }
@@ -2059,5 +2061,43 @@ export function useCachePerformance(): UseQueryResult<CachePerformance> {
       return response.data;
     },
     refetchInterval: 10000, // Refresh every 10 seconds
+  });
+}
+
+// Calibration Workflow Hooks
+export function useCalibrationStatus(): UseQueryResult<CalibrationStatus> {
+  return useQuery({
+    queryKey: ["calibration", "status"],
+    queryFn: async () => {
+      const response = await apiClient.get<CalibrationStatus>("/calibration/status");
+      return response.data;
+    },
+    refetchInterval: 2000, // Refresh every 2 seconds
+  });
+}
+
+export function useStartCalibration() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (config: CalibrationConfig) => {
+      const response = await apiClient.post<CalibrationStatus>("/calibration/start", config);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["calibration"] });
+    },
+  });
+}
+
+export function useStopCalibration() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.post<CalibrationStatus>("/calibration/stop");
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["calibration"] });
+    },
   });
 }

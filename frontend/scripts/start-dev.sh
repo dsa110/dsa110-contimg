@@ -37,8 +37,19 @@ if [ "$(printf '%s\n' "$REQUIRED_VERSION" "$CURRENT_VERSION" | sort -V | head -n
     exit 1
 fi
 
-# Success - start Vite
+# Success - clean up port and start Vite
 echo "✓ Using casa6 Node.js: $CURRENT_VERSION"
+
+# Clean up any zombie processes on port 3210
+if lsof -ti:3210 > /dev/null 2>&1; then
+  PIDS=$(lsof -ti:3210)
+  echo "⚠️  Found zombie process on port 3210 (PID: $PIDS)"
+  echo "🔪 Killing zombie process..."
+  lsof -ti:3210 | xargs kill -9 2>/dev/null || true
+  sleep 1
+  echo "✓ Port 3210 is now free"
+fi
+
 echo "🚀 Starting Vite dev server on port 3210..."
 echo "   Access at: http://localhost:3210"
 exec node -r ./scripts/setup-crypto.cjs node_modules/.bin/vite "$@"

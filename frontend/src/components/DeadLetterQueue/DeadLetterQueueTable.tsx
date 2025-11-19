@@ -32,9 +32,9 @@ import {
   Cancel as FailIcon,
   Info as InfoIcon,
 } from "@mui/icons-material";
-import { format } from "date-fns";
 import { useDLQItems, useRetryDLQItem, useResolveDLQItem, useFailDLQItem } from "../../api/queries";
 import type { DLQItem } from "../../api/types";
+import { formatDateTime } from "../../utils/dateUtils";
 
 interface DeadLetterQueueTableProps {
   component?: string;
@@ -159,9 +159,7 @@ export function DeadLetterQueueTable({
                     </Tooltip>
                   </TableCell>
                   <TableCell>{item.retry_count}</TableCell>
-                  <TableCell>
-                    {format(new Date(item.created_at * 1000), "yyyy-MM-dd HH:mm:ss")}
-                  </TableCell>
+                  <TableCell>{formatDateTime(item.created_at * 1000)}</TableCell>
                   <TableCell>
                     <Chip
                       label={item.status}
@@ -246,9 +244,7 @@ export function DeadLetterQueueTable({
                   </Box>
                   <Box>
                     <Typography variant="subtitle2">Created At</Typography>
-                    <Typography>
-                      {format(new Date(selectedItem.created_at * 1000), "yyyy-MM-dd HH:mm:ss")}
-                    </Typography>
+                    <Typography>{formatDateTime(selectedItem.created_at * 1000)}</Typography>
                   </Box>
                 </>
               ) : (

@@ -1,0 +1,3 @@
+/data/dsa110-contimg/bindings/everybeam_py/build-conda/CMakeFiles/everybeam_py.dir
+/data/dsa110-contimg/bindings/everybeam_py/build-conda/CMakeFiles/edit_cache.dir
+/data/dsa110-contimg/bindings/everybeam_py/build-conda/CMakeFiles/rebuild_cache.dir

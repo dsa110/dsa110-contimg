@@ -36,9 +36,15 @@ export default function EventsPage() {
     <>
       <PageBreadcrumbs />
       <Box sx={{ width: "100%" }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Event Bus Monitor
-        </Typography>
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Event Bus Monitor
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Real-time stream of system events, pipeline state changes, and alerts. Use this page to
+            debug event flow and monitor system activity.
+          </Typography>
+        </Box>
 
         <Paper sx={{ mb: 3 }}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>

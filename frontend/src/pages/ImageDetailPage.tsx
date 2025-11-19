@@ -30,21 +30,23 @@ import {
   Collapse,
   IconButton,
   Alert,
+  Tooltip,
+  Snackbar,
 } from "@mui/material";
 import { SkeletonLoader } from "../components/SkeletonLoader";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
 import {
-  ArrowBack as ArrowBackIcon,
-  ArrowForward as ArrowForwardIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   Link as LinkIcon,
   Visibility as VisibilityIcon,
+  ContentCopy as ContentCopyIcon,
 } from "@mui/icons-material";
 import { useImageDetail } from "../api/queries";
 import GenericTable from "../components/GenericTable";
 import type { TableColumn } from "../components/GenericTable";
-// Types will be inferred from API responses
+import { formatRA, formatDec, copyToClipboard } from "../utils/coordinateUtils";
+import { formatDateTime } from "../utils/dateUtils";
 
 export default function ImageDetailPage() {
   const { imageId } = useParams<{ imageId: string }>();
@@ -53,6 +55,7 @@ export default function ImageDetailPage() {
     measurements: true,
     runs: false, // Hide runs section since n_runs is always 0
   });
+  const [copyFeedback, setCopyFeedback] = useState(false);
 
   // Fetch image data
   const {
@@ -61,9 +64,6 @@ export default function ImageDetailPage() {
     error: imageError,
   } = useImageDetail(imageId ? parseInt(imageId, 10) : null);
 
-  // Fetch previous/next image IDs for navigation (placeholder)
-  const navigationIds = { previousId: null, nextId: null };
-
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => ({
       ...prev,
@@ -71,21 +71,11 @@ export default function ImageDetailPage() {
     }));
   };
 
-  // Format coordinates
-  const formatRA = (ra: number) => {
-    const hours = Math.floor(ra / 15);
-    const minutes = Math.floor((ra / 15 - hours) * 60);
-    const seconds = ((ra / 15 - hours) * 60 - minutes) * 60;
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toFixed(2).padStart(5, "0")}`;
-  };
-
-  const formatDec = (dec: number) => {
-    const sign = dec >= 0 ? "+" : "-";
-    const absDec = Math.abs(dec);
-    const degrees = Math.floor(absDec);
-    const minutes = Math.floor((absDec - degrees) * 60);
-    const seconds = ((absDec - degrees) * 60 - minutes) * 60;
-    return `${sign}${degrees.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toFixed(2).padStart(5, "0")}`;
+  const handleCopyCoordinates = () => {
+    if (image && image.ra !== null && image.dec !== null) {
+      const text = `RA: ${image.ra}, Dec: ${image.dec}`;
+      copyToClipboard(text).then(() => setCopyFeedback(true));
+    }
   };
 
   // Measurement columns for GenericTable
@@ -147,38 +137,6 @@ export default function ImageDetailPage() {
     },
   ];
 
-  // Run columns for GenericTable
-  const runColumns: TableColumn<any>[] = [
-    {
-      field: "name",
-      label: "Name",
-      sortable: true,
-      link: (row) => `/runs/${row.id}`,
-    },
-    {
-      field: "time",
-      label: "Run Datetime",
-      sortable: true,
-      render: (value) => new Date(value).toLocaleString(),
-    },
-    {
-      field: "n_images",
-      label: "Nr Images",
-      sortable: true,
-    },
-    {
-      field: "n_sources",
-      label: "Nr Sources",
-      sortable: true,
-    },
-    {
-      field: "status",
-      label: "Status",
-      sortable: true,
-      render: (value) => value.toUpperCase(),
-    },
-  ];
-
   if (imageLoading) {
     return (
       <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -227,27 +185,6 @@ export default function ImageDetailPage() {
                 SIMBAD
               </Button>
             )}
-            {/* Navigation */}
-            {navigationIds?.previousId && (
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<ArrowBackIcon />}
-                onClick={() => navigate(`/images/${navigationIds.previousId}`)}
-              >
-                Previous
-              </Button>
-            )}
-            {navigationIds?.nextId && (
-              <Button
-                size="small"
-                variant="outlined"
-                endIcon={<ArrowForwardIcon />}
-                onClick={() => navigate(`/images/${navigationIds.nextId}`)}
-              >
-                Next
-              </Button>
-            )}
           </Stack>
         </Box>
 
@@ -262,7 +199,19 @@ export default function ImageDetailPage() {
           {/* Column 1: Details */}
           <Box>
             <Card>
-              <CardHeader title="Details" />
+              <CardHeader
+                title="Details"
+                action={
+                  image.ra !== null &&
+                  image.dec !== null && (
+                    <Tooltip title="Copy Coordinates">
+                      <IconButton onClick={handleCopyCoordinates} size="small">
+                        <ContentCopyIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )
+                }
+              />
               <CardContent>
                 <Typography variant="body2" paragraph>
                   <strong>Name:</strong> {image.name}
@@ -380,24 +329,28 @@ export default function ImageDetailPage() {
             </Card>
           </Box>
 
-          {/* Column 2: Sky Visualization (Aladin Lite) */}
+          {/* Column 2: Sky Visualization */}
+          {/* Temporarily simplified until Aladin Lite is fully integrated */}
           <Box>
             <Card>
               <CardHeader title="Sky View" />
               <CardContent>
                 <Box
-                  id="aladin-lite-div"
                   sx={{
                     width: "100%",
                     height: "400px",
-                    border: "1px solid #ddd",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    bgcolor: "background.default",
+                    border: "1px solid",
+                    borderColor: "divider",
                     borderRadius: 1,
                   }}
                 >
-                  {/* Aladin Lite will be initialized here */}
-                  <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-                    Aladin Lite integration coming soon
-                  </Typography>
+                  <Button variant="contained" onClick={() => navigate("/sky")}>
+                    Open Interactive Sky Map
+                  </Button>
                 </Box>
               </CardContent>
             </Card>
@@ -408,10 +361,7 @@ export default function ImageDetailPage() {
             <Card>
               <CardHeader title="Comments & Annotations" />
               <CardContent>
-                <Typography variant="body2" color="text.secondary">
-                  Comments system coming soon
-                </Typography>
-                {/* TODO: Add comments component */}
+                <Alert severity="info">No comments yet.</Alert>
               </CardContent>
             </Card>
           </Box>
@@ -451,36 +401,14 @@ export default function ImageDetailPage() {
             </Collapse>
           </Card>
         </Box>
-
-        {/* Full-width: Runs Table */}
-        {/* TODO: Implement runs table when API endpoint is available */}
-        {false && image.n_runs > 0 && (
-          <Box sx={{ mt: 3 }}>
-            <Card>
-              <CardHeader
-                title="Pipeline Runs"
-                action={
-                  <IconButton onClick={() => toggleSection("runs")}>
-                    {expandedSections.runs ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                  </IconButton>
-                }
-              />
-              <Collapse in={expandedSections.runs}>
-                <CardContent>
-                  <GenericTable<any>
-                    apiEndpoint={`/api/images/${imageId}/runs`}
-                    columns={runColumns}
-                    title=""
-                    searchable={true}
-                    exportable={true}
-                    onRowClick={(row) => navigate(`/runs/${row.id}`)}
-                  />
-                </CardContent>
-              </Collapse>
-            </Card>
-          </Box>
-        )}
       </Container>
+
+      <Snackbar
+        open={copyFeedback}
+        autoHideDuration={2000}
+        onClose={() => setCopyFeedback(false)}
+        message="Coordinates copied to clipboard"
+      />
     </>
   );
 }

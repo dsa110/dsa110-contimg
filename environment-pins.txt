@@ -1,0 +1,4 @@
+# Pin setuptools to avoid pkg_resources deprecation issues with CASA
+# CASA's casaconfig package uses pkg_resources which is deprecated in setuptools>=81
+# See: https://setuptools.pypa.io/en/latest/pkg_resources.html
+setuptools<81

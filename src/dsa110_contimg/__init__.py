@@ -1,5 +1,15 @@
 # DSA110 Pipeline Package
 
+# CRITICAL: Suppress dependency warnings FIRST (before any CASA imports)
+import warnings
+
+warnings.filterwarnings(
+    "ignore",
+    message="pkg_resources is deprecated as an API",
+    category=UserWarning,
+    module="casaconfig.private.measures_update",
+)
+
 # CRITICAL: Enforce casa6 Python version on package import
 # This ensures NO other Python version can be used
 import sys

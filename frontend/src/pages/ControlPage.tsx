@@ -20,6 +20,8 @@ import { ConversionWorkflow } from "../components/workflows/ConversionWorkflow";
 import { CalibrationWorkflow } from "../components/workflows/CalibrationWorkflow";
 import { ImagingWorkflow } from "../components/workflows/ImagingWorkflow";
 import { WorkflowTemplates } from "../components/workflows/WorkflowTemplates";
+import { TaskDashboard } from "../components/absurd/TaskDashboard";
+import { WorkflowBuilder } from "../components/absurd/WorkflowBuilder";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
 import { MSDetailsPanel } from "../components/MSDetails";
 import { LiveOperationsCard } from "../components/Pipeline";
@@ -145,6 +147,8 @@ export default function ControlPage() {
                 <Tab label="Convert" />
                 <Tab label="Calibrate" />
                 <Tab label="Image" />
+                <Tab label="Absurd Tasks" />
+                <Tab label="Workflow Builder" />
               </Tabs>
 
               {/* Templates Tab */}
@@ -189,6 +193,27 @@ export default function ControlPage() {
                   onJobCreated={handleJobCreated}
                   onRefreshJobs={refetchJobs}
                 />
+              )}
+
+              {/* Absurd Tasks Tab */}
+              {activeTab === 4 && (
+                <Box sx={{ mt: 2 }}>
+                  <TaskDashboard queueName="dsa110-pipeline" />
+                </Box>
+              )}
+
+              {/* Workflow Builder Tab */}
+              {activeTab === 5 && (
+                <Box sx={{ mt: 2 }}>
+                  <WorkflowBuilder
+                    queueName="dsa110-pipeline"
+                    onWorkflowSubmitted={(taskIds) => {
+                      console.log("Workflow submitted with task IDs:", taskIds);
+                      // Optionally switch to Absurd Tasks tab to view submitted tasks
+                      setActiveTab(4);
+                    }}
+                  />
+                </Box>
               )}
             </Paper>
           </Box>

@@ -131,6 +131,36 @@ system, or you want to understand the operational model.
 
 ---
 
+### 5. SEMI_COMPLETE_SUBBAND_GROUPS.md
+
+**Purpose**: Documents the protocol for handling semi-complete subband groups
+(12-15 subbands) with synthetic subband generation
+
+**Content**:
+
+- Protocol overview and acceptance criteria
+- Synthetic subband generation process
+- Metadata tracking with `SubbandGroupInfo` dataclass
+- Implementation architecture (database, conversion, calibrator service layers)
+- Usage examples and code snippets
+- Quality assurance and validation
+- Error handling and performance considerations
+- Migration notes and API changes
+
+**Start here if**: You need to understand how the pipeline handles missing
+subbands, or you're integrating with the conversion system and need to handle
+semi-complete groups.
+
+**Key sections**:
+
+- Group acceptance criteria (complete vs. semi-complete vs. incomplete)
+- Synthetic subband generation and properties
+- `SubbandGroupInfo` metadata tracking
+- Implementation architecture across layers
+- Usage examples and migration guide
+
+---
+
 ## Quick Navigation
 
 ### I want to...
@@ -155,6 +185,23 @@ Batch) + `DEFAULTS_AND_MINIMAL_INPUT.md` (CLI parameters)
 
 **...understand design decisions** → Read `WORKFLOW_THOUGHT_EXPERIMENT.md`
 (icebergs) + `FINAL_WORKFLOW_VERIFICATION.md` (mitigations)
+
+**...handle missing subbands** → Read
+`conversion/SEMI_COMPLETE_SUBBAND_GROUPS.md` (synthetic subband protocol)
+
+---
+
+## Operational Requirements (MODEL_DATA & Photometry)
+
+- **MODEL_DATA must exist before imaging.** Calibrated science MS files now have
+  their `MODEL_DATA` column populated immediately after calibration, and the
+  imaging workflow verifies (and repopulates if needed) before calling
+  WSClean/tclean. This ensures the sky model used for calibration is also passed
+  to the imager.
+- **Photometry is a publishing gate.** Photometry is enabled by default for
+  every mosaic. Auto-publish (and the `wait_for_published` helper) will not
+  promote a mosaic until its `photometry_status` is `completed`, guaranteeing
+  that downstream products always include measured sources.
 
 ---
 
@@ -272,23 +319,29 @@ Before running in production, verify:
 
 ## File Sizes & Scope
 
-| Document                       | Size    | Lines    | Focus                      |
-| ------------------------------ | ------- | -------- | -------------------------- |
-| WORKFLOW_THOUGHT_EXPERIMENT.md | 8.8K    | 228      | Issues & icebergs          |
-| FINAL_WORKFLOW_VERIFICATION.md | 8.2K    | 214      | Verification & mitigations |
-| DEFAULTS_AND_MINIMAL_INPUT.md  | 12K     | 326      | Defaults & startup         |
-| EXECUTION_THEMES.md            | 14K     | 467      | Operational models         |
-| **TOTAL**                      | **43K** | **1235** | Complete reference         |
+| Document                                   | Size    | Lines    | Focus                      |
+| ------------------------------------------ | ------- | -------- | -------------------------- |
+| WORKFLOW_THOUGHT_EXPERIMENT.md             | 8.8K    | 228      | Issues & icebergs          |
+| FINAL_WORKFLOW_VERIFICATION.md             | 8.2K    | 214      | Verification & mitigations |
+| DEFAULTS_AND_MINIMAL_INPUT.md              | 12K     | 326      | Defaults & startup         |
+| EXECUTION_THEMES.md                        | 14K     | 467      | Operational models         |
+| conversion/SEMI_COMPLETE_SUBBAND_GROUPS.md | 18K     | 550      | Synthetic subband protocol |
+| **TOTAL**                                  | **61K** | **1785** | Complete reference         |
 
 ---
 
 ## Related Code Directories
 
 - `conversion/` - HDF5 → MS conversion
+  - `SEMI_COMPLETE_SUBBAND_GROUPS.md` - Semi-complete group protocol
+    documentation
+  - `strategies/hdf5_orchestrator.py` - Synthetic subband generation
+  - `calibrator_ms_service.py` - Group acceptance and processing
 - `mosaic/` - Mosaic orchestration & creation
 - `calibration/` - Calibration solving & application
 - `imaging/` - CASA imaging
 - `database/` - Data registry & publishing
+  - `hdf5_index.py` - `SubbandGroupInfo` dataclass and group querying
 - `pipeline/` - Generic multi-stage orchestrator
 - `api/` - REST API & batch job submission
 - `utils/` - Shared utilities & defaults
@@ -330,5 +383,5 @@ curl http://localhost:8000/api/status
 
 - **Pipeline Status**: ✓ Production-ready
 - **All Icebergs**: ✓ Fixed (24/24)
-- **Documentation**: ✓ Complete (4 documents)
-- **Last Updated**: 2025-11-14
+- **Documentation**: ✓ Complete (5 documents)
+- **Last Updated**: 2025-11-17

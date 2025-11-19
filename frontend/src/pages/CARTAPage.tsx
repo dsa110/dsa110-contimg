@@ -31,7 +31,7 @@ import { env } from "../config/env";
 type IntegrationMode = "iframe" | "websocket";
 type TabValue = "viewer" | "browser";
 
-export default function CARTAPage() {
+export default function CARTAPage({ embedded = false }: { embedded?: boolean }) {
   const [searchParams] = useSearchParams();
   const [integrationMode, setIntegrationMode] = useState<IntegrationMode>("iframe");
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
@@ -75,68 +75,70 @@ export default function CARTAPage() {
   return (
     <Box sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}>
       {/* Header */}
-      <Paper sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
-        <Typography variant="h5" gutterBottom>
-          CARTA Integration
-        </Typography>
-        <Typography variant="body2" color="text.secondary" gutterBottom>
-          Cube Analysis and Rendering Tool for Astronomy - FITS file visualization
-        </Typography>
+      {!embedded && (
+        <Paper sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
+          <Typography variant="h5" gutterBottom>
+            CARTA Integration
+          </Typography>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            Cube Analysis and Rendering Tool for Astronomy - FITS file visualization
+          </Typography>
 
-        {/* Integration Mode Selector */}
-        <Stack direction="row" spacing={2} sx={{ mt: 2 }} alignItems="center">
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel>Integration Mode</InputLabel>
-            <Select
-              value={integrationMode}
-              label="Integration Mode"
-              onChange={(e) => handleModeChange(e.target.value as IntegrationMode)}
-            >
-              <MenuItem value="iframe">Option 1: Iframe (Quick Validation)</MenuItem>
-              <MenuItem value="websocket">Option 2: WebSocket (Full Integration)</MenuItem>
-            </Select>
-          </FormControl>
+          {/* Integration Mode Selector */}
+          <Stack direction="row" spacing={2} sx={{ mt: 2 }} alignItems="center">
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <InputLabel>Integration Mode</InputLabel>
+              <Select
+                value={integrationMode}
+                label="Integration Mode"
+                onChange={(e) => handleModeChange(e.target.value as IntegrationMode)}
+              >
+                <MenuItem value="iframe">Option 1: Iframe (Quick Validation)</MenuItem>
+                <MenuItem value="websocket">Option 2: WebSocket (Full Integration)</MenuItem>
+              </Select>
+            </FormControl>
 
-          {integrationMode === "iframe" && (
+            {integrationMode === "iframe" && (
+              <TextField
+                size="small"
+                label="CARTA Frontend URL"
+                value={frontendUrl}
+                onChange={(e) => setFrontendUrl(e.target.value)}
+                sx={{ minWidth: 300 }}
+              />
+            )}
+
             <TextField
               size="small"
-              label="CARTA Frontend URL"
-              value={frontendUrl}
-              onChange={(e) => setFrontendUrl(e.target.value)}
+              label="CARTA Backend URL"
+              value={backendUrl}
+              onChange={(e) => setBackendUrl(e.target.value)}
               sx={{ minWidth: 300 }}
             />
+
+            {selectedFile && (
+              <Button variant="outlined" size="small" onClick={() => setSelectedFile(null)}>
+                Clear File
+              </Button>
+            )}
+          </Stack>
+
+          {integrationMode === "iframe" && (
+            <Alert severity="info" sx={{ mt: 2 }}>
+              <strong>Iframe Mode:</strong> Embeds CARTA frontend in an iframe. Requires CARTA
+              frontend to be running separately. Best for quick validation.
+            </Alert>
           )}
 
-          <TextField
-            size="small"
-            label="CARTA Backend URL"
-            value={backendUrl}
-            onChange={(e) => setBackendUrl(e.target.value)}
-            sx={{ minWidth: 300 }}
-          />
-
-          {selectedFile && (
-            <Button variant="outlined" size="small" onClick={() => setSelectedFile(null)}>
-              Clear File
-            </Button>
+          {integrationMode === "websocket" && (
+            <Alert severity="info" sx={{ mt: 2 }}>
+              <strong>WebSocket Mode:</strong> Native React component connecting directly to CARTA
+              backend. Provides full integration with dashboard. Requires Protocol Buffer support
+              for full functionality.
+            </Alert>
           )}
-        </Stack>
-
-        {integrationMode === "iframe" && (
-          <Alert severity="info" sx={{ mt: 2 }}>
-            <strong>Iframe Mode:</strong> Embeds CARTA frontend in an iframe. Requires CARTA
-            frontend to be running separately. Best for quick validation.
-          </Alert>
-        )}
-
-        {integrationMode === "websocket" && (
-          <Alert severity="info" sx={{ mt: 2 }}>
-            <strong>WebSocket Mode:</strong> Native React component connecting directly to CARTA
-            backend. Provides full integration with dashboard. Requires Protocol Buffer support for
-            full functionality.
-          </Alert>
-        )}
-      </Paper>
+        </Paper>
+      )}
 
       {/* Main Content */}
       <Box sx={{ flex: 1, display: "flex", overflow: "hidden" }}>

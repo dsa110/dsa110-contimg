@@ -1,85 +1,75 @@
-import { useMemo } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Typography,
-  Stack,
-  Chip,
-  Button,
-  Skeleton,
-  Alert,
-} from "@mui/material";
-import dayjs from "dayjs";
-import { useNavigate } from "react-router-dom";
-import { usePointingHistory } from "../api/queries";
+import React from "react";
+import { Box, Typography, Card, CardContent, Grid, Chip } from "@mui/material";
+import { AccessTime, LocationOn } from "@mui/icons-material";
+import type { PointingHistoryEntry } from "../api/types";
+import { formatDateTime } from "../utils/dateUtils";
 
-const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
-const MJD_OFFSET = 40587; // Unix epoch to MJD offset
-const MS_PER_DAY = 86400000;
-
-function dateToMjd(date: Date) {
-  return date.getTime() / MS_PER_DAY + MJD_OFFSET;
+interface PointingSummaryCardProps {
+  currentPointing?: PointingHistoryEntry;
+  lastUpdate?: string;
 }
 
-function mjdToDate(mjd: number) {
-  const unixTs = (mjd - MJD_OFFSET) * MS_PER_DAY;
-  return new Date(unixTs);
-}
-
-export function PointingSummaryCard() {
-  const navigate = useNavigate();
-  const now = new Date();
-  const startMjd = dateToMjd(new Date(now.getTime() - SIX_HOURS_MS));
-  const endMjd = dateToMjd(now);
-
-  const { data, isLoading, error } = usePointingHistory(startMjd, endMjd);
-
-  const currentPointing = useMemo(() => {
-    if (!data?.items?.length) return null;
-    const latest = data.items[data.items.length - 1];
-    return {
-      ra: latest.ra_deg,
-      dec: latest.dec_deg,
-      timestamp: latest.timestamp,
-    };
-  }, [data]);
-
-  const lastUpdate = currentPointing ? mjdToDate(currentPointing.timestamp) : null;
-
+export default function PointingSummaryCard({
+  currentPointing,
+  lastUpdate,
+}: PointingSummaryCardProps) {
   return (
-    <Card>
-      <CardHeader
-        title="Current Pointing"
-        subheader="Based on the last 6 hours of observations"
-        action={
-          <Button size="small" variant="outlined" onClick={() => navigate("/observing")}>
-            Open Observing View
-          </Button>
-        }
-      />
+    <Card sx={{ height: "100%" }}>
       <CardContent>
-        {isLoading && <Skeleton variant="rectangular" height={96} />}
-        {!isLoading && error && (
-          <Alert severity="warning">Unable to load pointing data right now.</Alert>
-        )}
-        {!isLoading && !error && !currentPointing && (
-          <Alert severity="info">No recent pointing samples in the last 6 hours.</Alert>
-        )}
-        {!isLoading && currentPointing && (
-          <Stack spacing={1.5}>
-            <Typography variant="body2" color="text.secondary">
-              Last Update: {lastUpdate ? dayjs(lastUpdate).format("YYYY-MM-DD HH:mm:ss") : "N/A"}
-            </Typography>
-            <Stack direction="row" spacing={2} flexWrap="wrap">
-              <Chip label={`RA: ${currentPointing.ra.toFixed(4)}°`} color="info" />
-              <Chip label={`Dec: ${currentPointing.dec.toFixed(4)}°`} color="success" />
-              <Chip label="History: 6h" color="default" />
-            </Stack>
-            <Typography variant="body2" color="text.secondary">
-              Use the Observing view for full pointing history and calibrator diagnostics.
-            </Typography>
-          </Stack>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+          <Typography variant="h6" component="div">
+            Current Pointing
+          </Typography>
+          <Chip
+            label={lastUpdate ? `Updated: ${formatDateTime(lastUpdate)}` : "No Data"}
+            size="small"
+            color={lastUpdate ? "success" : "default"}
+            variant="outlined"
+          />
+        </Box>
+
+        {currentPointing ? (
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <LocationOn color="primary" />
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    RA (deg)
+                  </Typography>
+                  <Typography variant="h6">{currentPointing.ra_deg.toFixed(4)}°</Typography>
+                </Box>
+              </Box>
+            </Grid>
+            <Grid item xs={6}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <LocationOn color="primary" />
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    Dec (deg)
+                  </Typography>
+                  <Typography variant="h6">{currentPointing.dec_deg.toFixed(4)}°</Typography>
+                </Box>
+              </Box>
+            </Grid>
+            <Grid item xs={12}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <AccessTime color="action" />
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    Observation Time
+                  </Typography>
+                  <Typography variant="body1">
+                    {formatDateTime(currentPointing.timestamp * 1000)}
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
+          </Grid>
+        ) : (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+            <Typography color="text.secondary">No pointing data available</Typography>
+          </Box>
         )}
       </CardContent>
     </Card>

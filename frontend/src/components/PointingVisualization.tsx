@@ -17,7 +17,7 @@ import {
 import { RadioButtonChecked as PointIcon, Refresh as RefreshIcon } from "@mui/icons-material";
 import { PlotlyLazy } from "./PlotlyLazy";
 import type { Data, Layout } from "./PlotlyLazy";
-import { usePointingMonitorStatus, usePointingHistory } from "../api/queries";
+import { usePointingMonitorStatus, usePointingHistory, useImages } from "../api/queries";
 
 interface PointingVisualizationProps {
   height?: number;
@@ -30,7 +30,7 @@ export default function PointingVisualization({
   height = 500,
   showHistory = true,
   historyDays, // undefined = full range
-  enableSkyMapBackground = true, // Enable by default
+  enableSkyMapBackground = false, // Disabled by default (backend not working)
 }: PointingVisualizationProps) {
   const { data: monitorStatus, isLoading: statusLoading } = usePointingMonitorStatus();
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
@@ -55,6 +55,11 @@ export default function PointingVisualization({
 
   const { data: historyResponse, isLoading: historyLoading } = usePointingHistory(startMjd, endMjd);
 
+  // Fetch images for beam footprint visualization (actual sky coverage)
+  const { data: imagesResponse, isLoading: imagesLoading } = useImages({
+    limit: 1000, // Get recent images for coverage map
+  });
+
   // Filter out synthetic/simulated data (backup filter - API also filters)
   // Synthetic data is identified by timestamps before MJD 60000 (approximately year 2023)
   // Real observations should be from recent dates
@@ -65,6 +70,41 @@ export default function PointingVisualization({
     const MIN_VALID_MJD = 60000;
     return historyResponse.items.filter((item) => item.timestamp >= MIN_VALID_MJD);
   }, [historyResponse]);
+
+  const getBeamRadiusDeg = (img: (typeof imagesResponse)["items"][number]): number | null => {
+    if (img.beam_major_arcsec && img.beam_major_arcsec > 0) {
+      return img.beam_major_arcsec / 3600 / 2;
+    }
+    if (img.fov_deg && img.fov_deg > 0) {
+      return img.fov_deg / 2;
+    }
+    if (img.image_size_deg && img.image_size_deg > 0) {
+      return img.image_size_deg / 2;
+    }
+    return null;
+  };
+
+  // Filter images that have coordinates and beam information
+  const imagesWithCoordinates = useMemo(() => {
+    if (!imagesResponse?.items) {
+      console.log("[Sky Map] No images response");
+      return [];
+    }
+    console.log(`[Sky Map] Total images: ${imagesResponse.items.length}`);
+    const filtered = imagesResponse.items.filter(
+      (img) =>
+        img.center_ra_deg !== null &&
+        img.center_ra_deg !== undefined &&
+        img.center_dec_deg !== null &&
+        img.center_dec_deg !== undefined &&
+        getBeamRadiusDeg(img) !== null
+    );
+    console.log(`[Sky Map] Images with coordinates: ${filtered.length}`);
+    if (filtered.length > 0) {
+      console.log("[Sky Map] Sample image:", filtered[0]);
+    }
+    return filtered;
+  }, [imagesResponse]);
 
   // Calculate actual data range from filtered data for display
   const actualDataRange = useMemo(() => {
@@ -279,51 +319,104 @@ export default function PointingVisualization({
       // The Mollweide projection is served pre-rendered from the backend
       // This is simpler and more efficient than client-side HEALPix processing
 
+      // Draw pointing history trace
       if (showHistory && historyData.length > 0) {
-        // Project all points to Aitoff coordinates
-        const projectedPoints = historyData.map((p) => {
-          const [x, y] = mollweideProjection(p.ra_deg, p.dec_deg);
-          return { x, y, ra: p.ra_deg, dec: p.dec_deg };
+        const traceXs: number[] = [];
+        const traceYs: number[] = [];
+
+        historyData.forEach((point) => {
+          const [x, y] = mollweideProjection(point.ra_deg, point.dec_deg);
+          traceXs.push(x);
+          traceYs.push(y);
         });
 
-        const xs = projectedPoints.map((p) => p.x);
-        const ys = projectedPoints.map((p) => p.y);
-
-        // Historical trail
         data.push({
           type: "scatter",
           mode: "lines",
-          name: "Pointing History",
-          x: xs,
-          y: ys,
+          name: "Pointing Trace",
+          x: traceXs,
+          y: traceYs,
           line: {
-            color: "rgba(144, 202, 249, 0.5)",
-            width: 2,
+            color: "rgba(100, 181, 246, 0.5)",
+            width: 1,
           },
-          hovertemplate: "RA: %{customdata[0]:.2f}°<br>Dec: %{customdata[1]:.2f}°<extra></extra>",
-          customdata: historyData.map((p) => [p.ra_deg, p.dec_deg]),
+          hoverinfo: "skip" as any,
+        });
+      }
+
+      // Draw beam footprints (actual sky coverage) from images
+      // This shows real observed areas, not telescope pointing paths
+      if (showHistory && imagesWithCoordinates.length > 0) {
+        console.log(`[Sky Map] Drawing ${imagesWithCoordinates.length} beam footprints`);
+
+        // Create arrays to hold all beam footprint points
+        const beamFootprints: Data[] = [];
+
+        // Color by observation time (oldest = blue, newest = red)
+        const timestamps = imagesWithCoordinates
+          .map((img) => (img.created_at ? new Date(img.created_at).getTime() : 0))
+          .filter((t) => t > 0);
+        const minTime = Math.min(...timestamps);
+        const maxTime = Math.max(...timestamps);
+        const timeRange = maxTime - minTime || 1;
+
+        // Draw each beam as circle outline
+        imagesWithCoordinates.forEach((img, index) => {
+          const ra = img.center_ra_deg!;
+          const dec = img.center_dec_deg!;
+          const beamRadius = getBeamRadiusDeg(img)!;
+
+          console.log(
+            `[Sky Map] Beam ${index}: RA=${ra.toFixed(3)}, Dec=${dec.toFixed(3)}, radius=${beamRadius.toFixed(
+              3
+            )}°`
+          );
+
+          // Generate circle points around the beam center
+          const numPoints = 32; // Circle resolution
+          const circleRAs: number[] = [];
+          const circleDecs: number[] = [];
+
+          for (let i = 0; i <= numPoints; i++) {
+            const angle = (i / numPoints) * 2 * Math.PI;
+            // Approximate circle in RA/Dec (not exact due to spherical geometry, but good enough)
+            const deltaRA = (beamRadius * Math.cos(angle)) / Math.cos((dec * Math.PI) / 180);
+            const deltaDec = beamRadius * Math.sin(angle);
+            circleRAs.push(ra + deltaRA);
+            circleDecs.push(dec + deltaDec);
+          }
+
+          // Project circle to Mollweide coordinates
+          const projected = circleRAs.map((r, i) => mollweideProjection(r, circleDecs[i]));
+          const xs = projected.map((p) => p[0]);
+          const ys = projected.map((p) => p[1]);
+
+          // Color by time (blue = old, red = new)
+          const timestamp = img.created_at ? new Date(img.created_at).getTime() : minTime;
+          const normalizedTime = (timestamp - minTime) / timeRange;
+          const color = `rgba(${Math.round(255 * normalizedTime)}, ${Math.round(150 * (1 - normalizedTime))}, ${Math.round(255 * (1 - normalizedTime))}, 0.8)`;
+
+          beamFootprints.push({
+            type: "scatter",
+            mode: "lines",
+            x: xs,
+            y: ys,
+            line: {
+              color: color,
+              width: 1.5,
+            },
+            hovertemplate:
+              `<b>Beam Footprint</b><br>` +
+              `Center RA: ${ra.toFixed(3)}°<br>` +
+              `Center Dec: ${dec.toFixed(3)}°<br>` +
+              `Beam Diameter: ${(beamRadius * 2).toFixed(2)}°<br>` +
+              `Time: ${img.created_at || "N/A"}<extra></extra>`,
+            showlegend: false,
+            hoverinfo: "text" as any,
+          });
         });
 
-        // Sparse markers for performance
-        const step = Math.max(1, Math.floor(historyData.length / 20));
-        const sparseXs = xs.filter((_, i) => i % step === 0);
-        const sparseYs = ys.filter((_, i) => i % step === 0);
-        const sparseData = historyData.filter((_, i) => i % step === 0);
-
-        data.push({
-          type: "scatter",
-          mode: "markers",
-          name: "Historical Points",
-          x: sparseXs,
-          y: sparseYs,
-          marker: {
-            color: "rgba(144, 202, 249, 0.3)",
-            size: 4,
-          },
-          hovertemplate: "RA: %{customdata[0]:.2f}°<br>Dec: %{customdata[1]:.2f}°<extra></extra>",
-          customdata: sparseData.map((p) => [p.ra_deg, p.dec_deg]),
-          showlegend: false,
-        });
+        data.push(...beamFootprints);
       }
 
       // Add current pointing position
@@ -350,11 +443,13 @@ export default function PointingVisualization({
         });
       }
 
-      // Add coordinate grid lines for reference (sparse for performance)
+      // Add coordinate grid lines for reference (denser grid with labels)
       const gridLines: Data[] = [];
-      // RA grid lines (every 60 degrees for performance)
-      for (let ra = 0; ra < 360; ra += 60) {
-        const decs = Array.from({ length: 91 }, (_, i) => -90 + i * 2); // Sparse sampling
+      const gridLabels: any[] = [];
+
+      // RA grid lines (every 30 degrees - twice as dense as before)
+      for (let ra = 0; ra < 360; ra += 30) {
+        const decs = Array.from({ length: 91 }, (_, i) => -90 + i * 2);
         const ras = decs.map(() => ra);
         const projected = ras.map((r, i) => mollweideProjection(r, decs[i]));
         gridLines.push({
@@ -362,14 +457,27 @@ export default function PointingVisualization({
           mode: "lines",
           x: projected.map((p) => p[0]),
           y: projected.map((p) => p[1]),
-          line: { color: "rgba(255, 255, 255, 0.4)", width: 1, dash: "dot" },
+          line: { color: "rgba(255, 255, 255, 0.3)", width: 1, dash: "dot" },
           showlegend: false,
           hoverinfo: "skip" as any,
         });
+
+        // Add RA label at the equator (dec=0)
+        const [labelX, labelY] = mollweideProjection(ra, 0);
+        gridLabels.push({
+          x: labelX,
+          y: labelY + 8, // Offset slightly above the equator
+          text: `${ra}°`,
+          showarrow: false,
+          font: { size: 10, color: "rgba(255, 255, 255, 0.6)" },
+          xanchor: "center",
+          yanchor: "bottom",
+        });
       }
-      // Dec grid lines (every 30 degrees)
-      for (let dec = -90; dec <= 90; dec += 30) {
-        const ras = Array.from({ length: 181 }, (_, i) => i * 2); // Sparse sampling
+
+      // Dec grid lines (every 15 degrees - twice as dense as before)
+      for (let dec = -90; dec <= 90; dec += 15) {
+        const ras = Array.from({ length: 181 }, (_, i) => i * 2);
         const decs = ras.map(() => dec);
         const projected = ras.map((r, i) => mollweideProjection(r, decs[i]));
         gridLines.push({
@@ -377,17 +485,33 @@ export default function PointingVisualization({
           mode: "lines",
           x: projected.map((p) => p[0]),
           y: projected.map((p) => p[1]),
-          line: { color: "rgba(255, 255, 255, 0.4)", width: 1, dash: "dot" },
+          line: { color: "rgba(255, 255, 255, 0.3)", width: 1, dash: "dot" },
           showlegend: false,
           hoverinfo: "skip" as any,
         });
+
+        // Add Dec label at RA=180 (left side)
+        if (dec !== 0) {
+          // Skip 0° to avoid overlap with RA labels
+          const [labelX, labelY] = mollweideProjection(180, dec);
+          gridLabels.push({
+            x: labelX - 8, // Offset to the left
+            y: labelY,
+            text: `${dec}°`,
+            showarrow: false,
+            font: { size: 10, color: "rgba(255, 255, 255, 0.6)" },
+            xanchor: "right",
+            yanchor: "middle",
+          });
+        }
       }
 
       const layout: Partial<Layout> = {
         title: {
-          text: "Sky Map (Mollweide Projection - 1.4 GHz GSM)",
+          text: "Sky Map",
           font: { size: 14 },
         },
+        annotations: gridLabels,
         xaxis: {
           title: { text: "" },
           showgrid: false,
@@ -434,14 +558,16 @@ export default function PointingVisualization({
           : [],
       };
 
-      return { skyMapData: [...gridLines, ...data], skyMapLayout: layout };
+      return { skyMapData: [...data, ...gridLines], skyMapLayout: layout };
     } catch (error) {
       console.error("Error in skyMapData useMemo:", error);
       // Try to generate at least grid lines as fallback
       try {
         const gridLines: Data[] = [];
-        // RA grid lines (every 60 degrees for performance)
-        for (let ra = 0; ra < 360; ra += 60) {
+        const gridLabels: any[] = [];
+
+        // RA grid lines (every 30 degrees - twice as dense)
+        for (let ra = 0; ra < 360; ra += 30) {
           const decs = Array.from({ length: 91 }, (_, i) => -90 + i * 2);
           const ras = decs.map(() => ra);
           const projected = ras.map((r, i) => mollweideProjection(r, decs[i]));
@@ -450,13 +576,26 @@ export default function PointingVisualization({
             mode: "lines",
             x: projected.map((p) => p[0]),
             y: projected.map((p) => p[1]),
-            line: { color: "rgba(255, 255, 255, 0.4)", width: 1, dash: "dot" },
+            line: { color: "rgba(255, 255, 255, 0.3)", width: 1, dash: "dot" },
             showlegend: false,
             hoverinfo: "skip" as any,
           });
+
+          // Add RA label at the equator (dec=0)
+          const [labelX, labelY] = mollweideProjection(ra, 0);
+          gridLabels.push({
+            x: labelX,
+            y: labelY + 8,
+            text: `${ra}°`,
+            showarrow: false,
+            font: { size: 10, color: "rgba(255, 255, 255, 0.6)" },
+            xanchor: "center",
+            yanchor: "bottom",
+          });
         }
-        // Dec grid lines (every 30 degrees)
-        for (let dec = -90; dec <= 90; dec += 30) {
+
+        // Dec grid lines (every 15 degrees - twice as dense)
+        for (let dec = -90; dec <= 90; dec += 15) {
           const ras = Array.from({ length: 181 }, (_, i) => i * 2);
           const decs = ras.map(() => dec);
           const projected = ras.map((r, i) => mollweideProjection(r, decs[i]));
@@ -465,16 +604,32 @@ export default function PointingVisualization({
             mode: "lines",
             x: projected.map((p) => p[0]),
             y: projected.map((p) => p[1]),
-            line: { color: "rgba(255, 255, 255, 0.4)", width: 1, dash: "dot" },
+            line: { color: "rgba(255, 255, 255, 0.3)", width: 1, dash: "dot" },
             showlegend: false,
             hoverinfo: "skip" as any,
           });
+
+          // Add Dec label at RA=180 (left side)
+          if (dec !== 0) {
+            const [labelX, labelY] = mollweideProjection(180, dec);
+            gridLabels.push({
+              x: labelX - 8,
+              y: labelY,
+              text: `${dec}°`,
+              showarrow: false,
+              font: { size: 10, color: "rgba(255, 255, 255, 0.6)" },
+              xanchor: "right",
+              yanchor: "middle",
+            });
+          }
         }
+
         const fallbackLayout: Partial<Layout> = {
           title: {
-            text: "Sky Map (Mollweide Projection - 1.4 GHz GSM)",
+            text: "Sky Map",
             font: { size: 14 },
           },
+          annotations: gridLabels,
           xaxis: {
             title: { text: "" },
             showgrid: false,
@@ -505,7 +660,7 @@ export default function PointingVisualization({
         // Last resort: return empty but valid structure
         const fallbackLayout: Partial<Layout> = {
           title: {
-            text: "Sky Map (Mollweide Projection - 1.4 GHz GSM)",
+            text: "Sky Map",
             font: { size: 14 },
           },
           xaxis: {
@@ -542,6 +697,7 @@ export default function PointingVisualization({
     height,
     mollweideProjection,
     enableSkyMapBackground,
+    imagesWithCoordinates,
   ]);
 
   if (statusLoading) {

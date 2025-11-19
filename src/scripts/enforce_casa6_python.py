@@ -1,5 +1,6 @@
 #!/opt/miniforge/envs/casa6/bin/python
-"""Script to enforce casa6 Python in all pipeline scripts.
+"""
+Script to enforce casa6 Python in all pipeline scripts.
 
 This script:
 1. Fixes all shebang lines to point to casa6 Python

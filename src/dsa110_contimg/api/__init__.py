@@ -4,6 +4,10 @@ Exposes a default ``app`` for ASGI servers, while retaining the
 ``create_app`` factory for programmatic use.
 """
 
+# CRITICAL: Suppress CASA deprecation warnings BEFORE any imports
+# Must be imported first to catch warnings from casaconfig
+from dsa110_contimg import _suppress_warnings  # noqa: F401
+
 
 # Lazy import to avoid expensive operations during module import
 def _get_create_app():

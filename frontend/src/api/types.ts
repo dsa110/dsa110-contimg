@@ -84,6 +84,7 @@ export interface DependencyGraphNode {
   id: string;
   label: string;
   type: string;
+  status?: string;
 }
 
 export interface DependencyGraphEdge {
@@ -867,7 +868,33 @@ export interface ConversionJobParams {
   params?: Record<string, unknown>;
 }
 
+export interface HealthCheckResult {
+  healthy: boolean;
+  error?: string;
+  message?: string;
+  timestamp?: number;
+}
+
 export interface HealthSummary {
-  status: string;
+  status: "healthy" | "degraded" | "unhealthy" | "unknown";
+  timestamp: number;
+  checks: Record<string, HealthCheckResult>;
   [key: string]: unknown;
+}
+
+// Calibration Types
+export interface CalibrationConfig {
+  msPath: string;
+  calibrator?: string;
+  refAnt?: string;
+}
+
+export interface CalibrationStatus {
+  status: "idle" | "running" | "completed" | "failed";
+  progress: number;
+  current_stage?: string;
+  error?: string;
+  started_at?: string;
+  duration?: number;
+  config?: CalibrationConfig;
 }

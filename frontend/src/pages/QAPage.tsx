@@ -2,8 +2,17 @@
  * QA Page - Unified QA visualization with toggle between Tab and CARTA views
  * Merges QAVisualizationPage and QACartaPage functionality
  */
-import { useState, useEffect, useRef } from "react";
-import { Box, Typography, Tabs, Tab, Paper, ToggleButton, ToggleButtonGroup, Alert } from "@mui/material";
+import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  Box,
+  Typography,
+  Tabs,
+  Tab,
+  Paper,
+  ToggleButton,
+  ToggleButtonGroup,
+  Alert,
+} from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
 import {
   Folder,
@@ -88,12 +97,12 @@ function WidgetWrapper({
   return <QueryClientProvider client={widgetQueryClient}>{componentContent}</QueryClientProvider>;
 }
 
-export default function QAPage() {
+export default function QAPage({ embedded = false }: { embedded?: boolean }) {
   const [viewMode, setViewMode] = useState<"tabs" | "carta">("tabs");
   const [tabValue, setTabValue] = useState(0);
   const [selectedFITSPath, setSelectedFITSPath] = useState<string | null>(null);
   const [selectedTablePath, setSelectedTablePath] = useState<string | null>(null);
-  
+
   // Golden Layout state
   const layoutRef = useRef<HTMLDivElement>(null);
   const goldenLayoutRef = useRef<any>(null);
@@ -102,29 +111,32 @@ export default function QAPage() {
   const fitsViewerContainerRef = useRef<any>(null);
   const casaTableViewerContainerRef = useRef<any>(null);
 
-  const handleFileSelect = (path: string, type: string) => {
-    if (type === "fits") {
-      setSelectedFITSPath(path);
-      if (viewMode === "tabs") {
-        setTabValue(1); // Switch to FITS viewer tab
-      } else {
-        // Update Golden Layout FITS viewer
-        if (fitsViewerContainerRef.current) {
-          fitsViewerContainerRef.current.extendState({ fitsPath: path });
+  const handleFileSelect = useCallback(
+    (path: string, type: string) => {
+      if (type === "fits") {
+        setSelectedFITSPath(path);
+        if (viewMode === "tabs") {
+          setTabValue(1); // Switch to FITS viewer tab
+        } else {
+          // Update Golden Layout FITS viewer
+          if (fitsViewerContainerRef.current) {
+            fitsViewerContainerRef.current.extendState({ fitsPath: path });
+          }
+        }
+      } else if (type === "casatable") {
+        setSelectedTablePath(path);
+        if (viewMode === "tabs") {
+          setTabValue(2); // Switch to CASA table viewer tab
+        } else {
+          // Update Golden Layout CASA table viewer
+          if (casaTableViewerContainerRef.current) {
+            casaTableViewerContainerRef.current.extendState({ tablePath: path });
+          }
         }
       }
-    } else if (type === "casatable") {
-      setSelectedTablePath(path);
-      if (viewMode === "tabs") {
-        setTabValue(2); // Switch to CASA table viewer tab
-      } else {
-        // Update Golden Layout CASA table viewer
-        if (casaTableViewerContainerRef.current) {
-          casaTableViewerContainerRef.current.extendState({ tablePath: path });
-        }
-      }
-    }
-  };
+    },
+    [viewMode]
+  );
 
   const handleDirectorySelect = (_path: string) => {
     // Could navigate directory browser or update context
@@ -286,17 +298,19 @@ export default function QAPage() {
 
   return (
     <>
-      <PageBreadcrumbs />
-      <Box sx={{ p: 3 }}>
+      {!embedded && <PageBreadcrumbs />}
+      <Box sx={{ p: embedded ? 0 : 3 }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-          <Box>
-            <Typography variant="h2" component="h2" gutterBottom>
-              QA Tools
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Explore QA data, view FITS files, browse CASA tables, and generate QA notebooks
-            </Typography>
-          </Box>
+          {!embedded && (
+            <Box>
+              <Typography variant="h2" component="h2" gutterBottom>
+                QA Tools
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Explore QA data, view FITS files, browse CASA tables, and generate QA notebooks
+              </Typography>
+            </Box>
+          )}
           <ToggleButtonGroup
             value={viewMode}
             exclusive
@@ -437,4 +451,3 @@ export default function QAPage() {
     </>
   );
 }
-

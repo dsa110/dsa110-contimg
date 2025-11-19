@@ -54,7 +54,10 @@ export default function SourceMonitoringPage() {
   const [eseOnly, setEseOnly] = useState(false);
   const [decMin, setDecMin] = useState(DEC_RANGE.min);
   const [decMax, setDecMax] = useState(DEC_RANGE.max);
-  const [searchRequest, setSearchRequest] = useState<SourceSearchRequest | null>(null);
+  const [searchRequest, setSearchRequest] = useState<SourceSearchRequest | null>({
+    limit: DEFAULT_LIMIT,
+    variability_threshold: DEFAULT_VARIABILITY_THRESHOLD,
+  });
   const gridRef = useRef<AgGridReact>(null);
 
   const { data, isLoading, error } = useSourceSearch(searchRequest);

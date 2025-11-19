@@ -46,11 +46,12 @@ function get_pid() {
 }
 
 function health_check() {
-    local max_attempts=5
+    local max_attempts=10
     local attempt=1
     
     while [ $attempt -le $max_attempts ]; do
-        if curl -sf http://localhost:3210/ > /dev/null 2>&1; then
+        # Use curl with timeout and check for HTTP 200
+        if curl -sf --max-time 5 http://localhost:3210/ > /dev/null 2>&1; then
             return 0
         fi
         sleep 2
@@ -79,15 +80,26 @@ function start_server() {
     echo $pid > "$PID_FILE"
     
     log "Server starting (PID: $pid)"
-    sleep 3
+    # Wait longer for Vite to fully initialize (can take 10-20 seconds on first start)
+    sleep 5
     
     if health_check; then
         log "✅ Server started successfully and responding on port 3210"
         log "Access at: http://localhost:3210/"
         return 0
     else
-        error "Server started but health check failed"
-        return 1
+        # Give it one more chance with longer wait
+        log "Initial health check failed, waiting longer for Vite to initialize..."
+        sleep 10
+        if health_check; then
+            log "✅ Server started successfully and responding on port 3210"
+            log "Access at: http://localhost:3210/"
+            return 0
+        else
+            error "Server started but health check failed after extended wait"
+            error "Check logs: tail -f $LOG_FILE"
+            return 1
+        fi
     fi
 }
 
