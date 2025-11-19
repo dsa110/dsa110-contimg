@@ -7,6 +7,7 @@
  * 2. Set VITE_SENTRY_DSN environment variable
  * 3. Uncomment the Sentry import and initialization code below
  */
+import { logger } from "./logger";
 
 // Sentry integration (optional - only if DSN is provided)
 // To enable: npm install @sentry/react and uncomment the import

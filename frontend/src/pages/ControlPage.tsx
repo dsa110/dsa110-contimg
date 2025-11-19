@@ -4,6 +4,7 @@
  */
 import React, { useState, useEffect } from "react";
 import { Box, Paper, Typography, Tabs, Tab } from "@mui/material";
+import { logger } from "../utils/logger";
 import {
   useMSList,
   useJobs,

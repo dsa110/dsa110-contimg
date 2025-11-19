@@ -3,7 +3,8 @@
  * Full control panel for managing the streaming converter service
  */
 import { useState } from "react";
-import { Container, Typography, Box, Button, Alert, Stack, Grid } from "@mui/material";
+import { Container, Typography, Box, Button, Alert, Stack } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import { PlayArrow, Stop, Refresh, Settings } from "@mui/icons-material";
 import {
   useStreamingStatus,

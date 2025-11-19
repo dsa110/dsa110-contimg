@@ -186,11 +186,17 @@ class StreamingMosaicManager:
 
             try:
                 self.config = PipelineConfig.from_env(validate_paths=False)
+                # Enable Phase 3 features
+                self.config.transient_detection.enabled = True
+                self.config.astrometric_calibration.enabled = True
             except Exception:
                 # Create minimal config if env vars not available
                 # Only create config if we actually need it (not just for registration)
                 try:
                     self.config = PipelineConfig()
+                    # Enable Phase 3 features
+                    self.config.transient_detection.enabled = True
+                    self.config.astrometric_calibration.enabled = True
                 except Exception:
                     # If config creation fails, set to None - will be created lazily if needed
                     self.config = None

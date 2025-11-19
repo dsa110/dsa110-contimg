@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Box, Button, TextField, Grid } from "@mui/material";
+import { Box, Button, TextField } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import type { CalibrationConfig } from "../../api/types";
 
 interface CalibrationConfigFormProps {

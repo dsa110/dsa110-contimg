@@ -1,29 +1,23 @@
 --[[
  DSA-110 AOFlagger Strategy - AGGRESSIVE MODE
- Version: 2025-11-19 (Final - base_threshold = 0.75)
+ Version: 2025-11-19
  Based on: dsa110-default.lua
  
- This strategy targets CASA-like aggressiveness (~13% flagging).
+ This strategy is MORE AGGRESSIVE than the default, designed to flag
+ more potential RFI at the cost of some data loss.
  
  Use cases:
- - Contaminated observations
+ - Extremely contaminated observations
  - When calibration fails with default strategy
- - When CASA-like aggressiveness needed but speed matters
+ - For comparison with CASA tfcrop+rflag aggressiveness
  
- Key difference from default:
- - Lower base_threshold (0.75 vs 1.0) = more sensitive detection
+ Key differences from default:
+ - Lower base_threshold (0.6 vs 1.0) = more sensitive
+ - Lower transient_threshold_factor (0.7 vs 1.0) = catch more transients
+ - Lower RMS thresholds = flag more outliers
+ - 4 iterations instead of 3 = more thorough
  
- All other parameters at DEFAULT values:
- - transient_threshold_factor = 1.0 (not lowered)
- - iteration_count = 3 (not increased)
- - RMS thresholds = 3.5, 4.0 (not lowered)
- - SIR operator = 0.2 (not increased)
- 
- Expected flagging: ~12-13% (CASA reference: 13.19%)
- Speed: ~4 min (vs CASA's 16 min = 4× faster)
- 
- Note: Testing showed other parameters had minimal effect.
- base_threshold is the primary control for aggressiveness
+ Expected flagging: ~10-15% (vs ~4-5% for default)
 ]]
 
 aoflagger.require_min_version("3.0")
@@ -36,17 +30,17 @@ function execute(input)
   -- What polarizations to flag? Default: all available
   local flag_polarizations = input:get_polarizations()
 
-  -- Base threshold: AGGRESSIVE - targeting CASA-like ~13% flagging
-  -- Default: 1.0 (4.5%), This: 0.75 (target ~12-13%), Very aggressive: 0.6 (53%)
-  local base_threshold = 0.75
+  -- Base threshold: AGGRESSIVE - lower = more sensitive detection
+  -- Default: 1.0, Aggressive: 0.6
+  local base_threshold = 0.6
   
   -- How to flag complex values: "phase", "amplitude", "real", "imaginary", "complex"
   -- For continuum imaging, amplitude is typically most effective
   local flag_representations = { "amplitude" }
   
-  -- Number of iterations: KEEP AT DEFAULT
-  -- Default: 3
-  local iteration_count = 3
+  -- Number of iterations: AGGRESSIVE - more iterations = more thorough
+  -- Default: 3, Aggressive: 4
+  local iteration_count = 4
   
   -- How much to increase sensitivity each iteration
   local threshold_factor_step = 2.0
@@ -58,9 +52,9 @@ function execute(input)
   -- Can be increased if RFI is broadband
   local frequency_resize_factor = 1.0
   
-  -- Transient RFI sensitivity: KEEP AT DEFAULT
-  -- Default: 1.0
-  local transient_threshold_factor = 1.0
+  -- Transient RFI sensitivity: AGGRESSIVE - lower = more aggressive
+  -- Default: 1.0, Aggressive: 0.7
+  local transient_threshold_factor = 0.7
 
   --
   -- End of DSA-110 AGGRESSIVE settings
@@ -102,10 +96,13 @@ function execute(input)
           aoflagger.sumthreshold(converted_data, sumthr_level, sumthr_level * transient_threshold_factor, true, true)
         end
 
-        -- Flag bad timesteps and channels: DEFAULT thresholds
+        -- Flag bad timesteps and channels: AGGRESSIVE thresholds
+        -- Default: 3.5, Aggressive: 2.5
         local chdata = converted_data:copy()
-        aoflagger.threshold_timestep_rms(converted_data, 3.5)
-        aoflagger.threshold_channel_rms(chdata, 3.0 * threshold_factor, true)
+        aoflagger.threshold_timestep_rms(converted_data, 2.5)
+        
+        -- Default: 3.0, Aggressive: 2.5
+        aoflagger.threshold_channel_rms(chdata, 2.5 * threshold_factor, true)
         converted_data:join_mask(chdata)
 
         -- High pass filtering to remove slow variations
@@ -161,8 +158,9 @@ function execute(input)
     aoflagger.scale_invariant_rank_operator(input, 0.2, 0.2)
   end
 
-  -- Flag any remaining bad timesteps: DEFAULT threshold
-  aoflagger.threshold_timestep_rms(input, 4.0)
+  -- Flag any remaining bad timesteps: AGGRESSIVE threshold
+  -- Default: 4.0, Aggressive: 3.0
+  aoflagger.threshold_timestep_rms(input, 3.0)
 
   -- Collect statistics if metadata is available
   if input:is_complex() and input:has_metadata() then

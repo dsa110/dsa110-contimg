@@ -8,7 +8,6 @@ import {
   Box,
   Paper,
   Typography,
-  Grid,
   Card,
   CardContent,
   Chip,
@@ -19,7 +18,9 @@ import {
   Button,
   useTheme,
   alpha,
+  CircularProgress,
 } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import { Refresh, PlayArrow, CheckCircle, Error, Cancel, Schedule } from "@mui/icons-material";
 import { useAbsurdTasks, useQueueStats, useAbsurdHealth } from "../../api/absurdQueries";
 import { TaskList } from "./TaskList";

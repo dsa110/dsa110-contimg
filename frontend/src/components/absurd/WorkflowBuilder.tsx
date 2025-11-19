@@ -18,14 +18,14 @@ import {
   Select,
   MenuItem,
   TextField,
-  Grid,
   Chip,
   IconButton,
   Alert,
   CircularProgress,
   useTheme,
 } from "@mui/material";
-import { Add, Delete, PlayArrow, ArrowDownward, CheckCircle } from "@mui/icons-material";
+import Grid from "@mui/material/Grid2";
+import { Add, Delete, PlayArrow, ArrowDownward } from "@mui/icons-material";
 import { useSpawnTask } from "../../api/absurdQueries";
 import { useNotifications } from "../../contexts/NotificationContext";
 import type { SpawnTaskRequest } from "../../api/absurd";

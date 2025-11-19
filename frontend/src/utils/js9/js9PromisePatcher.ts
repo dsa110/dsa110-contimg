@@ -4,6 +4,7 @@
  * Directly patches the problematic setTimeout(process) call in js9support.js:3884
  * to break up promise resolution chains and prevent long-running setTimeout handlers.
  */
+import { logger } from "../logger";
 
 class JS9PromisePatcher {
   private isPatched: boolean = false;

@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Typography, Button, Chip, Skeleton } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import { useNavigate } from "react-router-dom";
 import CollapsibleSection from "../CollapsibleSection";
 import { StatusIndicator } from "../StatusIndicator";

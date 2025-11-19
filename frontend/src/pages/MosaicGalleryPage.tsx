@@ -3,7 +3,6 @@ import {
   Container,
   Typography,
   Box,
-  Grid,
   Card,
   CardContent,
   CardActionArea,
@@ -11,6 +10,7 @@ import {
   Alert,
   Chip,
 } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import {
   Image as ImageIcon,
   Storage,

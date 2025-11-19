@@ -713,6 +713,10 @@ def _load_config(config_param: Any) -> PipelineConfig:
 
     if config_param is None:
         # Load default config from environment
-        return PipelineConfig.from_env()
+        config = PipelineConfig.from_env()
+        # Enable Phase 3 features
+        config.transient_detection.enabled = True
+        config.astrometric_calibration.enabled = True
+        return config
 
     raise ValueError(f"Invalid config parameter type: {type(config_param)}")

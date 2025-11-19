@@ -4,7 +4,8 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { Box, Grid } from "@mui/material";
+import { Box } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import { Tune, CheckCircle, Flag } from "@mui/icons-material";
 import { TimeSeriesChart, type DataPoint } from "../charts/TimeSeriesChart";
 import { useQuery } from "@tanstack/react-query";
