@@ -15,12 +15,7 @@ import {
   ReactNode,
 } from "react";
 import { isJS9Available, findDisplay, getDisplayImageId } from "../utils/js9";
-
-declare global {
-  interface Window {
-    JS9: any;
-  }
-}
+import type { JS9Display } from "../types/js9";
 
 export interface DisplayState {
   displayId: string;
@@ -37,7 +32,7 @@ interface JS9ContextValue {
   js9Error: string | null;
 
   // Display management
-  getDisplay: (displayId: string) => any | null;
+  getDisplay: (displayId: string) => JS9Display | null;
   getImageId: (displayId: string) => string | null;
   hasImage: (displayId: string) => boolean;
 

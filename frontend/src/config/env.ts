@@ -3,6 +3,8 @@
  * Validates and exports environment variables with type safety.
  */
 
+import { logger } from "../utils/logger";
+
 interface EnvConfig {
   VITE_API_URL?: string;
   VITE_SENTRY_DSN?: string;
@@ -34,7 +36,7 @@ function validateEnv(): EnvConfig {
     try {
       new URL(config.VITE_API_URL);
     } catch {
-      console.error(`Invalid VITE_API_URL format: ${config.VITE_API_URL}. Must be a valid URL.`);
+      logger.error(`Invalid VITE_API_URL format: ${config.VITE_API_URL}. Must be a valid URL.`);
       // Don't throw - use default behavior
     }
   }
@@ -43,7 +45,7 @@ function validateEnv(): EnvConfig {
     try {
       new URL(config.VITE_CARTA_FRONTEND_URL);
     } catch {
-      console.error(
+      logger.error(
         `Invalid VITE_CARTA_FRONTEND_URL format: ${config.VITE_CARTA_FRONTEND_URL}. Must be a valid URL.`
       );
     }
@@ -53,7 +55,7 @@ function validateEnv(): EnvConfig {
     try {
       new URL(config.VITE_CARTA_BACKEND_URL);
     } catch {
-      console.error(
+      logger.error(
         `Invalid VITE_CARTA_BACKEND_URL format: ${config.VITE_CARTA_BACKEND_URL}. Must be a valid URL.`
       );
     }
@@ -68,7 +70,7 @@ function validateEnv(): EnvConfig {
 
     for (const pattern of secretPatterns) {
       if (pattern.test(envString)) {
-        console.warn(
+        logger.warn(
           "Potential sensitive data detected in environment variables. " +
             "Ensure no secrets are exposed via VITE_* variables."
         );

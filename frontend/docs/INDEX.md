@@ -3,7 +3,7 @@
 **Date:** 2025-11-16  
 **Purpose:** Master index for all frontend documentation, optimized for AI agent
 navigation and updates  
-**Last Updated:** 2025-11-16
+**Last Updated:** 2025-11-19
 
 ---
 
@@ -53,6 +53,19 @@ started
 | [ZERO_BYPASS_IMPLEMENTATION.md](./ZERO_BYPASS_IMPLEMENTATION.md)                     | 2025-11-14 | Zero bypass prevention implementation         | ✅ Complete |
 | [analysis/IMPLEMENTATION_SUMMARY.md](./analysis/IMPLEMENTATION_SUMMARY.md)           | 2025-11-14 | Lazy-loading export fixes implementation      | ✅ Complete |
 | [analysis/ENHANCEMENTS_COMPLETE.md](./analysis/ENHANCEMENTS_COMPLETE.md)             | 2025-11-14 | Future enhancements implementation status     | ✅ Complete |
+
+---
+
+### 2b. Pipeline & Calibration Guides
+
+**Purpose:** Backend pipeline calibration and flagging system documentation
+
+| Document                                                                                     | Date       | Description                                                    | Status      |
+| -------------------------------------------------------------------------------------------- | ---------- | -------------------------------------------------------------- | ----------- |
+| [how-to/spw_flagging_process.md](./how-to/spw_flagging_process.md)                           | 2025-11-19 | SPW flagging process - three phases, CASA behavior             | ✅ Complete |
+| [how-to/temporal_flagging_tracking.md](./how-to/temporal_flagging_tracking.md)               | 2025-11-19 | Temporal flagging tracking system - technical details          | ✅ Complete |
+| [how-to/TEMPORAL_FLAGGING_QUICK_REFERENCE.md](./how-to/TEMPORAL_FLAGGING_QUICK_REFERENCE.md) | 2025-11-19 | Temporal flagging quick reference - commands, scenarios, usage | ✅ Complete |
+| [CHANGELOG.md](./CHANGELOG.md)                                                               | 2025-11-19 | Frontend changelog - recent updates and changes                | ✅ Current  |
 
 ---
 
@@ -210,10 +223,10 @@ When creating a new document, follow these steps:
 
 ## 📊 Statistics
 
-- **Total Documents:** 36 (33 content + 3 master documents)
-- **Last Updated:** 2025-11-16
-- **Categories:** 7 content categories + 1 master category
-- **Current/Complete:** 35
+- **Total Documents:** 40 (37 content + 3 master documents)
+- **Last Updated:** 2025-11-19
+- **Categories:** 8 content categories + 1 master category
+- **Current/Complete:** 39
 - **In Progress:** 0
 - **Planned:** 0
 

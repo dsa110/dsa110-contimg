@@ -208,7 +208,7 @@ export default function ControlPage() {
                   <WorkflowBuilder
                     queueName="dsa110-pipeline"
                     onWorkflowSubmitted={(taskIds) => {
-                      console.log("Workflow submitted with task IDs:", taskIds);
+                      logger.info("Workflow submitted with task IDs:", taskIds);
                       // Optionally switch to Absurd Tasks tab to view submitted tasks
                       setActiveTab(4);
                     }}

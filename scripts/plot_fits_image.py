@@ -9,12 +9,13 @@ Usage:
 import sys
 
 import matplotlib
-import numpy as np
 
-matplotlib.use("Agg")  # Headless backend
+matplotlib.use("Agg")  # Non-interactive backend
+
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import numpy as np
 from astropy.io import fits
 from astropy.visualization import (
     AsinhStretch,

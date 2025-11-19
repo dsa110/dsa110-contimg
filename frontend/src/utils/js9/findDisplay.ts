@@ -8,20 +8,16 @@
  * @returns The JS9 display object, or null if not found
  */
 
-declare global {
-  interface Window {
-    JS9: any;
-  }
-}
+import type { JS9Display } from "../../types/js9";
 
-export function findDisplay(displayId: string): any | null {
+export function findDisplay(displayId: string): JS9Display | null {
   if (!window.JS9 || !window.JS9.displays) {
     return null;
   }
 
   return (
-    window.JS9.displays.find((d: any) => {
-      const divId = d.id || d.display || d.divID;
+    window.JS9.displays.find((d: JS9Display) => {
+      const divId = d.id;
       return divId === displayId;
     }) || null
   );

@@ -173,6 +173,7 @@ def query_sources(
     min_flux_mjy: Optional[float] = None,
     max_sources: Optional[int] = None,
     catalog_path: Optional[str | os.PathLike[str]] = None,
+    validate_coverage: bool = True,
     **kwargs,
 ) -> pd.DataFrame:
     """Query sources from catalog within a field of view.
@@ -186,11 +187,30 @@ def query_sources(
         min_flux_mjy: Minimum flux in mJy (catalog-specific)
         max_sources: Maximum number of sources to return
         catalog_path: Explicit path to catalog (overrides auto-resolution)
+        validate_coverage: If True, check if position is in catalog coverage
         **kwargs: Catalog-specific query parameters (e.g., min_period_s for ATNF)
 
     Returns:
         DataFrame with columns: ra_deg, dec_deg, flux_mjy, and catalog-specific fields
     """
+    # Validate catalog coverage if requested
+    if validate_coverage:
+        try:
+            import logging
+
+            from dsa110_contimg.catalog.coverage import validate_catalog_choice
+
+            logger = logging.getLogger(__name__)
+
+            is_valid, warning = validate_catalog_choice(
+                catalog_type=catalog_type, ra_deg=ra_center, dec_deg=dec_center
+            )
+
+            if not is_valid:
+                logger.warning(f"Coverage validation: {warning}")
+        except ImportError:
+            pass  # coverage module not available
+
     # Auto-detect dec_strip from dec_center if not provided
     if dec_strip is None:
         # Ensure dec_center is a scalar (handle numpy arrays)

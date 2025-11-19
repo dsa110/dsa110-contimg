@@ -24,6 +24,9 @@ export class WebSocketClient {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private isConnecting = false;
   private isConnected = false;
+  private malformedMessageHandler?: (data: string, error: Error) => void;
+  private messageBuffer: Array<{ data: string; timestamp: number }> = [];
+  private readonly maxBufferSize = 100;
 
   constructor(options: WebSocketClientOptions) {
     this.url = options.url;
@@ -96,11 +99,37 @@ export class WebSocketClient {
       } catch (error) {
         // Only log if it's not a known non-JSON message
         if (event.data !== "ping" && event.data !== "pong") {
-          logger.warn("Failed to parse WebSocket message:", {
-            error: error instanceof Error ? error.message : String(error),
-            data: event.data,
-            dataType: typeof event.data,
+          const parseError = new Error(
+            `Failed to parse WebSocket message: ${error instanceof Error ? error.message : String(error)}`
+          );
+
+          // Buffer malformed messages for inspection (limit size to prevent memory issues)
+          this.messageBuffer.push({
+            data: String(event.data).substring(0, 1000), // Limit individual message size
+            timestamp: Date.now(),
           });
+
+          // Keep buffer size limited
+          if (this.messageBuffer.length > this.maxBufferSize) {
+            this.messageBuffer.shift(); // Remove oldest
+          }
+
+          logger.error("WebSocket message parse error:", {
+            error: parseError.message,
+            preview: String(event.data).substring(0, 100),
+            type: typeof event.data,
+            length: String(event.data).length,
+            bufferedErrors: this.messageBuffer.length,
+          });
+
+          // Call error handler if registered
+          if (this.malformedMessageHandler) {
+            try {
+              this.malformedMessageHandler(String(event.data), parseError);
+            } catch (handlerError) {
+              logger.error("Error in malformed message handler:", handlerError);
+            }
+          }
         }
       }
     };
@@ -370,6 +399,28 @@ export class WebSocketClient {
    */
   get connected(): boolean {
     return this.isConnected;
+  }
+
+  /**
+   * Register a handler for malformed messages
+   */
+  onMalformedMessage(handler: (data: string, error: Error) => void): void {
+    this.malformedMessageHandler = handler;
+  }
+
+  /**
+   * Get buffered malformed messages for debugging
+   */
+  getMalformedMessages(): Array<{ data: string; timestamp: number }> {
+    return [...this.messageBuffer];
+  }
+
+  /**
+   * Clear the malformed message buffer
+   */
+  clearMalformedMessages(): void {
+    this.messageBuffer = [];
+    logger.debug("Cleared malformed message buffer");
   }
 }
 

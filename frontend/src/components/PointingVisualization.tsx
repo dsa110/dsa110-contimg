@@ -61,10 +61,10 @@ export default function PointingVisualization({
 
   useEffect(() => {
     if (historyError) {
-      console.error("Pointing history error:", historyError);
+      logger.error("Pointing history error:", historyError);
     }
     if (historyResponse) {
-      console.log("Pointing history loaded:", historyResponse.items.length, "items");
+      logger.debug("Pointing history loaded:", historyResponse.items.length, "items");
     }
   }, [historyResponse, historyError]);
 

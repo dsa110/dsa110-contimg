@@ -129,11 +129,11 @@ if command -v npx >/dev/null 2>&1; then
       # Check formatting (fail if files still need formatting)
       # Strip frontend/ prefix since we're inside frontend/ directory
       PRETTIER_CHECK_FAILED=false
-      echo "$STAGED_FRONTEND_FILES" | while IFS= read -r file; do
+      while IFS= read -r file; do
         if [ -n "$file" ] && ! npx prettier --check "${file#frontend/}" 2>/dev/null; then
           PRETTIER_CHECK_FAILED=true
         fi
-      done
+      done < <(echo "$STAGED_FRONTEND_FILES")
       if [ "$PRETTIER_CHECK_FAILED" = "true" ]; then
         echo "" >&2
         echo "❌ Prettier formatting check failed for frontend files!" >&2
@@ -160,11 +160,11 @@ if command -v npx >/dev/null 2>&1; then
     
     # Check formatting (fail if files still need formatting)
     PRETTIER_CHECK_FAILED=false
-    echo "$STAGED_ROOT_FILES" | while IFS= read -r file; do
+    while IFS= read -r file; do
       if [ -n "$file" ] && ! npx prettier --check "$file" 2>/dev/null; then
         PRETTIER_CHECK_FAILED=true
       fi
-    done
+    done < <(echo "$STAGED_ROOT_FILES")
     if [ "$PRETTIER_CHECK_FAILED" = "true" ]; then
       echo "" >&2
       echo "❌ Prettier formatting check failed for root files!" >&2
@@ -219,7 +219,7 @@ if [ -n "$STAGED_PYTHON_FILES" ]; then
             
             FILTERED_FILES="$FILTERED_FILES $file"
         done <<< "$FORMATTABLE_PYTHON_FILES"
-        FORMATTABLE_PYTHON_FILES=$(echo $FILTERED_FILES | xargs -n1 2>/dev/null || true)
+        FORMATTABLE_PYTHON_FILES=$(echo "$FILTERED_FILES" | xargs -n1 2>/dev/null || true)
     fi
     
     if [ -n "$FORMATTABLE_PYTHON_FILES" ]; then
@@ -229,11 +229,11 @@ if [ -n "$STAGED_PYTHON_FILES" ]; then
             echo "Auto-sorting imports with isort..." >&2
             # Use while loop to safely handle filenames with spaces
             ISORT_TEMP_FAILED=false
-            echo "$FORMATTABLE_PYTHON_FILES" | while IFS= read -r file; do
+            while IFS= read -r file; do
                 if [ -n "$file" ] && ! /opt/miniforge/envs/casa6/bin/isort "$file" 2>/dev/null; then
                     ISORT_TEMP_FAILED=true
                 fi
-            done
+            done < <(echo "$FORMATTABLE_PYTHON_FILES")
             if [ "$ISORT_TEMP_FAILED" = "true" ]; then
                 echo "Warning: isort encountered errors (continuing anyway)" >&2
                 ISORT_FAILED=true
@@ -249,11 +249,11 @@ if [ -n "$STAGED_PYTHON_FILES" ]; then
             echo "Auto-formatting Python files with Black..." >&2
             # Use while loop to safely handle filenames with spaces
             BLACK_TEMP_FAILED=false
-            echo "$FORMATTABLE_PYTHON_FILES" | while IFS= read -r file; do
+            while IFS= read -r file; do
                 if [ -n "$file" ] && ! /opt/miniforge/envs/casa6/bin/black "$file" 2>/dev/null; then
                     BLACK_TEMP_FAILED=true
                 fi
-            done
+            done < <(echo "$FORMATTABLE_PYTHON_FILES")
             if [ "$BLACK_TEMP_FAILED" = "true" ]; then
                 echo "Warning: black encountered errors (continuing anyway)" >&2
                 BLACK_FAILED=true

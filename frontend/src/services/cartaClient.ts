@@ -77,11 +77,14 @@ export class CARTAClient {
     { resolve: (value: any) => void; reject: (error: Error) => void }
   > = new Map();
   private root: protobuf.Root | null = null;
+  private connectPromise: Promise<void> | null = null;
+  private protoInitPromise: Promise<void> | null = null;
+  private isProtoInitialized = false;
 
   constructor(config: CARTAConfig) {
     this.config = config;
     this.sessionId = config.sessionId || null;
-    this.initializeProtobuf();
+    // Don't call async in constructor - will be called in connect()
   }
 
   /**
@@ -106,6 +109,25 @@ export class CARTAClient {
   }
 
   /**
+   * Ensure Protocol Buffer is initialized before use
+   */
+  private async ensureProtobufInitialized(): Promise<void> {
+    if (this.isProtoInitialized) {
+      return Promise.resolve();
+    }
+
+    if (this.protoInitPromise) {
+      return this.protoInitPromise;
+    }
+
+    this.protoInitPromise = this.initializeProtobuf().then(() => {
+      this.isProtoInitialized = true;
+    });
+
+    return this.protoInitPromise;
+  }
+
+  /**
    * Generate next request ID
    */
   private getNextRequestId(): number {
@@ -117,10 +139,32 @@ export class CARTAClient {
    * Connect to CARTA backend
    */
   async connect(): Promise<void> {
-    if (this.isConnecting || this.isConnected) {
-      logger.warn("CARTA client already connecting or connected");
-      return;
+    // Return existing connection promise if already connecting
+    if (this.connectPromise) {
+      return this.connectPromise;
     }
+
+    // Already connected
+    if (this.isConnected) {
+      return Promise.resolve();
+    }
+
+    // Create and store the connection promise
+    this.connectPromise = this._performConnect();
+
+    try {
+      await this.connectPromise;
+    } finally {
+      this.connectPromise = null;
+    }
+  }
+
+  /**
+   * Internal connection logic
+   */
+  private async _performConnect(): Promise<void> {
+    // Ensure protobuf is initialized before connecting
+    await this.ensureProtobufInitialized();
 
     this.isConnecting = true;
 

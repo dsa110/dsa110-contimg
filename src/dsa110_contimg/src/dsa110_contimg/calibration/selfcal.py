@@ -150,6 +150,7 @@ class SelfCalConfig:
     threshold: str = "0.0005Jy"  # 0.5 mJy
     robust: float = 0.0
     backend: str = "wsclean"
+    deconvolver: str = "hogbom"  # "hogbom" or "multiscale"
 
     # Quality control
     min_initial_snr: float = 10.0  # Don't self-cal if initial SNR too low
@@ -339,6 +340,7 @@ class SelfCalibrator:
                 threshold=self.config.threshold,
                 robust=self.config.robust,
                 backend=self.config.backend,
+                deconvolver=self.config.deconvolver,
                 field=self.config.field,
                 spw=self.config.spw,
                 uvrange=self.config.uvrange,
@@ -480,6 +482,7 @@ class SelfCalibrator:
                 threshold=self.config.threshold,
                 robust=self.config.robust,
                 backend=self.config.backend,
+                deconvolver=self.config.deconvolver,
                 field=self.config.field,
                 spw=self.config.spw,
                 uvrange=self.config.uvrange,

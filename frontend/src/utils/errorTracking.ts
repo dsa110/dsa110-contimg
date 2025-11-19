@@ -52,13 +52,13 @@ export function initErrorTracking(dsn?: string): void {
     });
 
     sentryInitialized = true;
-    console.log("Sentry error tracking initialized (free tier)");
+    logger.info("Sentry error tracking initialized (free tier)");
   } catch (error) {
-    console.warn("Failed to initialize Sentry error tracking:", error);
+    logger.warn("Failed to initialize Sentry error tracking:", error);
   }
   */
 
-  console.log(
+  logger.info(
     "Sentry error tracking is disabled. To enable, install @sentry/react and set VITE_SENTRY_DSN"
   );
 }
@@ -70,7 +70,7 @@ export function initErrorTracking(dsn?: string): void {
 export function captureError(error: Error, context?: Record<string, unknown>): void {
   if (!sentryInitialized) {
     // Log to console when Sentry is not available
-    console.error("Error captured (Sentry disabled):", error, context);
+    logger.error("Error captured (Sentry disabled):", error, context);
     return;
   }
 
@@ -86,7 +86,7 @@ export function captureError(error: Error, context?: Record<string, unknown>): v
       },
     });
   } catch (err) {
-    console.warn("Failed to capture error to Sentry:", err);
+    logger.warn("Failed to capture error to Sentry:", err);
   }
   */
 }
@@ -100,8 +100,8 @@ export function captureMessage(
   level: "info" | "warning" | "error" = "info"
 ): void {
   if (!sentryInitialized) {
-    // Log to console when Sentry is not available
-    console[level === "error" ? "error" : level === "warning" ? "warn" : "log"](
+    // Log when Sentry is not available
+    logger[level === "error" ? "error" : level === "warning" ? "warn" : "info"](
       `Message (Sentry disabled): ${message}`
     );
     return;
@@ -112,7 +112,7 @@ export function captureMessage(
   try {
     Sentry.captureMessage(message, level);
   } catch (err) {
-    console.warn("Failed to capture message to Sentry:", err);
+    logger.warn("Failed to capture message to Sentry:", err);
   }
   */
 }
@@ -135,7 +135,7 @@ export function setUserContext(_userId: string, _email?: string, _username?: str
       username,
     });
   } catch (err) {
-    console.warn("Failed to set user context in Sentry:", err);
+    logger.warn("Failed to set user context in Sentry:", err);
   }
   */
 }
@@ -163,7 +163,7 @@ export function addBreadcrumb(
       timestamp: Date.now() / 1000,
     });
   } catch (err) {
-    console.warn("Failed to add breadcrumb to Sentry:", err);
+    logger.warn("Failed to add breadcrumb to Sentry:", err);
   }
   */
 }
@@ -182,7 +182,7 @@ export function clearUserContext(): void {
   try {
     Sentry.setUser(null);
   } catch (err) {
-    console.warn("Failed to clear user context in Sentry:", err);
+    logger.warn("Failed to clear user context in Sentry:", err);
   }
   */
 }
