@@ -164,6 +164,10 @@ class CrossMatchConfig(BaseModel):
         ge=1.0,
         description="Maximum separation to consider a valid match (arcsec)",
     )
+    calculate_spectral_indices: bool = Field(
+        default=True,
+        description="Calculate spectral indices from multi-catalog matches (Proposal #1)",
+    )
 
 
 class PhotometryConfig(BaseModel):

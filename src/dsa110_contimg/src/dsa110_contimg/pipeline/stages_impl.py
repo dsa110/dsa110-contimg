@@ -2542,6 +2542,18 @@ class CrossMatchStage(PipelineStage):
                 except Exception as e:
                     logger.warning(f"Error storing matches in database: {e}", exc_info=True)
 
+        # Step 6: Calculate spectral indices from multi-catalog matches
+        spectral_indices_calculated = 0
+        if self.config.crossmatch.calculate_spectral_indices and len(all_matches) >= 2:
+            try:
+                logger.info("Calculating spectral indices from multi-catalog matches...")
+                spectral_indices_calculated = self._calculate_spectral_indices(
+                    all_matches, catalog_sources_dict, multi_match_results
+                )
+                logger.info(f"Calculated {spectral_indices_calculated} spectral indices")
+            except Exception as e:
+                logger.warning(f"Error calculating spectral indices: {e}", exc_info=True)
+
         # Prepare results
         crossmatch_results = {
             "n_catalogs": len(all_matches),
@@ -2551,6 +2563,7 @@ class CrossMatchStage(PipelineStage):
             "flux_scales": all_flux_scales,
             "method": method,
             "radius_arcsec": radius_arcsec,
+            "spectral_indices_calculated": spectral_indices_calculated,
         }
 
         logger.info(
@@ -2667,6 +2680,112 @@ class CrossMatchStage(PipelineStage):
         conn.close()
 
         logger.info(f"Stored {len(matches)} cross-matches in database for {catalog_type}")
+
+    def _calculate_spectral_indices(
+        self,
+        all_matches: Dict[str, pd.DataFrame],
+        catalog_sources_dict: Dict[str, pd.DataFrame],
+        multi_match_results: pd.DataFrame,
+    ) -> int:
+        """Calculate spectral indices from multi-catalog matches.
+
+        Args:
+            all_matches: Dictionary mapping catalog type to matches DataFrame
+            catalog_sources_dict: Dictionary mapping catalog type to catalog sources DataFrame
+            multi_match_results: Multi-catalog match results
+
+        Returns:
+            Number of spectral indices calculated
+        """
+        from dsa110_contimg.catalog.spectral_index import (
+            calculate_and_store_from_catalogs,
+            create_spectral_indices_table,
+        )
+
+        # Ensure spectral indices table exists
+        db_path = self.config.paths.products_db
+        create_spectral_indices_table(db_path)
+
+        # Catalog frequency mapping [GHz]
+        catalog_frequencies = {
+            "nvss": 1.4,
+            "first": 1.4,
+            "racs": 0.888,
+            "vlass": 3.0,
+            "dsa110": 1.4,  # DSA-110 operates at 1.4 GHz
+        }
+
+        count = 0
+
+        # For each source with multi-catalog matches, calculate spectral indices
+        for detected_idx in multi_match_results.index:
+            # Find which catalogs matched this source
+            matched_catalogs = []
+            for cat_type in all_matches.keys():
+                matched_col = f"{cat_type}_matched"
+                if matched_col in multi_match_results.columns:
+                    if multi_match_results.loc[detected_idx, matched_col]:
+                        matched_catalogs.append(cat_type)
+
+            # Need at least 2 catalogs for spectral index
+            if len(matched_catalogs) < 2:
+                continue
+
+            # Build catalog_fluxes dictionary
+            catalog_fluxes = {}
+            source_ra = None
+            source_dec = None
+
+            for cat_type in matched_catalogs:
+                # Get catalog index for this match
+                catalog_idx = int(multi_match_results.loc[detected_idx, f"{cat_type}_idx"])
+
+                # Get catalog source
+                if cat_type not in catalog_sources_dict:
+                    continue
+
+                catalog_sources = catalog_sources_dict[cat_type]
+                if catalog_idx >= len(catalog_sources):
+                    continue
+
+                catalog_row = catalog_sources.iloc[catalog_idx]
+
+                # Get flux and frequency
+                flux_mjy = catalog_row.get("flux_mjy")
+                if flux_mjy is None or flux_mjy <= 0:
+                    continue
+
+                freq_ghz = catalog_frequencies.get(cat_type.lower())
+                if freq_ghz is None:
+                    continue
+
+                # Get flux error (optional)
+                flux_err_mjy = catalog_row.get("flux_err_mjy", flux_mjy * 0.1)  # 10% default
+
+                catalog_fluxes[cat_type.upper()] = (freq_ghz, flux_mjy, flux_err_mjy)
+
+                # Get source coordinates
+                if source_ra is None:
+                    source_ra = catalog_row.get("ra_deg")
+                    source_dec = catalog_row.get("dec_deg")
+
+            # Calculate spectral indices if we have valid data
+            if len(catalog_fluxes) >= 2 and source_ra is not None and source_dec is not None:
+                source_id = f"J{source_ra:.5f}{source_dec:+.5f}".replace(".", "")
+
+                try:
+                    record_ids = calculate_and_store_from_catalogs(
+                        source_id=source_id,
+                        ra_deg=source_ra,
+                        dec_deg=source_dec,
+                        catalog_fluxes=catalog_fluxes,
+                        db_path=db_path,
+                    )
+                    count += len(record_ids)
+                except Exception as e:
+                    logger.debug(f"Error calculating spectral index for {source_id}: {e}")
+
+        return count
 
     def cleanup(self, context: PipelineContext) -> None:
         """Cleanup on failure (nothing to clean up for cross-match)."""
