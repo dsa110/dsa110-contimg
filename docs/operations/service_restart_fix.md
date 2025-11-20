@@ -1,6 +1,7 @@
 # Service Restart Fix - Process Tree Killing
 
 ## Problem
+
 The `manage-services.sh` script's `restart` command was failing because:
 
 1. `lsof -ti:8000` only returns the **child process** (uvicorn)
@@ -9,6 +10,7 @@ The `manage-services.sh` script's `restart` command was failing because:
 4. The new `start` command would fail with "Address already in use"
 
 ## Root Cause
+
 When using `conda run -n casa6 ... uvicorn ...`, the process tree looks like:
 
 ```
@@ -20,6 +22,7 @@ bash (parent, PID 1859238)
 Killing only the uvicorn process left the parent alive, which would respawn it.
 
 ## Solution
+
 Updated `kill_port()` function in `scripts/manage-services.sh` to:
 
 1. For each PID on the port, find its parent process (`ppid`)
@@ -29,6 +32,7 @@ Updated `kill_port()` function in `scripts/manage-services.sh` to:
 5. Retry up to 5 times with 2-second delays
 
 ## Code Changes
+
 ```bash
 # Old: Only killed the child
 sudo kill $pids 2>/dev/null || kill $pids 2>/dev/null
@@ -47,6 +51,7 @@ done
 ```
 
 ## Verification
+
 ```bash
 # Test restart
 ./scripts/manage-services.sh restart api
@@ -59,14 +64,16 @@ curl http://localhost:8000/api/ms
 ```
 
 ## Additional Cleanup
+
 Removed old systemd override that had incorrect uvicorn path:
+
 ```bash
 sudo rm -rf /etc/systemd/system/contimg-api.service.d/
 sudo systemctl daemon-reload
 ```
 
 ## Result
-✓ `restart api` now works reliably without manual intervention
-✓ No more "Address already in use" errors
-✓ Port is properly freed before new process starts
 
+✓ `restart api` now works reliably without manual intervention ✓ No more
+"Address already in use" errors ✓ Port is properly freed before new process
+starts

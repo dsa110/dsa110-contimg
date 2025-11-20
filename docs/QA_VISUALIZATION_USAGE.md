@@ -1,6 +1,7 @@
 # QA Visualization Framework - Usage Guide
 
-This guide demonstrates how to use the in-house QA visualization framework for interactive data exploration and QA reporting.
+This guide demonstrates how to use the in-house QA visualization framework for
+interactive data exploration and QA reporting.
 
 ## Quick Start
 
@@ -213,7 +214,8 @@ for subtable_name in ms.subtables:
 
 ## API Reference
 
-See `src/dsa110_contimg/qa/visualization/__init__.py` for complete API documentation.
+See `src/dsa110_contimg/qa/visualization/__init__.py` for complete API
+documentation.
 
 ## Notes
 
@@ -221,4 +223,3 @@ See `src/dsa110_contimg/qa/visualization/__init__.py` for complete API documenta
 - CASA tables require `casacore.tables` to be available
 - FITS files require `astropy.io.fits` to be available
 - Notebook generation requires `nbformat` to be available
-

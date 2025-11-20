@@ -1,10 +1,12 @@
 # Testing Guide for Pipeline Stages
 
-This guide provides comprehensive instructions for testing pipeline stages in the DSA-110 Continuum Imaging Pipeline.
+This guide provides comprehensive instructions for testing pipeline stages in
+the DSA-110 Continuum Imaging Pipeline.
 
 ## Overview
 
 Testing pipeline stages involves multiple levels:
+
 1. **Unit Tests**: Test individual stages in isolation
 2. **Integration Tests**: Test stage interactions and orchestrator behavior
 3. **End-to-End Tests**: Test complete pipeline workflows
@@ -25,21 +27,21 @@ from dsa110_contimg.pipeline.stages_impl import MyStage
 
 class TestMyStage:
     """Test MyStage."""
-    
+
     def test_validate_missing_input(self):
         """Test validation fails when required input is missing."""
         # Setup
         config = PipelineConfig(paths=PathsConfig(...))
         context = PipelineContext(config=config)
         stage = MyStage(config)
-        
+
         # Execute
         is_valid, error_msg = stage.validate(context)
-        
+
         # Assert
         assert not is_valid
         assert "required_input" in error_msg.lower()
-    
+
     def test_validate_valid_input(self):
         """Test validation succeeds with valid input."""
         # Setup
@@ -49,14 +51,14 @@ class TestMyStage:
             inputs={"required_input": "/valid/path"}
         )
         stage = MyStage(config)
-        
+
         # Execute
         is_valid, error_msg = stage.validate(context)
-        
+
         # Assert
         assert is_valid
         assert error_msg is None
-    
+
     def test_execute(self):
         """Test stage execution."""
         # Setup
@@ -66,19 +68,19 @@ class TestMyStage:
             inputs={"required_input": "/input/path"}
         )
         stage = MyStage(config)
-        
+
         # Mock external dependencies
         with patch("dsa110_contimg.module.function") as mock_func:
             mock_func.return_value = "result"
-            
+
             # Execute
             result_context = stage.execute(context)
-            
+
             # Assert
             assert "output" in result_context.outputs
             assert result_context.outputs["output"] == "result"
             mock_func.assert_called_once()
-    
+
     def test_get_name(self):
         """Test stage name."""
         config = PipelineConfig(paths=PathsConfig(...))
@@ -90,13 +92,16 @@ class TestMyStage:
 
 For each stage, test:
 
-- [ ] **`validate()` with missing inputs**: Should return `(False, error_message)`
-- [ ] **`validate()` with invalid inputs**: Should return `(False, error_message)`
+- [ ] **`validate()` with missing inputs**: Should return
+      `(False, error_message)`
+- [ ] **`validate()` with invalid inputs**: Should return
+      `(False, error_message)`
 - [ ] **`validate()` with valid inputs**: Should return `(True, None)`
 - [ ] **`execute()` with mocked dependencies**: Should return updated context
 - [ ] **`execute()` output verification**: Outputs should be correct
 - [ ] **`cleanup()` is called**: Should clean up resources
-- [ ] **`validate_outputs()` checks outputs**: Should validate outputs exist and are correct
+- [ ] **`validate_outputs()` checks outputs**: Should validate outputs exist and
+      are correct
 - [ ] **`get_name()` returns correct name**: Should return snake_case name
 - [ ] **Error handling**: Should raise appropriate exceptions
 - [ ] **Edge cases**: Empty inputs, large files, etc.
@@ -130,7 +135,7 @@ def test_validate_missing_input(self):
     """Test validation fails when input is missing."""
     context = PipelineContext(config=config)
     stage = MyStage(config)
-    
+
     is_valid, error_msg = stage.validate(context)
     assert not is_valid
     assert "input" in error_msg.lower()
@@ -142,7 +147,7 @@ def test_validate_nonexistent_file(self):
         inputs={"input_path": "/nonexistent/file"}
     )
     stage = MyStage(config)
-    
+
     is_valid, error_msg = stage.validate(context)
     assert not is_valid
     assert "not found" in error_msg.lower()
@@ -155,7 +160,7 @@ def test_validate_valid_input(self):
             inputs={"input_path": tmp.name}
         )
         stage = MyStage(config)
-        
+
         is_valid, error_msg = stage.validate(context)
         assert is_valid
         assert error_msg is None
@@ -173,17 +178,17 @@ def test_execute_success(self):
         inputs={"input_path": "/mock/input"}
     )
     stage = MyStage(config)
-    
+
     # Mock external dependencies
     with patch("dsa110_contimg.module.process") as mock_process:
         mock_process.return_value = "/mock/output"
-        
+
         result_context = stage.execute(context)
-        
+
         # Verify outputs
         assert "output_path" in result_context.outputs
         assert result_context.outputs["output_path"] == "/mock/output"
-        
+
         # Verify mock was called correctly
         mock_process.assert_called_once_with("/mock/input")
 
@@ -194,7 +199,7 @@ def test_execute_failure(self):
         inputs={"input_path": "/mock/input"}
     )
     stage = MyStage(config)
-    
+
     # Mock external dependency to raise exception
     with patch("dsa110_contimg.module.process", side_effect=Exception("Processing failed")):
         with pytest.raises(Exception, match="Processing failed"):
@@ -211,10 +216,10 @@ def test_cleanup_called(self):
     context = PipelineContext(config=config)
     stage = MyStage(config)
     stage.cleanup = MagicMock()
-    
+
     # Execute stage
     stage.execute(context)
-    
+
     # Verify cleanup was called
     stage.cleanup.assert_called_once_with(context)
 
@@ -222,16 +227,16 @@ def test_cleanup_removes_temp_files(self):
     """Test cleanup removes temporary files."""
     temp_file = Path("/tmp/test_temp_file")
     temp_file.write_text("test")
-    
+
     context = PipelineContext(
         config=config,
         metadata={"temp_file": str(temp_file)}
     )
     stage = MyStage(config)
-    
+
     # Execute cleanup
     stage.cleanup(context)
-    
+
     # Verify temp file was removed
     assert not temp_file.exists()
 ```
@@ -247,14 +252,14 @@ def test_stage_chain_execution(self):
     """Test chain of stages executes correctly."""
     # Setup
     context = PipelineContext(config=config, inputs={"input_path": "/mock/input"})
-    
+
     stage1 = Stage1(config)
     stage2 = Stage2(config)
-    
+
     # Execute chain
     context1 = stage1.execute(context)
     context2 = stage2.execute(context1)
-    
+
     # Verify outputs from both stages
     assert "stage1_output" in context2.outputs
     assert "stage2_output" in context2.outputs
@@ -262,11 +267,11 @@ def test_stage_chain_execution(self):
 def test_output_propagation(self):
     """Test outputs propagate correctly."""
     context = PipelineContext(config=config)
-    
+
     # Stage 1 produces output
     context1 = stage1.execute(context)
     assert "output1" in context1.outputs
-    
+
     # Stage 2 uses output1
     context2 = stage2.execute(context1)
     assert "output1" in context2.outputs  # Still present
@@ -284,10 +289,10 @@ def test_orchestrator_executes_stages(self):
         StageDefinition("stage1", Stage1(config), []),
         StageDefinition("stage2", Stage2(config), ["stage1"]),
     ]
-    
+
     orchestrator = PipelineOrchestrator(stages)
     result = orchestrator.execute(context)
-    
+
     assert result.status == PipelineStatus.COMPLETED
     assert "stage1_output" in result.context.outputs
     assert "stage2_output" in result.context.outputs
@@ -405,7 +410,7 @@ def test_empty_input(self):
     """Test handling of empty input."""
     context = PipelineContext(config=config, inputs={"input_path": ""})
     stage = MyStage(config)
-    
+
     is_valid, error_msg = stage.validate(context)
     assert not is_valid
 
@@ -415,7 +420,7 @@ def test_large_file(self):
     large_file = create_large_file(size_mb=1000)
     context = PipelineContext(config=config, inputs={"input_path": large_file})
     stage = MyStage(config)
-    
+
     # Should handle gracefully
     result = stage.execute(context)
     assert "output" in result.outputs
@@ -495,4 +500,3 @@ with patch("dsa110_contimg.module.slow_operation") as mock_slow:
 - [Pipeline Stage Architecture](../concepts/pipeline_stage_architecture.md)
 - [Pipeline Patterns](../concepts/pipeline_patterns.md)
 - [Creating Pipeline Stages](create_pipeline_stage.md)
-

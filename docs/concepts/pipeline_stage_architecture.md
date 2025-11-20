@@ -8,9 +8,11 @@
 
 ## Overview
 
-The DSA-110 continuum imaging pipeline uses a **stage-based architecture** with dependency resolution. This design provides:
+The DSA-110 continuum imaging pipeline uses a **stage-based architecture** with
+dependency resolution. This design provides:
 
-- **Separation of Concerns:** Each stage has a single, well-defined responsibility
+- **Separation of Concerns:** Each stage has a single, well-defined
+  responsibility
 - **Testability:** Stages can be tested independently
 - **Composability:** Stages can be combined in different workflows
 - **Error Handling:** Retry policies and validation at each stage
@@ -27,27 +29,27 @@ All pipeline stages inherit from `PipelineStage`, which defines the interface:
 ```python
 class PipelineStage(ABC):
     """Base class for all pipeline stages."""
-    
+
     execution_mode: ExecutionMode = ExecutionMode.DIRECT
-    
+
     @abstractmethod
     def execute(self, context: PipelineContext) -> PipelineContext:
         """Execute stage and return updated context."""
         ...
-    
+
     @abstractmethod
     def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
         """Validate prerequisites for stage execution."""
         ...
-    
+
     def cleanup(self, context: PipelineContext) -> None:
         """Cleanup resources after execution (optional)."""
         pass
-    
+
     def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
         """Validate stage outputs after execution (optional)."""
         return True, None
-    
+
     def get_name(self) -> str:
         """Get stage name for logging and tracking."""
         return self.__class__.__name__
@@ -55,13 +57,14 @@ class PipelineStage(ABC):
 
 ### PipelineContext (Immutable Data Structure)
 
-The `PipelineContext` is an **immutable** data structure that carries state between stages:
+The `PipelineContext` is an **immutable** data structure that carries state
+between stages:
 
 ```python
 @dataclass(frozen=True)
 class PipelineContext:
     """Immutable context passed between pipeline stages."""
-    
+
     config: PipelineConfig
     job_id: Optional[int] = None
     inputs: Dict[str, Any] = field(default_factory=dict)
@@ -71,6 +74,7 @@ class PipelineContext:
 ```
 
 **Key Properties:**
+
 - **Immutability:** Prevents accidental mutations
 - **Type Safety:** Uses Pydantic for configuration validation
 - **Extensibility:** Can add outputs/metadata without modifying existing code
@@ -128,21 +132,25 @@ class PipelineContext:
 **Purpose:** Build catalog databases for declination strip
 
 **Responsibilities:**
+
 - Extract declination from HDF5 file
 - Detect declination changes (threshold: 0.1 degrees)
 - Build NVSS, FIRST, RAX catalogs if missing
 - Log pointing to `pointing_history` table
 
 **Scientific Reasoning:**
+
 - DSA-110 only slews in elevation
 - Declination changes rarely
 - Catalogs need to be updated when declination changes
 - Prevents rebuilding catalogs unnecessarily
 
 **Inputs:**
+
 - `input_path` (HDF5 file path)
 
 **Outputs:**
+
 - `catalog_setup_status` (built/existed/failed/skipped)
 - `dec_center` (declination center)
 - `dec_range` (declination range)
@@ -156,16 +164,19 @@ class PipelineContext:
 **Purpose:** Convert UVH5 to Measurement Sets
 
 **Responsibilities:**
+
 - Discover complete subband groups in time window
 - Convert UVH5 files to CASA Measurement Sets
 - Validate output MS files
 - Update database records
 
 **Inputs:**
+
 - `input_path` (HDF5 file path)
 - `time_window` (optional, for grouping)
 
 **Outputs:**
+
 - `ms_path` (path to created MS file)
 - `conversion_status` (success/failed)
 
@@ -178,15 +189,18 @@ class PipelineContext:
 **Purpose:** Solve calibration solutions
 
 **Responsibilities:**
+
 - Identify calibrator observations
 - Solve bandpass calibration (BP)
 - Solve gain calibration (G)
 - Register caltables in registry
 
 **Inputs:**
+
 - `ms_path` (calibrator MS path)
 
 **Outputs:**
+
 - `calibration_tables` (list of caltable paths)
 - `calibration_status` (solved/failed)
 
@@ -199,16 +213,19 @@ class PipelineContext:
 **Purpose:** Apply calibration solutions to MS
 
 **Responsibilities:**
+
 - Select active caltables from registry
 - Apply calibration to science targets
 - Write CORRECTED_DATA column
 - Validate calibration application
 
 **Inputs:**
+
 - `ms_path` (science MS path)
 - `calibration_tables` (optional, auto-selected if not provided)
 
 **Outputs:**
+
 - `calibrated_ms_path` (path to calibrated MS)
 - `calibration_applied` (boolean)
 
@@ -221,16 +238,19 @@ class PipelineContext:
 **Purpose:** Create continuum images from calibrated MS
 
 **Responsibilities:**
+
 - Run tclean or WSClean
 - Apply primary beam correction
 - Use NVSS-based masking (2-4x faster)
 - Generate image products
 
 **Inputs:**
+
 - `ms_path` (calibrated MS path)
 - `field` (optional field name/coordinates)
 
 **Outputs:**
+
 - `image_path` (path to primary beam corrected image)
 - `residual_path` (path to residual image)
 - `beam_size` (arcseconds)
@@ -244,6 +264,7 @@ class PipelineContext:
 **Purpose:** Organize MS files into date-based directory structure
 
 **Responsibilities:**
+
 - Move MS files to organized locations:
   - Calibrators → `ms/calibrators/YYYY-MM-DD/`
   - Science → `ms/science/YYYY-MM-DD/`
@@ -252,10 +273,12 @@ class PipelineContext:
 - Atomic moves (prevents partial states)
 
 **Inputs:**
+
 - `ms_path` (MS file path)
 - `ms_type` (calibrator/science/failed)
 
 **Outputs:**
+
 - `organized_ms_path` (new path after organization)
 - `organization_status` (moved/existed)
 
@@ -268,6 +291,7 @@ class PipelineContext:
 **Purpose:** Run catalog-based validation on images
 
 **Responsibilities:**
+
 - Cross-match with reference catalogs (NVSS, VLASS)
 - Validate astrometry (positional accuracy)
 - Validate flux scale (calibration accuracy)
@@ -275,10 +299,12 @@ class PipelineContext:
 - Generate HTML reports
 
 **Inputs:**
+
 - `image_path` (image to validate)
 - `catalog` (nvss/vlass, default: nvss)
 
 **Outputs:**
+
 - `validation_report_path` (HTML report path)
 - `astrometry_offset` (arcseconds)
 - `flux_ratio` (observed/reference)
@@ -293,6 +319,7 @@ class PipelineContext:
 **Purpose:** Match detected sources with reference catalogs
 
 **Responsibilities:**
+
 - Detect sources in image
 - Cross-match with NVSS, FIRST, RACS
 - Calculate astrometric offsets
@@ -300,10 +327,12 @@ class PipelineContext:
 - Store results in database
 
 **Inputs:**
+
 - `image_path` (image with sources)
 - `catalog` (nvss/first/racs)
 
 **Outputs:**
+
 - `crossmatch_results` (list of matches)
 - `astrometry_offset` (arcseconds)
 - `flux_scale` (correction factor)
@@ -317,16 +346,19 @@ class PipelineContext:
 **Purpose:** Measure photometry using adaptive channel binning
 
 **Responsibilities:**
+
 - Adaptive channel binning (optimize frequency resolution)
 - Forced photometry at known positions
 - Variability analysis across epochs
 - Detect Extreme Scattering Events (>5σ variability)
 
 **Inputs:**
+
 - `image_path` (image for photometry)
 - `source_coordinates` (optional, queries NVSS if not provided)
 
 **Outputs:**
+
 - `photometry_results` (list of measurements)
 - `variability_stats` (statistics per source)
 - `ese_candidates` (Extreme Scattering Event candidates)
@@ -337,7 +369,8 @@ class PipelineContext:
 
 ## Dependency Resolution
 
-The `PipelineOrchestrator` uses **topological sort** (Kahn's algorithm) to resolve dependencies:
+The `PipelineOrchestrator` uses **topological sort** (Kahn's algorithm) to
+resolve dependencies:
 
 ```python
 def _topological_sort(self) -> List[str]:
@@ -346,26 +379,27 @@ def _topological_sort(self) -> List[str]:
     in_degree = {name: len(deps) for name, deps in self.graph.items()}
     queue = [name for name, degree in in_degree.items() if degree == 0]
     result = []
-    
+
     while queue:
         node = queue.pop(0)
         result.append(node)
-        
+
         # Reduce in-degree of dependent nodes
         for name, deps in self.graph.items():
             if node in deps:
                 in_degree[name] -= 1
                 if in_degree[name] == 0:
                     queue.append(name)
-    
+
     # Check for cycles
     if len(result) != len(self.stages):
         raise ValueError("Circular dependency detected")
-    
+
     return result
 ```
 
 **Example Dependency Graph:**
+
 ```
 CatalogSetupStage (no deps)
     ↓
@@ -403,7 +437,8 @@ retry_policy = RetryPolicy(
 ### Validation
 
 **Input Validation:** `validate()` checks prerequisites before execution
-**Output Validation:** `validate_outputs()` checks outputs after execution (if implemented)
+**Output Validation:** `validate_outputs()` checks outputs after execution (if
+implemented)
 
 ### Cleanup
 
@@ -432,7 +467,8 @@ retry_policy = RetryPolicy(
 
 ### Performance
 
-1. **Parallel execution:** Stages without dependencies can run in parallel (future)
+1. **Parallel execution:** Stages without dependencies can run in parallel
+   (future)
 2. **Caching:** Cache expensive computations in context metadata
 3. **Resource management:** Use ResourceManager for temporary files
 4. **Monitoring:** Use PipelineObserver for metrics
@@ -468,14 +504,16 @@ retry_policy = RetryPolicy(
 ## Related Documentation
 
 - [Pipeline Overview](./pipeline_overview.md) - Configuration overview
-- [Pipeline Production Features](./pipeline_production_features.md) - Production configuration
-- Testing Strategy: `../../../tests/PIPELINE_TESTING_STRATEGY.md` (external file)
+- [Pipeline Production Features](./pipeline_production_features.md) - Production
+  configuration
+- Testing Strategy: `../../../tests/PIPELINE_TESTING_STRATEGY.md` (external
+  file)
 - [Directory Architecture](DIRECTORY_ARCHITECTURE.md)
 
 ---
 
 **See Also:**
+
 - `src/dsa110_contimg/pipeline/stages.py` - Base class definition
 - `src/dsa110_contimg/pipeline/stages_impl.py` - Stage implementations
 - `src/dsa110_contimg/pipeline/orchestrator.py` - Orchestrator implementation
-

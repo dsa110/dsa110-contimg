@@ -13,7 +13,7 @@
 - **Status:** ❌ **NOT RUNNING**
 - **Port:** `8000` (default, configurable via `CONTIMG_API_PORT`)
 - **Process:** None (defunct processes found from Nov 3)
-- **Start command:** 
+- **Start command:**
   ```bash
   cd /data/dsa110-contimg
   source ops/systemd/contimg.env
@@ -21,16 +21,20 @@
   ```
 - **Config location:** `ops/systemd/contimg.env` (`CONTIMG_API_PORT=8000`)
 - **Entry point:** `src/dsa110_contimg/api/__init__.py` (exposes `app`)
-- **Systemd service:** `ops/systemd/contimg-api.service` (available but not active)
+- **Systemd service:** `ops/systemd/contimg-api.service` (available but not
+  active)
 
 ### Frontend Dev Server
 
 - **Status:** ✅ **RUNNING**
 - **Port:** `5173`
 - **Process:** Multiple Node/Vite processes running
-  - PID 2151109: `node /app/frontend/node_modules/.bin/vite` (root user, Docker?)
-  - PID 11829: `node /data/dsa110-contimg/frontend/node_modules/.bin/vite` (ubuntu user)
-  - PID 24626: `node /data/dsa110-contimg/frontend/node_modules/.bin/vite` (ubuntu user)
+  - PID 2151109: `node /app/frontend/node_modules/.bin/vite` (root user,
+    Docker?)
+  - PID 11829: `node /data/dsa110-contimg/frontend/node_modules/.bin/vite`
+    (ubuntu user)
+  - PID 24626: `node /data/dsa110-contimg/frontend/node_modules/.bin/vite`
+    (ubuntu user)
 - **Start command:** `cd /data/dsa110-contimg/frontend && npm run dev`
 - **Config location:** `frontend/vite.config.ts` (`server.port: 5173`)
 - **API Proxy:** Proxies `/api/*` to `http://127.0.0.1:8000`
@@ -64,20 +68,21 @@
 
 ## Files Created
 
-- ✅ `docs/development/DEVELOPMENT_SETUP.md` - Comprehensive setup guide (400+ lines)
+- ✅ `docs/development/DEVELOPMENT_SETUP.md` - Comprehensive setup guide (400+
+  lines)
 
 ---
 
 ## Current Service Status Summary
 
-| Service | Port | Status | Process | Notes |
-|---------|------|--------|---------|-------|
-| Backend API | 8000 | ❌ Not Running | None | Needs to be started |
-| Frontend Dev | 5173 | ✅ Running | Multiple Vite instances | Multiple instances detected |
-| Grafana | 3000 | ✅ Running | Docker | Not part of dashboard |
-| Pipeline | 8080 | ✅ Running | Docker | Related service |
-| Port 8111 | 8111 | ⚪ Available | None | Not configured |
-| Port 9090 | 9090 | ⚪ Available | None | Not configured |
+| Service      | Port | Status         | Process                 | Notes                       |
+| ------------ | ---- | -------------- | ----------------------- | --------------------------- |
+| Backend API  | 8000 | ❌ Not Running | None                    | Needs to be started         |
+| Frontend Dev | 5173 | ✅ Running     | Multiple Vite instances | Multiple instances detected |
+| Grafana      | 3000 | ✅ Running     | Docker                  | Not part of dashboard       |
+| Pipeline     | 8080 | ✅ Running     | Docker                  | Related service             |
+| Port 8111    | 8111 | ⚪ Available   | None                    | Not configured              |
+| Port 9090    | 9090 | ⚪ Available   | None                    | Not configured              |
 
 ---
 
@@ -139,6 +144,7 @@
 ### Immediate Actions
 
 1. **Start Backend API:**
+
    ```bash
    cd /data/dsa110-contimg
    source ops/systemd/contimg.env
@@ -146,25 +152,28 @@
    ```
 
 2. **Verify API is Running:**
+
    ```bash
    curl http://localhost:8000/api/status
    # Should return JSON response
    ```
 
 3. **Clean Up Defunct Processes:**
+
    ```bash
    # Check for defunct processes
    ps aux | grep defunct | grep uvicorn
-   
+
    # Kill if needed (replace PID)
    kill -9 <PID>
    ```
 
 4. **Review Multiple Frontend Instances:**
+
    ```bash
    # Check all Vite processes
    ps aux | grep vite
-   
+
    # Consider consolidating to single instance
    # Kill unnecessary instances if needed
    ```
@@ -195,12 +204,14 @@
 **Status:** ⚠️ **PARTIALLY READY**
 
 ### What's Ready:
+
 - ✅ Frontend dev server is running and accessible
 - ✅ Configuration files identified and documented
 - ✅ Setup guide created with exact commands
 - ✅ Troubleshooting guide included
 
 ### What's Needed:
+
 - ❌ Backend API needs to be started
 - ⚠️ Multiple frontend instances should be reviewed
 - ⚠️ Defunct processes should be cleaned up
@@ -209,10 +220,12 @@
 
 1. **Start Backend API** (see commands above)
 2. **Verify API responds** (`curl http://localhost:8000/api/status`)
-3. **Test Image Filtering** (follow `docs/reference/image_filters_manual_testing_guide.md`)
+3. **Test Image Filtering** (follow
+   `docs/reference/image_filters_manual_testing_guide.md`)
 4. **Test Frontend UI** (access `http://localhost:5173/sky`)
 
 ### Estimated Time to Ready:
+
 - **Backend startup:** 1-2 minutes
 - **Verification:** 1 minute
 - **Total:** ~3 minutes to be fully ready
@@ -224,16 +237,19 @@
 ### Backend API Configuration
 
 **File:** `ops/systemd/contimg.env`
+
 ```bash
 CONTIMG_API_PORT=8000
 ```
 
 **Startup Command:**
+
 ```bash
 PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8000
 ```
 
 **Systemd Service:** `ops/systemd/contimg-api.service`
+
 - Uses environment file: `ops/systemd/contimg.env`
 - Runs as: `ubuntu` user
 - Auto-restart: Enabled
@@ -241,6 +257,7 @@ PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/uvicorn dsa110
 ### Frontend Configuration
 
 **File:** `frontend/vite.config.ts`
+
 ```typescript
 server: {
   host: '0.0.0.0',
@@ -255,11 +272,13 @@ server: {
 ```
 
 **Startup Command:**
+
 ```bash
 cd frontend && npm run dev
 ```
 
 **Environment Files:**
+
 - `.env.local`: Uses `/api` proxy (default)
 - `.env.development`: Uses `http://localhost:8010` (override)
 
@@ -288,4 +307,3 @@ cd frontend && npm run dev
 
 **Report Generated:** 2025-11-12  
 **Next Review:** After backend API is started and tested
-

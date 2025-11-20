@@ -1,6 +1,7 @@
 # Developer Guide for dsa110_contimg
 
-This guide provides information for developers working on the DSA-110 continuum imaging pipeline.
+This guide provides information for developers working on the DSA-110 continuum
+imaging pipeline.
 
 ## Table of Contents
 
@@ -24,20 +25,25 @@ The dsa110_contimg package is organized into several main stages:
 
 ### Pipeline Framework
 
-The package uses a declarative pipeline orchestration framework (`src/dsa110_contimg/pipeline/`):
+The package uses a declarative pipeline orchestration framework
+(`src/dsa110_contimg/pipeline/`):
+
 - Dependency-based stage execution
 - Retry policies and error recovery
 - Immutable context passing
 - Structured observability
 - See `ARCHITECTURAL_ELEGANCE_BRAINSTORM.md` for design details
 
-**Note:** Legacy subprocess-based execution has been removed. All pipeline execution now uses the new framework.
+**Note:** Legacy subprocess-based execution has been removed. All pipeline
+execution now uses the new framework.
 
 ### Key Design Principles
 
 1. **Scientific Rigor**: All TIME conversions use standardized utilities
-2. **Single Source of Truth**: Physical constants (coordinates, epochs) come from `utils/constants.py`
-3. **Consistent Error Handling**: All exceptions inherit from `DSA110Error` with context and suggestions
+2. **Single Source of Truth**: Physical constants (coordinates, epochs) come
+   from `utils/constants.py`
+3. **Consistent Error Handling**: All exceptions inherit from `DSA110Error` with
+   context and suggestions
 4. **Type Safety**: Public APIs have complete type hints
 
 ## Code Organization
@@ -67,14 +73,18 @@ dsa110_contimg/
 ### Key Modules
 
 #### `utils/constants.py`
+
 **Single source of truth** for physical constants:
+
 - `OVRO_LOCATION`: DSA-110 telescope coordinates
 - `TSAMP`, `NINT`: Observation parameters
 
 **Never hardcode coordinates or constants elsewhere!**
 
 #### `utils/time_utils.py`
+
 **Standardized TIME handling**:
+
 - `extract_ms_time_range()`: Extract time range from MS (handles all formats)
 - `casa_time_to_mjd()`: Convert CASA TIME to MJD
 - `detect_casa_time_format()`: Auto-detect TIME format
@@ -82,7 +92,9 @@ dsa110_contimg/
 **Always use these functions for TIME conversions!**
 
 #### `utils/exceptions.py`
+
 **Unified exception hierarchy**:
+
 - `DSA110Error`: Base exception (all exceptions inherit from this)
 - `ValidationError`: Validation failures
 - `ConversionError`: Conversion failures
@@ -135,6 +147,7 @@ dsa110_contimg/
 ### Test Organization
 
 Tests are organized in `tests/` directory:
+
 - `tests/unit/`: Unit tests for individual functions
 - `tests/integration/`: Integration tests for full pipelines
 - `tests/README.md`: Testing documentation
@@ -160,12 +173,13 @@ pytest --cov=dsa110_contimg tests/
 4. **Mock external dependencies** (CASA, databases)
 
 Example:
+
 ```python
 def test_extract_ms_time_range_valid_ms_returns_mjd():
     """Test that extract_ms_time_range returns valid MJD for valid MS."""
     ms_path = "tests/data/valid_ms.ms"
     start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path)
-    
+
     assert start_mjd is not None
     assert end_mjd is not None
     assert mid_mjd is not None
@@ -198,10 +212,13 @@ if not os.path.exists(ms_path):
 ### Exception Context
 
 Always include:
-- **context**: Dictionary with relevant information (paths, operation names, etc.)
+
+- **context**: Dictionary with relevant information (paths, operation names,
+  etc.)
 - **suggestion**: Actionable suggestion for fixing the issue
 
 Example:
+
 ```python
 raise ValidationError(
     errors=[f"Field {field_id} not found"],
@@ -242,7 +259,7 @@ def configure_ms_for_imaging(
 ) -> None:
     """
     Make a Measurement Set safe and ready for imaging.
-    
+
     Parameters
     ----------
     ms_path : str
@@ -250,16 +267,16 @@ def configure_ms_for_imaging(
     ensure_columns : bool, optional
         Ensure MODEL_DATA and CORRECTED_DATA columns exist.
         Default: True
-        
+
     Raises
     ------
     ConversionError
         If MS path does not exist or is not readable.
-        
+
     Examples
     --------
     >>> configure_ms_for_imaging("/path/to/observation.ms")
-    
+
     Notes
     -----
     This function is idempotent (safe to call multiple times).
@@ -329,7 +346,8 @@ except Exception as e:
 
 ## Additional Resources
 
-- **Architecture Recommendations**: `ARCHITECTURE_OPTIMIZATION_RECOMMENDATIONS.md`
+- **Architecture Recommendations**:
+  `ARCHITECTURE_OPTIMIZATION_RECOMMENDATIONS.md`
 - **TIME Handling**: `TIME_HANDLING_ISSUES.md`
 - **Testing Guide**: `tests/README.md`
 - **API Documentation**: See docstrings in public modules
@@ -340,4 +358,3 @@ except Exception as e:
 - Review similar code patterns in the codebase
 - Ask questions in team channels
 - Review `ARCHITECTURE_OPTIMIZATION_RECOMMENDATIONS.md` for design decisions
-

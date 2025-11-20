@@ -2,7 +2,9 @@
 
 ## Overview
 
-AOFlagger uses **Lua scripts** (called "strategies") to define how RFI flagging is performed. These strategies specify:
+AOFlagger uses **Lua scripts** (called "strategies") to define how RFI flagging
+is performed. These strategies specify:
+
 - Which algorithms to use (SumThreshold, morphological operations, etc.)
 - Threshold values and sensitivity settings
 - How many iterations to perform
@@ -10,7 +12,9 @@ AOFlagger uses **Lua scripts** (called "strategies") to define how RFI flagging 
 
 ## Default Behavior
 
-When you run AOFlagger without specifying a strategy, it attempts to auto-detect the telescope name from the Measurement Set and use a telescope-specific strategy. For DSA-110, AOFlagger will show:
+When you run AOFlagger without specifying a strategy, it attempts to auto-detect
+the telescope name from the Measurement Set and use a telescope-specific
+strategy. For DSA-110, AOFlagger will show:
 
 ```
 ** Measurement set specified the following telescope name: 'DSA_110'
@@ -18,11 +22,13 @@ When you run AOFlagger without specifying a strategy, it attempts to auto-detect
 ** A generic strategy will be used which might not be optimal.
 ```
 
-This means it falls back to the generic strategy, which works but may not be optimized for DSA-110's specific RFI environment.
+This means it falls back to the generic strategy, which works but may not be
+optimized for DSA-110's specific RFI environment.
 
 ## Custom DSA-110 Strategy
 
-A custom strategy (`dsa110-default.lua`) has been created in `docs/aoflagger/` that:
+A custom strategy (`dsa110-default.lua`) has been created in `docs/aoflagger/`
+that:
 
 1. **Uses amplitude-based detection** - Most effective for continuum imaging
 2. **Optimized for L-band** (~1.4 GHz) - DSA-110's operating frequency
@@ -58,11 +64,13 @@ python -m dsa110_contimg.calibration.cli flag \
 To make the strategy available by default, you could:
 
 1. Modify the Dockerfile to copy the strategy:
+
 ```dockerfile
 COPY docs/aoflagger/dsa110-default.lua /usr/local/share/aoflagger/strategies/
 ```
 
 2. Rebuild the image:
+
 ```bash
 cd ~/proj/aoflagger
 ./build-docker.sh
@@ -75,7 +83,8 @@ cd ~/proj/aoflagger
 Key parameters in `dsa110-default.lua` that can be tuned:
 
 - **`base_threshold`** (default: 1.0)
-  - Lower = more sensitive detection (flags more RFI, but risk of false positives)
+  - Lower = more sensitive detection (flags more RFI, but risk of false
+    positives)
   - Higher = less sensitive (flags less RFI, but risk of missing weak RFI)
 
 - **`iteration_count`** (default: 3)
@@ -93,6 +102,7 @@ Key parameters in `dsa110-default.lua` that can be tuned:
 ## Example Strategies for Reference
 
 AOFlagger includes telescope-specific strategies you can reference:
+
 - `jvla-default.lua` - JVLA (similar to DSA-110: L-band, interferometer)
 - `atca-l-band.lua` - ATCA L-band observations
 - `generic-default.lua` - Generic strategy (what DSA-110 currently uses)
@@ -108,11 +118,14 @@ To create a custom strategy:
 5. Iterate until you get optimal results
 
 **For detailed parameter optimization methodology, see:**
-- `docs/aoflagger/PARAMETER_OPTIMIZATION_GUIDE.md` - Systematic approach to finding optimal thresholds and parameters
+
+- `docs/aoflagger/PARAMETER_OPTIMIZATION_GUIDE.md` - Systematic approach to
+  finding optimal thresholds and parameters
 
 ## AOFlagger Strategy Documentation
 
 For more details on AOFlagger Lua API and available functions:
+
 - [AOFlagger Manual](https://aoflagger.readthedocs.io/en/latest/index.html)
 - [Lua Strategies Section](https://aoflagger.readthedocs.io/en/latest/lua.html)
 - [Functions Reference](https://aoflagger.readthedocs.io/en/latest/lua_functions.html)
@@ -124,4 +137,3 @@ The custom strategy can be integrated into the pipeline by:
 1. **Environment variable**: Set `AOFLAGGER_STRATEGY` environment variable
 2. **Config file**: Add strategy path to pipeline configuration
 3. **CLI argument**: Use `--aoflagger-strategy` flag (already implemented)
-

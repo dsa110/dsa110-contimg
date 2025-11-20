@@ -5,6 +5,7 @@
 **Image Built Successfully**: `dsa110-cubical:experimental`
 
 ### What Works:
+
 - ✓ Ubuntu 20.04 base image
 - ✓ Miniconda installation
 - ✓ Python 3.9 environment
@@ -15,6 +16,7 @@
 - ✓ GPU access available
 
 ### What Needs Work:
+
 - ✗ CubiCal installation failed (complex dependency issue)
   - Issue: `sharedarray` dependency build failure
   - This is a known issue with CubiCal's dependencies
@@ -23,7 +25,9 @@
 ## Next Steps
 
 ### Option 1: Manual CubiCal Installation
+
 Install CubiCal manually inside the container after it's running:
+
 ```bash
 docker run -it --rm --gpus all \
   -v /scratch:/scratch:ro \
@@ -38,9 +42,11 @@ pip install future argparse
 ```
 
 ### Option 2: Use Pre-built CubiCal Image
+
 Look for existing CubiCal Docker images or use their installation instructions.
 
 ### Option 3: Simplify Dependencies
+
 Install CubiCal without Montblanc first (CPU-only), then add GPU support.
 
 ## Testing Commands
@@ -59,4 +65,5 @@ docker run --rm --gpus all \
 
 ## Conclusion
 
-The Docker environment is set up correctly and can access GPUs. The CubiCal installation needs additional work, but the foundation is solid.
+The Docker environment is set up correctly and can access GPUs. The CubiCal
+installation needs additional work, but the foundation is solid.

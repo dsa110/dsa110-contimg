@@ -4,7 +4,8 @@
 
 **ALL Python operations MUST use `/opt/miniforge/envs/casa6/bin/python`**
 
-The system Python (3.6.9) lacks CASA dependencies and required features. The pipeline WILL FAIL without casa6.
+The system Python (3.6.9) lacks CASA dependencies and required features. The
+pipeline WILL FAIL without casa6.
 
 ## Quick Reference
 
@@ -51,6 +52,7 @@ lint:
 ## Development Tools Installation
 
 ### Testing Tools
+
 ```bash
 # Install pytest and related tools
 conda activate casa6
@@ -61,6 +63,7 @@ conda install -c conda-forge pytest pytest-cov pytest-asyncio pytest-mock
 ```
 
 ### Code Quality Tools
+
 ```bash
 # Install formatting and linting tools
 conda activate casa6
@@ -71,6 +74,7 @@ conda install -c conda-forge black flake8 mypy pylint
 ```
 
 ### Database Tools
+
 ```bash
 # Install Alembic for migrations
 conda activate casa6
@@ -94,13 +98,13 @@ repos:
         language: system
         types: [python]
         args: [--check]
-      
+
       - id: flake8
         name: flake8 (casa6)
         entry: /opt/miniforge/envs/casa6/bin/flake8
         language: system
         types: [python]
-      
+
       - id: mypy
         name: mypy (casa6)
         entry: /opt/miniforge/envs/casa6/bin/mypy
@@ -119,17 +123,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup casa6 Python
         run: |
           # Install miniforge if needed
           # Or use existing casa6 environment
           echo "CASA6_PYTHON=/opt/miniforge/envs/casa6/bin/python" >> $GITHUB_ENV
-      
+
       - name: Install dependencies
         run: |
           ${{ env.CASA6_PYTHON }} -m pip install pytest pytest-cov
-      
+
       - name: Run tests
         run: |
           ${{ env.CASA6_PYTHON }} -m pytest tests/
@@ -188,7 +192,7 @@ channels:
   - defaults
 dependencies:
   - python=3.11
-  - casa6  # CASA dependencies
+  - casa6 # CASA dependencies
   # Development dependencies
   - pytest
   - pytest-cov
@@ -199,8 +203,8 @@ dependencies:
   - alembic
   - pip
   - pip:
-    - bandit
-    - safety
+      - bandit
+      - safety
 ```
 
 ## Docker Integration
@@ -226,7 +230,8 @@ RUN /opt/conda/envs/casa6/bin/pip install -r requirements.txt
 
 1. **Don't use system Python**: `python` or `python3` will fail
 2. **Don't assume conda is activated**: Always use full path
-3. **Don't install packages in wrong environment**: Verify casa6 before installing
+3. **Don't install packages in wrong environment**: Verify casa6 before
+   installing
 4. **Don't forget CI/CD**: All CI steps must use casa6
 5. **Don't hardcode paths**: Use `$(CASA6_PYTHON)` variable in Makefile
 
@@ -243,6 +248,7 @@ RUN /opt/conda/envs/casa6/bin/pip install -r requirements.txt
 ## Troubleshooting
 
 ### casa6 Not Found
+
 ```bash
 # Check if casa6 exists
 ls -la /opt/miniforge/envs/casa6/bin/python
@@ -252,6 +258,7 @@ ls -la /opt/miniforge/envs/casa6/bin/python
 ```
 
 ### Wrong Python Version
+
 ```bash
 # Check Python version in casa6
 /opt/miniforge/envs/casa6/bin/python --version
@@ -260,6 +267,7 @@ ls -la /opt/miniforge/envs/casa6/bin/python
 ```
 
 ### Missing Dependencies
+
 ```bash
 # Install missing packages in casa6
 /opt/miniforge/envs/casa6/bin/pip install package_name
@@ -276,4 +284,3 @@ conda install -c conda-forge package_name
 3. **Document casa6 requirement** in all relevant docs
 4. **Test with casa6** in CI/CD pipelines
 5. **Include casa6 in Docker** images for consistency
-

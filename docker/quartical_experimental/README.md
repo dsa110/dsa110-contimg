@@ -3,6 +3,7 @@
 ## Purpose
 
 Isolates CubiCal/Montblanc installation in a Docker container to avoid:
+
 - Compatibility issues with Ubuntu 18.x
 - Conflicts with existing CASA environment
 - System-wide package pollution
@@ -94,11 +95,9 @@ docker run -it --rm --gpus all \
 
 ## Benefits
 
-✓ Isolated environment (no conflicts with host)
-✓ Clean Ubuntu 20.04 base (better compatibility)
-✓ GPU access via NVIDIA runtime
-✓ Easy to rebuild/clean up
-✓ Can run alongside existing CASA pipeline
+✓ Isolated environment (no conflicts with host) ✓ Clean Ubuntu 20.04 base
+(better compatibility) ✓ GPU access via NVIDIA runtime ✓ Easy to rebuild/clean
+up ✓ Can run alongside existing CASA pipeline
 
 ## Troubleshooting
 
@@ -127,7 +126,8 @@ chmod 777 /scratch/calibration_test
 
 ## Development Workflow
 
-1. Edit code on host: `/data/dsa110-contimg/src/dsa110_contimg/calibration/cubical_experimental/`
+1. Edit code on host:
+   `/data/dsa110-contimg/src/dsa110_contimg/calibration/cubical_experimental/`
 2. Code is mounted into container (read-only)
 3. Test in container
 4. Results saved to `/scratch/calibration_test/` (accessible from host)

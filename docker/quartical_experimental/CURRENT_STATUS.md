@@ -20,11 +20,13 @@
 ## Current Blocker: CubiCal Installation
 
 **Issue**: `sharedarray` dependency has invalid version string
+
 ```
 packaging.version.InvalidVersion: Invalid version: "b'3.1.0-2-gdc90bd2\\n'"
 ```
 
 **Attempts Made**:
+
 - ✓ With Montblanc support: Failed
 - ✓ Without Montblanc: Failed (same error)
 - ⏳ Installing sharedarray separately: In progress
@@ -32,17 +34,20 @@ packaging.version.InvalidVersion: Invalid version: "b'3.1.0-2-gdc90bd2\\n'"
 ## Next Steps
 
 ### Option 1: Fix sharedarray (Recommended)
+
 1. Clone sharedarray repository
 2. Fix version string in setup.py
 3. Install from local fixed source
 4. Then install CubiCal
 
 ### Option 2: Use Alternative Installation Method
+
 - Try installing from conda-forge (if available)
 - Use pre-built Docker image with CubiCal
 - Install older CubiCal version that works
 
 ### Option 3: Proceed Without CubiCal for Now
+
 - Focus on CPU optimizations (hierarchical calibration)
 - Revisit CubiCal when sharedarray issue is resolved
 - Document the blocker for future work
@@ -51,7 +56,10 @@ packaging.version.InvalidVersion: Invalid version: "b'3.1.0-2-gdc90bd2\\n'"
 
 Since CubiCal installation is blocked by a dependency issue, we have two paths:
 
-1. **Short-term**: Focus on CPU calibration optimizations (hierarchical calibration, parallel SPW processing) which don't require CubiCal
-2. **Long-term**: Fix sharedarray issue or find alternative CubiCal installation method
+1. **Short-term**: Focus on CPU calibration optimizations (hierarchical
+   calibration, parallel SPW processing) which don't require CubiCal
+2. **Long-term**: Fix sharedarray issue or find alternative CubiCal installation
+   method
 
-The Docker environment is ready - we just need to resolve the CubiCal installation blocker.
+The Docker environment is ready - we just need to resolve the CubiCal
+installation blocker.

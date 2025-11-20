@@ -39,17 +39,17 @@
 
 ## Test Coverage
 
-| Category | Tested | Total | Coverage |
-|----------|--------|-------|----------|
-| Navigation | 7 | 7 | 100% |
-| Control Page | 5+ | 45 | ~11% |
-| Data Browser | 3+ | 25 | ~12% |
-| Dashboard | 0 | 15 | 0% |
-| Data Detail | 0 | 20 | 0% |
-| Streaming | 0 | 15 | 0% |
-| Mosaic Gallery | 0 | 20 | 0% |
-| Source Monitoring | 0 | 20 | 0% |
-| Sky View | 0 | 15 | 0% |
+| Category          | Tested | Total | Coverage |
+| ----------------- | ------ | ----- | -------- |
+| Navigation        | 7      | 7     | 100%     |
+| Control Page      | 5+     | 45    | ~11%     |
+| Data Browser      | 3+     | 25    | ~12%     |
+| Dashboard         | 0      | 15    | 0%       |
+| Data Detail       | 0      | 20    | 0%       |
+| Streaming         | 0      | 15    | 0%       |
+| Mosaic Gallery    | 0      | 20    | 0%       |
+| Source Monitoring | 0      | 20    | 0%       |
+| Sky View          | 0      | 15    | 0%       |
 
 ## Next Steps
 
@@ -61,5 +61,5 @@
 
 ## Conclusion
 
-**Testing infrastructure is working perfectly.** Manual test execution via browser is proving effective and reliable. All tested features work as expected.
-
+**Testing infrastructure is working perfectly.** Manual test execution via
+browser is proving effective and reliable. All tested features work as expected.

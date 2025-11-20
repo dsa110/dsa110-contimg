@@ -8,23 +8,28 @@
 ## Issue
 
 All test commands failed with:
+
 - **Exit Code 7:** Connection refused
 - **JSON Decode Errors:** Empty responses (no data received)
 
-**Root Cause:** API is running in user's terminal session, but not accessible from automated shell context.
+**Root Cause:** API is running in user's terminal session, but not accessible
+from automated shell context.
 
 ---
 
 ## What Was Attempted
 
 ### Test Commands Run:
+
 1. ✅ `curl -s "http://localhost:8000/api/status"` - Connection refused
-2. ✅ `curl -s "http://localhost:8000/api/images?limit=3"` - Connection refused  
-3. ✅ `curl -s "http://localhost:8000/api/images?start_date=..."` - Connection refused
+2. ✅ `curl -s "http://localhost:8000/api/images?limit=3"` - Connection refused
+3. ✅ `curl -s "http://localhost:8000/api/images?start_date=..."` - Connection
+   refused
 4. ✅ `curl -s "http://localhost:8000/health"` - Connection refused
 5. ✅ All other filter tests - Connection refused
 
 ### Diagnostic Commands:
+
 - ✅ Checked for listening ports - No port 8000 found
 - ✅ Checked for uvicorn processes - Not found in shell context
 
@@ -33,11 +38,13 @@ All test commands failed with:
 ## Analysis
 
 **The API is running in the user's interactive terminal**, but:
+
 - Not accessible from automated shell context
 - May be running in a different environment/namespace
 - May require different network configuration
 
-**This is expected behavior** - the API needs to be tested manually by the user in their terminal where it's running.
+**This is expected behavior** - the API needs to be tested manually by the user
+in their terminal where it's running.
 
 ---
 
@@ -77,16 +84,21 @@ curl -s "http://localhost:8000/api/images?has_calibrator=true&limit=3" | jq '.to
 ## Expected Results
 
 ### ✅ Should Work:
+
 - **Date filter:** Returns filtered images, fast response (<200ms)
-- **Health endpoint:** Returns `{"status": "healthy", "service": "dsa110-contimg-api"}` (after restart)
+- **Health endpoint:** Returns
+  `{"status": "healthy", "service": "dsa110-contimg-api"}` (after restart)
 - **Basic images endpoint:** Returns valid JSON with images
 
 ### ⚠️ Expected Limitations:
-- **Noise filter:** Returns all images (no filtering) - all `noise_jy` are `null`
+
+- **Noise filter:** Returns all images (no filtering) - all `noise_jy` are
+  `null`
 - **Declination filter:** Works but slow (1-5 seconds) - requires FITS reading
 - **Calibrator filter:** Works but heuristic-based
 
 ### ❌ Should Not Happen:
+
 - 500 errors
 - Connection refused (if API is running)
 - Invalid JSON
@@ -97,12 +109,15 @@ curl -s "http://localhost:8000/api/images?has_calibrator=true&limit=3" | jq '.to
 ## What Was Completed
 
 ### ✅ Code Changes:
+
 1. **Fixed `/health` endpoint** - Added root-level endpoint in `routes.py`
-2. **Fixed visualization browse bug** - Changed `item.file_type` to `autodetect_file_type()`
+2. **Fixed visualization browse bug** - Changed `item.file_type` to
+   `autodetect_file_type()`
 3. **Created test command reference** - `docs/reference/API_TEST_COMMANDS.md`
 4. **Created documentation** - Multiple docs files for testing and issues
 
 ### ✅ Documentation Created:
+
 1. `docs/known-issues/image-metadata-population.md` - Metadata issue
 2. `docs/reference/image_filters_test_results.md` - Test results template
 3. `docs/reference/API_TEST_COMMANDS.md` - Test commands
@@ -116,6 +131,7 @@ curl -s "http://localhost:8000/api/images?has_calibrator=true&limit=3" | jq '.to
 ### For User:
 
 1. **Restart API** (to apply `/health` fix):
+
    ```bash
    # In Terminal 1, press Ctrl+C, then:
    PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8000
@@ -152,4 +168,3 @@ curl -s "http://localhost:8000/api/images?has_calibrator=true&limit=3" | jq '.to
 
 **Report Generated:** 2025-11-12  
 **Next Action:** User manual testing
-

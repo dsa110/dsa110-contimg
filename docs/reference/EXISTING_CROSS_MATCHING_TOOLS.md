@@ -4,7 +4,9 @@
 
 ## Overview
 
-This document catalogs the existing cross-matching functionality in the DSA-110 pipeline. Cross-matching tools exist but are embedded within specific validation and catalog-building functions rather than as standalone utilities.
+This document catalogs the existing cross-matching functionality in the DSA-110
+pipeline. Cross-matching tools exist but are embedded within specific validation
+and catalog-building functions rather than as standalone utilities.
 
 ## Existing Cross-Matching Functionality
 
@@ -15,12 +17,15 @@ This document catalogs the existing cross-matching functionality in the DSA-110 
 **Functions with Cross-Matching:**
 
 #### `validate_astrometry()`
-- **Purpose:** Validate image astrometry by matching detected sources to reference catalog
+
+- **Purpose:** Validate image astrometry by matching detected sources to
+  reference catalog
 - **Matching Method:** Uses `astropy.coordinates.match_coordinates_sky()`
 - **Matching Radius:** Configurable (default: 10 arcsec)
 - **Returns:** `CatalogValidationResult` with astrometry metrics
 
 **Code:**
+
 ```python
 from astropy.coordinates import SkyCoord, match_coordinates_sky
 
@@ -37,6 +42,7 @@ match_mask = sep_arcsec < search_radius_arcsec
 ```
 
 **Usage:**
+
 ```python
 from dsa110_contimg.qa.catalog_validation import validate_astrometry
 
@@ -50,13 +56,16 @@ result = validate_astrometry(
 ```
 
 #### `validate_flux_scale()`
-- **Purpose:** Validate flux scale by matching detected sources to catalog and comparing fluxes
+
+- **Purpose:** Validate flux scale by matching detected sources to catalog and
+  comparing fluxes
 - **Matching Method:** Uses `astropy.coordinates.match_coordinates_sky()`
 - **Matching Radius:** Configurable (default: 10 arcsec)
 - **Additional:** Performs forced photometry at catalog positions
 - **Returns:** `CatalogValidationResult` with flux scale metrics
 
 **Usage:**
+
 ```python
 from dsa110_contimg.qa.catalog_validation import validate_flux_scale
 
@@ -71,12 +80,15 @@ result = validate_flux_scale(
 ```
 
 #### `validate_source_counts()`
-- **Purpose:** Validate source counts completeness by matching detected sources to catalog
+
+- **Purpose:** Validate source counts completeness by matching detected sources
+  to catalog
 - **Matching Method:** Uses `astropy.coordinates.match_coordinates_sky()`
 - **Matching Radius:** Configurable (default: 10 arcsec)
 - **Returns:** `CatalogValidationResult` with completeness metrics
 
 **Usage:**
+
 ```python
 from dsa110_contimg.qa.catalog_validation import validate_source_counts
 
@@ -95,12 +107,14 @@ result = validate_source_counts(
 
 **Function:** `_crossmatch()`
 
-- **Purpose:** Cross-match NVSS with VLASS and FIRST to build master reference catalog
+- **Purpose:** Cross-match NVSS with VLASS and FIRST to build master reference
+  catalog
 - **Matching Method:** Uses `astropy.coordinates.SkyCoord.search_around_sky()`
 - **Matching Radius:** Configurable (default: 7.5 arcsec)
 - **Output:** Master catalog SQLite database with cross-matched sources
 
 **Code:**
+
 ```python
 from astropy.coordinates import SkyCoord
 
@@ -116,6 +130,7 @@ idx_nv, idx_f, sep2d, _ = nvss_sc.search_around_sky(first_sc, radius)
 ```
 
 **Usage:**
+
 ```python
 # Called internally by build_master CLI
 python -m dsa110_contimg.catalog.build_master \
@@ -131,7 +146,8 @@ python -m dsa110_contimg.catalog.build_master \
 
 **Function:** Tile validation with catalog matching
 
-- **Purpose:** Validate mosaic tiles by matching catalog sources with image peaks
+- **Purpose:** Validate mosaic tiles by matching catalog sources with image
+  peaks
 - **Matching Method:** Uses `astropy.coordinates` for matching
 - **Usage:** Internal to mosaic validation workflow
 
@@ -140,11 +156,14 @@ python -m dsa110_contimg.catalog.build_master \
 ### No Standalone Cross-Matching Utility
 
 **Issue:** Cross-matching functionality is embedded within specific functions:
-- Validation functions (`validate_astrometry`, `validate_flux_scale`, `validate_source_counts`)
+
+- Validation functions (`validate_astrometry`, `validate_flux_scale`,
+  `validate_source_counts`)
 - Master catalog builder (`_crossmatch`)
 - Mosaic validation
 
 **Impact:**
+
 - Cannot easily reuse cross-matching logic for other purposes
 - Each function implements its own matching logic
 - No consistent API for cross-matching operations
@@ -180,7 +199,7 @@ def cross_match_sources(
     detected_flux=None
 ) -> CrossMatchResult:
     """General-purpose cross-matching utility.
-    
+
     Returns:
         CrossMatchResult with matches, separations, quality flags
     """
@@ -192,7 +211,7 @@ def multi_catalog_match(
     catalogs_dict  # {'nvss': (ra, dec, flux), 'first': (ra, dec, flux), ...}
 ) -> MultiCatalogMatchResult:
     """Match sources against multiple catalogs simultaneously.
-    
+
     Returns:
         Best match for each source across all catalogs
     """
@@ -252,23 +271,29 @@ result = validate_flux_scale(
 ## Summary
 
 **Existing Cross-Matching:**
+
 - ✅ Embedded in validation functions (`catalog_validation.py`)
 - ✅ Embedded in master catalog builder (`build_master.py`)
-- ✅ Uses `astropy.coordinates.match_coordinates_sky()` and `search_around_sky()`
+- ✅ Uses `astropy.coordinates.match_coordinates_sky()` and
+  `search_around_sky()`
 
 **Missing:**
+
 - ❌ Standalone general-purpose cross-matching utility
 - ❌ Multi-catalog matching utility
 - ❌ Quality assessment/scoring
 - ❌ Spectral index correction for RACS
 - ❌ Extended source handling
 
-**Recommendation:** Create a standalone `catalog/crossmatch.py` module with general-purpose cross-matching utilities that can be reused across the pipeline.
+**Recommendation:** Create a standalone `catalog/crossmatch.py` module with
+general-purpose cross-matching utilities that can be reused across the pipeline.
 
 ## Related Documentation
 
-- `docs/reference/CATALOG_CROSS_MATCHING_GUIDE.md` - Cross-matching strategies and algorithms
+- `docs/reference/CATALOG_CROSS_MATCHING_GUIDE.md` - Cross-matching strategies
+  and algorithms
 - `docs/reference/CATALOG_USAGE_GUIDE.md` - General catalog usage guide
-- `src/dsa110_contimg/qa/catalog_validation.py` - Validation functions with matching
-- `src/dsa110_contimg/catalog/build_master.py` - Master catalog builder with cross-matching
-
+- `src/dsa110_contimg/qa/catalog_validation.py` - Validation functions with
+  matching
+- `src/dsa110_contimg/catalog/build_master.py` - Master catalog builder with
+  cross-matching

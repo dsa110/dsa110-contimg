@@ -9,11 +9,14 @@
 
 ### 1. ✅ Fixed `/health` Endpoint 404 Errors
 
-**Problem:** Monitoring tools requesting `/health` (without `/api/` prefix) causing 404 spam in logs
+**Problem:** Monitoring tools requesting `/health` (without `/api/` prefix)
+causing 404 spam in logs
 
-**Solution:** Added root-level `/health` endpoint in `src/dsa110_contimg/api/routes.py`
+**Solution:** Added root-level `/health` endpoint in
+`src/dsa110_contimg/api/routes.py`
 
 **Code Added:**
+
 ```python
 # Root-level health check endpoint (for monitoring tools that request /health)
 @app.get("/health")
@@ -31,6 +34,7 @@ def health_check():
 **File:** `docs/reference/API_TEST_COMMANDS.md`
 
 Contains:
+
 - Quick verification commands
 - Date filter tests
 - Experimental filter tests
@@ -54,6 +58,7 @@ Contains:
 ### Step 1: Restart API (to apply /health fix)
 
 **In Terminal 1:**
+
 1. Press `Ctrl+C` to stop current API
 2. Restart:
    ```bash
@@ -81,6 +86,7 @@ curl -s "http://localhost:8000/health" | jq '.'
 ```
 
 **Expected Results:**
+
 - ✅ All commands return valid JSON
 - ✅ Date filter returns filtered results
 - ✅ `/health` returns `{"status": "healthy", "service": "dsa110-contimg-api"}`
@@ -104,7 +110,8 @@ chmod +x test_filters.sh && ./test_filters.sh
 After running tests, report:
 
 1. **Date filter:** ✅ Works / ❌ Fails
-2. **Noise filter:** ✅ Returns results (expected: no filtering due to null metadata)
+2. **Noise filter:** ✅ Returns results (expected: no filtering due to null
+   metadata)
 3. **Declination filter:** ✅ Works / ❌ Fails (may be slow)
 4. **Calibrator filter:** ✅ Works / ❌ Fails
 5. **Health endpoint:** ✅ No more 404s / ❌ Still 404s
@@ -115,17 +122,20 @@ After running tests, report:
 ## Expected Test Results
 
 ### ✅ Should Work:
+
 - Date filtering (fast, accurate)
 - Health endpoint (no more 404s)
 - Basic images endpoint
 - Edge case handling (graceful)
 
 ### ⚠️ Expected Limitations:
+
 - Noise filter: Returns all images (metadata null)
 - Declination filter: Works but slow (1-5s)
 - Calibrator filter: Works but heuristic-based
 
 ### ❌ Should Not Happen:
+
 - 500 errors
 - Connection refused
 - Invalid JSON
@@ -138,12 +148,14 @@ After running tests, report:
 **After successful testing:**
 
 ✅ **READY TO COMMIT** if:
+
 - Date filters work correctly
 - No 500 errors
 - Health endpoint fixed
 - All documented limitations understood
 
 **Commit Message:**
+
 ```
 Add advanced filtering to Image Browser + Fixes
 
@@ -186,4 +198,3 @@ Next Steps:
 
 **Status:** ✅ All fixes applied, ready for testing  
 **Next:** Run tests and report results
-

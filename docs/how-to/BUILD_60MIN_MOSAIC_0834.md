@@ -1,8 +1,10 @@
 # How-To: Build a 60-Minute Mosaic Around VLA Calibrator 0834+555
 
-**Objective:** Create a 60-minute mosaic (12 tiles at 5-minute cadence) centered on the transit of VLA calibrator 0834+555.
+**Objective:** Create a 60-minute mosaic (12 tiles at 5-minute cadence) centered
+on the transit of VLA calibrator 0834+555.
 
 **Prerequisites:**
+
 - UVH5 subband files available in `/data/incoming` (or your input directory)
 - `casa6` conda environment activated
 - Pipeline environment variables configured (if using custom paths)
@@ -12,7 +14,8 @@
 
 ## Overview
 
-A 60-minute mosaic combines 12 individual 5-minute tiles (images) into a single larger image covering a wider field of view. The process involves:
+A 60-minute mosaic combines 12 individual 5-minute tiles (images) into a single
+larger image covering a wider field of view. The process involves:
 
 1. **Finding the transit time** for 0834+555 on a specific date
 2. **Calculating a 60-minute window** (±30 minutes around transit)
@@ -34,13 +37,15 @@ PYTHONPATH=/data/dsa110-contimg/src python scripts/build_0834_transit_mosaic.py
 ```
 
 **What this script does:**
+
 1. Finds transit time for 0834+555 on 2025-11-02 (hardcoded date)
 2. Calculates ±30 minute window around transit
 3. Plans mosaic from tiles in products DB within that window
 4. Builds PB-weighted mosaic
 
-**To use a different date:**
-Edit `scripts/build_0834_transit_mosaic.py` and change:
+**To use a different date:** Edit `scripts/build_0834_transit_mosaic.py` and
+change:
+
 ```python
 target_date = "2025-11-02"  # Change to your desired date
 ```
@@ -76,6 +81,7 @@ for transit in transits:
 ```
 
 **Or use the CLI:**
+
 ```bash
 python -m dsa110_contimg.calibration.catalog_cli transit \
     --calibrator 0834+555 \
@@ -105,7 +111,8 @@ until_epoch = int(end_time.unix)
 
 ### Step 3: Ensure Data is Processed (Conversion, Calibration, Imaging)
 
-Before planning a mosaic, ensure all tiles exist in the products database. If not, you need to:
+Before planning a mosaic, ensure all tiles exist in the products database. If
+not, you need to:
 
 #### 3a. Convert HDF5 Groups to MS
 
@@ -136,7 +143,8 @@ python -m dsa110_contimg.calibration.cli calibrate \
     --preset development
 ```
 
-**Note:** For production-quality mosaics, use standard calibration (omit `--preset development`).
+**Note:** For production-quality mosaics, use standard calibration (omit
+`--preset development`).
 
 #### 3c. Image MS Files
 
@@ -154,8 +162,10 @@ python -m dsa110_contimg.imaging.cli image \
 ```
 
 **Important:**
+
 - Images must be PB-corrected (`--pbcor`) for mosaic building
-- Quality tier defaults to "standard" (production quality) - this matches the streaming pipeline behavior
+- Quality tier defaults to "standard" (production quality) - this matches the
+  streaming pipeline behavior
 
 ### Step 4: Plan the Mosaic
 
@@ -172,6 +182,7 @@ python -m dsa110_contimg.mosaic.cli plan \
 ```
 
 **Parameters:**
+
 - `--name`: Unique name for the mosaic plan
 - `--since`: Unix timestamp (epoch seconds) for start of window
 - `--until`: Unix timestamp (epoch seconds) for end of window
@@ -179,6 +190,7 @@ python -m dsa110_contimg.mosaic.cli plan \
 - `--include-unpbcor`: Set to `false` to only include PB-corrected tiles
 
 **Example with calculated timestamps:**
+
 ```bash
 python -m dsa110_contimg.mosaic.cli plan \
     --products-db state/products.sqlite3 \
@@ -200,6 +212,7 @@ python -m dsa110_contimg.mosaic.cli build \
 ```
 
 **What happens:**
+
 1. Validates all tiles (grid consistency, astrometry, calibration)
 2. Reads PB images for each tile
 3. Computes pixel-by-pixel weights: `weight = pb_response^2 / noise_variance`
@@ -207,6 +220,7 @@ python -m dsa110_contimg.mosaic.cli build \
 5. Exports FITS file: `0834_transit_2025-11-02.image.fits`
 
 **Options:**
+
 - `--ignore-validation`: Skip validation checks (not recommended)
 - `--dry-run`: Validate without building (useful for testing)
 
@@ -227,6 +241,7 @@ python scripts/build_60min_mosaic.py \
 ```
 
 **What this script does:**
+
 1. Finds transit time
 2. Discovers HDF5 groups in window
 3. Converts groups to MS (if needed)
@@ -239,6 +254,7 @@ python scripts/build_60min_mosaic.py \
 10. Builds mosaic
 
 **Options:**
+
 - `--skip-conversion`: Use existing MS files
 - `--skip-calibration`: Use existing calibration tables
 - `--max-workers`: Parallel conversion workers (default: 4)
@@ -257,11 +273,13 @@ mosaic[i,j] = sum(weight[k][i,j] * tile[k][i,j]) / sum(weight[k][i,j])
 ```
 
 **Advantages:**
+
 - Optimal signal-to-noise ratio
 - Accounts for varying sensitivity across field
 - Handles overlapping coverage correctly
 
 **Requirements:**
+
 - All tiles must have PB images
 - PB images must be readable
 
@@ -299,6 +317,7 @@ The mosaic builder performs extensive validation:
 5. **Pre-flight Checks**: Disk space, file existence, permissions
 
 **View validation issues:**
+
 ```bash
 python -m dsa110_contimg.mosaic.cli build \
     --name 0834_transit_2025-11-02 \
@@ -312,11 +331,13 @@ python -m dsa110_contimg.mosaic.cli build \
 
 After building, you'll have:
 
-1. **Mosaic image**: `/stage/dsa110-contimg/mosaics/0834_transit_2025-11-02.image/`
+1. **Mosaic image**:
+   `/stage/dsa110-contimg/mosaics/0834_transit_2025-11-02.image/`
    - CASA image format (directory)
    - Contains cleaned, PB-weighted mosaic
 
-2. **FITS export**: `/stage/dsa110-contimg/mosaics/0834_transit_2025-11-02.image.fits`
+2. **FITS export**:
+   `/stage/dsa110-contimg/mosaics/0834_transit_2025-11-02.image.fits`
    - Standard FITS format for analysis
 
 3. **Quality metrics** (if generated):
@@ -334,12 +355,14 @@ After building, you'll have:
 **Problem:** Mosaic planning finds no tiles
 
 **Solutions:**
+
 1. Check products DB has images in the time range:
+
    ```python
    import sqlite3
    conn = sqlite3.connect("state/products.sqlite3")
    rows = conn.execute("""
-       SELECT path, created_at, pbcor FROM images 
+       SELECT path, created_at, pbcor FROM images
        WHERE created_at >= ? AND created_at <= ?
        ORDER BY created_at
    """, (since_epoch, until_epoch)).fetchall()
@@ -354,7 +377,9 @@ After building, you'll have:
 **Problem:** Tiles fail validation checks
 
 **Solutions:**
+
 1. Check tile grid consistency:
+
    ```bash
    python -m dsa110_contimg.mosaic.cli build --dry-run --name <mosaic_name>
    ```
@@ -368,12 +393,15 @@ After building, you'll have:
 **Problem:** PB images not found for tiles
 
 **Solutions:**
+
 1. Verify PB images exist:
+
    ```bash
    ls /stage/dsa110-contimg/images/*/pbcor.pb/
    ```
 
 2. Check products DB has PB paths:
+
    ```python
    import sqlite3
    conn = sqlite3.connect("state/products.sqlite3")
@@ -387,6 +415,7 @@ After building, you'll have:
 **Problem:** Build process crashes or errors
 
 **Solutions:**
+
 1. Check disk space: `df -h /stage/dsa110-contimg`
 2. Verify CASA is available: `conda activate casa6`
 3. Check logs for specific error messages
@@ -413,7 +442,8 @@ After building, you'll have:
 - **Standard tier** (production default, 2048×2048): ~5-15 minutes per image
 - **12 images**: ~12-180 minutes total
 
-**Note:** The streaming pipeline uses "standard" tier by default for production quality imaging.
+**Note:** The streaming pipeline uses "standard" tier by default for production
+quality imaging.
 
 ### Mosaic Building
 
@@ -442,7 +472,7 @@ After building, you'll have:
 - **Mosaic CLI**: `src/dsa110_contimg/mosaic/cli.py`
 - **Transit calculation**: `src/dsa110_contimg/calibration/schedule.py`
 - **Calibrator catalog**: `src/dsa110_contimg/calibration/catalogs.py`
-- **Example scripts**: `scripts/build_0834_transit_mosaic.py`, `scripts/build_60min_mosaic.py`
+- **Example scripts**: `scripts/build_0834_transit_mosaic.py`,
+  `scripts/build_60min_mosaic.py`
 - **Mosaic documentation**: `docs/how-to/mosaic.md`
 - **5-minute imaging guide**: `docs/how-to/IMAGE_0834_TRANSIT_5MIN.md`
-

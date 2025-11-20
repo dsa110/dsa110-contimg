@@ -65,12 +65,14 @@
 
 ### Architecture Principles
 
-1. **Separation of Concerns** - Clear boundaries between frontend, backend, and data layers
+1. **Separation of Concerns** - Clear boundaries between frontend, backend, and
+   data layers
 2. **RESTful API** - Standard REST endpoints for data access
 3. **Real-Time Updates** - WebSocket for live updates with HTTP polling fallback
 4. **Stateless Backend** - Backend is stateless; state stored in databases
 5. **Client-Side Routing** - Single-page application with client-side routing
-6. **Progressive Enhancement** - Works with JavaScript disabled (limited functionality)
+6. **Progressive Enhancement** - Works with JavaScript disabled (limited
+   functionality)
 
 ---
 
@@ -79,6 +81,7 @@
 ### Frontend Technologies
 
 #### Core Framework
+
 - **React 18.3** - UI framework with concurrent features
   - Concurrent rendering for better performance
   - Suspense for code splitting
@@ -89,6 +92,7 @@
   - Interface definitions for all API responses
 
 #### Build & Development
+
 - **Vite 7** - Build tool and dev server
   - Fast HMR (Hot Module Replacement)
   - Optimized production builds
@@ -97,6 +101,7 @@
 - **Prettier** - Code formatting
 
 #### UI Framework
+
 - **Material-UI v6 (MUI)** - Component library
   - Comprehensive component set
   - Dark theme support
@@ -105,6 +110,7 @@
 - **MUI X Date Pickers** - Date/time selection components
 
 #### State Management
+
 - **TanStack React Query v5** - Server state management
   - Automatic caching
   - Background refetching
@@ -116,6 +122,7 @@
   - Code splitting
 
 #### Data Visualization
+
 - **Plotly.js** - Scientific plotting
   - Interactive charts
   - Time-series plots
@@ -130,6 +137,7 @@
   - Export capabilities
 
 #### HTTP & Real-Time
+
 - **Axios** - HTTP client
   - Request/response interceptors
   - Automatic JSON parsing
@@ -140,6 +148,7 @@
   - Fallback to polling
 
 #### Astronomy Tools
+
 - **JS9** - FITS image viewer
   - Standard astronomy tool
   - Zoom, pan, colormap controls
@@ -148,6 +157,7 @@
 ### Backend Technologies
 
 #### Web Framework
+
 - **FastAPI** - Modern Python web framework
   - Automatic API documentation (OpenAPI/Swagger)
   - Type validation with Pydantic
@@ -155,6 +165,7 @@
   - High performance
 
 #### Data Validation
+
 - **Pydantic v2** - Data validation and serialization
   - Type validation
   - Automatic JSON serialization
@@ -162,6 +173,7 @@
   - Model documentation
 
 #### Database
+
 - **SQLite3** - Embedded database
   - 4 separate databases for different concerns
   - ACID compliance
@@ -169,12 +181,14 @@
   - File-based storage
 
 #### System Monitoring
+
 - **psutil** - System metrics collection
   - CPU, memory, disk usage
   - Process monitoring
   - System load averages
 
 #### Real-Time Communication
+
 - **WebSocket** - Real-time bidirectional communication
   - FastAPI WebSocket support
   - Connection management
@@ -187,18 +201,21 @@
 ### Infrastructure
 
 #### Containerization
+
 - **Docker** - Containerization for streaming service
   - Isolated execution environment
   - Consistent deployment
   - Resource management
 
 #### Service Management
+
 - **Systemd** - Service management (optional)
   - Process management
   - Auto-restart on failure
   - Logging integration
 
 #### Radio Astronomy Environment
+
 - **CASA6** - Radio astronomy data processing
   - Python environment with CASA tools
   - Measurement Set handling
@@ -212,54 +229,64 @@
 ### Frontend Components
 
 #### 1. Unified Command Center (Dashboard Shell)
+
 - Adaptive UI that changes based on dashboard state
 - State-driven component rendering
 - Contextual action bar
 - Workflow guidance system
 
 #### 2. Streaming Pipeline Monitor
+
 - Real-time operation tracking
 - Progress monitoring
 - Resource usage display
 - Queue statistics
 
 #### 3. State Machine
-- Dashboard state management (idle, autonomous, discovery, investigation, debugging, manual-control, analysis)
+
+- Dashboard state management (idle, autonomous, discovery, investigation,
+  debugging, manual-control, analysis)
 - State transition logic
 - State persistence
 - Context tracking
 
 #### 4. Pre-fetch Engine
+
 - Anticipatory data loading
 - Preload target calculation
 - Context-based prefetching
 - Workflow-based prefetching
 
 #### 5. Contextual Intelligence
+
 - Action suggestion engine
 - Workflow guidance
 - State-aware UI
 - User intent detection
 
 #### 6. Workflow State Machine
+
 - Complex task guidance
 - Step-by-step workflows
 - Progress tracking
 - Workflow completion
 
 #### 7. Autonomous Operations Tracker
+
 - Operation type tracking
 - Status monitoring
 - Progress display
 - History tracking
 
 #### 8. Manual Override Controller
+
 - Override trigger detection
 - Control scope management
 - Override workflow
 - Return to autonomous
 
 #### 9. Analysis Workspace
+
 - Flexible layout system (Golden Layout)
 - Multiple analysis tools
 - Data product integration
@@ -268,36 +295,42 @@
 ### Backend Components
 
 #### 1. API Server (FastAPI)
+
 - REST endpoint routing
 - Request/response handling
 - Authentication (future)
 - Rate limiting (future)
 
 #### 2. Data Access Layer
+
 - Database query functions
 - File system operations
 - Data transformation
 - Error handling
 
 #### 3. Streaming Service Manager
+
 - Service lifecycle management
 - Configuration persistence
 - Status monitoring
 - Health checks
 
 #### 4. WebSocket Manager
+
 - Connection management
 - Message broadcasting
 - Connection state tracking
 - Reconnection handling
 
 #### 5. Job Queue Manager
+
 - Job submission
 - Job status tracking
 - Job execution
 - Job logging
 
 #### 6. Calibration Registry
+
 - Calibration table management
 - Validity window tracking
 - Calibration lookup
@@ -491,13 +524,16 @@ Frontend Polling Timer → API Request → Backend Handler → Database Query �
 
 ## Related Documentation
 
-- **[Dashboard Vision & Design](./dashboard_vision_and_design.md)** - Design principles and vision
-- **[Frontend Architecture](../analysis/DASHBOARD_OVERVIEW_DETAILED.md#frontend-architecture-developer-focused)** - Detailed frontend architecture
-- **[Backend API Reference](../reference/dashboard_backend_api.md)** - API endpoint documentation
-- **[Streaming Architecture](./streaming-architecture.md)** - Streaming service architecture
+- **[Dashboard Vision & Design](./dashboard_vision_and_design.md)** - Design
+  principles and vision
+- **[Frontend Architecture](../analysis/DASHBOARD_OVERVIEW_DETAILED.md#frontend-architecture-developer-focused)** -
+  Detailed frontend architecture
+- **[Backend API Reference](../reference/dashboard_backend_api.md)** - API
+  endpoint documentation
+- **[Streaming Architecture](./streaming-architecture.md)** - Streaming service
+  architecture
 
 ---
 
 **Last Updated:** 2025-11-12  
 **Status:** Consolidated Architecture Document
-

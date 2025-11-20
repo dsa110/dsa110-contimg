@@ -2,7 +2,9 @@
 
 ## Overview
 
-The streaming service control system provides unified management of the DSA-110 streaming converter through a REST API and web dashboard. This document describes the architecture, design decisions, and component interactions.
+The streaming service control system provides unified management of the DSA-110
+streaming converter through a REST API and web dashboard. This document
+describes the architecture, design decisions, and component interactions.
 
 ## System Architecture
 
@@ -55,12 +57,14 @@ The streaming service control system provides unified management of the DSA-110 
 **Location:** `frontend/src/pages/StreamingPage.tsx`
 
 **Responsibilities:**
+
 - Display service status and metrics
 - Provide control UI (start/stop/restart)
 - Configuration editor
 - Real-time updates via polling
 
 **Key Features:**
+
 - Auto-refresh status every 5 seconds
 - Visual indicators for service state
 - Resource usage charts
@@ -71,6 +75,7 @@ The streaming service control system provides unified management of the DSA-110 
 **Location:** `src/dsa110_contimg/api/routes.py`
 
 **Endpoints:**
+
 - `GET /api/streaming/status` - Service status
 - `GET /api/streaming/health` - Health check
 - `GET /api/streaming/config` - Get configuration
@@ -87,12 +92,14 @@ The streaming service control system provides unified management of the DSA-110 
 **Class:** `StreamingServiceManager`
 
 **Responsibilities:**
+
 - Service lifecycle management (start/stop/restart)
 - Configuration persistence (JSON file)
 - Status monitoring and health checks
 - Process/container detection
 
 **Key Methods:**
+
 - `get_status()` - Get current service status
 - `start()` - Start the service
 - `stop()` - Stop the service
@@ -101,6 +108,7 @@ The streaming service control system provides unified management of the DSA-110 
 - `get_health()` - Health check
 
 **Configuration Storage:**
+
 - Location: `state/streaming_config.json`
 - Format: JSON
 - Persists across restarts
@@ -112,16 +120,19 @@ The streaming service control system provides unified management of the DSA-110 
 **Class:** `DockerClient`
 
 **Responsibilities:**
+
 - Docker container operations
 - Automatic SDK/fallback detection
 - Resource statistics collection
 - Container information retrieval
 
 **Modes:**
+
 1. **SDK Mode**: Uses Docker Python SDK (`docker` package)
 2. **Fallback Mode**: Uses subprocess calls to `docker` command
 
 **Key Methods:**
+
 - `is_container_running()` - Check container status
 - `start_container()` - Start container
 - `stop_container()` - Stop container
@@ -136,11 +147,13 @@ The streaming service control system provides unified management of the DSA-110 
 **Decision:** Support both Docker containers and direct processes.
 
 **Rationale:**
+
 - Flexibility for different deployment scenarios
 - Development vs production environments
 - Testing without Docker
 
 **Implementation:**
+
 - Detects Docker environment via `/.dockerenv` or `docker-compose.yml` presence
 - Falls back to direct process management if not in Docker
 
@@ -149,11 +162,13 @@ The streaming service control system provides unified management of the DSA-110 
 **Decision:** Use Docker SDK with subprocess fallback.
 
 **Rationale:**
+
 - SDK provides better error handling and type safety
 - Fallback ensures functionality without SDK installation
 - Works in containers without socket mount
 
 **Implementation:**
+
 - Tries to connect via `docker.from_env()`
 - Falls back to `subprocess.run()` with `docker` commands
 - Same API interface regardless of mode
@@ -163,6 +178,7 @@ The streaming service control system provides unified management of the DSA-110 
 **Decision:** Store configuration in JSON file.
 
 **Rationale:**
+
 - Simple and human-readable
 - Easy to edit manually if needed
 - No database dependency
@@ -175,12 +191,14 @@ The streaming service control system provides unified management of the DSA-110 
 **Decision:** Use HTTP polling for status updates.
 
 **Rationale:**
+
 - Simpler implementation
 - Works with standard HTTP infrastructure
 - Sufficient for current use case (5-30s refresh)
 - Can upgrade to WebSockets later if needed
 
 **Refresh Intervals:**
+
 - Status: 5 seconds
 - Health: 10 seconds
 - Metrics: 30 seconds
@@ -190,6 +208,7 @@ The streaming service control system provides unified management of the DSA-110 
 **Decision:** Store PID in file for process tracking.
 
 **Rationale:**
+
 - Allows status checking after API restart
 - Works for both Docker and direct processes
 - Simple and reliable
@@ -260,6 +279,7 @@ The streaming service control system provides unified management of the DSA-110 
 **Risk:** Mounting Docker socket gives full Docker control.
 
 **Mitigation:**
+
 - Only mount when necessary
 - Use read-only socket if possible (future enhancement)
 - Document security implications
@@ -307,5 +327,5 @@ The streaming service control system provides unified management of the DSA-110 
 - [Streaming Control Guide](../how-to/streaming-control.md) - User guide
 - [Streaming API Reference](../reference/streaming-api.md) - API documentation
 - [Docker Client Reference](../reference/docker-client.md) - Docker integration
-- [Streaming Converter Guide](../how-to/streaming_converter_guide.md) - Converter details
-
+- [Streaming Converter Guide](../how-to/streaming_converter_guide.md) -
+  Converter details

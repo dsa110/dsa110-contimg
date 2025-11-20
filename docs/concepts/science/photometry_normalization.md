@@ -2,25 +2,31 @@
 
 ## Overview
 
-The DSA-110 continuum imaging pipeline includes a sophisticated **differential photometry normalization algorithm** designed to achieve 1-2% relative flux precision for detecting long-term source variability, particularly Extreme Scattering Events (ESEs).
+The DSA-110 continuum imaging pipeline includes a sophisticated **differential
+photometry normalization algorithm** designed to achieve 1-2% relative flux
+precision for detecting long-term source variability, particularly Extreme
+Scattering Events (ESEs).
 
-!!! info "Key Achievement"
-    This algorithm improves relative flux precision from ~5-10% (absolute) to **1-2%** (normalized), enabling detection of 10-50% ESE flux variations at 5-10σ significance.
+!!! info "Key Achievement" This algorithm improves relative flux precision from
+~5-10% (absolute) to **1-2%** (normalized), enabling detection of 10-50% ESE
+flux variations at 5-10σ significance.
 
 ---
 
 ## The Problem: Systematic Flux Variations
 
-Radio astronomy observations suffer from various systematic effects that cause apparent flux variations unrelated to true source variability:
+Radio astronomy observations suffer from various systematic effects that cause
+apparent flux variations unrelated to true source variability:
 
-| Effect | Typical Amplitude | Timescale |
-|--------|-------------------|-----------|
-| Atmospheric (water vapor, ionosphere) | ±5% | Hours to days |
-| Calibration drift | ±3% | Daily |
-| Beam model uncertainty | ±2% | Constant offset |
-| **Combined systematic scatter** | **~5-10%** | **Day-to-day** |
+| Effect                                | Typical Amplitude | Timescale       |
+| ------------------------------------- | ----------------- | --------------- |
+| Atmospheric (water vapor, ionosphere) | ±5%               | Hours to days   |
+| Calibration drift                     | ±3%               | Daily           |
+| Beam model uncertainty                | ±2%               | Constant offset |
+| **Combined systematic scatter**       | **~5-10%**        | **Day-to-day**  |
 
-These systematics **mask genuine astrophysical variability** like ESEs, which produce 10-50% flux changes over weeks to months.
+These systematics **mask genuine astrophysical variability** like ESEs, which
+produce 10-50% flux changes over weeks to months.
 
 ---
 
@@ -28,15 +34,17 @@ These systematics **mask genuine astrophysical variability** like ESEs, which pr
 
 ### Core Concept
 
-**If a systematic effect changes your target source's flux by factor *k*, it changes *all* sources in the field by approximately the same factor *k*.**
+**If a systematic effect changes your target source's flux by factor _k_, it
+changes _all_ sources in the field by approximately the same factor _k_.**
 
 By measuring an ensemble of stable reference sources in the same field, we can:
 
-1. Determine the systematic correction factor *k* for each observation
+1. Determine the systematic correction factor _k_ for each observation
 2. Divide out this factor from all sources
 3. Recover the true relative flux variations
 
-This is analogous to **differential photometry** in optical astronomy, where comparison stars are used to normalize target light curves.
+This is analogous to **differential photometry** in optical astronomy, where
+comparison stars are used to normalize target light curves.
 
 ---
 
@@ -46,7 +54,7 @@ This is analogous to **differential photometry** in optical astronomy, where com
 
 #### 1. Baseline Establishment (Epochs 0-10)
 
-For each reference source *i*, establish a baseline flux:
+For each reference source _i_, establish a baseline flux:
 
 $$
 F_{\text{baseline}}[i] = \text{median}(F[i, \text{epoch } 0{:}10])
@@ -60,28 +68,33 @@ Where:
 
 - `median` = robust central value (resistant to outliers)
 - `MAD` = Median Absolute Deviation (robust scatter estimator)
-- `1.4826` = conversion factor to approximate standard deviation for Gaussian data
+- `1.4826` = conversion factor to approximate standard deviation for Gaussian
+  data
 
 #### 2. Per-Epoch Correction Factor
 
-For each new observation at epoch *t*:
+For each new observation at epoch _t_:
 
 **Step A:** Measure all reference sources
+
 $$
 F_{\text{ref}}[i, t] = \text{measured flux of reference } i \text{ at epoch } t
 $$
 
 **Step B:** Compute individual ratios to baseline
+
 $$
 R[i, t] = \frac{F_{\text{ref}}[i, t]}{F_{\text{baseline}}[i]}
 $$
 
 **Step C:** Reject outliers (3σ clipping)
+
 $$
 \text{valid}[i] = \left| R[i, t] - \text{median}(R) \right| < 3 \times \text{MAD}(R)
 $$
 
 **Step D:** Compute ensemble correction factor
+
 $$
 C(t) = \text{median}(R[\text{valid}])
 $$
@@ -92,13 +105,14 @@ $$
 
 #### 3. Normalize Target Source
 
-For any target source *S* measured at epoch *t*:
+For any target source _S_ measured at epoch _t_:
 
 $$
 F_{\text{norm}}(t) = \frac{F_{\text{raw}}(t)}{C(t)}
 $$
 
 **Error propagation:**
+
 $$
 \sigma_{\text{norm}}^2 = \left(\frac{\sigma_{\text{raw}}}{C}\right)^2 + \left(\frac{F_{\text{raw}} \times \sigma_C}{C^2}\right)^2
 $$
@@ -107,18 +121,19 @@ $$
 
 ## Reference Source Selection
 
-Reference sources are selected from the `master_sources.final_references` catalog based on:
+Reference sources are selected from the `master_sources.final_references`
+catalog based on:
 
 ### Criteria
 
-| Criterion | Requirement | Rationale |
-|-----------|-------------|-----------|
-| **SNR** | NVSS S/N > 50 | High-precision measurements |
-| **Spectral Index** | -1.2 < α < 0.2 | Flat spectrum → likely AGN, stable |
-| **Morphology** | Unresolved | Avoid time-variable resolved structure |
-| **Confusion** | Single source in beam | Clean photometry |
-| **Distribution** | Across FoV | Sample spatial systematics |
-| **Number** | 10-20 sources | Balance precision vs outlier sensitivity |
+| Criterion          | Requirement           | Rationale                                |
+| ------------------ | --------------------- | ---------------------------------------- |
+| **SNR**            | NVSS S/N > 50         | High-precision measurements              |
+| **Spectral Index** | -1.2 < α < 0.2        | Flat spectrum → likely AGN, stable       |
+| **Morphology**     | Unresolved            | Avoid time-variable resolved structure   |
+| **Confusion**      | Single source in beam | Clean photometry                         |
+| **Distribution**   | Across FoV            | Sample spatial systematics               |
+| **Number**         | 10-20 sources         | Balance precision vs outlier sensitivity |
 
 ### Spatial Distribution
 
@@ -140,7 +155,7 @@ Raw fluxes:
   Ref 1:      50.0 ± 1.0 mJy  (baseline: 50.0)
   Ref 2:      80.0 ± 1.5 mJy  (baseline: 80.0)
   Ref 3:      60.0 ± 1.2 mJy  (baseline: 60.0)
-  
+
 Ratios: [1.00, 1.00, 1.00]
 Correction factor: C = 1.00
 Normalized Target: 100.0 / 1.00 = 100.0 ± 2.0 mJy
@@ -154,7 +169,7 @@ Raw fluxes:
   Ref 1:      46.5 ± 1.0 mJy
   Ref 2:      74.4 ± 1.5 mJy
   Ref 3:      55.8 ± 1.2 mJy
-  
+
 Ratios: [0.93, 0.93, 0.93]
 Correction factor: C = 0.93 ± 0.01
 Normalized Target: 93.0 / 0.93 = 100.0 ± 2.2 mJy ✓
@@ -170,7 +185,7 @@ Raw fluxes:
   Ref 1:      47.5 ± 1.0 mJy
   Ref 2:      76.0 ± 1.5 mJy
   Ref 3:      57.0 ± 1.2 mJy
-  
+
 Ratios: [0.95, 0.95, 0.95]
 Correction factor: C = 0.95 ± 0.01
 Normalized Target: 68.0 / 0.95 = 71.6 ± 2.2 mJy
@@ -180,7 +195,8 @@ Observed: 71.6 mJy
 Deviation: 28.4 mJy = 12.9σ  ← Clear ESE detection!
 ```
 
-The 5% systematic is corrected, revealing the true 28% ESE dip at high significance!
+The 5% systematic is corrected, revealing the true 28% ESE dip at high
+significance!
 
 ---
 
@@ -218,7 +234,8 @@ $$
 \chi^2_{\nu} = \frac{1}{N-1} \sum_{i=1}^{N} \frac{(F_{\text{norm},i} - \bar{F}_{\text{norm}})^2}{\sigma_{\text{norm},i}^2}
 $$
 
-If χ²_ν > 2.0, the source is **flagged as variable** and excluded from future corrections.
+If χ²_ν > 2.0, the source is **flagged as variable** and excluded from future
+corrections.
 
 ### 3. Full Error Propagation
 
@@ -237,17 +254,18 @@ This ensures realistic error bars for variability significance testing.
 ### Code Structure
 
 All normalization functions are in:
+
 ```
 src/dsa110_contimg/photometry/normalize.py
 ```
 
-| Function | Purpose | Lines |
-|----------|---------|-------|
-| `query_reference_sources()` | Query catalog for references | 55-110 |
-| `establish_baselines()` | Compute baseline from first N epochs | 113-160 |
-| `compute_ensemble_correction()` | Measure refs, compute correction | 163-260 |
-| `normalize_measurement()` | Apply correction with error propagation | 263-290 |
-| `check_reference_stability()` | Monitor reference variability | 293-355 |
+| Function                        | Purpose                                 | Lines   |
+| ------------------------------- | --------------------------------------- | ------- |
+| `query_reference_sources()`     | Query catalog for references            | 55-110  |
+| `establish_baselines()`         | Compute baseline from first N epochs    | 113-160 |
+| `compute_ensemble_correction()` | Measure refs, compute correction        | 163-260 |
+| `normalize_measurement()`       | Apply correction with error propagation | 263-290 |
+| `check_reference_stability()`   | Monitor reference variability           | 293-355 |
 
 ### Data Classes
 
@@ -359,6 +377,7 @@ print(f"Normalized: {flux_norm:.2f} ± {error_norm:.2f} mJy")
 ### Test Framework
 
 A comprehensive validation script is provided:
+
 ```
 tests/test_photometry_normalization_0702.py
 ```
@@ -399,12 +418,12 @@ python3 tests/test_photometry_normalization_0702.py \
 
 ### Expected Precision
 
-| Metric | Without Normalization | With Normalization |
-|--------|----------------------|-------------------|
-| Day-to-day scatter | ~5-10% | **1-2%** |
-| ESE detection threshold | >20% (2σ) | **>5% (5σ)** |
-| Typical correction factor | N/A | 0.95-1.05 |
-| Correction uncertainty | N/A | ~1-2% |
+| Metric                    | Without Normalization | With Normalization |
+| ------------------------- | --------------------- | ------------------ |
+| Day-to-day scatter        | ~5-10%                | **1-2%**           |
+| ESE detection threshold   | >20% (2σ)             | **>5% (5σ)**       |
+| Typical correction factor | N/A                   | 0.95-1.05          |
+| Correction uncertainty    | N/A                   | ~1-2%              |
 
 ### Computational Cost
 
@@ -545,15 +564,20 @@ for ref in refs:
 
 ### Theory
 
-- **Differential Photometry:** Standard technique in optical astronomy for achieving milli-magnitude precision
-- **Ensemble Methods:** Honeycutt (1992), "CCD ensemble photometry on an inhomogeneous set of exposures"
-- **Error Propagation:** Bevington & Robinson, "Data Reduction and Error Analysis for the Physical Sciences"
+- **Differential Photometry:** Standard technique in optical astronomy for
+  achieving milli-magnitude precision
+- **Ensemble Methods:** Honeycutt (1992), "CCD ensemble photometry on an
+  inhomogeneous set of exposures"
+- **Error Propagation:** Bevington & Robinson, "Data Reduction and Error
+  Analysis for the Physical Sciences"
 
 ### DSA-110 Specific
 
-- `docs/reports/ESE_LITERATURE_SUMMARY.md` - Extreme Scattering Events background
+- `docs/reports/ESE_LITERATURE_SUMMARY.md` - Extreme Scattering Events
+  background
 - `docs/reports/FORCED_PHOTOMETRY_STATUS_AND_PLAN.md` - Full roadmap
-- `docs/reports/PHOTOMETRY_IMPLEMENTATION_SUMMARY_2025_10_24.md` - Technical details
+- `docs/reports/PHOTOMETRY_IMPLEMENTATION_SUMMARY_2025_10_24.md` - Technical
+  details
 
 ### Code
 
@@ -592,6 +616,7 @@ For questions or issues with photometry normalization:
 
 ---
 
-!!! success "Achievement Unlocked"
-    The DSA-110 continuum imaging pipeline can now achieve **1-2% relative flux precision** for variability studies, enabling robust detection of Extreme Scattering Events and other long-term source variations!
-
+!!! success "Achievement Unlocked" The DSA-110 continuum imaging pipeline can
+now achieve **1-2% relative flux precision** for variability studies, enabling
+robust detection of Extreme Scattering Events and other long-term source
+variations!

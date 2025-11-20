@@ -2,11 +2,13 @@
 
 ## Overview
 
-QuartiCal is the successor to CubiCal - a fast and flexible calibration suite for radio interferometer data.
+QuartiCal is the successor to CubiCal - a fast and flexible calibration suite
+for radio interferometer data.
 
 ## Advantages over CubiCal
 
-1. **Better dependency management**: Uses `codex-africanus` instead of `sharedarray`
+1. **Better dependency management**: Uses `codex-africanus` instead of
+   `sharedarray`
 2. **Modern Python**: Supports Python 3.10-3.12
 3. **Easier installation**: Simple `pip install quartical`
 4. **More flexible**: Allows any available Jones terms to be combined
@@ -15,11 +17,13 @@ QuartiCal is the successor to CubiCal - a fast and flexible calibration suite fo
 ## Installation
 
 ### Option 1: Install from PyPI (Recommended)
+
 ```bash
 pip install quartical
 ```
 
 ### Option 2: Install from local repository
+
 ```bash
 cd /home/ubuntu/proj/QuartiCal
 pip install -e .

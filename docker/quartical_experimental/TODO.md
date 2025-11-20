@@ -12,20 +12,23 @@
 ## Still To Do
 
 ### 1. Complete CASA Calibration (In Progress)
+
 - Status: Calibration was running after phase center fix
 - Action: Check if calibration completed successfully
-- Verify: Look for calibration tables (*bpcal*, *gpcal*)
+- Verify: Look for calibration tables (_bpcal_, _gpcal_)
 
 ### 2. Install CubiCal in Docker Container
+
 - Status: Failed during build (expected - complex dependencies)
 - Action: Install manually inside container
 - Steps:
+
   ```bash
   docker run -it --rm --gpus all \
     -v /scratch:/scratch:ro \
     -v /scratch/calibration_test:/workspace/output:rw \
     dsa110-cubical:experimental bash
-  
+
   # Inside container:
   source /opt/conda/etc/profile.d/conda.sh
   conda activate cubical
@@ -34,16 +37,19 @@
   ```
 
 ### 3. Setup GPU Access (Optional but Recommended)
+
 - Status: Requires nvidia-docker2 on host
 - Action: Install nvidia-docker2 for GPU acceleration
 - Steps: See README.md for installation instructions
 
 ### 4. Test CubiCal Calibration
+
 - Status: Not started
 - Action: Run CubiCal calibration on test MS file
 - Compare: Results with CASA calibration
 
 ### 5. Implement CubiCal CLI Functions
+
 - Status: Skeleton created, needs actual CubiCal API calls
 - Action: Fill in `cubical_calibrate.py` with real CubiCal code
 - Test: Verify calibration works end-to-end

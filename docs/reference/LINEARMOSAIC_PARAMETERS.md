@@ -2,7 +2,8 @@
 
 ## Overview
 
-The `linearmosaic` tool in CASA combines multiple images (typically from a mosaic of pointings) into a single mosaic image with proper weighting.
+The `linearmosaic` tool in CASA combines multiple images (typically from a
+mosaic of pointings) into a single mosaic image with proper weighting.
 
 ## Method Signature
 
@@ -24,12 +25,14 @@ lm.makemosaic(
 **Description:** List of CASA image paths to combine into mosaic.
 
 **Requirements:**
+
 - Must be regridded to a common coordinate system before calling `makemosaic()`
 - Can be CASA image directories (`.image`) or FITS files (converted internally)
 - All images must have compatible coordinate systems
 - Images should cover overlapping regions of the sky
 
 **Example:**
+
 ```python
 images = [
     "/path/to/tile1.image",
@@ -43,11 +46,14 @@ images = [
 **Description:** List of weight images corresponding to each input image.
 
 **Requirements:**
+
 - Must match the order of the `images` list (one weight image per input image)
 - Must be regridded to the same coordinate system as the input images
-- Typically primary beam (PB) images, but can be noise weights or uniform weights
+- Typically primary beam (PB) images, but can be noise weights or uniform
+  weights
 
 **Example:**
+
 ```python
 weightimages = [
     "/path/to/tile1.pb.image",   # PB image for tile1
@@ -61,19 +67,20 @@ weightimages = [
 **Description:** Controls whether input images are PB-corrected or not.
 
 **Values:**
+
 - **`0`**: Images are **NOT PB-corrected**
   - `linearmosaic` will apply PB correction internally
   - Use with uncorrected images
   - Recommended when input images are raw (not divided by PB)
-  
 - **`1`**: Images **ARE PB-corrected** (default)
   - `linearmosaic` assumes images are already divided by PB
   - Use with PB-corrected images
-  - **WARNING:** If images are not actually PB-corrected, this will cause artifacts
-  
+  - **WARNING:** If images are not actually PB-corrected, this will cause
+    artifacts
 - **`2`**: Other weighting scheme (less common, rarely used)
 
 **Example:**
+
 ```python
 # For uncorrected images:
 imageweighttype=0  # Let linearmosaic handle PB correction
@@ -87,20 +94,20 @@ imageweighttype=1  # Images already corrected
 **Description:** Controls the type of weight images provided.
 
 **Values:**
+
 - **`0`**: Uniform weights
   - All pixels weighted equally
   - Rarely used for mosaics
-  
 - **`1`**: Primary beam (PB) weights (default)
   - Weight images contain PB response values
   - Higher weight at center, lower at edges
   - Most common for radio astronomy mosaics
-  
 - **`2`**: Noise weights (inverse variance)
   - Weight images contain inverse variance values
   - Used when noise varies across images
 
 **Example:**
+
 ```python
 # For PB weight images:
 weighttype=1  # Weight images are PB response values
@@ -123,6 +130,7 @@ lm.makemosaic(
 ```
 
 **What this does:**
+
 - Tells `linearmosaic` that input images are uncorrected
 - Provides PB weight images
 - `linearmosaic` applies PB correction internally using optimal weighting
@@ -139,38 +147,50 @@ lm.makemosaic(
 ```
 
 **What this does:**
+
 - Tells `linearmosaic` that input images are already PB-corrected
 - Provides PB weight images for weighting
 - `linearmosaic` combines without additional PB correction
 
 ## Important Notes
 
-1. **Images must be regridded first:** All input images and weight images must be regridded to a common coordinate system before calling `makemosaic()`. Use `imregrid` for this.
+1. **Images must be regridded first:** All input images and weight images must
+   be regridded to a common coordinate system before calling `makemosaic()`. Use
+   `imregrid` for this.
 
-2. **DSA-110 Pipeline Default:** The DSA-110 pipeline uses `imageweighttype=0` by default in `_build_weighted_mosaic_linearmosaic()`. This ensures `linearmosaic` handles PB correction internally, avoiding artifacts from incorrectly assuming images are already PB-corrected.
+2. **DSA-110 Pipeline Default:** The DSA-110 pipeline uses `imageweighttype=0`
+   by default in `_build_weighted_mosaic_linearmosaic()`. This ensures
+   `linearmosaic` handles PB correction internally, avoiding artifacts from
+   incorrectly assuming images are already PB-corrected.
 
-3. **Coordinate system:** The output coordinate system is defined by `defineoutputimage()` before calling `makemosaic()`.
+3. **Coordinate system:** The output coordinate system is defined by
+   `defineoutputimage()` before calling `makemosaic()`.
 
-4. **Order matters:** The `weightimages` list must match the order of the `images` list.
+4. **Order matters:** The `weightimages` list must match the order of the
+   `images` list.
 
-5. **PB Correction:** If you're unsure whether images are PB-corrected, use `imageweighttype=0` to let `linearmosaic` handle it. Incorrectly setting `imageweighttype=1` with uncorrected images will cause artifacts.
+5. **PB Correction:** If you're unsure whether images are PB-corrected, use
+   `imageweighttype=0` to let `linearmosaic` handle it. Incorrectly setting
+   `imageweighttype=1` with uncorrected images will cause artifacts.
 
 ## Common Issues
 
 ### Issue: Semi-circular patterns at tile edges
 
-**Cause:** Using `imageweighttype=1` with images that are not actually PB-corrected.
+**Cause:** Using `imageweighttype=1` with images that are not actually
+PB-corrected.
 
-**Solution:** Use `imageweighttype=0` with uncorrected images and let `linearmosaic` handle PB correction.
+**Solution:** Use `imageweighttype=0` with uncorrected images and let
+`linearmosaic` handle PB correction.
 
 ### Issue: Sources not visible in mosaic
 
 **Cause:** Incorrect PB correction or wrong `imageweighttype` setting.
 
-**Solution:** Verify images are actually PB-corrected if using `imageweighttype=1`, or use `imageweighttype=0` with uncorrected images.
+**Solution:** Verify images are actually PB-corrected if using
+`imageweighttype=1`, or use `imageweighttype=0` with uncorrected images.
 
 ## References
 
 - [CASA linearmosaic documentation](https://casadocs.readthedocs.io/en/stable/api/tt/casatools.linearmosaic.html)
 - CASA source code: `LinearMosaic.h` (for detailed implementation)
-

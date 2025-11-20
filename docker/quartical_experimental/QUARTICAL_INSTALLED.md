@@ -14,6 +14,7 @@ QuartiCal has been successfully installed in the Docker container!
 ## Note on Dependencies
 
 There is a version conflict warning:
+
 - `cupy` requires `numpy<1.25`
 - QuartiCal installed `numpy 2.0.2`
 

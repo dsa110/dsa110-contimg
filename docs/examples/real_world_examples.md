@@ -1,6 +1,7 @@
 # Real-World Pipeline Examples
 
-This document provides real-world examples of using the DSA-110 Continuum Imaging Pipeline.
+This document provides real-world examples of using the DSA-110 Continuum
+Imaging Pipeline.
 
 ## Example 1: Basic Observation Processing
 
@@ -68,7 +69,7 @@ result = orchestrator.execute(context)
 if result.status == PipelineStatus.COMPLETED:
     image_path = result.context.outputs["image_path"]
     validation_results = result.context.outputs["validation_results"]
-    
+
     print(f"Image created: {image_path}")
     print(f"Validation status: {validation_results['status']}")
 else:
@@ -95,14 +96,14 @@ def process_observation(observation_path: str, config: PipelineConfig):
         StageDefinition("calibration", CalibrationStage(config), ["calibration_solve"]),
         StageDefinition("imaging", ImagingStage(config), ["calibration"]),
     ]
-    
+
     orchestrator = PipelineOrchestrator(stages)
-    
+
     context = PipelineContext(
         config=config,
         inputs={"input_path": observation_path}
     )
-    
+
     result = orchestrator.execute(context)
     return result
 
@@ -124,7 +125,7 @@ with ThreadPoolExecutor(max_workers=4) as executor:
         executor.submit(process_observation, str(obs), config)
         for obs in observations
     ]
-    
+
     results = [f.result() for f in futures]
 
 # Check results
@@ -148,32 +149,32 @@ from astropy.io import fits
 
 class SourceDetectionStage(PipelineStage):
     """Detect sources in FITS images."""
-    
+
     def __init__(self, config: PipelineConfig):
         self.config = config
-    
+
     def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
         if "image_path" not in context.outputs:
             return False, "image_path required in context.outputs"
-        
+
         image_path = context.outputs["image_path"]
         if not Path(image_path).exists():
             return False, f"Image file not found: {image_path}"
-        
+
         return True, None
-    
+
     def execute(self, context: PipelineContext) -> PipelineContext:
         image_path = context.outputs["image_path"]
-        
+
         # Load image
         with fits.open(image_path) as hdul:
             data = hdul[0].data
             header = hdul[0].header
-        
+
         # Detect sources (simplified example)
         # In practice, use proper source detection algorithm
         sources = detect_sources(data, header, threshold=5.0)  # 5σ threshold
-        
+
         # Convert to DataFrame
         sources_df = pd.DataFrame({
             "ra_deg": sources["ra"],
@@ -181,9 +182,9 @@ class SourceDetectionStage(PipelineStage):
             "flux_jy": sources["flux"],
             "snr": sources["snr"]
         })
-        
+
         return context.with_output("detected_sources", sources_df)
-    
+
     def get_name(self) -> str:
         return "source_detection"
 
@@ -219,14 +220,14 @@ orchestrator = PipelineOrchestrator(
 # Execute with error handling
 try:
     result = orchestrator.execute(context)
-    
+
     if result.status == PipelineStatus.FAILED:
         # Check which stages failed
         for stage_name, stage_result in result.stage_results.items():
             if stage_result.status == StageStatus.FAILED:
                 print(f"Stage {stage_name} failed after {stage_result.retry_count} retries")
                 print(f"Error: {stage_result.error}")
-                
+
                 # Handle specific stage failures
                 if stage_name == "conversion":
                     # Try alternative conversion method
@@ -234,7 +235,7 @@ try:
                 elif stage_name == "calibration":
                     # Use fallback calibration
                     pass
-                    
+
 except Exception as e:
     print(f"Pipeline execution failed: {e}")
     # Cleanup, notify, etc.
@@ -247,31 +248,31 @@ Skip stages based on configuration or context.
 ```python
 class ConditionalValidationStage(PipelineStage):
     """Validation stage that can be skipped."""
-    
+
     def __init__(self, config: PipelineConfig):
         self.config = config
-    
+
     def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
         # Skip if validation disabled
         if not self.config.validation.enabled:
             return False, "Validation disabled in configuration"
-        
+
         if "image_path" not in context.outputs:
             return False, "image_path required"
-        
+
         return True, None
-    
+
     def execute(self, context: PipelineContext) -> PipelineContext:
         # Check if already validated
         if "validation_results" in context.outputs:
             return context  # Skip if already done
-        
+
         # Perform validation
         image_path = context.outputs["image_path"]
         results = run_validation(image_path)
-        
+
         return context.with_output("validation_results", results)
-    
+
     def get_name(self) -> str:
         return "validation"
 
@@ -289,16 +290,16 @@ from dsa110_contimg.pipeline.observability import PipelineObserver
 
 class CustomObserver(PipelineObserver):
     """Custom observer for monitoring."""
-    
+
     def on_pipeline_start(self, context: PipelineContext):
         print(f"Pipeline started: {context.job_id}")
-    
+
     def on_stage_start(self, stage_name: str, context: PipelineContext):
         print(f"Stage started: {stage_name}")
-    
+
     def on_stage_end(self, stage_name: str, context: PipelineContext, duration: float):
         print(f"Stage completed: {stage_name} in {duration:.2f}s")
-    
+
     def on_pipeline_end(self, result):
         print(f"Pipeline completed: {result.status}")
 
@@ -322,21 +323,21 @@ import sqlite3
 
 class DatabaseStorageStage(PipelineStage):
     """Store pipeline results in database."""
-    
+
     def __init__(self, config: PipelineConfig):
         self.config = config
-    
+
     def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
         if "image_path" not in context.outputs:
             return False, "image_path required"
         return True, None
-    
+
     def execute(self, context: PipelineContext) -> PipelineContext:
         image_path = context.outputs["image_path"]
-        
+
         # Ensure database exists
         db_path = ensure_products_db(context.config.paths.output_dir)
-        
+
         # Store image metadata
         with sqlite3.connect(db_path) as conn:
             conn.execute("""
@@ -344,9 +345,9 @@ class DatabaseStorageStage(PipelineStage):
                 VALUES (?, datetime('now'), ?)
             """, (image_path, context.job_id))
             conn.commit()
-        
+
         return context.with_output("db_path", db_path)
-    
+
     def get_name(self) -> str:
         return "database_storage"
 
@@ -391,27 +392,27 @@ from pathlib import Path
 
 class CheckpointStage(PipelineStage):
     """Save pipeline state for recovery."""
-    
+
     def __init__(self, config: PipelineConfig):
         self.config = config
-    
+
     def execute(self, context: PipelineContext) -> PipelineContext:
         checkpoint_dir = Path(context.config.paths.output_dir) / "checkpoints"
         checkpoint_dir.mkdir(parents=True, exist_ok=True)
-        
+
         checkpoint_path = checkpoint_dir / f"checkpoint_{context.job_id}.pkl"
-        
+
         # Save context state
         checkpoint_data = {
             "context": context,
             "timestamp": datetime.now().isoformat()
         }
-        
+
         with open(checkpoint_path, "wb") as f:
             pickle.dump(checkpoint_data, f)
-        
+
         return context.with_output("checkpoint_path", str(checkpoint_path))
-    
+
     def get_name(self) -> str:
         return "checkpoint"
 
@@ -434,7 +435,7 @@ Implement custom error recovery logic.
 ```python
 class ResilientImagingStage(ImagingStage):
     """Imaging stage with custom error recovery."""
-    
+
     def execute(self, context: PipelineContext) -> PipelineContext:
         try:
             return super().execute(context)
@@ -442,12 +443,12 @@ class ResilientImagingStage(ImagingStage):
             # Try fallback imaging parameters
             logger.warning(f"Imaging failed with standard parameters: {e}")
             logger.info("Trying fallback imaging parameters")
-            
+
             # Use more conservative parameters
             fallback_config = self.config.copy()
             fallback_config.imaging.niter = 500  # Fewer iterations
             fallback_config.imaging.threshold = "0.01Jy"  # Higher threshold
-            
+
             # Retry with fallback
             fallback_stage = ImagingStage(fallback_config)
             return fallback_stage.execute(context)
@@ -465,4 +466,3 @@ stages = [
 - [Creating Pipeline Stages](../how-to/create_pipeline_stage.md)
 - [Testing Guide](../how-to/testing.md)
 - [Troubleshooting Guide](../how-to/troubleshooting.md)
-

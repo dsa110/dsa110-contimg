@@ -2,7 +2,10 @@
 
 ## Overview
 
-This guide describes the systematic methodology for determining optimal thresholds and parameters for the DSA-110 AOFlagger Lua strategy. The process is iterative, data-driven, and uses statistical validation to ensure both effective RFI removal and minimal data loss.
+This guide describes the systematic methodology for determining optimal
+thresholds and parameters for the DSA-110 AOFlagger Lua strategy. The process is
+iterative, data-driven, and uses statistical validation to ensure both effective
+RFI removal and minimal data loss.
 
 ## Optimization Algorithm
 
@@ -16,6 +19,7 @@ This guide describes the systematic methodology for determining optimal threshol
    - Ideally 5-10 minutes of data
 
 2. **Run baseline flagging**
+
    ```bash
    # Current default strategy
    python -m dsa110_contimg.calibration.cli flag \
@@ -49,15 +53,18 @@ local base_threshold = 0.5  -- Test value
 ```
 
 **Metrics to track:**
+
 - Flagging percentage vs threshold
 - Calibration SNR vs threshold
 - Image noise vs threshold
 
 **Expected behavior:**
+
 - Lower threshold → more flags, lower noise, risk of false positives
 - Higher threshold → fewer flags, higher noise, risk of missed RFI
 
 **Optimal selection criteria:**
+
 - Find threshold where flagging percentage plateaus (diminishing returns)
 - Ensure calibration SNR ≥ 50 (for bright calibrators)
 - Ensure image noise is within 10% of CASA results
@@ -71,11 +78,13 @@ local transient_threshold_factor = 0.5  -- Test value
 ```
 
 **Metrics to track:**
+
 - Transient RFI detection rate
 - Time-variable flagging patterns
 - Impact on satellite RFI (GPS, etc.)
 
 **Optimal selection:**
+
 - Lower if transient RFI is common (satellites, sporadic interference)
 - Higher if RFI is mostly static/persistent
 
@@ -88,11 +97,13 @@ local iteration_count = 2  -- Test value
 ```
 
 **Metrics to track:**
+
 - Processing time vs iteration count
 - Flagging completeness (does more iterations catch more RFI?)
 - Diminishing returns analysis
 
 **Optimal selection:**
+
 - Typically 3 iterations is optimal (good balance)
 - More iterations only if RFI is very subtle
 - Fewer iterations if processing time is critical
@@ -106,11 +117,13 @@ local frequency_resize_factor = 0.5  -- Test value
 ```
 
 **Metrics to track:**
+
 - Broadband RFI detection
 - Impact on narrow-band RFI (may be suppressed)
 - Bandpass shape preservation
 
 **Optimal selection:**
+
 - Higher if RFI is broadband
 - Lower if RFI is narrow-band (specific channels)
 
@@ -155,9 +168,11 @@ local frequency_resize_factor = 0.5  -- Test value
 ### Primary Metrics
 
 1. **Flagging Percentage**
+
    ```python
    flagged_fraction = flagged_points / total_points
    ```
+
    - **Target range:** 2-10% (depends on RFI environment)
    - **Too high (>20%):** Over-flagging, losing data
    - **Too low (<1%):** Under-flagging, RFI may remain
@@ -215,18 +230,18 @@ def evaluate_flagging(ms_path, strategy_path, params):
         '-strategy', strategy_path,
         ms_path
     ], check=True)
-    
+
     # Calculate metrics
     with table(ms_path, readonly=True) as tb:
         flags = tb.getcol('FLAG')
         total = flags.size
         flagged = np.sum(flags)
         flag_pct = flagged / total * 100
-    
+
     # Run calibration to get SNR
     # ... calibration code ...
     # bp_snr = get_bandpass_snr(ms_path)
-    
+
     return {
         'flag_pct': flag_pct,
         # 'bp_snr': bp_snr,
@@ -238,11 +253,11 @@ def optimize_parameters(test_ms, strategy_template):
     # Parameter ranges
     base_thresholds = np.arange(0.5, 2.1, 0.2)
     transient_factors = np.arange(0.5, 2.1, 0.25)
-    
+
     best_score = -np.inf
     best_params = None
     results = []
-    
+
     for base_thr in base_thresholds:
         for trans_fac in transient_factors:
             # Create strategy with these parameters
@@ -251,23 +266,23 @@ def optimize_parameters(test_ms, strategy_template):
                 'transient_threshold_factor': trans_fac
             }
             strategy_path = create_strategy(strategy_template, params)
-            
+
             # Evaluate
             metrics = evaluate_flagging(test_ms, strategy_path, params)
-            
+
             # Score (example: maximize calibration SNR, minimize flagging)
             score = metrics.get('bp_snr', 0) - metrics['flag_pct'] * 0.1
-            
+
             results.append({
                 'params': params,
                 'metrics': metrics,
                 'score': score
             })
-            
+
             if score > best_score:
                 best_score = score
                 best_params = params
-    
+
     return best_params, results
 
 if __name__ == '__main__':
@@ -331,10 +346,12 @@ Always compare final results with CASA `tfcrop+rflag`:
 ### Pattern 1: High RFI Environment
 
 **Symptoms:**
+
 - Flagging < 5% but RFI still visible
 - Calibration solutions have high scatter
 
 **Optimization:**
+
 - Lower `base_threshold` (0.7-0.8)
 - Lower `transient_threshold_factor` (0.7-0.8)
 - Increase `iteration_count` (4-5)
@@ -342,10 +359,12 @@ Always compare final results with CASA `tfcrop+rflag`:
 ### Pattern 2: Low RFI Environment
 
 **Symptoms:**
+
 - Flagging > 10% but little visible RFI
 - Calibration SNR is low (too much data flagged)
 
 **Optimization:**
+
 - Raise `base_threshold` (1.2-1.5)
 - Raise `transient_threshold_factor` (1.2-1.5)
 - Decrease `iteration_count` (2)
@@ -353,20 +372,24 @@ Always compare final results with CASA `tfcrop+rflag`:
 ### Pattern 3: Transient RFI (Satellites)
 
 **Symptoms:**
+
 - Time-variable flagging patterns
 - Brief spikes in flagging percentage
 
 **Optimization:**
+
 - Lower `transient_threshold_factor` (0.5-0.7)
 - Keep `base_threshold` moderate (1.0-1.2)
 
 ### Pattern 4: Broadband RFI
 
 **Symptoms:**
+
 - Flags clustered in frequency ranges
 - Multiple adjacent channels flagged
 
 **Optimization:**
+
 - Increase `frequency_resize_factor` (1.5-2.0)
 - May need custom frequency-dependent thresholds
 
@@ -377,7 +400,8 @@ Always compare final results with CASA `tfcrop+rflag`:
 3. **Document changes:** Keep track of parameter changes and their effects
 4. **Compare with CASA:** Always validate against CASA results
 5. **Monitor over time:** RFI environment may change seasonally
-6. **Telescope-specific tuning:** Different telescopes may need different parameters
+6. **Telescope-specific tuning:** Different telescopes may need different
+   parameters
 
 ## Summary
 
@@ -389,5 +413,5 @@ The optimization algorithm follows this systematic approach:
 4. **Validation:** Verify on independent datasets
 5. **Iteration:** Refine based on results
 
-**Key principle:** Balance between RFI removal (high flagging) and data preservation (low flagging) while maintaining calibration and image quality.
-
+**Key principle:** Balance between RFI removal (high flagging) and data
+preservation (low flagging) while maintaining calibration and image quality.

@@ -2,7 +2,8 @@
 
 ## Overview
 
-Generate FITS and PNG images from sky models for visualization and quality checking.
+Generate FITS and PNG images from sky models for visualization and quality
+checking.
 
 ## Quick Start
 
@@ -32,6 +33,7 @@ fits_path, png_path = write_skymodel_images(
 Generate both FITS and PNG images from a sky model.
 
 **Parameters:**
+
 - `sky`: pyradiosky SkyModel object
 - `base_path`: Base path (will add .fits and .png extensions)
 - `image_size`: (width, height) in pixels (default: (512, 512))
@@ -41,6 +43,7 @@ Generate both FITS and PNG images from a sky model.
 - `beam_fwhm_arcsec`: Optional beam FWHM for convolution (default: None)
 
 **Returns:**
+
 - `(fits_path, png_path)` tuple
 
 ### `write_skymodel_fits()`
@@ -87,10 +90,10 @@ fits_path, png_path = write_skymodel_images(
 ## Implementation Complexity
 
 **Low complexity** - The implementation is straightforward:
+
 - Uses astropy for WCS and FITS I/O
 - Uses matplotlib for PNG visualization
 - Simple point source placement
 - Optional beam convolution
 
 **Time to implement**: Already done! (~200 lines of code)
-

@@ -2,7 +2,8 @@
 
 **Coverage-Aware Catalog Selection + Smart Calibrator Pre-Selection**
 
-Implementation of Proposals #8 and #3 from the DSA-110 catalog enhancement roadmap.
+Implementation of Proposals #8 and #3 from the DSA-110 catalog enhancement
+roadmap.
 
 ---
 
@@ -24,11 +25,14 @@ Implementation of Proposals #8 and #3 from the DSA-110 catalog enhancement roadm
 ### Phase 2 Goals
 
 **Proposal #8: Coverage-Aware Catalog Selection**
+
 - Automatically recommend optimal catalogs based on sky position
 - Validate catalog choices to prevent out-of-coverage errors
-- Provide intelligent selection based on purpose (calibration, astrometry, spectral index, etc.)
+- Provide intelligent selection based on purpose (calibration, astrometry,
+  spectral index, etc.)
 
 **Proposal #3: Smart Calibrator Pre-Selection**
+
 - Pre-compute calibrator registry for 10× speedup (30s → 3s)
 - Blacklist variable sources (pulsars, AGN, transients)
 - Integrate quality scoring for calibrator selection
@@ -85,6 +89,7 @@ CATALOG_COVERAGE = {
 **Purpose**: Get prioritized list of catalogs for a position and use case
 
 **Arguments**:
+
 - `ra_deg`: Right ascension [degrees]
 - `dec_deg`: Declination [degrees]
 - `purpose`: One of:
@@ -96,12 +101,14 @@ CATALOG_COVERAGE = {
   - `"transients"`: Transient/variable source searches
 
 **Returns**: List of dictionaries with keys:
+
 - `catalog_type`: Catalog identifier ("nvss", "first", etc.)
 - `priority`: Priority score (lower = better)
 - `reason`: Human-readable reason for recommendation
 - `coverage`: Coverage metadata dictionary
 
 **Example**:
+
 ```python
 from dsa110_contimg.catalog.coverage import recommend_catalogs
 
@@ -125,6 +132,7 @@ recs = recommend_catalogs(ra_deg=180.0, dec_deg=20.0, purpose="spectral_index")
 **Returns**: `(is_valid, error_message)` tuple
 
 **Example**:
+
 ```python
 from dsa110_contimg.catalog.coverage import validate_catalog_choice
 
@@ -142,6 +150,7 @@ is_valid, msg = validate_catalog_choice("nvss", ra_deg=180.0, dec_deg=-50.0)
 **Returns**: List of catalog identifiers
 
 **Example**:
+
 ```python
 from dsa110_contimg.catalog.coverage import get_available_catalogs
 
@@ -160,6 +169,7 @@ print_coverage_summary()
 ```
 
 Output:
+
 ```
 ======================================================================
 DSA-110 CATALOG COVERAGE SUMMARY
@@ -171,7 +181,7 @@ FIRST (FIRST)
   Resolution:  5.0"
   RMS:         0.15 mJy
   Best for:    astrometry, morphology, compact
-  
+
 NVSS (NVSS)
   Frequency:   1.4 GHz
   Declination: -40° to +90°
@@ -211,11 +221,12 @@ CREATE TABLE calibrator_sources (
     UNIQUE(source_name, dec_strip)
 );
 
-CREATE INDEX idx_calibrators_dec_strip 
+CREATE INDEX idx_calibrators_dec_strip
     ON calibrator_sources(dec_strip, quality_score DESC);
 ```
 
 **Key Fields**:
+
 - `quality_score`: Overall calibrator quality (0-100)
   - Based on flux, spectral index, compactness
   - Higher = better calibrator
@@ -241,6 +252,7 @@ CREATE TABLE calibrator_blacklist (
 ```
 
 **Common Reasons**:
+
 - `"pulsar"`: Known pulsar (highly variable)
 - `"variable_agn"`: Variable AGN/blazar
 - `"extended"`: Too extended for calibration
@@ -308,6 +320,7 @@ The quality score (0-100) is calculated from three components:
    - 15 pts: Unknown compactness
 
 **Example Quality Scores**:
+
 - **80-100**: Excellent calibrators (bright, flat spectrum, point source)
 - **60-80**: Good calibrators (bright, reasonable properties)
 - **40-60**: Fair calibrators (usable but non-ideal)
@@ -334,7 +347,8 @@ for cal in calibrators:
           f"quality={cal['quality_score']:.1f}")
 ```
 
-**Performance**: 
+**Performance**:
+
 - Registry query: ~3 ms
 - Direct catalog query: ~30,000 ms
 - **Speedup: 10,000×**
@@ -397,6 +411,7 @@ calibrator = recommend_calibrator_for_observation(
 ```
 
 **Observation Types**:
+
 - `"general"`: Standard imaging (min_flux=1 Jy, tolerance=5°, quality≥50)
 - `"precise"`: High-precision work (min_flux=2 Jy, tolerance=3°, quality≥70)
 - `"fast"`: Quick calibration (min_flux=0.5 Jy, tolerance=10°, quality≥40)
@@ -562,6 +577,7 @@ python tests/smoke_test_phase2.py
 ```
 
 **Expected Output**:
+
 ```
 ======================================================================
 PHASE 2 SMOKE TESTS: Coverage-Aware Selection + Smart Calibrators
@@ -668,26 +684,26 @@ manual_blacklist_source(
 
 ### Calibrator Selection Speedup
 
-| Method | Time | Notes |
-|--------|------|-------|
-| Direct catalog query | ~30,000 ms | Queries full NVSS catalog |
-| Registry lookup | ~3 ms | Pre-computed index lookup |
-| **Speedup** | **10,000×** | Production benefit |
+| Method               | Time        | Notes                     |
+| -------------------- | ----------- | ------------------------- |
+| Direct catalog query | ~30,000 ms  | Queries full NVSS catalog |
+| Registry lookup      | ~3 ms       | Pre-computed index lookup |
+| **Speedup**          | **10,000×** | Production benefit        |
 
 ### Coverage Validation
 
-| Operation | Time | Notes |
-|-----------|------|-------|
-| Coverage check | <1 ms | In-memory dictionary lookup |
-| Catalog recommendation | ~1 ms | Priority calculation |
+| Operation              | Time  | Notes                       |
+| ---------------------- | ----- | --------------------------- |
+| Coverage check         | <1 ms | In-memory dictionary lookup |
+| Catalog recommendation | ~1 ms | Priority calculation        |
 
 ### Registry Build
 
-| Catalog | Sources | Build Time |
-|---------|---------|------------|
-| NVSS (full) | ~50,000 | ~5 min |
-| FIRST | ~30,000 | ~3 min |
-| Total | ~80,000 | ~10 min |
+| Catalog     | Sources | Build Time |
+| ----------- | ------- | ---------- |
+| NVSS (full) | ~50,000 | ~5 min     |
+| FIRST       | ~30,000 | ~3 min     |
+| Total       | ~80,000 | ~10 min    |
 
 ---
 
@@ -698,6 +714,7 @@ manual_blacklist_source(
 **Symptom**: `select_bandpass_calibrator_fast()` returns `None`
 
 **Solution**: Build registry:
+
 ```python
 from dsa110_contimg.catalog.calibrator_registry import (
     build_calibrator_registry_from_catalog
@@ -710,6 +727,7 @@ build_calibrator_registry_from_catalog(catalog_type="nvss")
 **Symptom**: Warnings like "NVSS does not cover Dec=-50°"
 
 **Solution**: Use `recommend_catalogs()` for automatic catalog selection:
+
 ```python
 from dsa110_contimg.catalog.coverage import recommend_catalogs
 recs = recommend_catalogs(ra_deg=ra, dec_deg=dec, purpose="calibration")
@@ -721,6 +739,7 @@ recs = recommend_catalogs(ra_deg=ra, dec_deg=dec, purpose="calibration")
 **Symptom**: Blacklisted sources still returned
 
 **Solution**: Re-run blacklist update:
+
 ```python
 from dsa110_contimg.catalog.blacklist_sources import run_full_blacklist_update
 run_full_blacklist_update()
@@ -730,9 +749,12 @@ run_full_blacklist_update()
 
 ## References
 
-- **Proposal #8**: Coverage-Aware Catalog Selection (docs/catalog_enhancement_proposals.md)
-- **Proposal #3**: Smart Calibrator Pre-Selection (docs/catalog_enhancement_proposals.md)
-- **Phase 1 Guide**: Flux Monitoring + Spectral Indices (docs/PHASE1_IMPLEMENTATION_GUIDE.md)
+- **Proposal #8**: Coverage-Aware Catalog Selection
+  (docs/catalog_enhancement_proposals.md)
+- **Proposal #3**: Smart Calibrator Pre-Selection
+  (docs/catalog_enhancement_proposals.md)
+- **Phase 1 Guide**: Flux Monitoring + Spectral Indices
+  (docs/PHASE1_IMPLEMENTATION_GUIDE.md)
 - **Catalog Overview**: All-catalog documentation (docs/CATALOG_OVERVIEW.md)
 
 ---

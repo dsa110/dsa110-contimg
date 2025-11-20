@@ -23,7 +23,9 @@ QuartiCal has been successfully installed in the Docker container!
 ## Known Issues
 
 ### CuPy/Numpy Version Conflict
-- **Warning**: `cupy 10.4.0` requires `numpy<1.25`, but QuartiCal installed `numpy 2.0.2`
+
+- **Warning**: `cupy 10.4.0` requires `numpy<1.25`, but QuartiCal installed
+  `numpy 2.0.2`
 - **Impact**: GPU operations with CuPy may not work
 - **Workaround**: CPU operations work fine (QuartiCal can run in CPU mode)
 - **Note**: This doesn't affect QuartiCal's core functionality
@@ -44,7 +46,8 @@ goquartical <config_file>
 
 1. ✅ QuartiCal installed
 2. ⏭️ Create QuartiCal configuration for calibration
-3. ⏭️ Test QuartiCal on MS file (`/scratch/ms/timesetv3/caltables/2025-10-29T13:54:17.cal.ms`)
+3. ⏭️ Test QuartiCal on MS file
+   (`/scratch/ms/timesetv3/caltables/2025-10-29T13:54:17.cal.ms`)
 4. ⏭️ Compare results with CASA
 
 ## Advantages Over CubiCal

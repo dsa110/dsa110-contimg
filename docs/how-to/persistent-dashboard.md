@@ -1,12 +1,16 @@
 # Running the Dashboard Persistently on HPC
 
-When running the dashboard on a remote HPC server, you need to ensure it continues running after you disconnect your SSH session. This guide covers several methods to achieve this.
+When running the dashboard on a remote HPC server, you need to ensure it
+continues running after you disconnect your SSH session. This guide covers
+several methods to achieve this.
 
 ## Quick Start
 
 ### Prerequisites
 
-**Important:** If you need to rebuild the frontend (e.g., after code changes), use `make frontend-build` which will use casa6's Node.js v22.6.0 (or Docker as fallback):
+**Important:** If you need to rebuild the frontend (e.g., after code changes),
+use `make frontend-build` which will use casa6's Node.js v22.6.0 (or Docker as
+fallback):
 
 ```bash
 # Build frontend using casa6 Node.js (preferred) or Docker (fallback)
@@ -73,6 +77,7 @@ tmux new-session -d -s dsa110-dashboard \
 ```
 
 Or use the helper script:
+
 ```bash
 bash scripts/start-dashboard-tmux.sh
 ```
@@ -120,6 +125,7 @@ screen -dmS dsa110-dashboard \
 ```
 
 Or use the helper script:
+
 ```bash
 bash scripts/start-dashboard-screen.sh
 ```
@@ -242,19 +248,21 @@ tmux new-session -d -s ssh-tunnel \
 ### Dashboard Not Accessible
 
 1. **Check if the service is running:**
+
    ```bash
    # For tmux/screen
    tmux ls
    screen -ls
-   
+
    # For systemd
    sudo systemctl status contimg-api.service
-   
+
    # Check process
    ps aux | grep uvicorn
    ```
 
 2. **Check port binding:**
+
    ```bash
    netstat -tlnp | grep 8000
    # or
@@ -262,6 +270,7 @@ tmux new-session -d -s ssh-tunnel \
    ```
 
 3. **Check firewall rules:**
+
    ```bash
    # On the HPC server
    sudo ufw status
@@ -270,10 +279,11 @@ tmux new-session -d -s ssh-tunnel \
    ```
 
 4. **Check logs:**
+
    ```bash
    # tmux/screen logs
    tail -f /data/dsa110-contimg/state/logs/dashboard*.log
-   
+
    # systemd logs
    sudo journalctl -u contimg-api.service -n 50
    ```
@@ -281,12 +291,14 @@ tmux new-session -d -s ssh-tunnel \
 ### Service Keeps Dying
 
 1. **Check environment variables:**
+
    ```bash
    source /data/dsa110-contimg/ops/systemd/contimg.env
    env | grep CONTIMG
    ```
 
 2. **Check Python path:**
+
    ```bash
    which uvicorn
    # Should be: /opt/miniforge/envs/casa6/bin/uvicorn
@@ -302,12 +314,14 @@ tmux new-session -d -s ssh-tunnel \
 ### Cannot Access from Local Machine
 
 1. **Verify SSH tunnel:**
+
    ```bash
    # On local machine
    netstat -an | grep 8000
    ```
 
 2. **Check HPC server firewall:**
+
    ```bash
    # On HPC server
    sudo iptables -L -n | grep 8000
@@ -320,24 +334,28 @@ tmux new-session -d -s ssh-tunnel \
 
 ## Best Practices
 
-1. **Use tmux or screen** for development/testing - they provide the best balance of persistence and interactivity.
+1. **Use tmux or screen** for development/testing - they provide the best
+   balance of persistence and interactivity.
 
-2. **Use systemd** for production - it provides automatic restart, logging, and boot-time startup.
+2. **Use systemd** for production - it provides automatic restart, logging, and
+   boot-time startup.
 
-3. **Set up SSH port forwarding** to access the dashboard securely from your local machine.
+3. **Set up SSH port forwarding** to access the dashboard securely from your
+   local machine.
 
 4. **Monitor logs regularly** to catch issues early.
 
-5. **Use environment files** (`contimg.env`) to manage configuration consistently.
+5. **Use environment files** (`contimg.env`) to manage configuration
+   consistently.
 
-6. **Document your setup** - note which method you're using and any customizations.
+6. **Document your setup** - note which method you're using and any
+   customizations.
 
 ## Quick Reference
 
-| Method | Best For | Requires Sudo | Auto-restart | Logs |
-|--------|----------|---------------|--------------|------|
-| tmux | Development | No | No | Manual |
-| screen | Development | No | No | Manual |
-| nohup | Quick tests | No | No | File-based |
-| systemd | Production | Yes | Yes | journalctl |
-
+| Method  | Best For    | Requires Sudo | Auto-restart | Logs       |
+| ------- | ----------- | ------------- | ------------ | ---------- |
+| tmux    | Development | No            | No           | Manual     |
+| screen  | Development | No            | No           | Manual     |
+| nohup   | Quick tests | No            | No           | File-based |
+| systemd | Production  | Yes           | Yes          | journalctl |

@@ -2,11 +2,14 @@
 
 ## Overview
 
-The pipeline now uses **pyradiosky** as the default for sky model construction. This provides better sky model management, support for multiple catalog formats, and advanced spectral modeling capabilities.
+The pipeline now uses **pyradiosky** as the default for sky model construction.
+This provides better sky model management, support for multiple catalog formats,
+and advanced spectral modeling capabilities.
 
 ## What is pyradiosky?
 
-`pyradiosky` is a Python package for creating and managing radio sky models. It provides:
+`pyradiosky` is a Python package for creating and managing radio sky models. It
+provides:
 
 - **Structured sky model representation**: Point sources and diffuse emission
 - **Multiple catalog formats**: VOTable, SkyH5, text files
@@ -19,6 +22,7 @@ The pipeline now uses **pyradiosky** as the default for sky model construction. 
 ### 1. Better Sky Model Management
 
 **Before (manual component lists):**
+
 ```python
 # Manual construction, error-prone
 from casatools import componentlist
@@ -27,6 +31,7 @@ cl.addcomponent(dir="J2000 11h00m00s +55d00m00s", flux=2.3, ...)
 ```
 
 **Now (pyradiosky):**
+
 ```python
 # Structured, type-safe, well-tested
 from pyradiosky import SkyModel
@@ -36,6 +41,7 @@ sky = SkyModel.from_votable_catalog('nvss.vot')
 ### 2. Multiple Catalog Formats
 
 pyradiosky supports reading from:
+
 - **VOTable**: Standard astronomical catalog format
 - **SkyH5**: HDF5-based sky model format
 - **Text files**: Custom formats
@@ -69,7 +75,7 @@ sky.to_altaz(time, location)
 # Generate FITS/PNG images from sky models
 from dsa110_contimg.calibration.skymodel_image import write_skymodel_images
 
-write_skymodel_images(sky, 'output', image_size=(1024, 1024), 
+write_skymodel_images(sky, 'output', image_size=(1024, 1024),
                       pixel_scale_arcsec=5.0, beam_fwhm_arcsec=45.0)
 ```
 
@@ -77,17 +83,18 @@ write_skymodel_images(sky, 'output', image_size=(1024, 1024),
 
 ### Basic Usage (Automatic - No Changes Required)
 
-The pipeline automatically uses pyradiosky internally. Your existing code works as-is:
+The pipeline automatically uses pyradiosky internally. Your existing code works
+as-is:
 
 ```python
 from dsa110_contimg.calibration.skymodels import make_point_cl, make_nvss_component_cl
 
 # Single point source (uses pyradiosky internally)
-cl = make_point_cl('source', ra_deg, dec_deg, flux_jy=2.3, 
+cl = make_point_cl('source', ra_deg, dec_deg, flux_jy=2.3,
                    freq_ghz=1.4, out_path='source.cl')
 
 # NVSS sources (uses pyradiosky internally)
-cl = make_nvss_component_cl(ra_deg, dec_deg, radius_deg=0.2, 
+cl = make_nvss_component_cl(ra_deg, dec_deg, radius_deg=0.2,
                             min_mjy=10.0, freq_ghz=1.4, out_path='nvss.cl')
 ```
 
@@ -167,25 +174,28 @@ cl_path = convert_skymodel_to_componentlist(sky, out_path='nvss.cl')
 ### Custom Workflow
 
 1. **Create/Read Sky Model**:
+
    ```python
    sky = SkyModel.from_votable_catalog('catalog.vot')
    # Or: sky = make_nvss_skymodel(...)
    ```
 
 2. **Manipulate Sky Model** (optional):
+
    ```python
    # Filter by flux
    sky.select(component_inds=sky.stokes[0, 0, :] > 0.01 * u.Jy)
-   
+
    # Transform coordinates
    sky.to_galactic()
-   
+
    # Add spectral index
    sky.spectral_type = 'spectral_index'
    sky.spectral_index = -0.7
    ```
 
 3. **Convert to Componentlist**:
+
    ```python
    cl_path = convert_skymodel_to_componentlist(sky, out_path='model.cl')
    ```
@@ -202,11 +212,13 @@ cl_path = convert_skymodel_to_componentlist(sky, out_path='nvss.cl')
 - `make_point_skymodel()`: Create pyradiosky SkyModel for single source
 - `make_nvss_skymodel()`: Create pyradiosky SkyModel from NVSS catalog
 - `make_point_cl()`: Create componentlist (uses pyradiosky internally)
-- `make_nvss_component_cl()`: Create componentlist from NVSS (uses pyradiosky internally)
+- `make_nvss_component_cl()`: Create componentlist from NVSS (uses pyradiosky
+  internally)
 
 ### Conversion
 
-- `convert_skymodel_to_componentlist()`: Convert pyradiosky SkyModel → CASA componentlist
+- `convert_skymodel_to_componentlist()`: Convert pyradiosky SkyModel → CASA
+  componentlist
 
 ### Application
 
@@ -318,13 +330,15 @@ print(f"PNG: {png_path}")
 
 ## Migration Notes
 
-**No migration required!** The API remains the same. All existing code continues to work:
+**No migration required!** The API remains the same. All existing code continues
+to work:
 
 - `make_point_cl()` - Same signature, uses pyradiosky internally
 - `make_nvss_component_cl()` - Same signature, uses pyradiosky internally
 - `ft_from_cl()` - Unchanged
 
-The only change is that pyradiosky is now used internally, providing better sky model management without requiring code changes.
+The only change is that pyradiosky is now used internally, providing better sky
+model management without requiring code changes.
 
 ## Dependencies
 
@@ -345,6 +359,7 @@ The only change is that pyradiosky is now used internally, providing better sky 
 ### Empty Sky Model
 
 If `make_nvss_skymodel()` returns an empty sky model:
+
 - Check that sources exist in the specified region
 - Verify `min_mjy` threshold isn't too high
 - Check `radius_deg` is large enough
@@ -352,6 +367,7 @@ If `make_nvss_skymodel()` returns an empty sky model:
 ### Componentlist Conversion Issues
 
 If conversion fails:
+
 - Verify sky model has valid coordinates
 - Check that flux values are positive
 - Ensure frequency is specified
@@ -362,4 +378,3 @@ If conversion fails:
 - [Analysis: pyradiosky vs Component List](../analysis/pyradiosky_vs_componentlist.md)
 - [Final Recommendation](../analysis/FINAL_RECOMMENDATION.md)
 - [Changelog: pyradiosky Default Update](../changelog/PYRADIOSKY_DEFAULT_UPDATE.md)
-

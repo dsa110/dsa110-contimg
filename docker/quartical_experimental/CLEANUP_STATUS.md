@@ -3,13 +3,15 @@
 ## Temporary Files: ✓ CLEANED
 
 Removed temporary files from `/tmp/`:
-- docker_build*.log files
+
+- docker_build\*.log files
 - Temporary markdown documentation files
 - Test assessment files
 
 ## Docker Setup: ✓ ORGANIZED
 
 ### Files in `docker/cubical_experimental/`:
+
 - ✓ Dockerfile (maintained)
 - ✓ docker-compose.yml (maintained)
 - ✓ README.md (documentation)
@@ -21,12 +23,14 @@ Removed temporary files from `/tmp/`:
 - ✓ .gitignore (version control)
 
 ### Docker Images:
+
 - ✓ `dsa110-cubical:experimental` - Main image (7.05 GB)
 - ⚠️ Dangling images (`<none>` tags) - Can be cleaned with `docker image prune`
 
 ## Repository Structure: ✓ CLEAN
 
 All files are properly organized:
+
 - Docker setup in `docker/cubical_experimental/`
 - Experimental module in `src/dsa110_contimg/calibration/cubical_experimental/`
 - No stray temporary files in repository

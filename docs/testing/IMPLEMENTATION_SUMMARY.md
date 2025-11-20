@@ -2,25 +2,30 @@
 
 ## Overview
 
-A comprehensive testing approach has been implemented for the DSA-110 Continuum Imaging Dashboard, designed to work with Docker on Ubuntu 18.x systems.
+A comprehensive testing approach has been implemented for the DSA-110 Continuum
+Imaging Dashboard, designed to work with Docker on Ubuntu 18.x systems.
 
 ## What Was Created
 
 ### 1. Test Documentation
 
 #### [COMPREHENSIVE_TESTING_PLAN.md](./COMPREHENSIVE_TESTING_PLAN.md)
+
 - **200+ manual test cases** covering all clickable features
 - Organized by page/feature with expected outcomes
 - Test execution strategy and success criteria
-- Covers: Navigation, Dashboard, Control, Data Browser, Data Detail, Streaming, Mosaics, Sources, Sky View
+- Covers: Navigation, Dashboard, Control, Data Browser, Data Detail, Streaming,
+  Mosaics, Sources, Sky View
 
 #### [DOCKER_TESTING_GUIDE.md](./DOCKER_TESTING_GUIDE.md)
+
 - Complete Docker setup guide
 - Network configuration details
 - Troubleshooting common issues
 - CI/CD integration examples
 
 #### [QUICK_START.md](./QUICK_START.md)
+
 - Quick reference for running tests
 - Common commands and issues
 - Fast setup instructions
@@ -28,12 +33,14 @@ A comprehensive testing approach has been implemented for the DSA-110 Continuum 
 ### 2. Automated Test Suite
 
 #### E2E Test File: `../tests/e2e/dashboard.test.ts` (external file)
+
 - **50+ automated E2E tests** using Playwright
 - Tests organized by feature/page
 - Covers navigation, forms, buttons, API integration, error handling
 - Environment variable support for Docker
 
 #### Playwright Config: `../../playwright.config.ts` (external file)
+
 - Playwright configuration
 - Multi-browser support (Chromium, Firefox, WebKit)
 - Mobile viewport testing
@@ -42,11 +49,13 @@ A comprehensive testing approach has been implemented for the DSA-110 Continuum 
 ### 3. Docker Infrastructure
 
 #### Docker Test File: `../../docker/Dockerfile.test` (external file)
+
 - Node.js 22 Alpine base image
 - Playwright and Chromium pre-installed
 - Optimized for Ubuntu 18.x compatibility
 
 #### Docker Compose: `../../docker/docker-compose.test.yml` (external file)
+
 - Complete test environment setup
 - Frontend and backend services
 - Test runner container
@@ -55,12 +64,14 @@ A comprehensive testing approach has been implemented for the DSA-110 Continuum 
 ### 4. Test Execution Scripts
 
 #### Test Script: `../../scripts/run-tests.sh` (external file)
+
 - Main test execution script
 - Docker-based execution for Ubuntu 18.x
 - Service health checks
 - Multiple execution modes
 
 #### Docker Test Script: `../../scripts/run-tests-docker.sh` (external file)
+
 - Docker Compose-based execution
 - Isolated test environment
 - UI mode support
@@ -69,6 +80,7 @@ A comprehensive testing approach has been implemented for the DSA-110 Continuum 
 ## Test Coverage
 
 ### Pages Covered
+
 - ✅ Navigation Component (7 test cases)
 - ✅ Dashboard Page (2 test cases)
 - ✅ Control Page (50+ test cases)
@@ -80,6 +92,7 @@ A comprehensive testing approach has been implemented for the DSA-110 Continuum 
 - ✅ Sky View Page (10 test cases)
 
 ### Feature Categories
+
 - ✅ Navigation and routing
 - ✅ Form inputs and validation
 - ✅ Button actions and states
@@ -167,18 +180,21 @@ ls test-results/
 ## Key Features
 
 ### Docker-Based Execution
+
 - Works on Ubuntu 18.x without local Node.js
 - Isolated test environment
 - Consistent across systems
 - CI/CD ready
 
 ### Comprehensive Coverage
+
 - All clickable features tested
 - Manual and automated tests
 - Error handling verified
 - Accessibility checked
 
 ### Easy Execution
+
 - Simple script commands
 - Multiple execution modes
 - Clear documentation
@@ -187,12 +203,14 @@ ls test-results/
 ## Maintenance
 
 ### Regular Tasks
+
 - Update test cases when features change
 - Rebuild Docker image when dependencies update
 - Review and fix failing tests
 - Add tests for new features
 
 ### Best Practices
+
 - Run tests before committing
 - Keep test data up to date
 - Document test changes
@@ -201,15 +219,16 @@ ls test-results/
 ## Resources
 
 - **Quick Start**: [QUICK_START.md](./QUICK_START.md)
-- **Test Plan**: [COMPREHENSIVE_TESTING_PLAN.md](./COMPREHENSIVE_TESTING_PLAN.md)
+- **Test Plan**:
+  [COMPREHENSIVE_TESTING_PLAN.md](./COMPREHENSIVE_TESTING_PLAN.md)
 - **Docker Guide**: [DOCKER_TESTING_GUIDE.md](./DOCKER_TESTING_GUIDE.md)
 - **E2E Tests**: `../tests/e2e/README.md` (external file)
 
 ## Support
 
 For questions or issues:
+
 1. Check documentation in `docs/testing/`
 2. Review test execution logs
 3. Check Docker setup
 4. Review Playwright documentation
-

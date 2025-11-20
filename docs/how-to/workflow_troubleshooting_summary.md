@@ -4,12 +4,14 @@
 
 ## Current Status
 
-All workflow YAML files are syntactically valid, but workflows are failing during execution.
+All workflow YAML files are syntactically valid, but workflows are failing
+during execution.
 
 ## Actions Taken
 
 1. **Fixed YAML syntax errors:**
-   - Corrected indentation in `validation-tests.yml` for `export PYTHONPATH` statements
+   - Corrected indentation in `validation-tests.yml` for `export PYTHONPATH`
+     statements
    - Removed problematic `hashFiles` condition from `docs.yml`
 
 2. **Added missing dependencies:**
@@ -54,10 +56,10 @@ To identify the root cause:
 ## Minimal Working Workflow
 
 The `docs-minimal.yml` workflow is a simplified version that:
+
 - Only builds (no strict mode)
 - Only deploys on push (not PRs)
 - No link checking or mermaid tests
 - Should work if dependencies are correct
 
 Test it by manually triggering: Actions → Docs Build (Minimal) → Run workflow
-

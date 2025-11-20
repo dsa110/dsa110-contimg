@@ -2,15 +2,22 @@
 
 ## Overview
 
-The DSA-110 continuum imaging pipeline includes comprehensive validation capabilities for assessing image quality, astrometry, flux scale, source completeness, photometry, variability, mosaics, streaming, and database consistency. This guide explains how to use the validation system.
+The DSA-110 continuum imaging pipeline includes comprehensive validation
+capabilities for assessing image quality, astrometry, flux scale, source
+completeness, photometry, variability, mosaics, streaming, and database
+consistency. This guide explains how to use the validation system.
 
-**Note:** The validation system has been enhanced with a centralized configuration system and new validation modules. See [QA System Implementation](../dev/qa_system_implementation_complete.md) for details.
+**Note:** The validation system has been enhanced with a centralized
+configuration system and new validation modules. See
+[QA System Implementation](../dev/qa_system_implementation_complete.md) for
+details.
 
 ## Quick Start
 
 ### Fast Pipeline Validation (<60 seconds)
 
-For rapid validation of the entire pipeline (MS, calibration, images), use the fast validation system:
+For rapid validation of the entire pipeline (MS, calibration, images), use the
+fast validation system:
 
 ```python
 from dsa110_contimg.qa.fast_validation import ValidationMode, validate_pipeline_fast
@@ -39,11 +46,14 @@ print(f"Warnings: {result.warnings}")
 ```
 
 **Validation Modes:**
+
 - `ValidationMode.FAST`: <30s, 0.5% sampling, skip expensive checks
 - `ValidationMode.STANDARD`: <60s, 1% sampling, balanced detail/speed
 - `ValidationMode.COMPREHENSIVE`: <5min, 10% sampling, full validation
 
-See [Fast Validation Implementation](../dev/qa_fast_validation_implementation.md) for details.
+See
+[Fast Validation Implementation](../dev/qa_fast_validation_implementation.md)
+for details.
 
 ### Running Validation via API
 
@@ -116,15 +126,18 @@ result = validate_astrometry(
 
 ### 1. Astrometry Validation
 
-Validates the positional accuracy of detected sources by comparing with reference catalogs.
+Validates the positional accuracy of detected sources by comparing with
+reference catalogs.
 
 **Metrics:**
+
 - Mean RA/Dec offsets
 - RMS offset
 - Maximum offset
 - Number of matched sources
 
 **Configuration:**
+
 ```python
 from dsa110_contimg.qa.config import AstrometryConfig
 
@@ -137,6 +150,7 @@ config = AstrometryConfig(
 ```
 
 **Example:**
+
 ```python
 from dsa110_contimg.qa.catalog_validation import validate_astrometry
 from dsa110_contimg.qa.config import get_default_config
@@ -163,15 +177,18 @@ print(f"RMS offset: {result.rms_offset_arcsec:.2f} arcsec")
 
 ### 2. Flux Scale Validation
 
-Compares measured fluxes with reference catalog fluxes to assess calibration accuracy.
+Compares measured fluxes with reference catalog fluxes to assess calibration
+accuracy.
 
 **Metrics:**
+
 - Mean flux ratio (detected/catalog)
 - RMS flux ratio
 - Flux scale error percentage
 - Number of matched sources
 
 **Example:**
+
 ```python
 from dsa110_contimg.qa.catalog_validation import validate_flux_scale
 from dsa110_contimg.qa.config import get_default_config
@@ -187,9 +204,11 @@ print(f"Mean flux ratio: {result.mean_flux_ratio:.3f}")
 
 ### 3. Source Counts Validation
 
-Validates source detection completeness by comparing detected source counts with catalog.
+Validates source detection completeness by comparing detected source counts with
+catalog.
 
 **Example:**
+
 ```python
 from dsa110_contimg.qa.catalog_validation import validate_source_counts
 from dsa110_contimg.qa.config import get_default_config
@@ -208,6 +227,7 @@ print(f"Completeness: {result.completeness:.1%}")
 Validates forced photometry accuracy and consistency across images.
 
 **Example:**
+
 ```python
 from dsa110_contimg.qa.photometry_validation import validate_forced_photometry
 from dsa110_contimg.qa.config import get_default_config
@@ -225,9 +245,11 @@ print(f"Mean flux error: {result.mean_flux_error_fraction:.3f}")
 
 ### 5. Variability/ESE Validation (New)
 
-Validates variability detection and ESE (Extreme Scattering Event) candidate identification.
+Validates variability detection and ESE (Extreme Scattering Event) candidate
+identification.
 
 **Example:**
+
 ```python
 from dsa110_contimg.qa.variability_validation import (
     validate_variability_detection,
@@ -255,6 +277,7 @@ ese_result = validate_ese_detection(
 Validates mosaic image quality, overlap handling, and consistency.
 
 **Example:**
+
 ```python
 from dsa110_contimg.qa.mosaic_validation import validate_mosaic_quality
 from dsa110_contimg.qa.config import get_default_config
@@ -273,6 +296,7 @@ print(f"Seams detected: {result.n_seams_detected}/{result.n_overlaps}")
 Validates streaming pipeline continuity, latency, and data integrity.
 
 **Example:**
+
 ```python
 from dsa110_contimg.qa.streaming_validation import validate_streaming_continuity
 from dsa110_contimg.qa.config import get_default_config
@@ -296,6 +320,7 @@ print(f"Max latency: {result.max_latency_seconds:.1f}s")
 Validates database consistency, referential integrity, and data completeness.
 
 **Example:**
+
 ```python
 from dsa110_contimg.qa.database_validation import validate_database_consistency
 from dsa110_contimg.qa.config import get_default_config
@@ -313,7 +338,8 @@ print(f"Missing files: {result.n_missing_files}")
 
 ## Configuration System
 
-All validators use a centralized configuration system. Default configurations are provided, but can be customized:
+All validators use a centralized configuration system. Default configurations
+are provided, but can be customized:
 
 ```python
 from dsa110_contimg.qa.config import QAConfig, get_default_config

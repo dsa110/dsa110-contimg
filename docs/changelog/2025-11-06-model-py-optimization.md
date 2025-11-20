@@ -2,23 +2,28 @@
 
 ## Summary
 
-Major performance optimization and logging improvements to `src/dsa110_contimg/calibration/model.py`.
+Major performance optimization and logging improvements to
+`src/dsa110_contimg/calibration/model.py`.
 
 ## Changes
 
 ### Performance Optimization
-- **Vectorized `_calculate_manual_model_data()`**: Replaced row-by-row Python loop with fully vectorized NumPy operations
+
+- **Vectorized `_calculate_manual_model_data()`**: Replaced row-by-row Python
+  loop with fully vectorized NumPy operations
   - Expected speedup: 10-100x (from minutes to seconds)
   - Maintains correct per-field phase center handling
   - Preserves field selection logic
 
 ### Logging Improvements
+
 - Added comprehensive logging to all critical functions
 - Performance metrics: timing, memory usage, rows processed
 - Cache status logging for metadata operations
 - Debug logging for validation and edge cases
 
 ### Code Quality
+
 - Improved error handling with logging
 - Better cache failure handling
 - Enhanced documentation
@@ -26,6 +31,7 @@ Major performance optimization and logging improvements to `src/dsa110_contimg/c
 ## Testing
 
 ✅ All tests passed:
+
 - Vectorization logic
 - Field selection
 - Edge cases
@@ -34,6 +40,7 @@ Major performance optimization and logging improvements to `src/dsa110_contimg/c
 ## Production Status
 
 ✅ **PRODUCTION-READY & IN USE**
+
 - Integrated into calibration CLI workflow (`cli_calibrate.py`)
 - Default behavior: `use_manual=True` bypasses CASA `ft()` bugs
 - Handles all edge cases including rephasing and WSClean compatibility

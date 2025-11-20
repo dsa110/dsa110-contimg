@@ -2,13 +2,16 @@
 
 ## Overview
 
-The DSA-110 pipeline includes comprehensive quality assurance checks and alerting to ensure high-quality MS files and images with minimal human intervention.
+The DSA-110 pipeline includes comprehensive quality assurance checks and
+alerting to ensure high-quality MS files and images with minimal human
+intervention.
 
 ## Quick Start
 
 ### 1. Enable Slack Alerts
 
 Get a Slack webhook URL from your workspace:
+
 1. Go to https://api.slack.com/apps
 2. Create a new app or use existing
 3. Enable Incoming Webhooks
@@ -16,11 +19,13 @@ Get a Slack webhook URL from your workspace:
 5. Copy the webhook URL
 
 Add to `/data/dsa110-contimg/ops/systemd/contimg.env`:
+
 ```bash
 CONTIMG_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
 ```
 
 Restart services:
+
 ```bash
 sudo systemctl restart contimg-stream contimg-api
 ```
@@ -62,6 +67,7 @@ if not result.passed:
 ```
 
 **Validation Modes:**
+
 - `FAST`: <30s, aggressive sampling, skip expensive checks
 - `STANDARD`: <60s, balanced detail/speed (recommended)
 - `COMPREHENSIVE`: <5min, full validation
@@ -132,59 +138,70 @@ if passed:
 ### MS Quality Metrics
 
 **Basic Properties:**
+
 - Number of rows, antennas, baselines, channels, SPWs, fields, scans
 - Time range and MS size
 - Column presence (DATA, MODEL_DATA, CORRECTED_DATA, WEIGHT_SPECTRUM)
 
 **Data Quality:**
+
 - Fraction flagged
 - Fraction of zero amplitudes
 - Median/RMS amplitude
 - Amplitude range
 
 **UVW Validity:**
+
 - UVW presence and validity
 - Median UV distance
 - All-zeros check
 
 **Alerts Triggered:**
+
 - CRITICAL: Missing required columns, zero rows, all-zero UVW
 - WARNING: High flagging (>50%), high zero fraction (>30%)
 
 ### Calibration Quality Metrics
 
 **Solution Statistics:**
+
 - Number of solutions per antenna/SPW
 - Fraction of flagged solutions
 - Median amplitude and scatter
 - Median phase and scatter
 
 **CORRECTED_DATA Checks:**
+
 - Presence and validity
 - Calibration factor (corrected/original amplitude ratio)
 - All-zeros check
 
 **Alerts Triggered:**
+
 - ERROR: All solutions flagged, CORRECTED_DATA all zeros
 - WARNING: High flagging (>30%), unusual amplitudes, large phase scatter (>90°)
 
 ### Image Quality Metrics
 
 **Image Properties:**
+
 - Dimensions (nx, ny, channels, Stokes)
 - Image type (image, residual, psf, pb, pbcor)
 - Image size
 
 **Pixel Statistics:**
+
 - Median, RMS, min, max
 - Dynamic range (peak/RMS)
 - Peak SNR
 
 **Source Detection:**
+
 - Number of pixels above 5-sigma
 - Peak location and value
 
 **Alerts Triggered:**
+
 - ERROR: All NaN/Inf pixels, all zeros
 - WARNING: Low dynamic range (<5), low peak SNR (<5), few detections
 
@@ -275,6 +292,7 @@ Alerts are organized by pipeline stage:
 ## Rate Limiting
 
 Alerts are rate-limited to prevent spam:
+
 - Default: Max 10 alerts per category per 5 minutes
 - Suppressed alerts summarized periodically
 - Configure via AlertManager parameters
@@ -297,11 +315,13 @@ Email alerts default to ERROR and CRITICAL severity only.
 ## Viewing Alert History
 
 Via API:
+
 ```bash
 curl http://localhost:8000/api/alerts/recent?minutes=60
 ```
 
 Via Python:
+
 ```python
 from dsa110_contimg.utils.alerting import get_alert_manager
 
@@ -327,11 +347,13 @@ for alert in recent_alerts:
 ### No alerts being sent
 
 1. Check environment variable is set:
+
    ```bash
    echo $CONTIMG_SLACK_WEBHOOK_URL
    ```
 
 2. Test webhook directly:
+
    ```bash
    curl -X POST -H 'Content-type: application/json' \
      --data '{"text":"Test message"}' \
@@ -368,37 +390,37 @@ from dsa110_contimg.utils import alerting
 
 def process_observation(group_id):
     """Process one observation with full QA."""
-    
+
     # Stage 1: Convert
     alerting.info("pipeline", f"Starting conversion of {group_id}")
     ms_path = convert_uvh5_to_ms(group_id)
-    
+
     # QA: Check MS
     passed, metrics = check_ms_after_conversion(ms_path, quick_check_only=False)
     if not passed:
         alerting.critical("pipeline", f"MS quality check failed for {group_id}")
         return False
-    
+
     # Stage 2: Calibrate (if calibrator)
     if is_calibrator(ms_path):
         caltables = run_calibration(ms_path)
-        
+
         # QA: Check calibration
         passed, results = check_calibration_quality(caltables, ms_path=ms_path)
         if not passed:
             alerting.error("pipeline", f"Calibration quality check failed for {group_id}")
             return False
-    
+
     # Stage 3: Image
     artifacts = run_imaging(ms_path)
-    
+
     # QA: Check images
     for artifact in artifacts:
         if ".image" in artifact:
             passed, metrics = check_image_quality(artifact)
             if not passed:
                 alerting.error("pipeline", f"Image quality check failed: {artifact}")
-    
+
     alerting.info("pipeline", f"Successfully processed {group_id}")
     return True
 ```
@@ -411,4 +433,3 @@ def process_observation(group_id):
 4. Tune thresholds based on false positive rate
 5. Add email alerts for critical issues
 6. Document your threshold choices in operations runbook
-

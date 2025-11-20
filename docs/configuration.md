@@ -1,13 +1,16 @@
 # Configuration Reference
 
 **Last Updated:** 2025-11-12  
-**Purpose:** Comprehensive reference for all configuration options and environment variables
+**Purpose:** Comprehensive reference for all configuration options and
+environment variables
 
 ---
 
 ## Overview
 
-The DSA-110 Continuum Imaging Pipeline uses a unified configuration system based on Pydantic models. Configuration can be loaded from:
+The DSA-110 Continuum Imaging Pipeline uses a unified configuration system based
+on Pydantic models. Configuration can be loaded from:
+
 - Environment variables (primary method)
 - Configuration files (YAML/JSON)
 - Python dictionaries (for programmatic configuration)
@@ -41,76 +44,87 @@ config = PipelineConfig.from_env(required_disk_gb=100.0)
 
 These must be set for the pipeline to function:
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `PIPELINE_INPUT_DIR` | Input directory for UVH5 files | `/data/incoming` |
-| `PIPELINE_OUTPUT_DIR` | Output directory for MS files | `/data/ms` |
+| Variable              | Description                    | Example          |
+| --------------------- | ------------------------------ | ---------------- |
+| `PIPELINE_INPUT_DIR`  | Input directory for UVH5 files | `/data/incoming` |
+| `PIPELINE_OUTPUT_DIR` | Output directory for MS files  | `/data/ms`       |
 
 ### Optional Path Variables
 
-| Variable | Description | Default | Example |
-|----------|-------------|---------|---------|
-| `PIPELINE_SCRATCH_DIR` | Scratch directory for temporary files | `None` | `/stage/dsa110-contimg` |
-| `PIPELINE_STATE_DIR` | State directory for databases | `"state"` | `/data/dsa110-contimg/state` |
+| Variable               | Description                           | Default   | Example                      |
+| ---------------------- | ------------------------------------- | --------- | ---------------------------- |
+| `PIPELINE_SCRATCH_DIR` | Scratch directory for temporary files | `None`    | `/stage/dsa110-contimg`      |
+| `PIPELINE_STATE_DIR`   | State directory for databases         | `"state"` | `/data/dsa110-contimg/state` |
 
-**Note:** If `PIPELINE_STATE_DIR` is not set, databases are created in `state/` relative to the current working directory.
+**Note:** If `PIPELINE_STATE_DIR` is not set, databases are created in `state/`
+relative to the current working directory.
 
 ### Conversion Configuration
 
-| Variable | Description | Default | Range | Example |
-|----------|-------------|---------|-------|---------|
-| `PIPELINE_WRITER` | Writer strategy | `"auto"` | `auto`, `parallel-subband`, `pyuvdata` | `parallel-subband` |
-| `PIPELINE_MAX_WORKERS` | Maximum parallel workers | `4` | 1-32 | `16` |
-| `PIPELINE_EXPECTED_SUBBANDS` | Expected number of subbands | `16` | 1-32 | `16` |
-| `PIPELINE_STAGE_TO_TMPFS` | Stage files to tmpfs | `"true"` | `true`, `false` | `true` |
+| Variable                     | Description                 | Default  | Range                                  | Example            |
+| ---------------------------- | --------------------------- | -------- | -------------------------------------- | ------------------ |
+| `PIPELINE_WRITER`            | Writer strategy             | `"auto"` | `auto`, `parallel-subband`, `pyuvdata` | `parallel-subband` |
+| `PIPELINE_MAX_WORKERS`       | Maximum parallel workers    | `4`      | 1-32                                   | `16`               |
+| `PIPELINE_EXPECTED_SUBBANDS` | Expected number of subbands | `16`     | 1-32                                   | `16`               |
+| `PIPELINE_STAGE_TO_TMPFS`    | Stage files to tmpfs        | `"true"` | `true`, `false`                        | `true`             |
 
 **Validation:**
-- `PIPELINE_MAX_WORKERS` and `PIPELINE_EXPECTED_SUBBANDS` are validated to be integers between 1 and 32
+
+- `PIPELINE_MAX_WORKERS` and `PIPELINE_EXPECTED_SUBBANDS` are validated to be
+  integers between 1 and 32
 - Invalid values raise `ValueError` with clear error messages
 
 ### Calibration Configuration
 
-| Variable | Description | Default | Range | Example |
-|----------|-------------|---------|-------|---------|
-| `PIPELINE_CAL_BP_MINSNR` | Minimum SNR for bandpass calibration | `3.0` | 1.0-10.0 | `3.5` |
-| `PIPELINE_CAL_GAIN_SOLINT` | Gain solution interval | `"inf"` | String | `"inf"`, `"60s"` |
-| `PIPELINE_DEFAULT_REFANT` | Default reference antenna | `"103"` | String | `"103"` |
-| `PIPELINE_AUTO_SELECT_REFANT` | Automatically select reference antenna | `"true"` | `true`, `false` | `true` |
+| Variable                      | Description                            | Default  | Range           | Example          |
+| ----------------------------- | -------------------------------------- | -------- | --------------- | ---------------- |
+| `PIPELINE_CAL_BP_MINSNR`      | Minimum SNR for bandpass calibration   | `3.0`    | 1.0-10.0        | `3.5`            |
+| `PIPELINE_CAL_GAIN_SOLINT`    | Gain solution interval                 | `"inf"`  | String          | `"inf"`, `"60s"` |
+| `PIPELINE_DEFAULT_REFANT`     | Default reference antenna              | `"103"`  | String          | `"103"`          |
+| `PIPELINE_AUTO_SELECT_REFANT` | Automatically select reference antenna | `"true"` | `true`, `false` | `true`           |
 
 **Validation:**
+
 - `PIPELINE_CAL_BP_MINSNR` is validated to be a float between 1.0 and 10.0
 
 ### Imaging Configuration
 
-| Variable | Description | Default | Range | Example |
-|----------|-------------|---------|-------|---------|
-| `PIPELINE_FIELD` | Field name or coordinates | `None` | String | `"3C286"` |
-| `PIPELINE_REFANT` | Reference antenna | `"103"` | String | `"103"` |
-| `PIPELINE_GRIDDER` | Gridding algorithm | `"wproject"` | String | `"wproject"`, `"standard"` |
-| `PIPELINE_WPROJPLANES` | W-projection planes (-1 for auto) | `"-1"` | Integer | `-1`, `128` |
-| `PIPELINE_USE_NVSS_MASK` | Use NVSS-based mask for imaging | `"true"` | `true`, `false` | `true` |
-| `PIPELINE_MASK_RADIUS_ARCSEC` | Mask radius around NVSS sources | `"60.0"` | 10.0-300.0 | `60.0`, `120.0` |
+| Variable                      | Description                       | Default      | Range           | Example                    |
+| ----------------------------- | --------------------------------- | ------------ | --------------- | -------------------------- |
+| `PIPELINE_FIELD`              | Field name or coordinates         | `None`       | String          | `"3C286"`                  |
+| `PIPELINE_REFANT`             | Reference antenna                 | `"103"`      | String          | `"103"`                    |
+| `PIPELINE_GRIDDER`            | Gridding algorithm                | `"wproject"` | String          | `"wproject"`, `"standard"` |
+| `PIPELINE_WPROJPLANES`        | W-projection planes (-1 for auto) | `"-1"`       | Integer         | `-1`, `128`                |
+| `PIPELINE_USE_NVSS_MASK`      | Use NVSS-based mask for imaging   | `"true"`     | `true`, `false` | `true`                     |
+| `PIPELINE_MASK_RADIUS_ARCSEC` | Mask radius around NVSS sources   | `"60.0"`     | 10.0-300.0      | `60.0`, `120.0`            |
 
 **Notes:**
-- `PIPELINE_WPROJPLANES` is validated as an integer but has no range restrictions (negative values are valid for auto mode).
-- `PIPELINE_USE_NVSS_MASK`: Masking provides 2-4x faster imaging by restricting cleaning to known source locations. Enabled by default for efficiency.
-- `PIPELINE_MASK_RADIUS_ARCSEC`: Radius around each NVSS source in arcseconds. Default (60.0) is approximately 2-3× the beam size. Validated to be between 10.0 and 300.0 arcseconds.
+
+- `PIPELINE_WPROJPLANES` is validated as an integer but has no range
+  restrictions (negative values are valid for auto mode).
+- `PIPELINE_USE_NVSS_MASK`: Masking provides 2-4x faster imaging by restricting
+  cleaning to known source locations. Enabled by default for efficiency.
+- `PIPELINE_MASK_RADIUS_ARCSEC`: Radius around each NVSS source in arcseconds.
+  Default (60.0) is approximately 2-3× the beam size. Validated to be between
+  10.0 and 300.0 arcseconds.
 
 ---
 
 ## API Configuration
 
-The API layer uses separate configuration (`ApiConfig`) with these environment variables:
+The API layer uses separate configuration (`ApiConfig`) with these environment
+variables:
 
-| Variable | Description | Default | Example |
-|----------|-------------|---------|---------|
-| `PIPELINE_STATE_DIR` | Base state directory | `"state"` | `/data/dsa110-contimg/state` |
-| `CAL_REGISTRY_DB` | Calibration registry database path | `{PIPELINE_STATE_DIR}/cal_registry.sqlite3` | `/data/state/cal_registry.sqlite3` |
-| `PIPELINE_QUEUE_DB` | Queue database path | `{PIPELINE_STATE_DIR}/ingest.sqlite3` | `/data/state/ingest.sqlite3` |
-| `PIPELINE_PRODUCTS_DB` | Products database path | `{PIPELINE_STATE_DIR}/products.sqlite3` | `/data/state/products.sqlite3` |
-| `PIPELINE_EXPECTED_SUBBANDS` | Expected subbands (for API) | `16` | `16` |
+| Variable                     | Description                        | Default                                     | Example                            |
+| ---------------------------- | ---------------------------------- | ------------------------------------------- | ---------------------------------- |
+| `PIPELINE_STATE_DIR`         | Base state directory               | `"state"`                                   | `/data/dsa110-contimg/state`       |
+| `CAL_REGISTRY_DB`            | Calibration registry database path | `{PIPELINE_STATE_DIR}/cal_registry.sqlite3` | `/data/state/cal_registry.sqlite3` |
+| `PIPELINE_QUEUE_DB`          | Queue database path                | `{PIPELINE_STATE_DIR}/ingest.sqlite3`       | `/data/state/ingest.sqlite3`       |
+| `PIPELINE_PRODUCTS_DB`       | Products database path             | `{PIPELINE_STATE_DIR}/products.sqlite3`     | `/data/state/products.sqlite3`     |
+| `PIPELINE_EXPECTED_SUBBANDS` | Expected subbands (for API)        | `16`                                        | `16`                               |
 
 **Validation:**
+
 - `PIPELINE_EXPECTED_SUBBANDS` is validated to be an integer between 1 and 32
 
 ---
@@ -119,19 +133,20 @@ The API layer uses separate configuration (`ApiConfig`) with these environment v
 
 The streaming service uses these environment variables (with `CONTIMG_` prefix):
 
-| Variable | Description | Default | Example |
-|----------|-------------|---------|---------|
-| `CONTIMG_INPUT_DIR` | Input directory | `/data/incoming` | `/data/incoming` |
-| `CONTIMG_OUTPUT_DIR` | Output directory | `/stage/dsa110-contimg/ms` | `/data/ms` |
-| `CONTIMG_QUEUE_DB` | Queue database | `state/ingest.sqlite3` | `/data/state/ingest.sqlite3` |
-| `CONTIMG_REGISTRY_DB` | Registry database | `state/cal_registry.sqlite3` | `/data/state/cal_registry.sqlite3` |
-| `CONTIMG_SCRATCH_DIR` | Scratch directory | `/stage/dsa110-contimg` | `/stage/dsa110-contimg` |
-| `CONTIMG_EXPECTED_SUBBANDS` | Expected subbands | `16` | `16` |
-| `CONTIMG_CHUNK_MINUTES` | Chunk duration (minutes) | `5.0` | `5.0` |
-| `CONTIMG_LOG_LEVEL` | Log level | `INFO` | `INFO`, `DEBUG` |
-| `CONTIMG_MONITOR_INTERVAL` | Monitor interval (seconds) | `60.0` | `60.0` |
+| Variable                    | Description                | Default                      | Example                            |
+| --------------------------- | -------------------------- | ---------------------------- | ---------------------------------- |
+| `CONTIMG_INPUT_DIR`         | Input directory            | `/data/incoming`             | `/data/incoming`                   |
+| `CONTIMG_OUTPUT_DIR`        | Output directory           | `/stage/dsa110-contimg/ms`   | `/data/ms`                         |
+| `CONTIMG_QUEUE_DB`          | Queue database             | `state/ingest.sqlite3`       | `/data/state/ingest.sqlite3`       |
+| `CONTIMG_REGISTRY_DB`       | Registry database          | `state/cal_registry.sqlite3` | `/data/state/cal_registry.sqlite3` |
+| `CONTIMG_SCRATCH_DIR`       | Scratch directory          | `/stage/dsa110-contimg`      | `/stage/dsa110-contimg`            |
+| `CONTIMG_EXPECTED_SUBBANDS` | Expected subbands          | `16`                         | `16`                               |
+| `CONTIMG_CHUNK_MINUTES`     | Chunk duration (minutes)   | `5.0`                        | `5.0`                              |
+| `CONTIMG_LOG_LEVEL`         | Log level                  | `INFO`                       | `INFO`, `DEBUG`                    |
+| `CONTIMG_MONITOR_INTERVAL`  | Monitor interval (seconds) | `60.0`                       | `60.0`                             |
 
 **Validation:**
+
 - `CONTIMG_EXPECTED_SUBBANDS`: Integer between 1 and 32
 - `CONTIMG_CHUNK_MINUTES`: Float >= 0.1
 - `CONTIMG_MONITOR_INTERVAL`: Float >= 1.0
@@ -142,16 +157,17 @@ The streaming service uses these environment variables (with `CONTIMG_` prefix):
 
 These are used by underlying libraries and tools:
 
-| Variable | Description | Default | Example |
-|----------|-------------|---------|---------|
-| `OMP_NUM_THREADS` | OpenMP thread count | `1` | `4` |
-| `MKL_NUM_THREADS` | MKL thread count | `1` | `4` |
-| `HDF5_USE_FILE_LOCKING` | HDF5 file locking | `FALSE` | `FALSE` |
-| `TMPDIR` | Temporary directory | System default | `/scratch/tmp` |
-| `CASA_TMPDIR` | CASA temporary directory | `TMPDIR` | `/scratch/tmp` |
-| `PIPELINE_TELESCOPE_NAME` | Telescope name | `DSA_110` | `DSA_110` |
+| Variable                  | Description              | Default        | Example        |
+| ------------------------- | ------------------------ | -------------- | -------------- |
+| `OMP_NUM_THREADS`         | OpenMP thread count      | `1`            | `4`            |
+| `MKL_NUM_THREADS`         | MKL thread count         | `1`            | `4`            |
+| `HDF5_USE_FILE_LOCKING`   | HDF5 file locking        | `FALSE`        | `FALSE`        |
+| `TMPDIR`                  | Temporary directory      | System default | `/scratch/tmp` |
+| `CASA_TMPDIR`             | CASA temporary directory | `TMPDIR`       | `/scratch/tmp` |
+| `PIPELINE_TELESCOPE_NAME` | Telescope name           | `DSA_110`      | `DSA_110`      |
 
-**Important:** Set `HDF5_USE_FILE_LOCKING=FALSE` to prevent file locking issues in parallel operations.
+**Important:** Set `HDF5_USE_FILE_LOCKING=FALSE` to prevent file locking issues
+in parallel operations.
 
 ---
 
@@ -167,19 +183,23 @@ By default, `PipelineConfig.from_env()` validates paths at load time:
 - Sufficient disk space available (default: 50 GB)
 
 **Disable validation:**
+
 ```python
 config = PipelineConfig.from_env(validate_paths=False)
 ```
 
 **Custom disk space requirement:**
+
 ```python
 config = PipelineConfig.from_env(required_disk_gb=100.0)
 ```
 
 **Validation Errors:**
+
 - Raises `HealthCheckError` if validation fails
 - Error message includes all issues found
-- Example: `"Pipeline health check failed:\n  - Input directory does not exist: /data/incoming"`
+- Example:
+  `"Pipeline health check failed:\n  - Input directory does not exist: /data/incoming"`
 
 ---
 
@@ -190,12 +210,14 @@ config = PipelineConfig.from_env(required_disk_gb=100.0)
 Main configuration class containing all pipeline settings.
 
 **Properties:**
+
 - `paths: PathsConfig` - Path configuration
 - `conversion: ConversionConfig` - Conversion settings
 - `calibration: CalibrationConfig` - Calibration settings
 - `imaging: ImagingConfig` - Imaging settings
 
 **Methods:**
+
 - `from_env(validate_paths=True, required_disk_gb=50.0)` - Load from environment
 - `from_dict(data)` - Load from dictionary
 - `to_dict()` - Convert to dictionary
@@ -205,12 +227,14 @@ Main configuration class containing all pipeline settings.
 Path configuration with computed database paths.
 
 **Properties:**
+
 - `input_dir: Path` - Input directory (required)
 - `output_dir: Path` - Output directory (required)
 - `scratch_dir: Optional[Path]` - Scratch directory (optional)
 - `state_dir: Path` - State directory (default: `"state"`)
 
 **Computed Properties:**
+
 - `products_db: Path` - `{state_dir}/products.sqlite3`
 - `registry_db: Path` - `{state_dir}/cal_registry.sqlite3`
 - `queue_db: Path` - `{state_dir}/ingest.sqlite3`
@@ -220,18 +244,21 @@ Path configuration with computed database paths.
 Conversion stage configuration.
 
 **Properties:**
+
 - `writer: str` - Writer strategy (default: `"auto"`)
 - `max_workers: int` - Max workers (default: 16, range: 1-32)
 - `stage_to_tmpfs: bool` - Use tmpfs staging (default: True)
 - `expected_subbands: int` - Expected subbands (default: 16, range: 1-32)
 - `skip_validation_during_conversion: bool` - Skip validation (default: True)
-- `skip_calibration_recommendations: bool` - Skip recommendations (default: True)
+- `skip_calibration_recommendations: bool` - Skip recommendations (default:
+  True)
 
 ### CalibrationConfig
 
 Calibration stage configuration.
 
 **Properties:**
+
 - `cal_bp_minsnr: float` - BP minimum SNR (default: 3.0, range: 1.0-10.0)
 - `cal_gain_solint: str` - Gain solution interval (default: `"inf"`)
 - `default_refant: str` - Default reference antenna (default: `"103"`)
@@ -242,6 +269,7 @@ Calibration stage configuration.
 Imaging stage configuration.
 
 **Properties:**
+
 - `field: Optional[str]` - Field name/coordinates (default: None)
 - `refant: str` - Reference antenna (default: `"103"`)
 - `gridder: str` - Gridding algorithm (default: `"wproject"`)
@@ -254,21 +282,25 @@ Imaging stage configuration.
 ## Default Values Summary
 
 ### Paths
+
 - `PIPELINE_STATE_DIR`: `"state"` (relative to current directory)
 
 ### Conversion
+
 - `PIPELINE_WRITER`: `"auto"`
 - `PIPELINE_MAX_WORKERS`: `4`
 - `PIPELINE_EXPECTED_SUBBANDS`: `16`
 - `PIPELINE_STAGE_TO_TMPFS`: `true`
 
 ### Calibration
+
 - `PIPELINE_CAL_BP_MINSNR`: `3.0`
 - `PIPELINE_CAL_GAIN_SOLINT`: `"inf"`
 - `PIPELINE_DEFAULT_REFANT`: `"103"`
 - `PIPELINE_AUTO_SELECT_REFANT`: `true`
 
 ### Imaging
+
 - `PIPELINE_REFANT`: `"103"`
 - `PIPELINE_GRIDDER`: `"wproject"`
 - `PIPELINE_WPROJPLANES`: `-1` (auto)
@@ -285,14 +317,14 @@ Invalid types raise `ValueError` with clear messages:
 
 ```python
 # Invalid integer
-ValueError: Invalid integer value for PIPELINE_MAX_WORKERS: 'abc'. 
+ValueError: Invalid integer value for PIPELINE_MAX_WORKERS: 'abc'.
 Expected integer between 1 and 32.
 
 # Out of range
 ValueError: PIPELINE_MAX_WORKERS=50 is above maximum 32
 
 # Invalid float
-ValueError: Invalid float value for PIPELINE_CAL_BP_MINSNR: 'invalid'. 
+ValueError: Invalid float value for PIPELINE_CAL_BP_MINSNR: 'invalid'.
 Expected float between 1.0 and 10.0.
 ```
 
@@ -372,4 +404,3 @@ print(api_config.products_db)
 
 **Last Updated:** 2025-11-12  
 **Maintained By:** Pipeline Development Team
-

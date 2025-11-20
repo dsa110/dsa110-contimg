@@ -1,6 +1,7 @@
 # Reference Documentation
 
-**Purpose:** Technical reference material for API endpoints, CLI commands, database schemas, and configuration  
+**Purpose:** Technical reference material for API endpoints, CLI commands,
+database schemas, and configuration  
 **Audience:** Developers and advanced users
 
 ---
@@ -8,19 +9,23 @@
 ## API Reference
 
 - **[API Endpoints](api-endpoints.md)** - Complete API endpoint reference
-- **[Dashboard API](dashboard_backend_api.md)** - Dashboard-specific API endpoints
+- **[Dashboard API](dashboard_backend_api.md)** - Dashboard-specific API
+  endpoints
 - **[Streaming API](streaming-api.md)** - Streaming pipeline API
-- **[Backend Integration Snippets](backend_integration_snippets.md)** - Code snippets for backend integration
+- **[Backend Integration Snippets](backend_integration_snippets.md)** - Code
+  snippets for backend integration
 
 ## CLI Reference
 
 - **[CLI Commands](cli.md)** - Command-line interface reference
-- **[Control Panel Cheatsheet](control-panel-cheatsheet.md)** - Quick reference for control panel commands
+- **[Control Panel Cheatsheet](control-panel-cheatsheet.md)** - Quick reference
+  for control panel commands
 
 ## Configuration & Environment
 
 - **[Environment Variables](env.md)** - Environment variable reference
-- **[Critical Python Environment](CRITICAL_PYTHON_ENVIRONMENT.md)** - Python environment requirements (casa6)
+- **[Critical Python Environment](CRITICAL_PYTHON_ENVIRONMENT.md)** - Python
+  environment requirements (casa6)
 - **[Docker Client](docker-client.md)** - Docker client configuration
 
 ## Database & Schema
@@ -29,20 +34,24 @@
 
 ## Calibration Reference
 
-- **[Calibration Overview](calibration-overview.md)** - Calibration system overview
-- **[Current Calibration Procedure](CURRENT_CALIBRATION_PROCEDURE.md)** - Current calibration workflow reference
-
-
+- **[Calibration Overview](calibration-overview.md)** - Calibration system
+  overview
+- **[Current Calibration Procedure](CURRENT_CALIBRATION_PROCEDURE.md)** -
+  Current calibration workflow reference
 
 ## Developer Resources
 
-- **[Developer Guide](developer_guide.md)** - Development guidelines and best practices
-- **[MCP Tools Reference](mcp-tools.md)** - Available Model Context Protocol server tools
+- **[Developer Guide](developer_guide.md)** - Development guidelines and best
+  practices
+- **[MCP Tools Reference](mcp-tools.md)** - Available Model Context Protocol
+  server tools
 
 ## Optimization
 
-- **[Optimization API](optimizations/OPTIMIZATION_API.md)** - Performance optimization API
-- **[Profiling Guide](optimizations/PROFILING_GUIDE.md)** - Performance profiling guide
+- **[Optimization API](optimizations/OPTIMIZATION_API.md)** - Performance
+  optimization API
+- **[Profiling Guide](optimizations/PROFILING_GUIDE.md)** - Performance
+  profiling guide
 
 ---
 

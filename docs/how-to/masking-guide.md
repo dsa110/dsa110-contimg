@@ -7,9 +7,12 @@
 
 ## Overview
 
-NVSS masking is a performance optimization that restricts deconvolution cleaning to regions around known NVSS sources. This provides **2-4x faster imaging** while maintaining or improving image quality.
+NVSS masking is a performance optimization that restricts deconvolution cleaning
+to regions around known NVSS sources. This provides **2-4x faster imaging**
+while maintaining or improving image quality.
 
 **Key Benefits:**
+
 - **Faster imaging**: 2-4x speedup (especially for development tier)
 - **Better convergence**: Focused cleaning reduces iterations needed
 - **Reduced artifacts**: Less cleaning in empty regions
@@ -19,13 +22,20 @@ NVSS masking is a performance optimization that restricts deconvolution cleaning
 
 ## How It Works
 
-1. **Mask Generation**: Before imaging, the pipeline queries the NVSS catalog for sources within the field of view above a flux threshold (typically 10 mJy for standard tier, 5 mJy for high precision).
+1. **Mask Generation**: Before imaging, the pipeline queries the NVSS catalog
+   for sources within the field of view above a flux threshold (typically 10 mJy
+   for standard tier, 5 mJy for high precision).
 
-2. **FITS Mask Creation**: A FITS mask file is generated with circular regions (default 60 arcsec radius) around each NVSS source. Zero values indicate regions that won't be cleaned, non-zero values indicate regions that will be cleaned.
+2. **FITS Mask Creation**: A FITS mask file is generated with circular regions
+   (default 60 arcsec radius) around each NVSS source. Zero values indicate
+   regions that won't be cleaned, non-zero values indicate regions that will be
+   cleaned.
 
-3. **WSClean Integration**: The mask is passed to WSClean via the `-fits-mask` parameter, which restricts cleaning to the masked regions.
+3. **WSClean Integration**: The mask is passed to WSClean via the `-fits-mask`
+   parameter, which restricts cleaning to the masked regions.
 
-4. **Hybrid Approach**: Masking works alongside WSClean's auto-masking feature, allowing discovery of additional sources during cleaning.
+4. **Hybrid Approach**: Masking works alongside WSClean's auto-masking feature,
+   allowing discovery of additional sources during cleaning.
 
 ---
 
@@ -34,6 +44,7 @@ NVSS masking is a performance optimization that restricts deconvolution cleaning
 ### CLI Usage
 
 **Default (masking enabled):**
+
 ```bash
 python -m dsa110_contimg.imaging.cli image \
     --ms /path/to/data.ms \
@@ -41,6 +52,7 @@ python -m dsa110_contimg.imaging.cli image \
 ```
 
 **Custom mask radius:**
+
 ```bash
 python -m dsa110_contimg.imaging.cli image \
     --ms /path/to/data.ms \
@@ -49,6 +61,7 @@ python -m dsa110_contimg.imaging.cli image \
 ```
 
 **Disable masking (not recommended):**
+
 ```bash
 python -m dsa110_contimg.imaging.cli image \
     --ms /path/to/data.ms \
@@ -103,7 +116,7 @@ export PIPELINE_MASK_RADIUS_ARCSEC=60.0
 - **Default**: `60.0`
 - **Range**: `10.0` - `300.0`
 - **Description**: Radius around each NVSS source in arcseconds
-- **Recommendation**: 
+- **Recommendation**:
   - Default (60.0) is appropriate for most cases (~2-3× beam size)
   - Increase to 120.0 for extended sources or larger beam sizes
   - Decrease to 30.0 for point sources or smaller beam sizes
@@ -115,6 +128,7 @@ export PIPELINE_MASK_RADIUS_ARCSEC=60.0
 ### Always Recommended
 
 Masking is enabled by default and recommended for all use cases:
+
 - **Development tier**: Faster tests (2-4x speedup)
 - **Standard tier**: Better quality + efficiency
 - **High precision tier**: Faster convergence
@@ -122,6 +136,7 @@ Masking is enabled by default and recommended for all use cases:
 ### When Masking May Be Disabled
 
 Masking should only be disabled in these rare cases:
+
 - **Testing unmasked code path**: For debugging or validation
 - **Very sparse fields**: When NVSS catalog has poor coverage
 - **Custom mask**: When providing your own mask file (future feature)
@@ -133,12 +148,14 @@ Masking should only be disabled in these rare cases:
 ### Source Selection
 
 Sources are selected based on:
-- **Flux threshold**: 
+
+- **Flux threshold**:
   - Development tier: ≥10 mJy
   - Standard tier: ≥10 mJy
   - High precision tier: ≥5 mJy
 - **Field of view**: Sources within the image FoV
-- **Primary beam limit**: When `pbcor=True`, sources are limited to primary beam extent
+- **Primary beam limit**: When `pbcor=True`, sources are limited to primary beam
+  extent
 
 ### Mask Format
 
@@ -150,6 +167,7 @@ Sources are selected based on:
 ### Error Handling
 
 If mask generation fails (e.g., NVSS catalog unavailable), the pipeline:
+
 1. Logs a warning
 2. Continues imaging without mask
 3. Does not fail the imaging job
@@ -162,13 +180,13 @@ This ensures robustness even when external dependencies are unavailable.
 
 ### Expected Speedup
 
-| Quality Tier | Without Masking | With Masking | Speedup |
-|--------------|----------------|--------------|---------|
-| Development  | ~5 minutes     | ~1-2 minutes | 2-4×    |
-| Standard     | ~30 minutes    | ~10-15 min   | 2-3×    |
-| High Precision | ~2 hours     | ~45-60 min   | 2-3×    |
+| Quality Tier   | Without Masking | With Masking | Speedup |
+| -------------- | --------------- | ------------ | ------- |
+| Development    | ~5 minutes      | ~1-2 minutes | 2-4×    |
+| Standard       | ~30 minutes     | ~10-15 min   | 2-3×    |
+| High Precision | ~2 hours        | ~45-60 min   | 2-3×    |
 
-*Times are approximate and depend on data characteristics*
+_Times are approximate and depend on data characteristics_
 
 ### Computational Overhead
 
@@ -185,17 +203,20 @@ This ensures robustness even when external dependencies are unavailable.
 **Symptoms**: Warning message "Failed to generate NVSS mask"
 
 **Possible Causes**:
+
 - NVSS catalog not available
 - Network connectivity issues
 - Catalog file corruption
 
-**Solution**: Imaging continues without mask (non-fatal). Check NVSS catalog availability if masking is critical.
+**Solution**: Imaging continues without mask (non-fatal). Check NVSS catalog
+availability if masking is critical.
 
 ### Mask Too Small/Large
 
 **Symptoms**: Sources not fully cleaned or excessive cleaning
 
 **Solution**: Adjust `mask_radius_arcsec`:
+
 - Increase radius for extended sources
 - Decrease radius for point sources
 - Consider beam size when setting radius
@@ -205,11 +226,13 @@ This ensures robustness even when external dependencies are unavailable.
 **Symptoms**: No speedup observed
 
 **Possible Causes**:
+
 - Masking disabled (`use_nvss_mask=False`)
 - Mask generation failed silently
 - Using CASA tclean backend (masking only supported for WSClean)
 
-**Solution**: 
+**Solution**:
+
 - Verify `use_nvss_mask=True` in configuration
 - Check logs for mask generation messages
 - Ensure WSClean backend is used (`backend="wsclean"`)
@@ -221,6 +244,7 @@ This ensures robustness even when external dependencies are unavailable.
 ### Mask Radius Selection
 
 The optimal mask radius depends on:
+
 - **Beam size**: Typically 2-3× the beam FWHM
 - **Source type**: Extended sources need larger radius
 - **Image quality**: Larger radius for higher quality tiers
@@ -230,6 +254,7 @@ The optimal mask radius depends on:
 ### Combining with Auto-Masking
 
 WSClean's auto-masking feature works alongside NVSS masking:
+
 - **NVSS mask**: Provides initial regions to clean
 - **Auto-masking**: Discovers additional sources during cleaning
 - **Result**: Hybrid approach combines prior knowledge with discovery
@@ -237,6 +262,7 @@ WSClean's auto-masking feature works alongside NVSS masking:
 ### Future Enhancements
 
 Potential future improvements:
+
 - Elliptical masks for extended sources
 - Flux-weighted mask sizes
 - Multi-scale mask support
@@ -246,9 +272,12 @@ Potential future improvements:
 
 ## References
 
-- **Analysis**: [Masked Imaging Analysis](../analysis/MASKED_IMAGING_ANALYSIS.md)
-- **Efficiency**: [Masking Efficiency Analysis](../analysis/MASKING_EFFICIENCY_ANALYSIS.md)
-- **Implementation**: [Masking Implementation Complete](../analysis/MASKING_IMPLEMENTATION_COMPLETE.md)
-- **Configuration**: See pipeline configuration in [Pipeline Overview](../concepts/pipeline_overview.md)
+- **Analysis**:
+  [Masked Imaging Analysis](../analysis/MASKED_IMAGING_ANALYSIS.md)
+- **Efficiency**:
+  [Masking Efficiency Analysis](../analysis/MASKING_EFFICIENCY_ANALYSIS.md)
+- **Implementation**:
+  [Masking Implementation Complete](../analysis/MASKING_IMPLEMENTATION_COMPLETE.md)
+- **Configuration**: See pipeline configuration in
+  [Pipeline Overview](../concepts/pipeline_overview.md)
 - **CLI Reference**: [CLI Reference](../reference/cli.md)
-

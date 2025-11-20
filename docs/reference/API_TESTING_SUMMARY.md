@@ -19,14 +19,15 @@
 
 ### API Filter Tests
 
-| Filter | Status | Performance | Notes |
-|--------|--------|-------------|-------|
-| Date Range | ⏳ Not Tested | Expected: Fast (<200ms) | Uses SQL WHERE clause |
-| Noise Threshold | ⚠️ Expected Fail | N/A | All noise_jy are NULL |
-| Declination Range | ⏳ Not Tested | Expected: Slow (1-5s) | Requires FITS reading |
-| Calibrator Detection | ⏳ Not Tested | Expected: Moderate | Heuristic pattern matching |
+| Filter               | Status           | Performance             | Notes                      |
+| -------------------- | ---------------- | ----------------------- | -------------------------- |
+| Date Range           | ⏳ Not Tested    | Expected: Fast (<200ms) | Uses SQL WHERE clause      |
+| Noise Threshold      | ⚠️ Expected Fail | N/A                     | All noise_jy are NULL      |
+| Declination Range    | ⏳ Not Tested    | Expected: Slow (1-5s)   | Requires FITS reading      |
+| Calibrator Detection | ⏳ Not Tested    | Expected: Moderate      | Heuristic pattern matching |
 
-**Note:** API needs to be started for testing. See `docs/development/DEVELOPMENT_SETUP.md` for startup commands.
+**Note:** API needs to be started for testing. See
+`docs/development/DEVELOPMENT_SETUP.md` for startup commands.
 
 ---
 
@@ -41,7 +42,8 @@
 
 **Location:** `src/dsa110_contimg/api/visualization_routes.py:219, 831`
 
-**Fix:** Changed `item.file_type` to `autodetect_file_type(item.fullpath)` with fallback
+**Fix:** Changed `item.file_type` to `autodetect_file_type(item.fullpath)` with
+fallback
 
 **Impact:** QA file browsing now works correctly
 
@@ -52,9 +54,11 @@
 **Severity:** HIGH  
 **Status:** Documented
 
-**Issue:** All images have `noise_jy`, `center_ra_deg`, `center_dec_deg` set to NULL
+**Issue:** All images have `noise_jy`, `center_ra_deg`, `center_dec_deg` set to
+NULL
 
 **Impact:**
+
 - Noise filtering non-functional
 - Declination filtering slow (requires FITS reading)
 - User experience degraded
@@ -108,6 +112,7 @@
 **Recommendation:** **COMMIT NOW** with clear documentation of limitations
 
 **Reasoning:**
+
 - Date filtering works perfectly (SQL-level, fast)
 - Experimental filters functional (even if slow/limited)
 - Code quality excellent
@@ -121,18 +126,23 @@
 ## Files Created/Modified
 
 ### Created:
-- `docs/known-issues/image-metadata-population.md` - Metadata issue documentation
+
+- `docs/known-issues/image-metadata-population.md` - Metadata issue
+  documentation
 - `docs/reference/image_filters_test_results.md` - Detailed test results
 - `docs/reference/API_TESTING_SUMMARY.md` - This summary
 
 ### Modified:
-- `src/dsa110_contimg/api/visualization_routes.py` - Fixed FileBase.file_type bug (2 locations)
+
+- `src/dsa110_contimg/api/visualization_routes.py` - Fixed FileBase.file_type
+  bug (2 locations)
 
 ---
 
 ## Next Steps
 
 1. **Start API Server:**
+
    ```bash
    cd /data/dsa110-contimg
    source ops/systemd/contimg.env
@@ -152,4 +162,3 @@
 
 **Report Generated:** 2025-11-12  
 **Ready for:** Manual API testing and commit decision
-

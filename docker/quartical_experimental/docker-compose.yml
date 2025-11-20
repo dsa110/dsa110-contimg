@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   cubical:
@@ -17,9 +17,9 @@ services:
       # Mount the experimental module (for development)
       - ../../src/dsa110_contimg/calibration/cubical_experimental:/workspace/cubical_experimental:ro
     environment:
-      - CUDA_VISIBLE_DEVICES=0,1  # Use both GPUs
+      - CUDA_VISIBLE_DEVICES=0,1 # Use both GPUs
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
-    runtime: nvidia  # Enable GPU access
+    runtime: nvidia # Enable GPU access
     working_dir: /workspace
     command: /bin/bash

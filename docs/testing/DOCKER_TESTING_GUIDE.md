@@ -2,11 +2,13 @@
 
 ## Overview
 
-This guide explains how to run E2E tests using Docker, which is required for Ubuntu 18.x systems where npm/npx compatibility issues exist.
+This guide explains how to run E2E tests using Docker, which is required for
+Ubuntu 18.x systems where npm/npx compatibility issues exist.
 
 ## Why Docker?
 
-- **Ubuntu 18.x Compatibility**: Node.js 22+ is not available natively on Ubuntu 18.x
+- **Ubuntu 18.x Compatibility**: Node.js 22+ is not available natively on Ubuntu
+  18.x
 - **Isolated Environment**: Tests run in a consistent environment
 - **Easy Setup**: No need to manage Node.js versions locally
 - **CI/CD Ready**: Same environment for local and CI testing
@@ -167,13 +169,16 @@ Tests use `host.docker.internal` to access services running on the host:
 **Problem**: Tests can't connect to frontend/backend
 
 **Solutions**:
+
 1. Verify services are running:
+
    ```bash
    curl http://localhost:5173
    curl http://localhost:8010/api/health
    ```
 
 2. Use `host.docker.internal` in Docker:
+
    ```bash
    docker run --add-host=host.docker.internal:host-gateway ...
    ```
@@ -188,6 +193,7 @@ Tests use `host.docker.internal` to access services running on the host:
 **Problem**: Docker permission errors
 
 **Solution**:
+
 ```bash
 # Add user to docker group
 sudo usermod -aG docker $USER
@@ -199,6 +205,7 @@ sudo usermod -aG docker $USER
 **Problem**: Playwright can't find Chromium
 
 **Solution**:
+
 ```bash
 # Rebuild image with browsers
 docker build -f docker/Dockerfile.test -t dsa110-test:latest .
@@ -211,6 +218,7 @@ docker run --rm dsa110-test:latest npx playwright install chromium
 **Problem**: Tests timeout waiting for services
 
 **Solutions**:
+
 1. Increase timeout in `playwright.config.ts`
 2. Wait for services before running tests:
    ```bash
@@ -225,6 +233,7 @@ docker run --rm dsa110-test:latest npx playwright install chromium
 **Problem**: Container runs out of memory
 
 **Solution**:
+
 ```bash
 # Increase Docker memory limit
 docker run --memory="2g" ...
@@ -243,17 +252,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Start services
         run: |
           # Start backend
           docker-compose up -d api
           # Start frontend
           cd frontend && npm run dev &
-      
+
       - name: Build test image
         run: docker build -f docker/Dockerfile.test -t dsa110-test:latest .
-      
+
       - name: Run tests
         run: |
           docker run --rm \
@@ -264,7 +273,7 @@ jobs:
             -e CI=true \
             dsa110-test:latest \
             npx playwright test
-      
+
       - name: Upload test results
         uses: actions/upload-artifact@v3
         if: always()
@@ -332,4 +341,3 @@ docker run --rm --network host \
 - [Playwright Docker Guide](https://playwright.dev/docs/docker)
 - [Test Plan](./COMPREHENSIVE_TESTING_PLAN.md)
 - E2E Test Guide: `../tests/e2e/README.md` (external file)
-

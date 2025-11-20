@@ -27,6 +27,7 @@ The easiest way to manage services and ensure ports are reserved:
 ```
 
 **Features**:
+
 - ✓ Automatically kills conflicting processes
 - ✓ Manages PID files
 - ✓ Logs to `/var/log/dsa110/`
@@ -35,11 +36,11 @@ The easiest way to manage services and ensure ports are reserved:
 
 ## Option Comparison
 
-| Method | Pros | Cons | Best For |
-|--------|------|------|----------|
-| **Service Script** | Simple, no sudo needed, immediate | Manual start after reboot | Development |
-| **Systemd** | Auto-start on boot, robust, logging | Requires sudo, more setup | Production |
-| **Docker Compose** | Isolated, portable, easy scaling | Requires Docker, overhead | Containerized deployments |
+| Method             | Pros                                | Cons                      | Best For                  |
+| ------------------ | ----------------------------------- | ------------------------- | ------------------------- |
+| **Service Script** | Simple, no sudo needed, immediate   | Manual start after reboot | Development               |
+| **Systemd**        | Auto-start on boot, robust, logging | Requires sudo, more setup | Production                |
+| **Docker Compose** | Isolated, portable, easy scaling    | Requires Docker, overhead | Containerized deployments |
 
 ## Method 1: Service Management Script (Recommended for Now)
 
@@ -110,6 +111,7 @@ sudo systemctl enable dsa110-api.service
 ```
 
 **Benefits**:
+
 - Services start automatically on boot
 - Automatic restart on crash
 - System-level logging
@@ -238,22 +240,26 @@ pkill -f "dsa110_contimg.api"
 ## Best Practices
 
 1. **Development**: Use the service management script
+
    ```bash
    ./scripts/manage-services.sh start all
    ```
 
 2. **Production**: Use systemd services
+
    ```bash
    sudo systemctl enable dsa110-api.service
    sudo systemctl start dsa110-api.service
    ```
 
 3. **Always check status before starting**:
+
    ```bash
    ./scripts/manage-services.sh status
    ```
 
 4. **Use logs to debug**:
+
    ```bash
    ./scripts/manage-services.sh logs api
    ```
@@ -283,8 +289,8 @@ curl -f http://localhost:3000 || echo "Dashboard down!"
 ---
 
 **Quick Reference**:
+
 - Start: `./scripts/manage-services.sh start all`
 - Stop: `./scripts/manage-services.sh stop all`
 - Status: `./scripts/manage-services.sh status`
 - Logs: `./scripts/manage-services.sh logs api`
-

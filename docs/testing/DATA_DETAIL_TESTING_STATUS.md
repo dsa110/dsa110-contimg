@@ -11,13 +11,15 @@
 3. **DETAIL-003: Back Icon Button** - IconButton present and functional
 4. **DETAIL-009: Loading State** - Loading spinner displays during data fetch
 5. **DETAIL-010: Error State** - Error alert displays when API fails
-6. **DETAIL-013: URL Encoding** - URL encoding handles special characters correctly
+6. **DETAIL-013: URL Encoding** - URL encoding handles special characters
+   correctly
 
 ## Remaining Tests (Require API Connection)
 
 The remaining 20 tests require a working API connection to the backend:
 
 ### Tests Requiring Successful Data Load:
+
 - DETAIL-004: Publish Button
 - DETAIL-005: Finalize Button
 - DETAIL-006: Tab Navigation - Metadata
@@ -41,6 +43,7 @@ The remaining 20 tests require a working API connection to the backend:
 ## Issue Identified
 
 **API Connection Problem:**
+
 - Backend API is running on port 8000 ✅
 - Backend API returns data successfully when called directly ✅
 - Frontend API calls are failing with 500 errors ❌
@@ -48,16 +51,17 @@ The remaining 20 tests require a working API connection to the backend:
 
 ## Next Steps
 
-1. Fix API connection issue (check `VITE_API_URL` environment variable or proxy configuration)
+1. Fix API connection issue (check `VITE_API_URL` environment variable or proxy
+   configuration)
 2. Once API connection is fixed, complete remaining 20 Data Detail tests
 3. All 25 Data Detail tests should then be completable
 
 ## Data Availability
 
 ✅ **43 data instances** are available in the database:
+
 - Multiple MS files in staging
 - Data instances ready for testing
 - API endpoint works when called directly
 
 The issue is purely a frontend-backend connection configuration problem.
-

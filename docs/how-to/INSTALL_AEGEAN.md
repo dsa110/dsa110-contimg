@@ -1,6 +1,8 @@
 # Installing Aegean for DSA-110 Pipeline
 
-AegeanTools (which includes Aegean and BANE) is required for Phase 2 WABIFAT integration. Since it's not available via conda-forge, it must be installed from source or via pip.
+AegeanTools (which includes Aegean and BANE) is required for Phase 2 WABIFAT
+integration. Since it's not available via conda-forge, it must be installed from
+source or via pip.
 
 ## Installation Methods
 
@@ -51,13 +53,15 @@ python -m AegeanTools.BANE --version
 
 ## Usage in DSA-110 Pipeline
 
-The DSA-110 photometry module automatically detects Aegean/BANE using multiple methods:
+The DSA-110 photometry module automatically detects Aegean/BANE using multiple
+methods:
 
 1. Command-line tools (`Aegean`, `BANE`) if in PATH
 2. Python module (`python -m AegeanTools.Aegean`, `python -m AegeanTools.BANE`)
 3. Python import (for programmatic use)
 
 **Example:**
+
 ```bash
 # Use Aegean forced fitting
 python -m dsa110_contimg.photometry.cli peak \
@@ -73,11 +77,13 @@ python -m dsa110_contimg.photometry.cli peak \
 If you get an error that Aegean is not found:
 
 1. **Check installation:**
+
    ```bash
    python -c "import AegeanTools; print('OK')"
    ```
 
 2. **Check Python module:**
+
    ```bash
    python -m AegeanTools.Aegean --version
    ```
@@ -91,11 +97,13 @@ If you get an error that Aegean is not found:
 If `pip install .` fails:
 
 1. **Check Python version:** AegeanTools requires Python 3.10-3.13
+
    ```bash
    python --version
    ```
 
 2. **Check dependencies:**
+
    ```bash
    pip install numpy scipy astropy
    ```
@@ -112,4 +120,3 @@ If `pip install .` fails:
 - **Documentation:** http://aegeantools.readthedocs.io/
 - **Paper 1:** Hancock et al 2012, MNRAS, 422, 1812
 - **Paper 2:** Hancock et al 2018, PASA, 35, 11H
-

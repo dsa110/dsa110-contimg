@@ -5,6 +5,7 @@ This guide explains how to test the `flag` subcommand on a real Measurement Set.
 ## Prerequisites
 
 The flag subcommand requires:
+
 - CASA6 with `casatasks` module
 - Python environment with project dependencies
 - Valid CASA Measurement Set (MS) file
@@ -17,18 +18,20 @@ This is a 5.1 GB MS file with calibrator data from 2025-11-02.
 
 ## Running Environment
 
-The flag subcommand should be run in the same environment as other CASA-dependent commands. Based on the project setup:
+The flag subcommand should be run in the same environment as other
+CASA-dependent commands. Based on the project setup:
 
 1. **With conda environment** (if available):
+
    ```bash
    conda activate contimg  # or your CASA environment name
    cd /data/dsa110-contimg
    python -m dsa110_contimg.calibration.cli flag --help
    ```
 
-2. **With systemd service environment** (if using systemd):
-   The systemd service should source `/data/dsa110-contimg/ops/systemd/contimg.env`
-   which sets up CASA environment variables.
+2. **With systemd service environment** (if using systemd): The systemd service
+   should source `/data/dsa110-contimg/ops/systemd/contimg.env` which sets up
+   CASA environment variables.
 
 3. **Direct Python execution** (if CASA is installed system-wide):
    ```bash
@@ -48,6 +51,7 @@ python -m dsa110_contimg.calibration.cli flag --help
 ```
 
 Expected output should show:
+
 - All 12 flagging modes listed
 - Mode-specific argument descriptions
 - Examples for common use cases
@@ -63,6 +67,7 @@ python -m dsa110_contimg.calibration.cli flag \
 ```
 
 **Expected output:**
+
 ```
 [INFO] Computing flagging statistics...
 ======================================================================
@@ -87,6 +92,7 @@ python -m dsa110_contimg.calibration.cli flag \
 ```
 
 **Expected output:**
+
 ```
 [INFO] Flagging mode: shadow
 [INFO] Flagging shadowed baselines (tolerance: 0.0 deg)...
@@ -108,6 +114,7 @@ python -m dsa110_contimg.calibration.cli flag \
 ```
 
 **Expected output:**
+
 ```
 [INFO] Flagging mode: quack
 [INFO] Flagging beg of scans (2.0s)...
@@ -127,6 +134,7 @@ python -m dsa110_contimg.calibration.cli flag \
 ```
 
 **Expected output:**
+
 ```
 [INFO] Flagging mode: zeros
 [INFO] Flagging zero-value data...
@@ -137,7 +145,8 @@ Flagging complete. Total flagged: X.XX%
 
 ### Step 6: RFI Flagging (Longer Operation)
 
-Test the two-stage RFI detection (tfcrop + rflag). This may take several minutes:
+Test the two-stage RFI detection (tfcrop + rflag). This may take several
+minutes:
 
 ```bash
 python -m dsa110_contimg.calibration.cli flag \
@@ -146,6 +155,7 @@ python -m dsa110_contimg.calibration.cli flag \
 ```
 
 **Expected output:**
+
 ```
 [INFO] Flagging mode: rfi
 [INFO] Flagging RFI (tfcrop + rflag)...
@@ -220,7 +230,8 @@ python -m dsa110_contimg.calibration.cli flag \
 
 ### ModuleNotFoundError: No module named 'casatasks'
 
-**Solution:** Ensure you're running in a CASA environment. CASA must be installed and available in your Python path.
+**Solution:** Ensure you're running in a CASA environment. CASA must be
+installed and available in your Python path.
 
 ```bash
 # Check if CASA is available
@@ -237,17 +248,22 @@ source /path/to/casa/bin/thisinit.sh
 
 **Status:** Fixed in the implementation
 
-**Previous issue:** CASA's `flagdata` in summary mode would attempt to launch `casaplotserver`, causing harmless error messages in headless environments like:
+**Previous issue:** CASA's `flagdata` in summary mode would attempt to launch
+`casaplotserver`, causing harmless error messages in headless environments like:
+
 ```
 casaplotserver: cannot connect to X server localhost:10.0
 exited, status=1
 ```
 
 **Solution:** The flag subcommand now:
-1. Sets headless environment variables (`QT_QPA_PLATFORM=offscreen`, unsets `DISPLAY`) before importing CASA
+
+1. Sets headless environment variables (`QT_QPA_PLATFORM=offscreen`, unsets
+   `DISPLAY`) before importing CASA
 2. Suppresses `casaplotserver` stderr errors when computing flagging statistics
 
-These errors are now automatically suppressed and do not appear in the output. Flagging operations complete successfully regardless of X server availability.
+These errors are now automatically suppressed and do not appear in the output.
+Flagging operations complete successfully regardless of X server availability.
 
 ### ValidationError: MS validation failed
 
@@ -286,15 +302,19 @@ chmod -R u+w /data/dsa110-contimg/ms/2025-11-02T13:40:03.ms  # if needed
 
 ## Notes
 
-- **Backup recommendation:** Before extensive flagging, consider backing up the MS:
+- **Backup recommendation:** Before extensive flagging, consider backing up the
+  MS:
+
   ```bash
   cp -r /data/dsa110-contimg/ms/2025-11-02T13:40:03.ms \
         /data/dsa110-contimg/ms/2025-11-02T13:40:03.ms.backup
   ```
 
-- **Flagging is cumulative:** Each flagging operation adds to existing flags unless you first run `--mode reset`.
+- **Flagging is cumulative:** Each flagging operation adds to existing flags
+  unless you first run `--mode reset`.
 
 - **Reset flags:** To unflag all data first:
+
   ```bash
   python -m dsa110_contimg.calibration.cli flag \
     --ms /data/dsa110-contimg/ms/2025-11-02T13:40:03.ms \
@@ -312,18 +332,17 @@ chmod -R u+w /data/dsa110-contimg/ms/2025-11-02T13:40:03.ms  # if needed
 
 ## Quick Reference
 
-| Mode | Purpose | Speed | Modifies Data |
-|------|---------|-------|---------------|
-| `summary` | Statistics only | Fast | No |
-| `shadow` | Geometric shadows | Fast | Yes |
-| `quack` | Scan edges | Fast | Yes |
-| `zeros` | Zero values | Fast | Yes |
-| `elevation` | Elevation limits | Fast | Yes |
-| `rfi` | RFI detection | Slow | Yes |
-| `clip` | Amplitude thresholds | Medium | Yes |
-| `extend` | Grow flags | Medium | Yes |
-| `manual` | Custom selection | Fast | Yes |
-| `antenna` | Specific antennas | Fast | Yes |
-| `baselines` | UV range | Fast | Yes |
-| `reset` | Unflag all | Fast | Yes |
-
+| Mode        | Purpose              | Speed  | Modifies Data |
+| ----------- | -------------------- | ------ | ------------- |
+| `summary`   | Statistics only      | Fast   | No            |
+| `shadow`    | Geometric shadows    | Fast   | Yes           |
+| `quack`     | Scan edges           | Fast   | Yes           |
+| `zeros`     | Zero values          | Fast   | Yes           |
+| `elevation` | Elevation limits     | Fast   | Yes           |
+| `rfi`       | RFI detection        | Slow   | Yes           |
+| `clip`      | Amplitude thresholds | Medium | Yes           |
+| `extend`    | Grow flags           | Medium | Yes           |
+| `manual`    | Custom selection     | Fast   | Yes           |
+| `antenna`   | Specific antennas    | Fast   | Yes           |
+| `baselines` | UV range             | Fast   | Yes           |
+| `reset`     | Unflag all           | Fast   | Yes           |

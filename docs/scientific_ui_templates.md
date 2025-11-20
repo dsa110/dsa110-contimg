@@ -2,7 +2,9 @@
 
 ## Overview
 
-This document analyzes existing scientific web UIs that can serve as templates or inspiration for the DSA-110 QA dashboard. Each section includes:
+This document analyzes existing scientific web UIs that can serve as templates
+or inspiration for the DSA-110 QA dashboard. Each section includes:
+
 - What the tool does
 - Key UI patterns to adopt
 - How to implement similar patterns
@@ -12,11 +14,13 @@ This document analyzes existing scientific web UIs that can serve as templates o
 
 ## 1. JupyterLab (Most Relevant!)
 
-**Why it's perfect**: You're already generating Jupyter notebooks, and JupyterLab is built with React/TypeScript.
+**Why it's perfect**: You're already generating Jupyter notebooks, and
+JupyterLab is built with React/TypeScript.
 
 ### Key Patterns to Adopt
 
 #### A. File Browser Sidebar
+
 - **Pattern**: Left sidebar with file tree, right panel for content
 - **Implementation**: MUI Drawer + TreeView
 - **Why**: Familiar to your users (they use notebooks)
@@ -33,8 +37,8 @@ function FileBrowserSidebar({ path }: { path: string }) {
         <TreeItem nodeId="root" label="QA Root" icon={<Folder />}>
           <TreeItem nodeId="fits" label="FITS Files" icon={<Folder />}>
             {fitsFiles.map(file => (
-              <TreeItem 
-                key={file.path} 
+              <TreeItem
+                key={file.path}
                 nodeId={file.path}
                 label={file.name}
                 icon={<InsertDriveFile />}
@@ -50,6 +54,7 @@ function FileBrowserSidebar({ path }: { path: string }) {
 ```
 
 #### B. Tabbed Interface for Multiple Views
+
 - **Pattern**: Tabs at top, content panels below
 - **Implementation**: MUI Tabs + TabPanel
 - **Why**: Users can have multiple files open simultaneously
@@ -60,7 +65,7 @@ import { Tabs, Tab, Box } from '@mui/material';
 function TabbedViewer() {
   const [value, setValue] = useState(0);
   const [openFiles, setOpenFiles] = useState<File[]>([]);
-  
+
   return (
     <Box>
       <Tabs value={value} onChange={(_, v) => setValue(v)}>
@@ -79,6 +84,7 @@ function TabbedViewer() {
 ```
 
 #### C. Command Palette
+
 - **Pattern**: Ctrl+K to open command palette
 - **Implementation**: `cmdk` or `kbar` library
 - **Why**: Power users love keyboard shortcuts
@@ -105,7 +111,7 @@ function App() {
       perform: () => navigate('/qa/run'),
     },
   ];
-  
+
   return (
     <KBarProvider actions={actions}>
       <KBarPortal>
@@ -123,6 +129,7 @@ function App() {
 ```
 
 **Resources**:
+
 - [JupyterLab GitHub](https://github.com/jupyterlab/jupyterlab)
 - [JupyterLab Extension Examples](https://github.com/jupyterlab/extension-examples)
 
@@ -130,11 +137,13 @@ function App() {
 
 ## 2. Grafana (Dashboard Patterns)
 
-**Why it's relevant**: Excellent dashboard layout patterns, panel system, time-series visualization.
+**Why it's relevant**: Excellent dashboard layout patterns, panel system,
+time-series visualization.
 
 ### Key Patterns to Adopt
 
 #### A. Dashboard Grid Layout
+
 - **Pattern**: Drag-and-drop grid of panels
 - **Implementation**: `react-grid-layout`
 - **Why**: Flexible, user-customizable dashboards
@@ -154,7 +163,7 @@ function Dashboard() {
     { i: 'recent-runs', x: 4, y: 0, w: 4, h: 2 },
     { i: 'file-browser', x: 0, y: 2, w: 8, h: 4 },
   ];
-  
+
   return (
     <GridLayout
       className="layout"
@@ -180,6 +189,7 @@ function Dashboard() {
 ```
 
 #### B. Panel System
+
 - **Pattern**: Reusable panel components with consistent styling
 - **Implementation**: MUI Card + consistent props interface
 - **Why**: Consistent UX, easy to add new panel types
@@ -195,7 +205,7 @@ interface PanelProps {
 function Panel({ title, children, actions, loading }: PanelProps) {
   return (
     <Card>
-      <CardHeader 
+      <CardHeader
         title={title}
         action={actions}
       />
@@ -207,7 +217,7 @@ function Panel({ title, children, actions, loading }: PanelProps) {
 }
 
 // Usage
-<Panel 
+<Panel
   title="QA Statistics"
   actions={<IconButton><Refresh /></IconButton>}
   loading={isLoading}
@@ -217,6 +227,7 @@ function Panel({ title, children, actions, loading }: PanelProps) {
 ```
 
 #### C. Time Range Selector
+
 - **Pattern**: Date/time range picker for filtering data
 - **Implementation**: MUI DatePicker (you already have it!)
 - **Why**: Common pattern for time-series data
@@ -229,7 +240,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 function TimeRangeSelector({ onChange }: { onChange: (range: [Date, Date]) => void }) {
   const [start, setStart] = useState<Dayjs | null>(null);
   const [end, setEnd] = useState<Dayjs | null>(null);
-  
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <DatePicker label="Start" value={start} onChange={setStart} />
@@ -240,6 +251,7 @@ function TimeRangeSelector({ onChange }: { onChange: (range: [Date, Date]) => vo
 ```
 
 **Resources**:
+
 - [Grafana GitHub](https://github.com/grafana/grafana)
 - [Grafana UI Components](https://developers.grafana.com/ui/)
 
@@ -247,11 +259,13 @@ function TimeRangeSelector({ onChange }: { onChange: (range: [Date, Date]) => vo
 
 ## 3. Aladin Lite (Astronomy-Specific)
 
-**Why it's relevant**: Built specifically for astronomy, handles FITS files, sky coordinates.
+**Why it's relevant**: Built specifically for astronomy, handles FITS files, sky
+coordinates.
 
 ### Key Patterns to Adopt
 
 #### A. Embedded Sky Viewer
+
 - **Pattern**: Iframe or Web Component for Aladin Lite
 - **Implementation**: Direct integration
 - **Why**: Proven astronomy tool, handles coordinates well
@@ -270,6 +284,7 @@ function SkyViewer({ ra, dec, fov }: { ra: number; dec: number; fov: number }) {
 ```
 
 #### B. Coordinate Display
+
 - **Pattern**: Always show RA/Dec, allow coordinate input
 - **Implementation**: MUI TextField with coordinate formatting
 - **Why**: Essential for astronomy workflows
@@ -296,6 +311,7 @@ function CoordinateInput({ value, onChange }: { value: [number, number]; onChang
 ```
 
 **Resources**:
+
 - [Aladin Lite](https://aladin.u-strasbg.fr/AladinLite/)
 - [Aladin Lite API](https://aladin.u-strasbg.fr/AladinLite/doc/API/)
 
@@ -303,21 +319,23 @@ function CoordinateInput({ value, onChange }: { value: [number, number]; onChang
 
 ## 4. JS9 (FITS Viewer - You're Already Using This!)
 
-**Why it's relevant**: You're already integrating JS9, but can learn from its UI patterns.
+**Why it's relevant**: You're already integrating JS9, but can learn from its UI
+patterns.
 
 ### Key Patterns to Adopt
 
 #### A. Control Panel Above Viewer
+
 - **Pattern**: Toolbar with scale/colormap controls above image
 - **Implementation**: MUI AppBar or Toolbar
 - **Why**: JS9's proven layout for FITS viewing
 
 ```typescript
-function FITSViewerControls({ 
-  scale, 
-  colormap, 
-  onScaleChange, 
-  onColormapChange 
+function FITSViewerControls({
+  scale,
+  colormap,
+  onScaleChange,
+  onColormapChange
 }: FITSViewerControlsProps) {
   return (
     <Toolbar>
@@ -329,7 +347,7 @@ function FITSViewerControls({
           <MenuItem value="sqrt">Square Root</MenuItem>
         </Select>
       </FormControl>
-      
+
       <FormControl size="small">
         <InputLabel>Colormap</InputLabel>
         <Select value={colormap} onChange={(e) => onColormapChange(e.target.value)}>
@@ -338,7 +356,7 @@ function FITSViewerControls({
           <MenuItem value="cool">Cool</MenuItem>
         </Select>
       </FormControl>
-      
+
       <IconButton><ZoomIn /></IconButton>
       <IconButton><ZoomOut /></IconButton>
       <IconButton><Fullscreen /></IconButton>
@@ -348,6 +366,7 @@ function FITSViewerControls({
 ```
 
 #### B. Image Information Sidebar
+
 - **Pattern**: Side panel showing FITS header info
 - **Implementation**: MUI Drawer or Accordion
 - **Why**: Users need to see header information
@@ -361,7 +380,7 @@ function FITSHeaderPanel({ header }: { header: FITSHeader }) {
         <List>
           {Object.entries(header).map(([key, value]) => (
             <ListItem>
-              <ListItemText 
+              <ListItemText
                 primary={key}
                 secondary={String(value)}
               />
@@ -375,6 +394,7 @@ function FITSHeaderPanel({ header }: { header: FITSHeader }) {
 ```
 
 **Resources**:
+
 - [JS9 Documentation](https://js9.si.edu/)
 - [JS9 GitHub](https://github.com/ericmandel/js9)
 
@@ -382,11 +402,13 @@ function FITSHeaderPanel({ header }: { header: FITSHeader }) {
 
 ## 5. Metabase (Data Exploration Patterns)
 
-**Why it's relevant**: Excellent patterns for exploring large datasets, query builders.
+**Why it's relevant**: Excellent patterns for exploring large datasets, query
+builders.
 
 ### Key Patterns to Adopt
 
 #### A. Query Builder Interface
+
 - **Pattern**: Visual query builder for filtering data
 - **Implementation**: MUI components + React Query
 - **Why**: Users need to filter QA results
@@ -394,7 +416,7 @@ function FITSHeaderPanel({ header }: { header: FITSHeader }) {
 ```typescript
 function QueryBuilder({ onQueryChange }: { onQueryChange: (query: Query) => void }) {
   const [filters, setFilters] = useState<Filter[]>([]);
-  
+
   return (
     <Box>
       <Typography variant="h6">Filters</Typography>
@@ -410,7 +432,7 @@ function QueryBuilder({ onQueryChange }: { onQueryChange: (query: Query) => void
             <MenuItem value="contains">Contains</MenuItem>
             <MenuItem value="greater_than">Greater Than</MenuItem>
           </Select>
-          <TextField 
+          <TextField
             value={filter.value}
             onChange={(e) => updateFilter(idx, { ...filter, value: e.target.value })}
           />
@@ -424,6 +446,7 @@ function QueryBuilder({ onQueryChange }: { onQueryChange: (query: Query) => void
 ```
 
 #### B. Saved Views/Bookmarks
+
 - **Pattern**: Save common queries/views
 - **Implementation**: LocalStorage or backend API
 - **Why**: Users repeat common queries
@@ -431,11 +454,11 @@ function QueryBuilder({ onQueryChange }: { onQueryChange: (query: Query) => void
 ```typescript
 function SavedViews() {
   const [savedViews, setSavedViews] = useState<SavedView[]>([]);
-  
+
   return (
     <List>
       {savedViews.map(view => (
-        <ListItem 
+        <ListItem
           button
           onClick={() => loadView(view)}
         >
@@ -449,6 +472,7 @@ function SavedViews() {
 ```
 
 **Resources**:
+
 - [Metabase GitHub](https://github.com/metabase/metabase)
 - [Metabase Frontend](https://github.com/metabase/metabase/tree/master/frontend/src)
 
@@ -456,11 +480,13 @@ function SavedViews() {
 
 ## 6. CASA Tools (Measurement Set Patterns)
 
-**Why it's relevant**: You're browsing CASA tables, can learn from CASA's UI patterns.
+**Why it's relevant**: You're browsing CASA tables, can learn from CASA's UI
+patterns.
 
 ### Key Patterns to Adopt
 
 #### A. Table Browser with Column Selection
+
 - **Pattern**: Checkboxes to show/hide columns
 - **Implementation**: AG Grid column visibility
 - **Why**: CASA tables have many columns
@@ -476,7 +502,7 @@ function CasaTableBrowser({ table }: { table: CasaTable }) {
       hide: false, // Can be toggled
     }))
   );
-  
+
   return (
     <Box>
       <Button onClick={openColumnSelector}>Select Columns</Button>
@@ -491,6 +517,7 @@ function CasaTableBrowser({ table }: { table: CasaTable }) {
 ```
 
 #### B. Subtable Navigation
+
 - **Pattern**: Breadcrumb or tree for navigating subtables
 - **Implementation**: MUI Breadcrumbs
 - **Why**: MS files have nested structure
@@ -518,16 +545,19 @@ function SubtableNavigator({ path, onNavigate }: { path: string[]; onNavigate: (
 ## 7. Open Source React Dashboard Templates
 
 ### A. Material Dashboard React
+
 - **GitHub**: https://github.com/creativetimofficial/material-dashboard-react
 - **Why**: Built on MUI, scientific-friendly
 - **Use**: Layout structure, navigation patterns
 
 ### B. React Admin
+
 - **GitHub**: https://github.com/marmelab/react-admin
 - **Why**: Excellent data management patterns
 - **Use**: List/Detail views, filtering, pagination
 
 ### C. Refine
+
 - **GitHub**: https://github.com/refinedev/refine
 - **Why**: Modern, TypeScript-first, built on React Query
 - **Use**: CRUD patterns, data fetching
@@ -537,21 +567,25 @@ function SubtableNavigator({ path, onNavigate }: { path: string[]; onNavigate: (
 ## Recommended Implementation Strategy
 
 ### Phase 1: Adopt JupyterLab Patterns (Highest Priority)
+
 1. **File browser sidebar** - Users are familiar with this
 2. **Tabbed interface** - Multiple files open simultaneously
 3. **Command palette** - Power user feature
 
 ### Phase 2: Add Grafana-Style Dashboard
+
 1. **Grid layout** - Flexible, customizable
 2. **Panel system** - Consistent components
 3. **Time range selector** - For filtering QA runs
 
 ### Phase 3: Enhance with Astronomy-Specific Features
+
 1. **Coordinate displays** - RA/Dec everywhere relevant
 2. **Sky viewer integration** - Aladin Lite for context
 3. **FITS header panels** - Always accessible
 
 ### Phase 4: Add Data Exploration Features
+
 1. **Query builder** - Filter QA results
 2. **Saved views** - Common queries
 3. **Export options** - Download data/plots
@@ -568,7 +602,7 @@ function JupyterLabStyleLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [openTabs, setOpenTabs] = useState<File[]>([]);
   const [activeTab, setActiveTab] = useState(0);
-  
+
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
       {/* Left Sidebar - File Browser */}
@@ -587,7 +621,7 @@ function JupyterLabStyleLayout() {
         <Toolbar />
         <FileBrowserTree />
       </Drawer>
-      
+
       {/* Main Content Area */}
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Top Toolbar */}
@@ -599,12 +633,12 @@ function JupyterLabStyleLayout() {
             <Typography variant="h6">QA Dashboard</Typography>
           </Toolbar>
         </AppBar>
-        
+
         {/* Tabs */}
         {openTabs.length > 0 && (
           <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)}>
             {openTabs.map((file, idx) => (
-              <Tab 
+              <Tab
                 key={file.path}
                 label={file.name}
                 icon={<IconButton size="small" onClick={() => closeTab(idx)}><Close /></IconButton>}
@@ -613,7 +647,7 @@ function JupyterLabStyleLayout() {
             ))}
           </Tabs>
         )}
-        
+
         {/* Content */}
         <Box sx={{ flexGrow: 1, p: 2 }}>
           {openTabs[activeTab] && (
@@ -630,14 +664,18 @@ function JupyterLabStyleLayout() {
 
 ## 8. CARTA (Cube Analysis and Rendering Tool for Astronomy) - **HIGHLY RELEVANT!**
 
-**Why it's perfect**: Built specifically for radio astronomy (ALMA, VLA, SKA), handles large data cubes, uses React/TypeScript, and has proven UI patterns for astronomical data visualization.
+**Why it's perfect**: Built specifically for radio astronomy (ALMA, VLA, SKA),
+handles large data cubes, uses React/TypeScript, and has proven UI patterns for
+astronomical data visualization.
 
-**GitHub**: [CARTAvis/carta-frontend](https://github.com/CARTAvis/carta-frontend)  
+**GitHub**:
+[CARTAvis/carta-frontend](https://github.com/CARTAvis/carta-frontend)  
 **Website**: [cartavis.org](https://cartavis.org/)
 
 ### Architecture Overview
 
 CARTA uses:
+
 - **Blueprint UI** (similar to MUI) - Component library
 - **Golden Layout** - Flexible, dockable panel system
 - **MobX** - State management
@@ -649,6 +687,7 @@ CARTA uses:
 ### Key Patterns to Adopt
 
 #### A. Golden Layout for Flexible Panels
+
 - **Pattern**: Drag-and-drop, resizable, dockable panels
 - **Implementation**: `golden-layout` library
 - **Why**: Users can customize their workspace layout
@@ -665,10 +704,10 @@ import 'golden-layout/dist/css/themes/goldenlayout-dark-theme.css';
 function DashboardLayout() {
   const layoutRef = useRef<HTMLDivElement>(null);
   const glRef = useRef<GoldenLayout | null>(null);
-  
+
   useEffect(() => {
     if (!layoutRef.current) return;
-    
+
     const config: GoldenLayout.Config = {
       content: [{
         type: 'row',
@@ -699,26 +738,27 @@ function DashboardLayout() {
         ],
       }],
     };
-    
+
     glRef.current = new GoldenLayout(config, layoutRef.current);
-    
+
     // Register components
     glRef.current.registerComponent('file-browser', FileBrowser);
     glRef.current.registerComponent('fits-viewer', FITSViewer);
     glRef.current.registerComponent('qa-results', QAResults);
-    
+
     glRef.current.init();
-    
+
     return () => {
       glRef.current?.destroy();
     };
   }, []);
-  
+
   return <div ref={layoutRef} style={{ height: '100vh' }} />;
 }
 ```
 
 #### B. File Browser with Breadcrumbs & Filtering
+
 - **Pattern**: Breadcrumb navigation, search filter, file type tabs
 - **Implementation**: MUI Breadcrumbs + TextField + Tabs
 - **Why**: CARTA's file browser is excellent for navigating large directories
@@ -730,7 +770,7 @@ import { Search, Folder } from '@mui/icons-material';
 function FileBrowser({ path }: { path: string }) {
   const [filter, setFilter] = useState('');
   const [tab, setTab] = useState(0);
-  
+
   return (
     <Box>
       {/* Breadcrumb Navigation */}
@@ -745,7 +785,7 @@ function FileBrowser({ path }: { path: string }) {
           </Link>
         ))}
       </Breadcrumbs>
-      
+
       {/* Search Filter */}
       <TextField
         fullWidth
@@ -762,7 +802,7 @@ function FileBrowser({ path }: { path: string }) {
         }}
         sx={{ mb: 2 }}
       />
-      
+
       {/* File Type Tabs */}
       <Tabs value={tab} onChange={(_, v) => setTab(v)}>
         <Tab label="All Files" />
@@ -771,7 +811,7 @@ function FileBrowser({ path }: { path: string }) {
         <Tab label="Logs" />
         <Tab label="Tables" />
       </Tabs>
-      
+
       {/* File List */}
       <FileList files={filteredFiles} filter={filter} type={tab} />
     </Box>
@@ -780,6 +820,7 @@ function FileBrowser({ path }: { path: string }) {
 ```
 
 #### C. Widget-Based Architecture
+
 - **Pattern**: Each feature is a "widget" that can be docked/undocked
 - **Implementation**: Component system with widget registry
 - **Why**: Modular, reusable components
@@ -803,6 +844,7 @@ function WidgetRenderer({ widgetType, props }: { widgetType: string; props: any 
 ```
 
 #### D. Floating Widgets
+
 - **Pattern**: Widgets can float above main layout
 - **Implementation**: `react-rnd` (CARTA uses this)
 - **Why**: Users can have multiple views visible simultaneously
@@ -836,6 +878,7 @@ function FloatingWidget({ children }: { children: React.ReactNode }) {
 ```
 
 #### E. Dialog System
+
 - **Pattern**: Centralized dialog management
 - **Implementation**: Dialog store + dialog components
 - **Why**: Consistent dialog behavior
@@ -844,11 +887,11 @@ function FloatingWidget({ children }: { children: React.ReactNode }) {
 // Dialog Store (MobX pattern, but can use Zustand)
 class DialogStore {
   @observable openDialogs: Map<string, DialogConfig> = new Map();
-  
+
   @action openDialog(id: string, config: DialogConfig) {
     this.openDialogs.set(id, config);
   }
-  
+
   @action closeDialog(id: string) {
     this.openDialogs.delete(id);
   }
@@ -857,7 +900,7 @@ class DialogStore {
 // Dialog Manager Component
 function DialogManager() {
   const dialogStore = useDialogStore();
-  
+
   return (
     <>
       {Array.from(dialogStore.openDialogs.entries()).map(([id, config]) => (
@@ -880,6 +923,7 @@ function DialogManager() {
 ```
 
 #### F. Cursor Info Display
+
 - **Pattern**: Always-visible cursor information (RA/Dec, pixel values)
 - **Implementation**: Fixed position component
 - **Why**: Essential for astronomy workflows
@@ -911,6 +955,7 @@ function CursorInfo({ position }: { position: { ra: number; dec: number; value: 
 ```
 
 #### G. Render Configuration Panel
+
 - **Pattern**: Side panel for image rendering controls (scale, colormap, etc.)
 - **Implementation**: MUI Drawer or Accordion
 - **Why**: CARTA's render config is excellent
@@ -921,7 +966,7 @@ function RenderConfigPanel({ config, onChange }: RenderConfigProps) {
     <Drawer anchor="right" open={open} onClose={() => setOpen(false)}>
       <Box sx={{ width: 300, p: 2 }}>
         <Typography variant="h6">Render Configuration</Typography>
-        
+
         <FormControl fullWidth sx={{ mt: 2 }}>
           <InputLabel>Scale</InputLabel>
           <Select value={config.scale} onChange={(e) => onChange({ ...config, scale: e.target.value })}>
@@ -931,7 +976,7 @@ function RenderConfigPanel({ config, onChange }: RenderConfigProps) {
             <MenuItem value="power">Power</MenuItem>
           </Select>
         </FormControl>
-        
+
         <FormControl fullWidth sx={{ mt: 2 }}>
           <InputLabel>Colormap</InputLabel>
           <Select value={config.colormap} onChange={(e) => onChange({ ...config, colormap: e.target.value })}>
@@ -941,7 +986,7 @@ function RenderConfigPanel({ config, onChange }: RenderConfigProps) {
             <MenuItem value="rainbow">Rainbow</MenuItem>
           </Select>
         </FormControl>
-        
+
         <Slider
           label="Percentile"
           value={config.percentile}
@@ -958,6 +1003,7 @@ function RenderConfigPanel({ config, onChange }: RenderConfigProps) {
 ```
 
 #### H. Workspace/Layout Persistence
+
 - **Pattern**: Save and restore user layouts
 - **Implementation**: LocalStorage or backend API
 - **Why**: Users can save their preferred workspace configuration
@@ -965,21 +1011,21 @@ function RenderConfigPanel({ config, onChange }: RenderConfigProps) {
 ```typescript
 function useLayoutPersistence() {
   const saveLayout = (name: string, config: LayoutConfig) => {
-    const layouts = JSON.parse(localStorage.getItem('layouts') || '{}');
+    const layouts = JSON.parse(localStorage.getItem("layouts") || "{}");
     layouts[name] = config;
-    localStorage.setItem('layouts', JSON.stringify(layouts));
+    localStorage.setItem("layouts", JSON.stringify(layouts));
   };
-  
+
   const loadLayout = (name: string): LayoutConfig | null => {
-    const layouts = JSON.parse(localStorage.getItem('layouts') || '{}');
+    const layouts = JSON.parse(localStorage.getItem("layouts") || "{}");
     return layouts[name] || null;
   };
-  
+
   const listLayouts = (): string[] => {
-    const layouts = JSON.parse(localStorage.getItem('layouts') || '{}');
+    const layouts = JSON.parse(localStorage.getItem("layouts") || "{}");
     return Object.keys(layouts);
   };
-  
+
   return { saveLayout, loadLayout, listLayouts };
 }
 ```
@@ -1012,6 +1058,7 @@ carta-frontend/src/
 ### Key Libraries CARTA Uses (You Should Consider)
 
 1. **Golden Layout** - Flexible panel system
+
    ```bash
    npm install golden-layout @types/golden-layout
    ```
@@ -1020,11 +1067,13 @@ carta-frontend/src/
    - CARTA uses Blueprint, but MUI has equivalent components
 
 3. **MobX** - State management (or use Zustand/Redux)
+
    ```bash
    npm install mobx mobx-react
    ```
 
 4. **React RND** - Resizable, draggable components
+
    ```bash
    npm install react-rnd
    ```
@@ -1042,10 +1091,10 @@ import { QAResults } from './components/QAResults';
 function CARTAStyleDashboard() {
   const layoutRef = useRef<HTMLDivElement>(null);
   const glRef = useRef<GoldenLayout | null>(null);
-  
+
   useEffect(() => {
     if (!layoutRef.current) return;
-    
+
     const config: GoldenLayout.Config = {
       content: [
         {
@@ -1090,22 +1139,22 @@ function CARTAStyleDashboard() {
         },
       ],
     };
-    
+
     glRef.current = new GoldenLayout(config, layoutRef.current);
-    
+
     // Register components
     glRef.current.registerComponent('file-browser', FileBrowser);
     glRef.current.registerComponent('fits-viewer', FITSViewer);
     glRef.current.registerComponent('qa-results', QAResults);
     glRef.current.registerComponent('stats', StatsWidget);
-    
+
     glRef.current.init();
-    
+
     return () => {
       glRef.current?.destroy();
     };
   }, []);
-  
+
   return (
     <Box sx={{ height: '100vh' }}>
       <AppBar position="static">
@@ -1192,5 +1241,7 @@ function CARTAStyleDashboard() {
 - **Render Configuration** - Side panel for image controls
 - **Workspace Persistence** - Save user layouts
 
-By adopting CARTA's patterns (especially Golden Layout and widget system), you'll create a dashboard that feels professional and familiar to radio astronomers while leveraging proven UI patterns from a tool built specifically for your domain.
-
+By adopting CARTA's patterns (especially Golden Layout and widget system),
+you'll create a dashboard that feels professional and familiar to radio
+astronomers while leveraging proven UI patterns from a tool built specifically
+for your domain.

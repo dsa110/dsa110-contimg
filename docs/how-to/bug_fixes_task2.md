@@ -2,7 +2,8 @@
 
 **Date:** 2025-11-13  
 **Status:** complete  
-**Related:** [Task 2 Visual Improvements](visual_improvements_task2.md), [Infrastructure Improvements](../../ops/systemd/infrastructure_improvements.md)
+**Related:** [Task 2 Visual Improvements](visual_improvements_task2.md),
+[Infrastructure Improvements](../../ops/systemd/infrastructure_improvements.md)
 
 ---
 

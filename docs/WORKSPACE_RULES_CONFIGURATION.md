@@ -1,6 +1,7 @@
 # Workspace Rules Configuration
 
-**Purpose:** Document what should be included in the "Always Applied Workspace Rules" section
+**Purpose:** Document what should be included in the "Always Applied Workspace
+Rules" section
 
 **Last Updated:** 2025-11-12
 
@@ -24,6 +25,7 @@ The workspace configuration should include:
 **Status:** Already in workspace rules as `PYTHON_ENVIRONMENT_REQUIREMENT` ✅
 
 **Content:** The existing rule covers:
+
 - Path: `/opt/miniforge/envs/casa6/bin/python`
 - Python version: 3.11.13 (in `casa6` conda environment)
 - Usage in Makefiles, shell scripts, and Python code
@@ -67,7 +69,8 @@ This document describes:
 3. Follow established naming conventions and directory patterns
 ```
 
-**Reference:** `.cursor/rules/critical-requirements.mdc` (Section: "Codebase and Documentation Organizational Layout")
+**Reference:** `.cursor/rules/critical-requirements.mdc` (Section: "Codebase and
+Documentation Organizational Layout")
 
 ---
 
@@ -75,15 +78,20 @@ This document describes:
 
 ### Option 1: Add to Workspace Configuration (Recommended)
 
-Add the organizational layout section to the workspace's "Always Applied Workspace Rules" configuration in Cursor settings.
+Add the organizational layout section to the workspace's "Always Applied
+Workspace Rules" configuration in Cursor settings.
 
 ### Option 2: Reference Rule File
 
-The workspace configuration can reference `.cursor/rules/critical-requirements.mdc` which contains both requirements in a single file.
+The workspace configuration can reference
+`.cursor/rules/critical-requirements.mdc` which contains both requirements in a
+single file.
 
 ### Option 3: Agent Requestable Rule
 
-Add `.cursor/rules/critical-requirements.mdc` to the `<agent_requestable_workspace_rules>` section so agents can explicitly request it.
+Add `.cursor/rules/critical-requirements.mdc` to the
+`<agent_requestable_workspace_rules>` section so agents can explicitly request
+it.
 
 ---
 
@@ -99,10 +107,13 @@ After adding to workspace configuration, verify:
 
 ## Related Files
 
-- `.cursor/rules/critical-requirements.mdc` - Comprehensive rule file with both requirements
+- `.cursor/rules/critical-requirements.mdc` - Comprehensive rule file with both
+  requirements
 - `docs/concepts/DIRECTORY_ARCHITECTURE.md` - Organizational layout document
 - `docs/reference/CRITICAL_PYTHON_ENVIRONMENT.md` - Detailed casa6 requirements
 
 ---
 
-**Note:** The `.cursor/rules/critical-requirements.mdc` file has been created and contains both requirements. This file can be referenced by the workspace configuration or explicitly requested by agents.
+**Note:** The `.cursor/rules/critical-requirements.mdc` file has been created
+and contains both requirements. This file can be referenced by the workspace
+configuration or explicitly requested by agents.

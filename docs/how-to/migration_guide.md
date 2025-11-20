@@ -1,12 +1,14 @@
 # Pipeline Migration Guide
 
-This guide helps migrate between different versions of the DSA-110 Continuum Imaging Pipeline.
+This guide helps migrate between different versions of the DSA-110 Continuum
+Imaging Pipeline.
 
 ## Version History
 
 ### Current Version: 2.0
 
 **Key Changes:**
+
 - Stage-based architecture introduced
 - Immutable PipelineContext
 - PipelineOrchestrator for dependency management
@@ -15,6 +17,7 @@ This guide helps migrate between different versions of the DSA-110 Continuum Ima
 ### Previous Version: 1.0
 
 **Key Features:**
+
 - Monolithic pipeline execution
 - Mutable state
 - Sequential processing
@@ -24,13 +27,15 @@ This guide helps migrate between different versions of the DSA-110 Continuum Ima
 
 ### Overview
 
-Version 2.0 introduces a stage-based architecture with immutable contexts. This requires changes to how pipelines are configured and executed.
+Version 2.0 introduces a stage-based architecture with immutable contexts. This
+requires changes to how pipelines are configured and executed.
 
 ### Breaking Changes
 
 #### 1. Pipeline Execution
 
 **Before (1.0):**
+
 ```python
 from dsa110_contimg.pipeline import run_pipeline
 
@@ -41,6 +46,7 @@ result = run_pipeline(
 ```
 
 **After (2.0):**
+
 ```python
 from dsa110_contimg.pipeline import PipelineOrchestrator, StageDefinition
 from dsa110_contimg.pipeline.stages_impl import (
@@ -82,6 +88,7 @@ result = orchestrator.execute(context)
 #### 2. State Management
 
 **Before (1.0):**
+
 ```python
 # Mutable state
 pipeline_state = {
@@ -92,6 +99,7 @@ pipeline_state["image_path"] = "/data/image.fits"  # Direct mutation
 ```
 
 **After (2.0):**
+
 ```python
 # Immutable context
 context = PipelineContext(
@@ -107,6 +115,7 @@ new_context = context.with_output("image_path", "/data/image.fits")
 #### 3. Stage Dependencies
 
 **Before (1.0):**
+
 ```python
 # Implicit dependencies (execution order)
 run_conversion()
@@ -115,6 +124,7 @@ run_imaging()  # Assumes calibration completed
 ```
 
 **After (2.0):**
+
 ```python
 # Explicit dependencies
 stages = [
@@ -128,6 +138,7 @@ stages = [
 #### 4. Error Handling
 
 **Before (1.0):**
+
 ```python
 try:
     result = run_pipeline(...)
@@ -137,6 +148,7 @@ except Exception as e:
 ```
 
 **After (2.0):**
+
 ```python
 result = orchestrator.execute(context)
 
@@ -283,6 +295,7 @@ config = PipelineConfig(
 #### Example 1: Simple Pipeline
 
 **Before:**
+
 ```python
 from dsa110_contimg.pipeline import run_pipeline
 
@@ -294,6 +307,7 @@ print(f"Image: {result['image_path']}")
 ```
 
 **After:**
+
 ```python
 from dsa110_contimg.pipeline import PipelineOrchestrator, StageDefinition
 from dsa110_contimg.pipeline.config import PipelineConfig, PathsConfig
@@ -331,6 +345,7 @@ if result.status == PipelineStatus.COMPLETED:
 #### Example 2: Custom Stage
 
 **Before:**
+
 ```python
 # Custom processing in pipeline
 def custom_process(data):
@@ -344,6 +359,7 @@ result = run_pipeline(
 ```
 
 **After:**
+
 ```python
 # Create custom stage
 from dsa110_contimg.pipeline.stages import PipelineStage
@@ -351,17 +367,17 @@ from dsa110_contimg.pipeline.stages import PipelineStage
 class CustomStage(PipelineStage):
     def __init__(self, config: PipelineConfig):
         self.config = config
-    
+
     def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
         if "input_data" not in context.outputs:
             return False, "input_data required"
         return True, None
-    
+
     def execute(self, context: PipelineContext) -> PipelineContext:
         data = context.outputs["input_data"]
         processed = custom_process(data)
         return context.with_output("processed_data", processed)
-    
+
     def get_name(self) -> str:
         return "custom"
 
@@ -390,7 +406,7 @@ def test_pipeline():
     stages = [...]
     orchestrator = PipelineOrchestrator(stages)
     context = PipelineContext(config=config, inputs={...})
-    
+
     result = orchestrator.execute(context)
     assert result.status == PipelineStatus.COMPLETED
     assert "image_path" in result.context.outputs
@@ -478,4 +494,3 @@ If you encounter issues during migration:
 - [Pipeline Stage Architecture](../concepts/pipeline_stage_architecture.md)
 - [Creating Pipeline Stages](create_pipeline_stage.md)
 - [Troubleshooting Guide](troubleshooting.md)
-

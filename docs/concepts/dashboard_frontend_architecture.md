@@ -71,6 +71,7 @@ frontend/
 ### Key Files
 
 **`src/App.tsx`** - Main application component
+
 - Sets up React Query client
 - Configures routing (React Router v6)
 - Applies Material-UI theme
@@ -78,12 +79,14 @@ frontend/
 - Sets up notification context
 
 **`src/api/queries.ts`** - React Query hooks (1500+ lines)
+
 - All API data fetching hooks
 - Real-time query hooks with WebSocket integration
 - Mutation hooks for data updates
 - Query key management
 
 **`src/api/client.ts`** - Axios API client
+
 - Base URL configuration
 - Request/response interceptors
 - Circuit breaker integration
@@ -91,6 +94,7 @@ frontend/
 - Error classification
 
 **`src/api/websocket.ts`** - WebSocket/SSE client
+
 - WebSocket connection management
 - SSE fallback support
 - Automatic reconnection with exponential backoff
@@ -157,17 +161,19 @@ frontend/
 ### Page Components
 
 Each page is a top-level component that:
+
 - Uses React Query hooks for data fetching
 - Composes smaller components
 - Handles page-specific state
 - Provides error boundaries
 
 **Example Structure:**
+
 ```typescript
 export default function DashboardPage() {
   const { data: status } = usePipelineStatus();
   const { data: metrics } = useSystemMetrics();
-  
+
   return (
     <Box>
       <PipelineStatusPanel status={status} />
@@ -182,6 +188,7 @@ export default function DashboardPage() {
 ### Reusable Components
 
 Components are organized by domain:
+
 - **Dashboard/** - Pipeline status, system health
 - **Sky/** - Image gallery, mosaics, sky maps
 - **Sources/** - Source tables, flux timeseries
@@ -193,30 +200,33 @@ Components are organized by domain:
 ### Component Patterns
 
 **Data Fetching Pattern:**
+
 ```typescript
 const { data, isLoading, error } = useQuery({
-  queryKey: ['resource', id],
+  queryKey: ["resource", id],
   queryFn: () => apiClient.get(`/resource/${id}`),
   staleTime: 30000,
 });
 ```
 
 **Real-Time Pattern:**
+
 ```typescript
 const { data } = useRealtimeQuery(
-  ['pipeline', 'status'],
-  () => apiClient.get('/status'),
+  ["pipeline", "status"],
+  () => apiClient.get("/status"),
   wsClient,
   10000 // poll interval
 );
 ```
 
 **Mutation Pattern:**
+
 ```typescript
 const mutation = useMutation({
-  mutationFn: (data) => apiClient.post('/resource', data),
+  mutationFn: (data) => apiClient.post("/resource", data),
   onSuccess: () => {
-    queryClient.invalidateQueries(['resource']);
+    queryClient.invalidateQueries(["resource"]);
   },
 });
 ```
@@ -228,6 +238,7 @@ const mutation = useMutation({
 ### Route Configuration
 
 **Routes defined in `App.tsx`:**
+
 - `/` → Redirects to `/dashboard`
 - `/dashboard` → DashboardPage
 - `/control` → ControlPage
@@ -246,6 +257,7 @@ const mutation = useMutation({
 ### Navigation Component
 
 **`Navigation.tsx`** - Top navigation bar
+
 - Material-UI AppBar
 - Navigation links
 - Active route highlighting
@@ -254,8 +266,9 @@ const mutation = useMutation({
 ### Basename Configuration
 
 Production builds use `/ui` basename:
+
 ```typescript
-const basename = import.meta.env.PROD ? '/ui' : undefined;
+const basename = import.meta.env.PROD ? "/ui" : undefined;
 ```
 
 ---
@@ -265,12 +278,14 @@ const basename = import.meta.env.PROD ? '/ui' : undefined;
 ### Server State (React Query)
 
 **All API data managed via React Query:**
+
 - Automatic caching
 - Background refetching
 - Stale-while-revalidate pattern
 - Query invalidation on mutations
 
 **Query Client Configuration:**
+
 ```typescript
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -287,6 +302,7 @@ const queryClient = new QueryClient({
 ### Local State (React useState)
 
 **Component-local state:**
+
 - Form inputs
 - UI toggles
 - Dialog open/close
@@ -295,6 +311,7 @@ const queryClient = new QueryClient({
 ### Global State (React Context)
 
 **NotificationContext:**
+
 - Global notification system
 - Toast messages
 - Error notifications
@@ -307,19 +324,22 @@ const queryClient = new QueryClient({
 ### API Client (`client.ts`)
 
 **Base Configuration:**
+
 ```typescript
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
-  headers: { 'Content-Type': 'application/json' },
+  headers: { "Content-Type": "application/json" },
 });
 ```
 
 **Request Interceptor:**
+
 - Circuit breaker check
 - Request logging
 
 **Response Interceptor:**
+
 - Error classification
 - Retry logic
 - Circuit breaker updates
@@ -328,6 +348,7 @@ const apiClient = axios.create({
 ### Query Hooks (`queries.ts`)
 
 **Data Fetching Hooks:**
+
 - `usePipelineStatus()` - Pipeline queue status
 - `useSystemMetrics()` - System health metrics
 - `useESECandidates()` - ESE candidate sources
@@ -340,16 +361,18 @@ const apiClient = axios.create({
 - And 50+ more hooks
 
 **Real-Time Query Hook:**
+
 ```typescript
 function useRealtimeQuery<T>(
   queryKey: string[],
   queryFn: () => Promise<T>,
   wsClient: WebSocketClient | null,
   pollInterval: number = 10000
-): UseQueryResult<T>
+): UseQueryResult<T>;
 ```
 
 **Features:**
+
 - WebSocket subscription for real-time updates
 - Automatic cache invalidation on WebSocket messages
 - Polling fallback when WebSocket unavailable
@@ -358,6 +381,7 @@ function useRealtimeQuery<T>(
 ### Mutation Hooks
 
 **Data Update Hooks:**
+
 - `useStartStreaming()` - Start streaming service
 - `useStopStreaming()` - Stop streaming service
 - `useCreateJob()` - Create pipeline job
@@ -365,11 +389,12 @@ function useRealtimeQuery<T>(
 - And 20+ more mutation hooks
 
 **Pattern:**
+
 ```typescript
 const mutation = useMutation({
-  mutationFn: (data) => apiClient.post('/endpoint', data),
+  mutationFn: (data) => apiClient.post("/endpoint", data),
   onSuccess: () => {
-    queryClient.invalidateQueries(['related', 'queries']);
+    queryClient.invalidateQueries(["related", "queries"]);
   },
 });
 ```
@@ -377,12 +402,14 @@ const mutation = useMutation({
 ### Type Definitions (`types.ts`)
 
 **790 lines of TypeScript interfaces:**
+
 - Mirrors backend Pydantic models
 - Type-safe API calls
 - IntelliSense support
 - Compile-time error checking
 
 **Example:**
+
 ```typescript
 export interface PipelineStatus {
   queue: QueueStats;
@@ -398,6 +425,7 @@ export interface PipelineStatus {
 ### WebSocket Client (`websocket.ts`)
 
 **Features:**
+
 - Automatic reconnection with exponential backoff
 - SSE fallback support
 - Message handler registration
@@ -405,14 +433,15 @@ export interface PipelineStatus {
 - Connection state tracking
 
 **Usage:**
+
 ```typescript
 const wsClient = createWebSocketClient({
-  url: '/api/ws/status',
+  url: "/api/ws/status",
   reconnectInterval: 3000,
   maxReconnectAttempts: 10,
 });
 
-wsClient.on('status_update', (data) => {
+wsClient.on("status_update", (data) => {
   // Handle update
 });
 ```
@@ -420,12 +449,14 @@ wsClient.on('status_update', (data) => {
 ### Integration with React Query
 
 **Real-time queries automatically:**
+
 1. Subscribe to WebSocket messages
 2. Update React Query cache on messages
 3. Fall back to polling if WebSocket unavailable
 4. Maintain consistent API with regular queries
 
 **Message Types:**
+
 - `status_update` - Pipeline status updates
 - `metrics_update` - System metrics updates
 - `ese_update` - ESE candidate updates
@@ -437,22 +468,24 @@ wsClient.on('status_update', (data) => {
 ### Material-UI Theme
 
 **Dark Theme (`theme/darkTheme.ts`):**
+
 - Optimized for astronomers (night work)
 - High contrast for data visualization
 - Consistent color palette
 - Custom spacing and typography
 
 **Theme Configuration:**
+
 ```typescript
 export const darkTheme = createTheme({
   palette: {
-    mode: 'dark',
-    primary: { main: '#1976d2' },
-    secondary: { main: '#dc004e' },
+    mode: "dark",
+    primary: { main: "#1976d2" },
+    secondary: { main: "#dc004e" },
     // ... custom colors
   },
   typography: {
-    fontFamily: 'Roboto, sans-serif',
+    fontFamily: "Roboto, sans-serif",
     // ... custom typography
   },
 });
@@ -461,11 +494,13 @@ export const darkTheme = createTheme({
 ### Component Styling
 
 **Material-UI `sx` prop:**
+
 - Inline styling with theme access
 - Responsive breakpoints
 - Theme-aware colors
 
 **Example:**
+
 ```typescript
 <Box
   sx={{
@@ -483,12 +518,14 @@ export const darkTheme = createTheme({
 ### Development Server
 
 **Vite Dev Server:**
+
 ```bash
 npm run dev
 # Available at http://localhost:5173
 ```
 
 **Features:**
+
 - Hot Module Replacement (HMR)
 - Fast refresh
 - TypeScript support
@@ -497,12 +534,14 @@ npm run dev
 ### Production Build
 
 **Build Command:**
+
 ```bash
 npm run build
 # Output in dist/
 ```
 
 **Build Features:**
+
 - Code splitting
 - Tree shaking
 - Minification
@@ -512,10 +551,12 @@ npm run build
 ### Environment Variables
 
 **Development:**
+
 - `VITE_API_BASE_URL` - Backend API URL
 - `VITE_WS_URL` - WebSocket URL
 
 **Production:**
+
 - Served from `/ui` path
 - Uses relative URLs for API
 
@@ -526,29 +567,34 @@ npm run build
 ### Code Splitting
 
 **React Router lazy loading:**
+
 ```typescript
-const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 ```
 
 ### Query Optimization
 
 **Stale Time Configuration:**
+
 - Reduces unnecessary refetches
 - 30s default stale time
 - Longer for static data
 
 **Query Key Management:**
+
 - Hierarchical keys for efficient invalidation
 - Example: `['pipeline', 'status']`, `['sources', id]`
 
 ### Component Optimization
 
 **React.memo for expensive components:**
+
 ```typescript
 export default React.memo(ExpensiveComponent);
 ```
 
 **useMemo for computed values:**
+
 ```typescript
 const computed = useMemo(() => expensiveCalculation(data), [data]);
 ```
@@ -556,6 +602,7 @@ const computed = useMemo(() => expensiveCalculation(data), [data]);
 ### Bundle Size
 
 **Current Considerations:**
+
 - Plotly.js is large (~2MB)
 - Consider dynamic imports for less-used features
 - Code splitting reduces initial load
@@ -564,8 +611,11 @@ const computed = useMemo(() => expensiveCalculation(data), [data]);
 
 ## See Also
 
-- [Backend API & Integration](../reference/dashboard_backend_api.md) - API integration details
-- [State Management & Real-Time Updates](./dashboard_state_management.md) - State management patterns
-- [Error Handling & Resilience](./dashboard_error_handling.md) - Error handling strategies
-- [Dashboard Pages & Features Reference](../reference/dashboard_pages_and_features.md) - Page documentation
-
+- [Backend API & Integration](../reference/dashboard_backend_api.md) - API
+  integration details
+- [State Management & Real-Time Updates](./dashboard_state_management.md) -
+  State management patterns
+- [Error Handling & Resilience](./dashboard_error_handling.md) - Error handling
+  strategies
+- [Dashboard Pages & Features Reference](../reference/dashboard_pages_and_features.md) -
+  Page documentation

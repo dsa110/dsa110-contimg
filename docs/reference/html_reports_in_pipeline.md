@@ -2,7 +2,8 @@
 
 ## Overview
 
-The DSA-110 pipeline generates HTML reports in multiple locations for different purposes:
+The DSA-110 pipeline generates HTML reports in multiple locations for different
+purposes:
 
 1. **QA Validation Reports** (Backend) - Image validation reports
 2. **Playwright E2E Test Reports** (Frontend) - Test execution reports
@@ -10,6 +11,7 @@ The DSA-110 pipeline generates HTML reports in multiple locations for different 
 ## 1. QA Validation HTML Reports (Backend)
 
 ### Location
+
 - **Module:** `src/dsa110_contimg/qa/html_reports.py`
 - **Main Function:** `generate_html_report()`
 - **Report Format:** `{image_name}_validation_report.html`
@@ -17,13 +19,16 @@ The DSA-110 pipeline generates HTML reports in multiple locations for different 
 ### When Generated
 
 #### A. During Pipeline Validation Stage
+
 - **File:** `src/dsa110_contimg/pipeline/stages_impl.py`
 - **Stage:** Validation stage (`validate_image()`)
-- **Trigger:** When `validation_config.generate_html_report = True` (default: `True`)
+- **Trigger:** When `validation_config.generate_html_report = True` (default:
+  `True`)
 - **Output Location:** QA output directory (typically `{output_dir}/qa/`)
 - **Report Name:** `{image_name}_validation_report.html`
 
 **Example:**
+
 ```python
 # In pipeline/stages_impl.py
 if validation_config.generate_html_report:
@@ -36,17 +41,18 @@ if validation_config.generate_html_report:
 ```
 
 #### B. Via API Endpoints
+
 - **File:** `src/dsa110_contimg/api/routes.py`
 - **Endpoints:**
   1. `GET /qa/images/{image_id}/validation-report.html`
      - Generates and returns HTML report on-demand
      - Query param: `save=true` to save to file
-   
   2. `POST /qa/images/{image_id}/generate-validation-report`
      - Generates HTML report and saves to QA directory
      - Returns path to saved report
 
 **Example API Usage:**
+
 ```bash
 # Get HTML report (on-demand)
 curl http://localhost:8000/api/qa/images/{image_id}/validation-report.html
@@ -56,6 +62,7 @@ curl -X POST http://localhost:8000/api/qa/images/{image_id}/generate-validation-
 ```
 
 #### C. Via Catalog Validation
+
 - **File:** `src/dsa110_contimg/qa/catalog_validation.py`
 - **Function:** `run_all_validations()`
 - **Parameter:** `generate_html=True` with `html_output_path` provided
@@ -92,10 +99,11 @@ QA validation HTML reports include:
 ### Configuration
 
 **Pipeline Config** (`src/dsa110_contimg/pipeline/config.py`):
+
 ```python
 class ValidationConfig:
     generate_html_report: bool = Field(
-        default=True, 
+        default=True,
         description="Generate HTML validation report"
     )
 ```
@@ -105,17 +113,20 @@ class ValidationConfig:
 ### Report Storage
 
 - **Default Location:** `{qa_output_dir}/{image_name}_validation_report.html`
-- **Example:** `/stage/dsa110-contimg/qa/reports/image_2025-01-11T12:00:00_validation_report.html`
+- **Example:**
+  `/stage/dsa110-contimg/qa/reports/image_2025-01-11T12:00:00_validation_report.html`
 - **State DB:** Report path stored in pipeline state metadata
 
 ## 2. Playwright E2E Test Reports (Frontend)
 
 ### Location
+
 - **Config:** `frontend/playwright.config.ts`
 - **Reporter:** `['html']` in reporter configuration
 - **Report Format:** `playwright-report/index.html`
 
 ### When Generated
+
 - **Automatically** after every test run
 - **Location:** `frontend/playwright-report/index.html`
 - **Trigger:** Any Playwright test execution
@@ -159,22 +170,23 @@ open frontend/playwright-report/index.html
 
 ## Comparison
 
-| Feature | QA Validation Reports | Playwright Reports |
-|---------|----------------------|-------------------|
-| **Purpose** | Image quality validation | E2E test results |
-| **Generated** | During pipeline validation | After test execution |
-| **Location** | QA output directory | `playwright-report/` |
-| **Format** | `{image_name}_validation_report.html` | `index.html` |
-| **Content** | Validation metrics, plots, images | Test results, screenshots, videos |
-| **Automatic** | Yes (if enabled in config) | Yes (always) |
-| **API Access** | Yes (via `/qa/images/{id}/validation-report.html`) | No (file system only) |
+| Feature        | QA Validation Reports                              | Playwright Reports                |
+| -------------- | -------------------------------------------------- | --------------------------------- |
+| **Purpose**    | Image quality validation                           | E2E test results                  |
+| **Generated**  | During pipeline validation                         | After test execution              |
+| **Location**   | QA output directory                                | `playwright-report/`              |
+| **Format**     | `{image_name}_validation_report.html`              | `index.html`                      |
+| **Content**    | Validation metrics, plots, images                  | Test results, screenshots, videos |
+| **Automatic**  | Yes (if enabled in config)                         | Yes (always)                      |
+| **API Access** | Yes (via `/qa/images/{id}/validation-report.html`) | No (file system only)             |
 
 ## Related Documentation
 
 - [QA Validation Guide](../how-to/validation_guide.md)
 - [Pipeline Configuration](../concepts/pipeline_overview.md)
 - E2E Testing Guide: `../frontend/tests/e2e/README.md` (external file)
-- HTML Reports Module: `../../src/dsa110_contimg/qa/html_reports.py` (external file)
+- HTML Reports Module: `../../src/dsa110_contimg/qa/html_reports.py` (external
+  file)
 
 ## Notes
 
@@ -182,4 +194,3 @@ open frontend/playwright-report/index.html
 - QA reports include embedded plots and images (base64 encoded)
 - Playwright reports are interactive with filtering/search capabilities
 - Both can be archived/shared as static HTML files
-

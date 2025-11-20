@@ -4,30 +4,41 @@
 
 ## Overview
 
-This document catalogs catalog cross-matching tools found in external codebases, reference repositories, and software suites that may be relevant to the DSA-110 pipeline. These tools were discovered through a thorough search of `/data/dsa110-contimg/archive/references/` and `~/proj/`.
+This document catalogs catalog cross-matching tools found in external codebases,
+reference repositories, and software suites that may be relevant to the DSA-110
+pipeline. These tools were discovered through a thorough search of
+`/data/dsa110-contimg/archive/references/` and `~/proj/`.
 
 ## Summary
 
 **Total Cross-Matching Implementations Found:** 5 major implementations
 
-1. **VAST Post-Processing** (`vast-post-processing/crossmatch.py`) - Dedicated cross-matching module
-2. **VAST Tools** (`vast-tools`) - Cross-matching via `match_to_catalog_sky` in examples
-3. **ASKAP Continuum Validation** (`ASKAP-continuum-validation/catalogue.py`) - Catalog class with `cross_match()` method
-4. **VAST Fast Detection** (`vast-fastdetection`) - Cross-matching for candidate prioritization
-5. **VAST Pipeline** (`vast-pipeline`) - Association and cross-matching utilities
+1. **VAST Post-Processing** (`vast-post-processing/crossmatch.py`) - Dedicated
+   cross-matching module
+2. **VAST Tools** (`vast-tools`) - Cross-matching via `match_to_catalog_sky` in
+   examples
+3. **ASKAP Continuum Validation** (`ASKAP-continuum-validation/catalogue.py`) -
+   Catalog class with `cross_match()` method
+4. **VAST Fast Detection** (`vast-fastdetection`) - Cross-matching for candidate
+   prioritization
+5. **VAST Pipeline** (`vast-pipeline`) - Association and cross-matching
+   utilities
 
 ---
 
 ## 1. VAST Post-Processing: `crossmatch.py`
 
-**Location:** `/data/dsa110-contimg/archive/references/VAST/vast-post-processing/vast_post_processing/crossmatch.py`
+**Location:**
+`/data/dsa110-contimg/archive/references/VAST/vast-post-processing/vast_post_processing/crossmatch.py`
 
 **Type:** Dedicated cross-matching module
 
 ### Key Functions
 
 #### `join_match_coordinates_sky(coords1, coords2, seplimit)`
-- **Purpose:** Helper function for cross-matching using `astropy.coordinates.match_coordinates_sky()`
+
+- **Purpose:** Helper function for cross-matching using
+  `astropy.coordinates.match_coordinates_sky()`
 - **Input:** Two `SkyCoord` objects and separation limit
 - **Output:** Indices, matched indices, separations, 3D distances
 - **Features:**
@@ -35,6 +46,7 @@ This document catalogs catalog cross-matching tools found in external codebases,
   - Returns mask of valid matches
 
 #### `crossmatch_qtables(catalog, catalog_reference, image_path, radius)`
+
 - **Purpose:** Main cross-matching function for QTable catalogs
 - **Input:** Two `Catalog` objects (QTable-based), image path, matching radius
 - **Output:** QTable with cross-matched sources
@@ -48,6 +60,7 @@ This document catalogs catalog cross-matching tools found in external codebases,
   - Logs statistics (number of matches, unique reference sources)
 
 **Code Pattern:**
+
 ```python
 from astropy.coordinates import SkyCoord, Angle, match_coordinates_sky
 from astropy.table import QTable, join, join_skycoord
@@ -68,6 +81,7 @@ xmatch["dra"], xmatch["ddec"] = xmatch["coord"].spherical_offsets_to(
 ```
 
 #### `calculate_positional_offsets(xmatch_qt)`
+
 - **Purpose:** Calculate median positional offsets and MAD
 - **Input:** Cross-matched QTable
 - **Output:** Median RA/Dec offsets, MAD of RA/Dec offsets
@@ -75,6 +89,7 @@ xmatch["dra"], xmatch["ddec"] = xmatch["coord"].spherical_offsets_to(
   - Uses `np.median()` and `mad_std()` from `astropy.stats`
 
 #### `calculate_flux_offsets_Huber(xmatch_qt)`
+
 - **Purpose:** Fit flux relationship using HuberRegressor (robust to outliers)
 - **Input:** Cross-matched QTable with flux columns
 - **Output:** Flux correction factor (gradient), gradient error
@@ -99,7 +114,9 @@ xmatch["dra"], xmatch["ddec"] = xmatch["coord"].spherical_offsets_to(
 
 ### Potential Adoption
 
-**High Priority** - This is the most complete standalone cross-matching implementation found. Could serve as a template for DSA-110's cross-matching utility.
+**High Priority** - This is the most complete standalone cross-matching
+implementation found. Could serve as a template for DSA-110's cross-matching
+utility.
 
 ---
 
@@ -112,14 +129,17 @@ xmatch["dra"], xmatch["ddec"] = xmatch["coord"].spherical_offsets_to(
 ### Key Files
 
 #### `notebook-examples-py/catalogue-crossmatching-example.py`
+
 - **Purpose:** Example notebook demonstrating cross-matching workflow
 - **Features:**
-  - Cross-matches external catalogs (e.g., ATNF Pulsar Catalog) with VAST Pipeline sources
+  - Cross-matches external catalogs (e.g., ATNF Pulsar Catalog) with VAST
+    Pipeline sources
   - Uses `SkyCoord.match_to_catalog_sky()` for matching
   - Demonstrates filtering and merging results
   - Shows integration with VAST Pipeline `Pipeline` class
 
 **Code Pattern:**
+
 ```python
 from astropy.coordinates import SkyCoord
 from astropy import units as u
@@ -140,12 +160,14 @@ psrcat_crossmatch_result['vast_xmatch_d2d_asec'] = d2d[matches].arcsec
 ```
 
 #### `vasttools/source.py`
+
 - **Purpose:** Source class with `crossmatch_radius` attribute
 - **Features:**
   - Stores cross-match radius used to find measurements
   - Used internally for source creation
 
 #### `vasttools/query.py`
+
 - **Purpose:** Query class with `crossmatch_radius` parameter
 - **Features:**
   - Configurable cross-match radius (default: 5.0 arcsec)
@@ -159,31 +181,37 @@ psrcat_crossmatch_result['vast_xmatch_d2d_asec'] = d2d[matches].arcsec
 
 ### Potential Adoption
 
-**Medium Priority** - Good reference for cross-matching workflows, but less complete than `vast-post-processing/crossmatch.py`.
+**Medium Priority** - Good reference for cross-matching workflows, but less
+complete than `vast-post-processing/crossmatch.py`.
 
 ---
 
 ## 3. ASKAP Continuum Validation: Catalog Class
 
-**Location:** `/data/dsa110-contimg/archive/references/ASKAP-continuum-validation/catalogue.py`
+**Location:**
+`/data/dsa110-contimg/archive/references/ASKAP-continuum-validation/catalogue.py`
 
 **Type:** Object-oriented catalog class with `cross_match()` method
 
 ### Key Function
 
 #### `cross_match(cat, radius='largest', join_type='1', redo=False, write=True)`
+
 - **Purpose:** Perform nearest-neighbor cross-match between two catalog objects
 - **Input:** Another catalog object, matching radius, join type
 - **Output:** Updates catalog object with matched sources
 - **Features:**
-  - Supports configurable radius (can use 'largest' to use larger of two default radii)
-  - Join types: '1' (keep all rows from this instance) or '1and2' (keep only matched rows)
+  - Supports configurable radius (can use 'largest' to use larger of two default
+    radii)
+  - Join types: '1' (keep all rows from this instance) or '1and2' (keep only
+    matched rows)
   - Caching: Skips re-matching if cross-matched file exists (unless `redo=True`)
   - File I/O: Writes cross-matched catalog to CSV file
   - Prevents duplicate cross-matching (checks `cat_list`)
   - Handles empty catalogs gracefully
 
 **Code Pattern:**
+
 ```python
 class Catalogue:
     def cross_match(self, cat, radius='largest', join_type='1', redo=False, write=True):
@@ -191,7 +219,7 @@ class Catalogue:
         if cat.name in self.cat_list:
             warnings.warn("Already cross-matched")
             return
-        
+
         # Check for existing file
         filename = '{0}_{1}.csv'.format(self.basename, cat.name)
         if redo or not os.path.exists(filename):
@@ -222,20 +250,24 @@ class Catalogue:
 
 ### Potential Adoption
 
-**Low-Medium Priority** - Good reference for object-oriented design and caching, but less feature-complete than VAST Post-Processing.
+**Low-Medium Priority** - Good reference for object-oriented design and caching,
+but less feature-complete than VAST Post-Processing.
 
 ---
 
 ## 4. VAST Fast Detection: Candidate Cross-Matching
 
-**Location:** `/data/dsa110-contimg/archive/references/VAST/vast-fastdetection/src/vaster/summarise_candidates.py`
+**Location:**
+`/data/dsa110-contimg/archive/references/VAST/vast-fastdetection/src/vaster/summarise_candidates.py`
 
 **Type:** Cross-matching for transient candidate prioritization
 
 ### Key Function
 
 #### `crossmatch_onebeam(args, cands, beamid, catname, catsrc, base_url, dyspec_url)`
-- **Purpose:** Cross-match transient candidates with known sources (e.g., pulsars) for prioritization
+
+- **Purpose:** Cross-match transient candidates with known sources (e.g.,
+  pulsars) for prioritization
 - **Input:** Candidate sources, catalog sources, cross-match radius
 - **Output:** Updated candidates table with cross-match information
 - **Features:**
@@ -245,6 +277,7 @@ class Catalogue:
   - Integrates with email reporting and visualization
 
 **Code Pattern:**
+
 ```python
 from astropy.coordinates import SkyCoord
 from astropy import units as u
@@ -283,43 +316,49 @@ else:
 
 ### Potential Adoption
 
-**Low Priority** - Too specific to transient detection workflow, but good reference for simple separation-based matching.
+**Low Priority** - Too specific to transient detection workflow, but good
+reference for simple separation-based matching.
 
 ---
 
 ## 5. VAST Pipeline: Association Utilities
 
-**Location:** `/data/dsa110-contimg/archive/references/VAST/vast-pipeline/vast_pipeline/pipeline/`
+**Location:**
+`/data/dsa110-contimg/archive/references/VAST/vast-pipeline/vast_pipeline/pipeline/`
 
 **Type:** Association and cross-matching utilities for pipeline
 
 ### Key Files
 
 #### `association.py`
+
 - **Purpose:** Source association across epochs (likely uses cross-matching)
 - **Note:** File not fully examined, but likely contains association logic
 
 #### `utils.py`
+
 - **Purpose:** Pipeline utilities (may contain cross-matching helpers)
 - **Note:** File not fully examined
 
 ### Potential Adoption
 
-**Low Priority** - Likely too integrated with VAST Pipeline architecture to be directly adoptable.
+**Low Priority** - Likely too integrated with VAST Pipeline architecture to be
+directly adoptable.
 
 ---
 
 ## Comparison Matrix
 
-| Implementation | Standalone | Reusable | Features | Documentation | Adoption Priority |
-|----------------|------------|----------|----------|--------------|-------------------|
-| VAST Post-Processing `crossmatch.py` | ✅ Yes | ✅ Yes | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | **HIGH** |
-| VAST Tools Examples | ⚠️ Partial | ⚠️ Partial | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | **MEDIUM** |
-| ASKAP Catalog Class | ✅ Yes | ✅ Yes | ⭐⭐⭐ | ⭐⭐ | **LOW-MEDIUM** |
-| VAST Fast Detection | ❌ No | ❌ No | ⭐⭐ | ⭐⭐ | **LOW** |
-| VAST Pipeline Utils | ❌ No | ❌ No | ⭐⭐ | ⭐⭐ | **LOW** |
+| Implementation                       | Standalone | Reusable   | Features   | Documentation | Adoption Priority |
+| ------------------------------------ | ---------- | ---------- | ---------- | ------------- | ----------------- |
+| VAST Post-Processing `crossmatch.py` | ✅ Yes     | ✅ Yes     | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐      | **HIGH**          |
+| VAST Tools Examples                  | ⚠️ Partial | ⚠️ Partial | ⭐⭐⭐     | ⭐⭐⭐⭐⭐    | **MEDIUM**        |
+| ASKAP Catalog Class                  | ✅ Yes     | ✅ Yes     | ⭐⭐⭐     | ⭐⭐          | **LOW-MEDIUM**    |
+| VAST Fast Detection                  | ❌ No      | ❌ No      | ⭐⭐       | ⭐⭐          | **LOW**           |
+| VAST Pipeline Utils                  | ❌ No      | ❌ No      | ⭐⭐       | ⭐⭐          | **LOW**           |
 
 **Legend:**
+
 - ⭐⭐⭐⭐⭐ = Excellent
 - ⭐⭐⭐⭐ = Very Good
 - ⭐⭐⭐ = Good
@@ -335,19 +374,23 @@ else:
 **File:** `vast-post-processing/vast_post_processing/crossmatch.py`
 
 **Rationale:**
+
 1. **Most Complete:** Dedicated module with comprehensive functionality
 2. **Reusable:** Standalone functions that can be adapted
 3. **Well-Designed:** Uses QTable and SkyCoord effectively
-4. **Feature-Rich:** Includes positional offsets, flux comparisons, robust fitting
+4. **Feature-Rich:** Includes positional offsets, flux comparisons, robust
+   fitting
 5. **Documented:** Good docstrings and type hints
 
 ### Implementation Strategy
 
 1. **Create:** `src/dsa110_contimg/catalog/crossmatch.py`
 2. **Adapt Functions:**
-   - `cross_match_sources()` - General-purpose cross-matching (based on `crossmatch_qtables`)
+   - `cross_match_sources()` - General-purpose cross-matching (based on
+     `crossmatch_qtables`)
    - `calculate_positional_offsets()` - Offset calculations (directly adoptable)
-   - `calculate_flux_scale()` - Flux comparison (adapt `calculate_flux_offsets_Huber`)
+   - `calculate_flux_scale()` - Flux comparison (adapt
+     `calculate_flux_offsets_Huber`)
 3. **Integration:**
    - Replace embedded matching in `catalog_validation.py`
    - Use in `build_master.py` for multi-catalog matching
@@ -358,6 +401,7 @@ else:
 **File:** `vast-tools/notebook-examples-py/catalogue-crossmatching-example.py`
 
 **Use For:**
+
 - Workflow examples
 - Integration patterns with pipeline data
 - Filtering and merging strategies
@@ -409,10 +453,10 @@ def simple_cross_match(ra1, dec1, ra2, dec2, radius_arcsec=10.0):
     """Simple cross-match using match_to_catalog_sky."""
     coords1 = SkyCoord(ra1, dec1, unit=u.deg)
     coords2 = SkyCoord(ra2, dec2, unit=u.deg)
-    
+
     idx, d2d, d3d = coords1.match_to_catalog_sky(coords2)
     matches = d2d <= radius_arcsec * u.arcsec
-    
+
     return idx[matches], d2d[matches], matches
 ```
 
@@ -443,7 +487,8 @@ def separation_match(cand_coords, catalog_coords, radius_arcsec=10.0):
 
 ## Related Documentation
 
-- `docs/reference/EXISTING_CROSS_MATCHING_TOOLS.md` - Current DSA-110 cross-matching tools
-- `docs/reference/CATALOG_CROSS_MATCHING_GUIDE.md` - Cross-matching strategies and algorithms
+- `docs/reference/EXISTING_CROSS_MATCHING_TOOLS.md` - Current DSA-110
+  cross-matching tools
+- `docs/reference/CATALOG_CROSS_MATCHING_GUIDE.md` - Cross-matching strategies
+  and algorithms
 - `docs/reference/CATALOG_USAGE_GUIDE.md` - General catalog usage guide
-

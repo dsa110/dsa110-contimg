@@ -4,7 +4,9 @@
 
 ## Overview
 
-The DSA-110 continuum imaging pipeline uses a **standard calibration workflow** that performs bandpass (BP) and gain (G) calibration by default. Delay (K) calibration is **optional** and skipped by default for connected-element arrays.
+The DSA-110 continuum imaging pipeline uses a **standard calibration workflow**
+that performs bandpass (BP) and gain (G) calibration by default. Delay (K)
+calibration is **optional** and skipped by default for connected-element arrays.
 
 ## Default Calibration Steps
 
@@ -26,12 +28,14 @@ The DSA-110 continuum imaging pipeline uses a **standard calibration workflow** 
 **Purpose:** Ensure MS is ready for calibration
 
 **Checks:**
+
 - MS file exists and is readable
 - Field(s) exist and are valid
 - Reference antenna has unflagged data
 - Sufficient unflagged data (>10% required, >30% recommended)
 
 **Auto-Features:**
+
 - Reference antenna auto-selection (outrigger-priority chain)
 - Field auto-selection (with `--auto-fields`)
 
@@ -40,11 +44,13 @@ The DSA-110 continuum imaging pipeline uses a **standard calibration workflow** 
 **Default Mode:** `--flagging-mode zeros` (flag zero-value data only)
 
 **Process:**
+
 1. Reset all flags
 2. Flag zero-value data (correlator failures)
 3. Optionally flag RFI (`--flagging-mode rfi`)
 
 **Validation:**
+
 - Verifies ≥10% unflagged data remains
 - Warns if <30% unflagged
 
@@ -55,6 +61,7 @@ The DSA-110 continuum imaging pipeline uses a **standard calibration workflow** 
 **Method:** **pyradiosky** (now default)
 
 **Process:**
+
 1. **With `--auto-fields`:**
    - Searches VLA catalog for calibrator in MS field of view
    - Selects fields around peak signal
@@ -69,10 +76,12 @@ The DSA-110 continuum imaging pipeline uses a **standard calibration workflow** 
    - Populates MODEL_DATA
 
 **Sky Model Creation:**
+
 - **Single calibrator:** `make_point_cl()` → pyradiosky → componentlist
 - **NVSS sources:** `make_nvss_component_cl()` → pyradiosky → componentlist
 
-**Key Change:** All sky model creation now uses **pyradiosky internally** for better management.
+**Key Change:** All sky model creation now uses **pyradiosky internally** for
+better management.
 
 ### Step 4: Bandpass Calibration (BP)
 
@@ -81,17 +90,20 @@ The DSA-110 continuum imaging pipeline uses a **standard calibration workflow** 
 **Purpose:** Correct frequency-dependent instrumental response per antenna
 
 **Default Parameters:**
+
 - `--bp-minsnr 3.0` (minimum SNR threshold)
 - `--bp-solint inf` (entire scan)
 - `combine='scan'` (combine across scans)
 - No smoothing by default
 
 **Optional Enhancements:**
+
 - `--prebp-phase`: Pre-bandpass phase-only solve (improves SNR)
 - `--bp-combine-field`: Combine across fields (for weak calibrators)
 - `--bp-smooth`: Smooth bandpass solutions
 
 **Field Selection:**
+
 - **With `--auto-fields`:** Automatically selects fields around peak signal
 - **With `--field`:** Uses specified field(s)
 - **With `--bp-combine-field`:** Combines multiple fields for better SNR
@@ -103,16 +115,19 @@ The DSA-110 continuum imaging pipeline uses a **standard calibration workflow** 
 **Purpose:** Correct time-variable amplitude and phase per antenna
 
 **Default Parameters:**
+
 - `--gain-minsnr 3.0` (minimum SNR threshold)
 - `--gain-solint inf` (entire scan, per-integration for production)
 - `--gain-calmode ap` (amplitude+phase, phase-only for fast mode)
 - `combine='scan'` (combine across scans)
 
 **Calibration Modes:**
+
 - `ap` (default): Amplitude + phase
 - `p`: Phase-only (faster, less accurate)
 
 **Solution Intervals:**
+
 - `inf` (default): Entire scan
 - `int`: Per-integration (higher quality, slower)
 - `30s`, `60s`, etc.: Time-based intervals
@@ -122,14 +137,18 @@ The DSA-110 continuum imaging pipeline uses a **standard calibration workflow** 
 **Status:** ❌ **Skipped by default**
 
 **Rationale:**
+
 - DSA-110 is a connected-element array (2.6 km max baseline)
-- Following VLA/ALMA practice: residual delays (<0.5 ns) are absorbed into complex gain calibration
+- Following VLA/ALMA practice: residual delays (<0.5 ns) are absorbed into
+  complex gain calibration
 - K-calibration is primarily needed for VLBI arrays (thousands of km baselines)
 
 **To Enable:**
+
 - Use `--do-k` flag
 
 **When to Use:**
+
 - VLBI observations
 - If residual delays are significant
 - For high-precision applications
@@ -206,7 +225,8 @@ python -m dsa110_contimg.calibration.cli calibrate \
 - UV range cuts
 - Reduced quality (faster)
 
-**WARNING:** Development tier produces `NON_SCIENCE_DEVELOPMENT` prefixed tables that **cannot** be applied to production data.
+**WARNING:** Development tier produces `NON_SCIENCE_DEVELOPMENT` prefixed tables
+that **cannot** be applied to production data.
 
 ## Key Features
 
@@ -222,6 +242,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 ```
 
 **Benefits:**
+
 - Automatically finds calibrator in MS
 - Selects optimal fields around peak signal
 - Rephases MS to calibrator position
@@ -240,6 +261,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 ```
 
 **Benefits:**
+
 - Combines data from multiple fields
 - Increases SNR for weak sources
 - Better calibration solutions
@@ -259,6 +281,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 ```
 
 **Trade-offs:**
+
 - 3-5x faster
 - Lower time/frequency resolution
 - May miss fast variations
@@ -273,6 +296,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 - `make_nvss_component_cl()` → pyradiosky → componentlist
 
 **Benefits:**
+
 - Better sky model management
 - Support for multiple catalog formats
 - Advanced spectral modeling
@@ -343,12 +367,14 @@ python -m dsa110_contimg.calibration.cli calibrate \
 6. ❌ **Delay Calibration** - Skipped by default (use `--do-k` to enable)
 
 **Key Defaults:**
+
 - Bandpass: SNR ≥ 3.0, entire scan
 - Gain: SNR ≥ 3.0, entire scan, amplitude+phase
 - Flagging: Zero-value data only
 - Model: VLA catalog (via pyradiosky)
 
 **Recommended for Production:**
+
 - Use `--auto-fields` for automatic field selection
 - Use `--preset standard` for science observations
 - Use `--bp-combine-field` for weak calibrators
@@ -357,5 +383,5 @@ python -m dsa110_contimg.calibration.cli calibrate \
 
 - [Detailed Calibration Procedure](../how-to/CALIBRATION_DETAILED_PROCEDURE.md)
 - [pyradiosky Guide](../how-to/PYRADIOSKY_GUIDE.md)
-- Calibration Defaults: `../../src/dsa110_contimg/utils/defaults.py` (external file)
-
+- Calibration Defaults: `../../src/dsa110_contimg/utils/defaults.py` (external
+  file)

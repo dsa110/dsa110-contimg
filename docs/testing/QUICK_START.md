@@ -36,6 +36,7 @@ npm run dev
 ## Test Execution Options
 
 ### Simple Docker Script
+
 ```bash
 # All tests
 ./scripts/run-tests.sh docker-e2e
@@ -48,6 +49,7 @@ npm run dev
 ```
 
 ### Docker Compose (Isolated Environment)
+
 ```bash
 # Run all tests (starts services automatically)
 ./scripts/run-tests-docker.sh up
@@ -75,6 +77,7 @@ ls test-results/
 ## Common Issues
 
 ### Services Not Accessible
+
 ```bash
 # Check services are running
 curl http://localhost:5173
@@ -82,6 +85,7 @@ curl http://localhost:8010/api/health
 ```
 
 ### Permission Denied
+
 ```bash
 # Add user to docker group
 sudo usermod -aG docker $USER
@@ -89,6 +93,7 @@ sudo usermod -aG docker $USER
 ```
 
 ### Build Fails
+
 ```bash
 # Rebuild test image
 docker build -f docker/Dockerfile.test -t dsa110-test:latest .
@@ -96,7 +101,7 @@ docker build -f docker/Dockerfile.test -t dsa110-test:latest .
 
 ## Next Steps
 
-- **Full Test Plan**: See [COMPREHENSIVE_TESTING_PLAN.md](./COMPREHENSIVE_TESTING_PLAN.md)
+- **Full Test Plan**: See
+  [COMPREHENSIVE_TESTING_PLAN.md](./COMPREHENSIVE_TESTING_PLAN.md)
 - **Docker Details**: See [DOCKER_TESTING_GUIDE.md](./DOCKER_TESTING_GUIDE.md)
 - **E2E Tests**: See `../tests/e2e/README.md` (external file)
-

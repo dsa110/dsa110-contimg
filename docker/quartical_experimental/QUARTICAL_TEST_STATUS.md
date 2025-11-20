@@ -3,6 +3,7 @@
 ## Configuration Created
 
 Created QuartiCal configuration file:
+
 - Location: `/scratch/calibration_test/quartical_config.yaml`
 - Format: Based on QuartiCal documentation examples
 - Terms: Bandpass (B) and Gain (G) calibration
@@ -20,6 +21,7 @@ Created QuartiCal configuration file:
 
 QuartiCal command runs but exits immediately with only a deprecation warning.
 This suggests:
+
 1. Configuration format may need adjustment
 2. May need MODEL_DATA column populated first
 3. May need to check QuartiCal's actual CLI interface

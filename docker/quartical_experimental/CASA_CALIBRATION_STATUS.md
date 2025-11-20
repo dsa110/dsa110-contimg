@@ -5,8 +5,9 @@
 **Status**: Calibration did not complete
 
 **Findings**:
+
 - MS file exists: `/scratch/ms/timesetv3/caltables/2025-10-29T13:54:17.cal.ms`
-- No calibration tables found (*bpcal*, *gpcal*)
+- No calibration tables found (_bpcal_, _gpcal_)
 - Calibration process is not currently running
 
 ## Possible Reasons
@@ -19,6 +20,7 @@
 ## Next Steps
 
 1. Re-run calibration with fixed phase centers:
+
    ```bash
    python -m dsa110_contimg.calibration.cli calibrate \
      --ms /scratch/ms/timesetv3/caltables/2025-10-29T13:54:17.cal.ms \

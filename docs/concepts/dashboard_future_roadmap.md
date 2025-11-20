@@ -23,30 +23,35 @@
 ### Current Status
 
 **Phase 1: Core Infrastructure** - ✅ Completed
+
 - Dashboard foundation
 - Pipeline status monitoring
 - System health metrics
 - Basic navigation
 
 **Phase 2: Science Features** - 🔄 In Progress
+
 - ESE candidate detection
 - Source monitoring
 - Mosaic gallery
 - QA visualization
 
 **Phase 3: Advanced Features** - 📋 Planned
+
 - Real-time WebSocket updates
 - Sky visualization
 - Advanced filtering
 - FITS image viewer
 
 **Phase 4: Polish & Optimization** - 📋 Planned
+
 - Performance optimization
 - Accessibility improvements
 - User documentation
 - Export features
 
 **Phase 5: Future Enhancements** - 💡 Backlog
+
 - Machine learning integration
 - Multi-user collaboration
 - External catalog integration
@@ -88,24 +93,28 @@
 ### 🔄 In Progress
 
 **ESE Candidate Detection:**
+
 - ✅ Auto-flagging (>5σ threshold)
 - ✅ Candidate list display
 - 🔄 Slack notification integration
 - 🔄 User-configurable thresholds
 
 **Source Monitoring:**
+
 - ✅ Source search
 - ✅ Flux timeseries display
 - 🔄 Variability statistics
 - 🔄 Source detail pages
 
 **Mosaic Gallery:**
+
 - ✅ Mosaic query by time range
 - ✅ Mosaic list display
 - 🔄 Mosaic generation UI
 - 🔄 Mosaic detail view
 
 **QA Visualization:**
+
 - ✅ Directory browser
 - ✅ FITS viewer
 - ✅ CASA table viewer
@@ -114,6 +123,7 @@
 ### 📋 Planned for Phase 2
 
 **Remaining Features:**
+
 - Image detail pages with metadata
 - Photometry data visualization
 - Calibration QA display
@@ -126,12 +136,14 @@
 ### Real-Time Updates
 
 **WebSocket Integration:**
+
 - Real-time status updates
 - Live metrics streaming
 - Instant ESE candidate alerts
 - Connection state management
 
 **SSE Fallback:**
+
 - Server-Sent Events support
 - Automatic fallback
 - Graceful degradation
@@ -139,12 +151,14 @@
 ### Sky Visualization
 
 **Interactive Sky Map:**
+
 - Telescope pointing display
 - Historical pointing trail
 - Source overlay
 - Field coverage visualization
 
 **Features:**
+
 - Zoom/pan controls
 - Time range selection
 - Declination strip overlay
@@ -153,12 +167,14 @@
 ### Advanced Filtering
 
 **Source Filtering:**
+
 - Multi-parameter filters
 - Variability thresholds
 - Flux range filters
 - Observation count filters
 
 **Image Filtering:**
+
 - Date range
 - Declination range
 - Quality metrics
@@ -167,12 +183,14 @@
 ### FITS Image Viewer
 
 **JS9 Integration:**
+
 - In-browser FITS rendering
 - Zoom/pan controls
 - Colormap adjustments
 - Overlay support (catalog sources)
 
 **Features:**
+
 - Image metadata display
 - Coordinate display
 - Flux measurements
@@ -185,12 +203,14 @@
 ### Performance Optimization
 
 **Frontend:**
+
 - Code splitting optimization
 - Lazy loading for routes
 - Image optimization
 - Bundle size reduction
 
 **Backend:**
+
 - Query result caching
 - Database query optimization
 - WebSocket message optimization
@@ -199,12 +219,14 @@
 ### Accessibility
 
 **WCAG 2.1 AA Compliance:**
+
 - Keyboard navigation
 - Screen reader support
 - ARIA labels
 - Color contrast improvements
 
 **Features:**
+
 - Focus management
 - Skip links
 - Alt text for images
@@ -213,12 +235,14 @@
 ### User Documentation
 
 **Inline Help:**
+
 - Tooltips for complex features
 - Contextual help panels
 - Feature tours
 - Video tutorials
 
 **Documentation:**
+
 - User guide
 - API documentation
 - Troubleshooting guide
@@ -227,12 +251,14 @@
 ### Export Features
 
 **Data Export:**
+
 - CSV export for tables
 - JSON export for data
 - PNG export for plots
 - PDF export for reports
 
 **Features:**
+
 - Customizable export formats
 - Batch export
 - Scheduled exports
@@ -245,12 +271,14 @@
 ### Machine Learning Integration
 
 **Variability Classification:**
+
 - ML-based ESE candidate ranking
 - Anomaly detection
 - Pattern recognition
 - Predictive modeling
 
 **Features:**
+
 - Model training interface
 - Model performance metrics
 - A/B testing framework
@@ -259,12 +287,14 @@
 ### Multi-User Collaboration
 
 **User Management:**
+
 - Authentication system
 - Role-based access control
 - User preferences
 - Shared candidate lists
 
 **Collaboration Features:**
+
 - User comments on sources
 - Source classification
 - Shared annotations
@@ -273,12 +303,14 @@
 ### External Catalog Integration
 
 **Catalog Queries:**
+
 - SIMBAD integration
 - NED integration
 - VizieR queries
 - Cross-match services
 
 **Features:**
+
 - Automatic catalog lookups
 - Literature search
 - Multi-survey cross-matching
@@ -287,12 +319,14 @@
 ### VO Compliance
 
 **IVOA Standards:**
+
 - Simple Cone Search (SCS) protocol
 - VOTable output format
 - TAP service support
 - Registry integration
 
 **Features:**
+
 - External tool compatibility
 - Aladin integration
 - TOPCAT integration
@@ -301,12 +335,14 @@
 ### Advanced Analytics
 
 **Data Analysis:**
+
 - Statistical analysis tools
 - Time-series analysis
 - Correlation analysis
 - Trend detection
 
 **Visualization:**
+
 - Custom plot types
 - Interactive dashboards
 - Comparative analysis
@@ -321,6 +357,7 @@
 **Goal:** Fully autonomous pipeline monitoring and control
 
 **Features:**
+
 - Predictive maintenance
 - Automatic issue resolution
 - Self-healing capabilities
@@ -331,6 +368,7 @@
 **Goal:** Transform dashboard into science discovery platform
 
 **Features:**
+
 - Real-time science alerts
 - Automated follow-up scheduling
 - Multi-wavelength correlation
@@ -341,6 +379,7 @@
 **Goal:** Enable broader community access
 
 **Features:**
+
 - Public data access
 - Citizen science integration
 - Educational resources
@@ -400,7 +439,8 @@
 
 ## See Also
 
-- [Vision & Design Principles](../concepts/dashboard_vision_and_design.md) - Design philosophy
+- [Vision & Design Principles](../concepts/dashboard_vision_and_design.md) -
+  Design philosophy
 - [Architecture](../concepts/dashboard_architecture.md) - System architecture
-- [Pages & Features](../reference/dashboard_pages_and_features.md) - Current features
-
+- [Pages & Features](../reference/dashboard_pages_and_features.md) - Current
+  features

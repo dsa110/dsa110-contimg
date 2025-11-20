@@ -2,10 +2,15 @@
 
 **Status:** Design Proposal (Not Current Implementation)
 
-**Note:** This document describes a proposed organizational structure. The **current implementation** uses a different structure documented in `docs/concepts/DIRECTORY_ARCHITECTURE.md` and `docs/concepts/STREAMING_MOSAIC_WORKFLOW.md`.
+**Note:** This document describes a proposed organizational structure. The
+**current implementation** uses a different structure documented in
+`docs/concepts/DIRECTORY_ARCHITECTURE.md` and
+`docs/concepts/STREAMING_MOSAIC_WORKFLOW.md`.
 
 **Current Implementation:**
-- MS files organized as: `/stage/dsa110-contimg/ms/{calibrators,science,failed}/YYYY-MM-DD/`
+
+- MS files organized as:
+  `/stage/dsa110-contimg/ms/{calibrators,science,failed}/YYYY-MM-DD/`
 - Images stored in: `/stage/dsa110-contimg/images/`
 - Mosaics stored in: `/stage/dsa110-contimg/mosaics/`
 - See `DIRECTORY_ARCHITECTURE.md` for the actual structure in use.
@@ -14,7 +19,8 @@
 
 ## Overview
 
-This document defines a proposed organizational structure for DSA-110 pipeline data products, from staging through final published data.
+This document defines a proposed organizational structure for DSA-110 pipeline
+data products, from staging through final published data.
 
 ## 1. Directory Structure and Labeling
 
@@ -68,6 +74,7 @@ This document defines a proposed organizational structure for DSA-110 pipeline d
 ### Data Types and Definitions
 
 #### 1. **MS Files** (`ms/`)
+
 - **Definition**: Raw/converted measurement sets
 - **Staging**: `/stage/dsa110-contimg/ms/{timestamp}/`
   - Contains: `.ms` directory, conversion metadata
@@ -75,6 +82,7 @@ This document defines a proposed organizational structure for DSA-110 pipeline d
   - Validated MS files ready for calibration
 
 #### 2. **Calibrated MS** (`calib_ms/`)
+
 - **Definition**: Final calibrated measurement sets ready for science
 - **Staging**: `/stage/dsa110-contimg/calib_ms/{timestamp}/`
   - Contains: `.cal.ms` directory, calibration metadata
@@ -82,6 +90,7 @@ This document defines a proposed organizational structure for DSA-110 pipeline d
   - Validated, documented calibrated MS
 
 #### 3. **Calibration Tables** (`caltables/`)
+
 - **Definition**: Final calibration solutions (K, BP, G tables)
 - **Staging**: `/stage/dsa110-contimg/caltables/{set_name}/`
   - Contains: K, BP, G tables, validation report
@@ -89,6 +98,7 @@ This document defines a proposed organizational structure for DSA-110 pipeline d
   - Validated calibration sets with validity windows
 
 #### 4. **Images** (`images/`)
+
 - **Definition**: Single-epoch continuum images
 - **Staging**: `/stage/dsa110-contimg/images/{timestamp}/`
   - Contains: image FITS, beam FITS, residual FITS, image metadata
@@ -96,6 +106,7 @@ This document defines a proposed organizational structure for DSA-110 pipeline d
   - Validated, QA-passed images
 
 #### 5. **Mosaics** (`mosaics/`)
+
 - **Definition**: Combined images from multiple time integrations
 - **Staging**: `/stage/dsa110-contimg/mosaics/{name}/`
   - Contains: mosaic FITS, thumbnail, mosaic metadata, QA report
@@ -103,6 +114,7 @@ This document defines a proposed organizational structure for DSA-110 pipeline d
   - Same structure, but validated and immutable
 
 #### 6. **Source Catalogs** (`catalogs/`)
+
 - **Definition**: Extracted source lists from images
 - **Staging**: `/stage/dsa110-contimg/catalogs/{timestamp}/`
   - Contains: catalog CSV/VOTable, cross-match results, catalog metadata
@@ -110,6 +122,7 @@ This document defines a proposed organizational structure for DSA-110 pipeline d
   - Validated source catalogs
 
 #### 7. **QA Reports** (`qa/`)
+
 - **Definition**: Quality assessment reports organized by data type
 - **Subdirectories**:
   - `cal_qa/`: Calibration quality assessments
@@ -121,6 +134,7 @@ This document defines a proposed organizational structure for DSA-110 pipeline d
   - Final QA documentation
 
 #### 8. **Metadata** (`metadata/`)
+
 - **Definition**: Pipeline run metadata and provenance organized by data type
 - **Subdirectories**:
   - `pipe_meta/`: Pipeline run metadata
@@ -143,18 +157,23 @@ staging → published (auto or manual)
 ```
 
 **Status Values:**
+
 - `staging`: In `/stage/dsa110-contimg/` (SSD), being finalized/validated
 - `published`: In `/data/dsa110-contimg/products/` (HDD), final and immutable
 
 **Storage Rationale:**
+
 - `/stage/` (SSD): Fast access for active processing, QA, validation
 - `/data/` (HDD): Long-term storage with large capacity for archival
 
 **Publishing Modes:**
-- **Auto-publish**: Automatically moves to `/data/` when finalization criteria are met
+
+- **Auto-publish**: Automatically moves to `/data/` when finalization criteria
+  are met
 - **Manual publish**: User-initiated move to `/data/` via dashboard
 
-**Note**: `/scratch/` is NOT part of the automated pipeline workflow. It is reserved for manual testing and development work only.
+**Note**: `/scratch/` is NOT part of the automated pipeline workflow. It is
+reserved for manual testing and development work only.
 
 ## 2. Database and Registry Integration
 
@@ -212,7 +231,8 @@ CREATE INDEX IF NOT EXISTS idx_data_relationships_child ON data_relationships(ch
 
 ### Integration with Existing Tables
 
-The data registry **references** (via foreign key relationships) existing tables that contain detailed information about each data type:
+The data registry **references** (via foreign key relationships) existing tables
+that contain detailed information about each data type:
 
 1. **MS Files** (`ms_index` table)
    - Contains: All MS file instances with detailed metadata
@@ -221,26 +241,34 @@ The data registry **references** (via foreign key relationships) existing tables
 
 2. **Calibration Tables** (`caltables` table)
    - Contains: All calibration table instances with validity windows
-   - Relationship: `data_registry.data_id` references `caltables.set_name` or `caltables.table_id`
+   - Relationship: `data_registry.data_id` references `caltables.set_name` or
+     `caltables.table_id`
    - Tracks: Which calibration sets are used by calibrated MS
 
 3. **Images** (`images` table)
    - Contains: All image instances with detailed metadata
-   - Relationship: `data_registry.data_id` references `images.path` or `images.id`
+   - Relationship: `data_registry.data_id` references `images.path` or
+     `images.id`
    - Tracks: Image status through lifecycle
-   - **Note**: Table name kept as `images` (not renamed to `images_all`) for consistency with codebase
+   - **Note**: Table name kept as `images` (not renamed to `images_all`) for
+     consistency with codebase
 
 4. **Mosaics** (`mosaics` table)
    - Contains: All mosaic instances with composition details
-   - Relationship: `data_registry.data_id` references `mosaics.name` or `mosaics.id`
+   - Relationship: `data_registry.data_id` references `mosaics.name` or
+     `mosaics.id`
    - Tracks: Mosaic composition (which images are included)
-   - **Note**: Table name kept as `mosaics` (not renamed to `mosaics_all`) for consistency with codebase
+   - **Note**: Table name kept as `mosaics` (not renamed to `mosaics_all`) for
+     consistency with codebase
 
 **Note on "Links"**: When we say "links" or "references", we mean:
+
 - Foreign key relationships in the database
-- The `data_registry` table acts as a central index that references detailed tables
+- The `data_registry` table acts as a central index that references detailed
+  tables
 - The `data_relationships` table tracks how data instances relate to each other
-- This allows querying "what MS files produced this image?" or "what images are in this mosaic?"
+- This allows querying "what MS files produced this image?" or "what images are
+  in this mosaic?"
 
 ### API Functions
 
@@ -274,6 +302,7 @@ def trigger_auto_publish(data_id: str) -> bool
 ### Data Management Views
 
 #### 1. **Data Browser** (`/data`)
+
 - **Overview**: List all data organized by type and status
 - **Key Features**:
   - **Quick Filters**:
@@ -304,6 +333,7 @@ def trigger_auto_publish(data_id: str) -> bool
     - "Show me all data that failed QA"
 
 #### 2. **Staging Area** (`/data/staging`)
+
 - **Overview**: Data being finalized, ready for review
 - **Key Features**:
   - **Organized by Type**: Tabs or sections for each data type
@@ -324,6 +354,7 @@ def trigger_auto_publish(data_id: str) -> bool
     - "Check what's blocking publication"
 
 #### 3. **Published Data** (`/data/published`)
+
 - **Overview**: Final, validated, immutable data
 - **Key Features**:
   - **Browse by Type**: Organized sections/tabs
@@ -333,7 +364,7 @@ def trigger_auto_publish(data_id: str) -> bool
     - Data type
     - Tags
     - Related data (e.g., "show images from this MS")
-  - **Lineage Visualization**: 
+  - **Lineage Visualization**:
     - Tree view showing data relationships
     - "What produced this?" and "What was produced from this?"
   - **Download Options**:
@@ -346,6 +377,7 @@ def trigger_auto_publish(data_id: str) -> bool
     - "See what data was used to create this mosaic"
 
 #### 4. **Data Details** (`/data/{type}/{id}`)
+
 - **Overview**: Comprehensive view of a single data instance
 - **Sections**:
   - **Header**:
@@ -454,8 +486,10 @@ POST /api/data/bulk-publish
    - When data is finalized (QA passed, validation complete):
      - `finalization_status` set to `'finalized'`
      - If `auto_publish_enabled=1` and all criteria met:
-       - Data automatically moved from `/stage/` (SSD) to `/data/dsa110-contimg/products/` (HDD)
-       - Database updated: `status='published'`, `publish_mode='auto'`, `published_at` set
+       - Data automatically moved from `/stage/` (SSD) to
+         `/data/dsa110-contimg/products/` (HDD)
+       - Database updated: `status='published'`, `publish_mode='auto'`,
+         `published_at` set
        - Data becomes immutable (read-only)
        - Dashboard shows in published view
    - Auto-publish criteria (configurable per data type):
@@ -468,7 +502,8 @@ POST /api/data/bulk-publish
    - User can manually publish data via dashboard
    - User selects data and clicks "Publish" (single or bulk)
    - Data moved to `/data/dsa110-contimg/products/` (HDD)
-   - Database updated: `status='published'`, `publish_mode='manual'`, `published_at` set
+   - Database updated: `status='published'`, `publish_mode='manual'`,
+     `published_at` set
    - Works even if auto-publish is disabled or criteria not met
 
 4. **Auto-Publish Configuration**:
@@ -479,23 +514,29 @@ POST /api/data/bulk-publish
 ## Implementation Plan
 
 ### Phase 1: Database Schema
+
 - [ ] Add `data_registry` table to database
 - [ ] Add `data_relationships` table
 - [ ] Add `data_tags` table
-- [ ] Rename existing tables (`ms_index` → `ms_all`, `images` → `images_all`, etc.)
+- [ ] Rename existing tables (`ms_index` → `ms_all`, `images` → `images_all`,
+      etc.)
 - [ ] Create migration script
 - [ ] Update foreign key relationships
 
 ### Phase 2: Directory Structure
+
 - [ ] Create directory structure in `/stage/dsa110-contimg/`
   - [ ] `ms/`, `calib_ms/`, `caltables/`, `images/`, `mosaics/`, `catalogs/`
   - [ ] `qa/` with subdirs: `cal_qa/`, `ms_qa/`, `image_qa/`
-  - [ ] `metadata/` with subdirs: `pipe_meta/`, `cal_meta/`, `ms_meta/`, `catalog_meta/`, `image_meta/`, `mosaic_meta/`
-- [ ] Create directory structure in `/data/dsa110-contimg/products/` (same structure)
+  - [ ] `metadata/` with subdirs: `pipe_meta/`, `cal_meta/`, `ms_meta/`,
+        `catalog_meta/`, `image_meta/`, `mosaic_meta/`
+- [ ] Create directory structure in `/data/dsa110-contimg/products/` (same
+      structure)
 - [ ] Add configuration for base paths
 - [ ] Update pipeline to write to `/stage/` instead of `/scratch/`
 
 ### Phase 3: Data Management Functions
+
 - [ ] Implement data registration functions
 - [ ] Implement finalization function (marks data as finalized)
 - [ ] Implement auto-publish logic (checks criteria, moves data)
@@ -506,12 +547,14 @@ POST /api/data/bulk-publish
 - [ ] Update existing functions to use new table names
 
 ### Phase 4: API Integration
+
 - [ ] Add data endpoints to API (`/api/data/*`)
 - [ ] Integrate with existing endpoints (update to use new table names)
 - [ ] Add data discovery endpoint
 - [ ] Add bulk operations endpoint
 
 ### Phase 5: Dashboard Integration
+
 - [ ] Create data browser page (`/data`)
 - [ ] Create staging area page (`/data/staging`)
 - [ ] Create published data page (`/data/published`)
@@ -520,6 +563,7 @@ POST /api/data/bulk-publish
 - [ ] Implement lineage visualization
 
 ### Phase 6: Pipeline Integration
+
 - [ ] Update pipeline to write to `/stage/dsa110-contimg/` (SSD)
 - [ ] Update pipeline to register data in `data_registry`
 - [ ] Update pipeline to track relationships
@@ -617,16 +661,22 @@ DATA_TYPES = {
 }
 ```
 
-**Note**: `/scratch/` is NOT configured here as it is not part of the automated pipeline workflow.
+**Note**: `/scratch/` is NOT configured here as it is not part of the automated
+pipeline workflow.
 
 **Auto-Publish Behavior**:
-- When data is finalized and all criteria are met, it automatically moves from SSD (`/stage/`) to HDD (`/data/`)
+
+- When data is finalized and all criteria are met, it automatically moves from
+  SSD (`/stage/`) to HDD (`/data/`)
 - This provides fast access during active work (SSD) and long-term storage (HDD)
-- Users can disable auto-publish for specific data instances if manual control is needed
+- Users can disable auto-publish for specific data instances if manual control
+  is needed
 - Manual publish always available regardless of auto-publish settings
 
 **Auto-Publish Trigger Logic**:
-1. Pipeline completes data creation → data registered in `data_registry` with `status='staging'`
+
+1. Pipeline completes data creation → data registered in `data_registry` with
+   `status='staging'`
 2. QA/validation runs → updates `qa_status` and `validation_status`
 3. When QA/validation complete → pipeline calls `finalize_data(data_id)`
 4. `finalize_data()` checks:
@@ -635,19 +685,23 @@ DATA_TYPES = {
    - If yes → calls `trigger_auto_publish(data_id)`
 5. `trigger_auto_publish()`:
    - Moves data from `/stage/` (SSD) to `/data/dsa110-contimg/products/` (HDD)
-   - Updates database: `status='published'`, `publish_mode='auto'`, `published_at=now()`
+   - Updates database: `status='published'`, `publish_mode='auto'`,
+     `published_at=now()`
    - Sets data as immutable
    - Logs the operation
 
 **Auto-Publish Criteria (per data type)**:
-- **Science data** (images, mosaics, calib_ms, caltables): Requires QA passed + validation
-- **Diagnostic data** (qa reports, metadata): Auto-publishes with parent data or immediately
+
+- **Science data** (images, mosaics, calib_ms, caltables): Requires QA passed +
+  validation
+- **Diagnostic data** (qa reports, metadata): Auto-publishes with parent data or
+  immediately
 - **Raw data** (ms): Requires validation only (no QA needed)
 - **Catalogs**: Requires validation only
 
 **Benefits**:
+
 - Automatic archival: Finalized data automatically moves to long-term storage
 - SSD space management: Keeps SSD free for active work
 - No manual intervention: Science products auto-archive when ready
 - Flexibility: Can disable per-instance if needed
-

@@ -1,8 +1,10 @@
 # In-House QA Visualization Framework Design
 
-**Purpose**: Build RadioPadre-like functionality within `dsa110-contimg` for interactive QA visualization without external dependencies.
+**Purpose**: Build RadioPadre-like functionality within `dsa110-contimg` for
+interactive QA visualization without external dependencies.
 
-**Goal**: Provide interactive FITS viewing, CASA table browsing, and automated QA report generation using JS9 and Jupyter notebooks, all implemented in-house.
+**Goal**: Provide interactive FITS viewing, CASA table browsing, and automated
+QA report generation using JS9 and Jupyter notebooks, all implemented in-house.
 
 ---
 
@@ -29,6 +31,7 @@ dsa110_contimg/qa/visualization/
 ### 1. FITS File Handling (`fitsfile.py`)
 
 **API** (mirrors RadioPadre):
+
 ```python
 from dsa110_contimg.qa.visualization import FITSFile
 
@@ -39,6 +42,7 @@ fits.shape   # Image dimensions
 ```
 
 **Features**:
+
 - FITS header parsing (using `astropy.io.fits`)
 - JS9 integration for browser-based viewing
 - Thumbnail generation
@@ -52,6 +56,7 @@ fits.shape   # Image dimensions
 ### 2. CASA Table Browsing (`casatable.py`)
 
 **API** (mirrors RadioPadre):
+
 ```python
 from dsa110_contimg.qa.visualization import CasaTable
 
@@ -62,6 +67,7 @@ ms.columns      # List available columns
 ```
 
 **Features**:
+
 - Browse Measurement Sets as tables
 - Column access with slicing
 - Flag handling
@@ -75,6 +81,7 @@ ms.columns      # List available columns
 ### 3. Directory Browsing (`datadir.py`, `filelist.py`)
 
 **API** (mirrors RadioPadre):
+
 ```python
 from dsa110_contimg.qa.visualization import ls
 
@@ -85,6 +92,7 @@ images = qa_dir.images   # Filter image files
 ```
 
 **Features**:
+
 - Intelligent file type detection
 - Pattern-based filtering (`include`, `exclude`)
 - Recursive directory scanning
@@ -98,6 +106,7 @@ images = qa_dir.images   # Filter image files
 ### 4. HTML Rendering (`render.py`)
 
 **API** (mirrors RadioPadre):
+
 ```python
 from dsa110_contimg.qa.visualization import render_table, render_status_message
 
@@ -106,6 +115,7 @@ render_status_message("Status text")
 ```
 
 **Features**:
+
 - Table rendering
 - Status messages
 - Error rendering
@@ -119,6 +129,7 @@ render_status_message("Status text")
 ### 5. Notebook Generation (`notebook.py`)
 
 **API**:
+
 ```python
 from dsa110_contimg.qa.visualization import generate_qa_notebook
 
@@ -130,6 +141,7 @@ notebook_path = generate_qa_notebook(
 ```
 
 **Features**:
+
 - Programmatic notebook generation
 - RadioPadre-like cell structure
 - Integration with our QA functions
@@ -142,6 +154,7 @@ notebook_path = generate_qa_notebook(
 ### 6. JS9 Integration (`js9/`)
 
 **Features**:
+
 - JS9 JavaScript library integration
 - Browser-based FITS viewing
 - Inline notebook viewing
@@ -149,6 +162,7 @@ notebook_path = generate_qa_notebook(
 - Region overlays
 
 **Implementation**:
+
 - Bundle JS9 JavaScript files in our package
 - Serve via Jupyter static file serving
 - Initialize JS9 in notebook cells
@@ -167,11 +181,11 @@ from dsa110_contimg.qa.visualization import CasaTable, generate_qa_notebook
 
 def run_ms_qa_with_visualization(ms_path: str, qa_root: str) -> QaResult:
     result = run_ms_qa(ms_path, qa_root)  # Existing
-    
+
     # Generate interactive notebook
     notebook_path = generate_qa_notebook(ms_path, qa_root, result.artifacts)
     result.artifacts.append(notebook_path)
-    
+
     return result
 ```
 
@@ -284,11 +298,13 @@ __all__ = [
 ### 1. **JS9 Library Handling**
 
 **Option A**: Bundle JS9 files in our package
+
 - Pros: No external dependencies, works offline
 - Cons: Need to update JS9 manually
 - **Decision**: Bundle JS9 files in `qa/visualization/js9/static/`
 
 **Option B**: CDN link to JS9
+
 - Pros: Always latest version
 - Cons: Requires internet, potential CDN issues
 - **Decision**: Use bundled version, allow CDN fallback
@@ -296,12 +312,14 @@ __all__ = [
 ### 2. **Notebook vs. Standalone HTML**
 
 **Decision**: Support both
+
 - Notebooks for interactive QA (primary)
 - HTML reports for static sharing (existing functionality)
 
 ### 3. **API Compatibility**
 
 **Decision**: Mirror RadioPadre API closely
+
 - Same method names (`show()`, `ls()`, etc.)
 - Same class structure
 - Easier migration if needed later
@@ -310,6 +328,7 @@ __all__ = [
 ### 4. **Dependencies**
 
 **Decision**: Use only existing dependencies
+
 - `astropy` - FITS handling ✅
 - `python-casacore` - CASA tables ✅
 - `nbformat` - Notebook generation ✅
@@ -370,4 +389,3 @@ src/dsa110_contimg/qa/visualization/
 6. Complete JS9 integration
 7. Implement notebook generation
 8. Integrate with existing QA functions
-

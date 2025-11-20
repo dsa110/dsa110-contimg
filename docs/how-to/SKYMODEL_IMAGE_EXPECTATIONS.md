@@ -32,6 +32,7 @@ The image at `/tmp/skymodel_demo.png` should show:
 ### For Multiple Sources
 
 If you generate an image with multiple sources, you should see:
+
 - Multiple bright spots (one per source)
 - Each convolved with the specified beam
 - Sources distributed across the field of view
@@ -40,6 +41,7 @@ If you generate an image with multiple sources, you should see:
 ### For NVSS Regions
 
 With many NVSS sources:
+
 - Dense field of point sources
 - Sources clustered or distributed depending on region
 - Each source convolved with beam
@@ -55,14 +57,15 @@ With many NVSS sources:
 ## Expected Appearance for Test Case
 
 Given the test parameters:
+
 - **1 source** found in 0.2° radius
 - **45 arcsec beam** (moderate resolution)
 - **5 arcsec/pixel** (good sampling)
 
 You should see:
+
 - A single, moderately-sized bright spot
 - Off-center in the image (source not at exact center)
 - Smooth Gaussian falloff around the source
 - Most of the image is dark/empty
 - Grid lines showing RA/Dec coordinates
-

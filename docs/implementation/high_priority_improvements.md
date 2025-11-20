@@ -1,6 +1,9 @@
 # High-Priority Improvements Implementation Plan
 
-Based on analysis of external radio astronomy repositories (MeerKAT, ASKAP, katdal, CARTA, MeerKAT-Cookbook), this document outlines detailed implementation plans for three critical improvements that will measurably enhance scientific correctness and operational reliability for monitoring ~10,000 compact objects.
+Based on analysis of external radio astronomy repositories (MeerKAT, ASKAP,
+katdal, CARTA, MeerKAT-Cookbook), this document outlines detailed implementation
+plans for three critical improvements that will measurably enhance scientific
+correctness and operational reliability for monitoring ~10,000 compact objects.
 
 ---
 
@@ -8,11 +11,15 @@ Based on analysis of external radio astronomy repositories (MeerKAT, ASKAP, katd
 
 **Priority:** Critical (Scientific Correctness)  
 **Source Pattern:** ASKAP continuum validation  
-**Impact:** Ensures accurate monitoring of 10,000 compact objects by validating astrometry and flux scale against reference catalogs
+**Impact:** Ensures accurate monitoring of 10,000 compact objects by validating
+astrometry and flux scale against reference catalogs
 
 ### Overview
 
-Implement automated validation of image astrometry and flux scale by comparing detected sources against reference radio catalogs (NVSS, VLASS). This will catch systematic errors in calibration, imaging, or coordinate transformations that could affect scientific results.
+Implement automated validation of image astrometry and flux scale by comparing
+detected sources against reference radio catalogs (NVSS, VLASS). This will catch
+systematic errors in calibration, imaging, or coordinate transformations that
+could affect scientific results.
 
 ### Implementation Details
 
@@ -32,7 +39,7 @@ def validate_astrometry(
 ) -> CatalogValidationResult:
     """
     Validate image astrometry by matching detected sources to reference catalog.
-    
+
     Steps:
     1. Extract source positions from image (using existing source finder or PyBDSF)
     2. Query reference catalog (NVSS/VLASS) for sources in image field
@@ -40,7 +47,7 @@ def validate_astrometry(
     4. Calculate astrometric offsets (RA/Dec differences)
     5. Compute statistics: mean offset, RMS offset, max offset
     6. Flag if offsets exceed max_offset_arcsec threshold
-    
+
     Returns:
         CatalogValidationResult with:
         - n_matched: Number of successfully matched sources
@@ -66,7 +73,7 @@ def validate_flux_scale(
 ) -> CatalogValidationResult:
     """
     Validate image flux scale by comparing integrated fluxes to catalog fluxes.
-    
+
     Steps:
     1. Extract source positions and integrated fluxes from image
     2. Match to catalog sources (same as astrometry validation)
@@ -78,7 +85,7 @@ def validate_flux_scale(
        - Scale: S_ν2 = S_ν1 * (ν2/ν1)^α
     5. Compute flux ratio statistics (image_flux / catalog_flux_scaled)
     6. Flag if flux scale differs significantly from expected
-    
+
     Returns:
         CatalogValidationResult with:
         - n_matched: Number of matched sources with valid flux measurements
@@ -98,13 +105,13 @@ def validate_source_counts(
 ) -> CatalogValidationResult:
     """
     Validate source detection completeness by comparing counts to catalog.
-    
+
     Steps:
     1. Count detected sources above min_snr threshold
     2. Count catalog sources in field above same flux threshold
     3. Calculate completeness ratio (detected / catalog)
     4. Flag if completeness is below threshold
-    
+
     Returns:
         CatalogValidationResult with:
         - n_detected: Number of detected sources
@@ -122,34 +129,35 @@ class CatalogValidationResult:
     n_matched: int
     n_catalog: int
     n_detected: int
-    
+
     # Astrometry results
     mean_offset_arcsec: Optional[float] = None
     rms_offset_arcsec: Optional[float] = None
     max_offset_arcsec: Optional[float] = None
     offset_ra_arcsec: Optional[float] = None
     offset_dec_arcsec: Optional[float] = None
-    
+
     # Flux scale results
     mean_flux_ratio: Optional[float] = None
     rms_flux_ratio: Optional[float] = None
     flux_scale_error: Optional[float] = None
-    
+
     # Source counts results
     completeness: Optional[float] = None
-    
+
     # Quality flags
     has_issues: bool = False
     has_warnings: bool = False
     issues: List[str] = None
     warnings: List[str] = None
-    
+
     # Detailed data
     matched_pairs: Optional[List[Tuple]] = None
     matched_fluxes: Optional[List[Tuple]] = None
 ```
 
 **Dependencies:**
+
 - `astropy.coordinates` (already available) - for coordinate matching
 - `astropy.units` (already available) - for unit conversions
 - `dsa110_contimg.catalog` - existing catalog query functions
@@ -157,13 +165,15 @@ class CatalogValidationResult:
 - PyBDSF or similar for source extraction (may need to add)
 
 **Integration Points:**
+
 - Called from `qa/pipeline_quality.py` after imaging completes
 - Results stored in QA database/registry
 - Displayed in dashboard QA views
 
 #### 1.2 Catalog Query Functions
 
-**Location:** Extend `catalog/query.py` or create `catalog/reference_catalogs.py`
+**Location:** Extend `catalog/query.py` or create
+`catalog/reference_catalogs.py`
 
 **New Functions:**
 
@@ -176,7 +186,7 @@ def query_nvss_field(
 ) -> pd.DataFrame:
     """
     Query NVSS catalog for sources in a field.
-    
+
     Uses existing NVSS catalog infrastructure (see catalog/build_nvss_strip_cli.py).
     Returns DataFrame with columns: ra, dec, flux_jy, etc.
     """
@@ -189,7 +199,7 @@ def query_vlass_field(
 ) -> pd.DataFrame:
     """
     Query VLASS catalog for sources in a field.
-    
+
     Similar to NVSS query. May need to implement VLASS catalog access.
     """
 
@@ -201,7 +211,7 @@ def scale_flux_to_frequency(
 ) -> float:
     """
     Scale flux from one frequency to another using power-law spectrum.
-    
+
     S_ν2 = S_ν1 * (ν2/ν1)^α
     """
 ```
@@ -209,11 +219,13 @@ def scale_flux_to_frequency(
 #### 1.3 Source Extraction
 
 **Options:**
+
 1. Use PyBDSF (Python Blob Detector and Source Finder) - industry standard
 2. Use existing source finder if available in `qa/image_quality.py`
 3. Simple threshold-based extraction for initial implementation
 
 **If PyBDSF needed:**
+
 - Add to requirements: `pybdsf>=1.10.0`
 - Create wrapper function in `qa/catalog_validation.py`
 
@@ -252,7 +264,8 @@ async def run_catalog_validation(
 
 #### 1.5 Dashboard Integration
 
-**Location:** `frontend/src/pages/ImageDetailPage.tsx` or new `CatalogValidationPage.tsx`
+**Location:** `frontend/src/pages/ImageDetailPage.tsx` or new
+`CatalogValidationPage.tsx`
 
 **New Components:**
 
@@ -266,6 +279,7 @@ async def run_catalog_validation(
 ```
 
 **Visualization:**
+
 - Offset vectors plotted on image (see catalog overlay, item 3)
 - Histogram of flux ratios
 - Scatter plot: image_flux vs catalog_flux
@@ -287,7 +301,8 @@ python -m dsa110_contimg.qa.cli validate-catalog \
 
 1. **Unit Tests:** Test validation functions with synthetic data
 2. **Integration Tests:** Test with real images and known catalog matches
-3. **Validation:** Compare results to manual validation for known good/bad images
+3. **Validation:** Compare results to manual validation for known good/bad
+   images
 
 ### Estimated Effort
 
@@ -305,11 +320,15 @@ python -m dsa110_contimg.qa.cli validate-catalog \
 
 **Priority:** Critical (Operational Reliability)  
 **Source Pattern:** MeerKAT `bookkeeping.py`  
-**Impact:** Catches calibration failures early by validating expected calibration tables exist
+**Impact:** Catches calibration failures early by validating expected
+calibration tables exist
 
 ### Overview
 
-Implement a function that constructs expected calibration table paths based on MS path and calibration parameters, then validates that all expected tables exist. This prevents downstream failures when calibration tables are missing or misnamed.
+Implement a function that constructs expected calibration table paths based on
+MS path and calibration parameters, then validates that all expected tables
+exist. This prevents downstream failures when calibration tables are missing or
+misnamed.
 
 ### Implementation Details
 
@@ -328,25 +347,25 @@ def get_expected_caltables(
 ) -> Dict[str, List[str]]:
     """
     Construct expected calibration table paths for a Measurement Set.
-    
+
     Expected naming convention (based on CASA standards):
     - Delay calibration: {ms_basename}.K
     - Bandpass calibration: {ms_basename}.B{spw_index}
     - Gain calibration: {ms_basename}.G
-    
+
     Args:
         ms_path: Path to Measurement Set
         caltable_dir: Directory containing caltables (default: same as MS)
         caltype: Type of caltables to return ("all", "K", "B", "G")
         spwmap: Optional SPW mapping dict {spw_index: bptable_index}
-    
+
     Returns:
         Dict with keys:
         - "K": List of delay caltable paths (typically 1)
         - "B": List of bandpass caltable paths (one per SPW or per mapped SPW)
         - "G": List of gain caltable paths (typically 1)
         - "all": List of all expected caltable paths
-    
+
     Example:
         ms_path = "/data/obs123.ms"
         Returns:
@@ -359,24 +378,24 @@ def get_expected_caltables(
     """
     ms_path_obj = Path(ms_path)
     ms_basename = ms_path_obj.stem  # "obs123" from "/data/obs123.ms"
-    
+
     if caltable_dir is None:
         caltable_dir = ms_path_obj.parent
     else:
         caltable_dir = Path(caltable_dir)
-    
+
     expected = {
         "K": [],
         "B": [],
         "G": [],
         "all": []
     }
-    
+
     # Delay calibration (K)
     if caltype in ("all", "K"):
         k_table = caltable_dir / f"{ms_basename}.K"
         expected["K"].append(str(k_table))
-    
+
     # Bandpass calibration (B)
     if caltype in ("all", "B"):
         # Need to determine number of SPWs from MS
@@ -392,15 +411,15 @@ def get_expected_caltables(
             for spw_idx in range(n_spws):
                 b_table = caltable_dir / f"{ms_basename}.B{spw_idx}"
                 expected["B"].append(str(b_table))
-    
+
     # Gain calibration (G)
     if caltype in ("all", "G"):
         g_table = caltable_dir / f"{ms_basename}.G"
         expected["G"].append(str(g_table))
-    
+
     # Collect all
     expected["all"] = expected["K"] + expected["B"] + expected["G"]
-    
+
     return expected
 
 def validate_caltables_exist(
@@ -412,26 +431,26 @@ def validate_caltables_exist(
 ) -> Tuple[Dict[str, List[str]], Dict[str, List[str]]]:
     """
     Validate that expected calibration tables exist.
-    
+
     Args:
         ms_path: Path to Measurement Set
         caltable_dir: Directory containing caltables
         caltype: Type of caltables to validate
         spwmap: Optional SPW mapping
         raise_on_missing: If True, raise exception if any tables missing
-    
+
     Returns:
         Tuple of (existing_tables, missing_tables) dicts
         Each dict has keys: "K", "B", "G", "all"
-    
+
     Raises:
         FileNotFoundError: If raise_on_missing=True and tables are missing
     """
     expected = get_expected_caltables(ms_path, caltable_dir, caltype, spwmap)
-    
+
     existing = {"K": [], "B": [], "G": [], "all": []}
     missing = {"K": [], "B": [], "G": [], "all": []}
-    
+
     for caltype_key in ["K", "B", "G"]:
         for table_path in expected[caltype_key]:
             if Path(table_path).exists():
@@ -440,7 +459,7 @@ def validate_caltables_exist(
             else:
                 missing[caltype_key].append(table_path)
                 missing["all"].append(table_path)
-    
+
     if raise_on_missing and missing["all"]:
         raise FileNotFoundError(
             f"Missing calibration tables for {ms_path}:\n"
@@ -448,7 +467,7 @@ def validate_caltables_exist(
             f"  B tables: {missing['B']}\n"
             f"  G tables: {missing['G']}"
         )
-    
+
     return existing, missing
 
 def _get_n_spws_from_ms(ms_path: str) -> int:
@@ -469,6 +488,7 @@ def _get_n_spws_from_ms(ms_path: str) -> int:
 **Integration Points:**
 
 1. **After calibration completes:**
+
 ```python
 # After successful calibration
 from dsa110_contimg.calibration.caltable_paths import validate_caltables_exist
@@ -487,6 +507,7 @@ else:
 ```
 
 2. **Before applying calibration:**
+
 ```python
 # Before applying calibration in apply_service.py
 from dsa110_contimg.calibration.caltable_paths import validate_caltables_exist
@@ -511,7 +532,7 @@ def check_caltable_completeness(
 ) -> Dict[str, Any]:
     """
     Check that all expected calibration tables exist for an MS.
-    
+
     Returns:
         Dict with:
         - expected_tables: List of expected table paths
@@ -524,14 +545,14 @@ def check_caltable_completeness(
         get_expected_caltables,
         validate_caltables_exist
     )
-    
+
     expected = get_expected_caltables(ms_path, caltable_dir)
     existing, missing = validate_caltables_exist(ms_path, caltable_dir)
-    
+
     n_expected = len(expected["all"])
     n_existing = len(existing["all"])
     completeness = n_existing / n_expected if n_expected > 0 else 0.0
-    
+
     return {
         "expected_tables": expected["all"],
         "existing_tables": existing["all"],
@@ -554,7 +575,7 @@ async def get_caltable_completeness(ms_path: str):
     Check calibration table completeness for an MS.
     """
     from dsa110_contimg.qa.calibration_quality import check_caltable_completeness
-    
+
     result = check_caltable_completeness(ms_path)
     return result
 ```
@@ -575,9 +596,11 @@ async def get_caltable_completeness(ms_path: str):
 
 ### Testing Strategy
 
-1. **Unit Tests:** Test path construction with various MS paths and SPW configurations
+1. **Unit Tests:** Test path construction with various MS paths and SPW
+   configurations
 2. **Integration Tests:** Test with real MS files and caltables
-3. **Edge Cases:** Test with missing tables, renamed tables, different directory structures
+3. **Edge Cases:** Test with missing tables, renamed tables, different directory
+   structures
 
 ### Estimated Effort
 
@@ -595,11 +618,15 @@ async def get_caltable_completeness(ms_path: str):
 
 **Priority:** High (Operational Reliability)  
 **Source Pattern:** CARTA visualization patterns  
-**Impact:** Quick visual QA for operators by overlaying reference catalog sources on images
+**Impact:** Quick visual QA for operators by overlaying reference catalog
+sources on images
 
 ### Overview
 
-Implement catalog overlay visualization in the dashboard, allowing operators to visually validate astrometry and flux scale by overlaying NVSS/VLASS catalog sources on images. This complements the automated catalog validation (item 1) with visual confirmation.
+Implement catalog overlay visualization in the dashboard, allowing operators to
+visually validate astrometry and flux scale by overlaying NVSS/VLASS catalog
+sources on images. This complements the automated catalog validation (item 1)
+with visual confirmation.
 
 ### Implementation Details
 
@@ -619,7 +646,7 @@ async def get_catalog_overlay(
 ):
     """
     Get catalog sources for overlay on an image.
-    
+
     Returns:
         JSON with:
         - sources: List of catalog sources with:
@@ -706,10 +733,10 @@ export const CatalogOverlay: React.FC<CatalogOverlayProps> = ({
 }) => {
   // Fetch catalog sources
   const { data: overlayData } = useCatalogOverlay(imageId, catalog);
-  
+
   // Convert RA/Dec to pixel coordinates (need image WCS)
   // Render overlay markers on image canvas
-  
+
   return (
     <g className="catalog-overlay">
       {overlayData?.sources.map((source, idx) => {
@@ -734,13 +761,15 @@ export const CatalogOverlay: React.FC<CatalogOverlayProps> = ({
 ```
 
 **Dependencies:**
+
 - Need WCS (World Coordinate System) handling for RA/Dec → pixel conversion
 - Consider using `astropy.wcs` on backend or `wcs` library on frontend
 - Or use existing image viewer library that supports WCS
 
 #### 3.3 Integration with Image Viewer
 
-**Location:** `frontend/src/pages/ImageDetailPage.tsx` or existing image viewer component
+**Location:** `frontend/src/pages/ImageDetailPage.tsx` or existing image viewer
+component
 
 **Integration:**
 
@@ -775,7 +804,8 @@ const [catalogType, setCatalogType] = useState<"nvss" | "vlass">("nvss");
 #### 3.4 Enhanced Features (Future)
 
 1. **Matched Source Highlighting:**
-   - Highlight catalog sources that match detected sources (from catalog validation)
+   - Highlight catalog sources that match detected sources (from catalog
+     validation)
    - Show offset vectors for matched sources
    - Color-code: green (good match), yellow (large offset), red (no match)
 
@@ -795,16 +825,19 @@ const [catalogType, setCatalogType] = useState<"nvss" | "vlass">("nvss");
 #### 3.5 WCS Handling
 
 **Option 1: Backend Conversion**
+
 - Convert RA/Dec to pixel coordinates on backend
 - Return pixel coordinates in API response
 - Simpler frontend, but requires image access on backend
 
 **Option 2: Frontend Conversion**
+
 - Return RA/Dec coordinates
 - Use WCS library on frontend to convert to pixels
 - More flexible, but requires WCS parsing on frontend
 
-**Recommendation:** Start with Option 1 (backend conversion) for simplicity, migrate to Option 2 if needed for performance.
+**Recommendation:** Start with Option 1 (backend conversion) for simplicity,
+migrate to Option 2 if needed for performance.
 
 **Backend WCS Conversion:**
 
@@ -821,12 +854,12 @@ def get_catalog_overlay_pixels(
     """
     with fits.open(image_path) as hdul:
         wcs = WCS(hdul[0].header)
-    
+
     sources_pixels = []
     for _, source in catalog_sources.iterrows():
         ra, dec = source["ra"], source["dec"]
         x, y = wcs.wcs_world2pix(ra, dec, 0)
-        
+
         sources_pixels.append({
             "x": float(x),
             "y": float(y),
@@ -835,7 +868,7 @@ def get_catalog_overlay_pixels(
             "flux_jy": float(source["flux_jy"]),
             "name": source.get("name", "")
         })
-    
+
     return sources_pixels
 ```
 
@@ -880,8 +913,10 @@ def get_catalog_overlay_pixels(
 
 1. **Catalog Access:** Ensure NVSS/VLASS catalogs are accessible and up-to-date
 2. **WCS Handling:** Verify image WCS headers are correct and parseable
-3. **Performance:** Catalog queries may be slow for large fields; consider caching
-4. **Source Extraction:** May need to add PyBDSF or implement simple threshold-based extraction
+3. **Performance:** Catalog queries may be slow for large fields; consider
+   caching
+4. **Source Extraction:** May need to add PyBDSF or implement simple
+   threshold-based extraction
 
 ### Success Criteria
 
@@ -908,4 +943,3 @@ def get_catalog_overlay_pixels(
 2. Set up development branches for each feature
 3. Begin implementation in priority order
 4. Regular check-ins to review progress and adjust as needed
-
