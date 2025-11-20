@@ -1078,7 +1078,7 @@ def image_ms(
             md = _msmd()
             md.open(ms_path)
             try:
-                telname = md.telescope()
+                telname = md.telescope()  # pylint: disable=no-member
             finally:
                 md.close()
             vp = _vpmanager()
