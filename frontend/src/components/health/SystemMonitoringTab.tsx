@@ -56,11 +56,11 @@ export const SystemMonitoringTab: React.FC = () => {
     ];
 
     const layout: Partial<Layout> = {
-      title: "System Resource Usage",
-      xaxis: { title: "Time" },
-      yaxis: { title: "Usage (%)", range: [0, 100] },
+      title: { text: "System Resource Usage" },
+      xaxis: { title: { text: "Time" } },
+      yaxis: { title: { text: "Usage (%)" }, range: [0, 100] },
       hovermode: "closest",
-      template: "plotly_dark",
+      // template: "plotly_dark",
     };
 
     return { data, layout };
@@ -82,7 +82,7 @@ export const SystemMonitoringTab: React.FC = () => {
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatusIndicator
               value={metrics?.cpu_percent || 0}
-              thresholds={{ good: 70, warning: 50 }}
+              thresholds={{ critical: 70, warning: 50 }}
               label="CPU Usage"
               unit="%"
               size="medium"
@@ -93,7 +93,7 @@ export const SystemMonitoringTab: React.FC = () => {
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatusIndicator
               value={metrics?.mem_percent || 0}
-              thresholds={{ good: 80, warning: 60 }}
+              thresholds={{ critical: 80, warning: 60 }}
               label="Memory Usage"
               unit="%"
               size="medium"
@@ -104,7 +104,7 @@ export const SystemMonitoringTab: React.FC = () => {
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatusIndicator
               value={ssdDisk?.percent ?? 0}
-              thresholds={{ good: 75, warning: 90 }}
+              thresholds={{ warning: 75, critical: 90 }}
               label="SSD (root)"
               unit="%"
               size="medium"
@@ -124,7 +124,7 @@ export const SystemMonitoringTab: React.FC = () => {
           >
             <StatusIndicator
               value={hddDisk?.percent ?? 0}
-              thresholds={{ good: 75, warning: 90 }}
+              thresholds={{ warning: 75, critical: 90 }}
               label="HDD (/data/)"
               unit="%"
               size="medium"
@@ -139,7 +139,6 @@ export const SystemMonitoringTab: React.FC = () => {
               label="Load Average (1m)"
               value={metrics?.load_1?.toFixed(2) || "N/A"}
               color="info"
-              size="medium"
               sparklineData={loadHistory.length > 1 ? loadHistory : undefined}
             />
           </Grid>

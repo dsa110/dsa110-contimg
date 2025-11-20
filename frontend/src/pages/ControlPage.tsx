@@ -3,7 +3,7 @@
  * Refactored to use workflow components for better maintainability
  */
 import React, { useState, useEffect } from "react";
-import { Box, Paper, Typography, Tabs, Tab, Alert, Link } from "@mui/material";
+import { Box, Paper, Typography, Tabs, Tab } from "@mui/material";
 import { logger } from "../utils/logger";
 import {
   useMSList,
@@ -148,7 +148,7 @@ export default function ControlPage() {
                 <Tab label="Convert" />
                 <Tab label="Calibrate" />
                 <Tab label="Image" />
-                <Tab label="Custom DAG (Absurd)" />
+                <Tab label="Absurd Tasks" />
                 <Tab label="Workflow Builder" />
               </Tabs>
 
@@ -199,14 +199,6 @@ export default function ControlPage() {
               {/* Absurd Tasks Tab */}
               {activeTab === 4 && (
                 <Box sx={{ mt: 2 }}>
-                  <Alert severity="info" sx={{ mb: 2 }}>
-                    Quick access to Absurd task queue. For advanced DAG orchestration and workflow
-                    building, visit the{" "}
-                    <Link href="/absurd" underline="hover" sx={{ fontWeight: 600 }}>
-                      dedicated Absurd page
-                    </Link>
-                    .
-                  </Alert>
                   <TaskDashboard queueName="dsa110-pipeline" />
                 </Box>
               )}

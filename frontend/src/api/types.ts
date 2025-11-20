@@ -223,7 +223,6 @@ export interface ImageInfo {
   created_at?: string | null;
   type: string;
   source_id?: string | null;
-  imaging_backend?: "wsclean" | "tclean" | null;
   beam_major_arcsec?: number | null;
   beam_minor_arcsec?: number | null;
   beam_pa_deg?: number | null;
@@ -247,6 +246,8 @@ export interface ImageInfo {
   bpa?: number;
   rms?: number;
   peak?: number;
+  imaging_backend?: "wsclean" | "tclean" | null;
+  imager?: string;
 }
 
 // Additional types from backend API models
@@ -457,14 +458,14 @@ export interface MSMetadata {
   size_gb?: number;
   data_columns?: string[];
   calibrated?: boolean;
-  imaging_backend?: "wsclean" | "tclean" | null;
-  imager?: string;
   num_fields?: number;
   field_names?: string[];
   num_antennas?: number;
   antennas?: AntennaInfo[];
   fields?: FieldInfo[];
   flagging_stats?: FlaggingStats;
+  imaging_backend?: "wsclean" | "tclean" | null;
+  imager?: string;
 }
 
 export interface FieldInfo {
@@ -613,10 +614,9 @@ export interface CalibrationQA {
 }
 
 export interface QAArtifact {
-  group_id: string;
   name: string;
   path: string;
-  created_at?: string | null;
+  type: string;
 }
 
 export interface ImageQA {

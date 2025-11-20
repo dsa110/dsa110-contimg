@@ -61,7 +61,7 @@ export function AOFlaggerStats({ stats, msPath }: AOFlaggerStatsProps) {
         <Stack spacing={3}>
           {/* Overview */}
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6} {...({} as any)}>
+            <Grid item xs={12} md={6}>
               <Box>
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
                   <Typography variant="body2" color="text.secondary">
@@ -85,7 +85,7 @@ export function AOFlaggerStats({ stats, msPath }: AOFlaggerStatsProps) {
               </Box>
             </Grid>
 
-            <Grid item xs={12} md={6} {...({} as any)}>
+            <Grid item xs={12} md={6}>
               <Box>
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
                   <Typography variant="body2" color="text.secondary">

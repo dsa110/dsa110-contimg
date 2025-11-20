@@ -12,9 +12,15 @@ import {
   Chip,
   Stack,
   Tooltip,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
-import { RadioButtonChecked as PointIcon, Refresh as RefreshIcon } from "@mui/icons-material";
+import {
+  RadioButtonChecked as PointIcon,
+  Refresh as RefreshIcon,
+  Public as ProjectionIcon,
+} from "@mui/icons-material";
 import { PlotlyLazy } from "./PlotlyLazy";
 import type { Data, Layout } from "./PlotlyLazy";
 import { usePointingMonitorStatus, usePointingHistory, useImages } from "../api/queries";
@@ -35,6 +41,7 @@ export default function PointingVisualization({
 }: PointingVisualizationProps) {
   const { data: monitorStatus, isLoading: statusLoading } = usePointingMonitorStatus();
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [projectionType, setProjectionType] = useState<"mollweide" | "aitoff">("mollweide");
 
   // Calculate MJD range for history - use reasonable default (30 days) if historyDays is null/undefined or very large
   const { startMjd, endMjd, useFullRange, effectiveHistoryDays } = useMemo(() => {
@@ -165,7 +172,7 @@ export default function PointingVisualization({
   }, [historyData]);
 
   // Convert RA/Dec to Mollweide projection coordinates
-  // This matches the backend's Mollweide sky map projection
+  // This matches the backend's HEALPix Mollweide GSM sky map projection
   const mollweideProjection = useMemo(() => {
     return (ra: number, dec: number): [number, number] => {
       // Convert to radians
@@ -191,6 +198,32 @@ export default function PointingVisualization({
       return [x, y];
     };
   }, []);
+
+  // Convert RA/Dec to Aitoff projection coordinates (legacy projection)
+  const aitoffProjection = useMemo(() => {
+    return (ra: number, dec: number): [number, number] => {
+      const lambda = ((ra - 180) * Math.PI) / 180;
+      const phi = (dec * Math.PI) / 180;
+
+      const alpha = Math.acos(Math.cos(phi) * Math.cos(lambda / 2));
+      const sinc = alpha !== 0 ? Math.sin(alpha) / alpha : 1;
+
+      const x = (2 * Math.cos(phi) * Math.sin(lambda / 2)) / sinc;
+      const y = Math.sin(phi) / sinc;
+
+      return [(x * 180) / Math.PI, (y * 180) / Math.PI];
+    };
+  }, []);
+
+  // Select projection function based on current setting
+  const projectPoint = useCallback(
+    (ra: number, dec: number): [number, number] => {
+      return projectionType === "mollweide"
+        ? mollweideProjection(ra, dec)
+        : aitoffProjection(ra, dec);
+    },
+    [projectionType, mollweideProjection, aitoffProjection]
+  );
 
   // Prepare time series plot data (Dec vs time)
   const { timeSeriesData, timeSeriesLayout } = useMemo(() => {
@@ -334,7 +367,7 @@ export default function PointingVisualization({
         const traceYs: number[] = [];
 
         historyData.forEach((point) => {
-          const [x, y] = mollweideProjection(point.ra_deg, point.dec_deg);
+          const [x, y] = projectPoint(point.ra_deg, point.dec_deg);
           traceXs.push(x);
           traceYs.push(y);
         });
@@ -387,8 +420,8 @@ export default function PointingVisualization({
             circleDecs.push(dec + deltaDec);
           }
 
-          // Project circle to Mollweide coordinates
-          const projected = circleRAs.map((r, i) => mollweideProjection(r, circleDecs[i]));
+          // Project circle to selected projection coordinates
+          const projected = circleRAs.map((r, i) => projectPoint(r, circleDecs[i]));
           const xs = projected.map((p) => p[0]);
           const ys = projected.map((p) => p[1]);
 
@@ -422,7 +455,7 @@ export default function PointingVisualization({
 
       // Add current pointing position
       if (currentPointing) {
-        const [x, y] = mollweideProjection(currentPointing.ra, currentPointing.dec);
+        const [x, y] = projectPoint(currentPointing.ra, currentPointing.dec);
         data.push({
           type: "scatter",
           mode: "markers",
@@ -452,7 +485,7 @@ export default function PointingVisualization({
       for (let ra = 0; ra < 360; ra += 30) {
         const decs = Array.from({ length: 91 }, (_, i) => -90 + i * 2);
         const ras = decs.map(() => ra);
-        const projected = ras.map((r, i) => mollweideProjection(r, decs[i]));
+        const projected = ras.map((r, i) => projectPoint(r, decs[i]));
         gridLines.push({
           type: "scatter",
           mode: "lines",
@@ -464,7 +497,7 @@ export default function PointingVisualization({
         });
 
         // Add RA label at the equator (dec=0)
-        const [labelX, labelY] = mollweideProjection(ra, 0);
+        const [labelX, labelY] = projectPoint(ra, 0);
         gridLabels.push({
           x: labelX,
           y: labelY + 8, // Offset slightly above the equator
@@ -480,7 +513,7 @@ export default function PointingVisualization({
       for (let dec = -90; dec <= 90; dec += 15) {
         const ras = Array.from({ length: 181 }, (_, i) => i * 2);
         const decs = ras.map(() => dec);
-        const projected = ras.map((r, i) => mollweideProjection(r, decs[i]));
+        const projected = ras.map((r, i) => projectPoint(r, decs[i]));
         gridLines.push({
           type: "scatter",
           mode: "lines",
@@ -494,7 +527,7 @@ export default function PointingVisualization({
         // Add Dec label at RA=180 (left side)
         if (dec !== 0) {
           // Skip 0° to avoid overlap with RA labels
-          const [labelX, labelY] = mollweideProjection(180, dec);
+          const [labelX, labelY] = projectPoint(180, dec);
           gridLabels.push({
             x: labelX - 8, // Offset to the left
             y: labelY,
@@ -507,9 +540,14 @@ export default function PointingVisualization({
         }
       }
 
+      // Determine axis ranges based on projection type
+      const xRange = projectionType === "mollweide" ? [-162, 162] : [-180, 180];
+      const yRange = projectionType === "mollweide" ? [-81, 81] : [-90, 90];
+      const yScaleRatio = projectionType === "mollweide" ? 1 : 0.5;
+
       const layout: Partial<Layout> = {
         title: {
-          text: "Sky Map",
+          text: `Sky Map (${projectionType === "mollweide" ? "Mollweide - HEALPix GSM" : "Aitoff"})`,
           font: { size: 14 },
         },
         annotations: gridLabels,
@@ -518,16 +556,16 @@ export default function PointingVisualization({
           showgrid: false,
           zeroline: false,
           showticklabels: false,
-          range: [-162, 162], // Mollweide X range: ±2√2 * R ≈ ±162
+          range: xRange,
         },
         yaxis: {
           title: { text: "" },
           showgrid: false,
           zeroline: false,
           showticklabels: false,
-          range: [-81, 81], // Mollweide Y range: ±√2 * R ≈ ±81
+          range: yRange,
           scaleanchor: "x" as any,
-          scaleratio: 1, // Mollweide is 2:1 naturally, so 1:1 in these coordinates
+          scaleratio: yScaleRatio,
         },
         plot_bgcolor: "#1e1e1e",
         paper_bgcolor: "#1e1e1e",
@@ -536,27 +574,28 @@ export default function PointingVisualization({
         height: height,
         hovermode: "closest" as any,
         showlegend: false,
-        // Add Mollweide projection background image from backend
-        images: enableSkyMapBackground
-          ? [
-              {
-                source:
-                  "/api/pointing/mollweide-sky-map?frequency_mhz=1400&cmap=inferno&width=1200&height=600",
-                xref: "x",
-                yref: "y",
-                // Mollweide projection coordinate ranges (with R = 180/π ≈ 57.3)
-                // X: ±2√2 * R ≈ ±162
-                // Y: ±√2 * R ≈ ±81
-                x: -162,
-                y: -81,
-                sizex: 324, // 2 * 162
-                sizey: 162, // 2 * 81
-                sizing: "stretch",
-                opacity: 0.8, // Higher opacity for better visibility with transparent background
-                layer: "below",
-              },
-            ]
-          : [],
+        // Add Mollweide projection background image from backend (only for Mollweide)
+        images:
+          enableSkyMapBackground && projectionType === "mollweide"
+            ? [
+                {
+                  source:
+                    "/api/pointing/mollweide-sky-map?frequency_mhz=1400&cmap=inferno&width=1200&height=600",
+                  xref: "x",
+                  yref: "y",
+                  // Mollweide projection coordinate ranges (with R = 180/π ≈ 57.3)
+                  // X: ±2√2 * R ≈ ±162
+                  // Y: ±√2 * R ≈ ±81
+                  x: -162,
+                  y: -81,
+                  sizex: 324, // 2 * 162
+                  sizey: 162, // 2 * 81
+                  sizing: "stretch",
+                  opacity: 0.8,
+                  layer: "below",
+                },
+              ]
+            : [],
       };
 
       return { skyMapData: [...data, ...gridLines], skyMapLayout: layout };
@@ -571,7 +610,7 @@ export default function PointingVisualization({
         for (let ra = 0; ra < 360; ra += 30) {
           const decs = Array.from({ length: 91 }, (_, i) => -90 + i * 2);
           const ras = decs.map(() => ra);
-          const projected = ras.map((r, i) => mollweideProjection(r, decs[i]));
+          const projected = ras.map((r, i) => projectPoint(r, decs[i]));
           gridLines.push({
             type: "scatter",
             mode: "lines",
@@ -583,7 +622,7 @@ export default function PointingVisualization({
           });
 
           // Add RA label at the equator (dec=0)
-          const [labelX, labelY] = mollweideProjection(ra, 0);
+          const [labelX, labelY] = projectPoint(ra, 0);
           gridLabels.push({
             x: labelX,
             y: labelY + 8,
@@ -599,7 +638,7 @@ export default function PointingVisualization({
         for (let dec = -90; dec <= 90; dec += 15) {
           const ras = Array.from({ length: 181 }, (_, i) => i * 2);
           const decs = ras.map(() => dec);
-          const projected = ras.map((r, i) => mollweideProjection(r, decs[i]));
+          const projected = ras.map((r, i) => projectPoint(r, decs[i]));
           gridLines.push({
             type: "scatter",
             mode: "lines",
@@ -612,7 +651,7 @@ export default function PointingVisualization({
 
           // Add Dec label at RA=180 (left side)
           if (dec !== 0) {
-            const [labelX, labelY] = mollweideProjection(180, dec);
+            const [labelX, labelY] = projectPoint(180, dec);
             gridLabels.push({
               x: labelX - 8,
               y: labelY,
@@ -696,7 +735,8 @@ export default function PointingVisualization({
     historyData,
     showHistory,
     height,
-    mollweideProjection,
+    projectPoint,
+    projectionType,
     enableSkyMapBackground,
     imagesWithCoordinates,
     getBeamRadiusDeg,
@@ -719,7 +759,32 @@ export default function PointingVisualization({
     <Paper sx={{ p: 2 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h6">Pointing Status</Typography>
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction="row" spacing={2} alignItems="center">
+          <ToggleButtonGroup
+            value={projectionType}
+            exclusive
+            onChange={(_, newProjection) => {
+              if (newProjection !== null) {
+                setProjectionType(newProjection);
+              }
+            }}
+            size="small"
+            aria-label="sky map projection"
+          >
+            <ToggleButton value="mollweide" aria-label="mollweide projection">
+              <Tooltip title="HEALPix Mollweide (GSM background)">
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <ProjectionIcon fontSize="small" />
+                  <Typography variant="caption">Mollweide</Typography>
+                </Box>
+              </Tooltip>
+            </ToggleButton>
+            <ToggleButton value="aitoff" aria-label="aitoff projection">
+              <Tooltip title="Aitoff (legacy)">
+                <Typography variant="caption">Aitoff</Typography>
+              </Tooltip>
+            </ToggleButton>
+          </ToggleButtonGroup>
           <Chip
             icon={<PointIcon />}
             label={isRunning ? "Monitoring" : "Stopped"}

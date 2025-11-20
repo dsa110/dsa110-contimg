@@ -1,6 +1,6 @@
 /**
  * MS Inspection Panel
- * Displays detailed MS metadata in a listobs-like format
+ * Displays detailed MS metadata in a listobs-like format with CASA logs access
  */
 import {
   Grid,
@@ -20,8 +20,21 @@ import {
   AccordionDetails,
   Stack,
   Alert,
+  Box,
+  Button,
+  Tooltip,
+  IconButton,
 } from "@mui/material";
-import { ExpandMore } from "@mui/icons-material";
+import {
+  ExpandMore,
+  Description as LogIcon,
+  Assessment as StatsIcon,
+  Refresh as RefreshIcon,
+  ContentCopy as CopyIcon,
+} from "@mui/icons-material";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "../../api/client";
 import type { MSMetadata } from "../../api/types";
 
 interface MSInspectionPanelProps {
@@ -29,7 +42,55 @@ interface MSInspectionPanelProps {
   metadata: MSMetadata | undefined;
 }
 
-export function MSInspectionPanel({ metadata }: MSInspectionPanelProps) {
+export function MSInspectionPanel({ msPath, metadata }: MSInspectionPanelProps) {
+  const [expandedLogs, setExpandedLogs] = useState(false);
+  const [expandedListobs, setExpandedListobs] = useState(false);
+
+  // Fetch CASA logs for this MS (if available)
+  const {
+    data: casaLogs,
+    isLoading: logsLoading,
+    refetch: refetchLogs,
+  } = useQuery({
+    queryKey: ["casa-logs", msPath],
+    queryFn: async () => {
+      if (!msPath) return null;
+      try {
+        const response = await apiClient.get(`/api/ms/${encodeURIComponent(msPath)}/logs`);
+        return response.data;
+      } catch (error) {
+        // Logs may not exist for all MS
+        return null;
+      }
+    },
+    enabled: !!msPath && expandedLogs,
+    retry: false,
+  });
+
+  // Fetch listobs-style output (if available)
+  const {
+    data: listobsOutput,
+    isLoading: listobsLoading,
+    refetch: refetchListobs,
+  } = useQuery({
+    queryKey: ["listobs", msPath],
+    queryFn: async () => {
+      if (!msPath) return null;
+      try {
+        const response = await apiClient.get(`/api/ms/${encodeURIComponent(msPath)}/listobs`);
+        return response.data;
+      } catch (error) {
+        return null;
+      }
+    },
+    enabled: !!msPath && expandedListobs,
+    retry: false,
+  });
+
+  const handleCopyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
   if (!metadata) {
     return (
       <Alert severity="info">Select an MS to view inspection details (listobs-like summary)</Alert>
@@ -102,28 +163,50 @@ export function MSInspectionPanel({ metadata }: MSInspectionPanelProps) {
                   size="small"
                 />
               </Grid>
-              {metadata.imaging_backend && (
-                <Grid
-                  size={{
-                    xs: 12,
-                    md: 6,
-                  }}
-                >
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                    Imaging Backend
-                  </Typography>
-                  <Chip
-                    label={metadata.imaging_backend === "wsclean" ? "WSClean" : "tclean"}
-                    color={metadata.imaging_backend === "wsclean" ? "primary" : "secondary"}
-                    size="small"
-                  />
-                  {metadata.imager && (
-                    <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                      {metadata.imager}
+              <Grid
+                size={{
+                  xs: 12,
+                  md: 6,
+                }}
+              >
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  Imaging Backend
+                </Typography>
+                <Box display="flex" alignItems="center" gap={1}>
+                  {metadata.imaging_backend || metadata.imager ? (
+                    <>
+                      <Chip
+                        label={
+                          metadata.imaging_backend === "wsclean"
+                            ? "WSClean"
+                            : metadata.imaging_backend === "tclean"
+                              ? "tclean (CASA)"
+                              : metadata.imager || "Unknown"
+                        }
+                        color={
+                          metadata.imaging_backend === "wsclean"
+                            ? "primary"
+                            : metadata.imaging_backend === "tclean"
+                              ? "secondary"
+                              : "default"
+                        }
+                        size="small"
+                      />
+                      <Typography variant="caption" color="text.secondary">
+                        {metadata.imaging_backend === "wsclean"
+                          ? "Fast, efficient imaging"
+                          : metadata.imaging_backend === "tclean"
+                            ? "CASA-based imaging"
+                            : ""}
+                      </Typography>
+                    </>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      Not imaged yet
                     </Typography>
                   )}
-                </Grid>
-              )}
+                </Box>
+              </Grid>
             </Grid>
           </CardContent>
         </Card>
@@ -198,6 +281,149 @@ export function MSInspectionPanel({ metadata }: MSInspectionPanelProps) {
           </Card>
         </Grid>
       )}
+      {/* CASA Logs Access */}
+      {msPath && (
+        <Grid size={12}>
+          <Card>
+            <CardHeader
+              title="CASA Logs & Processing Output"
+              avatar={<LogIcon />}
+              action={
+                expandedLogs && (
+                  <Tooltip title="Refresh logs">
+                    <IconButton onClick={() => refetchLogs()} size="small">
+                      <RefreshIcon />
+                    </IconButton>
+                  </Tooltip>
+                )
+              }
+            />
+            <CardContent>
+              <Accordion
+                expanded={expandedLogs}
+                onChange={(_, isExpanded) => setExpandedLogs(isExpanded)}
+              >
+                <AccordionSummary expandIcon={<ExpandMore />}>
+                  <Typography variant="body2">View CASA task logs</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  {logsLoading ? (
+                    <Typography variant="body2" color="text.secondary">
+                      Loading logs...
+                    </Typography>
+                  ) : casaLogs ? (
+                    <Box>
+                      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}>
+                        <Button
+                          size="small"
+                          startIcon={<CopyIcon />}
+                          onClick={() => handleCopyToClipboard(casaLogs.content || casaLogs)}
+                        >
+                          Copy
+                        </Button>
+                      </Box>
+                      <Box
+                        sx={{
+                          fontFamily: "monospace",
+                          fontSize: "0.75rem",
+                          bgcolor: "background.paper",
+                          p: 2,
+                          borderRadius: 1,
+                          maxHeight: 400,
+                          overflow: "auto",
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-all",
+                        }}
+                      >
+                        {casaLogs.content || casaLogs}
+                      </Box>
+                    </Box>
+                  ) : (
+                    <Alert severity="info">
+                      No CASA logs available for this MS. Logs are generated during calibration and
+                      imaging tasks.
+                    </Alert>
+                  )}
+                </AccordionDetails>
+              </Accordion>
+            </CardContent>
+          </Card>
+        </Grid>
+      )}
+
+      {/* Listobs-style Output */}
+      {msPath && (
+        <Grid size={12}>
+          <Card>
+            <CardHeader
+              title="Detailed MS Summary (listobs)"
+              avatar={<StatsIcon />}
+              action={
+                expandedListobs && (
+                  <Tooltip title="Refresh">
+                    <IconButton onClick={() => refetchListobs()} size="small">
+                      <RefreshIcon />
+                    </IconButton>
+                  </Tooltip>
+                )
+              }
+            />
+            <CardContent>
+              <Accordion
+                expanded={expandedListobs}
+                onChange={(_, isExpanded) => setExpandedListobs(isExpanded)}
+              >
+                <AccordionSummary expandIcon={<ExpandMore />}>
+                  <Typography variant="body2">
+                    View comprehensive listobs-style metadata summary
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  {listobsLoading ? (
+                    <Typography variant="body2" color="text.secondary">
+                      Loading metadata...
+                    </Typography>
+                  ) : listobsOutput ? (
+                    <Box>
+                      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}>
+                        <Button
+                          size="small"
+                          startIcon={<CopyIcon />}
+                          onClick={() =>
+                            handleCopyToClipboard(listobsOutput.content || listobsOutput)
+                          }
+                        >
+                          Copy
+                        </Button>
+                      </Box>
+                      <Box
+                        sx={{
+                          fontFamily: "monospace",
+                          fontSize: "0.75rem",
+                          bgcolor: "background.paper",
+                          p: 2,
+                          borderRadius: 1,
+                          maxHeight: 500,
+                          overflow: "auto",
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {listobsOutput.content || listobsOutput}
+                      </Box>
+                    </Box>
+                  ) : (
+                    <Alert severity="info">
+                      Listobs summary not available. This requires backend API support for
+                      generating detailed MS metadata.
+                    </Alert>
+                  )}
+                </AccordionDetails>
+              </Accordion>
+            </CardContent>
+          </Card>
+        </Grid>
+      )}
+
       {/* Flagging Statistics */}
       {metadata.flagging_stats && (
         <Grid size={12}>
@@ -211,20 +437,20 @@ export function MSInspectionPanel({ metadata }: MSInspectionPanelProps) {
                     {((metadata.flagging_stats.total_fraction ?? 0) * 100).toFixed(1)}%
                   </Typography>
                   {metadata.flagging_stats.rfi_percentage !== undefined && (
-                    <Typography variant="body2" color="warning.main" gutterBottom>
-                      RFI detected: {(metadata.flagging_stats.rfi_percentage * 100).toFixed(1)}%
+                    <Typography variant="body2" gutterBottom>
+                      RFI detected: {metadata.flagging_stats.rfi_percentage.toFixed(1)}%
                     </Typography>
                   )}
                 </Box>
 
-                {/* AOFlagger Configuration */}
+                {/* AOFlagger Information */}
                 {(metadata.flagging_stats.aoflagger_version ||
                   metadata.flagging_stats.aoflagger_strategy) && (
                   <Box>
-                    <Typography variant="subtitle2" gutterBottom>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                       AOFlagger Configuration
                     </Typography>
-                    <Stack direction="row" spacing={1}>
+                    <Stack direction="row" spacing={1} flexWrap="wrap">
                       {metadata.flagging_stats.aoflagger_version && (
                         <Chip
                           label={`Version ${metadata.flagging_stats.aoflagger_version}`}
@@ -243,15 +469,12 @@ export function MSInspectionPanel({ metadata }: MSInspectionPanelProps) {
                     </Stack>
                   </Box>
                 )}
-
                 {/* Per-Antenna Flagging */}
                 {metadata.flagging_stats.per_antenna &&
                   Object.keys(metadata.flagging_stats.per_antenna).length > 0 && (
                     <Accordion>
                       <AccordionSummary expandIcon={<ExpandMore />}>
-                        <Typography variant="body2">
-                          Per-Antenna Flagging (with RFI Context)
-                        </Typography>
+                        <Typography variant="body2">Per-Antenna Flagging</Typography>
                       </AccordionSummary>
                       <AccordionDetails>
                         <TableContainer>
@@ -292,7 +515,7 @@ export function MSInspectionPanel({ metadata }: MSInspectionPanelProps) {
                   Object.keys(metadata.flagging_stats.baseline_rfi_stats).length > 0 && (
                     <Accordion>
                       <AccordionSummary expandIcon={<ExpandMore />}>
-                        <Typography variant="body2">Baseline RFI Statistics (Top 20)</Typography>
+                        <Typography variant="body2">Baseline RFI Statistics</Typography>
                       </AccordionSummary>
                       <AccordionDetails>
                         <TableContainer>
@@ -309,9 +532,7 @@ export function MSInspectionPanel({ metadata }: MSInspectionPanelProps) {
                                 .slice(0, 20)
                                 .map(([baseline, rfi]) => (
                                   <TableRow key={baseline}>
-                                    <TableCell sx={{ fontFamily: "monospace" }}>
-                                      {baseline}
-                                    </TableCell>
+                                    <TableCell>{baseline}</TableCell>
                                     <TableCell align="right">
                                       {((rfi as number) * 100).toFixed(1)}%
                                     </TableCell>
@@ -321,14 +542,8 @@ export function MSInspectionPanel({ metadata }: MSInspectionPanelProps) {
                           </Table>
                         </TableContainer>
                         {Object.keys(metadata.flagging_stats.baseline_rfi_stats).length > 20 && (
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ mt: 1, display: "block" }}
-                          >
-                            Showing top 20 of{" "}
-                            {Object.keys(metadata.flagging_stats.baseline_rfi_stats).length}{" "}
-                            baselines
+                          <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                            Showing top 20 most affected baselines
                           </Typography>
                         )}
                       </AccordionDetails>
@@ -340,11 +555,12 @@ export function MSInspectionPanel({ metadata }: MSInspectionPanelProps) {
                   Object.keys(metadata.flagging_stats.frequency_rfi_stats).length > 0 && (
                     <Accordion>
                       <AccordionSummary expandIcon={<ExpandMore />}>
-                        <Typography variant="body2">
-                          Frequency RFI Statistics (Top 15 Channels)
-                        </Typography>
+                        <Typography variant="body2">Frequency RFI Statistics</Typography>
                       </AccordionSummary>
                       <AccordionDetails>
+                        <Typography variant="caption" color="text.secondary" gutterBottom>
+                          RFI contamination by frequency channel
+                        </Typography>
                         <TableContainer>
                           <Table size="small">
                             <TableHead>
@@ -359,7 +575,7 @@ export function MSInspectionPanel({ metadata }: MSInspectionPanelProps) {
                                 .slice(0, 15)
                                 .map(([channel, rfi]) => (
                                   <TableRow key={channel}>
-                                    <TableCell>Channel {channel}</TableCell>
+                                    <TableCell>Ch {channel}</TableCell>
                                     <TableCell align="right">
                                       {((rfi as number) * 100).toFixed(1)}%
                                     </TableCell>
@@ -369,14 +585,8 @@ export function MSInspectionPanel({ metadata }: MSInspectionPanelProps) {
                           </Table>
                         </TableContainer>
                         {Object.keys(metadata.flagging_stats.frequency_rfi_stats).length > 15 && (
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ mt: 1, display: "block" }}
-                          >
-                            Showing top 15 of{" "}
-                            {Object.keys(metadata.flagging_stats.frequency_rfi_stats).length}{" "}
-                            channels
+                          <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                            Showing top 15 most affected channels
                           </Typography>
                         )}
                       </AccordionDetails>

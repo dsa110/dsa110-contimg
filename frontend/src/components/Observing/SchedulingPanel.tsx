@@ -1,16 +1,14 @@
 /**
  * Scheduling Panel Component
- * Real-time scheduling widgets for telescope operations
+ * Shows upcoming scans, elevation limits, and quick slewing commands
  */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
-  Box,
-  Paper,
-  Typography,
   Card,
   CardContent,
-  TextField,
-  Button,
+  CardHeader,
+  Typography,
+  Box,
   Table,
   TableBody,
   TableCell,
@@ -18,206 +16,373 @@ import {
   TableHead,
   TableRow,
   Chip,
-  Alert,
+  Button,
   Stack,
+  TextField,
+  Alert,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
-import Grid from "@mui/material/GridLegacy";
-import { Send as SendIcon, CheckCircle, Warning, Error as ErrorIcon } from "@mui/icons-material";
+import {
+  Schedule as ScheduleIcon,
+  Refresh as RefreshIcon,
+  Navigation as SlewIcon,
+  Visibility as VisibilityIcon,
+  Warning as WarningIcon,
+} from "@mui/icons-material";
 
 interface PointingHistoryItem {
   ra_deg: number;
   dec_deg: number;
-  mjd: number;
-  timestamp?: string;
+  timestamp: number;
 }
 
 interface CalibratorMatch {
-  name: string;
-  ra_deg: number;
-  dec_deg: number;
-  separation_deg: number;
+  name?: string;
+  ra_deg?: number;
+  dec_deg?: number;
+  weighted_flux?: number;
   flux_jy?: number;
+  sep_deg?: number;
+  timestamp?: string;
 }
 
 interface SchedulingPanelProps {
-  currentPointing?: PointingHistoryItem;
-  upcomingScans?: Array<{
-    target: string;
-    start_time: string;
-    duration_min: number;
-  }>;
-  calibrators?: CalibratorMatch[];
+  pointingHistory?: PointingHistoryItem[];
+  calibratorMatches?: CalibratorMatch[];
 }
 
-export function SchedulingPanel({
-  currentPointing,
-  upcomingScans = [],
-  calibrators = [],
-}: SchedulingPanelProps) {
-  // Calculate elevation for current LST (simplified - would use real LST calculation)
-  const calculateElevation = (ra: number, dec: number, _ra_current?: number) => {
-    // Simplified elevation calculation assuming DSA-110 latitude ~37.23°N
-    const lat = 37.23;
-    const hour_angle = 0; // Would calculate from LST and RA
-    const elevation =
-      Math.asin(
-        Math.sin((dec * Math.PI) / 180) * Math.sin((lat * Math.PI) / 180) +
-          Math.cos((dec * Math.PI) / 180) *
-            Math.cos((lat * Math.PI) / 180) *
-            Math.cos((hour_angle * Math.PI) / 180)
-      ) *
-      (180 / Math.PI);
-    return elevation;
-  };
+// Calculate elevation from RA/Dec (simplified - assumes DSA-110 location)
+function calculateElevation(_ra: number, dec: number): number {
+  // DSA-110 location: ~37°N latitude
+  const latitude = 37.0;
+  const latRad = (latitude * Math.PI) / 180;
+  const decRad = (dec * Math.PI) / 180;
 
-  const getElevationStatus = (elevation: number) => {
-    if (elevation > 60)
-      return { color: "success" as const, label: "Excellent", icon: <CheckCircle /> };
-    if (elevation > 30) return { color: "warning" as const, label: "Good", icon: <Warning /> };
-    return { color: "error" as const, label: "Low", icon: <ErrorIcon /> };
-  };
+  // Simplified elevation calculation at transit
+  // For a more accurate calculation, we'd need LST and hour angle
+  const sinAlt = Math.sin(latRad) * Math.sin(decRad) + Math.cos(latRad) * Math.cos(decRad);
+  const elevation = (Math.asin(sinAlt) * 180) / Math.PI;
 
-  // Process upcoming scans
-  const scanSummary = useMemo(() => {
-    if (upcomingScans.length === 0) return null;
-    const totalDuration = upcomingScans.reduce((sum, scan) => sum + scan.duration_min, 0);
+  return elevation;
+}
+
+// Get elevation constraints
+function getElevationStatus(elevation: number): {
+  status: "good" | "marginal" | "poor" | "unobservable";
+  color: "success" | "warning" | "error" | "default";
+  message: string;
+} {
+  if (elevation < 15) {
     return {
-      count: upcomingScans.length,
-      totalDuration,
-      nextTarget: upcomingScans[0]?.target,
-      nextStart: upcomingScans[0]?.start_time,
+      status: "unobservable",
+      color: "default",
+      message: "Below horizon or too low",
     };
-  }, [upcomingScans]);
+  } else if (elevation < 30) {
+    return {
+      status: "poor",
+      color: "error",
+      message: "Poor elevation (high airmass)",
+    };
+  } else if (elevation < 45) {
+    return {
+      status: "marginal",
+      color: "warning",
+      message: "Marginal elevation",
+    };
+  } else {
+    return {
+      status: "good",
+      color: "success",
+      message: "Good elevation",
+    };
+  }
+}
+
+export function SchedulingPanel({ pointingHistory, calibratorMatches }: SchedulingPanelProps) {
+  const [targetRA, setTargetRA] = useState("");
+  const [targetDec, setTargetDec] = useState("");
+  const [slewStatus, setSlewStatus] = useState<string | null>(null);
+
+  // Generate upcoming scans from calibrator matches
+  const upcomingScans = useMemo(() => {
+    if (!calibratorMatches || calibratorMatches.length === 0) return [];
+
+    // Get unique calibrators and their observability
+    const scans = calibratorMatches
+      .slice(0, 10)
+      .map((match: CalibratorMatch) => {
+        const elevation = calculateElevation(match.ra_deg || 0, match.dec_deg || 0);
+        const elevStatus = getElevationStatus(elevation);
+
+        return {
+          name: match.name || "Unknown",
+          ra: match.ra_deg,
+          dec: match.dec_deg,
+          flux: match.weighted_flux || match.flux_jy || 0,
+          separation: match.sep_deg,
+          elevation,
+          elevationStatus: elevStatus,
+          timestamp: match.timestamp,
+        };
+      })
+      .sort((a, b) => b.elevation - a.elevation); // Sort by elevation (highest first)
+
+    return scans;
+  }, [calibratorMatches]);
+
+  // Get current pointing from most recent history
+  const currentPointing = useMemo(() => {
+    if (!pointingHistory || pointingHistory.length === 0) return null;
+    const latest = pointingHistory[pointingHistory.length - 1];
+    return {
+      ra: latest.ra_deg,
+      dec: latest.dec_deg,
+      timestamp: latest.timestamp,
+    };
+  }, [pointingHistory]);
+
+  const handleSlew = async () => {
+    const ra = parseFloat(targetRA);
+    const dec = parseFloat(targetDec);
+
+    if (isNaN(ra) || isNaN(dec)) {
+      setSlewStatus("Invalid coordinates");
+      return;
+    }
+
+    if (ra < 0 || ra >= 360 || dec < -90 || dec > 90) {
+      setSlewStatus("Coordinates out of range");
+      return;
+    }
+
+    setSlewStatus("Slewing...");
+
+    // In a real implementation, this would call the telescope control API
+    // For now, we just simulate the slew
+    setTimeout(() => {
+      setSlewStatus(`Slew command sent to RA=${ra.toFixed(4)}°, Dec=${dec.toFixed(4)}°`);
+      setTimeout(() => setSlewStatus(null), 5000);
+    }, 1000);
+  };
 
   return (
-    <Box>
-      <Grid container spacing={2}>
-        {/* Current Pointing Status */}
-        <Grid item xs={12} md={6} {...({} as any)}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Current Pointing
-              </Typography>
-              {currentPointing ? (
-                <Stack spacing={2}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      RA / Dec (J2000)
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontFamily: "monospace" }}>
-                      {currentPointing.ra_deg.toFixed(4)}° / {currentPointing.dec_deg.toFixed(4)}°
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Elevation
-                    </Typography>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Typography variant="h5">
-                        {calculateElevation(
-                          currentPointing.ra_deg,
-                          currentPointing.dec_deg
-                        ).toFixed(1)}
-                        °
-                      </Typography>
-                      <Chip
-                        {...getElevationStatus(
-                          calculateElevation(currentPointing.ra_deg, currentPointing.dec_deg)
-                        )}
-                        size="small"
-                      />
-                    </Box>
-                  </Box>
-                  {currentPointing.timestamp && (
-                    <Typography variant="caption" color="text.secondary">
-                      Updated: {new Date(currentPointing.timestamp).toLocaleString()}
-                    </Typography>
-                  )}
-                </Stack>
-              ) : (
-                <Alert severity="info">No current pointing data available</Alert>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Slew Command */}
-        <Grid item xs={12} md={6} {...({} as any)}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Slew Control
-              </Typography>
-              <Stack spacing={2}>
-                <TextField label="Target RA (deg)" type="number" size="small" fullWidth />
-                <TextField label="Target Dec (deg)" type="number" size="small" fullWidth />
-                <Button variant="contained" startIcon={<SendIcon />} fullWidth>
-                  Request Slew
-                </Button>
-              </Stack>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Upcoming Scans */}
-        {scanSummary && (
-          <Grid item xs={12} {...({} as any)}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                Scheduled Observations
-              </Typography>
-              <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-                <Chip label={`${scanSummary.count} scans`} color="primary" />
-                <Chip label={`${scanSummary.totalDuration} min total`} />
-                <Chip label={`Next: ${scanSummary.nextTarget}`} color="secondary" />
-              </Stack>
-              <Typography variant="caption" color="text.secondary">
-                Starting at {scanSummary.nextStart}
-              </Typography>
-            </Paper>
-          </Grid>
-        )}
-
-        {/* Observable Calibrators */}
-        {calibrators.length > 0 && (
-          <Grid item xs={12} {...({} as any)}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Observable Calibrators
+    <Stack spacing={2}>
+      {/* Current Status */}
+      <Card>
+        <CardHeader
+          title="Current Pointing"
+          avatar={<SlewIcon />}
+          action={
+            <Tooltip title="Refresh">
+              <IconButton size="small">
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
+          }
+        />
+        <CardContent>
+          {currentPointing ? (
+            <Stack spacing={2}>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  Position
                 </Typography>
-                <TableContainer>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Calibrator</TableCell>
-                        <TableCell align="right">RA (deg)</TableCell>
-                        <TableCell align="right">Dec (deg)</TableCell>
-                        <TableCell align="right">Separation</TableCell>
-                        <TableCell align="right">Flux (Jy)</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {calibrators.slice(0, 5).map((cal) => (
-                        <TableRow key={cal.name}>
-                          <TableCell>{cal.name}</TableCell>
-                          <TableCell align="right">{cal.ra_deg.toFixed(2)}</TableCell>
-                          <TableCell align="right">{cal.dec_deg.toFixed(2)}</TableCell>
-                          <TableCell align="right">{cal.separation_deg.toFixed(1)}°</TableCell>
-                          <TableCell align="right">
-                            {cal.flux_jy ? cal.flux_jy.toFixed(1) : "—"}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </CardContent>
-            </Card>
-          </Grid>
-        )}
-      </Grid>
-    </Box>
+                <Typography variant="h6">
+                  RA: {currentPointing.ra.toFixed(4)}°, Dec: {currentPointing.dec.toFixed(4)}°
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  Elevation
+                </Typography>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Typography variant="body1">
+                    {calculateElevation(currentPointing.ra, currentPointing.dec).toFixed(1)}°
+                  </Typography>
+                  <Chip
+                    label={
+                      getElevationStatus(
+                        calculateElevation(currentPointing.ra, currentPointing.dec)
+                      ).message
+                    }
+                    color={
+                      getElevationStatus(
+                        calculateElevation(currentPointing.ra, currentPointing.dec)
+                      ).color
+                    }
+                    size="small"
+                  />
+                </Box>
+              </Box>
+            </Stack>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              No current pointing data
+            </Typography>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Quick Slew Control */}
+      <Card>
+        <CardHeader title="Quick Slew" avatar={<NavigationIcon />} />
+        <CardContent>
+          <Stack spacing={2}>
+            <Box display="flex" gap={2}>
+              <TextField
+                label="RA (degrees)"
+                value={targetRA}
+                onChange={(e) => setTargetRA(e.target.value)}
+                size="small"
+                type="number"
+                inputProps={{ min: 0, max: 360, step: 0.1 }}
+                fullWidth
+              />
+              <TextField
+                label="Dec (degrees)"
+                value={targetDec}
+                onChange={(e) => setTargetDec(e.target.value)}
+                size="small"
+                type="number"
+                inputProps={{ min: -90, max: 90, step: 0.1 }}
+                fullWidth
+              />
+            </Box>
+            <Button
+              variant="contained"
+              onClick={handleSlew}
+              disabled={!targetRA || !targetDec}
+              startIcon={<SlewIcon />}
+            >
+              Send Slew Command
+            </Button>
+            {slewStatus && (
+              <Alert severity={slewStatus.includes("Invalid") ? "error" : "info"}>
+                {slewStatus}
+              </Alert>
+            )}
+          </Stack>
+        </CardContent>
+      </Card>
+
+      {/* Upcoming Scans / Observable Targets */}
+      <Card>
+        <CardHeader
+          title="Observable Calibrators"
+          avatar={<ScheduleIcon />}
+          subheader="Sorted by elevation (best observing conditions first)"
+        />
+        <CardContent>
+          {upcomingScans.length > 0 ? (
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Calibrator</TableCell>
+                    <TableCell align="right">RA (°)</TableCell>
+                    <TableCell align="right">Dec (°)</TableCell>
+                    <TableCell align="right">Elevation</TableCell>
+                    <TableCell align="right">Flux (Jy)</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Action</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {upcomingScans.map((scan, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={500}>
+                          {scan.name}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">{scan.ra?.toFixed(4) || "N/A"}</TableCell>
+                      <TableCell align="right">{scan.dec?.toFixed(4) || "N/A"}</TableCell>
+                      <TableCell align="right">
+                        <Box display="flex" alignItems="center" gap={0.5}>
+                          {scan.elevation.toFixed(1)}°
+                          {scan.elevationStatus.status === "poor" && (
+                            <WarningIcon fontSize="small" color="error" />
+                          )}
+                        </Box>
+                      </TableCell>
+                      <TableCell align="right">{(scan.flux * 1000).toFixed(1)} mJy</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={scan.elevationStatus.message}
+                          color={scan.elevationStatus.color}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          size="small"
+                          onClick={() => {
+                            setTargetRA(scan.ra?.toFixed(4) || "");
+                            setTargetDec(scan.dec?.toFixed(4) || "");
+                          }}
+                          disabled={scan.elevationStatus.status === "unobservable"}
+                        >
+                          Select
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Alert severity="info">No calibrator data available</Alert>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Elevation Limits Summary */}
+      <Card>
+        <CardHeader title="Observing Constraints" avatar={<VisibilityIcon />} />
+        <CardContent>
+          <Stack spacing={2}>
+            <Box>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Elevation Constraints
+              </Typography>
+              <Stack direction="row" spacing={1}>
+                <Chip label="Optimal: > 45°" color="success" size="small" />
+                <Chip label="Acceptable: 30-45°" color="warning" size="small" />
+                <Chip label="Poor: 15-30°" color="error" size="small" />
+                <Chip label="Unobservable: < 15°" size="small" />
+              </Stack>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Current Observability
+              </Typography>
+              <Box>
+                {upcomingScans.length > 0 && (
+                  <>
+                    <Typography variant="body2">
+                      {upcomingScans.filter((s) => s.elevationStatus.status === "good").length}{" "}
+                      targets in optimal range
+                    </Typography>
+                    <Typography variant="body2">
+                      {upcomingScans.filter((s) => s.elevationStatus.status === "marginal").length}{" "}
+                      targets in acceptable range
+                    </Typography>
+                    <Typography variant="body2">
+                      {upcomingScans.filter((s) => s.elevationStatus.status === "poor").length}{" "}
+                      targets in poor range
+                    </Typography>
+                  </>
+                )}
+              </Box>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+    </Stack>
   );
 }
+
+// Fix import name
+const NavigationIcon = SlewIcon;

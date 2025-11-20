@@ -492,35 +492,67 @@ export default function DirectoryBrowser({
                 }),
               }}
               sx={{
-                display: "grid",
-                gridTemplateColumns: thumbnailCols
-                  ? `repeat(${thumbnailCols}, 1fr)`
-                  : "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: 2,
+                // Enhanced thumbnail styling for better readability
+                "& .qa-thumb-container": {
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                  gap: 3,
+                  p: 2,
+                },
                 "& .qa-thumb-item": {
                   cursor: "pointer",
-                  borderRadius: 1,
-                  overflow: "hidden",
-                  boxShadow: 1,
-                  transition: "all 0.2s",
-                  bgcolor: "background.paper",
+                  border: "1px solid rgba(255, 255, 255, 0.12)",
+                  borderRadius: "8px",
+                  padding: "16px",
+                  backgroundColor: "rgba(255, 255, 255, 0.05)",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                  "&:hover": {
+                    transform: "scale(1.03)",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+                    borderColor: "primary.main",
+                  },
                 },
-                "& .qa-thumb-item:hover": {
-                  transform: "translateY(-4px)",
-                  boxShadow: 4,
-                },
-                "& .qa-thumb-item img": {
+                "& .qa-thumb-image": {
                   width: "100%",
                   height: "auto",
+                  borderRadius: "4px",
                   display: "block",
                 },
-                "& .qa-thumb-item .filename": {
-                  padding: 1,
-                  fontFamily: "monospace",
-                  fontSize: "0.875rem",
+                "& .qa-thumb-filename": {
+                  fontSize: "1rem",
                   fontWeight: 600,
                   color: "text.primary",
-                  backgroundColor: "rgba(0, 0, 0, 0.05)",
+                  wordBreak: "break-word",
+                  lineHeight: 1.4,
+                  marginTop: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                },
+                "& .qa-thumb-metadata": {
+                  fontSize: "0.875rem",
+                  color: "text.secondary",
+                  marginTop: 0.5,
+                },
+                "& .qa-thumb-type-icon": {
+                  width: 24,
+                  height: 24,
+                  marginRight: 1,
+                  verticalAlign: "middle",
+                },
+                // Override any low-contrast colors from backend
+                "& span, & p, & div": {
+                  color: "inherit !important",
+                },
+                // Ensure text is readable
+                "& .qa-thumb-item span": {
+                  color: "text.secondary !important",
+                },
+                "& .qa-thumb-item .qa-thumb-filename": {
+                  color: "text.primary !important",
                 },
               }}
             />

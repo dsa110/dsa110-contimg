@@ -73,6 +73,8 @@ import type {
   CachePerformance,
   CalibrationStatus,
   CalibrationConfig,
+  TransientAlert,
+  TransientCandidate,
 } from "./types";
 
 /**
@@ -2098,6 +2100,53 @@ export function useStopCalibration() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["calibration"] });
+    },
+  });
+}
+
+/**
+ * Transient Queries
+ */
+export function useTransientCandidates(
+  classification?: string,
+  followUpStatus?: string,
+  limit?: number
+): UseQueryResult<TransientCandidate[]> {
+  return useQuery({
+    queryKey: ["transients", "candidates", classification, followUpStatus, limit],
+    queryFn: async () => {
+      // TODO: Implement actual API call
+      return [] as TransientCandidate[];
+    },
+  });
+}
+
+export function useClassifyCandidate() {
+  return useMutation({
+    mutationFn: async (_data: { candidateId: string; data: Record<string, unknown> }) => {
+      // TODO: Implement actual API call
+    },
+  });
+}
+
+export function useTransientAlerts(
+  level?: string,
+  showAcknowledged?: boolean,
+  limit?: number
+): UseQueryResult<TransientAlert[]> {
+  return useQuery({
+    queryKey: ["transients", "alerts", level, showAcknowledged, limit],
+    queryFn: async () => {
+      // TODO: Implement actual API call
+      return [] as TransientAlert[];
+    },
+  });
+}
+
+export function useAcknowledgeAlert() {
+  return useMutation({
+    mutationFn: async (_data: { alertId: string; data: Record<string, unknown> }) => {
+      // TODO: Implement actual API call
     },
   });
 }

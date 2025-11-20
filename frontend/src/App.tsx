@@ -47,7 +47,6 @@ const EventsPage = lazy(() => import("./pages/EventsPage"));
 const DataLineagePage = lazy(() => import("./pages/DataLineagePage"));
 const CalibrationWorkflowPage = lazy(() => import("./pages/CalibrationWorkflowPage"));
 const ErrorAnalyticsPage = lazy(() => import("./pages/ErrorAnalyticsPage"));
-const AbsurdPage = lazy(() => import("./pages/AbsurdPage"));
 
 // Loading fallback component
 function PageLoadingFallback() {
@@ -243,7 +242,6 @@ function AppContent() {
                               />
                               {/* Consolidated pages - primary routes */}
                               <Route path="/control" element={<PipelineControlPage />} />
-                              <Route path="/absurd" element={<AbsurdPage />} />
                               <Route path="/operations" element={<PipelineOperationsPage />} />
                               <Route path="/health" element={<SystemDiagnosticsPage />} />
                               <Route path="/qa" element={<QAPage />} />
