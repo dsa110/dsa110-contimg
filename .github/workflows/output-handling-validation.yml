@@ -28,10 +28,10 @@ jobs:
           echo "Running output handling validation..."
 
           # Make script executable
-          chmod +x scripts/validate-output-handling.sh
+          chmod +x scripts/quality/validate-output-handling.sh
 
           # Run validation
-          if ! ./scripts/validate-output-handling.sh; then
+          if ! ./scripts/quality/validate-output-handling.sh; then
             echo ""
             echo "❌ Output handling validation failed!"
             echo ""

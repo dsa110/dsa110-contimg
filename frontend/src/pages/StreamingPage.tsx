@@ -4,7 +4,7 @@
  */
 import { useState } from "react";
 import { Container, Typography, Box, Button, Alert, Stack } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/GridLegacy";
 import { PlayArrow, Stop, Refresh, Settings } from "@mui/icons-material";
 import {
   useStreamingStatus,

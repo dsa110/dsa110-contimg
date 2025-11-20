@@ -66,23 +66,30 @@ def _fix_ms_permissions(ms_path: Path, user: Optional[str] = None) -> bool:
         user = os.getenv("USER", "ubuntu")
 
     try:
-        logger.debug(f"Fixing MS permissions for {ms_path} (user={user})")
+        logger.info(f"DIAGNOSTIC: _fix_ms_permissions START: {ms_path} (user={user})")
 
         # Change ownership
+        logger.info("DIAGNOSTIC: About to run sudo chown")
         subprocess.run(
             ["sudo", "chown", "-R", f"{user}:{user}", str(ms_path)],
             check=True,
             capture_output=True,
             text=True,
+            timeout=30,  # 30 second timeout
         )
+        logger.info("DIAGNOSTIC: sudo chown completed")
 
         # Set permissions (u+rw, g+r, o+r)
+        logger.info("DIAGNOSTIC: About to run sudo chmod")
         subprocess.run(
             ["sudo", "chmod", "-R", "u+rw,g+r,o+r", str(ms_path)],
             check=True,
             capture_output=True,
             text=True,
+            timeout=30,  # 30 second timeout
         )
+        logger.info("DIAGNOSTIC: sudo chmod completed")
+        logger.info(f"DIAGNOSTIC: _fix_ms_permissions END (success)")
 
         # Make directories executable
         subprocess.run(
@@ -204,8 +211,10 @@ class SelfCalibrator:
 
         # Fix MS permissions to ensure we can read/write
         # (CASA tasks may create MS files owned by root)
-        logger.info(f"Initialized SelfCalibrator for {self.ms_path}")
+        logger.info(f"DIAGNOSTIC: Initialized SelfCalibrator for {self.ms_path}")
+        logger.info(f"DIAGNOSTIC: About to call _fix_ms_permissions()")
         _fix_ms_permissions(self.ms_path)
+        logger.info(f"DIAGNOSTIC: _fix_ms_permissions() completed")
 
         logger.info(f"Output directory: {self.output_dir}")
         logger.info(f"Max iterations: {self.config.max_iterations}")
@@ -420,7 +429,7 @@ class SelfCalibrator:
                 calib_ra_deg=self.config.calib_ra_deg,
                 calib_dec_deg=self.config.calib_dec_deg,
                 calib_flux_jy=self.config.calib_flux_jy,
-                export_model_image=True,
+                export_model_image=False,  # Disabled: CASA can't read WSClean MODEL_DATA
             )
 
             # Fix permissions after imaging (WSClean/CASA may change ownership)
@@ -562,7 +571,7 @@ class SelfCalibrator:
                 calib_ra_deg=self.config.calib_ra_deg,
                 calib_dec_deg=self.config.calib_dec_deg,
                 calib_flux_jy=self.config.calib_flux_jy,
-                export_model_image=True,
+                export_model_image=False,  # Disabled: CASA can't read WSClean MODEL_DATA
             )
 
             # Fix permissions after imaging

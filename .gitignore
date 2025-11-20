@@ -75,6 +75,9 @@ archive/
 *.swp
 *.swo
 
+# Accidental shell redirect files (e.g., from typos like "pip install package=version" → file named "=version")
+=*
+
 # Python compiled files and cache
 *.pyc
 __pycache__/

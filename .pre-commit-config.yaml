@@ -10,7 +10,7 @@ repos:
     hooks:
       - id: output-handling-validation
         name: Validate Output Handling Rules
-        entry: bash scripts/validate-output-handling.sh
+        entry: bash scripts/quality/validate-output-handling.sh
         language: system
         types: [shell]
         pass_filenames: false
@@ -83,7 +83,7 @@ repos:
         entry: /opt/miniforge/envs/casa6/bin/bandit
         language: system
         types: [python]
-        args: [-r, ., -f, json, -o, /dev/null, --skip, B101, B601]
+        args: [-r, ., -ll, --skip, B101, B601]
         exclude: ^(archive/|notebooks/|\.venv/|venv/|env/|tests/)
 
   # Port configuration validation
@@ -91,7 +91,7 @@ repos:
     hooks:
       - id: validate-port-config
         name: Validate Port Configuration
-        entry: scripts/validate-port-config.py
+        entry: /opt/miniforge/envs/casa6/bin/python scripts/quality/validate-port-config.py
         language: system
         pass_filenames: false
         always_run: true

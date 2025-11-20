@@ -752,21 +752,26 @@ class CalibrationSolveStage(PipelineStage):
             logger.error(error_msg)
             raise RuntimeError(error_msg) from e
 
-    def _execute_calibration_solve(self, context: PipelineContext, ms_path: str) -> PipelineContext:
+    def _execute_calibration_solve(
+        self, context: PipelineContext, ms_path: str
+    ) -> PipelineContext:  # noqa: E501
         """Internal calibration solve execution (called within lock)."""
         import glob
         import os
 
-        from dsa110_contimg.calibration.calibration import (
+        from dsa110_contimg.calibration.calibration import (  # noqa: E501
             solve_bandpass,
             solve_delay,
             solve_gains,
             solve_prebandpass_phase,
         )
-        from dsa110_contimg.calibration.flagging import (
-            flag_rfi,
+        from dsa110_contimg.calibration.flagging import (  # noqa: E501
             flag_zeros,
             reset_flags,
+        )
+        from dsa110_contimg.calibration.flagging_adaptive import (  # noqa: E501
+            CalibrationFailure,
+            flag_rfi_adaptive,
         )
 
         start_time_sec = time.time()
@@ -784,6 +789,8 @@ class CalibrationSolveStage(PipelineStage):
         bp_combine_field = params.get("bp_combine_field", False)
         prebp_phase = params.get("prebp_phase", False)
         flag_autocorr = params.get("flag_autocorr", True)
+        # NEW: Enable adaptive flagging by default
+        use_adaptive_flagging = params.get("use_adaptive_flagging", True)
 
         # Handle existing table discovery
         use_existing = params.get("use_existing_tables", "auto")
@@ -830,12 +837,251 @@ class CalibrationSolveStage(PipelineStage):
         if not table_prefix:
             table_prefix = f"{os.path.splitext(ms_path)[0]}_{field}"
 
+        # Define internal calibration function for adaptive flagging
+        # This will be called by flag_rfi_adaptive to test if calibration succeeds
+        cal_tables_result = {}  # Shared dict to store results between function calls
+
+        def _perform_calibration_solve(ms_path_inner: str, refant_inner: str, **kwargs):
+            """Internal function to perform calibration solving.
+
+            This is called by flag_rfi_adaptive to test if calibration succeeds.
+            Raises CalibrationFailure if calibration fails.
+            """
+            nonlocal cal_tables_result
+
+            # Clear previous results
+            cal_tables_result.clear()
+
+            # Step 3: Solve delay (K) if requested
+            ktabs_inner = []
+            if solve_delay_flag and not existing_k:
+                logger.info("Solving delay (K) calibration...")
+                try:
+                    ktabs_inner = solve_delay(
+                        ms_path_inner,
+                        field,
+                        refant_inner,
+                        table_prefix=table_prefix,
+                        combine_spw=params.get("k_combine_spw", False),
+                        t_slow=params.get("k_t_slow", "inf"),
+                        t_fast=params.get("k_t_fast", "60s"),
+                        uvrange=params.get("k_uvrange", ""),
+                        minsnr=params.get("k_minsnr", 5.0),
+                        skip_slow=params.get("k_skip_slow", False),
+                    )
+                except Exception as e:
+                    logger.error(f"Delay (K) calibration failed: {e}")
+                    raise CalibrationFailure(f"Delay calibration failed: {e}") from e
+            elif existing_k:
+                ktabs_inner = [existing_k]
+                logger.info(f"Using existing K table: {existing_k}")
+
+            # Step 4: Pre-bandpass phase (if requested)
+            prebp_table_inner = None
+            if prebp_phase:
+                logger.info("Solving pre-bandpass phase...")
+                try:
+                    prebp_table_inner = solve_prebandpass_phase(
+                        ms_path_inner,
+                        field,
+                        refant_inner,
+                        table_prefix=table_prefix,
+                        uvrange=params.get("prebp_uvrange", ""),
+                        minsnr=params.get("prebp_minsnr", 3.0),
+                    )
+                except Exception as e:
+                    logger.error(f"Pre-bandpass phase calibration failed: {e}")
+                    raise CalibrationFailure(f"Pre-bandpass phase failed: {e}") from e
+
+            # Step 5: Solve bandpass (BP) if requested
+            bptabs_inner = []
+            if solve_bandpass_flag and not existing_bp:
+                logger.info("Solving bandpass (BP) calibration...")
+                try:
+                    bptabs_inner = solve_bandpass(
+                        ms_path_inner,
+                        field,
+                        refant_inner,
+                        ktable=ktabs_inner[0] if ktabs_inner else None,
+                        table_prefix=table_prefix,
+                        set_model=True,
+                        model_standard=params.get("bp_model_standard", "Perley-Butler 2017"),
+                        combine_fields=bp_combine_field,
+                        combine_spw=params.get("bp_combine_spw", False),
+                        minsnr=params.get("bp_minsnr", 5.0),
+                        uvrange=params.get("bp_uvrange", ""),
+                        prebandpass_phase_table=prebp_table_inner,
+                        bp_smooth_type=params.get("bp_smooth_type"),
+                        bp_smooth_window=params.get("bp_smooth_window"),
+                    )
+                except Exception as e:
+                    logger.error(f"Bandpass (BP) calibration failed: {e}")
+                    raise CalibrationFailure(f"Bandpass calibration failed: {e}") from e
+            elif existing_bp:
+                bptabs_inner = [existing_bp]
+                logger.info(f"Using existing BP table: {existing_bp}")
+
+            # Step 6: Solve gains (G) if requested
+            gtabs_inner = []
+            if solve_gains_flag and not existing_g:
+                logger.info("Solving gains (G) calibration...")
+                try:
+                    phase_only = (gain_calmode == "p") or bool(params.get("fast"))
+                    gtabs_inner = solve_gains(
+                        ms_path_inner,
+                        field,
+                        refant_inner,
+                        ktable=ktabs_inner[0] if ktabs_inner else None,
+                        bptables=bptabs_inner,
+                        table_prefix=table_prefix,
+                        t_short=params.get("gain_t_short", "60s"),
+                        combine_fields=bp_combine_field,
+                        phase_only=phase_only,
+                        uvrange=params.get("gain_uvrange", ""),
+                        solint=gain_solint,
+                        minsnr=params.get("gain_minsnr", 3.0),
+                    )
+                except Exception as e:
+                    logger.error(f"Gains (G) calibration failed: {e}")
+                    raise CalibrationFailure(f"Gain calibration failed: {e}") from e
+            elif existing_g:
+                gtabs_inner = [existing_g]
+                logger.info(f"Using existing G table: {existing_g}")
+
+            # Store results for later use
+            cal_tables_result["ktabs"] = ktabs_inner
+            cal_tables_result["bptabs"] = bptabs_inner
+            cal_tables_result["gtabs"] = gtabs_inner
+            cal_tables_result["prebp_table"] = prebp_table_inner
+
+            logger.info("✓ Calibration solve completed successfully")
+
         # Step 1: Flagging (if requested)
+        adaptive_result = None
         if params.get("do_flagging", True):
             logger.info("Resetting flags...")
             reset_flags(ms_path)
             flag_zeros(ms_path)
-            flag_rfi(ms_path)
+
+            # Apply adaptive flagging (default → aggressive if calibration fails)
+            if use_adaptive_flagging:
+                logger.info(
+                    "Using adaptive flagging strategy (default → aggressive on calibration failure)"
+                )
+
+                # Step 2: Model population (required for calibration)
+                # This must be done BEFORE adaptive flagging since calibration needs the model
+                if model_source == "catalog":
+                    from dsa110_contimg.calibration.model import populate_model_from_catalog
+
+                    logger.info("Populating MODEL_DATA from catalog...")
+                    populate_model_from_catalog(
+                        ms_path,
+                        field=field,
+                        calibrator_name=params.get("calibrator_name"),
+                        cal_ra_deg=params.get("cal_ra_deg"),
+                        cal_dec_deg=params.get("cal_dec_deg"),
+                        cal_flux_jy=params.get("cal_flux_jy"),
+                    )
+                elif model_source == "image":
+                    from dsa110_contimg.calibration.model import populate_model_from_image
+
+                    model_image = params.get("model_image")
+                    if not model_image:
+                        raise ValueError("model_image required when model_source='image'")
+                    logger.info(f"Populating MODEL_DATA from image: {model_image}")
+                    populate_model_from_image(ms_path, field=field, model_image=model_image)
+
+                # Run adaptive flagging with calibration testing
+                aggressive_strategy = params.get(
+                    "aggressive_strategy", "/data/dsa110-contimg/config/dsa110-aggressive.lua"
+                )
+                backend = params.get("flagging_backend", "aoflagger")
+
+                adaptive_result = flag_rfi_adaptive(
+                    ms_path=ms_path,
+                    refant=refant,
+                    calibrate_fn=_perform_calibration_solve,
+                    calibrate_kwargs={},
+                    aggressive_strategy=aggressive_strategy,
+                    backend=backend,
+                )
+
+                logger.info(
+                    f"Adaptive flagging complete: Used {adaptive_result['strategy']} strategy"
+                )
+                logger.info(
+                    f"Flagging success: {adaptive_result['success']}, Attempts: {adaptive_result['attempts']}"
+                )
+
+                # Extract calibration results from shared dict
+                ktabs = cal_tables_result.get("ktabs", [])
+                bptabs = cal_tables_result.get("bptabs", [])
+                gtabs = cal_tables_result.get("gtabs", [])
+                prebp_table = cal_tables_result.get("prebp_table")
+
+            else:
+                # Legacy non-adaptive flagging
+                from dsa110_contimg.calibration.flagging import flag_rfi
+
+                logger.info("Using legacy non-adaptive flagging")
+                flag_rfi(ms_path)
+
+                # TEMPORAL TRACKING: Capture flag snapshot after Phase 1 (pre-calibration flagging)
+                try:
+                    from dsa110_contimg.calibration.flagging_temporal import capture_flag_snapshot
+
+                    phase1_snapshot = capture_flag_snapshot(
+                        ms_path=str(ms_path),
+                        phase="phase1_post_rfi",
+                        refant=refant,
+                    )
+                    logger.info(
+                        f"✓ Phase 1 flag snapshot captured: {phase1_snapshot.total_flagged_fraction * 100:.1f}% overall flagging"
+                    )
+
+                    # Store snapshot for later comparison (will be saved to database in later step)
+                    if "_temporal_snapshots" not in params:
+                        params["_temporal_snapshots"] = {}
+                    params["_temporal_snapshots"]["phase1"] = phase1_snapshot
+                except Exception as e:
+                    logger.warning(f"Failed to capture Phase 1 flag snapshot: {e}")
+                    logger.warning(
+                        "Continuing with calibration (temporal tracking disabled for this run)"
+                    )
+
+                # Step 2: Model population (required for calibration)
+                if model_source == "catalog":
+                    from dsa110_contimg.calibration.model import populate_model_from_catalog
+
+                    logger.info("Populating MODEL_DATA from catalog...")
+                    populate_model_from_catalog(
+                        ms_path,
+                        field=field,
+                        calibrator_name=params.get("calibrator_name"),
+                        cal_ra_deg=params.get("cal_ra_deg"),
+                        cal_dec_deg=params.get("cal_dec_deg"),
+                        cal_flux_jy=params.get("cal_flux_jy"),
+                    )
+                elif model_source == "image":
+                    from dsa110_contimg.calibration.model import populate_model_from_image
+
+                    model_image = params.get("model_image")
+                    if not model_image:
+                        raise ValueError("model_image required when model_source='image'")
+                    logger.info(f"Populating MODEL_DATA from image: {model_image}")
+                    populate_model_from_image(ms_path, field=field, model_image=model_image)
+
+                # Perform calibration solve
+                _perform_calibration_solve(ms_path, refant)
+
+                # Extract results
+                ktabs = cal_tables_result.get("ktabs", [])
+                bptabs = cal_tables_result.get("bptabs", [])
+                gtabs = cal_tables_result.get("gtabs", [])
+                prebp_table = cal_tables_result.get("prebp_table")
+
+            # Flag autocorrelations (after RFI flagging)
             if flag_autocorr:
                 from casatasks import flagdata
 
@@ -843,130 +1089,42 @@ class CalibrationSolveStage(PipelineStage):
                 flagdata(vis=str(ms_path), autocorr=True, flagbackup=False)
                 logger.info("✓ Autocorrelations flagged")
 
-            # TEMPORAL TRACKING: Capture flag snapshot after Phase 1 (pre-calibration flagging)
-            try:
-                from dsa110_contimg.calibration.flagging_temporal import capture_flag_snapshot
+        else:
+            # No flagging requested - just do model population and calibration
+            logger.info(
+                "Flagging disabled, proceeding directly to model population and calibration"
+            )
 
-                phase1_snapshot = capture_flag_snapshot(
-                    ms_path=str(ms_path),
-                    phase="phase1_post_rfi",
-                    refant=refant,
+            # Step 2: Model population (required for calibration)
+            if model_source == "catalog":
+                from dsa110_contimg.calibration.model import populate_model_from_catalog
+
+                logger.info("Populating MODEL_DATA from catalog...")
+                populate_model_from_catalog(
+                    ms_path,
+                    field=field,
+                    calibrator_name=params.get("calibrator_name"),
+                    cal_ra_deg=params.get("cal_ra_deg"),
+                    cal_dec_deg=params.get("cal_dec_deg"),
+                    cal_flux_jy=params.get("cal_flux_jy"),
                 )
-                logger.info(
-                    f"✓ Phase 1 flag snapshot captured: {phase1_snapshot.total_flagged_fraction * 100:.1f}% overall flagging"
-                )
+            elif model_source == "image":
+                from dsa110_contimg.calibration.model import populate_model_from_image
 
-                # Store snapshot for later comparison (will be saved to database in later step)
-                if not hasattr(params, "_temporal_snapshots"):
-                    params["_temporal_snapshots"] = {}
-                params["_temporal_snapshots"]["phase1"] = phase1_snapshot
-            except Exception as e:
-                logger.warning(f"Failed to capture Phase 1 flag snapshot: {e}")
-                logger.warning(
-                    "Continuing with calibration (temporal tracking disabled for this run)"
-                )
+                model_image = params.get("model_image")
+                if not model_image:
+                    raise ValueError("model_image required when model_source='image'")
+                logger.info(f"Populating MODEL_DATA from image: {model_image}")
+                populate_model_from_image(ms_path, field=field, model_image=model_image)
 
-        # Step 2: Model population (required for calibration)
-        if model_source == "catalog":
-            from dsa110_contimg.calibration.model import populate_model_from_catalog
+            # Perform calibration solve
+            _perform_calibration_solve(ms_path, refant)
 
-            logger.info("Populating MODEL_DATA from catalog...")
-            populate_model_from_catalog(
-                ms_path,
-                field=field,
-                calibrator_name=params.get("calibrator_name"),
-                cal_ra_deg=params.get("cal_ra_deg"),
-                cal_dec_deg=params.get("cal_dec_deg"),
-                cal_flux_jy=params.get("cal_flux_jy"),
-            )
-        elif model_source == "image":
-            from dsa110_contimg.calibration.model import populate_model_from_image
-
-            model_image = params.get("model_image")
-            if not model_image:
-                raise ValueError("model_image required when model_source='image'")
-            logger.info(f"Populating MODEL_DATA from image: {model_image}")
-            populate_model_from_image(ms_path, field=field, model_image=model_image)
-
-        # Step 3: Solve delay (K) if requested
-        ktabs = []
-        if solve_delay_flag and not existing_k:
-            logger.info("Solving delay (K) calibration...")
-            ktabs = solve_delay(
-                ms_path,
-                field,
-                refant,
-                table_prefix=table_prefix,
-                combine_spw=params.get("k_combine_spw", False),
-                t_slow=params.get("k_t_slow", "inf"),
-                t_fast=params.get("k_t_fast", "60s"),
-                uvrange=params.get("k_uvrange", ""),
-                minsnr=params.get("k_minsnr", 5.0),
-                skip_slow=params.get("k_skip_slow", False),
-            )
-        elif existing_k:
-            ktabs = [existing_k]
-            logger.info(f"Using existing K table: {existing_k}")
-
-        # Step 4: Pre-bandpass phase (if requested)
-        prebp_table = None
-        if prebp_phase:
-            logger.info("Solving pre-bandpass phase...")
-            prebp_table = solve_prebandpass_phase(
-                ms_path,
-                field,
-                refant,
-                table_prefix=table_prefix,
-                uvrange=params.get("prebp_uvrange", ""),
-                minsnr=params.get("prebp_minsnr", 3.0),
-            )
-
-        # Step 5: Solve bandpass (BP) if requested
-        bptabs = []
-        if solve_bandpass_flag and not existing_bp:
-            logger.info("Solving bandpass (BP) calibration...")
-            bptabs = solve_bandpass(
-                ms_path,
-                field,
-                refant,
-                ktable=ktabs[0] if ktabs else None,
-                table_prefix=table_prefix,
-                set_model=True,
-                model_standard=params.get("bp_model_standard", "Perley-Butler 2017"),
-                combine_fields=bp_combine_field,
-                combine_spw=params.get("bp_combine_spw", False),
-                minsnr=params.get("bp_minsnr", 5.0),
-                uvrange=params.get("bp_uvrange", ""),
-                prebandpass_phase_table=prebp_table,
-                bp_smooth_type=params.get("bp_smooth_type"),
-                bp_smooth_window=params.get("bp_smooth_window"),
-            )
-        elif existing_bp:
-            bptabs = [existing_bp]
-            logger.info(f"Using existing BP table: {existing_bp}")
-
-        # Step 6: Solve gains (G) if requested
-        gtabs = []
-        if solve_gains_flag and not existing_g:
-            logger.info("Solving gains (G) calibration...")
-            phase_only = (gain_calmode == "p") or bool(params.get("fast"))
-            gtabs = solve_gains(
-                ms_path,
-                field,
-                refant,
-                ktable=ktabs[0] if ktabs else None,
-                bptables=bptabs,
-                table_prefix=table_prefix,
-                t_short=params.get("gain_t_short", "60s"),
-                combine_fields=bp_combine_field,
-                phase_only=phase_only,
-                uvrange=params.get("gain_uvrange", ""),
-                solint=gain_solint,
-                minsnr=params.get("gain_minsnr", 3.0),
-            )
-        elif existing_g:
-            gtabs = [existing_g]
-            logger.info(f"Using existing G table: {existing_g}")
+            # Extract results
+            ktabs = cal_tables_result.get("ktabs", [])
+            bptabs = cal_tables_result.get("bptabs", [])
+            gtabs = cal_tables_result.get("gtabs", [])
+            prebp_table = cal_tables_result.get("prebp_table")
 
         # Combine all tables
         all_tables = (ktabs[:1] if ktabs else []) + bptabs + gtabs

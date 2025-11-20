@@ -66,7 +66,7 @@ jobs:
       - name: Run security scanning (bandit)
         run: |
           conda activate casa6
-          /opt/miniforge/envs/casa6/bin/bandit -r src/ -f json -o /dev/null --skip B101,B601 || true
+          /opt/miniforge/envs/casa6/bin/bandit -r src/ -f screen -ll --skip B101,B601 || true
 
       - name: Run unit tests with coverage
         run: |

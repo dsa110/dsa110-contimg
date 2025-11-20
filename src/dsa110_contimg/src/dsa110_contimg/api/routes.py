@@ -690,6 +690,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     app.include_router(operations_router, prefix="/api")
     app.include_router(pipeline_router, prefix="/api/pipeline")
 
+    # Transient detection (Phase 3.5)
+    from dsa110_contimg.api.routers import transients as transients_router_module
+
+    app.include_router(
+        transients_router_module.router, prefix="/api/transients", tags=["transients"]
+    )
+
     # Also include status_router at root level for monitoring tools
     # This makes /status, /ws/status, /sse/status available at root
     app.include_router(status_router, prefix="")

@@ -13,7 +13,7 @@ import {
   Stack,
   Tooltip,
 } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/GridLegacy";
 import { RadioButtonChecked as PointIcon, Refresh as RefreshIcon } from "@mui/icons-material";
 import { PlotlyLazy } from "./PlotlyLazy";
 import type { Data, Layout } from "./PlotlyLazy";

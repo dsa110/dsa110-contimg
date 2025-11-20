@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Typography, Card, CardContent, Chip } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/GridLegacy";
 import { AccessTime, LocationOn } from "@mui/icons-material";
 import type { PointingHistoryEntry } from "../api/types";
 import { formatDateTime } from "../utils/dateUtils";

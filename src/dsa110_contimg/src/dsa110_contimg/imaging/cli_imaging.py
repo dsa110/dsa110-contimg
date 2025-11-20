@@ -315,6 +315,7 @@ def run_wsclean(
             check=True,
             capture_output=False,
             text=True,
+            timeout=1800,  # 30 min timeout for main imaging
         )
         LOG.info("WSClean completed in %.2fs", time.perf_counter() - t0)
     except subprocess.CalledProcessError as e:
@@ -844,39 +845,42 @@ def image_ms(
                         dec_s = ((dec_abs - dec_d) * 60 - dec_m) * 60
                         dec_str = f"{dec_sign}{dec_d}d{dec_m}m{dec_s:.3f}s"
 
-                        # Step 1: Render model image from text list
-                        # Output will be /data_txt/nvss_model-term-0.fits
-                        cmd_draw = [
-                            "docker",
-                            "run",
-                            "--rm",
-                            "-v",
-                            f"{ms_dir}:/data_ms",
-                            "-v",
-                            f"{txt_dir}:/data_txt",
-                            "wsclean-everybeam-0.7.4",
-                            "wsclean",
-                            "-draw-model",
-                            f"/data_txt/{txt_name}",
-                            "-name",
-                            "/data_txt/nvss_model",
-                            "-draw-frequencies",
-                            f"{freq_ghz*1e9}",
-                            f"{bandwidth_hz}",
-                            "-draw-spectral-terms",
-                            "2",
-                            "-size",
-                            str(imsize),
-                            str(imsize),
-                            "-scale",
-                            f"{cell_arcsec}arcsec",
-                            "-draw-centre",
-                            ra_str,
-                            dec_str,
-                        ]
+                        # Step 1: Render model image from text list using long-running container
+                        # This avoids Docker volume unmount hang issues
+                        from dsa110_contimg.imaging.docker_utils import (
+                            convert_host_path_to_container,
+                            get_wsclean_container,
+                        )
 
-                        LOG.info("Running wsclean -draw-model: %s", " ".join(cmd_draw))
-                        subprocess.run(cmd_draw, check=True)
+                        # Convert paths to container paths
+                        txt_path_container = convert_host_path_to_container(txt_path)
+                        txt_dir_container = convert_host_path_to_container(txt_dir)
+
+                        container = get_wsclean_container()
+
+                        LOG.info("Running wsclean -draw-model in long-running container")
+                        container.wsclean(
+                            [
+                                "-draw-model",
+                                txt_path_container,
+                                "-name",
+                                f"{txt_dir_container}/nvss_model",
+                                "-draw-frequencies",
+                                f"{freq_ghz*1e9}",
+                                f"{bandwidth_hz}",
+                                "-draw-spectral-terms",
+                                "2",
+                                "-size",
+                                str(imsize),
+                                str(imsize),
+                                "-scale",
+                                f"{cell_arcsec}arcsec",
+                                "-draw-centre",
+                                ra_str,
+                                dec_str,
+                            ],
+                            timeout=300,
+                        )
 
                         # Step 1.5: Rename output file for prediction
                         # WSClean -draw-model creates prefix-term-0.fits
@@ -889,26 +893,35 @@ def image_ms(
                         else:
                             LOG.warning(f"Expected output file not found: {term_file}")
 
-                        # Step 2: Predict from rendered image
-                        cmd_predict = [
-                            "docker",
-                            "run",
-                            "--rm",
-                            "-v",
-                            f"{ms_dir}:/data_ms",
-                            "-v",
-                            f"{txt_dir}:/data_txt",
-                            "wsclean-everybeam-0.7.4",
-                            "wsclean",
-                            "-predict",
-                            "-reorder",  # Required for multi-SPW MS
-                            "-name",
-                            "/data_txt/nvss_model",
-                            f"/data_ms/{ms_name}",
-                        ]
+                        # Step 2: Predict from rendered image using long-running container
+                        ms_container = convert_host_path_to_container(ms_path)
 
-                        LOG.info("Running wsclean -predict: %s", " ".join(cmd_predict))
-                        subprocess.run(cmd_predict, check=True)
+                        LOG.info("Running wsclean -predict in long-running container")
+                        start_time = time.perf_counter()
+
+                        try:
+                            container.wsclean(
+                                [
+                                    "-predict",
+                                    "-reorder",  # Required for multi-SPW MS
+                                    "-name",
+                                    f"{txt_dir_container}/nvss_model",
+                                    ms_container,
+                                ],
+                                timeout=600,
+                            )
+
+                            elapsed = time.perf_counter() - start_time
+                            LOG.info(f"WSClean -predict completed successfully in {elapsed:.1f}s")
+
+                        except subprocess.TimeoutExpired:
+                            elapsed = time.perf_counter() - start_time
+                            LOG.error(f"WSClean -predict timeout after {elapsed:.1f}s")
+                            raise
+                        except subprocess.CalledProcessError as e:
+                            elapsed = time.perf_counter() - start_time
+                            LOG.error(f"WSClean -predict failed after {elapsed:.1f}s: {e}")
+                            raise
 
                     else:
                         # Native WSClean execution
@@ -948,7 +961,7 @@ def image_ms(
                             dec_str,
                         ]
                         LOG.info("Running wsclean -draw-model: %s", " ".join(cmd_draw))
-                        subprocess.run(cmd_draw, check=True)
+                        subprocess.run(cmd_draw, check=True, timeout=300)  # 5 min timeout
 
                         # Step 1.5: Rename output file for prediction
                         term_file = f"{imagename}.nvss_model-term-0.fits"
@@ -969,7 +982,31 @@ def image_ms(
                             ms_path,
                         ]
                         LOG.info("Running wsclean -predict: %s", " ".join(cmd_predict))
-                        subprocess.run(cmd_predict, check=True)
+                        LOG.info(
+                            "DIAGNOSTIC: Starting native WSClean -predict at %s",
+                            time.strftime("%Y-%m-%d %H:%M:%S"),
+                        )
+                        start_time = time.perf_counter()
+
+                        try:
+                            result = subprocess.run(
+                                cmd_predict, check=True, timeout=600, capture_output=True, text=True
+                            )
+                            elapsed = time.perf_counter() - start_time
+                            LOG.info(
+                                "DIAGNOSTIC: Native WSClean -predict completed successfully in %.1fs",
+                                elapsed,
+                            )
+                        except subprocess.TimeoutExpired as e:
+                            elapsed = time.perf_counter() - start_time
+                            LOG.error("DIAGNOSTIC: subprocess.TimeoutExpired after %.1fs", elapsed)
+                            raise
+                        except Exception as e:
+                            elapsed = time.perf_counter() - start_time
+                            LOG.error(
+                                "DIAGNOSTIC: Exception %s after %.1fs", type(e).__name__, elapsed
+                            )
+                            raise
 
                     LOG.info("Seeded MODEL_DATA with wsclean -predict")
 

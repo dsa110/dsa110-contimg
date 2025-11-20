@@ -10,7 +10,7 @@ import {
   Alert,
   Chip,
 } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/GridLegacy";
 import {
   Image as ImageIcon,
   Storage,

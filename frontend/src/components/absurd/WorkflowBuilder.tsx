@@ -24,7 +24,7 @@ import {
   CircularProgress,
   useTheme,
 } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/GridLegacy";
 import { Add, Delete, PlayArrow, ArrowDownward } from "@mui/icons-material";
 import { useSpawnTask } from "../../api/absurdQueries";
 import { useNotifications } from "../../contexts/NotificationContext";

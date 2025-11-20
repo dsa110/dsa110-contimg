@@ -57,6 +57,7 @@ def create_transient_detection_tables(
                 classification TEXT,
                 variability_index REAL,
                 last_updated REAL NOT NULL,
+                follow_up_status TEXT,
                 notes TEXT,
                 FOREIGN KEY (mosaic_id) REFERENCES products(id)
             )
@@ -561,5 +562,320 @@ def get_transient_alerts(
     try:
         df = pd.read_sql_query(query, conn, params=params)
         return df
+    finally:
+        conn.close()
+
+
+def acknowledge_alert(
+    alert_id: int,
+    acknowledged_by: str,
+    notes: Optional[str] = None,
+    db_path: str = "/data/dsa110-contimg/state/products.sqlite3",
+) -> bool:
+    """Mark alert as acknowledged by operator.
+
+    Updates the alert record to indicate it has been reviewed by an operator.
+    Sets acknowledged=True, records the operator name, timestamp, and optional notes.
+
+    Args:
+        alert_id: ID of the alert to acknowledge
+        acknowledged_by: Username/identifier of person acknowledging
+        notes: Optional notes about the acknowledgment
+        db_path: Path to products database
+
+    Returns:
+        True if successful
+
+    Raises:
+        ValueError: If alert_id does not exist in database
+    """
+    conn = sqlite3.connect(db_path, timeout=30.0)
+    cur = conn.cursor()
+
+    try:
+        # Check if alert exists
+        cur.execute("SELECT id FROM transient_alerts WHERE id = ?", (alert_id,))
+        if not cur.fetchone():
+            raise ValueError(f"Alert ID {alert_id} not found in database")
+
+        # Update alert
+        acknowledged_at = time.time()
+        cur.execute(
+            """
+            UPDATE transient_alerts 
+            SET acknowledged = 1,
+                acknowledged_by = ?,
+                acknowledged_at = ?,
+                notes = CASE 
+                    WHEN notes IS NULL THEN ?
+                    WHEN ? IS NULL THEN notes
+                    ELSE notes || char(10) || '[' || datetime(?, 'unixepoch') || '] ' || ?
+                END
+            WHERE id = ?
+            """,
+            (
+                acknowledged_by,
+                acknowledged_at,
+                notes,
+                notes,
+                acknowledged_at,
+                notes,
+                alert_id,
+            ),
+        )
+
+        conn.commit()
+        logger.info(f"Alert {alert_id} acknowledged by {acknowledged_by}")
+        return True
+
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Failed to acknowledge alert {alert_id}: {e}")
+        raise
+    finally:
+        conn.close()
+
+
+def classify_candidate(
+    candidate_id: int,
+    classification: str,
+    classified_by: str,
+    notes: Optional[str] = None,
+    db_path: str = "/data/dsa110-contimg/state/products.sqlite3",
+) -> bool:
+    """Assign classification to transient candidate.
+
+    Updates the candidate record with a classification label chosen by an operator.
+    Valid classifications: 'real', 'artifact', 'variable', 'uncertain'
+
+    Args:
+        candidate_id: ID of the candidate to classify
+        classification: Classification label (real, artifact, variable, uncertain)
+        classified_by: Username/identifier of person classifying
+        notes: Optional notes about the classification
+        db_path: Path to products database
+
+    Returns:
+        True if successful
+
+    Raises:
+        ValueError: If candidate_id does not exist or classification is invalid
+    """
+    valid_classifications = {"real", "artifact", "variable", "uncertain"}
+    if classification.lower() not in valid_classifications:
+        raise ValueError(
+            f"Invalid classification '{classification}'. "
+            f"Must be one of: {', '.join(valid_classifications)}"
+        )
+
+    conn = sqlite3.connect(db_path, timeout=30.0)
+    cur = conn.cursor()
+
+    try:
+        # Check if candidate exists
+        cur.execute("SELECT id FROM transient_candidates WHERE id = ?", (candidate_id,))
+        if not cur.fetchone():
+            raise ValueError(f"Candidate ID {candidate_id} not found in database")
+
+        # Update candidate
+        timestamp = time.time()
+        classification_note = f"Classified as '{classification}' by {classified_by}"
+        if notes:
+            classification_note += f": {notes}"
+
+        cur.execute(
+            """
+            UPDATE transient_candidates 
+            SET classification = ?,
+                last_updated = ?,
+                notes = CASE 
+                    WHEN notes IS NULL THEN ?
+                    ELSE notes || char(10) || '[' || datetime(?, 'unixepoch') || '] ' || ?
+                END
+            WHERE id = ?
+            """,
+            (
+                classification.lower(),
+                timestamp,
+                classification_note,
+                timestamp,
+                classification_note,
+                candidate_id,
+            ),
+        )
+
+        conn.commit()
+        logger.info(f"Candidate {candidate_id} classified as '{classification}' by {classified_by}")
+        return True
+
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Failed to classify candidate {candidate_id}: {e}")
+        raise
+    finally:
+        conn.close()
+
+
+def update_follow_up_status(
+    item_id: int,
+    item_type: str,
+    status: str,
+    notes: Optional[str] = None,
+    db_path: str = "/data/dsa110-contimg/state/products.sqlite3",
+) -> bool:
+    """Update follow-up observation status.
+
+    Updates the follow-up status for either an alert or candidate.
+    Valid statuses: 'pending', 'scheduled', 'completed', 'declined'
+
+    Args:
+        item_id: ID of the alert or candidate
+        item_type: Type of item - 'alert' or 'candidate'
+        status: Follow-up status (pending, scheduled, completed, declined)
+        notes: Optional notes about the status update
+        db_path: Path to products database
+
+    Returns:
+        True if successful
+
+    Raises:
+        ValueError: If item_id does not exist, item_type is invalid, or status is invalid
+    """
+    valid_statuses = {"pending", "scheduled", "completed", "declined"}
+    if status.lower() not in valid_statuses:
+        raise ValueError(f"Invalid status '{status}'. Must be one of: {', '.join(valid_statuses)}")
+
+    item_type = item_type.lower()
+    if item_type not in {"alert", "candidate"}:
+        raise ValueError(f"Invalid item_type '{item_type}'. Must be 'alert' or 'candidate'")
+
+    table_name = "transient_alerts" if item_type == "alert" else "transient_candidates"
+    timestamp_field = "acknowledged_at" if item_type == "alert" else "last_updated"
+
+    conn = sqlite3.connect(db_path, timeout=30.0)
+    cur = conn.cursor()
+
+    try:
+        # Check if item exists
+        cur.execute(f"SELECT id FROM {table_name} WHERE id = ?", (item_id,))
+        if not cur.fetchone():
+            raise ValueError(f"{item_type.capitalize()} ID {item_id} not found in database")
+
+        # Update status
+        timestamp = time.time()
+        status_note = f"Follow-up status: {status}"
+        if notes:
+            status_note += f" - {notes}"
+
+        cur.execute(
+            f"""
+            UPDATE {table_name}
+            SET follow_up_status = ?,
+                {timestamp_field} = ?,
+                notes = CASE 
+                    WHEN notes IS NULL THEN ?
+                    ELSE notes || char(10) || '[' || datetime(?, 'unixepoch') || '] ' || ?
+                END
+            WHERE id = ?
+            """,
+            (status.lower(), timestamp, status_note, timestamp, status_note, item_id),
+        )
+
+        conn.commit()
+        logger.info(f"{item_type.capitalize()} {item_id} follow-up status set to '{status}'")
+        return True
+
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Failed to update follow-up status for {item_type} {item_id}: {e}")
+        raise
+    finally:
+        conn.close()
+
+
+def add_notes(
+    item_id: int,
+    item_type: str,
+    notes: str,
+    username: str,
+    append: bool = True,
+    db_path: str = "/data/dsa110-contimg/state/products.sqlite3",
+) -> bool:
+    """Add or update notes for transient records.
+
+    Adds notes to either an alert or candidate record. By default, appends to
+    existing notes with timestamp. Can optionally replace all existing notes.
+
+    Args:
+        item_id: ID of the alert or candidate
+        item_type: Type of item - 'alert' or 'candidate'
+        notes: Notes text to add
+        username: Username/identifier of person adding notes
+        append: If True, append to existing notes; if False, replace
+        db_path: Path to products database
+
+    Returns:
+        True if successful
+
+    Raises:
+        ValueError: If item_id does not exist or item_type is invalid
+    """
+    item_type = item_type.lower()
+    if item_type not in {"alert", "candidate"}:
+        raise ValueError(f"Invalid item_type '{item_type}'. Must be 'alert' or 'candidate'")
+
+    table_name = "transient_alerts" if item_type == "alert" else "transient_candidates"
+    timestamp_field = "acknowledged_at" if item_type == "alert" else "last_updated"
+
+    conn = sqlite3.connect(db_path, timeout=30.0)
+    cur = conn.cursor()
+
+    try:
+        # Check if item exists
+        cur.execute(f"SELECT id FROM {table_name} WHERE id = ?", (item_id,))
+        if not cur.fetchone():
+            raise ValueError(f"{item_type.capitalize()} ID {item_id} not found in database")
+
+        # Prepare note with timestamp and username
+        timestamp = time.time()
+        timestamped_note = f"[{username}] {notes}"
+
+        if append:
+            # Append to existing notes
+            cur.execute(
+                f"""
+                UPDATE {table_name}
+                SET {timestamp_field} = ?,
+                    notes = CASE 
+                        WHEN notes IS NULL THEN ?
+                        ELSE notes || char(10) || '[' || datetime(?, 'unixepoch') || '] ' || ?
+                    END
+                WHERE id = ?
+                """,
+                (timestamp, timestamped_note, timestamp, timestamped_note, item_id),
+            )
+        else:
+            # Replace existing notes
+            cur.execute(
+                f"""
+                UPDATE {table_name}
+                SET {timestamp_field} = ?,
+                    notes = ?
+                WHERE id = ?
+                """,
+                (timestamp, timestamped_note, item_id),
+            )
+
+        conn.commit()
+        logger.info(
+            f"Notes {'appended to' if append else 'replaced for'} "
+            f"{item_type} {item_id} by {username}"
+        )
+        return True
+
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Failed to add notes to {item_type} {item_id}: {e}")
+        raise
     finally:
         conn.close()

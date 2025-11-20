@@ -5,7 +5,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Box } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { Storage, Speed, TrendingUp } from "@mui/icons-material";
 import { TimeSeriesChart, type DataPoint } from "../charts/TimeSeriesChart";
 import { useQuery } from "@tanstack/react-query";
