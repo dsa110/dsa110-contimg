@@ -43,6 +43,7 @@ import CommandPalette from "./CommandPalette";
 import { useCommandPalette } from "../hooks/useCommandPalette";
 import { useWorkflow } from "../contexts/WorkflowContext";
 import { prefetchRoute } from "../utils/routePrefetch";
+import { useAbsurdHealth, useQueueStats } from "../api/absurdQueries";
 
 // Grouped navigation items
 const navGroups = [
@@ -89,6 +90,31 @@ export default function Navigation() {
   const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
   const { open: commandPaletteOpen, setOpen: setCommandPaletteOpen } = useCommandPalette();
   const { currentWorkflow } = useWorkflow();
+  const { data: absurdHealth } = useAbsurdHealth();
+  const { data: queueStats } = useQueueStats("default");
+
+  // Compute Absurd health status
+  const getAbsurdHealthStatus = () => {
+    if (!absurdHealth || !queueStats) return null;
+
+    const failureRate = queueStats.failed / (queueStats.completed + queueStats.failed || 1);
+    const activeLoad = queueStats.active + queueStats.pending;
+
+    // Red: system unhealthy or high failure rate (>20%)
+    if (absurdHealth.status !== "healthy" || failureRate > 0.2) {
+      return { label: "Absurd: Degraded", color: "error" as const };
+    }
+
+    // Yellow: high load (>50 tasks) or moderate failures (>10%)
+    if (activeLoad > 50 || failureRate > 0.1) {
+      return { label: `Absurd: Busy (${activeLoad})`, color: "warning" as const };
+    }
+
+    // Green: healthy
+    return { label: "Absurd: Healthy", color: "success" as const };
+  };
+
+  const absurdStatus = getAbsurdHealthStatus();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -246,6 +272,17 @@ export default function Navigation() {
                 label={currentWorkflow}
                 size="small"
                 sx={{ textTransform: "capitalize", display: { xs: "none", md: "flex" } }}
+              />
+            )}
+            {absurdStatus && !isMobile && (
+              <Chip
+                label={absurdStatus.label}
+                size="small"
+                color={absurdStatus.color}
+                clickable
+                component={RouterLink}
+                to="/absurd"
+                sx={{ display: { xs: "none", md: "flex" } }}
               />
             )}
             <IconButton

@@ -14,6 +14,7 @@ import { QueueDepthChart } from "../components/QueueDepthChart";
 import { SystemHealthSection } from "../components/dashboard/SystemHealthSection";
 import { PipelineStatusSection } from "../components/dashboard/PipelineStatusSection";
 import { RecentObservationsTable } from "../components/dashboard/RecentObservationsTable";
+import { AbsurdQueuesCard } from "../components/dashboard/AbsurdQueuesCard";
 import { DASHBOARD_CONFIG } from "../config/dashboard";
 
 type QueueStatusType = "total" | "pending" | "in_progress" | "completed" | "failed" | "collecting";
@@ -95,6 +96,11 @@ export default function DashboardPage() {
                 />
               </Box>
             </Stack>
+          </Box>
+
+          {/* Row 2: Absurd Queues Card */}
+          <Box sx={{ width: "100%" }}>
+            <AbsurdQueuesCard />
           </Box>
 
           {/* ESE Candidates Panel */}

@@ -4,7 +4,7 @@
  */
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Container, Typography, Box, Tabs, Tab, Stack } from "@mui/material";
+import { Container, Typography, Box, Tabs, Tab, Stack, Alert, Link } from "@mui/material";
 import {
   Settings as ControlIcon,
   Task as AbsurdIcon,
@@ -68,7 +68,7 @@ export default function PipelineControlPage() {
 
       <Tabs value={tabValue} onChange={handleTabChange} sx={{ mb: 3 }}>
         <Tab label="Measurement Sets & Workflows" icon={<ControlIcon />} iconPosition="start" />
-        <Tab label="Absurd Workflow" icon={<AbsurdIcon />} iconPosition="start" />
+        <Tab label="Custom DAG (Absurd)" icon={<AbsurdIcon />} iconPosition="start" />
         <Tab label="Observing" icon={<ObservingIcon />} iconPosition="start" />
       </Tabs>
 
@@ -80,6 +80,14 @@ export default function PipelineControlPage() {
 
       <TabPanel value={tabValue} index={1}>
         <Box sx={{ mt: -4 }}>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            This tab provides quick access to Absurd task monitoring. For the full Absurd experience
+            including workflow builder and advanced orchestration, visit the{" "}
+            <Link href="/absurd" underline="hover" sx={{ fontWeight: 600 }}>
+              dedicated Absurd page
+            </Link>
+            .
+          </Alert>
           <TaskDashboard queueName="dsa110-pipeline" />
         </Box>
       </TabPanel>
