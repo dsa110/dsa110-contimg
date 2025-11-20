@@ -9,25 +9,29 @@
 
 | Service          | Port     | URL                       | Config File      |
 | ---------------- | -------- | ------------------------- | ---------------- |
-| Frontend Dev     | **3210** | http://localhost:3210     | vite.config.ts   |
+| Frontend Dev     | **5173** | http://localhost:5173     | vite.config.ts   |
 | Frontend Preview | **3210** | http://localhost:3210/ui/ | vite.config.ts   |
 | Backend API      | **8000** | http://localhost:8000     | (backend config) |
 | Vitest UI        | 5174     | http://localhost:5174     | vitest.config.ts |
 
 ---
 
-## ❌ Common Mistakes
+## Port Usage
 
-### DON'T Use These Ports
+### Development Mode (npm run dev)
 
-- ❌ `5173` - This is Vite's DEFAULT, but NOT what this project uses
+- ✅ `5173` - Frontend dev server (Vite default, hot reload)
+- ✅ `8000` - Backend API
+
+### Production Preview (npm run preview)
+
+- ✅ `3210` - Frontend preview server (production build with /ui/ base path)
+- ✅ `8000` - Backend API
+
+### ❌ Common Mistakes
+
 - ❌ `3000` - Common React default, NOT used here
 - ❌ `8080` - Common dev default, NOT used here
-
-### ✅ DO Use These Ports
-
-- ✅ `3210` - Frontend dev and preview
-- ✅ `8000` - Backend API
 
 ---
 
@@ -66,17 +70,18 @@ ss -tlnp | grep -E "3210|8000"
 
 When writing documentation or examples:
 
-✅ **Correct:**
+✅ **Correct for Development:**
 
 ```markdown
-Navigate to http://localhost:3210 Frontend available at http://localhost:3210
+Navigate to http://localhost:5173 Frontend dev server at http://localhost:5173
 API available at http://localhost:8000
 ```
 
-❌ **Wrong:**
+✅ **Correct for Production Preview:**
 
 ```markdown
-Navigate to http://localhost:5173 Frontend available at http://localhost:5173
+Navigate to http://localhost:3210/ui/ Frontend preview at
+http://localhost:3210/ui/ API available at http://localhost:8000
 ```
 
 ---
@@ -86,13 +91,15 @@ Navigate to http://localhost:5173 Frontend available at http://localhost:5173
 Port can be overridden via environment variables:
 
 ```bash
-# Override frontend port (not recommended)
+# Override dev server port (not recommended)
 VITE_PORT=4000 npm run dev
 
 # Or
 PORT=4000 npm run dev
 
-# Default if not set: 3210
+# Defaults:
+# - Dev mode (npm run dev): 5173
+# - Preview mode (npm run preview): 3210
 npm run dev
 ```
 
@@ -140,6 +147,11 @@ export default defineConfig({
 ---
 
 ## Update History
+
+- **2025-11-20:** Corrected port strategy to align with Vite conventions
+  - Changed dev server default from 3210 → 5173 in `vite.config.ts`
+  - Updated documentation to distinguish dev mode (5173) vs preview mode (3210)
+  - Aligned with running Vite dev server and Vite ecosystem standards
 
 - **2025-11-17:** Created authoritative reference after fixing port confusion
   - Fixed `.cursor/FIGMA_DESIGN_SYSTEM_RULES.md` (5173 → 3210)
