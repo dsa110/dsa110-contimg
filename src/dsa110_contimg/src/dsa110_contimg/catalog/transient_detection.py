@@ -55,6 +55,8 @@ def create_transient_detection_tables(
                 detected_at REAL NOT NULL,
                 mosaic_id INTEGER,
                 classification TEXT,
+                classified_by TEXT,
+                classified_at REAL,
                 variability_index REAL,
                 last_updated REAL NOT NULL,
                 follow_up_status TEXT,
@@ -687,6 +689,8 @@ def classify_candidate(
             """
             UPDATE transient_candidates 
             SET classification = ?,
+                classified_by = ?,
+                classified_at = ?,
                 last_updated = ?,
                 notes = CASE 
                     WHEN notes IS NULL THEN ?
@@ -696,6 +700,8 @@ def classify_candidate(
             """,
             (
                 classification.lower(),
+                classified_by,
+                timestamp,
                 timestamp,
                 classification_note,
                 timestamp,

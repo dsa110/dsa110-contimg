@@ -81,6 +81,8 @@ class TransientCandidateResponse(BaseModel):
     detected_at: float
     mosaic_id: Optional[int] = None
     classification: Optional[str] = None
+    classified_by: Optional[str] = None
+    classified_at: Optional[float] = None
     variability_index: Optional[float] = None
     last_updated: float
     follow_up_status: Optional[str] = None
@@ -144,9 +146,7 @@ def get_alert(
 
 @router.get("/candidates", response_model=list[TransientCandidateResponse])
 def list_candidates(
-    min_significance: Optional[float] = Query(
-        None, description="Minimum significance threshold (sigma)"
-    ),
+    min_significance: float = Query(5.0, description="Minimum significance threshold (sigma)"),
     detection_type: Optional[str] = Query(
         None, description="Filter by detection type (new_source, brightening, fading, variable)"
     ),
