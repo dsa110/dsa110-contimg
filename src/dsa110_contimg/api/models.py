@@ -248,7 +248,7 @@ class JobParams(BaseModel):
     datacolumn: str = "corrected"
     quality_tier: str = "standard"
     skip_fits: bool = True
-    use_nvss_mask: bool = True
+    use_unicat_mask: bool = True
     mask_radius_arcsec: float = 60.0
 
 

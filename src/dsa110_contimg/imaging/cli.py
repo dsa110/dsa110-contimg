@@ -157,13 +157,13 @@ def main(argv: Optional[list] = None) -> None:
     img_parser.add_argument("--pblimit", type=float, default=0.2)
     img_parser.add_argument("--psfcutoff", type=float, default=None)
     img_parser.add_argument("--verbose", action="store_true")
-    # NVSS skymodel seeding
+    # Unified catalog skymodel seeding
     img_parser.add_argument(
-        "--nvss-min-mjy",
+        "--unicat-min-mjy",
         type=float,
         default=None,
         help=(
-            "If set, seed MODEL_DATA by ft() of NVSS point sources above this flux. "
+            "If set, seed MODEL_DATA from unified catalog (FIRST+RACS+NVSS) sources above this flux. "
             "In development quality tier, defaults to 10.0 mJy. "
             "In high_precision tier, defaults to 5.0 mJy."
         ),
@@ -172,22 +172,22 @@ def main(argv: Optional[list] = None) -> None:
         "--export-model-image",
         action="store_true",
         help=(
-            "Export MODEL_DATA as FITS image after NVSS seeding. "
+            "Export MODEL_DATA as FITS image after unified catalog seeding. "
             "Useful for visualizing the sky model used during imaging. "
-            "Output will be saved as {imagename}.nvss_model.fits"
+            "Output will be saved as {imagename}.unicat_model.fits"
         ),
     )
     # Masking parameters
     img_parser.add_argument(
-        "--no-nvss-mask",
+        "--no-unicat-mask",
         action="store_true",
-        help="Disable NVSS-based masking (masking is enabled by default for 2-4x faster imaging)",
+        help="Disable unified catalog masking (masking is enabled by default for 2-4x faster imaging)",
     )
     img_parser.add_argument(
         "--mask-radius-arcsec",
         type=float,
         default=60.0,
-        help="Mask radius around NVSS sources in arcseconds (default: 60.0, ~2-3× beam)",
+        help="Mask radius around catalog sources in arcseconds (default: 60.0, ~2-3× beam)",
     )
     # A-Projection related options
     img_parser.add_argument(
@@ -319,14 +319,14 @@ def main(argv: Optional[list] = None) -> None:
             vptable=args.vptable,
             wbawp=bool(args.wbawp),
             cfcache=args.cfcache,
-            nvss_min_mjy=args.nvss_min_mjy,
+            unicat_min_mjy=args.unicat_min_mjy,
             calib_ra_deg=args.calib_ra_deg,
             calib_dec_deg=args.calib_dec_deg,
             calib_flux_jy=args.calib_flux_jy,
             backend=args.backend,
             wsclean_path=args.wsclean_path,
             export_model_image=args.export_model_image,
-            use_nvss_mask=not args.no_nvss_mask,
+            use_unicat_mask=not args.no_unicat_mask,
             mask_radius_arcsec=args.mask_radius_arcsec,
         )
 

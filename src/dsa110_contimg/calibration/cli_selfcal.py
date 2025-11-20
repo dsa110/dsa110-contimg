@@ -57,8 +57,8 @@ def cmd_selfcal(args: argparse.Namespace) -> int:
         spw=args.spw,
         field=args.field,
         concatenate_fields=args.concatenate_fields,
-        use_nvss_seeding=not args.no_nvss_seeding,
-        nvss_min_mjy=args.nvss_min_mjy,
+        use_unicat_seeding=not args.no_unicat_seeding,
+        unicat_min_mjy=args.unicat_min_mjy,
         calib_ra_deg=args.calib_ra_deg,
         calib_dec_deg=args.calib_dec_deg,
         calib_flux_jy=args.calib_flux_jy,
@@ -261,15 +261,15 @@ def main():
 
     # Model seeding
     parser.add_argument(
-        "--no-nvss-seeding",
+        "--no-unicat-seeding",
         action="store_true",
-        help="Disable NVSS model seeding",
+        help="Disable unified catalog model seeding",
     )
     parser.add_argument(
-        "--nvss-min-mjy",
+        "--unicat-min-mjy",
         type=float,
         default=10.0,
-        help="Minimum flux for NVSS sources (mJy)",
+        help="Minimum flux for unified catalog sources (mJy)",
     )
     parser.add_argument(
         "--calib-ra-deg",

@@ -176,8 +176,8 @@ class SelfCalConfig:
     )
 
     # Model seeding
-    use_nvss_seeding: bool = False
-    nvss_min_mjy: Optional[float] = 10.0
+    use_unicat_seeding: bool = False
+    unicat_min_mjy: Optional[float] = 10.0
     calib_ra_deg: Optional[float] = None
     calib_dec_deg: Optional[float] = None
     calib_flux_jy: Optional[float] = None

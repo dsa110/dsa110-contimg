@@ -94,19 +94,19 @@ def _load_pb_mask(pb_path: str, pblimit: float) -> Optional[np.ndarray]:
         return None
 
 
-def create_nvss_fits_mask(
+def create_unicat_fits_mask(
     imagename: str,
     imsize: int,
     cell_arcsec: float,
     ra0_deg: float,
     dec0_deg: float,
-    nvss_min_mjy: float,
+    unicat_min_mjy: float,
     radius_arcsec: float = 60.0,
     out_path: Optional[str] = None,
 ) -> str:
-    """Create FITS mask from NVSS sources for WSClean.
+    """Create FITS mask from unified catalog (FIRST+RACS+NVSS) sources for WSClean.
 
-    Creates a FITS mask file with circular regions around NVSS sources.
+    Creates a FITS mask file with circular regions around catalog sources.
     Zero values = not cleaned, non-zero values = cleaned.
 
     Args:
@@ -115,9 +115,9 @@ def create_nvss_fits_mask(
         cell_arcsec: Pixel scale in arcseconds
         ra0_deg: Phase center RA in degrees
         dec0_deg: Phase center Dec in degrees
-        nvss_min_mjy: Minimum NVSS flux in mJy
+        unicat_min_mjy: Minimum unified catalog flux in mJy
         radius_arcsec: Mask radius around each source in arcseconds
-        out_path: Optional output path (defaults to {imagename}.nvss_mask.fits)
+        out_path: Optional output path (defaults to {imagename}.unicat_mask.fits)
 
     Returns:
         Path to created FITS mask file
@@ -143,7 +143,7 @@ def create_nvss_fits_mask(
         ra_deg=ra0_deg,
         dec_deg=dec0_deg,
         radius_deg=fov_radius_deg,
-        min_flux_mjy=float(nvss_min_mjy),
+        min_flux_mjy=float(unicat_min_mjy),
     )
     # Rename columns to match expected format
     df = df.rename(columns={"ra_deg": "ra", "dec_deg": "dec", "flux_mjy": "flux_20_cm"})
@@ -152,7 +152,7 @@ def create_nvss_fits_mask(
     if len(sources) == 0:
         # No sources found, create empty mask
         if out_path is None:
-            out_path = f"{imagename}.nvss_mask.fits"
+            out_path = f"{imagename}.unicat_mask.fits"
         from dsa110_contimg.utils.fits_utils import create_fits_hdu
 
         header = wcs.to_header()
@@ -178,13 +178,26 @@ def create_nvss_fits_mask(
 
     # Write FITS mask
     if out_path is None:
-        out_path = f"{imagename}.nvss_mask.fits"
+        out_path = f"{imagename}.unicat_mask.fits"
 
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     hdu = fits.PrimaryHDU(data=mask, header=wcs.to_header())
     hdu.writeto(out_path, overwrite=True)
 
     return out_path
+
+
+# Backwards compatibility alias
+def create_nvss_fits_mask(*args, **kwargs):
+    """Deprecated: Use create_unicat_fits_mask instead."""
+    import warnings
+
+    warnings.warn(
+        "create_nvss_fits_mask is deprecated, use create_unicat_fits_mask instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return create_unicat_fits_mask(*args, **kwargs)
 
 
 def create_nvss_overlay(

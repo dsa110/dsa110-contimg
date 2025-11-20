@@ -375,14 +375,14 @@ def image_ms(
     vptable: Optional[str] = None,
     wbawp: Optional[bool] = None,
     cfcache: Optional[str] = None,
-    nvss_min_mjy: Optional[float] = None,
+    unicat_min_mjy: Optional[float] = None,
     calib_ra_deg: Optional[float] = None,
     calib_dec_deg: Optional[float] = None,
     calib_flux_jy: Optional[float] = None,
     backend: str = "wsclean",
     wsclean_path: Optional[str] = None,
     export_model_image: bool = False,
-    use_nvss_mask: bool = True,
+    use_unicat_mask: bool = True,
     mask_path: Optional[str] = None,
     mask_radius_arcsec: float = 60.0,
     target_mask: Optional[str] = None,
@@ -596,12 +596,12 @@ def image_ms(
                 cell_arcsec,
             )
         niter = min(niter, 300)  # Fewer iterations
-        # Lower NVSS seeding threshold for faster convergence
-        if nvss_min_mjy is None:
-            nvss_min_mjy = 10.0
+        # Lower unified catalog seeding threshold for faster convergence
+        if unicat_min_mjy is None:
+            unicat_min_mjy = 10.0
             LOG.info(
-                "Development tier: NVSS seeding threshold set to %s mJy (NON-SCIENCE)",
-                nvss_min_mjy,
+                "Development tier: Unified catalog seeding threshold set to %s mJy (NON-SCIENCE)",
+                unicat_min_mjy,
             )
 
     elif quality_tier == "standard":
@@ -613,11 +613,11 @@ def image_ms(
         # Enhanced quality for critical observations
         LOG.info("High precision tier: enhanced quality settings (slower)")
         niter = max(niter, 2000)  # More iterations for better deconvolution
-        if nvss_min_mjy is None:
-            nvss_min_mjy = 5.0  # Lower threshold for cleaner sky model
+        if unicat_min_mjy is None:
+            unicat_min_mjy = 5.0  # Lower threshold for cleaner sky model
             LOG.info(
-                "High precision tier: NVSS seeding threshold set to %s mJy",
-                nvss_min_mjy,
+                "High precision tier: Unified catalog seeding threshold set to %s mJy",
+                unicat_min_mjy,
             )
     LOG.info("Imaging %s -> %s", ms_path, imagename)
     LOG.info(
@@ -675,7 +675,7 @@ def image_ms(
     fov_y = (cell_arcsec * imsize) / 3600.0
     radius_deg = 0.5 * float(_math.hypot(fov_x, fov_y))
 
-    # Get phase center from MS (needed for mask generation and NVSS seeding)
+    # Get phase center from MS (needed for mask generation and unified catalog seeding)
     ra0_deg = dec0_deg = None
     with casatables.table(f"{ms_path}::FIELD", readonly=True) as fld:
         try:
@@ -728,8 +728,8 @@ def image_ms(
         except Exception as exc:
             LOG.debug("Calibrator seeding skipped: %s", exc)
 
-    # Optional: seed a sky model from NVSS (> nvss_min_mjy mJy) via ft(), if no calibrator seed
-    if (not did_seed) and (nvss_min_mjy is not None):
+    # Optional: seed a sky model from unified catalog (> unicat_min_mjy mJy) via ft() or predict, if no calibrator seed
+    if (not did_seed) and (unicat_min_mjy is not None):
         try:
             from dsa110_contimg.calibration.skymodels import (  # type: ignore
                 ft_from_cl,
@@ -740,7 +740,7 @@ def image_ms(
             if ra0_deg is None or dec0_deg is None:
                 raise RuntimeError("FIELD::PHASE_DIR not available")
 
-            # Limit NVSS seeding radius to primary beam extent when pbcor is enabled
+            # Limit unified catalog seeding radius to primary beam extent when pbcor is enabled
             # Primary beam FWHM at 1.4 GHz: ~3.2 degrees (1.22 * lambda / D)
             # Use pblimit to determine effective radius (typically 20% of peak = ~1.6 deg radius)
             # Mean observing frequency and bandwidth
@@ -774,25 +774,25 @@ def image_ms(
             if pbcor and pblimit > 0:
                 pb_radius_deg = fwhm_deg * math.sqrt(-math.log(pblimit)) / math.sqrt(-math.log(0.5))
                 # Use the smaller of image radius or primary beam radius
-                nvss_radius_deg = min(radius_deg, pb_radius_deg)
+                unicat_radius_deg = min(radius_deg, pb_radius_deg)
                 LOG.info(
-                    "Limiting NVSS seeding to primary beam extent: %.2f deg (pblimit=%.2f, FWHM=%.2f deg)",
-                    nvss_radius_deg,
+                    "Limiting unified catalog seeding to primary beam extent: %.2f deg (pblimit=%.2f, FWHM=%.2f deg)",
+                    unicat_radius_deg,
                     pblimit,
                     fwhm_deg,
                 )
             else:
-                nvss_radius_deg = radius_deg
+                unicat_radius_deg = radius_deg
 
             # Note: wsclean -predict with -model-list is not supported by the installed wsclean version.
             # We use a 2-step process: -draw-model then -predict.
             if backend == "wsclean":
                 # Use wsclean -predict (faster, multi-threaded)
-                txt_path = f"{imagename}.unified_{float(nvss_min_mjy):g}mJy.txt"
+                txt_path = f"{imagename}.unicat_{float(unicat_min_mjy):g}mJy.txt"
                 LOG.info(
                     "Creating Unified source list (FIRST+RACS+NVSS) (>%s mJy, radius %.2f deg) for wsclean -predict",
-                    nvss_min_mjy,
-                    nvss_radius_deg,
+                    unicat_min_mjy,
+                    unicat_radius_deg,
                 )
                 try:
                     from dsa110_contimg.calibration.skymodels import make_unified_wsclean_list
@@ -800,8 +800,8 @@ def image_ms(
                     make_unified_wsclean_list(
                         ra0_deg,
                         dec0_deg,
-                        nvss_radius_deg,
-                        min_mjy=float(nvss_min_mjy),
+                        unicat_radius_deg,
+                        min_mjy=float(unicat_min_mjy),
                         freq_ghz=freq_ghz,
                         out_path=txt_path,
                     )
@@ -1097,28 +1097,35 @@ def image_ms(
             LOG.debug("VP preload skipped: %s", exc)
 
     # Generate mask if requested (before imaging)
-    if mask_path is None and use_nvss_mask and nvss_min_mjy is not None and backend == "wsclean":
+    if (
+        mask_path is None
+        and use_unicat_mask
+        and unicat_min_mjy is not None
+        and backend == "wsclean"
+    ):
         if ra0_deg is not None and dec0_deg is not None:
             try:
-                from dsa110_contimg.imaging.nvss_tools import create_nvss_fits_mask
+                from dsa110_contimg.imaging.nvss_tools import create_unicat_fits_mask
 
-                mask_path = create_nvss_fits_mask(
+                mask_path = create_unicat_fits_mask(
                     imagename=imagename,
                     imsize=imsize,
                     cell_arcsec=cell_arcsec,
                     ra0_deg=ra0_deg,
                     dec0_deg=dec0_deg,
-                    nvss_min_mjy=nvss_min_mjy,
+                    unicat_min_mjy=unicat_min_mjy,
                     radius_arcsec=mask_radius_arcsec,
                 )
                 LOG.info(
-                    "Generated NVSS mask: %s (radius=%.1f arcsec, sources >= %.1f mJy)",
+                    "Generated unified catalog mask: %s (radius=%.1f arcsec, sources >= %.1f mJy)",
                     mask_path,
                     mask_radius_arcsec,
-                    nvss_min_mjy,
+                    unicat_min_mjy,
                 )
             except Exception as exc:
-                LOG.warning("Failed to generate NVSS mask, continuing without mask: %s", exc)
+                LOG.warning(
+                    "Failed to generate unified catalog mask, continuing without mask: %s", exc
+                )
                 import traceback
 
                 LOG.debug("Mask generation traceback: %s", traceback.format_exc())

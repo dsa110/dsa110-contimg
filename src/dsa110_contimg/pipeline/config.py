@@ -100,14 +100,14 @@ class ImagingConfig(BaseModel):
     )
 
     # Masking parameters
-    use_nvss_mask: bool = Field(
-        default=True, description="Use NVSS-based mask for imaging (2-4x faster)"
+    use_unicat_mask: bool = Field(
+        default=True, description="Use unified catalog mask for imaging (2-4x faster)"
     )
     mask_radius_arcsec: float = Field(
         default=60.0,
         ge=10.0,
         le=300.0,
-        description="Mask radius around NVSS sources (arcsec)",
+        description="Mask radius around catalog sources (arcsec)",
     )
 
 
@@ -421,7 +421,7 @@ class PipelineConfig(BaseModel):
                 refant=os.getenv("PIPELINE_REFANT", "103"),
                 gridder=os.getenv("PIPELINE_GRIDDER", "wproject"),
                 wprojplanes=safe_int("PIPELINE_WPROJPLANES", "-1"),
-                use_nvss_mask=os.getenv("PIPELINE_USE_NVSS_MASK", "true").lower() == "true",
+                use_unicat_mask=os.getenv("PIPELINE_USE_UNICAT_MASK", "true").lower() == "true",
                 mask_radius_arcsec=safe_float(
                     "PIPELINE_MASK_RADIUS_ARCSEC", "60.0", min_val=10.0, max_val=300.0
                 ),
@@ -473,7 +473,7 @@ class PipelineConfig(BaseModel):
             "refant",
             "gridder",
             "wprojplanes",
-            "use_nvss_mask",
+            "use_unicat_mask",
             "mask_radius_arcsec",
         ]
         has_imaging_params = any(key in data for key in imaging_keys)
@@ -484,7 +484,7 @@ class PipelineConfig(BaseModel):
                 "refant": data.pop("refant", "103"),
                 "gridder": data.pop("gridder", "wproject"),
                 "wprojplanes": data.pop("wprojplanes", -1),
-                "use_nvss_mask": data.pop("use_nvss_mask", True),
+                "use_unicat_mask": data.pop("use_unicat_mask", True),
                 "mask_radius_arcsec": data.pop("mask_radius_arcsec", 60.0),
             }
             data["imaging"] = imaging_data

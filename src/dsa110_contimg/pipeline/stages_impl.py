@@ -1846,7 +1846,7 @@ class ImagingStage(PipelineStage):
             wprojplanes=context.config.imaging.wprojplanes,
             quality_tier="standard",  # Production quality (same as streaming)
             skip_fits=False,  # Export FITS (same as streaming)
-            use_nvss_mask=context.config.imaging.use_nvss_mask,
+            use_unicat_mask=context.config.imaging.use_unicat_mask,
             mask_radius_arcsec=context.config.imaging.mask_radius_arcsec,
         )
 
