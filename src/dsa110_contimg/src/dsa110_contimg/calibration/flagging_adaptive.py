@@ -75,7 +75,7 @@ def flag_rfi_adaptive(
     ... )
     >>> print(f"Used {result['strategy']} strategy")
     """
-    from dsa110_contimg.calibration.flagging import flag_rfi, get_flag_summary, reset_flags
+    from dsa110_contimg.calibration.flagging import flag_rfi, reset_flags
 
     calibrate_kwargs = calibrate_kwargs or {}
 

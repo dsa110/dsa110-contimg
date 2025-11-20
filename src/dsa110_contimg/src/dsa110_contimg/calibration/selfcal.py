@@ -25,6 +25,7 @@ Author: DSA-110 Continuum Imaging Team
 
 import logging
 import os
+import shutil
 import subprocess
 import time
 from dataclasses import dataclass, field
@@ -168,6 +169,11 @@ class SelfCalConfig:
     uvrange: str = ""
     spw: str = ""
     field: str = ""
+
+    # Performance optimization
+    concatenate_fields: bool = (
+        False  # Concatenate rephased fields into single field (faster gaincal)
+    )
 
     # Model seeding
     use_nvss_seeding: bool = False
@@ -344,9 +350,11 @@ class SelfCalibrator:
 
             # Read reference image for WCS and shape
             with fits.open(reference_fits) as hdul:
-                header = hdul[0].header
+                header = hdul[0].header  # pylint: disable=no-member
                 wcs = WCS(header, naxis=2)
-                shape = hdul[0].data.squeeze().shape[-2:]  # Get spatial dimensions
+                shape = (
+                    hdul[0].data.squeeze().shape[-2:]
+                )  # pylint: disable=no-member  # Get spatial dimensions
 
             # Convert RA/Dec to pixel coordinates
             ra_pix, dec_pix = wcs.all_world2pix(
@@ -764,13 +772,13 @@ class SelfCalibrator:
         try:
             # Read image
             with fits.open(image_fits) as hdul:
-                image_data = np.asarray(hdul[0].data).squeeze()
+                image_data = np.asarray(hdul[0].data).squeeze()  # pylint: disable=no-member
                 if image_data.ndim > 2:
                     image_data = image_data[0] if image_data.ndim == 3 else image_data[0, 0]
 
             # Read residual
             with fits.open(residual_fits) as hdul:
-                residual_data = np.asarray(hdul[0].data).squeeze()
+                residual_data = np.asarray(hdul[0].data).squeeze()  # pylint: disable=no-member
                 if residual_data.ndim > 2:
                     residual_data = (
                         residual_data[0] if residual_data.ndim == 3 else residual_data[0, 0]
@@ -877,15 +885,54 @@ def selfcal_ms(
     Returns:
         (success, summary_dict): Success status and summary dictionary
     """
-    selfcal = SelfCalibrator(
-        ms_path=ms_path,
-        output_dir=output_dir,
-        config=config,
-        initial_caltables=initial_caltables,
-    )
+    if config is None:
+        config = SelfCalConfig()
 
-    success, message = selfcal.run()
-    summary = selfcal.get_summary()
-    summary["message"] = message
+    # Optional: Concatenate rephased fields into single field for faster gaincal
+    concat_ms_path = None
+    if config.concatenate_fields:
+        from dsa110_contimg.calibration.dp3_wrapper import concatenate_fields_in_ms
 
-    return success, summary
+        concat_ms_path = ms_path + "_selfcal_concat"
+        logger.info("Concatenating rephased fields into single field for faster self-calibration")
+        logger.info(f"  Input MS: {ms_path}")
+        logger.info(f"  Concatenated MS: {concat_ms_path}")
+
+        try:
+            concatenate_fields_in_ms(ms_path, concat_ms_path)
+            # Use concatenated MS for self-cal
+            ms_to_use = concat_ms_path
+            # Update field selection to "" since all fields are now field 0
+            config.field = ""
+            logger.info("✅ Field concatenation complete - using concatenated MS for self-cal")
+        except Exception as e:
+            logger.error(f"Field concatenation failed: {e}")
+            logger.warning("Falling back to non-concatenated self-cal")
+            ms_to_use = ms_path
+            concat_ms_path = None  # Don't try to clean up
+    else:
+        ms_to_use = ms_path
+
+    try:
+        selfcal = SelfCalibrator(
+            ms_path=ms_to_use,
+            output_dir=output_dir,
+            config=config,
+            initial_caltables=initial_caltables,
+        )
+
+        success, message = selfcal.run()
+        summary = selfcal.get_summary()
+        summary["message"] = message
+        summary["used_concatenated_fields"] = concat_ms_path is not None
+
+        return success, summary
+
+    finally:
+        # Clean up concatenated MS if created
+        if concat_ms_path and os.path.exists(concat_ms_path):
+            logger.info(f"Cleaning up concatenated MS: {concat_ms_path}")
+            try:
+                shutil.rmtree(concat_ms_path)
+            except Exception as e:
+                logger.warning(f"Failed to clean up concatenated MS: {e}")

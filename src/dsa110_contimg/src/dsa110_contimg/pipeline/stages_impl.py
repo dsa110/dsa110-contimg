@@ -603,7 +603,9 @@ class ConversionStage(PipelineStage):
 
         # Hook: Generate performance monitoring plots after MS conversion
         try:
-            from dsa110_contimg.qa.pipeline_hooks import hook_ms_conversion_complete
+            from dsa110_contimg.qa.pipeline_hooks import (
+                hook_ms_conversion_complete,  # pylint: disable=import-error,no-name-in-module
+            )
 
             hook_ms_conversion_complete()
         except Exception as e:
@@ -1423,6 +1425,9 @@ class CalibrationStage(PipelineStage):
         from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
         ms_path = context.outputs["ms_path"]
+        # Get calibration parameters from context inputs
+        params = context.inputs.get("calibration_params", {})
+        refant = params.get("refant", "103")
         logger.info(f"Calibration stage: {ms_path}")
 
         # Check if calibration tables were provided by a previous stage (e.g., CalibrationSolveStage)
@@ -1587,7 +1592,7 @@ class CalibrationStage(PipelineStage):
 
                 # Store in database
                 try:
-                    from dsa110_contimg.calibration.flagging_temporal import (
+                    from dsa110_contimg.calibration.flagging_temporal import (  # pylint: disable=no-name-in-module
                         store_temporal_analysis_in_database,
                     )
 
@@ -1687,7 +1692,9 @@ class CalibrationStage(PipelineStage):
 
         # Hook: Generate calibration quality plots after calibration
         try:
-            from dsa110_contimg.qa.pipeline_hooks import hook_calibration_complete
+            from dsa110_contimg.qa.pipeline_hooks import (
+                hook_calibration_complete,  # pylint: disable=import-error,no-name-in-module
+            )
 
             hook_calibration_complete()
         except Exception as e:

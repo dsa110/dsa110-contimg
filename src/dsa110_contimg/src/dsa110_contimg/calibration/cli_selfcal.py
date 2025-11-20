@@ -56,6 +56,7 @@ def cmd_selfcal(args: argparse.Namespace) -> int:
         uvrange=args.uvrange,
         spw=args.spw,
         field=args.field,
+        concatenate_fields=args.concatenate_fields,
         use_nvss_seeding=not args.no_nvss_seeding,
         nvss_min_mjy=args.nvss_min_mjy,
         calib_ra_deg=args.calib_ra_deg,
@@ -233,6 +234,11 @@ def main():
         type=str,
         default="",
         help="Field selection",
+    )
+    parser.add_argument(
+        "--concatenate-fields",
+        action="store_true",
+        help="Concatenate rephased fields into single field (faster gaincal, ~24x speedup)",
     )
     parser.add_argument(
         "--spw",
