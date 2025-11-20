@@ -2,90 +2,89 @@ name: Anti-Pattern Detection
 
 on:
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   anti-pattern-detection:
     runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Full history for commit message checks
-    
-    - name: Check commit messages for anti-patterns
-      run: |
-        source scripts/lib/anti-pattern-detection.sh
-        
-        # Check all commits in PR
-        if [ "${{ github.event_name }}" = "pull_request" ]; then
-          BASE_SHA="${{ github.event.pull_request.base.sha }}"
-          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-          
-          echo "Checking commit messages between $BASE_SHA and $HEAD_SHA"
-          
-          COMMITS=$(git log --pretty=format:"%s" $BASE_SHA..$HEAD_SHA)
-          
-          ERRORS=0
-          while IFS= read -r commit_msg; do
-            if [ -n "$commit_msg" ]; then
-              echo "Checking: $commit_msg"
-              if ! detect_process_anti_patterns "$commit_msg"; then
-                ERRORS=$((ERRORS + 1))
-              fi
-            fi
-          done <<< "$COMMITS"
-          
-          if [ $ERRORS -gt 0 ]; then
-            echo "::error::Anti-patterns detected in commit messages"
-            exit 1
-          fi
-        else
-          # Check latest commit
-          COMMIT_MSG=$(git log -1 --pretty=format:"%s")
-          if ! detect_process_anti_patterns "$COMMIT_MSG"; then
-            echo "::error::Anti-pattern detected in commit message"
-            exit 1
-          fi
-        fi
-    
-    - name: Check code for anti-patterns
-      working-directory: ./frontend
-      run: |
-        source ../scripts/lib/anti-pattern-detection.sh
-        
-        # Check staged files for code anti-patterns
-        # This is a simplified check - in practice, use proper file discovery
-        echo "Code anti-pattern detection (basic checks)"
-        echo "For comprehensive checks, use specialized tools (ESLint, SonarQube, etc.)"
-        
-        # Example: Check for magic numbers in changed files
-        CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep -E '\.(js|ts|jsx|tsx)$' || true)
-        
-        if [ -n "$CHANGED_FILES" ]; then
-          for file in $CHANGED_FILES; do
-            if [ -f "$file" ]; then
-              detect_magic_numbers "$file" || true  # Warning only
-            fi
-          done
-        fi
-    
-    - name: Check tests for anti-patterns
-      working-directory: ./frontend
-      run: |
-        source ../scripts/lib/anti-pattern-detection.sh
-        
-        # Check test files
-        TEST_FILES=$(find . -name "*test*.ts" -o -name "*test*.tsx" -o -name "*spec*.ts" -o -name "*spec*.tsx" 2>/dev/null | head -10)
-        
-        if [ -n "$TEST_FILES" ]; then
-          for file in $TEST_FILES; do
-            if [ -f "$file" ]; then
-              detect_brittle_tests "$file" || true  # Warning only
-              detect_happy_path_only "$file" || true  # Warning only
-            fi
-          done
-        fi
 
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for commit message checks
+
+      - name: Check commit messages for anti-patterns
+        run: |
+          source scripts/lib/anti-pattern-detection.sh
+
+          # Check all commits in PR
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+            HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+            
+            echo "Checking commit messages between $BASE_SHA and $HEAD_SHA"
+            
+            COMMITS=$(git log --pretty=format:"%s" $BASE_SHA..$HEAD_SHA)
+            
+            ERRORS=0
+            while IFS= read -r commit_msg; do
+              if [ -n "$commit_msg" ]; then
+                echo "Checking: $commit_msg"
+                if ! detect_process_anti_patterns "$commit_msg"; then
+                  ERRORS=$((ERRORS + 1))
+                fi
+              fi
+            done <<< "$COMMITS"
+            
+            if [ $ERRORS -gt 0 ]; then
+              echo "::error::Anti-patterns detected in commit messages"
+              exit 1
+            fi
+          else
+            # Check latest commit
+            COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+            if ! detect_process_anti_patterns "$COMMIT_MSG"; then
+              echo "::error::Anti-pattern detected in commit message"
+              exit 1
+            fi
+          fi
+
+      - name: Check code for anti-patterns
+        working-directory: ./frontend
+        run: |
+          source ../scripts/lib/anti-pattern-detection.sh
+
+          # Check staged files for code anti-patterns
+          # This is a simplified check - in practice, use proper file discovery
+          echo "Code anti-pattern detection (basic checks)"
+          echo "For comprehensive checks, use specialized tools (ESLint, SonarQube, etc.)"
+
+          # Example: Check for magic numbers in changed files
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep -E '\.(js|ts|jsx|tsx)$' || true)
+
+          if [ -n "$CHANGED_FILES" ]; then
+            for file in $CHANGED_FILES; do
+              if [ -f "$file" ]; then
+                detect_magic_numbers "$file" || true  # Warning only
+              fi
+            done
+          fi
+
+      - name: Check tests for anti-patterns
+        working-directory: ./frontend
+        run: |
+          source ../scripts/lib/anti-pattern-detection.sh
+
+          # Check test files
+          TEST_FILES=$(find . -name "*test*.ts" -o -name "*test*.tsx" -o -name "*spec*.ts" -o -name "*spec*.tsx" 2>/dev/null | head -10)
+
+          if [ -n "$TEST_FILES" ]; then
+            for file in $TEST_FILES; do
+              if [ -f "$file" ]; then
+                detect_brittle_tests "$file" || true  # Warning only
+                detect_happy_path_only "$file" || true  # Warning only
+              fi
+            done
+          fi

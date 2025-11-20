@@ -236,40 +236,11 @@ class AbsurdMonitor:
         return metrics
 
     async def collect_worker_metrics(self) -> WorkerMetrics:
-        """Collect worker pool metrics with heartbeat tracking and crash detection."""
+        """Collect worker pool metrics."""
+        # TODO: Implement worker tracking via heartbeats or registry
+        # For now, return basic metrics
+
         now = time.time()
-
-        # Track crashed workers: workers that claimed tasks but disappeared
-        crashed_workers = 0
-
-        try:
-            # Query for claimed tasks with stale workers (claimed > 5 minutes ago, no completion)
-            claimed_tasks = await self.client.query_tasks(
-                queue_name=self.queue_name, status="claimed", limit=1000
-            )
-
-            # Group tasks by worker_id
-            worker_tasks = defaultdict(list)
-            for task in claimed_tasks:
-                worker_id = task.get("worker_id")
-                claimed_at = task.get("claimed_at")
-                if worker_id and claimed_at:
-                    worker_tasks[worker_id].append((task, claimed_at))
-
-            # Detect crashed workers: no activity for 5+ minutes
-            crash_threshold = now - 300  # 5 minutes
-            for worker_id, tasks in worker_tasks.items():
-                latest_claim = max(claimed_at for _, claimed_at in tasks)
-                if latest_claim < crash_threshold:
-                    crashed_workers += 1
-                    logger.warning(
-                        f"Worker {worker_id} appears crashed: "
-                        f"last activity {(now - latest_claim) / 60:.1f} min ago, "
-                        f"holding {len(tasks)} claimed tasks"
-                    )
-
-        except Exception as e:
-            logger.debug(f"Could not check for crashed workers: {e}")
 
         # Prune stale workers (not seen in 60 seconds)
         stale_workers = [
@@ -304,7 +275,7 @@ class AbsurdMonitor:
             total_workers=total_workers,
             active_workers=active_workers,
             idle_workers=idle_workers,
-            crashed_workers=crashed_workers,
+            crashed_workers=0,  # TODO: Track crashes
             tasks_per_worker=dict(self.worker_task_counts),
             avg_tasks_per_worker=avg_tasks_per_worker,
             worker_uptime_sec=worker_uptimes,
