@@ -492,12 +492,35 @@ export default function DirectoryBrowser({
                 }),
               }}
               sx={{
+                display: "grid",
+                gridTemplateColumns: thumbnailCols
+                  ? `repeat(${thumbnailCols}, 1fr)`
+                  : "repeat(auto-fill, minmax(280px, 1fr))",
+                gap: 2,
                 "& .qa-thumb-item": {
                   cursor: "pointer",
+                  borderRadius: 1,
+                  overflow: "hidden",
+                  boxShadow: 1,
+                  transition: "all 0.2s",
+                  bgcolor: "background.paper",
                 },
                 "& .qa-thumb-item:hover": {
-                  transform: "scale(1.05)",
-                  transition: "transform 0.2s",
+                  transform: "translateY(-4px)",
+                  boxShadow: 4,
+                },
+                "& .qa-thumb-item img": {
+                  width: "100%",
+                  height: "auto",
+                  display: "block",
+                },
+                "& .qa-thumb-item .filename": {
+                  padding: 1,
+                  fontFamily: "monospace",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  color: "text.primary",
+                  backgroundColor: "rgba(0, 0, 0, 0.05)",
                 },
               }}
             />

@@ -36,6 +36,7 @@ import { PlotlyLazy } from "../components/PlotlyLazy";
 import type { Data, Layout } from "../components/PlotlyLazy";
 import dayjs from "dayjs";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
+import { SchedulingPanel } from "../components/Observing";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -166,6 +167,23 @@ export default function ObservingPage() {
         )}
 
         <Grid container spacing={3}>
+          {/* Scheduling Panel */}
+          <Grid item xs={12}>
+            <SchedulingPanel
+              currentPointing={
+                currentPointing
+                  ? {
+                      ra_deg: currentPointing.ra,
+                      dec_deg: currentPointing.dec,
+                      mjd: currentPointing.mjd,
+                      timestamp: currentPointing.timestamp,
+                    }
+                  : undefined
+              }
+              calibrators={allCalibratorMatches.slice(0, 10)}
+            />
+          </Grid>
+
           {/* Current Status Panel */}
           <Grid item xs={12} md={4}>
             <Card>

@@ -102,6 +102,28 @@ export function MSInspectionPanel({ metadata }: MSInspectionPanelProps) {
                   size="small"
                 />
               </Grid>
+              {metadata.imaging_backend && (
+                <Grid
+                  size={{
+                    xs: 12,
+                    md: 6,
+                  }}
+                >
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Imaging Backend
+                  </Typography>
+                  <Chip
+                    label={metadata.imaging_backend === "wsclean" ? "WSClean" : "tclean"}
+                    color={metadata.imaging_backend === "wsclean" ? "primary" : "secondary"}
+                    size="small"
+                  />
+                  {metadata.imager && (
+                    <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                      {metadata.imager}
+                    </Typography>
+                  )}
+                </Grid>
+              )}
             </Grid>
           </CardContent>
         </Card>
@@ -180,50 +202,187 @@ export function MSInspectionPanel({ metadata }: MSInspectionPanelProps) {
       {metadata.flagging_stats && (
         <Grid size={12}>
           <Card>
-            <CardHeader title="Flagging Statistics" />
+            <CardHeader title="Flagging & RFI Statistics" />
             <CardContent>
-              <Typography variant="body2" gutterBottom>
-                Total flagged: {((metadata.flagging_stats.total_fraction ?? 0) * 100).toFixed(1)}%
-              </Typography>
-              {metadata.flagging_stats.per_antenna &&
-                Object.keys(metadata.flagging_stats.per_antenna).length > 0 && (
-                  <Accordion>
-                    <AccordionSummary expandIcon={<ExpandMore />}>
-                      <Typography variant="body2">Per-Antenna Flagging</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <TableContainer>
-                        <Table size="small">
-                          <TableHead>
-                            <TableRow>
-                              <TableCell>Antenna</TableCell>
-                              <TableCell align="right">Flagged %</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {Object.entries(metadata.flagging_stats.per_antenna).map(
-                              ([antId, frac]) => {
-                                const ant = metadata.antennas?.find(
-                                  (a) => String(a.antenna_id) === antId
-                                );
-                                return (
-                                  <TableRow key={antId}>
-                                    <TableCell>
-                                      {ant ? `${ant.name} (${antId})` : `Antenna ${antId}`}
+              <Stack spacing={2}>
+                <Box>
+                  <Typography variant="body2" gutterBottom>
+                    Total flagged:{" "}
+                    {((metadata.flagging_stats.total_fraction ?? 0) * 100).toFixed(1)}%
+                  </Typography>
+                  {metadata.flagging_stats.rfi_percentage !== undefined && (
+                    <Typography variant="body2" color="warning.main" gutterBottom>
+                      RFI detected: {(metadata.flagging_stats.rfi_percentage * 100).toFixed(1)}%
+                    </Typography>
+                  )}
+                </Box>
+
+                {/* AOFlagger Configuration */}
+                {(metadata.flagging_stats.aoflagger_version ||
+                  metadata.flagging_stats.aoflagger_strategy) && (
+                  <Box>
+                    <Typography variant="subtitle2" gutterBottom>
+                      AOFlagger Configuration
+                    </Typography>
+                    <Stack direction="row" spacing={1}>
+                      {metadata.flagging_stats.aoflagger_version && (
+                        <Chip
+                          label={`Version ${metadata.flagging_stats.aoflagger_version}`}
+                          size="small"
+                          variant="outlined"
+                        />
+                      )}
+                      {metadata.flagging_stats.aoflagger_strategy && (
+                        <Chip
+                          label={metadata.flagging_stats.aoflagger_strategy}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                        />
+                      )}
+                    </Stack>
+                  </Box>
+                )}
+
+                {/* Per-Antenna Flagging */}
+                {metadata.flagging_stats.per_antenna &&
+                  Object.keys(metadata.flagging_stats.per_antenna).length > 0 && (
+                    <Accordion>
+                      <AccordionSummary expandIcon={<ExpandMore />}>
+                        <Typography variant="body2">
+                          Per-Antenna Flagging (with RFI Context)
+                        </Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <TableContainer>
+                          <Table size="small">
+                            <TableHead>
+                              <TableRow>
+                                <TableCell>Antenna</TableCell>
+                                <TableCell align="right">Flagged %</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {Object.entries(metadata.flagging_stats.per_antenna).map(
+                                ([antId, frac]) => {
+                                  const ant = metadata.antennas?.find(
+                                    (a) => String(a.antenna_id) === antId
+                                  );
+                                  return (
+                                    <TableRow key={antId}>
+                                      <TableCell>
+                                        {ant ? `${ant.name} (${antId})` : `Antenna ${antId}`}
+                                      </TableCell>
+                                      <TableCell align="right">
+                                        {((frac as number) * 100).toFixed(1)}%
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                }
+                              )}
+                            </TableBody>
+                          </Table>
+                        </TableContainer>
+                      </AccordionDetails>
+                    </Accordion>
+                  )}
+
+                {/* Baseline RFI Statistics */}
+                {metadata.flagging_stats.baseline_rfi_stats &&
+                  Object.keys(metadata.flagging_stats.baseline_rfi_stats).length > 0 && (
+                    <Accordion>
+                      <AccordionSummary expandIcon={<ExpandMore />}>
+                        <Typography variant="body2">Baseline RFI Statistics (Top 20)</Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <TableContainer>
+                          <Table size="small">
+                            <TableHead>
+                              <TableRow>
+                                <TableCell>Baseline</TableCell>
+                                <TableCell align="right">RFI %</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {Object.entries(metadata.flagging_stats.baseline_rfi_stats)
+                                .sort(([, a], [, b]) => (b as number) - (a as number))
+                                .slice(0, 20)
+                                .map(([baseline, rfi]) => (
+                                  <TableRow key={baseline}>
+                                    <TableCell sx={{ fontFamily: "monospace" }}>
+                                      {baseline}
                                     </TableCell>
                                     <TableCell align="right">
-                                      {((frac as number) * 100).toFixed(1)}%
+                                      {((rfi as number) * 100).toFixed(1)}%
                                     </TableCell>
                                   </TableRow>
-                                );
-                              }
-                            )}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    </AccordionDetails>
-                  </Accordion>
-                )}
+                                ))}
+                            </TableBody>
+                          </Table>
+                        </TableContainer>
+                        {Object.keys(metadata.flagging_stats.baseline_rfi_stats).length > 20 && (
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ mt: 1, display: "block" }}
+                          >
+                            Showing top 20 of{" "}
+                            {Object.keys(metadata.flagging_stats.baseline_rfi_stats).length}{" "}
+                            baselines
+                          </Typography>
+                        )}
+                      </AccordionDetails>
+                    </Accordion>
+                  )}
+
+                {/* Frequency RFI Statistics */}
+                {metadata.flagging_stats.frequency_rfi_stats &&
+                  Object.keys(metadata.flagging_stats.frequency_rfi_stats).length > 0 && (
+                    <Accordion>
+                      <AccordionSummary expandIcon={<ExpandMore />}>
+                        <Typography variant="body2">
+                          Frequency RFI Statistics (Top 15 Channels)
+                        </Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <TableContainer>
+                          <Table size="small">
+                            <TableHead>
+                              <TableRow>
+                                <TableCell>Channel</TableCell>
+                                <TableCell align="right">RFI %</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {Object.entries(metadata.flagging_stats.frequency_rfi_stats)
+                                .sort(([, a], [, b]) => (b as number) - (a as number))
+                                .slice(0, 15)
+                                .map(([channel, rfi]) => (
+                                  <TableRow key={channel}>
+                                    <TableCell>Channel {channel}</TableCell>
+                                    <TableCell align="right">
+                                      {((rfi as number) * 100).toFixed(1)}%
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                            </TableBody>
+                          </Table>
+                        </TableContainer>
+                        {Object.keys(metadata.flagging_stats.frequency_rfi_stats).length > 15 && (
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ mt: 1, display: "block" }}
+                          >
+                            Showing top 15 of{" "}
+                            {Object.keys(metadata.flagging_stats.frequency_rfi_stats).length}{" "}
+                            channels
+                          </Typography>
+                        )}
+                      </AccordionDetails>
+                    </Accordion>
+                  )}
+              </Stack>
             </CardContent>
           </Card>
         </Grid>

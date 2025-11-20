@@ -223,6 +223,7 @@ export interface ImageInfo {
   created_at?: string | null;
   type: string;
   source_id?: string | null;
+  imaging_backend?: "wsclean" | "tclean" | null;
   beam_major_arcsec?: number | null;
   beam_minor_arcsec?: number | null;
   beam_pa_deg?: number | null;
@@ -456,6 +457,8 @@ export interface MSMetadata {
   size_gb?: number;
   data_columns?: string[];
   calibrated?: boolean;
+  imaging_backend?: "wsclean" | "tclean" | null;
+  imager?: string;
   num_fields?: number;
   field_names?: string[];
   num_antennas?: number;
@@ -484,6 +487,12 @@ export interface FlaggingStats {
   total_fraction?: number;
   per_antenna?: Record<string, number>;
   per_field?: Record<string, number>;
+  aoflagger_version?: string;
+  aoflagger_strategy?: string;
+  rfi_percentage?: number;
+  baseline_rfi_stats?: Record<string, number>;
+  time_rfi_stats?: Record<string, number>;
+  frequency_rfi_stats?: Record<string, number>;
 }
 
 export interface CalTableCompatibility {

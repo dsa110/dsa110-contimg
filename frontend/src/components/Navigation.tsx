@@ -57,6 +57,7 @@ const navGroups = [
     title: "Operations",
     items: [
       { path: "/control", label: "Control", icon: Settings },
+      { path: "/absurd", label: "Absurd", icon: AccountTree },
       { path: "/operations", label: "Operations", icon: Build },
       { path: "/calibration", label: "Calibration", icon: Build },
       { path: "/events", label: "Events", icon: EventNote },
