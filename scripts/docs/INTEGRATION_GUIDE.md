@@ -2,7 +2,8 @@
 
 ## Overview
 
-This guide explains how to integrate the error detection framework into your workflows.
+This guide explains how to integrate the error detection framework into your
+workflows.
 
 ---
 
@@ -115,6 +116,7 @@ cd frontend
 ```
 
 **What happens:**
+
 1. Pre-flight checks (Node version, deps, permissions)
 2. Execute build with monitoring
 3. Post-execution validation (check dist files)
@@ -197,11 +199,13 @@ npm install
 ## Best Practices
 
 1. **Use safe scripts for critical commands**
+
    ```bash
    npm run build:safe  # Instead of npm run build
    ```
 
 2. **Run pre-flight checks before long operations**
+
    ```bash
    source scripts/lib/error-detection.sh
    preflight_checks || exit 1
@@ -224,6 +228,7 @@ npm install
 ## Next Steps
 
 1. Test the implementation:
+
    ```bash
    cd frontend
    npm run build:safe
@@ -243,7 +248,7 @@ npm install
 ## Support
 
 For issues or questions:
+
 - Check `ERROR_DETECTION_FRAMEWORK.md` for framework details
 - Review `EDGE_CASE_ERROR_DETECTION.md` for edge cases
 - See `REAL_WORLD_EDGE_CASES.md` for real-world examples
-

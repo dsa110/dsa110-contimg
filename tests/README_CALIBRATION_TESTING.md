@@ -2,9 +2,12 @@
 
 ## Overview
 
-This document describes the comprehensive testing approach for the DSA-110 continuum imaging calibration pipeline. The tests cover critical issues that have been identified and fixed in production:
+This document describes the comprehensive testing approach for the DSA-110
+continuum imaging calibration pipeline. The tests cover critical issues that
+have been identified and fixed in production:
 
-1. **Subband ordering** - Files must be sorted by subband number (0-15) for correct spectral ordering
+1. **Subband ordering** - Files must be sorted by subband number (0-15) for
+   correct spectral ordering
 2. **MS phasing** - REFERENCE_DIR must be correctly set for calibration
 3. **MODEL_DATA population** - Required for calibration, must be validated
 4. **Pre-bandpass phase solve** - Parameters (solint, minsnr) must be correct
@@ -16,7 +19,9 @@ This document describes the comprehensive testing approach for the DSA-110 conti
 ### Unit Tests (`tests/unit/`)
 
 #### `test_calibration_comprehensive.py`
+
 Comprehensive unit tests covering:
+
 - Subband ordering logic
 - MS phasing verification
 - MODEL_DATA validation
@@ -25,21 +30,27 @@ Comprehensive unit tests covering:
 - Calibration parameter validation
 
 #### `test_subband_ordering.py`
+
 Focused tests for subband ordering:
+
 - Subband code extraction
 - File sorting by subband number
 - Handling of mixed timestamps
 - Complete 16-subband group validation
 
 #### `test_cli_calibration_args.py`
+
 CLI parameter validation:
+
 - Parameter existence checks
 - Signature validation
 
 ### Integration Tests (`tests/integration/`)
 
 #### `test_calibration_workflow.py`
+
 Full workflow integration tests:
+
 - Subband file discovery and ordering
 - UVH5 to MS conversion
 - MS phasing verification
@@ -47,7 +58,9 @@ Full workflow integration tests:
 - Parameter validation
 
 #### `test_pipeline_end_to_end.sh`
+
 End-to-end pipeline test (existing):
+
 - Full pipeline from UVH5 to calibrated image
 - Includes calibration as one stage
 
@@ -92,7 +105,8 @@ pytest tests/unit/test_calibration*.py --cov=src/dsa110_contimg/calibration --co
 
 ### Critical Components Tested
 
-1. **Subband Ordering** (`src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py`)
+1. **Subband Ordering**
+   (`src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py`)
    - ✓ File sorting by subband number
    - ✓ Handling of mixed timestamps
    - ✓ Complete group validation
@@ -118,35 +132,49 @@ pytest tests/unit/test_calibration*.py --cov=src/dsa110_contimg/calibration --co
 ## Known Issues and Tests
 
 ### Issue: Subband Ordering
-**Problem:** Files sorted alphabetically by filename, causing incorrect spectral order.
 
-**Test:** `test_subband_ordering.py::TestSubbandSorting::test_sort_by_subband_number`
+**Problem:** Files sorted alphabetically by filename, causing incorrect spectral
+order.
+
+**Test:**
+`test_subband_ordering.py::TestSubbandSorting::test_sort_by_subband_number`
+
 - Verifies files sort by subband number (0-15), not filename
 
 **Fix:** Custom sort key that extracts subband number from filename.
 
 ### Issue: MS Phasing
-**Problem:** REFERENCE_DIR not updated by phaseshift, causing 54.7 arcmin offset.
 
-**Test:** `test_calibration_comprehensive.py::TestMSPhasing::test_phase_center_alignment`
+**Problem:** REFERENCE_DIR not updated by phaseshift, causing 54.7 arcmin
+offset.
+
+**Test:**
+`test_calibration_comprehensive.py::TestMSPhasing::test_phase_center_alignment`
+
 - Verifies phase center alignment calculation
 - Tests separation threshold (< 1 arcmin)
 
 **Fix:** Manual REFERENCE_DIR update after phaseshift.
 
 ### Issue: Pre-Bandpass Phase Parameters
+
 **Problem:** Default solint='inf' and minsnr=5.0 cause high flagging (80-90%).
 
-**Test:** `test_calibration_comprehensive.py::TestPreBandpassPhase::test_solint_parameter_default`
+**Test:**
+`test_calibration_comprehensive.py::TestPreBandpassPhase::test_solint_parameter_default`
+
 - Verifies default parameters
 - Tests recommended values (solint='30s', minsnr=3.0)
 
 **Fix:** CLI parameters `--prebp-solint 30s --prebp-minsnr 3.0`.
 
 ### Issue: Bandpass Solution Quality
+
 **Problem:** >50% of solutions flagged due to low SNR.
 
-**Test:** `test_calibration_comprehensive.py::TestBandpassCalibration::test_bandpass_flagged_fraction_threshold`
+**Test:**
+`test_calibration_comprehensive.py::TestBandpassCalibration::test_bandpass_flagged_fraction_threshold`
+
 - Verifies acceptable threshold (< 50%)
 - Tests solution quality metrics
 
@@ -192,11 +220,13 @@ These tests should be run in CI/CD pipelines:
 ## Test Data Requirements
 
 ### Synthetic Data
+
 - Generated using `tests/utils/generate_uvh5_calibrator.py`
 - 16 subband files with proper frequency structure
 - Point source calibrator at known position
 
 ### Real Data (Optional)
+
 - For integration tests with real data
 - Requires access to actual UVH5 files
 - Should be minimal subset for fast testing
@@ -222,4 +252,3 @@ These tests should be run in CI/CD pipelines:
 3. **Performance Tests:** Measure calibration performance
 4. **Regression Tests:** Test against known good solutions
 5. **Visualization Tests:** Verify calibration plots/quality metrics
-

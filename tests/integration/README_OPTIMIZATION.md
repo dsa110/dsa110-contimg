@@ -20,7 +20,7 @@ def test_example(clean_test_dir, casa6_python):
     """Example using shared fixtures."""
     # Use clean_test_dir instead of tmp_path for faster execution
     output_file = clean_test_dir / "output.fits"
-    
+
     # Test code here...
     assert output_file.exists()
 ```
@@ -76,4 +76,3 @@ pytest tests/integration/test_orchestrator.py -n auto
 3. **Mock external dependencies** (APIs, file I/O)
 4. **Run tests in parallel** with pytest-xdist
 5. **Use selective markers** to run only necessary tests
-

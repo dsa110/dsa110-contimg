@@ -13,6 +13,7 @@ pytest tests/science/test_calibration_scientific_validation.py tests/science/tes
 ```
 
 These tests validate:
+
 - Test structure and logic
 - Scientific principles
 - CASA standards knowledge
@@ -38,10 +39,12 @@ pytest tests/science/test_calibration_integration_validation.py -v
 **Purpose**: Validate scientific principles and test framework
 
 **Files**:
+
 - `test_calibration_scientific_validation.py` - 26 tests
 - `test_casa_compliance.py` - 15 tests
 
 **What They Test**:
+
 - Flux scale principles
 - Phase solution physics
 - Bandpass shape requirements
@@ -50,6 +53,7 @@ pytest tests/science/test_calibration_integration_validation.py -v
 - Calibrator selection criteria
 
 **Run**:
+
 ```bash
 pytest tests/science/test_calibration_scientific_validation.py tests/science/test_casa_compliance.py -v
 ```
@@ -61,6 +65,7 @@ pytest tests/science/test_calibration_scientific_validation.py tests/science/tes
 **File**: `test_calibration_integration_validation.py`
 
 **What They Test**:
+
 - Actual bandpass normalization from table
 - Actual MODEL_DATA flux from MS
 - Actual phase scatter from tables
@@ -68,6 +73,7 @@ pytest tests/science/test_calibration_scientific_validation.py tests/science/tes
 - Actual CASA table structure
 
 **Run**:
+
 ```bash
 # Set environment variables first
 export TEST_MS_PATH="/path/to/your.ms"
@@ -115,7 +121,8 @@ pytest tests/science/test_calibration_integration_validation.py -v
 
 ### MS Structure Tests
 
-- **Phase center alignment**: REFERENCE_DIR must match calibrator within 1 arcmin
+- **Phase center alignment**: REFERENCE_DIR must match calibrator within 1
+  arcmin
 - **MODEL_DATA phase scatter**: Should be < 10 degrees
 - **Field structure**: Field should contain calibrator
 
@@ -139,6 +146,7 @@ pytest tests/science/test_calibration_integration_validation.py -v
 **Problem**: Bandpass median amplitude ≠ 1.0
 
 **Possible causes**:
+
 - `solnorm=True` not working correctly
 - Bandpass calibration error
 - Data quality issues
@@ -150,6 +158,7 @@ pytest tests/science/test_calibration_integration_validation.py -v
 **Problem**: MODEL_DATA flux doesn't match catalog
 
 **Possible causes**:
+
 - MODEL_DATA population error
 - Catalog flux error
 - Primary beam weighting error
@@ -161,6 +170,7 @@ pytest tests/science/test_calibration_integration_validation.py -v
 **Problem**: REFERENCE_DIR offset > 1 arcmin
 
 **Possible causes**:
+
 - MS phasing error (REFERENCE_DIR not updated)
 - `phaseshift` didn't update REFERENCE_DIR
 - Manual REFERENCE_DIR update failed
@@ -172,6 +182,7 @@ pytest tests/science/test_calibration_integration_validation.py -v
 **Problem**: Phase scatter exceeds threshold
 
 **Possible causes**:
+
 - Phase decorrelation
 - Poor data quality
 - Calibration parameter issues
@@ -184,12 +195,14 @@ pytest tests/science/test_calibration_integration_validation.py -v
 **Problem**: >50% of solutions flagged
 
 **Possible causes**:
+
 - Low SNR
 - Poor data quality
 - Calibration parameter issues
 - Missing pre-bandpass phase correction
 
-**Action**: Check calibration parameters, data quality, and add pre-bandpass phase
+**Action**: Check calibration parameters, data quality, and add pre-bandpass
+phase
 
 ## Integration with CI/CD
 
@@ -219,4 +232,3 @@ fi
 2. **Fix any failures** before proceeding
 3. **Document results** for future reference
 4. **Add to CI/CD** for continuous validation
-
