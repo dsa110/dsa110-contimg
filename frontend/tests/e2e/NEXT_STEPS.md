@@ -3,16 +3,19 @@
 ## Current Status
 
 ✅ **Phase 1: Cursor Browser Extension** - Complete
+
 - Dashboard accessible and functional
 - API endpoints working correctly
 - Data loading successfully
 
 ✅ **Phase 2: Playwright Automated Tests** - Complete
+
 - 7/7 tests passing
 - Core functionality verified
 - Test infrastructure operational
 
 ✅ **Phase 3: chrome-devtools MCP** - Ready
+
 - Server running in Docker
 - Available for deep debugging
 
@@ -23,6 +26,7 @@
 **Goal:** Automate test execution in CI pipeline
 
 **Tasks:**
+
 - [ ] Add Playwright test step to CI workflow (GitHub Actions/GitLab CI)
 - [ ] Configure Docker-based test execution
 - [ ] Set up test artifacts (HTML reports, screenshots, videos)
@@ -30,6 +34,7 @@
 - [ ] Configure test retry logic for flaky tests
 
 **Files to create/modify:**
+
 - `.github/workflows/test.yml` or `.gitlab-ci.yml`
 - `frontend/playwright.config.ts` (CI-specific settings)
 
@@ -38,6 +43,7 @@
 **Goal:** Increase test coverage across dashboard pages
 
 **Tasks:**
+
 - [ ] Add tests for Dashboard page (`/dashboard`)
 - [ ] Add tests for Control page (`/control`)
 - [ ] Add tests for Streaming page (`/streaming`)
@@ -48,6 +54,7 @@
 - [ ] Add error handling and edge case tests
 
 **Test files to create:**
+
 - `frontend/tests/e2e/dashboard-page.spec.ts`
 - `frontend/tests/e2e/control-page.spec.ts`
 - `frontend/tests/e2e/streaming-page.spec.ts`
@@ -59,6 +66,7 @@
 **Goal:** Ensure dashboard meets performance requirements
 
 **Tasks:**
+
 - [ ] Use chrome-devtools MCP for performance profiling
 - [ ] Measure page load times for each route
 - [ ] Check Core Web Vitals (LCP, FID, CLS)
@@ -68,6 +76,7 @@
 - [ ] Identify performance bottlenecks
 
 **Tools:**
+
 - chrome-devtools MCP (`performance_start_trace`, `performance_stop_trace`)
 - Playwright performance API
 - Lighthouse CI
@@ -77,6 +86,7 @@
 **Goal:** Document testing strategy and workflows
 
 **Tasks:**
+
 - [ ] Document test strategy in `frontend/tests/e2e/README.md`
 - [ ] Update main README with testing instructions
 - [ ] Create test debugging guide
@@ -85,6 +95,7 @@
 - [ ] Document CI/CD test execution
 
 **Files to create:**
+
 - `frontend/tests/e2e/README.md`
 - `docs/testing-guide.md`
 
@@ -95,6 +106,7 @@
 **Goal:** Detect visual changes automatically
 
 **Tasks:**
+
 - [ ] Set up screenshot comparison tests
 - [ ] Add visual diff detection
 - [ ] Test responsive layouts across viewports
@@ -102,6 +114,7 @@
 - [ ] Set up visual test review process
 
 **Tools:**
+
 - Playwright screenshot comparison
 - Percy or Chromatic (optional)
 
@@ -110,6 +123,7 @@
 **Goal:** Ensure dashboard is accessible
 
 **Tasks:**
+
 - [ ] Install `@axe-core/playwright`
 - [ ] Add a11y tests to test suite
 - [ ] Verify keyboard navigation
@@ -118,11 +132,12 @@
 - [ ] Fix accessibility issues
 
 **Example:**
-```typescript
-import { injectAxe, checkA11y } from 'axe-playwright';
 
-test('Dashboard is accessible', async ({ page }) => {
-  await page.goto('/sky');
+```typescript
+import { injectAxe, checkA11y } from "axe-playwright";
+
+test("Dashboard is accessible", async ({ page }) => {
+  await page.goto("/sky");
   await injectAxe(page);
   await checkA11y(page);
 });
@@ -133,19 +148,22 @@ test('Dashboard is accessible', async ({ page }) => {
 **Goal:** Ensure compatibility across browsers
 
 **Tasks:**
+
 - [ ] Run tests on Firefox (already configured)
 - [ ] Run tests on WebKit/Safari (already configured)
 - [ ] Test on mobile viewports (already configured)
 - [ ] Fix browser-specific issues
 - [ ] Document browser support matrix
 
-**Note:** Playwright config already includes Firefox, WebKit, and mobile viewports.
+**Note:** Playwright config already includes Firefox, WebKit, and mobile
+viewports.
 
 ### 8. API Testing Enhancement
 
 **Goal:** Comprehensive API contract testing
 
 **Tasks:**
+
 - [ ] Add API contract tests
 - [ ] Test error scenarios (404, 500, etc.)
 - [ ] Verify WebSocket connections
@@ -160,6 +178,7 @@ test('Dashboard is accessible', async ({ page }) => {
 **Goal:** Track test health and performance
 
 **Tasks:**
+
 - [ ] Set up error tracking (Sentry, etc.)
 - [ ] Monitor test flakiness rates
 - [ ] Track test execution times
@@ -172,6 +191,7 @@ test('Dashboard is accessible', async ({ page }) => {
 **Goal:** Keep tests healthy and up-to-date
 
 **Tasks:**
+
 - [ ] Schedule regular test reviews
 - [ ] Update tests for new features
 - [ ] Refactor flaky tests
@@ -182,6 +202,7 @@ test('Dashboard is accessible', async ({ page }) => {
 ## Quick Wins (Can Do Now)
 
 1. **Add npm script for tests:**
+
    ```json
    "test:e2e": "playwright test",
    "test:e2e:ui": "playwright test --ui"
@@ -223,4 +244,3 @@ test('Dashboard is accessible', async ({ page }) => {
 - [Playwright Best Practices](https://playwright.dev/docs/best-practices)
 - [Testing Library Best Practices](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library)
 - [chrome-devtools MCP Documentation](https://github.com/chrome-devtools-mcp)
-
