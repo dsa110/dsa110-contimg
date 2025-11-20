@@ -5,21 +5,21 @@
  * This catches missing dependencies like date-fns
  */
 
-import { readFileSync, readdirSync, statSync } from 'fs';
-import { join, extname } from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync, readdirSync, statSync } from "fs";
+import { join, extname } from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = join(__filename, '..', '..');
+const __dirname = join(__filename, "..", "..");
 
 // Known problematic imports to check for
 const PROBLEMATIC_IMPORTS = [
-  { pattern: /from ['"]date-fns['"]/, message: 'date-fns is not installed, use dayjs instead' },
-  { pattern: /import.*date-fns/, message: 'date-fns is not installed, use dayjs instead' },
+  { pattern: /from ['"]date-fns['"]/, message: "date-fns is not installed, use dayjs instead" },
+  { pattern: /import.*date-fns/, message: "date-fns is not installed, use dayjs instead" },
 ];
 
 // Required dependencies that should exist
-const REQUIRED_DEPS = ['dayjs'];
+const REQUIRED_DEPS = ["dayjs"];
 
 function getAllFiles(dir, fileList = []) {
   const files = readdirSync(dir);
@@ -30,13 +30,13 @@ function getAllFiles(dir, fileList = []) {
 
     if (stat.isDirectory()) {
       // Skip node_modules and build directories
-      if (!['node_modules', 'dist', '.git', '.vite'].includes(file)) {
+      if (!["node_modules", "dist", ".git", ".vite"].includes(file)) {
         getAllFiles(filePath, fileList);
       }
     } else if (
-      ['.ts', '.tsx', '.js', '.jsx'].includes(extname(file)) &&
-      !file.includes('.test.') &&
-      !file.includes('.spec.')
+      [".ts", ".tsx", ".js", ".jsx"].includes(extname(file)) &&
+      !file.includes(".test.") &&
+      !file.includes(".spec.")
     ) {
       fileList.push(filePath);
     }
@@ -46,14 +46,14 @@ function getAllFiles(dir, fileList = []) {
 }
 
 function checkFile(filePath) {
-  const content = readFileSync(filePath, 'utf-8');
+  const content = readFileSync(filePath, "utf-8");
   const errors = [];
 
   // Check for problematic imports
   PROBLEMATIC_IMPORTS.forEach(({ pattern, message }) => {
     if (pattern.test(content)) {
       errors.push({
-        file: filePath.replace(__dirname + '/', ''),
+        file: filePath.replace(__dirname + "/", ""),
         message,
       });
     }
@@ -63,8 +63,8 @@ function checkFile(filePath) {
 }
 
 function checkPackageJson() {
-  const packageJsonPath = join(__dirname, 'package.json');
-  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+  const packageJsonPath = join(__dirname, "package.json");
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
   const allDeps = {
     ...packageJson.dependencies,
     ...packageJson.devDependencies,
@@ -76,9 +76,9 @@ function checkPackageJson() {
 }
 
 function main() {
-  console.log('Checking imports...\n');
+  console.log("Checking imports...\n");
 
-  const srcDir = join(__dirname, 'src');
+  const srcDir = join(__dirname, "src");
   const files = getAllFiles(srcDir);
   const errors = [];
 
@@ -93,7 +93,7 @@ function main() {
 
   // Report results
   if (errors.length > 0) {
-    console.error('❌ Import errors found:\n');
+    console.error("❌ Import errors found:\n");
     errors.forEach(({ file, message }) => {
       console.error(`  ${file}: ${message}`);
     });
@@ -101,16 +101,15 @@ function main() {
   }
 
   if (missingDeps.length > 0) {
-    console.error('❌ Missing required dependencies:\n');
+    console.error("❌ Missing required dependencies:\n");
     missingDeps.forEach((dep) => {
       console.error(`  ${dep} is not installed`);
     });
     process.exit(1);
   }
 
-  console.log('✅ All imports are valid');
+  console.log("✅ All imports are valid");
   console.log(`   Checked ${files.length} files`);
 }
 
 main();
-
