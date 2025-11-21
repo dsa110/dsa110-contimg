@@ -16,7 +16,7 @@ ENV PATH=/opt/conda/envs/casa6/bin:$PATH \
 
 WORKDIR /app
 # Copy only minimal files required at runtime; code is volume-mounted by compose
-COPY src /app/src
+COPY backend/src /app/src
 COPY scripts /app/scripts
 COPY ops /app/ops
 

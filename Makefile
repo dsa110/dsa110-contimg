@@ -9,20 +9,20 @@ CASA6_PYTHON ?= /opt/miniforge/envs/casa6/bin/python
 # Validate test organization
 test-validate:
 	@echo "Validating test organization..."
-	@$(CASA6_PYTHON) scripts/validate-test-organization.py
+	@$(CASA6_PYTHON) scripts/quality/validate-test-organization.py
 
 # Validate pytest usage patterns
 test-pytest-validate:
 	@echo "Validating pytest usage patterns..."
-	@./scripts/validate-pytest-usage.sh
+	@./scripts/quality/validate-pytest-usage.sh
 
 # Install pre-commit hook for test organization
 test-org-install:
-	@./scripts/test-organization-enforcer.sh install
+	@./scripts/quality/test-organization-enforcer.sh install
 
 # Check test organization
 test-org-check:
-	@./scripts/test-organization-enforcer.sh check
+	@./scripts/quality/test-organization-enforcer.sh check
 
 # Check development environment
 check-env:

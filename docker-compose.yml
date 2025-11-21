@@ -9,7 +9,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./src:/app/src
+      - ./backend/src:/app/src
       - ./state:/app/state
       - /scratch:/scratch
       - /stage:/stage:ro
