@@ -136,7 +136,7 @@ def run_wsclean(
                     "/stage:/stage",
                     "-v",
                     "/dev/shm:/dev/shm",
-                    "wsclean-everybeam-0.7.4",
+                    "wsclean-everybeam:0.7.4",
                     "wsclean",
                 ]
         else:
@@ -160,13 +160,13 @@ def run_wsclean(
                     "/stage:/stage",
                     "-v",
                     "/dev/shm:/dev/shm",
-                    "wsclean-everybeam-0.7.4",
+                    "wsclean-everybeam:0.7.4",
                     "wsclean",
                 ]
             else:
                 raise RuntimeError(
                     "WSClean not found. Install WSClean or set WSCLEAN_PATH environment variable, "
-                    "or ensure Docker is available with wsclean-everybeam-0.7.4 image."
+                    "or ensure Docker is available with wsclean-everybeam:0.7.4 image."
                 )
         else:
             wsclean_cmd = [wsclean_cmd]

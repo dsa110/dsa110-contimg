@@ -359,25 +359,32 @@ export default function PointingVisualization({
         });
       }
 
-      // Draw beam footprints (actual sky coverage) from images
+      // Draw beam footprints (actual sky coverage) from pointing history
       // This shows real observed areas, not telescope pointing paths
-      if (showHistory && imagesWithCoordinates.length > 0) {
+      if (showHistory && historyData.length > 0) {
         // Create arrays to hold all beam footprint points
         const beamFootprints: Data[] = [];
 
         // Color by observation time (oldest = blue, newest = red)
-        const timestamps = imagesWithCoordinates
-          .map((img) => (img.created_at ? new Date(img.created_at).getTime() : 0))
-          .filter((t) => t > 0);
+        const timestamps = historyData.map((point) => point.timestamp);
         const minTime = Math.min(...timestamps);
         const maxTime = Math.max(...timestamps);
         const timeRange = maxTime - minTime || 1;
 
+        // Default beam radius: ~2.5 degrees (DSA-110 primary beam FWHM)
+        const defaultBeamRadius = 2.5;
+
         // Draw each beam as circle outline
-        imagesWithCoordinates.forEach((img, index) => {
-          const ra = img.center_ra_deg!;
-          const dec = img.center_dec_deg!;
-          const beamRadius = getBeamRadiusDeg(img)!;
+        // Sample every Nth point if too many (for performance)
+        const sampleInterval = historyData.length > 500 ? Math.ceil(historyData.length / 500) : 1;
+
+        historyData.forEach((point, index) => {
+          // Skip points based on sample interval
+          if (index % sampleInterval !== 0) return;
+
+          const ra = point.ra_deg;
+          const dec = point.dec_deg;
+          const beamRadius = defaultBeamRadius;
 
           // Generate circle points around the beam center
           const numPoints = 32; // Circle resolution
@@ -399,9 +406,9 @@ export default function PointingVisualization({
           const ys = projected.map((p) => p[1]);
 
           // Color by time (blue = old, red = new)
-          const timestamp = img.created_at ? new Date(img.created_at).getTime() : minTime;
+          const timestamp = point.timestamp;
           const normalizedTime = (timestamp - minTime) / timeRange;
-          const color = `rgba(${Math.round(255 * normalizedTime)}, ${Math.round(150 * (1 - normalizedTime))}, ${Math.round(255 * (1 - normalizedTime))}, 0.8)`;
+          const color = `rgba(${Math.round(255 * normalizedTime)}, ${Math.round(150 * (1 - normalizedTime))}, ${Math.round(255 * (1 - normalizedTime))}, 0.3)`;
 
           beamFootprints.push({
             type: "scatter",
@@ -410,14 +417,14 @@ export default function PointingVisualization({
             y: ys,
             line: {
               color: color,
-              width: 1.5,
+              width: 1,
             },
             hovertemplate:
               `<b>Beam Footprint</b><br>` +
               `Center RA: ${ra.toFixed(3)}°<br>` +
               `Center Dec: ${dec.toFixed(3)}°<br>` +
               `Beam Diameter: ${(beamRadius * 2).toFixed(2)}°<br>` +
-              `Time: ${img.created_at || "N/A"}<extra></extra>`,
+              `MJD: ${timestamp.toFixed(4)}<extra></extra>`,
             showlegend: false,
             hoverinfo: "text" as any,
           });
@@ -518,6 +525,37 @@ export default function PointingVisualization({
       const yRange = [-81, 81];
       const yScaleRatio = 1;
 
+      // Create colorbar trace if we have history data
+      const timestamps = historyData.map((point) => point.timestamp);
+      const colorbarTrace: Data | null =
+        showHistory && historyData.length > 0
+          ? {
+              type: "scatter",
+              x: [null],
+              y: [null],
+              mode: "markers",
+              marker: {
+                colorscale: [
+                  [0, "rgb(0, 150, 255)"], // Blue (oldest)
+                  [0.5, "rgb(127, 75, 127)"], // Purple (middle)
+                  [1, "rgb(255, 0, 0)"], // Red (newest)
+                ],
+                showscale: true,
+                cmin: Math.min(...timestamps),
+                cmax: Math.max(...timestamps),
+                colorbar: {
+                  title: { text: "MJD", side: "right" },
+                  thickness: 15,
+                  len: 0.5,
+                  x: 1.02,
+                  xpad: 0,
+                },
+              },
+              showlegend: false,
+              hoverinfo: "skip" as any,
+            }
+          : null;
+
       const layout: Partial<Layout> = {
         title: {
           text: "Sky Map (Mollweide - HEALPix GSM)",
@@ -543,7 +581,7 @@ export default function PointingVisualization({
         plot_bgcolor: "#1e1e1e",
         paper_bgcolor: "#1e1e1e",
         font: { color: "#ffffff" },
-        margin: { l: 20, r: 20, t: 50, b: 20 },
+        margin: { l: 20, r: 80, t: 50, b: 20 },
         height: height,
         hovermode: "closest" as any,
         showlegend: false,
@@ -570,7 +608,12 @@ export default function PointingVisualization({
           : [],
       };
 
-      return { skyMapData: [...data, ...gridLines], skyMapLayout: layout };
+      return {
+        skyMapData: colorbarTrace
+          ? [...data, ...gridLines, colorbarTrace]
+          : [...data, ...gridLines],
+        skyMapLayout: layout,
+      };
     } catch (error) {
       console.error("Error in skyMapData useMemo:", error);
       // Try to generate at least grid lines as fallback

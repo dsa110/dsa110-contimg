@@ -1,0 +1,4 @@
+# Ignore generated artifacts; keep docs
+*
+!.gitignore
+!README.md

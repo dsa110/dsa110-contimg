@@ -17,6 +17,7 @@ export const routeComponentMap: Record<string, () => Promise<any>> = {
   "/sky": () => import("../pages/SkyViewPage"),
   "/carta": () => import("../pages/CARTAPage"),
   "/qa": () => import("../pages/QAPage"),
+  "/system-status": () => import("../pages/SystemStatusPage"),
   "/health": () => import("../pages/SystemDiagnosticsPage"),
   "/events": () => import("../pages/EventsPage"),
 };

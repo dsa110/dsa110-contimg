@@ -40,7 +40,8 @@ const routeBreadcrumbs: Record<string, BreadcrumbItem[]> = {
     { label: "QA Tools", path: "/qa" },
     { label: "CARTA Viewer" },
   ],
-  "/health": [{ label: "Dashboard", path: "/dashboard" }, { label: "System Health" }],
+  "/system-status": [{ label: "Dashboard", path: "/dashboard" }, { label: "System Status" }],
+  "/health": [{ label: "Dashboard", path: "/dashboard" }, { label: "System Diagnostics" }],
   "/events": [{ label: "Dashboard", path: "/dashboard" }, { label: "Events" }],
   "/cache": [{ label: "Dashboard", path: "/dashboard" }, { label: "Cache Statistics" }],
   "/images/:imageId": [

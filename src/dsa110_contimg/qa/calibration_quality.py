@@ -482,7 +482,7 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
                             warnings.append(
                                 f"Large pooled phase scatter: {phase_scatter_deg:.1f}° "
                                 f"(per-antenna temporal scatter unavailable with solint='inf') "
-                                f"- likely cross-antenna geometric delays (expected without delay calibration)"
+                                f"- this is EXPECTED and BENIGN: geometric offsets + phase wrapping artifacts don't affect imaging quality"
                             )
 
                 # Check for antennas with all solutions flagged

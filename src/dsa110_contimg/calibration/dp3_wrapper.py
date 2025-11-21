@@ -235,7 +235,9 @@ def concatenate_fields_in_ms(
 
         # Concatenate the rephased MS
         try:
-            result = _concatenate_fields_manual(temp_rephased_ms, output_ms_path)
+            result = _concatenate_fields_manual(
+                temp_rephased_ms, output_ms_path, target_ra_deg, target_dec_deg
+            )
             return result
         finally:
             # Clean up temporary rephased MS
@@ -243,10 +245,15 @@ def concatenate_fields_in_ms(
                 shutil.rmtree(temp_rephased_ms)
     else:
         # Use manual concatenation (CASA concat may not work)
-        return _concatenate_fields_manual(ms_path, output_ms_path)
+        return _concatenate_fields_manual(ms_path, output_ms_path, None, None)
 
 
-def _concatenate_fields_manual(ms_path: str, output_ms_path: str) -> str:
+def _concatenate_fields_manual(
+    ms_path: str,
+    output_ms_path: str,
+    target_ra_deg: Optional[float],
+    target_dec_deg: Optional[float],
+) -> str:
     """Manually concatenate fields by setting all FIELD_ID to 0.
 
     This is simpler than using CASA concat and works for our use case.
@@ -283,21 +290,40 @@ def _concatenate_fields_manual(ms_path: str, output_ms_path: str) -> str:
             field_table.putcell("NAME", 0, "CONCATENATED")
     field_table.close()
 
+    # Copy DATA to CORRECTED_DATA (fresh start for self-calibration)
+    LOG.info("Copying DATA to CORRECTED_DATA for self-calibration...")
+    ms_table = table(output_ms_path, readonly=False)
+    data_col = ms_table.getcol("DATA")
+    ms_table.putcol("CORRECTED_DATA", data_col)
+    ms_table.close()
+    LOG.info("✓ CORRECTED_DATA initialized from DATA")
+
     # Recalculate UVW coordinates for the unified field geometry
     # This is CRITICAL - without this, MODEL_DATA from wsclean will be wrong
     LOG.info("Recalculating UVW coordinates for concatenated geometry...")
-    try:
-        from casatasks import fixvis
 
-        fixvis(
-            vis=output_ms_path,
-            outputvis="",  # Modify in place
-            field="0",
-            phasecenter="",  # Keep existing phase center
+    if target_ra_deg is not None and target_dec_deg is not None:
+        try:
+            import astropy.units as u
+            from astropy.coordinates import SkyCoord
+            from casatasks import phaseshift
+
+            # Format phase center as J2000 HH:MM:SS.SSS +DD:MM:SS.SS
+            coord = SkyCoord(ra=target_ra_deg * u.deg, dec=target_dec_deg * u.deg, frame="icrs")
+            phasecenter_str = f"J2000 {coord.ra.to_string(unit=u.hour, sep=':', precision=2)} {coord.dec.to_string(unit=u.deg, sep=':', precision=2)}"
+
+            phaseshift(
+                vis=output_ms_path,
+                field="0",
+                phasecenter=phasecenter_str,
+            )
+            LOG.info(f"✓ UVW coordinates recalculated for phase center: {phasecenter_str}")
+        except Exception as e:
+            LOG.warning(f"Failed to recalculate UVWs: {e}. Predictions may be inaccurate.")
+    else:
+        LOG.warning(
+            "Target RA/Dec not provided, skipping UVW recalculation. Predictions may be inaccurate."
         )
-        LOG.info("✓ UVW coordinates recalculated")
-    except Exception as e:
-        LOG.warning(f"Failed to recalculate UVWs: {e}. Predictions may be inaccurate.")
 
     LOG.info(f"Manually concatenated MS created: {output_ms_path}")
     return output_ms_path

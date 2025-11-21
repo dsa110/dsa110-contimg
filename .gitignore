@@ -145,6 +145,11 @@ data/ms/
 data/sky_models/
 data/tmp/
 
+# Aggregated ephemeral artifacts
+artifacts/*
+!artifacts/.gitignore
+!artifacts/README.md
+
 # HDF5 data files
 *.hdf5
 **/*.hdf5

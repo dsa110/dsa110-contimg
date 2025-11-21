@@ -76,7 +76,8 @@ const navGroups = [
     title: "System",
     items: [
       { path: "/qa", label: "QA Tools", icon: Science },
-      { path: "/health", label: "Health", icon: Assessment },
+      { path: "/system-status", label: "System Status", icon: ShowChart },
+      { path: "/health", label: "Diagnostics", icon: Assessment },
     ],
   },
 ];

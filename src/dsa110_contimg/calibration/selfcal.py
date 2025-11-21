@@ -174,6 +174,9 @@ class SelfCalConfig:
     min_initial_snr: float = 10.0  # Don't self-cal if initial SNR too low
     max_flagged_fraction: float = 0.5  # Stop if too much data flagged
 
+    # MS state management
+    reset_ms: bool = False  # Regenerate MS from HDF5 before processing
+
     # Advanced
     refant: Optional[str] = None
     uvrange: str = ""
@@ -988,6 +991,69 @@ def selfcal_ms(
     if config is None:
         config = SelfCalConfig()
 
+    # Optional: Reset MS to pristine state by regenerating from HDF5
+    if config.reset_ms:
+        from datetime import datetime, timedelta
+        from pathlib import Path
+
+        logger.info("Resetting MS to pristine state (regenerating from HDF5)...")
+        ms_path_obj = Path(ms_path)
+        ms_name = ms_path_obj.name
+
+        # Find HDF5 files
+        if ms_name.endswith(".ms"):
+            timestamp = ms_name.replace(".ms", "")
+            search_dirs = [
+                ms_path_obj.parent,
+                ms_path_obj.parent.parent,
+                Path("/data/incoming"),
+                Path("/stage/dsa110-contimg/hdf5"),
+            ]
+
+            potential_hdf5 = None
+            for search_dir in search_dirs:
+                if search_dir.exists():
+                    for hdf5_pattern in [f"{timestamp}_sb00.hdf5", f"*{timestamp}*.hdf5"]:
+                        matches = list(search_dir.glob(hdf5_pattern))
+                        if matches:
+                            potential_hdf5 = matches[0]
+                            logger.info(f"  Found HDF5: {potential_hdf5}")
+                            break
+                if potential_hdf5:
+                    break
+
+            if potential_hdf5 and potential_hdf5.exists():
+                hdf5_dir = potential_hdf5.parent
+                dt_start = datetime.fromisoformat(timestamp)
+                dt_end = dt_start + timedelta(minutes=6)
+
+                logger.info(f"  Deleting MS: {ms_path_obj}")
+                shutil.rmtree(ms_path_obj, ignore_errors=True)
+
+                logger.info(f"  Regenerating from HDF5 subband group...")
+                from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+                    convert_subband_groups_to_ms,
+                )
+
+                convert_subband_groups_to_ms(
+                    input_dir=str(hdf5_dir),
+                    output_dir=str(ms_path_obj.parent),
+                    start_time=dt_start.isoformat(),
+                    end_time=dt_end.isoformat(),
+                    writer="parallel-subband",
+                    skip_existing=False,
+                )
+
+                if not ms_path_obj.exists():
+                    raise RuntimeError(f"MS regeneration failed: {ms_path_obj}")
+
+                logger.info("  ✓ MS regenerated from HDF5 - pristine state confirmed")
+            else:
+                raise RuntimeError(
+                    f"Cannot reset MS: HDF5 file not found for {ms_name}. "
+                    f"Searched in MS dir, parent, /data/incoming/, /stage/dsa110-contimg/hdf5/"
+                )
+
     # Optional: Concatenate rephased fields into single field for faster gaincal
     concat_ms_path = None
     if config.concatenate_fields:
@@ -995,6 +1061,7 @@ def selfcal_ms(
             concatenate_fields_in_ms,
         )
         from dsa110_contimg.calibration.uvw_verification import (
+            get_meridian_phase_center,
             get_phase_center_from_ms,
         )
 
@@ -1008,16 +1075,18 @@ def selfcal_ms(
         try:
             # Determine target phase center for rephasing
             if config.calib_ra_deg is not None and config.calib_dec_deg is not None:
+                # User explicitly specified a phase center (e.g., for calibrator observations)
                 target_ra = config.calib_ra_deg
                 target_dec = config.calib_dec_deg
                 logger.info(
                     f"  Using configured phase center: " f"({target_ra:.6f}°, {target_dec:.6f}°)"
                 )
             else:
-                # Use phase center of field 0 as reference
-                target_ra, target_dec = get_phase_center_from_ms(ms_path, field=0)
+                # For drift scan data, phase to meridian at center time
+                target_ra, target_dec = get_meridian_phase_center(ms_path)
                 logger.info(
-                    f"  Using field 0 phase center: " f"({target_ra:.6f}°, {target_dec:.6f}°)"
+                    f"  Using meridian phase center at center time: "
+                    f"RA={target_ra:.6f}° (LST), Dec={target_dec:.6f}°"
                 )
 
             # Concatenate with rephasing
