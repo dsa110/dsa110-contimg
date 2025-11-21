@@ -1121,60 +1121,59 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         Returns list of regions, optionally filtered by image_path or type.
         """
+        import sqlite3
 
-        try:
-            db_path = cfg.products_db
-            if not db_path.exists():
-                raise HTTPException(status_code=404, detail="Database not found")
+        db_path = cfg.products_db
+        if not db_path.exists():
+            raise HTTPException(status_code=404, detail="Database not found")
 
-            with _connect(db_path) as conn:
-                # Validate region_type against allowed values to prevent SQL injection
-                # Add valid types as needed
-                allowed_region_types = {"polygon", "circle", "ellipse", "box"}
-                validated_region_type = _validate_enum_value(region_type, allowed_region_types)
+        with _connect(db_path) as conn:
+            # Check if table exists first
+            table_exists = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='regions'"
+            ).fetchone()
 
-                query = "SELECT * FROM regions WHERE 1=1"
-                params = []
-
-                if image_path:
-                    # image_path is validated as a path, parameterized query prevents injection
-                    query += " AND image_path = ?"
-                    params.append(image_path)
-
-                if validated_region_type:
-                    query += " AND type = ?"
-                    params.append(validated_region_type)
-
-                query += " ORDER BY created_at DESC"
-
-                rows = conn.execute(query, params).fetchall()
-
-                regions = []
-                for row in rows:
-                    region_data = {
-                        "id": row["id"],
-                        "name": row["name"],
-                        "type": row["type"],
-                        "coordinates": json.loads(row["coordinates"]),
-                        "image_path": row["image_path"],
-                        "created_at": row["created_at"],
-                        "created_by": row.get("created_by"),
-                        "updated_at": row.get("updated_at"),
-                    }
-                    regions.append(region_data)
-
-                return {"regions": regions, "count": len(regions)}
-
-        except sqlite3.OperationalError as e:
-            # Table doesn't exist yet - return empty list gracefully
-            if "no such table" in str(e):
+            if not table_exists:
+                # Table doesn't exist yet - return empty list gracefully (HTTP 200)
                 return {"regions": [], "count": 0, "note": "Regions table not yet created"}
-            raise
-        except Exception as e:
-            logger.error(f"Error fetching regions: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to fetch regions: {str(e)}")
 
-    @router.post("/regions")
+            # Validate region_type against allowed values to prevent SQL injection
+            # Add valid types as needed
+            allowed_region_types = {"polygon", "circle", "ellipse", "box"}
+            validated_region_type = _validate_enum_value(region_type, allowed_region_types)
+
+            query = "SELECT * FROM regions WHERE 1=1"
+            params = []
+
+            if image_path:
+                # image_path is validated as a path, parameterized query prevents injection
+                query += " AND image_path = ?"
+                params.append(image_path)
+
+            if validated_region_type:
+                query += " AND type = ?"
+                params.append(validated_region_type)
+
+            query += " ORDER BY created_at DESC"
+
+            rows = conn.execute(query, params).fetchall()
+
+            regions = []
+            for row in rows:
+                region_data = {
+                    "id": row["id"],
+                    "name": row["name"],
+                    "type": row["type"],
+                    "coordinates": json.loads(row["coordinates"]),
+                    "image_path": row["image_path"],
+                    "created_at": row["created_at"],
+                    "created_by": row.get("created_by"),
+                    "updated_at": row.get("updated_at"),
+                }
+                regions.append(region_data)
+
+            return {"regions": regions, "count": len(regions)} @ router.post("/regions")
+
     def create_region(region_data: Dict[str, Any]):
         """Create a new region.
 
