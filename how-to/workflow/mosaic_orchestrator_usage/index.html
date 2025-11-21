@@ -1,0 +1,1793 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/how-to/workflow/mosaic_orchestrator_usage/" rel="canonical"/>
+<link href="../../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Mosaic Orchestrator Usage Guide - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#mosaic-orchestrator-usage-guide">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Mosaic Orchestrator Usage Guide
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../DOCUMENTATION_QUICK_REFERENCE.md">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_5">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../streaming.md">
+<span class="md-ellipsis">
+    Streaming Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../dashboard.md">
+<span class="md-ellipsis">
+    Dashboard Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../github_pages_walkthrough.md">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_4">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../quickstart.md">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../control-panel-quickstart.md">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../LINEAR_SETUP_QUICKSTART.md">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../FAST_TESTING.md">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../TEST_FLAG_SUBCOMMAND.md">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../build-vp-from-h5.md">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../CALIBRATION_DETAILED_PROCEDURE.md">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../FIND_CALIBRATOR_TRANSIT_DATA.md">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../IMAGE_0834_TRANSIT_5MIN.md">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_9" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_9" id="__nav_5_9_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_9_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_9">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../mosaic_quickstart.md">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../mosaic.md">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_10" id="__nav_5_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_10">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../quicklook.md">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reprocess.md">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../USING_ORCHESTRATOR_CLI.md">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../LINEAR_INTEGRATION.md">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../frontend-initial-setup.md">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_15" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_15" id="__nav_5_15_label" tabindex="0">
+<span class="md-ellipsis">
+    Development Setup
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_15_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_15">
+<span class="md-nav__icon md-icon"></span>
+            Development Setup
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../ENVIRONMENT_SETUP.md">
+<span class="md-ellipsis">
+    Environment Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../PRE_COMMIT_SETUP.md">
+<span class="md-ellipsis">
+    Pre-commit Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../CI_CD_SETUP.md">
+<span class="md-ellipsis">
+    CI/CD Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../TEST_DATABASE_SETUP.md">
+<span class="md-ellipsis">
+    Test Database Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../PARAMETER_OPTIMIZATION_GUIDE.md">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../downsampling_guide.md">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_18" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_18" id="__nav_5_18_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_18_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_18">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../uvh5_to_ms_conversion.md">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../troubleshooting.md">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#table-of-contents">
+<span class="md-ellipsis">
+      Table of Contents
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-usage">
+<span class="md-ellipsis">
+      Basic Usage
+    </span>
+</a>
+<nav aria-label="Basic Usage" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#default-earliest-transit">
+<span class="md-ellipsis">
+      Default: Earliest Transit
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#custom-timespan">
+<span class="md-ellipsis">
+      Custom Timespan
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#transit-selection">
+<span class="md-ellipsis">
+      Transit Selection
+    </span>
+</a>
+<nav aria-label="Transit Selection" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-interactive-selection-with-quality-metrics">
+<span class="md-ellipsis">
+      1. Interactive Selection with Quality Metrics
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-select-by-index">
+<span class="md-ellipsis">
+      2. Select by Index
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-select-by-time">
+<span class="md-ellipsis">
+      3. Select by Time
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#time-range-override">
+<span class="md-ellipsis">
+      Time Range Override
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#quality-filtering">
+<span class="md-ellipsis">
+      Quality Filtering
+    </span>
+</a>
+<nav aria-label="Quality Filtering" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#filter-by-primary-beam-response">
+<span class="md-ellipsis">
+      Filter by Primary Beam Response
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#filter-by-ms-file-count">
+<span class="md-ellipsis">
+      Filter by MS File Count
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#combined-filters">
+<span class="md-ellipsis">
+      Combined Filters
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-processing">
+<span class="md-ellipsis">
+      Batch Processing
+    </span>
+</a>
+<nav aria-label="Batch Processing" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#process-all-available-transits">
+<span class="md-ellipsis">
+      Process All Available Transits
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#process-a-range-of-transits">
+<span class="md-ellipsis">
+      Process a Range of Transits
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-with-quality-filters">
+<span class="md-ellipsis">
+      Batch with Quality Filters
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-results">
+<span class="md-ellipsis">
+      Batch Results
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#existing-mosaic-handling">
+<span class="md-ellipsis">
+      Existing Mosaic Handling
+    </span>
+</a>
+<nav aria-label="Existing Mosaic Handling" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#check-for-existing-mosaics">
+<span class="md-ellipsis">
+      Check for Existing Mosaics
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overwrite-existing-mosaics">
+<span class="md-ellipsis">
+      Overwrite Existing Mosaics
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#preview-mode">
+<span class="md-ellipsis">
+      Preview Mode
+    </span>
+</a>
+<nav aria-label="Preview Mode" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#enhanced-preview-output">
+<span class="md-ellipsis">
+      Enhanced Preview Output
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#advanced-examples">
+<span class="md-ellipsis">
+      Advanced Examples
+    </span>
+</a>
+<nav aria-label="Advanced Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-1-high-quality-transit-selection">
+<span class="md-ellipsis">
+      Example 1: High-Quality Transit Selection
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-2-specific-time-window-analysis">
+<span class="md-ellipsis">
+      Example 2: Specific Time Window Analysis
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-3-batch-processing-with-quality-control">
+<span class="md-ellipsis">
+      Example 3: Batch Processing with Quality Control
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-4-programmatic-usage">
+<span class="md-ellipsis">
+      Example 4: Programmatic Usage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-5-batch-processing-programmatically">
+<span class="md-ellipsis">
+      Example 5: Batch Processing Programmatically
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#command-line-reference">
+<span class="md-ellipsis">
+      Command-Line Reference
+    </span>
+</a>
+<nav aria-label="Command-Line Reference" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#transit-selection-mutually-exclusive">
+<span class="md-ellipsis">
+      Transit Selection (mutually exclusive)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#time-range">
+<span class="md-ellipsis">
+      Time Range
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#quality-filtering_1">
+<span class="md-ellipsis">
+      Quality Filtering
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-processing-mutually-exclusive">
+<span class="md-ellipsis">
+      Batch Processing (mutually exclusive)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#other-options">
+<span class="md-ellipsis">
+      Other Options
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tips-and-best-practices">
+<span class="md-ellipsis">
+      Tips and Best Practices
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#troubleshooting">
+<span class="md-ellipsis">
+      Troubleshooting
+    </span>
+</a>
+<nav aria-label="Troubleshooting" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#no-transits-found">
+<span class="md-ellipsis">
+      "No transits found"
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#existing-mosaic-found">
+<span class="md-ellipsis">
+      "Existing mosaic found"
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ms-files-not-available">
+<span class="md-ellipsis">
+      "MS files not available"
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validation-errors">
+<span class="md-ellipsis">
+      "Validation errors"
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="mosaic-orchestrator-usage-guide">Mosaic Orchestrator Usage Guide<a class="headerlink" href="#mosaic-orchestrator-usage-guide" title="Permanent link">¶</a></h1>
+<p>This guide provides comprehensive usage examples for the enhanced
+<code>create_10min_mosaic.py</code> script and <code>MosaicOrchestrator</code> class.</p>
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">¶</a></h2>
+<ol>
+<li><a href="#basic-usage">Basic Usage</a></li>
+<li><a href="#transit-selection">Transit Selection</a></li>
+<li><a href="#time-range-override">Time Range Override</a></li>
+<li><a href="#quality-filtering">Quality Filtering</a></li>
+<li><a href="#batch-processing">Batch Processing</a></li>
+<li><a href="#existing-mosaic-handling">Existing Mosaic Handling</a></li>
+<li><a href="#preview-mode">Preview Mode</a></li>
+<li><a href="#advanced-examples">Advanced Examples</a></li>
+</ol>
+<h2 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">¶</a></h2>
+<h3 id="default-earliest-transit">Default: Earliest Transit<a class="headerlink" href="#default-earliest-transit" title="Permanent link">¶</a></h3>
+<p>The simplest usage creates a mosaic using the earliest available transit:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py
+</code></pre></div>
+<p>This will:</p>
+<ul>
+<li>Use calibrator <code>0834+555</code></li>
+<li>Find the earliest available transit</li>
+<li>Create a 12-minute mosaic centered on that transit</li>
+<li>Output to <code>/stage/dsa110-contimg/mosaics/</code></li>
+</ul>
+<h3 id="custom-timespan">Custom Timespan<a class="headerlink" href="#custom-timespan" title="Permanent link">¶</a></h3>
+<p>Specify a different timespan (in minutes):</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span>--timespan-minutes<span class="w"> </span><span class="m">20</span>
+</code></pre></div>
+<h2 id="transit-selection">Transit Selection<a class="headerlink" href="#transit-selection" title="Permanent link">¶</a></h2>
+<h3 id="1-interactive-selection-with-quality-metrics">1. Interactive Selection with Quality Metrics<a class="headerlink" href="#1-interactive-selection-with-quality-metrics" title="Permanent link">¶</a></h3>
+<p>List available transits and select interactively:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span>--list-transits
+</code></pre></div>
+<p>This displays a table showing:</p>
+<ul>
+<li><strong>Index</strong>: Transit number (0-based)</li>
+<li><strong>Transit Time</strong>: ISO timestamp</li>
+<li><strong>PB Resp</strong>: Primary beam response (0.0-1.0)</li>
+<li><strong>MS Count</strong>: Number of Measurement Set files available</li>
+<li><strong>Days Ago</strong>: How many days ago the transit occurred</li>
+</ul>
+<p>Example output:</p>
+<div class="highlight"><pre><span></span><code>📋 Listing available transits for 0834+555...
+
+✓ Found 5 transit(s):
+
+Index    Transit Time            PB Resp    MS Count   Days Ago
+---------------------------------------------------------------------------
+0        2025-01-15T10:30:00     0.95       3          5
+1        2025-01-14T10:30:00     0.94       3          6
+2        2025-01-13T10:30:00     0.93       2          7
+3        2025-01-12T10:30:00     0.92       3          8
+4        2025-01-11T10:30:00     0.91       3          9
+
+Select transit index (0-4) or 'q' to quit:
+</code></pre></div>
+<h3 id="2-select-by-index">2. Select by Index<a class="headerlink" href="#2-select-by-index" title="Permanent link">¶</a></h3>
+<p>Select a specific transit by its index:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span>--transit-index<span class="w"> </span><span class="m">2</span>
+</code></pre></div>
+<p>This uses the transit at index 2 from the available transits list.</p>
+<h3 id="3-select-by-time">3. Select by Time<a class="headerlink" href="#3-select-by-time" title="Permanent link">¶</a></h3>
+<p>Specify the exact transit time:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span>--transit-time<span class="w"> </span><span class="s2">"2025-01-15T10:30:00"</span>
+</code></pre></div>
+<p>The time must be in ISO format (<code>YYYY-MM-DDTHH:MM:SS</code>).</p>
+<h2 id="time-range-override">Time Range Override<a class="headerlink" href="#time-range-override" title="Permanent link">¶</a></h2>
+<p>Override the transit-centered calculation with explicit start and end times:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--start-time<span class="w"> </span><span class="s2">"2025-01-15T10:00:00"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--end-time<span class="w"> </span><span class="s2">"2025-01-15T10:12:00"</span>
+</code></pre></div>
+<p><strong>Important</strong>: Both <code>--start-time</code> and <code>--end-time</code> must be provided together.
+The script will error if only one is specified.</p>
+<p>This is useful when:</p>
+<ul>
+<li>You want a specific time window regardless of transit times</li>
+<li>You're analyzing a specific event or time period</li>
+<li>You need to align with external data sources</li>
+</ul>
+<h2 id="quality-filtering">Quality Filtering<a class="headerlink" href="#quality-filtering" title="Permanent link">¶</a></h2>
+<p>Filter transits by quality metrics before selection:</p>
+<h3 id="filter-by-primary-beam-response">Filter by Primary Beam Response<a class="headerlink" href="#filter-by-primary-beam-response" title="Permanent link">¶</a></h3>
+<p>Only consider transits with PB response above a threshold:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span>--min-pb-response<span class="w"> </span><span class="m">0</span>.9
+</code></pre></div>
+<p><strong>Note</strong>: For drift scans at constant declination, PB response may be constant
+for a given calibrator. This filter is more useful when comparing different
+calibrators or observing modes.</p>
+<h3 id="filter-by-ms-file-count">Filter by MS File Count<a class="headerlink" href="#filter-by-ms-file-count" title="Permanent link">¶</a></h3>
+<p>Only consider transits with sufficient MS files:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span>--min-ms-count<span class="w"> </span><span class="m">3</span>
+</code></pre></div>
+<p>This ensures you have at least 3 MS files (the minimum for a proper mosaic).</p>
+<h3 id="combined-filters">Combined Filters<a class="headerlink" href="#combined-filters" title="Permanent link">¶</a></h3>
+<p>Combine multiple filters:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--list-transits<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--min-pb-response<span class="w"> </span><span class="m">0</span>.9<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--min-ms-count<span class="w"> </span><span class="m">3</span>
+</code></pre></div>
+<p>This will only show transits that meet both criteria.</p>
+<h2 id="batch-processing">Batch Processing<a class="headerlink" href="#batch-processing" title="Permanent link">¶</a></h2>
+<p>Process multiple transits in a single run:</p>
+<h3 id="process-all-available-transits">Process All Available Transits<a class="headerlink" href="#process-all-available-transits" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span>--all-transits
+</code></pre></div>
+<p>This creates mosaics for all available transits, applying any quality filters
+you've specified.</p>
+<h3 id="process-a-range-of-transits">Process a Range of Transits<a class="headerlink" href="#process-a-range-of-transits" title="Permanent link">¶</a></h3>
+<p>Process a specific range of transits:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span>--transit-range<span class="w"> </span><span class="m">0</span>:5
+</code></pre></div>
+<p>This processes transits at indices 0, 1, 2, 3, and 4 (5 total).</p>
+<h3 id="batch-with-quality-filters">Batch with Quality Filters<a class="headerlink" href="#batch-with-quality-filters" title="Permanent link">¶</a></h3>
+<p>Combine batch processing with quality filtering:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--all-transits<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--min-pb-response<span class="w"> </span><span class="m">0</span>.9<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--min-ms-count<span class="w"> </span><span class="m">3</span>
+</code></pre></div>
+<p>This processes all transits that meet the quality criteria.</p>
+<h3 id="batch-results">Batch Results<a class="headerlink" href="#batch-results" title="Permanent link">¶</a></h3>
+<p>Batch processing provides a summary at the end:</p>
+<div class="highlight"><pre><span></span><code>📊 Batch processing mosaics for 0834+555
+
+============================================================
+Processing transit 1/5: 2025-01-15T10:30:00
+============================================================
+✓ Successfully created mosaic: /stage/.../mosaic_1.fits
+
+============================================================
+Processing transit 2/5: 2025-01-14T10:30:00
+============================================================
+✓ Successfully created mosaic: /stage/.../mosaic_2.fits
+
+...
+
+✓ Batch processing complete: 5/5 successful
+</code></pre></div>
+<h2 id="existing-mosaic-handling">Existing Mosaic Handling<a class="headerlink" href="#existing-mosaic-handling" title="Permanent link">¶</a></h2>
+<h3 id="check-for-existing-mosaics">Check for Existing Mosaics<a class="headerlink" href="#check-for-existing-mosaics" title="Permanent link">¶</a></h3>
+<p>By default, the pipeline checks if a mosaic with the exact same parameters
+already exists. If found, it stops execution:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span>--transit-time<span class="w"> </span><span class="s2">"2025-01-15T10:30:00"</span>
+</code></pre></div>
+<p>If a mosaic already exists, you'll see:</p>
+<div class="highlight"><pre><span></span><code>============================================================
+EXISTING MOSAIC FOUND
+============================================================
+A mosaic with these exact parameters already exists:
+  ID: 42
+  Name: mosaic_0834+555_2025-01-15T10:30:00
+  Path: /stage/dsa110-contimg/mosaics/mosaic_0834+555_2025-01-15T10:30:00.fits
+  Created: 2025-01-15T11:00:00
+  Start: 2025-01-15T10:24:00
+  End: 2025-01-15T10:36:00
+  Images: 3
+
+To overwrite this mosaic, add the --overwrite flag to your command.
+</code></pre></div>
+<h3 id="overwrite-existing-mosaics">Overwrite Existing Mosaics<a class="headerlink" href="#overwrite-existing-mosaics" title="Permanent link">¶</a></h3>
+<p>To overwrite an existing mosaic, use the <code>--overwrite</code> flag:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--transit-time<span class="w"> </span><span class="s2">"2025-01-15T10:30:00"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--overwrite
+</code></pre></div>
+<p><strong>Important</strong>: The check happens at the very start of the run, before any work
+is done. This prevents accidentally recreating mosaics that already exist.</p>
+<h2 id="preview-mode">Preview Mode<a class="headerlink" href="#preview-mode" title="Permanent link">¶</a></h2>
+<p>Preview mode validates and plans the mosaic without actually creating it:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span>--preview
+</code></pre></div>
+<p>Or use the equivalent:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span>--dry-run
+</code></pre></div>
+<h3 id="enhanced-preview-output">Enhanced Preview Output<a class="headerlink" href="#enhanced-preview-output" title="Permanent link">¶</a></h3>
+<p>Preview mode now provides detailed information:</p>
+<div class="highlight"><pre><span></span><code>============================================================
+DRY-RUN MODE: Validating mosaic plan without building
+============================================================
+
+Mosaic plan:
+  - Calibrator: 0834+555
+  - Transit time: 2025-01-15T10:30:00
+  - Window: 2025-01-15T10:24:00 to 2025-01-15T10:36:00
+  - Timespan: 12 minutes
+  - Required MS files: 3
+  - Available MS files: 3
+  - Group ID: (will be created)
+  - MS file paths:
+      1. /stage/.../ms_001.ms
+      2. /stage/.../ms_002.ms
+      3. /stage/.../ms_003.ms
+
+============================================================
+VALIDATION WARNINGS (may cause issues):
+============================================================
+  ⚠ Only 3 MS files available, would create asymmetric mosaic.
+
+✓ Validation complete. Ready to build.
+Run with dry_run=False to create the mosaic.
+</code></pre></div>
+<p>This helps you:</p>
+<ul>
+<li>Verify the plan before execution</li>
+<li>Check for potential issues</li>
+<li>See what MS files will be used</li>
+<li>Validate time ranges and parameters</li>
+</ul>
+<h2 id="advanced-examples">Advanced Examples<a class="headerlink" href="#advanced-examples" title="Permanent link">¶</a></h2>
+<h3 id="example-1-high-quality-transit-selection">Example 1: High-Quality Transit Selection<a class="headerlink" href="#example-1-high-quality-transit-selection" title="Permanent link">¶</a></h3>
+<p>Find and use the highest quality transit:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># List transits with quality metrics</span>
+python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--list-transits<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--min-pb-response<span class="w"> </span><span class="m">0</span>.95<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--min-ms-count<span class="w"> </span><span class="m">3</span>
+</code></pre></div>
+<p>Then select the best one interactively.</p>
+<h3 id="example-2-specific-time-window-analysis">Example 2: Specific Time Window Analysis<a class="headerlink" href="#example-2-specific-time-window-analysis" title="Permanent link">¶</a></h3>
+<p>Create a mosaic for a specific time window:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--start-time<span class="w"> </span><span class="s2">"2025-01-15T10:00:00"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--end-time<span class="w"> </span><span class="s2">"2025-01-15T10:15:00"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--preview
+</code></pre></div>
+<p>First preview to verify, then run without <code>--preview</code> to create.</p>
+<h3 id="example-3-batch-processing-with-quality-control">Example 3: Batch Processing with Quality Control<a class="headerlink" href="#example-3-batch-processing-with-quality-control" title="Permanent link">¶</a></h3>
+<p>Process all high-quality transits from the last 30 days:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>create_10min_mosaic.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--all-transits<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--min-pb-response<span class="w"> </span><span class="m">0</span>.9<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--min-ms-count<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--overwrite
+</code></pre></div>
+<p>The <code>--overwrite</code> flag ensures any existing mosaics are recreated.</p>
+<h3 id="example-4-programmatic-usage">Example 4: Programmatic Usage<a class="headerlink" href="#example-4-programmatic-usage" title="Permanent link">¶</a></h3>
+<p>Use the orchestrator directly in Python:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">astropy.time</span><span class="w"> </span><span class="kn">import</span> <span class="n">Time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.mosaic.orchestrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">MosaicOrchestrator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="c1"># Initialize orchestrator</span>
+<span class="n">orchestrator</span> <span class="o">=</span> <span class="n">MosaicOrchestrator</span><span class="p">(</span>
+    <span class="n">products_db_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">"state/products.sqlite3"</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># List available transits with quality metrics</span>
+<span class="n">transits</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">list_available_transits_with_quality</span><span class="p">(</span>
+    <span class="n">calibrator_name</span><span class="o">=</span><span class="s2">"0834+555"</span><span class="p">,</span>
+    <span class="n">max_days_back</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+    <span class="n">min_pb_response</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+    <span class="n">min_ms_count</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Select the first transit</span>
+<span class="k">if</span> <span class="n">transits</span><span class="p">:</span>
+    <span class="n">transit_time</span> <span class="o">=</span> <span class="n">transits</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"transit_time"</span><span class="p">]</span>
+
+    <span class="c1"># Create mosaic</span>
+    <span class="n">mosaic_path</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">create_mosaic_centered_on_calibrator</span><span class="p">(</span>
+        <span class="n">calibrator_name</span><span class="o">=</span><span class="s2">"0834+555"</span><span class="p">,</span>
+        <span class="n">timespan_minutes</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+        <span class="n">wait_for_published</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">transit_time</span><span class="o">=</span><span class="n">transit_time</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Created mosaic: </span><span class="si">{</span><span class="n">mosaic_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="example-5-batch-processing-programmatically">Example 5: Batch Processing Programmatically<a class="headerlink" href="#example-5-batch-processing-programmatically" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.mosaic.orchestrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">MosaicOrchestrator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="n">orchestrator</span> <span class="o">=</span> <span class="n">MosaicOrchestrator</span><span class="p">(</span>
+    <span class="n">products_db_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">"state/products.sqlite3"</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Process all transits with quality filters</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">create_mosaics_batch</span><span class="p">(</span>
+    <span class="n">calibrator_name</span><span class="o">=</span><span class="s2">"0834+555"</span><span class="p">,</span>
+    <span class="n">all_transits</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">timespan_minutes</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+    <span class="n">min_pb_response</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+    <span class="n">min_ms_count</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">wait_for_published</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Check results</span>
+<span class="n">success_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"status"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"success"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Successfully created </span><span class="si">{</span><span class="n">success_count</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="si">}</span><span class="s2"> mosaics"</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s2">"status"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"success"</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  ✓ </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">'transit_time'</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">'path'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  ✗ </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">'transit_time'</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'error'</span><span class="p">,</span><span class="w"> </span><span class="s1">'Unknown error'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="command-line-reference">Command-Line Reference<a class="headerlink" href="#command-line-reference" title="Permanent link">¶</a></h2>
+<h3 id="transit-selection-mutually-exclusive">Transit Selection (mutually exclusive)<a class="headerlink" href="#transit-selection-mutually-exclusive" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>--transit-time ISO_TIME</code>: Use specific transit time</li>
+<li><code>--transit-index N</code>: Select transit by index (0-based)</li>
+<li><code>--list-transits</code>: Interactive selection with quality metrics</li>
+</ul>
+<h3 id="time-range">Time Range<a class="headerlink" href="#time-range" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>--start-time ISO_TIME</code>: Explicit start time (requires <code>--end-time</code>)</li>
+<li><code>--end-time ISO_TIME</code>: Explicit end time (requires <code>--start-time</code>)</li>
+</ul>
+<h3 id="quality-filtering_1">Quality Filtering<a class="headerlink" href="#quality-filtering_1" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>--min-pb-response FLOAT</code>: Minimum primary beam response (0.0-1.0)</li>
+<li><code>--min-ms-count INT</code>: Minimum number of MS files required</li>
+</ul>
+<h3 id="batch-processing-mutually-exclusive">Batch Processing (mutually exclusive)<a class="headerlink" href="#batch-processing-mutually-exclusive" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>--all-transits</code>: Process all available transits</li>
+<li><code>--transit-range START:END</code>: Process range of transits (e.g., <code>0:5</code>)</li>
+</ul>
+<h3 id="other-options">Other Options<a class="headerlink" href="#other-options" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>--preview</code> or <code>--dry-run</code>: Preview mode (validate without creating)</li>
+<li><code>--overwrite</code>: Allow overwriting existing mosaics</li>
+<li><code>--timespan-minutes INT</code>: Mosaic timespan in minutes (default: 12)</li>
+</ul>
+<h2 id="tips-and-best-practices">Tips and Best Practices<a class="headerlink" href="#tips-and-best-practices" title="Permanent link">¶</a></h2>
+<ol>
+<li><strong>Always preview first</strong>: Use <code>--preview</code> to validate before creating</li>
+<li><strong>Check existing mosaics</strong>: The pipeline automatically checks, but you can
+   verify manually</li>
+<li><strong>Use quality filters</strong>: Filter by PB response and MS count to ensure good
+   data</li>
+<li><strong>Batch processing</strong>: Use <code>--all-transits</code> for systematic processing</li>
+<li><strong>Time range override</strong>: Use explicit time ranges for precise control</li>
+<li><strong>Interactive selection</strong>: Use <code>--list-transits</code> to see all options before
+   choosing</li>
+</ol>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
+<h3 id="no-transits-found">"No transits found"<a class="headerlink" href="#no-transits-found" title="Permanent link">¶</a></h3>
+<ul>
+<li>Check that the calibrator name is correct</li>
+<li>Increase <code>max_days_back</code> if needed (programmatic usage)</li>
+<li>Verify transit database has data</li>
+</ul>
+<h3 id="existing-mosaic-found">"Existing mosaic found"<a class="headerlink" href="#existing-mosaic-found" title="Permanent link">¶</a></h3>
+<ul>
+<li>Use <code>--overwrite</code> to recreate the mosaic</li>
+<li>Or use different parameters (different transit time or timespan)</li>
+</ul>
+<h3 id="ms-files-not-available">"MS files not available"<a class="headerlink" href="#ms-files-not-available" title="Permanent link">¶</a></h3>
+<ul>
+<li>The pipeline will trigger HDF5 conversion automatically</li>
+<li>Ensure HDF5 source files are available</li>
+<li>Check disk space and permissions</li>
+</ul>
+<h3 id="validation-errors">"Validation errors"<a class="headerlink" href="#validation-errors" title="Permanent link">¶</a></h3>
+<ul>
+<li>Review the error messages in preview mode</li>
+<li>Fix any missing prerequisites</li>
+<li>Check database connectivity</li>
+</ul>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>create_10min_mosaic.py --help</code>: Full command-line help</li>
+<li><code>pipeline_flowchart.mmd</code>: Visual pipeline flow diagram</li>
+<li><code>test_mosaic_orchestrator_features.py</code>: Test suite for new features</li>
+</ul>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

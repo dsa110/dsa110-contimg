@@ -1,0 +1,2587 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/reference/documentation_standards/DOCUMENTATION_ORGANIZATIONAL_FRAMEWORK/" rel="canonical"/>
+<link href="../../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Documentation Organizational Framework - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#documentation-organizational-framework">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Documentation Organizational Framework
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../DOCUMENTATION_QUICK_REFERENCE.md">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_5">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/streaming.md">
+<span class="md-ellipsis">
+    Streaming Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard.md">
+<span class="md-ellipsis">
+    Dashboard Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/github_pages_walkthrough.md">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_4">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quickstart.md">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/control-panel-quickstart.md">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_SETUP_QUICKSTART.md">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FAST_TESTING.md">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/TEST_FLAG_SUBCOMMAND.md">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/build-vp-from-h5.md">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/CALIBRATION_DETAILED_PROCEDURE.md">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FIND_CALIBRATOR_TRANSIT_DATA.md">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/IMAGE_0834_TRANSIT_5MIN.md">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_9" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_9" id="__nav_5_9_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_9_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_9">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic_quickstart.md">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic.md">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_10" id="__nav_5_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_10">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quicklook.md">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/reprocess.md">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/USING_ORCHESTRATOR_CLI.md">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_INTEGRATION.md">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/frontend-initial-setup.md">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_15" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_15" id="__nav_5_15_label" tabindex="0">
+<span class="md-ellipsis">
+    Development Setup
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_15_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_15">
+<span class="md-nav__icon md-icon"></span>
+            Development Setup
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/ENVIRONMENT_SETUP.md">
+<span class="md-ellipsis">
+    Environment Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PRE_COMMIT_SETUP.md">
+<span class="md-ellipsis">
+    Pre-commit Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/CI_CD_SETUP.md">
+<span class="md-ellipsis">
+    CI/CD Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/TEST_DATABASE_SETUP.md">
+<span class="md-ellipsis">
+    Test Database Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PARAMETER_OPTIMIZATION_GUIDE.md">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/downsampling_guide.md">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_18" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_18" id="__nav_5_18_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_18_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_18">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/uvh5_to_ms_conversion.md">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/troubleshooting.md">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#executive-summary">
+<span class="md-ellipsis">
+      Executive Summary
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#part-1-core-principles">
+<span class="md-ellipsis">
+      Part 1: Core Principles
+    </span>
+</a>
+<nav aria-label="Part 1: Core Principles" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#11-three-dimensional-organization">
+<span class="md-ellipsis">
+      1.1 Three-Dimensional Organization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#12-multi-tagging-approach">
+<span class="md-ellipsis">
+      1.2 Multi-Tagging Approach
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#13-primary-directory-organization">
+<span class="md-ellipsis">
+      1.3 Primary Directory Organization
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#part-2-pipeline-dimension-10-stages">
+<span class="md-ellipsis">
+      Part 2: Pipeline Dimension (10 Stages)
+    </span>
+</a>
+<nav aria-label="Part 2: Pipeline Dimension (10 Stages)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#21-pipeline-stage-definitions">
+<span class="md-ellipsis">
+      2.1 Pipeline Stage Definitions
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#22-pipeline-documentation-map">
+<span class="md-ellipsis">
+      2.2 Pipeline Documentation Map
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#23-discovery-path-pipeline">
+<span class="md-ellipsis">
+      2.3 Discovery Path: Pipeline
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#part-3-dashboard-dimension-6-components">
+<span class="md-ellipsis">
+      Part 3: Dashboard Dimension (6 Components)
+    </span>
+</a>
+<nav aria-label="Part 3: Dashboard Dimension (6 Components)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#31-dashboard-component-definitions">
+<span class="md-ellipsis">
+      3.1 Dashboard Component Definitions
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#32-dashboard-documentation-map">
+<span class="md-ellipsis">
+      3.2 Dashboard Documentation Map
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#33-discovery-path-dashboard">
+<span class="md-ellipsis">
+      3.3 Discovery Path: Dashboard
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#part-4-general-themes-dimension-11-categories">
+<span class="md-ellipsis">
+      Part 4: General Themes Dimension (11 Categories)
+    </span>
+</a>
+<nav aria-label="Part 4: General Themes Dimension (11 Categories)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#41-general-theme-definitions">
+<span class="md-ellipsis">
+      4.1 General Theme Definitions
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#42-general-theme-use-cases">
+<span class="md-ellipsis">
+      4.2 General Theme Use Cases
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#part-5-navigation-structure">
+<span class="md-ellipsis">
+      Part 5: Navigation Structure
+    </span>
+</a>
+<nav aria-label="Part 5: Navigation Structure" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#51-primary-entry-points">
+<span class="md-ellipsis">
+      5.1 Primary Entry Points
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#52-index-files-by-theme">
+<span class="md-ellipsis">
+      5.2 Index Files by Theme
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#53-cross-references">
+<span class="md-ellipsis">
+      5.3 Cross-References
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#part-6-implementation-strategy">
+<span class="md-ellipsis">
+      Part 6: Implementation Strategy
+    </span>
+</a>
+<nav aria-label="Part 6: Implementation Strategy" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#61-phase-1-establish-index-files-week-1">
+<span class="md-ellipsis">
+      6.1 Phase 1: Establish Index Files (Week 1)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#62-phase-2-create-stage-specific-indexes-week-2">
+<span class="md-ellipsis">
+      6.2 Phase 2: Create Stage-Specific Indexes (Week 2)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#63-phase-3-create-component-specific-indexes-week-2">
+<span class="md-ellipsis">
+      6.3 Phase 3: Create Component-Specific Indexes (Week 2)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#64-phase-4-update-existing-documents-week-3">
+<span class="md-ellipsis">
+      6.4 Phase 4: Update Existing Documents (Week 3)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#65-phase-5-create-theme-based-search-index-week-4">
+<span class="md-ellipsis">
+      6.5 Phase 5: Create Theme-Based Search Index (Week 4)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#part-7-directory-structure-recommendation">
+<span class="md-ellipsis">
+      Part 7: Directory Structure Recommendation
+    </span>
+</a>
+<nav aria-label="Part 7: Directory Structure Recommendation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#proposed-new-structure">
+<span class="md-ellipsis">
+      Proposed New Structure
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#part-8-content-governance">
+<span class="md-ellipsis">
+      Part 8: Content Governance
+    </span>
+</a>
+<nav aria-label="Part 8: Content Governance" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#81-document-lifecycle">
+<span class="md-ellipsis">
+      8.1 Document Lifecycle
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#82-template-standards">
+<span class="md-ellipsis">
+      8.2 Template Standards
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#83-naming-conventions">
+<span class="md-ellipsis">
+      8.3 Naming Conventions
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#part-9-metadata-and-frontmatter">
+<span class="md-ellipsis">
+      Part 9: Metadata and Frontmatter
+    </span>
+</a>
+<nav aria-label="Part 9: Metadata and Frontmatter" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#91-recommended-frontmatter">
+<span class="md-ellipsis">
+      9.1 Recommended Frontmatter
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#92-search-metadata">
+<span class="md-ellipsis">
+      9.2 Search Metadata
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#part-10-migration-plan">
+<span class="md-ellipsis">
+      Part 10: Migration Plan
+    </span>
+</a>
+<nav aria-label="Part 10: Migration Plan" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#101-low-disruption-migration">
+<span class="md-ellipsis">
+      10.1 Low-Disruption Migration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#102-gradual-adoption">
+<span class="md-ellipsis">
+      10.2 Gradual Adoption
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#103-parallel-system">
+<span class="md-ellipsis">
+      10.3 Parallel System
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#part-11-success-metrics">
+<span class="md-ellipsis">
+      Part 11: Success Metrics
+    </span>
+</a>
+<nav aria-label="Part 11: Success Metrics" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#111-measurable-outcomes">
+<span class="md-ellipsis">
+      11.1 Measurable Outcomes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#112-kpis">
+<span class="md-ellipsis">
+      11.2 KPIs
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#part-12-examples">
+<span class="md-ellipsis">
+      Part 12: Examples
+    </span>
+</a>
+<nav aria-label="Part 12: Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-1-finding-streaming-documentation">
+<span class="md-ellipsis">
+      Example 1: Finding Streaming Documentation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-2-finding-dashboard-frontend-documentation">
+<span class="md-ellipsis">
+      Example 2: Finding Dashboard Frontend Documentation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-3-finding-testing-documentation">
+<span class="md-ellipsis">
+      Example 3: Finding Testing Documentation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#part-13-implementation-checklist">
+<span class="md-ellipsis">
+      Part 13: Implementation Checklist
+    </span>
+</a>
+<nav aria-label="Part 13: Implementation Checklist" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#quick-implementation-1-2-weeks">
+<span class="md-ellipsis">
+      Quick Implementation (1-2 weeks)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#medium-implementation-3-4-weeks">
+<span class="md-ellipsis">
+      Medium Implementation (3-4 weeks)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#full-implementation-5-weeks">
+<span class="md-ellipsis">
+      Full Implementation (5+ weeks)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#part-14-quick-start-for-users">
+<span class="md-ellipsis">
+      Part 14: Quick Start for Users
+    </span>
+</a>
+<nav aria-label="Part 14: Quick Start for Users" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#for-pipeline-operators">
+<span class="md-ellipsis">
+      For Pipeline Operators
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#for-dashboard-users">
+<span class="md-ellipsis">
+      For Dashboard Users
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#for-new-team-members">
+<span class="md-ellipsis">
+      For New Team Members
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#part-15-maintenance-and-evolution">
+<span class="md-ellipsis">
+      Part 15: Maintenance and Evolution
+    </span>
+</a>
+<nav aria-label="Part 15: Maintenance and Evolution" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#151-regular-reviews">
+<span class="md-ellipsis">
+      15.1 Regular Reviews
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#152-documentation-debt">
+<span class="md-ellipsis">
+      15.2 Documentation Debt
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#153-feedback-loop">
+<span class="md-ellipsis">
+      15.3 Feedback Loop
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#summary">
+<span class="md-ellipsis">
+      Summary
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#next-steps">
+<span class="md-ellipsis">
+      Next Steps
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="documentation-organizational-framework">Documentation Organizational Framework<a class="headerlink" href="#documentation-organizational-framework" title="Permanent link">¶</a></h1>
+<p><strong>Version:</strong> 1.0<br/>
+<strong>Date:</strong> 2025-11-15<br/>
+<strong>Based on:</strong> Complete inventory analysis of 630 documents</p>
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">¶</a></h2>
+<p>This framework establishes a structured organizational system for the DSA-110
+documentation collection. It categorizes all 630 documents into a coherent
+hierarchy based on:</p>
+<ul>
+<li><strong>10 Pipeline Stages</strong> (data flow through the imaging pipeline)</li>
+<li><strong>6 Dashboard Components</strong> (user interface and monitoring)</li>
+<li><strong>11 General Themes</strong> (cross-cutting concerns)</li>
+</ul>
+<p>This framework enables:</p>
+<ul>
+<li>Easy discovery of relevant documentation</li>
+<li>Clear relationships between documents</li>
+<li>Consistent naming and organization</li>
+<li>Reduced duplication</li>
+<li>Better navigation for new users</li>
+</ul>
+<hr/>
+<h2 id="part-1-core-principles">Part 1: Core Principles<a class="headerlink" href="#part-1-core-principles" title="Permanent link">¶</a></h2>
+<h3 id="11-three-dimensional-organization">1.1 Three-Dimensional Organization<a class="headerlink" href="#11-three-dimensional-organization" title="Permanent link">¶</a></h3>
+<p>The framework uses three orthogonal dimensions to categorize all documentation:</p>
+<div class="highlight"><pre><span></span><code>Documentation Space = Pipeline × Dashboard × Themes
+</code></pre></div>
+<ul>
+<li><strong>Dimension 1: Pipeline</strong> - What stage of data processing</li>
+<li><strong>Dimension 2: Dashboard</strong> - What UI/monitoring component</li>
+<li><strong>Dimension 3: Themes</strong> - What general topic/concern</li>
+</ul>
+<p>A document can exist in:</p>
+<ul>
+<li>Only the pipeline dimension (e.g., "calibration procedures")</li>
+<li>Only the dashboard dimension (e.g., "React component design")</li>
+<li>Only general themes (e.g., "testing strategies")</li>
+<li>Any combination of the above</li>
+</ul>
+<h3 id="12-multi-tagging-approach">1.2 Multi-Tagging Approach<a class="headerlink" href="#12-multi-tagging-approach" title="Permanent link">¶</a></h3>
+<p>Each document receives one or more tags from the three dimensions:</p>
+<div class="highlight"><pre><span></span><code>Example: QA_VISUALIZATION_DESIGN.md
+├─ Pipeline: pipeline: qa
+├─ Dashboard: dashboard: visualization, dashboard: architecture
+├─ General: documentation
+
+This document serves multiple purposes and appears in multiple lookup paths.
+</code></pre></div>
+<h3 id="13-primary-directory-organization">1.3 Primary Directory Organization<a class="headerlink" href="#13-primary-directory-organization" title="Permanent link">¶</a></h3>
+<p>Primary physical structure remains by function:</p>
+<div class="highlight"><pre><span></span><code>docs/
+├── how-to/              ← Procedural guides (all dimensions)
+├── reference/           ← API and technical references
+├── concepts/            ← Architecture and design
+├── operations/          ← Deployment and ops
+├── dev/                 ← Development tracking
+├── testing/             ← Test strategies and results
+├── tutorials/           ← Step-by-step guides
+├── archive/             ← Historical documentation
+└── [root]               ← Main and index documents
+</code></pre></div>
+<p>But discovery uses <strong>theme-based indexing</strong>, not physical location.</p>
+<hr/>
+<h2 id="part-2-pipeline-dimension-10-stages">Part 2: Pipeline Dimension (10 Stages)<a class="headerlink" href="#part-2-pipeline-dimension-10-stages" title="Permanent link">¶</a></h2>
+<h3 id="21-pipeline-stage-definitions">2.1 Pipeline Stage Definitions<a class="headerlink" href="#21-pipeline-stage-definitions" title="Permanent link">¶</a></h3>
+<p>The imaging pipeline processes raw UVH5 data into calibrated images:</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Documents</th>
+<th>Purpose</th>
+<th>Input</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Streaming</strong></td>
+<td>13</td>
+<td>Receive and convert UVH5 data</td>
+<td>Raw UVH5 files</td>
+<td>Measurement Sets</td>
+</tr>
+<tr>
+<td><strong>Calibration</strong></td>
+<td>12</td>
+<td>Determine calibration solutions</td>
+<td>MS data</td>
+<td>Cal solutions</td>
+</tr>
+<tr>
+<td><strong>Flagging</strong></td>
+<td>2</td>
+<td>Remove RFI and bad data</td>
+<td>MS data</td>
+<td>Flagged MS</td>
+</tr>
+<tr>
+<td><strong>Imaging</strong></td>
+<td>22</td>
+<td>Create images from MS data</td>
+<td>Flagged MS</td>
+<td>FITS images</td>
+</tr>
+<tr>
+<td><strong>Masking</strong></td>
+<td>5</td>
+<td>Generate and apply masks</td>
+<td>FITS images</td>
+<td>Masked images</td>
+</tr>
+<tr>
+<td><strong>Mosaicing</strong></td>
+<td>17</td>
+<td>Combine multiple observations</td>
+<td>Multiple images</td>
+<td>Mosaic image</td>
+</tr>
+<tr>
+<td><strong>QA</strong></td>
+<td>25</td>
+<td>Verify data quality</td>
+<td>Pipeline products</td>
+<td>QA reports</td>
+</tr>
+<tr>
+<td><strong>Cross-Matching</strong></td>
+<td>29</td>
+<td>Match sources with catalogs</td>
+<td>Detection lists</td>
+<td>Source catalog</td>
+</tr>
+<tr>
+<td><strong>Photometry</strong></td>
+<td>8</td>
+<td>Extract flux measurements</td>
+<td>Images, catalogs</td>
+<td>Photometry table</td>
+</tr>
+<tr>
+<td><strong>ESE Detection</strong></td>
+<td>26</td>
+<td>Automated error detection</td>
+<td>Pipeline outputs</td>
+<td>Error reports</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22-pipeline-documentation-map">2.2 Pipeline Documentation Map<a class="headerlink" href="#22-pipeline-documentation-map" title="Permanent link">¶</a></h3>
+<p>For each stage, documentation should cover:</p>
+<div class="highlight"><pre><span></span><code>[Stage Name]
+├── Purpose &amp; Theory
+│   └─ What does this stage do?
+│   └─ Why is it important?
+│   └─ What are the key concepts?
+│
+├── Getting Started
+│   └─ Quick start guide
+│   └─ Common workflows
+│   └─ Minimal example
+│
+├── Detailed Procedures
+│   └─ Step-by-step instructions
+│   └─ Parameter tuning
+│   └─ Advanced options
+│
+├── API Reference
+│   └─ Function signatures
+│   └─ Parameter descriptions
+│   └─ Return values
+│
+├── Troubleshooting
+│   └─ Common errors
+│   └─ Error messages
+│   └─ Solutions
+│
+└── Examples &amp; Validation
+    └─ Real-world examples
+    └─ Test procedures
+    └─ Validation strategies
+</code></pre></div>
+<h3 id="23-discovery-path-pipeline">2.3 Discovery Path: Pipeline<a class="headerlink" href="#23-discovery-path-pipeline" title="Permanent link">¶</a></h3>
+<p>Users searching for pipeline documentation should find:</p>
+<div class="highlight"><pre><span></span><code>"I want to learn about streaming"
+  → STREAMING INDEX
+    ├─ Concept: streaming-architecture.md
+    ├─ Quick Start: how-to/streaming.md
+    ├─ API Ref: reference/streaming-api.md
+    ├─ How-To: how-to/uvh5_to_ms_conversion.md
+    ├─ Control: how-to/streaming-control.md
+    ├─ Troubleshoot: how-to/streaming-troubleshooting.md
+    └─ Examples: tutorials/streaming.md
+
+"I need calibration procedures"
+  → CALIBRATION INDEX
+    ├─ Concept: pipeline_overview.md section on calibration
+    ├─ Procedures: how-to/CALIBRATION_DETAILED_PROCEDURE.md
+    ├─ Reference: reference/CURRENT_CALIBRATION_PROCEDURE.md
+    ├─ Examples: tutorials/calibrate-apply.md
+    └─ Data: how-to/FIND_CALIBRATOR_TRANSIT_DATA.md
+</code></pre></div>
+<hr/>
+<h2 id="part-3-dashboard-dimension-6-components">Part 3: Dashboard Dimension (6 Components)<a class="headerlink" href="#part-3-dashboard-dimension-6-components" title="Permanent link">¶</a></h2>
+<h3 id="31-dashboard-component-definitions">3.1 Dashboard Component Definitions<a class="headerlink" href="#31-dashboard-component-definitions" title="Permanent link">¶</a></h3>
+<p>The monitoring dashboard provides user interface and real-time monitoring:</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Documents</th>
+<th>Purpose</th>
+<th>Users</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Frontend</strong></td>
+<td>89</td>
+<td>React UI, pages, components</td>
+<td>End users, developers</td>
+</tr>
+<tr>
+<td><strong>Visualization</strong></td>
+<td>40</td>
+<td>Data display (JS9, CARTA)</td>
+<td>Scientists, data analysts</td>
+</tr>
+<tr>
+<td><strong>Architecture</strong></td>
+<td>32</td>
+<td>System design, data flow</td>
+<td>Developers, architects</td>
+</tr>
+<tr>
+<td><strong>Backend</strong></td>
+<td>22</td>
+<td>APIs, database, servers</td>
+<td>Backend developers</td>
+</tr>
+<tr>
+<td><strong>Monitoring</strong></td>
+<td>8</td>
+<td>System health, pointing</td>
+<td>Operations staff</td>
+</tr>
+<tr>
+<td><strong>Control Panel</strong></td>
+<td>4</td>
+<td>Operations interface</td>
+<td>Operators</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-dashboard-documentation-map">3.2 Dashboard Documentation Map<a class="headerlink" href="#32-dashboard-documentation-map" title="Permanent link">¶</a></h3>
+<p>For each component, documentation should cover:</p>
+<div class="highlight"><pre><span></span><code>[Component Name]
+├── User Guides
+│   └─ How to use this component
+│   └─ Common workflows
+│   └─ UI navigation
+│
+├── Developer Guides
+│   └─ Architecture overview
+│   └─ Component structure
+│   └─ Code organization
+│
+├── API Documentation
+│   └─ Endpoints
+│   └─ Request/response formats
+│   └─ Authentication
+│
+├── Deployment Guide
+│   └─ Installation
+│   └─ Configuration
+│   └─ Troubleshooting
+│
+└── Examples
+    └─ Use cases
+    └─ Code samples
+    └─ Integration patterns
+</code></pre></div>
+<h3 id="33-discovery-path-dashboard">3.3 Discovery Path: Dashboard<a class="headerlink" href="#33-discovery-path-dashboard" title="Permanent link">¶</a></h3>
+<p>Users searching for dashboard documentation should find:</p>
+<div class="highlight"><pre><span></span><code>"How do I use the dashboard?"
+  → DASHBOARD USER GUIDE
+    ├─ Getting Started: how-to/dashboard-quickstart.md
+    ├─ Full Guide: how-to/dashboard.md
+    ├─ Control Panel: how-to/control-panel-quickstart.md
+    ├─ Visualization: how-to/js9_casa_analysis.md
+    ├─ CARTA Integration: how-to/carta_quick_start.md
+    └─ Reference: reference/dashboard_backend_api.md
+
+"How do I develop dashboard features?"
+  → DASHBOARD DEVELOPER GUIDE
+    ├─ Architecture: concepts/dashboard_architecture.md
+    ├─ Frontend Dev: how-to/dashboard-development.md
+    ├─ Frontend Tests: how-to/playwright-python-quick-start.md
+    ├─ Backend Design: concepts/dashboard_data_models.md
+    ├─ API Reference: reference/dashboard_backend_api.md
+    └─ Deployment: operations/deploy-docker.md
+
+"How do I deploy the dashboard?"
+  → DASHBOARD DEPLOYMENT GUIDE
+    ├─ Docker: operations/deploy-docker.md
+    ├─ Systemd: operations/deploy-systemd.md
+    ├─ Configuration: reference/dashboard_implementation_status.md
+    ├─ Troubleshoot: how-to/troubleshooting.md
+    └─ Operations: operations/starting_dashboard_safely.md
+</code></pre></div>
+<hr/>
+<h2 id="part-4-general-themes-dimension-11-categories">Part 4: General Themes Dimension (11 Categories)<a class="headerlink" href="#part-4-general-themes-dimension-11-categories" title="Permanent link">¶</a></h2>
+<h3 id="41-general-theme-definitions">4.1 General Theme Definitions<a class="headerlink" href="#41-general-theme-definitions" title="Permanent link">¶</a></h3>
+<p>Cross-cutting concerns that apply across pipeline and dashboard:</p>
+<table>
+<thead>
+<tr>
+<th>Theme</th>
+<th>Documents</th>
+<th>Focus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Testing</strong></td>
+<td>104</td>
+<td>Test strategies, validation, quality assurance</td>
+</tr>
+<tr>
+<td><strong>Development</strong></td>
+<td>103</td>
+<td>Roadmaps, phases, implementation status</td>
+</tr>
+<tr>
+<td><strong>Documentation</strong></td>
+<td>67</td>
+<td>Guides, references, authoring</td>
+</tr>
+<tr>
+<td><strong>Troubleshooting</strong></td>
+<td>56</td>
+<td>Bug fixes, error resolution, debugging</td>
+</tr>
+<tr>
+<td><strong>Operations</strong></td>
+<td>32</td>
+<td>Deployment, maintenance, port management</td>
+</tr>
+<tr>
+<td><strong>Tools</strong></td>
+<td>26</td>
+<td>External tools, comparisons, evaluations</td>
+</tr>
+<tr>
+<td><strong>Environment</strong></td>
+<td>20</td>
+<td>Setup, CASA6, conda, dependencies</td>
+</tr>
+<tr>
+<td><strong>Deployment</strong></td>
+<td>18</td>
+<td>Docker, systemd, production</td>
+</tr>
+<tr>
+<td><strong>Performance</strong></td>
+<td>11</td>
+<td>Optimization, profiling, scalability</td>
+</tr>
+<tr>
+<td><strong>Security</strong></td>
+<td>9</td>
+<td>Safeguards, vulnerabilities, CodeQL</td>
+</tr>
+<tr>
+<td><strong>Miscellaneous</strong></td>
+<td>126</td>
+<td>Admin, research notes, workspace</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-general-theme-use-cases">4.2 General Theme Use Cases<a class="headerlink" href="#42-general-theme-use-cases" title="Permanent link">¶</a></h3>
+<p><strong>Testing Theme:</strong></p>
+<div class="highlight"><pre><span></span><code>"How do I test the pipeline?"
+  → TESTING INDEX
+    ├─ Strategy: testing/COMPREHENSIVE_TESTING_PLAN.md
+    ├─ Unit Tests: how-to/using-pytest-safely.md
+    ├─ Integration: testing/PHASE1_TESTING_RESULTS.md
+    ├─ Frontend Tests: how-to/playwright-python-quick-start.md
+    ├─ Validation: reference/validation_api.md
+    └─ Results: testing/FINAL_TEST_REPORT.md
+</code></pre></div>
+<p><strong>Development Theme:</strong></p>
+<div class="highlight"><pre><span></span><code>"What's the current status?"
+  → DEVELOPMENT INDEX
+    ├─ Roadmap: DEVELOPMENT_ROADMAP.md
+    ├─ Phases: dev/IMPLEMENTATION_COMPLETE.md
+    ├─ Current: dev/phase3_complete.md
+    ├─ Checklist: IMPLEMENTATION_CHECKLIST.md
+    └─ Next Steps: dev/phase2_implementation_plan.md
+</code></pre></div>
+<p><strong>Operations Theme:</strong></p>
+<div class="highlight"><pre><span></span><code>"How do I operate the system?"
+  → OPERATIONS INDEX
+    ├─ Deployment: operations/deploy-docker.md
+    ├─ Maintenance: operations/MAINTENANCE_SCHEDULE.md
+    ├─ Ports: operations/PORT_SYSTEM_IMPLEMENTATION_GUIDE.md
+    ├─ Monitoring: operations/CASA_LOG_DAEMON_PROTECTION_SUMMARY.md
+    └─ Troubleshoot: operations/API_RESTART_GUIDE.md
+</code></pre></div>
+<hr/>
+<h2 id="part-5-navigation-structure">Part 5: Navigation Structure<a class="headerlink" href="#part-5-navigation-structure" title="Permanent link">¶</a></h2>
+<h3 id="51-primary-entry-points">5.1 Primary Entry Points<a class="headerlink" href="#51-primary-entry-points" title="Permanent link">¶</a></h3>
+<p><strong>For Pipeline Users:</strong></p>
+<div class="highlight"><pre><span></span><code>docs/index.md
+├─ Concepts &gt; Pipeline Overview
+│  └─ Links to each stage's documentation
+│
+├─ Tutorials &gt; [Stage-specific]
+│  └─ Step-by-step guides per stage
+│
+├─ How-To &gt; [Stage-specific]
+│  └─ Procedures for each stage
+│
+└─ Reference &gt; Streaming/Calibration/Imaging APIs
+   └─ Technical API docs per stage
+</code></pre></div>
+<p><strong>For Dashboard Users:</strong></p>
+<div class="highlight"><pre><span></span><code>docs/index.md
+├─ Quick Start &gt; Dashboard
+│  └─ Quick tutorial
+│
+├─ How-To &gt; Dashboard Guide
+│  └─ Full user guide
+│
+├─ Concepts &gt; Dashboard Architecture
+│  └─ System overview
+│
+└─ Reference &gt; Dashboard API
+   └─ Backend API documentation
+</code></pre></div>
+<p><strong>For Developers:</strong></p>
+<div class="highlight"><pre><span></span><code>docs/index.md
+├─ Concepts &gt; Architecture
+│  └─ System design overview
+│
+├─ Reference &gt; Developer Guide
+│  └─ Code structure, patterns
+│
+├─ How-To &gt; Development Setup
+│  └─ Environment configuration
+│
+└─ Operations &gt; Deployment
+   └─ Docker, systemd, production
+</code></pre></div>
+<h3 id="52-index-files-by-theme">5.2 Index Files by Theme<a class="headerlink" href="#52-index-files-by-theme" title="Permanent link">¶</a></h3>
+<p>Create theme-specific index files:</p>
+<div class="highlight"><pre><span></span><code>docs/
+├── PIPELINE_STAGES_INDEX.md
+│  └─ Quick links to all 10 stage documentations
+│
+├── DASHBOARD_COMPONENTS_INDEX.md
+│  └─ Quick links to all 6 component documentations
+│
+├── TESTING_DOCUMENTATION_INDEX.md
+│  └─ All testing-related documents
+│
+├── TROUBLESHOOTING_INDEX.md
+│  └─ All troubleshooting documents
+│
+├── OPERATIONS_INDEX.md
+│  └─ All operations and deployment docs
+│
+└── [similar for other major themes]
+</code></pre></div>
+<h3 id="53-cross-references">5.3 Cross-References<a class="headerlink" href="#53-cross-references" title="Permanent link">¶</a></h3>
+<p>Each document should reference related documents:</p>
+<div class="highlight"><pre><span></span><code><span class="gh"># Streaming API Reference</span>
+
+...content...
+
+<span class="gu">## Related Documentation</span>
+
+<span class="gu">### Same Pipeline Stage</span>
+
+<span class="k">-</span><span class="w"> </span>[<span class="nt">Streaming Architecture</span>](<span class="na">concepts/streaming-architecture.md</span>)
+<span class="k">-</span><span class="w"> </span>[<span class="nt">Streaming How-To Guide</span>](<span class="na">how-to/streaming.md</span>)
+
+<span class="gu">### Same Dashboard Component</span>
+
+<span class="k">-</span><span class="w"> </span>(N/A - streaming is pipeline-only)
+
+<span class="gu">### Related Themes</span>
+
+<span class="k">-</span><span class="w"> </span>[<span class="nt">Testing Strategies</span>](<span class="na">testing/COMPREHENSIVE_TESTING_PLAN.md</span>)
+<span class="k">-</span><span class="w"> </span>[<span class="nt">Troubleshooting Guide</span>](<span class="na">how-to/streaming-troubleshooting.md</span>)
+
+<span class="gu">### Related Stages</span>
+
+<span class="k">-</span><span class="w"> </span>[<span class="nt">Calibration</span>](<span class="na">reference/CURRENT_CALIBRATION_PROCEDURE.md</span>) - next stage
+<span class="k">-</span><span class="w"> </span>[<span class="nt">UVH5 to MS Conversion</span>](<span class="na">how-to/uvh5_to_ms_conversion.md</span>) - input format
+</code></pre></div>
+<hr/>
+<h2 id="part-6-implementation-strategy">Part 6: Implementation Strategy<a class="headerlink" href="#part-6-implementation-strategy" title="Permanent link">¶</a></h2>
+<h3 id="61-phase-1-establish-index-files-week-1">6.1 Phase 1: Establish Index Files (Week 1)<a class="headerlink" href="#61-phase-1-establish-index-files-week-1" title="Permanent link">¶</a></h3>
+<p>Create master index files for each theme:</p>
+<ol>
+<li><strong>PIPELINE_STAGES_INDEX.md</strong></li>
+<li>Table of all 10 stages with 2-3 key links each</li>
+<li>
+<p>Updated from inventory analysis</p>
+</li>
+<li>
+<p><strong>DASHBOARD_COMPONENTS_INDEX.md</strong></p>
+</li>
+<li>
+<p>Table of all 6 components with 2-3 key links each</p>
+</li>
+<li>
+<p><strong>GENERAL_THEMES_INDEX.md</strong></p>
+</li>
+<li>
+<p>Table of all 11 themes with 2-3 key links each</p>
+</li>
+<li>
+<p>Update <strong>index.md</strong> with links to above</p>
+</li>
+</ol>
+<h3 id="62-phase-2-create-stage-specific-indexes-week-2">6.2 Phase 2: Create Stage-Specific Indexes (Week 2)<a class="headerlink" href="#62-phase-2-create-stage-specific-indexes-week-2" title="Permanent link">¶</a></h3>
+<p>For each of the 10 pipeline stages, create:</p>
+<div class="highlight"><pre><span></span><code>docs/pipeline-stages/
+├── streaming/
+│  ├── INDEX.md (overview with links)
+│  ├── concepts.md or → ../concepts/streaming-architecture.md
+│  ├── quickstart.md or → ../how-to/streaming.md
+│  ├── api.md or → ../reference/streaming-api.md
+│  └── troubleshoot.md or → ../how-to/streaming-troubleshooting.md
+│
+├── calibration/
+│  ├── INDEX.md
+│  ├── concepts.md
+│  └─ ... [similar structure]
+│
+└── [8 more stages]
+</code></pre></div>
+<p>Or use symbolic links/redirects to existing docs.</p>
+<h3 id="63-phase-3-create-component-specific-indexes-week-2">6.3 Phase 3: Create Component-Specific Indexes (Week 2)<a class="headerlink" href="#63-phase-3-create-component-specific-indexes-week-2" title="Permanent link">¶</a></h3>
+<p>For each of the 6 dashboard components, create:</p>
+<div class="highlight"><pre><span></span><code>docs/dashboard-components/
+├── frontend/
+│  ├── INDEX.md (user guide links)
+│  ├── dev-guide.md (developer links)
+│  ├── deployment.md (ops links)
+│  └── api.md (API links)
+│
+├── visualization/
+├── architecture/
+├── backend/
+├── monitoring/
+└── control-panel/
+</code></pre></div>
+<h3 id="64-phase-4-update-existing-documents-week-3">6.4 Phase 4: Update Existing Documents (Week 3)<a class="headerlink" href="#64-phase-4-update-existing-documents-week-3" title="Permanent link">¶</a></h3>
+<p>Add to each document:</p>
+<ul>
+<li>Theme tags in frontmatter or header</li>
+<li>"Related Documentation" section</li>
+<li>Breadcrumb navigation</li>
+</ul>
+<p>Example header update:</p>
+<div class="highlight"><pre><span></span><code>---
+tags: [pipeline: streaming, documentation]
+related_documents:
+<span class="w">  </span><span class="k">-</span><span class="w"> </span>streaming-architecture.md
+<span class="w">  </span><span class="k">-</span><span class="w"> </span>streaming-troubleshooting.md
+<span class="gu">  - uvh5_to_ms_conversion.md</span>
+<span class="gu">---</span>
+
+<span class="gh"># Streaming Guide</span>
+
+[Breadcrumb: Home &gt; Pipeline &gt; Streaming &gt; Guide]
+</code></pre></div>
+<h3 id="65-phase-5-create-theme-based-search-index-week-4">6.5 Phase 5: Create Theme-Based Search Index (Week 4)<a class="headerlink" href="#65-phase-5-create-theme-based-search-index-week-4" title="Permanent link">¶</a></h3>
+<p>Maintain CSV files in docs for easy search:</p>
+<div class="highlight"><pre><span></span><code>docs/indices/
+├── by-pipeline-stage.csv
+├── by-dashboard-component.csv
+├── by-general-theme.csv
+└── full-inventory.csv
+</code></pre></div>
+<p>Update with each major documentation change.</p>
+<hr/>
+<h2 id="part-7-directory-structure-recommendation">Part 7: Directory Structure Recommendation<a class="headerlink" href="#part-7-directory-structure-recommendation" title="Permanent link">¶</a></h2>
+<h3 id="proposed-new-structure">Proposed New Structure<a class="headerlink" href="#proposed-new-structure" title="Permanent link">¶</a></h3>
+<p>Keep existing directories but add organizational layer:</p>
+<div class="highlight"><pre><span></span><code>docs/
+│
+├── START_HERE_DOCUMENT_INVENTORY.md
+├── DOCUMENTATION_ORGANIZATIONAL_FRAMEWORK.md
+│
+├── indices/                          ← NEW: Master index files
+│  ├── PIPELINE_STAGES_INDEX.md
+│  ├── DASHBOARD_COMPONENTS_INDEX.md
+│  ├── GENERAL_THEMES_INDEX.md
+│  └── by-*.csv                        ← CSV files from inventory
+│
+├── pipeline-stages/                  ← NEW: Stage-specific guides
+│  ├── streaming/
+│  ├── calibration/
+│  └── [... 8 more stages]
+│
+├── dashboard-components/             ← NEW: Component-specific guides
+│  ├── frontend/
+│  ├── visualization/
+│  └── [... 4 more components]
+│
+├── how-to/                           ← EXISTING: Procedural guides
+├── reference/                        ← EXISTING: API references
+├── concepts/                         ← EXISTING: Architecture docs
+├── operations/                       ← EXISTING: Ops guides
+├── dev/                              ← EXISTING: Dev tracking
+├── testing/                          ← EXISTING: Test docs
+├── tutorials/                        ← EXISTING: Tutorials
+├── archive/                          ← EXISTING: Historical
+│
+└── [root level docs]                 ← EXISTING: Main docs
+</code></pre></div>
+<p><strong>This structure preserves all existing content while adding navigational
+layer.</strong></p>
+<hr/>
+<h2 id="part-8-content-governance">Part 8: Content Governance<a class="headerlink" href="#part-8-content-governance" title="Permanent link">¶</a></h2>
+<h3 id="81-document-lifecycle">8.1 Document Lifecycle<a class="headerlink" href="#81-document-lifecycle" title="Permanent link">¶</a></h3>
+<p>Each document should go through:</p>
+<ol>
+<li><strong>Draft</strong> - Initial creation (0-3 days)</li>
+<li><strong>Review</strong> - Technical review (1-7 days)</li>
+<li><strong>Publish</strong> - Make available (1 day)</li>
+<li><strong>Maintain</strong> - Updates and corrections (ongoing)</li>
+<li><strong>Archive</strong> - Move to historical (when superseded)</li>
+</ol>
+<h3 id="82-template-standards">8.2 Template Standards<a class="headerlink" href="#82-template-standards" title="Permanent link">¶</a></h3>
+<p>Create standard templates for each type:</p>
+<p><strong>Pipeline Stage Documentation Template:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="gh"># [Stage Name]</span>
+
+<span class="gu">## Overview</span>
+
+[What does this stage do?]
+
+<span class="gu">## Concepts</span>
+
+[Key concepts and theory]
+
+<span class="gu">## Getting Started</span>
+
+[Quick start guide]
+
+<span class="gu">## Detailed Guide</span>
+
+[Comprehensive procedures]
+
+<span class="gu">## API Reference</span>
+
+[Function/command reference]
+
+<span class="gu">## Configuration</span>
+
+[Parameters and tuning]
+
+<span class="gu">## Examples</span>
+
+[Real-world examples]
+
+<span class="gu">## Troubleshooting</span>
+
+[Common issues and solutions]
+
+<span class="gu">## See Also</span>
+
+[Related documentation]
+</code></pre></div>
+<p><strong>Dashboard Component Template:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="gh"># [Component Name]</span>
+
+<span class="gu">## Overview</span>
+
+[What is this component?]
+
+<span class="gu">## User Guide</span>
+
+[How end users interact with it]
+
+<span class="gu">## Developer Guide</span>
+
+[How developers build/extend it]
+
+<span class="gu">## API Reference</span>
+
+[API endpoints or interfaces]
+
+<span class="gu">## Architecture</span>
+
+[System design]
+
+<span class="gu">## Deployment</span>
+
+[How to deploy]
+
+<span class="gu">## Examples</span>
+
+[Use cases and examples]
+
+<span class="gu">## See Also</span>
+
+[Related components]
+</code></pre></div>
+<h3 id="83-naming-conventions">8.3 Naming Conventions<a class="headerlink" href="#83-naming-conventions" title="Permanent link">¶</a></h3>
+<p><strong>Consistency rules:</strong></p>
+<ol>
+<li><strong>Pipeline stage docs:</strong> Start with stage name</li>
+<li>
+<p><code>streaming-*.md</code>, <code>calibration-*.md</code>, etc.</p>
+</li>
+<li>
+<p><strong>Dashboard component docs:</strong> Start with component name</p>
+</li>
+<li>
+<p><code>frontend-*.md</code>, <code>visualization-*.md</code>, etc.</p>
+</li>
+<li>
+<p><strong>Index files:</strong> End with <code>_INDEX.md</code></p>
+</li>
+<li>
+<p><code>PIPELINE_STAGES_INDEX.md</code>, <code>TESTING_INDEX.md</code></p>
+</li>
+<li>
+<p><strong>Quick start:</strong> Include "quickstart" or "quick-start"</p>
+</li>
+<li>
+<p><code>dashboard-quickstart.md</code></p>
+</li>
+<li>
+<p><strong>How-to:</strong> Start with "how-to-" or place in <code>how-to/</code></p>
+</li>
+<li><code>how-to/streaming.md</code></li>
+</ol>
+<hr/>
+<h2 id="part-9-metadata-and-frontmatter">Part 9: Metadata and Frontmatter<a class="headerlink" href="#part-9-metadata-and-frontmatter" title="Permanent link">¶</a></h2>
+<h3 id="91-recommended-frontmatter">9.1 Recommended Frontmatter<a class="headerlink" href="#91-recommended-frontmatter" title="Permanent link">¶</a></h3>
+<p>Add YAML frontmatter to documents:</p>
+<div class="highlight"><pre><span></span><code><span class="nn">---</span>
+<span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Streaming Guide</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">How to use the streaming component</span>
+<span class="nt">authors</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">name1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">name2</span><span class="p p-Indicator">]</span>
+<span class="nt">date</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2025-11-15</span>
+<span class="nt">updated</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2025-11-15</span>
+<span class="nt">tags</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pipeline</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">streaming</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">documentation</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">how-to</span>
+<span class="nt">difficulty</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">intermediate</span>
+<span class="nt">time_to_read</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15 minutes</span>
+<span class="nt">related</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">streaming-architecture.md</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">streaming-troubleshooting.md</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uvh5_to_ms_conversion.md</span>
+<span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<span class="nt">status</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">published</span>
+<span class="nn">---</span>
+</code></pre></div>
+<h3 id="92-search-metadata">9.2 Search Metadata<a class="headerlink" href="#92-search-metadata" title="Permanent link">¶</a></h3>
+<p>Include in document headers for search:</p>
+<div class="highlight"><pre><span></span><code>&lt;!--
+DOCUMENT METADATA
+Pipeline: streaming
+Dashboard: (none)
+Themes: documentation, how-to
+Keywords: UVH5, conversion, measurement set, data ingestion
+Related: calibration, flagging
+Audience: data operators, pipeline developers
+Difficulty: intermediate
+Last updated: 2025-11-15
+--&gt;
+
+<span class="gh"># Streaming Guide</span>
+</code></pre></div>
+<hr/>
+<h2 id="part-10-migration-plan">Part 10: Migration Plan<a class="headerlink" href="#part-10-migration-plan" title="Permanent link">¶</a></h2>
+<h3 id="101-low-disruption-migration">10.1 Low-Disruption Migration<a class="headerlink" href="#101-low-disruption-migration" title="Permanent link">¶</a></h3>
+<p><strong>Goal:</strong> Implement framework without breaking existing workflows</p>
+<p><strong>Strategy:</strong></p>
+<ol>
+<li><strong>Phase 1 (Week 1):</strong> Add index files (no changes to existing docs)</li>
+<li><strong>Phase 2 (Week 2):</strong> Create stage/component directories (can be empty
+   initially)</li>
+<li><strong>Phase 3 (Week 3):</strong> Gradually update documents with frontmatter</li>
+<li><strong>Phase 4 (Week 4):</strong> Create stage/component-specific index files</li>
+<li><strong>Phase 5 (Ongoing):</strong> Maintain indices as docs evolve</li>
+</ol>
+<p><strong>No existing documents need to move.</strong></p>
+<h3 id="102-gradual-adoption">10.2 Gradual Adoption<a class="headerlink" href="#102-gradual-adoption" title="Permanent link">¶</a></h3>
+<ul>
+<li>Start with one pipeline stage (e.g., Streaming)</li>
+<li>Create complete index for that stage</li>
+<li>Get feedback from users</li>
+<li>Expand to other stages</li>
+<li>Apply same pattern to dashboard components</li>
+</ul>
+<h3 id="103-parallel-system">10.3 Parallel System<a class="headerlink" href="#103-parallel-system" title="Permanent link">¶</a></h3>
+<ul>
+<li>New users navigate via indices</li>
+<li>Existing links continue to work</li>
+<li>No breakage in existing documentation</li>
+<li>Can gradually migrate without urgency</li>
+</ul>
+<hr/>
+<h2 id="part-11-success-metrics">Part 11: Success Metrics<a class="headerlink" href="#part-11-success-metrics" title="Permanent link">¶</a></h2>
+<h3 id="111-measurable-outcomes">11.1 Measurable Outcomes<a class="headerlink" href="#111-measurable-outcomes" title="Permanent link">¶</a></h3>
+<p>Track these metrics:</p>
+<ol>
+<li><strong>Documentation Discovery</strong></li>
+<li>Time to find specific document</li>
+<li>Number of dead links</li>
+<li>
+<p>User satisfaction with navigation</p>
+</li>
+<li>
+<p><strong>Content Quality</strong></p>
+</li>
+<li>Documentation coverage completeness</li>
+<li>Consistency of terminology</li>
+<li>
+<p>Up-to-date status of documents</p>
+</li>
+<li>
+<p><strong>Usage Patterns</strong></p>
+</li>
+<li>Most visited documents</li>
+<li>Common search queries</li>
+<li>
+<p>Pages that need improvement</p>
+</li>
+<li>
+<p><strong>Maintenance</strong></p>
+</li>
+<li>Documents added per month</li>
+<li>Documents archived per month</li>
+<li>Average age of documentation</li>
+</ol>
+<h3 id="112-kpis">11.2 KPIs<a class="headerlink" href="#112-kpis" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Coverage:</strong> 100% of pipeline stages documented</li>
+<li><strong>Coverage:</strong> 100% of dashboard components documented</li>
+<li><strong>Freshness:</strong> 80% of docs updated within last 6 months</li>
+<li><strong>Accuracy:</strong> User-reported errors &lt; 1%</li>
+<li><strong>Discoverability:</strong> New users find relevant docs in &lt; 5 minutes</li>
+</ul>
+<hr/>
+<h2 id="part-12-examples">Part 12: Examples<a class="headerlink" href="#part-12-examples" title="Permanent link">¶</a></h2>
+<h3 id="example-1-finding-streaming-documentation">Example 1: Finding Streaming Documentation<a class="headerlink" href="#example-1-finding-streaming-documentation" title="Permanent link">¶</a></h3>
+<p><strong>User Query:</strong> "How do I convert UVH5 data to Measurement Sets?"</p>
+<p><strong>Current Path:</strong></p>
+<ul>
+<li>Search <code>docs/</code> manually</li>
+<li>Find <code>how-to/streaming.md</code></li>
+</ul>
+<p><strong>New Path with Framework:</strong></p>
+<ol>
+<li>Go to <code>indices/PIPELINE_STAGES_INDEX.md</code></li>
+<li>Find "Streaming" row</li>
+<li>Click "Getting Started" → <code>how-to/streaming.md</code></li>
+<li>See breadcrumb and related docs</li>
+<li>Discover <code>reference/streaming-api.md</code> for more details</li>
+</ol>
+<p><strong>Result:</strong> Clear navigation from entry point to answer</p>
+<hr/>
+<h3 id="example-2-finding-dashboard-frontend-documentation">Example 2: Finding Dashboard Frontend Documentation<a class="headerlink" href="#example-2-finding-dashboard-frontend-documentation" title="Permanent link">¶</a></h3>
+<p><strong>User Query:</strong> "How do I develop a new dashboard page?"</p>
+<p><strong>Current Path:</strong></p>
+<ul>
+<li>Search for "frontend" or "react"</li>
+<li>Find scattered docs in <code>how-to/</code>, <code>reference/</code>, <code>concepts/</code></li>
+</ul>
+<p><strong>New Path with Framework:</strong></p>
+<ol>
+<li>Go to <code>indices/DASHBOARD_COMPONENTS_INDEX.md</code></li>
+<li>Find "Frontend" row → "Developer Guide"</li>
+<li>Navigate to component structure docs</li>
+<li>See breadcrumb: Home &gt; Dashboard &gt; Frontend &gt; Developer</li>
+<li>Find links to concepts, reference, examples</li>
+<li>Discover related: <code>concepts/dashboard_architecture.md</code></li>
+</ol>
+<p><strong>Result:</strong> Organized developer experience</p>
+<hr/>
+<h3 id="example-3-finding-testing-documentation">Example 3: Finding Testing Documentation<a class="headerlink" href="#example-3-finding-testing-documentation" title="Permanent link">¶</a></h3>
+<p><strong>User Query:</strong> "What's the recommended testing strategy?"</p>
+<p><strong>Current Path:</strong></p>
+<ul>
+<li>Search <code>testing/</code> directory manually</li>
+<li>Find multiple test plan files</li>
+</ul>
+<p><strong>New Path with Framework:</strong></p>
+<ol>
+<li>Go to <code>indices/GENERAL_THEMES_INDEX.md</code></li>
+<li>Find "Testing" row</li>
+<li>Click "Strategy" → <code>testing/COMPREHENSIVE_TESTING_PLAN.md</code></li>
+<li>See breadcrumb and navigation</li>
+<li>Discover related testing docs and examples</li>
+</ol>
+<p><strong>Result:</strong> Clear entry point to testing information</p>
+<hr/>
+<h2 id="part-13-implementation-checklist">Part 13: Implementation Checklist<a class="headerlink" href="#part-13-implementation-checklist" title="Permanent link">¶</a></h2>
+<h3 id="quick-implementation-1-2-weeks">Quick Implementation (1-2 weeks)<a class="headerlink" href="#quick-implementation-1-2-weeks" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] Create <code>indices/</code> directory</li>
+<li>[ ] Create <code>PIPELINE_STAGES_INDEX.md</code></li>
+<li>[ ] Create <code>DASHBOARD_COMPONENTS_INDEX.md</code></li>
+<li>[ ] Create <code>GENERAL_THEMES_INDEX.md</code></li>
+<li>[ ] Update main <code>index.md</code> to link to indices</li>
+<li>[ ] Test navigation paths</li>
+<li>[ ] Get team feedback</li>
+</ul>
+<h3 id="medium-implementation-3-4-weeks">Medium Implementation (3-4 weeks)<a class="headerlink" href="#medium-implementation-3-4-weeks" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] Create pipeline-stages subdirectories with INDEX files</li>
+<li>[ ] Create dashboard-components subdirectories with INDEX files</li>
+<li>[ ] Add frontmatter to 50% of existing documents</li>
+<li>[ ] Create stage/component-specific guide documents</li>
+<li>[ ] Test all cross-references</li>
+</ul>
+<h3 id="full-implementation-5-weeks">Full Implementation (5+ weeks)<a class="headerlink" href="#full-implementation-5-weeks" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] Add frontmatter to 100% of documents</li>
+<li>[ ] Create comprehensive search functionality</li>
+<li>[ ] Implement automated link validation</li>
+<li>[ ] Set up documentation review workflow</li>
+<li>[ ] Train team on new structure</li>
+<li>[ ] Monitor usage patterns</li>
+</ul>
+<hr/>
+<h2 id="part-14-quick-start-for-users">Part 14: Quick Start for Users<a class="headerlink" href="#part-14-quick-start-for-users" title="Permanent link">¶</a></h2>
+<h3 id="for-pipeline-operators">For Pipeline Operators<a class="headerlink" href="#for-pipeline-operators" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code>START HERE: docs/indices/PIPELINE_STAGES_INDEX.md
+  ↓
+Select your stage
+  ↓
+Choose activity:
+  • Learning? → Concepts
+  • Doing it? → How-To
+  • Need help? → Troubleshooting
+  • API details? → Reference
+</code></pre></div>
+<h3 id="for-dashboard-users">For Dashboard Users<a class="headerlink" href="#for-dashboard-users" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code>START HERE: docs/indices/DASHBOARD_COMPONENTS_INDEX.md
+  ↓
+Select your role:
+  • End User? → User Guide
+  • Developer? → Developer Guide
+  • Operator? → Operations
+</code></pre></div>
+<h3 id="for-new-team-members">For New Team Members<a class="headerlink" href="#for-new-team-members" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code>START HERE: docs/START_HERE_DOCUMENT_INVENTORY.md
+  ↓
+Choose your interest:
+  • Pipeline? → PIPELINE_STAGES_INDEX.md
+  • Dashboard? → DASHBOARD_COMPONENTS_INDEX.md
+  • Development? → indices/GENERAL_THEMES_INDEX.md
+</code></pre></div>
+<hr/>
+<h2 id="part-15-maintenance-and-evolution">Part 15: Maintenance and Evolution<a class="headerlink" href="#part-15-maintenance-and-evolution" title="Permanent link">¶</a></h2>
+<h3 id="151-regular-reviews">15.1 Regular Reviews<a class="headerlink" href="#151-regular-reviews" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Monthly:</strong> Check for broken links, update dates</li>
+<li><strong>Quarterly:</strong> Review coverage, update indices</li>
+<li><strong>Annually:</strong> Reorganize if needed, major updates</li>
+</ul>
+<h3 id="152-documentation-debt">15.2 Documentation Debt<a class="headerlink" href="#152-documentation-debt" title="Permanent link">¶</a></h3>
+<p>Track technical debt in documentation:</p>
+<div class="highlight"><pre><span></span><code>docs/DOCUMENTATION_TODO.md
+
+[ ] ESE Detection: Add missing API docs
+[ ] Cross-matching: Update VAST integration examples
+[ ] Dashboard Frontend: Add React component style guide
+[ ] Photometry: Add automation strategy
+</code></pre></div>
+<h3 id="153-feedback-loop">15.3 Feedback Loop<a class="headerlink" href="#153-feedback-loop" title="Permanent link">¶</a></h3>
+<ul>
+<li>Track user questions about docs</li>
+<li>Note which docs get visited most</li>
+<li>Identify gaps from user feedback</li>
+<li>Prioritize updates accordingly</li>
+</ul>
+<hr/>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
+<p>This framework provides:</p>
+<ol>
+<li><strong>Clear Organization</strong> - 27 distinct themes across 3 dimensions</li>
+<li><strong>Easy Discovery</strong> - Index files guide users to answers</li>
+<li><strong>Scalability</strong> - Framework grows with project</li>
+<li><strong>Flexibility</strong> - Documents can belong to multiple themes</li>
+<li><strong>No Disruption</strong> - Existing docs work as-is</li>
+<li><strong>Best Practices</strong> - Templates, metadata, naming conventions</li>
+</ol>
+<p><strong>Result:</strong> Professional, maintainable, user-friendly documentation system</p>
+<hr/>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
+<ol>
+<li><strong>Review</strong> this framework with team</li>
+<li><strong>Adopt</strong> quick implementation items (Week 1)</li>
+<li><strong>Test</strong> navigation with new users</li>
+<li><strong>Expand</strong> to medium implementation (Weeks 2-3)</li>
+<li><strong>Measure</strong> success against KPIs</li>
+<li><strong>Refine</strong> based on feedback</li>
+</ol>
+<hr/>
+<p><strong>Framework Author:</strong> Documentation Analysis Tool<br/>
+<strong>Based On:</strong> Complete inventory of 630 documents<br/>
+<strong>Ready to Implement:</strong> Yes</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

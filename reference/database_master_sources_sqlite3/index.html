@@ -1,0 +1,1761 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/reference/database_master_sources_sqlite3/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Database Reference: master_sources.sqlite3 - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#database-reference-master_sourcessqlite3">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Database Reference: master_sources.sqlite3
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE.md">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_5">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming.md">
+<span class="md-ellipsis">
+    Streaming Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard.md">
+<span class="md-ellipsis">
+    Dashboard Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough.md">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_4">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart.md">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart.md">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART.md">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING.md">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND.md">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5.md">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE.md">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA.md">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN.md">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_9" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_9" id="__nav_5_9_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_9_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_9">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart.md">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic.md">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_10" id="__nav_5_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_10">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook.md">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess.md">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI.md">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION.md">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup.md">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_15" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_15" id="__nav_5_15_label" tabindex="0">
+<span class="md-ellipsis">
+    Development Setup
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_15_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_15">
+<span class="md-nav__icon md-icon"></span>
+            Development Setup
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/ENVIRONMENT_SETUP.md">
+<span class="md-ellipsis">
+    Environment Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PRE_COMMIT_SETUP.md">
+<span class="md-ellipsis">
+    Pre-commit Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CI_CD_SETUP.md">
+<span class="md-ellipsis">
+    CI/CD Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_DATABASE_SETUP.md">
+<span class="md-ellipsis">
+    Test Database Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE.md">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide.md">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_18" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_18" id="__nav_5_18_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_18_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_18">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion.md">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting.md">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tables">
+<span class="md-ellipsis">
+      Tables
+    </span>
+</a>
+<nav aria-label="Tables" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-sources-master-source-catalog">
+<span class="md-ellipsis">
+      1. sources - Master Source Catalog
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-final_references-final_references_table-reference-catalog">
+<span class="md-ellipsis">
+      2. final_references / final_references_table - Reference Catalog
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-good_references-good-quality-sources">
+<span class="md-ellipsis">
+      3. good_references - Good Quality Sources
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-meta-catalog-metadata">
+<span class="md-ellipsis">
+      4. meta - Catalog Metadata
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#source-flags">
+<span class="md-ellipsis">
+      Source Flags
+    </span>
+</a>
+<nav aria-label="Source Flags" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#resolved-flag">
+<span class="md-ellipsis">
+      Resolved Flag
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#confusion-flag">
+<span class="md-ellipsis">
+      Confusion Flag
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-queries">
+<span class="md-ellipsis">
+      Common Queries
+    </span>
+</a>
+<nav aria-label="Common Queries" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#find-sources-by-position">
+<span class="md-ellipsis">
+      Find Sources by Position
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#flux-based-queries">
+<span class="md-ellipsis">
+      Flux-Based Queries
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#spectral-index-queries">
+<span class="md-ellipsis">
+      Spectral Index Queries
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#quality-filtering">
+<span class="md-ellipsis">
+      Quality Filtering
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#python-access-examples">
+<span class="md-ellipsis">
+      Python Access Examples
+    </span>
+</a>
+<nav aria-label="Python Access Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#cone-search">
+<span class="md-ellipsis">
+      Cone Search
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#cross-match-detection">
+<span class="md-ellipsis">
+      Cross-Match Detection
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#batch-cross-matching">
+<span class="md-ellipsis">
+      Batch Cross-Matching
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#catalog-integration">
+<span class="md-ellipsis">
+      Catalog Integration
+    </span>
+</a>
+<nav aria-label="Catalog Integration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#add-new-sources">
+<span class="md-ellipsis">
+      Add New Sources
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#update-source-measurements">
+<span class="md-ellipsis">
+      Update Source Measurements
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#catalog-statistics">
+<span class="md-ellipsis">
+      Catalog Statistics
+    </span>
+</a>
+<nav aria-label="Catalog Statistics" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#source-count">
+<span class="md-ellipsis">
+      Source Count
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#flux-distribution">
+<span class="md-ellipsis">
+      Flux Distribution
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#sky-coverage">
+<span class="md-ellipsis">
+      Sky Coverage
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#maintenance-queries">
+<span class="md-ellipsis">
+      Maintenance Queries
+    </span>
+</a>
+<nav aria-label="Maintenance Queries" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#remove-duplicate-sources">
+<span class="md-ellipsis">
+      Remove Duplicate Sources
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#update-spectral-indices">
+<span class="md-ellipsis">
+      Update Spectral Indices
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#vacuum-database">
+<span class="md-ellipsis">
+      Vacuum Database
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#cli-commands">
+<span class="md-ellipsis">
+      CLI Commands
+    </span>
+</a>
+<nav aria-label="CLI Commands" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#query-sources">
+<span class="md-ellipsis">
+      Query Sources
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#build-catalog">
+<span class="md-ellipsis">
+      Build Catalog
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-notes">
+<span class="md-ellipsis">
+      Performance Notes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-files">
+<span class="md-ellipsis">
+      Related Files
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="database-reference-master_sourcessqlite3">Database Reference: master_sources.sqlite3<a class="headerlink" href="#database-reference-master_sourcessqlite3" title="Permanent link">¶</a></h1>
+<p><strong>Location</strong>: <code>/data/dsa110-contimg/state/master_sources.sqlite3</code><br/>
+<strong>Purpose</strong>: Master catalog of cross-matched radio sources<br/>
+<strong>Size</strong>: ~108 MB (typical, large catalog)</p>
+<hr/>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>The <code>master_sources.sqlite3</code> database contains a master catalog of radio sources
+cross-matched from multiple surveys (NVSS, VLASS, etc.). It provides fast
+lookups for source identification, flux measurements, and variability tracking.</p>
+<hr/>
+<h2 id="tables">Tables<a class="headerlink" href="#tables" title="Permanent link">¶</a></h2>
+<h3 id="1-sources-master-source-catalog">1. <code>sources</code> - Master Source Catalog<a class="headerlink" href="#1-sources-master-source-catalog" title="Permanent link">¶</a></h3>
+<p><strong>Purpose</strong>: Unified catalog of radio sources with multi-survey cross-matching</p>
+<p><strong>Schema</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">sources</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">source_id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span><span class="w">       </span><span class="c1">-- Unique source identifier</span>
+<span class="w">    </span><span class="n">ra_deg</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">                </span><span class="c1">-- RA (degrees, J2000)</span>
+<span class="w">    </span><span class="n">dec_deg</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">               </span><span class="c1">-- Dec (degrees, J2000)</span>
+<span class="w">    </span><span class="n">s_nvss</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span><span class="w">                         </span><span class="c1">-- NVSS flux density (Jy)</span>
+<span class="w">    </span><span class="n">snr_nvss</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span><span class="w">                       </span><span class="c1">-- NVSS SNR</span>
+<span class="w">    </span><span class="n">s_vlass</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span><span class="w">                        </span><span class="c1">-- VLASS flux density (Jy)</span>
+<span class="w">    </span><span class="n">alpha</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span><span class="w">                          </span><span class="c1">-- Spectral index</span>
+<span class="w">    </span><span class="n">resolved_flag</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">      </span><span class="c1">-- Source resolved flag (0/1)</span>
+<span class="w">    </span><span class="n">confusion_flag</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w">      </span><span class="c1">-- Confusion flag (0/1)</span>
+<span class="p">);</span>
+
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_sources_radec</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">sources</span><span class="p">(</span><span class="n">ra_deg</span><span class="p">,</span><span class="w"> </span><span class="n">dec_deg</span><span class="p">);</span>
+</code></pre></div>
+<hr/>
+<h3 id="2-final_references-final_references_table-reference-catalog">2. <code>final_references</code> / <code>final_references_table</code> - Reference Catalog<a class="headerlink" href="#2-final_references-final_references_table-reference-catalog" title="Permanent link">¶</a></h3>
+<p><strong>Purpose</strong>: High-quality reference sources for astrometry and flux calibration</p>
+<hr/>
+<h3 id="3-good_references-good-quality-sources">3. <code>good_references</code> - Good Quality Sources<a class="headerlink" href="#3-good_references-good-quality-sources" title="Permanent link">¶</a></h3>
+<p><strong>Purpose</strong>: Subset of sources passing quality criteria</p>
+<hr/>
+<h3 id="4-meta-catalog-metadata">4. <code>meta</code> - Catalog Metadata<a class="headerlink" href="#4-meta-catalog-metadata" title="Permanent link">¶</a></h3>
+<p><strong>Purpose</strong>: Store catalog version, build date, and provenance information</p>
+<hr/>
+<h2 id="source-flags">Source Flags<a class="headerlink" href="#source-flags" title="Permanent link">¶</a></h2>
+<h3 id="resolved-flag">Resolved Flag<a class="headerlink" href="#resolved-flag" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>0</code> - Point source (unresolved)</li>
+<li><code>1</code> - Extended/resolved source</li>
+</ul>
+<h3 id="confusion-flag">Confusion Flag<a class="headerlink" href="#confusion-flag" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>0</code> - Isolated source (no confusion)</li>
+<li><code>1</code> - Source in confused region (multiple nearby sources)</li>
+</ul>
+<hr/>
+<h2 id="common-queries">Common Queries<a class="headerlink" href="#common-queries" title="Permanent link">¶</a></h2>
+<h3 id="find-sources-by-position">Find Sources by Position<a class="headerlink" href="#find-sources-by-position" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Sources within 1 arcmin of position</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">source_id</span><span class="p">,</span><span class="w"> </span><span class="n">ra_deg</span><span class="p">,</span><span class="w"> </span><span class="n">dec_deg</span><span class="p">,</span><span class="w"> </span><span class="n">s_nvss</span><span class="p">,</span><span class="w"> </span><span class="n">s_vlass</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">sources</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="k">ABS</span><span class="p">(</span><span class="n">ra_deg</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">123</span><span class="p">.</span><span class="mi">45</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">.</span><span class="mi">0167</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="k">ABS</span><span class="p">(</span><span class="n">dec_deg</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">45</span><span class="p">.</span><span class="mi">67</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">.</span><span class="mi">0167</span><span class="p">;</span>
+
+<span class="c1">-- Nearest source to position</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">source_id</span><span class="p">,</span><span class="w"> </span><span class="n">ra_deg</span><span class="p">,</span><span class="w"> </span><span class="n">dec_deg</span><span class="p">,</span><span class="w"> </span><span class="n">s_nvss</span><span class="p">,</span>
+<span class="w">       </span><span class="n">SQRT</span><span class="p">(</span><span class="n">POW</span><span class="p">((</span><span class="n">ra_deg</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">123</span><span class="p">.</span><span class="mi">45</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">COS</span><span class="p">(</span><span class="n">RADIANS</span><span class="p">(</span><span class="mi">45</span><span class="p">.</span><span class="mi">67</span><span class="p">)),</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">+</span>
+<span class="w">            </span><span class="n">POW</span><span class="p">(</span><span class="n">dec_deg</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">45</span><span class="p">.</span><span class="mi">67</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">3600</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">sep_arcsec</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">sources</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">sep_arcsec</span>
+<span class="k">LIMIT</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+
+<span class="c1">-- Sources in RA/Dec box</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">source_id</span><span class="p">,</span><span class="w"> </span><span class="n">ra_deg</span><span class="p">,</span><span class="w"> </span><span class="n">dec_deg</span><span class="p">,</span><span class="w"> </span><span class="n">s_nvss</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">sources</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">ra_deg</span><span class="w"> </span><span class="k">BETWEEN</span><span class="w"> </span><span class="mi">120</span><span class="p">.</span><span class="mi">0</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="mi">125</span><span class="p">.</span><span class="mi">0</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">dec_deg</span><span class="w"> </span><span class="k">BETWEEN</span><span class="w"> </span><span class="mi">44</span><span class="p">.</span><span class="mi">0</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="mi">46</span><span class="p">.</span><span class="mi">0</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="flux-based-queries">Flux-Based Queries<a class="headerlink" href="#flux-based-queries" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Bright sources (NVSS &gt; 100 mJy)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">source_id</span><span class="p">,</span><span class="w"> </span><span class="n">ra_deg</span><span class="p">,</span><span class="w"> </span><span class="n">dec_deg</span><span class="p">,</span><span class="w"> </span><span class="n">s_nvss</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">sources</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">s_nvss</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">.</span><span class="mi">1</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">s_nvss</span><span class="w"> </span><span class="k">DESC</span><span class="p">;</span>
+
+<span class="c1">-- Sources with NVSS and VLASS measurements</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">source_id</span><span class="p">,</span><span class="w"> </span><span class="n">ra_deg</span><span class="p">,</span><span class="w"> </span><span class="n">dec_deg</span><span class="p">,</span><span class="w"> </span><span class="n">s_nvss</span><span class="p">,</span><span class="w"> </span><span class="n">s_vlass</span><span class="p">,</span>
+<span class="w">       </span><span class="n">s_vlass</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">s_nvss</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">flux_ratio</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">sources</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">s_nvss</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">s_vlass</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">;</span>
+
+<span class="c1">-- Variable source candidates (flux ratio &gt; 2 or &lt; 0.5)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">source_id</span><span class="p">,</span><span class="w"> </span><span class="n">ra_deg</span><span class="p">,</span><span class="w"> </span><span class="n">dec_deg</span><span class="p">,</span><span class="w"> </span><span class="n">s_nvss</span><span class="p">,</span><span class="w"> </span><span class="n">s_vlass</span><span class="p">,</span>
+<span class="w">       </span><span class="n">s_vlass</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">s_nvss</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">flux_ratio</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">sources</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">s_nvss</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">s_vlass</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="p">(</span><span class="n">s_vlass</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">s_nvss</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">2</span><span class="p">.</span><span class="mi">0</span><span class="w"> </span><span class="k">OR</span><span class="w"> </span><span class="n">s_vlass</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">s_nvss</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">.</span><span class="mi">5</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="spectral-index-queries">Spectral Index Queries<a class="headerlink" href="#spectral-index-queries" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Flat-spectrum sources (|alpha| &lt; 0.5)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">source_id</span><span class="p">,</span><span class="w"> </span><span class="n">ra_deg</span><span class="p">,</span><span class="w"> </span><span class="n">dec_deg</span><span class="p">,</span><span class="w"> </span><span class="n">s_nvss</span><span class="p">,</span><span class="w"> </span><span class="n">alpha</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">sources</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">alpha</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="k">ABS</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">.</span><span class="mi">5</span><span class="p">;</span>
+
+<span class="c1">-- Steep-spectrum sources (alpha &lt; -0.7)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">source_id</span><span class="p">,</span><span class="w"> </span><span class="n">ra_deg</span><span class="p">,</span><span class="w"> </span><span class="n">dec_deg</span><span class="p">,</span><span class="w"> </span><span class="n">s_nvss</span><span class="p">,</span><span class="w"> </span><span class="n">alpha</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">sources</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">alpha</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">alpha</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="o">-</span><span class="mi">0</span><span class="p">.</span><span class="mi">7</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="quality-filtering">Quality Filtering<a class="headerlink" href="#quality-filtering" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Point sources only (unresolved)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">source_id</span><span class="p">,</span><span class="w"> </span><span class="n">ra_deg</span><span class="p">,</span><span class="w"> </span><span class="n">dec_deg</span><span class="p">,</span><span class="w"> </span><span class="n">s_nvss</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">sources</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">resolved_flag</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
+
+<span class="c1">-- Isolated sources (no confusion)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">source_id</span><span class="p">,</span><span class="w"> </span><span class="n">ra_deg</span><span class="p">,</span><span class="w"> </span><span class="n">dec_deg</span><span class="p">,</span><span class="w"> </span><span class="n">s_nvss</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">sources</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">confusion_flag</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
+
+<span class="c1">-- High-quality sources (point + isolated + bright)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">source_id</span><span class="p">,</span><span class="w"> </span><span class="n">ra_deg</span><span class="p">,</span><span class="w"> </span><span class="n">dec_deg</span><span class="p">,</span><span class="w"> </span><span class="n">s_nvss</span><span class="p">,</span><span class="w"> </span><span class="n">snr_nvss</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">sources</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">resolved_flag</span><span class="o">=</span><span class="mi">0</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">confusion_flag</span><span class="o">=</span><span class="mi">0</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">s_nvss</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">.</span><span class="mi">01</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">snr_nvss</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
+</code></pre></div>
+<hr/>
+<h2 id="python-access-examples">Python Access Examples<a class="headerlink" href="#python-access-examples" title="Permanent link">¶</a></h2>
+<h3 id="cone-search">Cone Search<a class="headerlink" href="#cone-search" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">cone_search</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">ra_deg</span><span class="p">,</span> <span class="n">dec_deg</span><span class="p">,</span> <span class="n">radius_arcsec</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Search for sources within radius of position."""</span>
+    <span class="n">radius_deg</span> <span class="o">=</span> <span class="n">radius_arcsec</span> <span class="o">/</span> <span class="mf">3600.0</span>
+
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">        SELECT source_id, ra_deg, dec_deg, s_nvss, s_vlass</span>
+<span class="s2">        FROM sources</span>
+<span class="s2">        WHERE ABS(ra_deg - ?) &lt; ?</span>
+<span class="s2">          AND ABS(dec_deg - ?) &lt; ?</span>
+<span class="s2">    """</span><span class="p">,</span> <span class="p">(</span><span class="n">ra_deg</span><span class="p">,</span> <span class="n">radius_deg</span><span class="p">,</span> <span class="n">dec_deg</span><span class="p">,</span> <span class="n">radius_deg</span><span class="p">))</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+        <span class="c1"># Calculate exact separation</span>
+        <span class="n">dra</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ra_deg</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">dec_deg</span><span class="p">))</span>
+        <span class="n">ddec</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">dec_deg</span>
+        <span class="n">sep</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dra</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">ddec</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3600</span>  <span class="c1"># arcsec</span>
+
+        <span class="k">if</span> <span class="n">sep</span> <span class="o">&lt;=</span> <span class="n">radius_arcsec</span><span class="p">:</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s1">'source_id'</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s1">'ra_deg'</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="s1">'dec_deg'</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="s1">'s_nvss'</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+                <span class="s1">'s_vlass'</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+                <span class="s1">'separation_arcsec'</span><span class="p">:</span> <span class="n">sep</span>
+            <span class="p">})</span>
+
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">'separation_arcsec'</span><span class="p">])</span>
+
+<span class="c1"># Usage</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">"state/master_sources.sqlite3"</span><span class="p">)</span>
+<span class="n">sources</span> <span class="o">=</span> <span class="n">cone_search</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">ra_deg</span><span class="o">=</span><span class="mf">123.45</span><span class="p">,</span> <span class="n">dec_deg</span><span class="o">=</span><span class="mf">45.67</span><span class="p">,</span> <span class="n">radius_arcsec</span><span class="o">=</span><span class="mf">60.0</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Source </span><span class="si">{</span><span class="n">src</span><span class="p">[</span><span class="s1">'source_id'</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">src</span><span class="p">[</span><span class="s1">'separation_arcsec'</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="se">\"</span><span class="s2"> away"</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="cross-match-detection">Cross-Match Detection<a class="headerlink" href="#cross-match-detection" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">find_counterpart</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">ra_deg</span><span class="p">,</span> <span class="n">dec_deg</span><span class="p">,</span> <span class="n">max_sep_arcsec</span><span class="o">=</span><span class="mf">10.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Find closest source within max_sep."""</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+    <span class="c1"># Search in box first (fast)</span>
+    <span class="n">search_radius_deg</span> <span class="o">=</span> <span class="n">max_sep_arcsec</span> <span class="o">/</span> <span class="mf">3600.0</span> <span class="o">*</span> <span class="mf">2.0</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">        SELECT source_id, ra_deg, dec_deg, s_nvss</span>
+<span class="s2">        FROM sources</span>
+<span class="s2">        WHERE ABS(ra_deg - ?) &lt; ?</span>
+<span class="s2">          AND ABS(dec_deg - ?) &lt; ?</span>
+<span class="s2">    """</span><span class="p">,</span> <span class="p">(</span><span class="n">ra_deg</span><span class="p">,</span> <span class="n">search_radius_deg</span><span class="p">,</span> <span class="n">dec_deg</span><span class="p">,</span> <span class="n">search_radius_deg</span><span class="p">))</span>
+
+    <span class="c1"># Calculate exact separations</span>
+    <span class="n">min_sep</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">'inf'</span><span class="p">)</span>
+    <span class="n">best_match</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+        <span class="n">dra</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ra_deg</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">dec_deg</span><span class="p">))</span>
+        <span class="n">ddec</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">dec_deg</span>
+        <span class="n">sep</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dra</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">ddec</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3600</span>  <span class="c1"># arcsec</span>
+
+        <span class="k">if</span> <span class="n">sep</span> <span class="o">&lt;</span> <span class="n">min_sep</span> <span class="ow">and</span> <span class="n">sep</span> <span class="o">&lt;=</span> <span class="n">max_sep_arcsec</span><span class="p">:</span>
+            <span class="n">min_sep</span> <span class="o">=</span> <span class="n">sep</span>
+            <span class="n">best_match</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">'source_id'</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s1">'ra_deg'</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="s1">'dec_deg'</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="s1">'s_nvss'</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+                <span class="s1">'separation_arcsec'</span><span class="p">:</span> <span class="n">sep</span>
+            <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">best_match</span>
+
+<span class="c1"># Usage</span>
+<span class="n">match</span> <span class="o">=</span> <span class="n">find_counterpart</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">ra_deg</span><span class="o">=</span><span class="mf">123.45</span><span class="p">,</span> <span class="n">dec_deg</span><span class="o">=</span><span class="mf">45.67</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Match: Source </span><span class="si">{</span><span class="n">match</span><span class="p">[</span><span class="s1">'source_id'</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">match</span><span class="p">[</span><span class="s1">'separation_arcsec'</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="se">\"</span><span class="s2"> away"</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"No match found"</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="batch-cross-matching">Batch Cross-Matching<a class="headerlink" href="#batch-cross-matching" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">batch_crossmatch</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">detections</span><span class="p">,</span> <span class="n">max_sep_arcsec</span><span class="o">=</span><span class="mf">10.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Cross-match list of detections to catalog."""</span>
+    <span class="n">matches</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">det</span> <span class="ow">in</span> <span class="n">detections</span><span class="p">:</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">find_counterpart</span><span class="p">(</span>
+            <span class="n">conn</span><span class="p">,</span>
+            <span class="n">det</span><span class="p">[</span><span class="s1">'ra_deg'</span><span class="p">],</span>
+            <span class="n">det</span><span class="p">[</span><span class="s1">'dec_deg'</span><span class="p">],</span>
+            <span class="n">max_sep_arcsec</span>
+        <span class="p">)</span>
+
+        <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s1">'detection'</span><span class="p">:</span> <span class="n">det</span><span class="p">,</span>
+            <span class="s1">'catalog_match'</span><span class="p">:</span> <span class="n">match</span><span class="p">,</span>
+            <span class="s1">'is_new'</span><span class="p">:</span> <span class="n">match</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="p">})</span>
+
+    <span class="k">return</span> <span class="n">matches</span>
+
+<span class="c1"># Usage</span>
+<span class="n">detections</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s1">'ra_deg'</span><span class="p">:</span> <span class="mf">123.45</span><span class="p">,</span> <span class="s1">'dec_deg'</span><span class="p">:</span> <span class="mf">45.67</span><span class="p">,</span> <span class="s1">'flux_jy'</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">},</span>
+    <span class="p">{</span><span class="s1">'ra_deg'</span><span class="p">:</span> <span class="mf">124.56</span><span class="p">,</span> <span class="s1">'dec_deg'</span><span class="p">:</span> <span class="mf">46.78</span><span class="p">,</span> <span class="s1">'flux_jy'</span><span class="p">:</span> <span class="mf">0.12</span><span class="p">},</span>
+<span class="p">]</span>
+
+<span class="n">results</span> <span class="o">=</span> <span class="n">batch_crossmatch</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">detections</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s1">'is_new'</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"New source at </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'detection'</span><span class="p">][</span><span class="s1">'ra_deg'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'detection'</span><span class="p">][</span><span class="s1">'dec_deg'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div>
+<hr/>
+<h2 id="catalog-integration">Catalog Integration<a class="headerlink" href="#catalog-integration" title="Permanent link">¶</a></h2>
+<h3 id="add-new-sources">Add New Sources<a class="headerlink" href="#add-new-sources" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">add_source</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">ra_deg</span><span class="p">,</span> <span class="n">dec_deg</span><span class="p">,</span> <span class="n">s_nvss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">s_vlass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">resolved</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">confused</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Add new source to catalog."""</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">        INSERT INTO sources (</span>
+<span class="s2">            ra_deg, dec_deg, s_nvss, s_vlass,</span>
+<span class="s2">            resolved_flag, confusion_flag</span>
+<span class="s2">        ) VALUES (?, ?, ?, ?, ?, ?)</span>
+<span class="s2">    """</span><span class="p">,</span> <span class="p">(</span><span class="n">ra_deg</span><span class="p">,</span> <span class="n">dec_deg</span><span class="p">,</span> <span class="n">s_nvss</span><span class="p">,</span> <span class="n">s_vlass</span><span class="p">,</span>
+          <span class="nb">int</span><span class="p">(</span><span class="n">resolved</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">confused</span><span class="p">)))</span>
+
+    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">lastrowid</span>
+</code></pre></div>
+<h3 id="update-source-measurements">Update Source Measurements<a class="headerlink" href="#update-source-measurements" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">update_flux</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">source_id</span><span class="p">,</span> <span class="n">survey</span><span class="o">=</span><span class="s1">'vlass'</span><span class="p">,</span> <span class="n">flux_jy</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Update flux measurement for a source."""</span>
+    <span class="k">if</span> <span class="n">survey</span> <span class="o">==</span> <span class="s1">'vlass'</span><span class="p">:</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">            UPDATE sources</span>
+<span class="s2">            SET s_vlass=?</span>
+<span class="s2">            WHERE source_id=?</span>
+<span class="s2">        """</span><span class="p">,</span> <span class="p">(</span><span class="n">flux_jy</span><span class="p">,</span> <span class="n">source_id</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">survey</span> <span class="o">==</span> <span class="s1">'nvss'</span><span class="p">:</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">            UPDATE sources</span>
+<span class="s2">            SET s_nvss=?</span>
+<span class="s2">            WHERE source_id=?</span>
+<span class="s2">        """</span><span class="p">,</span> <span class="p">(</span><span class="n">flux_jy</span><span class="p">,</span> <span class="n">source_id</span><span class="p">))</span>
+
+    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</code></pre></div>
+<hr/>
+<h2 id="catalog-statistics">Catalog Statistics<a class="headerlink" href="#catalog-statistics" title="Permanent link">¶</a></h2>
+<h3 id="source-count">Source Count<a class="headerlink" href="#source-count" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Total sources</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">total_sources</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">sources</span><span class="p">;</span>
+
+<span class="c1">-- Sources by flags</span>
+<span class="k">SELECT</span>
+<span class="w">    </span><span class="k">SUM</span><span class="p">(</span><span class="k">CASE</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="n">resolved_flag</span><span class="o">=</span><span class="mi">0</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">ELSE</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">END</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">point_sources</span><span class="p">,</span>
+<span class="w">    </span><span class="k">SUM</span><span class="p">(</span><span class="k">CASE</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="n">resolved_flag</span><span class="o">=</span><span class="mi">1</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">ELSE</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">END</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">resolved</span><span class="p">,</span>
+<span class="w">    </span><span class="k">SUM</span><span class="p">(</span><span class="k">CASE</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="n">confusion_flag</span><span class="o">=</span><span class="mi">0</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">ELSE</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">END</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">isolated</span><span class="p">,</span>
+<span class="w">    </span><span class="k">SUM</span><span class="p">(</span><span class="k">CASE</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="n">confusion_flag</span><span class="o">=</span><span class="mi">1</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">ELSE</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">END</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">confused</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">sources</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="flux-distribution">Flux Distribution<a class="headerlink" href="#flux-distribution" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- NVSS flux histogram (bins of 0.01 Jy)</span>
+<span class="k">SELECT</span>
+<span class="w">    </span><span class="n">ROUND</span><span class="p">(</span><span class="n">s_nvss</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">100</span><span class="p">.</span><span class="mi">0</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">flux_bin_jy</span><span class="p">,</span>
+<span class="w">    </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">n_sources</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">sources</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">s_nvss</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">flux_bin_jy</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">flux_bin_jy</span><span class="p">;</span>
+
+<span class="c1">-- Flux statistics</span>
+<span class="k">SELECT</span>
+<span class="w">    </span><span class="k">MIN</span><span class="p">(</span><span class="n">s_nvss</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">min_flux</span><span class="p">,</span>
+<span class="w">    </span><span class="k">MAX</span><span class="p">(</span><span class="n">s_nvss</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">max_flux</span><span class="p">,</span>
+<span class="w">    </span><span class="k">AVG</span><span class="p">(</span><span class="n">s_nvss</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">mean_flux</span><span class="p">,</span>
+<span class="w">    </span><span class="n">MEDIAN</span><span class="p">(</span><span class="n">s_nvss</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">median_flux</span><span class="w">  </span><span class="c1">-- Not standard SQL, may not work</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">sources</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">s_nvss</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="sky-coverage">Sky Coverage<a class="headerlink" href="#sky-coverage" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- RA/Dec coverage</span>
+<span class="k">SELECT</span>
+<span class="w">    </span><span class="k">MIN</span><span class="p">(</span><span class="n">ra_deg</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">min_ra</span><span class="p">,</span>
+<span class="w">    </span><span class="k">MAX</span><span class="p">(</span><span class="n">ra_deg</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">max_ra</span><span class="p">,</span>
+<span class="w">    </span><span class="k">MIN</span><span class="p">(</span><span class="n">dec_deg</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">min_dec</span><span class="p">,</span>
+<span class="w">    </span><span class="k">MAX</span><span class="p">(</span><span class="n">dec_deg</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">max_dec</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">sources</span><span class="p">;</span>
+
+<span class="c1">-- Source density by Dec band</span>
+<span class="k">SELECT</span>
+<span class="w">    </span><span class="n">ROUND</span><span class="p">(</span><span class="n">dec_deg</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">5</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">dec_band_deg</span><span class="p">,</span>
+<span class="w">    </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">n_sources</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">sources</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">dec_band_deg</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">dec_band_deg</span><span class="p">;</span>
+</code></pre></div>
+<hr/>
+<h2 id="maintenance-queries">Maintenance Queries<a class="headerlink" href="#maintenance-queries" title="Permanent link">¶</a></h2>
+<h3 id="remove-duplicate-sources">Remove Duplicate Sources<a class="headerlink" href="#remove-duplicate-sources" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Find potential duplicates (within 1 arcsec)</span>
+<span class="c1">-- (Complex query, run with caution)</span>
+</code></pre></div>
+<h3 id="update-spectral-indices">Update Spectral Indices<a class="headerlink" href="#update-spectral-indices" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Calculate spectral index where both NVSS and VLASS available</span>
+<span class="c1">-- α = log(S1/S2) / log(ν1/ν2)</span>
+<span class="c1">-- Assuming NVSS @ 1.4 GHz, VLASS @ 3.0 GHz</span>
+
+<span class="k">UPDATE</span><span class="w"> </span><span class="n">sources</span>
+<span class="k">SET</span><span class="w"> </span><span class="n">alpha</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LOG10</span><span class="p">(</span><span class="n">s_vlass</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">s_nvss</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">LOG10</span><span class="p">(</span><span class="mi">3</span><span class="p">.</span><span class="mi">0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1</span><span class="p">.</span><span class="mi">4</span><span class="p">)</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">s_nvss</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">s_vlass</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">s_nvss</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">s_vlass</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="vacuum-database">Vacuum Database<a class="headerlink" href="#vacuum-database" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Reclaim space after deletions</span>
+<span class="k">VACUUM</span><span class="p">;</span>
+</code></pre></div>
+<hr/>
+<h2 id="cli-commands">CLI Commands<a class="headerlink" href="#cli-commands" title="Permanent link">¶</a></h2>
+<h3 id="query-sources">Query Sources<a class="headerlink" href="#query-sources" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Cone search</span>
+python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.catalog.query<span class="w"> </span>cone<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--ra<span class="w"> </span><span class="m">123</span>.45<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--dec<span class="w"> </span><span class="m">45</span>.67<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--radius<span class="w"> </span><span class="m">60</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db<span class="w"> </span>state/master_sources.sqlite3
+</code></pre></div>
+<h3 id="build-catalog">Build Catalog<a class="headerlink" href="#build-catalog" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Build from NVSS/VLASS catalogs</span>
+python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.catalog.build_master<span class="w"> </span>build<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--nvss<span class="w"> </span>nvss_catalog.fits<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--vlass<span class="w"> </span>vlass_catalog.fits<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>state/master_sources.sqlite3
+</code></pre></div>
+<hr/>
+<h2 id="performance-notes">Performance Notes<a class="headerlink" href="#performance-notes" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Indexes</strong>: Spatial index on (ra_deg, dec_deg) for fast cone searches</li>
+<li><strong>Typical Size</strong>: 1-2 KB per source entry</li>
+<li><strong>Query Speed</strong>: &lt;100ms for cone search within 1 degree</li>
+<li><strong>Large Catalog</strong>: Can contain millions of sources</li>
+<li><strong>Optimization</strong>: Consider spatial indexing extensions (R-tree) for very large
+  catalogs</li>
+</ul>
+<hr/>
+<h2 id="related-files">Related Files<a class="headerlink" href="#related-files" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Code</strong>: <code>dsa110_contimg/catalog/builders.py</code>, <code>query.py</code></li>
+<li><strong>Crossmatch</strong>: <code>dsa110_contimg/database/catalog_crossmatch_astropy.py</code></li>
+<li><strong>Documentation</strong>: <code>dsa110_contimg/catalog/README.md</code></li>
+</ul>
+<hr/>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Products Database</strong>: <code>docs/reference/database_products_sqlite3.md</code></li>
+<li><strong>Photometry</strong>: <code>docs/reference/photometry_guide.md</code></li>
+<li><strong>Catalog Building</strong>: <code>docs/how-to/catalog_management.md</code></li>
+</ul>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

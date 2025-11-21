@@ -1,0 +1,2138 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/how-to/workflow/absurd_user_acceptance_testing/" rel="canonical"/>
+<link href="../../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Absurd User Acceptance Testing (UAT) Guide - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#absurd-user-acceptance-testing-uat-guide">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Absurd User Acceptance Testing (UAT) Guide
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../DOCUMENTATION_QUICK_REFERENCE.md">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_5">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../streaming.md">
+<span class="md-ellipsis">
+    Streaming Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../dashboard.md">
+<span class="md-ellipsis">
+    Dashboard Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../github_pages_walkthrough.md">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_4">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../quickstart.md">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../control-panel-quickstart.md">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../LINEAR_SETUP_QUICKSTART.md">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../FAST_TESTING.md">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../TEST_FLAG_SUBCOMMAND.md">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../build-vp-from-h5.md">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../CALIBRATION_DETAILED_PROCEDURE.md">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../FIND_CALIBRATOR_TRANSIT_DATA.md">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../IMAGE_0834_TRANSIT_5MIN.md">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_9" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_9" id="__nav_5_9_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_9_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_9">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../mosaic_quickstart.md">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../mosaic.md">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_10" id="__nav_5_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_10">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../quicklook.md">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reprocess.md">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../USING_ORCHESTRATOR_CLI.md">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../LINEAR_INTEGRATION.md">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../frontend-initial-setup.md">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_15" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_15" id="__nav_5_15_label" tabindex="0">
+<span class="md-ellipsis">
+    Development Setup
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_15_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_15">
+<span class="md-nav__icon md-icon"></span>
+            Development Setup
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../ENVIRONMENT_SETUP.md">
+<span class="md-ellipsis">
+    Environment Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../PRE_COMMIT_SETUP.md">
+<span class="md-ellipsis">
+    Pre-commit Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../CI_CD_SETUP.md">
+<span class="md-ellipsis">
+    CI/CD Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../TEST_DATABASE_SETUP.md">
+<span class="md-ellipsis">
+    Test Database Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../PARAMETER_OPTIMIZATION_GUIDE.md">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../downsampling_guide.md">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_18" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_18" id="__nav_5_18_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_18_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_18">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../uvh5_to_ms_conversion.md">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../troubleshooting.md">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pre-testing-setup">
+<span class="md-ellipsis">
+      Pre-Testing Setup
+    </span>
+</a>
+<nav aria-label="Pre-Testing Setup" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-environment-setup">
+<span class="md-ellipsis">
+      1. Environment Setup
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-frontend-setup">
+<span class="md-ellipsis">
+      2. Frontend Setup
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-test-data">
+<span class="md-ellipsis">
+      3. Test Data
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-scenarios">
+<span class="md-ellipsis">
+      Test Scenarios
+    </span>
+</a>
+<nav aria-label="Test Scenarios" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-suite-1-task-dashboard">
+<span class="md-ellipsis">
+      Test Suite 1: Task Dashboard
+    </span>
+</a>
+<nav aria-label="Test Suite 1: Task Dashboard" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-11-dashboard-load">
+<span class="md-ellipsis">
+      Test 1.1: Dashboard Load
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-12-health-status-display">
+<span class="md-ellipsis">
+      Test 1.2: Health Status Display
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-13-queue-statistics">
+<span class="md-ellipsis">
+      Test 1.3: Queue Statistics
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-14-status-filtering">
+<span class="md-ellipsis">
+      Test 1.4: Status Filtering
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-15-task-list-display">
+<span class="md-ellipsis">
+      Test 1.5: Task List Display
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-suite-2-task-inspector">
+<span class="md-ellipsis">
+      Test Suite 2: Task Inspector
+    </span>
+</a>
+<nav aria-label="Test Suite 2: Task Inspector" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-21-open-task-inspector">
+<span class="md-ellipsis">
+      Test 2.1: Open Task Inspector
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-22-task-information-section">
+<span class="md-ellipsis">
+      Test 2.2: Task Information Section
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-23-timeline-section">
+<span class="md-ellipsis">
+      Test 2.3: Timeline Section
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-24-parameters-section">
+<span class="md-ellipsis">
+      Test 2.4: Parameters Section
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-25-result-section-completed-tasks">
+<span class="md-ellipsis">
+      Test 2.5: Result Section (Completed Tasks)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-26-error-section-failed-tasks">
+<span class="md-ellipsis">
+      Test 2.6: Error Section (Failed Tasks)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-suite-3-task-actions">
+<span class="md-ellipsis">
+      Test Suite 3: Task Actions
+    </span>
+</a>
+<nav aria-label="Test Suite 3: Task Actions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-31-retry-failed-task">
+<span class="md-ellipsis">
+      Test 3.1: Retry Failed Task
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-32-cancel-pending-task">
+<span class="md-ellipsis">
+      Test 3.2: Cancel Pending Task
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-33-cancel-in-progress-task">
+<span class="md-ellipsis">
+      Test 3.3: Cancel In-Progress Task
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-suite-4-workflow-builder">
+<span class="md-ellipsis">
+      Test Suite 4: Workflow Builder
+    </span>
+</a>
+<nav aria-label="Test Suite 4: Workflow Builder" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-41-workflow-builder-load">
+<span class="md-ellipsis">
+      Test 4.1: Workflow Builder Load
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-42-add-stage">
+<span class="md-ellipsis">
+      Test 4.2: Add Stage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-43-remove-stage">
+<span class="md-ellipsis">
+      Test 4.3: Remove Stage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-44-configure-stage">
+<span class="md-ellipsis">
+      Test 4.4: Configure Stage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-45-submit-workflow">
+<span class="md-ellipsis">
+      Test 4.5: Submit Workflow
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-46-workflow-validation">
+<span class="md-ellipsis">
+      Test 4.6: Workflow Validation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-suite-5-real-time-updates">
+<span class="md-ellipsis">
+      Test Suite 5: Real-time Updates
+    </span>
+</a>
+<nav aria-label="Test Suite 5: Real-time Updates" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-51-websocket-connection">
+<span class="md-ellipsis">
+      Test 5.1: WebSocket Connection
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-52-task-status-updates">
+<span class="md-ellipsis">
+      Test 5.2: Task Status Updates
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-53-queue-statistics-updates">
+<span class="md-ellipsis">
+      Test 5.3: Queue Statistics Updates
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-54-polling-fallback">
+<span class="md-ellipsis">
+      Test 5.4: Polling Fallback
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-suite-6-end-to-end-workflows">
+<span class="md-ellipsis">
+      Test Suite 6: End-to-End Workflows
+    </span>
+</a>
+<nav aria-label="Test Suite 6: End-to-End Workflows" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-61-simple-conversion-workflow">
+<span class="md-ellipsis">
+      Test 6.1: Simple Conversion Workflow
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-62-multi-stage-workflow">
+<span class="md-ellipsis">
+      Test 6.2: Multi-Stage Workflow
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-63-failed-task-recovery">
+<span class="md-ellipsis">
+      Test 6.3: Failed Task Recovery
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-results-template">
+<span class="md-ellipsis">
+      Test Results Template
+    </span>
+</a>
+<nav aria-label="Test Results Template" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-execution-log">
+<span class="md-ellipsis">
+      Test Execution Log
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#issues-found">
+<span class="md-ellipsis">
+      Issues Found
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#acceptance-criteria">
+<span class="md-ellipsis">
+      Acceptance Criteria
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#post-testing">
+<span class="md-ellipsis">
+      Post-Testing
+    </span>
+</a>
+<nav aria-label="Post-Testing" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-issue-reporting">
+<span class="md-ellipsis">
+      1. Issue Reporting
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-feedback-collection">
+<span class="md-ellipsis">
+      2. Feedback Collection
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-test-report">
+<span class="md-ellipsis">
+      3. Test Report
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="absurd-user-acceptance-testing-uat-guide">Absurd User Acceptance Testing (UAT) Guide<a class="headerlink" href="#absurd-user-acceptance-testing-uat-guide" title="Permanent link">¶</a></h1>
+<p><strong>Author:</strong> DSA-110 Team<br/>
+<strong>Date:</strong> 2025-11-18<br/>
+<strong>Audience:</strong> Testers, QA Team, Operations Team</p>
+<hr/>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>This guide provides comprehensive test scenarios for validating the Absurd
+workflow manager frontend integration. These tests should be performed before
+production deployment.</p>
+<p><strong>Testing Scope:</strong></p>
+<ul>
+<li>✅ Task Dashboard functionality</li>
+<li>✅ Workflow Builder functionality</li>
+<li>✅ Real-time WebSocket updates</li>
+<li>✅ Task Inspector actions (retry, cancel)</li>
+<li>✅ End-to-end workflows</li>
+</ul>
+<hr/>
+<h2 id="pre-testing-setup">Pre-Testing Setup<a class="headerlink" href="#pre-testing-setup" title="Permanent link">¶</a></h2>
+<h3 id="1-environment-setup">1. Environment Setup<a class="headerlink" href="#1-environment-setup" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Start backend with Absurd enabled</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">ABSURD_ENABLED</span><span class="o">=</span><span class="nb">true</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">ABSURD_DATABASE_URL</span><span class="o">=</span><span class="s2">"postgresql://postgres:postgres@localhost:5432/absurd"</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">ABSURD_QUEUE_NAME</span><span class="o">=</span><span class="s2">"dsa110-pipeline"</span>
+
+<span class="c1"># Start API server</span>
+uvicorn<span class="w"> </span>dsa110_contimg.api.app:app<span class="w"> </span>--reload
+
+<span class="c1"># Start worker (in separate terminal)</span>
+python<span class="w"> </span>scripts/run_absurd_worker.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--database-url<span class="w"> </span>postgresql://postgres:postgres@localhost:5432/absurd<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--queue-name<span class="w"> </span>dsa110-pipeline<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--concurrency<span class="w"> </span><span class="m">2</span>
+</code></pre></div>
+<h3 id="2-frontend-setup">2. Frontend Setup<a class="headerlink" href="#2-frontend-setup" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>frontend
+npm<span class="w"> </span>install
+npm<span class="w"> </span>run<span class="w"> </span>dev
+</code></pre></div>
+<h3 id="3-test-data">3. Test Data<a class="headerlink" href="#3-test-data" title="Permanent link">¶</a></h3>
+<ul>
+<li>Ensure test UVH5 files available in <code>/data/incoming/</code></li>
+<li>Ensure test MS files available in <code>/stage/dsa110-contimg/ms/</code></li>
+<li>PostgreSQL database with Absurd tables created</li>
+</ul>
+<hr/>
+<h2 id="test-scenarios">Test Scenarios<a class="headerlink" href="#test-scenarios" title="Permanent link">¶</a></h2>
+<h3 id="test-suite-1-task-dashboard">Test Suite 1: Task Dashboard<a class="headerlink" href="#test-suite-1-task-dashboard" title="Permanent link">¶</a></h3>
+<h4 id="test-11-dashboard-load">Test 1.1: Dashboard Load<a class="headerlink" href="#test-11-dashboard-load" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify dashboard loads correctly</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Navigate to Control Page</li>
+<li>Click "Absurd Tasks" tab</li>
+<li>Wait for dashboard to load</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Dashboard displays without errors</li>
+<li>✅ Health status card visible</li>
+<li>✅ Queue statistics cards visible (6 cards)</li>
+<li>✅ Status filter dropdown visible</li>
+<li>✅ Task list table visible (may be empty)</li>
+</ul>
+<p><strong>Pass Criteria:</strong> All elements visible, no console errors</p>
+<hr/>
+<h4 id="test-12-health-status-display">Test 1.2: Health Status Display<a class="headerlink" href="#test-12-health-status-display" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify health status displays correctly</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Absurd Tasks tab</li>
+<li>Observe health status card</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Status shows "healthy", "degraded", "critical", or "down"</li>
+<li>✅ Color coding matches status:</li>
+<li>Green = healthy</li>
+<li>Yellow = degraded</li>
+<li>Red = critical/down</li>
+<li>✅ Message provides brief description</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Status and color match system state</p>
+<hr/>
+<h4 id="test-13-queue-statistics">Test 1.3: Queue Statistics<a class="headerlink" href="#test-13-queue-statistics" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify queue statistics display correctly</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Absurd Tasks tab</li>
+<li>Observe queue statistics cards</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ 6 cards visible: Pending, In Progress, Completed, Failed, Cancelled, Total</li>
+<li>✅ Numbers match actual queue state</li>
+<li>✅ Cards update in real-time (within 5 seconds)</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Statistics accurate and update automatically</p>
+<hr/>
+<h4 id="test-14-status-filtering">Test 1.4: Status Filtering<a class="headerlink" href="#test-14-status-filtering" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify status filter works correctly</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Absurd Tasks tab</li>
+<li>Select "Pending" from filter dropdown</li>
+<li>Observe task list</li>
+<li>Select "Completed" from filter dropdown</li>
+<li>Observe task list</li>
+<li>Select "All Tasks" from filter dropdown</li>
+<li>Observe task list</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Filter dropdown works</li>
+<li>✅ Task list updates immediately when filter changes</li>
+<li>✅ Only tasks matching filter are shown</li>
+<li>✅ "All Tasks" shows all tasks</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Filtering works for all status types</p>
+<hr/>
+<h4 id="test-15-task-list-display">Test 1.5: Task List Display<a class="headerlink" href="#test-15-task-list-display" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify task list displays correctly</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Absurd Tasks tab</li>
+<li>Ensure tasks exist in queue (spawn test task if needed)</li>
+<li>Observe task list table</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Table displays all columns:</li>
+<li>Task ID (truncated)</li>
+<li>Task Name</li>
+<li>Status (with icon)</li>
+<li>Priority (color-coded)</li>
+<li>Retry Count</li>
+<li>Created timestamp</li>
+<li>Duration</li>
+<li>Actions button</li>
+<li>✅ Status chips have correct colors</li>
+<li>✅ Priority badges have correct colors</li>
+<li>✅ Timestamps formatted correctly</li>
+<li>✅ Durations calculated correctly</li>
+</ul>
+<p><strong>Pass Criteria:</strong> All columns display correctly</p>
+<hr/>
+<h3 id="test-suite-2-task-inspector">Test Suite 2: Task Inspector<a class="headerlink" href="#test-suite-2-task-inspector" title="Permanent link">¶</a></h3>
+<h4 id="test-21-open-task-inspector">Test 2.1: Open Task Inspector<a class="headerlink" href="#test-21-open-task-inspector" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify Task Inspector opens correctly</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Absurd Tasks tab</li>
+<li>Click on a task row</li>
+<li>Observe Task Inspector drawer</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Drawer opens from right side</li>
+<li>✅ Task details displayed</li>
+<li>✅ All sections visible (Task Information, Timeline, Parameters)</li>
+<li>✅ Close button (X) visible</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Inspector opens and displays task details</p>
+<hr/>
+<h4 id="test-22-task-information-section">Test 2.2: Task Information Section<a class="headerlink" href="#test-22-task-information-section" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify task information displays correctly</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Task Inspector for a task</li>
+<li>Expand "Task Information" section</li>
+<li>Review all fields</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Task ID (full UUID)</li>
+<li>✅ Task Name</li>
+<li>✅ Queue Name</li>
+<li>✅ Status (with chip)</li>
+<li>✅ Priority (with chip)</li>
+<li>✅ Retry Count</li>
+</ul>
+<p><strong>Pass Criteria:</strong> All fields display correctly</p>
+<hr/>
+<h4 id="test-23-timeline-section">Test 2.3: Timeline Section<a class="headerlink" href="#test-23-timeline-section" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify timeline displays correctly</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Task Inspector for a completed task</li>
+<li>Expand "Timeline" section</li>
+<li>Review timeline</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Created At timestamp</li>
+<li>✅ Claimed At timestamp (if claimed)</li>
+<li>✅ Completed At timestamp (if completed)</li>
+<li>✅ Wait Time calculated correctly</li>
+<li>✅ Execution Time calculated correctly</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Timeline accurate and formatted correctly</p>
+<hr/>
+<h4 id="test-24-parameters-section">Test 2.4: Parameters Section<a class="headerlink" href="#test-24-parameters-section" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify parameters display correctly</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Task Inspector</li>
+<li>Expand "Task Parameters" section</li>
+<li>Review JSON</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ JSON formatted correctly (pretty-printed)</li>
+<li>✅ All parameters visible</li>
+<li>✅ JSON syntax valid</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Parameters display correctly</p>
+<hr/>
+<h4 id="test-25-result-section-completed-tasks">Test 2.5: Result Section (Completed Tasks)<a class="headerlink" href="#test-25-result-section-completed-tasks" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify result displays for completed tasks</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Task Inspector for a completed task</li>
+<li>Expand "Result" section</li>
+<li>Review result JSON</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Result section visible</li>
+<li>✅ JSON formatted correctly</li>
+<li>✅ Result data accurate</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Result displays correctly</p>
+<hr/>
+<h4 id="test-26-error-section-failed-tasks">Test 2.6: Error Section (Failed Tasks)<a class="headerlink" href="#test-26-error-section-failed-tasks" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify error displays for failed tasks</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Task Inspector for a failed task</li>
+<li>Expand "Error Details" section</li>
+<li>Review error message</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Error section visible</li>
+<li>✅ Error message displayed</li>
+<li>✅ Error formatted correctly</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Error displays correctly</p>
+<hr/>
+<h3 id="test-suite-3-task-actions">Test Suite 3: Task Actions<a class="headerlink" href="#test-suite-3-task-actions" title="Permanent link">¶</a></h3>
+<h4 id="test-31-retry-failed-task">Test 3.1: Retry Failed Task<a class="headerlink" href="#test-31-retry-failed-task" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify retry functionality works</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Absurd Tasks tab</li>
+<li>Filter: "Failed"</li>
+<li>Click on a failed task</li>
+<li>Click "Retry Task" button</li>
+<li>Confirm in dialog</li>
+<li>Observe new task in queue</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Retry button visible for failed tasks</li>
+<li>✅ Confirmation dialog appears</li>
+<li>✅ New task spawned after confirmation</li>
+<li>✅ New task appears in "Pending" queue</li>
+<li>✅ New task has same parameters as original</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Retry creates new task successfully</p>
+<hr/>
+<h4 id="test-32-cancel-pending-task">Test 3.2: Cancel Pending Task<a class="headerlink" href="#test-32-cancel-pending-task" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify cancel functionality works</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Absurd Tasks tab</li>
+<li>Filter: "Pending"</li>
+<li>Click on a pending task</li>
+<li>Click "Cancel Task" button</li>
+<li>Confirm in dialog</li>
+<li>Observe task status change</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Cancel button visible for pending tasks</li>
+<li>✅ Confirmation dialog appears</li>
+<li>✅ Task cancelled after confirmation</li>
+<li>✅ Task status changes to "cancelled"</li>
+<li>✅ Task removed from pending queue</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Cancel works correctly</p>
+<hr/>
+<h4 id="test-33-cancel-in-progress-task">Test 3.3: Cancel In-Progress Task<a class="headerlink" href="#test-33-cancel-in-progress-task" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify cancel works for claimed tasks</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Absurd Tasks tab</li>
+<li>Filter: "In Progress"</li>
+<li>Click on a claimed task</li>
+<li>Click "Cancel Task" button</li>
+<li>Confirm in dialog</li>
+<li>Observe task status change</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Cancel button visible for claimed tasks</li>
+<li>✅ Confirmation dialog appears</li>
+<li>✅ Task cancelled after confirmation</li>
+<li>✅ Task status changes to "cancelled"</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Cancel works for in-progress tasks</p>
+<hr/>
+<h3 id="test-suite-4-workflow-builder">Test Suite 4: Workflow Builder<a class="headerlink" href="#test-suite-4-workflow-builder" title="Permanent link">¶</a></h3>
+<h4 id="test-41-workflow-builder-load">Test 4.1: Workflow Builder Load<a class="headerlink" href="#test-41-workflow-builder-load" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify Workflow Builder loads correctly</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Navigate to Control Page</li>
+<li>Click "Workflow Builder" tab</li>
+<li>Wait for builder to load</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Builder displays without errors</li>
+<li>✅ Stepper interface visible</li>
+<li>✅ One default stage present</li>
+<li>✅ "Add Stage" button visible</li>
+<li>✅ "Submit Workflow" button visible</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Builder loads correctly</p>
+<hr/>
+<h4 id="test-42-add-stage">Test 4.2: Add Stage<a class="headerlink" href="#test-42-add-stage" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify adding stages works</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Workflow Builder</li>
+<li>Click "Add Stage" button</li>
+<li>Observe new stage in stepper</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ New stage appears in stepper</li>
+<li>✅ Stage numbered correctly</li>
+<li>✅ Stage configuration fields visible</li>
+<li>✅ Can add multiple stages</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Stages can be added successfully</p>
+<hr/>
+<h4 id="test-43-remove-stage">Test 4.3: Remove Stage<a class="headerlink" href="#test-43-remove-stage" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify removing stages works</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Workflow Builder</li>
+<li>Add 2 stages (total 3 stages)</li>
+<li>Click delete button on middle stage</li>
+<li>Observe stage removal</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Delete button visible (when &gt; 1 stage)</li>
+<li>✅ Stage removed after click</li>
+<li>✅ Remaining stages renumbered correctly</li>
+<li>✅ Cannot delete last stage</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Stages can be removed successfully</p>
+<hr/>
+<h4 id="test-44-configure-stage">Test 4.4: Configure Stage<a class="headerlink" href="#test-44-configure-stage" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify stage configuration works</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Workflow Builder</li>
+<li>Select task type for Stage 1</li>
+<li>Set priority</li>
+<li>Set timeout (optional)</li>
+<li>Fill task-specific parameters</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Task type dropdown works</li>
+<li>✅ Priority field accepts 1-20</li>
+<li>✅ Timeout field accepts numbers</li>
+<li>✅ Task-specific parameters display correctly</li>
+<li>✅ Parameters save correctly</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Stage configuration works</p>
+<hr/>
+<h4 id="test-45-submit-workflow">Test 4.5: Submit Workflow<a class="headerlink" href="#test-45-submit-workflow" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify workflow submission works</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Workflow Builder</li>
+<li>Configure 2-3 stages</li>
+<li>Fill all required parameters</li>
+<li>Click "Submit Workflow" button</li>
+<li>Observe task creation</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Submit button enabled when stages configured</li>
+<li>✅ All tasks spawned successfully</li>
+<li>✅ Tasks appear in queue</li>
+<li>✅ Auto-navigation to "Absurd Tasks" tab</li>
+<li>✅ Tasks have correct priorities</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Workflow submits successfully</p>
+<hr/>
+<h4 id="test-46-workflow-validation">Test 4.6: Workflow Validation<a class="headerlink" href="#test-46-workflow-validation" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify workflow validation works</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Workflow Builder</li>
+<li>Add stage without selecting task type</li>
+<li>Click "Submit Workflow" button</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Submit button disabled or shows error</li>
+<li>✅ Error message displayed</li>
+<li>✅ Invalid stage highlighted</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Validation prevents invalid submissions</p>
+<hr/>
+<h3 id="test-suite-5-real-time-updates">Test Suite 5: Real-time Updates<a class="headerlink" href="#test-suite-5-real-time-updates" title="Permanent link">¶</a></h3>
+<h4 id="test-51-websocket-connection">Test 5.1: WebSocket Connection<a class="headerlink" href="#test-51-websocket-connection" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify WebSocket connects</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open browser DevTools → Network tab</li>
+<li>Open Absurd Tasks tab</li>
+<li>Check for WebSocket connection</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ WebSocket connection established</li>
+<li>✅ Connection shows as "101 Switching Protocols"</li>
+<li>✅ No connection errors</li>
+</ul>
+<p><strong>Pass Criteria:</strong> WebSocket connects successfully</p>
+<hr/>
+<h4 id="test-52-task-status-updates">Test 5.2: Task Status Updates<a class="headerlink" href="#test-52-task-status-updates" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify task status updates in real-time</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Absurd Tasks tab</li>
+<li>Spawn a test task (via API or Workflow Builder)</li>
+<li>Observe task appear in list</li>
+<li>Wait for task to be claimed</li>
+<li>Observe status change to "In Progress"</li>
+<li>Wait for task to complete</li>
+<li>Observe status change to "Completed"</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Task appears in list within 1 second</li>
+<li>✅ Status updates automatically (no refresh needed)</li>
+<li>✅ Status changes: pending → claimed → completed</li>
+<li>✅ Queue statistics update automatically</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Real-time updates work correctly</p>
+<hr/>
+<h4 id="test-53-queue-statistics-updates">Test 5.3: Queue Statistics Updates<a class="headerlink" href="#test-53-queue-statistics-updates" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify queue statistics update in real-time</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Absurd Tasks tab</li>
+<li>Note current statistics</li>
+<li>Spawn a test task</li>
+<li>Observe statistics update</li>
+<li>Complete the task</li>
+<li>Observe statistics update again</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Statistics update within 1 second</li>
+<li>✅ Pending count increases when task spawned</li>
+<li>✅ Completed count increases when task completes</li>
+<li>✅ No page refresh needed</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Statistics update in real-time</p>
+<hr/>
+<h4 id="test-54-polling-fallback">Test 5.4: Polling Fallback<a class="headerlink" href="#test-54-polling-fallback" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify polling fallback works when WebSocket disconnected</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Absurd Tasks tab</li>
+<li>Disconnect WebSocket (close browser tab, then reopen)</li>
+<li>Observe task list</li>
+<li>Spawn a test task</li>
+<li>Observe task appear (may take up to 5 seconds)</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Polling activates when WebSocket disconnected</li>
+<li>✅ Tasks update via polling (every 5 seconds)</li>
+<li>✅ No errors in console</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Polling fallback works correctly</p>
+<hr/>
+<h3 id="test-suite-6-end-to-end-workflows">Test Suite 6: End-to-End Workflows<a class="headerlink" href="#test-suite-6-end-to-end-workflows" title="Permanent link">¶</a></h3>
+<h4 id="test-61-simple-conversion-workflow">Test 6.1: Simple Conversion Workflow<a class="headerlink" href="#test-61-simple-conversion-workflow" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify simple conversion workflow</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Workflow Builder</li>
+<li>Add stage: "Convert UVH5 to MS"</li>
+<li>Configure:</li>
+<li>Start Time: <code>2025-11-18 14:00:00</code></li>
+<li>End Time: <code>2025-11-18 14:05:00</code></li>
+<li>Priority: 15</li>
+<li>Submit workflow</li>
+<li>Monitor in Absurd Tasks tab</li>
+<li>Wait for completion</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Task spawned successfully</li>
+<li>✅ Task executes successfully</li>
+<li>✅ Task completes without errors</li>
+<li>✅ Result contains MS path</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Simple workflow executes successfully</p>
+<hr/>
+<h4 id="test-62-multi-stage-workflow">Test 6.2: Multi-Stage Workflow<a class="headerlink" href="#test-62-multi-stage-workflow" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify multi-stage workflow execution</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Open Workflow Builder</li>
+<li>Add stages:</li>
+<li>Stage 1: Convert (Priority 15)</li>
+<li>Stage 2: Calibration Solve (Priority 12)</li>
+<li>Stage 3: Imaging (Priority 8)</li>
+<li>Configure all stages</li>
+<li>Submit workflow</li>
+<li>Monitor execution in Absurd Tasks tab</li>
+<li>Verify execution order</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ All tasks spawned successfully</li>
+<li>✅ Tasks execute in priority order (15 → 12 → 8)</li>
+<li>✅ Each stage completes before next starts</li>
+<li>✅ Final task completes successfully</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Multi-stage workflow executes correctly</p>
+<hr/>
+<h4 id="test-63-failed-task-recovery">Test 6.3: Failed Task Recovery<a class="headerlink" href="#test-63-failed-task-recovery" title="Permanent link">¶</a></h4>
+<p><strong>Objective:</strong> Verify failed task can be retried</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Spawn a task with invalid parameters (to force failure)</li>
+<li>Wait for task to fail</li>
+<li>Open Task Inspector for failed task</li>
+<li>Review error details</li>
+<li>Click "Retry Task"</li>
+<li>Monitor retry execution</li>
+</ol>
+<p><strong>Expected Results:</strong></p>
+<ul>
+<li>✅ Task fails as expected</li>
+<li>✅ Error details visible in inspector</li>
+<li>✅ Retry creates new task</li>
+<li>✅ New task executes (may fail again if parameters still invalid)</li>
+</ul>
+<p><strong>Pass Criteria:</strong> Retry functionality works</p>
+<hr/>
+<h2 id="test-results-template">Test Results Template<a class="headerlink" href="#test-results-template" title="Permanent link">¶</a></h2>
+<h3 id="test-execution-log">Test Execution Log<a class="headerlink" href="#test-execution-log" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Test ID</th>
+<th>Test Name</th>
+<th>Status</th>
+<th>Notes</th>
+<th>Tester</th>
+<th>Date</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.1</td>
+<td>Dashboard Load</td>
+<td>✅ Pass</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>1.2</td>
+<td>Health Status Display</td>
+<td>⏳ Pending</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+</tbody>
+</table>
+<h3 id="issues-found">Issues Found<a class="headerlink" href="#issues-found" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Issue ID</th>
+<th>Test ID</th>
+<th>Severity</th>
+<th>Description</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>#1</td>
+<td>3.1</td>
+<td>Medium</td>
+<td>Retry button not visible</td>
+<td>Fixed</td>
+</tr>
+<tr>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h2 id="acceptance-criteria">Acceptance Criteria<a class="headerlink" href="#acceptance-criteria" title="Permanent link">¶</a></h2>
+<p><strong>Overall Acceptance:</strong></p>
+<ul>
+<li>✅ All critical tests (1.x, 2.x, 3.x) pass</li>
+<li>✅ At least 80% of all tests pass</li>
+<li>✅ No blocking issues (P0/P1 severity)</li>
+<li>✅ Real-time updates work correctly</li>
+<li>✅ End-to-end workflows execute successfully</li>
+</ul>
+<p><strong>Sign-off:</strong></p>
+<ul>
+<li>[ ] QA Team Lead</li>
+<li>[ ] Operations Team Lead</li>
+<li>[ ] Development Team Lead</li>
+</ul>
+<hr/>
+<h2 id="post-testing">Post-Testing<a class="headerlink" href="#post-testing" title="Permanent link">¶</a></h2>
+<h3 id="1-issue-reporting">1. Issue Reporting<a class="headerlink" href="#1-issue-reporting" title="Permanent link">¶</a></h3>
+<p>Report all issues found during testing:</p>
+<ul>
+<li>Issue description</li>
+<li>Steps to reproduce</li>
+<li>Expected vs actual behavior</li>
+<li>Screenshots/logs</li>
+<li>Severity (P0/P1/P2/P3)</li>
+</ul>
+<h3 id="2-feedback-collection">2. Feedback Collection<a class="headerlink" href="#2-feedback-collection" title="Permanent link">¶</a></h3>
+<p>Gather feedback on:</p>
+<ul>
+<li>UI/UX improvements</li>
+<li>Missing features</li>
+<li>Performance concerns</li>
+<li>Documentation gaps</li>
+</ul>
+<h3 id="3-test-report">3. Test Report<a class="headerlink" href="#3-test-report" title="Permanent link">¶</a></h3>
+<p>Create test report with:</p>
+<ul>
+<li>Test execution summary</li>
+<li>Pass/fail statistics</li>
+<li>Issues found</li>
+<li>Recommendations</li>
+</ul>
+<hr/>
+<p><strong>Last Updated:</strong> 2025-11-18</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

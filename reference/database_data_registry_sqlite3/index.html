@@ -1,0 +1,1966 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/reference/database_data_registry_sqlite3/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Database Reference: data_registry.sqlite3 - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#database-reference-data_registrysqlite3">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Database Reference: data_registry.sqlite3
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE.md">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_5">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming.md">
+<span class="md-ellipsis">
+    Streaming Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard.md">
+<span class="md-ellipsis">
+    Dashboard Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough.md">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_4">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart.md">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart.md">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART.md">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING.md">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND.md">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5.md">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE.md">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA.md">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN.md">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_9" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_9" id="__nav_5_9_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_9_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_9">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart.md">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic.md">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_10" id="__nav_5_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_10">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook.md">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess.md">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI.md">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION.md">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup.md">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_15" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_15" id="__nav_5_15_label" tabindex="0">
+<span class="md-ellipsis">
+    Development Setup
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_15_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_15">
+<span class="md-nav__icon md-icon"></span>
+            Development Setup
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/ENVIRONMENT_SETUP.md">
+<span class="md-ellipsis">
+    Environment Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PRE_COMMIT_SETUP.md">
+<span class="md-ellipsis">
+    Pre-commit Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CI_CD_SETUP.md">
+<span class="md-ellipsis">
+    CI/CD Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_DATABASE_SETUP.md">
+<span class="md-ellipsis">
+    Test Database Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE.md">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide.md">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_18" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_18" id="__nav_5_18_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_18_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_18">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion.md">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting.md">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tables">
+<span class="md-ellipsis">
+      Tables
+    </span>
+</a>
+<nav aria-label="Tables" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-data_registry-product-publishing-registry">
+<span class="md-ellipsis">
+      1. data_registry - Product Publishing Registry
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#status-values">
+<span class="md-ellipsis">
+      Status Values
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#qa-status-values">
+<span class="md-ellipsis">
+      QA Status Values
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validation-status-values">
+<span class="md-ellipsis">
+      Validation Status Values
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#finalization-status-values">
+<span class="md-ellipsis">
+      Finalization Status Values
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#auto-publish-criteria">
+<span class="md-ellipsis">
+      Auto-Publish Criteria
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-queries">
+<span class="md-ellipsis">
+      Common Queries
+    </span>
+</a>
+<nav aria-label="Common Queries" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#products-ready-for-publishing">
+<span class="md-ellipsis">
+      Products Ready for Publishing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#publishing-status">
+<span class="md-ellipsis">
+      Publishing Status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#failed-publishing">
+<span class="md-ellipsis">
+      Failed Publishing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#qa-and-validation-status">
+<span class="md-ellipsis">
+      QA and Validation Status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#photometry-status">
+<span class="md-ellipsis">
+      Photometry Status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#staging-area-overview">
+<span class="md-ellipsis">
+      Staging Area Overview
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#python-access-examples">
+<span class="md-ellipsis">
+      Python Access Examples
+    </span>
+</a>
+<nav aria-label="Python Access Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#register-new-product">
+<span class="md-ellipsis">
+      Register New Product
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#update-qa-status">
+<span class="md-ellipsis">
+      Update QA Status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#finalize-product">
+<span class="md-ellipsis">
+      Finalize Product
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#publish-product">
+<span class="md-ellipsis">
+      Publish Product
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#query-ready-products">
+<span class="md-ellipsis">
+      Query Ready Products
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#publishing-workflow">
+<span class="md-ellipsis">
+      Publishing Workflow
+    </span>
+</a>
+<nav aria-label="Publishing Workflow" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-registration">
+<span class="md-ellipsis">
+      1. Registration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-qa-execution">
+<span class="md-ellipsis">
+      2. QA Execution
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-photometry-if-enabled">
+<span class="md-ellipsis">
+      3. Photometry (if enabled)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-finalization">
+<span class="md-ellipsis">
+      4. Finalization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-publishing">
+<span class="md-ellipsis">
+      5. Publishing
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling">
+<span class="md-ellipsis">
+      Error Handling
+    </span>
+</a>
+<nav aria-label="Error Handling" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#retry-failed-publishing">
+<span class="md-ellipsis">
+      Retry Failed Publishing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#manual-publishing">
+<span class="md-ellipsis">
+      Manual Publishing
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#maintenance-queries">
+<span class="md-ellipsis">
+      Maintenance Queries
+    </span>
+</a>
+<nav aria-label="Maintenance Queries" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#reset-failed-product">
+<span class="md-ellipsis">
+      Reset Failed Product
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#disable-auto-publish">
+<span class="md-ellipsis">
+      Disable Auto-Publish
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#clean-up-old-staging-products">
+<span class="md-ellipsis">
+      Clean Up Old Staging Products
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#database-statistics">
+<span class="md-ellipsis">
+      Database Statistics
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#cli-commands">
+<span class="md-ellipsis">
+      CLI Commands
+    </span>
+</a>
+<nav aria-label="CLI Commands" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#list-staging-products">
+<span class="md-ellipsis">
+      List Staging Products
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#check-publish-status">
+<span class="md-ellipsis">
+      Check Publish Status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#manual-publish">
+<span class="md-ellipsis">
+      Manual Publish
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#retry-failed">
+<span class="md-ellipsis">
+      Retry Failed
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-tables">
+<span class="md-ellipsis">
+      Related Tables
+    </span>
+</a>
+<nav aria-label="Related Tables" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-data_relationships-product-dependencies">
+<span class="md-ellipsis">
+      2. data_relationships - Product Dependencies
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-data_tags-product-tags">
+<span class="md-ellipsis">
+      3. data_tags - Product Tags
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-notes">
+<span class="md-ellipsis">
+      Performance Notes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-files">
+<span class="md-ellipsis">
+      Related Files
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="database-reference-data_registrysqlite3">Database Reference: data_registry.sqlite3<a class="headerlink" href="#database-reference-data_registrysqlite3" title="Permanent link">¶</a></h1>
+<p><strong>Location</strong>: <code>/data/dsa110-contimg/state/data_registry.sqlite3</code><br/>
+<strong>Purpose</strong>: Data product publishing and QA status tracking<br/>
+<strong>Size</strong>: ~64 KB (typical)</p>
+<hr/>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>The <code>data_registry.sqlite3</code> database tracks the lifecycle of data products from
+staging through QA validation to final publishing. It implements the
+auto-publish workflow ensuring only validated products reach the published
+directory.</p>
+<hr/>
+<h2 id="tables">Tables<a class="headerlink" href="#tables" title="Permanent link">¶</a></h2>
+<h3 id="1-data_registry-product-publishing-registry">1. <code>data_registry</code> - Product Publishing Registry<a class="headerlink" href="#1-data_registry-product-publishing-registry" title="Permanent link">¶</a></h3>
+<p><strong>Purpose</strong>: Track data products through staging, QA, and publishing</p>
+<p><strong>Schema</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">data_registry</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">data_type</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">             </span><span class="c1">-- 'mosaic', 'image', 'ms', etc.</span>
+<span class="w">    </span><span class="n">data_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">UNIQUE</span><span class="p">,</span><span class="w">        </span><span class="c1">-- Unique identifier</span>
+<span class="w">    </span><span class="n">base_path</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">             </span><span class="c1">-- Base directory path</span>
+<span class="w">    </span><span class="n">status</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">'staging'</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Current status</span>
+<span class="w">    </span><span class="n">stage_path</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">            </span><span class="c1">-- Path in staging area</span>
+<span class="w">    </span><span class="n">published_path</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">                 </span><span class="c1">-- Path in published area</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">            </span><span class="c1">-- Creation timestamp</span>
+<span class="w">    </span><span class="n">staged_at</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">             </span><span class="c1">-- Staging timestamp</span>
+<span class="w">    </span><span class="n">published_at</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span><span class="w">                   </span><span class="c1">-- Publishing timestamp</span>
+<span class="w">    </span><span class="n">publish_mode</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">                   </span><span class="c1">-- 'copy' or 'move'</span>
+<span class="w">    </span><span class="n">metadata_json</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">                  </span><span class="c1">-- JSON metadata</span>
+<span class="w">    </span><span class="n">qa_status</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">                      </span><span class="c1">-- QA result</span>
+<span class="w">    </span><span class="n">validation_status</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">              </span><span class="c1">-- Validation result</span>
+<span class="w">    </span><span class="n">finalization_status</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">'pending'</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Finalization status</span>
+<span class="w">    </span><span class="n">auto_publish_enabled</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">      </span><span class="c1">-- Auto-publish flag</span>
+<span class="w">    </span><span class="n">publish_attempts</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Number of publish attempts</span>
+<span class="w">    </span><span class="n">publish_error</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">                  </span><span class="c1">-- Last publish error</span>
+<span class="w">    </span><span class="n">photometry_status</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w"> </span><span class="c1">-- Photometry status</span>
+<span class="w">    </span><span class="n">photometry_job_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w"> </span><span class="c1">-- Photometry job ID</span>
+<span class="w">    </span><span class="k">UNIQUE</span><span class="p">(</span><span class="n">data_type</span><span class="p">,</span><span class="w"> </span><span class="n">data_id</span><span class="p">)</span>
+<span class="p">);</span>
+
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_data_registry_type_status</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">data_registry</span><span class="p">(</span><span class="n">data_type</span><span class="p">,</span><span class="w"> </span><span class="n">status</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_data_registry_status</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">data_registry</span><span class="p">(</span><span class="n">status</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_data_registry_published_at</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">data_registry</span><span class="p">(</span><span class="n">published_at</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_data_registry_finalization</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">data_registry</span><span class="p">(</span><span class="n">finalization_status</span><span class="p">);</span>
+</code></pre></div>
+<hr/>
+<h2 id="status-values">Status Values<a class="headerlink" href="#status-values" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>staging</code></td>
+<td>Product in staging area, awaiting QA</td>
+</tr>
+<tr>
+<td><code>validated</code></td>
+<td>QA passed, ready for publishing</td>
+</tr>
+<tr>
+<td><code>publishing</code></td>
+<td>Publishing in progress</td>
+</tr>
+<tr>
+<td><code>published</code></td>
+<td>Successfully published</td>
+</tr>
+<tr>
+<td><code>failed</code></td>
+<td>Publishing failed</td>
+</tr>
+<tr>
+<td><code>retracted</code></td>
+<td>Published then removed</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h2 id="qa-status-values">QA Status Values<a class="headerlink" href="#qa-status-values" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>QA Status</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pending</code></td>
+<td>QA not yet run</td>
+</tr>
+<tr>
+<td><code>running</code></td>
+<td>QA in progress</td>
+</tr>
+<tr>
+<td><code>passed</code></td>
+<td>QA checks passed</td>
+</tr>
+<tr>
+<td><code>failed</code></td>
+<td>QA checks failed</td>
+</tr>
+<tr>
+<td><code>warning</code></td>
+<td>QA passed with warnings</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h2 id="validation-status-values">Validation Status Values<a class="headerlink" href="#validation-status-values" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Validation Status</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pending</code></td>
+<td>Validation not run</td>
+</tr>
+<tr>
+<td><code>validated</code></td>
+<td>Product validated</td>
+</tr>
+<tr>
+<td><code>invalid</code></td>
+<td>Validation failed</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h2 id="finalization-status-values">Finalization Status Values<a class="headerlink" href="#finalization-status-values" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Finalization Status</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pending</code></td>
+<td>Not yet finalized</td>
+</tr>
+<tr>
+<td><code>finalized</code></td>
+<td>Ready for auto-publish</td>
+</tr>
+<tr>
+<td><code>rejected</code></td>
+<td>Finalization rejected</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h2 id="auto-publish-criteria">Auto-Publish Criteria<a class="headerlink" href="#auto-publish-criteria" title="Permanent link">¶</a></h2>
+<p>A product is auto-published when <strong>ALL</strong> of the following are true:</p>
+<ol>
+<li><code>status='staging'</code></li>
+<li><code>auto_publish_enabled=1</code></li>
+<li><code>qa_status='passed'</code></li>
+<li><code>validation_status='validated'</code></li>
+<li><code>finalization_status='finalized'</code></li>
+<li><code>photometry_status='completed'</code> (if photometry enabled)</li>
+</ol>
+<hr/>
+<h2 id="common-queries">Common Queries<a class="headerlink" href="#common-queries" title="Permanent link">¶</a></h2>
+<h3 id="products-ready-for-publishing">Products Ready for Publishing<a class="headerlink" href="#products-ready-for-publishing" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Find products that meet auto-publish criteria</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">data_id</span><span class="p">,</span><span class="w"> </span><span class="n">data_type</span><span class="p">,</span><span class="w"> </span><span class="n">stage_path</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">data_registry</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">status</span><span class="o">=</span><span class="s1">'staging'</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">auto_publish_enabled</span><span class="o">=</span><span class="mi">1</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">qa_status</span><span class="o">=</span><span class="s1">'passed'</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">validation_status</span><span class="o">=</span><span class="s1">'validated'</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">finalization_status</span><span class="o">=</span><span class="s1">'finalized'</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="p">(</span><span class="n">photometry_status</span><span class="o">=</span><span class="s1">'completed'</span><span class="w"> </span><span class="k">OR</span><span class="w"> </span><span class="n">photometry_status</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NULL</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="publishing-status">Publishing Status<a class="headerlink" href="#publishing-status" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Get publishing status for a product</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">data_id</span><span class="p">,</span><span class="w"> </span><span class="n">status</span><span class="p">,</span><span class="w"> </span><span class="n">published_at</span><span class="p">,</span><span class="w"> </span><span class="n">published_path</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">data_registry</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">data_id</span><span class="o">=</span><span class="s1">'mosaic_2025-11-18_12-00-00'</span><span class="p">;</span>
+
+<span class="c1">-- List published products</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">data_id</span><span class="p">,</span><span class="w"> </span><span class="n">data_type</span><span class="p">,</span><span class="w"> </span><span class="n">published_at</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">data_registry</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">status</span><span class="o">=</span><span class="s1">'published'</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">published_at</span><span class="w"> </span><span class="k">DESC</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="failed-publishing">Failed Publishing<a class="headerlink" href="#failed-publishing" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Find failed publishing attempts</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">data_id</span><span class="p">,</span><span class="w"> </span><span class="n">publish_attempts</span><span class="p">,</span><span class="w"> </span><span class="n">publish_error</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">data_registry</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">status</span><span class="o">=</span><span class="s1">'failed'</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">publish_attempts</span><span class="w"> </span><span class="k">DESC</span><span class="p">;</span>
+
+<span class="c1">-- Products with multiple failed attempts</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">data_id</span><span class="p">,</span><span class="w"> </span><span class="n">publish_attempts</span><span class="p">,</span><span class="w"> </span><span class="n">publish_error</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">data_registry</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">publish_attempts</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="qa-and-validation-status">QA and Validation Status<a class="headerlink" href="#qa-and-validation-status" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Products awaiting QA</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">data_id</span><span class="p">,</span><span class="w"> </span><span class="n">data_type</span><span class="p">,</span><span class="w"> </span><span class="n">staged_at</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">data_registry</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">qa_status</span><span class="o">=</span><span class="s1">'pending'</span><span class="p">;</span>
+
+<span class="c1">-- QA failures</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">data_id</span><span class="p">,</span><span class="w"> </span><span class="n">qa_status</span><span class="p">,</span><span class="w"> </span><span class="n">validation_status</span><span class="p">,</span><span class="w"> </span><span class="n">metadata_json</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">data_registry</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">qa_status</span><span class="o">=</span><span class="s1">'failed'</span><span class="p">;</span>
+
+<span class="c1">-- Products with warnings</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">data_id</span><span class="p">,</span><span class="w"> </span><span class="n">data_type</span><span class="p">,</span><span class="w"> </span><span class="n">qa_status</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">data_registry</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">qa_status</span><span class="o">=</span><span class="s1">'warning'</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="photometry-status">Photometry Status<a class="headerlink" href="#photometry-status" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Products awaiting photometry</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">data_id</span><span class="p">,</span><span class="w"> </span><span class="n">photometry_status</span><span class="p">,</span><span class="w"> </span><span class="n">photometry_job_id</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">data_registry</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">photometry_status</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="p">(</span><span class="s1">'pending'</span><span class="p">,</span><span class="w"> </span><span class="s1">'running'</span><span class="p">);</span>
+
+<span class="c1">-- Products with completed photometry</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">data_id</span><span class="p">,</span><span class="w"> </span><span class="n">photometry_status</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">data_registry</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">photometry_status</span><span class="o">=</span><span class="s1">'completed'</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="staging-area-overview">Staging Area Overview<a class="headerlink" href="#staging-area-overview" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Count products by status</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">status</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">n_products</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">data_registry</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
+
+<span class="c1">-- Count by data type</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">data_type</span><span class="p">,</span><span class="w"> </span><span class="n">status</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">data_registry</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">data_type</span><span class="p">,</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
+
+<span class="c1">-- Age of staging products</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">data_id</span><span class="p">,</span>
+<span class="w">       </span><span class="p">(</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'%s'</span><span class="p">,</span><span class="s1">'now'</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">staged_at</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">3600</span><span class="p">.</span><span class="mi">0</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">age_hours</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">data_registry</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">status</span><span class="o">=</span><span class="s1">'staging'</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">age_hours</span><span class="w"> </span><span class="k">DESC</span><span class="p">;</span>
+</code></pre></div>
+<hr/>
+<h2 id="python-access-examples">Python Access Examples<a class="headerlink" href="#python-access-examples" title="Permanent link">¶</a></h2>
+<h3 id="register-new-product">Register New Product<a class="headerlink" href="#register-new-product" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.database.data_registry</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ensure_data_registry_db</span><span class="p">,</span>
+    <span class="n">register_data_instance</span>
+<span class="p">)</span>
+
+<span class="c1"># Open database</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="n">ensure_data_registry_db</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">"state/data_registry.sqlite3"</span><span class="p">))</span>
+
+<span class="c1"># Register mosaic in staging</span>
+<span class="n">register_data_instance</span><span class="p">(</span>
+    <span class="n">conn</span><span class="p">,</span>
+    <span class="n">data_type</span><span class="o">=</span><span class="s2">"mosaic"</span><span class="p">,</span>
+    <span class="n">data_id</span><span class="o">=</span><span class="s2">"mosaic_2025-11-18_12-00-00"</span><span class="p">,</span>
+    <span class="n">stage_path</span><span class="o">=</span><span class="s2">"/stage/dsa110-contimg/mosaics/mosaic_2025-11-18_12-00-00.fits"</span><span class="p">,</span>
+    <span class="n">auto_publish</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="update-qa-status">Update QA Status<a class="headerlink" href="#update-qa-status" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.database.data_registration</span><span class="w"> </span><span class="kn">import</span> <span class="n">update_qa_status</span>
+
+<span class="c1"># Mark QA as passed</span>
+<span class="n">update_qa_status</span><span class="p">(</span>
+    <span class="n">conn</span><span class="p">,</span>
+    <span class="n">data_id</span><span class="o">=</span><span class="s2">"mosaic_2025-11-18_12-00-00"</span><span class="p">,</span>
+    <span class="n">qa_status</span><span class="o">=</span><span class="s2">"passed"</span><span class="p">,</span>
+    <span class="n">validation_status</span><span class="o">=</span><span class="s2">"validated"</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="finalize-product">Finalize Product<a class="headerlink" href="#finalize-product" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.database.data_registration</span><span class="w"> </span><span class="kn">import</span> <span class="n">finalize_data</span>
+
+<span class="c1"># Finalize product (triggers auto-publish if criteria met)</span>
+<span class="n">finalize_data</span><span class="p">(</span>
+    <span class="n">conn</span><span class="p">,</span>
+    <span class="n">data_id</span><span class="o">=</span><span class="s2">"mosaic_2025-11-18_12-00-00"</span><span class="p">,</span>
+    <span class="n">qa_status</span><span class="o">=</span><span class="s2">"passed"</span><span class="p">,</span>
+    <span class="n">validation_status</span><span class="o">=</span><span class="s2">"validated"</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="publish-product">Publish Product<a class="headerlink" href="#publish-product" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.database.data_registration</span><span class="w"> </span><span class="kn">import</span> <span class="n">publish_data_instance</span>
+
+<span class="c1"># Manually publish</span>
+<span class="n">success</span> <span class="o">=</span> <span class="n">publish_data_instance</span><span class="p">(</span>
+    <span class="n">conn</span><span class="p">,</span>
+    <span class="n">data_id</span><span class="o">=</span><span class="s2">"mosaic_2025-11-18_12-00-00"</span><span class="p">,</span>
+    <span class="n">published_dir</span><span class="o">=</span><span class="s2">"/data/dsa110-contimg/products/mosaics"</span><span class="p">,</span>
+    <span class="n">mode</span><span class="o">=</span><span class="s2">"move"</span>  <span class="c1"># or "copy"</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="query-ready-products">Query Ready Products<a class="headerlink" href="#query-ready-products" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
+
+<span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">"state/data_registry.sqlite3"</span><span class="p">)</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">row_factory</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span>
+
+<span class="c1"># Get products ready for publishing</span>
+<span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+<span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">    SELECT data_id, stage_path</span>
+<span class="s2">    FROM data_registry</span>
+<span class="s2">    WHERE status='staging'</span>
+<span class="s2">      AND auto_publish_enabled=1</span>
+<span class="s2">      AND qa_status='passed'</span>
+<span class="s2">      AND validation_status='validated'</span>
+<span class="s2">      AND finalization_status='finalized'</span>
+<span class="s2">"""</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Ready: </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">'data_id'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre></div>
+<hr/>
+<h2 id="publishing-workflow">Publishing Workflow<a class="headerlink" href="#publishing-workflow" title="Permanent link">¶</a></h2>
+<h3 id="1-registration">1. Registration<a class="headerlink" href="#1-registration" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Product created in staging</span>
+<span class="n">register_data_instance</span><span class="p">(</span>
+    <span class="n">conn</span><span class="p">,</span>
+    <span class="n">data_type</span><span class="o">=</span><span class="s2">"mosaic"</span><span class="p">,</span>
+    <span class="n">data_id</span><span class="o">=</span><span class="n">mosaic_id</span><span class="p">,</span>
+    <span class="n">stage_path</span><span class="o">=</span><span class="n">stage_path</span><span class="p">,</span>
+    <span class="n">auto_publish</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="c1"># Status: staging, qa_status=NULL, finalization_status=pending</span>
+</code></pre></div>
+<h3 id="2-qa-execution">2. QA Execution<a class="headerlink" href="#2-qa-execution" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Run QA checks</span>
+<span class="n">qa_result</span> <span class="o">=</span> <span class="n">run_qa_checks</span><span class="p">(</span><span class="n">stage_path</span><span class="p">)</span>
+
+<span class="c1"># Update status</span>
+<span class="n">update_qa_status</span><span class="p">(</span>
+    <span class="n">conn</span><span class="p">,</span>
+    <span class="n">data_id</span><span class="o">=</span><span class="n">mosaic_id</span><span class="p">,</span>
+    <span class="n">qa_status</span><span class="o">=</span><span class="s2">"passed"</span> <span class="k">if</span> <span class="n">qa_result</span><span class="o">.</span><span class="n">passed</span> <span class="k">else</span> <span class="s2">"failed"</span><span class="p">,</span>
+    <span class="n">validation_status</span><span class="o">=</span><span class="s2">"validated"</span> <span class="k">if</span> <span class="n">qa_result</span><span class="o">.</span><span class="n">valid</span> <span class="k">else</span> <span class="s2">"invalid"</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="3-photometry-if-enabled">3. Photometry (if enabled)<a class="headerlink" href="#3-photometry-if-enabled" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Submit photometry job</span>
+<span class="n">job_id</span> <span class="o">=</span> <span class="n">submit_photometry_job</span><span class="p">(</span><span class="n">mosaic_id</span><span class="p">)</span>
+
+<span class="c1"># Update status</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">    UPDATE data_registry</span>
+<span class="s2">    SET photometry_status='running', photometry_job_id=?</span>
+<span class="s2">    WHERE data_id=?</span>
+<span class="s2">"""</span><span class="p">,</span> <span class="p">(</span><span class="n">job_id</span><span class="p">,</span> <span class="n">mosaic_id</span><span class="p">))</span>
+
+<span class="c1"># ... photometry completes ...</span>
+
+<span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">    UPDATE data_registry</span>
+<span class="s2">    SET photometry_status='completed'</span>
+<span class="s2">    WHERE data_id=?</span>
+<span class="s2">"""</span><span class="p">,</span> <span class="p">(</span><span class="n">mosaic_id</span><span class="p">,))</span>
+</code></pre></div>
+<h3 id="4-finalization">4. Finalization<a class="headerlink" href="#4-finalization" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Finalize (triggers auto-publish check)</span>
+<span class="n">finalize_data</span><span class="p">(</span>
+    <span class="n">conn</span><span class="p">,</span>
+    <span class="n">data_id</span><span class="o">=</span><span class="n">mosaic_id</span><span class="p">,</span>
+    <span class="n">qa_status</span><span class="o">=</span><span class="s2">"passed"</span><span class="p">,</span>
+    <span class="n">validation_status</span><span class="o">=</span><span class="s2">"validated"</span>
+<span class="p">)</span>
+<span class="c1"># If all criteria met, triggers auto-publish</span>
+</code></pre></div>
+<h3 id="5-publishing">5. Publishing<a class="headerlink" href="#5-publishing" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Auto-publish moves file and updates registry</span>
+<span class="c1"># Status: publishing -&gt; published</span>
+<span class="c1"># published_path and published_at are set</span>
+</code></pre></div>
+<hr/>
+<h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">¶</a></h2>
+<h3 id="retry-failed-publishing">Retry Failed Publishing<a class="headerlink" href="#retry-failed-publishing" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Retry publishing for failed products</span>
+<span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">    SELECT data_id, stage_path</span>
+<span class="s2">    FROM data_registry</span>
+<span class="s2">    WHERE status='failed'</span>
+<span class="s2">      AND publish_attempts &lt; 3</span>
+<span class="s2">"""</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">publish_data_instance</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s1">'data_id'</span><span class="p">],</span> <span class="n">published_dir</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="c1"># Log error, increment attempts</span>
+        <span class="k">pass</span>
+</code></pre></div>
+<h3 id="manual-publishing">Manual Publishing<a class="headerlink" href="#manual-publishing" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Use CLI to manually publish</span>
+python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.database.cli<span class="w"> </span>publish<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db<span class="w"> </span>state/data_registry.sqlite3<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--data-id<span class="w"> </span>mosaic_2025-11-18_12-00-00
+</code></pre></div>
+<hr/>
+<h2 id="maintenance-queries">Maintenance Queries<a class="headerlink" href="#maintenance-queries" title="Permanent link">¶</a></h2>
+<h3 id="reset-failed-product">Reset Failed Product<a class="headerlink" href="#reset-failed-product" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Reset to staging for retry</span>
+<span class="k">UPDATE</span><span class="w"> </span><span class="n">data_registry</span>
+<span class="k">SET</span><span class="w"> </span><span class="n">status</span><span class="o">=</span><span class="s1">'staging'</span><span class="p">,</span>
+<span class="w">    </span><span class="n">publish_attempts</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="w">    </span><span class="n">publish_error</span><span class="o">=</span><span class="k">NULL</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">data_id</span><span class="o">=</span><span class="s1">'mosaic_2025-11-18_12-00-00'</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="disable-auto-publish">Disable Auto-Publish<a class="headerlink" href="#disable-auto-publish" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Disable auto-publish for specific product</span>
+<span class="k">UPDATE</span><span class="w"> </span><span class="n">data_registry</span>
+<span class="k">SET</span><span class="w"> </span><span class="n">auto_publish_enabled</span><span class="o">=</span><span class="mi">0</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">data_id</span><span class="o">=</span><span class="s1">'mosaic_2025-11-18_12-00-00'</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="clean-up-old-staging-products">Clean Up Old Staging Products<a class="headerlink" href="#clean-up-old-staging-products" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- List old staging products (&gt;7 days)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">data_id</span><span class="p">,</span><span class="w"> </span><span class="n">stage_path</span><span class="p">,</span>
+<span class="w">       </span><span class="p">(</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'%s'</span><span class="p">,</span><span class="s1">'now'</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">staged_at</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">86400</span><span class="p">.</span><span class="mi">0</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">age_days</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">data_registry</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">status</span><span class="o">=</span><span class="s1">'staging'</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">age_days</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">7</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="database-statistics">Database Statistics<a class="headerlink" href="#database-statistics" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Publishing statistics</span>
+<span class="k">SELECT</span>
+<span class="w">    </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">total_products</span><span class="p">,</span>
+<span class="w">    </span><span class="k">SUM</span><span class="p">(</span><span class="k">CASE</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="n">status</span><span class="o">=</span><span class="s1">'published'</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">ELSE</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">END</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">published</span><span class="p">,</span>
+<span class="w">    </span><span class="k">SUM</span><span class="p">(</span><span class="k">CASE</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="n">status</span><span class="o">=</span><span class="s1">'staging'</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">ELSE</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">END</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">staging</span><span class="p">,</span>
+<span class="w">    </span><span class="k">SUM</span><span class="p">(</span><span class="k">CASE</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="n">status</span><span class="o">=</span><span class="s1">'failed'</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">ELSE</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">END</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">failed</span><span class="p">,</span>
+<span class="w">    </span><span class="k">AVG</span><span class="p">(</span><span class="n">publish_attempts</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">avg_attempts</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">data_registry</span><span class="p">;</span>
+
+<span class="c1">-- Success rate</span>
+<span class="k">SELECT</span>
+<span class="w">    </span><span class="n">ROUND</span><span class="p">(</span><span class="mi">100</span><span class="p">.</span><span class="mi">0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">SUM</span><span class="p">(</span><span class="k">CASE</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="n">status</span><span class="o">=</span><span class="s1">'published'</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">ELSE</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">END</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">),</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">success_rate_pct</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">data_registry</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="p">(</span><span class="s1">'published'</span><span class="p">,</span><span class="w"> </span><span class="s1">'failed'</span><span class="p">);</span>
+</code></pre></div>
+<hr/>
+<h2 id="cli-commands">CLI Commands<a class="headerlink" href="#cli-commands" title="Permanent link">¶</a></h2>
+<h3 id="list-staging-products">List Staging Products<a class="headerlink" href="#list-staging-products" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code>sqlite3<span class="w"> </span>state/data_registry.sqlite3<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s2">"SELECT data_id, status, qa_status FROM data_registry</span>
+<span class="s2">   WHERE status='staging'"</span>
+</code></pre></div>
+<h3 id="check-publish-status">Check Publish Status<a class="headerlink" href="#check-publish-status" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.database.cli<span class="w"> </span>status<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db<span class="w"> </span>state/data_registry.sqlite3<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--data-id<span class="w"> </span>mosaic_2025-11-18_12-00-00
+</code></pre></div>
+<h3 id="manual-publish">Manual Publish<a class="headerlink" href="#manual-publish" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.database.cli<span class="w"> </span>publish<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db<span class="w"> </span>state/data_registry.sqlite3<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--data-id<span class="w"> </span>mosaic_2025-11-18_12-00-00<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--products-base<span class="w"> </span>/data/dsa110-contimg/products
+</code></pre></div>
+<h3 id="retry-failed">Retry Failed<a class="headerlink" href="#retry-failed" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.database.cli<span class="w"> </span>retry<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db<span class="w"> </span>state/data_registry.sqlite3<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--data-id<span class="w"> </span>mosaic_2025-11-18_12-00-00
+</code></pre></div>
+<hr/>
+<h2 id="related-tables">Related Tables<a class="headerlink" href="#related-tables" title="Permanent link">¶</a></h2>
+<h3 id="2-data_relationships-product-dependencies">2. <code>data_relationships</code> - Product Dependencies<a class="headerlink" href="#2-data_relationships-product-dependencies" title="Permanent link">¶</a></h3>
+<p><strong>Purpose</strong>: Track relationships between data products</p>
+<div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">data_relationships</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">parent_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">child_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">relationship_type</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+<span class="p">);</span>
+</code></pre></div>
+<h3 id="3-data_tags-product-tags">3. <code>data_tags</code> - Product Tags<a class="headerlink" href="#3-data_tags-product-tags" title="Permanent link">¶</a></h3>
+<p><strong>Purpose</strong>: Tag products for organization and search</p>
+<div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">data_tags</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">data_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">tag</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+<span class="p">);</span>
+</code></pre></div>
+<hr/>
+<h2 id="performance-notes">Performance Notes<a class="headerlink" href="#performance-notes" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Indexes</strong>: Optimized for status and finalization queries</li>
+<li><strong>Typical Size</strong>: &lt;100 KB with hundreds of products</li>
+<li><strong>Query Speed</strong>: &lt;10ms for publish-ready queries</li>
+<li><strong>Concurrency</strong>: Not critical (staging/publishing is serialized)</li>
+</ul>
+<hr/>
+<h2 id="related-files">Related Files<a class="headerlink" href="#related-files" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Code</strong>: <code>dsa110_contimg/database/data_registry.py</code>, <code>data_registration.py</code></li>
+<li><strong>CLI</strong>: <code>dsa110_contimg/database/cli.py</code></li>
+<li><strong>Documentation</strong>: <code>dsa110_contimg/README_PIPELINE_DOCUMENTATION.md</code></li>
+</ul>
+<hr/>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Products Database</strong>: <code>docs/reference/database_products_sqlite3.md</code></li>
+<li><strong>Publishing Guide</strong>: <code>docs/how-to/publishing_workflow.md</code></li>
+<li><strong>Pipeline Documentation</strong>: <code>dsa110_contimg/FINAL_WORKFLOW_VERIFICATION.md</code></li>
+</ul>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

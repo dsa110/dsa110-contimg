@@ -1,0 +1,1928 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/reference/documentation_standards/DOCUMENTATION_CONSOLIDATION_STRATEGY/" rel="canonical"/>
+<link href="../../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Documentation Consolidation Strategy - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#documentation-consolidation-strategy">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Documentation Consolidation Strategy
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../DOCUMENTATION_QUICK_REFERENCE.md">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_5">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/streaming.md">
+<span class="md-ellipsis">
+    Streaming Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard.md">
+<span class="md-ellipsis">
+    Dashboard Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/github_pages_walkthrough.md">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_4">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quickstart.md">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/control-panel-quickstart.md">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_SETUP_QUICKSTART.md">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FAST_TESTING.md">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/TEST_FLAG_SUBCOMMAND.md">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/build-vp-from-h5.md">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/CALIBRATION_DETAILED_PROCEDURE.md">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FIND_CALIBRATOR_TRANSIT_DATA.md">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/IMAGE_0834_TRANSIT_5MIN.md">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_9" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_9" id="__nav_5_9_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_9_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_9">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic_quickstart.md">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic.md">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_10" id="__nav_5_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_10">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quicklook.md">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/reprocess.md">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/USING_ORCHESTRATOR_CLI.md">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_INTEGRATION.md">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/frontend-initial-setup.md">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_15" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_15" id="__nav_5_15_label" tabindex="0">
+<span class="md-ellipsis">
+    Development Setup
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_15_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_15">
+<span class="md-nav__icon md-icon"></span>
+            Development Setup
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/ENVIRONMENT_SETUP.md">
+<span class="md-ellipsis">
+    Environment Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PRE_COMMIT_SETUP.md">
+<span class="md-ellipsis">
+    Pre-commit Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/CI_CD_SETUP.md">
+<span class="md-ellipsis">
+    CI/CD Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/TEST_DATABASE_SETUP.md">
+<span class="md-ellipsis">
+    Test Database Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PARAMETER_OPTIMIZATION_GUIDE.md">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/downsampling_guide.md">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_18" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_18" id="__nav_5_18_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_18_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_18">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/uvh5_to_ms_conversion.md">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/troubleshooting.md">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#executive-summary">
+<span class="md-ellipsis">
+      Executive Summary
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-state-analysis">
+<span class="md-ellipsis">
+      Current State Analysis
+    </span>
+</a>
+<nav aria-label="Current State Analysis" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#file-distribution-as-of-audit">
+<span class="md-ellipsis">
+      File Distribution (as of audit)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#issues-identified">
+<span class="md-ellipsis">
+      Issues Identified
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#strategy-three-tier-documentation-architecture">
+<span class="md-ellipsis">
+      Strategy: Three-Tier Documentation Architecture
+    </span>
+</a>
+<nav aria-label="Strategy: Three-Tier Documentation Architecture" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tier-1-user-facing-documentation-docs">
+<span class="md-ellipsis">
+      Tier 1: User-Facing Documentation (docs/)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tier-2-development-notes-internaldocsdev">
+<span class="md-ellipsis">
+      Tier 2: Development Notes (internal/docs/dev/)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tier-3-archive-docsarchive">
+<span class="md-ellipsis">
+      Tier 3: Archive (docs/archive/)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#proposed-directory-structure">
+<span class="md-ellipsis">
+      Proposed Directory Structure
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#consolidation-plan">
+<span class="md-ellipsis">
+      Consolidation Plan
+    </span>
+</a>
+<nav aria-label="Consolidation Plan" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-1-root-directory-cleanup-priority-high">
+<span class="md-ellipsis">
+      Phase 1: Root Directory Cleanup (Priority: High)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-2-source-directory-cleanup-priority-high">
+<span class="md-ellipsis">
+      Phase 2: Source Directory Cleanup (Priority: High)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-3-docker-directory-cleanup-priority-medium">
+<span class="md-ellipsis">
+      Phase 3: Docker Directory Cleanup (Priority: Medium)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-4-consolidate-duplicate-content-priority-medium">
+<span class="md-ellipsis">
+      Phase 4: Consolidate Duplicate Content (Priority: Medium)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-5-archive-time-bound-analysisreports-completed">
+<span class="md-ellipsis">
+      Phase 5: Archive Time-Bound Analysis/Reports (Completed)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-5-improve-navigation-priority-high">
+<span class="md-ellipsis">
+      Phase 5: Improve Navigation (Priority: High)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#file-naming-conventions">
+<span class="md-ellipsis">
+      File Naming Conventions
+    </span>
+</a>
+<nav aria-label="File Naming Conventions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#standardize-to-lowercase-with-underscores">
+<span class="md-ellipsis">
+      Standardize to lowercase with underscores:
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#naming-patterns">
+<span class="md-ellipsis">
+      Naming Patterns:
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#documentation-lifecycle-management">
+<span class="md-ellipsis">
+      Documentation Lifecycle Management
+    </span>
+</a>
+<nav aria-label="Documentation Lifecycle Management" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#status-reports-temporal">
+<span class="md-ellipsis">
+      Status Reports (Temporal)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#investigation-reports">
+<span class="md-ellipsis">
+      Investigation Reports
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#notes">
+<span class="md-ellipsis">
+      Notes
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-steps">
+<span class="md-ellipsis">
+      Implementation Steps
+    </span>
+</a>
+<nav aria-label="Implementation Steps" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step-1-create-new-directory-structure">
+<span class="md-ellipsis">
+      Step 1: Create New Directory Structure
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step-2-move-files-batch-1-root-directory">
+<span class="md-ellipsis">
+      Step 2: Move Files (Batch 1: Root Directory)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step-3-move-files-batch-2-source-directories">
+<span class="md-ellipsis">
+      Step 3: Move Files (Batch 2: Source Directories)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step-4-create-entry-point-readmes">
+<span class="md-ellipsis">
+      Step 4: Create Entry Point READMEs
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step-5-update-cross-references">
+<span class="md-ellipsis">
+      Step 5: Update Cross-References
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step-6-rename-files-standardize">
+<span class="md-ellipsis">
+      Step 6: Rename Files (Standardize)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#maintenance-guidelines">
+<span class="md-ellipsis">
+      Maintenance Guidelines
+    </span>
+</a>
+<nav aria-label="Maintenance Guidelines" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#for-agents-writing-documentation">
+<span class="md-ellipsis">
+      For Agents Writing Documentation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#for-maintainers">
+<span class="md-ellipsis">
+      For Maintainers
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tools-and-automation">
+<span class="md-ellipsis">
+      Tools and Automation
+    </span>
+</a>
+<nav aria-label="Tools and Automation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#recommended-tools">
+<span class="md-ellipsis">
+      Recommended Tools
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#automation-scripts">
+<span class="md-ellipsis">
+      Automation Scripts
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#success-metrics">
+<span class="md-ellipsis">
+      Success Metrics
+    </span>
+</a>
+<nav aria-label="Success Metrics" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#immediate-after-consolidation">
+<span class="md-ellipsis">
+      Immediate (After Consolidation)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#short-term-3-months">
+<span class="md-ellipsis">
+      Short-term (3 months)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#long-term-6-months">
+<span class="md-ellipsis">
+      Long-term (6+ months)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#migration-checklist">
+<span class="md-ellipsis">
+      Migration Checklist
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#references">
+<span class="md-ellipsis">
+      References
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#next-steps">
+<span class="md-ellipsis">
+      Next Steps
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="documentation-consolidation-strategy">Documentation Consolidation Strategy<a class="headerlink" href="#documentation-consolidation-strategy" title="Permanent link">¶</a></h1>
+<p><strong>Date:</strong> 2025-11-12<br/>
+<strong>Status:</strong> In Progress<br/>
+<strong>Purpose:</strong> Unify and organize 1,113 markdown documentation files into a
+maintainable, discoverable structure</p>
+<hr/>
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">¶</a></h2>
+<p>The codebase currently has <strong>179 markdown files</strong> scattered across root
+directories, source code directories, and various subdirectories. While the
+<code>docs/</code> directory has good structure, many files remain in root
+(<code>/data/dsa110-contimg/*.md</code>), source directories (<code>src/dsa110_contimg/*.md</code>),
+and other locations. This document proposes a systematic approach to
+consolidate, organize, and maintain documentation based on industry best
+practices.</p>
+<hr/>
+<h2 id="current-state-analysis">Current State Analysis<a class="headerlink" href="#current-state-analysis" title="Permanent link">¶</a></h2>
+<h3 id="file-distribution-as-of-audit">File Distribution (as of audit)<a class="headerlink" href="#file-distribution-as-of-audit" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Root directory:</strong> 27 files (keep: <code>README.md</code>, <code>MEMORY.md</code>)</li>
+<li><strong>docs/ directory:</strong> 668 files (298 keep, 353 archive, 17 consolidate)</li>
+<li><strong>archive/</strong>: 293 files (legacy, already segregated)</li>
+<li><strong>internal/</strong>: 49 files (dev notes/status)</li>
+<li><strong>frontend/</strong>: 28 files (keep)</li>
+<li><strong>docker/</strong>: 18 files (keep)</li>
+<li><strong>tests/</strong>: 14 files (keep)</li>
+<li><strong>src/</strong>: 7 files (module READMEs; keep)</li>
+<li><strong>ops/</strong>: 2 files (keep)</li>
+</ul>
+<h3 id="issues-identified">Issues Identified<a class="headerlink" href="#issues-identified" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Root directory clutter:</strong> Many status reports, investigation reports, and
+   test results in root</li>
+<li><strong>Duplicate information:</strong> Same concepts documented in multiple places</li>
+<li><strong>Temporal files:</strong> Status reports, test results, and investigation reports
+   that should be archived</li>
+<li><strong>Inconsistent naming:</strong> Mix of UPPERCASE, lowercase, and mixed-case
+   filenames</li>
+<li><strong>Missing entry points:</strong> No clear navigation structure for finding
+   information</li>
+<li><strong>Agent notes mixed with user docs:</strong> Development notes scattered with
+   user-facing documentation</li>
+</ol>
+<hr/>
+<h2 id="strategy-three-tier-documentation-architecture">Strategy: Three-Tier Documentation Architecture<a class="headerlink" href="#strategy-three-tier-documentation-architecture" title="Permanent link">¶</a></h2>
+<p>Based on industry best practices, we propose a <strong>three-tier architecture</strong>:</p>
+<h3 id="tier-1-user-facing-documentation-docs">Tier 1: User-Facing Documentation (<code>docs/</code>)<a class="headerlink" href="#tier-1-user-facing-documentation-docs" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Documentation for users, developers, and operators<br/>
+<strong>Structure:</strong> Organized by purpose (how-to, concepts, reference, tutorials)</p>
+<h3 id="tier-2-development-notes-internaldocsdev">Tier 2: Development Notes (<code>internal/docs/dev/</code>)<a class="headerlink" href="#tier-2-development-notes-internaldocsdev" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Agent notes, investigation reports, status updates, development
+history<br/>
+<strong>Structure:</strong> Organized by topic and date</p>
+<h3 id="tier-3-archive-docsarchive">Tier 3: Archive (<code>docs/archive/</code>)<a class="headerlink" href="#tier-3-archive-docsarchive" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Historical status reports, completed investigations, deprecated
+information<br/>
+<strong>Structure:</strong> Organized by date and topic</p>
+<hr/>
+<h2 id="proposed-directory-structure">Proposed Directory Structure<a class="headerlink" href="#proposed-directory-structure" title="Permanent link">¶</a></h2>
+<div class="highlight"><pre><span></span><code>docs/
+├── README.md                          # Main entry point with navigation
+├── index.md                           # MkDocs index (if using MkDocs)
+│
+├── concepts/                          # Conceptual documentation
+│   ├── README.md                     # Entry point for concepts
+│   ├── architecture.md
+│   ├── pipeline_overview.md
+│   ├── glossary.md
+│   └── ...
+│
+├── how-to/                           # Task-oriented guides
+│   ├── README.md                     # Entry point for how-to guides
+│   ├── quickstart.md
+│   ├── calibration/
+│   │   ├── README.md
+│   │   ├── detailed_procedure.md
+│   │   └── find_transit_data.md
+│   ├── imaging/
+│   │   ├── README.md
+│   │   └── mosaic.md
+│   └── ...
+│
+├── reference/                        # API, CLI, schema reference
+│   ├── README.md
+│   ├── api-endpoints.md
+│   ├── cli.md
+│   ├── database_schema.md
+│   └── ...
+│
+├── tutorials/                        # Step-by-step tutorials
+│   ├── README.md
+│   ├── hdf5_to_ms.md
+│   ├── calibrate_apply.md
+│   └── ...
+│
+├── operations/                       # Operations and deployment
+│   ├── README.md
+│   ├── deployment/
+│   │   ├── docker.md
+│   │   └── systemd.md
+│   └── troubleshooting/
+│       └── common_issues.md
+│
+├── (internal)/docs/dev/              # Development notes (not published)
+│   ├── README.md                     # Entry point for dev notes
+│   │
+│   ├── analysis/                     # Investigation reports
+│   │   ├── README.md
+│   │   ├── time_handling_issues.md
+│   │   ├── ra_calculation_issue.md
+│   │   ├── unanticipated_issues.md
+│   │   └── ...
+│   │
+│   ├── status/                      # Status reports (temporal)
+│   │   ├── README.md
+│   │   ├── 2025-01/
+│   │   │   ├── dashboard_status.md
+│   │   │   └── testing_summary.md
+│   │   └── ...
+│   │
+│   ├── history/                     # Development history
+│   │   ├── README.md
+│   │   ├── cursor_chat_history.md
+│   │   └── changelog/
+│   │       └── ...
+│   │
+│   └── notes/                       # Agent notes and brainstorming
+│       ├── README.md
+│       ├── architectural_elegance.md
+│       └── ...
+│
+└── archive/                          # Historical documentation
+    ├── README.md
+    ├── status_reports/              # Completed status reports
+    ├── investigations/               # Completed investigations
+    └── experimental/                 # Experimental features
+</code></pre></div>
+<hr/>
+<h2 id="consolidation-plan">Consolidation Plan<a class="headerlink" href="#consolidation-plan" title="Permanent link">¶</a></h2>
+<h3 id="phase-1-root-directory-cleanup-priority-high">Phase 1: Root Directory Cleanup (Priority: High)<a class="headerlink" href="#phase-1-root-directory-cleanup-priority-high" title="Permanent link">¶</a></h3>
+<p><strong>Move to <code>internal/docs/dev/status/</code>:</strong></p>
+<ul>
+<li><code>DASHBOARD_ENDPOINT_TEST_RESULTS.md</code></li>
+<li><code>DASHBOARD_REAL_DATA_IMPLEMENTATION.md</code></li>
+<li><code>DASHBOARD_TBD_STATUS.md</code></li>
+<li><code>ENDPOINT_TEST_SUMMARY.md</code></li>
+<li><code>ENDPOINT_VERIFICATION_COMPLETE.md</code></li>
+<li><code>SKYVIEW_IMAGE_DISPLAY_VERIFICATION.md</code></li>
+<li><code>SKYVIEW_SPRINT1_COMPLETE.md</code></li>
+<li><code>SKYVIEW_TEST_RESULTS.md</code></li>
+<li><code>SKYVIEW_TROUBLESHOOTING.md</code></li>
+<li><code>TESTING_SUMMARY.md</code></li>
+<li><code>TEST_RESULTS.md</code></li>
+<li><code>VALIDATION_DEMONSTRATION.md</code></li>
+</ul>
+<p><strong>Move to <code>internal/docs/dev/analysis/</code>:</strong></p>
+<ul>
+<li><code>TIME_INVESTIGATION_REPORT.md</code></li>
+<li><code>TIME_VALIDATION_STRATEGY.md</code></li>
+<li><code>DUPLICATE_TIME_INVESTIGATION.md</code></li>
+<li><code>BUG_REPORT.md</code> (if still relevant)</li>
+</ul>
+<p><strong>Move to <code>internal/docs/dev/notes/</code>:</strong></p>
+<ul>
+<li><code>ARCHITECTURAL_ELEGANCE_BRAINSTORM.md</code></li>
+<li><code>ARCHITECTURE_OPTIMIZATION_RECOMMENDATIONS.md</code></li>
+<li><code>PYUVDATA_USAGE_ANALYSIS.md</code></li>
+</ul>
+<p><strong>Move to <code>docs/reference/</code>:</strong></p>
+<ul>
+<li><code>DEVELOPER_GUIDE.md</code> → <code>docs/reference/developer_guide.md</code></li>
+</ul>
+<p><strong>Keep in root:</strong></p>
+<ul>
+<li><code>README.md</code> (main project README)</li>
+<li><code>MEMORY.md</code> (agent memory file - special case)</li>
+<li><code>TODO.md</code> (if actively used)</li>
+</ul>
+<p><strong>Archive:</strong></p>
+<ul>
+<li><code>DOCKER_CONFIG_UPDATE.md</code> → <code>docs/archive/</code> (if completed)</li>
+<li><code>DOCKER_CONFIG_VERIFICATION.md</code> → <code>docs/archive/</code> (if completed)</li>
+</ul>
+<h3 id="phase-2-source-directory-cleanup-priority-high">Phase 2: Source Directory Cleanup (Priority: High)<a class="headerlink" href="#phase-2-source-directory-cleanup-priority-high" title="Permanent link">¶</a></h3>
+<p><strong>Move to <code>internal/docs/dev/analysis/</code>:</strong></p>
+<ul>
+<li><code>src/dsa110_contimg/RA_CALCULATION_ISSUE.md</code></li>
+<li><code>src/dsa110_contimg/TIME_HANDLING_ISSUES.md</code></li>
+</ul>
+<p><strong>Keep in source directories:</strong></p>
+<ul>
+<li>Module-level <code>README.md</code> files (e.g.,
+  <code>src/dsa110_contimg/calibration/README.md</code>)</li>
+<li>These provide context for code navigation</li>
+</ul>
+<h3 id="phase-3-docker-directory-cleanup-priority-medium">Phase 3: Docker Directory Cleanup (Priority: Medium)<a class="headerlink" href="#phase-3-docker-directory-cleanup-priority-medium" title="Permanent link">¶</a></h3>
+<p><strong>Move to <code>internal/docs/dev/status/experimental/</code>:</strong></p>
+<ul>
+<li>All <code>docker/cubical_experimental/*.md</code> status files</li>
+<li>Keep only <code>docker/cubical_experimental/README.md</code> in place</li>
+</ul>
+<h3 id="phase-4-consolidate-duplicate-content-priority-medium">Phase 4: Consolidate Duplicate Content (Priority: Medium)<a class="headerlink" href="#phase-4-consolidate-duplicate-content-priority-medium" title="Permanent link">¶</a></h3>
+<p><strong>Review and merge (Progress):</strong></p>
+<ul>
+<li>QA Visualization: Kept Quick Start, Usage, and Design; archived seven
+  dashboard/testing/status variants to <code>docs/archive/qa_visualization/</code>.</li>
+<li>Prettier: Created <code>docs/how-to/PRETTIER_TROUBLESHOOTING.md</code>; archived
+  environment-specific and applied-fixes docs to <code>docs/archive/prettier/</code>;
+  converted <code>PRETTIER_WARNINGS.md</code> to a redirect.</li>
+<li>Developer Handoff: Kept <code>DEVELOPER_HANDOFF_WARNINGS.md</code>; converted
+  <code>DEVELOPER_HANDOVER_WARNINGS.md</code> to a redirect.</li>
+</ul>
+<p>Remaining merges:</p>
+<ul>
+<li>Consolidate multiple calibration/testing procedure variants under a single
+  canonical guide per topic.</li>
+<li>Collapse remaining quickstarts that duplicate handbook content.</li>
+</ul>
+<h3 id="phase-5-archive-time-bound-analysisreports-completed">Phase 5: Archive Time-Bound Analysis/Reports (Completed)<a class="headerlink" href="#phase-5-archive-time-bound-analysisreports-completed" title="Permanent link">¶</a></h3>
+<ul>
+<li>Moved <code>docs/analysis/</code> → <code>docs/archive/analysis/</code> (126 files)</li>
+<li>Moved <code>docs/reports/</code> → <code>docs/archive/reports/</code> (41 files)</li>
+<li>Moved <code>docs/dev/</code> → <code>internal/docs/dev/imported/</code> (182 files)</li>
+</ul>
+<p><strong>Create single source of truth:</strong></p>
+<ul>
+<li><code>docs/how-to/calibration/detailed_procedure.md</code> (merge all calibration docs)</li>
+<li><code>docs/how-to/quickstart.md</code> (merge all quickstart variants)</li>
+<li><code>docs/concepts/testing_strategy.md</code> (merge testing documents)</li>
+</ul>
+<h3 id="phase-5-improve-navigation-priority-high">Phase 5: Improve Navigation (Priority: High)<a class="headerlink" href="#phase-5-improve-navigation-priority-high" title="Permanent link">¶</a></h3>
+<p><strong>Create entry point READMEs:</strong></p>
+<ul>
+<li><code>docs/README.md</code> - Main documentation index</li>
+<li><code>docs/concepts/README.md</code> - Concepts overview</li>
+<li><code>docs/how-to/README.md</code> - How-to guides index</li>
+<li><code>docs/reference/README.md</code> - Reference documentation index</li>
+<li><code>internal/docs/dev/README.md</code> - Development notes index</li>
+<li><code>docs/archive/README.md</code> - Archive index</li>
+</ul>
+<p><strong>Add cross-references:</strong></p>
+<ul>
+<li>Link related documents</li>
+<li>Add "See also" sections</li>
+<li>Create topic-based navigation</li>
+</ul>
+<hr/>
+<h2 id="file-naming-conventions">File Naming Conventions<a class="headerlink" href="#file-naming-conventions" title="Permanent link">¶</a></h2>
+<h3 id="standardize-to-lowercase-with-underscores">Standardize to lowercase with underscores:<a class="headerlink" href="#standardize-to-lowercase-with-underscores" title="Permanent link">¶</a></h3>
+<ul>
+<li>✅ <code>calibration_detailed_procedure.md</code></li>
+<li>✅ <code>time_handling_issues.md</code></li>
+<li>✅ <code>dashboard_status.md</code></li>
+<li>❌ <code>CALIBRATION_DETAILED_PROCEDURE.md</code></li>
+<li>❌ <code>TIME_HANDLING_ISSUES.md</code></li>
+<li>❌ <code>Dashboard-Status.md</code></li>
+</ul>
+<h3 id="naming-patterns">Naming Patterns:<a class="headerlink" href="#naming-patterns" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Concepts:</strong> <code>concept_name.md</code> (e.g., <code>pipeline_overview.md</code>)</li>
+<li><strong>How-to guides:</strong> <code>task_name.md</code> (e.g., <code>calibrate_ms.md</code>)</li>
+<li><strong>Reference:</strong> <code>component_name.md</code> (e.g., <code>api_endpoints.md</code>)</li>
+<li><strong>Status reports:</strong> <code>YYYY-MM-DD_component_status.md</code> (e.g.,
+  <code>2025-01-15_dashboard_status.md</code>)</li>
+<li><strong>Analysis:</strong> <code>topic_analysis.md</code> (e.g., <code>time_handling_analysis.md</code>)</li>
+</ul>
+<hr/>
+<h2 id="documentation-lifecycle-management">Documentation Lifecycle Management<a class="headerlink" href="#documentation-lifecycle-management" title="Permanent link">¶</a></h2>
+<h3 id="status-reports-temporal">Status Reports (Temporal)<a class="headerlink" href="#status-reports-temporal" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Create</strong> in <code>internal/docs/dev/status/YYYY-MM/</code></li>
+<li><strong>Update</strong> as needed during development</li>
+<li><strong>Archive</strong> to <code>docs/archive/status_reports/</code> when complete or superseded</li>
+<li><strong>Link</strong> from relevant permanent documentation</li>
+</ol>
+<h3 id="investigation-reports">Investigation Reports<a class="headerlink" href="#investigation-reports" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Create</strong> in <code>internal/docs/dev/analysis/</code></li>
+<li><strong>Update</strong> with findings</li>
+<li><strong>Move</strong> to <code>internal/docs/dev/history/</code> when investigation complete</li>
+<li><strong>Extract</strong> key findings to permanent documentation</li>
+</ol>
+<h3 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Create</strong> in <code>internal/docs/dev/notes/</code></li>
+<li><strong>Review</strong> periodically for valuable insights</li>
+<li><strong>Extract</strong> insights to permanent documentation</li>
+<li><strong>Archive</strong> when no longer relevant</li>
+</ol>
+<hr/>
+<h2 id="implementation-steps">Implementation Steps<a class="headerlink" href="#implementation-steps" title="Permanent link">¶</a></h2>
+<h3 id="step-1-create-new-directory-structure">Step 1: Create New Directory Structure<a class="headerlink" href="#step-1-create-new-directory-structure" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>-p<span class="w"> </span>internal/docs/dev/<span class="o">{</span>analysis,status,history,notes<span class="o">}</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span>docs/archive/<span class="o">{</span>status_reports,investigations,experimental<span class="o">}</span>
+</code></pre></div>
+<h3 id="step-2-move-files-batch-1-root-directory">Step 2: Move Files (Batch 1: Root Directory)<a class="headerlink" href="#step-2-move-files-batch-1-root-directory" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Status reports</span>
+mv<span class="w"> </span>DASHBOARD_*.md<span class="w"> </span>internal/docs/dev/status/2025-01/
+mv<span class="w"> </span>ENDPOINT_*.md<span class="w"> </span>internal/docs/dev/status/2025-01/
+mv<span class="w"> </span>SKYVIEW_*.md<span class="w"> </span>internal/docs/dev/status/2025-01/
+mv<span class="w"> </span>TEST*.md<span class="w"> </span>internal/docs/dev/status/2025-01/
+mv<span class="w"> </span>VALIDATION_DEMONSTRATION.md<span class="w"> </span>internal/docs/dev/status/2025-01/
+
+<span class="c1"># Analysis reports</span>
+mv<span class="w"> </span>TIME_*.md<span class="w"> </span>internal/docs/dev/analysis/
+mv<span class="w"> </span>DUPLICATE_TIME_INVESTIGATION.md<span class="w"> </span>internal/docs/dev/analysis/
+mv<span class="w"> </span>BUG_REPORT.md<span class="w"> </span>internal/docs/dev/analysis/
+
+<span class="c1"># Notes</span>
+mv<span class="w"> </span>ARCHITECTURAL_*.md<span class="w"> </span>internal/docs/dev/notes/
+mv<span class="w"> </span>ARCHITECTURE_OPTIMIZATION_RECOMMENDATIONS.md<span class="w"> </span>internal/docs/dev/notes/
+mv<span class="w"> </span>PYUVDATA_USAGE_ANALYSIS.md<span class="w"> </span>internal/docs/dev/notes/
+
+<span class="c1"># Reference</span>
+mv<span class="w"> </span>DEVELOPER_GUIDE.md<span class="w"> </span>docs/reference/developer_guide.md
+</code></pre></div>
+<h3 id="step-3-move-files-batch-2-source-directories">Step 3: Move Files (Batch 2: Source Directories)<a class="headerlink" href="#step-3-move-files-batch-2-source-directories" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code>mv<span class="w"> </span>src/dsa110_contimg/RA_CALCULATION_ISSUE.md<span class="w"> </span>internal/docs/dev/analysis/
+mv<span class="w"> </span>src/dsa110_contimg/TIME_HANDLING_ISSUES.md<span class="w"> </span>internal/docs/dev/analysis/
+</code></pre></div>
+<h3 id="step-4-create-entry-point-readmes">Step 4: Create Entry Point READMEs<a class="headerlink" href="#step-4-create-entry-point-readmes" title="Permanent link">¶</a></h3>
+<p>Create <code>README.md</code> files in each major directory with:</p>
+<ul>
+<li>Purpose statement</li>
+<li>List of documents</li>
+<li>Navigation links</li>
+<li>Last updated date</li>
+</ul>
+<h3 id="step-5-update-cross-references">Step 5: Update Cross-References<a class="headerlink" href="#step-5-update-cross-references" title="Permanent link">¶</a></h3>
+<ul>
+<li>Update links in moved files</li>
+<li>Update references in code comments</li>
+<li>Update references in other documentation</li>
+</ul>
+<h3 id="step-6-rename-files-standardize">Step 6: Rename Files (Standardize)<a class="headerlink" href="#step-6-rename-files-standardize" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Convert UPPERCASE to lowercase_with_underscores</span>
+<span class="c1"># Use find + sed or manual renaming</span>
+</code></pre></div>
+<hr/>
+<h2 id="maintenance-guidelines">Maintenance Guidelines<a class="headerlink" href="#maintenance-guidelines" title="Permanent link">¶</a></h2>
+<h3 id="for-agents-writing-documentation">For Agents Writing Documentation<a class="headerlink" href="#for-agents-writing-documentation" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Choose the right location:</strong></li>
+<li><strong>User-facing docs:</strong> <code>docs/how-to/</code>, <code>docs/concepts/</code>, <code>docs/reference/</code></li>
+<li><strong>Status updates:</strong> <code>internal/docs/dev/status/YYYY-MM/</code></li>
+<li><strong>Investigation reports:</strong> <code>internal/docs/dev/analysis/</code></li>
+<li>
+<p><strong>Notes:</strong> <code>internal/docs/dev/notes/</code></p>
+</li>
+<li>
+<p><strong>Use consistent naming:</strong></p>
+</li>
+<li>Lowercase with underscores</li>
+<li>Descriptive names</li>
+<li>
+<p>Avoid dates in filenames (use directory structure instead)</p>
+</li>
+<li>
+<p><strong>Add metadata:</strong></p>
+</li>
+<li>Date created/updated</li>
+<li>Status (draft, review, complete, archived)</li>
+<li>
+<p>Related documents</p>
+</li>
+<li>
+<p><strong>Link to related docs:</strong></p>
+</li>
+<li>Use relative links</li>
+<li>Add "See also" sections</li>
+<li>
+<p>Cross-reference concepts</p>
+</li>
+<li>
+<p><strong>Review periodically:</strong></p>
+</li>
+<li>Move completed status reports to archive</li>
+<li>Extract insights from notes to permanent docs</li>
+<li>Remove obsolete information</li>
+</ol>
+<h3 id="for-maintainers">For Maintainers<a class="headerlink" href="#for-maintainers" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Monthly review:</strong></li>
+<li>Archive completed status reports</li>
+<li>Consolidate duplicate content</li>
+<li>
+<p>Update entry point READMEs</p>
+</li>
+<li>
+<p><strong>Quarterly audit:</strong></p>
+</li>
+<li>Review documentation structure</li>
+<li>Identify gaps</li>
+<li>
+<p>Update navigation</p>
+</li>
+<li>
+<p><strong>Annual cleanup:</strong></p>
+</li>
+<li>Archive old status reports (&gt;1 year)</li>
+<li>Remove obsolete documentation</li>
+<li>Update main README</li>
+</ol>
+<hr/>
+<h2 id="tools-and-automation">Tools and Automation<a class="headerlink" href="#tools-and-automation" title="Permanent link">¶</a></h2>
+<h3 id="recommended-tools">Recommended Tools<a class="headerlink" href="#recommended-tools" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>MkDocs</strong> or <strong>Sphinx:</strong></li>
+<li>Generate HTML documentation from markdown</li>
+<li>Automatic navigation</li>
+<li>Search functionality</li>
+<li>
+<p>Version control integration</p>
+</li>
+<li>
+<p><strong>Documentation Linter:</strong></p>
+</li>
+<li>Check markdown syntax</li>
+<li>Verify links</li>
+<li>
+<p>Check for broken references</p>
+</li>
+<li>
+<p><strong>Link Checker:</strong></p>
+</li>
+<li>Verify all internal links work</li>
+<li>
+<p>Check external links periodically</p>
+</li>
+<li>
+<p><strong>Search Index:</strong></p>
+</li>
+<li>Full-text search across documentation</li>
+<li>Tag-based organization</li>
+</ol>
+<h3 id="automation-scripts">Automation Scripts<a class="headerlink" href="#automation-scripts" title="Permanent link">¶</a></h3>
+<p>Create scripts for:</p>
+<ul>
+<li>Moving files to correct locations</li>
+<li>Renaming files (UPPERCASE → lowercase)</li>
+<li>Generating entry point READMEs</li>
+<li>Checking for broken links</li>
+<li>Archiving old status reports</li>
+</ul>
+<hr/>
+<h2 id="success-metrics">Success Metrics<a class="headerlink" href="#success-metrics" title="Permanent link">¶</a></h2>
+<h3 id="immediate-after-consolidation">Immediate (After Consolidation)<a class="headerlink" href="#immediate-after-consolidation" title="Permanent link">¶</a></h3>
+<ul>
+<li>✅ No markdown files in root directory (except README.md, MEMORY.md, TODO.md)</li>
+<li>✅ All status reports in <code>internal/docs/dev/status/</code></li>
+<li>✅ All analysis reports in <code>internal/docs/dev/analysis/</code></li>
+<li>✅ Consistent file naming (lowercase_with_underscores)</li>
+</ul>
+<h3 id="short-term-3-months">Short-term (3 months)<a class="headerlink" href="#short-term-3-months" title="Permanent link">¶</a></h3>
+<ul>
+<li>✅ Entry point READMEs in all major directories</li>
+<li>✅ Cross-references between related documents</li>
+<li>✅ No duplicate content</li>
+<li>✅ Clear navigation structure</li>
+</ul>
+<h3 id="long-term-6-months">Long-term (6+ months)<a class="headerlink" href="#long-term-6-months" title="Permanent link">¶</a></h3>
+<ul>
+<li>✅ Documentation site (MkDocs/Sphinx) deployed</li>
+<li>✅ Search functionality working</li>
+<li>✅ Regular maintenance schedule established</li>
+<li>✅ Documentation quality metrics tracked</li>
+</ul>
+<hr/>
+<h2 id="migration-checklist">Migration Checklist<a class="headerlink" href="#migration-checklist" title="Permanent link">¶</a></h2>
+<ul>
+<li>[ ] Create new directory structure</li>
+<li>[ ] Move root directory files</li>
+<li>[ ] Move source directory files</li>
+<li>[ ] Move docker experimental files</li>
+<li>[ ] Create entry point READMEs</li>
+<li>[ ] Update cross-references</li>
+<li>[ ] Rename files (standardize)</li>
+<li>[ ] Consolidate duplicate content</li>
+<li>[ ] Update main README.md</li>
+<li>[ ] Test all links</li>
+<li>[ ] Archive old status reports</li>
+<li>[ ] Document maintenance procedures</li>
+</ul>
+<hr/>
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">¶</a></h2>
+<p>Based on industry best practices from:</p>
+<ul>
+<li>Markdown Documentation Best Practices (IBM)</li>
+<li>Microsoft Engineering Playbook</li>
+<li>GitBook Documentation Structure Guide</li>
+<li>CommonMark Markdown Specification</li>
+</ul>
+<hr/>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
+<ol>
+<li><strong>Review this strategy</strong> with team</li>
+<li><strong>Approve directory structure</strong> and naming conventions</li>
+<li><strong>Create migration script</strong> for automated file moves</li>
+<li><strong>Execute Phase 1</strong> (root directory cleanup)</li>
+<li><strong>Iterate</strong> based on feedback</li>
+</ol>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

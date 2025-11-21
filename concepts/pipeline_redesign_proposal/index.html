@@ -1,0 +1,1812 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/concepts/pipeline_redesign_proposal/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Pipeline Data Flow and Directory Structure Redesign - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#pipeline-data-flow-and-directory-structure-redesign">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Pipeline Data Flow and Directory Structure Redesign
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE.md">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_5">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming.md">
+<span class="md-ellipsis">
+    Streaming Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard.md">
+<span class="md-ellipsis">
+    Dashboard Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough.md">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_4">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart.md">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart.md">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART.md">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING.md">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND.md">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5.md">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE.md">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA.md">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN.md">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_9" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_9" id="__nav_5_9_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_9_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_9">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart.md">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic.md">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_10" id="__nav_5_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_10">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook.md">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess.md">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI.md">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION.md">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup.md">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_15" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_15" id="__nav_5_15_label" tabindex="0">
+<span class="md-ellipsis">
+    Development Setup
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_15_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_15">
+<span class="md-nav__icon md-icon"></span>
+            Development Setup
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/ENVIRONMENT_SETUP.md">
+<span class="md-ellipsis">
+    Environment Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PRE_COMMIT_SETUP.md">
+<span class="md-ellipsis">
+    Pre-commit Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CI_CD_SETUP.md">
+<span class="md-ellipsis">
+    CI/CD Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_DATABASE_SETUP.md">
+<span class="md-ellipsis">
+    Test Database Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE.md">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide.md">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_18" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_18" id="__nav_5_18_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_18_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_18">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion.md">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting.md">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#executive-summary">
+<span class="md-ellipsis">
+      Executive Summary
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-issues-identified">
+<span class="md-ellipsis">
+      Current Issues Identified
+    </span>
+</a>
+<nav aria-label="Current Issues Identified" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-confusing-naming-and-organization">
+<span class="md-ellipsis">
+      1. Confusing Naming and Organization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-unclear-data-provenance">
+<span class="md-ellipsis">
+      2. Unclear Data Provenance
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-inefficient-staging">
+<span class="md-ellipsis">
+      3. Inefficient Staging
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-misalignment-with-scientific-workflow">
+<span class="md-ellipsis">
+      4. Misalignment with Scientific Workflow
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#proposed-redesign">
+<span class="md-ellipsis">
+      Proposed Redesign
+    </span>
+</a>
+<nav aria-label="Proposed Redesign" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core-principles">
+<span class="md-ellipsis">
+      Core Principles
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#new-directory-structure">
+<span class="md-ellipsis">
+      New Directory Structure
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-flow-redesign">
+<span class="md-ellipsis">
+      Data Flow Redesign
+    </span>
+</a>
+<nav aria-label="Data Flow Redesign" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-by-stage-data-movement">
+<span class="md-ellipsis">
+      Stage-by-Stage Data Movement
+    </span>
+</a>
+<nav aria-label="Stage-by-Stage Data Movement" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-1-file-ingestion">
+<span class="md-ellipsis">
+      Stage 1: File Ingestion
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-2-ms-conversion">
+<span class="md-ellipsis">
+      Stage 2: MS Conversion
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-3-group-formation">
+<span class="md-ellipsis">
+      Stage 3: Group Formation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-4-calibration-solving">
+<span class="md-ellipsis">
+      Stage 4: Calibration Solving
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-5-calibration-application">
+<span class="md-ellipsis">
+      Stage 5: Calibration Application
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-6-imaging">
+<span class="md-ellipsis">
+      Stage 6: Imaging
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-7-mosaic-creation">
+<span class="md-ellipsis">
+      Stage 7: Mosaic Creation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-8-cross-matching-optional">
+<span class="md-ellipsis">
+      Stage 8: Cross-Matching (Optional)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-9-publishing">
+<span class="md-ellipsis">
+      Stage 9: Publishing
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-improvements">
+<span class="md-ellipsis">
+      Key Improvements
+    </span>
+</a>
+<nav aria-label="Key Improvements" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-clear-data-provenance">
+<span class="md-ellipsis">
+      1. Clear Data Provenance
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-better-organization">
+<span class="md-ellipsis">
+      2. Better Organization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-scientific-workflow-alignment">
+<span class="md-ellipsis">
+      3. Scientific Workflow Alignment
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-performance-optimization">
+<span class="md-ellipsis">
+      4. Performance Optimization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-improved-debugging">
+<span class="md-ellipsis">
+      5. Improved Debugging
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#migration-strategy">
+<span class="md-ellipsis">
+      Migration Strategy
+    </span>
+</a>
+<nav aria-label="Migration Strategy" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-1-add-new-structure-non-breaking">
+<span class="md-ellipsis">
+      Phase 1: Add New Structure (Non-Breaking)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-2-update-pipeline-code">
+<span class="md-ellipsis">
+      Phase 2: Update Pipeline Code
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-3-data-migration">
+<span class="md-ellipsis">
+      Phase 3: Data Migration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-4-cleanup">
+<span class="md-ellipsis">
+      Phase 4: Cleanup
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-changes">
+<span class="md-ellipsis">
+      Configuration Changes
+    </span>
+</a>
+<nav aria-label="Configuration Changes" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#new-environment-variables">
+<span class="md-ellipsis">
+      New Environment Variables
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#updated-data-type-configuration">
+<span class="md-ellipsis">
+      Updated Data Type Configuration
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#benefits-summary">
+<span class="md-ellipsis">
+      Benefits Summary
+    </span>
+</a>
+<nav aria-label="Benefits Summary" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#for-scientists">
+<span class="md-ellipsis">
+      For Scientists
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#for-operators">
+<span class="md-ellipsis">
+      For Operators
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#for-developers">
+<span class="md-ellipsis">
+      For Developers
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-considerations">
+<span class="md-ellipsis">
+      Implementation Considerations
+    </span>
+</a>
+<nav aria-label="Implementation Considerations" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#backward-compatibility">
+<span class="md-ellipsis">
+      Backward Compatibility
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance">
+<span class="md-ellipsis">
+      Performance
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling">
+<span class="md-ellipsis">
+      Error Handling
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#monitoring">
+<span class="md-ellipsis">
+      Monitoring
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#next-steps">
+<span class="md-ellipsis">
+      Next Steps
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="pipeline-data-flow-and-directory-structure-redesign">Pipeline Data Flow and Directory Structure Redesign<a class="headerlink" href="#pipeline-data-flow-and-directory-structure-redesign" title="Permanent link">¶</a></h1>
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">¶</a></h2>
+<p>This document proposes a redesign of the DSA-110 continuum imaging pipeline's
+data flow and directory structure to:</p>
+<ol>
+<li><strong>Align with scientific workflow</strong> - Structure mirrors the 9-stage pipeline
+   process</li>
+<li><strong>Clarify data provenance</strong> - Clear separation between raw, processed, and
+   published data</li>
+<li><strong>Optimize performance</strong> - Better use of SSD staging vs HDD archival</li>
+<li><strong>Improve maintainability</strong> - Intuitive organization that matches scientific
+   protocols</li>
+<li><strong>Enable better debugging</strong> - Clear data lineage and intermediate products</li>
+</ol>
+<hr/>
+<h2 id="current-issues-identified">Current Issues Identified<a class="headerlink" href="#current-issues-identified" title="Permanent link">¶</a></h2>
+<h3 id="1-confusing-naming-and-organization">1. <strong>Confusing Naming and Organization</strong><a class="headerlink" href="#1-confusing-naming-and-organization" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>calib_ms/</code> directory exists but is unused - calibrated MS files stay in
+  <code>ms/science/</code> or <code>ms/calibrators/</code></li>
+<li>Mixing of "calibrator MS" (contains calibrator source) vs "calibrated MS" (has
+  calibration applied)</li>
+<li><code>tmp/</code>, <code>logs/</code>, <code>state/</code> in <code>/stage/</code> - these don't belong with data products</li>
+</ul>
+<h3 id="2-unclear-data-provenance">2. <strong>Unclear Data Provenance</strong><a class="headerlink" href="#2-unclear-data-provenance" title="Permanent link">¶</a></h3>
+<ul>
+<li>Hard to trace: raw MS → calibrated MS → imaged MS</li>
+<li>No clear indication of processing stage in directory structure</li>
+<li>Calibration tables stored separately from the MS files they calibrate</li>
+</ul>
+<h3 id="3-inefficient-staging">3. <strong>Inefficient Staging</strong><a class="headerlink" href="#3-inefficient-staging" title="Permanent link">¶</a></h3>
+<ul>
+<li>All data types mixed in flat structure</li>
+<li>No clear separation of "in-progress" vs "ready for publishing"</li>
+<li>Temporary files mixed with permanent products</li>
+</ul>
+<h3 id="4-misalignment-with-scientific-workflow">4. <strong>Misalignment with Scientific Workflow</strong><a class="headerlink" href="#4-misalignment-with-scientific-workflow" title="Permanent link">¶</a></h3>
+<ul>
+<li>Directory structure doesn't reflect the 9-stage pipeline</li>
+<li>No clear representation of data transformation stages</li>
+<li>Grouping information (10 MS per group) not visible in structure</li>
+</ul>
+<hr/>
+<h2 id="proposed-redesign">Proposed Redesign<a class="headerlink" href="#proposed-redesign" title="Permanent link">¶</a></h2>
+<h3 id="core-principles">Core Principles<a class="headerlink" href="#core-principles" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Stage-Based Organization</strong>: Directory structure mirrors pipeline stages</li>
+<li><strong>Provenance Tracking</strong>: Each transformation creates a new, clearly-labeled
+   product</li>
+<li><strong>Temporal Organization</strong>: Date-based subdirectories for time-series data</li>
+<li><strong>Separation of Concerns</strong>:</li>
+<li>Raw data (HDF5) → Input area</li>
+<li>Processing workspace → Staging area</li>
+<li>Final products → Published area</li>
+<li>Metadata/logs → Separate from data</li>
+</ol>
+<h3 id="new-directory-structure">New Directory Structure<a class="headerlink" href="#new-directory-structure" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code>/stage/dsa110-contimg/
+├── raw/                          # Stage 1-2: Raw converted data
+│   ├── ms/
+│   │   ├── science/              # Science MS files (uncalibrated)
+│   │   │   └── YYYY-MM-DD/
+│   │   │       └── &lt;timestamp&gt;.ms/
+│   │   └── calibrators/           # Calibrator MS files (uncalibrated)
+│   │       └── YYYY-MM-DD/
+│   │           └── &lt;timestamp&gt;.ms/
+│   └── groups/                    # Stage 3: Group metadata
+│       └── YYYY-MM-DD/
+│           └── group_&lt;id&gt;.json   # Group definition (10 MS files)
+│
+├── calibrated/                   # Stage 4-5: Calibration products
+│   ├── ms/                       # Calibrated MS files
+│   │   ├── science/              # Calibrated science MS
+│   │   │   └── YYYY-MM-DD/
+│   │   │       └── &lt;timestamp&gt;_cal.ms/
+│   │   └── calibrators/          # Calibrated calibrator MS
+│   │       └── YYYY-MM-DD/
+│   │           └── &lt;timestamp&gt;_cal.ms/
+│   └── tables/                   # Calibration tables
+│       └── YYYY-MM-DD/
+│           ├── &lt;group_id&gt;_bpcal/ # Bandpass calibration
+│           ├── &lt;group_id&gt;_gpcal/ # Gain calibration
+│           └── &lt;group_id&gt;_2gcal/ # Secondary gain calibration
+│
+├── images/                       # Stage 6: Individual tile images
+│   └── YYYY-MM-DD/
+│       └── &lt;ms_timestamp&gt;_&lt;params&gt;.image/
+│
+├── mosaics/                      # Stage 7: Combined mosaics
+│   └── YYYY-MM-DD/
+│       └── mosaic_&lt;group_id&gt;_&lt;method&gt;.fits
+│
+├── products/                     # Stage 8-9: Final products (ready for publish)
+│   ├── mosaics/                  # Validated mosaics
+│   ├── catalogs/                 # Source catalogs (if cross-matched)
+│   └── metadata/                 # Product metadata
+│
+└── workspace/                    # Temporary processing space
+    ├── active/                   # Currently processing
+    │   ├── conversion/           # Active conversions
+    │   ├── calibration/          # Active calibration solving
+    │   ├── imaging/              # Active imaging jobs
+    │   └── mosaicking/           # Active mosaic creation
+    └── failed/                    # Failed processing attempts
+        └── YYYY-MM-DD/
+            └── &lt;job_id&gt;_error.log
+
+/data/dsa110-contimg/
+├── incoming/                     # Raw HDF5 input (read-only staging)
+│   └── YYYY-MM-DD/
+│       └── &lt;group_id&gt;.uvh5
+│
+├── products/                     # Published final products (HDD archive)
+│   ├── mosaics/
+│   │   └── YYYY-MM-DD/
+│   │       └── mosaic_&lt;id&gt;.fits
+│   ├── catalogs/
+│   ├── images/                   # Archived individual images (optional)
+│   └── metadata/
+│
+└── state/                        # Pipeline state (databases, configs)
+    ├── products.sqlite3
+    ├── cal_registry.sqlite3
+    ├── data_registry.sqlite3
+    └── ingest.sqlite3
+</code></pre></div>
+<hr/>
+<h2 id="data-flow-redesign">Data Flow Redesign<a class="headerlink" href="#data-flow-redesign" title="Permanent link">¶</a></h2>
+<h3 id="stage-by-stage-data-movement">Stage-by-Stage Data Movement<a class="headerlink" href="#stage-by-stage-data-movement" title="Permanent link">¶</a></h3>
+<h4 id="stage-1-file-ingestion"><strong>Stage 1: File Ingestion</strong><a class="headerlink" href="#stage-1-file-ingestion" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Input</strong>: <code>/data/incoming/YYYY-MM-DD/&lt;group_id&gt;.uvh5</code></li>
+<li><strong>Action</strong>: Register in <code>ingest.sqlite3</code></li>
+<li><strong>Output</strong>: Metadata entry, file remains in place</li>
+</ul>
+<h4 id="stage-2-ms-conversion"><strong>Stage 2: MS Conversion</strong><a class="headerlink" href="#stage-2-ms-conversion" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Input</strong>: HDF5 files from <code>/data/incoming/</code></li>
+<li><strong>Workspace</strong>: <code>/stage/dsa110-contimg/workspace/active/conversion/</code></li>
+<li><strong>Output</strong>:</li>
+<li>Science MS →
+    <code>/stage/dsa110-contimg/raw/ms/science/YYYY-MM-DD/&lt;timestamp&gt;.ms/</code></li>
+<li>Calibrator MS →
+    <code>/stage/dsa110-contimg/raw/ms/calibrators/YYYY-MM-DD/&lt;timestamp&gt;.ms/</code></li>
+<li><strong>Registration</strong>: <code>products.sqlite3</code> (ms_index table)</li>
+</ul>
+<h4 id="stage-3-group-formation"><strong>Stage 3: Group Formation</strong><a class="headerlink" href="#stage-3-group-formation" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Input</strong>: MS files from <code>raw/ms/</code></li>
+<li><strong>Action</strong>: Create group definition (10 MS files, 2 overlap)</li>
+<li><strong>Output</strong>: <code>/stage/dsa110-contimg/raw/groups/YYYY-MM-DD/group_&lt;id&gt;.json</code></li>
+<li><strong>Metadata</strong>: Links to MS files, time range, calibrator info</li>
+</ul>
+<h4 id="stage-4-calibration-solving"><strong>Stage 4: Calibration Solving</strong><a class="headerlink" href="#stage-4-calibration-solving" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Input</strong>:</li>
+<li>Calibrator MS from <code>raw/ms/calibrators/</code></li>
+<li>Group definition from <code>raw/groups/</code></li>
+<li><strong>Workspace</strong>: <code>/stage/dsa110-contimg/workspace/active/calibration/</code></li>
+<li><strong>Output</strong>:</li>
+<li>Calibration tables →
+    <code>/stage/dsa110-contimg/calibrated/tables/YYYY-MM-DD/&lt;group_id&gt;_bpcal/</code></li>
+<li>Calibration metadata → Registered in <code>cal_registry.sqlite3</code></li>
+</ul>
+<h4 id="stage-5-calibration-application"><strong>Stage 5: Calibration Application</strong><a class="headerlink" href="#stage-5-calibration-application" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Input</strong>:</li>
+<li>Raw MS from <code>raw/ms/science/</code> or <code>raw/ms/calibrators/</code></li>
+<li>Calibration tables from <code>calibrated/tables/</code></li>
+<li><strong>Workspace</strong>: <code>/stage/dsa110-contimg/workspace/active/calibration/</code></li>
+<li><strong>Output</strong>:</li>
+<li>Calibrated MS →
+    <code>/stage/dsa110-contimg/calibrated/ms/science/YYYY-MM-DD/&lt;timestamp&gt;_cal.ms/</code></li>
+<li>Calibrated calibrator MS →
+    <code>/stage/dsa110-contimg/calibrated/ms/calibrators/YYYY-MM-DD/&lt;timestamp&gt;_cal.ms/</code></li>
+<li><strong>Registration</strong>: <code>data_registry.sqlite3</code> with <code>data_type="calibrated_ms"</code></li>
+</ul>
+<h4 id="stage-6-imaging"><strong>Stage 6: Imaging</strong><a class="headerlink" href="#stage-6-imaging" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Input</strong>: Calibrated MS from <code>calibrated/ms/science/</code></li>
+<li><strong>Workspace</strong>: <code>/stage/dsa110-contimg/workspace/active/imaging/</code></li>
+<li><strong>Output</strong>:
+  <code>/stage/dsa110-contimg/images/YYYY-MM-DD/&lt;ms_timestamp&gt;_&lt;params&gt;.image/</code></li>
+<li><strong>Registration</strong>: <code>data_registry.sqlite3</code> with <code>data_type="image"</code></li>
+</ul>
+<h4 id="stage-7-mosaic-creation"><strong>Stage 7: Mosaic Creation</strong><a class="headerlink" href="#stage-7-mosaic-creation" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Input</strong>: Images from <code>images/YYYY-MM-DD/</code> (for a group)</li>
+<li><strong>Workspace</strong>: <code>/stage/dsa110-contimg/workspace/active/mosaicking/</code></li>
+<li><strong>Output</strong>:
+  <code>/stage/dsa110-contimg/mosaics/YYYY-MM-DD/mosaic_&lt;group_id&gt;_&lt;method&gt;.fits</code></li>
+<li><strong>Registration</strong>: <code>data_registry.sqlite3</code> with <code>data_type="mosaic"</code></li>
+</ul>
+<h4 id="stage-8-cross-matching-optional"><strong>Stage 8: Cross-Matching</strong> (Optional)<a class="headerlink" href="#stage-8-cross-matching-optional" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Input</strong>: Mosaic from <code>mosaics/</code></li>
+<li><strong>Output</strong>: Catalog →
+  <code>/stage/dsa110-contimg/products/catalogs/YYYY-MM-DD/catalog_&lt;mosaic_id&gt;.fits</code></li>
+</ul>
+<h4 id="stage-9-publishing"><strong>Stage 9: Publishing</strong><a class="headerlink" href="#stage-9-publishing" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Input</strong>: Products from <code>/stage/dsa110-contimg/products/</code></li>
+<li><strong>Action</strong>: Move to <code>/data/dsa110-contimg/products/</code></li>
+<li><strong>Output</strong>: Published products in HDD archive</li>
+<li><strong>Registration</strong>: Update <code>data_registry.sqlite3</code> status to "published"</li>
+</ul>
+<hr/>
+<h2 id="key-improvements">Key Improvements<a class="headerlink" href="#key-improvements" title="Permanent link">¶</a></h2>
+<h3 id="1-clear-data-provenance">1. <strong>Clear Data Provenance</strong><a class="headerlink" href="#1-clear-data-provenance" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code>Raw MS (uncalibrated)
+  ↓ [Stage 4-5: Calibration]
+Calibrated MS
+  ↓ [Stage 6: Imaging]
+Image
+  ↓ [Stage 7: Mosaicking]
+Mosaic
+  ↓ [Stage 9: Publishing]
+Published Product
+</code></pre></div>
+<p>Each transformation creates a new, clearly-labeled product in a distinct
+directory.</p>
+<h3 id="2-better-organization">2. <strong>Better Organization</strong><a class="headerlink" href="#2-better-organization" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Raw data</strong> clearly separated from <strong>processed data</strong></li>
+<li><strong>Calibration products</strong> (tables + calibrated MS) grouped together</li>
+<li><strong>Workspace</strong> for active processing, separate from final products</li>
+<li><strong>Products</strong> directory for validated, ready-to-publish items</li>
+</ul>
+<h3 id="3-scientific-workflow-alignment">3. <strong>Scientific Workflow Alignment</strong><a class="headerlink" href="#3-scientific-workflow-alignment" title="Permanent link">¶</a></h3>
+<ul>
+<li>Directory structure mirrors the 9-stage pipeline</li>
+<li>Each stage has a clear input/output location</li>
+<li>Group information preserved in <code>raw/groups/</code></li>
+<li>Calibration tables stored with date/group organization</li>
+</ul>
+<h3 id="4-performance-optimization">4. <strong>Performance Optimization</strong><a class="headerlink" href="#4-performance-optimization" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>SSD (<code>/stage/</code>)</strong>: Active processing, recent data, temporary workspace</li>
+<li><strong>HDD (<code>/data/</code>)</strong>: Long-term archive, published products</li>
+<li>Clear separation allows efficient cleanup of staging area</li>
+<li>Workspace directory can be on fastest storage (tmpfs option)</li>
+</ul>
+<h3 id="5-improved-debugging">5. <strong>Improved Debugging</strong><a class="headerlink" href="#5-improved-debugging" title="Permanent link">¶</a></h3>
+<ul>
+<li>Failed processing attempts in <code>workspace/failed/</code> with error logs</li>
+<li>Active processing visible in <code>workspace/active/</code></li>
+<li>Clear lineage: can trace any product back to raw MS</li>
+<li>Group definitions preserved for reprocessing</li>
+</ul>
+<hr/>
+<h2 id="migration-strategy">Migration Strategy<a class="headerlink" href="#migration-strategy" title="Permanent link">¶</a></h2>
+<h3 id="phase-1-add-new-structure-non-breaking">Phase 1: Add New Structure (Non-Breaking)<a class="headerlink" href="#phase-1-add-new-structure-non-breaking" title="Permanent link">¶</a></h3>
+<ol>
+<li>Create new directory structure alongside existing</li>
+<li>Update code to write to both old and new locations</li>
+<li>Add symlinks for backward compatibility</li>
+</ol>
+<h3 id="phase-2-update-pipeline-code">Phase 2: Update Pipeline Code<a class="headerlink" href="#phase-2-update-pipeline-code" title="Permanent link">¶</a></h3>
+<ol>
+<li>Modify each stage to use new paths</li>
+<li>Update database registration to use new paths</li>
+<li>Add migration scripts for existing data</li>
+</ol>
+<h3 id="phase-3-data-migration">Phase 3: Data Migration<a class="headerlink" href="#phase-3-data-migration" title="Permanent link">¶</a></h3>
+<ol>
+<li>Move existing data to new structure</li>
+<li>Update database references</li>
+<li>Verify all paths resolve correctly</li>
+</ol>
+<h3 id="phase-4-cleanup">Phase 4: Cleanup<a class="headerlink" href="#phase-4-cleanup" title="Permanent link">¶</a></h3>
+<ol>
+<li>Remove old directory structure</li>
+<li>Remove symlinks</li>
+<li>Update documentation</li>
+</ol>
+<hr/>
+<h2 id="configuration-changes">Configuration Changes<a class="headerlink" href="#configuration-changes" title="Permanent link">¶</a></h2>
+<h3 id="new-environment-variables">New Environment Variables<a class="headerlink" href="#new-environment-variables" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Base directories</span>
+<span class="n">CONTIMG_STAGE_BASE</span> <span class="o">=</span> <span class="s2">"/stage/dsa110-contimg"</span>
+<span class="n">CONTIMG_DATA_BASE</span> <span class="o">=</span> <span class="s2">"/data/dsa110-contimg"</span>
+
+<span class="c1"># Stage-specific directories</span>
+<span class="n">CONTIMG_RAW_MS_DIR</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CONTIMG_STAGE_BASE</span><span class="si">}</span><span class="s2">/raw/ms"</span>
+<span class="n">CONTIMG_CALIBRATED_MS_DIR</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CONTIMG_STAGE_BASE</span><span class="si">}</span><span class="s2">/calibrated/ms"</span>
+<span class="n">CONTIMG_CALIBRATION_TABLES_DIR</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CONTIMG_STAGE_BASE</span><span class="si">}</span><span class="s2">/calibrated/tables"</span>
+<span class="n">CONTIMG_IMAGES_DIR</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CONTIMG_STAGE_BASE</span><span class="si">}</span><span class="s2">/images"</span>
+<span class="n">CONTIMG_MOSAICS_DIR</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CONTIMG_STAGE_BASE</span><span class="si">}</span><span class="s2">/mosaics"</span>
+<span class="n">CONTIMG_PRODUCTS_DIR</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CONTIMG_STAGE_BASE</span><span class="si">}</span><span class="s2">/products"</span>
+<span class="n">CONTIMG_WORKSPACE_DIR</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CONTIMG_STAGE_BASE</span><span class="si">}</span><span class="s2">/workspace"</span>
+
+<span class="c1"># Published products</span>
+<span class="n">CONTIMG_PUBLISHED_PRODUCTS_DIR</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CONTIMG_DATA_BASE</span><span class="si">}</span><span class="s2">/products"</span>
+</code></pre></div>
+<h3 id="updated-data-type-configuration">Updated Data Type Configuration<a class="headerlink" href="#updated-data-type-configuration" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">DATA_TYPES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"raw_ms"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"staging_dir"</span><span class="p">:</span> <span class="n">STAGE_BASE</span> <span class="o">/</span> <span class="s2">"raw/ms"</span><span class="p">,</span>
+        <span class="s2">"published_dir"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Raw MS not published</span>
+    <span class="p">},</span>
+    <span class="s2">"calibrated_ms"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"staging_dir"</span><span class="p">:</span> <span class="n">STAGE_BASE</span> <span class="o">/</span> <span class="s2">"calibrated/ms"</span><span class="p">,</span>
+        <span class="s2">"published_dir"</span><span class="p">:</span> <span class="n">PRODUCTS_BASE</span> <span class="o">/</span> <span class="s2">"ms"</span><span class="p">,</span>  <span class="c1"># Optional: publish calibrated MS</span>
+    <span class="p">},</span>
+    <span class="s2">"calibration_table"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"staging_dir"</span><span class="p">:</span> <span class="n">STAGE_BASE</span> <span class="o">/</span> <span class="s2">"calibrated/tables"</span><span class="p">,</span>
+        <span class="s2">"published_dir"</span><span class="p">:</span> <span class="n">PRODUCTS_BASE</span> <span class="o">/</span> <span class="s2">"caltables"</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">"image"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"staging_dir"</span><span class="p">:</span> <span class="n">STAGE_BASE</span> <span class="o">/</span> <span class="s2">"images"</span><span class="p">,</span>
+        <span class="s2">"published_dir"</span><span class="p">:</span> <span class="n">PRODUCTS_BASE</span> <span class="o">/</span> <span class="s2">"images"</span><span class="p">,</span>  <span class="c1"># Optional</span>
+    <span class="p">},</span>
+    <span class="s2">"mosaic"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"staging_dir"</span><span class="p">:</span> <span class="n">STAGE_BASE</span> <span class="o">/</span> <span class="s2">"mosaics"</span><span class="p">,</span>
+        <span class="s2">"published_dir"</span><span class="p">:</span> <span class="n">PRODUCTS_BASE</span> <span class="o">/</span> <span class="s2">"mosaics"</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</code></pre></div>
+<hr/>
+<h2 id="benefits-summary">Benefits Summary<a class="headerlink" href="#benefits-summary" title="Permanent link">¶</a></h2>
+<h3 id="for-scientists">For Scientists<a class="headerlink" href="#for-scientists" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Intuitive structure</strong>: Matches scientific workflow</li>
+<li><strong>Clear provenance</strong>: Easy to trace data lineage</li>
+<li><strong>Easy reprocessing</strong>: Group definitions preserved</li>
+<li><strong>Better debugging</strong>: Failed jobs clearly visible</li>
+</ul>
+<h3 id="for-operators">For Operators<a class="headerlink" href="#for-operators" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Easier monitoring</strong>: Active processing visible in workspace</li>
+<li><strong>Clear cleanup</strong>: Know what's temporary vs permanent</li>
+<li><strong>Better organization</strong>: Logical grouping by stage</li>
+<li><strong>Efficient storage</strong>: SSD for active, HDD for archive</li>
+</ul>
+<h3 id="for-developers">For Developers<a class="headerlink" href="#for-developers" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Clearer code</strong>: Paths reflect processing stages</li>
+<li><strong>Better testing</strong>: Can test each stage independently</li>
+<li><strong>Easier debugging</strong>: Structure matches code flow</li>
+<li><strong>Maintainable</strong>: Intuitive organization</li>
+</ul>
+<hr/>
+<h2 id="implementation-considerations">Implementation Considerations<a class="headerlink" href="#implementation-considerations" title="Permanent link">¶</a></h2>
+<h3 id="backward-compatibility">Backward Compatibility<a class="headerlink" href="#backward-compatibility" title="Permanent link">¶</a></h3>
+<ul>
+<li>Maintain old paths during transition</li>
+<li>Use symlinks where possible</li>
+<li>Gradual migration of existing data</li>
+</ul>
+<h3 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">¶</a></h3>
+<ul>
+<li>Workspace on fastest storage (tmpfs option)</li>
+<li>Batch moves for publishing (not individual files)</li>
+<li>Efficient cleanup of workspace after completion</li>
+</ul>
+<h3 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">¶</a></h3>
+<ul>
+<li>Failed jobs moved to <code>workspace/failed/</code> with logs</li>
+<li>Preserve intermediate products for debugging</li>
+<li>Clear retry mechanisms</li>
+</ul>
+<h3 id="monitoring">Monitoring<a class="headerlink" href="#monitoring" title="Permanent link">¶</a></h3>
+<ul>
+<li>Track data in each stage directory</li>
+<li>Monitor workspace for stuck jobs</li>
+<li>Alert on failed directory growth</li>
+</ul>
+<hr/>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
+<ol>
+<li><strong>Review and refine</strong> this proposal with team</li>
+<li><strong>Create detailed migration plan</strong> with timeline</li>
+<li><strong>Implement Phase 1</strong> (add new structure, dual-write)</li>
+<li><strong>Update pipeline code</strong> to use new paths</li>
+<li><strong>Migrate existing data</strong> to new structure</li>
+<li><strong>Update documentation</strong> and training materials</li>
+</ol>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

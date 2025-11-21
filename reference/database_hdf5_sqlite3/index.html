@@ -1,0 +1,1708 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/reference/database_hdf5_sqlite3/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Database Reference: hdf5.sqlite3 - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#database-reference-hdf5sqlite3">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Database Reference: hdf5.sqlite3
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE.md">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_5">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming.md">
+<span class="md-ellipsis">
+    Streaming Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard.md">
+<span class="md-ellipsis">
+    Dashboard Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough.md">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_4">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart.md">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart.md">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART.md">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING.md">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND.md">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5.md">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE.md">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA.md">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN.md">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_9" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_9" id="__nav_5_9_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_9_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_9">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart.md">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic.md">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_10" id="__nav_5_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_10">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook.md">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess.md">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI.md">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION.md">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup.md">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_15" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_15" id="__nav_5_15_label" tabindex="0">
+<span class="md-ellipsis">
+    Development Setup
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_15_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_15">
+<span class="md-nav__icon md-icon"></span>
+            Development Setup
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/ENVIRONMENT_SETUP.md">
+<span class="md-ellipsis">
+    Environment Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PRE_COMMIT_SETUP.md">
+<span class="md-ellipsis">
+    Pre-commit Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CI_CD_SETUP.md">
+<span class="md-ellipsis">
+    CI/CD Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_DATABASE_SETUP.md">
+<span class="md-ellipsis">
+    Test Database Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE.md">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide.md">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_18" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_18" id="__nav_5_18_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_18_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_18">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion.md">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting.md">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#table-hdf5_file_index">
+<span class="md-ellipsis">
+      Table: hdf5_file_index
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-concepts">
+<span class="md-ellipsis">
+      Key Concepts
+    </span>
+</a>
+<nav aria-label="Key Concepts" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#group-id">
+<span class="md-ellipsis">
+      Group ID
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#subband-codes">
+<span class="md-ellipsis">
+      Subband Codes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#metadata-population">
+<span class="md-ellipsis">
+      Metadata Population
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-queries">
+<span class="md-ellipsis">
+      Common Queries
+    </span>
+</a>
+<nav aria-label="Common Queries" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#find-complete-subband-groups">
+<span class="md-ellipsis">
+      Find Complete Subband Groups
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#find-semi-complete-groups-12-15-subbands">
+<span class="md-ellipsis">
+      Find Semi-Complete Groups (12-15 subbands)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#list-files-in-a-group">
+<span class="md-ellipsis">
+      List Files in a Group
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#find-missing-subbands">
+<span class="md-ellipsis">
+      Find Missing Subbands
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#time-range-queries">
+<span class="md-ellipsis">
+      Time Range Queries
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#sky-position-queries">
+<span class="md-ellipsis">
+      Sky Position Queries
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#storage-status">
+<span class="md-ellipsis">
+      Storage Status
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#python-access-examples">
+<span class="md-ellipsis">
+      Python Access Examples
+    </span>
+</a>
+<nav aria-label="Python Access Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#using-hdf5_index-module">
+<span class="md-ellipsis">
+      Using hdf5_index Module
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#direct-sql-access">
+<span class="md-ellipsis">
+      Direct SQL Access
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#indexing-workflow">
+<span class="md-ellipsis">
+      Indexing Workflow
+    </span>
+</a>
+<nav aria-label="Indexing Workflow" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-file-arrival">
+<span class="md-ellipsis">
+      1. File Arrival
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-group-detection">
+<span class="md-ellipsis">
+      2. Group Detection
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-conversion-trigger">
+<span class="md-ellipsis">
+      3. Conversion Trigger
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#subband-group-management">
+<span class="md-ellipsis">
+      Subband Group Management
+    </span>
+</a>
+<nav aria-label="Subband Group Management" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#subbandgroupinfo-dataclass">
+<span class="md-ellipsis">
+      SubbandGroupInfo Dataclass
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#query-group-status">
+<span class="md-ellipsis">
+      Query Group Status
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#maintenance-queries">
+<span class="md-ellipsis">
+      Maintenance Queries
+    </span>
+</a>
+<nav aria-label="Maintenance Queries" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#update-storage-status">
+<span class="md-ellipsis">
+      Update Storage Status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#remove-old-entries">
+<span class="md-ellipsis">
+      Remove Old Entries
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#database-statistics">
+<span class="md-ellipsis">
+      Database Statistics
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#cli-commands">
+<span class="md-ellipsis">
+      CLI Commands
+    </span>
+</a>
+<nav aria-label="CLI Commands" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#index-directory">
+<span class="md-ellipsis">
+      Index Directory
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#query-groups">
+<span class="md-ellipsis">
+      Query Groups
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#verify-storage">
+<span class="md-ellipsis">
+      Verify Storage
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-notes">
+<span class="md-ellipsis">
+      Performance Notes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-files">
+<span class="md-ellipsis">
+      Related Files
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#see-also">
+<span class="md-ellipsis">
+      See Also
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="database-reference-hdf5sqlite3">Database Reference: hdf5.sqlite3<a class="headerlink" href="#database-reference-hdf5sqlite3" title="Permanent link">¶</a></h1>
+<p><strong>Location</strong>: <code>/data/dsa110-contimg/state/hdf5.sqlite3</code><br/>
+<strong>Purpose</strong>: Fast indexing of incoming HDF5/UVH5 visibility files<br/>
+<strong>Size</strong>: ~33 MB (typical, grows with observations)</p>
+<hr/>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>The <code>hdf5.sqlite3</code> database provides fast indexing and querying of incoming HDF5
+visibility files before MS conversion. It enables quick subband group queries,
+time-range searches, and sky position lookups without reading HDF5 files
+directly.</p>
+<hr/>
+<h2 id="table-hdf5_file_index">Table: <code>hdf5_file_index</code><a class="headerlink" href="#table-hdf5_file_index" title="Permanent link">¶</a></h2>
+<p><strong>Purpose</strong>: Index all HDF5 visibility files for fast querying</p>
+<p><strong>Schema</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">hdf5_file_index</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">path</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span><span class="w">               </span><span class="c1">-- Full filesystem path</span>
+<span class="w">    </span><span class="n">filename</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">              </span><span class="c1">-- Filename only</span>
+<span class="w">    </span><span class="n">group_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">              </span><span class="c1">-- Group identifier (timestamp)</span>
+<span class="w">    </span><span class="n">subband_code</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">          </span><span class="c1">-- Subband code (e.g., 'sb00')</span>
+<span class="w">    </span><span class="n">subband_num</span><span class="w"> </span><span class="nb">INTEGER</span><span class="p">,</span><span class="w">                 </span><span class="c1">-- Subband number (0-15)</span>
+<span class="w">    </span><span class="n">timestamp_iso</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">         </span><span class="c1">-- ISO timestamp</span>
+<span class="w">    </span><span class="n">timestamp_mjd</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">         </span><span class="c1">-- Modified Julian Date</span>
+<span class="w">    </span><span class="n">file_size_bytes</span><span class="w"> </span><span class="nb">INTEGER</span><span class="p">,</span><span class="w">             </span><span class="c1">-- File size in bytes</span>
+<span class="w">    </span><span class="n">modified_time</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span><span class="w">                  </span><span class="c1">-- File modification time</span>
+<span class="w">    </span><span class="n">indexed_at</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span><span class="w">                     </span><span class="c1">-- Indexing timestamp</span>
+<span class="w">    </span><span class="n">stored</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">            </span><span class="c1">-- Storage status (1=exists)</span>
+<span class="w">    </span><span class="n">ra_deg</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span><span class="w">                         </span><span class="c1">-- RA (degrees, sb00 only)</span>
+<span class="w">    </span><span class="n">dec_deg</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span><span class="w">                        </span><span class="c1">-- Dec (degrees, sb00 only)</span>
+<span class="w">    </span><span class="n">obs_date</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">                       </span><span class="c1">-- Observation date (sb00 only)</span>
+<span class="w">    </span><span class="n">obs_time</span><span class="w"> </span><span class="nb">TEXT</span><span class="w">                        </span><span class="c1">-- Observation time (sb00 only)</span>
+<span class="p">);</span>
+
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_hdf5_group_id</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">hdf5_file_index</span><span class="p">(</span><span class="n">group_id</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_hdf5_timestamp_mjd</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">hdf5_file_index</span><span class="p">(</span><span class="n">timestamp_mjd</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_hdf5_group_subband</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">hdf5_file_index</span><span class="p">(</span><span class="n">group_id</span><span class="p">,</span><span class="w"> </span><span class="n">subband_code</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_hdf5_stored</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">hdf5_file_index</span><span class="p">(</span><span class="n">stored</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_hdf5_ra_dec</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">hdf5_file_index</span><span class="p">(</span><span class="n">ra_deg</span><span class="p">,</span><span class="w"> </span><span class="n">dec_deg</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_hdf5_obs_date</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">hdf5_file_index</span><span class="p">(</span><span class="n">obs_date</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_hdf5_subband_num</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">hdf5_file_index</span><span class="p">(</span><span class="n">subband_num</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_hdf5_group_subband_num</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">hdf5_file_index</span><span class="p">(</span><span class="n">group_id</span><span class="p">,</span><span class="w"> </span><span class="n">subband_num</span><span class="p">);</span>
+</code></pre></div>
+<hr/>
+<h2 id="key-concepts">Key Concepts<a class="headerlink" href="#key-concepts" title="Permanent link">¶</a></h2>
+<h3 id="group-id">Group ID<a class="headerlink" href="#group-id" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Format</strong>: <code>YYYY-MM-DDTHH:MM:SS</code> (ISO 8601)</li>
+<li><strong>Example</strong>: <code>2025-11-18T12:00:00</code></li>
+<li><strong>Purpose</strong>: Identifies observation time window</li>
+</ul>
+<h3 id="subband-codes">Subband Codes<a class="headerlink" href="#subband-codes" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Format</strong>: <code>sb00</code> through <code>sb15</code> (16 subbands)</li>
+<li><strong>Mapping</strong>: <code>sb00</code> = subband 0, <code>sb01</code> = subband 1, etc.</li>
+</ul>
+<h3 id="metadata-population">Metadata Population<a class="headerlink" href="#metadata-population" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>RA/Dec</strong>: Only populated for <code>sb00</code> files (first subband)</li>
+<li><strong>Other subbands</strong>: Use <code>group_id</code> to find metadata from <code>sb00</code></li>
+</ul>
+<hr/>
+<h2 id="common-queries">Common Queries<a class="headerlink" href="#common-queries" title="Permanent link">¶</a></h2>
+<h3 id="find-complete-subband-groups">Find Complete Subband Groups<a class="headerlink" href="#find-complete-subband-groups" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Groups with all 16 subbands</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">group_id</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">n_subbands</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">hdf5_file_index</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">stored</span><span class="o">=</span><span class="mi">1</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">group_id</span>
+<span class="k">HAVING</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">16</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="find-semi-complete-groups-12-15-subbands">Find Semi-Complete Groups (12-15 subbands)<a class="headerlink" href="#find-semi-complete-groups-12-15-subbands" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Groups with 12-15 subbands (eligible for processing)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">group_id</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">n_subbands</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">hdf5_file_index</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">stored</span><span class="o">=</span><span class="mi">1</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">group_id</span>
+<span class="k">HAVING</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">12</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">16</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="list-files-in-a-group">List Files in a Group<a class="headerlink" href="#list-files-in-a-group" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Get all subbands for a group</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">subband_code</span><span class="p">,</span><span class="w"> </span><span class="n">subband_num</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="p">,</span><span class="w"> </span><span class="n">file_size_bytes</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">hdf5_file_index</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">group_id</span><span class="o">=</span><span class="s1">'2025-11-18T12:00:00'</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">subband_num</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="find-missing-subbands">Find Missing Subbands<a class="headerlink" href="#find-missing-subbands" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Find which subbands are missing from a group</span>
+<span class="k">WITH</span><span class="w"> </span><span class="k">RECURSIVE</span><span class="w"> </span><span class="n">cnt</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="k">SELECT</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">    </span><span class="k">UNION</span><span class="w"> </span><span class="k">ALL</span>
+<span class="w">    </span><span class="k">SELECT</span><span class="w"> </span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">cnt</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">15</span>
+<span class="p">)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">missing_subband</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">cnt</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="k">SELECT</span><span class="w"> </span><span class="n">subband_num</span>
+<span class="w">    </span><span class="k">FROM</span><span class="w"> </span><span class="n">hdf5_file_index</span>
+<span class="w">    </span><span class="k">WHERE</span><span class="w"> </span><span class="n">group_id</span><span class="o">=</span><span class="s1">'2025-11-18T12:00:00'</span>
+<span class="p">);</span>
+</code></pre></div>
+<h3 id="time-range-queries">Time Range Queries<a class="headerlink" href="#time-range-queries" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Files in MJD range</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">group_id</span><span class="p">,</span><span class="w"> </span><span class="n">subband_code</span><span class="p">,</span><span class="w"> </span><span class="n">timestamp_mjd</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">hdf5_file_index</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">timestamp_mjd</span><span class="w"> </span><span class="k">BETWEEN</span><span class="w"> </span><span class="mi">59000</span><span class="p">.</span><span class="mi">0</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="mi">59001</span><span class="p">.</span><span class="mi">0</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">timestamp_mjd</span><span class="p">,</span><span class="w"> </span><span class="n">subband_num</span><span class="p">;</span>
+
+<span class="c1">-- Files in date range</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">group_id</span><span class="p">,</span><span class="w"> </span><span class="n">obs_date</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">n_files</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">hdf5_file_index</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">obs_date</span><span class="w"> </span><span class="k">BETWEEN</span><span class="w"> </span><span class="s1">'2025-11-18'</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="s1">'2025-11-19'</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">group_id</span><span class="p">,</span><span class="w"> </span><span class="n">obs_date</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="sky-position-queries">Sky Position Queries<a class="headerlink" href="#sky-position-queries" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Files near a sky position (RA/Dec in degrees)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="k">DISTINCT</span><span class="w"> </span><span class="n">group_id</span><span class="p">,</span><span class="w"> </span><span class="n">ra_deg</span><span class="p">,</span><span class="w"> </span><span class="n">dec_deg</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">hdf5_file_index</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="k">ABS</span><span class="p">(</span><span class="n">ra_deg</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">123</span><span class="p">.</span><span class="mi">45</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">1</span><span class="p">.</span><span class="mi">0</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="k">ABS</span><span class="p">(</span><span class="n">dec_deg</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">45</span><span class="p">.</span><span class="mi">67</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">1</span><span class="p">.</span><span class="mi">0</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">ra_deg</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="storage-status">Storage Status<a class="headerlink" href="#storage-status" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Check if files still exist on disk</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">group_id</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">n_stored</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">hdf5_file_index</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">stored</span><span class="o">=</span><span class="mi">1</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">group_id</span><span class="p">;</span>
+
+<span class="c1">-- Find archived/deleted files</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">group_id</span><span class="p">,</span><span class="w"> </span><span class="n">subband_code</span><span class="p">,</span><span class="w"> </span><span class="n">path</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">hdf5_file_index</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">stored</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
+</code></pre></div>
+<hr/>
+<h2 id="python-access-examples">Python Access Examples<a class="headerlink" href="#python-access-examples" title="Permanent link">¶</a></h2>
+<h3 id="using-hdf5_index-module">Using <code>hdf5_index</code> Module<a class="headerlink" href="#using-hdf5_index-module" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.database.hdf5_index</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">query_complete_groups</span><span class="p">,</span>
+    <span class="n">query_group_files</span><span class="p">,</span>
+    <span class="n">SubbandGroupInfo</span>
+<span class="p">)</span>
+
+<span class="c1"># Find complete groups in time range</span>
+<span class="n">groups</span> <span class="o">=</span> <span class="n">query_complete_groups</span><span class="p">(</span>
+    <span class="n">db_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">"state/hdf5.sqlite3"</span><span class="p">),</span>
+    <span class="n">start_mjd</span><span class="o">=</span><span class="mf">59000.0</span><span class="p">,</span>
+    <span class="n">end_mjd</span><span class="o">=</span><span class="mf">59001.0</span><span class="p">,</span>
+    <span class="n">min_subbands</span><span class="o">=</span><span class="mi">12</span>  <span class="c1"># Accept semi-complete groups</span>
+<span class="p">)</span>
+
+<span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Group: </span><span class="si">{</span><span class="n">group</span><span class="o">.</span><span class="n">group_id</span><span class="si">}</span><span class="s2">, Subbands: </span><span class="si">{</span><span class="n">group</span><span class="o">.</span><span class="n">n_subbands</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="c1"># Get files for a specific group</span>
+<span class="n">files</span> <span class="o">=</span> <span class="n">query_group_files</span><span class="p">(</span>
+    <span class="n">db_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">"state/hdf5.sqlite3"</span><span class="p">),</span>
+    <span class="n">group_id</span><span class="o">=</span><span class="s2">"2025-11-18T12:00:00"</span>
+<span class="p">)</span>
+
+<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Subband </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">subband_num</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="direct-sql-access">Direct SQL Access<a class="headerlink" href="#direct-sql-access" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
+
+<span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">"state/hdf5.sqlite3"</span><span class="p">)</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">row_factory</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span>
+
+<span class="c1"># Find groups ready for conversion</span>
+<span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+<span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">    SELECT group_id, COUNT(*) as n_subbands,</span>
+<span class="s2">           MIN(timestamp_mjd) as start_mjd,</span>
+<span class="s2">           MAX(timestamp_mjd) as end_mjd</span>
+<span class="s2">    FROM hdf5_file_index</span>
+<span class="s2">    WHERE stored=1</span>
+<span class="s2">    GROUP BY group_id</span>
+<span class="s2">    HAVING COUNT(*) &gt;= 12</span>
+<span class="s2">"""</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">'group_id'</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">'n_subbands'</span><span class="p">]</span><span class="si">}</span><span class="s2"> subbands"</span><span class="p">)</span>
+
+<span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre></div>
+<hr/>
+<h2 id="indexing-workflow">Indexing Workflow<a class="headerlink" href="#indexing-workflow" title="Permanent link">¶</a></h2>
+<h3 id="1-file-arrival">1. File Arrival<a class="headerlink" href="#1-file-arrival" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.database.hdf5_db</span><span class="w"> </span><span class="kn">import</span> <span class="n">index_hdf5_file</span>
+
+<span class="c1"># Index new HDF5 file</span>
+<span class="n">index_hdf5_file</span><span class="p">(</span>
+    <span class="n">conn</span><span class="p">,</span>
+    <span class="n">path</span><span class="o">=</span><span class="s2">"/data/incoming/2025-11-18T12:00:00_sb00.hdf5"</span><span class="p">,</span>
+    <span class="n">group_id</span><span class="o">=</span><span class="s2">"2025-11-18T12:00:00"</span><span class="p">,</span>
+    <span class="n">subband_code</span><span class="o">=</span><span class="s2">"sb00"</span><span class="p">,</span>
+    <span class="n">subband_num</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">timestamp_mjd</span><span class="o">=</span><span class="mf">59000.5</span><span class="p">,</span>
+    <span class="n">ra_deg</span><span class="o">=</span><span class="mf">123.45</span><span class="p">,</span>
+    <span class="n">dec_deg</span><span class="o">=</span><span class="mf">45.67</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="2-group-detection">2. Group Detection<a class="headerlink" href="#2-group-detection" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check if group is complete</span>
+<span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">    SELECT COUNT(*) as n_subbands</span>
+<span class="s2">    FROM hdf5_file_index</span>
+<span class="s2">    WHERE group_id=?</span>
+<span class="s2">"""</span><span class="p">,</span> <span class="p">(</span><span class="n">group_id</span><span class="p">,))</span>
+
+<span class="n">n_subbands</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">is_complete</span> <span class="o">=</span> <span class="n">n_subbands</span> <span class="o">==</span> <span class="mi">16</span>
+<span class="n">is_semi_complete</span> <span class="o">=</span> <span class="mi">12</span> <span class="o">&lt;=</span> <span class="n">n_subbands</span> <span class="o">&lt;</span> <span class="mi">16</span>
+</code></pre></div>
+<h3 id="3-conversion-trigger">3. Conversion Trigger<a class="headerlink" href="#3-conversion-trigger" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">is_complete</span> <span class="ow">or</span> <span class="n">is_semi_complete</span><span class="p">:</span>
+    <span class="c1"># Trigger conversion</span>
+    <span class="n">trigger_conversion</span><span class="p">(</span><span class="n">group_id</span><span class="p">)</span>
+</code></pre></div>
+<hr/>
+<h2 id="subband-group-management">Subband Group Management<a class="headerlink" href="#subband-group-management" title="Permanent link">¶</a></h2>
+<h3 id="subbandgroupinfo-dataclass">SubbandGroupInfo Dataclass<a class="headerlink" href="#subbandgroupinfo-dataclass" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SubbandGroupInfo</span><span class="p">:</span>
+    <span class="n">group_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">n_subbands</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">n_expected</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span>
+    <span class="n">is_complete</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">is_semi_complete</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">missing_subbands</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">has_synthetic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">synthetic_subbands</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span>
+</code></pre></div>
+<h3 id="query-group-status">Query Group Status<a class="headerlink" href="#query-group-status" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.database.hdf5_index</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_group_info</span>
+
+<span class="n">group_info</span> <span class="o">=</span> <span class="n">get_group_info</span><span class="p">(</span>
+    <span class="n">conn</span><span class="p">,</span>
+    <span class="n">group_id</span><span class="o">=</span><span class="s2">"2025-11-18T12:00:00"</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Complete: </span><span class="si">{</span><span class="n">group_info</span><span class="o">.</span><span class="n">is_complete</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Semi-complete: </span><span class="si">{</span><span class="n">group_info</span><span class="o">.</span><span class="n">is_semi_complete</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Missing: </span><span class="si">{</span><span class="n">group_info</span><span class="o">.</span><span class="n">missing_subbands</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div>
+<hr/>
+<h2 id="maintenance-queries">Maintenance Queries<a class="headerlink" href="#maintenance-queries" title="Permanent link">¶</a></h2>
+<h3 id="update-storage-status">Update Storage Status<a class="headerlink" href="#update-storage-status" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Mark file as archived</span>
+<span class="k">UPDATE</span><span class="w"> </span><span class="n">hdf5_file_index</span>
+<span class="k">SET</span><span class="w"> </span><span class="n">stored</span><span class="o">=</span><span class="mi">0</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">path</span><span class="o">=</span><span class="s1">'/data/incoming/old_file.hdf5'</span><span class="p">;</span>
+
+<span class="c1">-- Restore storage status</span>
+<span class="k">UPDATE</span><span class="w"> </span><span class="n">hdf5_file_index</span>
+<span class="k">SET</span><span class="w"> </span><span class="n">stored</span><span class="o">=</span><span class="mi">1</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">group_id</span><span class="o">=</span><span class="s1">'2025-11-18T12:00:00'</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="remove-old-entries">Remove Old Entries<a class="headerlink" href="#remove-old-entries" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Delete entries older than 90 days</span>
+<span class="k">DELETE</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">hdf5_file_index</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">indexed_at</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'%s'</span><span class="p">,</span><span class="s1">'now'</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">90</span><span class="o">*</span><span class="mi">86400</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="database-statistics">Database Statistics<a class="headerlink" href="#database-statistics" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Count files by date</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">obs_date</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">n_files</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">hdf5_file_index</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">obs_date</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">obs_date</span><span class="w"> </span><span class="k">DESC</span><span class="p">;</span>
+
+<span class="c1">-- Storage usage by date</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">obs_date</span><span class="p">,</span>
+<span class="w">       </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">n_files</span><span class="p">,</span>
+<span class="w">       </span><span class="k">SUM</span><span class="p">(</span><span class="n">file_size_bytes</span><span class="p">)</span><span class="o">/</span><span class="mi">1024</span><span class="p">.</span><span class="mi">0</span><span class="o">/</span><span class="mi">1024</span><span class="p">.</span><span class="mi">0</span><span class="o">/</span><span class="mi">1024</span><span class="p">.</span><span class="mi">0</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">size_gb</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">hdf5_file_index</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">stored</span><span class="o">=</span><span class="mi">1</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">obs_date</span><span class="p">;</span>
+
+<span class="c1">-- Group completeness statistics</span>
+<span class="k">SELECT</span>
+<span class="w">    </span><span class="k">CASE</span>
+<span class="w">        </span><span class="k">WHEN</span><span class="w"> </span><span class="n">cnt</span><span class="o">=</span><span class="mi">16</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="s1">'complete'</span>
+<span class="w">        </span><span class="k">WHEN</span><span class="w"> </span><span class="n">cnt</span><span class="o">&gt;=</span><span class="mi">12</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="s1">'semi-complete'</span>
+<span class="w">        </span><span class="k">ELSE</span><span class="w"> </span><span class="s1">'incomplete'</span>
+<span class="w">    </span><span class="k">END</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">status</span><span class="p">,</span>
+<span class="w">    </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">n_groups</span>
+<span class="k">FROM</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="k">SELECT</span><span class="w"> </span><span class="n">group_id</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">cnt</span>
+<span class="w">    </span><span class="k">FROM</span><span class="w"> </span><span class="n">hdf5_file_index</span>
+<span class="w">    </span><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">group_id</span>
+<span class="p">)</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
+</code></pre></div>
+<hr/>
+<h2 id="cli-commands">CLI Commands<a class="headerlink" href="#cli-commands" title="Permanent link">¶</a></h2>
+<h3 id="index-directory">Index Directory<a class="headerlink" href="#index-directory" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Index all HDF5 files in a directory</span>
+python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.database.hdf5_index<span class="w"> </span>index<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--directory<span class="w"> </span>/data/incoming<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db-path<span class="w"> </span>state/hdf5.sqlite3
+</code></pre></div>
+<h3 id="query-groups">Query Groups<a class="headerlink" href="#query-groups" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># List complete groups</span>
+python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.database.hdf5_index<span class="w"> </span>list-groups<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db-path<span class="w"> </span>state/hdf5.sqlite3<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--min-subbands<span class="w"> </span><span class="m">16</span>
+
+<span class="c1"># List semi-complete groups</span>
+python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.database.hdf5_index<span class="w"> </span>list-groups<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db-path<span class="w"> </span>state/hdf5.sqlite3<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--min-subbands<span class="w"> </span><span class="m">12</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--max-subbands<span class="w"> </span><span class="m">15</span>
+</code></pre></div>
+<h3 id="verify-storage">Verify Storage<a class="headerlink" href="#verify-storage" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Verify files still exist on disk</span>
+python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.database.hdf5_index<span class="w"> </span>verify<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db-path<span class="w"> </span>state/hdf5.sqlite3<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--update-status
+</code></pre></div>
+<hr/>
+<h2 id="performance-notes">Performance Notes<a class="headerlink" href="#performance-notes" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Indexes</strong>: Optimized for group queries, time ranges, sky positions</li>
+<li><strong>Typical Size</strong>: ~2 KB per HDF5 file entry</li>
+<li><strong>Query Speed</strong>: &lt;50ms for group completeness checks</li>
+<li><strong>WAL Mode</strong>: Enabled for concurrent read/write access</li>
+</ul>
+<hr/>
+<h2 id="related-files">Related Files<a class="headerlink" href="#related-files" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Code</strong>: <code>dsa110_contimg/database/hdf5_db.py</code>, <code>hdf5_index.py</code></li>
+<li><strong>Conversion</strong>: <code>dsa110_contimg/conversion/strategies/hdf5_orchestrator.py</code></li>
+<li><strong>Documentation</strong>: <code>dsa110_contimg/conversion/SEMI_COMPLETE_SUBBAND_GROUPS.md</code></li>
+</ul>
+<hr/>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Ingest Database</strong>: <code>docs/reference/database_ingest_sqlite3.md</code></li>
+<li><strong>Products Database</strong>: <code>docs/reference/database_products_sqlite3.md</code></li>
+<li><strong>Semi-Complete Groups</strong>:
+  <code>dsa110_contimg/conversion/SEMI_COMPLETE_SUBBAND_GROUPS.md</code></li>
+</ul>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

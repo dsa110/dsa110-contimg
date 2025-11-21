@@ -1,0 +1,1800 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/how-to/workflow/absurd_task_dashboard/" rel="canonical"/>
+<link href="../../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Absurd Task Dashboard User Guide - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#absurd-task-dashboard-user-guide">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Absurd Task Dashboard User Guide
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../DOCUMENTATION_QUICK_REFERENCE.md">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_5">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../streaming.md">
+<span class="md-ellipsis">
+    Streaming Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../dashboard.md">
+<span class="md-ellipsis">
+    Dashboard Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../github_pages_walkthrough.md">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_4">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../quickstart.md">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../control-panel-quickstart.md">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../LINEAR_SETUP_QUICKSTART.md">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../FAST_TESTING.md">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../TEST_FLAG_SUBCOMMAND.md">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../build-vp-from-h5.md">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../CALIBRATION_DETAILED_PROCEDURE.md">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../FIND_CALIBRATOR_TRANSIT_DATA.md">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../IMAGE_0834_TRANSIT_5MIN.md">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_9" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_9" id="__nav_5_9_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_9_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_9">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../mosaic_quickstart.md">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../mosaic.md">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_10" id="__nav_5_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_10">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../quicklook.md">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reprocess.md">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../USING_ORCHESTRATOR_CLI.md">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../LINEAR_INTEGRATION.md">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../frontend-initial-setup.md">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_15" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_15" id="__nav_5_15_label" tabindex="0">
+<span class="md-ellipsis">
+    Development Setup
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_15_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_15">
+<span class="md-nav__icon md-icon"></span>
+            Development Setup
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../ENVIRONMENT_SETUP.md">
+<span class="md-ellipsis">
+    Environment Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../PRE_COMMIT_SETUP.md">
+<span class="md-ellipsis">
+    Pre-commit Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../CI_CD_SETUP.md">
+<span class="md-ellipsis">
+    CI/CD Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../TEST_DATABASE_SETUP.md">
+<span class="md-ellipsis">
+    Test Database Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../PARAMETER_OPTIMIZATION_GUIDE.md">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../downsampling_guide.md">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_18" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_18" id="__nav_5_18_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_18_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_18">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../uvh5_to_ms_conversion.md">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../troubleshooting.md">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#accessing-the-dashboard">
+<span class="md-ellipsis">
+      Accessing the Dashboard
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#dashboard-layout">
+<span class="md-ellipsis">
+      Dashboard Layout
+    </span>
+</a>
+<nav aria-label="Dashboard Layout" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-health-status-card">
+<span class="md-ellipsis">
+      1. Health Status Card
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-queue-statistics-cards">
+<span class="md-ellipsis">
+      2. Queue Statistics Cards
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-status-filter">
+<span class="md-ellipsis">
+      3. Status Filter
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-task-list-table">
+<span class="md-ellipsis">
+      4. Task List Table
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#task-inspector">
+<span class="md-ellipsis">
+      Task Inspector
+    </span>
+</a>
+<nav aria-label="Task Inspector" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-task-information">
+<span class="md-ellipsis">
+      1. Task Information
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-timeline">
+<span class="md-ellipsis">
+      2. Timeline
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-task-parameters">
+<span class="md-ellipsis">
+      3. Task Parameters
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-result-completed-tasks">
+<span class="md-ellipsis">
+      4. Result (Completed Tasks)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-error-details-failed-tasks">
+<span class="md-ellipsis">
+      5. Error Details (Failed Tasks)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#actions">
+<span class="md-ellipsis">
+      Actions
+    </span>
+</a>
+<nav aria-label="Actions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#retry-failed-task">
+<span class="md-ellipsis">
+      Retry Failed Task
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#cancel-task">
+<span class="md-ellipsis">
+      Cancel Task
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#real-time-updates">
+<span class="md-ellipsis">
+      Real-time Updates
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-workflows">
+<span class="md-ellipsis">
+      Common Workflows
+    </span>
+</a>
+<nav aria-label="Common Workflows" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#workflow-1-monitor-active-tasks">
+<span class="md-ellipsis">
+      Workflow 1: Monitor Active Tasks
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#workflow-2-review-failed-tasks">
+<span class="md-ellipsis">
+      Workflow 2: Review Failed Tasks
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#workflow-3-check-queue-health">
+<span class="md-ellipsis">
+      Workflow 3: Check Queue Health
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#workflow-4-retry-failed-task">
+<span class="md-ellipsis">
+      Workflow 4: Retry Failed Task
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tips-and-best-practices">
+<span class="md-ellipsis">
+      Tips and Best Practices
+    </span>
+</a>
+<nav aria-label="Tips and Best Practices" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-use-filters-effectively">
+<span class="md-ellipsis">
+      1. Use Filters Effectively
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-monitor-queue-depth">
+<span class="md-ellipsis">
+      2. Monitor Queue Depth
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-priority-management">
+<span class="md-ellipsis">
+      3. Priority Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-task-inspection">
+<span class="md-ellipsis">
+      4. Task Inspection
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-real-time-monitoring">
+<span class="md-ellipsis">
+      5. Real-time Monitoring
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#troubleshooting">
+<span class="md-ellipsis">
+      Troubleshooting
+    </span>
+</a>
+<nav aria-label="Troubleshooting" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#issue-tasks-not-updating">
+<span class="md-ellipsis">
+      Issue: Tasks Not Updating
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#issue-high-pending-count">
+<span class="md-ellipsis">
+      Issue: High Pending Count
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#issue-many-failed-tasks">
+<span class="md-ellipsis">
+      Issue: Many Failed Tasks
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#issue-task-inspector-not-opening">
+<span class="md-ellipsis">
+      Issue: Task Inspector Not Opening
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#keyboard-shortcuts">
+<span class="md-ellipsis">
+      Keyboard Shortcuts
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-documentation">
+<span class="md-ellipsis">
+      Related Documentation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#support">
+<span class="md-ellipsis">
+      Support
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="absurd-task-dashboard-user-guide">Absurd Task Dashboard User Guide<a class="headerlink" href="#absurd-task-dashboard-user-guide" title="Permanent link">¶</a></h1>
+<p><strong>Author:</strong> DSA-110 Team<br/>
+<strong>Date:</strong> 2025-11-18<br/>
+<strong>Audience:</strong> Pipeline Operators, Scientists</p>
+<hr/>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>The <strong>Absurd Task Dashboard</strong> provides a real-time interface for monitoring and
+managing workflow tasks in the DSA-110 continuum imaging pipeline. Tasks are
+executed by the Absurd workflow manager, which provides fault tolerance,
+automatic retries, and durable task persistence.</p>
+<p><strong>Key Features:</strong></p>
+<ul>
+<li>✅ Real-time task monitoring</li>
+<li>✅ Queue statistics and health status</li>
+<li>✅ Task filtering and search</li>
+<li>✅ Detailed task inspection</li>
+<li>✅ Retry failed tasks</li>
+<li>✅ Cancel pending tasks</li>
+</ul>
+<hr/>
+<h2 id="accessing-the-dashboard">Accessing the Dashboard<a class="headerlink" href="#accessing-the-dashboard" title="Permanent link">¶</a></h2>
+<ol>
+<li>Navigate to <strong>Control Page</strong> in the web interface</li>
+<li>Click the <strong>"Absurd Tasks"</strong> tab (5th tab)</li>
+<li>The dashboard loads automatically</li>
+</ol>
+<p><strong>URL:</strong> <code>http://your-server:8000/control</code> → "Absurd Tasks" tab</p>
+<hr/>
+<h2 id="dashboard-layout">Dashboard Layout<a class="headerlink" href="#dashboard-layout" title="Permanent link">¶</a></h2>
+<h3 id="1-health-status-card">1. Health Status Card<a class="headerlink" href="#1-health-status-card" title="Permanent link">¶</a></h3>
+<p><strong>Location:</strong> Top of dashboard</p>
+<p><strong>Displays:</strong></p>
+<ul>
+<li><strong>Status</strong>: <code>healthy</code>, <code>degraded</code>, <code>critical</code>, or <code>down</code></li>
+<li><strong>Message</strong>: Brief description of system state</li>
+<li><strong>Color Coding</strong>:</li>
+<li>🟢 Green: Healthy (all systems operational)</li>
+<li>🟡 Yellow: Degraded (warnings, but functional)</li>
+<li>🔴 Red: Critical (alerts, may need attention)</li>
+<li>⚫ Gray: Down (system unavailable)</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code>Status: HEALTHY - All systems operational
+</code></pre></div>
+<hr/>
+<h3 id="2-queue-statistics-cards">2. Queue Statistics Cards<a class="headerlink" href="#2-queue-statistics-cards" title="Permanent link">¶</a></h3>
+<p><strong>Location:</strong> Below health status</p>
+<p><strong>Displays 6 Metrics:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Card</th>
+<th>Description</th>
+<th>Color</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Pending</strong></td>
+<td>Tasks waiting to be claimed</td>
+<td>🟡 Yellow</td>
+</tr>
+<tr>
+<td><strong>In Progress</strong></td>
+<td>Tasks currently being executed</td>
+<td>🔵 Blue</td>
+</tr>
+<tr>
+<td><strong>Completed</strong></td>
+<td>Successfully completed tasks</td>
+<td>🟢 Green</td>
+</tr>
+<tr>
+<td><strong>Failed</strong></td>
+<td>Tasks that failed (after retries)</td>
+<td>🔴 Red</td>
+</tr>
+<tr>
+<td><strong>Cancelled</strong></td>
+<td>Manually cancelled tasks</td>
+<td>⚫ Gray</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td>Total tasks in queue</td>
+<td>🔵 Blue</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Real-time Updates:</strong></p>
+<ul>
+<li>Statistics update automatically via WebSocket (or polling every 5 seconds)</li>
+<li>No page refresh needed</li>
+</ul>
+<hr/>
+<h3 id="3-status-filter">3. Status Filter<a class="headerlink" href="#3-status-filter" title="Permanent link">¶</a></h3>
+<p><strong>Location:</strong> Below statistics cards</p>
+<p><strong>Options:</strong></p>
+<ul>
+<li><strong>All Tasks</strong> - Show all tasks regardless of status</li>
+<li><strong>Pending</strong> - Show only pending tasks</li>
+<li><strong>In Progress</strong> - Show only claimed/in-progress tasks</li>
+<li><strong>Completed</strong> - Show only completed tasks</li>
+<li><strong>Failed</strong> - Show only failed tasks</li>
+<li><strong>Cancelled</strong> - Show only cancelled tasks</li>
+</ul>
+<p><strong>Usage:</strong></p>
+<ol>
+<li>Select filter from dropdown</li>
+<li>Task list updates immediately</li>
+<li>Filter persists until changed</li>
+</ol>
+<hr/>
+<h3 id="4-task-list-table">4. Task List Table<a class="headerlink" href="#4-task-list-table" title="Permanent link">¶</a></h3>
+<p><strong>Location:</strong> Below filter</p>
+<p><strong>Columns:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Task ID</strong></td>
+<td>Unique task identifier (truncated)</td>
+<td><code>a1b2c3d4...</code></td>
+</tr>
+<tr>
+<td><strong>Task Name</strong></td>
+<td>Type of task</td>
+<td><code>calibration-solve</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>Current task status</td>
+<td><code>completed</code></td>
+</tr>
+<tr>
+<td><strong>Priority</strong></td>
+<td>Task priority (1-20)</td>
+<td><code>15</code></td>
+</tr>
+<tr>
+<td><strong>Retry</strong></td>
+<td>Number of retry attempts</td>
+<td><code>0</code></td>
+</tr>
+<tr>
+<td><strong>Created</strong></td>
+<td>Task creation timestamp</td>
+<td><code>2025-11-18 14:30:00</code></td>
+</tr>
+<tr>
+<td><strong>Duration</strong></td>
+<td>Execution time</td>
+<td><code>2.5m</code></td>
+</tr>
+<tr>
+<td><strong>Actions</strong></td>
+<td>View details button</td>
+<td>👁️</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Status Colors:</strong></p>
+<ul>
+<li>🟡 <strong>Pending</strong>: Yellow chip</li>
+<li>🔵 <strong>In Progress</strong>: Blue chip with spinner</li>
+<li>🟢 <strong>Completed</strong>: Green chip</li>
+<li>🔴 <strong>Failed</strong>: Red chip</li>
+<li>⚫ <strong>Cancelled</strong>: Gray chip</li>
+</ul>
+<p><strong>Priority Colors:</strong></p>
+<ul>
+<li>🔴 <strong>15-20</strong>: Red (critical/high priority)</li>
+<li>🟡 <strong>10-14</strong>: Yellow (high priority)</li>
+<li>🔵 <strong>5-9</strong>: Blue (normal priority)</li>
+<li>⚫ <strong>1-4</strong>: Gray (low priority)</li>
+</ul>
+<p><strong>Interactions:</strong></p>
+<ul>
+<li><strong>Click row</strong>: Opens Task Inspector with full details</li>
+<li><strong>Hover</strong>: Highlights row</li>
+<li><strong>Scroll</strong>: Table is scrollable if many tasks</li>
+</ul>
+<hr/>
+<h2 id="task-inspector">Task Inspector<a class="headerlink" href="#task-inspector" title="Permanent link">¶</a></h2>
+<p><strong>Opens:</strong> When clicking a task row or the "View Details" button</p>
+<p><strong>Sections:</strong></p>
+<h3 id="1-task-information">1. Task Information<a class="headerlink" href="#1-task-information" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Task ID</strong>: Full UUID</li>
+<li><strong>Task Name</strong>: Task type</li>
+<li><strong>Queue Name</strong>: Queue the task belongs to</li>
+<li><strong>Status</strong>: Current status with icon</li>
+<li><strong>Priority</strong>: Priority level (1-20)</li>
+<li><strong>Retry Count</strong>: Number of retry attempts</li>
+</ul>
+<h3 id="2-timeline">2. Timeline<a class="headerlink" href="#2-timeline" title="Permanent link">¶</a></h3>
+<p>Shows task lifecycle:</p>
+<ul>
+<li><strong>Created At</strong>: When task was spawned</li>
+<li><strong>Claimed At</strong>: When worker claimed the task</li>
+<li><strong>Completed At</strong>: When task finished (if completed)</li>
+<li><strong>Wait Time</strong>: Time between creation and claim</li>
+<li><strong>Execution Time</strong>: Time between claim and completion</li>
+</ul>
+<h3 id="3-task-parameters">3. Task Parameters<a class="headerlink" href="#3-task-parameters" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>JSON View</strong>: Full task parameters in JSON format</li>
+<li><strong>Read-only</strong>: Parameters cannot be edited (spawn new task to change)</li>
+</ul>
+<h3 id="4-result-completed-tasks">4. Result (Completed Tasks)<a class="headerlink" href="#4-result-completed-tasks" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>JSON View</strong>: Task execution result</li>
+<li><strong>Contains</strong>: Output paths, metrics, artifacts</li>
+</ul>
+<h3 id="5-error-details-failed-tasks">5. Error Details (Failed Tasks)<a class="headerlink" href="#5-error-details-failed-tasks" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Error Message</strong>: Full error text</li>
+<li><strong>Read-only</strong>: For reference when retrying</li>
+</ul>
+<hr/>
+<h2 id="actions">Actions<a class="headerlink" href="#actions" title="Permanent link">¶</a></h2>
+<h3 id="retry-failed-task">Retry Failed Task<a class="headerlink" href="#retry-failed-task" title="Permanent link">¶</a></h3>
+<p><strong>When:</strong> Task status is <code>failed</code></p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Click failed task to open Task Inspector</li>
+<li>Click <strong>"Retry Task"</strong> button</li>
+<li>Confirm in dialog</li>
+<li>New task spawned with same parameters</li>
+<li>Task appears in pending queue</li>
+</ol>
+<p><strong>Note:</strong> Retry creates a new task (does not reuse the failed task ID)</p>
+<hr/>
+<h3 id="cancel-task">Cancel Task<a class="headerlink" href="#cancel-task" title="Permanent link">¶</a></h3>
+<p><strong>When:</strong> Task status is <code>pending</code> or <code>claimed</code> (in progress)</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Click task to open Task Inspector</li>
+<li>Click <strong>"Cancel Task"</strong> button</li>
+<li>Confirm in dialog</li>
+<li>Task cancelled immediately</li>
+<li>Task removed from queue</li>
+</ol>
+<p><strong>Note:</strong> Cannot cancel completed or failed tasks</p>
+<hr/>
+<h2 id="real-time-updates">Real-time Updates<a class="headerlink" href="#real-time-updates" title="Permanent link">¶</a></h2>
+<p><strong>WebSocket Integration:</strong></p>
+<ul>
+<li>Tasks update automatically when status changes</li>
+<li>No page refresh needed</li>
+<li>Updates appear within &lt; 1 second</li>
+</ul>
+<p><strong>Polling Fallback:</strong></p>
+<ul>
+<li>If WebSocket disconnected, falls back to polling every 5 seconds</li>
+<li>Automatic reconnection when WebSocket available</li>
+</ul>
+<p><strong>What Updates:</strong></p>
+<ul>
+<li>Task status changes (pending → claimed → completed)</li>
+<li>Queue statistics (pending count, completed count, etc.)</li>
+<li>Task details (timeline, result, error)</li>
+</ul>
+<hr/>
+<h2 id="common-workflows">Common Workflows<a class="headerlink" href="#common-workflows" title="Permanent link">¶</a></h2>
+<h3 id="workflow-1-monitor-active-tasks">Workflow 1: Monitor Active Tasks<a class="headerlink" href="#workflow-1-monitor-active-tasks" title="Permanent link">¶</a></h3>
+<ol>
+<li>Open <strong>Absurd Tasks</strong> tab</li>
+<li>Filter: <strong>"In Progress"</strong></li>
+<li>View tasks currently being executed</li>
+<li>Click task to see progress details</li>
+<li>Monitor until completion</li>
+</ol>
+<hr/>
+<h3 id="workflow-2-review-failed-tasks">Workflow 2: Review Failed Tasks<a class="headerlink" href="#workflow-2-review-failed-tasks" title="Permanent link">¶</a></h3>
+<ol>
+<li>Open <strong>Absurd Tasks</strong> tab</li>
+<li>Filter: <strong>"Failed"</strong></li>
+<li>Review failed tasks</li>
+<li>Click task to see error details</li>
+<li>Decide: Retry or investigate further</li>
+</ol>
+<hr/>
+<h3 id="workflow-3-check-queue-health">Workflow 3: Check Queue Health<a class="headerlink" href="#workflow-3-check-queue-health" title="Permanent link">¶</a></h3>
+<ol>
+<li>Open <strong>Absurd Tasks</strong> tab</li>
+<li>Check <strong>Health Status</strong> card</li>
+<li>Review <strong>Queue Statistics</strong> cards</li>
+<li>If many pending tasks, consider:</li>
+<li>Adding more workers</li>
+<li>Increasing worker concurrency</li>
+<li>Checking for stuck tasks</li>
+</ol>
+<hr/>
+<h3 id="workflow-4-retry-failed-task">Workflow 4: Retry Failed Task<a class="headerlink" href="#workflow-4-retry-failed-task" title="Permanent link">¶</a></h3>
+<ol>
+<li>Filter: <strong>"Failed"</strong></li>
+<li>Click failed task</li>
+<li>Review error in Task Inspector</li>
+<li>Click <strong>"Retry Task"</strong></li>
+<li>Confirm retry</li>
+<li>Switch filter to <strong>"Pending"</strong> to see new task</li>
+<li>Monitor until completion</li>
+</ol>
+<hr/>
+<h2 id="tips-and-best-practices">Tips and Best Practices<a class="headerlink" href="#tips-and-best-practices" title="Permanent link">¶</a></h2>
+<h3 id="1-use-filters-effectively">1. Use Filters Effectively<a class="headerlink" href="#1-use-filters-effectively" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Pending</strong>: Check for tasks waiting too long</li>
+<li><strong>Failed</strong>: Review errors and retry if needed</li>
+<li><strong>Completed</strong>: Verify successful execution</li>
+</ul>
+<h3 id="2-monitor-queue-depth">2. Monitor Queue Depth<a class="headerlink" href="#2-monitor-queue-depth" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Pending &gt; 50</strong>: Consider adding workers</li>
+<li><strong>Pending &gt; 100</strong>: System may be overloaded</li>
+<li><strong>Failed &gt; 10</strong>: Investigate root cause</li>
+</ul>
+<h3 id="3-priority-management">3. Priority Management<a class="headerlink" href="#3-priority-management" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>High Priority (15-20)</strong>: Time-sensitive tasks</li>
+<li><strong>Normal Priority (5-9)</strong>: Routine processing</li>
+<li><strong>Low Priority (1-4)</strong>: Backfill, reprocessing</li>
+</ul>
+<h3 id="4-task-inspection">4. Task Inspection<a class="headerlink" href="#4-task-inspection" title="Permanent link">¶</a></h3>
+<ul>
+<li>Always inspect failed tasks before retrying</li>
+<li>Check error details to understand failure</li>
+<li>Review parameters if task fails repeatedly</li>
+</ul>
+<h3 id="5-real-time-monitoring">5. Real-time Monitoring<a class="headerlink" href="#5-real-time-monitoring" title="Permanent link">¶</a></h3>
+<ul>
+<li>Keep dashboard open during critical operations</li>
+<li>Watch for status changes in real-time</li>
+<li>Use Task Inspector for detailed progress</li>
+</ul>
+<hr/>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
+<h3 id="issue-tasks-not-updating">Issue: Tasks Not Updating<a class="headerlink" href="#issue-tasks-not-updating" title="Permanent link">¶</a></h3>
+<p><strong>Symptoms:</strong> Task status doesn't change in real-time</p>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Check WebSocket connection (browser console)</li>
+<li>Refresh page if WebSocket disconnected</li>
+<li>Check backend logs for errors</li>
+</ol>
+<hr/>
+<h3 id="issue-high-pending-count">Issue: High Pending Count<a class="headerlink" href="#issue-high-pending-count" title="Permanent link">¶</a></h3>
+<p><strong>Symptoms:</strong> Many tasks stuck in "pending" status</p>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Check if workers are running: <code>ps aux | grep run_absurd_worker</code></li>
+<li>Check worker logs for errors</li>
+<li>Increase worker concurrency or add more workers</li>
+<li>Check database connectivity</li>
+</ol>
+<hr/>
+<h3 id="issue-many-failed-tasks">Issue: Many Failed Tasks<a class="headerlink" href="#issue-many-failed-tasks" title="Permanent link">¶</a></h3>
+<p><strong>Symptoms:</strong> High failure rate</p>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Review error details in Task Inspector</li>
+<li>Check common error patterns</li>
+<li>Verify task parameters are correct</li>
+<li>Check system resources (CPU, memory, disk)</li>
+<li>Review CASA environment and MS file validity</li>
+</ol>
+<hr/>
+<h3 id="issue-task-inspector-not-opening">Issue: Task Inspector Not Opening<a class="headerlink" href="#issue-task-inspector-not-opening" title="Permanent link">¶</a></h3>
+<p><strong>Symptoms:</strong> Clicking task doesn't open inspector</p>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Check browser console for errors</li>
+<li>Refresh page</li>
+<li>Try clicking "View Details" button instead of row</li>
+<li>Check if task still exists (may have been cancelled)</li>
+</ol>
+<hr/>
+<h2 id="keyboard-shortcuts">Keyboard Shortcuts<a class="headerlink" href="#keyboard-shortcuts" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Shortcut</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>R</code></td>
+<td>Refresh dashboard</td>
+</tr>
+<tr>
+<td><code>Esc</code></td>
+<td>Close Task Inspector</td>
+</tr>
+<tr>
+<td><code>F</code></td>
+<td>Focus filter dropdown</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong><a href="../absurd_workflow_builder/">Workflow Builder Guide</a></strong> - Building
+  multi-stage workflows</li>
+<li><strong><a href="../absurd_operations/">Absurd Operations Guide</a></strong> - Backend operations and
+  configuration</li>
+<li><strong><a href="../concepts/absurd_performance_tuning.md">Performance Tuning Guide</a></strong> -
+  Optimizing throughput</li>
+</ul>
+<hr/>
+<h2 id="support">Support<a class="headerlink" href="#support" title="Permanent link">¶</a></h2>
+<p><strong>For Issues:</strong></p>
+<ul>
+<li>Check browser console for errors</li>
+<li>Review backend logs: <code>journalctl -u dsa110-contimg-api -f</code></li>
+<li>Contact DSA-110 operations team</li>
+</ul>
+<p><strong>For Questions:</strong></p>
+<ul>
+<li>Review this guide</li>
+<li>Check operations documentation</li>
+<li>Contact development team</li>
+</ul>
+<hr/>
+<p><strong>Last Updated:</strong> 2025-11-18</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

@@ -1,0 +1,3218 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/concepts/catalog_enhancement_proposals/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Catalog Enhancement Proposals - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#catalog-enhancement-proposals">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Catalog Enhancement Proposals
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE.md">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_5">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming.md">
+<span class="md-ellipsis">
+    Streaming Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard.md">
+<span class="md-ellipsis">
+    Dashboard Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough.md">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_4">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart.md">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart.md">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART.md">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING.md">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND.md">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5.md">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE.md">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA.md">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN.md">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_9" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_9" id="__nav_5_9_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_9_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_9">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart.md">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic.md">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_10" id="__nav_5_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_10">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook.md">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess.md">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI.md">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION.md">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup.md">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_15" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_15" id="__nav_5_15_label" tabindex="0">
+<span class="md-ellipsis">
+    Development Setup
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_15_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_15">
+<span class="md-nav__icon md-icon"></span>
+            Development Setup
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/ENVIRONMENT_SETUP.md">
+<span class="md-ellipsis">
+    Environment Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PRE_COMMIT_SETUP.md">
+<span class="md-ellipsis">
+    Pre-commit Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CI_CD_SETUP.md">
+<span class="md-ellipsis">
+    CI/CD Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_DATABASE_SETUP.md">
+<span class="md-ellipsis">
+    Test Database Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE.md">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide.md">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_18" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_18" id="__nav_5_18_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_18_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_18">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion.md">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting.md">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#proposals">
+<span class="md-ellipsis">
+      Proposals
+    </span>
+</a>
+<nav aria-label="Proposals" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-automated-spectral-index-mapping">
+<span class="md-ellipsis">
+      1. Automated Spectral Index Mapping
+    </span>
+</a>
+<nav aria-label="1. Automated Spectral Index Mapping" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-state">
+<span class="md-ellipsis">
+      Current State
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#opportunity">
+<span class="md-ellipsis">
+      Opportunity
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-design">
+<span class="md-ellipsis">
+      Implementation Design
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#benefits">
+<span class="md-ellipsis">
+      Benefits
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#risks-limitations">
+<span class="md-ellipsis">
+      Risks / Limitations
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#estimated-effort">
+<span class="md-ellipsis">
+      Estimated Effort
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-transient-detection-via-catalog-differencing">
+<span class="md-ellipsis">
+      2. Transient Detection via Catalog Differencing
+    </span>
+</a>
+<nav aria-label="2. Transient Detection via Catalog Differencing" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-state_1">
+<span class="md-ellipsis">
+      Current State
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#opportunity_1">
+<span class="md-ellipsis">
+      Opportunity
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-design_1">
+<span class="md-ellipsis">
+      Implementation Design
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#benefits_1">
+<span class="md-ellipsis">
+      Benefits
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#risks-limitations_1">
+<span class="md-ellipsis">
+      Risks / Limitations
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#estimated-effort_1">
+<span class="md-ellipsis">
+      Estimated Effort
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-smart-calibrator-pre-selection">
+<span class="md-ellipsis">
+      3. Smart Calibrator Pre-Selection
+    </span>
+</a>
+<nav aria-label="3. Smart Calibrator Pre-Selection" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-state_2">
+<span class="md-ellipsis">
+      Current State
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#opportunity_2">
+<span class="md-ellipsis">
+      Opportunity
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-design_2">
+<span class="md-ellipsis">
+      Implementation Design
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#benefits_2">
+<span class="md-ellipsis">
+      Benefits
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#risks-limitations_2">
+<span class="md-ellipsis">
+      Risks / Limitations
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#estimated-effort_2">
+<span class="md-ellipsis">
+      Estimated Effort
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-multi-wavelength-source-classification-pipeline">
+<span class="md-ellipsis">
+      4. Multi-wavelength Source Classification Pipeline
+    </span>
+</a>
+<nav aria-label="4. Multi-wavelength Source Classification Pipeline" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-state_3">
+<span class="md-ellipsis">
+      Current State
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#opportunity_3">
+<span class="md-ellipsis">
+      Opportunity
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-design_3">
+<span class="md-ellipsis">
+      Implementation Design
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#benefits_3">
+<span class="md-ellipsis">
+      Benefits
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#risks-limitations_3">
+<span class="md-ellipsis">
+      Risks / Limitations
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#estimated-effort_3">
+<span class="md-ellipsis">
+      Estimated Effort
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-astrometric-self-calibration">
+<span class="md-ellipsis">
+      5. Astrometric Self-Calibration
+    </span>
+</a>
+<nav aria-label="5. Astrometric Self-Calibration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-state_4">
+<span class="md-ellipsis">
+      Current State
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#opportunity_4">
+<span class="md-ellipsis">
+      Opportunity
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#6-flux-calibration-monitoring-alerts">
+<span class="md-ellipsis">
+      6. Flux Calibration Monitoring &amp; Alerts
+    </span>
+</a>
+<nav aria-label="6. Flux Calibration Monitoring &amp; Alerts" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-state_5">
+<span class="md-ellipsis">
+      Current State
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#opportunity_5">
+<span class="md-ellipsis">
+      Opportunity
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#7-proper-motion-corrections-for-long-term-studies">
+<span class="md-ellipsis">
+      7. Proper Motion Corrections for Long-Term Studies
+    </span>
+</a>
+<nav aria-label="7. Proper Motion Corrections for Long-Term Studies" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-state_6">
+<span class="md-ellipsis">
+      Current State
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#opportunity_6">
+<span class="md-ellipsis">
+      Opportunity
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#8-coverage-aware-catalog-selection">
+<span class="md-ellipsis">
+      8. Coverage-Aware Catalog Selection
+    </span>
+</a>
+<nav aria-label="8. Coverage-Aware Catalog Selection" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-state_7">
+<span class="md-ellipsis">
+      Current State
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#opportunity_7">
+<span class="md-ellipsis">
+      Opportunity
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#9-pulsar-timing-integration">
+<span class="md-ellipsis">
+      9. Pulsar Timing Integration
+    </span>
+</a>
+<nav aria-label="9. Pulsar Timing Integration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-state_8">
+<span class="md-ellipsis">
+      Current State
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#opportunity_8">
+<span class="md-ellipsis">
+      Opportunity
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#10-science-ready-catalog-products">
+<span class="md-ellipsis">
+      10. Science-Ready Catalog Products
+    </span>
+</a>
+<nav aria-label="10. Science-Ready Catalog Products" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-state_9">
+<span class="md-ellipsis">
+      Current State
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#opportunity_9">
+<span class="md-ellipsis">
+      Opportunity
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-roadmap">
+<span class="md-ellipsis">
+      Implementation Roadmap
+    </span>
+</a>
+<nav aria-label="Implementation Roadmap" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-1-operational-foundation-months-1-2">
+<span class="md-ellipsis">
+      Phase 1: Operational Foundation (Months 1-2)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-2-intelligent-catalog-management-months-3-4">
+<span class="md-ellipsis">
+      Phase 2: Intelligent Catalog Management (Months 3-4)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-3-science-detection-pipeline-months-5-6">
+<span class="md-ellipsis">
+      Phase 3: Science Detection Pipeline (Months 5-6)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-4-publication-quality-products-months-7-8">
+<span class="md-ellipsis">
+      Phase 4: Publication-Quality Products (Months 7-8)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-5-advanced-features-months-9">
+<span class="md-ellipsis">
+      Phase 5: Advanced Features (Months 9+)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#total-implementation-timeline">
+<span class="md-ellipsis">
+      Total Implementation Timeline
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#priority-ranking">
+<span class="md-ellipsis">
+      Priority Ranking
+    </span>
+</a>
+<nav aria-label="Priority Ranking" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-prioritized-implementation-order">
+<span class="md-ellipsis">
+      User-Prioritized Implementation Order
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#lower-priority-future-implementation">
+<span class="md-ellipsis">
+      Lower Priority (Future Implementation)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#success-metrics">
+<span class="md-ellipsis">
+      Success Metrics
+    </span>
+</a>
+<nav aria-label="Success Metrics" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#technical-metrics">
+<span class="md-ellipsis">
+      Technical Metrics
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#science-metrics">
+<span class="md-ellipsis">
+      Science Metrics
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#next-steps">
+<span class="md-ellipsis">
+      Next Steps
+    </span>
+</a>
+<nav aria-label="Next Steps" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#immediate-actions-week-1">
+<span class="md-ellipsis">
+      Immediate Actions (Week 1)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-1-implementation-months-1-2">
+<span class="md-ellipsis">
+      Phase 1 Implementation (Months 1-2)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-2-implementation-months-3-4">
+<span class="md-ellipsis">
+      Phase 2 Implementation (Months 3-4)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-3-implementation-months-5-6">
+<span class="md-ellipsis">
+      Phase 3 Implementation (Months 5-6)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-4-implementation-months-7-8">
+<span class="md-ellipsis">
+      Phase 4 Implementation (Months 7-8)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#success-criteria">
+<span class="md-ellipsis">
+      Success Criteria
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#risk-management">
+<span class="md-ellipsis">
+      Risk Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#resource-requirements">
+<span class="md-ellipsis">
+      Resource Requirements
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#references">
+<span class="md-ellipsis">
+      References
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#document-history">
+<span class="md-ellipsis">
+      Document History
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="catalog-enhancement-proposals">Catalog Enhancement Proposals<a class="headerlink" href="#catalog-enhancement-proposals" title="Permanent link">¶</a></h1>
+<p><strong>Status</strong>: Design Proposals<br/>
+<strong>Created</strong>: 2025-11-19<br/>
+<strong>Purpose</strong>: Identify opportunities to better leverage the catalog system for
+science, operations, and data products</p>
+<hr/>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>The DSA-110 pipeline integrates multiple astronomical catalogs (NVSS, FIRST,
+RACS, VLASS, ATNF, Gaia, SIMBAD, NED) for calibration, validation, and source
+identification. This document proposes enhancements to extract more value from
+these catalogs.</p>
+<p><strong>Current Catalog Documentation</strong>:
+<code>src/dsa110_contimg/catalog/CATALOG_OVERVIEW.md</code></p>
+<p><strong>Current Capabilities</strong>:</p>
+<ul>
+<li>Calibrator selection from radio catalogs</li>
+<li>Source cross-matching for validation</li>
+<li>Flux scale validation</li>
+<li>Basic source classification via multi-wavelength queries</li>
+</ul>
+<p><strong>Enhancement Focus Areas</strong>:</p>
+<ol>
+<li>Science value (spectral indices, transient detection, classifications)</li>
+<li>Operational efficiency (smart calibrator selection, astrometric corrections)</li>
+<li>Data products (VO-compliant catalogs, monitoring dashboards)</li>
+</ol>
+<hr/>
+<h2 id="proposals">Proposals<a class="headerlink" href="#proposals" title="Permanent link">¶</a></h2>
+<h3 id="1-automated-spectral-index-mapping">1. Automated Spectral Index Mapping<a class="headerlink" href="#1-automated-spectral-index-mapping" title="Permanent link">¶</a></h3>
+<p><strong>Priority</strong>: High<br/>
+<strong>Effort</strong>: Low<br/>
+<strong>Science Value</strong>: High<br/>
+<strong>Implementation Complexity</strong>: Low</p>
+<h4 id="current-state">Current State<a class="headerlink" href="#current-state" title="Permanent link">¶</a></h4>
+<ul>
+<li>NVSS (1.4 GHz), VLASS (3 GHz), and RACS (888 MHz) catalogs available</li>
+<li>Cross-matching finds matches in multiple catalogs</li>
+<li>Spectral indices not systematically calculated or stored</li>
+</ul>
+<h4 id="opportunity">Opportunity<a class="headerlink" href="#opportunity" title="Permanent link">¶</a></h4>
+<p>Automatically compute spectral indices (α, where S ∝ ν^α) for every source
+matched in multiple frequency catalogs:</p>
+<ul>
+<li><strong>Scientific Classification</strong>:</li>
+<li>α &lt; -1.0: Steep-spectrum sources (high-z radio galaxies, relics)</li>
+<li>-1.0 &lt; α &lt; -0.5: Normal radio sources</li>
+<li>α &gt; -0.5: Flat-spectrum sources (AGN cores, blazars)</li>
+<li>
+<p>α &gt; 0.0: Inverted spectrum (compact self-absorbed sources)</p>
+</li>
+<li>
+<p><strong>Calibration Improvement</strong>:</p>
+</li>
+<li>Predict expected flux at DSA-110 frequency (1.4 GHz)</li>
+<li>Select calibrators with well-constrained spectral behavior</li>
+<li>
+<p>Avoid highly variable flat-spectrum blazars</p>
+</li>
+<li>
+<p><strong>Science Products</strong>:</p>
+</li>
+<li>Generate "spectral index maps" alongside intensity mosaics</li>
+<li>Enable queries like "find all α &lt; -1.5 sources" (extreme steep-spectrum)</li>
+<li>Identify synchrotron aging in extended sources</li>
+</ul>
+<h4 id="implementation-design">Implementation Design<a class="headerlink" href="#implementation-design" title="Permanent link">¶</a></h4>
+<p><strong>Database Schema Addition</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Add to cross_matches table or create new table</span>
+<span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">cross_matches</span><span class="w"> </span><span class="k">ADD</span><span class="w"> </span><span class="k">COLUMN</span><span class="w"> </span><span class="n">spectral_index</span><span class="w"> </span><span class="nb">REAL</span><span class="p">;</span>
+<span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">cross_matches</span><span class="w"> </span><span class="k">ADD</span><span class="w"> </span><span class="k">COLUMN</span><span class="w"> </span><span class="n">spectral_index_err</span><span class="w"> </span><span class="nb">REAL</span><span class="p">;</span>
+<span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">cross_matches</span><span class="w"> </span><span class="k">ADD</span><span class="w"> </span><span class="k">COLUMN</span><span class="w"> </span><span class="n">freq_ref_mhz</span><span class="w"> </span><span class="nb">REAL</span><span class="p">;</span><span class="w">  </span><span class="c1">-- Reference frequency</span>
+<span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">cross_matches</span><span class="w"> </span><span class="k">ADD</span><span class="w"> </span><span class="k">COLUMN</span><span class="w"> </span><span class="n">freq_compare_mhz</span><span class="w"> </span><span class="nb">REAL</span><span class="p">;</span><span class="w">  </span><span class="c1">-- Comparison frequency</span>
+
+<span class="c1">-- Or create dedicated spectral_indices table</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">spectral_indices</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">source_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">alpha</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Spectral index</span>
+<span class="w">    </span><span class="n">alpha_err</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">freq1_mhz</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Lower frequency</span>
+<span class="w">    </span><span class="n">freq2_mhz</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Higher frequency</span>
+<span class="w">    </span><span class="n">flux1_mjy</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">flux2_mjy</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">catalog1</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- e.g., "racs"</span>
+<span class="w">    </span><span class="n">catalog2</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- e.g., "nvss"</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+<span class="w">    </span><span class="k">FOREIGN</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">source_id</span><span class="p">)</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">sources</span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="p">);</span>
+</code></pre></div>
+<p><strong>Code Module</strong>: <code>catalog/spectral_index.py</code></p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_spectral_index</span><span class="p">(</span>
+    <span class="n">flux1_mjy</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">freq1_mhz</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">flux2_mjy</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">freq2_mhz</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">flux1_err</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">flux2_err</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculate spectral index: S = S0 * (ν/ν0)^α</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (alpha, alpha_err) tuple</span>
+<span class="sd">    """</span>
+    <span class="n">alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">flux1_mjy</span> <span class="o">/</span> <span class="n">flux2_mjy</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">freq1_mhz</span> <span class="o">/</span> <span class="n">freq2_mhz</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">flux1_err</span> <span class="ow">and</span> <span class="n">flux2_err</span><span class="p">:</span>
+        <span class="c1"># Propagate uncertainty</span>
+        <span class="n">alpha_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">flux1_err</span><span class="o">/</span><span class="n">flux1_mjy</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">flux2_err</span><span class="o">/</span><span class="n">flux2_mjy</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">alpha_err</span>
+
+    <span class="k">return</span> <span class="n">alpha</span><span class="p">,</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_spectral_indices_for_crossmatches</span><span class="p">(</span>
+    <span class="n">crossmatch_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">catalog_frequencies</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Compute spectral indices for sources matched in multiple catalogs.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        crossmatch_df: DataFrame from multi_catalog_match()</span>
+<span class="sd">        catalog_frequencies: Dict mapping catalog names to frequencies (MHz)</span>
+<span class="sd">            e.g., {"nvss": 1400, "vlass": 3000, "racs": 888}</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame with columns: source_id, alpha, alpha_err, freq1, freq2, ...</span>
+<span class="sd">    """</span>
+    <span class="c1"># Group by source_id to find multi-catalog matches</span>
+    <span class="c1"># Calculate spectral index for each pair</span>
+    <span class="c1"># Return results</span>
+    <span class="k">pass</span>
+</code></pre></div>
+<p><strong>Pipeline Integration</strong>:</p>
+<ul>
+<li>Add to <code>CrossMatchStage</code> after multi-catalog matching</li>
+<li>Compute spectral indices when ≥2 frequency catalogs matched</li>
+<li>Store in database automatically</li>
+</ul>
+<p><strong>Visualization</strong>:</p>
+<ul>
+<li>Add <code>--spectral-index</code> option to mosaic creation</li>
+<li>Generate FITS image with α values per pixel (using nearest source)</li>
+<li>Color-coded maps: red (steep), white (normal), blue (flat)</li>
+</ul>
+<p><strong>API Endpoint</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/sources/</span><span class="si">{source_id}</span><span class="s2">/spectral-index"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_spectral_index</span><span class="p">(</span><span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Get spectral index information for a source."""</span>
+    <span class="c1"># Query spectral_indices table</span>
+    <span class="c1"># Return alpha, frequencies, catalogs used</span>
+</code></pre></div>
+<h4 id="benefits">Benefits<a class="headerlink" href="#benefits" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Science</strong>: Identify rare source populations (ultra-steep spectrum, inverted
+  spectrum)</li>
+<li><strong>Calibration</strong>: Better calibrator selection using spectral constraints</li>
+<li><strong>Validation</strong>: Detect flux scale issues (systematic spectral index offsets)</li>
+<li><strong>Publications</strong>: Spectral index distributions, extreme source catalogs</li>
+</ul>
+<h4 id="risks-limitations">Risks / Limitations<a class="headerlink" href="#risks-limitations" title="Permanent link">¶</a></h4>
+<ul>
+<li>Requires matches in ≥2 catalogs at different frequencies</li>
+<li>Frequency coverage limited (888 MHz - 3 GHz)</li>
+<li>Assumes simple power-law spectrum (may not hold for all sources)</li>
+<li>RACS-VLASS baseline good (888 MHz - 3 GHz), NVSS-VLASS less ideal (1.4 - 3
+  GHz)</li>
+</ul>
+<h4 id="estimated-effort">Estimated Effort<a class="headerlink" href="#estimated-effort" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Development</strong>: 2-3 days</li>
+<li>Database schema: 2 hours</li>
+<li>Calculation functions: 4 hours</li>
+<li>Pipeline integration: 8 hours</li>
+<li>Testing: 4 hours</li>
+<li><strong>Documentation</strong>: 4 hours</li>
+</ul>
+<hr/>
+<h3 id="2-transient-detection-via-catalog-differencing">2. Transient Detection via Catalog Differencing<a class="headerlink" href="#2-transient-detection-via-catalog-differencing" title="Permanent link">¶</a></h3>
+<p><strong>Priority</strong>: High<br/>
+<strong>Effort</strong>: Medium<br/>
+<strong>Science Value</strong>: Very High (core DSA-110 science goal)<br/>
+<strong>Implementation Complexity</strong>: Medium</p>
+<h4 id="current-state_1">Current State<a class="headerlink" href="#current-state_1" title="Permanent link">¶</a></h4>
+<ul>
+<li>Catalogs used for validation but not systematically checked for new sources</li>
+<li>No automated flagging of catalog-absent sources</li>
+<li>No tracking of long-term variability (DSA-110 vs. NVSS 1993-1996 epoch)</li>
+</ul>
+<h4 id="opportunity_1">Opportunity<a class="headerlink" href="#opportunity_1" title="Permanent link">¶</a></h4>
+<p>Systematically detect transient and variable radio sources:</p>
+<p><strong>Transient Types</strong>:</p>
+<ul>
+<li><strong>New sources</strong>: Detected by DSA-110, absent from all catalogs</li>
+<li><strong>Long-term variables</strong>: Flux changed significantly since NVSS/FIRST epoch</li>
+<li><strong>Disappeared sources</strong>: In catalog but not detected by DSA-110 (fading
+  transients)</li>
+</ul>
+<p><strong>Science Cases</strong>:</p>
+<ul>
+<li>Tidal disruption events (TDEs)</li>
+<li>Supernovae (radio afterglows)</li>
+<li>Stellar flares / active binaries</li>
+<li>AGN variability</li>
+<li>Orphan afterglows (GRBs without detected optical/X-ray)</li>
+<li>Fast radio bursts (FRB) persistent sources</li>
+</ul>
+<h4 id="implementation-design_1">Implementation Design<a class="headerlink" href="#implementation-design_1" title="Permanent link">¶</a></h4>
+<p><strong>Database Schema</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">transient_candidates</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">source_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">detection_type</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- "new", "variable", "fading"</span>
+<span class="w">    </span><span class="n">ra_deg</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">dec_deg</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">flux_dsa_mjy</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">flux_catalog_mjy</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- NULL for new sources</span>
+<span class="w">    </span><span class="n">catalog_searched</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Comma-separated: "nvss,first,racs"</span>
+<span class="w">    </span><span class="n">flux_ratio</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- DSA/catalog for variables</span>
+<span class="w">    </span><span class="n">variability_timescale_days</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Time since catalog epoch</span>
+<span class="w">    </span><span class="n">confidence_score</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- 0-1, based on SNR, match radius, etc.</span>
+<span class="w">    </span><span class="n">follow_up_priority</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">  </span><span class="c1">-- "high", "medium", "low"</span>
+<span class="w">    </span><span class="n">status</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">'candidate'</span><span class="p">,</span><span class="w">  </span><span class="c1">-- "candidate", "confirmed", "rejected"</span>
+<span class="w">    </span><span class="n">notes</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+<span class="w">    </span><span class="n">updated_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+<span class="w">    </span><span class="k">FOREIGN</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">source_id</span><span class="p">)</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">sources</span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="p">);</span>
+
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_transients_type</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">transient_candidates</span><span class="p">(</span><span class="n">detection_type</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_transients_priority</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">transient_candidates</span><span class="p">(</span><span class="n">follow_up_priority</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_transients_status</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">transient_candidates</span><span class="p">(</span><span class="n">status</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_transients_created</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">transient_candidates</span><span class="p">(</span><span class="n">created_at</span><span class="p">);</span>
+</code></pre></div>
+<p><strong>Code Module</strong>: <code>transients/detection.py</code></p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">detect_transient_candidates</span><span class="p">(</span>
+    <span class="n">detected_sources</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">catalog_crossmatches</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">catalogs_searched</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">min_snr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">7.0</span><span class="p">,</span>
+    <span class="n">min_flux_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+    <span class="n">max_match_radius_arcsec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Identify transient candidates from cross-match results.</span>
+
+<span class="sd">    Transient types:</span>
+<span class="sd">    1. "new": No match in any catalog within max_match_radius</span>
+<span class="sd">    2. "variable": Matched but flux_ratio &gt; min_flux_ratio</span>
+<span class="sd">    3. "fading": Catalog source not detected by DSA-110</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        detected_sources: DSA-110 detected sources</span>
+<span class="sd">        catalog_crossmatches: Results from multi_catalog_match()</span>
+<span class="sd">        catalogs_searched: List of catalogs queried (e.g., ["nvss", "first"])</span>
+<span class="sd">        min_snr: Minimum SNR for transient candidate</span>
+<span class="sd">        min_flux_ratio: Minimum DSA/catalog flux ratio for variability</span>
+<span class="sd">        max_match_radius_arcsec: Maximum radius for "no match" classification</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame with transient candidates</span>
+<span class="sd">    """</span>
+    <span class="n">candidates</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">detected_sources</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">source</span><span class="p">[</span><span class="s1">'snr'</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">min_snr</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># Low-confidence detection, skip</span>
+
+        <span class="c1"># Check if source has catalog match</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="n">catalog_crossmatches</span><span class="p">[</span>
+            <span class="n">catalog_crossmatches</span><span class="p">[</span><span class="s1">'source_id'</span><span class="p">]</span> <span class="o">==</span> <span class="n">source</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span>
+        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># New source (not in any catalog)</span>
+            <span class="n">candidates</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s1">'source_id'</span><span class="p">:</span> <span class="n">source</span><span class="p">[</span><span class="s1">'id'</span><span class="p">],</span>
+                <span class="s1">'detection_type'</span><span class="p">:</span> <span class="s1">'new'</span><span class="p">,</span>
+                <span class="s1">'ra_deg'</span><span class="p">:</span> <span class="n">source</span><span class="p">[</span><span class="s1">'ra_deg'</span><span class="p">],</span>
+                <span class="s1">'dec_deg'</span><span class="p">:</span> <span class="n">source</span><span class="p">[</span><span class="s1">'dec_deg'</span><span class="p">],</span>
+                <span class="s1">'flux_dsa_mjy'</span><span class="p">:</span> <span class="n">source</span><span class="p">[</span><span class="s1">'flux_mjy'</span><span class="p">],</span>
+                <span class="s1">'flux_catalog_mjy'</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">'catalog_searched'</span><span class="p">:</span> <span class="s1">','</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">catalogs_searched</span><span class="p">),</span>
+                <span class="s1">'confidence_score'</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="n">source</span><span class="p">[</span><span class="s1">'snr'</span><span class="p">]</span> <span class="o">/</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+                <span class="s1">'follow_up_priority'</span><span class="p">:</span> <span class="s1">'high'</span> <span class="k">if</span> <span class="n">source</span><span class="p">[</span><span class="s1">'snr'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="k">else</span> <span class="s1">'medium'</span>
+            <span class="p">})</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Check for significant variability</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">matches</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">match</span><span class="p">[</span><span class="s1">'separation_arcsec'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">max_match_radius_arcsec</span><span class="p">:</span>
+                    <span class="k">continue</span>  <span class="c1"># Poor match, likely different source</span>
+
+                <span class="n">flux_ratio</span> <span class="o">=</span> <span class="n">source</span><span class="p">[</span><span class="s1">'flux_mjy'</span><span class="p">]</span> <span class="o">/</span> <span class="n">match</span><span class="p">[</span><span class="s1">'flux_catalog_mjy'</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="n">flux_ratio</span> <span class="o">&gt;</span> <span class="n">min_flux_ratio</span> <span class="ow">or</span> <span class="n">flux_ratio</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">min_flux_ratio</span><span class="p">:</span>
+                    <span class="c1"># Significant variability</span>
+                    <span class="n">catalog_epoch</span> <span class="o">=</span> <span class="n">CATALOG_EPOCHS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">match</span><span class="p">[</span><span class="s1">'catalog_type'</span><span class="p">],</span> <span class="mf">2000.0</span><span class="p">)</span>
+                    <span class="n">obs_epoch</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'obs_epoch'</span><span class="p">,</span> <span class="mf">2025.0</span><span class="p">)</span>
+                    <span class="n">timescale_days</span> <span class="o">=</span> <span class="p">(</span><span class="n">obs_epoch</span> <span class="o">-</span> <span class="n">catalog_epoch</span><span class="p">)</span> <span class="o">*</span> <span class="mf">365.25</span>
+
+                    <span class="n">candidates</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                        <span class="s1">'source_id'</span><span class="p">:</span> <span class="n">source</span><span class="p">[</span><span class="s1">'id'</span><span class="p">],</span>
+                        <span class="s1">'detection_type'</span><span class="p">:</span> <span class="s1">'variable'</span><span class="p">,</span>
+                        <span class="s1">'ra_deg'</span><span class="p">:</span> <span class="n">source</span><span class="p">[</span><span class="s1">'ra_deg'</span><span class="p">],</span>
+                        <span class="s1">'dec_deg'</span><span class="p">:</span> <span class="n">source</span><span class="p">[</span><span class="s1">'dec_deg'</span><span class="p">],</span>
+                        <span class="s1">'flux_dsa_mjy'</span><span class="p">:</span> <span class="n">source</span><span class="p">[</span><span class="s1">'flux_mjy'</span><span class="p">],</span>
+                        <span class="s1">'flux_catalog_mjy'</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="s1">'flux_catalog_mjy'</span><span class="p">],</span>
+                        <span class="s1">'catalog_searched'</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="s1">'catalog_type'</span><span class="p">],</span>
+                        <span class="s1">'flux_ratio'</span><span class="p">:</span> <span class="n">flux_ratio</span><span class="p">,</span>
+                        <span class="s1">'variability_timescale_days'</span><span class="p">:</span> <span class="n">timescale_days</span><span class="p">,</span>
+                        <span class="s1">'confidence_score'</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">flux_ratio</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+                        <span class="s1">'follow_up_priority'</span><span class="p">:</span> <span class="s1">'high'</span> <span class="k">if</span> <span class="n">flux_ratio</span> <span class="o">&gt;</span> <span class="mf">5.0</span> <span class="k">else</span> <span class="s1">'medium'</span>
+                    <span class="p">})</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">candidates</span><span class="p">)</span>
+
+
+<span class="c1"># Catalog epochs for variability timescale calculation</span>
+<span class="n">CATALOG_EPOCHS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"nvss"</span><span class="p">:</span> <span class="mf">1994.5</span><span class="p">,</span>  <span class="c1"># ~1993-1996</span>
+    <span class="s2">"first"</span><span class="p">:</span> <span class="mf">2002.0</span><span class="p">,</span>  <span class="c1"># ~1993-2011</span>
+    <span class="s2">"vlass"</span><span class="p">:</span> <span class="mf">2020.0</span><span class="p">,</span>  <span class="c1"># ~2017-present</span>
+    <span class="s2">"racs"</span><span class="p">:</span> <span class="mf">2020.0</span><span class="p">,</span>  <span class="c1"># ~2019-2021</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>Pipeline Integration</strong>:</p>
+<p>Add new <code>TransientDetectionStage</code> after <code>CrossMatchStage</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">TransientDetectionStage</span><span class="p">(</span><span class="n">PipelineStage</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Detect transient candidates via catalog differencing."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">PipelineContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PipelineContext</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">transients</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">context</span>
+
+        <span class="n">detected_sources</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">'detected_sources'</span><span class="p">]</span>
+        <span class="n">crossmatch_results</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">'crossmatch_results'</span><span class="p">]</span>
+
+        <span class="c1"># Detect candidates</span>
+        <span class="n">candidates</span> <span class="o">=</span> <span class="n">detect_transient_candidates</span><span class="p">(</span>
+            <span class="n">detected_sources</span><span class="p">,</span>
+            <span class="n">crossmatch_results</span><span class="p">,</span>
+            <span class="n">catalogs_searched</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">crossmatch</span><span class="o">.</span><span class="n">catalog_types</span><span class="p">,</span>
+            <span class="n">min_snr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">transients</span><span class="o">.</span><span class="n">min_snr</span><span class="p">,</span>
+            <span class="n">min_flux_ratio</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">transients</span><span class="o">.</span><span class="n">min_flux_ratio</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Store in database</span>
+        <span class="n">store_transient_candidates</span><span class="p">(</span><span class="n">candidates</span><span class="p">)</span>
+
+        <span class="c1"># Send alerts for high-priority candidates</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">transients</span><span class="o">.</span><span class="n">send_alerts</span><span class="p">:</span>
+            <span class="n">high_priority</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="n">candidates</span><span class="p">[</span><span class="s1">'follow_up_priority'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'high'</span><span class="p">]</span>
+            <span class="n">send_transient_alerts</span><span class="p">(</span><span class="n">high_priority</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">with_output</span><span class="p">(</span><span class="s1">'transient_candidates'</span><span class="p">,</span> <span class="n">candidates</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Configuration</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">TransientConfig</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">enabled</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Enable transient detection</span>
+    <span class="n">min_snr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">7.0</span>  <span class="c1"># Minimum SNR for candidates</span>
+    <span class="n">min_flux_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span>  <span class="c1"># Minimum flux change for variability</span>
+    <span class="n">max_match_radius_arcsec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span>  <span class="c1"># Maximum "no match" radius</span>
+    <span class="n">send_alerts</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Send alerts for high-priority candidates</span>
+    <span class="n">alert_webhook_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Slack/email webhook</span>
+</code></pre></div>
+<p><strong>Alert System</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">send_transient_alerts</span><span class="p">(</span><span class="n">candidates</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Send alerts for high-priority transient candidates."""</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">candidates</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="n">format_transient_alert</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
+
+        <span class="c1"># Send to Slack, email, or other notification system</span>
+        <span class="k">if</span> <span class="n">ALERT_WEBHOOK_URL</span><span class="p">:</span>
+            <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">ALERT_WEBHOOK_URL</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">"text"</span><span class="p">:</span> <span class="n">message</span><span class="p">})</span>
+
+        <span class="c1"># Log alert</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"TRANSIENT CANDIDATE: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">format_transient_alert</span><span class="p">(</span><span class="n">candidate</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Format transient candidate as alert message."""</span>
+    <span class="k">if</span> <span class="n">candidate</span><span class="p">[</span><span class="s1">'detection_type'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'new'</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"🌟 NEW TRANSIENT CANDIDATE</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"Position: RA=</span><span class="si">{</span><span class="n">candidate</span><span class="p">[</span><span class="s1">'ra_deg'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">°, Dec=</span><span class="si">{</span><span class="n">candidate</span><span class="p">[</span><span class="s1">'dec_deg'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">°</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"Flux: </span><span class="si">{</span><span class="n">candidate</span><span class="p">[</span><span class="s1">'flux_dsa_mjy'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> mJy</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"Not found in: </span><span class="si">{</span><span class="n">candidate</span><span class="p">[</span><span class="s1">'catalog_searched'</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"Priority: </span><span class="si">{</span><span class="n">candidate</span><span class="p">[</span><span class="s1">'follow_up_priority'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">candidate</span><span class="p">[</span><span class="s1">'detection_type'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'variable'</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"📈 VARIABLE SOURCE CANDIDATE</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"Position: RA=</span><span class="si">{</span><span class="n">candidate</span><span class="p">[</span><span class="s1">'ra_deg'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">°, Dec=</span><span class="si">{</span><span class="n">candidate</span><span class="p">[</span><span class="s1">'dec_deg'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">°</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"DSA Flux: </span><span class="si">{</span><span class="n">candidate</span><span class="p">[</span><span class="s1">'flux_dsa_mjy'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> mJy</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"Catalog Flux: </span><span class="si">{</span><span class="n">candidate</span><span class="p">[</span><span class="s1">'flux_catalog_mjy'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> mJy</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"Flux Ratio: </span><span class="si">{</span><span class="n">candidate</span><span class="p">[</span><span class="s1">'flux_ratio'</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">×</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"Timescale: </span><span class="si">{</span><span class="n">candidate</span><span class="p">[</span><span class="s1">'variability_timescale_days'</span><span class="p">]</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> days</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"Priority: </span><span class="si">{</span><span class="n">candidate</span><span class="p">[</span><span class="s1">'follow_up_priority'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+</code></pre></div>
+<p><strong>API Endpoints</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/transients/candidates"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_transient_candidates</span><span class="p">(</span>
+    <span class="n">detection_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">priority</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">status</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""List transient candidates with filters."""</span>
+    <span class="k">pass</span>
+
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/transients/</span><span class="si">{candidate_id}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_transient_details</span><span class="p">(</span><span class="n">candidate_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Get detailed information for a transient candidate."""</span>
+    <span class="k">pass</span>
+
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">"/transients/</span><span class="si">{candidate_id}</span><span class="s2">/status"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_transient_status</span><span class="p">(</span><span class="n">candidate_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">status</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">notes</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Update transient status (candidate → confirmed/rejected)."""</span>
+    <span class="k">pass</span>
+</code></pre></div>
+<p><strong>Dashboard Integration</strong>:</p>
+<ul>
+<li>Add "Transients" tab showing recent candidates</li>
+<li>Map view with candidate locations</li>
+<li>Light curves for variable sources (if multiple epochs available)</li>
+<li>Quick actions: mark as confirmed/rejected, trigger follow-up</li>
+</ul>
+<h4 id="benefits_1">Benefits<a class="headerlink" href="#benefits_1" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Science</strong>: Core DSA-110 goal (transient discovery in radio)</li>
+<li><strong>Operations</strong>: Automatic candidate identification reduces manual effort</li>
+<li><strong>Follow-up</strong>: Prioritized list for rapid follow-up observations</li>
+<li><strong>Publications</strong>: Transient catalogs, variability studies</li>
+</ul>
+<h4 id="risks-limitations_1">Risks / Limitations<a class="headerlink" href="#risks-limitations_1" title="Permanent link">¶</a></h4>
+<ul>
+<li>False positives from:</li>
+<li>Imaging artifacts (sidelobes, RFI)</li>
+<li>Calibration errors (flux scale issues)</li>
+<li>Catalog incompleteness (source in catalog but not in strip DB)</li>
+<li>Requires good flux calibration for variability detection</li>
+<li>Limited to long-term variability (days-years, not intra-observation)</li>
+</ul>
+<h4 id="estimated-effort_1">Estimated Effort<a class="headerlink" href="#estimated-effort_1" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Development</strong>: 5-7 days</li>
+<li>Database schema: 4 hours</li>
+<li>Detection algorithm: 12 hours</li>
+<li>Pipeline stage: 8 hours</li>
+<li>Alert system: 8 hours</li>
+<li>API endpoints: 8 hours</li>
+<li>Dashboard integration: 16 hours</li>
+<li>Testing: 8 hours</li>
+<li><strong>Documentation</strong>: 8 hours</li>
+</ul>
+<hr/>
+<h3 id="3-smart-calibrator-pre-selection">3. Smart Calibrator Pre-Selection<a class="headerlink" href="#3-smart-calibrator-pre-selection" title="Permanent link">¶</a></h3>
+<p><strong>Priority</strong>: Medium<br/>
+<strong>Effort</strong>: Medium<br/>
+<strong>Science Value</strong>: Low (operational improvement)<br/>
+<strong>Implementation Complexity</strong>: Medium</p>
+<h4 id="current-state_2">Current State<a class="headerlink" href="#current-state_2" title="Permanent link">¶</a></h4>
+<ul>
+<li>Calibrator selection queries catalogs at runtime for each MS</li>
+<li>Same queries repeated for nearby declinations (redundant)</li>
+<li>No caching or pre-computed lookup tables</li>
+<li>Variable sources (pulsars, blazars) not automatically excluded</li>
+</ul>
+<h4 id="opportunity_2">Opportunity<a class="headerlink" href="#opportunity_2" title="Permanent link">¶</a></h4>
+<p>Build a pre-computed calibrator registry to improve performance and reliability:</p>
+<p><strong>Performance Gains</strong>:</p>
+<ul>
+<li>Eliminate redundant catalog queries (10-30s per MS → &lt;1s lookup)</li>
+<li>Pre-compute primary beam weights for declination strips</li>
+<li>Cache results for repeated observations at same declination</li>
+</ul>
+<p><strong>Quality Improvements</strong>:</p>
+<ul>
+<li>Blacklist known variable sources (blazars, pulsars)</li>
+<li>Prefer sources with multiple catalog matches (cross-validated)</li>
+<li>Include spectral index information (avoid steep-spectrum sources)</li>
+<li>Flag sources with known structure (resolved, double-lobed)</li>
+</ul>
+<h4 id="implementation-design_2">Implementation Design<a class="headerlink" href="#implementation-design_2" title="Permanent link">¶</a></h4>
+<p><strong>Database Schema</strong>: <code>state/calibrator_registry.sqlite3</code></p>
+<div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">calibrators</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">source_name</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- VLA calibrator name or catalog ID</span>
+<span class="w">    </span><span class="n">ra_deg</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">dec_deg</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">flux_1400_jy</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Flux at 1.4 GHz</span>
+<span class="w">    </span><span class="n">spectral_index</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- α (S ∝ ν^α)</span>
+<span class="w">    </span><span class="n">is_variable</span><span class="w"> </span><span class="nb">BOOLEAN</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Known variable source</span>
+<span class="w">    </span><span class="n">is_resolved</span><span class="w"> </span><span class="nb">BOOLEAN</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Resolved by VLA</span>
+<span class="w">    </span><span class="n">quality_score</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- 0-1, based on multiple factors</span>
+<span class="w">    </span><span class="n">catalogs_matched</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Comma-separated: "nvss,first,vlass"</span>
+<span class="w">    </span><span class="n">last_updated</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+<span class="w">    </span><span class="n">notes</span><span class="w"> </span><span class="nb">TEXT</span>
+<span class="p">);</span>
+
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">calibrator_strips</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">dec_center</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Declination strip center</span>
+<span class="w">    </span><span class="n">dec_width</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">1</span><span class="p">.</span><span class="mi">0</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Strip width (degrees)</span>
+<span class="w">    </span><span class="n">calibrator_id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">pb_weight</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Primary beam weight at strip center</span>
+<span class="w">    </span><span class="n">rank</span><span class="w"> </span><span class="nb">INTEGER</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Rank within strip (1 = best)</span>
+<span class="w">    </span><span class="k">FOREIGN</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">calibrator_id</span><span class="p">)</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">calibrators</span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="p">);</span>
+
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_calibrators_dec</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">calibrators</span><span class="p">(</span><span class="n">dec_deg</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_calibrators_flux</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">calibrators</span><span class="p">(</span><span class="n">flux_1400_jy</span><span class="w"> </span><span class="k">DESC</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_strips_dec</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">calibrator_strips</span><span class="p">(</span><span class="n">dec_center</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_strips_rank</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">calibrator_strips</span><span class="p">(</span><span class="n">rank</span><span class="p">);</span>
+</code></pre></div>
+<p><strong>Building the Registry</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">build_calibrator_registry</span><span class="p">(</span>
+    <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"state/calibrator_registry.sqlite3"</span><span class="p">,</span>
+    <span class="n">dec_range</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mf">30.0</span><span class="p">,</span> <span class="mf">70.0</span><span class="p">),</span>
+    <span class="n">dec_step</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">min_flux_jy</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Build calibrator registry for all declination strips.</span>
+
+<span class="sd">    Steps:</span>
+<span class="sd">    1. Query VLA calibrator catalog + NVSS/FIRST/VLASS</span>
+<span class="sd">    2. Cross-match to find multi-catalog sources</span>
+<span class="sd">    3. Compute spectral indices (if multiple frequencies matched)</span>
+<span class="sd">    4. Flag variable sources (cross-match with ATNF, WISE AGN)</span>
+<span class="sd">    5. Compute primary beam weights for each declination strip</span>
+<span class="sd">    6. Rank calibrators within each strip</span>
+<span class="sd">    7. Store in SQLite database</span>
+<span class="sd">    """</span>
+    <span class="k">pass</span>
+</code></pre></div>
+<p><strong>Query Interface</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">query_calibrators</span><span class="p">(</span>
+    <span class="n">dec_deg</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">min_flux_jy</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">max_results</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+    <span class="n">exclude_variable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">exclude_resolved</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">registry_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Query pre-built calibrator registry for a declination.</span>
+
+<span class="sd">    Fast lookup (&lt;1s) replacing real-time catalog queries.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame with columns: source_name, ra_deg, dec_deg, flux_1400_jy,</span>
+<span class="sd">                               spectral_index, pb_weight, rank, quality_score</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">registry_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">registry_path</span> <span class="o">=</span> <span class="s2">"state/calibrator_registry.sqlite3"</span>
+
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">registry_path</span><span class="p">)</span>
+
+    <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">        SELECT c.*, s.pb_weight, s.rank</span>
+<span class="s2">        FROM calibrator_strips s</span>
+<span class="s2">        JOIN calibrators c ON s.calibrator_id = c.id</span>
+<span class="s2">        WHERE s.dec_center BETWEEN ? AND ?</span>
+<span class="s2">          AND c.flux_1400_jy &gt;= ?</span>
+<span class="s2">    """</span>
+
+    <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="n">dec_deg</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">dec_deg</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">min_flux_jy</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">exclude_variable</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">+=</span> <span class="s2">" AND c.is_variable = 0"</span>
+
+    <span class="k">if</span> <span class="n">exclude_resolved</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">+=</span> <span class="s2">" AND c.is_resolved = 0"</span>
+
+    <span class="n">query</span> <span class="o">+=</span> <span class="s2">" ORDER BY s.rank LIMIT ?"</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">max_results</span><span class="p">)</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">df</span>
+</code></pre></div>
+<p><strong>Integration</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Replace in calibration/selection.py</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">select_bandpass_from_catalog</span><span class="p">(</span>
+    <span class="n">ms_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">catalog_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Select bandpass fields by scanning a VLA calibrator catalog.</span>
+
+<span class="sd">    Now uses pre-built registry if available, falls back to dynamic queries.</span>
+<span class="sd">    """</span>
+    <span class="n">ra_field</span><span class="p">,</span> <span class="n">dec_field</span> <span class="o">=</span> <span class="n">_read_field_dirs</span><span class="p">(</span><span class="n">ms_path</span><span class="p">)</span>
+    <span class="n">dec_center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">dec_field</span><span class="p">)</span>
+
+    <span class="c1"># Try registry first (fast path)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">calibrators</span> <span class="o">=</span> <span class="n">query_calibrators</span><span class="p">(</span>
+            <span class="n">dec_deg</span><span class="o">=</span><span class="n">dec_center</span><span class="p">,</span>
+            <span class="n">min_flux_jy</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'min_flux_jy'</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+            <span class="n">max_results</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">exclude_variable</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">calibrators</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Using pre-built calibrator registry (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">calibrators</span><span class="p">)</span><span class="si">}</span><span class="s2"> candidates)"</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">_select_from_calibrator_df</span><span class="p">(</span><span class="n">calibrators</span><span class="p">,</span> <span class="n">ra_field</span><span class="p">,</span> <span class="n">dec_field</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Calibrator registry not found, falling back to dynamic query"</span><span class="p">)</span>
+
+    <span class="c1"># Fallback to dynamic catalog query (original code path)</span>
+    <span class="k">return</span> <span class="n">_select_from_dynamic_query</span><span class="p">(</span><span class="n">ms_path</span><span class="p">,</span> <span class="n">catalog_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Maintenance</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Rebuild registry periodically (monthly for ATNF updates)</span>
+python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibration.build_calibrator_registry<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output<span class="w"> </span>state/calibrator_registry.sqlite3<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--force
+</code></pre></div>
+<h4 id="benefits_2">Benefits<a class="headerlink" href="#benefits_2" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Performance</strong>: 10-30× speedup in calibrator selection (30s → &lt;1s)</li>
+<li><strong>Reliability</strong>: Blacklist variable sources, prefer well-characterized sources</li>
+<li><strong>Quality</strong>: Include spectral indices, multi-catalog validation</li>
+<li><strong>Efficiency</strong>: Eliminate redundant queries for nearby observations</li>
+</ul>
+<h4 id="risks-limitations_2">Risks / Limitations<a class="headerlink" href="#risks-limitations_2" title="Permanent link">¶</a></h4>
+<ul>
+<li>Registry becomes stale (ATNF adds new pulsars, VLA updates calibrators)</li>
+<li>Requires periodic rebuilding (monthly/quarterly)</li>
+<li>Storage overhead (~100 MB for full registry)</li>
+<li>Fallback to dynamic queries needed if registry missing</li>
+</ul>
+<h4 id="estimated-effort_2">Estimated Effort<a class="headerlink" href="#estimated-effort_2" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Development</strong>: 4-5 days</li>
+<li>Database schema: 4 hours</li>
+<li>Builder script: 16 hours</li>
+<li>Query interface: 8 hours</li>
+<li>Integration: 8 hours</li>
+<li>Testing: 8 hours</li>
+<li><strong>Documentation</strong>: 4 hours</li>
+</ul>
+<hr/>
+<h3 id="4-multi-wavelength-source-classification-pipeline">4. Multi-wavelength Source Classification Pipeline<a class="headerlink" href="#4-multi-wavelength-source-classification-pipeline" title="Permanent link">¶</a></h3>
+<p><strong>Priority</strong>: Medium<br/>
+<strong>Effort</strong>: High<br/>
+<strong>Science Value</strong>: High<br/>
+<strong>Implementation Complexity</strong>: High</p>
+<h4 id="current-state_3">Current State<a class="headerlink" href="#current-state_3" title="Permanent link">¶</a></h4>
+<ul>
+<li>External catalogs (Gaia, SIMBAD, NED) queryable via API</li>
+<li>Multi-wavelength checks available in <code>catalog/multiwavelength.py</code></li>
+<li>No systematic classification of all detected sources</li>
+<li>Classification results not stored persistently</li>
+</ul>
+<h4 id="opportunity_3">Opportunity<a class="headerlink" href="#opportunity_3" title="Permanent link">¶</a></h4>
+<p>Automatically classify every detected source using multi-wavelength information:</p>
+<p><strong>Classification Scheme</strong>:</p>
+<ul>
+<li><strong>Stars</strong>: Gaia match + weak radio (stellar contamination)</li>
+<li><strong>AGN/Quasars</strong>: SIMBAD "QSO" or NED extragalactic + flat spectrum</li>
+<li><strong>Radio Galaxies</strong>: NED match + steep spectrum + extended morphology</li>
+<li><strong>Pulsars</strong>: ATNF match</li>
+<li><strong>Transients</strong>: No catalog match + high SNR</li>
+<li><strong>Unknown</strong>: No classification possible</li>
+</ul>
+<p><strong>Science Value</strong>:</p>
+<ul>
+<li>Generate science-ready source catalogs with types, redshifts, spectral indices</li>
+<li>Enable population studies (AGN fraction, pulsar detections, stellar
+  contamination rate)</li>
+<li>Prioritize interesting sources for follow-up</li>
+<li>Filter out contamination (stars) from radio source samples</li>
+</ul>
+<h4 id="implementation-design_3">Implementation Design<a class="headerlink" href="#implementation-design_3" title="Permanent link">¶</a></h4>
+<p><strong>Database Schema</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">source_classifications</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">source_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">UNIQUE</span><span class="p">,</span>
+<span class="w">    </span><span class="n">classification</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- "star", "agn", "galaxy", "pulsar", "transient", "unknown"</span>
+<span class="w">    </span><span class="n">confidence</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- 0-1</span>
+
+<span class="w">    </span><span class="c1">-- External catalog matches</span>
+<span class="w">    </span><span class="n">gaia_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">gaia_separation_arcsec</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">gaia_g_mag</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+
+<span class="w">    </span><span class="n">simbad_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">simbad_type</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">simbad_separation_arcsec</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+
+<span class="w">    </span><span class="n">ned_name</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">ned_type</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">ned_redshift</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">ned_separation_arcsec</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+
+<span class="w">    </span><span class="n">atnf_name</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">atnf_separation_arcsec</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+
+<span class="w">    </span><span class="c1">-- Additional properties</span>
+<span class="w">    </span><span class="n">has_optical_counterpart</span><span class="w"> </span><span class="nb">BOOLEAN</span><span class="p">,</span>
+<span class="w">    </span><span class="n">has_xray_counterpart</span><span class="w"> </span><span class="nb">BOOLEAN</span><span class="p">,</span>
+<span class="w">    </span><span class="n">notes</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+<span class="w">    </span><span class="n">updated_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+
+<span class="w">    </span><span class="k">FOREIGN</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">source_id</span><span class="p">)</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">sources</span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="p">);</span>
+
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_classifications_class</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">source_classifications</span><span class="p">(</span><span class="n">classification</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_classifications_confidence</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">source_classifications</span><span class="p">(</span><span class="n">confidence</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_classifications_redshift</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">source_classifications</span><span class="p">(</span><span class="n">ned_redshift</span><span class="p">);</span>
+</code></pre></div>
+<p><strong>Code Module</strong>: <code>classification/classify.py</code></p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">classify_source</span><span class="p">(</span>
+    <span class="n">source</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">match_radius_arcsec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
+    <span class="n">gaia_priority</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Classify a source using multi-wavelength catalogs.</span>
+
+<span class="sd">    Classification logic:</span>
+<span class="sd">    1. Gaia match → star (if radio weak) or AGN (if radio strong)</span>
+<span class="sd">    2. ATNF match → pulsar</span>
+<span class="sd">    3. SIMBAD QSO → quasar/AGN</span>
+<span class="sd">    4. NED match + z &gt; 0 → galaxy/AGN</span>
+<span class="sd">    5. No matches + high SNR → transient candidate</span>
+<span class="sd">    6. Otherwise → unknown</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        {</span>
+<span class="sd">            'classification': str,</span>
+<span class="sd">            'confidence': float,</span>
+<span class="sd">            'gaia_match': dict or None,</span>
+<span class="sd">            'simbad_match': dict or None,</span>
+<span class="sd">            'ned_match': dict or None,</span>
+<span class="sd">            'atnf_match': dict or None</span>
+<span class="sd">        }</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.catalog.external</span><span class="w"> </span><span class="kn">import</span> <span class="n">search_all_external</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.catalog.multiwavelength</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_atnf</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+
+    <span class="n">coord</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span><span class="o">=</span><span class="n">source</span><span class="p">[</span><span class="s1">'ra_deg'</span><span class="p">]</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">source</span><span class="p">[</span><span class="s1">'dec_deg'</span><span class="p">]</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
+
+    <span class="c1"># Query external catalogs</span>
+    <span class="n">external</span> <span class="o">=</span> <span class="n">search_all_external</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">radius_arcsec</span><span class="o">=</span><span class="n">match_radius_arcsec</span><span class="p">)</span>
+    <span class="n">atnf</span> <span class="o">=</span> <span class="n">check_atnf</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">match_radius_arcsec</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">arcsec</span><span class="p">)</span>
+
+    <span class="c1"># Classification logic</span>
+    <span class="k">if</span> <span class="n">atnf</span><span class="p">:</span>
+        <span class="c1"># Pulsar (highest priority for radio astronomy)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">'classification'</span><span class="p">:</span> <span class="s1">'pulsar'</span><span class="p">,</span>
+            <span class="s1">'confidence'</span><span class="p">:</span> <span class="mf">0.95</span><span class="p">,</span>
+            <span class="s1">'atnf_match'</span><span class="p">:</span> <span class="n">atnf</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">external</span>
+        <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">external</span><span class="p">[</span><span class="s1">'gaia'</span><span class="p">]:</span>
+        <span class="n">gaia</span> <span class="o">=</span> <span class="n">external</span><span class="p">[</span><span class="s1">'gaia'</span><span class="p">]</span>
+        <span class="c1"># Star if faint radio (&lt; 10 mJy) or AGN if bright radio</span>
+        <span class="k">if</span> <span class="n">source</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'flux_mjy'</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">'classification'</span><span class="p">:</span> <span class="s1">'star'</span><span class="p">,</span>
+                <span class="s1">'confidence'</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span>
+                <span class="s1">'gaia_match'</span><span class="p">:</span> <span class="n">gaia</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">external</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Bright radio + optical → likely AGN</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">'classification'</span><span class="p">:</span> <span class="s1">'agn'</span><span class="p">,</span>
+                <span class="s1">'confidence'</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
+                <span class="s1">'gaia_match'</span><span class="p">:</span> <span class="n">gaia</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">external</span>
+            <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">external</span><span class="p">[</span><span class="s1">'simbad'</span><span class="p">]:</span>
+        <span class="n">simbad</span> <span class="o">=</span> <span class="n">external</span><span class="p">[</span><span class="s1">'simbad'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">simbad</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'otype'</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'QSO'</span><span class="p">,</span> <span class="s1">'AGN'</span><span class="p">,</span> <span class="s1">'Blazar'</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">'classification'</span><span class="p">:</span> <span class="s1">'agn'</span><span class="p">,</span>
+                <span class="s1">'confidence'</span><span class="p">:</span> <span class="mf">0.90</span><span class="p">,</span>
+                <span class="s1">'simbad_match'</span><span class="p">:</span> <span class="n">simbad</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">external</span>
+            <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">external</span><span class="p">[</span><span class="s1">'ned'</span><span class="p">]:</span>
+        <span class="n">ned</span> <span class="o">=</span> <span class="n">external</span><span class="p">[</span><span class="s1">'ned'</span><span class="p">]</span>
+        <span class="c1"># Extragalactic source</span>
+        <span class="k">if</span> <span class="n">ned</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'redshift'</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
+            <span class="c1"># High-z → likely radio galaxy</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">'classification'</span><span class="p">:</span> <span class="s1">'radio_galaxy'</span><span class="p">,</span>
+                <span class="s1">'confidence'</span><span class="p">:</span> <span class="mf">0.80</span><span class="p">,</span>
+                <span class="s1">'ned_match'</span><span class="p">:</span> <span class="n">ned</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">external</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Low-z → could be AGN or star-forming galaxy</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">'classification'</span><span class="p">:</span> <span class="s1">'galaxy'</span><span class="p">,</span>
+                <span class="s1">'confidence'</span><span class="p">:</span> <span class="mf">0.70</span><span class="p">,</span>
+                <span class="s1">'ned_match'</span><span class="p">:</span> <span class="n">ned</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">external</span>
+            <span class="p">}</span>
+
+    <span class="c1"># No external matches</span>
+    <span class="k">if</span> <span class="n">source</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'snr'</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+        <span class="c1"># High SNR + no catalog match → transient candidate</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">'classification'</span><span class="p">:</span> <span class="s1">'transient'</span><span class="p">,</span>
+            <span class="s1">'confidence'</span><span class="p">:</span> <span class="mf">0.60</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">external</span>
+        <span class="p">}</span>
+
+    <span class="c1"># Unknown</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">'classification'</span><span class="p">:</span> <span class="s1">'unknown'</span><span class="p">,</span>
+        <span class="s1">'confidence'</span><span class="p">:</span> <span class="mf">0.50</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">external</span>
+    <span class="p">}</span>
+</code></pre></div>
+<p><strong>Pipeline Stage</strong>: <code>ClassificationStage</code></p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">ClassificationStage</span><span class="p">(</span><span class="n">PipelineStage</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Classify detected sources using multi-wavelength catalogs."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">PipelineContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PipelineContext</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">classification</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">context</span>
+
+        <span class="n">detected_sources</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">'detected_sources'</span><span class="p">]</span>
+
+        <span class="n">classifications</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">detected_sources</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">classify_source</span><span class="p">(</span>
+                    <span class="n">source</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span>
+                    <span class="n">match_radius_arcsec</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">classification</span><span class="o">.</span><span class="n">match_radius_arcsec</span>
+                <span class="p">)</span>
+                <span class="n">classifications</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Classification failed for </span><span class="si">{</span><span class="n">source</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+        <span class="c1"># Store in database</span>
+        <span class="n">store_classifications</span><span class="p">(</span><span class="n">classifications</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">with_output</span><span class="p">(</span><span class="s1">'source_classifications'</span><span class="p">,</span> <span class="n">classifications</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>API Endpoints</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/sources/</span><span class="si">{source_id}</span><span class="s2">/classification"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_source_classification</span><span class="p">(</span><span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Get multi-wavelength classification for a source."""</span>
+    <span class="k">pass</span>
+
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/sources/by-class/</span><span class="si">{classification}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_sources_by_class</span><span class="p">(</span>
+    <span class="n">classification</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">min_confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""List sources of a specific classification."""</span>
+    <span class="k">pass</span>
+</code></pre></div>
+<h4 id="benefits_3">Benefits<a class="headerlink" href="#benefits_3" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Science</strong>: Science-ready catalogs with source types, redshifts</li>
+<li><strong>Population Studies</strong>: AGN fraction, pulsar detections, stellar contamination</li>
+<li><strong>Follow-up Prioritization</strong>: Focus on interesting source types</li>
+<li><strong>Data Quality</strong>: Identify and filter stellar contamination</li>
+</ul>
+<h4 id="risks-limitations_3">Risks / Limitations<a class="headerlink" href="#risks-limitations_3" title="Permanent link">¶</a></h4>
+<ul>
+<li>Requires external API access (Gaia, SIMBAD, NED)</li>
+<li>Classification accuracy limited by catalog completeness</li>
+<li>False positives (e.g., AGN misclassified as star)</li>
+<li>Slow (external queries take 1-10s per source)</li>
+</ul>
+<h4 id="estimated-effort_3">Estimated Effort<a class="headerlink" href="#estimated-effort_3" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Development</strong>: 7-10 days</li>
+<li>Database schema: 4 hours</li>
+<li>Classification logic: 16 hours</li>
+<li>Pipeline stage: 12 hours</li>
+<li>API endpoints: 8 hours</li>
+<li>Testing: 16 hours</li>
+<li>Dashboard integration: 16 hours</li>
+<li><strong>Documentation</strong>: 8 hours</li>
+</ul>
+<hr/>
+<h3 id="5-astrometric-self-calibration">5. Astrometric Self-Calibration<a class="headerlink" href="#5-astrometric-self-calibration" title="Permanent link">¶</a></h3>
+<p><strong>Priority</strong>: Low<br/>
+<strong>Effort</strong>: Medium<br/>
+<strong>Science Value</strong>: Medium<br/>
+<strong>Implementation Complexity</strong>: Medium</p>
+<h4 id="current-state_4">Current State<a class="headerlink" href="#current-state_4" title="Permanent link">¶</a></h4>
+<ul>
+<li>Positional offsets calculated during cross-matching</li>
+<li>Offsets not applied back to images</li>
+<li>No iterative astrometric refinement</li>
+</ul>
+<h4 id="opportunity_4">Opportunity<a class="headerlink" href="#opportunity_4" title="Permanent link">¶</a></h4>
+<p>Use high-resolution catalogs (FIRST at 5") as astrometric reference:</p>
+<ul>
+<li>Calculate systematic RA/Dec offsets from cross-matching</li>
+<li>Automatically correct WCS headers in FITS images</li>
+<li>Iterative refinement: initial mosaic → cross-match → refine WCS → re-mosaic</li>
+<li>Track astrometric accuracy over time (correlate with ionospheric conditions)</li>
+</ul>
+<p><strong>Benefits</strong>:</p>
+<ul>
+<li>Improve astrometric accuracy from ~2-3" to &lt;1" (FIRST-limited)</li>
+<li>Enable precise source localization for multi-wavelength follow-up</li>
+<li>Detect systematic errors (antenna position errors, ionospheric refraction)</li>
+</ul>
+<p><strong>Implementation</strong>: Add WCS correction in <code>mosaic/orchestrator.py</code> based on
+cross-match offsets</p>
+<hr/>
+<h3 id="6-flux-calibration-monitoring-alerts">6. Flux Calibration Monitoring &amp; Alerts<a class="headerlink" href="#6-flux-calibration-monitoring-alerts" title="Permanent link">¶</a></h3>
+<p><strong>Priority</strong>: Medium<br/>
+<strong>Effort</strong>: Low<br/>
+<strong>Science Value</strong>: Low (operational quality)<br/>
+<strong>Implementation Complexity</strong>: Low</p>
+<h4 id="current-state_5">Current State<a class="headerlink" href="#current-state_5" title="Permanent link">¶</a></h4>
+<ul>
+<li>Flux validation runs but results not systematically tracked</li>
+<li>No trending or alerting for flux scale drift</li>
+</ul>
+<h4 id="opportunity_5">Opportunity<a class="headerlink" href="#opportunity_5" title="Permanent link">¶</a></h4>
+<p>Build operational monitoring for flux calibration health:</p>
+<ul>
+<li>Store validation results in <code>calibration_monitoring</code> table</li>
+<li>Track median flux ratio over time (daily/weekly trends)</li>
+<li>Alert when ratio drifts outside 0.9-1.1 range</li>
+<li>Correlate flux issues with weather, calibrator selection, antenna performance</li>
+</ul>
+<p><strong>Benefits</strong>:</p>
+<ul>
+<li>Early detection of calibration issues</li>
+<li>Data quality assurance</li>
+<li>Reduced need for manual validation checks</li>
+</ul>
+<p><strong>Implementation</strong>: Add monitoring database table, trending dashboard, Slack
+alerts</p>
+<hr/>
+<h3 id="7-proper-motion-corrections-for-long-term-studies">7. Proper Motion Corrections for Long-Term Studies<a class="headerlink" href="#7-proper-motion-corrections-for-long-term-studies" title="Permanent link">¶</a></h3>
+<p><strong>Priority</strong>: Low<br/>
+<strong>Effort</strong>: Low<br/>
+<strong>Science Value</strong>: Low (niche use case)<br/>
+<strong>Implementation Complexity</strong>: Low</p>
+<h4 id="current-state_6">Current State<a class="headerlink" href="#current-state_6" title="Permanent link">¶</a></h4>
+<ul>
+<li>Gaia/ATNF proper motions available but not systematically applied</li>
+<li>Catalog positions not epoch-corrected</li>
+</ul>
+<h4 id="opportunity_6">Opportunity<a class="headerlink" href="#opportunity_6" title="Permanent link">¶</a></h4>
+<p>Automatically epoch-correct all catalog positions:</p>
+<ul>
+<li>Apply proper motion from Gaia/ATNF to catalog positions</li>
+<li>Critical for pulsars (some have PM &gt; 100 mas/yr)</li>
+<li>Enables accurate matching to historical surveys (NVSS 1993)</li>
+</ul>
+<p><strong>Benefits</strong>:</p>
+<ul>
+<li>Accurate matching for high-PM sources</li>
+<li>Enable long-term variability studies</li>
+</ul>
+<p><strong>Implementation</strong>: Add <code>epoch</code> parameter to all catalog queries, use
+<code>astropy.coordinates</code> PM correction</p>
+<hr/>
+<h3 id="8-coverage-aware-catalog-selection">8. Coverage-Aware Catalog Selection<a class="headerlink" href="#8-coverage-aware-catalog-selection" title="Permanent link">¶</a></h3>
+<p><strong>Priority</strong>: Low<br/>
+<strong>Effort</strong>: Medium<br/>
+<strong>Science Value</strong>: Low (optimization)<br/>
+<strong>Implementation Complexity</strong>: Medium</p>
+<h4 id="current-state_7">Current State<a class="headerlink" href="#current-state_7" title="Permanent link">¶</a></h4>
+<ul>
+<li>Manual declination-based catalog selection</li>
+<li>No optimization for resolution, frequency match, completeness</li>
+</ul>
+<h4 id="opportunity_7">Opportunity<a class="headerlink" href="#opportunity_7" title="Permanent link">¶</a></h4>
+<p>Build "catalog recommendation engine":</p>
+<ul>
+<li>Input: RA, Dec, purpose (calibration/validation/cross-matching)</li>
+<li>Output: Ranked list of best catalogs for that location</li>
+<li>Factors: declination coverage, resolution, frequency match, completeness</li>
+</ul>
+<p><strong>Benefits</strong>:</p>
+<ul>
+<li>Optimal catalog selection for each observation</li>
+<li>Better cross-matching results (use highest-resolution available)</li>
+</ul>
+<p><strong>Implementation</strong>: Add <code>recommend_catalogs(ra, dec, purpose)</code> function with
+coverage maps</p>
+<hr/>
+<h3 id="9-pulsar-timing-integration">9. Pulsar Timing Integration<a class="headerlink" href="#9-pulsar-timing-integration" title="Permanent link">¶</a></h3>
+<p><strong>Priority</strong>: Low<br/>
+<strong>Effort</strong>: High<br/>
+<strong>Science Value</strong>: High (specialized)<br/>
+<strong>Implementation Complexity</strong>: High</p>
+<h4 id="current-state_8">Current State<a class="headerlink" href="#current-state_8" title="Permanent link">¶</a></h4>
+<ul>
+<li>ATNF identifies pulsars but timing info (period, DM) not used</li>
+<li>Pulsar flux variability not tracked</li>
+</ul>
+<h4 id="opportunity_8">Opportunity<a class="headerlink" href="#opportunity_8" title="Permanent link">¶</a></h4>
+<p>Integrate pulsar timing information:</p>
+<ul>
+<li>Use period/DM to predict visibility windows</li>
+<li>Flag expected flux variability</li>
+<li>Build pulsar light curves from DSA-110 observations</li>
+<li>Contribute flux measurements to pulsar community</li>
+</ul>
+<p><strong>Benefits</strong>:</p>
+<ul>
+<li>Pulsar science (timing, flux monitoring)</li>
+<li>Community contributions (flux measurements)</li>
+</ul>
+<p><strong>Implementation</strong>: Requires pulsar-specific processing, light curve database</p>
+<hr/>
+<h3 id="10-science-ready-catalog-products">10. Science-Ready Catalog Products<a class="headerlink" href="#10-science-ready-catalog-products" title="Permanent link">¶</a></h3>
+<p><strong>Priority</strong>: Medium<br/>
+<strong>Effort</strong>: Medium<br/>
+<strong>Science Value</strong>: High<br/>
+<strong>Implementation Complexity</strong>: Medium</p>
+<h4 id="current-state_9">Current State<a class="headerlink" href="#current-state_9" title="Permanent link">¶</a></h4>
+<ul>
+<li>Cross-match results stored in database</li>
+<li>No export as VO-compliant catalogs</li>
+<li>Not discoverable by external astronomers</li>
+</ul>
+<h4 id="opportunity_9">Opportunity<a class="headerlink" href="#opportunity_9" title="Permanent link">¶</a></h4>
+<p>Generate Virtual Observatory (VO) compliant catalogs:</p>
+<ul>
+<li>Export as FITS tables with standardized columns</li>
+<li>Include all cross-matches, spectral indices, classifications</li>
+<li>Publish to VO registries (discoverable worldwide)</li>
+<li>Enable queries: "All z &gt; 1 radio galaxies in DSA-110"</li>
+</ul>
+<p><strong>Benefits</strong>:</p>
+<ul>
+<li>Community access to DSA-110 catalogs</li>
+<li>Enable multi-wavelength studies by external researchers</li>
+<li>Increased visibility and citations</li>
+</ul>
+<p><strong>Implementation</strong>: Add <code>export_vo_catalog()</code> function, generate during
+publishing, upload to VO registry</p>
+<hr/>
+<h2 id="implementation-roadmap">Implementation Roadmap<a class="headerlink" href="#implementation-roadmap" title="Permanent link">¶</a></h2>
+<p><strong>User-Prioritized Implementation Order</strong>:</p>
+<ol>
+<li>Flux Calibration Monitoring &amp; Alerts (Proposal #6)</li>
+<li>Spectral Index Mapping (Proposal #1)</li>
+<li>Coverage-Aware Catalog Selection (Proposal #8)</li>
+<li>Smart Calibrator Pre-Selection (Proposal #3)</li>
+<li>Transient Detection (Proposal #2)</li>
+<li>Astrometric Self-Calibration (Proposal #5)</li>
+<li>Science-Ready Catalog Products (Proposal #10)</li>
+</ol>
+<hr/>
+<h3 id="phase-1-operational-foundation-months-1-2">Phase 1: Operational Foundation (Months 1-2)<a class="headerlink" href="#phase-1-operational-foundation-months-1-2" title="Permanent link">¶</a></h3>
+<p><strong>Goal</strong>: Establish monitoring and basic catalog enhancements for operational
+quality</p>
+<p><strong>Deliverables</strong>:</p>
+<ol>
+<li><strong>Flux Calibration Monitoring &amp; Alerts</strong> (Proposal #6) - PRIORITY 1</li>
+<li>Monitoring database table (<code>calibration_monitoring</code>)</li>
+<li>Trending calculations (daily/weekly flux ratios)</li>
+<li>Alert system (Slack/email when drift &gt; 20%)</li>
+<li>Dashboard integration with plots</li>
+<li><strong>Effort</strong>: 3 days</li>
+<li>
+<p><strong>Rationale</strong>: Critical for operational health, detects calibration issues
+     early</p>
+</li>
+<li>
+<p><strong>Spectral Index Mapping</strong> (Proposal #1) - PRIORITY 2</p>
+</li>
+<li>Database schema (<code>spectral_indices</code> table)</li>
+<li>Calculation functions for multi-frequency matches</li>
+<li>Pipeline integration in <code>CrossMatchStage</code></li>
+<li>API endpoints for queries</li>
+<li><strong>Effort</strong>: 3 days</li>
+<li>
+<p><strong>Rationale</strong>: Low effort, enables source classification and better
+     calibrator selection</p>
+</li>
+<li>
+<p><strong>Documentation</strong></p>
+</li>
+<li>User guides for new features</li>
+<li>API documentation updates</li>
+<li>Operations runbooks</li>
+<li><strong>Effort</strong>: 2 days</li>
+</ol>
+<p><strong>Total Effort</strong>: ~8 days</p>
+<p><strong>Key Outcomes</strong>:</p>
+<ul>
+<li>Real-time flux calibration health monitoring</li>
+<li>Automated spectral index calculations for all multi-catalog matches</li>
+<li>Foundation for advanced catalog features</li>
+</ul>
+<hr/>
+<h3 id="phase-2-intelligent-catalog-management-months-3-4">Phase 2: Intelligent Catalog Management (Months 3-4)<a class="headerlink" href="#phase-2-intelligent-catalog-management-months-3-4" title="Permanent link">¶</a></h3>
+<p><strong>Goal</strong>: Optimize catalog queries and improve calibrator selection</p>
+<p><strong>Deliverables</strong>:</p>
+<ol>
+<li><strong>Coverage-Aware Catalog Selection</strong> (Proposal #8) - PRIORITY 3</li>
+<li>Coverage map generation for all catalogs</li>
+<li><code>recommend_catalogs(ra, dec, purpose)</code> function</li>
+<li>Integration with query functions (auto-select best catalog)</li>
+<li>Documentation of catalog coverage limits</li>
+<li><strong>Effort</strong>: 4 days</li>
+<li>
+<p><strong>Rationale</strong>: Ensures optimal catalog selection, improves cross-match
+     quality</p>
+</li>
+<li>
+<p><strong>Smart Calibrator Pre-Selection</strong> (Proposal #3) - PRIORITY 4</p>
+</li>
+<li>Build calibrator registry (<code>calibrator_registry.sqlite3</code>)</li>
+<li>Pre-compute primary beam weights per declination strip</li>
+<li>Blacklist variable sources (ATNF pulsars, WISE AGN blazars)</li>
+<li>Integration with <code>select_bandpass_from_catalog()</code></li>
+<li><strong>Effort</strong>: 5 days</li>
+<li><strong>Rationale</strong>: 10× speedup in calibrator selection, improved reliability</li>
+</ol>
+<p><strong>Total Effort</strong>: ~9 days</p>
+<p><strong>Key Outcomes</strong>:</p>
+<ul>
+<li>Automatic optimal catalog selection based on coverage and purpose</li>
+<li>Cached calibrator lookup (30s → 3s per MS)</li>
+<li>Improved calibration quality (blacklisted variable sources)</li>
+</ul>
+<hr/>
+<h3 id="phase-3-science-detection-pipeline-months-5-6">Phase 3: Science Detection Pipeline (Months 5-6)<a class="headerlink" href="#phase-3-science-detection-pipeline-months-5-6" title="Permanent link">¶</a></h3>
+<p><strong>Goal</strong>: Enable transient detection and astrometric refinement</p>
+<p><strong>Deliverables</strong>:</p>
+<ol>
+<li><strong>Transient Detection</strong> (Proposal #2) - PRIORITY 5</li>
+<li>Database schema (<code>transient_candidates</code> table)</li>
+<li>Detection algorithm (new sources, variables, fading)</li>
+<li><code>TransientDetectionStage</code> pipeline stage</li>
+<li>Alert system for high-priority candidates</li>
+<li>API endpoints and dashboard integration</li>
+<li><strong>Effort</strong>: 7 days (includes dashboard work)</li>
+<li>
+<p><strong>Rationale</strong>: Core DSA-110 science goal, automated candidate
+     identification</p>
+</li>
+<li>
+<p><strong>Astrometric Self-Calibration</strong> (Proposal #5) - PRIORITY 6</p>
+</li>
+<li>Calculate systematic RA/Dec offsets from FIRST cross-matches</li>
+<li>WCS header correction functions</li>
+<li>Integration in mosaic stage (optional iterative refinement)</li>
+<li>Tracking of astrometric accuracy over time</li>
+<li><strong>Effort</strong>: 4 days</li>
+<li><strong>Rationale</strong>: Improve positional accuracy from ~2-3" to &lt;1"</li>
+</ol>
+<p><strong>Total Effort</strong>: ~11 days</p>
+<p><strong>Key Outcomes</strong>:</p>
+<ul>
+<li>Automated transient candidate identification with alerts</li>
+<li>Sub-arcsecond astrometric accuracy (FIRST-limited)</li>
+<li>Transient database for tracking source variability</li>
+</ul>
+<hr/>
+<h3 id="phase-4-publication-quality-products-months-7-8">Phase 4: Publication-Quality Products (Months 7-8)<a class="headerlink" href="#phase-4-publication-quality-products-months-7-8" title="Permanent link">¶</a></h3>
+<p><strong>Goal</strong>: Generate community-accessible, VO-compliant data products</p>
+<p><strong>Deliverables</strong>:</p>
+<ol>
+<li><strong>Science-Ready Catalog Products</strong> (Proposal #10) - PRIORITY 7</li>
+<li>VO-compliant FITS table export</li>
+<li>Include all metadata: cross-matches, spectral indices, classifications</li>
+<li>VO registry submission (IVOA standards)</li>
+<li>TAP service integration (queryable via VO tools)</li>
+<li>Documentation for external users</li>
+<li><strong>Effort</strong>: 4 days</li>
+<li>
+<p><strong>Rationale</strong>: Community access, increased citations, multi-wavelength
+     studies</p>
+</li>
+<li>
+<p><strong>Testing and Validation</strong></p>
+</li>
+<li>End-to-end testing of all new features</li>
+<li>Science validation (use on real observations)</li>
+<li>Performance benchmarking</li>
+<li>
+<p><strong>Effort</strong>: 3 days</p>
+</li>
+<li>
+<p><strong>Final Documentation</strong></p>
+</li>
+<li>Comprehensive user guides</li>
+<li>Science case examples</li>
+<li>Publication-ready documentation</li>
+<li><strong>Effort</strong>: 2 days</li>
+</ol>
+<p><strong>Total Effort</strong>: ~9 days</p>
+<p><strong>Key Outcomes</strong>:</p>
+<ul>
+<li>VO-published DSA-110 source catalogs (discoverable worldwide)</li>
+<li>Science-ready products with types, redshifts, spectral indices</li>
+<li>Increased community engagement and citations</li>
+</ul>
+<hr/>
+<h3 id="phase-5-advanced-features-months-9">Phase 5: Advanced Features (Months 9+)<a class="headerlink" href="#phase-5-advanced-features-months-9" title="Permanent link">¶</a></h3>
+<p><strong>Goal</strong>: Implement remaining specialized capabilities as needed</p>
+<p><strong>Deliverables</strong> (lower priority, implement based on science needs):</p>
+<ul>
+<li><strong>Multi-wavelength Classification</strong> (Proposal #4)</li>
+<li>Full classification pipeline with Gaia/SIMBAD/NED</li>
+<li>
+<p>Effort: 10 days</p>
+</li>
+<li>
+<p><strong>Proper Motion Corrections</strong> (Proposal #7)</p>
+</li>
+<li>Epoch-correct all catalog positions</li>
+<li>
+<p>Effort: 2 days</p>
+</li>
+<li>
+<p><strong>Pulsar Timing Integration</strong> (Proposal #9)</p>
+</li>
+<li>Use ATNF period/DM for predictions</li>
+<li>Build pulsar light curve database</li>
+<li>Effort: 10+ days</li>
+</ul>
+<hr/>
+<h3 id="total-implementation-timeline">Total Implementation Timeline<a class="headerlink" href="#total-implementation-timeline" title="Permanent link">¶</a></h3>
+<p><strong>Phase 1</strong>: 8 days (Months 1-2)<br/>
+<strong>Phase 2</strong>: 9 days (Months 3-4)<br/>
+<strong>Phase 3</strong>: 11 days (Months 5-6)<br/>
+<strong>Phase 4</strong>: 9 days (Months 7-8)<br/>
+<strong>Total Core Implementation</strong>: ~37 days (~7.5 weeks of development)</p>
+<p><strong>Milestones</strong>:</p>
+<ul>
+<li><strong>Month 2</strong>: Operational monitoring active, spectral indices computed
+  automatically</li>
+<li><strong>Month 4</strong>: Smart calibrator selection operational, 10× speedup achieved</li>
+<li><strong>Month 6</strong>: Transient detection active with alerts, astrometric accuracy &lt;1"</li>
+<li><strong>Month 8</strong>: VO-published catalogs available to community</li>
+</ul>
+<hr/>
+<h2 id="priority-ranking">Priority Ranking<a class="headerlink" href="#priority-ranking" title="Permanent link">¶</a></h2>
+<h3 id="user-prioritized-implementation-order">User-Prioritized Implementation Order<a class="headerlink" href="#user-prioritized-implementation-order" title="Permanent link">¶</a></h3>
+<p><strong>Approved for Implementation</strong> (in order):</p>
+<ol>
+<li><strong>Flux Calibration Monitoring &amp; Alerts</strong> (#6) - PHASE 1</li>
+<li><strong>Rationale</strong>: Critical operational health monitoring</li>
+<li>Effort: 3 days</li>
+<li><strong>Value</strong>: Early detection of calibration issues, data quality assurance</li>
+<li>
+<p><strong>Impact</strong>: Reduced manual validation, improved reliability</p>
+</li>
+<li>
+<p><strong>Spectral Index Mapping</strong> (#1) - PHASE 1</p>
+</li>
+<li><strong>Rationale</strong>: Low effort, high science value, foundational</li>
+<li>Effort: 3 days</li>
+<li><strong>Value</strong>: Source classification, better calibrator selection</li>
+<li>
+<p><strong>Impact</strong>: Enables advanced catalog features, science publications</p>
+</li>
+<li>
+<p><strong>Coverage-Aware Catalog Selection</strong> (#8) - PHASE 2</p>
+</li>
+<li><strong>Rationale</strong>: Optimize catalog usage, improve cross-match quality</li>
+<li>Effort: 4 days</li>
+<li><strong>Value</strong>: Automatic optimal catalog selection</li>
+<li>
+<p><strong>Impact</strong>: Better results, fewer failed queries</p>
+</li>
+<li>
+<p><strong>Smart Calibrator Pre-Selection</strong> (#3) - PHASE 2</p>
+</li>
+<li><strong>Rationale</strong>: 10× speedup, improved calibration reliability</li>
+<li>Effort: 5 days</li>
+<li><strong>Value</strong>: Operational efficiency, quality improvement</li>
+<li>
+<p><strong>Impact</strong>: Faster processing, fewer variable source issues</p>
+</li>
+<li>
+<p><strong>Transient Detection</strong> (#2) - PHASE 3</p>
+</li>
+<li><strong>Rationale</strong>: Core DSA-110 science goal</li>
+<li>Effort: 7 days</li>
+<li><strong>Value</strong>: Automated discovery of variable/transient sources</li>
+<li>
+<p><strong>Impact</strong>: High-impact science, publications</p>
+</li>
+<li>
+<p><strong>Astrometric Self-Calibration</strong> (#5) - PHASE 3</p>
+</li>
+<li><strong>Rationale</strong>: Improve positional accuracy for follow-up</li>
+<li>Effort: 4 days</li>
+<li><strong>Value</strong>: Sub-arcsecond astrometry (2-3" → &lt;1")</li>
+<li>
+<p><strong>Impact</strong>: Better multi-wavelength associations</p>
+</li>
+<li>
+<p><strong>Science-Ready Catalog Products</strong> (#10) - PHASE 4</p>
+</li>
+<li><strong>Rationale</strong>: Community access, increased impact</li>
+<li>Effort: 4 days</li>
+<li><strong>Value</strong>: VO-published catalogs, external citations</li>
+<li><strong>Impact</strong>: Community engagement, broader science use</li>
+</ol>
+<h3 id="lower-priority-future-implementation">Lower Priority (Future Implementation)<a class="headerlink" href="#lower-priority-future-implementation" title="Permanent link">¶</a></h3>
+<p><strong>Deferred to Phase 5+</strong>:</p>
+<ol>
+<li><strong>Multi-wavelength Classification</strong> (#4)</li>
+<li>High effort (10 days), requires external API access</li>
+<li>
+<p>Consider after Phase 4 completion</p>
+</li>
+<li>
+<p><strong>Proper Motion Corrections</strong> (#7)</p>
+</li>
+<li>Low effort (2 days) but specialized use case</li>
+<li>
+<p>Implement as needed for specific science cases</p>
+</li>
+<li>
+<p><strong>Pulsar Timing Integration</strong> (#9)</p>
+<ul>
+<li>High effort (10+ days), highly specialized</li>
+<li>Consider for dedicated pulsar studies</li>
+</ul>
+</li>
+</ol>
+<hr/>
+<h2 id="success-metrics">Success Metrics<a class="headerlink" href="#success-metrics" title="Permanent link">¶</a></h2>
+<h3 id="technical-metrics">Technical Metrics<a class="headerlink" href="#technical-metrics" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Spectral Index</strong>: 80% of multi-catalog matches have computed α</li>
+<li><strong>Transients</strong>: &lt;5% false positive rate on high-priority candidates</li>
+<li><strong>Calibrator Selection</strong>: 10× speedup (30s → 3s)</li>
+<li><strong>Classification</strong>: 70% of sources classified with confidence &gt; 0.7</li>
+<li><strong>Flux Monitoring</strong>: Alert within 1 hour of &gt;20% flux drift</li>
+</ul>
+<h3 id="science-metrics">Science Metrics<a class="headerlink" href="#science-metrics" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Publications</strong>: ≥2 papers using enhanced catalog features</li>
+<li><strong>Transient Discoveries</strong>: ≥5 confirmed transients per year</li>
+<li><strong>Catalog Products</strong>: ≥1 VO-published catalog with external citations</li>
+<li><strong>Community Engagement</strong>: ≥10 external researchers using DSA-110 catalogs</li>
+</ul>
+<hr/>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
+<h3 id="immediate-actions-week-1">Immediate Actions (Week 1)<a class="headerlink" href="#immediate-actions-week-1" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Phase 1 Kickoff</strong>: Flux Monitoring &amp; Spectral Indices</li>
+<li>Create feature branches: <code>feature/flux-monitoring</code>,
+     <code>feature/spectral-index</code></li>
+<li>Set up database migrations for new tables</li>
+<li>
+<p>Assign developers to proposals #6 and #1</p>
+</li>
+<li>
+<p><strong>Architecture Review</strong></p>
+</li>
+<li>Review database schemas with team</li>
+<li>Validate integration points in pipeline</li>
+<li>
+<p>Confirm API endpoint designs</p>
+</li>
+<li>
+<p><strong>Development Environment Setup</strong></p>
+</li>
+<li>Ensure test data available for validation</li>
+<li>Set up CI/CD for new features</li>
+<li>Create test suites for each proposal</li>
+</ol>
+<h3 id="phase-1-implementation-months-1-2">Phase 1 Implementation (Months 1-2)<a class="headerlink" href="#phase-1-implementation-months-1-2" title="Permanent link">¶</a></h3>
+<p><strong>Week 1-2</strong>: Flux Calibration Monitoring</p>
+<ul>
+<li>Database schema implementation</li>
+<li>Trending calculation functions</li>
+<li>Basic alert system (logging)</li>
+<li>Testing with historical data</li>
+</ul>
+<p><strong>Week 3-4</strong>: Spectral Index Mapping</p>
+<ul>
+<li>Database schema implementation</li>
+<li>Calculation functions (multi-frequency)</li>
+<li>Pipeline integration in <code>CrossMatchStage</code></li>
+<li>API endpoint implementation</li>
+<li>Testing with NVSS/VLASS/RACS matches</li>
+</ul>
+<p><strong>Week 5-6</strong>: Testing &amp; Documentation</p>
+<ul>
+<li>End-to-end testing</li>
+<li>Dashboard integration</li>
+<li>User documentation</li>
+<li>Operations runbooks</li>
+</ul>
+<p><strong>Deliverable</strong>: Operational flux monitoring + automatic spectral index
+calculations</p>
+<h3 id="phase-2-implementation-months-3-4">Phase 2 Implementation (Months 3-4)<a class="headerlink" href="#phase-2-implementation-months-3-4" title="Permanent link">¶</a></h3>
+<p><strong>Week 1-2</strong>: Coverage-Aware Catalog Selection</p>
+<ul>
+<li>Generate coverage maps</li>
+<li>Implement recommendation engine</li>
+<li>Integrate with query functions</li>
+<li>Testing across declination range</li>
+</ul>
+<p><strong>Week 3-5</strong>: Smart Calibrator Registry</p>
+<ul>
+<li>Build registry for all declination strips</li>
+<li>Blacklist generation (ATNF pulsars, blazars)</li>
+<li>Integration with calibration pipeline</li>
+<li>Performance benchmarking (verify 10× speedup)</li>
+</ul>
+<p><strong>Week 6</strong>: Testing &amp; Documentation</p>
+<ul>
+<li>End-to-end testing</li>
+<li>Performance validation</li>
+<li>Documentation updates</li>
+</ul>
+<p><strong>Deliverable</strong>: Optimized catalog queries + fast calibrator selection</p>
+<h3 id="phase-3-implementation-months-5-6">Phase 3 Implementation (Months 5-6)<a class="headerlink" href="#phase-3-implementation-months-5-6" title="Permanent link">¶</a></h3>
+<p><strong>Week 1-4</strong>: Transient Detection</p>
+<ul>
+<li>Database schema</li>
+<li>Detection algorithm implementation</li>
+<li>Pipeline stage integration</li>
+<li>Alert system (Slack/email webhooks)</li>
+<li>API endpoints</li>
+<li>Dashboard integration</li>
+<li>Testing with simulated transients</li>
+</ul>
+<p><strong>Week 5-6</strong>: Astrometric Self-Calibration</p>
+<ul>
+<li>Offset calculation from FIRST</li>
+<li>WCS correction functions</li>
+<li>Mosaic integration</li>
+<li>Testing and validation</li>
+</ul>
+<p><strong>Deliverable</strong>: Automated transient detection + improved astrometry</p>
+<h3 id="phase-4-implementation-months-7-8">Phase 4 Implementation (Months 7-8)<a class="headerlink" href="#phase-4-implementation-months-7-8" title="Permanent link">¶</a></h3>
+<p><strong>Week 1-3</strong>: VO Catalog Products</p>
+<ul>
+<li>FITS export functions</li>
+<li>VO metadata generation (IVOA compliant)</li>
+<li>TAP service integration</li>
+<li>VO registry submission</li>
+<li>External user documentation</li>
+</ul>
+<p><strong>Week 4</strong>: Final Testing &amp; Validation</p>
+<ul>
+<li>Science validation with real observations</li>
+<li>Performance benchmarking</li>
+<li>Community beta testing</li>
+</ul>
+<p><strong>Deliverable</strong>: VO-published catalogs accessible to community</p>
+<h3 id="success-criteria">Success Criteria<a class="headerlink" href="#success-criteria" title="Permanent link">¶</a></h3>
+<p><strong>Phase 1 Complete When</strong>:</p>
+<ul>
+<li>✅ Flux monitoring dashboard shows real-time trends</li>
+<li>✅ Alerts triggered for &gt;20% flux scale drift</li>
+<li>✅ 80%+ of multi-catalog matches have spectral indices</li>
+<li>✅ All tests passing</li>
+</ul>
+<p><strong>Phase 2 Complete When</strong>:</p>
+<ul>
+<li>✅ Catalog selection automatic based on coverage</li>
+<li>✅ Calibrator selection &lt;5s (down from 30s)</li>
+<li>✅ Variable sources blacklisted from calibrator pool</li>
+<li>✅ All tests passing</li>
+</ul>
+<p><strong>Phase 3 Complete When</strong>:</p>
+<ul>
+<li>✅ Transient candidates automatically flagged</li>
+<li>✅ High-priority alerts sent within 1 hour</li>
+<li>✅ Astrometric accuracy &lt;1" RMS (FIRST-limited)</li>
+<li>✅ All tests passing</li>
+</ul>
+<p><strong>Phase 4 Complete When</strong>:</p>
+<ul>
+<li>✅ DSA-110 catalogs published in VO registry</li>
+<li>✅ External researchers can query via TAP</li>
+<li>✅ Documentation complete for community use</li>
+<li>✅ All tests passing</li>
+</ul>
+<h3 id="risk-management">Risk Management<a class="headerlink" href="#risk-management" title="Permanent link">¶</a></h3>
+<p><strong>Potential Risks</strong>:</p>
+<ol>
+<li><strong>External API dependencies</strong> (Gaia, SIMBAD, NED)</li>
+<li>
+<p>Mitigation: Cache results, implement timeouts, graceful degradation</p>
+</li>
+<li>
+<p><strong>Database performance</strong> (large cross-match tables)</p>
+</li>
+<li>
+<p>Mitigation: Proper indexing, query optimization, archival strategy</p>
+</li>
+<li>
+<p><strong>Alert fatigue</strong> (too many transient candidates)</p>
+</li>
+<li>
+<p>Mitigation: Tune detection thresholds, implement confidence scoring</p>
+</li>
+<li>
+<p><strong>Catalog registry staleness</strong> (ATNF updates)</p>
+</li>
+<li>Mitigation: Automated monthly rebuilds, version tracking</li>
+</ol>
+<h3 id="resource-requirements">Resource Requirements<a class="headerlink" href="#resource-requirements" title="Permanent link">¶</a></h3>
+<p><strong>Development</strong>:</p>
+<ul>
+<li>1-2 developers for ~8 weeks (Phases 1-4)</li>
+<li>Part-time for Phase 5+ (as needed)</li>
+</ul>
+<p><strong>Infrastructure</strong>:</p>
+<ul>
+<li>Additional database storage: ~500 MB (spectral indices, transients,
+  monitoring)</li>
+<li>Calibrator registry: ~100 MB</li>
+<li>VO catalog products: ~1 GB per major data release</li>
+</ul>
+<p><strong>Testing</strong>:</p>
+<ul>
+<li>Test data sets at multiple declinations</li>
+<li>Historical observations for validation</li>
+<li>Simulated transients for detection testing</li>
+</ul>
+<hr/>
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Catalog Documentation</strong>: <code>src/dsa110_contimg/catalog/CATALOG_OVERVIEW.md</code></li>
+<li><strong>ATNF Usage</strong>: <code>src/dsa110_contimg/catalog/ATNF_USAGE.md</code></li>
+<li><strong>Cross-matching</strong>: <code>src/dsa110_contimg/catalog/crossmatch.py</code></li>
+<li><strong>Pipeline Stages</strong>: <code>src/dsa110_contimg/pipeline/stages_impl.py</code></li>
+</ul>
+<hr/>
+<h2 id="document-history">Document History<a class="headerlink" href="#document-history" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>v1.0</strong> (2025-11-19): Initial proposals based on catalog system review</li>
+</ul>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>
