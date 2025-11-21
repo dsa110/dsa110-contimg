@@ -90,7 +90,7 @@ export const NavigationGroup: React.FC<NavigationGroupProps> = ({
             if (React.isValidElement(item.icon)) {
               return (
                 <ListItemIcon sx={{ minWidth: 40 }}>
-                  {React.cloneElement(item.icon, { fontSize: "small" })}
+                  {React.cloneElement(item.icon as React.ReactElement<any>, { fontSize: "small" })}
                 </ListItemIcon>
               );
             }

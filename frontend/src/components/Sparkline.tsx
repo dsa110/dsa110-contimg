@@ -106,6 +106,7 @@ interface MetricWithSparklineProps {
   label: string;
   value: string | number;
   trend?: number[];
+  sparklineData?: number[];
   color?: "primary" | "success" | "warning" | "error" | "info";
   showTrend?: boolean;
 }

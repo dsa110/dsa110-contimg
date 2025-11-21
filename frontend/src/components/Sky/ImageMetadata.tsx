@@ -96,9 +96,9 @@ export default function ImageMetadata({ displayId = "js9Display", imageInfo }: I
         setCursorInfo({
           pixelX: Math.round(x),
           pixelY: Math.round(y),
-          ra: ra ? ra / 15 : null, // Convert to degrees
-          dec: dec || null,
-          flux: flux !== null && !isNaN(flux) ? flux : null,
+          ra: ra ? Number(ra) / 15 : null, // Convert to degrees
+          dec: dec ? Number(dec) : null,
+          flux: flux !== null && !isNaN(Number(flux)) ? Number(flux) : null,
         });
       }
     } catch (e) {

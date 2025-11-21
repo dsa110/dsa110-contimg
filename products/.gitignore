@@ -1,0 +1,4 @@
+# Ignore data products; keep docs
+*
+!.gitignore
+!README.md

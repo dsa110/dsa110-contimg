@@ -12,15 +12,9 @@ import {
   Chip,
   Stack,
   Tooltip,
-  ToggleButton,
-  ToggleButtonGroup,
 } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
-import {
-  RadioButtonChecked as PointIcon,
-  Refresh as RefreshIcon,
-  Public as ProjectionIcon,
-} from "@mui/icons-material";
+import { RadioButtonChecked as PointIcon, Refresh as RefreshIcon } from "@mui/icons-material";
 import { PlotlyLazy } from "./PlotlyLazy";
 import type { Data, Layout } from "./PlotlyLazy";
 import { usePointingMonitorStatus, usePointingHistory, useImages } from "../api/queries";
@@ -41,7 +35,6 @@ export default function PointingVisualization({
 }: PointingVisualizationProps) {
   const { data: monitorStatus, isLoading: statusLoading } = usePointingMonitorStatus();
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
-  const [projectionType, setProjectionType] = useState<"mollweide" | "aitoff">("mollweide");
 
   // Calculate MJD range for history - use reasonable default (30 days) if historyDays is null/undefined or very large
   const { startMjd, endMjd, useFullRange, effectiveHistoryDays } = useMemo(() => {
@@ -199,30 +192,12 @@ export default function PointingVisualization({
     };
   }, []);
 
-  // Convert RA/Dec to Aitoff projection coordinates (legacy projection)
-  const aitoffProjection = useMemo(() => {
-    return (ra: number, dec: number): [number, number] => {
-      const lambda = ((ra - 180) * Math.PI) / 180;
-      const phi = (dec * Math.PI) / 180;
-
-      const alpha = Math.acos(Math.cos(phi) * Math.cos(lambda / 2));
-      const sinc = alpha !== 0 ? Math.sin(alpha) / alpha : 1;
-
-      const x = (2 * Math.cos(phi) * Math.sin(lambda / 2)) / sinc;
-      const y = Math.sin(phi) / sinc;
-
-      return [(x * 180) / Math.PI, (y * 180) / Math.PI];
-    };
-  }, []);
-
-  // Select projection function based on current setting
+  // Use Mollweide projection for all sky map displays
   const projectPoint = useCallback(
-    (ra: number, dec: number): [number, number] => {
-      return projectionType === "mollweide"
-        ? mollweideProjection(ra, dec)
-        : aitoffProjection(ra, dec);
+    (ra: number, dec: number) => {
+      return mollweideProjection(ra, dec);
     },
-    [projectionType, mollweideProjection, aitoffProjection]
+    [mollweideProjection]
   );
 
   // Prepare time series plot data (Dec vs time)
@@ -263,7 +238,6 @@ export default function PointingVisualization({
 
       // Configure time axis formatting based on time range
       const xaxisConfig: any = {
-        title: { text: "Time" },
         type: "date",
         showgrid: true,
         gridcolor: "rgba(128, 128, 128, 0.2)",
@@ -317,7 +291,6 @@ export default function PointingVisualization({
         font: { size: 14 },
       },
       xaxis: {
-        title: { text: "Time" },
         type: "date",
         showgrid: true,
         gridcolor: "rgba(128, 128, 128, 0.2)",
@@ -386,25 +359,32 @@ export default function PointingVisualization({
         });
       }
 
-      // Draw beam footprints (actual sky coverage) from images
+      // Draw beam footprints (actual sky coverage) from pointing history
       // This shows real observed areas, not telescope pointing paths
-      if (showHistory && imagesWithCoordinates.length > 0) {
+      if (showHistory && historyData.length > 0) {
         // Create arrays to hold all beam footprint points
         const beamFootprints: Data[] = [];
 
         // Color by observation time (oldest = blue, newest = red)
-        const timestamps = imagesWithCoordinates
-          .map((img) => (img.created_at ? new Date(img.created_at).getTime() : 0))
-          .filter((t) => t > 0);
+        const timestamps = historyData.map((point) => point.timestamp);
         const minTime = Math.min(...timestamps);
         const maxTime = Math.max(...timestamps);
         const timeRange = maxTime - minTime || 1;
 
+        // Default beam radius: ~2.5 degrees (DSA-110 primary beam FWHM)
+        const defaultBeamRadius = 2.5;
+
         // Draw each beam as circle outline
-        imagesWithCoordinates.forEach((img, index) => {
-          const ra = img.center_ra_deg!;
-          const dec = img.center_dec_deg!;
-          const beamRadius = getBeamRadiusDeg(img)!;
+        // Sample every Nth point if too many (for performance)
+        const sampleInterval = historyData.length > 500 ? Math.ceil(historyData.length / 500) : 1;
+
+        historyData.forEach((point, index) => {
+          // Skip points based on sample interval
+          if (index % sampleInterval !== 0) return;
+
+          const ra = point.ra_deg;
+          const dec = point.dec_deg;
+          const beamRadius = defaultBeamRadius;
 
           // Generate circle points around the beam center
           const numPoints = 32; // Circle resolution
@@ -426,9 +406,9 @@ export default function PointingVisualization({
           const ys = projected.map((p) => p[1]);
 
           // Color by time (blue = old, red = new)
-          const timestamp = img.created_at ? new Date(img.created_at).getTime() : minTime;
+          const timestamp = point.timestamp;
           const normalizedTime = (timestamp - minTime) / timeRange;
-          const color = `rgba(${Math.round(255 * normalizedTime)}, ${Math.round(150 * (1 - normalizedTime))}, ${Math.round(255 * (1 - normalizedTime))}, 0.8)`;
+          const color = `rgba(${Math.round(255 * normalizedTime)}, ${Math.round(150 * (1 - normalizedTime))}, ${Math.round(255 * (1 - normalizedTime))}, 0.3)`;
 
           beamFootprints.push({
             type: "scatter",
@@ -437,14 +417,14 @@ export default function PointingVisualization({
             y: ys,
             line: {
               color: color,
-              width: 1.5,
+              width: 1,
             },
             hovertemplate:
               `<b>Beam Footprint</b><br>` +
               `Center RA: ${ra.toFixed(3)}°<br>` +
               `Center Dec: ${dec.toFixed(3)}°<br>` +
               `Beam Diameter: ${(beamRadius * 2).toFixed(2)}°<br>` +
-              `Time: ${img.created_at || "N/A"}<extra></extra>`,
+              `MJD: ${timestamp.toFixed(4)}<extra></extra>`,
             showlegend: false,
             hoverinfo: "text" as any,
           });
@@ -540,14 +520,45 @@ export default function PointingVisualization({
         }
       }
 
-      // Determine axis ranges based on projection type
-      const xRange = projectionType === "mollweide" ? [-162, 162] : [-180, 180];
-      const yRange = projectionType === "mollweide" ? [-81, 81] : [-90, 90];
-      const yScaleRatio = projectionType === "mollweide" ? 1 : 0.5;
+      // Mollweide projection axis ranges
+      const xRange = [-162, 162];
+      const yRange = [-81, 81];
+      const yScaleRatio = 1;
+
+      // Create colorbar trace if we have history data
+      const timestamps = historyData.map((point) => point.timestamp);
+      const colorbarTrace: Data | null =
+        showHistory && historyData.length > 0
+          ? {
+              type: "scatter",
+              x: [null],
+              y: [null],
+              mode: "markers",
+              marker: {
+                colorscale: [
+                  [0, "rgb(0, 150, 255)"], // Blue (oldest)
+                  [0.5, "rgb(127, 75, 127)"], // Purple (middle)
+                  [1, "rgb(255, 0, 0)"], // Red (newest)
+                ],
+                showscale: true,
+                cmin: Math.min(...timestamps),
+                cmax: Math.max(...timestamps),
+                colorbar: {
+                  title: { text: "MJD", side: "right" },
+                  thickness: 15,
+                  len: 0.5,
+                  x: 1.02,
+                  xpad: 0,
+                },
+              },
+              showlegend: false,
+              hoverinfo: "skip" as any,
+            }
+          : null;
 
       const layout: Partial<Layout> = {
         title: {
-          text: `Sky Map (${projectionType === "mollweide" ? "Mollweide - HEALPix GSM" : "Aitoff"})`,
+          text: "Sky Map (Mollweide - HEALPix GSM)",
           font: { size: 14 },
         },
         annotations: gridLabels,
@@ -570,35 +581,39 @@ export default function PointingVisualization({
         plot_bgcolor: "#1e1e1e",
         paper_bgcolor: "#1e1e1e",
         font: { color: "#ffffff" },
-        margin: { l: 20, r: 20, t: 50, b: 20 },
+        margin: { l: 20, r: 80, t: 50, b: 20 },
         height: height,
         hovermode: "closest" as any,
         showlegend: false,
-        // Add Mollweide projection background image from backend (only for Mollweide)
-        images:
-          enableSkyMapBackground && projectionType === "mollweide"
-            ? [
-                {
-                  source:
-                    "/api/pointing/mollweide-sky-map?frequency_mhz=1400&cmap=inferno&width=1200&height=600",
-                  xref: "x",
-                  yref: "y",
-                  // Mollweide projection coordinate ranges (with R = 180/π ≈ 57.3)
-                  // X: ±2√2 * R ≈ ±162
-                  // Y: ±√2 * R ≈ ±81
-                  x: -162,
-                  y: -81,
-                  sizex: 324, // 2 * 162
-                  sizey: 162, // 2 * 81
-                  sizing: "stretch",
-                  opacity: 0.8,
-                  layer: "below",
-                },
-              ]
-            : [],
+        // Add Mollweide projection background image from backend
+        images: enableSkyMapBackground
+          ? [
+              {
+                source:
+                  "/api/pointing/mollweide-sky-map?frequency_mhz=1400&cmap=inferno&width=1200&height=600",
+                xref: "x",
+                yref: "y",
+                // Mollweide projection coordinate ranges (with R = 180/π ≈ 57.3)
+                // X: ±2√2 * R ≈ ±162
+                // Y: ±√2 * R ≈ ±81
+                x: -162,
+                y: -81,
+                sizex: 324, // 2 * 162
+                sizey: 162, // 2 * 81
+                sizing: "stretch",
+                opacity: 0.8,
+                layer: "below",
+              },
+            ]
+          : [],
       };
 
-      return { skyMapData: [...data, ...gridLines], skyMapLayout: layout };
+      return {
+        skyMapData: colorbarTrace
+          ? [...data, ...gridLines, colorbarTrace]
+          : [...data, ...gridLines],
+        skyMapLayout: layout,
+      };
     } catch (error) {
       console.error("Error in skyMapData useMemo:", error);
       // Try to generate at least grid lines as fallback
@@ -736,7 +751,6 @@ export default function PointingVisualization({
     showHistory,
     height,
     projectPoint,
-    projectionType,
     enableSkyMapBackground,
     imagesWithCoordinates,
     getBeamRadiusDeg,
@@ -760,31 +774,6 @@ export default function PointingVisualization({
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h6">Pointing Status</Typography>
         <Stack direction="row" spacing={2} alignItems="center">
-          <ToggleButtonGroup
-            value={projectionType}
-            exclusive
-            onChange={(_, newProjection) => {
-              if (newProjection !== null) {
-                setProjectionType(newProjection);
-              }
-            }}
-            size="small"
-            aria-label="sky map projection"
-          >
-            <ToggleButton value="mollweide" aria-label="mollweide projection">
-              <Tooltip title="HEALPix Mollweide (GSM background)">
-                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                  <ProjectionIcon fontSize="small" />
-                  <Typography variant="caption">Mollweide</Typography>
-                </Box>
-              </Tooltip>
-            </ToggleButton>
-            <ToggleButton value="aitoff" aria-label="aitoff projection">
-              <Tooltip title="Aitoff (legacy)">
-                <Typography variant="caption">Aitoff</Typography>
-              </Tooltip>
-            </ToggleButton>
-          </ToggleButtonGroup>
           <Chip
             icon={<PointIcon />}
             label={isRunning ? "Monitoring" : "Stopped"}

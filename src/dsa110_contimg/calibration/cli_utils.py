@@ -44,35 +44,56 @@ def rephase_ms_to_calibrator(
     print("=" * 70)
     print(f"Calibrator: {cal_name} @ ({cal_ra_deg:.6f}°, {cal_dec_deg:.6f}°)")
 
-    # Check if already phased to calibrator (within 1 arcmin tolerance)
-    needs_rephasing = True
+    # Check if ALL fields already phased to calibrator (within 1 arcmin tolerance)
+    needs_rephasing = False
     try:
-        print("Checking current phase center...")
+        print("Checking current phase center(s)...")
         with table(f"{ms_path}::FIELD", readonly=True, ack=False) as tf:
+            nfields = tf.nrows()
             if "REFERENCE_DIR" in tf.colnames():
-                ref_dir = tf.getcol("REFERENCE_DIR")
-                ms_ra_rad = float(np.array(ref_dir[0]).ravel()[0])
-                ms_dec_rad = float(np.array(ref_dir[0]).ravel()[1])
+                ref_dirs = tf.getcol("REFERENCE_DIR")
             else:
-                phase_dir = tf.getcol("PHASE_DIR")
-                ms_ra_rad = float(np.array(phase_dir[0]).ravel()[0])
-                ms_dec_rad = float(np.array(phase_dir[0]).ravel()[1])
-            ms_ra_deg = np.rad2deg(ms_ra_rad)
-            ms_dec_deg = np.rad2deg(ms_dec_rad)
+                ref_dirs = tf.getcol("PHASE_DIR")
 
-        print(f"Current phase center: RA={ms_ra_deg:.4f}°, Dec={ms_dec_deg:.4f}°")
-        ms_coord = SkyCoord(ra=ms_ra_deg * u.deg, dec=ms_dec_deg * u.deg)
-        cal_coord = SkyCoord(ra=cal_ra_deg * u.deg, dec=cal_dec_deg * u.deg)
-        sep_arcmin = ms_coord.separation(cal_coord).to(u.arcmin).value
+            # Check all fields
+            max_sep_arcmin = 0.0
+            for field_id in range(nfields):
+                ms_ra_rad = float(np.array(ref_dirs[field_id]).ravel()[0])
+                ms_dec_rad = float(np.array(ref_dirs[field_id]).ravel()[1])
+                ms_ra_deg = np.rad2deg(ms_ra_rad)
+                ms_dec_deg = np.rad2deg(ms_dec_rad)
 
-        print(f"Separation: {sep_arcmin:.2f} arcmin")
-        if sep_arcmin < 1.0:
-            print(f"✓ MS already phased to calibrator position (offset: {sep_arcmin:.2f} arcmin)")
-            print("=" * 70)
-            return True
-        else:
-            print(f"Rephasing needed: offset {sep_arcmin:.2f} arcmin")
-            needs_rephasing = True
+                ms_coord = SkyCoord(ra=ms_ra_deg * u.deg, dec=ms_dec_deg * u.deg)
+                cal_coord = SkyCoord(ra=cal_ra_deg * u.deg, dec=cal_dec_deg * u.deg)
+                sep_arcmin = ms_coord.separation(cal_coord).to(u.arcmin).value
+                max_sep_arcmin = max(max_sep_arcmin, sep_arcmin)
+
+                if sep_arcmin >= 1.0:
+                    needs_rephasing = True
+                    break
+
+            if nfields == 1:
+                print(f"Current phase center: RA={ms_ra_deg:.4f}°, Dec={ms_dec_deg:.4f}°")
+                # Single field: trust FIELD table
+                if max_sep_arcmin < 1.0:
+                    print(
+                        f"✓ MS already phased to calibrator position (offset: {max_sep_arcmin:.2f} arcmin)"
+                    )
+                    print("=" * 70)
+                    return True
+            else:
+                print(f"Checked {nfields} fields, max separation: {max_sep_arcmin:.2f} arcmin")
+                # Multiple fields: ALWAYS rephase even if FIELD table matches
+                # The FIELD table may match but the actual visibility phases are still
+                # from different pointings and need to be rotated via phaseshift
+                print(
+                    f"⚠ Multiple fields detected - rephasing required even though FIELD table matches"
+                )
+                print(f"   (Field table doesn't guarantee visibility phases are coherent)")
+                needs_rephasing = True
+
+        if not needs_rephasing:
+            print(f"Rephasing needed: max offset {max_sep_arcmin:.2f} arcmin")
     except Exception as e:
         print(f"WARNING: Could not check phase center: {e}. Proceeding with rephasing.")
         logger.warning(f"Could not check phase center: {e}. Proceeding with rephasing.")

@@ -35,18 +35,30 @@
 
 ---
 
-## Why Port 3210?
+## Why 5173 (dev) and 3210 (preview)?
 
-This project explicitly configures port 3210 in `vite.config.ts`:
+- Dev mode uses Vite’s default **5173** for hot reload.
+- Preview uses **3210** to avoid conflicts and mirror the `/ui/` base path used
+  in production.
+
+Dev server config (from `vite.config.ts`):
 
 ```typescript
 server: {
-  port: parseInt(process.env.VITE_PORT || process.env.PORT || "3210", 10),
+  host: "0.0.0.0",
+  port: parseInt(process.env.VITE_PORT || process.env.PORT || "5173", 10),
 }
 ```
 
-This avoids conflicts with other services and provides a consistent development
-environment.
+Preview config:
+
+```typescript
+preview: {
+  port: parseInt(process.env.VITE_PORT || process.env.PORT || "3210", 10),
+  host: "0.0.0.0",
+  // ...
+}
+```
 
 ---
 
@@ -54,14 +66,15 @@ environment.
 
 ```bash
 # Check what's actually running
-lsof -i :3210   # Should show Vite dev server
+lsof -i :5173   # Should show Vite dev server
+lsof -i :3210   # Should show preview server (npm run preview)
 lsof -i :8000   # Should show FastAPI backend
 
 # Or use netstat
-netstat -tlnp | grep -E "3210|8000"
+netstat -tlnp | grep -E "3210|5173|8000"
 
 # Or use ss
-ss -tlnp | grep -E "3210|8000"
+ss -tlnp | grep -E "3210|5173|8000"
 ```
 
 ---
@@ -113,7 +126,7 @@ npm run dev
 export default defineConfig({
   server: {
     host: "0.0.0.0",
-    port: parseInt(process.env.VITE_PORT || process.env.PORT || "3210", 10),
+    port: parseInt(process.env.VITE_PORT || process.env.PORT || "5173", 10),
     // ...
   },
   preview: {
@@ -162,4 +175,5 @@ export default defineConfig({
 
 ---
 
-**Remember:** Always use port **3210** for frontend, not 5173!
+**Remember:** Use **5173** for `npm run dev` and **3210** for preview. Avoid
+generic defaults like 3000/8080 to stay consistent with the stack.

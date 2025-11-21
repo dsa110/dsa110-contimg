@@ -173,7 +173,7 @@ def run_wsclean_snapshots(
     if not wsclean_cmd:
         docker_cmd = shutil.which("docker")
         if docker_cmd:
-            LOG.info("Native wsclean not found, falling back to Docker (wsclean-everybeam-0.7.4)")
+            LOG.info("Native wsclean not found, falling back to Docker (wsclean-everybeam:0.7.4)")
             use_docker = True
         else:
             raise FastImagingError("wsclean executable not found in PATH and Docker not available")
@@ -190,7 +190,7 @@ def run_wsclean_snapshots(
             f"{os.path.dirname(os.path.abspath(ms_path))}:/data_in",
             "-v",
             f"{os.path.dirname(os.path.abspath(output_prefix))}:/data_out",
-            "wsclean-everybeam-0.7.4",
+            "wsclean-everybeam:0.7.4",
             "wsclean",
         ]
         # Adjust paths for Docker mapping

@@ -51,7 +51,7 @@ export function TransientAlertsTable() {
 
     try {
       await acknowledgeMutation.mutateAsync({
-        alertId: selectedAlert.id,
+        alertId: String(selectedAlert.id),
         data: { acknowledged_by: acknowledgedBy, notes },
       });
       setAckDialogOpen(false);
@@ -196,7 +196,9 @@ export function TransientAlertsTable() {
           setSelectedAlert(null);
         }}
         onConfirm={handleAcknowledgeConfirm}
-        alertId={selectedAlert?.id}
+        alertId={
+          typeof selectedAlert?.id === "string" ? parseInt(selectedAlert.id, 10) : selectedAlert?.id
+        }
       />
     </Box>
   );

@@ -526,6 +526,7 @@ export interface Job {
 export interface JobCreateRequest {
   type?: string;
   params: Record<string, unknown>;
+  ms_path?: string;
 }
 
 export interface UVH5FileList {
@@ -543,6 +544,7 @@ export interface UVH5FileEntry {
 export interface ConversionJobCreateRequest {
   input_files: string[];
   output_dir?: string;
+  writer_type?: string;
   params?: Record<string, unknown>;
 }
 
@@ -639,6 +641,30 @@ export interface CatalogValidationResults {
   astrometry?: Record<string, unknown>;
   flux_scale?: number;
   source_counts?: number;
+  has_issues?: boolean;
+  has_warnings?: boolean;
+  n_matched?: number;
+  n_detected?: number;
+  n_catalog?: number;
+  validation_type?: string;
+  mean_offset_arcsec?: number;
+  rms_offset_arcsec?: number;
+  max_offset_arcsec?: number;
+  offset_ra_arcsec?: number;
+  offset_dec_arcsec?: number;
+  mean_flux_ratio?: number;
+  median_flux_ratio?: number;
+  flux_ratio_std?: number;
+  rms_flux_ratio?: number;
+  flux_scale_error?: number;
+  detected_sources?: number;
+  catalog_sources?: number;
+  match_fraction?: number;
+  completeness?: number;
+  reliability?: number;
+  false_positive_rate?: number;
+  issues?: string[];
+  warnings?: string[];
 }
 
 export interface CatalogOverlayData {
@@ -832,8 +858,12 @@ export interface CasaTableInfo {
 }
 
 export interface NotebookGenerateRequest {
-  template: string;
-  params: Record<string, unknown>;
+  template?: string;
+  params?: Record<string, unknown>;
+  qa_root?: string;
+  output_path?: string;
+  title?: string;
+  notebook_type?: string;
 }
 
 export interface NotebookGenerateResponse {
@@ -842,9 +872,12 @@ export interface NotebookGenerateResponse {
 }
 
 export interface QARunRequest {
-  group_id: string;
+  group_id?: string;
   image_id?: number;
   options?: Record<string, unknown>;
+  qa_root?: string;
+  generate_notebook?: boolean;
+  display_summary?: boolean;
 }
 
 export interface QAResultSummary {
@@ -868,6 +901,7 @@ export interface JobParams {
   skip_fits?: boolean;
   use_nvss_mask?: boolean;
   mask_radius_arcsec?: number;
+  [key: string]: unknown;
 }
 
 export interface ConversionJobParams {
@@ -882,6 +916,7 @@ export interface ConversionJobParams {
   max_workers?: number;
   subbands?: number;
   params?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 export interface HealthCheckResult {

@@ -65,7 +65,7 @@ interface DirectoryBrowserProps {
 }
 
 export default function DirectoryBrowser({
-  initialPath = "/data/dsa110-contimg/state/qa",
+  initialPath = "/stage/dsa110-contimg",
   onSelectFile,
   onSelectDirectory,
 }: DirectoryBrowserProps) {

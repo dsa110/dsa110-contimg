@@ -37,8 +37,12 @@ import type { ImageInfo, ImageFilters } from "../../api/types";
 import dayjs, { Dayjs } from "dayjs";
 
 interface ImageBrowserProps {
-  onSelectImage: (image: ImageInfo | null) => void;
+  onSelectImage?: (image: ImageInfo | null) => void;
   selectedImageId?: number;
+  // Alternative props for different usage patterns
+  selectedImage?: ImageInfo;
+  onImageSelect?: (image: ImageInfo) => void;
+  images?: ImageInfo[];
 }
 
 export default function ImageBrowser({ onSelectImage, selectedImageId }: ImageBrowserProps) {

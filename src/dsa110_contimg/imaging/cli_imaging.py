@@ -136,7 +136,7 @@ def run_wsclean(
                     "/stage:/stage",
                     "-v",
                     "/dev/shm:/dev/shm",
-                    "wsclean-everybeam-0.7.4",
+                    "wsclean-everybeam:0.7.4",
                     "wsclean",
                 ]
         else:
@@ -160,13 +160,13 @@ def run_wsclean(
                     "/stage:/stage",
                     "-v",
                     "/dev/shm:/dev/shm",
-                    "wsclean-everybeam-0.7.4",
+                    "wsclean-everybeam:0.7.4",
                     "wsclean",
                 ]
             else:
                 raise RuntimeError(
                     "WSClean not found. Install WSClean or set WSCLEAN_PATH environment variable, "
-                    "or ensure Docker is available with wsclean-everybeam-0.7.4 image."
+                    "or ensure Docker is available with wsclean-everybeam:0.7.4 image."
                 )
         else:
             wsclean_cmd = [wsclean_cmd]
@@ -255,7 +255,7 @@ def run_wsclean(
     # WGridder is WSClean's optimized wide-field gridding algorithm
     # Enable when wproject is requested OR for large images
     if gridder == "wproject" or imsize > 1024:
-        cmd.append("-use-wgridder")
+        cmd.extend(["-gridder", "wgridder"])
         # Note: wprojplanes parameter is not directly supported by WSClean's WGridder
         # WGridder automatically optimizes the number of planes based on image size and frequency
         LOG.debug("Enabled wide-field gridding (WGridder)")

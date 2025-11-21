@@ -49,7 +49,7 @@ export const OperationsHealthTab: React.FC = () => {
               <Chip
                 label={`Overall Status: ${healthSummary.status.toUpperCase()}`}
                 color={getStatusColor(healthSummary.status) as any}
-                size="large"
+                size="medium"
               />
               <Typography variant="body2" color="text.secondary">
                 Last updated: {formatDateTime(healthSummary.timestamp * 1000)}

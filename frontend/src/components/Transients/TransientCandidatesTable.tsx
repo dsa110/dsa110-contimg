@@ -54,7 +54,7 @@ export function TransientCandidatesTable() {
 
     try {
       await classifyMutation.mutateAsync({
-        candidateId: selectedCandidate.id,
+        candidateId: String(selectedCandidate.id),
         data: { classification, classified_by: classifiedBy, notes },
       });
       setClassifyDialogOpen(false);

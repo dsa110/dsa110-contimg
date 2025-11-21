@@ -193,7 +193,7 @@ interface WorkflowTemplatesProps {
   onTemplateSelect?: (template: WorkflowTemplate) => void;
 }
 
-export function WorkflowTemplates({ _onTemplateSelect }: WorkflowTemplatesProps) {
+export function WorkflowTemplates({ onTemplateSelect }: WorkflowTemplatesProps) {
   const navigate = useNavigate();
   const [selectedTemplate, setSelectedTemplate] = useState<WorkflowTemplate | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);

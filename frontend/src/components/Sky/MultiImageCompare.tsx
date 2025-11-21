@@ -240,7 +240,7 @@ export default function MultiImageCompare({
         // JS9 BlendImage API: blend imageB onto imageA
         // Reference: https://js9.si.edu/js9/help/publicapi.html
         if (typeof window.JS9.BlendImage === "function") {
-          window.JS9.BlendImage(displayA.im.id, displayB.im.id, {
+          (window.JS9.BlendImage as any)(displayA.im.id, displayB.im.id, {
             opacity: blendOpacity / 100,
             mode: blendMode,
           });

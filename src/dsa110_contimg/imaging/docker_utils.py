@@ -39,7 +39,7 @@ class WSCleanContainer:
     def __init__(
         self,
         container_name: Optional[str] = None,
-        image: str = "wsclean-everybeam-0.7.4",
+        image: str = "wsclean-everybeam:0.7.4",
         mount_path: str = "/stage/dsa110-contimg",
         container_mount: str = "/data",
     ):

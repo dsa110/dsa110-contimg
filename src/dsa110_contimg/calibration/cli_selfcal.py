@@ -38,6 +38,9 @@ def cmd_selfcal(args: argparse.Namespace) -> int:
     config = SelfCalConfig(
         max_iterations=args.max_iterations,
         min_snr_improvement=args.min_snr_improvement,
+        do_delay=args.delay,
+        delay_solint=args.delay_solint,
+        delay_minsnr=args.delay_minsnr,
         phase_solints=args.phase_solints.split(","),
         phase_minsnr=args.phase_minsnr,
         do_amplitude=not args.no_amplitude,
@@ -60,6 +63,7 @@ def cmd_selfcal(args: argparse.Namespace) -> int:
         calib_ra_deg=args.calib_ra_deg,
         calib_dec_deg=args.calib_dec_deg,
         calib_flux_jy=args.calib_flux_jy,
+        reset_ms=args.reset_ms,
     )
 
     # Parse initial calibration tables
@@ -153,6 +157,32 @@ def main():
         type=float,
         default=10.0,
         help="Minimum initial SNR required to attempt self-cal",
+    )
+
+    # MS state management
+    parser.add_argument(
+        "--reset-ms",
+        action="store_true",
+        help="Reset MS to pristine state before self-cal: clear CORRECTED_DATA/MODEL_DATA and restore original flags",
+    )
+
+    # Delay calibration (removes geometric offsets)
+    parser.add_argument(
+        "--delay",
+        action="store_true",
+        help="Enable delay (K) calibration to remove geometric offsets (experimental - testing showed minimal benefit)",
+    )
+    parser.add_argument(
+        "--delay-solint",
+        type=str,
+        default="inf",
+        help="Solution interval for delay calibration",
+    )
+    parser.add_argument(
+        "--delay-minsnr",
+        type=float,
+        default=3.0,
+        help="Minimum SNR for delay solutions",
     )
 
     # Phase-only iterations

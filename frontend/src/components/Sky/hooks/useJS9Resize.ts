@@ -49,7 +49,7 @@ export function useJS9Resize({
             try {
               const container = document.getElementById(displayId);
               if (container) {
-                JS9Service.resizeDisplay(displayId);
+                (window as any).JS9?.ResizeDisplay?.(displayId);
                 // Force canvas to match container width
                 const canvas = container.querySelector("canvas");
                 if (canvas && canvas.style) {

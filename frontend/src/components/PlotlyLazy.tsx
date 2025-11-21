@@ -72,7 +72,7 @@ export function PlotlyLazy(props: PlotlyLazyProps) {
         </Box>
       }
     >
-      <Plot {...props} />
+      <Plot {...(props as any)} />
     </Suspense>
   );
 }

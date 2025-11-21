@@ -274,3 +274,49 @@ def get_phase_center_from_ms(ms_path: str, field: int = 0) -> Tuple[float, float
         ra_deg = ref_dir[0] * 180.0 / np.pi
         dec_deg = ref_dir[1] * 180.0 / np.pi
         return (ra_deg, dec_deg)
+
+
+def get_meridian_phase_center(ms_path: str) -> Tuple[float, float]:
+    """Calculate meridian RA and mean Dec at the center time of the MS.
+
+    For drift scan data, the optimal phase center is the meridian (RA corresponding
+    to LST) at the center time of the observation, with Dec being the mean of all
+    field declinations.
+
+    Args:
+        ms_path: Path to Measurement Set
+
+    Returns:
+        (RA_deg, Dec_deg): Meridian RA at center time, mean Dec of all fields
+    """
+    import astropy.units as u
+    from astropy.coordinates import EarthLocation
+    from astropy.time import Time
+    from astropy.utils import iers
+
+    from dsa110_contimg.utils.constants import DSA110_LOCATION
+
+    # Disable IERS auto-download to prevent hanging
+    # Use built-in IERS-B data (accurate to ~0.3 arcsec for recent dates)
+    iers.conf.auto_download = False
+    iers.conf.auto_max_age = None
+
+    # Get time range from MS
+    with table(ms_path, readonly=True) as main_tb:
+        times = main_tb.getcol("TIME")
+        center_time_mjd = (times.min() + times.max()) / 2.0 / 86400.0  # Convert to MJD
+
+    # Calculate LST (Local Sidereal Time) at center time using precise DSA-110 location
+    # Uses full apparent sidereal time calculation with Astropy
+    center_time = Time(center_time_mjd, format="mjd", location=DSA110_LOCATION)
+    lst_rad = center_time.sidereal_time("apparent").radian
+    meridian_ra_deg = np.degrees(lst_rad)
+
+    # Get mean declination from all fields
+    with table(f"{ms_path}::FIELD", readonly=True) as field_tb:
+        ref_dirs = field_tb.getcol("REFERENCE_DIR")
+        dec_values = ref_dirs[:, 0, 1]  # [field, direction, dec]
+        mean_dec_rad = np.mean(dec_values)
+        mean_dec_deg = np.degrees(mean_dec_rad)
+
+    return (meridian_ra_deg, mean_dec_deg)

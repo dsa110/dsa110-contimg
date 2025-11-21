@@ -144,6 +144,12 @@ class SelfCalConfig:
     min_snr_improvement: float = 1.05  # Minimum 5% SNR improvement to continue
     stop_on_divergence: bool = True
 
+    # Delay calibration (removes geometric delays before phase self-cal)
+    do_delay: bool = True  # Run delay (K) calibration to remove cross-antenna geometric offsets
+    delay_solint: str = "inf"  # One delay solution per antenna for entire observation
+    delay_minsnr: float = 3.0
+    delay_combine: str = "scan"  # Combine across scans for stability
+
     # Phase-only iterations
     phase_solints: List[str] = field(default_factory=lambda: ["30s", "60s", "inf"])
     phase_minsnr: float = 3.0
@@ -167,6 +173,9 @@ class SelfCalConfig:
     # Quality control
     min_initial_snr: float = 10.0  # Don't self-cal if initial SNR too low
     max_flagged_fraction: float = 0.5  # Stop if too much data flagged
+
+    # MS state management
+    reset_ms: bool = False  # Regenerate MS from HDF5 before processing
 
     # Advanced
     refant: Optional[str] = None
@@ -218,6 +227,7 @@ class SelfCalibrator:
 
         self.iterations: List[SelfCalIteration] = []
         self.best_iteration: Optional[SelfCalIteration] = None
+        self.delay_caltable: Optional[str] = None  # Delay calibration table (if run)
 
         # Fix MS permissions to ensure we can read/write
         # (CASA tasks may create MS files owned by root)
@@ -258,6 +268,17 @@ class SelfCalibrator:
             logger.warning("  2. Increase integration time")
             logger.warning("  3. Use stronger calibrator source")
             return False, msg
+
+        # Optional: Delay calibration to remove geometric offsets
+        if self.config.do_delay:
+            logger.info("=" * 80)
+            logger.info("[0.5/N] Running delay calibration (removes geometric offsets)")
+            logger.info("=" * 80)
+            delay_success = self._run_delay_calibration()
+            if delay_success:
+                logger.info("✓ Delay calibration complete - geometric offsets removed")
+            else:
+                logger.warning("Delay calibration failed, continuing without it")
 
         # Phase-only iterations
         phase_iter_count = 0
@@ -486,6 +507,68 @@ class SelfCalibrator:
             logger.error(f"Initial imaging failed: {e}", exc_info=True)
             return None
 
+    def _run_delay_calibration(self) -> bool:
+        """Run delay (K) calibration to remove geometric delays.
+
+        Delay calibration solves for a single delay offset per antenna that accounts
+        for geometric cable/position delays. This removes cross-antenna geometric
+        phase offsets, making QA metrics cleaner and potentially improving images by ~5-10%.
+
+        Returns:
+            Success status
+        """
+        delay_table = str(self.output_dir / "delay.kcal")
+
+        try:
+            logger.info(f"  Running delay calibration (gaintype='K')")
+            logger.info(f"    solint={self.config.delay_solint}, minsnr={self.config.delay_minsnr}")
+
+            if not CASATASKS_AVAILABLE or gaincal is None:
+                raise RuntimeError("casatasks not available")
+
+            # Fix permissions before gaincal
+            _fix_ms_permissions(self.ms_path)
+
+            gaincal(
+                vis=str(self.ms_path),
+                caltable=delay_table,
+                field=self.config.field,
+                spw=self.config.spw,
+                gaintype="K",  # K = delay calibration
+                solint=self.config.delay_solint,
+                refant=self.config.refant if self.config.refant else "",
+                combine=self.config.delay_combine,
+                minsnr=self.config.delay_minsnr,
+                uvrange=self.config.uvrange,
+                gaintable=self.initial_caltables,  # Apply initial calibration
+                append=False,
+            )
+
+            # Validate delay calibration
+            logger.info("  Validating delay calibration quality")
+            cal_result = validate_caltable_quality(delay_table)
+
+            if cal_result.has_issues:
+                logger.warning(f"Delay calibration has issues: {cal_result.issues}")
+                return False
+
+            if cal_result.has_warnings:
+                logger.info(f"Delay calibration warnings: {cal_result.warnings}")
+
+            # Store delay table path for use in subsequent iterations
+            self.delay_caltable = delay_table
+
+            logger.info(f"  ✓ Delay calibration saved: {delay_table}")
+            logger.info(
+                f"    {cal_result.n_antennas} antennas, {cal_result.fraction_flagged:.1%} flagged"
+            )
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Delay calibration failed: {e}")
+            return False
+
     def _run_selfcal_iteration(
         self,
         iteration: int,
@@ -519,6 +602,21 @@ class SelfCalibrator:
             # Fix permissions before gaincal
             _fix_ms_permissions(self.ms_path)
 
+            # CRITICAL: Reset CORRECTED_DATA to DATA before solving to avoid double-application
+            # Otherwise gaincal solves against already-corrected data, leading to divergence
+            logger.info("  Resetting CORRECTED_DATA = DATA before calibration solve")
+            import casacore.tables as casatables
+
+            with casatables.table(str(self.ms_path), readonly=False, ack=False) as t:
+                if "CORRECTED_DATA" in t.colnames():
+                    data = t.getcol("DATA")
+                    t.putcol("CORRECTED_DATA", data)
+
+            # Build full gaintable list: initial tables + delay table (if run)
+            gaintables_for_solve = self.initial_caltables.copy()
+            if self.delay_caltable:
+                gaintables_for_solve.append(self.delay_caltable)
+
             gaincal(
                 vis=str(self.ms_path),
                 caltable=caltable,
@@ -531,7 +629,7 @@ class SelfCalibrator:
                 refant=self.config.refant if self.config.refant else "",
                 combine=combine,
                 uvrange=self.config.uvrange,
-                gaintable=self.initial_caltables,  # Include initial calibration
+                gaintable=gaintables_for_solve,  # Include initial + delay calibration
                 append=False,
             )
 
@@ -551,8 +649,11 @@ class SelfCalibrator:
             # Step 3: Apply calibration and image
             logger.info("  [3/3] Applying calibration and imaging")
 
-            # Combine all calibration tables (initial + this iteration)
-            all_caltables = self.initial_caltables + [caltable]
+            # Combine all calibration tables (initial + delay + this iteration)
+            all_caltables = self.initial_caltables.copy()
+            if self.delay_caltable:
+                all_caltables.append(self.delay_caltable)
+            all_caltables.append(caltable)
 
             if applycal is None:
                 raise RuntimeError("casatasks.applycal not available")
@@ -890,6 +991,69 @@ def selfcal_ms(
     if config is None:
         config = SelfCalConfig()
 
+    # Optional: Reset MS to pristine state by regenerating from HDF5
+    if config.reset_ms:
+        from datetime import datetime, timedelta
+        from pathlib import Path
+
+        logger.info("Resetting MS to pristine state (regenerating from HDF5)...")
+        ms_path_obj = Path(ms_path)
+        ms_name = ms_path_obj.name
+
+        # Find HDF5 files
+        if ms_name.endswith(".ms"):
+            timestamp = ms_name.replace(".ms", "")
+            search_dirs = [
+                ms_path_obj.parent,
+                ms_path_obj.parent.parent,
+                Path("/data/incoming"),
+                Path("/stage/dsa110-contimg/hdf5"),
+            ]
+
+            potential_hdf5 = None
+            for search_dir in search_dirs:
+                if search_dir.exists():
+                    for hdf5_pattern in [f"{timestamp}_sb00.hdf5", f"*{timestamp}*.hdf5"]:
+                        matches = list(search_dir.glob(hdf5_pattern))
+                        if matches:
+                            potential_hdf5 = matches[0]
+                            logger.info(f"  Found HDF5: {potential_hdf5}")
+                            break
+                if potential_hdf5:
+                    break
+
+            if potential_hdf5 and potential_hdf5.exists():
+                hdf5_dir = potential_hdf5.parent
+                dt_start = datetime.fromisoformat(timestamp)
+                dt_end = dt_start + timedelta(minutes=6)
+
+                logger.info(f"  Deleting MS: {ms_path_obj}")
+                shutil.rmtree(ms_path_obj, ignore_errors=True)
+
+                logger.info(f"  Regenerating from HDF5 subband group...")
+                from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+                    convert_subband_groups_to_ms,
+                )
+
+                convert_subband_groups_to_ms(
+                    input_dir=str(hdf5_dir),
+                    output_dir=str(ms_path_obj.parent),
+                    start_time=dt_start.isoformat(),
+                    end_time=dt_end.isoformat(),
+                    writer="parallel-subband",
+                    skip_existing=False,
+                )
+
+                if not ms_path_obj.exists():
+                    raise RuntimeError(f"MS regeneration failed: {ms_path_obj}")
+
+                logger.info("  ✓ MS regenerated from HDF5 - pristine state confirmed")
+            else:
+                raise RuntimeError(
+                    f"Cannot reset MS: HDF5 file not found for {ms_name}. "
+                    f"Searched in MS dir, parent, /data/incoming/, /stage/dsa110-contimg/hdf5/"
+                )
+
     # Optional: Concatenate rephased fields into single field for faster gaincal
     concat_ms_path = None
     if config.concatenate_fields:
@@ -897,6 +1061,7 @@ def selfcal_ms(
             concatenate_fields_in_ms,
         )
         from dsa110_contimg.calibration.uvw_verification import (
+            get_meridian_phase_center,
             get_phase_center_from_ms,
         )
 
@@ -910,16 +1075,18 @@ def selfcal_ms(
         try:
             # Determine target phase center for rephasing
             if config.calib_ra_deg is not None and config.calib_dec_deg is not None:
+                # User explicitly specified a phase center (e.g., for calibrator observations)
                 target_ra = config.calib_ra_deg
                 target_dec = config.calib_dec_deg
                 logger.info(
                     f"  Using configured phase center: " f"({target_ra:.6f}°, {target_dec:.6f}°)"
                 )
             else:
-                # Use phase center of field 0 as reference
-                target_ra, target_dec = get_phase_center_from_ms(ms_path, field=0)
+                # For drift scan data, phase to meridian at center time
+                target_ra, target_dec = get_meridian_phase_center(ms_path)
                 logger.info(
-                    f"  Using field 0 phase center: " f"({target_ra:.6f}°, {target_dec:.6f}°)"
+                    f"  Using meridian phase center at center time: "
+                    f"RA={target_ra:.6f}° (LST), Dec={target_dec:.6f}°"
                 )
 
             # Concatenate with rephasing

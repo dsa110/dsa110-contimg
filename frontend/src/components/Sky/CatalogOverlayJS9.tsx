@@ -112,7 +112,7 @@ export default function CatalogOverlayJS9({
 
               // Add click handler if provided
               if (onSourceClick) {
-                overlay.onclick = () => onSourceClick(source);
+                (overlay as any).onclick = () => onSourceClick(source);
               }
             }
           } else {

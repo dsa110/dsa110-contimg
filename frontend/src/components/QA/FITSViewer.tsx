@@ -184,7 +184,7 @@ export default function FITSViewer({ fitsPath, height = 600, width = 800 }: FITS
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
               {fitsInfo.summary && (
                 <Typography variant="body2">
-                  <strong>Summary:</strong> {fitsInfo.summary}
+                  <strong>Summary:</strong> {String(fitsInfo.summary)}
                 </Typography>
               )}
               {fitsInfo.shape && (

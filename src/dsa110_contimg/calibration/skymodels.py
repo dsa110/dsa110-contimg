@@ -521,14 +521,14 @@ def make_unified_skymodel(
 
     # 1. Fetch all catalogs
     df_first = fetch_catalog("first")
-    df_rax = fetch_catalog("rax")
+    df_racs = fetch_catalog("racs")
     df_nvss = fetch_catalog("nvss")
 
     # Add source origin label
     if not df_first.empty:
         df_first["origin"] = "FIRST"
-    if not df_rax.empty:
-        df_rax["origin"] = "RACS"
+    if not df_racs.empty:
+        df_racs["origin"] = "RACS"
     if not df_nvss.empty:
         df_nvss["origin"] = "NVSS"
 
@@ -536,9 +536,9 @@ def make_unified_skymodel(
     unified_df = df_first.copy()
 
     # 3. Merge RACS (Medium Priority)
-    if not df_rax.empty:
+    if not df_racs.empty:
         if unified_df.empty:
-            unified_df = df_rax.copy()
+            unified_df = df_racs.copy()
         else:
             # Match RACS to current Unified (FIRST)
             c_unified = SkyCoord(
@@ -546,20 +546,20 @@ def make_unified_skymodel(
                 dec=unified_df["dec_deg"].values * u.deg,
                 frame="icrs",
             )
-            c_rax = SkyCoord(
-                ra=df_rax["ra_deg"].values * u.deg,
-                dec=df_rax["dec_deg"].values * u.deg,
+            c_racs = SkyCoord(
+                ra=df_racs["ra_deg"].values * u.deg,
+                dec=df_racs["dec_deg"].values * u.deg,
                 frame="icrs",
             )
 
             # Find matches
-            idx, d2d, _ = c_rax.match_to_catalog_sky(c_unified)
+            idx, d2d, _ = c_racs.match_to_catalog_sky(c_unified)
 
             # Keep RACS sources that are NOT matched within radius
             is_unmatched = d2d > (match_radius_arcsec * u.arcsec)
-            unique_rax = df_rax[is_unmatched]
+            unique_racs = df_racs[is_unmatched]
 
-            unified_df = pd.concat([unified_df, unique_rax], ignore_index=True)
+            unified_df = pd.concat([unified_df, unique_racs], ignore_index=True)
 
     # 4. Merge NVSS (Lowest Priority)
     if not df_nvss.empty:
