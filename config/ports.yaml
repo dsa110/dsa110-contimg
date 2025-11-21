@@ -17,10 +17,10 @@ ports:
 
   # Development Servers (5000-5199)
   frontend_dev:
-    default: 3210
+    default: 5173
     env_var: CONTIMG_FRONTEND_DEV_PORT
     description: "Vite development server (primary)"
-    range: [3210, 3210]
+    range: [5173, 5173]
 
   # Dashboard Services (3200-3299)
   dashboard:
