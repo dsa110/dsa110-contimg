@@ -3,6 +3,31 @@
 This module provides functions to scan and index HDF5 files in the
 input directory, enabling fast database queries instead of filesystem
 scans.
+
+CRITICAL: Understanding group_id vs Observation Groups
+=======================================================
+
+The `group_id` field in hdf5_file_index stores the EXACT ISO timestamp from
+each file's filename (e.g., "2025-10-18T14:35:15"). However, subbands from
+the SAME observation may have slightly different timestamps due to write
+timing, buffering, or processing delays.
+
+**WRONG APPROACH:**
+    SELECT group_id, COUNT(*) FROM hdf5_file_index GROUP BY group_id HAVING COUNT(*) = 16;
+
+    This groups by EXACT timestamps and will show fragmented "groups" with
+    1-8 subbands each, even though the data is complete!
+
+**CORRECT APPROACH:**
+    Use query_subband_groups() or find_subband_groups() which implement
+    time-windowing (±2.5 min tolerance by default) to properly group subbands
+    that belong to the same observation.
+
+**Key Points:**
+- group_id is for indexing individual files, NOT for determining completeness
+- Always use the pipeline's time-windowing functions (query_subband_groups)
+- Never count subbands by GROUP BY group_id - results will be misleading
+- The pipeline handles temporal clustering automatically
 """
 
 import logging
@@ -766,11 +791,15 @@ def query_subband_groups(
 
 
 def get_group_count(hdf5_db: Path, group_id: str) -> int:
-    """Get count of subbands for a specific group_id.
+    """Get number of subbands for a specific group_id.
+
+    WARNING: This counts files with EXACT timestamp matching. If you're checking
+    data completeness, use query_subband_groups() instead, which uses time-windowing
+    to properly group subbands from the same observation.
 
     Args:
         hdf5_db: Path to HDF5 database
-        group_id: Group ID to query
+        group_id: Group ID to check
 
     Returns:
         Number of subbands found for this group_id
@@ -780,20 +809,48 @@ def get_group_count(hdf5_db: Path, group_id: str) -> int:
         "SELECT COUNT(*) FROM hdf5_file_index WHERE group_id = ?",
         (group_id,),
     ).fetchone()[0]
+
+    # Print warning if group appears incomplete
+    if count < 16 and count > 0:
+        msg = (
+            f"\n⚠️  WARNING: Group {group_id} has {count}/16 subbands\n"
+            f"    This counts EXACT timestamp matches only!\n"
+            f"    For proper completeness checking, use query_subband_groups()\n"
+            f"    with time-windowing (±2.5 min tolerance).\n"
+            f"    Subbands from the same observation may have slightly different timestamps.\n"
+        )
+        print(msg, flush=True)
+        logger.warning(msg)
+
     return count
 
 
 def is_group_complete(hdf5_db: Path, group_id: str) -> bool:
     """Check if a group has all 16 subbands.
 
+    WARNING: This checks for EXACT timestamp matching. If you're checking data
+    completeness for conversion, use query_subband_groups() instead, which uses
+    time-windowing to properly group subbands from the same observation.
+
     Args:
         hdf5_db: Path to HDF5 database
         group_id: Group ID to check
 
     Returns:
-        True if group has all 16 subbands, False otherwise
+        True if group has all 16 subbands (exact timestamp match), False otherwise
     """
-    return get_group_count(hdf5_db, group_id) == 16
+    count = get_group_count(hdf5_db, group_id)
+
+    if count < 16:
+        msg = (
+            f"\nℹ️  Group {group_id}: {count}/16 subbands with exact timestamp match\n"
+            f"   💡 Reminder: Use query_subband_groups() with time-windowing\n"
+            f"      for proper completeness checking (±2.5 min tolerance)\n"
+        )
+        print(msg, flush=True)
+        logger.info(msg)
+
+    return count == 16
 
 
 __all__ = [
