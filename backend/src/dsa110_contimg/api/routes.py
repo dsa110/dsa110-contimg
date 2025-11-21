@@ -1122,47 +1122,57 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Returns list of regions, optionally filtered by image_path or type.
         """
 
-        db_path = cfg.products_db
-        if not db_path.exists():
-            raise HTTPException(status_code=404, detail="Database not found")
+        try:
+            db_path = cfg.products_db
+            if not db_path.exists():
+                raise HTTPException(status_code=404, detail="Database not found")
 
-        with _connect(db_path) as conn:
-            # Validate region_type against allowed values to prevent SQL injection
-            # Add valid types as needed
-            allowed_region_types = {"polygon", "circle", "ellipse", "box"}
-            validated_region_type = _validate_enum_value(region_type, allowed_region_types)
+            with _connect(db_path) as conn:
+                # Validate region_type against allowed values to prevent SQL injection
+                # Add valid types as needed
+                allowed_region_types = {"polygon", "circle", "ellipse", "box"}
+                validated_region_type = _validate_enum_value(region_type, allowed_region_types)
 
-            query = "SELECT * FROM regions WHERE 1=1"
-            params = []
+                query = "SELECT * FROM regions WHERE 1=1"
+                params = []
 
-            if image_path:
-                # image_path is validated as a path, parameterized query prevents injection
-                query += " AND image_path = ?"
-                params.append(image_path)
+                if image_path:
+                    # image_path is validated as a path, parameterized query prevents injection
+                    query += " AND image_path = ?"
+                    params.append(image_path)
 
-            if validated_region_type:
-                query += " AND type = ?"
-                params.append(validated_region_type)
+                if validated_region_type:
+                    query += " AND type = ?"
+                    params.append(validated_region_type)
 
-            query += " ORDER BY created_at DESC"
+                query += " ORDER BY created_at DESC"
 
-            rows = conn.execute(query, params).fetchall()
+                rows = conn.execute(query, params).fetchall()
 
-            regions = []
-            for row in rows:
-                region_data = {
-                    "id": row["id"],
-                    "name": row["name"],
-                    "type": row["type"],
-                    "coordinates": json.loads(row["coordinates"]),
-                    "image_path": row["image_path"],
-                    "created_at": row["created_at"],
-                    "created_by": row.get("created_by"),
-                    "updated_at": row.get("updated_at"),
-                }
-                regions.append(region_data)
+                regions = []
+                for row in rows:
+                    region_data = {
+                        "id": row["id"],
+                        "name": row["name"],
+                        "type": row["type"],
+                        "coordinates": json.loads(row["coordinates"]),
+                        "image_path": row["image_path"],
+                        "created_at": row["created_at"],
+                        "created_by": row.get("created_by"),
+                        "updated_at": row.get("updated_at"),
+                    }
+                    regions.append(region_data)
 
-            return {"regions": regions, "count": len(regions)}
+                return {"regions": regions, "count": len(regions)}
+
+        except sqlite3.OperationalError as e:
+            # Table doesn't exist yet - return empty list gracefully
+            if "no such table" in str(e):
+                return {"regions": [], "count": 0, "note": "Regions table not yet created"}
+            raise
+        except Exception as e:
+            logger.error(f"Error fetching regions: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to fetch regions: {str(e)}")
 
     @router.post("/regions")
     def create_region(region_data: Dict[str, Any]):
@@ -7331,22 +7341,33 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             return {"sources": [], "total": 0, "limit": limit, "error": str(e)}
 
     @router.get("/pointing/history")
-    def get_pointing_history_simple(limit: int = Query(10, ge=1, le=100)):
+    def get_pointing_history_simple(request: Request, limit: int = Query(10, ge=1, le=100)):
         """Get recent pointing history (simplified endpoint without required date range)."""
         from datetime import datetime, timedelta
+
+        from astropy.time import Time
+
+        cfg = request.app.state.cfg
 
         end_time = datetime.now()
         start_time = end_time - timedelta(days=7)  # Last 7 days by default
 
+        # Convert to MJD
+        start_mjd = Time(start_time).mjd
+        end_mjd = Time(end_time).mjd
+
         try:
-            history = fetch_pointing_history(
-                start_time.timestamp(), end_time.timestamp(), limit=limit
-            )
+            items = fetch_pointing_history(cfg.queue_db, start_mjd, end_mjd)
+            # Limit results if needed
+            if len(items) > limit:
+                items = items[:limit]
+
             return {
-                "history": history,
+                "history": items,
                 "start_time": start_time.isoformat(),
                 "end_time": end_time.isoformat(),
                 "limit": limit,
+                "total": len(items),
             }
         except Exception as e:
             return {"history": [], "error": str(e)}
