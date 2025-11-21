@@ -5,8 +5,8 @@ Progress reporting utilities for conversion operations.
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
-from typing import List, Optional
+from dataclasses import dataclass
+from typing import List
 
 
 @dataclass

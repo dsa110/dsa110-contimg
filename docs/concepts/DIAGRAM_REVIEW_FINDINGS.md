@@ -5,7 +5,9 @@
 
 ## Summary
 
-After thorough code review, several inconsistencies were identified between the diagrams and actual implementation. This document details findings and recommended corrections.
+After thorough code review, several inconsistencies were identified between the
+diagrams and actual implementation. This document details findings and
+recommended corrections.
 
 ---
 
@@ -13,25 +15,32 @@ After thorough code review, several inconsistencies were identified between the 
 
 ### 1. MS Preparation Timing (Stage 3)
 
-**Issue:** Stage 3 (MS Preparation) is shown as a separate stage after conversion, but it actually happens **during** Stage 2 (Conversion).
+**Issue:** Stage 3 (MS Preparation) is shown as a separate stage after
+conversion, but it actually happens **during** Stage 2 (Conversion).
 
 **Evidence:**
-- `configure_ms_for_imaging()` is called at line 1062 in `hdf5_orchestrator.py` immediately after MS creation
+
+- `configure_ms_for_imaging()` is called at line 1062 in `hdf5_orchestrator.py`
+  immediately after MS creation
 - This happens within `convert_subband_groups_to_ms()` function
-- MS preparation (MODEL_DATA, CORRECTED_DATA, WEIGHT_SPECTRUM initialization) is part of the conversion process
+- MS preparation (MODEL_DATA, CORRECTED_DATA, WEIGHT_SPECTRUM initialization) is
+  part of the conversion process
 
 **Current Diagram Flow:**
+
 ```
 Stage 2: Conversion → MS
 Stage 3: MS Preparation (Validate → Config → Flag)
 ```
 
 **Actual Flow:**
+
 ```
 Stage 2: Conversion → (includes MS configuration) → MS ready for calibration
 ```
 
-**Recommendation:** 
+**Recommendation:**
+
 - Merge Stage 3 into Stage 2 as a sub-process
 - Show MS configuration happening during conversion finalization
 - Keep RFI flagging separate (happens before calibration)
@@ -40,42 +49,53 @@ Stage 2: Conversion → (includes MS configuration) → MS ready for calibration
 
 ### 2. RFI Flagging Location
 
-**Issue:** RFI flagging is shown in Stage 3 (MS Preparation), but it actually happens **before calibration** as part of the calibration workflow.
+**Issue:** RFI flagging is shown in Stage 3 (MS Preparation), but it actually
+happens **before calibration** as part of the calibration workflow.
 
 **Evidence:**
-- `cli_calibrate.py` line 1329-1338: Flagging happens at "[2/6]" step, before model population
+
+- `cli_calibrate.py` line 1329-1338: Flagging happens at "[2/6]" step, before
+  model population
 - Flagging is part of calibration CLI workflow, not conversion
-- In streaming mode, flagging may not happen explicitly (calibration applied from registry)
+- In streaming mode, flagging may not happen explicitly (calibration applied
+  from registry)
 
 **Current Diagram Flow:**
+
 ```
 Stage 3: MS Preparation → Flag (RFI Flagging)
 Stage 4: Calibration
 ```
 
 **Actual Flow:**
+
 ```
 Stage 2: Conversion → MS (configured)
 Stage 4: Calibration → Flag (pre-calibration) → Model → Solve
 ```
 
 **Recommendation:**
+
 - Move RFI flagging to Stage 4 (Calibration) as a pre-calibration step
 - Show it as optional (depends on calibration mode)
-- Note that streaming mode may skip explicit flagging if using existing caltables
+- Note that streaming mode may skip explicit flagging if using existing
+  caltables
 
 ---
 
 ### 3. Writer Selection Threshold
 
-**Issue:** Diagram shows ">2 subbands" vs "<=2 subbands" threshold, but code uses "<=2" for pyuvdata.
+**Issue:** Diagram shows ">2 subbands" vs "<=2 subbands" threshold, but code
+uses "<=2" for pyuvdata.
 
 **Evidence:**
+
 - `hdf5_orchestrator.py` line 821: `if n_sb and n_sb <= 2:` selects pyuvdata
 - Line 829: Otherwise selects "parallel-subband"
 - Threshold is correct: <=2 for testing, >2 for production
 
 **Current Diagram:** ✓ Correct
+
 - Shows ">2 subbands" → parallel-subband
 - Shows "<=2 subbands" → pyuvdata
 
@@ -85,18 +105,22 @@ Stage 4: Calibration → Flag (pre-calibration) → Model → Solve
 
 ### 4. Calibration Flow - K-Calibration Skip
 
-**Issue:** Diagram correctly shows K-Calibration skipped by default, but the flow could be clearer.
+**Issue:** Diagram correctly shows K-Calibration skipped by default, but the
+flow could be clearer.
 
 **Evidence:**
+
 - `cli_calibrate.py`: K-calibration only runs if `--do-k` flag is provided
 - Default behavior: Skip K → BP → G
 - With `--do-k`: K → BP → G
 
 **Current Diagram:** ✓ Mostly correct
+
 - Shows K-Calibration with "--do-k" branch
 - Shows Skip K-Cal as default
 
 **Recommendation:**
+
 - Make the default path more prominent
 - Add note that K-cal is skipped for DSA-110 short baselines
 
@@ -104,14 +128,17 @@ Stage 4: Calibration → Flag (pre-calibration) → Model → Solve
 
 ### 5. Apply Calibration Stage Separation
 
-**Issue:** Stage 5 (Apply Calibration) is shown separately, but in some workflows it's integrated into calibration.
+**Issue:** Stage 5 (Apply Calibration) is shown separately, but in some
+workflows it's integrated into calibration.
 
 **Evidence:**
+
 - `cli_calibrate.py`: Calibration solve and apply are separate steps
 - `streaming_converter.py`: Apply happens after conversion (line 684)
 - Some workflows apply immediately after solving
 
 **Current Diagram:** ✓ Correct
+
 - Shows calibration solve (Stage 4) → apply (Stage 5) → imaging (Stage 6)
 
 **Status:** No change needed, but could add note about integrated workflows
@@ -122,11 +149,14 @@ Stage 4: Calibration → Flag (pre-calibration) → Model → Solve
 
 ### 6. State Machine Diagram
 
-**Issue:** State transitions look correct, but could verify against actual state machine implementation.
+**Issue:** State transitions look correct, but could verify against actual state
+machine implementation.
 
 **Evidence:**
+
 - `streaming_converter.py`: States match diagram
-- `collecting` → `pending` → `in_progress` → `processing_fresh`/`resuming` → `completed`/`failed`
+- `collecting` → `pending` → `in_progress` → `processing_fresh`/`resuming` →
+  `completed`/`failed`
 
 **Status:** ✓ Correct
 
@@ -137,6 +167,7 @@ Stage 4: Calibration → Flag (pre-calibration) → Model → Solve
 **Issue:** Diagram shows correct database flow, but timing could be clearer.
 
 **Evidence:**
+
 - Queue DB updated during ingest
 - Products DB updated after conversion (line 650-662 in streaming_converter.py)
 - Cal registry updated after calibration solve
@@ -194,4 +225,3 @@ Stage 4: Calibration → Flag (pre-calibration) → Model → Solve
 3. Update Stage 4 detail diagram
 4. Add notes about workflow variations (streaming vs batch)
 5. Verify all diagrams render correctly after changes
-

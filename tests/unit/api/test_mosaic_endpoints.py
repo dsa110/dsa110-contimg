@@ -42,7 +42,13 @@ class TestMosaicCreateEndpoint:
     @patch("dsa110_contimg.api.routers.mosaics.get_job")
     @patch("dsa110_contimg.api.routers.mosaics.ensure_products_db")
     def test_create_mosaic_calibrator_centered(
-        self, mock_ensure_db, mock_get_job, mock_create_job, mock_run_job, client, mock_products_db
+        self,
+        mock_ensure_db,
+        mock_get_job,
+        mock_create_job,
+        mock_run_job,
+        client,
+        mock_products_db,
     ):
         """Test creating mosaic centered on calibrator."""
         mock_conn = MagicMock()
@@ -78,7 +84,13 @@ class TestMosaicCreateEndpoint:
     @patch("dsa110_contimg.api.routers.mosaics.get_job")
     @patch("dsa110_contimg.api.routers.mosaics.ensure_products_db")
     def test_create_mosaic_time_window(
-        self, mock_ensure_db, mock_get_job, mock_create_job, mock_run_job, client, mock_products_db
+        self,
+        mock_ensure_db,
+        mock_get_job,
+        mock_create_job,
+        mock_run_job,
+        client,
+        mock_products_db,
     ):
         """Test creating mosaic for time window."""
         mock_conn = MagicMock()

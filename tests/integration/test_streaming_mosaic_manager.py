@@ -12,10 +12,8 @@ without requiring actual CASA/WSClean execution.
 
 from __future__ import annotations
 
-import sqlite3
-import time
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from astropy.time import Time
@@ -162,7 +160,6 @@ def test_solve_calibration_for_group_success(
         patch("dsa110_contimg.mosaic.streaming_mosaic.select_bandpass_from_catalog") as mock_select,
         patch("casacore.tables", mock_casatables_module),
     ):
-
         # Mock time extraction
         mock_extract.return_value = (None, None, 60000.0)  # MJD
 
@@ -173,7 +170,12 @@ def test_solve_calibration_for_group_success(
             "0",  # field_sel_str
             [0],  # field_indices
             np.array([1.0]),  # weighted_flux_per_field
-            ("0834+555", 129.0, -30.0, 1.0),  # calibrator_info: (name, ra_deg, dec_deg, flux_jy)
+            (
+                "0834+555",
+                129.0,
+                -30.0,
+                1.0,
+            ),  # calibrator_info: (name, ra_deg, dec_deg, flux_jy)
             0,  # peak_field_idx
         )
 
@@ -270,7 +272,6 @@ def test_solve_calibration_for_group_bp_only(mosaic_manager, registered_group, t
         patch("dsa110_contimg.mosaic.streaming_mosaic.select_bandpass_from_catalog") as mock_select,
         patch("casacore.tables", mock_casatables_module),
     ):
-
         mock_extract.return_value = (None, None, 60000.0)
         import numpy as np
 
@@ -278,7 +279,12 @@ def test_solve_calibration_for_group_bp_only(mosaic_manager, registered_group, t
             "0",  # field_sel_str
             [0],  # field_indices
             np.array([1.0]),  # weighted_flux_per_field
-            ("0834+555", 129.0, -30.0, 1.0),  # calibrator_info: (name, ra_deg, dec_deg, flux_jy)
+            (
+                "0834+555",
+                129.0,
+                -30.0,
+                1.0,
+            ),  # calibrator_info: (name, ra_deg, dec_deg, flux_jy)
             0,  # peak_field_idx
         )
         mock_bp.return_value = (True, "/test/bp.table")
@@ -320,7 +326,6 @@ def test_apply_calibration_to_group_success(
         patch("dsa110_contimg.mosaic.streaming_mosaic.extract_ms_time_range") as mock_extract,
         patch("dsa110_contimg.mosaic.streaming_mosaic.get_active_applylist") as mock_get_applylist,
     ):
-
         # Mock time extraction for each MS - use a callable to avoid StopIteration
         def extract_side_effect(ms_path):
             # Return different times for each MS
@@ -483,7 +488,6 @@ def test_create_mosaic_success(mosaic_manager, registered_group, mock_ms_files, 
         patch("dsa110_contimg.mosaic.cli._build_weighted_mosaic") as mock_create,
         patch("dsa110_contimg.mosaic.streaming_mosaic.validate_tiles_consistency") as mock_validate,
     ):
-
         # Mock validation to return success
         mock_validate.return_value = (True, [], {})
 
@@ -555,7 +559,6 @@ def test_full_workflow_integration(
         patch("dsa110_contimg.mosaic.cli._build_weighted_mosaic") as mock_create,
         patch("dsa110_contimg.mosaic.streaming_mosaic.validate_tiles_consistency") as mock_validate,
     ):
-
         # Mock calibration solving
         mock_extract.return_value = (None, None, 60000.0)
         mock_bp.return_value = (True, str(bp_table))

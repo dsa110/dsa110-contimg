@@ -2,11 +2,14 @@
 
 ## Overview
 
-This testing strategy validates the **scientific correctness** of the calibration pipeline, not just that code runs without errors. Tests are written from the perspective of a **rigorous radio astronomer and CASA expert**.
+This testing strategy validates the **scientific correctness** of the
+calibration pipeline, not just that code runs without errors. Tests are written
+from the perspective of a **rigorous radio astronomer and CASA expert**.
 
 ## Philosophy
 
-**The pipeline is in a DYSFUNCTIONAL STATE if it produces scientifically invalid results, even if code runs successfully.**
+**The pipeline is in a DYSFUNCTIONAL STATE if it produces scientifically invalid
+results, even if code runs successfully.**
 
 ### Key Principles
 
@@ -20,7 +23,7 @@ This testing strategy validates the **scientific correctness** of the calibratio
 
 ### 1. Flux Scale Validation
 
-- **MODEL_DATA flux matches catalog**:**
+- **MODEL_DATA flux matches catalog**:\*\*
   - Known calibrator: 0834+555 = 2.5 Jy at 1.4 GHz
   - Tolerance: 4% (0.1 Jy)
   - **Failure indicates**: Model population error or catalog error
@@ -106,12 +109,12 @@ This testing strategy validates the **scientific correctness** of the calibratio
 ### 6. Solution Quality Metrics
 
 - **Bandpass flagged fraction < 50%:**
-  - >50% indicates calibration failure
+  - > 50% indicates calibration failure
   - Target: < 30%
   - **Failure indicates**: Low SNR, poor data quality, or calibration error
 
 - **Pre-bandpass phase flagged fraction < 30%:**
-  - >30% indicates problems
+  - > 30% indicates problems
   - Target: < 20%
   - **Failure indicates**: Pre-bandpass parameter issues
 
@@ -214,7 +217,8 @@ These tests validate fixes for known issues:
 ## References
 
 - **CASA Calibration Guide**: https://casa.nrao.edu/casadocs/
-- **VLA Calibrator Manual**: https://science.nrao.edu/facilities/vla/docs/manuals/calguide/
+- **VLA Calibrator Manual**:
+  https://science.nrao.edu/facilities/vla/docs/manuals/calguide/
 - **Radio Astronomy Data Reduction**: Thompson, Moran, Swenson (2001)
-- **CASA Best Practices**: https://science.nrao.edu/facilities/vla/docs/manuals/oss/performance
-
+- **CASA Best Practices**:
+  https://science.nrao.edu/facilities/vla/docs/manuals/oss/performance

@@ -7,9 +7,12 @@ Provides functions to:
 - Create optimal template coordinate systems
 """
 
+# pylint: disable=no-member  # CASA coordinatesystem dynamic methods
+
 import logging
-from typing import List, Tuple, Optional
 from pathlib import Path
+from typing import List, Optional, Tuple
+
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -50,12 +53,12 @@ def get_tile_coordinate_bounds(tile_path: str) -> Optional[dict]:
         shape = img.shape()
 
         # Get direction coordinate
-        direction_axis = coordsys_obj.findcoordinate("direction")
+        direction_axis = coordsys_obj.findcoordinate("direction")  # pylint: disable=no-member
         if direction_axis < 0:
             del img
             return None
 
-        direction_info = coordsys_obj.direction(direction_axis)
+        direction_info = coordsys_obj.direction(direction_axis)  # pylint: disable=no-member
         ref_val = direction_info["crval"]  # Reference value in radians
         ref_pix = direction_info["crpix"]  # Reference pixel
         inc = direction_info["cdelt"]  # Increment in radians
@@ -233,9 +236,7 @@ def filter_tiles_by_overlap(
     skipped = []
 
     for tile_path in tile_paths:
-        overlaps, reason = check_tile_overlaps_template(
-            tile_path, template_path, margin_pixels
-        )
+        overlaps, reason = check_tile_overlaps_template(tile_path, template_path, margin_pixels)
         if overlaps:
             overlapping.append(tile_path)
         else:

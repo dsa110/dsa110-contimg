@@ -2,11 +2,16 @@
 
 ## Overview
 
-This document provides a **step-by-step debugging process** for resolving Browser MCP connection issues. It documents the exact troubleshooting steps used to resolve connection problems between the Browser MCP server, browser extension, and Cursor IDE.
+This document provides a **step-by-step debugging process** for resolving
+Browser MCP connection issues. It documents the exact troubleshooting steps used
+to resolve connection problems between the Browser MCP server, browser
+extension, and Cursor IDE.
 
-**Who is this for?** Anyone encountering Browser MCP connection issues, even if you've never worked with this system before.
+**Who is this for?** Anyone encountering Browser MCP connection issues, even if
+you've never worked with this system before.
 
 **What you'll learn:**
+
 - How to verify each component is working
 - How to identify the exact problem
 - How to fix common issues
@@ -33,6 +38,7 @@ Chrome Browser (running on Chrome Remote Desktop)
 ```
 
 **Key Points:**
+
 - **Cursor** talks to the **server** via HTTP (port 3111)
 - **Server** talks to the **extension** via WebSocket (port 9009)
 - **Extension** controls **Chrome** via Playwright
@@ -40,31 +46,44 @@ Chrome Browser (running on Chrome Remote Desktop)
 
 **Why HTTP for Cursor but WebSocket for Extension?**
 
-- **HTTP (Cursor ↔ Server):** Cursor uses the MCP (Model Context Protocol) which supports HTTP transport. This is more reliable than stdio and works across network boundaries. Each request/response is independent.
+- **HTTP (Cursor ↔ Server):** Cursor uses the MCP (Model Context Protocol)
+  which supports HTTP transport. This is more reliable than stdio and works
+  across network boundaries. Each request/response is independent.
 
-- **WebSocket (Server ↔ Extension):** The browser extension needs a persistent, bidirectional connection to receive commands and send responses. WebSocket allows the server to push commands to the extension and receive responses asynchronously.
+- **WebSocket (Server ↔ Extension):** The browser extension needs a persistent,
+  bidirectional connection to receive commands and send responses. WebSocket
+  allows the server to push commands to the extension and receive responses
+  asynchronously.
 
-**Important:** These are two separate protocols on two separate ports. The HTTP connection (3111) is for Cursor, the WebSocket connection (9009) is for the extension. Both must be working for tools to function.
+**Important:** These are two separate protocols on two separate ports. The HTTP
+connection (3111) is for Cursor, the WebSocket connection (9009) is for the
+extension. Both must be working for tools to function.
 
 ## File Locations (Where Everything Lives)
 
 **Server code:**
+
 - Location: `/home/ubuntu/proj/mcps/browser-mcp/mcp/`
 - Config file: `src/local-deps/config/mcp.config.ts` (defines WebSocket port)
-- Message handler: `src/local-deps/r2r/messaging/ws/sender.ts` (handles extension responses)
+- Message handler: `src/local-deps/r2r/messaging/ws/sender.ts` (handles
+  extension responses)
 - HTTP server: `src/http-server.ts` (creates WebSocket server and HTTP endpoint)
 - Build output: `dist/index.js` (compiled server)
 
 **Cursor configuration:**
+
 - Location: `/data/dsa110-contimg/.cursor/mcp.json`
 - Defines: How Cursor connects to the server
 
 **Server logs:**
+
 - Location: `/tmp/browsermcp.log`
 - Contains: Server startup, WebSocket connections, errors
 
 **Extension location:**
-- Chrome extension directory: `~/.config/google-chrome/Default/Extensions/bjfgambnhccakkhmkepdoekmckoijdlc/`
+
+- Chrome extension directory:
+  `~/.config/google-chrome/Default/Extensions/bjfgambnhccakkhmkepdoekmckoijdlc/`
 - Background script: `background.js` (contains hardcoded port 9009)
 - Manifest: `manifest.json` (extension permissions)
 
@@ -74,7 +93,8 @@ Before troubleshooting, verify these **critical values** match:
 
 1. **WebSocket Port**: Extension expects `9009` (hardcoded in extension)
 2. **HTTP Port**: Cursor connects to `3111` (configurable in `mcp.json`)
-3. **Message Format**: Extension sends `{id, type: "messageResponse", payload: {requestId, result, error}}`
+3. **Message Format**: Extension sends
+   `{id, type: "messageResponse", payload: {requestId, result, error}}`
 
 ## Quick Diagnostic Checklist
 
@@ -108,6 +128,7 @@ tail -30 /tmp/browsermcp.log | grep -E "WebSocket|connection|connected|9009"
 ### Step 1: Verify Server is Running
 
 **Check HTTP server:**
+
 ```bash
 ps aux | grep "dist/index.js.*--http.*3111" | grep -v grep
 ```
@@ -115,6 +136,7 @@ ps aux | grep "dist/index.js.*--http.*3111" | grep -v grep
 **Expected output:** Process running with `--http --port 3111`
 
 **If not running:**
+
 ```bash
 cd /home/ubuntu/proj/mcps/browser-mcp/mcp
 /opt/miniforge/envs/casa6/bin/node dist/index.js --http --port 3111 > /tmp/browsermcp.log 2>&1 &
@@ -122,13 +144,17 @@ cd /home/ubuntu/proj/mcps/browser-mcp/mcp
 
 ### Step 2: Verify WebSocket Port Configuration
 
-**CRITICAL:** The Browser MCP extension is **hardcoded** to connect to port `9009`. The server **must** listen on port `9009`, not `3000`.
+**CRITICAL:** The Browser MCP extension is **hardcoded** to connect to port
+`9009`. The server **must** listen on port `9009`, not `3000`.
 
-**Why is this important?** The extension's code has the port number baked in. If the server listens on a different port, the extension will try to connect to the wrong port and fail silently.
+**Why is this important?** The extension's code has the port number baked in. If
+the server listens on a different port, the extension will try to connect to the
+wrong port and fail silently.
 
 **How to verify the extension's hardcoded port:**
 
-You can check what port the extension expects by looking at its background script:
+You can check what port the extension expects by looking at its background
+script:
 
 ```bash
 # Find the extension directory
@@ -141,6 +167,7 @@ grep -o "defaultWsPort:[0-9]*\|localhost:[0-9]*" ~/.config/google-chrome/Default
 **Expected:** Extension code shows port `9009` (or `defaultWsPort:9009`)
 
 **Check server configuration:**
+
 ```bash
 grep -n "defaultWsPort" /home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/config/mcp.config.ts
 ```
@@ -150,6 +177,7 @@ grep -n "defaultWsPort" /home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/co
 **If wrong (shows `3000`):**
 
 1. Edit the config file:
+
    ```bash
    cd /home/ubuntu/proj/mcps/browser-mcp/mcp
    # Edit src/local-deps/config/mcp.config.ts
@@ -158,15 +186,17 @@ grep -n "defaultWsPort" /home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/co
    ```
 
 2. Rebuild the server:
+
    ```bash
    /opt/miniforge/envs/casa6/bin/npm run build
    ```
-   
+
    **Expected output:** Build completes without errors
 
 3. Restart the server (see Step 1 for restart commands)
 
 **Verify port is listening:**
+
 ```bash
 lsof -i :9009 | grep LISTEN
 ```
@@ -174,6 +204,7 @@ lsof -i :9009 | grep LISTEN
 **Expected:** Node.js process listening on port 9009
 
 **If port 9009 not listening:**
+
 1. Check server logs: `tail -20 /tmp/browsermcp.log`
 2. Look for: `[MCP HTTP] WebSocket server listening on port 9009`
 3. If it says port 3000, rebuild and restart server
@@ -181,6 +212,7 @@ lsof -i :9009 | grep LISTEN
 ### Step 3: Check Extension Connection
 
 **In Chrome (via Chrome Remote Desktop):**
+
 1. Open Chrome browser
 2. Click Browser MCP extension icon
 3. Click "Connect" button
@@ -188,7 +220,8 @@ lsof -i :9009 | grep LISTEN
 
 **If extension shows "Connected" but tools still fail:**
 
-This is a common issue! The popup might show "Connected" but the actual WebSocket connection might not be established. Here's how to verify:
+This is a common issue! The popup might show "Connected" but the actual
+WebSocket connection might not be established. Here's how to verify:
 
 **Step-by-step: Check Extension Background Script Console**
 
@@ -206,6 +239,7 @@ This is a common issue! The popup might show "Connected" but the actual WebSocke
 **What to look for:**
 
 **Good signs:**
+
 - No errors
 - Messages about WebSocket connection
 - Messages about connecting to `ws://localhost:9009`
@@ -213,28 +247,33 @@ This is a common issue! The popup might show "Connected" but the actual WebSocke
 **Bad signs - Common errors:**
 
 1. **CSP (Content Security Policy) Error:**
+
    ```
    Connecting to 'ws://localhost:3000/' violates Content Security Policy
    ```
-   **Meaning:** Extension is trying to connect to port 3000, but should use 9009.
-   **Solution:** Check server is listening on port 9009, not 3000.
+
+   **Meaning:** Extension is trying to connect to port 3000, but should
+   use 9009. **Solution:** Check server is listening on port 9009, not 3000.
 
 2. **Connection Refused:**
+
    ```
    WebSocket connection to 'ws://localhost:9009/' failed: Error in connection establishment
    ```
-   **Meaning:** No server listening on port 9009.
-   **Solution:** Start the server (see Step 1).
 
-3. **No messages at all:**
-   **Meaning:** Extension might not be trying to connect, or connection is silently failing.
-   **Solution:** Disconnect and reconnect the extension, watch console while doing so.
+   **Meaning:** No server listening on port 9009. **Solution:** Start the server
+   (see Step 1).
+
+3. **No messages at all:** **Meaning:** Extension might not be trying to
+   connect, or connection is silently failing. **Solution:** Disconnect and
+   reconnect the extension, watch console while doing so.
 
 **If you see errors:** Note the exact error message - it tells you what's wrong.
 
 ### Step 4: Verify WebSocket Connection is Established
 
 **Check for active connections:**
+
 ```bash
 netstat -an 2>/dev/null | grep ":9009.*ESTABLISHED" || ss -an 2>/dev/null | grep ":9009.*ESTAB"
 ```
@@ -242,26 +281,34 @@ netstat -an 2>/dev/null | grep ":9009.*ESTABLISHED" || ss -an 2>/dev/null | grep
 **Expected:** At least one ESTABLISHED connection
 
 **If no connections:**
+
 1. Disconnect and reconnect extension in Chrome
 2. Wait 2-3 seconds
 3. Check again
 4. Check server logs: `tail -20 /tmp/browsermcp.log | grep -i websocket`
 
 **Check server logs for connection:**
+
 ```bash
 tail -50 /tmp/browsermcp.log | grep -E "WebSocket.*connection|Browser extension connected"
 ```
 
-**Expected:** `[MCP HTTP] Browser extension connected via WebSocket (readyState: 1)`
+**Expected:**
+`[MCP HTTP] Browser extension connected via WebSocket (readyState: 1)`
 
 ### Step 5: Verify Message Format Handler
 
-**CRITICAL:** The extension sends responses in a specific format that must be handled correctly. If the handler doesn't recognize this format, tools will timeout even though the WebSocket connection is established.
+**CRITICAL:** The extension sends responses in a specific format that must be
+handled correctly. If the handler doesn't recognize this format, tools will
+timeout even though the WebSocket connection is established.
 
-**Why this matters:** The server sends a request to the extension and waits for a response. If the response format doesn't match what the handler expects, the handler won't recognize it as a response and will timeout.
+**Why this matters:** The server sends a request to the extension and waits for
+a response. If the response format doesn't match what the handler expects, the
+handler won't recognize it as a response and will timeout.
 
-**Extension response format:**
-The extension wraps responses in a specific structure:
+**Extension response format:** The extension wraps responses in a specific
+structure:
+
 ```json
 {
   "id": "some-uuid",
@@ -275,6 +322,7 @@ The extension wraps responses in a specific structure:
 ```
 
 **Standard format (what the handler originally expected):**
+
 ```json
 {
   "id": "original-request-id",
@@ -284,11 +332,13 @@ The extension wraps responses in a specific structure:
 ```
 
 **Check message handler code:**
+
 ```bash
 grep -A 30 "messageHandler.*data.*Buffer" /home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/r2r/messaging/ws/sender.ts
 ```
 
 **Expected:** Handler checks both formats. Look for code like:
+
 ```typescript
 // Check standard format
 if (response.id === messageId) {
@@ -296,7 +346,10 @@ if (response.id === messageId) {
 }
 
 // Check extension format
-if (response.type === "messageResponse" && response.payload.requestId === messageId) {
+if (
+  response.type === "messageResponse" &&
+  response.payload.requestId === messageId
+) {
   // handle response from payload
 }
 ```
@@ -304,6 +357,7 @@ if (response.type === "messageResponse" && response.payload.requestId === messag
 **If handler doesn't support extension format:**
 
 1. Edit the file:
+
    ```bash
    cd /home/ubuntu/proj/mcps/browser-mcp/mcp
    # Edit: src/local-deps/r2r/messaging/ws/sender.ts
@@ -312,11 +366,12 @@ if (response.type === "messageResponse" && response.payload.requestId === messag
 2. Find the `messageHandler` function (around line 50-80)
 
 3. Update it to handle both formats. The handler should look like:
+
    ```typescript
    const messageHandler = (data: Buffer) => {
      try {
        const response = JSON.parse(data.toString());
-       
+
        // Check standard format
        if (response.id === messageId) {
          clearTimeout(timeout);
@@ -328,9 +383,13 @@ if (response.type === "messageResponse" && response.payload.requestId === messag
          }
          return;
        }
-       
+
        // Check extension format
-       if (response.type === "messageResponse" && response.payload && response.payload.requestId === messageId) {
+       if (
+         response.type === "messageResponse" &&
+         response.payload &&
+         response.payload.requestId === messageId
+       ) {
          clearTimeout(timeout);
          ws.removeListener("message", messageHandler);
          if (response.payload.error) {
@@ -347,6 +406,7 @@ if (response.type === "messageResponse" && response.payload.requestId === messag
    ```
 
 4. Rebuild:
+
    ```bash
    /opt/miniforge/envs/casa6/bin/npm run build
    ```
@@ -358,12 +418,16 @@ if (response.type === "messageResponse" && response.payload.requestId === messag
 **After fixing configuration, test the tools:**
 
 **In Cursor IDE:**
+
 1. Open Cursor
 2. Try a simple navigation command:
+
    ```
    Navigate to https://www.example.com
    ```
+
    OR use the MCP tool directly:
+
    ```
    mcp_browsermcp_browser_navigate({"url": "https://www.example.com"})
    ```
@@ -376,12 +440,14 @@ if (response.type === "messageResponse" && response.payload.requestId === messag
 **What success looks like:**
 
 **Successful navigation:**
+
 - Returns immediately (no timeout)
 - Shows: `Page URL: https://www.example.com/`
 - Shows: `Page Title: Example Domain`
 - No error messages
 
 **Successful snapshot:**
+
 - Returns immediately (no timeout)
 - Shows page structure in YAML format
 - Lists elements with references like `[ref=s1e2]`
@@ -390,17 +456,22 @@ if (response.type === "messageResponse" && response.payload.requestId === messag
 **What failure looks like:**
 
 **Timeout (30 seconds):**
+
 - Tool call hangs for 30 seconds
 - Then returns: `Error: WebSocket response timeout after 30000ms`
 - **Meaning:** Server sent request to extension but didn't receive response
-- **Likely cause:** Message format handler not recognizing extension's response format
+- **Likely cause:** Message format handler not recognizing extension's response
+  format
 
 **"No connection to browser extension":**
+
 - Returns immediately with error
 - **Meaning:** No WebSocket connection established
-- **Likely cause:** Extension not connected, or server not listening on port 9009
+- **Likely cause:** Extension not connected, or server not listening on port
+  9009
 
 **"Session not found":**
+
 - Returns immediately with error
 - **Meaning:** Cursor's HTTP session expired or server restarted
 - **Solution:** Restart Cursor to reconnect
@@ -408,34 +479,44 @@ if (response.type === "messageResponse" && response.payload.requestId === messag
 **If tools timeout or fail:**
 
 1. **Check WebSocket connection is still active:**
+
    ```bash
    netstat -an | grep ":9009.*ESTABLISHED"
    ```
+
    **Expected:** At least one ESTABLISHED connection
 
 2. **Check server logs for activity:**
+
    ```bash
    tail -50 /tmp/browsermcp.log
    ```
 
 3. **Look for WebSocket message activity:**
+
    ```bash
    tail -50 /tmp/browsermcp.log | grep "WebSocket message received"
    ```
-   **Expected:** Logs show `[MCP HTTP] WebSocket message received (XXX bytes)` when tools are called
-   
-   **If you see messages being received:** The connection is working, but responses aren't being recognized (message format issue)
-   
-   **If you don't see messages:** The extension isn't receiving requests (connection issue)
+
+   **Expected:** Logs show `[MCP HTTP] WebSocket message received (XXX bytes)`
+   when tools are called
+
+   **If you see messages being received:** The connection is working, but
+   responses aren't being recognized (message format issue)
+
+   **If you don't see messages:** The extension isn't receiving requests
+   (connection issue)
 
 ### Step 7: Verify Cursor MCP Connection
 
 **Check Cursor configuration:**
+
 ```bash
 cat /data/dsa110-contimg/.cursor/mcp.json | jq '.mcpServers.browsermcp'
 ```
 
 **Expected:**
+
 ```json
 {
   "url": "http://localhost:3111/mcp",
@@ -444,43 +525,50 @@ cat /data/dsa110-contimg/.cursor/mcp.json | jq '.mcpServers.browsermcp'
 ```
 
 **If wrong:**
+
 1. Update `mcp.json` to use HTTP transport (not stdio)
 2. Restart Cursor completely
 3. Wait for Cursor to reconnect
 
 **Test HTTP endpoint:**
+
 ```bash
 curl -s http://localhost:3111/mcp
 ```
 
-**Expected:** JSON response (may show "Invalid session" if accessed directly, but should not error)
+**Expected:** JSON response (may show "Invalid session" if accessed directly,
+but should not error)
 
 ## Understanding Error Messages
 
 Before diving into specific issues, here's what common error messages mean:
 
-| Error Message | What It Means | Where to Look |
-|--------------|---------------|---------------|
-| `"No connection to browser extension"` | No WebSocket connection between server and extension | Check port 9009 connection |
-| `"WebSocket response timeout after 30000ms"` | Server sent request but didn't get response | Check message format handler |
-| `"Session not found"` | Cursor's HTTP session expired | Restart Cursor |
-| `"Stale aria-ref"` | Page changed, need fresh snapshot | Get new snapshot before interacting |
-| `"Invalid session or request"` | HTTP request format wrong or session expired | Check Cursor connection |
+| Error Message                                | What It Means                                        | Where to Look                       |
+| -------------------------------------------- | ---------------------------------------------------- | ----------------------------------- |
+| `"No connection to browser extension"`       | No WebSocket connection between server and extension | Check port 9009 connection          |
+| `"WebSocket response timeout after 30000ms"` | Server sent request but didn't get response          | Check message format handler        |
+| `"Session not found"`                        | Cursor's HTTP session expired                        | Restart Cursor                      |
+| `"Stale aria-ref"`                           | Page changed, need fresh snapshot                    | Get new snapshot before interacting |
+| `"Invalid session or request"`               | HTTP request format wrong or session expired         | Check Cursor connection             |
 
 ## Common Issues and Solutions
 
 ### Issue 1: "No connection to browser extension"
 
 **Symptoms:**
+
 - Tool calls fail with "No connection to browser extension"
 - Extension popup shows "Connected" but tools don't work
 
 **Root Causes:**
-1. **Port mismatch** (most common): Server listening on 3000, extension expects 9009
+
+1. **Port mismatch** (most common): Server listening on 3000, extension expects
+   9009
 2. **WebSocket not established**: Extension not actually connected
 3. **Message format mismatch**: Server not handling extension's response format
 
 **Solution:**
+
 1. Verify server is listening on port **9009** (not 3000)
 2. Check `mcp.config.ts`: `defaultWsPort: 9009`
 3. Rebuild server: `npm run build`
@@ -491,6 +579,7 @@ Before diving into specific issues, here's what common error messages mean:
 ### Issue 2: Tools Timeout After 30 Seconds
 
 **Symptoms:**
+
 - WebSocket connection is established (you see ESTABLISHED in `netstat`)
 - Extension shows "Connected" in popup
 - Tools are called but timeout after exactly 30 seconds
@@ -498,15 +587,18 @@ Before diving into specific issues, here's what common error messages mean:
 - But no response is processed
 
 **What's happening:**
+
 1. Cursor sends HTTP request to server
 2. Server sends WebSocket message to extension
 3. Extension processes request and sends response
 4. Server receives response but doesn't recognize it
 5. Server waits 30 seconds, then times out
 
-**Root Cause:** Message format handler not processing extension's response format correctly
+**Root Cause:** Message format handler not processing extension's response
+format correctly
 
 **How to verify this is the problem:**
+
 ```bash
 # Check if messages are being received
 tail -50 /tmp/browsermcp.log | grep "WebSocket message received"
@@ -516,10 +608,12 @@ tail -50 /tmp/browsermcp.log | grep "WebSocket message received"
 ```
 
 **Solution:**
+
 1. Check message handler in `sender.ts` (see Step 5 for exact code)
 2. Verify it handles `response.type === "messageResponse"` format
 3. Verify it extracts `requestId` from `response.payload.requestId`
-4. Rebuild: `cd /home/ubuntu/proj/mcps/browser-mcp/mcp && /opt/miniforge/envs/casa6/bin/npm run build`
+4. Rebuild:
+   `cd /home/ubuntu/proj/mcps/browser-mcp/mcp && /opt/miniforge/envs/casa6/bin/npm run build`
 5. Restart server (kill old process, start new one)
 6. Test again
 
@@ -528,12 +622,14 @@ tail -50 /tmp/browsermcp.log | grep "WebSocket message received"
 ### Issue 3: "Session not found" Error
 
 **Symptoms:**
+
 - HTTP endpoint returns `{"error":"Session not found"}`
 - Cursor can't connect to MCP server
 
 **Root Cause:** Cursor needs to reconnect after server restart
 
 **Solution:**
+
 1. Restart Cursor completely
 2. Wait for Cursor to reconnect (check MCP server status in Cursor)
 3. Test again
@@ -541,14 +637,18 @@ tail -50 /tmp/browsermcp.log | grep "WebSocket message received"
 ### Issue 4: Extension Shows "Connected" But No WebSocket Connection
 
 **Symptoms:**
+
 - Extension popup shows "Connected"
 - But `netstat` shows no ESTABLISHED connections on port 9009
 - Server logs show no connection messages
 
-**Root Cause:** Extension is connecting to wrong port or connection is being blocked
+**Root Cause:** Extension is connecting to wrong port or connection is being
+blocked
 
 **Solution:**
-1. Check extension's background script console (`chrome://extensions/` → Inspect service worker)
+
+1. Check extension's background script console (`chrome://extensions/` → Inspect
+   service worker)
 2. Look for CSP errors or connection errors
 3. Verify server is listening on port 9009: `lsof -i :9009`
 4. Check firewall: `sudo iptables -L -n | grep 9009`
@@ -557,10 +657,12 @@ tail -50 /tmp/browsermcp.log | grep "WebSocket message received"
 ### Issue 5: Port Already in Use
 
 **Symptoms:**
+
 - Server won't start: "Port 9009 already in use"
 - Or server starts but WebSocket server fails
 
 **Solution:**
+
 ```bash
 # Find process using port 9009
 lsof -i :9009
@@ -597,10 +699,12 @@ tail -20 /tmp/browsermcp.log | grep -i "connected"
 
 ## Key Files to Check
 
-1. **Server configuration:** `/home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/config/mcp.config.ts`
+1. **Server configuration:**
+   `/home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/config/mcp.config.ts`
    - Must have: `defaultWsPort: 9009`
 
-2. **Message handler:** `/home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/r2r/messaging/ws/sender.ts`
+2. **Message handler:**
+   `/home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/r2r/messaging/ws/sender.ts`
    - Must handle: `response.type === "messageResponse"` format
 
 3. **HTTP server:** `/home/ubuntu/proj/mcps/browser-mcp/mcp/src/http-server.ts`
@@ -620,27 +724,35 @@ If you're starting completely fresh, follow these steps in order:
 ### Prerequisites Check
 
 1. **Node.js version:**
+
    ```bash
    /opt/miniforge/envs/casa6/bin/node --version
    ```
+
    **Expected:** v22.6.0 or higher
 
 2. **Server code exists:**
+
    ```bash
    ls -la /home/ubuntu/proj/mcps/browser-mcp/mcp/
    ```
+
    **Expected:** Directory exists with `package.json`, `src/`, etc.
 
 3. **Chrome Remote Desktop running:**
+
    ```bash
    ps aux | grep chrome-remote-desktop-host | grep -v grep
    ```
+
    **Expected:** Process running
 
 4. **Chrome browser running:**
+
    ```bash
    ps aux | grep "/opt/google/chrome/chrome" | grep -v grep
    ```
+
    **Expected:** Process running
 
 5. **Browser MCP extension installed:**
@@ -652,38 +764,47 @@ If you're starting completely fresh, follow these steps in order:
 ### Setup Steps
 
 1. **Configure server port:**
+
    ```bash
    cd /home/ubuntu/proj/mcps/browser-mcp/mcp
    grep "defaultWsPort" src/local-deps/config/mcp.config.ts
    ```
+
    - If shows `3000`, change to `9009`
    - Edit file, change `defaultWsPort: 3000` to `defaultWsPort: 9009`
 
 2. **Verify message handler:**
+
    ```bash
    grep -A 30 "messageHandler.*data.*Buffer" src/local-deps/r2r/messaging/ws/sender.ts | grep -E "messageResponse|payload.requestId"
    ```
+
    - Should show code handling `response.type === "messageResponse"`
 
 3. **Build server:**
+
    ```bash
    /opt/miniforge/envs/casa6/bin/npm run build
    ```
+
    - Wait for build to complete
    - Check for errors
 
 4. **Start server:**
+
    ```bash
    /opt/miniforge/envs/casa6/bin/node dist/index.js --http --port 3111 > /tmp/browsermcp.log 2>&1 &
    ```
 
 5. **Verify server started:**
+
    ```bash
    sleep 3
    tail -10 /tmp/browsermcp.log
    lsof -i :9009 | grep LISTEN
    lsof -i :3111 | grep LISTEN
    ```
+
    - Should see server listening on both ports
 
 6. **Configure Cursor:**
@@ -708,13 +829,16 @@ If you're starting completely fresh, follow these steps in order:
    - Popup should show "Connected"
 
 9. **Verify connection:**
+
    ```bash
    netstat -an | grep ":9009.*ESTABLISHED"
    ```
+
    - Should show at least one ESTABLISHED connection
 
 10. **Test tools:**
-    - In Cursor, try: `mcp_browsermcp_browser_navigate({"url": "https://www.example.com"})`
+    - In Cursor, try:
+      `mcp_browsermcp_browser_navigate({"url": "https://www.example.com"})`
     - Should return immediately with page info
     - No timeouts, no errors
 
@@ -725,17 +849,21 @@ Before reporting issues, verify each of these:
 - [ ] Server listening on port **9009** (WebSocket), not 3000
   - Check: `lsof -i :9009 | grep LISTEN`
 - [ ] `mcp.config.ts` has `defaultWsPort: 9009`
-  - Check: `grep defaultWsPort /home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/config/mcp.config.ts`
-- [ ] WebSocket connection established: `netstat -an | grep ":9009.*ESTABLISHED"`
+  - Check:
+    `grep defaultWsPort /home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/config/mcp.config.ts`
+- [ ] WebSocket connection established:
+      `netstat -an | grep ":9009.*ESTABLISHED"`
   - Should show at least 1 ESTABLISHED connection
 - [ ] Extension shows "Connected" in popup
   - Check in Chrome extension popup
 - [ ] Server logs show: `Browser extension connected via WebSocket`
   - Check: `tail -20 /tmp/browsermcp.log | grep "connected"`
 - [ ] Message handler supports `response.type === "messageResponse"` format
-  - Check: `grep -A 20 "messageHandler" /home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/r2r/messaging/ws/sender.ts | grep "messageResponse"`
+  - Check:
+    `grep -A 20 "messageHandler" /home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/r2r/messaging/ws/sender.ts | grep "messageResponse"`
 - [ ] Cursor `mcp.json` uses HTTP transport (not stdio)
-  - Check: `cat /data/dsa110-contimg/.cursor/mcp.json | jq '.mcpServers.browsermcp'`
+  - Check:
+    `cat /data/dsa110-contimg/.cursor/mcp.json | jq '.mcpServers.browsermcp'`
   - Should show `"url": "http://localhost:3111/mcp"`
 - [ ] Cursor has been restarted after config changes
   - After changing `mcp.json`, must restart Cursor completely
@@ -744,7 +872,9 @@ Before reporting issues, verify each of these:
 
 ## Related Documentation
 
-- [Browser MCP Server Setup](./mcp_browser_server_setup.md) - Initial setup and configuration
-- [Browser MCP Diagnostics](./browser_mcp_diagnostics.md) - Diagnostic commands and checks
-- [Browser MCP + Chrome Remote Desktop Architecture](./browser_mcp_chrome_remote_desktop_architecture.md) - Architecture overview
-
+- [Browser MCP Server Setup](./mcp_browser_server_setup.md) - Initial setup and
+  configuration
+- [Browser MCP Diagnostics](./browser_mcp_diagnostics.md) - Diagnostic commands
+  and checks
+- [Browser MCP + Chrome Remote Desktop Architecture](./browser_mcp_chrome_remote_desktop_architecture.md) -
+  Architecture overview

@@ -23,7 +23,6 @@ from dsa110_contimg.photometry.adaptive_binning import (
 )
 from dsa110_contimg.photometry.forced import measure_forced_peak
 from dsa110_contimg.utils.runtime_safeguards import (
-    filter_non_finite_2d,
     log_progress,
     progress_monitor,
 )
@@ -156,9 +155,7 @@ def measure_with_adaptive_binning(
         # Create photometry function if not provided
         if photometry_fn is None:
 
-            def photometry_fn(
-                image_path: str, ra: float, dec: float
-            ) -> Tuple[float, float]:
+            def photometry_fn(image_path: str, ra: float, dec: float) -> Tuple[float, float]:
                 """Default photometry using measure_forced_peak."""
                 result = measure_forced_peak(
                     image_path,
@@ -170,21 +167,14 @@ def measure_with_adaptive_binning(
                 # Convert from Jy/beam to Jy (approximate)
                 flux_jy = result.peak_jyb
                 rms_jy = (
-                    result.peak_err_jyb
-                    if result.peak_err_jyb is not None
-                    else result.local_rms_jy
+                    result.peak_err_jyb if result.peak_err_jyb is not None else result.local_rms_jy
                 )
                 # Filter non-finite values from RMS calculation
                 if rms_jy is None or not np.isfinite(rms_jy):
                     # Use safe filtering if rms_jy is invalid
-                    if (
-                        hasattr(measure_result, "rms_jy")
-                        and measure_result.rms_jy is not None
-                    ):
+                    if hasattr(measure_result, "rms_jy") and measure_result.rms_jy is not None:
                         rms_jy = (
-                            measure_result.rms_jy
-                            if np.isfinite(measure_result.rms_jy)
-                            else None
+                            measure_result.rms_jy if np.isfinite(measure_result.rms_jy) else None
                         )
                     rms_jy = 0.001  # Default RMS if not available
                 return flux_jy, rms_jy
@@ -200,9 +190,7 @@ def measure_with_adaptive_binning(
         # Get channel frequencies for center frequency calculation
         # Use only the SPWs that were actually imaged
         spw_ids_imaged = [spw_id for spw_id, _ in spw_image_paths]
-        spw_info_used = [
-            info for info in spw_info_list if info.spw_id in spw_ids_imaged
-        ]
+        spw_info_used = [info for info in spw_info_list if info.spw_id in spw_ids_imaged]
         channel_freqs_mhz = [info.center_freq_mhz for info in spw_info_used]
 
         # Run adaptive binning

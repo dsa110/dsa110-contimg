@@ -27,7 +27,9 @@ import {
   Chip,
   Tabs,
   Tab,
+  useTheme,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { PlayArrow, ExpandMore } from "@mui/icons-material";
 import {
   useCreateCalibrateJob,
@@ -58,6 +60,7 @@ export function CalibrationWorkflow({
   onJobCreated,
   onRefreshJobs,
 }: CalibrationWorkflowProps) {
+  const theme = useTheme();
   const { showError, showSuccess } = useNotifications();
   const [activeTab, setActiveTab] = useState(0); // 0 = Calibrate, 1 = Apply
 
@@ -102,7 +105,7 @@ export function CalibrationWorkflow({
   const { data: existingTables } = useExistingCalTables(selectedMS);
   const { data: calTables } = useCalTables();
   const validateCalTable = useValidateCalTable();
-  const { data: calibrationQA } = useCalibrationQA(selectedMS);
+  const { data: _calibrationQA } = useCalibrationQA(selectedMS);
   const { data: msMetadata } = useMSMetadata(selectedMS);
 
   // Helper function to extract error message from API error
@@ -132,10 +135,10 @@ export function CalibrationWorkflow({
   const handleCalibrateSubmit = useCallback(() => {
     if (!selectedMS) return;
     calibrateMutation.mutate(
-      { ms_path: selectedMS, params: calibParams },
+      { params: calibParams },
       {
         onSuccess: (job) => {
-          onJobCreated?.(job.id);
+          onJobCreated?.(parseInt(job.id, 10));
           onRefreshJobs?.();
           showSuccess(`Calibration job #${job.id} started successfully`);
         },
@@ -395,8 +398,15 @@ export function CalibrationWorkflow({
             </Typography>
 
             {selectedMS && !existingTables && (
-              <Box sx={{ mb: 2, p: 1.5, bgcolor: "#2e2e2e", borderRadius: 1 }}>
-                <Typography variant="caption" sx={{ color: "#888" }}>
+              <Box
+                sx={{
+                  mb: 2,
+                  p: 1.5,
+                  bgcolor: alpha(theme.palette.background.paper, 0.5),
+                  borderRadius: 1,
+                }}
+              >
+                <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
                   Loading existing tables...
                 </Typography>
               </Box>
@@ -410,11 +420,11 @@ export function CalibrationWorkflow({
                   sx={{
                     mb: 2,
                     p: 1.5,
-                    bgcolor: "#2e2e2e",
+                    bgcolor: alpha(theme.palette.background.paper, 0.5),
                     borderRadius: 1,
                   }}
                 >
-                  <Typography variant="caption" sx={{ color: "#888" }}>
+                  <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
                     No existing calibration tables found for this MS
                   </Typography>
                 </Box>
@@ -454,11 +464,11 @@ export function CalibrationWorkflow({
                       sx={{
                         mt: 1,
                         p: 1.5,
-                        bgcolor: "#2e2e2e",
+                        bgcolor: alpha(theme.palette.background.paper, 0.5),
                         borderRadius: 1,
                       }}
                     >
-                      <Typography variant="caption" sx={{ color: "#888" }}>
+                      <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
                         Will automatically use the latest compatible tables
                       </Typography>
                     </Box>
@@ -466,7 +476,7 @@ export function CalibrationWorkflow({
 
                   {calibParams.use_existing_tables === "manual" && existingTables && (
                     <Box sx={{ mt: 2 }}>
-                      {existingTables.k_tables.length > 0 && (
+                      {existingTables.k_tables && existingTables.k_tables.length > 0 && (
                         <Box sx={{ mb: 2 }}>
                           <Typography variant="caption" sx={{ fontWeight: "bold" }}>
                             K (Delay) Tables:
@@ -511,8 +521,8 @@ export function CalibrationWorkflow({
                                     label={
                                       <Box>
                                         <Typography variant="caption">
-                                          {table.filename} ({table.size_mb.toFixed(1)} MB,{" "}
-                                          {table.age_hours.toFixed(1)}h ago)
+                                          {table.filename} ({(table.size_mb ?? 0).toFixed(1)} MB,{" "}
+                                          {table.age_hours?.toFixed(1)}h ago)
                                         </Typography>
                                         {isSelected && compat && (
                                           <Box sx={{ mt: 0.5 }}>
@@ -600,7 +610,7 @@ export function CalibrationWorkflow({
                         </Box>
                       )}
 
-                      {existingTables.bp_tables.length > 0 && (
+                      {existingTables.bp_tables && existingTables.bp_tables.length > 0 && (
                         <Box sx={{ mb: 2 }}>
                           <Typography variant="caption" sx={{ fontWeight: "bold" }}>
                             BP (Bandpass) Tables:
@@ -645,8 +655,8 @@ export function CalibrationWorkflow({
                                     label={
                                       <Box>
                                         <Typography variant="caption">
-                                          {table.filename} ({table.size_mb.toFixed(1)} MB,{" "}
-                                          {table.age_hours.toFixed(1)}h ago)
+                                          {table.filename} ({(table.size_mb ?? 0).toFixed(1)} MB,{" "}
+                                          {table.age_hours?.toFixed(1)}h ago)
                                         </Typography>
                                         {isSelected && compat && (
                                           <Box sx={{ mt: 0.5 }}>
@@ -734,7 +744,7 @@ export function CalibrationWorkflow({
                         </Box>
                       )}
 
-                      {existingTables.g_tables.length > 0 && (
+                      {existingTables.g_tables && existingTables.g_tables.length > 0 && (
                         <Box sx={{ mb: 2 }}>
                           <Typography variant="caption" sx={{ fontWeight: "bold" }}>
                             G (Gain) Tables:
@@ -779,8 +789,8 @@ export function CalibrationWorkflow({
                                     label={
                                       <Box>
                                         <Typography variant="caption">
-                                          {table.filename} ({table.size_mb.toFixed(1)} MB,{" "}
-                                          {table.age_hours.toFixed(1)}h ago)
+                                          {table.filename} ({(table.size_mb ?? 0).toFixed(1)} MB,{" "}
+                                          {table.age_hours?.toFixed(1)}h ago)
                                         </Typography>
                                         {isSelected && compat && (
                                           <Box sx={{ mt: 0.5 }}>
@@ -966,7 +976,7 @@ export function CalibrationWorkflow({
               <>
                 <CalibrationSPWPanel
                   msPath={selectedMS}
-                  onSPWChange={(spwList) => {
+                  onSPWChange={(_spwList: any) => {
                     // Handle SPW selection if needed
                   }}
                 />
@@ -1030,11 +1040,11 @@ export function CalibrationWorkflow({
               sx={{
                 mb: 2,
                 p: 1.5,
-                bgcolor: "#1e1e1e",
+                bgcolor: alpha(theme.palette.background.paper, 0.5),
                 borderRadius: 1,
                 fontFamily: "monospace",
                 fontSize: "0.75rem",
-                color: "#ffffff",
+                color: theme.palette.text.primary,
               }}
             >
               <Box>
@@ -1076,7 +1086,7 @@ export function CalibrationWorkflow({
                   sx={{
                     maxHeight: 200,
                     overflow: "auto",
-                    border: "1px solid #444",
+                    border: `1px solid ${theme.palette.divider}`,
                     borderRadius: 1,
                     p: 1,
                   }}
@@ -1096,12 +1106,12 @@ export function CalibrationWorkflow({
                       sx={{
                         p: 0.5,
                         mb: 0.5,
-                        bgcolor: "#2e2e2e",
+                        bgcolor: alpha(theme.palette.background.paper, 0.5),
                         borderRadius: 1,
                         cursor: "pointer",
                         fontSize: "0.75rem",
                         fontFamily: "monospace",
-                        "&:hover": { bgcolor: "#3e3e3e" },
+                        "&:hover": { bgcolor: alpha(theme.palette.action.hover, 0.1) },
                       }}
                     >
                       <Chip
@@ -1109,7 +1119,7 @@ export function CalibrationWorkflow({
                         size="small"
                         sx={{ mr: 1, height: 18, fontSize: "0.65rem" }}
                       />
-                      {table.filename} ({table.size_mb.toFixed(1)} MB)
+                      {table.filename} ({(table.size_mb ?? 0).toFixed(1)} MB)
                     </Box>
                   ))}
                 </Box>

@@ -1,15 +1,10 @@
 """Unit tests for query_vlass_sources function with use_csv_fallback parameter."""
 
 import sqlite3
-import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import astropy.units as u
-import numpy as np
 import pandas as pd
 import pytest
-from astropy.coordinates import SkyCoord
 
 from dsa110_contimg.calibration.catalogs import query_vlass_sources
 
@@ -39,7 +34,8 @@ def mock_sqlite_db(tmp_path):
         )
         conn.execute("CREATE INDEX idx_radec ON sources(ra_deg, dec_deg)")
         conn.executemany(
-            "INSERT INTO sources(ra_deg, dec_deg, flux_mjy) VALUES(?, ?, ?)", test_sources
+            "INSERT INTO sources(ra_deg, dec_deg, flux_mjy) VALUES(?, ?, ?)",
+            test_sources,
         )
         conn.commit()
 

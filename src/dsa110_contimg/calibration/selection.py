@@ -1,3 +1,4 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, etc.)
 from __future__ import annotations
 
 from typing import List, Optional, Tuple
@@ -8,18 +9,17 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
 import astropy.units as u
+import casacore.tables as casatables
 import numpy as np
 import pandas as pd
 from astropy.coordinates import Angle
-import casacore.tables as casatables
 
 table = casatables.table  # noqa: N816
 
+from .beam_model import primary_beam_response
 from .catalogs import (
-    airy_primary_beam_response,
     load_vla_catalog,
     read_vla_calibrator_catalog,
-    resolve_vla_catalog_path,
 )
 
 
@@ -75,10 +75,13 @@ def select_bandpass_fields(
     src_dec = float(Angle(cal_dec_deg, unit=u.deg).rad)
 
     # Primary-beam weighted flux per field
+    # Use EveryBeam if available (via ms_path), otherwise fall back to Airy model
     wflux = np.zeros(n, dtype=float)
     resp = np.zeros(n, dtype=float)
     for i in range(n):
-        r = airy_primary_beam_response(ra_f[i], dec_f[i], src_ra, src_dec, freq_GHz)
+        r = primary_beam_response(
+            ra_f[i], dec_f[i], src_ra, src_dec, freq_GHz, ms_path=ms_path, field_id=i
+        )
         resp[i] = r
         wflux[i] = r * float(cal_flux_jy)
 
@@ -141,7 +144,7 @@ def select_bandpass_from_catalog(
             df = read_vla_calibrator_catalog(catalog_path)
 
     if df.empty:
-        raise RuntimeError(f"Catalog contains no entries")
+        raise RuntimeError("Catalog contains no entries")
 
     ra_field, dec_field = _read_field_dirs(ms_path)
     if ra_field.size == 0:
@@ -157,8 +160,7 @@ def select_bandpass_from_catalog(
 
     # Check if ALL fields are meridian phase centers
     all_meridian = all(
-        isinstance(name, str) and name.startswith("meridian_icrs_t")
-        for name in field_names
+        isinstance(name, str) and name.startswith("meridian_icrs_t") for name in field_names
     )
 
     if all_meridian:
@@ -169,8 +171,7 @@ def select_bandpass_from_catalog(
         # Field 0 is kept as a fallback even if it's a meridian phase center
         valid_field_mask = np.array(
             [
-                (i == 0)
-                or not (isinstance(name, str) and name.startswith("meridian_icrs_t"))
+                (i == 0) or not (isinstance(name, str) and name.startswith("meridian_icrs_t"))
                 for i, name in enumerate(field_names)
             ]
         )
@@ -189,8 +190,8 @@ def select_bandpass_from_catalog(
     field_ra = field_coords[0].rad
     field_dec = field_coords[1].rad
 
-    best = None
-    best_wflux = None
+    best: Optional[Tuple[float, int, str, float, float, float]] = None
+    best_wflux: Optional[np.ndarray] = None
 
     for name, row in df.iterrows():
         try:
@@ -237,21 +238,33 @@ def select_bandpass_from_catalog(
         if np.nanmin(sep) > float(search_radius_deg):
             continue
 
+        # Use EveryBeam if available (via ms_path), otherwise fall back to Airy model
         resp = np.array(
             [
-                airy_primary_beam_response(ra, dec, src_ra, src_dec, freq_GHz)
-                for ra, dec in zip(field_ra, field_dec)
+                primary_beam_response(
+                    ra,
+                    dec,
+                    src_ra,
+                    src_dec,
+                    freq_GHz,
+                    ms_path=ms_path,
+                    field_id=int(valid_field_indices[i]),
+                )
+                for i, (ra, dec) in enumerate(zip(field_ra, field_dec))
             ]
         )
         wflux = resp * flux_jy
         peak_idx = int(np.nanargmax(wflux))
         peak_val = float(wflux[peak_idx])
 
-        if best is None or peak_val > best[0]:
+        if best is None:
+            best = (peak_val, peak_idx, name, ra_deg, dec_deg, flux_jy)
+            best_wflux = wflux
+        elif peak_val > best[0]:
             best = (peak_val, peak_idx, name, ra_deg, dec_deg, flux_jy)
             best_wflux = wflux
 
-    if best is None:
+    if best is None or best_wflux is None:
         raise RuntimeError("No calibrator candidates found within search radius")
 
     _, peak_idx_filtered, name, ra_deg, dec_deg, flux_jy = best
@@ -277,14 +290,10 @@ def select_bandpass_from_catalog(
         thr = float(min_pb) * max(resp_peak, 1e-12)
         start_filtered = peak_idx_filtered
         end_filtered = peak_idx_filtered
-        while (
-            start_filtered - 1 >= 0
-            and (wflux[start_filtered - 1] / max(flux_jy, 1e-12)) >= thr
-        ):
+        while start_filtered - 1 >= 0 and (wflux[start_filtered - 1] / max(flux_jy, 1e-12)) >= thr:
             start_filtered -= 1
         while (
-            end_filtered + 1 < len(wflux)
-            and (wflux[end_filtered + 1] / max(flux_jy, 1e-12)) >= thr
+            end_filtered + 1 < len(wflux) and (wflux[end_filtered + 1] / max(flux_jy, 1e-12)) >= thr
         ):
             end_filtered += 1
     else:
@@ -301,8 +310,6 @@ def select_bandpass_from_catalog(
         if start_original != end_original
         else f"{start_original}"
     )
-    indices = [
-        int(valid_field_indices[i]) for i in range(start_filtered, end_filtered + 1)
-    ]
+    indices = [int(valid_field_indices[i]) for i in range(start_filtered, end_filtered + 1)]
     cal_info = (name, ra_deg, dec_deg, flux_jy)
     return sel_str, indices, wflux, cal_info, peak_idx_original

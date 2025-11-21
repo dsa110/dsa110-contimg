@@ -9,9 +9,6 @@ Tests the caltable_paths module functions for:
 - SPW handling
 """
 
-import os
-import tempfile
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -159,9 +156,7 @@ class TestValidateCaltablesExist:
         (caltable_dir / "test_obs.K").mkdir()
         (caltable_dir / "test_obs.G").mkdir()
 
-        existing, missing = validate_caltables_exist(
-            str(ms_path), caltable_dir=str(caltable_dir)
-        )
+        existing, missing = validate_caltables_exist(str(ms_path), caltable_dir=str(caltable_dir))
 
         assert len(existing["K"]) == 1
         assert existing["K"][0] == str(caltable_dir / "test_obs.K")

@@ -5,9 +5,7 @@ Tests generation performance with realistic data volumes, memory usage,
 and scaling characteristics.
 """
 
-import sys
 import time
-from pathlib import Path
 
 import numpy as np
 import pytest
@@ -37,7 +35,6 @@ class TestGenerationPerformance:
         # Simulate large dataset: 1000 baselines, 100 integrations, 64 channels
         nbls = 1000
         ntimes = 100
-        nfreqs = 64
         nblts = nbls * ntimes
 
         u_lambda = np.random.randn(nblts) * 1000.0

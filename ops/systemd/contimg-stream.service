@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 EnvironmentFile=/data/dsa110-contimg/ops/systemd/contimg.env
 WorkingDirectory=/data/dsa110-contimg
-ExecStart=/usr/bin/python3 -m dsa110_contimg.conversion.streaming.streaming_converter \
+ExecStart=/bin/bash /data/dsa110-contimg/scripts/casa_wrapper.sh /opt/miniforge/envs/casa6/bin/python -m dsa110_contimg.conversion.streaming.streaming_converter \
   --input-dir ${CONTIMG_INPUT_DIR} \
   --output-dir ${CONTIMG_OUTPUT_DIR} \
   --queue-db ${CONTIMG_QUEUE_DB} \
@@ -31,4 +31,3 @@ StandardError=append:/data/dsa110-contimg/state/logs/contimg-stream.err
 
 [Install]
 WantedBy=multi-user.target
-

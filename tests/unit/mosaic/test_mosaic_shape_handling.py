@@ -43,7 +43,7 @@ def test_shape_broadcasting_issue():
     # NumPy will raise ValueError when shapes can't be broadcast
     # Use try/except instead of pytest.raises to avoid hanging
     try:
-        result = mosaic + tile
+        mosaic + tile
         assert False, "Should have raised ValueError"
     except ValueError as e:
         assert "broadcast" in str(e).lower() or "operands" in str(e).lower()

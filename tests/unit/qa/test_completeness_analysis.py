@@ -6,22 +6,19 @@ Tests the enhanced validate_source_counts() function with flux binning and compl
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add src to path BEFORE importing dsa110_contimg modules
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 import logging
+
 from dsa110_contimg.qa.catalog_validation import (
     validate_source_counts,
-    CatalogValidationResult,
 )
 from dsa110_contimg.qa.html_reports import generate_validation_report
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -73,12 +70,12 @@ def test_enhanced_completeness():
 
         logger.info("✓ Validation completed")
         logger.info(
-            f"  Overall completeness: {result.completeness*100:.1f}%"
+            f"  Overall completeness: {result.completeness * 100:.1f}%"
             if result.completeness
             else "  Overall completeness: N/A"
         )
         logger.info(
-            f"  Completeness limit: {result.completeness_limit_jy*1000:.2f} mJy"
+            f"  Completeness limit: {result.completeness_limit_jy * 1000:.2f} mJy"
             if result.completeness_limit_jy
             else "  Completeness limit: N/A"
         )
@@ -102,7 +99,7 @@ def test_enhanced_completeness():
             ):
                 if catalog_count > 0:
                     logger.info(
-                        f"  {bin_center*1000:8.2f}  |  {catalog_count:7d}  |  {detected_count:9d}  |  {completeness*100:6.1f}%"
+                        f"  {bin_center * 1000:8.2f}  |  {catalog_count:7d}  |  {detected_count:9d}  |  {completeness * 100:6.1f}%"
                     )
 
         # Generate HTML report with completeness analysis
@@ -116,9 +113,7 @@ def test_enhanced_completeness():
             catalog="nvss",
         )
 
-        logger.info(
-            f"✓ HTML report created: {output_dir / 'test_completeness_report.html'}"
-        )
+        logger.info(f"✓ HTML report created: {output_dir / 'test_completeness_report.html'}")
         logger.info(f"  Report status: {report.overall_status}")
         logger.info(f"  Report score: {report.score:.1%}")
 
@@ -135,9 +130,7 @@ def test_enhanced_completeness():
         all_passed = True
         for field_name, check_passed in checks:
             status = "✓" if check_passed else "✗"
-            logger.info(
-                f"  {status} {field_name}: {'Present' if check_passed else 'Missing'}"
-            )
+            logger.info(f"  {status} {field_name}: {'Present' if check_passed else 'Missing'}")
             if not check_passed:
                 all_passed = False
 
@@ -153,9 +146,7 @@ def test_enhanced_completeness():
         logger.info("Test Summary")
         logger.info("=" * 70)
         logger.info("✓ Enhanced completeness analysis test completed!")
-        logger.info(
-            f"\nGenerated HTML report: {output_dir / 'test_completeness_report.html'}"
-        )
+        logger.info(f"\nGenerated HTML report: {output_dir / 'test_completeness_report.html'}")
         logger.info("Open the report in a web browser to view completeness analysis.")
 
         return True

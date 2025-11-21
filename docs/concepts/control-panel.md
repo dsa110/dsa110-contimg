@@ -2,9 +2,11 @@
 
 ## Overview
 
-The Control Panel is a web-based interface for manually executing calibration, apply, and imaging jobs on Measurement Sets. It provides:
+The Control Panel is a web-based interface for manually executing calibration,
+apply, and imaging jobs on Measurement Sets. It provides:
 
-- **Job Submission**: Create calibrate, apply, and image jobs with custom parameters
+- **Job Submission**: Create calibrate, apply, and image jobs with custom
+  parameters
 - **Live Log Streaming**: Real-time job logs via Server-Sent Events (SSE)
 - **Job Status Tracking**: Monitor job progress and view artifacts
 - **MS Browser**: Select from available Measurement Sets
@@ -14,16 +16,20 @@ The Control Panel is a web-based interface for manually executing calibration, a
 ### Backend (Python/FastAPI)
 
 **Database Module** (`src/dsa110_contimg/database/jobs.py`):
+
 - SQLite schema for job tracking
-- CRUD operations: `create_job`, `get_job`, `update_job_status`, `append_job_log`, `list_jobs`
+- CRUD operations: `create_job`, `get_job`, `update_job_status`,
+  `append_job_log`, `list_jobs`
 
 **Job Runner** (`src/dsa110_contimg/api/job_runner.py`):
+
 - `run_calibrate_job()`: Executes calibration via `calibration.cli`
 - `run_apply_job()`: Applies calibration tables via `clearcal` + `applycal`
 - `run_image_job()`: Runs imaging via `imaging.cli`
 - Streams logs to database in real-time
 
 **API Routes** (`src/dsa110_contimg/api/routes.py`):
+
 - `GET /api/ms` - List available Measurement Sets
 - `GET /api/jobs` - List recent jobs (with optional status filter)
 - `GET /api/jobs/{job_id}` - Get job details
@@ -33,17 +39,21 @@ The Control Panel is a web-based interface for manually executing calibration, a
 - `POST /api/jobs/image` - Create imaging job
 
 **Models** (`src/dsa110_contimg/api/models.py`):
+
 - `JobParams`: Job configuration (field, refant, gaintables, gridder, etc.)
-- `Job`: Job state (id, type, status, ms_path, params, logs, artifacts, timestamps)
+- `Job`: Job state (id, type, status, ms_path, params, logs, artifacts,
+  timestamps)
 - `MSListEntry`: Measurement Set metadata
 - `JobCreateRequest`: Request payload for job creation
 
 ### Frontend (React/TypeScript)
 
 **Types** (`frontend/src/api/types.ts`):
+
 - TypeScript interfaces matching backend models
 
 **Queries** (`frontend/src/api/queries.ts`):
+
 - `useMSList()`: Fetch available MS files
 - `useJobs(limit, status)`: List jobs with polling
 - `useJob(jobId)`: Get single job with polling
@@ -52,12 +62,14 @@ The Control Panel is a web-based interface for manually executing calibration, a
 - `useCreateImageJob()`: Mutation for image
 
 **Control Page** (`frontend/src/pages/ControlPage.tsx`):
+
 - **MS Picker**: Dropdown to select Measurement Set
 - **Tabbed Forms**: Separate tabs for Calibrate, Apply, and Image
 - **Live Logs Panel**: Displays streaming logs via SSE with auto-scroll
 - **Job Table**: Recent jobs with clickable rows to view logs
 
 **Navigation** (`frontend/src/components/Navigation.tsx`):
+
 - Added "Control" item with Settings icon
 
 ## Usage
@@ -65,6 +77,7 @@ The Control Panel is a web-based interface for manually executing calibration, a
 ### Starting the Services
 
 1. **Backend** (from `/data/dsa110-contimg`):
+
    ```bash
    conda activate casa6
    export PYTHONPATH=/data/dsa110-contimg/src
@@ -72,6 +85,7 @@ The Control Panel is a web-based interface for manually executing calibration, a
    ```
 
 2. **Frontend** (from `/data/dsa110-contimg/frontend`):
+
    ```bash
    npm start
    ```
@@ -130,6 +144,7 @@ The Control Panel is a web-based interface for manually executing calibration, a
 ## Database Schema
 
 **jobs** table:
+
 - `id` (INTEGER PRIMARY KEY)
 - `type` (TEXT): "calibrate", "apply", or "image"
 - `status` (TEXT): "pending", "running", "done", "failed"
@@ -144,26 +159,35 @@ The Control Panel is a web-based interface for manually executing calibration, a
 ## Job Runner Behavior
 
 All jobs run in the `casa6` conda environment with:
+
 - `PYTHONPATH=/data/dsa110-contimg/src`
 - Subprocess stdout/stderr captured and streamed
 - Logs batched to database every 10 lines for performance
 - Exit code checked to set final status
 
 **Calibrate**:
-- Calls `dsa110_contimg.calibration.cli calibrate --ms <path> --field <field> --refant <refant>`
+
+- Calls
+  `dsa110_contimg.calibration.cli calibrate --ms <path> --field <field> --refant <refant>`
 - Discovers `.kcal`, `.bpcal`, `.gpcal` tables as artifacts
 
 **Apply**:
-- Runs Python script with `clearcal(vis=ms, addmodel=True)` then `applycal(vis=ms, gaintable=tables)`
+
+- Runs Python script with `clearcal(vis=ms, addmodel=True)` then
+  `applycal(vis=ms, gaintable=tables)`
 - Artifact: MS path (CORRECTED_DATA column now populated)
 
 **Image**:
-- Calls `dsa110_contimg.imaging.cli --ms <path> --imagename <name> --gridder <gridder> ...`
-- Discovers `.image`, `.image.pbcor`, `.residual`, `.psf`, `.pb`, `.model` as artifacts
+
+- Calls
+  `dsa110_contimg.imaging.cli --ms <path> --imagename <name> --gridder <gridder> ...`
+- Discovers `.image`, `.image.pbcor`, `.residual`, `.psf`, `.pb`, `.model` as
+  artifacts
 
 ## Testing
 
 Run the backend validation:
+
 ```bash
 conda run -n casa6 python -c "
 import sys
@@ -178,7 +202,8 @@ print('All imports successful')
 ## Future Enhancements
 
 - **Image Preview**: Display `.image` FITS files inline using WebGL viewer
-- **Caltable Browser**: Auto-populate gaintables dropdown from discovered artifacts
+- **Caltable Browser**: Auto-populate gaintables dropdown from discovered
+  artifacts
 - **Job Cancellation**: Add STOP button to terminate running jobs
 - **Artifact Download**: Direct download links for caltables and images
 - **Batch Jobs**: Submit multiple MS files at once
@@ -188,29 +213,35 @@ print('All imports successful')
 ## Troubleshooting
 
 **"Job stuck in pending"**:
+
 - Check that FastAPI server is running
 - Verify `BackgroundTasks` is properly spawning jobs
 - Check server logs for exceptions
 
 **"Logs not streaming"**:
+
 - Verify SSE endpoint is accessible
 - Check browser DevTools Network tab for event-stream connection
 - Ensure database is writable
 
 **"CASA errors in logs"**:
+
 - Confirm MS path exists and is valid
-- Check CASA environment with `conda run -n casa6 python -c "from casatasks import *"`
+- Check CASA environment with
+  `conda run -n casa6 python -c "from casatasks import *"`
 - Verify PYTHONPATH is set correctly
 
 ## Files Modified/Created
 
 **Backend**:
+
 - `src/dsa110_contimg/database/jobs.py` (NEW)
 - `src/dsa110_contimg/api/job_runner.py` (NEW)
 - `src/dsa110_contimg/api/models.py` (MODIFIED - added Job models)
 - `src/dsa110_contimg/api/routes.py` (MODIFIED - added 7 new endpoints)
 
 **Frontend**:
+
 - `frontend/src/api/types.ts` (MODIFIED - added Job types)
 - `frontend/src/api/queries.ts` (MODIFIED - added 6 new hooks)
 - `frontend/src/pages/ControlPage.tsx` (NEW)
@@ -219,5 +250,5 @@ print('All imports successful')
 
 ---
 
-**Status**: All tasks completed and tested. Backend validated with unit tests. Frontend ready for integration testing.
-
+**Status**: All tasks completed and tested. Backend validated with unit tests.
+Frontend ready for integration testing.

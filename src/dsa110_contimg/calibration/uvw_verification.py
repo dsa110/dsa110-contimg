@@ -4,6 +4,8 @@ This module provides functions to verify that UVW coordinates are correctly
 transformed after rephasing operations (phaseshift, fixvis).
 """
 
+# pylint: disable=no-member  # astropy.units dynamic attributes
+
 from typing import Optional, Tuple
 
 import astropy.units as u
@@ -14,8 +16,8 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 
 ensure_casa_path()
 
-from astropy.coordinates import SkyCoord
 import casacore.tables as casatables
+from astropy.coordinates import SkyCoord
 
 table = casatables.table  # noqa: N816
 
@@ -244,10 +246,7 @@ def verify_uvw_alignment(
 
         # Basic sanity check: UVW should have reasonable values
         # For DSA-110, baselines are typically 100-400 meters
-        if (
-            stats["baseline_length_mean"] < 10.0
-            or stats["baseline_length_mean"] > 1000.0
-        ):
+        if stats["baseline_length_mean"] < 10.0 or stats["baseline_length_mean"] > 1000.0:
             # UVW values seem wrong
             return False
 

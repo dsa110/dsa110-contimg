@@ -136,7 +136,7 @@ pipeline from HDF5 to published mosaic.
 - **File:** `src/dsa110_contimg/mosaic/orchestrator.py`
 - **Manager:** `src/dsa110_contimg/mosaic/streaming_mosaic.py`
   (StreamingMosaicManager)
-- **Entry Point:** `scripts/create_mosaic_centered.py` (example script)
+- **Entry Point:** `scripts/mosaic/create_mosaic_centered.py` (example script)
 - **Database:** `state/products.sqlite3`, `state/cal_registry.sqlite3`,
   `state/data_registry.sqlite3`
 
@@ -153,7 +153,7 @@ pipeline from HDF5 to published mosaic.
 
 ```bash
 # Create mosaic centered on calibrator transit
-python scripts/create_mosaic_centered.py \
+python scripts/mosaic/create_mosaic_centered.py \
     --calibrator 0834+555 \
     --timespan-minutes 50
 

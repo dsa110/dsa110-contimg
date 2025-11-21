@@ -64,12 +64,7 @@ class MkDocsPageExtractor:
                 continue
 
             # Stop at next top-level key (indent level 0)
-            if (
-                in_nav
-                and current_indent == 0
-                and line.strip()
-                and not line.strip().startswith("#")
-            ):
+            if in_nav and current_indent == 0 and line.strip() and not line.strip().startswith("#"):
                 break
 
             # Extract file paths from nav structure
@@ -83,9 +78,7 @@ class MkDocsPageExtractor:
                         # Remove quotes if present
                         path_part = path_part.strip("'\"")
                         # Check if it's a file path
-                        if any(
-                            path_part.endswith(ext) for ext in [".md", ".ipynb", ".py"]
-                        ):
+                        if any(path_part.endswith(ext) for ext in [".md", ".ipynb", ".py"]):
                             self.pages.append(path_part)
 
         # Remove duplicates and sort
@@ -227,9 +220,7 @@ class MermaidErrorDetector:
                         "gitgraph",
                     ]
                 ):
-                    errors.append(
-                        f"Mermaid diagram #{i} may be missing diagram type declaration"
-                    )
+                    errors.append(f"Mermaid diagram #{i} may be missing diagram type declaration")
 
             if errors:
                 return True, "; ".join(errors), mermaid_count
@@ -331,7 +322,7 @@ class MermaidDiagramTester:
             elif mermaid_count > 0:
                 print(f"  ✓ PASSED ({mermaid_count} diagram(s))")
             else:
-                print(f"  - SKIPPED (no Mermaid diagrams)")
+                print("  - SKIPPED (no Mermaid diagrams)")
 
             return TestResult(
                 url=url,
@@ -383,9 +374,7 @@ class MermaidDiagramTester:
             print("-" * 80)
             for result in pages_with_mermaid:
                 status = "✓" if result.success else "✗"
-                print(
-                    f"  {status} {result.page_path} ({result.mermaid_count} diagram(s))"
-                )
+                print(f"  {status} {result.page_path} ({result.mermaid_count} diagram(s))")
 
     def save_report(self, report: TestReport, output_path: Path):
         """Save test report to JSON file"""

@@ -1,8 +1,5 @@
 """Tests for synthetic FITS image provenance marking."""
 
-from pathlib import Path
-
-import pytest
 from astropy.io import fits
 
 from dsa110_contimg.simulation.synthetic_fits import create_synthetic_fits

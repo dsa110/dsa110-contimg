@@ -79,7 +79,6 @@ class TestStageChainExecution:
                 return_value=["/mock/converted.ms"],
             ),
         ):
-
             catalog_stage = CatalogSetupStage(config)
             conversion_stage = ConversionStage(config)
 
@@ -117,7 +116,6 @@ class TestStageChainExecution:
                 return_value=None,
             ),
         ):
-
             calibration_solve_stage = CalibrationSolveStage(config)
 
             # Execute calibration solve (should use ms_path from conversion)
@@ -141,9 +139,11 @@ class TestStageChainExecution:
         # Mock imports that happen inside execute methods
         with (
             patch("dsa110_contimg.calibration.apply_service.apply_calibration"),
-            patch("dsa110_contimg.imaging.cli_imaging.image_ms", return_value="/mock/image.fits"),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.image_ms",
+                return_value="/mock/image.fits",
+            ),
         ):
-
             calibration_stage = CalibrationStage(config)
             imaging_stage = ImagingStage(config)
 
@@ -164,7 +164,6 @@ class TestStageChainExecution:
             "dsa110_contimg.qa.catalog_validation.run_full_validation",
             return_value={"status": "passed", "metrics": {"snr": 10.5, "rms": 0.001}},
         ):
-
             validation_stage = ValidationStage(config)
 
             # Execute validation (should use image from imaging stage)
@@ -222,7 +221,6 @@ class TestStageOutputPropagation:
                 return_value=["/mock/converted.ms"],
             ),
         ):
-
             catalog_stage = CatalogSetupStage(config)
             conversion_stage = ConversionStage(config)
 
@@ -407,7 +405,6 @@ class TestOrchestratorWithRealStages:
                 return_value=["/mock/converted.ms"],
             ),
         ):
-
             stages = [
                 StageDefinition("catalog_setup", CatalogSetupStage(config), []),
                 StageDefinition("conversion", ConversionStage(config), ["catalog_setup"]),

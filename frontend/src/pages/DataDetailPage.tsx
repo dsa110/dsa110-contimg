@@ -1,7 +1,7 @@
 /**
  * Data Detail Page - Detailed view of a single data instance
  */
-import { useState } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -222,14 +222,18 @@ export default function DataDetailPage() {
                   <Typography variant="body2" color="text.secondary">
                     Created
                   </Typography>
-                  <Typography variant="body1">{formatDate(instance.created_at)}</Typography>
+                  <Typography variant="body1">
+                    {formatDate(parseInt(instance.created_at, 10))}
+                  </Typography>
                 </Box>
                 {instance.published_at && (
                   <Box>
                     <Typography variant="body2" color="text.secondary">
                       Published
                     </Typography>
-                    <Typography variant="body1">{formatDate(instance.published_at)}</Typography>
+                    <Typography variant="body1">
+                      {formatDate(parseInt(instance.published_at, 10))}
+                    </Typography>
                   </Box>
                 )}
                 {instance.publish_mode && (

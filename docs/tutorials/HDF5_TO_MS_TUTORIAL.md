@@ -2,10 +2,12 @@
 
 ## What This Stage Does
 
-The HDF5-to-MS conversion stage takes raw DSA-110 observation data (stored as UVH5 files in HDF5 format) and converts them into CASA Measurement Sets (MS) that can be calibrated and imaged.
+The HDF5-to-MS conversion stage takes raw DSA-110 observation data (stored as
+UVH5 files in HDF5 format) and converts them into CASA Measurement Sets (MS)
+that can be calibrated and imaged.
 
-**Input**: UVH5 files (`*_sb00.hdf5`, `*_sb01.hdf5`, ..., `*_sb15.hdf5` - 16 subbands)
-**Output**: CASA Measurement Set (`.ms` directory)
+**Input**: UVH5 files (`*_sb00.hdf5`, `*_sb01.hdf5`, ..., `*_sb15.hdf5` - 16
+subbands) **Output**: CASA Measurement Set (`.ms` directory)
 
 ---
 
@@ -24,13 +26,17 @@ python -m dsa110_contimg.conversion.cli groups \
 ```
 
 **What happens:**
+
 - Finds all complete 16-subband groups between the start and end times
 - Converts each group to a separate MS file
-- Writes MS files directly to organized locations: `/stage/dsa110-contimg/ms/science/YYYY-MM-DD/<timestamp>.ms`
+- Writes MS files directly to organized locations:
+  `/stage/dsa110-contimg/ms/science/YYYY-MM-DD/<timestamp>.ms`
 - Skips incomplete groups (missing subbands)
 - Names MS files based on the group timestamp
 
-**Output location:** MS files are automatically written to date-organized subdirectories:
+**Output location:** MS files are automatically written to date-organized
+subdirectories:
+
 - Science MS → `ms/science/YYYY-MM-DD/<timestamp>.ms`
 - Calibrator MS → `ms/calibrators/YYYY-MM-DD/<timestamp>.ms`
 - Failed MS → `ms/failed/YYYY-MM-DD/<timestamp>.ms`
@@ -52,17 +58,21 @@ python -m dsa110_contimg.conversion.cli groups \
 ```
 
 **What happens:**
+
 - Calculates when calibrator 0834+555 transited on the specified date
 - Finds the observation group containing that transit
 - Uses a ±30 minute window around the transit (configurable)
 - Converts only the group that matches the calibrator's declination
-- Writes MS file directly to organized location: `/stage/dsa110-contimg/ms/calibrators/YYYY-MM-DD/<timestamp>.ms`
+- Writes MS file directly to organized location:
+  `/stage/dsa110-contimg/ms/calibrators/YYYY-MM-DD/<timestamp>.ms`
 
 **Use this when:** You want to process calibrator data for calibration pipeline.
 
 **Options:**
+
 - `--transit-date YYYY-MM-DD` - Specific date (finds transit on that date)
-- `--window-minutes 60` - Search window around transit (default: 60 minutes, i.e., ±30 min)
+- `--window-minutes 60` - Search window around transit (default: 60 minutes,
+  i.e., ±30 min)
 - `--max-days-back 30` - How many days to search if date not found (default: 30)
 - `--dec-tolerance-deg 2.0` - Declination matching tolerance (default: 2.0°)
 
@@ -87,12 +97,15 @@ python -m dsa110_contimg.conversion.cli validate \
 ```
 
 **What you get:**
+
 - File structure validation (are files readable? do they have time arrays?)
 - Missing file detection
-- Calibrator transit validation (does transit exist? does data match declination?)
+- Calibrator transit validation (does transit exist? does data match
+  declination?)
 - Warnings about potential issues
 
-**Use this when:** You want to check data availability before committing to a long conversion.
+**Use this when:** You want to check data availability before committing to a
+long conversion.
 
 ---
 
@@ -108,12 +121,14 @@ python -m dsa110_contimg.conversion.cli find-calibrators \
 ```
 
 **What you get:**
+
 - List of calibrators with observation data
 - Transit times for each calibrator
 - File counts and declination matches
 - Can output as JSON for scripting
 
-**Use this when:** You want to see what calibrator data is available in your archive.
+**Use this when:** You want to see what calibrator data is available in your
+archive.
 
 ---
 
@@ -131,6 +146,7 @@ python -m dsa110_contimg.conversion.cli groups \
 ```
 
 **What you get:**
+
 - Transit time information
 - List of all HDF5 files that would be converted
 - Time window that would be used
@@ -154,6 +170,7 @@ python -m dsa110_contimg.conversion.cli groups \
 ```
 
 **What you get:**
+
 - List of groups that would be converted
 - Validation of directories and permissions
 - No files written
@@ -176,6 +193,7 @@ python -m dsa110_contimg.conversion.cli groups \
 ```
 
 **What you get:**
+
 - Faster iteration during testing
 - Resume capability if conversion was interrupted
 - Avoids re-converting existing data
@@ -198,6 +216,7 @@ python -m dsa110_contimg.conversion.cli groups \
 ```
 
 **What you get:**
+
 - Checkpoint file saved after each successful group conversion
 - Contains: completed groups, MS paths, timestamps, file lists
 - Can manually resume from last checkpoint (future enhancement)
@@ -219,12 +238,14 @@ python -m dsa110_contimg.conversion.cli verify-ms \
 ```
 
 **What you get:**
+
 - Validation that MS structure is correct
 - Check for required columns (DATA, CORRECTED_DATA, MODEL_DATA, etc.)
 - Field and SPW table verification
 - Statistics (row counts, column counts)
 
-**Use this when:** After conversion to verify the MS is ready for calibration/imaging.
+**Use this when:** After conversion to verify the MS is ready for
+calibration/imaging.
 
 ---
 
@@ -239,13 +260,15 @@ python -m dsa110_contimg.conversion.cli smoke-test \
 ```
 
 **What you get:**
+
 - Generates minimal synthetic data (4 subbands, 1 minute)
 - Converts to MS
 - Validates result
 - Completes in < 1 minute
 - Cleans up temporary files
 
-**Use this when:** After environment changes, code updates, or as a quick sanity check.
+**Use this when:** After environment changes, code updates, or as a quick sanity
+check.
 
 ---
 
@@ -260,6 +283,7 @@ python -m dsa110_contimg.conversion.cli single \
 ```
 
 **What you get:**
+
 - Single file converted directly
 - Useful for testing or special cases
 - Less optimized than batch conversion
@@ -281,6 +305,7 @@ python -m dsa110_contimg.conversion.cli create-test-ms \
 ```
 
 **What you get:**
+
 - Smaller MS (fewer baselines, fewer time integrations)
 - Preserves all spectral windows
 - Prioritizes reference antenna baselines
@@ -377,6 +402,7 @@ python -m dsa110_contimg.conversion.cli groups \
 ```
 
 **Options:**
+
 - `--writer pyuvdata` - Faster but only for ≤2 subbands (testing only)
 - `--max-workers 1` - Single-threaded (slower but simpler)
 
@@ -395,6 +421,7 @@ python -m dsa110_contimg.conversion.cli groups \
 ```
 
 **Options:**
+
 - `--writer parallel-subband` - Production writer for 16 subbands
 - `--max-workers 8` - Parallel processing (adjust based on CPU)
 - `--stage-to-tmpfs` - Use RAM for faster I/O (requires sufficient RAM)
@@ -435,6 +462,7 @@ python -m dsa110_contimg.conversion.cli groups \
 ### What Gets Created
 
 For each complete 16-subband group, you get:
+
 - One MS file named after the group timestamp: `YYYY-MM-DDTHH:MM:SS.ms`
 - Located in the output directory you specified
 - Contains all 16 subbands concatenated
@@ -443,6 +471,7 @@ For each complete 16-subband group, you get:
 ### MS Structure
 
 Each MS contains:
+
 - **DATA column**: Raw visibility data
 - **CORRECTED_DATA column**: Empty initially, populated after calibration
 - **MODEL_DATA column**: Optional, can be populated with source model
@@ -458,11 +487,13 @@ Each MS contains:
 ### Problem: "No groups found"
 
 **Possible causes:**
+
 - Time window doesn't contain data
 - Files are missing subbands (need all 16)
 - Files outside time window
 
 **Solution:**
+
 ```bash
 # Validate to see what files exist
 python -m dsa110_contimg.conversion.cli validate \
@@ -474,11 +505,13 @@ python -m dsa110_contimg.conversion.cli validate \
 ### Problem: "No transit found for calibrator"
 
 **Possible causes:**
+
 - Calibrator name incorrect
 - No data on that date
 - Declination mismatch (data pointing elsewhere)
 
 **Solution:**
+
 ```bash
 # Validate calibrator transit
 python -m dsa110_contimg.conversion.cli validate \
@@ -491,6 +524,7 @@ python -m dsa110_contimg.conversion.cli validate \
 ### Problem: MS conversion fails partway through
 
 **Solution:**
+
 ```bash
 # Resume using checkpoint
 # (Checkpoint contains last successful group)
@@ -506,6 +540,7 @@ python -m dsa110_contimg.conversion.cli groups \
 ### Problem: Want to see what would happen without converting
 
 **Solution:**
+
 ```bash
 # Use --find-only or --dry-run
 python -m dsa110_contimg.conversion.cli groups \
@@ -521,13 +556,16 @@ python -m dsa110_contimg.conversion.cli groups \
 
 ## Tips and Best Practices
 
-1. **Always validate first** - Use `validate` command before converting large time ranges
-2. **Use calibrator mode** - It automatically handles transit finding and declination matching
+1. **Always validate first** - Use `validate` command before converting large
+   time ranges
+2. **Use calibrator mode** - It automatically handles transit finding and
+   declination matching
 3. **Use --skip-existing** - When re-running, avoids redundant work
 4. **Use checkpoints** - For long conversions, save progress
 5. **Verify after conversion** - Use `verify-ms` to ensure MS is ready
 6. **Use smoke-test** - Quick sanity check after environment changes
-7. **Find calibrators first** - Use `find-calibrators` to discover available data
+7. **Find calibrators first** - Use `find-calibrators` to discover available
+   data
 
 ---
 
@@ -547,7 +585,8 @@ python -m dsa110_contimg.conversion.cli groups \
 --merge-spws  # Merge 16 SPWs into 1 SPW during conversion
 ```
 
-**Note:** Generally better to merge CORRECTED_DATA after calibration, not during conversion.
+**Note:** Generally better to merge CORRECTED_DATA after calibration, not during
+conversion.
 
 ### Scratch Directory
 
@@ -578,7 +617,7 @@ As a user, you can:
 ✅ **Test** the pipeline with smoke-test  
 ✅ **Customize** writer, workers, staging options  
 ✅ **Monitor** progress with progress bars  
-✅ **Control** verbosity and logging  
+✅ **Control** verbosity and logging
 
-All through a single, unified CLI with consistent flags and clear error messages!
-
+All through a single, unified CLI with consistent flags and clear error
+messages!

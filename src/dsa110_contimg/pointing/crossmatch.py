@@ -17,7 +17,7 @@ from astropy.time import Time
 
 from dsa110_contimg.calibration.catalogs import read_vla_parsed_catalog_csv
 from dsa110_contimg.calibration.schedule import DSA110_LOCATION, previous_transits
-from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.database.products import ensure_ingest_db
 
 SB_RE = re.compile(r"^(.+)_sb(\d{2})\.hdf5$")
 
@@ -62,11 +62,7 @@ def _read_dec_start_end(
         v = _read_extra("phase_center_dec")
         if v is not None and np.isfinite(v):
             dec_rad = float(v)
-    dec_deg = (
-        float(np.degrees(dec_rad))
-        if (dec_rad is not None and np.isfinite(dec_rad))
-        else None
-    )
+    dec_deg = float(np.degrees(dec_rad)) if (dec_rad is not None and np.isfinite(dec_rad)) else None
     return dec_deg, jd0, jd1
 
 
@@ -119,11 +115,9 @@ def _write_transits(
             )
 
 
-def _ingest_pointing_from_groups(
-    conn: sqlite3.Connection, groups: Dict[str, List[str]]
-) -> None:
+def _ingest_pointing_from_groups(conn: sqlite3.Connection, groups: Dict[str, List[str]]) -> None:
     """Populate pointing_history from UVH5 groups (midpoint RA=LST at DSA-110, DEC from header)."""
-    # ensure_products_db already created pointing_history table
+    # ensure_ingest_db already created pointing_history table
     with conn:
         for gid, files in groups.items():
             dec_deg, jd0, jd1 = _read_dec_start_end(files[0])
@@ -142,7 +136,7 @@ def _ingest_pointing_from_groups(
 def find_transit_groups(
     name: str,
     input_dir: str,
-    products_db: str,
+    ingest_db: str,
     catalogs: List[str],
     *,
     dec_tolerance_deg: float = 1.5,
@@ -154,7 +148,7 @@ def find_transit_groups(
     Args:
         name: Calibrator name
         input_dir: Directory containing UVH5 files
-        products_db: Path to products database
+        ingest_db: Path to ingest database
         catalogs: List of VLA catalog paths
         dec_tolerance_deg: Declination tolerance (degrees)
         time_pad_minutes: Time padding around transit (minutes)
@@ -185,7 +179,7 @@ def find_transit_groups(
         raise RuntimeError(f"Calibrator {name} not found in catalogs: {catalogs}")
 
     # Ensure DB and ingest
-    conn = ensure_products_db(Path(products_db))
+    conn = ensure_ingest_db(Path(ingest_db))
     _write_transits(conn, name, ra_deg, days_back=days_back)
 
     groups = _scan_complete_groups(input_dir)
@@ -201,7 +195,7 @@ def find_transit_groups(
         windows[gid] = (jd0, jd1)
         meta[gid] = {"dec_deg": d, "files": files}
 
-    pad_days = (time_pad_minutes * u.min).to(u.day).value
+    pad_days = (time_pad_minutes * u.min).to(u.day).value  # pylint: disable=no-member
 
     # Cross-match
     rows = conn.execute(
@@ -217,7 +211,7 @@ def find_transit_groups(
             if (jd0 - pad_days) <= tmjd <= (jd1 + pad_days):
                 dt_min = abs(
                     (Time(0.5 * (jd0 + jd1), format="jd") - Time(tmjd, format="mjd"))
-                    .to(u.min)
+                    .to(u.min)  # pylint: disable=no-member
                     .value
                 )
                 results.append(
@@ -232,7 +226,5 @@ def find_transit_groups(
                     }
                 )
     # Sort by transit time desc then closeness
-    results.sort(
-        key=lambda r: (r["transit_iso"], -r["delta_minutes_mid"]), reverse=True
-    )
+    results.sort(key=lambda r: (r["transit_iso"], -r["delta_minutes_mid"]), reverse=True)
     return results

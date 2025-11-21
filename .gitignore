@@ -2,6 +2,11 @@
 *old*/
 archive/
 
+# Codeql
+.codeql/
+.codeql-db-*/
+.codeql-db-*/
+
 # Ignore Linear config (contains API keys)
 .linear_config.json
 
@@ -70,13 +75,20 @@ archive/
 *.swp
 *.swo
 
+# Accidental shell redirect files (e.g., from typos like "pip install package=version" → file named "=version")
+=*
+
 # Python compiled files and cache
 *.pyc
 __pycache__/
-
-# Pytest cache
+**/__pycache__/
 .cache/
 .pytest_cache/
+.mypy_cache/
+**/.mypy_cache/
+# Pyre cache
+.pyre/
+.pyre_cache/
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
@@ -112,6 +124,15 @@ env/
 # Pyre type checker
 .pyre/
 
+# Cache
+.cache/
+.pytest_cache/
+src/.mypy_cache/
+src/.pytest_cache/
+src/.cache/
+src/.pyre/
+src/.pyre_cache/
+src/.pyre_cache/
 
 # Logs
 logs/
@@ -147,7 +168,6 @@ state/
 
 # Cursor editor configuration
 .cursor/
-!.cursor/rules/
 .cursor/rules/codacy.mdc
 .cursor/rules/kluster-code-verify.mdc
 .cursorignore
@@ -159,6 +179,13 @@ state/
 .codacy/
 .watch/
 *watch*
+
+# CodeQL database directories
+codeql-db-python/
+codeql-db-*/
+
+# CodeQL SARIF results (can be very large)
+*.sarif
 
 # Editor/tool-specific directories to ignore
 .codex/
@@ -204,9 +231,17 @@ site/
 # Process IDs and lock files
 *.pid
 
-# Top-level markdown files (keep only README.md in repo)
+# Top-level markdown files (keep only README.md and MEMORY.md in repo)
 /*.md
 !/README.md
+!/MEMORY.md
 
 # Ignore archived docs folder
 docs/archive/
+
+# Development
+.local/
+# Exception: allow .local/bin/python* to be tracked
+!.local/bin/
+!.local/bin/python*
+internal/

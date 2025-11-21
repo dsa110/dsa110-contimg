@@ -15,7 +15,6 @@ import logging
 import os
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any
 
 
 def setup_casa_environment() -> None:
@@ -68,9 +67,7 @@ def casa_log_environment() -> Path:
         os.chdir(old_cwd)
 
 
-def add_common_ms_args(
-    parser: argparse.ArgumentParser, ms_required: bool = True
-) -> None:
+def add_common_ms_args(parser: argparse.ArgumentParser, ms_required: bool = True) -> None:
     """
     Add common MS-related arguments to a parser.
 
@@ -83,9 +80,7 @@ def add_common_ms_args(
 
 def add_common_field_args(parser: argparse.ArgumentParser) -> None:
     """Add common field selection arguments."""
-    parser.add_argument(
-        "--field", default="", help="Field selection (name, index, or range)"
-    )
+    parser.add_argument("--field", default="", help="Field selection (name, index, or range)")
 
 
 def add_common_logging_args(parser: argparse.ArgumentParser) -> None:
@@ -96,9 +91,7 @@ def add_common_logging_args(parser: argparse.ArgumentParser) -> None:
         --verbose, -v: Enable verbose logging
         --log-level: Set logging level (DEBUG, INFO, WARNING, ERROR)
     """
-    parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Enable verbose logging"
-    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
     parser.add_argument(
         "--log-level",
         default="INFO",
@@ -138,9 +131,7 @@ def configure_logging_from_args(args: argparse.Namespace) -> logging.Logger:
     return logging.getLogger(__name__)
 
 
-def add_ms_group(
-    parser: argparse.ArgumentParser, required: bool = True
-) -> argparse._ArgumentGroup:
+def add_ms_group(parser: argparse.ArgumentParser, required: bool = True) -> argparse._ArgumentGroup:
     """
     Add MS-related arguments as a group for better help organization.
 
@@ -169,9 +160,7 @@ def add_progress_flag(parser: argparse.ArgumentParser) -> None:
         action="store_true",
         help="Disable progress bars (useful for non-interactive environments)",
     )
-    parser.add_argument(
-        "--quiet", "-q", action="store_true", help="Alias for --disable-progress"
-    )
+    parser.add_argument("--quiet", "-q", action="store_true", help="Alias for --disable-progress")
 
 
 # Note: Use should_disable_progress() from utils.progress instead
@@ -211,15 +200,9 @@ def ensure_scratch_dirs() -> dict[str, Path]:
     dirs = {
         "scratch": scratch_base_path,
         "ms": Path(os.getenv("CONTIMG_MS_DIR", str(scratch_base_path / "ms"))),
-        "caltables": Path(
-            os.getenv("CONTIMG_CALTABLES_DIR", str(scratch_base_path / "caltables"))
-        ),
-        "images": Path(
-            os.getenv("CONTIMG_IMAGES_DIR", str(scratch_base_path / "images"))
-        ),
-        "mosaics": Path(
-            os.getenv("CONTIMG_MOSAICS_DIR", str(scratch_base_path / "mosaics"))
-        ),
+        "caltables": Path(os.getenv("CONTIMG_CALTABLES_DIR", str(scratch_base_path / "caltables"))),
+        "images": Path(os.getenv("CONTIMG_IMAGES_DIR", str(scratch_base_path / "images"))),
+        "mosaics": Path(os.getenv("CONTIMG_MOSAICS_DIR", str(scratch_base_path / "mosaics"))),
         "logs": Path(os.getenv("CONTIMG_LOGS_DIR", str(scratch_base_path / "logs"))),
         "tmp": Path(scratch_base_path / "tmp"),
     }

@@ -34,11 +34,17 @@ __all__ = [
     "identify_duplicate_catalog_sources",
 ]
 
+from .build_atnf_pulsars import build_atnf_pulsar_db
 from .builders import (
+    CATALOG_COVERAGE_LIMITS,
+    auto_build_missing_catalog_databases,
+    build_atnf_strip_db,
     build_first_strip_db,
     build_nvss_strip_db,
     build_rax_strip_db,
     build_vlass_strip_db,
+    check_catalog_database_exists,
+    check_missing_catalog_databases,
 )
 from .query import query_sources, resolve_catalog_path
 
@@ -48,6 +54,12 @@ __all__ = [
     "build_nvss_strip_db",
     "build_first_strip_db",
     "build_rax_strip_db",
+    "build_atnf_strip_db",
+    "build_atnf_pulsar_db",
+    "auto_build_missing_catalog_databases",
+    "check_missing_catalog_databases",
+    "check_catalog_database_exists",
+    "CATALOG_COVERAGE_LIMITS",
     "build_vlass_strip_db",
     "simbad_search",
     "ned_search",

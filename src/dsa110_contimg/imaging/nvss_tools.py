@@ -2,6 +2,8 @@
 NVSS catalog tools for imaging: masks and overlays.
 """
 
+# pylint: disable=no-member  # astropy.units dynamic attributes
+
 from __future__ import annotations
 
 import os
@@ -94,19 +96,19 @@ def _load_pb_mask(pb_path: str, pblimit: float) -> Optional[np.ndarray]:
         return None
 
 
-def create_nvss_fits_mask(
+def create_unicat_fits_mask(
     imagename: str,
     imsize: int,
     cell_arcsec: float,
     ra0_deg: float,
     dec0_deg: float,
-    nvss_min_mjy: float,
+    unicat_min_mjy: float,
     radius_arcsec: float = 60.0,
     out_path: Optional[str] = None,
 ) -> str:
-    """Create FITS mask from NVSS sources for WSClean.
+    """Create FITS mask from unified catalog (FIRST+RACS+NVSS) sources for WSClean.
 
-    Creates a FITS mask file with circular regions around NVSS sources.
+    Creates a FITS mask file with circular regions around catalog sources.
     Zero values = not cleaned, non-zero values = cleaned.
 
     Args:
@@ -115,35 +117,35 @@ def create_nvss_fits_mask(
         cell_arcsec: Pixel scale in arcseconds
         ra0_deg: Phase center RA in degrees
         dec0_deg: Phase center Dec in degrees
-        nvss_min_mjy: Minimum NVSS flux in mJy
+        unicat_min_mjy: Minimum unified catalog flux in mJy
         radius_arcsec: Mask radius around each source in arcseconds
-        out_path: Optional output path (defaults to {imagename}.nvss_mask.fits)
+        out_path: Optional output path (defaults to {imagename}.unicat_mask.fits)
 
     Returns:
         Path to created FITS mask file
     """
     # Create WCS for mask
     wcs = WCS(naxis=2)
-    wcs.wcs.crpix = [imsize / 2.0, imsize / 2.0]
+    wcs.wcs.crpix = [imsize / 2.0 + 0.5, imsize / 2.0 + 0.5]
     wcs.wcs.crval = [ra0_deg, dec0_deg]
     # Negative RA for standard convention
     wcs.wcs.cdelt = [-cell_arcsec / 3600.0, cell_arcsec / 3600.0]
-    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    wcs.wcs.ctype = ["RA---SIN", "DEC--SIN"]
 
     # Initialize mask (all zeros = not cleaned)
     mask = np.zeros((imsize, imsize), dtype=np.float32)
 
-    # Query NVSS sources
+    # Query merged NVSS+FIRST sources for best sky model
     # Use SQLite-first query function (falls back to CSV if needed)
-    from dsa110_contimg.calibration.catalogs import query_nvss_sources
+    from dsa110_contimg.calibration.catalogs import query_merged_nvss_first_sources
 
     # Calculate FoV radius
     fov_radius_deg = (cell_arcsec * imsize) / 3600.0 / 2.0
-    df = query_nvss_sources(
+    df = query_merged_nvss_first_sources(
         ra_deg=ra0_deg,
         dec_deg=dec0_deg,
         radius_deg=fov_radius_deg,
-        min_flux_mjy=float(nvss_min_mjy),
+        min_flux_mjy=float(unicat_min_mjy),
     )
     # Rename columns to match expected format
     df = df.rename(columns={"ra_deg": "ra", "dec_deg": "dec", "flux_mjy": "flux_20_cm"})
@@ -152,7 +154,7 @@ def create_nvss_fits_mask(
     if len(sources) == 0:
         # No sources found, create empty mask
         if out_path is None:
-            out_path = f"{imagename}.nvss_mask.fits"
+            out_path = f"{imagename}.unicat_mask.fits"
         from dsa110_contimg.utils.fits_utils import create_fits_hdu
 
         header = wcs.to_header()
@@ -171,20 +173,42 @@ def create_nvss_fits_mask(
         if x < 0 or x >= imsize or y < 0 or y >= imsize:
             continue
 
-        # Create circular mask
-        y_grid, x_grid = np.ogrid[:imsize, :imsize]
-        dist_sq = (x_grid - x) ** 2 + (y_grid - y) ** 2
-        mask[dist_sq <= radius_pixels**2] = 1.0
+        # Create circular mask efficiently: only process bounding box
+        x_min = int(max(0, x - radius_pixels))
+        x_max = int(min(imsize, x + radius_pixels + 1))
+        y_min = int(max(0, y - radius_pixels))
+        y_max = int(min(imsize, y + radius_pixels + 1))
+
+        # Create meshgrid only for bounding box
+        yy, xx = np.mgrid[y_min:y_max, x_min:x_max]
+        dist_sq = (xx - x) ** 2 + (yy - y) ** 2
+        circle_mask = dist_sq <= radius_pixels**2
+
+        # Apply to mask
+        mask[y_min:y_max, x_min:x_max][circle_mask] = 1.0
 
     # Write FITS mask
     if out_path is None:
-        out_path = f"{imagename}.nvss_mask.fits"
+        out_path = f"{imagename}.unicat_mask.fits"
 
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     hdu = fits.PrimaryHDU(data=mask, header=wcs.to_header())
     hdu.writeto(out_path, overwrite=True)
 
     return out_path
+
+
+# Backwards compatibility alias
+def create_nvss_fits_mask(*args, **kwargs):
+    """Deprecated: Use create_unicat_fits_mask instead."""
+    import warnings
+
+    warnings.warn(
+        "create_nvss_fits_mask is deprecated, use create_unicat_fits_mask instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return create_unicat_fits_mask(*args, **kwargs)
 
 
 def create_nvss_overlay(
@@ -236,7 +260,7 @@ def create_nvss_overlay(
     if np.any(m_data):
         vals = data[m_data]
         vmin, vmax = np.percentile(vals, [1, 99])
-        im = ax.imshow(data, origin="lower", cmap="gray", vmin=vmin, vmax=vmax)
+        ax.imshow(data, origin="lower", cmap="gray", vmin=vmin, vmax=vmax)
         if pb_mask is not None and pb_mask.shape == data.shape:
             ax.contour(pb_mask, levels=[0.5], colors="cyan", linewidths=1, alpha=0.5)
 

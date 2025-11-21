@@ -6,17 +6,13 @@ import { useState, useMemo } from "react";
 import {
   Container,
   Typography,
-  Paper,
   Box,
-  Grid,
   Card,
   CardContent,
   CardHeader,
   Stack,
   Chip,
   Alert,
-  Tabs,
-  Tab,
   Divider,
   Table,
   TableBody,
@@ -25,6 +21,7 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
 import {
   RadioButtonChecked as PointIcon,
   Schedule as ScheduleIcon,
@@ -35,10 +32,11 @@ import { apiClient } from "../api/client";
 import { useQuery } from "@tanstack/react-query";
 import PointingVisualization from "../components/PointingVisualization";
 import { SkeletonLoader } from "../components/SkeletonLoader";
-import Plot from "react-plotly.js";
-import type { Data, Layout } from "plotly.js";
+import { PlotlyLazy } from "../components/PlotlyLazy";
+import type { Data, Layout } from "../components/PlotlyLazy";
 import dayjs from "dayjs";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
+import { SchedulingPanel } from "../components/Observing/SchedulingPanel";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -46,7 +44,7 @@ interface TabPanelProps {
   value: number;
 }
 
-function TabPanel(props: TabPanelProps) {
+function _TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
   return (
     <div role="tabpanel" hidden={value !== index} {...other}>
@@ -225,6 +223,14 @@ export default function ObservingPage() {
             </Card>
           </Grid>
 
+          {/* Scheduling & Slewing Control */}
+          <Grid item xs={12} md={4}>
+            <SchedulingPanel
+              pointingHistory={historyData}
+              calibratorMatches={allCalibratorMatches}
+            />
+          </Grid>
+
           {/* Calibrator Tracking */}
           <Grid item xs={12} md={8}>
             <Card>
@@ -281,7 +287,7 @@ export default function ObservingPage() {
             <Card>
               <CardHeader title="Pointing History" />
               <CardContent>
-                <PointingVisualization height={500} showHistory={true} historyDays={7} />
+                <PointingVisualization height={500} showHistory={true} />
               </CardContent>
             </Card>
           </Grid>
@@ -292,7 +298,7 @@ export default function ObservingPage() {
               <Card>
                 <CardHeader title="Calibrator Flux vs Time" avatar={<TrendingUpIcon />} />
                 <CardContent>
-                  <Plot
+                  <PlotlyLazy
                     data={calibratorPlotData.data}
                     layout={calibratorPlotData.layout}
                     style={{ width: "100%", height: "400px" }}

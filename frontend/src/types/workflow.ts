@@ -1,6 +1,7 @@
 /**
  * Workflow Types and Interfaces
  */
+import type React from "react";
 
 export type WorkflowType =
   | "monitoring"
@@ -27,18 +28,18 @@ export interface QuickAction {
   category?: string;
 }
 
+export interface BreadcrumbItem {
+  label: string;
+  path?: string;
+  icon?: React.ComponentType;
+}
+
 export interface WorkflowContext {
   currentWorkflow: WorkflowType | null;
   currentPage: string;
   suggestedNextSteps: NavigationItem[];
   quickActions: QuickAction[];
   breadcrumbs: BreadcrumbItem[];
-}
-
-export interface BreadcrumbItem {
-  label: string;
-  path?: string;
-  icon?: React.ComponentType;
 }
 
 export interface WorkflowTemplate {

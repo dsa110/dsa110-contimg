@@ -5,13 +5,13 @@ into the streaming converter workflow.
 """
 
 import sqlite3
-import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import patch
 
-import pytest
-
-from dsa110_contimg.calibration.streaming import has_calibrator, solve_calibration_for_ms
+from dsa110_contimg.calibration.streaming import (
+    has_calibrator,
+    solve_calibration_for_ms,
+)
 
 
 class TestCalibratorDetectionIntegration:
@@ -226,7 +226,6 @@ class TestSmokeTests:
         """Smoke test: verify imports work correctly."""
         from dsa110_contimg.calibration.streaming import (
             has_calibrator,
-            solve_calibration_for_ms,
         )
         from dsa110_contimg.conversion.streaming.streaming_converter import (
             build_parser,
@@ -265,7 +264,6 @@ class TestSmokeTests:
 
     def test_solve_calibration_for_ms_callable(self):
         """Smoke test: verify solve_calibration_for_ms function exists and is callable."""
-        from dsa110_contimg.calibration.streaming import solve_calibration_for_ms
 
         assert callable(solve_calibration_for_ms)
         assert solve_calibration_for_ms.__name__ == "solve_calibration_for_ms"

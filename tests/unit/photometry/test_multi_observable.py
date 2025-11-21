@@ -7,11 +7,8 @@ Task 4.2: Multi-Observable Correlation
 from __future__ import annotations
 
 import sqlite3
-import tempfile
 import time
-from pathlib import Path
 
-import numpy as np
 import pytest
 
 from dsa110_contimg.photometry.multi_observable import (

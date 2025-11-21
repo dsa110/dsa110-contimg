@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime as dt
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from pydantic import BaseModel, Field
 
@@ -44,11 +44,36 @@ class CalibrationSet(BaseModel):
     total: int = Field(..., description="Total tables registered for the set")
 
 
+class CatalogCoverageStatus(BaseModel):
+    """Status of catalog databases for current declination."""
+
+    dec_deg: Optional[float] = Field(None, description="Current declination in degrees")
+    nvss: Dict[str, Union[bool, str]] = Field(
+        default_factory=dict,
+        description="NVSS catalog status: exists, within_coverage, db_path",
+    )
+    first: Dict[str, Union[bool, str]] = Field(
+        default_factory=dict,
+        description="FIRST catalog status: exists, within_coverage, db_path",
+    )
+    rax: Dict[str, Union[bool, str]] = Field(
+        default_factory=dict,
+        description="RACS catalog status: exists, within_coverage, db_path",
+    )
+    atnf: Dict[str, Union[bool, str]] = Field(
+        default_factory=dict,
+        description="ATNF Pulsar Catalogue status: exists, within_coverage, db_path",
+    )
+
+
 class PipelineStatus(BaseModel):
     queue: QueueStats
     recent_groups: List[QueueGroup]
     calibration_sets: List[CalibrationSet]
     matched_recent: int = Field(0, description="Number of recent groups with calibrator matches")
+    catalog_coverage: Optional[CatalogCoverageStatus] = Field(
+        None, description="Catalog database coverage status for current declination"
+    )
 
 
 class ProductEntry(BaseModel):
@@ -223,7 +248,7 @@ class JobParams(BaseModel):
     datacolumn: str = "corrected"
     quality_tier: str = "standard"
     skip_fits: bool = True
-    use_nvss_mask: bool = True
+    use_unicat_mask: bool = True
     mask_radius_arcsec: float = 60.0
 
 
@@ -498,7 +523,7 @@ class WorkflowParams(BaseModel):
     start_time: str
     end_time: str
     input_dir: str = "/data/incoming"
-    output_dir: str = "/stage/dsa110-contimg/ms"
+    output_dir: str = "/stage/dsa110-contimg/raw/ms"
     # 'parallel-subband' (production), 'pyuvdata' (testing only), or 'auto'
     writer: str = "auto"
     stage_to_tmpfs: bool = True
@@ -517,7 +542,8 @@ class ESEDetectJobParams(BaseModel):
     """Parameters for ESE detection job."""
 
     min_sigma: Optional[float] = Field(
-        None, description="Minimum sigma deviation threshold (ignored if preset is provided)"
+        None,
+        description="Minimum sigma deviation threshold (ignored if preset is provided)",
     )
     preset: Optional[str] = Field(
         None,
@@ -542,7 +568,8 @@ class BatchESEDetectParams(BaseModel):
     """Parameters for batch ESE detection job."""
 
     min_sigma: Optional[float] = Field(
-        None, description="Minimum sigma deviation threshold (ignored if preset is provided)"
+        None,
+        description="Minimum sigma deviation threshold (ignored if preset is provided)",
     )
     preset: Optional[str] = Field(
         None,
@@ -550,21 +577,24 @@ class BatchESEDetectParams(BaseModel):
     )
     recompute: bool = Field(False, description="Recompute variability statistics before detection")
     source_ids: Optional[List[str]] = Field(
-        None, description="Optional list of specific source IDs to check (if None, checks all)"
+        None,
+        description="Optional list of specific source IDs to check (if None, checks all)",
     )
     use_composite_scoring: bool = Field(False, description="Enable multi-metric composite scoring")
     scoring_weights: Optional[Dict[str, float]] = Field(
         None, description="Custom weights for composite scoring"
     )
     use_parallel: bool = Field(
-        False, description="Use parallel processing for batch detection (faster for many sources)"
+        False,
+        description="Use parallel processing for batch detection (faster for many sources)",
     )
     use_multi_frequency: bool = Field(
         False,
         description="Enable multi-frequency analysis (correlate variability across frequencies)",
     )
     use_multi_observable: bool = Field(
-        False, description="Enable multi-observable correlation (correlate with scintillation/DM)"
+        False,
+        description="Enable multi-observable correlation (correlate with scintillation/DM)",
     )
 
 
@@ -787,7 +817,8 @@ class MosaicCreateRequest(BaseModel):
     """Request to create a mosaic."""
 
     calibrator_name: Optional[str] = Field(
-        None, description="Calibrator name for calibrator-centered mosaic (e.g., '0834+555')"
+        None,
+        description="Calibrator name for calibrator-centered mosaic (e.g., '0834+555')",
     )
     start_time: Optional[str] = Field(
         None, description="Start time for time-window mosaic (ISO format)"
@@ -1009,7 +1040,7 @@ class ImageDetail(BaseModel):
     dec: Optional[float] = Field(None, description="Declination in degrees")
     ra_hms: Optional[str] = None
     dec_dms: Optional[str] = None
-    l: Optional[float] = Field(None, description="Galactic longitude in degrees")
+    gal_l: Optional[float] = Field(None, description="Galactic longitude in degrees", alias="l")
     b: Optional[float] = Field(None, description="Galactic latitude in degrees")
     beam_bmaj: Optional[float] = Field(None, description="Beam major axis in degrees")
     beam_bmin: Optional[float] = Field(None, description="Beam minor axis in degrees")

@@ -1,0 +1,175 @@
+flowchart TD
+    Start([create_10min_mosaic.py<br/>User Trigger]) --> Config[Config Register<br/>Set Environment Variables<br/>IMG_IMSIZE=1024<br/>IMG_ROBUST=0.0<br/>IMG_NITER=1000]
+    
+    Config --> ModeCheck{Batch Mode?}
+    
+    ModeCheck -->|Yes| BatchMode[Batch Processing Mode<br/>create_mosaics_batch<br/>Process multiple transits]
+    ModeCheck -->|No| SingleMode[Single Mosaic Mode]
+    
+    BatchMode --> BatchTransitList[Get Transit List<br/>list_available_transits_with_quality<br/>Apply quality filters]
+    BatchTransitList --> BatchQuality{Quality<br/>Filters?}
+    
+    BatchQuality -->|Yes| ApplyFilters[Apply Filters<br/>min_pb_response<br/>min_ms_count]
+    BatchQuality -->|No| BatchSelect[Select Transits<br/>--all-transits or<br/>--transit-range]
+    
+    ApplyFilters --> BatchSelect
+    BatchSelect --> BatchLoop[Process Each Transit<br/>Loop through indices]
+    BatchLoop --> SingleMode
+    
+    SingleMode --> TransitCheck{Transit Database<br/>Check}
+    
+    TransitCheck -->|Has Data| DBReadout[DB Readout<br/>get_calibrator_transits<br/>Pre-calculated]
+    TransitCheck -->|No Data| OnDemandCalc[On-Demand Calculation<br/>calibrator_service<br/>.list_available_transits]
+    
+    DBReadout --> TransitList[Get Transit List<br/>list_available_transits]
+    OnDemandCalc --> TransitList
+    
+    TransitList --> TransitMode{Transit Selection<br/>Mode?}
+    
+    TransitMode -->|List & Select| InteractiveList[Interactive Selection<br/>list_transits_interactive<br/>Show quality metrics<br/>PB Response, MS Count, Days Ago]
+    TransitMode -->|Index| IndexSelect[Select by Index<br/>--transit-index N]
+    TransitMode -->|Time| TimeSelect[Select by Time<br/>--transit-time ISO]
+    TransitMode -->|Default| EarliestTransit[Select Earliest Transit<br/>Default: transits[-1]]
+    TransitMode -->|Time Range| TimeRange[Time Range Override<br/>--start-time & --end-time<br/>Explicit time window]
+    
+    InteractiveList --> TransitSelected[Transit Selected]
+    IndexSelect --> TransitSelected
+    TimeSelect --> TransitSelected
+    EarliestTransit --> TransitSelected
+    TimeRange --> TransitSelected
+    
+    TransitSelected --> QualityFilter{Quality<br/>Filtering?}
+    
+    QualityFilter -->|Yes| QualityCheck[Apply Quality Filters<br/>min_pb_response<br/>min_ms_count<br/>Filter transits]
+    QualityFilter -->|No| OrchestratorInit
+    
+    QualityCheck --> OrchestratorInit[Orchestrator Init<br/>MosaicOrchestrator<br/>Initialize DBs & Paths]
+    
+    OrchestratorInit --> MainProcessor[Main Processor<br/>create_mosaic_centered_on_calibrator<br/>calibrator: 0834+555<br/>timespan: 12 min]
+    
+    MainProcessor --> WindowFinder[Window Finder<br/>find_transit_centered_window<br/>Calculate transit ± 6 min<br/>or use explicit time range]
+    
+    WindowFinder --> ExistingCheck{Existing Mosaic<br/>Check?}
+    
+    ExistingCheck -->|Check| CheckExisting[Check Existing Mosaic<br/>check_existing_mosaic<br/>Query products.sqlite3<br/>Match exact parameters]
+    
+    CheckExisting --> MosaicExists{Mosaic<br/>Exists?}
+    
+    MosaicExists -->|Yes| OverwriteCheck{Overwrite<br/>Flag?}
+    
+    OverwriteCheck -->|No| StopError[Stop with Error<br/>Show existing mosaic details<br/>Require --overwrite flag]
+    OverwriteCheck -->|Yes| Continue[Continue Creation]
+    
+    MosaicExists -->|No| Continue
+    
+    Continue --> MSManager{MS File Manager<br/>ensure_ms_files_in_window}
+    
+    MSManager -->|Check DB & Disk| MSChecker[MS Checker<br/>Query products.sqlite3<br/>Scan disk<br/>Register MS files]
+    
+    MSChecker --> MSDecision{MS Files<br/>Available?}
+    
+    MSDecision -->|>= 3 files| MSList[MS Paths List]
+    MSDecision -->|< 3 files| HDF5Converter[HDF5→MS Converter<br/>convert_subband_groups_to_ms<br/>Trigger conversion]
+    
+    HDF5Converter --> MSList
+    
+    MSList --> DryRunSwitch{dry_run?}
+    
+    DryRunSwitch -->|Yes| Validator[Validator<br/>_validate_mosaic_plan<br/>Check prerequisites<br/>Enhanced Preview Mode<br/>Show plan, errors, warnings]
+    
+    Validator --> PreviewOutput[Preview Output<br/>Display mosaic plan<br/>MS file paths<br/>Validation results<br/>Return DRY_RUN]
+    
+    DryRunSwitch -->|No| Executor[Executor<br/>_execute_mosaic_creation]
+    
+    Executor --> GroupForm[Group Formation<br/>_form_group_from_ms_paths<br/>INSERT INTO mosaic_groups<br/>Create group_id]
+    
+    GroupForm --> Workflow[Group Workflow Processor<br/>_process_group_workflow]
+    
+    Workflow --> CalSelect[STAGE 1: Calibration Selection<br/>select_calibration_ms<br/>Select 5th MS index 4]
+    
+    CalSelect --> CalSolve[STAGE 2: Calibration Solving<br/>solve_calibration_for_group]
+    
+    CalSolve --> BPSolver[solve_bandpass<br/>BP Calibration Solver]
+    CalSolve --> GainSolver[solve_gains<br/>Gain Calibration Solver]
+    
+    BPSolver --> CalTables[Calibration Tables<br/>BP & Gain solutions]
+    GainSolver --> CalTables
+    
+    CalTables --> CalApply[STAGE 3: Calibration Application<br/>apply_calibration_to_group<br/>apply_to_target for each MS<br/>Update status: 'calibrated']
+    
+    CalApply --> Imaging[STAGE 4: Imaging<br/>image_group<br/>Parallel Processing]
+    
+    Imaging --> ImageMS0[image_ms MS_0]
+    Imaging --> ImageMS1[image_ms MS_1]
+    Imaging --> ImageMS2[image_ms MS_2]
+    Imaging --> ImageMSN[image_ms MS_n]
+    
+    ImageMS0 --> Images[Images Array]
+    ImageMS1 --> Images
+    ImageMS2 --> Images
+    ImageMSN --> Images
+    
+    Images --> MosaicBuild[STAGE 5: Mosaic Creation<br/>create_mosaic<br/>_build_weighted_mosaic<br/>Method: pbweighted]
+    
+    MosaicBuild --> Combine[Combine Tiles<br/>PB Weighting<br/>Tile_0 to Tile_n → Mosaic]
+    
+    Combine --> MosaicFITS[Mosaic FITS File]
+    
+    MosaicFITS --> PhotometryOpt{Photometry<br/>Enabled?}
+    
+    PhotometryOpt -->|Yes| Photometry[_trigger_photometry_for_mosaic<br/>Link to data registry]
+    PhotometryOpt -->|No| OutputCheck
+    
+    Photometry --> OutputCheck{wait_for_published?}
+    
+    OutputCheck -->|Yes| PublishWaiter[Publish Waiter<br/>wait_for_published<br/>Poll until published<br/>or timeout]
+    OutputCheck -->|No| DirectOutput[Direct Output<br/>Return mosaic_path<br/>Location: /stage/.../mosaics/]
+    
+    PublishWaiter --> PublishedPath[Published Path<br/>Final Location]
+    
+    DirectOutput --> StatusLED[Status LED<br/>write_status SUCCESS<br/>Print success message]
+    PublishedPath --> StatusLED
+    
+    BatchLoop -.->|Next Transit| BatchLoop
+    BatchLoop --> BatchResults[Batch Results<br/>Collect status for each<br/>Success/Failed/Skipped]
+    BatchResults --> StatusLED
+    
+    StatusLED --> End([Final Mosaic<br/>*.fits file<br/>/stage/dsa110-contimg/mosaics/])
+    
+    StopError --> End
+    
+    %% Database connections
+    DBReadout -.->|Query| ProductsDB[(products.sqlite3<br/>ms_index<br/>mosaic_groups<br/>images<br/>mosaics)]
+    MSChecker -.->|Query/Update| ProductsDB
+    CheckExisting -.->|Query| ProductsDB
+    GroupForm -.->|INSERT| ProductsDB
+    CalTables -.->|Store| CalRegistry[(cal_registry.sqlite3<br/>calibration tables)]
+    Photometry -.->|Link| DataRegistry[(data_registry.sqlite3<br/>data products)]
+    
+    %% Error handling
+    Validator -.->|Errors| ErrorLog[Error Handler<br/>log_error<br/>ERROR_LOG]
+    Executor -.->|Errors| ErrorLog
+    Workflow -.->|Errors| ErrorLog
+    BatchLoop -.->|Errors| ErrorLog
+    
+    %% Status monitoring
+    Config -.->|Status| StatusFile[Status Monitor<br/>write_status<br/>STATUS_FILE]
+    MainProcessor -.->|Status| StatusFile
+    StatusLED -.->|Status| StatusFile
+    
+    %% Styling
+    classDef startEnd fill:#90EE90,stroke:#006400,stroke-width:3px
+    classDef process fill:#87CEEB,stroke:#4682B4,stroke-width:2px
+    classDef decision fill:#FFD700,stroke:#FF8C00,stroke-width:2px
+    classDef database fill:#DDA0DD,stroke:#9370DB,stroke-width:2px
+    classDef stage fill:#F0E68C,stroke:#B8860B,stroke-width:2px
+    classDef error fill:#FFB6C1,stroke:#DC143C,stroke-width:2px
+    classDef newFeature fill:#98FB98,stroke:#228B22,stroke-width:2px
+    
+    class Start,End startEnd
+    class Config,OrchestratorInit,MainProcessor,WindowFinder,MSChecker,HDF5Converter,MSList,GroupForm,CalSelect,CalSolve,CalApply,Imaging,MosaicBuild,Combine,MosaicFITS,Photometry,PublishWaiter,DirectOutput,PublishedPath,StatusLED,TransitList,EarliestTransit,TransitSelected,TimeRange,QualityCheck,CheckExisting,Continue,PreviewOutput,BatchMode,BatchTransitList,ApplyFilters,BatchSelect,BatchLoop,BatchResults,InteractiveList,IndexSelect,TimeSelect process
+    class TransitCheck,MSManager,MSDecision,DryRunSwitch,PhotometryOpt,OutputCheck,TransitMode,QualityFilter,ExistingCheck,MosaicExists,OverwriteCheck,ModeCheck,BatchQuality decision
+    class ProductsDB,CalRegistry,DataRegistry database
+    class BPSolver,GainSolver,ImageMS0,ImageMS1,ImageMS2,ImageMSN,Images stage
+    class ErrorLog,StatusFile,StopError error
+    class InteractiveList,IndexSelect,TimeSelect,TimeRange,QualityCheck,CheckExisting,ExistingCheck,MosaicExists,OverwriteCheck,BatchMode,BatchTransitList,ApplyFilters,BatchSelect,BatchLoop,BatchResults,PreviewOutput newFeature

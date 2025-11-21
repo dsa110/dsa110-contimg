@@ -17,12 +17,9 @@ These tests will FAIL if calibration produces scientifically invalid results,
 even if the code runs without errors.
 """
 
-import os
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
-import numpy as np
 import pytest
 
 # Add src to path
@@ -36,7 +33,6 @@ class TestFluxScaleAccuracy:
         """MODEL_DATA flux must match catalog flux within tolerance."""
         # Known calibrator: 0834+555 = 2.5 Jy at 1.4 GHz
         catalog_flux_jy = 2.5
-        tolerance_jy = 0.1  # 4% tolerance (reasonable for flux scale)
 
         # This test would read MODEL_DATA from MS and compare
         # For now, validate the test structure
@@ -111,9 +107,7 @@ class TestBandpassShapeScientificValidity:
         # (indicates frequency ordering problems or bad solutions)
         max_channel_to_channel_change = 0.1  # 10% max change per channel
 
-        assert (
-            max_channel_to_channel_change < 0.5
-        ), "Bandpass must vary smoothly across frequency"
+        assert max_channel_to_channel_change < 0.5, "Bandpass must vary smoothly across frequency"
 
     def test_bandpass_normalization_is_correct(self):
         """Bandpass should be normalized to unity (solnorm=True)."""
@@ -122,9 +116,7 @@ class TestBandpassShapeScientificValidity:
         expected_median = 1.0
         tolerance = 0.05
 
-        assert (
-            abs(expected_median - 1.0) < tolerance
-        ), "Bandpass must be normalized to unity"
+        assert abs(expected_median - 1.0) < tolerance, "Bandpass must be normalized to unity"
 
     def test_bandpass_has_reasonable_amplitude_range(self):
         """Bandpass amplitude should be in reasonable range (0.1-10)."""
@@ -180,9 +172,7 @@ class TestCalibrationTableStandards:
         # Required columns: TIME, ANTENNA1, SPW, CHAN, CPARAM, FLAG
         required_columns = ["TIME", "ANTENNA1", "SPW", "CHAN", "CPARAM", "FLAG"]
 
-        assert (
-            len(required_columns) > 0
-        ), "Bandpass table must have required CASA columns"
+        assert len(required_columns) > 0, "Bandpass table must have required CASA columns"
 
     def test_gain_table_has_correct_structure(self):
         """Gain table must follow CASA gain table structure."""
@@ -234,7 +224,6 @@ class TestSolutionQualityMetrics:
         """Solutions must have SNR > threshold for scientific validity."""
         # SNR < threshold indicates poor data quality or calibration failure
         min_snr_bandpass = 3.0
-        min_snr_prebandpass = 3.0  # Lowered from 5.0
 
         test_snr = 5.0
         assert (
@@ -264,10 +253,9 @@ class TestCalibratorSelection:
         min_pb_response = 0.3
         test_pb = 0.5  # 0834+555 typically has PB ~ 0.5
 
-        assert test_pb >= min_pb_response, (
-            f"Calibrator PB response {test_pb:.2f} below minimum "
-            f"{min_pb_response:.2f}"
-        )
+        assert (
+            test_pb >= min_pb_response
+        ), f"Calibrator PB response {test_pb:.2f} below minimum {min_pb_response:.2f}"
 
     def test_reference_antenna_is_appropriate(self):
         """Reference antenna must be appropriate for calibration."""
@@ -314,9 +302,7 @@ class TestCalibrationWorkflowScientificCorrectness:
         sequence = ["skip_K", "bandpass", "gain"]
         expected_sequence = ["skip_K", "bandpass", "gain"]
 
-        assert (
-            sequence == expected_sequence
-        ), "Calibration sequence must be correct for science"
+        assert sequence == expected_sequence, "Calibration sequence must be correct for science"
 
     def test_prebandpass_phase_is_applied_before_bandpass(self):
         """Pre-bandpass phase must be applied BEFORE bandpass."""

@@ -9,7 +9,6 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
-from dsa110_contimg.pipeline.observability import PipelineObserver, StageMetrics
 from dsa110_contimg.pipeline.state import SQLiteStateRepository, StateRepository
 
 logger = logging.getLogger(__name__)

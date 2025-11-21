@@ -20,7 +20,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 # Add src to path for direct execution
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
@@ -101,7 +101,6 @@ def benchmark_database_operations(
     products_db: Path, ms_paths: list[str], iterations: int = 10
 ) -> dict:
     """Benchmark database query performance."""
-    import sqlite3
 
     conn = ensure_products_db(products_db)
 

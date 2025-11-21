@@ -12,6 +12,11 @@ import {
   Switch,
   FormControlLabel,
   Button,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Stack,
 } from "@mui/material";
 import { CompareArrows } from "@mui/icons-material";
 import ImageBrowser from "../components/Sky/ImageBrowser";
@@ -35,6 +40,7 @@ import PageBreadcrumbs from "../components/PageBreadcrumbs";
 export default function SkyViewPage() {
   const [selectedImage, setSelectedImage] = useState<ImageInfo | null>(null);
   const [catalogOverlayVisible, setCatalogOverlayVisible] = useState(false);
+  const [selectedCatalog, setSelectedCatalog] = useState<string>("all");
   const [selectedRegionId, setSelectedRegionId] = useState<number | null>(null);
   const [compareDialogOpen, setCompareDialogOpen] = useState(false);
 
@@ -62,7 +68,7 @@ export default function SkyViewPage() {
         <Box sx={{ mb: 4 }}>
           <SkyMap
             height={500}
-            historyDays={7}
+            historyDays={90}
             showPointingHistory={true}
             showObservedFields={true}
           />
@@ -100,22 +106,39 @@ export default function SkyViewPage() {
               {/* Catalog Overlay Toggle */}
               {selectedImage && imageCenter.ra !== null && imageCenter.dec !== null && (
                 <Box sx={{ mb: 2 }}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={catalogOverlayVisible}
-                        onChange={(e) => setCatalogOverlayVisible(e.target.checked)}
-                      />
-                    }
-                    label="Show Catalog Overlay"
-                  />
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={catalogOverlayVisible}
+                          onChange={(e) => setCatalogOverlayVisible(e.target.checked)}
+                        />
+                      }
+                      label="Show Catalog Overlay"
+                    />
+                    {catalogOverlayVisible && (
+                      <FormControl size="small" sx={{ minWidth: 120 }}>
+                        <InputLabel>Catalog</InputLabel>
+                        <Select
+                          value={selectedCatalog}
+                          onChange={(e) => setSelectedCatalog(e.target.value)}
+                          label="Catalog"
+                        >
+                          <MenuItem value="all">All Catalogs</MenuItem>
+                          <MenuItem value="nvss">NVSS</MenuItem>
+                          <MenuItem value="first">FIRST</MenuItem>
+                          <MenuItem value="racs">RACS</MenuItem>
+                        </Select>
+                      </FormControl>
+                    )}
+                  </Stack>
                   {catalogOverlayVisible && (
                     <CatalogOverlayJS9
                       displayId="skyViewDisplay"
                       ra={imageCenter.ra}
                       dec={imageCenter.dec}
                       radius={1.5}
-                      catalog="all"
+                      catalog={selectedCatalog}
                       visible={catalogOverlayVisible}
                     />
                   )}
@@ -157,10 +180,10 @@ export default function SkyViewPage() {
                 <ImageStatisticsPlugin
                   displayId="skyViewDisplay"
                   imageInfo={{
-                    noise_jy: selectedImage.noise_jy,
-                    beam_major_arcsec: selectedImage.beam_major_arcsec,
-                    beam_minor_arcsec: selectedImage.beam_minor_arcsec,
-                    beam_pa_deg: selectedImage.beam_pa_deg,
+                    noise_jy: selectedImage.noise_jy ?? undefined,
+                    beam_major_arcsec: selectedImage.beam_major_arcsec ?? undefined,
+                    beam_minor_arcsec: selectedImage.beam_minor_arcsec ?? undefined,
+                    beam_pa_deg: selectedImage.beam_pa_deg ?? undefined,
                   }}
                 />
               )}
@@ -182,10 +205,10 @@ export default function SkyViewPage() {
                   imageInfo={{
                     path: selectedImage.path,
                     type: selectedImage.type,
-                    noise_jy: selectedImage.noise_jy,
-                    beam_major_arcsec: selectedImage.beam_major_arcsec,
-                    beam_minor_arcsec: selectedImage.beam_minor_arcsec,
-                    beam_pa_deg: selectedImage.beam_pa_deg,
+                    noise_jy: selectedImage.noise_jy ?? undefined,
+                    beam_major_arcsec: selectedImage.beam_major_arcsec ?? undefined,
+                    beam_minor_arcsec: selectedImage.beam_minor_arcsec ?? undefined,
+                    beam_pa_deg: selectedImage.beam_pa_deg ?? undefined,
                   }}
                 />
               )}

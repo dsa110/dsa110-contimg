@@ -2,9 +2,12 @@
 
 ## Overview
 
-This directory contains end-to-end (E2E) tests for the DSA-110 Dashboard using Playwright. The tests verify that the dashboard works correctly from a user's perspective.
+This directory contains end-to-end (E2E) tests for the DSA-110 Dashboard using
+Playwright. The tests verify that the dashboard works correctly from a user's
+perspective.
 
-**✅ Latest Test Run:** November 11, 2025, 7:55 PM PT - **All 22 tests passing**  
+**✅ Latest Test Run:** November 11, 2025, 7:55 PM PT - **All 22 tests
+passing**  
 See [TEST_EXECUTION_SUCCESS.md](./TEST_EXECUTION_SUCCESS.md) for details.
 
 ## Test Structure
@@ -78,13 +81,15 @@ Tests can be tagged for selective execution:
 - `@slow` - Long-running tests
 
 Example:
+
 ```typescript
-test('Critical feature test @smoke', async ({ page }) => {
+test("Critical feature test @smoke", async ({ page }) => {
   // Test code
 });
 ```
 
 Run tagged tests:
+
 ```bash
 npx playwright test --grep @smoke
 ```
@@ -94,16 +99,16 @@ npx playwright test --grep @smoke
 ### Basic Test Structure
 
 ```typescript
-import { test, expect } from '@playwright/test';
-import { navigateToPage, waitForDashboardLoad } from './helpers/page-helpers';
-import { testRoutes } from './fixtures/test-data';
+import { test, expect } from "@playwright/test";
+import { navigateToPage, waitForDashboardLoad } from "./helpers/page-helpers";
+import { testRoutes } from "./fixtures/test-data";
 
-test.describe('My Feature', () => {
+test.describe("My Feature", () => {
   test.beforeEach(async ({ page }) => {
     await navigateToPage(page, testRoutes.dashboard);
   });
 
-  test('should do something', async ({ page }) => {
+  test("should do something", async ({ page }) => {
     await waitForDashboardLoad(page);
     // Your test code here
   });
@@ -113,20 +118,26 @@ test.describe('My Feature', () => {
 ### Using Helpers
 
 **Page Helpers:**
-```typescript
-import { navigateToPage, waitForAPILoad, isElementVisible } from './helpers/page-helpers';
 
-await navigateToPage(page, '/sky');
+```typescript
+import {
+  navigateToPage,
+  waitForAPILoad,
+  isElementVisible,
+} from "./helpers/page-helpers";
+
+await navigateToPage(page, "/sky");
 await waitForAPILoad(page);
-const visible = await isElementVisible(page, '#myElement');
+const visible = await isElementVisible(page, "#myElement");
 ```
 
 **API Helpers:**
+
 ```typescript
-import { APIMonitor, waitForAPIRequest } from './helpers/api-helpers';
+import { APIMonitor, waitForAPIRequest } from "./helpers/api-helpers";
 
 const monitor = new APIMonitor(page);
-await waitForAPIRequest(page, '/api/status');
+await waitForAPIRequest(page, "/api/status");
 const requests = monitor.getRequests();
 ```
 
@@ -142,28 +153,32 @@ const requests = monitor.getRequests();
 ### Common Patterns
 
 **Waiting for API calls:**
+
 ```typescript
-await page.waitForResponse(response => 
-  response.url().includes('/api/status') && response.status() === 200
+await page.waitForResponse(
+  (response) =>
+    response.url().includes("/api/status") && response.status() === 200
 );
 ```
 
 **Checking for errors:**
+
 ```typescript
 const errors: string[] = [];
-page.on('console', (msg) => {
-  if (msg.type() === 'error') {
+page.on("console", (msg) => {
+  if (msg.type() === "error") {
     errors.push(msg.text());
   }
 });
 // ... do something ...
-const criticalErrors = errors.filter(e => !e.includes('favicon'));
+const criticalErrors = errors.filter((e) => !e.includes("favicon"));
 expect(criticalErrors.length).toBe(0);
 ```
 
 **Taking screenshots:**
+
 ```typescript
-await page.screenshot({ path: 'test-results/screenshot.png', fullPage: true });
+await page.screenshot({ path: "test-results/screenshot.png", fullPage: true });
 ```
 
 ## Test Reports
@@ -179,6 +194,7 @@ Or open `playwright-report/index.html` in a browser.
 ## CI/CD Integration
 
 Tests run automatically in CI/CD (GitHub Actions) on:
+
 - Push to `main` or `develop` branches
 - Pull requests
 - Manual workflow dispatch
@@ -190,6 +206,7 @@ See `.github/workflows/e2e-tests.yml` for configuration.
 ### Debug Mode
 
 Run tests in debug mode to step through:
+
 ```bash
 npm run test:e2e:debug
 ```
@@ -197,6 +214,7 @@ npm run test:e2e:debug
 ### Headed Mode
 
 See the browser while tests run:
+
 ```bash
 npm run test:e2e:headed
 ```
@@ -204,6 +222,7 @@ npm run test:e2e:headed
 ### UI Mode
 
 Interactive test runner:
+
 ```bash
 npm run test:e2e:ui
 ```
@@ -211,14 +230,16 @@ npm run test:e2e:ui
 ### Screenshots and Videos
 
 Failed tests automatically capture:
+
 - Screenshots: `test-results/`
 - Videos: `test-results/` (if configured)
 
 ### Console Logs
 
 Check browser console logs:
+
 ```typescript
-page.on('console', msg => console.log('Browser:', msg.text()));
+page.on("console", (msg) => console.log("Browser:", msg.text()));
 ```
 
 ## Troubleshooting
@@ -226,6 +247,7 @@ page.on('console', msg => console.log('Browser:', msg.text()));
 ### Tests fail with "Executable doesn't exist"
 
 Install Playwright browsers:
+
 ```bash
 npx playwright install chromium
 ```
@@ -246,6 +268,7 @@ npx playwright install chromium
 ### Port conflicts
 
 Ensure only one instance of the dashboard is running:
+
 ```bash
 lsof -i :5174
 # Kill if needed
@@ -257,4 +280,3 @@ lsof -i :5174
 - [Testing Strategy](./combined-testing-strategy.md)
 - [Next Steps](./NEXT_STEPS.md)
 - [Dashboard API Reference](../../../docs/reference/dashboard_backend_api.md)
-

@@ -4,7 +4,7 @@
  */
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Container, Typography, Box, Tabs, Tab, Paper, Button, Stack } from "@mui/material";
+import { Container, Typography, Box, Tabs, Tab, Button, Stack } from "@mui/material";
 import {
   Storage as BrowserIcon,
   GridOn as MosaicsIcon,
@@ -63,7 +63,7 @@ export default function DataExplorerPage() {
     setSearchParams({ tab: newValue.toString() }, { replace: true });
   };
 
-  const handleSourceSelect = (sourceId: string) => {
+  const _handleSourceSelect = (sourceId: string) => {
     setSelectedSource(sourceId);
     // Optionally switch to sky view when source is selected
     // setTabValue(3);

@@ -79,9 +79,7 @@ def generate_bandpass_plots(
             generated_plots.extend(phase_files)
             logger.info(f"Generated {len(phase_files)} phase plot(s)")
 
-        logger.info(
-            f"✓ Bandpass plots generated: {len(generated_plots)} file(s) in {output_dir}"
-        )
+        logger.info(f"✓ Bandpass plots generated: {len(generated_plots)} file(s) in {output_dir}")
         return generated_plots
 
     except Exception as e:
@@ -135,7 +133,7 @@ def generate_gain_plots(
     Raises:
         RuntimeError: If plot generation fails
     """
-    from casatasks import plotcal
+    from casatasks import plotcal  # pylint: disable=no-name-in-module
 
     if output_dir is None:
         output_dir = os.path.dirname(gcal_table) or "."
@@ -184,9 +182,7 @@ def generate_gain_plots(
             generated_plots.extend(phase_files)
             logger.info(f"Generated {len(phase_files)} gain phase plot(s)")
 
-        logger.info(
-            f"✓ Gain plots generated: {len(generated_plots)} file(s) in {output_dir}"
-        )
+        logger.info(f"✓ Gain plots generated: {len(generated_plots)} file(s) in {output_dir}")
         return generated_plots
 
     except Exception as e:

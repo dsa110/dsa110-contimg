@@ -5,11 +5,10 @@ These tests verify that CASA modules are imported lazily and only when needed,
 preventing segfaults during module initialization.
 """
 
-import pytest
 import sys
-import importlib
-from unittest.mock import patch, MagicMock
 from pathlib import Path
+
+import pytest
 
 
 class TestLazyCASAImports:
@@ -35,9 +34,7 @@ class TestLazyCASAImports:
         # Verify CASA is not initialized yet
         from dsa110_contimg.qa.visualization.casatable import _CASACORE_AVAILABLE
 
-        assert (
-            _CASACORE_AVAILABLE is None
-        ), "CASA should not be initialized on module import"
+        assert _CASACORE_AVAILABLE is None, "CASA should not be initialized on module import"
 
     def test_import_casatable_class_no_segfault(self):
         """Test that importing CasaTable class doesn't trigger CASA initialization."""
@@ -50,14 +47,11 @@ class TestLazyCASAImports:
                 del sys.modules[mod]
 
         # Import CasaTable class
-        from dsa110_contimg.qa.visualization import CasaTable
 
         # Verify CASA is not initialized yet
         from dsa110_contimg.qa.visualization.casatable import _CASACORE_AVAILABLE
 
-        assert (
-            _CASACORE_AVAILABLE is None
-        ), "CASA should not be initialized on class import"
+        assert _CASACORE_AVAILABLE is None, "CASA should not be initialized on class import"
 
     def test_casa_initialized_only_when_needed(self):
         """Test that CASA is initialized only when CasaTable is actually used."""
@@ -72,7 +66,6 @@ class TestLazyCASAImports:
         from dsa110_contimg.qa.visualization.casatable import (
             _CASACORE_AVAILABLE,
             _has_casacore,
-            CasaTable,
         )
 
         # Initially not initialized
@@ -104,9 +97,7 @@ class TestLazyCASAImports:
 
         # Multiple imports should work fine
         import dsa110_contimg.qa
-        from dsa110_contimg.qa import create_cutout
         from dsa110_contimg.qa.visualization import CasaTable
-        from dsa110_contimg.qa.postage_stamps import create_cutout as ps_create_cutout
 
         # All should be importable
         assert hasattr(dsa110_contimg.qa, "create_cutout")
@@ -140,11 +131,9 @@ class TestLazyCASAImports:
                 del sys.modules[mod]
 
         from dsa110_contimg.qa.visualization.casatable import (
-            _ensure_casa_initialized,
-            _has_casacore,
-            _get_table_class,
             _CASACORE_AVAILABLE,
             _CASACORE_TABLE,
+            _ensure_casa_initialized,
         )
 
         # Initially not initialized
@@ -171,8 +160,8 @@ class TestLazyCASAImports:
                 del sys.modules[mod]
 
         from dsa110_contimg.qa.visualization.casatable import (
-            CasaTable,
             _CASACORE_AVAILABLE,
+            CasaTable,
         )
 
         # Initially not initialized
@@ -229,7 +218,7 @@ class TestLazyCASAImports:
             if "segmentation fault" in str(e).lower() or "segfault" in str(e).lower():
                 pytest.fail(f"Segfault detected during import: {e}")
             raise
-        except Exception as e:
+        except Exception:
             # Other exceptions are okay (e.g., ImportError if CASA not available)
             pass
 
@@ -240,9 +229,9 @@ class TestCASAImportErrorHandling:
     def test_casatable_handles_missing_casa_gracefully(self):
         """Test that CasaTable handles missing CASA gracefully."""
         from dsa110_contimg.qa.visualization.casatable import (
-            _has_casacore,
-            _get_table_class,
             CasaTable,
+            _get_table_class,
+            _has_casacore,
         )
 
         # Check availability

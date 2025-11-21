@@ -16,7 +16,7 @@ from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.wcs.utils import skycoord_to_pixel
-from scipy import interpolate, optimize, stats
+from scipy import optimize
 
 LOG = logging.getLogger(__name__)
 
@@ -72,8 +72,7 @@ def extract_line_profile(
 
             # Calculate line length and number of samples
             line_length_pixels = np.sqrt(
-                (end_pixel[0] - start_pixel[0]) ** 2
-                + (end_pixel[1] - start_pixel[1]) ** 2
+                (end_pixel[0] - start_pixel[0]) ** 2 + (end_pixel[1] - start_pixel[1]) ** 2
             )
             n_samples = max(int(line_length_pixels), 10)  # At least 10 samples
 
@@ -99,9 +98,7 @@ def extract_line_profile(
 
                         # Sample perpendicular to line
                         width_samples = []
-                        for w in np.linspace(
-                            -width_pixels / 2, width_pixels / 2, width_pixels
-                        ):
+                        for w in np.linspace(-width_pixels / 2, width_pixels / 2, width_pixels):
                             px = int(x + w * perp_x)
                             py = int(y + w * perp_y)
                             if 0 <= px < data.shape[1] and 0 <= py < data.shape[0]:
@@ -127,9 +124,7 @@ def extract_line_profile(
                 # Convert back to WCS if needed
                 if coordinate_system == "wcs":
                     pixel_coord = (x, y)
-                    sky_coord = wcs.pixel_to_world_values(
-                        pixel_coord[0], pixel_coord[1]
-                    )
+                    sky_coord = wcs.pixel_to_world_values(pixel_coord[0], pixel_coord[1])
                     coordinates.append([float(sky_coord[0]), float(sky_coord[1])])
                 else:
                     coordinates.append([float(x), float(y)])
@@ -295,9 +290,7 @@ def extract_point_profile(
                 r_outer = radii[i + 1]
 
                 # Find pixels in this annulus
-                mask = (distances_from_center >= r_inner) & (
-                    distances_from_center < r_outer
-                )
+                mask = (distances_from_center >= r_inner) & (distances_from_center < r_outer)
                 annulus_data = data[mask]
 
                 if annulus_data.size > 0:
@@ -312,9 +305,7 @@ def extract_point_profile(
                 radial_distances.append(float(radial_dist))
                 flux_values.append(float(flux_mean))
                 error_values.append(
-                    float(flux_std / np.sqrt(annulus_data.size))
-                    if annulus_data.size > 0
-                    else 0.0
+                    float(flux_std / np.sqrt(annulus_data.size)) if annulus_data.size > 0 else 0.0
                 )
 
             # Get flux unit from header
@@ -326,9 +317,7 @@ def extract_point_profile(
                 "distance": radial_distances,
                 "flux": flux_values,
                 "error": error_values,
-                "coordinates": [
-                    [center_coord[0], center_coord[1]]
-                ],  # Single center point
+                "coordinates": [[center_coord[0], center_coord[1]]],  # Single center point
                 "units": {
                     "distance": "arcsec",
                     "flux": flux_unit,
@@ -377,9 +366,7 @@ def fit_gaussian_profile(
     half_max = amplitude_guess / 2
     above_half_max = flux_clean >= half_max
     if np.any(above_half_max):
-        fwhm_guess = np.max(distance_clean[above_half_max]) - np.min(
-            distance_clean[above_half_max]
-        )
+        fwhm_guess = np.max(distance_clean[above_half_max]) - np.min(distance_clean[above_half_max])
         sigma_guess = fwhm_guess / (2 * np.sqrt(2 * np.log(2)))
     else:
         sigma_guess = (distance_clean[-1] - distance_clean[0]) / 4
@@ -424,9 +411,7 @@ def fit_gaussian_profile(
 
         # Calculate statistics
         residuals = flux_clean - fitted_flux
-        chi_squared = np.sum(
-            (residuals / (error_clean if error_clean is not None else 1.0)) ** 2
-        )
+        chi_squared = np.sum((residuals / (error_clean if error_clean is not None else 1.0)) ** 2)
         n_params = 4
         reduced_chi_squared = (
             chi_squared / (len(distance_clean) - n_params)
@@ -507,12 +492,8 @@ def fit_moffat_profile(
     half_max = amplitude_guess / 2
     above_half_max = flux_clean >= half_max
     if np.any(above_half_max):
-        fwhm_guess = np.max(distance_clean[above_half_max]) - np.min(
-            distance_clean[above_half_max]
-        )
-        alpha_guess = fwhm_guess / (
-            2 * np.sqrt(2 ** (1 / 2.5) - 1)
-        )  # Approximate for beta=2.5
+        fwhm_guess = np.max(distance_clean[above_half_max]) - np.min(distance_clean[above_half_max])
+        alpha_guess = fwhm_guess / (2 * np.sqrt(2 ** (1 / 2.5) - 1))  # Approximate for beta=2.5
     else:
         alpha_guess = (distance_clean[-1] - distance_clean[0]) / 4
 
@@ -568,9 +549,7 @@ def fit_moffat_profile(
 
         # Calculate statistics
         residuals = flux_clean - fitted_flux
-        chi_squared = np.sum(
-            (residuals / (error_clean if error_clean is not None else 1.0)) ** 2
-        )
+        chi_squared = np.sum((residuals / (error_clean if error_clean is not None else 1.0)) ** 2)
         n_params = 5
         reduced_chi_squared = (
             chi_squared / (len(distance_clean) - n_params)

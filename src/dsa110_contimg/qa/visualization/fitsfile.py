@@ -5,11 +5,9 @@ Provides FITSFile class for viewing FITS files with JS9 integration,
 similar to RadioPadre's FITSFile functionality.
 """
 
-import os
-import sys
 import traceback
 import uuid
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 try:
     from IPython.display import HTML, Javascript, display
@@ -33,8 +31,8 @@ except ImportError:
     fits = None
 
 from .file import FileBase
-from .js9 import JS9_ERROR, get_js9_init_html, init_js9
-from .render import render_error, render_table, rich_string
+from .js9 import JS9_ERROR, init_js9
+from .render import render_error, render_table
 
 
 class FITSFile(FileBase):
@@ -206,9 +204,7 @@ class FITSFile(FileBase):
         self.mark_shown()
 
         if not HAS_ASTROPY:
-            display(
-                HTML(render_error("astropy.io.fits is required for FITS file viewing"))
-            )
+            display(HTML(render_error("astropy.io.fits is required for FITS file viewing")))
             return
 
         if not self.exists:

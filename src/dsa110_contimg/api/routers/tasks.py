@@ -4,12 +4,11 @@ API endpoints for task queue management
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, HTTPException, status
 
 from dsa110_contimg.api.task_queue import (
-    enqueue_task,
     get_job_status,
     get_queue_stats,
     is_task_queue_available,

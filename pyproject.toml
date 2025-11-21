@@ -38,6 +38,9 @@ dependencies = [
     "watchdog>=3.0.0",
     "typing-extensions>=4.0.0",
     "pyyaml>=6.0",
+    "uncertainties>=3.2.0",
+    "healpy>=1.16.0",  # For HEALPix sky maps (Mollweide projection)
+    "pygdsm>=1.5.0",   # For Global Sky Model generation
 ]
 
 # Optional dependencies for CASA (typically installed via conda)
@@ -48,6 +51,12 @@ casa = [
     # "casatasks",
     # "casaconfig",
     # "python-casacore",
+]
+qa = [
+    # Optional QA tools for visualization and inspection
+    "ragavi>=0.5.2",  # Radio Astronomy Gain and Visibility Inspector (requires codex-africanus>=0.4.3)
+    # Note: codex-africanus is a transitive dependency of ragavi
+    # Version 0.4.3+ supports numba>=0.60 (compatible with numba 0.62+)
 ]
 dev = [
     "pytest>=7.4.0",
@@ -79,6 +88,9 @@ dsa110-mosaic = "dsa110_contimg.mosaic.cli:main"
 dsa110-photometry = "dsa110_contimg.photometry.cli:main"
 dsa110-registry = "dsa110_contimg.database.registry_cli:main"
 dsa110-streaming = "dsa110_contimg.conversion.streaming.streaming_converter:main"
+# DOCUMENTATION FIX: Add CLI entry points referenced in documentation
+dsa110-contimg-convert-stream = "dsa110_contimg.conversion.streaming.streaming_converter:main"
+dsa110-contimg-streaming-mosaic = "dsa110_contimg.mosaic.streaming_mosaic:main"
 
 [tool.setuptools]
 # Package discovery - find all packages in src/
@@ -163,6 +175,11 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     "@abstractmethod",
 ]
+# Coverage thresholds: 80% for critical modules, 60% overall
+fail_under = 60
+precision = 2
+show_missing = true
+skip_covered = false
 
 # MyPy type checking
 [tool.mypy]
@@ -171,6 +188,46 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
 ignore_missing_imports = true
+
+# Pylint configuration
+[tool.pylint.main]
+# CRITICAL: Use Python 3.11 (casa6) - NOT Python 3.6
+# This ensures Pylint analyzes code with the correct Python version
+py-version=3.11
+# Suppress false positives for astropy.units dynamic attributes
+# Note: astropy.units dynamically creates unit attributes (deg, arcsec, etc.)
+# at import time, which pylint's static analysis cannot detect
+extension-pkg-allow-list=["astropy"]
+
+# Generated members for dynamic attributes
+# Astropy units creates attributes like deg, arcsec, hourangle, m, arcmin dynamically
+# CASA tools create methods dynamically on coordinatesystem objects
+# FITS HDUList behaves like a list but pylint doesn't recognize indexing
+generated-members = [
+    "astropy.units.*",
+    "deg", "arcsec", "hourangle", "arcmin", "m", "cm", "dex",
+    "u.deg", "u.arcsec", "u.hourangle", "u.m", "u.arcmin", "u.cm",
+]
+
+[tool.pylint.format]
+max-line-length = 120
+
+[tool.flake8]
+max-line-length = 120
+extend-ignore = ["E203", "W503"]
+
+[tool.pylint."messages control"]
+disable = [
+    "no-member",  # Astropy, CASA, FITS have dynamic attributes
+    "import-error",  # Optional modules like pipeline_hooks may not exist
+    "no-name-in-module",  # CASA modules have dynamic exports
+    "unexpected-keyword-arg",  # CASA APIs may have version-specific parameters
+]
+# Note: We cannot selectively disable no-member for just astropy.units
+# The astropy.units errors are false positives - units exist at runtime
+# but are created dynamically, so pylint's static analysis can't see them.
+# Consider adding # pylint: disable=no-member to specific lines using astropy.units
+# or use a more targeted approach with inline suppressions
 # CASA modules are not typed
 [[tool.mypy.overrides]]
 module = [

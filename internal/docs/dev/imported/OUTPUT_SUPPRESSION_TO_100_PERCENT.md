@@ -29,7 +29,7 @@
 # Whitelist file: .output-suppression-whitelist
 # Format: file_path:line_number:reason
 scripts/auto-error-detection.sh:45:Error detection infrastructure - suppresses wrapper errors
-scripts/agent-setup.sh:12:Infrastructure - suppresses sourcing errors
+scripts/developer-setup.sh:12:Infrastructure - suppresses sourcing errors
 ```
 
 **Pre-commit hook changes:**
@@ -128,7 +128,7 @@ command 2>/dev/null
 # Categories: infrastructure, error-detection, optional-check, cleanup
 
 scripts/auto-error-detection.sh:45:error-detection:Suppresses wrapper errors in error detection system
-scripts/agent-setup.sh:12:infrastructure:Suppresses sourcing errors for optional setup
+scripts/developer-setup.sh:12:infrastructure:Suppresses sourcing errors for optional setup
 scripts/check-environment.sh:23:optional-check:Suppresses command-not-found for optional tools
 ```
 

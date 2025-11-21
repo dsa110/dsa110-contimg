@@ -3,18 +3,8 @@
  * Allows multiple views in a single pane (multi-pane layout)
  */
 import React, { useState } from "react";
-import {
-  Box,
-  Paper,
-  Typography,
-  IconButton,
-  Tabs,
-  Tab,
-  Drawer,
-  Button,
-  Stack,
-} from "@mui/material";
-import { Close, Fullscreen, FullscreenExit, ViewSidebar } from "@mui/icons-material";
+import { Box, Paper, Typography, IconButton, Tabs, Tab, Button, Stack } from "@mui/material";
+import { Close, Fullscreen, FullscreenExit } from "@mui/icons-material";
 
 export interface WorkspaceView {
   id: string;

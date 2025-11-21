@@ -2,24 +2,30 @@
 
 ## Objective
 
-Develop a comprehensive suite of unit tests with an emphasis on speed and efficiency, minimizing prolonged test durations.
+Develop a comprehensive suite of unit tests with an emphasis on speed and
+efficiency, minimizing prolonged test durations.
 
 ## Checklist
 
-- [ ] **Test Structure**: Organize tests by module/package, mirroring source code structure
-- [ ] **Test Coverage**: Cover core functionality, edge cases, and error conditions
+- [ ] **Test Structure**: Organize tests by module/package, mirroring source
+      code structure
+- [ ] **Test Coverage**: Cover core functionality, edge cases, and error
+      conditions
 - [ ] **Mocking**: Use mocks for external dependencies (CASA, file I/O, network)
 - [ ] **Speed**: Keep tests fast (<1s per test when possible)
 - [ ] **Isolation**: Each test should be independent and not rely on other tests
 - [ ] **Validation**: Verify expected behavior, not implementation details
-- [ ] **Documentation**: Clear test names and docstrings explaining what is being tested
+- [ ] **Documentation**: Clear test names and docstrings explaining what is
+      being tested
 
 ## Test Design
 
 Before implementing each unit test:
 
-1. **Target Functionality**: Ensure the test accurately targets the intended functionality and validates the predicted behavior.
-2. **Minimize Overhead**: Confirm that each test is effective while keeping computational overhead as low as possible.
+1. **Target Functionality**: Ensure the test accurately targets the intended
+   functionality and validates the predicted behavior.
+2. **Minimize Overhead**: Confirm that each test is effective while keeping
+   computational overhead as low as possible.
 
 ### Test Structure
 
@@ -44,10 +50,10 @@ class TestFunctionName:
         """Test basic successful case."""
         # Arrange
         input_data = "test_input"
-        
+
         # Act
         result = function_to_test(input_data)
-        
+
         # Assert
         assert result == expected_output
 
@@ -55,7 +61,7 @@ class TestFunctionName:
         """Test error handling for invalid input."""
         # Arrange
         invalid_input = None
-        
+
         # Act & Assert
         with pytest.raises(ValidationInputError):
             function_to_test(invalid_input)
@@ -63,7 +69,8 @@ class TestFunctionName:
 
 ## Error Handling
 
-Integrate mechanisms to detect and handle faults immediately as they occur, enabling rapid identification and resolution of issues.
+Integrate mechanisms to detect and handle faults immediately as they occur,
+enabling rapid identification and resolution of issues.
 
 ### Error Testing Patterns
 
@@ -71,10 +78,10 @@ Integrate mechanisms to detect and handle faults immediately as they occur, enab
 def test_missing_file_error(self, tmp_path):
     """Test error when file doesn't exist."""
     file_path = tmp_path / "nonexistent.fits"
-    
+
     with pytest.raises(ValidationInputError) as exc_info:
         validate_image_quality(str(file_path))
-    
+
     assert "not found" in str(exc_info.value).lower()
 
 def test_invalid_input_error(self):
@@ -85,7 +92,8 @@ def test_invalid_input_error(self):
 
 ## Validation
 
-After adding or editing tests, briefly validate their effectiveness and make any necessary self-corrections based on failures or unexpected outcomes.
+After adding or editing tests, briefly validate their effectiveness and make any
+necessary self-corrections based on failures or unexpected outcomes.
 
 ### Running Tests
 
@@ -168,7 +176,7 @@ def test_with_mock(mock_casaimage):
     mock_image = Mock()
     mock_image.shape.return_value = (100, 100)
     mock_casaimage.return_value = mock_image
-    
+
     result = validate_image_quality("test.fits")
     assert result.nx == 100
 ```
@@ -232,4 +240,3 @@ tests/unit/
 - [Unit Test Checklist](UNIT_TEST_CHECKLIST.md)
 - [Mocking Examples](README_MOCKING_EXAMPLES.md)
 - [Testing Strategy](../../docs/AUTOMATED_TESTING_STRATEGY.md)
-

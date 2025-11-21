@@ -458,7 +458,7 @@ def run_batch_calibrate_job(
                 update_batch_item(conn, batch_id, ms_path, None, "failed", error=str(e))
                 conn.commit()
 
-    except Exception as e:
+    except Exception:
         conn = ensure_products_db(products_db)
         conn.execute("UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,))
         conn.commit()
@@ -518,7 +518,7 @@ def run_batch_apply_job(
                 update_batch_item(conn, batch_id, ms_path, None, "failed", error=str(e))
                 conn.commit()
 
-    except Exception as e:
+    except Exception:
         conn = ensure_products_db(products_db)
         conn.execute("UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,))
         conn.commit()
@@ -578,7 +578,7 @@ def run_batch_image_job(
                 update_batch_item(conn, batch_id, ms_path, None, "failed", error=str(e))
                 conn.commit()
 
-    except Exception as e:
+    except Exception:
         conn = ensure_products_db(products_db)
         conn.execute("UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,))
         conn.commit()
@@ -662,7 +662,7 @@ def run_batch_convert_job(
                 )
                 conn.commit()
 
-    except Exception as e:
+    except Exception:
         conn = ensure_products_db(products_db)
         conn.execute("UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,))
         conn.commit()
@@ -814,7 +814,7 @@ def run_batch_publish_job(
                 success = publish_data_manual(registry_conn, data_id, products_base=products_base)
 
                 if success:
-                    updated_record = get_data(registry_conn, data_id)
+                    get_data(registry_conn, data_id)
                     update_batch_item(conn, batch_id, data_id, None, "done")
                 else:
                     record = get_data(registry_conn, data_id)
@@ -828,7 +828,7 @@ def run_batch_publish_job(
                 update_batch_item(conn, batch_id, data_id, None, "failed", error=str(e))
                 conn.commit()
 
-    except Exception as e:
+    except Exception:
         conn = ensure_products_db(products_db)
         conn.execute("UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,))
         conn.commit()
@@ -838,7 +838,11 @@ def run_batch_publish_job(
 
 
 def run_batch_photometry_job(
-    batch_id: int, fits_paths: List[str], coordinates: List[dict], params: dict, products_db: Path
+    batch_id: int,
+    fits_paths: List[str],
+    coordinates: List[dict],
+    params: dict,
+    products_db: Path,
 ) -> None:
     """Process batch photometry job.
 
@@ -911,7 +915,9 @@ def run_batch_photometry_job(
 
                     # Perform photometry measurement
                     if params.get("use_aegean", False):
-                        from dsa110_contimg.photometry.aegean_fitting import measure_with_aegean
+                        from dsa110_contimg.photometry.aegean_fitting import (
+                            measure_with_aegean,
+                        )
 
                         res = measure_with_aegean(
                             fits_path,
@@ -969,17 +975,22 @@ def run_batch_photometry_job(
                     if params.get("normalize", False) and correction and ref_sources:
                         # Try to find matching source in reference sources
                         try:
-                            import numpy as np
                             from astropy import coordinates as acoords
 
                             target_coord = acoords.SkyCoord(
-                                coord["ra_deg"], coord["dec_deg"], unit="deg", frame="icrs"
+                                coord["ra_deg"],
+                                coord["dec_deg"],
+                                unit="deg",
+                                frame="icrs",
                             )
                             min_sep = None
                             closest_source = None
                             for ref in ref_sources:
                                 ref_coord = acoords.SkyCoord(
-                                    ref["ra_deg"], ref["dec_deg"], unit="deg", frame="icrs"
+                                    ref["ra_deg"],
+                                    ref["dec_deg"],
+                                    unit="deg",
+                                    frame="icrs",
                                 )
                                 sep = target_coord.separation(ref_coord).arcsec
                                 if min_sep is None or sep < min_sep:
@@ -1133,7 +1144,7 @@ def run_batch_photometry_job(
                 f"Failed to update data registry photometry status: {e}"
             )
 
-    except Exception as e:
+    except Exception:
         conn = ensure_products_db(products_db)
         conn.execute("UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,))
         conn.commit()
@@ -1298,7 +1309,7 @@ def run_batch_ese_detect_job(batch_id: int, params: dict, products_db: Path) -> 
 
             try:
                 update_batch_item(conn, batch_id, "all_sources", None, "running")
-                candidates = detect_ese_parallel(
+                detect_ese_parallel(
                     source_ids=source_ids,
                     products_db=products_db,
                     min_sigma=min_sigma,
@@ -1314,7 +1325,7 @@ def run_batch_ese_detect_job(batch_id: int, params: dict, products_db: Path) -> 
             for source_id in source_ids:
                 try:
                     update_batch_item(conn, batch_id, source_id, None, "running")
-                    candidates = detect_ese_candidates(
+                    detect_ese_candidates(
                         products_db=products_db,
                         min_sigma=min_sigma,
                         source_id=source_id,
@@ -1329,7 +1340,7 @@ def run_batch_ese_detect_job(batch_id: int, params: dict, products_db: Path) -> 
             # Process all sources
             try:
                 update_batch_item(conn, batch_id, "all_sources", None, "running")
-                candidates = detect_ese_candidates(
+                detect_ese_candidates(
                     products_db=products_db,
                     min_sigma=min_sigma,
                     source_id=None,
@@ -1376,7 +1387,7 @@ def run_batch_ese_detect_job(batch_id: int, params: dict, products_db: Path) -> 
         )
         conn.commit()
 
-    except Exception as e:
+    except Exception:
         conn = ensure_products_db(products_db)
         conn.execute("UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,))
         conn.commit()

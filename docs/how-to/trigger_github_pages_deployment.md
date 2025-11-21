@@ -23,13 +23,16 @@
 
 ### Option 2: Push a Change to Trigger Workflow
 
-The workflow triggers automatically on pushes to `main`, `master`, or `jakob-wdash` when you change:
+The workflow triggers automatically on pushes to `main`, `master`, or
+`jakob-wdash` when you change:
+
 - Files in `docs/` directory
 - `mkdocs.yml`
 - `.github/workflows/docs.yml`
 - Files in `docs/javascripts/`
 
 **To trigger:**
+
 ```bash
 # Make a small change
 echo "<!-- Updated $(date) -->" >> docs/index.md
@@ -87,7 +90,8 @@ After workflow completes:
 
 - Wait 2-3 minutes (GitHub Pages can be slow)
 - Hard refresh browser (Ctrl+F5 / Cmd+Shift+R)
-- Check if custom domain (`code.deepsynoptic.org`) has its own deployment process
+- Check if custom domain (`code.deepsynoptic.org`) has its own deployment
+  process
 
 ## Quick Command Reference
 
@@ -104,4 +108,3 @@ git add docs/index.md
 git commit -m "docs: trigger deployment"
 git push origin jakob-wdash
 ```
-

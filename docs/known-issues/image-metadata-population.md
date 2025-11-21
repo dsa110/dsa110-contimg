@@ -6,7 +6,8 @@
 
 ## Issue
 
-Database query shows all images have `noise_jy`, `center_ra_deg`, `center_dec_deg` set to NULL.
+Database query shows all images have `noise_jy`, `center_ra_deg`,
+`center_dec_deg` set to NULL.
 
 ## Impact
 
@@ -51,7 +52,8 @@ def insert_image(
     )
 ```
 
-**Problem:** Function accepts `noise_jy` and `beam_major_arcsec` as optional parameters, but callers are not extracting and passing these values.
+**Problem:** Function accepts `noise_jy` and `beam_major_arcsec` as optional
+parameters, but callers are not extracting and passing these values.
 
 ### Missing Metadata
 
@@ -96,7 +98,8 @@ CREATE TABLE IF NOT EXISTS images (
 )
 ```
 
-**Note:** Schema does NOT include `center_ra_deg` or `center_dec_deg` columns, but API response model (`ImageInfo`) expects them.
+**Note:** Schema does NOT include `center_ra_deg` or `center_dec_deg` columns,
+but API response model (`ImageInfo`) expects them.
 
 ## Solution
 
@@ -134,7 +137,7 @@ def insert_image(
     """Insert an image artifact record."""
     conn.execute(
         """INSERT INTO images(
-            path, ms_path, created_at, type, 
+            path, ms_path, created_at, type,
             beam_major_arcsec, beam_minor_arcsec, beam_pa_deg,
             noise_jy, center_ra_deg, center_dec_deg, pbcor
         ) VALUES(?,?,?,?,?,?,?,?,?,?,?)""",
@@ -156,7 +159,8 @@ def insert_image(
 
 ### Step 3: Extract Metadata During Image Creation
 
-**Location:** Where images are created (likely `src/dsa110_contimg/imaging/` or `src/dsa110_contimg/pipeline/stages_impl.py`)
+**Location:** Where images are created (likely `src/dsa110_contimg/imaging/` or
+`src/dsa110_contimg/pipeline/stages_impl.py`)
 
 Create helper function to extract metadata from FITS:
 
@@ -167,7 +171,7 @@ from pathlib import Path
 
 def extract_image_metadata(fits_path: str) -> dict:
     """Extract metadata from FITS file header.
-    
+
     Returns:
         dict with keys: noise_jy, center_ra_deg, center_dec_deg,
                        beam_major_arcsec, beam_minor_arcsec, beam_pa_deg
@@ -180,14 +184,14 @@ def extract_image_metadata(fits_path: str) -> dict:
         'beam_minor_arcsec': None,
         'beam_pa_deg': None,
     }
-    
+
     if not Path(fits_path).exists():
         return metadata
-    
+
     try:
         with fits.open(fits_path) as hdul:
             hdr = hdul[0].header
-            
+
             # Extract WCS coordinates
             try:
                 wcs = WCS(hdr)
@@ -199,7 +203,7 @@ def extract_image_metadata(fits_path: str) -> dict:
                         metadata['center_dec_deg'] = float(dec)
             except Exception:
                 pass
-            
+
             # Extract beam parameters
             if 'BMAJ' in hdr:
                 metadata['beam_major_arcsec'] = float(hdr['BMAJ'] * 3600)  # Convert deg to arcsec
@@ -207,7 +211,7 @@ def extract_image_metadata(fits_path: str) -> dict:
                 metadata['beam_minor_arcsec'] = float(hdr['BMIN'] * 3600)
             if 'BPA' in hdr:
                 metadata['beam_pa_deg'] = float(hdr['BPA'])
-            
+
             # Extract noise (if available in header)
             # Note: May need to compute from image data if not in header
             if 'NOISE' in hdr:
@@ -216,7 +220,7 @@ def extract_image_metadata(fits_path: str) -> dict:
                 metadata['noise_jy'] = float(hdr['RMS'])
     except Exception:
         pass
-    
+
     return metadata
 ```
 
@@ -263,14 +267,14 @@ def backfill_metadata():
     with ensure_products_db(db_path) as conn:
         # Get all images without metadata
         rows = conn.execute("""
-            SELECT id, path FROM images 
+            SELECT id, path FROM images
             WHERE center_ra_deg IS NULL OR noise_jy IS NULL
         """).fetchall()
-        
+
         for row in rows:
             fits_path = get_fits_path(row['path'])
             metadata = extract_image_metadata(fits_path)
-            
+
             conn.execute("""
                 UPDATE images SET
                     center_ra_deg = ?,
@@ -289,7 +293,7 @@ def backfill_metadata():
                 metadata['beam_pa_deg'],
                 row['id'],
             ))
-        
+
         conn.commit()
         print(f"Updated {len(rows)} images")
 ```
@@ -299,11 +303,13 @@ def backfill_metadata():
 After implementing:
 
 1. **Verify new images have metadata:**
+
    ```bash
    curl "http://localhost:8000/api/images?limit=1" | jq '.items[0] | {noise_jy, center_ra_deg, center_dec_deg}'
    ```
 
 2. **Test noise filtering:**
+
    ```bash
    curl "http://localhost:8000/api/images?noise_max=0.001&limit=5"
    # Should return filtered results
@@ -322,17 +328,20 @@ After implementing:
 ## Related Files
 
 - `src/dsa110_contimg/database/products.py` - Database schema and insertion
-- `src/dsa110_contimg/api/routers/images.py` - API endpoint (currently does post-filtering)
+- `src/dsa110_contimg/api/routers/images.py` - API endpoint (currently does
+  post-filtering)
 - `src/dsa110_contimg/imaging/` - Image creation code (location TBD)
-- `src/dsa110_contimg/pipeline/stages_impl.py` - Pipeline stages (may create images)
+- `src/dsa110_contimg/pipeline/stages_impl.py` - Pipeline stages (may create
+  images)
 
 ## Workaround
 
-Current implementation uses post-filtering (reading FITS files) for declination filtering, which is slow but functional. Noise filtering will not work until metadata is populated.
+Current implementation uses post-filtering (reading FITS files) for declination
+filtering, which is slow but functional. Noise filtering will not work until
+metadata is populated.
 
 ---
 
 **Created:** 2025-11-12  
 **Assigned to:** [TBD]  
 **Estimated Effort:** 4-6 hours (schema update + extraction + backfill)
-

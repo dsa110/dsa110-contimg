@@ -13,9 +13,8 @@ try:
 except Exception:  # pragma: no cover
     h5py = None  # type: ignore[assignment]
 
-from casatools import coordsys as _coordsys  # type: ignore[import]
-from casatools import image as _image  # type: ignore[import]
-from casatools import vpmanager as _vpmanager  # type: ignore[import]
+# CASA imports moved to function level to prevent logs in workspace root
+# See: docs/dev/analysis/casa_log_handling_investigation.md
 
 
 def _choose_freq_index(freqs_hz: np.ndarray, prefer_hz: Optional[float]) -> int:
@@ -39,6 +38,8 @@ def _make_coordsys(
     theta_deg: np.ndarray,
     refcode: str = "AZEL",
 ) -> object:
+    from casatools import coordsys as _coordsys  # type: ignore[import]
+
     cs = _coordsys()
     # Build a regular grid direction coordinate centered on boresight
     nx = int(phi_deg.size)
@@ -124,11 +125,13 @@ def build_vp_table(
         import shutil
 
         shutil.rmtree(complex_img, ignore_errors=True)
+    from casatools import image as _image  # type: ignore[import]
+
     ia = _image()
     try:
-        ia.fromarray(
-            outfile=complex_img, pixels=jones, csys=cs_rec
-        )  # type: ignore[arg-type]
+        ia.fromarray(outfile=complex_img, pixels=jones, csys=cs_rec)  # type: ignore[arg-type]
+        from casatools import vpmanager as _vpmanager  # type: ignore[import]
+
         vp = _vpmanager()
         # Register the complex image for all antennas ('*')
         try:

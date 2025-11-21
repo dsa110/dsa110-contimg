@@ -11,9 +11,7 @@
 import { logger } from "../../utils/logger";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 export interface JS9Image {

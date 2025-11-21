@@ -10,7 +10,7 @@ import {
 
 interface StatusIndicatorProps {
   value: number;
-  thresholds: { good: number; warning: number };
+  thresholds: { warning: number; critical: number };
   label: string;
   unit?: string;
   showTrend?: boolean;
@@ -30,9 +30,12 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   const theme = useTheme();
 
   const getStatus = (): "success" | "warning" | "error" => {
-    if (value >= thresholds.good) return "success";
-    if (value >= thresholds.warning) return "warning";
-    return "error";
+    // For resource usage metrics (CPU, Memory, Disk), lower is better
+    // High usage is critical, low usage is healthy
+    // Thresholds represent maximum values for each state
+    if (value >= thresholds.critical) return "error"; // Above critical = red
+    if (value >= thresholds.warning) return "warning"; // Above warning = yellow
+    return "success"; // Below both thresholds = green (healthy)
   };
 
   const status = getStatus();

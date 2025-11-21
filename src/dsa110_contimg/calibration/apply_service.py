@@ -35,7 +35,6 @@ table = casatables.table  # noqa: N816
 
 from dsa110_contimg.calibration.applycal import apply_to_target
 from dsa110_contimg.database.products import ensure_products_db, ms_index_upsert
-from dsa110_contimg.database.registry import ensure_db as ensure_cal_db
 from dsa110_contimg.database.registry import (
     get_active_applylist,
 )
@@ -126,9 +125,7 @@ def verify_calibration_applied(
             sample_size = max(100, min(1024, int(n_rows * sample_fraction)))
             indices = np.linspace(0, n_rows - 1, sample_size, dtype=int)
 
-            corrected_data = tb.getcol(
-                "CORRECTED_DATA", startrow=indices[0], nrow=len(indices)
-            )
+            corrected_data = tb.getcol("CORRECTED_DATA", startrow=indices[0], nrow=len(indices))
             flags = tb.getcol("FLAG", startrow=indices[0], nrow=len(indices))
 
             # Check for all zeros
@@ -202,9 +199,7 @@ def apply_calibration(
     # Lookup calibration tables if not provided
     if caltables is None:
         try:
-            caltables = get_active_caltables(
-                ms_path_str, registry_db, set_name=set_name
-            )
+            caltables = get_active_caltables(ms_path_str, registry_db, set_name=set_name)
         except Exception as e:
             error_msg = f"Failed to lookup calibration tables: {e}"
             logger.error(error_msg)
@@ -231,9 +226,7 @@ def apply_calibration(
     # Apply calibration
     try:
         logger.info(f"Applying {len(caltables)} calibration tables to {ms_path_str}")
-        apply_to_target(
-            ms_path_str, field=field, gaintables=caltables, calwt=True, verify=False
-        )
+        apply_to_target(ms_path_str, field=field, gaintables=caltables, calwt=True, verify=False)
         logger.info(f"Successfully applied calibration to {ms_path_str}")
     except Exception as e:
         error_msg = f"applycal failed: {e}"
@@ -246,14 +239,10 @@ def apply_calibration(
     verified = False
     metrics = None
     if verify:
-        verified, metrics = verify_calibration_applied(
-            ms_path_str, sample_fraction=sample_fraction
-        )
+        verified, metrics = verify_calibration_applied(ms_path_str, sample_fraction=sample_fraction)
         if not verified:
             error_msg = metrics.get("error", "Verification failed")
-            logger.warning(
-                f"{ms_path_str}: Calibration verification failed: {error_msg}"
-            )
+            logger.warning(f"{ms_path_str}: Calibration verification failed: {error_msg}")
             return CalibrationApplicationResult(
                 success=False,
                 caltables_applied=caltables,

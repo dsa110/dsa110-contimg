@@ -21,7 +21,7 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 from astropy.io import fits  # type: ignore[reportMissingTypeStubs]
@@ -141,7 +141,12 @@ def _check_bane_available() -> Tuple[bool, Optional[str]]:
 
         python_exe = sys.executable
         result = subprocess.run(
-            [python_exe, "-m", "AegeanTools.CLI.BANE", "--version"],
+            [
+                python_exe,
+                "-m",
+                "AegeanTools.CLI.BANE",
+                "--version",
+            ],
             capture_output=True,
             text=True,
             timeout=5,
@@ -259,7 +264,12 @@ def _get_bane_command() -> List[str]:
     try:
         python_exe = sys.executable
         result = subprocess.run(
-            [python_exe, "-m", "AegeanTools.CLI.BANE", "--version"],
+            [
+                python_exe,
+                "-m",
+                "AegeanTools.CLI.BANE",
+                "--version",
+            ],
             capture_output=True,
             text=True,
             timeout=2,
@@ -359,7 +369,6 @@ def _get_aegean_command() -> List[str]:
     Prefers command-line script as it's the standard installation method.
     """
     import os
-    import sys
 
     # Try command-line script in ~/.local/bin (pip install --user)
     try:
@@ -505,7 +514,7 @@ def _extract_aegean_results(
                     error_message="Aegean output table has no data extension",
                 )
 
-            data = hdul[1].data
+            data = hdul[1].data  # pylint: disable=no-member
 
             # Extract first source (should match input position)
             peak_flux = float(data["peak_flux"][0])

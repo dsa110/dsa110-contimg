@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  cubical:
+    build:
+      context: ../..
+      dockerfile: docker/cubical_experimental/Dockerfile
+    image: dsa110-cubical:experimental
+    container_name: dsa110-cubical-experimental
+    volumes:
+      # Mount MS files
+      - /scratch:/scratch:ro
+      # Mount data directory
+      - /data:/data:ro
+      # Mount output directory (writable)
+      - /scratch/calibration_test:/workspace/output:rw
+      # Mount the experimental module (for development)
+      - ../../src/dsa110_contimg/calibration/cubical_experimental:/workspace/cubical_experimental:ro
+    environment:
+      - CUDA_VISIBLE_DEVICES=0,1 # Use both GPUs
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    runtime: nvidia # Enable GPU access
+    working_dir: /workspace
+    command: /bin/bash

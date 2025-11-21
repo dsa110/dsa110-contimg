@@ -10,11 +10,13 @@ import { logger } from "../utils/logger";
 import * as protobuf from "protobufjs";
 import {
   CARTAMessageType,
-  CARTA_ICD_VERSION,
+  getCARTAMessageTypeName,
   encodeHeader,
   decodeHeader,
   combineMessage,
   splitMessage,
+} from "./cartaProtobuf";
+import type {
   RegisterViewerRequest,
   RegisterViewerAck,
   OpenFileRequest,
@@ -23,7 +25,6 @@ import {
   SetImageViewAck,
   FileInfoRequest,
   FileInfoResponse,
-  RasterTileData,
   SetRegionRequest,
   SetRegionAck,
   ErrorData,
@@ -66,7 +67,7 @@ export class CARTAClient {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
   private reconnectInterval = 3000;
-  private reconnectTimer: NodeJS.Timeout | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private isConnecting = false;
   private isConnected = false;
   private sessionId: string | null = null;
@@ -76,11 +77,14 @@ export class CARTAClient {
     { resolve: (value: any) => void; reject: (error: Error) => void }
   > = new Map();
   private root: protobuf.Root | null = null;
+  private connectPromise: Promise<void> | null = null;
+  private protoInitPromise: Promise<void> | null = null;
+  private isProtoInitialized = false;
 
   constructor(config: CARTAConfig) {
     this.config = config;
     this.sessionId = config.sessionId || null;
-    this.initializeProtobuf();
+    // Don't call async in constructor - will be called in connect()
   }
 
   /**
@@ -105,6 +109,25 @@ export class CARTAClient {
   }
 
   /**
+   * Ensure Protocol Buffer is initialized before use
+   */
+  private async ensureProtobufInitialized(): Promise<void> {
+    if (this.isProtoInitialized) {
+      return Promise.resolve();
+    }
+
+    if (this.protoInitPromise) {
+      return this.protoInitPromise;
+    }
+
+    this.protoInitPromise = this.initializeProtobuf().then(() => {
+      this.isProtoInitialized = true;
+    });
+
+    return this.protoInitPromise;
+  }
+
+  /**
    * Generate next request ID
    */
   private getNextRequestId(): number {
@@ -116,10 +139,32 @@ export class CARTAClient {
    * Connect to CARTA backend
    */
   async connect(): Promise<void> {
-    if (this.isConnecting || this.isConnected) {
-      logger.warn("CARTA client already connecting or connected");
-      return;
+    // Return existing connection promise if already connecting
+    if (this.connectPromise) {
+      return this.connectPromise;
     }
+
+    // Already connected
+    if (this.isConnected) {
+      return Promise.resolve();
+    }
+
+    // Create and store the connection promise
+    this.connectPromise = this._performConnect();
+
+    try {
+      await this.connectPromise;
+    } finally {
+      this.connectPromise = null;
+    }
+  }
+
+  /**
+   * Internal connection logic
+   */
+  private async _performConnect(): Promise<void> {
+    // Ensure protobuf is initialized before connecting
+    await this.ensureProtobufInitialized();
 
     this.isConnecting = true;
 
@@ -406,7 +451,9 @@ export class CARTAClient {
         try {
           if (this.root) {
             // Decode using protobuf
-            const MessageType = this.root.lookupType(`CARTA.${CARTAMessageType[messageType]}`);
+            const MessageType = this.root.lookupType(
+              `CARTA.${getCARTAMessageTypeName(messageType)}`
+            );
             const message = MessageType.decode(new Uint8Array(payload));
             data = MessageType.toObject(message, { longs: String, enums: String, bytes: String });
           } else {
@@ -495,10 +542,11 @@ export class CARTAClient {
       let payloadBuffer: ArrayBuffer;
       if (this.root) {
         // Encode using protobuf
-        const MessageType = this.root.lookupType(`CARTA.${CARTAMessageType[messageType]}`);
+        const MessageType = this.root.lookupType(`CARTA.${getCARTAMessageTypeName(messageType)}`);
         const message = MessageType.create(payload);
         const encoded = MessageType.encode(message).finish();
-        payloadBuffer = encoded.buffer;
+        // encoded.buffer is ArrayBufferLike, ensure it's ArrayBuffer
+        payloadBuffer = new Uint8Array(encoded).buffer;
       } else {
         // JSON fallback for development
         const jsonText = JSON.stringify(payload);
@@ -512,7 +560,7 @@ export class CARTAClient {
       // Send message
       this.ws.send(message);
       logger.debug(
-        `Sent CARTA message: ${CARTAMessageType[messageType]} (requestId: ${requestId})`
+        `Sent CARTA message: ${getCARTAMessageTypeName(messageType)} (requestId: ${requestId})`
       );
     } catch (error) {
       logger.error("Failed to encode/send CARTA message:", error);
@@ -588,3 +636,7 @@ export class CARTAClient {
     return parts[parts.length - 1] || filePath;
   }
 }
+
+// Re-export CARTAMessageType for use in other modules
+export type { CARTAMessageType };
+export { getCARTAMessageTypeName, encodeHeader, decodeHeader };

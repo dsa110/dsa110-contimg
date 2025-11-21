@@ -109,7 +109,7 @@ def get_cached_variability_stats(
             "stale": False,
         }
 
-    except (sqlite3.Error, ValueError) as e:
+    except (sqlite3.Error, ValueError):
         # On error, treat as cache miss
         CacheStats.record_miss()
         return None

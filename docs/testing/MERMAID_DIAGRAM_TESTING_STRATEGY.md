@@ -2,16 +2,22 @@
 
 ## Overview
 
-This document outlines the comprehensive testing strategy for validating that all Mermaid diagrams in the MkDocs documentation render correctly without syntax errors.
+This document outlines the comprehensive testing strategy for validating that
+all Mermaid diagrams in the MkDocs documentation render correctly without syntax
+errors.
 
 ## Problem Statement
 
-Mermaid diagrams can fail to render due to syntax errors, configuration issues, or plugin problems. When a diagram fails, MkDocs displays a visual error indicator:
+Mermaid diagrams can fail to render due to syntax errors, configuration issues,
+or plugin problems. When a diagram fails, MkDocs displays a visual error
+indicator:
+
 - A bomb icon (dark brown sphere with lit fuse)
 - Text: "Syntax error in text"
 - Version: "mermaid version 10.9.5"
 
-This testing strategy ensures all diagrams render correctly by visually inspecting every page.
+This testing strategy ensures all diagrams render correctly by visually
+inspecting every page.
 
 ## Testing Approach
 
@@ -53,6 +59,7 @@ This testing strategy ensures all diagrams render correctly by visually inspecti
 ### Test Script: `test_mermaid_diagrams.py`
 
 Located in `tests/docs/`, this script:
+
 - Parses `mkdocs.yml` to extract all pages
 - Manages MkDocs server lifecycle
 - Uses Playwright for browser automation
@@ -137,10 +144,13 @@ make test-mermaid-diagrams
 
 ## Known Limitations
 
-1. **Dynamic Content**: Pages with JavaScript-heavy content may need longer wait times
+1. **Dynamic Content**: Pages with JavaScript-heavy content may need longer wait
+   times
 2. **Notebook Rendering**: Jupyter notebooks may require special handling
-3. **Network Dependencies**: External CDN resources (Mermaid JS) must be accessible
-4. **Browser Differences**: Testing primarily on Chromium; other browsers may differ
+3. **Network Dependencies**: External CDN resources (Mermaid JS) must be
+   accessible
+4. **Browser Differences**: Testing primarily on Chromium; other browsers may
+   differ
 
 ## Future Enhancements
 
@@ -149,4 +159,3 @@ make test-mermaid-diagrams
 - Accessibility checks for rendered diagrams
 - Automated diagram syntax validation before rendering
 - Integration with Mermaid linting tools
-

@@ -7,14 +7,13 @@ Validates forced photometry accuracy and consistency across images.
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 
 from dsa110_contimg.qa.base import (
-    ValidationContext,
     ValidationError,
     ValidationInputError,
     ValidationResult,
@@ -96,9 +95,7 @@ def validate_forced_photometry(
         raise ValidationInputError(f"Image file not found: {image_path}")
 
     if catalog_sources is None and catalog_path is None:
-        raise ValidationInputError(
-            "Either catalog_path or catalog_sources must be provided"
-        )
+        raise ValidationInputError("Either catalog_path or catalog_sources must be provided")
 
     if photometry_results is None:
         raise ValidationInputError("photometry_results must be provided")
@@ -106,8 +103,7 @@ def validate_forced_photometry(
     try:
         # Load image header for WCS
         with fits.open(image_path) as hdul:
-            header = hdul[0].header
-            wcs = None  # Would need to create WCS from header
+            hdul[0].header
 
         # Match photometry results with catalog sources
         matched_results = _match_photometry_to_catalog(

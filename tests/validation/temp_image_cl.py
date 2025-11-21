@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """Image component list for 0834+555."""
+
 import sys
 
 sys.path.insert(0, "src")
 import os
 import shutil
 
-import astropy.units as u
-import numpy as np
-from astropy.coordinates import Angle, SkyCoord
+from astropy.coordinates import Angle
 from casacore.tables import table
 from casatasks import tclean
 

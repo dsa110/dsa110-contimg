@@ -4,17 +4,18 @@ Tests the filter_tiles_by_overlap function to ensure correct
 overlap detection and filtering logic.
 """
 
-from dsa110_contimg.mosaic.coordinate_utils import (
-    filter_tiles_by_overlap,
-    check_tile_overlaps_template,
-    get_tile_coordinate_bounds,
-)
 import sys
-import os
 from pathlib import Path
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, patch
+
 import numpy as np
 import pytest
+
+from dsa110_contimg.mosaic.coordinate_utils import (
+    check_tile_overlaps_template,
+    filter_tiles_by_overlap,
+    get_tile_coordinate_bounds,
+)
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
@@ -106,9 +107,7 @@ class TestOverlapFiltering:
         tiles = ["/fake/tile1.image", "/fake/tile2.image"]
         template_path = "/fake/template.image"
 
-        overlapping, skipped = filter_tiles_by_overlap(
-            tiles, template_path, margin_pixels=10
-        )
+        overlapping, skipped = filter_tiles_by_overlap(tiles, template_path, margin_pixels=10)
 
         # Both tiles should overlap (they're close together)
         assert len(overlapping) >= 0  # At least some tiles overlap
@@ -135,9 +134,7 @@ class TestOverlapFiltering:
         tiles = ["/fake/tile1.image"]
         template_path = "/fake/template.image"
 
-        overlapping, skipped = filter_tiles_by_overlap(
-            tiles, template_path, margin_pixels=10
-        )
+        overlapping, skipped = filter_tiles_by_overlap(tiles, template_path, margin_pixels=10)
 
         # Tile should be skipped if it doesn't overlap
         assert len(overlapping) + len(skipped) == len(tiles)
@@ -162,9 +159,7 @@ class TestOverlapFiltering:
         tile_path = "/fake/tile1.image"
         template_path = "/fake/template.image"
 
-        overlaps, reason = check_tile_overlaps_template(
-            tile_path, template_path, margin_pixels=10
-        )
+        overlaps, reason = check_tile_overlaps_template(tile_path, template_path, margin_pixels=10)
 
         # Should return tuple (bool, Optional[str])
         assert isinstance(overlaps, bool)

@@ -23,17 +23,17 @@ Example:
 """
 
 import logging
-from typing import Dict, List, Optional, Tuple
-from astropy.coordinates import SkyCoord
+from typing import Dict, Optional
+
 import astropy.units as u
-from astropy.time import Time
+from astropy.coordinates import SkyCoord
 
 logger = logging.getLogger(__name__)
 
 try:
-    from astroquery.simbad import Simbad
-    from astroquery.ned import Ned
     from astroquery.gaia import Gaia
+    from astroquery.ned import Ned
+    from astroquery.simbad import Simbad
 
     HAS_ASTROQUERY = True
 except ImportError:
@@ -118,24 +118,16 @@ def simbad_search(
             "dec": simbad_coord.dec.deg,
             "separation_arcsec": separation,
             "flux_v": (
-                float(row["FLUX_V"])
-                if "FLUX_V" in row.colnames and row["FLUX_V"]
-                else None
+                float(row["FLUX_V"]) if "FLUX_V" in row.colnames and row["FLUX_V"] else None
             ),
             "redshift": (
-                float(row["Z_VALUE"])
-                if "Z_VALUE" in row.colnames and row["Z_VALUE"]
-                else None
+                float(row["Z_VALUE"]) if "Z_VALUE" in row.colnames and row["Z_VALUE"] else None
             ),
             "names": names,
-            "bibcode": (
-                str(row["COO_BIBCODE"]) if "COO_BIBCODE" in row.colnames else None
-            ),
+            "bibcode": (str(row["COO_BIBCODE"]) if "COO_BIBCODE" in row.colnames else None),
         }
 
-        logger.debug(
-            f"SIMBAD query successful: {result['main_id']} at {separation:.2f} arcsec"
-        )
+        logger.debug(f"SIMBAD query successful: {result['main_id']} at {separation:.2f} arcsec")
         return result
 
     except Exception as e:
@@ -203,30 +195,22 @@ def ned_search(
         separation = coord.separation(ned_coord).to(u.arcsec).value
 
         result = {
-            "ned_name": (
-                str(row["Object Name"]) if "Object Name" in row.colnames else None
-            ),
+            "ned_name": (str(row["Object Name"]) if "Object Name" in row.colnames else None),
             "object_type": str(row["Type"]) if "Type" in row.colnames else None,
             "ra": ned_coord.ra.deg,
             "dec": ned_coord.dec.deg,
             "separation_arcsec": separation,
             "redshift": (
-                float(row["Redshift"])
-                if "Redshift" in row.colnames and row["Redshift"]
-                else None
+                float(row["Redshift"]) if "Redshift" in row.colnames and row["Redshift"] else None
             ),
             "redshift_type": (
                 str(row["Redshift Type"]) if "Redshift Type" in row.colnames else None
             ),
             "velocity": (
-                float(row["Velocity"])
-                if "Velocity" in row.colnames and row["Velocity"]
-                else None
+                float(row["Velocity"]) if "Velocity" in row.colnames and row["Velocity"] else None
             ),
             "distance": (
-                float(row["Distance"])
-                if "Distance" in row.colnames and row["Distance"]
-                else None
+                float(row["Distance"]) if "Distance" in row.colnames and row["Distance"] else None
             ),
             "magnitude": (
                 float(row["Magnitude"])
@@ -234,15 +218,11 @@ def ned_search(
                 else None
             ),
             "flux_1_4ghz": (
-                float(row["1.4GHz"])
-                if "1.4GHz" in row.colnames and row["1.4GHz"]
-                else None
+                float(row["1.4GHz"]) if "1.4GHz" in row.colnames and row["1.4GHz"] else None
             ),
         }
 
-        logger.debug(
-            f"NED query successful: {result['ned_name']} at {separation:.2f} arcsec"
-        )
+        logger.debug(f"NED query successful: {result['ned_name']} at {separation:.2f} arcsec")
         return result
 
     except Exception as e:
@@ -343,16 +323,12 @@ def gaia_search(
             "dec": float(row["dec"]),
             "separation_arcsec": separation,
             "parallax": float(row["parallax"]) if row["parallax"] else None,
-            "parallax_error": (
-                float(row["parallax_error"]) if row["parallax_error"] else None
-            ),
+            "parallax_error": (float(row["parallax_error"]) if row["parallax_error"] else None),
             "pmra": float(row["pmra"]) if row["pmra"] else None,
             "pmdec": float(row["pmdec"]) if row["pmdec"] else None,
             "pmra_error": float(row["pmra_error"]) if row["pmra_error"] else None,
             "pmdec_error": float(row["pmdec_error"]) if row["pmdec_error"] else None,
-            "phot_g_mean_mag": (
-                float(row["phot_g_mean_mag"]) if row["phot_g_mean_mag"] else None
-            ),
+            "phot_g_mean_mag": (float(row["phot_g_mean_mag"]) if row["phot_g_mean_mag"] else None),
             "phot_bp_mean_mag": (
                 float(row["phot_bp_mean_mag"]) if row["phot_bp_mean_mag"] else None
             ),
@@ -362,9 +338,7 @@ def gaia_search(
             "distance": distance,
         }
 
-        logger.debug(
-            f"Gaia query successful: {result['source_id']} at {separation:.2f} arcsec"
-        )
+        logger.debug(f"Gaia query successful: {result['source_id']} at {separation:.2f} arcsec")
         return result
 
     except Exception as e:

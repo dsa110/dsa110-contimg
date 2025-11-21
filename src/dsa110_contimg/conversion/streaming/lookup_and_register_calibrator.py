@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Helper script to lookup calibrator coordinates from catalog and register them.
 
@@ -12,8 +12,8 @@ import os
 import sys
 from pathlib import Path
 
+from dsa110_contimg.calibration.catalogs import get_calibrator_radec, load_vla_catalog
 from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
-from dsa110_contimg.calibration.catalogs import load_vla_catalog, get_calibrator_radec
 
 logging.basicConfig(
     level=logging.INFO,
@@ -56,7 +56,7 @@ def main():
     parser.add_argument(
         "--ms-dir",
         type=Path,
-        default=Path(os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms")),
+        default=Path(os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms")),
         help="Directory containing MS files",
     )
     parser.add_argument(
@@ -90,9 +90,7 @@ def main():
 
     # Lookup coordinates if not provided
     if args.ra_deg is None or args.dec_deg is None:
-        logger.info(
-            f"Looking up coordinates for '{args.calibrator_name}' in catalog..."
-        )
+        logger.info(f"Looking up coordinates for '{args.calibrator_name}' in catalog...")
         try:
             catalog = load_vla_catalog()
             ra_deg, dec_deg = get_calibrator_radec(catalog, args.calibrator_name)

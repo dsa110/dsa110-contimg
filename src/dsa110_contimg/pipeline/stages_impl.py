@@ -1,3 +1,4 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (min, etc.)
 """
 Concrete pipeline stage implementations.
 
@@ -11,9 +12,9 @@ import logging
 import re
 import time
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
-import astropy.units as u
+import astropy.units as u  # pylint: disable=no-member
 import numpy as np
 import pandas as pd
 
@@ -23,7 +24,6 @@ from dsa110_contimg.pipeline.stages import PipelineStage
 from dsa110_contimg.utils.ms_organization import (
     create_path_mapper,
     determine_ms_type,
-    extract_date_from_filename,
     organize_ms_file,
 )
 from dsa110_contimg.utils.runtime_safeguards import (
@@ -134,10 +134,10 @@ class CatalogSetupStage(PipelineStage):
             )  # Default 0.1 degrees
 
             try:
-                from dsa110_contimg.database.products import ensure_products_db
+                from dsa110_contimg.database.products import ensure_ingest_db
 
-                products_db = self.config.paths.products_db
-                conn = ensure_products_db(products_db)
+                ingest_db = self.config.paths.queue_db
+                conn = ensure_ingest_db(ingest_db)
                 cursor = conn.cursor()
 
                 # Get most recent declination from pointing_history
@@ -160,6 +160,56 @@ class CatalogSetupStage(PipelineStage):
                             "⚠️  Telescope pointing has changed significantly. "
                             "Catalogs will be rebuilt for new declination strip."
                         )
+
+                        # Pre-calculate transit times for all registered calibrators
+                        try:
+                            from dsa110_contimg.conversion.transit_precalc import (
+                                precalculate_transits_for_calibrator,
+                            )
+                            from dsa110_contimg.database.products import (
+                                get_products_db_connection,
+                            )
+
+                            products_db = get_products_db_connection(self.config.paths.products_db)
+                            cursor = products_db.cursor()
+
+                            # Get all active calibrators
+                            active_calibrators = cursor.execute(
+                                """
+                                SELECT calibrator_name, ra_deg, dec_deg
+                                FROM bandpass_calibrators
+                                WHERE status = 'active'
+                                """
+                            ).fetchall()
+
+                            if active_calibrators:
+                                logger.info(
+                                    f"Pre-calculating transit times for {len(active_calibrators)} "
+                                    f"registered calibrators after pointing change..."
+                                )
+
+                                for cal_name, ra_deg, dec_deg in active_calibrators:
+                                    try:
+                                        transits_with_data = precalculate_transits_for_calibrator(
+                                            products_db=products_db,
+                                            calibrator_name=cal_name,
+                                            ra_deg=ra_deg,
+                                            dec_deg=dec_deg,
+                                            max_days_back=60,
+                                        )
+                                        logger.info(
+                                            f"  ✓ {cal_name}: {transits_with_data} transits have available data"
+                                        )
+                                    except Exception as e:
+                                        logger.warning(
+                                            f"  ✗ Failed to pre-calculate for {cal_name}: {e}"
+                                        )
+
+                                products_db.close()
+                        except Exception as e:
+                            logger.warning(
+                                f"Failed to pre-calculate transit times after pointing change: {e}"
+                            )
                     else:
                         logger.info(
                             f"Declination stable: {dec_center:.6f}° "
@@ -175,10 +225,10 @@ class CatalogSetupStage(PipelineStage):
 
             # Log pointing to pointing_history for future change detection
             try:
-                from dsa110_contimg.database.products import ensure_products_db
+                from dsa110_contimg.database.products import ensure_ingest_db
 
-                products_db = self.config.paths.products_db
-                conn = ensure_products_db(products_db)
+                ingest_db = self.config.paths.queue_db
+                conn = ensure_ingest_db(ingest_db)
 
                 # Get timestamp from observation
                 timestamp = info.get("mid_time")
@@ -230,7 +280,7 @@ class CatalogSetupStage(PipelineStage):
         catalogs_existed = []
         catalogs_failed = []
 
-        catalog_types = ["nvss", "first", "rax"]
+        catalog_types = ["nvss", "first", "rax", "atnf"]
 
         for catalog_type in catalog_types:
             try:
@@ -273,6 +323,9 @@ class CatalogSetupStage(PipelineStage):
                         min_flux_mjy=None,  # No flux threshold
                         cache_dir=".cache/catalogs",
                     )
+                else:
+                    logger.warning(f"Unknown catalog type: {catalog_type}, skipping...")
+                    continue
 
                 logger.info(
                     f"✓ {catalog_type.upper()} catalog built: {db_path} "
@@ -548,6 +601,16 @@ class ConversionStage(PipelineStage):
         except Exception as e:
             logger.warning(f"Failed to register MS files in data registry: {e}")
 
+        # Hook: Generate performance monitoring plots after MS conversion
+        try:
+            from dsa110_contimg.qa.pipeline_hooks import (  # pylint: disable=import-error,no-name-in-module
+                hook_ms_conversion_complete,
+            )
+
+            hook_ms_conversion_complete()
+        except Exception as e:
+            logger.debug(f"Performance monitoring hook failed: {e}")
+
         # Return both single MS path (for backward compatibility) and all MS paths
         return context.with_outputs(
             {
@@ -666,25 +729,8 @@ class CalibrationSolveStage(PipelineStage):
     @progress_monitor(operation_name="Calibration Solving", warn_threshold=600.0)
     def execute(self, context: PipelineContext) -> PipelineContext:
         """Execute calibration solve stage."""
-        import time
-
-        start_time_sec = time.time()
         log_progress("Starting calibration solve stage...")
 
-        import glob
-        import os
-
-        from dsa110_contimg.calibration.calibration import (
-            solve_bandpass,
-            solve_delay,
-            solve_gains,
-            solve_prebandpass_phase,
-        )
-        from dsa110_contimg.calibration.flagging import (
-            flag_rfi,
-            flag_zeros,
-            reset_flags,
-        )
         from dsa110_contimg.utils.locking import LockError, file_lock
 
         ms_path = context.outputs["ms_path"]
@@ -708,22 +754,29 @@ class CalibrationSolveStage(PipelineStage):
             logger.error(error_msg)
             raise RuntimeError(error_msg) from e
 
-    def _execute_calibration_solve(self, context: PipelineContext, ms_path: str) -> PipelineContext:
+    def _execute_calibration_solve(
+        self, context: PipelineContext, ms_path: str
+    ) -> PipelineContext:  # noqa: E501
         """Internal calibration solve execution (called within lock)."""
         import glob
         import os
 
-        from dsa110_contimg.calibration.calibration import (
+        from dsa110_contimg.calibration.calibration import (  # noqa: E501
             solve_bandpass,
             solve_delay,
             solve_gains,
             solve_prebandpass_phase,
         )
-        from dsa110_contimg.calibration.flagging import (
-            flag_rfi,
+        from dsa110_contimg.calibration.flagging import (  # noqa: E501
             flag_zeros,
             reset_flags,
         )
+        from dsa110_contimg.calibration.flagging_adaptive import (  # noqa: E501
+            CalibrationFailure,
+            flag_rfi_adaptive,
+        )
+
+        start_time_sec = time.time()
 
         # Get calibration parameters from context inputs or config
         params = context.inputs.get("calibration_params", {})
@@ -738,6 +791,8 @@ class CalibrationSolveStage(PipelineStage):
         bp_combine_field = params.get("bp_combine_field", False)
         prebp_phase = params.get("prebp_phase", False)
         flag_autocorr = params.get("flag_autocorr", True)
+        # NEW: Enable adaptive flagging by default
+        use_adaptive_flagging = params.get("use_adaptive_flagging", True)
 
         # Handle existing table discovery
         use_existing = params.get("use_existing_tables", "auto")
@@ -784,12 +839,252 @@ class CalibrationSolveStage(PipelineStage):
         if not table_prefix:
             table_prefix = f"{os.path.splitext(ms_path)[0]}_{field}"
 
+        # Define internal calibration function for adaptive flagging
+        # This will be called by flag_rfi_adaptive to test if calibration succeeds
+        cal_tables_result = {}  # Shared dict to store results between function calls
+
+        def _perform_calibration_solve(ms_path_inner: str, refant_inner: str, **kwargs):
+            """Internal function to perform calibration solving.
+
+            This is called by flag_rfi_adaptive to test if calibration succeeds.
+            Raises CalibrationFailure if calibration fails.
+            """
+            nonlocal cal_tables_result
+
+            # Clear previous results
+            cal_tables_result.clear()
+
+            # Step 3: Solve delay (K) if requested
+            ktabs_inner = []
+            if solve_delay_flag and not existing_k:
+                logger.info("Solving delay (K) calibration...")
+                try:
+                    ktabs_inner = solve_delay(
+                        ms_path_inner,
+                        field,
+                        refant_inner,
+                        table_prefix=table_prefix,
+                        combine_spw=params.get("k_combine_spw", False),
+                        t_slow=params.get("k_t_slow", "inf"),
+                        t_fast=params.get("k_t_fast", "60s"),
+                        uvrange=params.get("k_uvrange", ""),
+                        minsnr=params.get("k_minsnr", 5.0),
+                        skip_slow=params.get("k_skip_slow", False),
+                    )
+                except Exception as e:
+                    logger.error(f"Delay (K) calibration failed: {e}")
+                    raise CalibrationFailure(f"Delay calibration failed: {e}") from e
+            elif existing_k:
+                ktabs_inner = [existing_k]
+                logger.info(f"Using existing K table: {existing_k}")
+
+            # Step 4: Pre-bandpass phase (if requested)
+            prebp_table_inner = None
+            if prebp_phase:
+                logger.info("Solving pre-bandpass phase...")
+                try:
+                    prebp_table_inner = solve_prebandpass_phase(
+                        ms_path_inner,
+                        field,
+                        refant_inner,
+                        table_prefix=table_prefix,
+                        uvrange=params.get("prebp_uvrange", ""),
+                        minsnr=params.get("prebp_minsnr", 3.0),
+                    )
+                except Exception as e:
+                    logger.error(f"Pre-bandpass phase calibration failed: {e}")
+                    raise CalibrationFailure(f"Pre-bandpass phase failed: {e}") from e
+
+            # Step 5: Solve bandpass (BP) if requested
+            bptabs_inner = []
+            if solve_bandpass_flag and not existing_bp:
+                logger.info("Solving bandpass (BP) calibration...")
+                try:
+                    bptabs_inner = solve_bandpass(
+                        ms_path_inner,
+                        field,
+                        refant_inner,
+                        ktable=ktabs_inner[0] if ktabs_inner else None,
+                        table_prefix=table_prefix,
+                        set_model=True,
+                        model_standard=params.get("bp_model_standard", "Perley-Butler 2017"),
+                        combine_fields=bp_combine_field,
+                        combine_spw=params.get("bp_combine_spw", False),
+                        minsnr=params.get("bp_minsnr", 5.0),
+                        uvrange=params.get("bp_uvrange", ""),
+                        prebandpass_phase_table=prebp_table_inner,
+                        bp_smooth_type=params.get("bp_smooth_type"),
+                        bp_smooth_window=params.get("bp_smooth_window"),
+                    )
+                except Exception as e:
+                    logger.error(f"Bandpass (BP) calibration failed: {e}")
+                    raise CalibrationFailure(f"Bandpass calibration failed: {e}") from e
+            elif existing_bp:
+                bptabs_inner = [existing_bp]
+                logger.info(f"Using existing BP table: {existing_bp}")
+
+            # Step 6: Solve gains (G) if requested
+            gtabs_inner = []
+            if solve_gains_flag and not existing_g:
+                logger.info("Solving gains (G) calibration...")
+                try:
+                    phase_only = (gain_calmode == "p") or bool(params.get("fast"))
+                    gtabs_inner = solve_gains(
+                        ms_path_inner,
+                        field,
+                        refant_inner,
+                        ktable=ktabs_inner[0] if ktabs_inner else None,
+                        bptables=bptabs_inner,
+                        table_prefix=table_prefix,
+                        t_short=params.get("gain_t_short", "60s"),
+                        combine_fields=bp_combine_field,
+                        phase_only=phase_only,
+                        uvrange=params.get("gain_uvrange", ""),
+                        solint=gain_solint,
+                        minsnr=params.get("gain_minsnr", 3.0),
+                    )
+                except Exception as e:
+                    logger.error(f"Gains (G) calibration failed: {e}")
+                    raise CalibrationFailure(f"Gain calibration failed: {e}") from e
+            elif existing_g:
+                gtabs_inner = [existing_g]
+                logger.info(f"Using existing G table: {existing_g}")
+
+            # Store results for later use
+            cal_tables_result["ktabs"] = ktabs_inner
+            cal_tables_result["bptabs"] = bptabs_inner
+            cal_tables_result["gtabs"] = gtabs_inner
+            cal_tables_result["prebp_table"] = prebp_table_inner
+
+            logger.info("✓ Calibration solve completed successfully")
+
         # Step 1: Flagging (if requested)
+        adaptive_result = None
         if params.get("do_flagging", True):
             logger.info("Resetting flags...")
             reset_flags(ms_path)
             flag_zeros(ms_path)
-            flag_rfi(ms_path)
+
+            # Apply adaptive flagging (default → aggressive if calibration fails)
+            if use_adaptive_flagging:
+                logger.info(
+                    "Using adaptive flagging strategy (default → aggressive on calibration failure)"
+                )
+
+                # Step 2: Model population (required for calibration)
+                # This must be done BEFORE adaptive flagging since calibration needs the model
+                if model_source == "catalog":
+                    from dsa110_contimg.calibration.model import populate_model_from_catalog
+
+                    logger.info("Populating MODEL_DATA from catalog...")
+                    populate_model_from_catalog(
+                        ms_path,
+                        field=field,
+                        calibrator_name=params.get("calibrator_name"),
+                        cal_ra_deg=params.get("cal_ra_deg"),
+                        cal_dec_deg=params.get("cal_dec_deg"),
+                        cal_flux_jy=params.get("cal_flux_jy"),
+                    )
+                elif model_source == "image":
+                    from dsa110_contimg.calibration.model import populate_model_from_image
+
+                    model_image = params.get("model_image")
+                    if not model_image:
+                        raise ValueError("model_image required when model_source='image'")
+                    logger.info(f"Populating MODEL_DATA from image: {model_image}")
+                    populate_model_from_image(ms_path, field=field, model_image=model_image)
+
+                # Run adaptive flagging with calibration testing
+                aggressive_strategy = params.get(
+                    "aggressive_strategy", "/data/dsa110-contimg/config/dsa110-aggressive.lua"
+                )
+                backend = params.get("flagging_backend", "aoflagger")
+
+                adaptive_result = flag_rfi_adaptive(
+                    ms_path=ms_path,
+                    refant=refant,
+                    calibrate_fn=_perform_calibration_solve,
+                    calibrate_kwargs={},
+                    aggressive_strategy=aggressive_strategy,
+                    backend=backend,
+                )
+
+                logger.info(
+                    f"Adaptive flagging complete: Used {adaptive_result['strategy']} strategy"
+                )
+                logger.info(
+                    f"Flagging success: {adaptive_result['success']}, Attempts: {adaptive_result['attempts']}"
+                )
+
+                # Extract calibration results from shared dict
+                ktabs = cal_tables_result.get("ktabs", [])
+                bptabs = cal_tables_result.get("bptabs", [])
+                gtabs = cal_tables_result.get("gtabs", [])
+                # prebp_table available in cal_tables_result if needed for debugging
+
+            else:
+                # Legacy non-adaptive flagging
+                from dsa110_contimg.calibration.flagging import flag_rfi
+
+                logger.info("Using legacy non-adaptive flagging")
+                flag_rfi(ms_path)
+
+                # TEMPORAL TRACKING: Capture flag snapshot after Phase 1 (pre-calibration flagging)
+                try:
+                    from dsa110_contimg.calibration.flagging_temporal import capture_flag_snapshot
+
+                    phase1_snapshot = capture_flag_snapshot(
+                        ms_path=str(ms_path),
+                        phase="phase1_post_rfi",
+                        refant=refant,
+                    )
+                    logger.info(
+                        "✓ Phase 1 flag snapshot captured: %.1f%% overall flagging",
+                        phase1_snapshot.total_flagged_fraction * 100,
+                    )
+
+                    # Store snapshot for later comparison (will be saved to database in later step)
+                    if "_temporal_snapshots" not in params:
+                        params["_temporal_snapshots"] = {}
+                    params["_temporal_snapshots"]["phase1"] = phase1_snapshot
+                except Exception as e:
+                    logger.warning(f"Failed to capture Phase 1 flag snapshot: {e}")
+                    logger.warning(
+                        "Continuing with calibration (temporal tracking disabled for this run)"
+                    )
+
+                # Step 2: Model population (required for calibration)
+                if model_source == "catalog":
+                    from dsa110_contimg.calibration.model import populate_model_from_catalog
+
+                    logger.info("Populating MODEL_DATA from catalog...")
+                    populate_model_from_catalog(
+                        ms_path,
+                        field=field,
+                        calibrator_name=params.get("calibrator_name"),
+                        cal_ra_deg=params.get("cal_ra_deg"),
+                        cal_dec_deg=params.get("cal_dec_deg"),
+                        cal_flux_jy=params.get("cal_flux_jy"),
+                    )
+                elif model_source == "image":
+                    from dsa110_contimg.calibration.model import populate_model_from_image
+
+                    model_image = params.get("model_image")
+                    if not model_image:
+                        raise ValueError("model_image required when model_source='image'")
+                    logger.info(f"Populating MODEL_DATA from image: {model_image}")
+                    populate_model_from_image(ms_path, field=field, model_image=model_image)
+
+                # Perform calibration solve
+                _perform_calibration_solve(ms_path, refant)
+
+                # Extract results
+                ktabs = cal_tables_result.get("ktabs", [])
+                bptabs = cal_tables_result.get("bptabs", [])
+                gtabs = cal_tables_result.get("gtabs", [])
+                # prebp_table available in cal_tables_result if needed for debugging
+
+            # Flag autocorrelations (after RFI flagging)
             if flag_autocorr:
                 from casatasks import flagdata
 
@@ -797,113 +1092,79 @@ class CalibrationSolveStage(PipelineStage):
                 flagdata(vis=str(ms_path), autocorr=True, flagbackup=False)
                 logger.info("✓ Autocorrelations flagged")
 
-        # Step 2: Model population (required for calibration)
-        if model_source == "catalog":
-            from dsa110_contimg.calibration.model import populate_model_from_catalog
-
-            logger.info("Populating MODEL_DATA from catalog...")
-            populate_model_from_catalog(
-                ms_path,
-                field=field,
-                calibrator_name=params.get("calibrator_name"),
-                cal_ra_deg=params.get("cal_ra_deg"),
-                cal_dec_deg=params.get("cal_dec_deg"),
-                cal_flux_jy=params.get("cal_flux_jy"),
-            )
-        elif model_source == "image":
-            from dsa110_contimg.calibration.model import populate_model_from_image
-
-            model_image = params.get("model_image")
-            if not model_image:
-                raise ValueError("model_image required when model_source='image'")
-            logger.info(f"Populating MODEL_DATA from image: {model_image}")
-            populate_model_from_image(ms_path, field=field, model_image=model_image)
-
-        # Step 3: Solve delay (K) if requested
-        ktabs = []
-        if solve_delay_flag and not existing_k:
-            logger.info("Solving delay (K) calibration...")
-            ktabs = solve_delay(
-                ms_path,
-                field,
-                refant,
-                table_prefix=table_prefix,
-                combine_spw=params.get("k_combine_spw", False),
-                t_slow=params.get("k_t_slow", "inf"),
-                t_fast=params.get("k_t_fast", "60s"),
-                uvrange=params.get("k_uvrange", ""),
-                minsnr=params.get("k_minsnr", 5.0),
-                skip_slow=params.get("k_skip_slow", False),
-            )
-        elif existing_k:
-            ktabs = [existing_k]
-            logger.info(f"Using existing K table: {existing_k}")
-
-        # Step 4: Pre-bandpass phase (if requested)
-        prebp_table = None
-        if prebp_phase:
-            logger.info("Solving pre-bandpass phase...")
-            prebp_table = solve_prebandpass_phase(
-                ms_path,
-                field,
-                refant,
-                table_prefix=table_prefix,
-                uvrange=params.get("prebp_uvrange", ""),
-                minsnr=params.get("prebp_minsnr", 3.0),
+        else:
+            # No flagging requested - just do model population and calibration
+            logger.info(
+                "Flagging disabled, proceeding directly to model population and calibration"
             )
 
-        # Step 5: Solve bandpass (BP) if requested
-        bptabs = []
-        if solve_bandpass_flag and not existing_bp:
-            logger.info("Solving bandpass (BP) calibration...")
-            bptabs = solve_bandpass(
-                ms_path,
-                field,
-                refant,
-                ktable=ktabs[0] if ktabs else None,
-                table_prefix=table_prefix,
-                set_model=True,
-                model_standard=params.get("bp_model_standard", "Perley-Butler 2017"),
-                combine_fields=bp_combine_field,
-                combine_spw=params.get("bp_combine_spw", False),
-                minsnr=params.get("bp_minsnr", 5.0),
-                uvrange=params.get("bp_uvrange", ""),
-                prebandpass_phase_table=prebp_table,
-                bp_smooth_type=params.get("bp_smooth_type"),
-                bp_smooth_window=params.get("bp_smooth_window"),
-            )
-        elif existing_bp:
-            bptabs = [existing_bp]
-            logger.info(f"Using existing BP table: {existing_bp}")
+            # Step 2: Model population (required for calibration)
+            if model_source == "catalog":
+                from dsa110_contimg.calibration.model import populate_model_from_catalog
 
-        # Step 6: Solve gains (G) if requested
-        gtabs = []
-        if solve_gains_flag and not existing_g:
-            logger.info("Solving gains (G) calibration...")
-            phase_only = (gain_calmode == "p") or bool(params.get("fast"))
-            gtabs = solve_gains(
-                ms_path,
-                field,
-                refant,
-                ktable=ktabs[0] if ktabs else None,
-                bptables=bptabs,
-                table_prefix=table_prefix,
-                t_short=params.get("gain_t_short", "60s"),
-                combine_fields=bp_combine_field,
-                phase_only=phase_only,
-                uvrange=params.get("gain_uvrange", ""),
-                solint=gain_solint,
-                minsnr=params.get("gain_minsnr", 3.0),
-            )
-        elif existing_g:
-            gtabs = [existing_g]
-            logger.info(f"Using existing G table: {existing_g}")
+                logger.info("Populating MODEL_DATA from catalog...")
+                populate_model_from_catalog(
+                    ms_path,
+                    field=field,
+                    calibrator_name=params.get("calibrator_name"),
+                    cal_ra_deg=params.get("cal_ra_deg"),
+                    cal_dec_deg=params.get("cal_dec_deg"),
+                    cal_flux_jy=params.get("cal_flux_jy"),
+                )
+            elif model_source == "image":
+                from dsa110_contimg.calibration.model import populate_model_from_image
+
+                model_image = params.get("model_image")
+                if not model_image:
+                    raise ValueError("model_image required when model_source='image'")
+                logger.info(f"Populating MODEL_DATA from image: {model_image}")
+                populate_model_from_image(ms_path, field=field, model_image=model_image)
+
+            # Perform calibration solve
+            _perform_calibration_solve(ms_path, refant)
+
+            # Extract results
+            ktabs = cal_tables_result.get("ktabs", [])
+            bptabs = cal_tables_result.get("bptabs", [])
+            gtabs = cal_tables_result.get("gtabs", [])
+            # prebp_table available in cal_tables_result if needed for debugging
 
         # Combine all tables
         all_tables = (ktabs[:1] if ktabs else []) + bptabs + gtabs
         logger.info(f"Calibration solve complete. Generated {len(all_tables)} tables:")
         for tab in all_tables:
             logger.info(f"  - {tab}")
+
+        # TEMPORAL TRACKING: Capture flag snapshot after Phase 2 (post-solve, pre-applycal)
+        # NOTE: Flags should be UNCHANGED from Phase 1 at this point (solve doesn't change flags)
+        try:
+            from dsa110_contimg.calibration.flagging_temporal import capture_flag_snapshot
+
+            cal_table_paths = {}
+            if ktabs:
+                cal_table_paths["K"] = ktabs[0]
+            if bptabs:
+                cal_table_paths["BP"] = bptabs[0]
+            if gtabs:
+                cal_table_paths["G"] = gtabs[0]
+
+            phase2_snapshot = capture_flag_snapshot(
+                ms_path=str(ms_path),
+                phase="phase2_post_solve",
+                refant=refant,
+                cal_table_paths=cal_table_paths,
+            )
+            logger.info(
+                "✓ Phase 2 flag snapshot captured: %.1f%% overall flagging",
+                phase2_snapshot.total_flagged_fraction * 100,
+            )
+            # Store snapshot for later comparison
+            if "_temporal_snapshots" not in params:
+                params["_temporal_snapshots"] = {}
+            params["_temporal_snapshots"]["phase2"] = phase2_snapshot
+        except Exception as e:
+            logger.warning(f"Failed to capture Phase 2 flag snapshot: {e}")
+            logger.warning("Continuing with calibration (temporal tracking disabled for this run)")
 
         # Register calibration tables in registry database
         # CRITICAL: Registration is required for CalibrationStage to find tables via registry lookup
@@ -937,8 +1198,8 @@ class CalibrationSolveStage(PipelineStage):
                     start_mjd = start_mjd - window_hours / 24.0
                     end_mjd = end_mjd + window_hours / 24.0
                     logger.debug(
-                        f"Extended validity window from {duration*24*60:.1f} min to "
-                        f"{(end_mjd - start_mjd)*24*60:.1f} min (±{window_hours}h)"
+                        f"Extended validity window from {duration * 24 * 60:.1f} min to "
+                        f"{(end_mjd - start_mjd) * 24 * 60:.1f} min (±{window_hours}h)"
                     )
 
             # Generate set name from MS filename and time
@@ -1165,6 +1426,9 @@ class CalibrationStage(PipelineStage):
         from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
         ms_path = context.outputs["ms_path"]
+        # Get calibration parameters from context inputs
+        params = context.inputs.get("calibration_params", {})
+        refant = params.get("refant", "103")
         logger.info(f"Calibration stage: {ms_path}")
 
         # Check if calibration tables were provided by a previous stage (e.g., CalibrationSolveStage)
@@ -1179,6 +1443,28 @@ class CalibrationStage(PipelineStage):
             try:
                 apply_to_target(ms_path, field="", gaintables=caltables, calwt=True)
                 cal_applied = 1
+
+                # TEMPORAL TRACKING: Capture flag snapshot after Phase 3 (post-applycal)
+                try:
+                    from dsa110_contimg.calibration.flagging_temporal import capture_flag_snapshot
+
+                    phase3_snapshot = capture_flag_snapshot(
+                        ms_path=str(ms_path),
+                        phase="phase3_post_applycal",
+                        refant=refant,
+                        cal_table_paths={"applied": caltables},
+                    )
+                    logger.info(
+                        f"✓ Phase 3 flag snapshot captured: {phase3_snapshot.total_flagged_fraction * 100:.1f}% overall flagging"
+                    )
+
+                    # Store snapshot for later comparison
+                    if "_temporal_snapshots" not in params:
+                        params["_temporal_snapshots"] = {}
+                    params["_temporal_snapshots"]["phase3"] = phase3_snapshot
+                except Exception as e:
+                    logger.warning(f"Failed to capture Phase 3 flag snapshot: {e}")
+
             except Exception as e:
                 logger.error(f"applycal failed for {ms_path}: {e}")
                 raise RuntimeError(f"Calibration application failed: {e}") from e
@@ -1225,9 +1511,105 @@ class CalibrationStage(PipelineStage):
             try:
                 apply_to_target(ms_path, field="", gaintables=applylist, calwt=True)
                 cal_applied = 1
+
+                # TEMPORAL TRACKING: Capture flag snapshot after Phase 3 (post-applycal)
+                try:
+                    from dsa110_contimg.calibration.flagging_temporal import capture_flag_snapshot
+
+                    phase3_snapshot = capture_flag_snapshot(
+                        ms_path=str(ms_path),
+                        phase="phase3_post_applycal",
+                        refant=refant,
+                        cal_table_paths={"applied": applylist},
+                    )
+                    logger.info(
+                        f"✓ Phase 3 flag snapshot captured: {phase3_snapshot.total_flagged_fraction * 100:.1f}% overall flagging"
+                    )
+
+                    # Store snapshot for later comparison
+                    if "_temporal_snapshots" not in params:
+                        params["_temporal_snapshots"] = {}
+                    params["_temporal_snapshots"]["phase3"] = phase3_snapshot
+                except Exception as e:
+                    logger.warning(f"Failed to capture Phase 3 flag snapshot: {e}")
+
             except Exception as e:
                 logger.error(f"applycal failed for {ms_path}: {e}")
                 raise RuntimeError(f"Calibration application failed: {e}") from e
+
+        # TEMPORAL TRACKING: Compare snapshots and diagnose SPW failures
+        if (
+            "_temporal_snapshots" in params
+            and "phase1" in params["_temporal_snapshots"]
+            and "phase3" in params["_temporal_snapshots"]
+        ):
+            try:
+                from dsa110_contimg.calibration.flagging_temporal import (
+                    compare_flag_snapshots,
+                    diagnose_spw_failure,
+                    format_comparison_summary,
+                )
+
+                phase1_snap = params["_temporal_snapshots"]["phase1"]
+                phase3_snap = params["_temporal_snapshots"]["phase3"]
+
+                # Compare snapshots
+                comparison = compare_flag_snapshots(phase1_snap, phase3_snap)
+
+                # Log comparison summary
+                logger.info("=" * 80)
+                logger.info("TEMPORAL FLAGGING ANALYSIS")
+                logger.info("=" * 80)
+                logger.info(format_comparison_summary(comparison))
+
+                # Diagnose any SPWs that became fully flagged
+                if comparison["newly_fully_flagged_spws"]:
+                    logger.info("\nDIAGNOSIS of newly fully-flagged SPWs:")
+                    logger.info("-" * 80)
+
+                    for failed_spw in comparison["newly_fully_flagged_spws"]:
+                        diagnosis = diagnose_spw_failure(phase1_snap, phase3_snap, failed_spw)
+                        logger.info(f"\nSPW {failed_spw}:")
+                        logger.info(
+                            f"  Pre-calibration flagging: {diagnosis['phase1_flagging_pct']:.1f}%"
+                        )
+                        if diagnosis["refant_phase1_pct"] is not None:
+                            logger.info(
+                                f"  Pre-calibration refant flagging: {diagnosis['refant_phase1_pct']:.1f}%"
+                            )
+                        logger.info(
+                            f"  Post-applycal flagging: {diagnosis['phase3_flagging_pct']:.1f}%"
+                        )
+                        logger.info(f"  → CAUSE: {diagnosis['definitive_cause']}")
+
+                    logger.info("=" * 80)
+
+                # Store temporal analysis in params for database storage
+                params["_temporal_analysis"] = {
+                    "comparison": comparison,
+                    "phase1_snapshot": phase1_snap,
+                    "phase3_snapshot": phase3_snap,
+                }
+
+                # Store in database
+                try:
+                    from dsa110_contimg.calibration.flagging_temporal import (  # pylint: disable=no-name-in-module
+                        store_temporal_analysis_in_database,
+                    )
+
+                    products_db = context.config.paths.state_dir / "products.sqlite3"
+                    store_temporal_analysis_in_database(
+                        db_path=str(products_db),
+                        ms_path=str(ms_path),
+                        phase1_snapshot=phase1_snap,
+                        phase3_snapshot=phase3_snap,
+                        comparison=comparison,
+                    )
+                except Exception as db_e:
+                    logger.warning(f"Failed to store temporal analysis in database: {db_e}")
+
+            except Exception as e:
+                logger.warning(f"Failed to perform temporal flagging analysis: {e}")
 
         # Update MS index (consistent with streaming mode)
         if context.state_repository:
@@ -1242,17 +1624,42 @@ class CalibrationStage(PipelineStage):
             except Exception as e:
                 logger.warning(f"Failed to update MS index: {e}")
 
-        # Register calibrated MS in data registry (as calib_ms type)
+        # Register calibrated MS in data registry (as calibrated_ms type)
+        # Move to calibrated directory in the new layout
         if cal_applied:
             try:
                 from dsa110_contimg.database.data_registration import (
                     register_pipeline_data,
                 )
+                from dsa110_contimg.utils.path_utils import (
+                    extract_date_from_path,
+                    move_ms_to_calibrated,
+                )
                 from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
                 ms_path_obj = Path(ms_path)
-                # Use MS path as data_id with calib_ms prefix to distinguish from raw MS
-                data_id = f"calib_{ms_path_obj}"
+
+                # Move MS to calibrated directory
+                is_calibrator = "calibrator" in str(ms_path_obj).lower() or "calibrators" in str(
+                    ms_path_obj
+                )
+                date_str = extract_date_from_path(ms_path_obj)
+                calibrated_ms_path = move_ms_to_calibrated(
+                    ms_path_obj,
+                    date_str=date_str,
+                    is_calibrator=is_calibrator,
+                )
+
+                # Update ms_path in context if moved
+                if calibrated_ms_path != ms_path_obj:
+                    ms_path = str(calibrated_ms_path)
+                    ms_path_obj = calibrated_ms_path
+                    context.outputs["ms_path"] = ms_path
+                    logger.info(f"Moved calibrated MS to: {calibrated_ms_path}")
+
+                # Use MS path as data_id with calibrated_ms prefix
+                data_id = f"calibrated_ms_{ms_path_obj.name}"
+
                 # Extract metadata from MS if available
                 metadata = {
                     "original_ms_path": str(ms_path_obj),
@@ -1270,8 +1677,11 @@ class CalibrationStage(PipelineStage):
                 except Exception as e:
                     logger.debug(f"Could not extract MS time range for metadata: {e}")
 
+                # Use new data type
+                data_type = "calibrated_ms"
+
                 register_pipeline_data(
-                    data_type="calib_ms",
+                    data_type=data_type,
                     data_id=data_id,
                     file_path=ms_path_obj,
                     metadata=metadata,
@@ -1280,6 +1690,16 @@ class CalibrationStage(PipelineStage):
                 logger.info(f"Registered calibrated MS in data registry: {ms_path}")
             except Exception as e:
                 logger.warning(f"Failed to register calibrated MS in data registry: {e}")
+
+        # Hook: Generate calibration quality plots after calibration
+        try:
+            from dsa110_contimg.qa.pipeline_hooks import (  # pylint: disable=import-error,no-name-in-module
+                hook_calibration_complete,
+            )
+
+            hook_calibration_complete()
+        except Exception as e:
+            logger.debug(f"Calibration quality monitoring hook failed: {e}")
 
         log_progress("Completed calibration application stage.", start_time_sec)
         return context
@@ -1382,7 +1802,6 @@ class ImagingStage(PipelineStage):
         log_progress("Starting imaging stage...")
 
         import casacore.tables as casatables
-        import numpy as np
 
         table = casatables.table
 
@@ -1428,7 +1847,7 @@ class ImagingStage(PipelineStage):
             wprojplanes=context.config.imaging.wprojplanes,
             quality_tier="standard",  # Production quality (same as streaming)
             skip_fits=False,  # Export FITS (same as streaming)
-            use_nvss_mask=context.config.imaging.use_nvss_mask,
+            use_unicat_mask=context.config.imaging.use_unicat_mask,
             mask_radius_arcsec=context.config.imaging.mask_radius_arcsec,
         )
 
@@ -1579,7 +1998,6 @@ class ImagingStage(PipelineStage):
         from dsa110_contimg.qa.catalog_validation import validate_flux_scale
 
         # Find FITS image (prefer PB-corrected)
-        image_path_obj = Path(image_path)
         fits_image = None
 
         # Try PB-corrected FITS first
@@ -1620,7 +2038,7 @@ class ImagingStage(PipelineStage):
                     f"Catalog validation ({catalog.upper()}): "
                     f"{result.n_matched} sources matched, "
                     f"flux ratio={result.mean_flux_ratio:.3f}±{result.rms_flux_ratio:.3f}, "
-                    f"scale error={result.flux_scale_error*100:.1f}%"
+                    f"scale error={result.flux_scale_error * 100:.1f}%"
                 )
 
                 if result.has_issues:
@@ -1869,17 +2287,12 @@ class ValidationStage(PipelineStage):
 
         from dsa110_contimg.qa.catalog_validation import (
             run_full_validation,
-            validate_astrometry,
-            validate_flux_scale,
-            validate_source_counts,
         )
-        from dsa110_contimg.qa.html_reports import generate_validation_report
 
         image_path = context.outputs["image_path"]
         logger.info(f"Validation stage: {image_path}")
 
         # Find FITS image (prefer PB-corrected)
-        image_path_obj = Path(image_path)
         fits_image = None
 
         # Try PB-corrected FITS first
@@ -1946,14 +2359,14 @@ class ValidationStage(PipelineStage):
             if flux_scale_result:
                 logger.info(
                     f"Flux scale validation: Mean ratio: {flux_scale_result.mean_flux_ratio:.3f}, "
-                    f"Error: {flux_scale_result.flux_scale_error*100:.1f}%"
+                    f"Error: {flux_scale_result.flux_scale_error * 100:.1f}%"
                     if flux_scale_result.mean_flux_ratio and flux_scale_result.flux_scale_error
                     else "N/A"
                 )
 
             if source_counts_result:
                 logger.info(
-                    f"Source counts validation: Completeness: {source_counts_result.completeness*100:.1f}%"
+                    f"Source counts validation: Completeness: {source_counts_result.completeness * 100:.1f}%"
                     if source_counts_result.completeness
                     else "N/A"
                 )
@@ -2053,20 +2466,14 @@ class CrossMatchStage(PipelineStage):
         Returns:
             Updated context with cross-match results
         """
-        import time
-
-        from astropy.coordinates import Angle
-        from astropy.time import Time
 
         from dsa110_contimg.catalog.crossmatch import (
             calculate_flux_scale,
             calculate_positional_offsets,
-            cross_match_dataframes,
             identify_duplicate_catalog_sources,
             multi_catalog_match,
         )
         from dsa110_contimg.catalog.query import query_sources
-        from dsa110_contimg.database.products import ensure_products_db
         from dsa110_contimg.qa.catalog_validation import extract_sources_from_image
 
         if not self.config.crossmatch.enabled:
@@ -2252,15 +2659,17 @@ class CrossMatchStage(PipelineStage):
                     matches
                 )
                 all_offsets[catalog_type] = {
-                    "dra_median_arcsec": dra_median.to(u.arcsec).value,
-                    "ddec_median_arcsec": ddec_median.to(u.arcsec).value,
-                    "dra_madfm_arcsec": dra_madfm.to(u.arcsec).value,
-                    "ddec_madfm_arcsec": ddec_madfm.to(u.arcsec).value,
+                    "dra_median_arcsec": dra_median.to(u.arcsec).value,  # pylint: disable=no-member
+                    "ddec_median_arcsec": ddec_median.to(
+                        u.arcsec
+                    ).value,  # pylint: disable=no-member
+                    "dra_madfm_arcsec": dra_madfm.to(u.arcsec).value,  # pylint: disable=no-member
+                    "ddec_madfm_arcsec": ddec_madfm.to(u.arcsec).value,  # pylint: disable=no-member
                 }
                 logger.info(
                     f"{catalog_type.upper()} offsets: "
-                    f"RA={dra_median.to(u.arcsec).value:.2f}±{dra_madfm.to(u.arcsec).value:.2f} arcsec, "
-                    f"Dec={ddec_median.to(u.arcsec).value:.2f}±{ddec_madfm.to(u.arcsec).value:.2f} arcsec"
+                    f"RA={dra_median.to(u.arcsec).value:.2f}±{dra_madfm.to(u.arcsec).value:.2f} arcsec, "  # pylint: disable=no-member
+                    f"Dec={ddec_median.to(u.arcsec).value:.2f}±{ddec_madfm.to(u.arcsec).value:.2f} arcsec"  # pylint: disable=no-member
                 )
             except Exception as e:
                 logger.warning(f"Error calculating offsets for {catalog_type}: {e}")
@@ -2299,6 +2708,18 @@ class CrossMatchStage(PipelineStage):
                 except Exception as e:
                     logger.warning(f"Error storing matches in database: {e}", exc_info=True)
 
+        # Step 6: Calculate spectral indices from multi-catalog matches
+        spectral_indices_calculated = 0
+        if self.config.crossmatch.calculate_spectral_indices and len(all_matches) >= 2:
+            try:
+                logger.info("Calculating spectral indices from multi-catalog matches...")
+                spectral_indices_calculated = self._calculate_spectral_indices(
+                    all_matches, catalog_sources_dict, multi_match_results
+                )
+                logger.info(f"Calculated {spectral_indices_calculated} spectral indices")
+            except Exception as e:
+                logger.warning(f"Error calculating spectral indices: {e}", exc_info=True)
+
         # Prepare results
         crossmatch_results = {
             "n_catalogs": len(all_matches),
@@ -2308,6 +2729,7 @@ class CrossMatchStage(PipelineStage):
             "flux_scales": all_flux_scales,
             "method": method,
             "radius_arcsec": radius_arcsec,
+            "spectral_indices_calculated": spectral_indices_calculated,
         }
 
         logger.info(
@@ -2425,6 +2847,112 @@ class CrossMatchStage(PipelineStage):
 
         logger.info(f"Stored {len(matches)} cross-matches in database for {catalog_type}")
 
+    def _calculate_spectral_indices(
+        self,
+        all_matches: Dict[str, pd.DataFrame],
+        catalog_sources_dict: Dict[str, pd.DataFrame],
+        multi_match_results: pd.DataFrame,
+    ) -> int:
+        """Calculate spectral indices from multi-catalog matches.
+
+        Args:
+            all_matches: Dictionary mapping catalog type to matches DataFrame
+            catalog_sources_dict: Dictionary mapping catalog type to catalog sources DataFrame
+            multi_match_results: Multi-catalog match results
+
+        Returns:
+            Number of spectral indices calculated
+        """
+        from dsa110_contimg.catalog.spectral_index import (
+            calculate_and_store_from_catalogs,
+            create_spectral_indices_table,
+        )
+
+        # Ensure spectral indices table exists
+        db_path = self.config.paths.products_db
+        create_spectral_indices_table(db_path)
+
+        # Catalog frequency mapping [GHz]
+        catalog_frequencies = {
+            "nvss": 1.4,
+            "first": 1.4,
+            "racs": 0.888,
+            "vlass": 3.0,
+            "dsa110": 1.4,  # DSA-110 operates at 1.4 GHz
+        }
+
+        count = 0
+
+        # For each source with multi-catalog matches, calculate spectral indices
+        for detected_idx in multi_match_results.index:
+            # Find which catalogs matched this source
+            matched_catalogs = []
+            for cat_type in all_matches.keys():
+                matched_col = f"{cat_type}_matched"
+                if matched_col in multi_match_results.columns:
+                    if multi_match_results.loc[detected_idx, matched_col]:
+                        matched_catalogs.append(cat_type)
+
+            # Need at least 2 catalogs for spectral index
+            if len(matched_catalogs) < 2:
+                continue
+
+            # Build catalog_fluxes dictionary
+            catalog_fluxes = {}
+            source_ra = None
+            source_dec = None
+
+            for cat_type in matched_catalogs:
+                # Get catalog index for this match
+                catalog_idx = int(multi_match_results.loc[detected_idx, f"{cat_type}_idx"])
+
+                # Get catalog source
+                if cat_type not in catalog_sources_dict:
+                    continue
+
+                catalog_sources = catalog_sources_dict[cat_type]
+                if catalog_idx >= len(catalog_sources):
+                    continue
+
+                catalog_row = catalog_sources.iloc[catalog_idx]
+
+                # Get flux and frequency
+                flux_mjy = catalog_row.get("flux_mjy")
+                if flux_mjy is None or flux_mjy <= 0:
+                    continue
+
+                freq_ghz = catalog_frequencies.get(cat_type.lower())
+                if freq_ghz is None:
+                    continue
+
+                # Get flux error (optional)
+                flux_err_mjy = catalog_row.get("flux_err_mjy", flux_mjy * 0.1)  # 10% default
+
+                catalog_fluxes[cat_type.upper()] = (freq_ghz, flux_mjy, flux_err_mjy)
+
+                # Get source coordinates
+                if source_ra is None:
+                    source_ra = catalog_row.get("ra_deg")
+                    source_dec = catalog_row.get("dec_deg")
+
+            # Calculate spectral indices if we have valid data
+            if len(catalog_fluxes) >= 2 and source_ra is not None and source_dec is not None:
+                source_id = f"J{source_ra:.5f}{source_dec:+.5f}".replace(".", "")
+
+                try:
+                    record_ids = calculate_and_store_from_catalogs(
+                        source_id=source_id,
+                        ra_deg=source_ra,
+                        dec_deg=source_dec,
+                        catalog_fluxes=catalog_fluxes,
+                        db_path=db_path,
+                    )
+                    count += len(record_ids)
+                except Exception as e:
+                    logger.debug(f"Error calculating spectral index for {source_id}: {e}")
+
+        return count
+
     def cleanup(self, context: PipelineContext) -> None:
         """Cleanup on failure (nothing to clean up for cross-match)."""
         pass
@@ -2500,12 +3028,6 @@ class AdaptivePhotometryStage(PipelineStage):
         start_time_sec = time.time()
         log_progress("Starting adaptive photometry stage...")
 
-        import astropy.coordinates as acoords
-        import casacore.tables as casatables
-        import numpy as np
-
-        table = casatables.table
-
         from dsa110_contimg.photometry.adaptive_binning import AdaptiveBinningConfig
         from dsa110_contimg.photometry.adaptive_photometry import (
             measure_with_adaptive_binning,
@@ -2544,10 +3066,10 @@ class AdaptivePhotometryStage(PipelineStage):
         results = []
         for i, (ra_deg, dec_deg) in enumerate(sources):
             logger.info(
-                f"Running adaptive binning for source {i+1}/{len(sources)}: RA={ra_deg:.6f}, Dec={dec_deg:.6f}"
+                f"Running adaptive binning for source {i + 1}/{len(sources)}: RA={ra_deg:.6f}, Dec={dec_deg:.6f}"
             )
 
-            source_output_dir = output_dir / f"source_{i+1:03d}"
+            source_output_dir = output_dir / f"source_{i + 1:03d}"
             source_output_dir.mkdir(parents=True, exist_ok=True)
 
             try:
@@ -2562,7 +3084,7 @@ class AdaptivePhotometryStage(PipelineStage):
 
                 if result.success:
                     logger.info(
-                        f"Source {i+1}: Found {len(result.detections)} detection(s) "
+                        f"Source {i + 1}: Found {len(result.detections)} detection(s) "
                         f"(best SNR: {max([d.snr for d in result.detections], default=0.0):.2f})"
                     )
                     results.append(
@@ -2585,9 +3107,11 @@ class AdaptivePhotometryStage(PipelineStage):
                         }
                     )
                 else:
-                    logger.warning(f"Source {i+1}: Adaptive binning failed: {result.error_message}")
+                    logger.warning(
+                        f"Source {i + 1}: Adaptive binning failed: {result.error_message}"
+                    )
             except Exception as e:
-                logger.error(f"Source {i+1}: Error during adaptive binning: {e}", exc_info=True)
+                logger.error(f"Source {i + 1}: Error during adaptive binning: {e}", exc_info=True)
 
         # Store results in context
         photometry_results = {
@@ -2625,7 +3149,6 @@ class AdaptivePhotometryStage(PipelineStage):
 
         # Otherwise, query NVSS catalog for sources in the field
         try:
-            import astropy.coordinates as acoords
             import casacore.tables as casatables
             import numpy as np
 
@@ -2650,12 +3173,13 @@ class AdaptivePhotometryStage(PipelineStage):
                     return []
 
             # Query NVSS catalog using optimized SQLite backend (or CSV fallback)
-            from dsa110_contimg.calibration.catalogs import query_nvss_sources
+            from dsa110_contimg.catalog.query import query_sources
 
             max_radius_deg = 1.0
-            df = query_nvss_sources(
-                ra_deg=ra_deg,
-                dec_deg=dec_deg,
+            df = query_sources(
+                catalog_type=self.config.photometry.catalog,
+                ra_center=ra_deg,
+                dec_center=dec_deg,
                 radius_deg=max_radius_deg,
                 min_flux_mjy=self.config.photometry.min_flux_mjy,
             )
@@ -2666,14 +3190,16 @@ class AdaptivePhotometryStage(PipelineStage):
             else:
                 sources = []
             logger.info(
-                f"Found {len(sources)} NVSS sources in field "
+                f"Found {len(sources)} {self.config.photometry.catalog.upper()} sources in field "
                 f"(center: RA={ra_deg:.6f}, Dec={dec_deg:.6f}, "
                 f"radius={max_radius_deg} deg, min_flux={self.config.photometry.min_flux_mjy} mJy)"
             )
             return sources
 
         except Exception as e:
-            logger.error(f"Error querying NVSS catalog: {e}", exc_info=True)
+            logger.error(
+                f"Error querying {self.config.photometry.catalog} catalog: {e}", exc_info=True
+            )
             return []
 
     def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
@@ -2705,3 +3231,171 @@ class AdaptivePhotometryStage(PipelineStage):
     def get_name(self) -> str:
         """Get stage name."""
         return "adaptive_photometry"
+
+
+class TransientDetectionStage(PipelineStage):
+    """Transient detection stage: Detect and classify transient sources.
+
+    This stage compares detected sources with baseline catalogs to identify:
+    - New sources (not in baseline catalog)
+    - Variable sources (significant flux changes)
+    - Fading sources (baseline sources no longer detected)
+
+    Implements Proposal #2: Transient Detection & Classification
+
+    Example:
+        >>> config = PipelineConfig(paths=PathsConfig(...))
+        >>> config.transient_detection.enabled = True
+        >>> stage = TransientDetectionStage(config)
+        >>> context = PipelineContext(
+        ...     config=config,
+        ...     outputs={"detected_sources": pd.DataFrame([...])}
+        ... )
+        >>> result_context = stage.execute(context)
+        >>> transients = result_context.outputs["transient_results"]
+
+    Inputs:
+        - `detected_sources` (DataFrame): Sources from validation/cross-match
+        - `mosaic_id` (int, optional): Mosaic product ID for tracking
+
+    Outputs:
+        - `transient_results` (dict): Detection results with candidates
+        - `alert_ids` (list): List of alert IDs generated
+    """
+
+    def __init__(self, config: PipelineConfig):
+        """Initialize transient detection stage.
+
+        Args:
+            config: Pipeline configuration
+        """
+        self.config = config
+
+    def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
+        """Validate prerequisites for transient detection."""
+        if not self.config.transient_detection.enabled:
+            return False, "Transient detection stage is disabled"
+
+        if "detected_sources" not in context.outputs:
+            return (
+                False,
+                "No detected sources found for transient detection",
+            )
+
+        return True, None
+
+    def execute(self, context: PipelineContext) -> PipelineContext:
+        """Execute transient detection stage.
+
+        Args:
+            context: Pipeline context
+
+        Returns:
+            Updated context with transient detection results
+        """
+        from dsa110_contimg.catalog.query import query_sources
+        from dsa110_contimg.catalog.transient_detection import (
+            create_transient_detection_tables,
+            detect_transients,
+            generate_transient_alerts,
+            store_transient_candidates,
+        )
+
+        if not self.config.transient_detection.enabled:
+            logger.info("Transient detection stage is disabled, skipping")
+            return context.with_output("transient_status", "disabled")
+
+        logger.info("Starting transient detection stage...")
+
+        # Ensure tables exist
+        db_path = str(self.config.paths.state_dir / "products.sqlite3")
+        create_transient_detection_tables(db_path)
+
+        # Get detected sources
+        detected_sources = context.outputs["detected_sources"]
+        if len(detected_sources) == 0:
+            logger.warning("No detected sources for transient detection")
+            return context.with_output("transient_status", "skipped_no_sources")
+
+        # Get field center for catalog query
+        ra_center = detected_sources["ra_deg"].median()
+        dec_center = detected_sources["dec_deg"].median()
+
+        # Calculate field radius
+        ra_range = detected_sources["ra_deg"].max() - detected_sources["ra_deg"].min()
+        dec_range = detected_sources["dec_deg"].max() - detected_sources["dec_deg"].min()
+        field_radius_deg = max(ra_range, dec_range) / 2.0 + 0.1
+
+        # Query baseline catalog
+        baseline_catalog = self.config.transient_detection.baseline_catalog
+        logger.info(
+            f"Querying {baseline_catalog} for baseline sources "
+            f"(radius={field_radius_deg:.2f} deg)..."
+        )
+
+        baseline_sources = query_sources(
+            ra=ra_center,
+            dec=dec_center,
+            radius_arcmin=field_radius_deg * 60.0,
+            catalog=baseline_catalog.lower(),
+        )
+
+        if baseline_sources is None or len(baseline_sources) == 0:
+            logger.warning(f"No baseline sources found in {baseline_catalog}")
+            baseline_sources = pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
+
+        # Detect transients
+        logger.info("Running transient detection...")
+        new_sources, variable_sources, fading_sources = detect_transients(
+            observed_sources=detected_sources,
+            baseline_sources=baseline_sources,
+            detection_threshold_sigma=(self.config.transient_detection.detection_threshold_sigma),
+            variability_threshold=(self.config.transient_detection.variability_threshold_sigma),
+            match_radius_arcsec=(self.config.transient_detection.match_radius_arcsec),
+            baseline_catalog=baseline_catalog,
+        )
+
+        # Combine all candidates
+        all_candidates = new_sources + variable_sources + fading_sources
+
+        logger.info(
+            f"Found {len(new_sources)} new, {len(variable_sources)} "
+            f"variable, {len(fading_sources)} fading sources"
+        )
+
+        # Store candidates
+        mosaic_id = context.outputs.get("mosaic_id")
+        candidate_ids = store_transient_candidates(
+            all_candidates,
+            baseline_catalog=baseline_catalog,
+            mosaic_id=mosaic_id,
+            db_path=db_path,
+        )
+
+        # Generate alerts
+        alert_ids = generate_transient_alerts(
+            candidate_ids,
+            alert_threshold_sigma=(self.config.transient_detection.alert_threshold_sigma),
+            db_path=db_path,
+        )
+
+        logger.info(f"Generated {len(alert_ids)} transient alerts")
+
+        results = {
+            "n_new": len(new_sources),
+            "n_variable": len(variable_sources),
+            "n_fading": len(fading_sources),
+            "candidate_ids": candidate_ids,
+            "alert_ids": alert_ids,
+            "baseline_catalog": baseline_catalog,
+        }
+
+        return context.with_output("transient_results", results).with_output("alert_ids", alert_ids)
+
+    def cleanup(self, context: PipelineContext) -> None:
+        """Cleanup transient detection resources."""
+        pass
+
+    def get_name(self) -> str:
+        """Get stage name."""
+        return "transient_detection"

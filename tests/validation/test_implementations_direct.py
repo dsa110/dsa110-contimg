@@ -3,7 +3,6 @@
 Test script to verify all implementations work as intended (direct imports).
 """
 
-import os
 import sys
 from pathlib import Path
 
@@ -40,7 +39,7 @@ def test_performance_metrics():
     # Run function multiple times
     for i in range(5):
         result = test_function(i)
-        assert result == i * 2, f"Expected {i*2}, got {result}"
+        assert result == i * 2, f"Expected {i * 2}, got {result}"
 
     # Get stats
     stats = performance.get_performance_stats("test_operation")
@@ -131,17 +130,11 @@ def test_cache_stats():
     assert "misses" in flag_stats, "Should have misses"
 
     # Verify maxsize matches expected values
-    assert (
-        ms_stats["maxsize"] == 128
-    ), f"Expected maxsize=128, got {ms_stats['maxsize']}"
-    assert (
-        flag_stats["maxsize"] == 64
-    ), f"Expected maxsize=64, got {flag_stats['maxsize']}"
+    assert ms_stats["maxsize"] == 128, f"Expected maxsize=128, got {ms_stats['maxsize']}"
+    assert flag_stats["maxsize"] == 64, f"Expected maxsize=64, got {flag_stats['maxsize']}"
 
     print("✓ Cache statistics function works correctly")
-    print(
-        f"  MS metadata cache: maxsize={ms_stats['maxsize']}, currsize={ms_stats['currsize']}"
-    )
+    print(f"  MS metadata cache: maxsize={ms_stats['maxsize']}, currsize={ms_stats['currsize']}")
     print(
         f"  Flag validation cache: maxsize={flag_stats['maxsize']}, currsize={flag_stats['currsize']}"
     )
@@ -168,9 +161,7 @@ def test_parallel_processing():
 
     # Test basic parallel processing
     items = [1, 2, 3, 4, 5]
-    results = parallel.process_parallel(
-        items, square, max_workers=2, show_progress=False
-    )
+    results = parallel.process_parallel(items, square, max_workers=2, show_progress=False)
     assert len(results) == 5, f"Expected 5 results, got {len(results)}"
     assert results == [1, 4, 9, 16, 25], f"Expected [1,4,9,16,25], got {results}"
 
@@ -234,19 +225,15 @@ def test_duplicate_function_fix():
     content = file_path.read_text()
 
     # Count occurrences of "def sort_key(" and "def sort_key_files("
-    sort_key_count = len(re.findall(r"\bdef sort_key\(", content))
+    len(re.findall(r"\bdef sort_key\(", content))
     sort_key_files_count = len(re.findall(r"\bdef sort_key_files\(", content))
 
     # There should be one sort_key (the original) and one sort_key_files (the renamed one)
     # Actually, let me check the actual usage
     lines = content.split("\n")
-    sort_key_lines = [
-        i + 1 for i, line in enumerate(lines) if re.search(r"\bdef sort_key\(", line)
-    ]
+    sort_key_lines = [i + 1 for i, line in enumerate(lines) if re.search(r"\bdef sort_key\(", line)]
     sort_key_files_lines = [
-        i + 1
-        for i, line in enumerate(lines)
-        if re.search(r"\bdef sort_key_files\(", line)
+        i + 1 for i, line in enumerate(lines) if re.search(r"\bdef sort_key_files\(", line)
     ]
 
     print(f"  Found sort_key at lines: {sort_key_lines}")

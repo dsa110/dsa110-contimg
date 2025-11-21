@@ -10,16 +10,17 @@
 
 import { useEffect, useState, useRef } from "react";
 import { logger } from "../../../utils/logger";
-import { isJS9Available, findDisplay } from "../../../utils/js9";
-import { useJS9Safe } from "../../../contexts/JS9Context";
+import { findDisplay } from "../../../utils/js9";
+// import { useJS9Safe } from "../../../contexts/JS9Context";
 import { js9Service } from "../../../services/js9";
+import { monitorPromiseChain } from "../../../utils/js9/promiseChunker";
 
 interface UseJS9ImageLoaderOptions {
   imagePath: string | null;
   displayId: string;
   initialized: boolean;
   isJS9Ready: boolean;
-  timeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
+  timeoutRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
   getDisplaySafe: (id: string) => any | null;
 }
 
@@ -51,7 +52,7 @@ export function useJS9ImageLoader({
     imageLoadedRef.current = false;
 
     // Define variables outside try/catch so they're accessible everywhere
-    let hideInterval: NodeJS.Timeout | null = null;
+    let hideInterval: ReturnType<typeof setTimeout> | null = null;
     let observer: MutationObserver | null = null;
     let targetDiv: HTMLElement | null = null;
 
@@ -250,79 +251,24 @@ export function useJS9ImageLoader({
           }
 
           try {
-            js9Service.loadImage(imageUrlWithCacheBuster, {
-              divID: displayId,
-              scale: "linear",
-              colormap: "grey",
-              onload: (im: any) => {
-                logger.debug("FITS image loaded:", im, "Display:", displayId);
-                imageLoadedRef.current = true;
-                setLoading(false);
-                cleanupInterval();
-                hideJS9Loading();
-
-                // Restore page title (JS9 modifies it when loading images)
-                const originalTitle = document.title.split(":")[0].trim();
-                if (document.title !== originalTitle) {
-                  document.title = originalTitle;
-                }
-
-                // Resize JS9 to fill container width after image loads
-                setTimeout(() => {
-                  try {
-                    const container = document.getElementById(displayId);
-                    if (container) {
-                      js9Service.resizeDisplay(displayId);
-                      // Force canvas to match container width
-                      const canvas = container.querySelector("canvas");
-                      if (canvas && canvas.style) {
-                        canvas.style.width = "100%";
-                        canvas.style.maxWidth = "100%";
-                      }
-                    }
-                  } catch (e) {
-                    logger.warn("Failed to resize JS9 display after image load:", e);
-                  }
-                }, 200);
-
-                // Force JS9 to display the image in the correct div
-                try {
-                  js9Service.setDisplay(displayId, im.id);
-                  // Verify the image is in the correct display
-                  const display = getDisplaySafe(displayId);
-                  if (display && display.im && display.im.id === im.id) {
-                    logger.debug("Image confirmed in display:", displayId);
-                  } else {
-                    logger.debug("Image loaded but not in expected display, attempting to fix...");
-                    js9Service.setDisplay(displayId, im.id);
-                  }
-                } catch (e) {
-                  logger.debug("Error verifying display:", e);
-                }
-              },
-              onerror: (err: any) => {
-                logger.error("JS9 load error:", err);
-                setError(`Failed to load image: ${err.message || "Unknown error"}`);
-                setLoading(false);
-                imageLoadedRef.current = false;
-                cleanupInterval();
-                hideJS9Loading();
-              },
-            });
-          } catch (loadErr: any) {
-            // If divID doesn't work, try without specifying display
-            logger.warn("JS9.Load with divID failed, trying without display parameter:", loadErr);
-            try {
-              if (!js9Service.isAvailable()) {
-                throw new Error("JS9.Load not available");
-              }
+            // Wrap JS9.Load in a Promise for monitoring
+            const loadPromise = new Promise<void>((resolve, reject) => {
               js9Service.loadImage(imageUrlWithCacheBuster, {
+                divID: displayId,
                 scale: "linear",
                 colormap: "grey",
                 onload: (im: any) => {
-                  logger.debug("FITS image loaded (fallback):", im);
+                  logger.debug("FITS image loaded:", im, "Display:", displayId);
                   imageLoadedRef.current = true;
                   setLoading(false);
+                  cleanupInterval();
+                  hideJS9Loading();
+
+                  // Restore page title (JS9 modifies it when loading images)
+                  const originalTitle = document.title.split(":")[0].trim();
+                  if (document.title !== originalTitle) {
+                    document.title = originalTitle;
+                  }
 
                   // Resize JS9 to fill container width after image loads
                   setTimeout(() => {
@@ -341,26 +287,113 @@ export function useJS9ImageLoader({
                       logger.warn("Failed to resize JS9 display after image load:", e);
                     }
                   }, 200);
-                  cleanupInterval();
-                  hideJS9Loading();
 
-                  // Restore page title (JS9 modifies it when loading images)
-                  const originalTitle = document.title.split(":")[0].trim();
-                  if (document.title !== originalTitle) {
-                    document.title = originalTitle;
+                  // Force JS9 to display the image in the correct div
+                  try {
+                    js9Service.setDisplay(displayId, im.id);
+                    // Verify the image is in the correct display
+                    const display = getDisplaySafe(displayId);
+                    if (display && display.im && display.im.id === im.id) {
+                      logger.debug("Image confirmed in display:", displayId);
+                    } else {
+                      logger.debug(
+                        "Image loaded but not in expected display, attempting to fix..."
+                      );
+                      js9Service.setDisplay(displayId, im.id);
+                    }
+                  } catch (e) {
+                    logger.debug("Error verifying display:", e);
                   }
-
-                  // Try to move to correct display after loading
-                  js9Service.setDisplay(displayId, im.id);
+                  resolve();
                 },
                 onerror: (err: any) => {
-                  logger.error("JS9 load error (fallback):", err);
+                  logger.error("JS9 load error:", err);
                   setError(`Failed to load image: ${err.message || "Unknown error"}`);
                   setLoading(false);
                   imageLoadedRef.current = false;
                   cleanupInterval();
                   hideJS9Loading();
+                  reject(err);
                 },
+              });
+            });
+
+            // Monitor the promise chain for performance issues
+            monitorPromiseChain(
+              loadPromise,
+              `JS9.Load: ${displayId}`,
+              100 // threshold in ms
+            ).catch((err) => {
+              // Error already handled in onerror callback
+              logger.debug("JS9.Load promise rejected:", err);
+            });
+          } catch (loadErr: any) {
+            // If divID doesn't work, try without specifying display
+            logger.warn("JS9.Load with divID failed, trying without display parameter:", loadErr);
+            try {
+              if (!js9Service.isAvailable()) {
+                throw new Error("JS9.Load not available");
+              }
+              // Wrap JS9.Load in a Promise for monitoring (fallback path)
+              const loadPromise = new Promise<void>((resolve, reject) => {
+                js9Service.loadImage(imageUrlWithCacheBuster, {
+                  scale: "linear",
+                  colormap: "grey",
+                  onload: (im: any) => {
+                    logger.debug("FITS image loaded (fallback):", im);
+                    imageLoadedRef.current = true;
+                    setLoading(false);
+
+                    // Resize JS9 to fill container width after image loads
+                    setTimeout(() => {
+                      try {
+                        const container = document.getElementById(displayId);
+                        if (container) {
+                          js9Service.resizeDisplay(displayId);
+                          // Force canvas to match container width
+                          const canvas = container.querySelector("canvas");
+                          if (canvas && canvas.style) {
+                            canvas.style.width = "100%";
+                            canvas.style.maxWidth = "100%";
+                          }
+                        }
+                      } catch (e) {
+                        logger.warn("Failed to resize JS9 display after image load:", e);
+                      }
+                    }, 200);
+                    cleanupInterval();
+                    hideJS9Loading();
+
+                    // Restore page title (JS9 modifies it when loading images)
+                    const originalTitle = document.title.split(":")[0].trim();
+                    if (document.title !== originalTitle) {
+                      document.title = originalTitle;
+                    }
+
+                    // Try to move to correct display after loading
+                    js9Service.setDisplay(displayId, im.id);
+                    resolve();
+                  },
+                  onerror: (err: any) => {
+                    logger.error("JS9 load error (fallback):", err);
+                    setError(`Failed to load image: ${err.message || "Unknown error"}`);
+                    setLoading(false);
+                    imageLoadedRef.current = false;
+                    cleanupInterval();
+                    hideJS9Loading();
+                    reject(err);
+                  },
+                });
+              });
+
+              // Monitor the promise chain for performance issues (fallback path)
+              monitorPromiseChain(
+                loadPromise,
+                `JS9.Load (fallback): ${displayId}`,
+                100 // threshold in ms
+              ).catch((err) => {
+                // Error already handled in onerror callback
+                logger.debug("JS9.Load promise rejected (fallback):", err);
               });
             } catch (fallbackErr: any) {
               setError(`Failed to load image: ${fallbackErr.message || "Unknown error"}`);

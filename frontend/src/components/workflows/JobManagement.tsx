@@ -15,10 +15,11 @@ import {
   TableHead,
   TableRow,
   Chip,
+  useTheme,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { Refresh } from "@mui/icons-material";
 import { useJobs } from "../../api/queries";
-import type { JobList } from "../../api/types";
 
 interface JobManagementProps {
   selectedJobId: number | null;
@@ -26,6 +27,7 @@ interface JobManagementProps {
 }
 
 export function JobManagement({ selectedJobId, onJobSelect }: JobManagementProps) {
+  const theme = useTheme();
   const [logContent, setLogContent] = useState("");
   const { data: jobsList, refetch: refetchJobs } = useJobs();
   const eventSourceRef = useRef<EventSource | null>(null);
@@ -145,12 +147,12 @@ export function JobManagement({ selectedJobId, onJobSelect }: JobManagementProps
           sx={{
             height: 400,
             overflow: "auto",
-            bgcolor: "#1e1e1e",
+            bgcolor: alpha(theme.palette.background.paper, 0.5),
             p: 2,
             borderRadius: 1,
             fontFamily: "monospace",
             fontSize: "0.75rem",
-            color: "#00ff00",
+            color: theme.palette.success.main,
             whiteSpace: "pre-wrap",
             wordBreak: "break-word",
           }}

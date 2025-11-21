@@ -3,7 +3,6 @@
 
 import os
 import tempfile
-from pathlib import Path
 
 import numpy as np
 import pytest
@@ -21,7 +20,7 @@ def create_test_fits(
     crpix2=256.0,
     cdelts=(-0.00055555555555556, 0.00055555555555556),
     data=None,
-    **header_kwargs
+    **header_kwargs,
 ) -> str:
     """Create a test FITS file with specified parameters."""
     if data is None:
@@ -91,9 +90,7 @@ class TestForcedPhotometryFailures:
                 annulus_pix=(12, 20),
             )
             # Should handle gracefully (may raise or return NaN)
-            assert isinstance(result.peak_jyb, (float, np.floating)) or np.isnan(
-                result.peak_jyb
-            )
+            assert isinstance(result.peak_jyb, (float, np.floating)) or np.isnan(result.peak_jyb)
         except Exception:
             # Exception is acceptable - validate_flux_scale catches it
             pass

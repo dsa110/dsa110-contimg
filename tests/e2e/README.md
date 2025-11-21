@@ -2,15 +2,18 @@
 
 ## Overview
 
-This directory contains end-to-end tests for the DSA-110 Continuum Imaging Dashboard using Playwright.
+This directory contains end-to-end tests for the DSA-110 Continuum Imaging
+Dashboard using Playwright.
 
 ## Prerequisites
 
 ### Docker-Based Testing (Recommended for Ubuntu 18.x)
 
-Since npm/npx requires Docker on Ubuntu 18.x systems, all E2E tests run in Docker containers.
+Since npm/npx requires Docker on Ubuntu 18.x systems, all E2E tests run in
+Docker containers.
 
 1. **Install Docker**:
+
    ```bash
    # Ubuntu 18.x
    sudo apt-get update
@@ -28,6 +31,7 @@ Since npm/npx requires Docker on Ubuntu 18.x systems, all E2E tests run in Docke
 If you have Node.js 22+ installed locally:
 
 1. **Install Playwright**:
+
    ```bash
    npm install -D @playwright/test
    npx playwright install
@@ -42,6 +46,7 @@ If you have Node.js 22+ installed locally:
 ### Docker-Based Testing (Ubuntu 18.x)
 
 #### Quick Start
+
 ```bash
 # Run all tests using Docker
 ./scripts/run-tests.sh docker-e2e
@@ -51,6 +56,7 @@ If you have Node.js 22+ installed locally:
 ```
 
 #### Run Specific Test Suite
+
 ```bash
 # Using simple Docker script
 ./scripts/run-tests.sh docker-e2e -- --grep "Navigation"
@@ -60,11 +66,13 @@ If you have Node.js 22+ installed locally:
 ```
 
 #### Run Tests in UI Mode
+
 ```bash
 ./scripts/run-tests-docker.sh ui
 ```
 
 #### Run Tests in Debug Mode
+
 ```bash
 # Build image first
 ./scripts/run-tests-docker.sh build
@@ -79,6 +87,7 @@ docker run -it --rm --network host \
 ```
 
 #### Run Tests in Headed Mode
+
 ```bash
 docker run -it --rm --network host \
   -v "$(pwd)/test-results:/app/test-results" \
@@ -91,11 +100,13 @@ docker run -it --rm --network host \
 ### Local Testing (if Node.js available)
 
 #### Run All Tests
+
 ```bash
 npx playwright test
 ```
 
 #### Run Specific Test Suite
+
 ```bash
 npx playwright test navigation
 npx playwright test control
@@ -103,21 +114,25 @@ npx playwright test data-browser
 ```
 
 #### Run Tests in UI Mode
+
 ```bash
 npx playwright test --ui
 ```
 
 #### Run Tests in Debug Mode
+
 ```bash
 npx playwright test --debug
 ```
 
 #### Run Tests in Headed Mode
+
 ```bash
 npx playwright test --headed
 ```
 
 #### Run Tests on Specific Browser
+
 ```bash
 npx playwright test --project=chromium
 npx playwright test --project=firefox
@@ -125,6 +140,7 @@ npx playwright test --project=webkit
 ```
 
 #### Run Tests on Mobile Viewport
+
 ```bash
 npx playwright test --project="Mobile Chrome"
 ```
@@ -147,16 +163,17 @@ npx playwright test --project="Mobile Chrome"
 ## Writing New Tests
 
 ### Basic Test Structure
+
 ```typescript
-test.describe('Feature Name', () => {
+test.describe("Feature Name", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/path');
+    await page.goto("/path");
   });
 
-  test('should do something', async ({ page }) => {
+  test("should do something", async ({ page }) => {
     // Test implementation
-    await page.click('button');
-    await expect(page.locator('text=Result')).toBeVisible();
+    await page.click("button");
+    await expect(page.locator("text=Result")).toBeVisible();
   });
 });
 ```
@@ -166,29 +183,32 @@ test.describe('Feature Name', () => {
 1. **Use descriptive test names**: Clearly describe what is being tested
 2. **Use beforeEach for setup**: Avoid repeating navigation code
 3. **Wait for elements**: Use `waitForSelector` or `waitForLoadState`
-4. **Use data-testid**: Add `data-testid` attributes to elements for reliable selection
+4. **Use data-testid**: Add `data-testid` attributes to elements for reliable
+   selection
 5. **Clean up**: Reset state between tests if needed
 6. **Mock API calls**: Use `page.route()` to mock API responses when needed
 
 ### Example Test
+
 ```typescript
-test('should submit form and show success message', async ({ page }) => {
-  await page.goto('/control');
-  
+test("should submit form and show success message", async ({ page }) => {
+  await page.goto("/control");
+
   // Fill form
-  await page.fill('input[name="startTime"]', '2025-01-01T00:00:00');
-  await page.fill('input[name="endTime"]', '2025-01-01T01:00:00');
-  
+  await page.fill('input[name="startTime"]', "2025-01-01T00:00:00");
+  await page.fill('input[name="endTime"]', "2025-01-01T01:00:00");
+
   // Submit
   await page.click('button[type="submit"]');
-  
+
   // Wait for API call
-  await page.waitForResponse(response => 
-    response.url().includes('/api/jobs') && response.status() === 200
+  await page.waitForResponse(
+    (response) =>
+      response.url().includes("/api/jobs") && response.status() === 200
   );
-  
+
   // Verify success
-  await expect(page.locator('text=Job created successfully')).toBeVisible();
+  await expect(page.locator("text=Job created successfully")).toBeVisible();
 });
 ```
 
@@ -201,42 +221,47 @@ test('should submit form and show success message', async ({ page }) => {
 3. **API Mocking**: Use `page.route()` for consistent test data
 
 ### Example API Mocking
+
 ```typescript
-test('should display data table', async ({ page }) => {
+test("should display data table", async ({ page }) => {
   // Mock API response
-  await page.route('**/api/data', route => {
+  await page.route("**/api/data", (route) => {
     route.fulfill({
       status: 200,
       body: JSON.stringify([
-        { id: 'test-1', data_type: 'ms', status: 'staging' },
-        { id: 'test-2', data_type: 'image', status: 'published' },
+        { id: "test-1", data_type: "ms", status: "staging" },
+        { id: "test-2", data_type: "image", status: "published" },
       ]),
     });
   });
-  
-  await page.goto('/data');
-  await expect(page.locator('table')).toBeVisible();
+
+  await page.goto("/data");
+  await expect(page.locator("table")).toBeVisible();
 });
 ```
 
 ## Debugging Tests
 
 ### View Test Execution
+
 ```bash
 npx playwright test --ui
 ```
 
 ### Debug Single Test
+
 ```bash
 npx playwright test --debug test-name
 ```
 
 ### View Trace
+
 ```bash
 npx playwright show-trace trace.zip
 ```
 
 ### Screenshots and Videos
+
 - Screenshots: Saved to `test-results/` on failure
 - Videos: Saved to `test-results/` on failure (if enabled)
 - Traces: Saved to `test-results/` on retry
@@ -244,6 +269,7 @@ npx playwright show-trace trace.zip
 ## CI/CD Integration
 
 ### GitHub Actions Example
+
 ```yaml
 name: E2E Tests
 on: [push, pull_request]
@@ -266,16 +292,19 @@ jobs:
 ## Troubleshooting
 
 ### Tests Failing Intermittently
+
 - Increase timeouts
 - Use `waitForLoadState('networkidle')`
 - Add explicit waits for dynamic content
 
 ### Element Not Found
+
 - Use `data-testid` attributes
 - Check selector specificity
 - Wait for element to be visible
 
 ### API Calls Failing
+
 - Verify backend is running
 - Check API URL configuration
 - Mock API responses for consistency
@@ -294,4 +323,3 @@ jobs:
 - Remove obsolete tests
 - Add tests for new features
 - Keep test data up to date
-

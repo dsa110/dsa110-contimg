@@ -1,6 +1,20 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, Jy, etc.)
 """FastAPI routing for the pipeline monitoring API."""
 
 from __future__ import annotations
+
+import warnings
+
+# Suppress known deprecation warnings from CASA dependencies
+# CASA's casaconfig uses deprecated pkg_resources API - this is a CASA issue, not ours
+# Warning: "pkg_resources is deprecated as an API... Refrain from using this package or pin to Setuptools<81"
+# We've pinned setuptools to 80.9.0, but CASA still uses the deprecated API internally
+warnings.filterwarnings(
+    "ignore",
+    message="pkg_resources is deprecated as an API",
+    category=UserWarning,
+    module="casaconfig.private.measures_update",
+)
 
 import asyncio
 import json
@@ -23,7 +37,6 @@ from fastapi import (
     Request,
     WebSocket,
     WebSocketDisconnect,
-    status,
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
@@ -40,21 +53,14 @@ from dsa110_contimg.api.data_access import (
     fetch_alert_history,
     fetch_calibration_sets,
     fetch_ese_candidates,
-    fetch_mosaic_by_id,
-    fetch_mosaics,
     fetch_observation_timeline,
     fetch_pointing_history,
     fetch_queue_stats,
     fetch_recent_calibrator_matches,
-    fetch_recent_products,
     fetch_recent_queue_groups,
     fetch_source_timeseries,
 )
-from dsa110_contimg.api.image_utils import (
-    convert_casa_to_fits,
-    get_fits_path,
-    resolve_image_path,
-)
+from dsa110_contimg.api.image_utils import get_fits_path, resolve_image_path
 from dsa110_contimg.api.models import (
     AlertHistory,
     AntennaInfo,
@@ -70,21 +76,18 @@ from dsa110_contimg.api.models import (
     BatchPhotometryParams,
     BatchPublishParams,
     CalibrateJobCreateRequest,
-    CalibrateJobParams,
     CalibrationQA,
     CalibratorMatchList,
     CalTableCompatibility,
     CalTableInfo,
     CalTableList,
     ConversionJobCreateRequest,
-    ConversionJobParams,
     Detection,
     DetectionList,
     DiskInfo,
     ESECandidate,
     ESECandidatesResponse,
     ESEDetectJobCreateRequest,
-    ESEDetectJobParams,
     ExistingCalTable,
     ExistingCalTables,
     ExternalCatalogMatch,
@@ -92,9 +95,6 @@ from dsa110_contimg.api.models import (
     FieldInfo,
     FlaggingStats,
     GroupDetail,
-    ImageDetail,
-    ImageInfo,
-    ImageList,
     ImageQA,
     Job,
     JobCreateRequest,
@@ -103,8 +103,6 @@ from dsa110_contimg.api.models import (
     LightCurveData,
     Measurement,
     MeasurementList,
-    Mosaic,
-    MosaicQueryResponse,
     MSCalibratorMatch,
     MSCalibratorMatchList,
     MsIndexEntry,
@@ -113,11 +111,9 @@ from dsa110_contimg.api.models import (
     MSListEntry,
     MSMetadata,
     ObservationTimeline,
-    PipelineStatus,
     PointingHistoryList,
     PostageStampInfo,
     PostageStampsResponse,
-    ProductList,
     QAArtifact,
     QAList,
     QAMetrics,
@@ -130,7 +126,6 @@ from dsa110_contimg.api.models import (
     StreamingStatusResponse,
     SystemMetrics,
     UVH5FileEntry,
-    UVH5FileList,
     VariabilityMetrics,
     WorkflowJobCreateRequest,
 )
@@ -139,6 +134,7 @@ from dsa110_contimg.api.streaming_service import (
     StreamingServiceManager,
 )
 from dsa110_contimg.qa.html_reports import generate_html_report
+from dsa110_contimg.utils.path_validation import sanitize_filename, validate_path
 
 # Module-level cache for UVH5 file listings (TTL: 30 seconds)
 # Shared across all requests for fast file discovery
@@ -148,13 +144,174 @@ _uvh5_cache_ttl = 30.0  # seconds
 logger = logging.getLogger(__name__)
 
 
+# Security helper functions for SQL injection prevention
+def _sanitize_sql_identifier(identifier: str, allowed: set[str] | None = None) -> str:
+    """
+    Sanitize SQL identifier (column/table name) to prevent SQL injection.
+
+    Args:
+        identifier: The identifier to sanitize
+        allowed: Optional whitelist of allowed identifiers
+
+    Returns:
+        Sanitized identifier
+
+    Raises:
+        ValueError: If identifier contains invalid characters or is not in whitelist
+    """
+    if not identifier or not isinstance(identifier, str):
+        raise ValueError("Identifier must be a non-empty string")
+
+    # Check against whitelist if provided
+    if allowed is not None and identifier not in allowed:
+        raise ValueError(f"Identifier '{identifier}' is not in allowed list: {allowed}")
+
+    # Validate identifier contains only alphanumeric, underscore, or dot characters
+    # This is a basic check; SQL identifiers can be more complex but this covers common cases
+    if not all(c.isalnum() or c in ("_", ".") for c in identifier):
+        raise ValueError(f"Identifier '{identifier}' contains invalid characters")
+
+    return identifier
+
+
+def _validate_enum_value(value: str | None, allowed: set[str] | None = None) -> str | None:
+    """
+    Validate enum/choice value against whitelist to prevent injection.
+
+    Args:
+        value: The value to validate
+        allowed: Optional whitelist of allowed values
+
+    Returns:
+        Validated value or None
+
+    Raises:
+        ValueError: If value is not None and not in whitelist
+    """
+    if value is None:
+        return None
+
+    if not isinstance(value, str):
+        raise ValueError("Value must be a string or None")
+
+    if allowed is not None and value not in allowed:
+        raise ValueError(f"Value '{value}' is not in allowed list: {allowed}")
+
+    return value
+
+
+def _build_safe_where_clause(field: str, value: Any, operator: str = "=") -> tuple[str, list[Any]]:
+    """
+    Build a safe WHERE clause fragment with parameterized value.
+
+    Args:
+        field: Column name (must be in allowed list or validated)
+        value: Value to compare
+        operator: SQL operator (=, !=, LIKE, etc.)
+
+    Returns:
+        Tuple of (clause_string, [value]) for use in parameterized queries
+    """
+    # Validate operator against safe list
+    safe_operators = {"=", "!=", "<>", "<", ">", "<=", ">=", "LIKE", "IS", "IS NOT"}
+    if operator.upper() not in safe_operators:
+        raise ValueError(f"Unsafe SQL operator: {operator}")
+
+    # Field name should be validated separately using _sanitize_sql_identifier
+    # For simplicity, we'll just use it directly in the clause
+    return f"{field} {operator} ?", [value]
+
+
 def create_app(config: ApiConfig | None = None) -> FastAPI:
     """Factory for the monitoring API application."""
+
+    # Set up CASA logging directory BEFORE any CASA imports
+    # This ensures CASA logs go to /data/dsa110-contimg/state/logs instead of workspace root
+    try:
+        from dsa110_contimg.utils.cli_helpers import setup_casa_environment
+
+        setup_casa_environment()
+    except Exception as e:
+        # Non-critical: continue if setup fails, but log the issue
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Failed to set up CASA logging environment: {e}")
 
     cfg = config or ApiConfig.from_env()
     app = FastAPI(title="DSA-110 Continuum Pipeline API", version="0.1.0")
     # Expose config to subrouters via app.state
     app.state.cfg = cfg
+
+    # Add exception handler for 404s that might be path traversal attempts
+    import urllib.parse
+
+    from fastapi.responses import JSONResponse
+
+    @app.exception_handler(404)
+    async def path_traversal_handler(request: Request, exc: HTTPException):
+        """Catch 404s that might be path traversal attempts and return 400 instead."""
+        path = request.url.path
+        query_string = str(request.url.query)
+
+        # Check both path and query string
+        full_path = f"{path}?{query_string}" if query_string else path
+
+        # Decode and normalize
+        decoded_path = urllib.parse.unquote(full_path)
+        normalized_path = decoded_path.replace("\\", "/")
+
+        # Check for path traversal indicators
+        suspicious_patterns = [
+            "..",
+            "/etc/",
+            "/usr/",
+            "/var/",
+            "/sys/",
+            "/proc/",
+            "/dev/",
+            "/root/",
+            "etc/passwd",
+            "etc/shadow",
+        ]
+
+        # Check if any suspicious pattern is in the path or query
+        if any(pattern in normalized_path for pattern in suspicious_patterns):
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "detail": f"Invalid path: Path traversal attempt detected in '{full_path}'"
+                },
+            )
+
+        # Check for suspicious path components in API routes
+        if "/api/" in path:
+            # Check path components
+            path_parts = normalized_path.split("/")
+            # Also check query parameters
+            query_parts = query_string.split("&") if query_string else []
+            all_parts = path_parts + [part.split("=")[-1] for part in query_parts if "=" in part]
+
+            suspicious_components = [
+                "etc",
+                "usr",
+                "var",
+                "sys",
+                "proc",
+                "dev",
+                "root",
+                "home",
+                "passwd",
+                "shadow",
+            ]
+            if any(comp in part for part in all_parts for comp in suspicious_components):
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "detail": f"Invalid path: Suspicious path component detected in '{full_path}'"
+                    },
+                )
+
+        # Default 404 response
+        return JSONResponse(status_code=404, content={"detail": "Not found"})
 
     # Setup performance and scalability middleware
     from dsa110_contimg.api.caching import get_cache
@@ -178,6 +335,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         from dsa110_contimg.api.websocket_manager import create_status_update, manager
         from dsa110_contimg.database.data_registry import ensure_data_registry_db
+        from dsa110_contimg.database.products import ensure_ingest_db
 
         # Pre-warm database connection to avoid cold-start delays
         try:
@@ -185,9 +343,31 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             conn = ensure_data_registry_db(db_path)
             # Execute a simple query to initialize the connection
             conn.execute("SELECT 1").fetchone()
-            logger.info("Pre-warmed data registry database connection")
+            logging.getLogger(__name__).info("Pre-warmed data registry database connection")
         except Exception as e:
-            logger.warning(f"Failed to pre-warm database connection: {e}")
+            logging.getLogger(__name__).warning(f"Failed to pre-warm database connection: {e}")
+
+        # Ensure ingest database exists with pointing_history table
+        try:
+            ingest_conn = ensure_ingest_db(cfg.queue_db)
+            ingest_conn.execute("SELECT 1").fetchone()
+            logging.getLogger(__name__).info(f"Initialized ingest database: {cfg.queue_db}")
+        except Exception as e:
+            logging.getLogger(__name__).warning(f"Failed to initialize ingest database: {e}")
+
+        # Initialize Absurd workflow manager
+        try:
+            from dsa110_contimg.absurd import AbsurdConfig
+            from dsa110_contimg.api.routers.absurd import initialize_absurd
+
+            absurd_config = AbsurdConfig.from_env()
+            if absurd_config.enabled:
+                await initialize_absurd(absurd_config)
+                logging.getLogger(__name__).info("Absurd workflow manager initialized")
+            else:
+                logging.getLogger(__name__).info("Absurd workflow manager disabled")
+        except Exception as e:
+            logging.getLogger(__name__).warning(f"Failed to initialize Absurd: {e}")
 
         # Pre-warm UVH5 file cache in background
         async def pre_warm_uvh5_cache():
@@ -195,21 +375,50 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             try:
                 input_dir = os.getenv("CONTIMG_INPUT_DIR", "/data/incoming")
                 search_path = Path(input_dir)
-                if search_path.exists():
-                    # Build cache in background (use module-level cache)
+                # Pre-warm cache from database instead of filesystem scan
+                from dsa110_contimg.database.products import ensure_products_db
+
+                products_db = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+                if products_db.exists():
+                    # Use context manager to ensure connection is always closed
+                    with ensure_products_db(products_db) as conn:
+                        query = """
+                        SELECT path FROM hdf5_file_index
+                        WHERE stored = 1
+                        ORDER BY path DESC
+                        LIMIT 100000
+                        """
+                        rows = conn.execute(query).fetchall()
+                        all_files = [row[0] for row in rows]
+                        # Access module-level cache (defined at top of file)
+                        import dsa110_contimg.api.routes as routes_module
+
+                        routes_module._uvh5_file_cache[str(search_path)] = (
+                            time.time(),
+                            all_files,
+                        )
+                        logging.getLogger(__name__).info(
+                            f"Pre-warmed UVH5 file cache from database: {len(all_files)} files"
+                        )
+                elif search_path.exists():
+                    # Fallback to filesystem scan if database doesn't exist
                     all_files = []
                     for root, dirs, files in os.walk(search_path):
                         for file in files:
                             if file.endswith(".hdf5"):
                                 all_files.append(os.path.join(root, file))
                     all_files.sort(reverse=True)
-                    # Access module-level cache (defined at top of file)
                     import dsa110_contimg.api.routes as routes_module
 
-                    routes_module._uvh5_file_cache[str(search_path)] = (time.time(), all_files)
-                    logger.info(f"Pre-warmed UVH5 file cache: {len(all_files)} files")
+                    routes_module._uvh5_file_cache[str(search_path)] = (
+                        time.time(),
+                        all_files,
+                    )
+                    logging.getLogger(__name__).info(
+                        f"Pre-warmed UVH5 file cache: {len(all_files)} files"
+                    )
             except Exception as e:
-                logger.warning(f"Failed to pre-warm UVH5 cache: {e}")
+                logging.getLogger(__name__).warning(f"Failed to pre-warm UVH5 cache: {e}")
 
         # Start pre-warming in background (don't await to avoid blocking startup)
         asyncio.create_task(pre_warm_uvh5_cache())
@@ -245,64 +454,26 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             "matched_recent": matched_recent,
                         }
                     except Exception as e:
-                        logger.warning(f"Failed to fetch pipeline status: {e}")
+                        logging.getLogger(__name__).warning(f"Failed to fetch pipeline status: {e}")
 
                     try:
                         # Use the shared metrics function to ensure consistency
                         system_metrics = _get_system_metrics()
 
-                        # Convert to dict format for WebSocket broadcast
-                        metrics = {
-                            "cpu_percent": system_metrics.cpu_percent,
-                            "memory_percent": system_metrics.mem_percent,
-                            "memory_used_gb": (
-                                round(system_metrics.mem_used / (1024**3), 2)
-                                if system_metrics.mem_used
-                                else None
-                            ),
-                            "memory_total_gb": (
-                                round(system_metrics.mem_total / (1024**3), 2)
-                                if system_metrics.mem_total
-                                else None
-                            ),
-                            "load_avg_1min": system_metrics.load_1,
-                            "timestamp": system_metrics.ts.isoformat(),
-                            # Include disk information
-                            "disks": [
-                                {
-                                    "mount_point": disk.mount_point,
-                                    "total_gb": round(disk.total / (1024**3), 2),
-                                    "used_gb": round(disk.used / (1024**3), 2),
-                                    "free_gb": round(disk.free / (1024**3), 2),
-                                    "percent": disk.percent,
-                                }
-                                for disk in system_metrics.disks
-                            ],
-                            # Legacy fields for backward compatibility
-                            "disk_percent": (
-                                system_metrics.disks[0].percent
-                                if len(system_metrics.disks) > 0
-                                else None
-                            ),
-                            "disk_free_gb": (
-                                round(
-                                    system_metrics.disks[0].free / (1024**3),
-                                    2,
-                                )
-                                if len(system_metrics.disks) > 0
-                                else None
-                            ),
-                            "disk_total_gb": (
-                                round(
-                                    system_metrics.disks[0].total / (1024**3),
-                                    2,
-                                )
-                                if len(system_metrics.disks) > 0
-                                else None
-                            ),
-                        }
+                        # Convert to dict format matching HTTP API response (SystemMetrics model)
+                        # This ensures WebSocket updates use the same format as the REST API
+                        # Use model_dump with json mode to serialize datetime to string (Pydantic v2)
+                        # or fallback to dict() and manually serialize datetime (Pydantic v1)
+                        if hasattr(system_metrics, "model_dump"):
+                            metrics = system_metrics.model_dump(mode="json")
+                        else:
+                            # Pydantic v1: manually serialize datetime to ISO string
+                            metrics_dict = system_metrics.dict()
+                            if "ts" in metrics_dict and metrics_dict["ts"]:
+                                metrics_dict["ts"] = metrics_dict["ts"].isoformat()
+                            metrics = metrics_dict
                     except Exception as e:
-                        logger.warning(f"Failed to fetch metrics: {e}")
+                        logging.getLogger(__name__).warning(f"Failed to fetch metrics: {e}")
                         metrics = None
 
                     try:
@@ -313,7 +484,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             "candidates": [c.dict() if hasattr(c, "dict") else c for c in ese_data],
                         }
                     except Exception as e:
-                        logger.warning(f"Failed to fetch ESE candidates: {e}")
+                        logging.getLogger(__name__).warning(f"Failed to fetch ESE candidates: {e}")
 
                     # Broadcast update
                     if pipeline_status or metrics or ese_candidates:
@@ -323,11 +494,26 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 except asyncio.CancelledError:
                     break
                 except Exception as e:
-                    logger.error(f"Error in status broadcaster: {e}")
+                    logging.getLogger(__name__).error(f"Error in status broadcaster: {e}")
                     await asyncio.sleep(10)
 
         # Start background task
         asyncio.create_task(broadcast_status())
+
+    @app.on_event("shutdown")
+    async def shutdown_absurd_client():
+        """Shutdown Absurd workflow manager on application shutdown."""
+        try:
+            from dsa110_contimg.api.routers.absurd import shutdown_absurd
+
+            await shutdown_absurd()
+        except Exception as e:
+            logging.getLogger(__name__).warning(f"Failed to shutdown Absurd: {e}")
+
+    # Note: API endpoints should always be accessed with /api prefix.
+    # The frontend apiClient is configured to always use /api prefix.
+    # If external monitoring tools need to access endpoints without /api, they should be updated
+    # to use the correct paths. Redirects/middleware are not needed if all clients use correct paths.
 
     # Add CORS middleware to allow frontend access (support dev and served static ports)
     app.add_middleware(
@@ -407,6 +593,20 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             @app.get("/ui/{path:path}")
             def serve_frontend_app(path: str):
                 """Serve frontend index.html for client-side routing."""
+                # SECURITY: Normalize path and prevent directory traversal
+                # Resolve the path relative to frontend_dist and ensure it doesn't escape
+                try:
+                    # Normalize the path by resolving it relative to frontend_dist
+                    requested_path = (frontend_dist / path).resolve()
+                    # Ensure the resolved path is still within frontend_dist
+                    frontend_dist_resolved = frontend_dist.resolve()
+                    if not str(requested_path).startswith(str(frontend_dist_resolved)):
+                        # Path traversal detected - reject request
+                        raise HTTPException(status_code=403, detail="Path traversal detected")
+                except (ValueError, RuntimeError):
+                    # Invalid path (e.g., contains null bytes or other invalid characters)
+                    raise HTTPException(status_code=400, detail="Invalid path")
+
                 # Handle specific static file requests
                 if path == "index.html" or path == "":
                     index_path = frontend_dist / "index.html"
@@ -419,9 +619,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
                 # If it looks like a file (has extension), try to serve it
                 if "." in last_part:
-                    file_path = frontend_dist / path
-                    if file_path.exists() and file_path.is_file():
-                        return FileResponse(str(file_path))
+                    # Use the normalized path that was already validated above
+                    if requested_path.exists() and requested_path.is_file():
+                        return FileResponse(str(requested_path))
 
                 # Otherwise serve index.html for client-side routing
                 index_path = frontend_dist / "index.html"
@@ -476,8 +676,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
     except ImportError:
-        logger.warning("Prometheus client not available, /metrics endpoint disabled")
+        logging.getLogger(__name__).warning(
+            "Prometheus client not available, /metrics endpoint disabled"
+        )
 
+    # Include routers at /api prefix (standard location)
     app.include_router(status_router, prefix="/api")
     app.include_router(images_router, prefix="/api")
     app.include_router(products_router, prefix="/api")
@@ -487,18 +690,42 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     app.include_router(operations_router, prefix="/api")
     app.include_router(pipeline_router, prefix="/api/pipeline")
 
+    # Transient detection (Phase 3.5)
+    from dsa110_contimg.api.routers import transients as transients_router_module
+
+    app.include_router(
+        transients_router_module.router, prefix="/api/transients", tags=["transients"]
+    )
+
+    # Also include status_router at root level for monitoring tools
+    # This makes /status, /ws/status, /sse/status available at root
+    app.include_router(status_router, prefix="")
+
     # Events and Cache monitoring (Phase 3)
     from dsa110_contimg.api.routers import cache as cache_router_module
     from dsa110_contimg.api.routers import events as events_router_module
+    from dsa110_contimg.api.routers import monitoring as monitoring_router_module
     from dsa110_contimg.api.routers import performance as performance_router_module
     from dsa110_contimg.api.routers import tasks as tasks_router_module
 
     app.include_router(events_router_module.router, prefix="/api/events", tags=["events"])
     app.include_router(cache_router_module.router, prefix="/api/cache", tags=["cache"])
     app.include_router(
-        performance_router_module.router, prefix="/api/performance", tags=["performance"]
+        performance_router_module.router,
+        prefix="/api/performance",
+        tags=["performance"],
+    )
+    app.include_router(
+        monitoring_router_module.router,
+        prefix="/api/monitoring",
+        tags=["monitoring"],
     )
     app.include_router(tasks_router_module.router, prefix="/api/tasks", tags=["tasks"])
+
+    # Absurd workflow manager (Phase 2)
+    from dsa110_contimg.api.routers import absurd as absurd_router_module
+
+    app.include_router(absurd_router_module.router, prefix="/api/absurd", tags=["absurd"])
 
     @router.get("/images/{image_id}/measurements", response_model=MeasurementList)
     def get_image_measurements(
@@ -545,7 +772,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             offset = (page - 1) * page_size
             rows = conn.execute(
                 """
-                SELECT 
+                SELECT
                     ra_deg, dec_deg, source_id,
                     peak_jyb, peak_err_jyb,
                     flux_int_jy, flux_int_err_jy,
@@ -894,23 +1121,28 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         Returns list of regions, optionally filtered by image_path or type.
         """
-        from dsa110_contimg.utils.regions import json_to_region, region_to_json
 
         db_path = cfg.products_db
         if not db_path.exists():
             raise HTTPException(status_code=404, detail="Database not found")
 
         with _connect(db_path) as conn:
+            # Validate region_type against allowed values to prevent SQL injection
+            # Add valid types as needed
+            allowed_region_types = {"polygon", "circle", "ellipse", "box"}
+            validated_region_type = _validate_enum_value(region_type, allowed_region_types)
+
             query = "SELECT * FROM regions WHERE 1=1"
             params = []
 
             if image_path:
+                # image_path is validated as a path, parameterized query prevents injection
                 query += " AND image_path = ?"
                 params.append(image_path)
 
-            if region_type:
+            if validated_region_type:
                 query += " AND type = ?"
-                params.append(region_type)
+                params.append(validated_region_type)
 
             query += " ORDER BY created_at DESC"
 
@@ -990,7 +1222,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/regions/{region_id}")
     def get_region(region_id: int):
         """Get a specific region by ID."""
-        from dsa110_contimg.utils.regions import json_to_region, region_to_json
 
         db_path = cfg.products_db
         if not db_path.exists():
@@ -1031,22 +1262,31 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             if not row:
                 raise HTTPException(status_code=404, detail=f"Region {region_id} not found")
 
-            # Update region
+            # Update region - use whitelist for column names to prevent SQL injection
+            allowed_fields = {"name", "coordinates"}
             update_fields = []
             params = []
 
-            if "name" in region_data:
-                update_fields.append("name = ?")
-                params.append(region_data["name"])
+            # Validate and sanitize field names before building query
+            for field in region_data:
+                if field in allowed_fields:
+                    _sanitize_sql_identifier(field, allowed_fields)
+                    if field == "name":
+                        update_fields.append("name = ?")
+                        params.append(region_data["name"])
+                    elif field == "coordinates":
+                        update_fields.append("coordinates = ?")
+                        params.append(json.dumps(region_data["coordinates"]))
 
-            if "coordinates" in region_data:
-                update_fields.append("coordinates = ?")
-                params.append(json.dumps(region_data["coordinates"]))
+            if not update_fields:
+                raise HTTPException(status_code=400, detail="No valid fields to update")
 
             update_fields.append("updated_at = ?")
             params.append(time.time())
             params.append(region_id)
 
+            # Use parameterized query with whitelisted column names
+            # Field names are validated above, only values are parameterized
             conn.execute(f"UPDATE regions SET {', '.join(update_fields)} WHERE id = ?", params)
             conn.commit()
 
@@ -1118,9 +1358,154 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         return CalibratorMatchList(items=items)
 
     @router.get("/pointing_history", response_model=PointingHistoryList)
-    def pointing_history(start_mjd: float, end_mjd: float) -> PointingHistoryList:
-        items = fetch_pointing_history(cfg.products_db, start_mjd, end_mjd)
+    def pointing_history(
+        start_mjd: float,
+        end_mjd: float,
+        time_interval_hours: float = 6.0,
+    ) -> PointingHistoryList:
+        """
+        Get pointing history with time-based sampling.
+
+        Args:
+            start_mjd: Start MJD timestamp
+            end_mjd: End MJD timestamp
+            time_interval_hours: Sample interval in hours (default: 6 hours)
+                                 Returns 1 point every N hours
+
+        Returns:
+            List of pointing entries sampled at regular time intervals
+        """
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.info(
+            f"pointing_history: start={start_mjd}, end={end_mjd}, "
+            f"time_interval_hours={time_interval_hours}"
+        )
+        items = fetch_pointing_history(
+            cfg.queue_db, start_mjd, end_mjd, time_interval_hours=time_interval_hours
+        )
+        logger.info(f"Returned {len(items)} observations")
         return PointingHistoryList(items=items)
+
+    @router.get("/pointing/sky-map")
+    def get_sky_map(
+        map_type: str = Query("synthetic", description="Map type: 'synthetic' or 'haslam'"),
+    ) -> FileResponse:
+        """Get all-sky radio map in Aitoff projection for pointing visualization.
+
+        Returns a PNG image that can be used as a background for the sky map.
+        """
+        from dsa110_contimg.pointing.sky_map_generator import get_sky_map_path
+
+        map_path = get_sky_map_path(map_type=map_type)
+        if map_path is None or not map_path.exists():
+            from fastapi import HTTPException
+
+            raise HTTPException(status_code=404, detail=f"Sky map not available (type: {map_type})")
+
+        return FileResponse(str(map_path), media_type="image/png", filename=map_path.name)
+
+    @router.get("/pointing/sky-map-data")
+    def get_sky_map_data(
+        frequency_mhz: float = Query(1400.0, description="Frequency in MHz (default: 1400)"),
+        resolution: int = Query(90, description="Grid resolution (default: 90)"),
+        map_type: str = Query("gsm", description="Map type: 'gsm' or 'synthetic'"),
+    ) -> dict:
+        """Get all-sky radio map data in Aitoff projection for pointing visualization.
+
+        Returns JSON data with x, y, z arrays for use in a heatmap plot.
+        Uses Global Sky Model (GSM) if available, otherwise falls back to synthetic data.
+        """
+        from dsa110_contimg.pointing.sky_map_generator import (
+            generate_gsm_sky_map_data,
+            generate_synthetic_sky_map_data,
+        )
+
+        if map_type == "gsm":
+            try:
+                data = generate_gsm_sky_map_data(frequency_mhz=frequency_mhz, resolution=resolution)
+            except Exception as e:
+                # Fall back to synthetic if GSM fails
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.warning(f"GSM generation failed, using synthetic: {e}")
+                data = generate_synthetic_sky_map_data(resolution=resolution)
+        else:
+            data = generate_synthetic_sky_map_data(resolution=resolution)
+
+        return data
+
+    @router.get("/pointing/mollweide-sky-map")
+    def get_mollweide_sky_map(
+        frequency_mhz: float = Query(1400.0, description="Frequency in MHz (default: 1400)"),
+        cmap: str = Query("inferno", description="Colormap (default: inferno)"),
+    ) -> FileResponse:
+        """Get Mollweide-projected HEALPix sky map image.
+
+        Returns a PNG image of the Global Sky Model in Mollweide projection
+        using healpy and pygdsm, following the user's example:
+        ```
+        import healpy as hp
+        import matplotlib.pyplot as plt
+        import numpy as np
+        import pygdsm
+        sky_map = pygdsm.GlobalSkyModel16().generate(1400)
+        hp.mollview(np.log10(sky_map), title="GSM at 1.4 GHz (log10 scale)",
+                    unit="log$_{10}$(K)", cmap="inferno")
+        ```
+        """
+        from fastapi import HTTPException
+
+        from dsa110_contimg.pointing.sky_map_generator import (
+            generate_mollweide_sky_map_image,
+        )
+
+        try:
+            image_path = generate_mollweide_sky_map_image(
+                frequency_mhz=frequency_mhz,
+                cmap=cmap,
+            )
+            return FileResponse(
+                str(image_path),
+                media_type="image/png",
+                filename=image_path.name,
+            )
+        except Exception as e:
+            logger.error(f"Failed to generate Mollweide sky map: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to generate Mollweide sky map: {str(e)}",
+            )
+
+    @router.get("/pointing/mollweide-sky-map-data")
+    def get_mollweide_sky_map_data_endpoint(
+        frequency_mhz: float = Query(1400.0, description="Frequency in MHz (default: 1400)"),
+        nside: int = Query(64, description="HEALPix NSIDE parameter (default: 64)"),
+    ) -> dict:
+        """Get HEALPix sky map data for Mollweide projection visualization.
+
+        Returns HEALPix pixel data (log10 scale) that can be used by the frontend
+        to render the Global Sky Model in Mollweide projection.
+        """
+        from fastapi import HTTPException
+
+        from dsa110_contimg.pointing.sky_map_generator import (
+            get_mollweide_sky_map_data,
+        )
+
+        try:
+            return get_mollweide_sky_map_data(
+                frequency_mhz=frequency_mhz,
+                nside=nside,
+            )
+        except Exception as e:
+            logger.error(f"Failed to get Mollweide sky map data: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to get Mollweide sky map data: {str(e)}",
+            )
 
     @router.get("/observation_timeline", response_model=ObservationTimeline)
     def observation_timeline(
@@ -1155,7 +1540,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Creates a plot similar to pointing_timeline.png showing time ranges where
         HDF5 observation data exists on disk.
         """
-        import io
         import tempfile
 
         import matplotlib
@@ -1204,7 +1588,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         # Set y-axis
         ax.set_yticks(range(len(timeline.segments)))
-        ax.set_yticklabels([f"Segment {i+1}" for i in range(len(timeline.segments))])
+        ax.set_yticklabels([f"Segment {i + 1}" for i in range(len(timeline.segments))])
         ax.set_ylim(-0.5, len(timeline.segments) - 0.5)
 
         # Title
@@ -1310,32 +1694,23 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         CRITICAL: Validates input to prevent path traversal attacks.
         Only allows files within the QA directory structure.
         """
-        # CRITICAL: Validate input doesn't contain path separators or traversal sequences
-        if "/" in group or "\\" in group or ".." in group:
-            return HTMLResponse(status_code=400, content="Invalid group name")
-        if "/" in name or "\\" in name or ".." in name:
-            return HTMLResponse(status_code=400, content="Invalid file name")
+        try:
+            # Sanitize input filenames
+            safe_group = sanitize_filename(group)
+            safe_name = sanitize_filename(name)
+        except ValueError as e:
+            return HTMLResponse(status_code=400, content=f"Invalid filename: {str(e)}")
 
         base_state = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
         base = (base_state / "qa").resolve()
 
-        # CRITICAL: Use joinpath to safely construct path (prevents double slashes, etc.)
-        # Then resolve to handle any symlinks and get absolute path
-        fpath = base.joinpath(group, name).resolve()
-
-        # CRITICAL: Verify resolved path is still within base directory
-        # This handles symlink attacks and ensures we don't escape the base directory
         try:
-            # Python 3.9+: safe containment check that handles symlinks
-            fpath.relative_to(base.resolve())
-        except (ValueError, AttributeError):
-            # Path is outside base directory or Python < 3.9 fallback
-            # For Python < 3.9, use string comparison as fallback
-            # Note: This is less secure against symlinks but better than nothing
-            base_str = str(base.resolve()) + os.sep
-            fpath_str = str(fpath)
-            if not fpath_str.startswith(base_str):
-                return HTMLResponse(status_code=403, content="Forbidden")
+            # Use path validation utility to safely construct and validate path
+            # Construct path from sanitized components
+            relative_path = Path(safe_group) / safe_name
+            fpath = validate_path(relative_path, base)
+        except ValueError as e:
+            return HTMLResponse(status_code=403, content=f"Forbidden: {str(e)}")
 
         if not fpath.exists() or not fpath.is_file():
             return HTMLResponse(status_code=404, content="Not found")
@@ -1363,9 +1738,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             pass
 
         # Collect disk usage for multiple mount points
+        # Note: /stage is a directory on root (/), not a separate mount point
+        # So we collect:
+        #   - / (root) = SSD with /stage directory
+        #   - /data = HDD bulk storage
         disk_paths = [
-            ("/stage/", "/stage"),
-            ("/data/", "/data"),
+            ("/ (SSD)", "/"),  # Root filesystem (NVMe SSD) - includes /stage
+            ("/data/ (HDD)", "/data"),  # Separate HDD mount point
         ]
 
         for mount_label, mount_path in disk_paths:
@@ -1375,6 +1754,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 used = int(du.used)
                 free = int(du.free)
                 percent = (used / total * 100.0) if total > 0 else 0.0
+
+                # DEBUG: Log what we're collecting
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.info(
+                    f"Disk collection: {mount_label} @ {mount_path} = {total / 1024**3:.1f} GB total, {percent:.1f}% used"
+                )
 
                 disks.append(
                     DiskInfo(
@@ -1386,12 +1773,17 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     )
                 )
 
-                # Keep backward compatibility: use /stage/ for legacy disk_total/disk_used
-                if mount_label == "/stage/":
+                # Keep backward compatibility: use root (SSD) for legacy disk_total/disk_used
+                if mount_path == "/":
                     disk_total = total
                     disk_used = used
-            except Exception:
-                # If mount point doesn't exist or isn't accessible, skip it
+            except Exception as e:
+                # Log error but continue to next disk
+                import logging
+
+                logging.getLogger(__name__).warning(
+                    f"Failed to get disk usage for {mount_label} ({mount_path}): {e}"
+                )
                 pass
 
         # Fallback to root disk if no disks were found
@@ -1421,6 +1813,18 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             load_5=load5,
             load_15=load15,
         )
+
+    @router.get("/metrics/database", response_model=dict)
+    def get_database_metrics() -> dict:
+        """Get database performance metrics.
+
+        Returns performance statistics including operation counts, error rates,
+        and latency percentiles for database operations.
+        """
+        from dsa110_contimg.api.db_utils import get_performance_monitor
+
+        monitor = get_performance_monitor()
+        return monitor.get_stats()
 
     @router.get("/metrics/system", response_model=SystemMetrics)
     def metrics_system() -> SystemMetrics:
@@ -1622,7 +2026,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 match_html = (
                     "<ul>"
                     + "".join(
-                        f"<li>{m.name} (sep {m.sep_deg:.2f}°; RA {m.ra_deg:.4f}°, Dec {m.dec_deg:.4f}°; wflux {'' if m.weighted_flux is None else f'{m.weighted_flux:.2f} Jy' })</li>"
+                        f"<li>{m.name} (sep {m.sep_deg:.2f}°; RA {m.ra_deg:.4f}°, Dec {m.dec_deg:.4f}°; wflux {'' if m.weighted_flux is None else f'{m.weighted_flux:.2f} Jy'})</li>"
                         for m in g.matches
                     )
                     + "</ul>"
@@ -1643,7 +2047,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         <h2>Recent Calibrator Matches</h2>
         <table>
           <tr><th>Group</th><th>Matched</th><th>Received</th><th>Last Update</th><th>Matches</th></tr>
-          {''.join(rows)}
+          {"".join(rows)}
         </table>
         </body></html>
         """
@@ -1667,15 +2071,35 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         if not db_path.exists():
             return MsIndexList(items=items)
         with _connect(db_path) as conn:
+            # Validate stage and status against allowed values to prevent SQL injection
+            allowed_stages = {
+                "ingest",
+                "calibrate",
+                "image",
+                "qa",
+                "archive",
+            }  # Add valid stages as needed
+            # Add valid statuses as needed
+            allowed_statuses = {
+                "pending",
+                "processing",
+                "completed",
+                "failed",
+                "skipped",
+            }
+
+            validated_stage = _validate_enum_value(stage, allowed_stages)
+            validated_status = _validate_enum_value(status, allowed_statuses)
+
             q = "SELECT path, start_mjd, end_mjd, mid_mjd, processed_at, status, stage, stage_updated_at, cal_applied, imagename FROM ms_index"
             where = []
             params: list[object] = []
-            if stage:
+            if validated_stage:
                 where.append("stage = ?")
-                params.append(stage)
-            if status:
+                params.append(validated_stage)
+            if validated_status:
                 where.append("status = ?")
-                params.append(status)
+                params.append(validated_status)
             if where:
                 q += " WHERE " + " AND ".join(where)
             # SQLite does not support NULLS LAST; DESC naturally places NULLs last for numeric values.
@@ -2411,7 +2835,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         Args:
             scan: If True, scan filesystem for MS files before listing
-            scan_dir: Directory to scan (defaults to CONTIMG_OUTPUT_DIR or /stage/dsa110-contimg/ms)
+            scan_dir: Directory to scan (defaults to CONTIMG_OUTPUT_DIR or /stage/dsa110-contimg/raw/ms)
             limit: Maximum number of results (1-1000, default: 100)
             offset: Offset for pagination (>= 0, default: 0)
         """
@@ -2419,7 +2843,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         limit = max(1, min(limit, 1000)) if limit > 0 else 100
         offset = max(0, offset) if offset >= 0 else 0
 
-        import astropy.units as u
         from astropy.time import Time
 
         from dsa110_contimg.database.products import (
@@ -2432,7 +2855,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         # Optionally scan filesystem for MS files
         if scan:
             if scan_dir is None:
-                scan_dir = os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms")
+                scan_dir = os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms")
             try:
                 discovered = discover_ms_files(db_path, scan_dir, recursive=True)
                 logger.info(f"Discovered {len(discovered)} MS files from {scan_dir}")
@@ -2490,9 +2913,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 except Exception:
                     pass
 
+            # WHERE clauses are built from hardcoded patterns with parameterized values
+            # This prevents SQL injection as no user input is directly inserted into SQL strings
             where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
 
-            # Determine sort order
+            # Determine sort order - validate sort_by against whitelist to prevent injection
             sort_mapping = {
                 "time_desc": "m.mid_mjd DESC",
                 "time_asc": "m.mid_mjd ASC",
@@ -2501,6 +2926,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 "size_desc": "m.path DESC",  # Size not in DB yet, use path
                 "size_asc": "m.path ASC",
             }
+            # Validate sort_by is in allowed mapping or use default
+            if sort_by and sort_by not in sort_mapping:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid sort_by value: {sort_by}. Allowed values: {list(sort_mapping.keys())}",
+                )
             order_by = sort_mapping.get(sort_by, "m.mid_mjd DESC")
 
             # Get total count (before pagination)
@@ -2513,7 +2944,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
             # Main query with joins (simplified - no calibrator info from pointing_history)
             query = f"""
-                SELECT 
+                SELECT
                     m.path,
                     m.mid_mjd,
                     m.status,
@@ -2596,16 +3027,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Scan filesystem for MS files and register them in the database.
 
         Request body (optional):
-            scan_dir: Directory to scan (defaults to CONTIMG_OUTPUT_DIR or /stage/dsa110-contimg/ms)
+            scan_dir: Directory to scan (defaults to CONTIMG_OUTPUT_DIR or /stage/dsa110-contimg/raw/ms)
             recursive: If True, scan subdirectories recursively (default: True)
 
         Returns:
             Dictionary with count of discovered MS files and list of paths
         """
-        from dsa110_contimg.database.products import (
-            discover_ms_files,
-            ensure_products_db,
-        )
+        from dsa110_contimg.database.products import discover_ms_files
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
 
@@ -2616,7 +3044,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         recursive = request.get("recursive", True)
 
         if scan_dir is None:
-            scan_dir = os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms")
+            scan_dir = os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms")
 
         try:
             discovered = discover_ms_files(db_path, scan_dir, recursive=recursive)
@@ -2708,7 +3136,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             while True:
                 jd = db_get_job(conn, job_id)
                 if not jd:
-                    yield f'event: error\ndata: {{"message": "Job not found"}}\n\n'
+                    yield 'event: error\ndata: {"message": "Job not found"}\n\n'
                     break
 
                 logs = jd.get("logs", "")
@@ -2719,7 +3147,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
                 # Check if job is done
                 if jd["status"] in ["done", "failed"]:
-                    yield f"event: complete\ndata: {{\"status\": \"{jd['status']}\"}}\n\n"
+                    yield f'event: complete\ndata: {{"status": "{jd["status"]}"}}\n\n'
                     break
 
                 await asyncio.sleep(1)
@@ -2863,7 +3291,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Returns:
             Dict with 'items' (list of UVH5 files), 'total' (total count), 'limit', 'offset'
         """
-        import glob as _glob
         import re
         import time
 
@@ -2904,25 +3331,38 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     del cache[cache_key]
 
             if not all_files:
-                # Find all .hdf5 files (use os.walk for better performance on large dirs)
-                # Limit initial scan to avoid very long first request
-                # Cache will be built incrementally
-                all_files = []
-                max_scan_files = 100000  # Limit to prevent extremely long scans
-                file_count = 0
+                # Query database for HDF5 files (much faster than filesystem scan)
+                import os as _os
 
-                for root, dirs, files in os.walk(search_path):
-                    for file in files:
-                        if file.endswith(".hdf5"):
-                            all_files.append(os.path.join(root, file))
-                            file_count += 1
-                            if file_count >= max_scan_files:
-                                break
-                    if file_count >= max_scan_files:
-                        break
+                from dsa110_contimg.database.products import ensure_products_db
 
-                # Sort by path (reverse for newest first)
-                all_files.sort(reverse=True)
+                products_db = Path(_os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+                if products_db.exists():
+                    conn = ensure_products_db(products_db)
+                    # Query all stored HDF5 files, sorted by path (newest first)
+                    query = """
+                    SELECT path FROM hdf5_file_index
+                    WHERE stored = 1
+                    ORDER BY path DESC
+                    LIMIT 100000
+                    """
+                    rows = conn.execute(query).fetchall()
+                    all_files = [row[0] for row in rows]
+                else:
+                    # Fallback to filesystem scan if database doesn't exist
+                    all_files = []
+                    max_scan_files = 100000
+                    file_count = 0
+                    for root, dirs, files in os.walk(search_path):
+                        for file in files:
+                            if file.endswith(".hdf5"):
+                                all_files.append(os.path.join(root, file))
+                                file_count += 1
+                                if file_count >= max_scan_files:
+                                    break
+                        if file_count >= max_scan_files:
+                            break
+                    all_files.sort(reverse=True)
 
                 # Cache the result
                 cache[cache_key] = (current_time, all_files)
@@ -3004,7 +3444,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     ) -> Job:
         """Create and run a UVH5 → MS conversion job."""
         from dsa110_contimg.api.job_runner import run_convert_job
-        from dsa110_contimg.api.models import ConversionJobParams, JobParams
+        from dsa110_contimg.api.models import JobParams
         from dsa110_contimg.database.jobs import create_job
         from dsa110_contimg.database.products import ensure_products_db
 
@@ -3045,12 +3485,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     def list_caltables(cal_dir: str | None = None) -> CalTableList:
         """List available calibration tables."""
         import glob as _glob
-        import re
 
         from dsa110_contimg.api.models import CalTableInfo, CalTableList
 
         if cal_dir is None:
-            cal_dir = os.getenv("CONTIMG_CAL_DIR", "/stage/dsa110-contimg/caltables")
+            cal_dir = os.getenv("CONTIMG_CAL_DIR", "/stage/dsa110-contimg/calibrated/tables")
 
         entries: list[CalTableInfo] = []
 
@@ -3111,174 +3550,187 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/ms/{ms_path:path}/metadata", response_model=MSMetadata)
     def get_ms_metadata(ms_path: str) -> MSMetadata:
         """Get metadata for an MS file."""
-        from dsa110_contimg.api.models import (
-            AntennaInfo,
-            FieldInfo,
-            FlaggingStats,
-            MSMetadata,
-        )
+        from dsa110_contimg.api.models import MSMetadata
 
         # Ensure CASAPATH is set before importing CASA modules
         from dsa110_contimg.utils.casa_init import ensure_casa_path
+        from dsa110_contimg.utils.cli_helpers import casa_log_environment
 
         ensure_casa_path()
 
-        import numpy as np
-        from casatools import ms as casams
-        from casatools import table
-
-        from dsa110_contimg.api.models import (
-            AntennaInfo,
-            FieldInfo,
-            FlaggingStats,
-            MSMetadata,
-        )
-
-        # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in ms_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {ms_path}")
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
 
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
+
         metadata = MSMetadata(path=ms_full_path)
 
-        try:
-            # Get basic info from MAIN table
-            tb = table()
-            tb.open(ms_full_path, nomodify=True)
+        # Use context manager to ensure CASA logs go to correct directory
+        with casa_log_environment():
+            import numpy as np
+            from casatools import table
 
-            # Extract time range using standardized utility (handles format detection)
-            from dsa110_contimg.utils.time_utils import extract_ms_time_range
-
-            start_mjd, end_mjd, _ = extract_ms_time_range(str(ms_path))
-            if start_mjd is not None and end_mjd is not None:
-                from astropy.time import Time
-
-                start_time_obj = Time(start_mjd, format="mjd")
-                end_time_obj = Time(end_mjd, format="mjd")
-                metadata.start_time = start_time_obj.isot
-                metadata.end_time = end_time_obj.isot
-                metadata.duration_sec = (end_mjd - start_mjd) * 86400.0
-
-            # Get available data columns
-            colnames = tb.colnames()
-            data_cols = [col for col in colnames if "DATA" in col]
-            metadata.data_columns = data_cols
-            metadata.calibrated = "CORRECTED_DATA" in data_cols
-
-            # Get flagging statistics
             try:
-                flags = tb.getcol("FLAG")
-                if flags.size > 0:
-                    total_flagged = np.sum(flags)
-                    total_data = flags.size
-                    flag_fraction = float(total_flagged / total_data) if total_data > 0 else 0.0
+                # Get basic info from MAIN table
+                tb = table()
+                tb.open(ms_full_path, nomodify=True)
 
-                    # Per-antenna flagging
-                    ant1 = tb.getcol("ANTENNA1")
-                    ant2 = tb.getcol("ANTENNA2")
-                    per_antenna = {}
-                    unique_ants = np.unique(np.concatenate([ant1, ant2]))
-                    for ant_id in unique_ants:
-                        ant_mask = (ant1 == ant_id) | (ant2 == ant_id)
-                        if np.any(ant_mask):
-                            ant_flags = flags[ant_mask]
-                            ant_frac = (
-                                float(np.sum(ant_flags) / ant_flags.size)
-                                if ant_flags.size > 0
-                                else 0.0
-                            )
-                            per_antenna[str(int(ant_id))] = ant_frac
+                # Extract time range using standardized utility (handles format detection)
+                from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
-                    # Per-field flagging
-                    field_ids = tb.getcol("FIELD_ID")
-                    per_field = {}
-                    unique_fields = np.unique(field_ids)
-                    for field_id in unique_fields:
-                        field_mask = field_ids == field_id
-                        if np.any(field_mask):
-                            field_flags = flags[field_mask]
-                            field_frac = (
-                                float(np.sum(field_flags) / field_flags.size)
-                                if field_flags.size > 0
-                                else 0.0
-                            )
-                            per_field[str(int(field_id))] = field_frac
+                start_mjd, end_mjd, _ = extract_ms_time_range(str(ms_path))
+                if start_mjd is not None and end_mjd is not None:
+                    from astropy.time import Time
 
-                    metadata.flagging_stats = FlaggingStats(
-                        total_fraction=flag_fraction,
-                        per_antenna=per_antenna if per_antenna else None,
-                        per_field=per_field if per_field else None,
+                    start_time_obj = Time(start_mjd, format="mjd")
+                    end_time_obj = Time(end_mjd, format="mjd")
+                    metadata.start_time = start_time_obj.isot
+                    metadata.end_time = end_time_obj.isot
+                    metadata.duration_sec = (end_mjd - start_mjd) * 86400.0
+
+                # Get available data columns
+                colnames = tb.colnames()
+                data_cols = [col for col in colnames if "DATA" in col]
+                metadata.data_columns = data_cols
+                metadata.calibrated = "CORRECTED_DATA" in data_cols
+
+                # Get flagging statistics
+                try:
+                    flags = tb.getcol("FLAG")
+                    if flags.size > 0:
+                        total_flagged = np.sum(flags)
+                        total_data = flags.size
+                        flag_fraction = float(total_flagged / total_data) if total_data > 0 else 0.0
+
+                        # Per-antenna flagging
+                        ant1 = tb.getcol("ANTENNA1")
+                        ant2 = tb.getcol("ANTENNA2")
+                        per_antenna = {}
+                        unique_ants = np.unique(np.concatenate([ant1, ant2]))
+                        for ant_id in unique_ants:
+                            ant_mask = (ant1 == ant_id) | (ant2 == ant_id)
+                            if np.any(ant_mask):
+                                ant_flags = flags[ant_mask]
+                                ant_frac = (
+                                    float(np.sum(ant_flags) / ant_flags.size)
+                                    if ant_flags.size > 0
+                                    else 0.0
+                                )
+                                per_antenna[str(int(ant_id))] = ant_frac
+
+                        # Per-field flagging
+                        field_ids = tb.getcol("FIELD_ID")
+                        per_field = {}
+                        unique_fields = np.unique(field_ids)
+                        for field_id in unique_fields:
+                            field_mask = field_ids == field_id
+                            if np.any(field_mask):
+                                field_flags = flags[field_mask]
+                                field_frac = (
+                                    float(np.sum(field_flags) / field_flags.size)
+                                    if field_flags.size > 0
+                                    else 0.0
+                                )
+                                per_field[str(int(field_id))] = field_frac
+
+                        metadata.flagging_stats = FlaggingStats(
+                            total_fraction=flag_fraction,
+                            per_antenna=per_antenna if per_antenna else None,
+                            per_field=per_field if per_field else None,
+                        )
+                except Exception as e:
+                    logger.warning(f"Could not extract flagging stats: {e}")
+
+                tb.close()
+
+                # Get field info with coordinates
+                tb.open(f"{ms_full_path}/FIELD", nomodify=True)
+                field_names = tb.getcol("NAME").tolist()
+                phase_dir = tb.getcol("PHASE_DIR")
+
+                fields = []
+                for i, name in enumerate(field_names):
+                    # Extract RA/Dec from PHASE_DIR (handles various shapes)
+                    pd = np.asarray(phase_dir[i])
+                    if pd.ndim == 3 and pd.shape[-1] == 2:
+                        ra_rad = float(pd[0, 0, 0])
+                        dec_rad = float(pd[0, 0, 1])
+                    elif pd.ndim == 2 and pd.shape[-1] == 2:
+                        ra_rad = float(pd[0, 0])
+                        dec_rad = float(pd[0, 1])
+                    elif pd.ndim == 1 and pd.shape[0] == 2:
+                        ra_rad = float(pd[0])
+                        dec_rad = float(pd[1])
+                    else:
+                        ra_rad = float(pd.ravel()[-2])
+                        dec_rad = float(pd.ravel()[-1])
+
+                    # Convert radians to degrees
+                    ra_deg = np.degrees(ra_rad)
+                    dec_deg = np.degrees(dec_rad)
+
+                    fields.append(
+                        FieldInfo(field_id=i, name=str(name), ra_deg=ra_deg, dec_deg=dec_deg)
                     )
+
+                metadata.num_fields = len(field_names)
+                metadata.field_names = field_names
+                metadata.fields = fields
+                tb.close()
+
+                # Get spectral window info
+                tb.open(f"{ms_full_path}/SPECTRAL_WINDOW", nomodify=True)
+                chan_freqs = tb.getcol("CHAN_FREQ")
+                if len(chan_freqs) > 0:
+                    metadata.freq_min_ghz = float(chan_freqs.min() / 1e9)
+                    metadata.freq_max_ghz = float(chan_freqs.max() / 1e9)
+                    metadata.num_channels = int(chan_freqs.shape[0])
+                tb.close()
+
+                # Get antenna info with names
+                tb.open(f"{ms_full_path}/ANTENNA", nomodify=True)
+                antenna_names = tb.getcol("NAME").tolist()
+                antennas = []
+                for i, name in enumerate(antenna_names):
+                    antennas.append(AntennaInfo(antenna_id=i, name=str(name)))
+                metadata.num_antennas = len(antennas)
+                metadata.antennas = antennas
+                tb.close()
+
+                # Get size
+                size_bytes = sum(
+                    os.path.getsize(os.path.join(dirpath, filename))
+                    for dirpath, _, filenames in os.walk(ms_full_path)
+                    for filename in filenames
+                )
+                metadata.size_gb = round(size_bytes / (1024**3), 2)
+
             except Exception as e:
-                logger.warning(f"Could not extract flagging stats: {e}")
-
-            tb.close()
-
-            # Get field info with coordinates
-            tb.open(f"{ms_full_path}/FIELD", nomodify=True)
-            field_names = tb.getcol("NAME").tolist()
-            phase_dir = tb.getcol("PHASE_DIR")
-
-            fields = []
-            for i, name in enumerate(field_names):
-                # Extract RA/Dec from PHASE_DIR (handles various shapes)
-                pd = np.asarray(phase_dir[i])
-                if pd.ndim == 3 and pd.shape[-1] == 2:
-                    ra_rad = float(pd[0, 0, 0])
-                    dec_rad = float(pd[0, 0, 1])
-                elif pd.ndim == 2 and pd.shape[-1] == 2:
-                    ra_rad = float(pd[0, 0])
-                    dec_rad = float(pd[0, 1])
-                elif pd.ndim == 1 and pd.shape[0] == 2:
-                    ra_rad = float(pd[0])
-                    dec_rad = float(pd[1])
-                else:
-                    ra_rad = float(pd.ravel()[-2])
-                    dec_rad = float(pd.ravel()[-1])
-
-                # Convert radians to degrees
-                ra_deg = np.degrees(ra_rad)
-                dec_deg = np.degrees(dec_rad)
-
-                fields.append(FieldInfo(field_id=i, name=str(name), ra_deg=ra_deg, dec_deg=dec_deg))
-
-            metadata.num_fields = len(field_names)
-            metadata.field_names = field_names
-            metadata.fields = fields
-            tb.close()
-
-            # Get spectral window info
-            tb.open(f"{ms_full_path}/SPECTRAL_WINDOW", nomodify=True)
-            chan_freqs = tb.getcol("CHAN_FREQ")
-            if len(chan_freqs) > 0:
-                metadata.freq_min_ghz = float(chan_freqs.min() / 1e9)
-                metadata.freq_max_ghz = float(chan_freqs.max() / 1e9)
-                metadata.num_channels = int(chan_freqs.shape[0])
-            tb.close()
-
-            # Get antenna info with names
-            tb.open(f"{ms_full_path}/ANTENNA", nomodify=True)
-            antenna_names = tb.getcol("NAME").tolist()
-            antennas = []
-            for i, name in enumerate(antenna_names):
-                antennas.append(AntennaInfo(antenna_id=i, name=str(name)))
-            metadata.num_antennas = len(antennas)
-            metadata.antennas = antennas
-            tb.close()
-
-            # Get size
-            size_bytes = sum(
-                os.path.getsize(os.path.join(dirpath, filename))
-                for dirpath, _, filenames in os.walk(ms_full_path)
-                for filename in filenames
-            )
-            metadata.size_gb = round(size_bytes / (1024**3), 2)
-
-        except Exception as e:
-            logger.error(f"Error extracting MS metadata: {e}")
-            # Return partial metadata if some operations fail
-            pass
+                logger.error(f"Error extracting MS metadata: {e}")
+                # Return partial metadata if some operations fail
+                pass
 
         return metadata
 
@@ -3287,168 +3739,203 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         ms_path: str, catalog: str = "vla", radius_deg: float = 1.5, top_n: int = 5
     ) -> MSCalibratorMatchList:
         """Find calibrator candidates for an MS."""
-        import astropy.units as u
+        from dsa110_contimg.utils.casa_init import ensure_casa_path
+        from dsa110_contimg.utils.cli_helpers import casa_log_environment
+
+        ensure_casa_path()
+
+        import astropy.units as u  # pylint: disable=no-member
         import numpy as np
         from astropy.time import Time
-        from casatools import table
 
         from dsa110_contimg.calibration.catalogs import (
             airy_primary_beam_response,
             calibrator_match,
-            read_vla_parsed_catalog_csv,
         )
         from dsa110_contimg.pointing.utils import load_pointing
 
-        # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in ms_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {ms_path}")
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
 
-        try:
-            # Get pointing declination
-            pointing_info = load_pointing(ms_full_path)
-            pt_dec = pointing_info["dec_deg"] * u.deg  # pylint: disable=no-member
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
 
-            # Get mid MJD from MS using standardized utility function
-            # This handles both TIME formats (seconds since MJD 0 vs MJD 51544.0)
-            from dsa110_contimg.utils.time_utils import extract_ms_time_range
+        # Use context manager to ensure CASA logs go to correct directory
+        with casa_log_environment():
+            try:
+                # Get pointing declination
+                pointing_info = load_pointing(ms_full_path)
+                pt_dec = pointing_info["dec_deg"] * u.deg  # pylint: disable=no-member
 
-            start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_full_path)
+                # Get mid MJD from MS using standardized utility function
+                # This handles both TIME formats (seconds since MJD 0 vs MJD 51544.0)
+                from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
-            if mid_mjd is None:
-                raise HTTPException(status_code=400, detail="MS has no valid time data")
+                start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_full_path)
 
-            # Load catalog
-            if catalog == "vla":
-                from dsa110_contimg.calibration.catalogs import load_vla_catalog
+                if mid_mjd is None:
+                    raise HTTPException(status_code=400, detail="MS has no valid time data")
 
-                try:
-                    df = load_vla_catalog()
-                except FileNotFoundError as e:
-                    raise HTTPException(status_code=500, detail=f"VLA catalog not found: {e}")
-            else:
-                raise HTTPException(status_code=400, detail="Unknown catalog")
+                # Load catalog
+                if catalog == "vla":
+                    from dsa110_contimg.calibration.catalogs import load_vla_catalog
 
-            # Get top matches
-            matches_raw = calibrator_match(
-                df, pt_dec, mid_mjd, radius_deg=radius_deg, freq_ghz=1.4, top_n=top_n
-            )
+                    try:
+                        df = load_vla_catalog()
+                    except FileNotFoundError as e:
+                        raise HTTPException(status_code=500, detail=f"VLA catalog not found: {e}")
+                else:
+                    raise HTTPException(status_code=400, detail="Unknown catalog")
 
-            # Determine PB response reference point
-            # For phased MS files, if a calibrator is found, assume MS is phased to it
-            # Otherwise use telescope pointing (meridian)
-            use_calibrator_as_phase_center = False
-            phase_center_ra_deg = None
-            phase_center_dec_deg = None
+                # Get top matches
+                matches_raw = calibrator_match(
+                    df,
+                    pt_dec,
+                    mid_mjd,
+                    radius_deg=radius_deg,
+                    freq_ghz=1.4,
+                    top_n=top_n,
+                )
 
-            # Check if MS filename suggests it's phased (heuristic)
-            ms_basename = os.path.basename(ms_full_path).lower()
-            ms_dirname = os.path.basename(os.path.dirname(ms_full_path)).lower()
-            is_phased_ms = "phased" in ms_basename
+                # Determine PB response reference point
+                # For phased MS files, if a calibrator is found, assume MS is phased to it
+                # Otherwise use telescope pointing (meridian)
+                use_calibrator_as_phase_center = False
+                phase_center_ra_deg = None
+                phase_center_dec_deg = None
 
-            # If MS appears phased and we have matches, check if calibrator name matches directory
-            # or if calibrator is reasonably close (< 0.2 deg for phased MS)
-            if is_phased_ms and matches_raw:
-                best_match = matches_raw[0]  # Already sorted by weighted_flux
-                calibrator_name = best_match["name"].lower()
-                # Check if calibrator name appears in directory name (e.g., "0834_transit" contains "0834")
-                # Clean calibrator name: remove + and -, split by spaces
-                calibrator_clean = calibrator_name.replace("+", "").replace("-", "")
-                # Extract numeric part (e.g., "0834" from "0834555")
-                calibrator_parts = [p for p in calibrator_clean.split() if len(p) >= 4]
-                if not calibrator_parts:
-                    # Try to extract first 4 digits
-                    import re
+                # Check if MS filename suggests it's phased (heuristic)
+                ms_basename = os.path.basename(ms_full_path).lower()
+                ms_dirname = os.path.basename(os.path.dirname(ms_full_path)).lower()
+                is_phased_ms = "phased" in ms_basename
 
-                    digits = re.findall(r"\d{4,}", calibrator_clean)
-                    # Use first 4+ digit sequence
-                    calibrator_parts = digits[:1]
-                name_in_dir = any(part in ms_dirname for part in calibrator_parts)
+                # If MS appears phased and we have matches, check if calibrator name matches directory
+                # or if calibrator is reasonably close (< 0.2 deg for phased MS)
+                if is_phased_ms and matches_raw:
+                    best_match = matches_raw[0]  # Already sorted by weighted_flux
+                    calibrator_name = best_match["name"].lower()
+                    # Check if calibrator name appears in directory name (e.g., "0834_transit" contains "0834")
+                    # Clean calibrator name: remove + and -, split by spaces
+                    calibrator_clean = calibrator_name.replace("+", "").replace("-", "")
+                    # Extract numeric part (e.g., "0834" from "0834555")
+                    calibrator_parts = [p for p in calibrator_clean.split() if len(p) >= 4]
+                    name_in_dir = False
+                    if not calibrator_parts:
+                        # Try to extract first 4 digits
+                        import re
 
-                # For phased MS, use calibrator coordinates if:
-                # 1. Calibrator name matches directory, OR
-                # 2. Separation is small (< 0.2 deg = 12 arcmin)
-                if name_in_dir or best_match.get("sep_deg", 999) < 0.2:
-                    use_calibrator_as_phase_center = True
+                        digits = re.findall(r"\d{4,}", calibrator_clean)
+                        # Use first 4+ digit sequence
+                        calibrator_parts = digits[:1]
+                        name_in_dir = any(part in ms_dirname for part in calibrator_parts)
+                    else:
+                        name_in_dir = any(part in ms_dirname for part in calibrator_parts)
+
+                    # For phased MS, use calibrator coordinates if:
+                    # 1. Calibrator name matches directory, OR
+                    # 2. Separation is small (< 0.2 deg = 12 arcmin)
+                    if name_in_dir or best_match.get("sep_deg", 999) < 0.2:
+                        use_calibrator_as_phase_center = True
                     phase_center_ra_deg = best_match["ra_deg"]
                     phase_center_dec_deg = best_match["dec_deg"]
 
-            # Convert to MSCalibratorMatch with quality assessment
-            matches = []
-            for m in matches_raw:
-                # Get flux from catalog - use flux_jy column (already in Jy)
-                flux_jy = df.loc[m["name"], "flux_jy"] if m["name"] in df.index else 0.0
+                    # Convert to MSCalibratorMatch with quality assessment
+                    matches = []
+                    for m in matches_raw:
+                        # Get flux from catalog - use flux_jy column (already in Jy)
+                        flux_jy = df.loc[m["name"], "flux_jy"] if m["name"] in df.index else 0.0
 
-                # Compute PB response
-                # For phased MS files phased to a calibrator, use calibrator coordinates
-                # Otherwise use telescope pointing (meridian)
-                if use_calibrator_as_phase_center and phase_center_ra_deg is not None:
-                    # Use calibrator coordinates (MS is phased to this calibrator)
-                    pb_response = airy_primary_beam_response(
-                        np.deg2rad(phase_center_ra_deg),
-                        np.deg2rad(phase_center_dec_deg),
-                        np.deg2rad(m["ra_deg"]),
-                        np.deg2rad(m["dec_deg"]),
-                        1.4,
-                    )
-                else:
-                    # Use telescope pointing (meridian) for unphased MS files
-                    from astropy.coordinates import Angle
+                        # Compute PB response
+                        # For phased MS files phased to a calibrator, use calibrator coordinates
+                        # Otherwise use telescope pointing (meridian)
+                        if use_calibrator_as_phase_center and phase_center_ra_deg is not None:
+                            # Use calibrator coordinates (MS is phased to this calibrator)
+                            pb_response = airy_primary_beam_response(
+                                np.deg2rad(phase_center_ra_deg),
+                                np.deg2rad(phase_center_dec_deg),
+                                np.deg2rad(m["ra_deg"]),
+                                np.deg2rad(m["dec_deg"]),
+                                1.4,
+                            )
+                        else:
+                            # Use telescope pointing (meridian) for unphased MS files
 
-                    t = Time(mid_mjd, format="mjd", scale="utc")
-                    from dsa110_contimg.utils.constants import DSA110_LOCATION
+                            t = Time(mid_mjd, format="mjd", scale="utc")
+                            from dsa110_contimg.utils.constants import DSA110_LOCATION
 
-                    t.location = DSA110_LOCATION
-                    ra_meridian = t.sidereal_time("apparent").to_value(
-                        u.deg  # pylint: disable=no-member
-                    )
-                    dec_meridian = float(pt_dec.to_value(u.deg))  # pylint: disable=no-member
+                            t.location = DSA110_LOCATION
+                            ra_meridian = t.sidereal_time("apparent").to_value(
+                                u.deg  # pylint: disable=no-member
+                            )
+                            dec_meridian = float(
+                                pt_dec.to_value(u.deg)
+                            )  # pylint: disable=no-member
 
-                    pb_response = airy_primary_beam_response(
-                        np.deg2rad(ra_meridian),
-                        np.deg2rad(dec_meridian),
-                        np.deg2rad(m["ra_deg"]),
-                        np.deg2rad(m["dec_deg"]),
-                        1.4,
-                    )
+                            pb_response = airy_primary_beam_response(
+                                np.deg2rad(ra_meridian),
+                                np.deg2rad(dec_meridian),
+                                np.deg2rad(m["ra_deg"]),
+                                np.deg2rad(m["dec_deg"]),
+                                1.4,
+                            )
 
-                # Determine quality
-                if pb_response >= 0.8:
-                    quality = "excellent"
-                elif pb_response >= 0.5:
-                    quality = "good"
-                elif pb_response >= 0.3:
-                    quality = "marginal"
-                else:
-                    quality = "poor"
+                        # Determine quality
+                        if pb_response >= 0.8:
+                            quality = "excellent"
+                        elif pb_response >= 0.5:
+                            quality = "good"
+                        elif pb_response >= 0.3:
+                            quality = "marginal"
+                        else:
+                            quality = "poor"
 
-                matches.append(
-                    MSCalibratorMatch(
-                        name=m["name"],
-                        ra_deg=m["ra_deg"],
-                        dec_deg=m["dec_deg"],
-                        flux_jy=float(flux_jy),
-                        sep_deg=m["sep_deg"],
-                        pb_response=float(pb_response),
-                        weighted_flux=m.get("weighted_flux", 0.0),
-                        quality=quality,
-                        recommended_fields=None,  # Could add field detection here
-                    )
-                )
+                        matches.append(
+                            MSCalibratorMatch(
+                                name=m["name"],
+                                ra_deg=m["ra_deg"],
+                                dec_deg=m["dec_deg"],
+                                flux_jy=float(flux_jy),
+                                sep_deg=m["sep_deg"],
+                                pb_response=float(pb_response),
+                                weighted_flux=m.get("weighted_flux", 0.0),
+                                quality=quality,
+                                recommended_fields=None,  # Could add field detection here
+                            )
+                        )
 
-            has_calibrator = len(matches) > 0 and matches[0].pb_response > 0.3
+                        has_calibrator = len(matches) > 0 and matches[0].pb_response > 0.3
 
-            return MSCalibratorMatchList(
-                ms_path=ms_full_path,
-                pointing_dec=float(pt_dec.to_value(u.deg)),  # pylint: disable=no-member
-                mid_mjd=float(mid_mjd),
-                matches=matches,
-                has_calibrator=has_calibrator,
-            )
+                        return MSCalibratorMatchList(
+                            ms_path=ms_full_path,
+                            pointing_dec=float(pt_dec.to_value(u.deg)),  # pylint: disable=no-member
+                            mid_mjd=float(mid_mjd),
+                            matches=matches,
+                            has_calibrator=has_calibrator,
+                        )
 
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error finding calibrators: {str(e)}")
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Error finding calibrators: {str(e)}")
 
     @router.get("/ms/{ms_path:path}/existing-caltables", response_model=ExistingCalTables)
     def get_existing_caltables(ms_path: str) -> ExistingCalTables:
@@ -3456,11 +3943,32 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         import glob
         import time
 
-        # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in ms_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {ms_path}")
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
+
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
 
         # Get MS directory and base name
         ms_dir = os.path.dirname(ms_full_path)
@@ -3517,8 +4025,16 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         - Frequency ranges overlap
         - Table structure is valid
         """
+        from dsa110_contimg.utils.casa_init import ensure_casa_path
+        from dsa110_contimg.utils.cli_helpers import casa_log_environment
+
+        ensure_casa_path()
+
         import numpy as np
-        from casatools import table
+
+        # Use context manager to ensure CASA logs go to correct directory
+        with casa_log_environment():
+            from casatools import table
 
         # Decode paths
         ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
@@ -3569,64 +4085,64 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 # Get spectral window from cal table
                 if "SPECTRAL_WINDOW_ID" in tb.colnames():
                     spw_ids = tb.getcol("SPECTRAL_WINDOW_ID")
-                    unique_spws = np.unique(spw_ids)
+                    _ = np.unique(spw_ids)  # Available for future use
 
-                    # Try to get frequency info from cal table's SPECTRAL_WINDOW subtable
-                    try:
-                        tb_spw = table()
-                        tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
-                        if tb_spw.nrows() > 0:
-                            cal_chan_freqs = tb_spw.getcol("CHAN_FREQ")
-                            if len(cal_chan_freqs) > 0:
-                                caltable_freq_min_ghz = float(cal_chan_freqs.min() / 1e9)
-                                caltable_freq_max_ghz = float(cal_chan_freqs.max() / 1e9)
-                        tb_spw.close()
-                    except Exception:
-                        warnings.append("Could not extract frequency range from calibration table")
-            tb.close()
+                # Try to get frequency info from cal table's SPECTRAL_WINDOW subtable
+                try:
+                    tb_spw = table()
+                    tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
+                    if tb_spw.nrows() > 0:
+                        cal_chan_freqs = tb_spw.getcol("CHAN_FREQ")
+                        if len(cal_chan_freqs) > 0:
+                            caltable_freq_min_ghz = float(cal_chan_freqs.min() / 1e9)
+                            caltable_freq_max_ghz = float(cal_chan_freqs.max() / 1e9)
+                    tb_spw.close()
+                except Exception:
+                    warnings.append("Could not extract frequency range from calibration table")
+                tb.close()
 
-            # Validate antenna compatibility
-            if caltable_antennas:
-                missing_ants = set(caltable_antennas) - set(ms_antennas)
-                if missing_ants:
-                    issues.append(
-                        f"Calibration table contains antennas not in MS: {sorted(missing_ants)}"
-                    )
-                    is_compatible = False
-
-                extra_ants = set(ms_antennas) - set(caltable_antennas)
-                if extra_ants:
-                    warnings.append(
-                        f"MS contains antennas not in calibration table: {sorted(extra_ants)}"
-                    )
-
-            # Validate frequency compatibility
-            if (
-                ms_freq_min_ghz
-                and ms_freq_max_ghz
-                and caltable_freq_min_ghz
-                and caltable_freq_max_ghz
-            ):
-                # Check if frequency ranges overlap
-                freq_overlap = not (
-                    ms_freq_max_ghz < caltable_freq_min_ghz
-                    or caltable_freq_max_ghz < ms_freq_min_ghz
-                )
-                if not freq_overlap:
-                    issues.append(
-                        f"Frequency ranges do not overlap: "
-                        f"MS={ms_freq_min_ghz:.3f}-{ms_freq_max_ghz:.3f} GHz, "
-                        f"Cal={caltable_freq_min_ghz:.3f}-{caltable_freq_max_ghz:.3f} GHz"
-                    )
-                    is_compatible = False
-                else:
-                    # Check if ranges are significantly different
-                    ms_range = ms_freq_max_ghz - ms_freq_min_ghz
-                    cal_range = caltable_freq_max_ghz - caltable_freq_min_ghz
-                    if abs(ms_range - cal_range) / max(ms_range, cal_range) > 0.2:
-                        warnings.append(
-                            "Frequency ranges have different widths (may indicate different observations)"
+                # Validate antenna compatibility
+                if ms_antennas and caltable_antennas:
+                    missing_ants = set(caltable_antennas) - set(ms_antennas)
+                    if missing_ants:
+                        issues.append(
+                            f"Calibration table contains antennas not in MS: {sorted(missing_ants)}"
                         )
+                        is_compatible = False
+
+                    extra_ants = set(ms_antennas) - set(caltable_antennas)
+                    if extra_ants:
+                        warnings.append(
+                            f"MS contains antennas not in calibration table: {sorted(extra_ants)}"
+                        )
+
+                # Validate frequency compatibility
+                if (
+                    ms_freq_min_ghz
+                    and ms_freq_max_ghz
+                    and caltable_freq_min_ghz
+                    and caltable_freq_max_ghz
+                ):
+                    # Check if frequency ranges overlap
+                    freq_overlap = not (
+                        ms_freq_max_ghz < caltable_freq_min_ghz
+                        or caltable_freq_max_ghz < ms_freq_min_ghz
+                    )
+                    if not freq_overlap:
+                        issues.append(
+                            f"Frequency ranges do not overlap: "
+                            f"MS={ms_freq_min_ghz:.3f}-{ms_freq_max_ghz:.3f} GHz, "
+                            f"Cal={caltable_freq_min_ghz:.3f}-{caltable_freq_max_ghz:.3f} GHz"
+                        )
+                        is_compatible = False
+                    else:
+                        # Check if ranges are significantly different
+                        ms_range = ms_freq_max_ghz - ms_freq_min_ghz
+                        cal_range = caltable_freq_max_ghz - caltable_freq_min_ghz
+                        if abs(ms_range - cal_range) / max(ms_range, cal_range) > 0.2:
+                            warnings.append(
+                                "Frequency ranges have different widths (may indicate different observations)"
+                            )
 
         except Exception as e:
             logger.error(f"Error validating calibration table compatibility: {e}")
@@ -3653,46 +4169,42 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         import glob
         import urllib.parse
 
-        from dsa110_contimg.calibration.caltables import discover_caltables
-
-        # FastAPI automatically URL-decodes path parameters, but we need to handle
-        # cases where the path might not start with / and ensure proper decoding
-        # Handle URL-encoded colons and other special characters
+        # Decode URL-encoded path and normalize Windows-style separators
         decoded_path = urllib.parse.unquote(ms_path)
-        ms_full_path = f"/{decoded_path}" if not decoded_path.startswith("/") else decoded_path
+        # Replace Windows-style backslashes with forward slashes
+        normalized_path = decoded_path.replace("\\", "/")
 
-        # Log for debugging
-        logger.debug(
-            f"Bandpass plots request - received: {ms_path}, decoded: {decoded_path}, full: {ms_full_path}"
-        )
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if normalized_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(normalized_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in normalized_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {normalized_path}")
+                ms_full_path = validate_path(normalized_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
-            logger.warning(
-                f"MS not found at path: {ms_full_path} (received: {ms_path}, decoded: {decoded_path})"
-            )
-            # Try alternative path constructions
-            alt_paths = [
-                ms_full_path,
-                decoded_path,
-                f"/{decoded_path}",
-                ms_path if ms_path.startswith("/") else f"/{ms_path}",
-            ]
-            logger.debug(f"Tried paths: {alt_paths}")
-            for alt in alt_paths:
-                if os.path.exists(alt):
-                    logger.info(f"Found MS at alternative path: {alt}")
-                    ms_full_path = alt
-                    break
-            else:
-                # Return detailed error with all attempted paths for debugging
-                error_detail = (
-                    f"MS not found. Received: '{ms_path}', "
-                    f"Decoded: '{decoded_path}', "
-                    f"Full path: '{ms_full_path}'. "
-                    f"Tried: {alt_paths}"
-                )
-                logger.error(error_detail)
-                raise HTTPException(status_code=404, detail=error_detail)
+            raise HTTPException(status_code=404, detail="MS not found")
+
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
+
+        from dsa110_contimg.calibration.caltables import discover_caltables
+
+        # Log for debugging
+        logger.debug(f"Bandpass plots request - validated path: {ms_full_path}")
 
         # Find bandpass table
         caltables = discover_caltables(ms_full_path)
@@ -3754,37 +4266,36 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Serve a specific bandpass plot file."""
         import urllib.parse
 
-        # FastAPI automatically URL-decodes path parameters, but we need to handle
-        # cases where the path might not start with / and ensure proper decoding
-        decoded_path = urllib.parse.unquote(ms_path)
-        ms_full_path = f"/{decoded_path}" if not decoded_path.startswith("/") else decoded_path
+        # Validate and sanitize MS path
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            decoded_path = urllib.parse.unquote(ms_path)
+            ms_path_clean = decoded_path.lstrip("/")
+            ms_full_path = validate_path(ms_path_clean, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
-            # Try alternative path constructions
-            alt_paths = [
-                ms_full_path,
-                decoded_path,
-                f"/{decoded_path}",
-                ms_path if ms_path.startswith("/") else f"/{ms_path}",
-            ]
-            for alt in alt_paths:
-                if os.path.exists(alt):
-                    ms_full_path = alt
-                    break
-            else:
-                raise HTTPException(status_code=404, detail=f"MS not found: {ms_full_path}")
+            raise HTTPException(status_code=404, detail="MS not found")
 
-        # Determine plot directory
-        ms_dir = os.path.dirname(ms_full_path)
-        plot_dir = os.path.join(ms_dir, "calibration_plots", "bandpass")
-        plot_path = os.path.join(plot_dir, filename)
+        # Validate and sanitize filename
+        try:
+            safe_filename = sanitize_filename(filename)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid filename: {str(e)}")
+
+        # Determine plot directory - use validated path
+        ms_dir = Path(ms_full_path).parent
+        plot_dir = ms_dir / "calibration_plots" / "bandpass"
+
+        # Validate plot path is within MS directory
+        try:
+            plot_path = validate_path(safe_filename, plot_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=403, detail=f"Forbidden: {str(e)}")
 
         if not os.path.exists(plot_path):
             raise HTTPException(status_code=404, detail="Plot file not found")
-
-        # Security: ensure filename doesn't contain path traversal
-        if ".." in filename or "/" in filename or "\\" in filename:
-            raise HTTPException(status_code=400, detail="Invalid filename")
 
         from fastapi.responses import FileResponse
 
@@ -3800,11 +4311,32 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             plot_per_spw_flagging,
         )
 
-        # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in ms_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {ms_path}")
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
+
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
 
         try:
             # Find the bandpass table for this MS
@@ -3846,7 +4378,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     media_type="image/png",
                     filename=f"spw_flagging_{os.path.basename(ms_full_path)}.png",
                 )
-            except Exception as e:
+            except Exception:
                 # Clean up temp file on error
                 if os.path.exists(plot_path):
                     try:
@@ -3873,9 +4405,23 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             - completeness: Fraction of expected tables that exist
             - has_issues: bool (True if any tables missing)
         """
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
+
         from dsa110_contimg.qa.calibration_quality import check_caltable_completeness
 
-        result = check_caltable_completeness(ms_path)
+        result = check_caltable_completeness(str(ms_full_path))
         return result
 
     @router.get("/qa/calibration/{ms_path:path}", response_model=CalibrationQA)
@@ -3885,11 +4431,32 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         from dsa110_contimg.database.products import ensure_products_db
 
-        # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in ms_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {ms_path}")
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
+
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
@@ -3898,7 +4465,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             # Get latest calibration QA for this MS
             cursor = conn.execute(
                 """
-                SELECT id, ms_path, job_id, k_metrics, bp_metrics, g_metrics, 
+                SELECT id, ms_path, job_id, k_metrics, bp_metrics, g_metrics,
                        overall_quality, flags_total, per_spw_stats, timestamp
                 FROM calibration_qa
                 WHERE ms_path = ?
@@ -3956,7 +4523,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         Args:
             image_id: Image ID (integer) or image path (string)
-            catalog: Reference catalog ("nvss" or "vlass")
+            catalog: Reference catalog ("nvss", "vlass", or "atnf"). Note: ATNF is a pulsar catalog with time-variable flux.
             search_radius_arcsec: Search radius in arcseconds (for catalog query)
             min_flux_jy: Minimum flux in Jy (optional)
 
@@ -4037,7 +4604,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         Args:
             image_id: Image ID (integer) or image path (string)
-            catalog: Reference catalog ("nvss" or "vlass")
+            catalog: Reference catalog ("nvss", "vlass", or "atnf"). Note: ATNF is a pulsar catalog with time-variable flux.
             validation_type: Type of validation to return
 
         Returns:
@@ -4065,7 +4632,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             import sqlite3
             import time
 
-            cache_key = hashlib.md5(
+            cache_key = hashlib.sha256(
                 f"{image_path}:{catalog}:{validation_type}".encode()
             ).hexdigest()
 
@@ -4073,8 +4640,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 conn.row_factory = sqlite3.Row
                 cached = conn.execute(
                     """
-                    SELECT results_json, expires_at 
-                    FROM validation_cache 
+                    SELECT results_json, expires_at
+                    FROM validation_cache
                     WHERE cache_key = ? AND expires_at > ?
                 """,
                     (cache_key, time.time()),
@@ -4106,7 +4673,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             import time
 
             # Create cache key from image path and catalog
-            cache_key = hashlib.md5(
+            cache_key = hashlib.sha256(
                 f"{image_path}:{catalog}:{validation_type}".encode()
             ).hexdigest()
 
@@ -4127,13 +4694,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 )
                 conn.execute(
                     """
-                    CREATE INDEX IF NOT EXISTS idx_validation_cache_image 
+                    CREATE INDEX IF NOT EXISTS idx_validation_cache_image
                     ON validation_cache(image_path)
                 """
                 )
                 conn.execute(
                     """
-                    CREATE INDEX IF NOT EXISTS idx_validation_cache_expires 
+                    CREATE INDEX IF NOT EXISTS idx_validation_cache_expires
                     ON validation_cache(expires_at)
                 """
                 )
@@ -4142,7 +4709,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 expires_at = time.time() + (24 * 3600)  # 24 hours
                 conn.execute(
                     """
-                    INSERT OR REPLACE INTO validation_cache 
+                    INSERT OR REPLACE INTO validation_cache
                     (cache_key, image_path, catalog, validation_type, results_json, created_at, expires_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
@@ -4167,14 +4734,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     async def run_catalog_validation(
         image_id: str,
         catalog: str = "nvss",
-        validation_types: List[str] = ["astrometry", "flux_scale", "source_counts"],
+        validation_types: Optional[List[str]] = None,
     ):
         """
         Run catalog validation for an image and return results.
 
         Args:
             image_id: Image ID (integer) or image path (string)
-            catalog: Reference catalog ("nvss" or "vlass")
+            catalog: Reference catalog ("nvss", "vlass", or "atnf"). Note: ATNF is a pulsar catalog with time-variable flux.
             validation_types: List of validation types to run
 
         Returns:
@@ -4195,6 +4762,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             # Not an integer, treat as path
             image_path = resolve_image_path(image_id)
 
+        if validation_types is None:
+            validation_types = ["astrometry", "flux_scale", "source_counts"]
+
         results = {}
 
         if "astrometry" in validation_types:
@@ -4206,7 +4776,87 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         if "source_counts" in validation_types:
             results["source_counts"] = validate_source_counts(image_path, catalog=catalog)
 
-        # TODO: Store results in database for future retrieval
+        try:
+            import hashlib
+            import json
+            import sqlite3
+            import time
+
+            allowed_validation_types = {"astrometry", "flux_scale", "source_counts"}
+            seen_types: list[str] = []
+            seen_set: set[str] = set()
+            for validation_type in validation_types:
+                if validation_type in allowed_validation_types and validation_type not in seen_set:
+                    seen_set.add(validation_type)
+                    seen_types.append(validation_type)
+
+            cache_validation_types = seen_types[:]
+            if allowed_validation_types.issubset(seen_set):
+                cache_validation_types.append("all")
+
+            if cache_validation_types and results:
+                now = time.time()
+                expires_at = now + (24 * 3600)
+                with sqlite3.connect(cfg.products_db) as conn:
+                    conn.execute(
+                        """
+                        CREATE TABLE IF NOT EXISTS validation_cache (
+                            cache_key TEXT PRIMARY KEY,
+                            image_path TEXT NOT NULL,
+                            catalog TEXT NOT NULL,
+                            validation_type TEXT NOT NULL,
+                            results_json TEXT NOT NULL,
+                            created_at REAL NOT NULL,
+                            expires_at REAL
+                        )
+                    """
+                    )
+                    conn.execute(
+                        """
+                        CREATE INDEX IF NOT EXISTS idx_validation_cache_image
+                        ON validation_cache(image_path)
+                    """
+                    )
+                    conn.execute(
+                        """
+                        CREATE INDEX IF NOT EXISTS idx_validation_cache_expires
+                        ON validation_cache(expires_at)
+                    """
+                    )
+
+                    for cache_type in cache_validation_types:
+                        if cache_type == "all":
+                            if not allowed_validation_types.issubset(results.keys()):
+                                continue
+                            payload = results
+                        else:
+                            value = results.get(cache_type)
+                            if value is None:
+                                continue
+                            payload = {cache_type: value}
+
+                        cache_key = hashlib.sha256(
+                            f"{image_path}:{catalog}:{cache_type}".encode()
+                        ).hexdigest()
+                        conn.execute(
+                            """
+                            INSERT OR REPLACE INTO validation_cache
+                            (cache_key, image_path, catalog, validation_type, results_json, created_at, expires_at)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """,
+                            (
+                                cache_key,
+                                image_path,
+                                catalog,
+                                cache_type,
+                                json.dumps(payload),
+                                now,
+                                expires_at,
+                            ),
+                        )
+                    conn.commit()
+        except Exception as e:
+            logger.debug(f"Could not cache validation results: {e}")
 
         return results
 
@@ -4227,7 +4877,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         Args:
             image_id: Image ID (integer) or image path (string)
-            catalog: Reference catalog ("nvss" or "vlass")
+            catalog: Reference catalog ("nvss", "vlass", or "atnf"). Note: ATNF is a pulsar catalog with time-variable flux.
             validation_types: List of validation types to include
             save_to_file: Whether to save HTML report to file
 
@@ -4239,10 +4889,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from fastapi.responses import HTMLResponse
 
         from dsa110_contimg.qa.catalog_validation import run_full_validation
-        from dsa110_contimg.qa.html_reports import (
-            ValidationReport,
-            generate_validation_report,
-        )
+        from dsa110_contimg.qa.html_reports import ValidationReport
 
         # Resolve image ID to path
         try:
@@ -4287,7 +4934,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     async def generate_validation_html_report(
         image_id: str,
         catalog: str = "nvss",
-        validation_types: List[str] = ["astrometry", "flux_scale", "source_counts"],
+        validation_types: Optional[List[str]] = None,
         output_path: Optional[str] = None,
     ):
         """
@@ -4295,13 +4942,15 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         Args:
             image_id: Image ID (integer) or image path (string)
-            catalog: Reference catalog ("nvss" or "vlass")
+            catalog: Reference catalog ("nvss", "vlass", or "atnf"). Note: ATNF is a pulsar catalog with time-variable flux.
             validation_types: List of validation types to include
             output_path: Optional custom output path. If None, saves to QA directory.
 
         Returns:
             Dict with report path and status
         """
+        if validation_types is None:
+            validation_types = ["astrometry", "flux_scale", "source_counts"]
         import os
 
         from dsa110_contimg.qa.catalog_validation import run_full_validation
@@ -4346,11 +4995,32 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Get image QA metrics for an MS."""
         from dsa110_contimg.database.products import ensure_products_db
 
-        # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in ms_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {ms_path}")
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
+
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
@@ -4400,15 +5070,50 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/qa/{ms_path:path}", response_model=QAMetrics)
     def get_qa_metrics(ms_path: str) -> QAMetrics:
         """Get combined QA metrics (calibration + image) for an MS."""
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
+
         import json
 
         from dsa110_contimg.database.products import ensure_products_db
 
-        # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in ms_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {ms_path}")
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
+
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
@@ -4491,10 +5196,41 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/thumbnails/{ms_path:path}.png")
     def get_image_thumbnail(ms_path: str):
         """Serve image thumbnail for an MS."""
-        from dsa110_contimg.database.products import ensure_products_db
+        import urllib.parse
 
-        # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        # Decode URL-encoded path and normalize Windows-style separators
+        decoded_path = urllib.parse.unquote(ms_path)
+        # Replace Windows-style backslashes with forward slashes
+        normalized_path = decoded_path.replace("\\", "/")
+
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if normalized_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(normalized_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in normalized_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {normalized_path}")
+                ms_full_path = validate_path(normalized_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
+
+        if not os.path.exists(ms_full_path):
+            raise HTTPException(status_code=404, detail="MS not found")
+
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
+
+        from dsa110_contimg.database.products import ensure_products_db
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
@@ -4545,84 +5281,102 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         - phase_vs_time: Phase vs time (for gain tables)
         - phase_vs_freq: Phase vs frequency (for bandpass tables)
         """
+        from dsa110_contimg.utils.casa_init import ensure_casa_path
+        from dsa110_contimg.utils.cli_helpers import casa_log_environment
+
+        ensure_casa_path()
+
         import matplotlib
         import numpy as np
-        from casatools import table
 
-        matplotlib.use("Agg")
-        from io import BytesIO
+        # Use context manager to ensure CASA logs go to correct directory
+        with casa_log_environment():
+            from casatools import table
 
-        import matplotlib.pyplot as plt
+            matplotlib.use("Agg")
+            from io import BytesIO
 
-        # Decode path
-        cal_full_path = f"/{caltable_path}" if not caltable_path.startswith("/") else caltable_path
+            import matplotlib.pyplot as plt
 
-        if not os.path.exists(cal_full_path):
-            raise HTTPException(status_code=404, detail="Calibration table not found")
-
-        try:
-            tb = table()
-            tb.open(cal_full_path, nomodify=True)
-
-            if tb.nrows() == 0:
-                raise HTTPException(status_code=400, detail="Calibration table has no solutions")
-
-            # Get data columns
-            antenna_ids = tb.getcol("ANTENNA1") if "ANTENNA1" in tb.colnames() else None
-            spw_ids = (
-                tb.getcol("SPECTRAL_WINDOW_ID") if "SPECTRAL_WINDOW_ID" in tb.colnames() else None
+            # Decode path
+            cal_full_path = (
+                f"/{caltable_path}" if not caltable_path.startswith("/") else caltable_path
             )
-            times = tb.getcol("TIME") if "TIME" in tb.colnames() else None
-            gains = tb.getcol("CPARAM") if "CPARAM" in tb.colnames() else None
-            flags = tb.getcol("FLAG") if "FLAG" in tb.colnames() else None
 
-            if gains is None:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Calibration table does not contain CPARAM column",
-                )
+            if not os.path.exists(cal_full_path):
+                raise HTTPException(status_code=404, detail="Calibration table not found")
 
-            # Convert to numpy arrays
-            antenna_ids = np.asarray(antenna_ids) if antenna_ids is not None else None
-            spw_ids = np.asarray(spw_ids) if spw_ids is not None else None
-            times = np.asarray(times) if times is not None else None
-            gains = np.asarray(gains)
-            flags = np.asarray(flags) if flags is not None else np.zeros(gains.shape, dtype=bool)
+            try:
+                tb = table()
+                tb.open(cal_full_path, nomodify=True)
 
-            # Mask flagged values
-            gains_masked = np.where(flags, np.nan + 0j, gains)
-
-            # Filter by antenna if specified
-            if antenna is not None and antenna_ids is not None:
-                ant_mask = antenna_ids == antenna
-                if not np.any(ant_mask):
+                if tb.nrows() == 0:
                     raise HTTPException(
-                        status_code=404,
-                        detail=f"Antenna {antenna} not found in calibration table",
+                        status_code=400, detail="Calibration table has no solutions"
                     )
-                gains_masked = gains_masked[ant_mask]
-                if spw_ids is not None:
-                    spw_ids = spw_ids[ant_mask]
-                if times is not None:
-                    times = times[ant_mask]
 
-            # Generate plot based on type
-            fig, ax = plt.subplots(figsize=(10, 6))
+                # Get data columns
+                antenna_ids = tb.getcol("ANTENNA1") if "ANTENNA1" in tb.colnames() else None
+                spw_ids = (
+                    tb.getcol("SPECTRAL_WINDOW_ID")
+                    if "SPECTRAL_WINDOW_ID" in tb.colnames()
+                    else None
+                )
+                times = tb.getcol("TIME") if "TIME" in tb.colnames() else None
+                gains = tb.getcol("CPARAM") if "CPARAM" in tb.colnames() else None
+                flags = tb.getcol("FLAG") if "FLAG" in tb.colnames() else None
 
-            if plot_type == "amp_vs_freq":
-                # For bandpass: amplitude vs frequency
-                if spw_ids is None:
+                if gains is None:
                     raise HTTPException(
                         status_code=400,
-                        detail="Cannot plot amplitude vs frequency: no SPW information",
+                        detail="Calibration table does not contain CPARAM column",
                     )
 
-                # Get frequencies from SPW subtable
-                try:
-                    tb_spw = table()
-                    tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
-                    chan_freqs = tb_spw.getcol("CHAN_FREQ")
-                    tb_spw.close()
+                # Convert to numpy arrays
+                antenna_ids = np.asarray(antenna_ids) if antenna_ids is not None else None
+                spw_ids = np.asarray(spw_ids) if spw_ids is not None else None
+                times = np.asarray(times) if times is not None else None
+                gains = np.asarray(gains)
+                flags = (
+                    np.asarray(flags) if flags is not None else np.zeros(gains.shape, dtype=bool)
+                )
+
+                # Mask flagged values
+                gains_masked = np.where(flags, np.nan + 0j, gains)
+
+                # Filter by antenna if specified
+                if antenna is not None and antenna_ids is not None:
+                    ant_mask = antenna_ids == antenna
+                    if not np.any(ant_mask):
+                        raise HTTPException(
+                            status_code=404,
+                            detail=f"Antenna {antenna} not found in calibration table",
+                        )
+                    gains_masked = gains_masked[ant_mask]
+                    if spw_ids is not None:
+                        spw_ids = spw_ids[ant_mask]
+                    if times is not None:
+                        times = times[ant_mask]
+
+                # Generate plot based on type
+                fig, ax = plt.subplots(figsize=(10, 6))
+
+                if plot_type == "amp_vs_freq":
+                    # For bandpass: amplitude vs frequency
+                    if spw_ids is None:
+                        raise HTTPException(
+                            status_code=400,
+                            detail="Cannot plot amplitude vs frequency: no SPW information",
+                        )
+
+                    # Get frequencies from SPW subtable
+                    try:
+                        tb_spw = table()
+                        tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
+                        chan_freqs = tb_spw.getcol("CHAN_FREQ")
+                        tb_spw.close()
+                    except Exception:
+                        chan_freqs = None
 
                     # Flatten gains and create frequency array
                     amplitudes = np.abs(gains_masked)
@@ -4646,59 +5400,57 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             if spw_amps.ndim > 1:
                                 spw_amps = np.nanmean(spw_amps, axis=-1)
                             freq_data.extend(spw_freqs.tolist())
-                            amp_data.extend(spw_amps.tolist())
+                    amp_data.extend(spw_amps.tolist())
 
                     ax.plot(freq_data, amp_data, "b-", alpha=0.7, linewidth=0.5)
                     ax.set_xlabel("Frequency (GHz)")
                     ax.set_ylabel("Amplitude")
                     ax.set_title(
-                        f'Bandpass Amplitude vs Frequency{(" (Antenna " + str(antenna) + ")") if antenna is not None else ""}'
+                        f"Bandpass Amplitude vs Frequency{(' (Antenna ' + str(antenna) + ')') if antenna is not None else ''}"
                     )
                     ax.grid(True, alpha=0.3)
 
-                except Exception as e:
-                    logger.error(f"Error plotting amplitude vs frequency: {e}")
-                    raise HTTPException(status_code=500, detail=f"Error generating plot: {e}")
+                elif plot_type == "phase_vs_time":
+                    # For gain: phase vs time
+                    if times is None:
+                        raise HTTPException(
+                            status_code=400,
+                            detail="Cannot plot phase vs time: no TIME column",
+                        )
 
-            elif plot_type == "phase_vs_time":
-                # For gain: phase vs time
-                if times is None:
-                    raise HTTPException(
-                        status_code=400,
-                        detail="Cannot plot phase vs time: no TIME column",
+                    phases = np.angle(gains_masked)
+                    if phases.ndim > 1:
+                        phases = np.nanmean(phases, axis=-1)
+
+                    # Convert CASA time to hours since start
+                    time_hours = (times - times.min()) / 3600.0
+                    from dsa110_contimg.utils.angles import wrap_phase_deg
+
+                    phases_deg = wrap_phase_deg(np.degrees(phases))
+
+                    ax.plot(time_hours, phases_deg, "b-", alpha=0.7, linewidth=0.5)
+                    ax.set_xlabel("Time (hours since start)")
+                    ax.set_ylabel("Phase (degrees)")
+                    ax.set_title(
+                        f"Gain Phase vs Time{(' (Antenna ' + str(antenna) + ')') if antenna is not None else ''}"
                     )
+                    ax.grid(True, alpha=0.3)
 
-                phases = np.angle(gains_masked)
-                if phases.ndim > 1:
-                    phases = np.nanmean(phases, axis=-1)
+                elif plot_type == "phase_vs_freq":
+                    # For bandpass: phase vs frequency
+                    if spw_ids is None:
+                        raise HTTPException(
+                            status_code=400,
+                            detail="Cannot plot phase vs frequency: no SPW information",
+                        )
 
-                # Convert CASA time to hours since start
-                time_hours = (times - times.min()) / 3600.0
-                from dsa110_contimg.utils.angles import wrap_phase_deg
-
-                phases_deg = wrap_phase_deg(np.degrees(phases))
-
-                ax.plot(time_hours, phases_deg, "b-", alpha=0.7, linewidth=0.5)
-                ax.set_xlabel("Time (hours since start)")
-                ax.set_ylabel("Phase (degrees)")
-                ax.set_title(
-                    f'Gain Phase vs Time{(" (Antenna " + str(antenna) + ")") if antenna is not None else ""}'
-                )
-                ax.grid(True, alpha=0.3)
-
-            elif plot_type == "phase_vs_freq":
-                # For bandpass: phase vs frequency
-                if spw_ids is None:
-                    raise HTTPException(
-                        status_code=400,
-                        detail="Cannot plot phase vs frequency: no SPW information",
-                    )
-
-                try:
-                    tb_spw = table()
-                    tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
-                    chan_freqs = tb_spw.getcol("CHAN_FREQ")
-                    tb_spw.close()
+                    try:
+                        tb_spw = table()
+                        tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
+                        chan_freqs = tb_spw.getcol("CHAN_FREQ")
+                        tb_spw.close()
+                    except Exception:
+                        chan_freqs = None
 
                     phases = np.angle(gains_masked)
                     if phases.ndim > 1:
@@ -4725,15 +5477,16 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     ax.set_xlabel("Frequency (GHz)")
                     ax.set_ylabel("Phase (degrees)")
                     ax.set_title(
-                        f'Bandpass Phase vs Frequency{(" (Antenna " + str(antenna) + ")") if antenna is not None else ""}'
+                        f"Bandpass Phase vs Frequency{(' (Antenna ' + str(antenna) + ')') if antenna is not None else ''}"
                     )
                     ax.grid(True, alpha=0.3)
 
-                except Exception as e:
-                    logger.error(f"Error plotting phase vs frequency: {e}")
-                    raise HTTPException(status_code=500, detail=f"Error generating plot: {e}")
-            else:
-                raise HTTPException(status_code=400, detail=f"Unknown plot type: {plot_type}")
+                else:
+                    raise HTTPException(status_code=400, detail=f"Unknown plot type: {plot_type}")
+
+            except Exception as e:
+                logger.error(f"Error generating calibration plot: {e}")
+                raise HTTPException(status_code=500, detail=f"Error generating plot: {e}")
 
             tb.close()
 
@@ -4748,17 +5501,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 media_type="image/png",
                 filename=f"{os.path.basename(cal_full_path)}_{plot_type}.png",
             )
-
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Error generating calibration plot: {e}")
-            raise HTTPException(status_code=500, detail=f"Error generating plot: {str(e)}")
-        finally:
-            try:
-                tb.close()
-            except Exception:
-                pass  # Ignore errors during cleanup
 
     @router.post("/jobs/workflow", response_model=Job)
     def create_workflow_job(
@@ -5679,7 +6421,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             # Return defaults
             return StreamingConfigRequest(
                 input_dir=os.getenv("CONTIMG_INPUT_DIR", "/data/incoming"),
-                output_dir=os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms"),
+                output_dir=os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"),
                 queue_db=os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
                 registry_db=os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
                 scratch_dir=os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg"),
@@ -5916,14 +6658,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         sp_ok, sp_out, sp_err = _run_py(
             "import sys, json; print(json.dumps({'executable': sys.executable, 'version': sys.version}))"
         )
-        interp = {}
+        # Parse output if available (for future use)
         try:
             if sp_out:
                 import json as _json
 
-                interp = _json.loads(sp_out)
+                _ = _json.loads(sp_out)  # Parsed output available if needed
         except Exception:
-            interp = {"raw": sp_out}
+            _ = {"raw": sp_out}  # Fallback available if needed
 
         # 2) CASA availability in job env
         casa_code = (
@@ -6017,7 +6759,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
-            DataRecord,
             ensure_data_registry_db,
             list_data,
         )
@@ -6555,5 +7296,115 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             health_info["status"] = "degraded"
 
         return health_info
+
+    # Root-level endpoints for monitoring tools (fundamental fix - no redirects)
+    # These endpoints call the same handler functions as the /api versions
+    # This makes them available at both root and /api level
+
+    @app.get("/metrics/system", response_model=SystemMetrics)
+    def metrics_system_root() -> SystemMetrics:
+        """Root-level /metrics/system endpoint (also available at /api/metrics/system)."""
+        m = _get_system_metrics()
+        _METRICS_HISTORY.append(m)
+        return m
+
+    @app.get("/pointing_history", response_model=PointingHistoryList)
+    def pointing_history_root(
+        request: Request,
+        start_mjd: float = Query(0, description="Start MJD"),
+        end_mjd: float = Query(100000, description="End MJD"),
+    ) -> PointingHistoryList:
+        """Root-level /pointing_history endpoint (also available at /api/pointing_history)."""
+        cfg = request.app.state.cfg
+        items = fetch_pointing_history(cfg.queue_db, start_mjd, end_mjd)
+        return PointingHistoryList(items=items)
+
+    @app.get("/ese/candidates", response_model=ESECandidatesResponse)
+    def ese_candidates_root(
+        request: Request,
+        limit: int = Query(50, ge=1, le=1000, description="Maximum number of candidates"),
+        min_sigma: float = Query(5.0, ge=0.0, description="Minimum sigma threshold"),
+    ) -> ESECandidatesResponse:
+        """Root-level /ese/candidates endpoint (also available at /api/ese/candidates)."""
+        cfg = request.app.state.cfg
+        candidates_data = fetch_ese_candidates(cfg.products_db, limit=limit, min_sigma=min_sigma)
+        candidates = [ESECandidate(**c) for c in candidates_data]
+        return ESECandidatesResponse(
+            candidates=candidates,
+            total=len(candidates),
+        )
+
+    @app.get("/pointing-monitor/status")
+    def pointing_monitor_status_root():
+        """Root-level /pointing-monitor/status endpoint (also available at /api/pointing-monitor/status)."""
+        # Use the same implementation as the /api version
+        import json
+        import time
+        from pathlib import Path
+
+        state_dir = Path(os.getenv("PIPELINE_STATE_DIR", "/data/dsa110-contimg/state"))
+        status_file = state_dir / "pointing-monitor-status.json"
+
+        if not status_file.exists():
+            return {
+                "running": False,
+                "healthy": False,
+                "error": "Status file not found - monitor may not be running",
+                "status_file": str(status_file),
+            }
+
+        try:
+            with open(status_file, "r") as f:
+                status = json.load(f)
+
+            # Add age of status file
+            file_age = time.time() - status_file.stat().st_mtime
+            status["status_file_age_seconds"] = round(file_age, 1)
+
+            # Consider stale if older than 2 minutes (monitor writes every 30s)
+            if file_age > 120:
+                status["stale"] = True
+                status["healthy"] = False
+                if "issues" not in status:
+                    status["issues"] = []
+                status["issues"].append(f"Status file is stale (age: {file_age:.0f}s)")
+            else:
+                status["stale"] = False
+
+            return status
+        except json.JSONDecodeError as e:
+            return {
+                "running": False,
+                "healthy": False,
+                "error": f"Failed to parse status file: {e}",
+                "status_file": str(status_file),
+            }
+        except Exception as e:
+            return {
+                "running": False,
+                "healthy": False,
+                "error": str(e),
+                "status_file": str(status_file),
+            }
+
+    # Root-level WebSocket endpoint for /ws/status (also available at /api/ws/status)
+    @app.websocket("/ws/status")
+    async def websocket_status_root(websocket: WebSocket):
+        """Root-level WebSocket /ws/status endpoint (also available at /api/ws/status)."""
+        from dsa110_contimg.api.websocket_manager import manager
+
+        await websocket.accept()
+        await manager.connect(websocket)
+        try:
+            while True:
+                data = await websocket.receive_text()
+                if data == "ping":
+                    await websocket.send_text("pong")
+        except WebSocketDisconnect:
+            await manager.disconnect(websocket)
+        except (ConnectionError, RuntimeError, ValueError) as e:
+            # Handle connection errors, runtime errors, or invalid data
+            logger.warning("WebSocket error: %s", e)
+            await manager.disconnect(websocket)
 
     return app

@@ -26,24 +26,34 @@ export interface CARTAMessageHeader {
  * CARTA Message Types (from CARTA ICD)
  * These correspond to the message_type field in the header
  */
-export enum CARTAMessageType {
-  REGISTER_VIEWER = 0,
-  FILE_LIST_REQUEST = 1,
-  FILE_INFO_REQUEST = 2,
-  OPEN_FILE = 3,
-  SET_IMAGE_VIEW = 4,
-  SET_REGION = 5,
-  REGISTER_VIEWER_ACK = 100,
-  FILE_LIST_RESPONSE = 101,
-  FILE_INFO_RESPONSE = 102,
-  OPEN_FILE_ACK = 103,
-  SET_IMAGE_VIEW_ACK = 104,
-  SET_REGION_ACK = 105,
-  RASTER_TILE_DATA = 200,
-  REGION_HISTOGRAM_DATA = 201,
-  SPATIAL_PROFILE_DATA = 202,
-  SPECTRAL_PROFILE_DATA = 203,
-  ERROR_DATA = 300,
+export const CARTAMessageType = {
+  REGISTER_VIEWER: 0,
+  FILE_LIST_REQUEST: 1,
+  FILE_INFO_REQUEST: 2,
+  OPEN_FILE: 3,
+  SET_IMAGE_VIEW: 4,
+  SET_REGION: 5,
+  REGISTER_VIEWER_ACK: 100,
+  FILE_LIST_RESPONSE: 101,
+  FILE_INFO_RESPONSE: 102,
+  OPEN_FILE_ACK: 103,
+  SET_IMAGE_VIEW_ACK: 104,
+  SET_REGION_ACK: 105,
+  RASTER_TILE_DATA: 200,
+  REGION_HISTOGRAM_DATA: 201,
+  SPATIAL_PROFILE_DATA: 202,
+  SPECTRAL_PROFILE_DATA: 203,
+  ERROR_DATA: 300,
+} as const;
+
+export type CARTAMessageType = (typeof CARTAMessageType)[keyof typeof CARTAMessageType];
+
+/**
+ * Get the message type name from a numeric value
+ */
+export function getCARTAMessageTypeName(value: CARTAMessageType): string {
+  const entry = Object.entries(CARTAMessageType).find(([, v]) => v === value);
+  return entry ? entry[0] : `UNKNOWN_${value}`;
 }
 
 /**
@@ -226,14 +236,16 @@ export interface SetRegionRequest {
 /**
  * Region Type
  */
-export enum RegionType {
-  POINT = 0,
-  LINE = 1,
-  POLYGON = 2,
-  ELLIPSE = 3,
-  RECTANGLE = 4,
-  ANNULUS = 5,
-}
+export const RegionType = {
+  POINT: 0,
+  LINE: 1,
+  POLYGON: 2,
+  ELLIPSE: 3,
+  RECTANGLE: 4,
+  ANNULUS: 5,
+} as const;
+
+export type RegionType = (typeof RegionType)[keyof typeof RegionType];
 
 /**
  * Point (2D coordinate)

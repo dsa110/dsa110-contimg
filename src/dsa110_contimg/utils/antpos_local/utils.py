@@ -1,5 +1,7 @@
 """Local copy of antenna position utilities for the DSA-110 array."""
 
+# pylint: disable=no-member  # astropy.units dynamic attributes
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -70,14 +72,10 @@ def get_lonlat(
     df[LAT_COLUMN] = latitude
     df[LON_COLUMN] = longitude
     df[HEIGHT_COLUMN] = height
-    df[HEIGHT_COLUMN] = np.where(
-        np.isnan(df[HEIGHT_COLUMN]), defaultheight, df[HEIGHT_COLUMN]
-    )
+    df[HEIGHT_COLUMN] = np.where(np.isnan(df[HEIGHT_COLUMN]), defaultheight, df[HEIGHT_COLUMN])
 
     # Drop legacy designations such as 200E/200W if present
-    drop_indices = [
-        idx for idx, station in enumerate(stations) if str(station).startswith("200")
-    ]
+    drop_indices = [idx for idx, station in enumerate(stations) if str(station).startswith("200")]
     if drop_indices:
         df.drop(index=drop_indices, inplace=True, errors="ignore")
 
@@ -87,9 +85,7 @@ def get_lonlat(
     return df
 
 
-def _select_stations(
-    df: pd.DataFrame, stations: Optional[Iterable[int]] = None
-) -> pd.DataFrame:
+def _select_stations(df: pd.DataFrame, stations: Optional[Iterable[int]] = None) -> pd.DataFrame:
     if stations is None:
         return df
     indices = np.array(list(stations), dtype=int)

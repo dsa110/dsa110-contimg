@@ -11,9 +11,7 @@ from typing import Dict, List, Optional
 import numpy as np
 
 from dsa110_contimg.qa.base import (
-    ValidationContext,
     ValidationError,
-    ValidationInputError,
     ValidationResult,
 )
 from dsa110_contimg.qa.config import VariabilityConfig, get_default_config
@@ -216,9 +214,7 @@ def validate_ese_detection(
     mean_chi_squared = np.mean(chi_squared_values) if chi_squared_values else 0.0
     median_chi_squared = np.median(chi_squared_values) if chi_squared_values else 0.0
     max_chi_squared = np.max(chi_squared_values) if chi_squared_values else 0.0
-    mean_variability_fraction = (
-        np.mean(variability_fractions) if variability_fractions else 0.0
-    )
+    mean_variability_fraction = np.mean(variability_fractions) if variability_fractions else 0.0
 
     # Determine overall pass status
     passed = false_positive_rate <= config.max_false_positive_rate
@@ -304,9 +300,7 @@ def validate_variability_statistics(
 
     # Validate statistics are reasonable
     chi_squared_values = [s.get("chi_squared", 0.0) for s in variability_stats_list]
-    variability_fractions = [
-        s.get("variability_fraction", 0.0) for s in variability_stats_list
-    ]
+    variability_fractions = [s.get("variability_fraction", 0.0) for s in variability_stats_list]
 
     # Check for negative or invalid values
     invalid_chi_squared = [v for v in chi_squared_values if v < 0]
@@ -329,9 +323,7 @@ def validate_variability_statistics(
         result.add_error(f"Found {len(invalid_chi_squared)} invalid chi-squared values")
 
     if invalid_variability:
-        result.add_error(
-            f"Found {len(invalid_variability)} invalid variability fractions"
-        )
+        result.add_error(f"Found {len(invalid_variability)} invalid variability fractions")
 
     return result
 
@@ -356,9 +348,7 @@ def _calculate_variability_stats(photometry_history: List[Dict]) -> Dict:
         chi_squared = np.sum(((fluxes - mean_flux) / flux_errors) ** 2)
     else:
         # If no errors, use standard deviation
-        chi_squared = (
-            len(fluxes) * (np.std(fluxes) / mean_flux) ** 2 if mean_flux > 0 else 0.0
-        )
+        chi_squared = len(fluxes) * (np.std(fluxes) / mean_flux) ** 2 if mean_flux > 0 else 0.0
 
     # Calculate variability fraction
     if mean_flux > 0:

@@ -7,9 +7,7 @@ Tests focus on:
 - Input validation
 """
 
-import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest
@@ -211,8 +209,6 @@ class TestBuildUVW:
     def test_build_uvw_single_baseline(self, sample_config):
         """Test UVW with single baseline."""
         nants = 2
-        nbls = 1
-        ntimes = 1
 
         unique_times = np.array([59000.0])
         ant1_array = np.array([0])
@@ -227,8 +223,6 @@ class TestBuildUVW:
     def test_build_uvw_zero_baseline(self, sample_config):
         """Test UVW with zero-length baseline (same antenna)."""
         nants = 1
-        nbls = 1
-        ntimes = 1
 
         unique_times = np.array([59000.0])
         ant1_array = np.array([0])
@@ -320,7 +314,7 @@ class TestMakeVisibilities:
         """Test error handling for invalid source model."""
         # Check if function raises error or handles gracefully
         try:
-            vis = make_visibilities(10, 1, 64, 2, 1.0, source_model="invalid_model")
+            make_visibilities(10, 1, 64, 2, 1.0, source_model="invalid_model")
             # If it doesn't raise, that's a bug but test should pass
             # (function should validate, but if it doesn't, we note it)
         except ValueError as e:
@@ -356,7 +350,7 @@ class TestBuildUVDataFromScratch:
         start_time = Time("2024-01-01T00:00:00", scale="utc")
 
         # Create simple antenna positions
-        ant_positions = np.array([[0.0, 0.0, 0.0], [10.0, 0.0, 0.0], [0.0, 10.0, 0.0]])
+        np.array([[0.0, 0.0, 0.0], [10.0, 0.0, 0.0], [0.0, 10.0, 0.0]])
 
         try:
             uv = build_uvdata_from_scratch(
@@ -432,7 +426,7 @@ class TestErrorHandling:
         # The function doesn't validate dimensions, it just uses what's provided
         # So we test that it works (or fails gracefully)
         try:
-            vis = make_visibilities(
+            make_visibilities(
                 10,
                 1,
                 64,

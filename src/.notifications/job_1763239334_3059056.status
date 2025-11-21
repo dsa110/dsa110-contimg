@@ -1,0 +1,13 @@
+Job ID: job_1763239334_3059056
+Script: ./create_10min_mosaic.py
+Args: 
+Started: 2025-11-15T12:42:14-08:00
+Status: RUNNING
+PID: 3059056
+Exit code: 0
+Completed at: 2025-11-15T12:42:16-08:00
+Status: FAILED
+
+ERROR: Job job_1763239334_3059056 failed with exit code 1
+Check log: /data/dsa110-contimg/src/.notifications/job_1763239334_3059056.log
+Check status: /data/dsa110-contimg/src/.notifications/job_1763239334_3059056.status

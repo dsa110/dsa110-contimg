@@ -5,9 +5,9 @@
  * Detects when React clears JS9 content and restores it automatically.
  */
 
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { logger } from "../../../utils/logger";
-import { useJS9Safe } from "../../../contexts/JS9Context";
+// import { useJS9Safe } from "../../../contexts/JS9Context";
 import { js9Service } from "../../../services/js9";
 
 interface UseJS9ContentPreservationOptions {

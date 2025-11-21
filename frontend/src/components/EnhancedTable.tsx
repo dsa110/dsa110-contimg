@@ -1,14 +1,5 @@
 import React from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Box,
-} from "@mui/material";
+import { Table, TableContainer, TableRow, Paper } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 
 interface EnhancedTableProps {

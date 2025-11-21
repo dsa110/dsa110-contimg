@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, arcsec, m, etc.)
 """Generate synthetic DSA-110 UVH5 subband files for end-to-end testing."""
 
 import argparse
@@ -6,9 +7,9 @@ import json
 import random
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
-import astropy.units as u
+import astropy.units as u  # pylint: disable=no-member
 import h5py
 import numpy as np
 import yaml
@@ -563,7 +564,7 @@ def write_subband_uvh5(
     uv.phase_center_frame = "icrs"
     uv.phase_center_epoch = 2000.0
 
-    anchor = start_time.iso.replace("-", "").replace(":", "")
+    start_time.iso.replace("-", "").replace(":", "")
     anchor_str = start_time.strftime("%Y-%m-%dT%H:%M:%S")
     filename = f"{anchor_str}_sb{subband_index:02d}.hdf5"
     output_path = output_dir / filename
@@ -863,7 +864,7 @@ def main() -> None:
             rng=rng,
         )
         print(f"  Created: {catalog_path}")
-        print(f"\nTo use in pipeline testing, set environment variable:")
+        print("\nTo use in pipeline testing, set environment variable:")
         print(f"  export {args.catalog_type.upper()}_CATALOG={catalog_path}")
 
     # Print summary of features used

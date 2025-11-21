@@ -23,14 +23,15 @@
 
 ### Overview
 
-The pipeline uses **4 SQLite databases** for state management and product tracking:
+The pipeline uses **4 SQLite databases** for state management and product
+tracking:
 
-| Database | Location | Purpose |
-|----------|----------|---------|
-| `ingest.sqlite3` | `/data/dsa110-contimg/state/` | Queue management, subband tracking |
-| `cal_registry.sqlite3` | `/data/dsa110-contimg/state/` | Calibration table registry |
-| `products.sqlite3` | `/data/dsa110-contimg/state/` | Images, photometry, MS index |
-| `master_sources.sqlite3` | `/data/dsa110-contimg/state/catalogs/` | NVSS/VLASS/FIRST crossmatch |
+| Database                 | Location                               | Purpose                            |
+| ------------------------ | -------------------------------------- | ---------------------------------- |
+| `ingest.sqlite3`         | `/data/dsa110-contimg/state/`          | Queue management, subband tracking |
+| `cal_registry.sqlite3`   | `/data/dsa110-contimg/state/`          | Calibration table registry         |
+| `products.sqlite3`       | `/data/dsa110-contimg/state/`          | Images, photometry, MS index       |
+| `master_sources.sqlite3` | `/data/dsa110-contimg/state/catalogs/` | NVSS/VLASS/FIRST crossmatch        |
 
 ### Design Principles
 
@@ -48,6 +49,7 @@ The pipeline uses **4 SQLite databases** for state management and product tracki
 Tracks observation groups through the pipeline.
 
 **Schema:**
+
 ```sql
 CREATE TABLE IF NOT EXISTS ingest_queue (
     group_id TEXT PRIMARY KEY,              -- YYYY-MM-DDTHH:MM:SS format
@@ -66,6 +68,7 @@ CREATE INDEX IF NOT EXISTS idx_ingest_received ON ingest_queue(received_at);
 ```
 
 **Pipeline States:**
+
 - `collecting` → `pending` → `in_progress` → `processing_fresh` → `completed`
 - `failed` - Error state with retry capability
 
@@ -76,6 +79,7 @@ CREATE INDEX IF NOT EXISTS idx_ingest_received ON ingest_queue(received_at);
 Tracks individual subband files per group.
 
 **Schema:**
+
 ```sql
 CREATE TABLE IF NOT EXISTS subband_files (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -98,6 +102,7 @@ CREATE INDEX IF NOT EXISTS idx_subband_group ON subband_files(group_id);
 Processing performance per group.
 
 **Schema:**
+
 ```sql
 CREATE TABLE IF NOT EXISTS performance_metrics (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -127,6 +132,7 @@ CREATE INDEX IF NOT EXISTS idx_perf_group ON performance_metrics(group_id);
 Tracks Measurement Sets through processing stages.
 
 **Schema:**
+
 ```sql
 CREATE TABLE IF NOT EXISTS ms_index (
     path TEXT PRIMARY KEY,                 -- Full path to MS
@@ -151,6 +157,7 @@ CREATE INDEX IF NOT EXISTS idx_ms_index_field ON ms_index(field_name);
 ```
 
 **MS Processing Stages:**
+
 - `converted` → `calibrated` → `imaged` → `photometry_complete`
 
 ---
@@ -160,6 +167,7 @@ CREATE INDEX IF NOT EXISTS idx_ms_index_field ON ms_index(field_name);
 Catalog of image products.
 
 **Schema:**
+
 ```sql
 CREATE TABLE IF NOT EXISTS images (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -199,6 +207,7 @@ CREATE INDEX IF NOT EXISTS idx_images_field ON images(field_name);
 Forced photometry measurements on sources.
 
 **Schema:**
+
 ```sql
 CREATE TABLE IF NOT EXISTS photometry (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -230,6 +239,7 @@ CREATE INDEX IF NOT EXISTS idx_photometry_source_mjd ON photometry(source_id, mj
 Pre-computed variability statistics per source.
 
 **Schema:**
+
 ```sql
 CREATE TABLE IF NOT EXISTS variability_stats (
     source_id TEXT PRIMARY KEY,            -- NVSS ID
@@ -262,6 +272,7 @@ CREATE INDEX IF NOT EXISTS idx_variability_last_mjd ON variability_stats(last_mj
 Flagged ESE candidates (auto-flagged or user-flagged).
 
 **Schema:**
+
 ```sql
 CREATE TABLE IF NOT EXISTS ese_candidates (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -289,6 +300,7 @@ CREATE INDEX IF NOT EXISTS idx_ese_flagged ON ese_candidates(flagged_at);
 Metadata for mosaic images.
 
 **Schema:**
+
 ```sql
 CREATE TABLE IF NOT EXISTS mosaics (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -324,6 +336,7 @@ CREATE INDEX IF NOT EXISTS idx_mosaics_mjd ON mosaics(start_mjd, end_mjd);
 Tracks calibration tables and their validity ranges.
 
 **Schema:**
+
 ```sql
 CREATE TABLE IF NOT EXISTS caltables (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -351,6 +364,7 @@ CREATE INDEX IF NOT EXISTS idx_caltables_active ON caltables(active);
 Crossmatched catalog (NVSS + VLASS + FIRST).
 
 **Schema:**
+
 ```sql
 CREATE TABLE IF NOT EXISTS sources (
     source_id TEXT PRIMARY KEY,            -- NVSS ID
@@ -375,6 +389,7 @@ CREATE INDEX IF NOT EXISTS idx_sources_alpha ON sources(alpha);
 ### Views
 
 **`good_references`** - Basic quality cuts:
+
 ```sql
 CREATE VIEW IF NOT EXISTS good_references AS
 SELECT * FROM sources
@@ -386,6 +401,7 @@ WHERE s_nvss IS NOT NULL
 ```
 
 **`final_references`** - Stricter cuts:
+
 ```sql
 CREATE VIEW IF NOT EXISTS final_references AS
 SELECT * FROM good_references
@@ -399,6 +415,7 @@ WHERE snr_nvss >= 10.0;
 ### Pipeline Status Models
 
 **Python (Pydantic):**
+
 ```python
 class QueueStats(BaseModel):
     total: int
@@ -415,6 +432,7 @@ class PipelineStatus(BaseModel):
 ```
 
 **TypeScript:**
+
 ```typescript
 export interface QueueStats {
   total: number;
@@ -437,6 +455,7 @@ export interface PipelineStatus {
 ### ESE Candidate Models
 
 **Python:**
+
 ```python
 class ESECandidate(BaseModel):
     id: int
@@ -453,6 +472,7 @@ class ESECandidate(BaseModel):
 ```
 
 **TypeScript:**
+
 ```typescript
 export interface ESECandidate {
   id: number;
@@ -464,7 +484,7 @@ export interface ESECandidate {
   max_sigma_dev: number;
   baseline_flux_jy: number;
   peak_flux_jy: number;
-  status: 'active' | 'resolved' | 'false_positive';
+  status: "active" | "resolved" | "false_positive";
   notes?: string;
 }
 ```
@@ -474,6 +494,7 @@ export interface ESECandidate {
 ### Source Models
 
 **Python:**
+
 ```python
 class SourceVariabilityStats(BaseModel):
     source_id: str
@@ -489,6 +510,7 @@ class SourceVariabilityStats(BaseModel):
 ```
 
 **TypeScript:**
+
 ```typescript
 export interface SourceVariabilityStats {
   source_id: string;
@@ -511,7 +533,7 @@ export interface SourceVariabilityStats {
 ### Get ESE Candidates with Source Details
 
 ```sql
-SELECT 
+SELECT
     e.source_id,
     v.ra_deg,
     v.dec_deg,
@@ -533,7 +555,7 @@ LIMIT 50;
 ### Get Flux Timeseries for Source
 
 ```sql
-SELECT 
+SELECT
     mjd,
     peak_jyb * 1000 as flux_mjy,
     peak_err_jyb * 1000 as error_mjy,
@@ -549,7 +571,7 @@ ORDER BY mjd ASC;
 ### Get Recent Mosaics
 
 ```sql
-SELECT 
+SELECT
     name,
     path,
     start_mjd,
@@ -575,7 +597,7 @@ def migrate_products_db(db_path: Path):
     """Add new tables to products.sqlite3."""
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
-    
+
     # Add new table
     cur.execute("""
         CREATE TABLE IF NOT EXISTS new_table (
@@ -583,10 +605,10 @@ def migrate_products_db(db_path: Path):
             ...
         )
     """)
-    
+
     # Create indices
     cur.execute("CREATE INDEX IF NOT EXISTS idx_new_table_field ON new_table(field)")
-    
+
     conn.commit()
     conn.close()
 ```
@@ -601,7 +623,9 @@ def migrate_products_db(db_path: Path):
 
 ## See Also
 
-- [Database Schema Reference](../reference/database_schema.md) - Complete schema documentation
-- [Backend API & Integration](../reference/dashboard_backend_api.md) - API endpoints using these models
-- [Frontend Architecture](./dashboard_frontend_architecture.md) - Frontend TypeScript types
-
+- [Database Schema Reference](../reference/database_schema.md) - Complete schema
+  documentation
+- [Backend API & Integration](../reference/dashboard_backend_api.md) - API
+  endpoints using these models
+- [Frontend Architecture](./dashboard_frontend_architecture.md) - Frontend
+  TypeScript types

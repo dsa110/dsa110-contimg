@@ -41,7 +41,7 @@ python -m pytest tests/ 2>&1
 
 ```bash
 # ✅ ALWAYS do this first in agentic sessions
-source /data/dsa110-contimg/scripts/agent-setup.sh
+source /data/dsa110-contimg/scripts/developer-setup.sh
 ```
 
 **Why:** Without this, test failures go undetected.

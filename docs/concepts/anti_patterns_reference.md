@@ -2,19 +2,23 @@
 
 ## Overview
 
-**Anti-patterns** are a well-established concept in software engineering, design patterns, and related fields. They represent common solutions to recurring problems that are **ineffective** or **counterproductive**.
+**Anti-patterns** are a well-established concept in software engineering, design
+patterns, and related fields. They represent common solutions to recurring
+problems that are **ineffective** or **counterproductive**.
 
 ---
 
 ## Definition
 
 An **anti-pattern** is:
+
 - A common response to a recurring problem
 - That is usually **ineffective** and **risky**
 - That may seem like a good solution initially
 - But leads to negative consequences
 
 **Contrast with patterns:**
+
 - **Pattern:** Proven solution to a recurring problem
 - **Anti-pattern:** Common but ineffective solution
 
@@ -25,13 +29,17 @@ An **anti-pattern** is:
 ### Software Engineering
 
 **"AntiPatterns: Refactoring Software, Architectures, and Projects in Crisis"**
-- Authors: William J. Brown, Raphael C. Malveau, Hays W. "Skip" McCormick III, Thomas J. Mowbray
+
+- Authors: William J. Brown, Raphael C. Malveau, Hays W. "Skip" McCormick III,
+  Thomas J. Mowbray
 - Published: 1998
 - Established anti-patterns as a formal concept in software engineering
 
 ### Design Patterns Context
 
-**"Design Patterns: Elements of Reusable Object-Oriented Software"** (Gang of Four, 1994)
+**"Design Patterns: Elements of Reusable Object-Oriented Software"** (Gang of
+Four, 1994)
+
 - Established design patterns
 - Anti-patterns emerged as the "dark side" of patterns
 - Common mistakes when applying patterns incorrectly
@@ -43,74 +51,90 @@ An **anti-pattern** is:
 ### 1. Software Development Anti-Patterns
 
 **God Object**
+
 - One object knows/does too much
 - Violates single responsibility principle
 
 **Spaghetti Code**
+
 - Unstructured, tangled code
 - Hard to understand and maintain
 
 **Copy-Paste Programming**
+
 - Duplicating code instead of reusing
 - Leads to maintenance nightmares
 
 **Golden Hammer**
+
 - Using same solution for all problems
 - "If all you have is a hammer..."
 
 ### 2. Architecture Anti-Patterns
 
 **Big Ball of Mud**
+
 - No clear architecture
 - System grows organically without design
 
 **Vendor Lock-In**
+
 - Over-dependence on specific vendor
 - Hard to migrate or change
 
 **Stovepipe System**
+
 - Systems that don't integrate
 - Data silos, duplicate functionality
 
 ### 3. Project Management Anti-Patterns
 
 **Death March**
+
 - Project doomed from start
 - Continues despite clear failure
 
 **Analysis Paralysis**
+
 - Over-analyzing, never acting
 - Perfectionism preventing progress
 
 **Scope Creep**
+
 - Requirements keep expanding
 - Project never completes
 
 ### 4. Testing Anti-Patterns
 
 **Test After**
+
 - Writing tests after code
 - Instead of test-driven development
 
 **Happy Path Testing**
+
 - Only testing success cases
 - Missing error handling
 
 **Brittle Tests**
+
 - Tests that break easily
 - Too tightly coupled to implementation
 
 ### 5. Code Quality Anti-Patterns
 
 **Magic Numbers**
+
 - Hard-coded values without explanation
 - Should use named constants
 
 **Premature Optimization**
+
 - Optimizing before profiling
 - Often makes code worse
 
 **Cargo Cult Programming**
+
 - Copying code without understanding
 - "It works, but I don't know why"
 
@@ -121,16 +145,19 @@ An **anti-pattern** is:
 ### Error Detection Framework
 
 **Dismissing Test Failures**
+
 - Claiming failures "don't matter"
 - Rationalizing instead of fixing
 - **This is an anti-pattern**
 
 **Ignoring Edge Cases**
+
 - "Users won't hit this"
 - "It's rare, so ignore it"
 - **This is an anti-pattern**
 
 **Rationalizing Errors**
+
 - "It works in practice"
 - "The test is too strict"
 - **This is an anti-pattern**
@@ -200,16 +227,19 @@ An **anti-pattern** is:
 ### Example: Dismissing Test Failures
 
 **Anti-pattern:**
+
 - Dismiss test failures as "not important"
 - Rationalize instead of fixing
 
 **Refactoring:**
+
 - Investigate every failure
 - Find root cause
 - Fix properly
 - Verify resolution
 
 **Result:**
+
 - Higher quality code
 - Fewer bugs
 - Better reliability
@@ -219,18 +249,22 @@ An **anti-pattern** is:
 ## Related Concepts
 
 ### Design Patterns
+
 - Proven solutions to common problems
 - Anti-patterns are the "bad" versions
 
 ### Code Smells
+
 - Indicators of deeper problems
 - Often symptoms of anti-patterns
 
 ### Technical Debt
+
 - Shortcuts that cause future problems
 - Many anti-patterns create technical debt
 
 ### Best Practices
+
 - Recommended approaches
 - Opposite of anti-patterns
 
@@ -240,7 +274,8 @@ An **anti-pattern** is:
 
 ### Books
 
-1. **"AntiPatterns: Refactoring Software, Architectures, and Projects in Crisis"**
+1. **"AntiPatterns: Refactoring Software, Architectures, and Projects in
+   Crisis"**
    - Brown, Malveau, McCormick, Mowbray (1998)
    - Original comprehensive work
 
@@ -263,19 +298,22 @@ An **anti-pattern** is:
 ## Summary
 
 **Anti-patterns are:**
+
 - ✓ Well-established concept in software engineering
 - ✓ Documented since 1998 (formally)
 - ✓ Used across many fields
 - ✓ Valuable for learning and prevention
 
 **In our framework:**
+
 - We document anti-patterns to avoid
 - We recognize them in our work
 - We refactor away from them
 - We learn from mistakes
 
-**Key takeaway:**
-Anti-patterns are not just "bad code" - they're **common mistakes** that many developers make. Recognizing and avoiding them is a sign of experience and wisdom.
+**Key takeaway:** Anti-patterns are not just "bad code" - they're **common
+mistakes** that many developers make. Recognizing and avoiding them is a sign of
+experience and wisdom.
 
 ---
 
@@ -306,6 +344,7 @@ Anti-patterns are not just "bad code" - they're **common mistakes** that many de
 - Problems need fixing
 
 **Better approach:**
+
 - Recognize anti-patterns
 - Avoid them proactively
 - Fix when found
@@ -313,5 +352,6 @@ Anti-patterns are not just "bad code" - they're **common mistakes** that many de
 
 ---
 
-**Status:** Anti-patterns are a standard, well-documented concept. Using them in our framework is appropriate and follows established software engineering practice.
-
+**Status:** Anti-patterns are a standard, well-documented concept. Using them in
+our framework is appropriate and follows established software engineering
+practice.

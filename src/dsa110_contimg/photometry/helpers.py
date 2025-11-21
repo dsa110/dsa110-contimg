@@ -10,7 +10,6 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-import pandas as pd
 from astropy.io import fits
 from astropy.wcs import WCS
 
@@ -85,6 +84,8 @@ def query_sources_for_fits(
     min_flux_mjy: Optional[float] = None,
     max_sources: Optional[int] = None,
     catalog_path: Optional[Path] = None,
+    ra_radius_deg: Optional[float] = None,
+    dec_radius_deg: Optional[float] = None,
 ) -> List[Dict[str, Any]]:
     """Query catalog sources for a FITS image field.
 
@@ -94,10 +95,12 @@ def query_sources_for_fits(
     Args:
         fits_path: Path to FITS image file
         catalog: Catalog type ("nvss", "first", "rax", "vlass", "master")
-        radius_deg: Search radius in degrees
+        radius_deg: Search radius in degrees (used if ra_radius_deg/dec_radius_deg not specified)
         min_flux_mjy: Minimum flux threshold in mJy (optional)
         max_sources: Maximum number of sources to return (optional)
         catalog_path: Path to catalog database file (optional)
+        ra_radius_deg: Search radius in RA direction (degrees, optional)
+        dec_radius_deg: Search radius in Dec direction (degrees, optional)
 
     Returns:
         List of source dictionaries with keys: ra, dec, flux_mjy, etc.
@@ -115,21 +118,53 @@ def query_sources_for_fits(
     try:
         # Extract field center
         ra_center, dec_center = get_field_center_from_fits(fits_path)
+
+        # Use separate RA/Dec radii if provided, otherwise use isotropic radius
+        effective_ra_radius = ra_radius_deg if ra_radius_deg is not None else radius_deg
+        effective_dec_radius = dec_radius_deg if dec_radius_deg is not None else radius_deg
+
         logger.info(
             f"Querying {catalog} catalog for sources near "
-            f"RA={ra_center:.6f}, Dec={dec_center:.6f}, radius={radius_deg}deg"
+            f"RA={ra_center:.6f}, Dec={dec_center:.6f}, "
+            f"RA radius={effective_ra_radius:.3f}deg, Dec radius={effective_dec_radius:.3f}deg"
         )
 
-        # Query catalog
-        df = query_sources(
-            catalog_type=catalog,
-            ra_center=ra_center,
-            dec_center=dec_center,
-            radius_deg=radius_deg,
-            min_flux_mjy=min_flux_mjy,
-            max_sources=max_sources,
-            catalog_path=str(catalog_path) if catalog_path else None,
-        )
+        # Query catalog with elliptical search if radii differ
+        if effective_ra_radius != effective_dec_radius:
+            # Use larger radius for initial query, then filter by ellipse
+            max_radius = max(effective_ra_radius, effective_dec_radius)
+            df = query_sources(
+                catalog_type=catalog,
+                ra_center=ra_center,
+                dec_center=dec_center,
+                radius_deg=max_radius,
+                min_flux_mjy=min_flux_mjy,
+                max_sources=None,  # Filter after elliptical cut
+                catalog_path=str(catalog_path) if catalog_path else None,
+            )
+            # Filter by ellipse: (delta_ra/ra_radius)^2 + (delta_dec/dec_radius)^2 <= 1
+            if not df.empty:
+                import numpy as np
+
+                delta_ra = (df["ra"] - ra_center) * np.cos(np.radians(dec_center))
+                delta_dec = df["dec"] - dec_center
+                in_ellipse = (delta_ra / effective_ra_radius) ** 2 + (
+                    delta_dec / effective_dec_radius
+                ) ** 2 <= 1
+                df = df[in_ellipse]
+                if max_sources:
+                    df = df.head(max_sources)
+        else:
+            # Circular search (isotropic)
+            df = query_sources(
+                catalog_type=catalog,
+                ra_center=ra_center,
+                dec_center=dec_center,
+                radius_deg=radius_deg,
+                min_flux_mjy=min_flux_mjy,
+                max_sources=max_sources,
+                catalog_path=str(catalog_path) if catalog_path else None,
+            )
 
         # Convert DataFrame to list of dictionaries
         if df.empty:
@@ -149,6 +184,8 @@ def query_sources_for_mosaic(
     mosaic_path: Path,
     catalog: str = "nvss",
     radius_deg: float = 1.0,
+    ra_radius_deg: Optional[float] = None,
+    dec_radius_deg: Optional[float] = None,
     min_flux_mjy: Optional[float] = None,
     max_sources: Optional[int] = None,
     catalog_path: Optional[Path] = None,

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Generate a pyuvsim-compatible antenna layout from antpos_local data."""
 
 import argparse
@@ -8,7 +8,6 @@ import sys
 from pathlib import Path
 
 import astropy.units as u
-import numpy as np
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:

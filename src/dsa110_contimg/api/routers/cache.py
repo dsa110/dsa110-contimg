@@ -1,6 +1,6 @@
 """API endpoints for cache monitoring and management."""
 
-from typing import List, Optional
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
 

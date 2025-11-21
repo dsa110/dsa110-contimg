@@ -22,7 +22,7 @@ export function useMetricHistory(
 ): number[] {
   const { maxEntries = 50, enabled = true } = options;
   const [history, setHistory] = useState<MetricHistoryEntry[]>([]);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastValueRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {

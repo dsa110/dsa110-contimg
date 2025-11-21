@@ -1,12 +1,12 @@
 """API endpoints for event bus monitoring."""
 
 import time
-from datetime import datetime, timedelta
-from typing import List, Optional
+from datetime import datetime
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
 
-from dsa110_contimg.pipeline.event_bus import EventType, PipelineEvent, get_event_bus
+from dsa110_contimg.pipeline.event_bus import EventType, get_event_bus
 
 router = APIRouter()
 

@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, etc.)
 """
 CLI utilities for calibrator catalog queries (transit times and in-beam matches).
 
@@ -24,7 +25,6 @@ from .catalogs import (
     get_calibrator_radec,
     load_vla_catalog,
     read_vla_parsed_catalog_csv,
-    resolve_vla_catalog_path,
 )
 from .schedule import previous_transits
 
@@ -80,9 +80,7 @@ def main(argv=None) -> int:
     sp.add_argument("--start", help="UTC start time (default: now)")
     sp.set_defaults(func=cmd_transit)
 
-    sp = sub.add_parser(
-        "inbeam", help="List in-beam calibrator matches for a drift strip"
-    )
+    sp = sub.add_parser("inbeam", help="List in-beam calibrator matches for a drift strip")
     sp.add_argument(
         "--catalog",
         default=None,

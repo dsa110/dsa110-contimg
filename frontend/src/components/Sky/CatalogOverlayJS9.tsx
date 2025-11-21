@@ -3,15 +3,13 @@
  * Overlays catalog sources on JS9 image viewer using JS9 overlay API
  */
 import { useEffect, useRef, useState } from "react";
-import { Box, Switch, FormControlLabel, Typography, CircularProgress } from "@mui/material";
+import { Box, Typography, CircularProgress } from "@mui/material";
 import { useCatalogOverlayByCoords } from "../../api/queries";
 import { logger } from "../../utils/logger";
 import { findDisplay } from "../../utils/js9";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 interface CatalogOverlayJS9Props {

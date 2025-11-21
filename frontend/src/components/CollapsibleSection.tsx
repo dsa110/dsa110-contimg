@@ -4,7 +4,8 @@
  */
 import React, { useState } from "react";
 import { Box, Typography, IconButton, Collapse, Paper, alpha } from "@mui/material";
-import { ExpandMore, ExpandLess } from "@mui/icons-material";
+import type { SxProps, Theme } from "@mui/material";
+import { ExpandMore } from "@mui/icons-material";
 
 interface CollapsibleSectionProps {
   title: string;
@@ -12,6 +13,7 @@ interface CollapsibleSectionProps {
   defaultExpanded?: boolean;
   variant?: "default" | "outlined" | "elevation";
   headerActions?: React.ReactNode;
+  sx?: SxProps<Theme>;
 }
 
 export default function CollapsibleSection({
@@ -20,6 +22,7 @@ export default function CollapsibleSection({
   defaultExpanded = false,
   variant = "default",
   headerActions,
+  sx,
 }: CollapsibleSectionProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
 
@@ -41,12 +44,16 @@ export default function CollapsibleSection({
         mb: 2,
         overflow: "hidden",
         transition: "all 0.2s ease-in-out",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
         "&:hover":
           variant === "default"
             ? {
                 bgcolor: alpha("#fff", 0.02),
               }
             : {},
+        ...sx,
       }}
     >
       <Box
@@ -83,8 +90,13 @@ export default function CollapsibleSection({
         </Box>
         {headerActions && <Box onClick={(e) => e.stopPropagation()}>{headerActions}</Box>}
       </Box>
-      <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <Box sx={{ p: 2, pt: 0 }}>{children}</Box>
+      <Collapse
+        in={expanded}
+        timeout="auto"
+        unmountOnExit
+        sx={{ flex: 1, display: "flex", flexDirection: "column" }}
+      >
+        <Box sx={{ p: 2, pt: 0, flex: 1 }}>{children}</Box>
       </Collapse>
     </Paper>
   );

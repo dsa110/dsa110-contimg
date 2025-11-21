@@ -1,3 +1,4 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, Jy, etc.)
 """
 Skymodel helpers: create CASA component lists (.cl) and apply via ft().
 
@@ -30,7 +31,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Iterable, Optional, Tuple
+from typing import Any, Iterable, Tuple
 
 
 def make_point_skymodel(
@@ -40,7 +41,7 @@ def make_point_skymodel(
     *,
     flux_jy: float,
     freq_ghz: float | str = 1.4,
-) -> "SkyModel":
+) -> "Any":  # pyradiosky.SkyModel - imported conditionally
     """Create a pyradiosky SkyModel for a single point source.
 
     Args:
@@ -54,7 +55,7 @@ def make_point_skymodel(
         pyradiosky SkyModel object
     """
     try:
-        from pyradiosky import SkyModel
+        from pyradiosky import SkyModel  # noqa: F401
     except ImportError:
         raise ImportError(
             "pyradiosky is required for make_point_skymodel(). "
@@ -232,7 +233,7 @@ def make_multi_point_cl(
     # Convert to list to check if empty
     points_list = list(points)
     if not points_list:
-        raise ValueError(f"Cannot create componentlist: no points provided")
+        raise ValueError("Cannot create componentlist: no points provided")
 
     freq_str = f"{float(freq_ghz)}GHz" if isinstance(freq_ghz, (int, float)) else str(freq_ghz)
     cl = casa_cl()
@@ -259,7 +260,7 @@ def make_multi_point_cl(
 
 
 def convert_skymodel_to_componentlist(
-    sky: "SkyModel",
+    sky: "Any",  # pyradiosky.SkyModel - imported conditionally
     *,
     out_path: str,
     freq_ghz: float | str = 1.4,
@@ -275,7 +276,7 @@ def convert_skymodel_to_componentlist(
         Path to created componentlist
     """
     try:
-        from pyradiosky import SkyModel
+        from pyradiosky import SkyModel  # noqa: F401
     except ImportError:
         raise ImportError(
             "pyradiosky is required for convert_skymodel_to_componentlist(). "
@@ -345,7 +346,6 @@ def convert_skymodel_to_componentlist(
                     shape="point",
                     spectrumtype="spectral index",
                     index=spec_idx,
-                    referencerefreq=f"{ref_freq_hz}Hz",
                 )
             else:
                 cl.addcomponent(
@@ -375,7 +375,8 @@ def make_nvss_skymodel(
     *,
     min_mjy: float = 10.0,
     freq_ghz: float | str = 1.4,
-) -> "SkyModel":
+    catalog: str = "nvss",
+) -> "Any":  # pyradiosky.SkyModel - imported conditionally
     """Create a pyradiosky SkyModel from NVSS sources in a sky region.
 
     Selects NVSS sources with flux >= min_mjy within radius_deg of (RA,Dec)
@@ -392,7 +393,7 @@ def make_nvss_skymodel(
         pyradiosky SkyModel object
     """
     try:
-        from pyradiosky import SkyModel
+        from pyradiosky import SkyModel  # noqa: F401
     except ImportError:
         raise ImportError(
             "pyradiosky is required for make_nvss_skymodel(). "
@@ -404,11 +405,12 @@ def make_nvss_skymodel(
     from astropy.coordinates import SkyCoord
 
     # Use SQLite-first query function (falls back to CSV if needed)
-    from dsa110_contimg.calibration.catalogs import query_nvss_sources  # type: ignore
+    from dsa110_contimg.catalog.query import query_sources  # type: ignore
 
-    df = query_nvss_sources(
-        ra_deg=center_ra_deg,
-        dec_deg=center_dec_deg,
+    df = query_sources(
+        catalog_type=catalog,
+        ra_center=center_ra_deg,
+        dec_center=center_dec_deg,
         radius_deg=float(radius_deg),
         min_flux_mjy=float(min_mjy),
     )
@@ -426,7 +428,7 @@ def make_nvss_skymodel(
             component_type="point",
         )
 
-    # Extract sources (already filtered by query_nvss_sources)
+    # Extract sources (already filtered by query_sources)
     ras = df["ra"].to_numpy()
     decs = df["dec"].to_numpy()
     fluxes = flux_mjy / 1000.0  # Convert to Jy
@@ -461,6 +463,177 @@ def make_nvss_skymodel(
     return sky
 
 
+def make_unified_skymodel(
+    center_ra_deg: float,
+    center_dec_deg: float,
+    radius_deg: float,
+    *,
+    min_mjy: float = 2.0,
+    freq_ghz: float | str = 1.4,
+    match_radius_arcsec: float = 5.0,
+) -> "Any":
+    """Create a unified SkyModel by merging FIRST, RACS, and NVSS catalogs.
+
+    Priority: FIRST > RACS > NVSS.
+    Sources are cross-matched, and lower-priority counterparts are removed
+    if they fall within match_radius_arcsec.
+
+    Args:
+        center_ra_deg: Center RA in degrees
+        center_dec_deg: Center Dec in degrees
+        radius_deg: Search radius in degrees
+        min_mjy: Minimum flux in mJy (default: 2.0)
+        freq_ghz: Reference frequency in GHz (default: 1.4)
+        match_radius_arcsec: Cross-match radius in arcseconds (default: 5.0)
+
+    Returns:
+        pyradiosky SkyModel object
+    """
+    try:
+        from pyradiosky import SkyModel  # noqa: F401
+    except ImportError:
+        raise ImportError(
+            "pyradiosky is required for make_unified_skymodel(). "
+            "Install with: pip install pyradiosky"
+        )
+
+    import astropy.units as u
+    import numpy as np
+    import pandas as pd
+    from astropy.coordinates import SkyCoord
+
+    from dsa110_contimg.catalog.query import query_sources
+
+    # Helper to standardize DataFrame
+    def fetch_catalog(ctype: str) -> pd.DataFrame:
+        try:
+            df = query_sources(
+                catalog_type=ctype,
+                ra_center=center_ra_deg,
+                dec_center=center_dec_deg,
+                radius_deg=float(radius_deg),
+                min_flux_mjy=float(min_mjy),
+            )
+            # Rename for consistency if needed (query_sources returns ra_deg, dec_deg, flux_mjy)
+            return df
+        except Exception:
+            return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
+
+    # 1. Fetch all catalogs
+    df_first = fetch_catalog("first")
+    df_rax = fetch_catalog("rax")
+    df_nvss = fetch_catalog("nvss")
+
+    # Add source origin label
+    if not df_first.empty:
+        df_first["origin"] = "FIRST"
+    if not df_rax.empty:
+        df_rax["origin"] = "RACS"
+    if not df_nvss.empty:
+        df_nvss["origin"] = "NVSS"
+
+    # 2. Start with FIRST (Highest Priority)
+    unified_df = df_first.copy()
+
+    # 3. Merge RACS (Medium Priority)
+    if not df_rax.empty:
+        if unified_df.empty:
+            unified_df = df_rax.copy()
+        else:
+            # Match RACS to current Unified (FIRST)
+            c_unified = SkyCoord(
+                ra=unified_df["ra_deg"].values * u.deg,
+                dec=unified_df["dec_deg"].values * u.deg,
+                frame="icrs",
+            )
+            c_rax = SkyCoord(
+                ra=df_rax["ra_deg"].values * u.deg,
+                dec=df_rax["dec_deg"].values * u.deg,
+                frame="icrs",
+            )
+
+            # Find matches
+            idx, d2d, _ = c_rax.match_to_catalog_sky(c_unified)
+
+            # Keep RACS sources that are NOT matched within radius
+            is_unmatched = d2d > (match_radius_arcsec * u.arcsec)
+            unique_rax = df_rax[is_unmatched]
+
+            unified_df = pd.concat([unified_df, unique_rax], ignore_index=True)
+
+    # 4. Merge NVSS (Lowest Priority)
+    if not df_nvss.empty:
+        if unified_df.empty:
+            unified_df = df_nvss.copy()
+        else:
+            # Match NVSS to current Unified (FIRST + RACS)
+            c_unified = SkyCoord(
+                ra=unified_df["ra_deg"].values * u.deg,
+                dec=unified_df["dec_deg"].values * u.deg,
+                frame="icrs",
+            )
+            c_nvss = SkyCoord(
+                ra=df_nvss["ra_deg"].values * u.deg,
+                dec=df_nvss["dec_deg"].values * u.deg,
+                frame="icrs",
+            )
+
+            # Find matches
+            idx, d2d, _ = c_nvss.match_to_catalog_sky(c_unified)
+
+            # Keep NVSS sources that are NOT matched within radius
+            is_unmatched = d2d > (match_radius_arcsec * u.arcsec)
+            unique_nvss = df_nvss[is_unmatched]
+
+            unified_df = pd.concat([unified_df, unique_nvss], ignore_index=True)
+
+    if unified_df.empty:
+        return SkyModel(
+            name=[],
+            skycoord=SkyCoord([], [], unit=u.deg, frame="icrs"),
+            stokes=np.zeros((4, 1, 0)) * u.Jy,
+            spectral_type="flat",
+            component_type="point",
+        )
+
+    # 5. Create Final SkyModel
+    ras = unified_df["ra_deg"].to_numpy()
+    decs = unified_df["dec_deg"].to_numpy()
+    fluxes = unified_df["flux_mjy"].to_numpy() / 1000.0  # Jy
+    origins = (
+        unified_df["origin"].to_numpy() if "origin" in unified_df.columns else ["UNK"] * len(ras)
+    )
+
+    n_components = len(ras)
+
+    # Create SkyCoord
+    skycoord = SkyCoord(ra=ras * u.deg, dec=decs * u.deg, frame="icrs")
+
+    # Create stokes array
+    stokes = np.zeros((4, 1, n_components)) * u.Jy
+    stokes[0, 0, :] = fluxes * u.Jy
+
+    # Get reference frequency
+    if isinstance(freq_ghz, (int, float)):
+        ref_freq = freq_ghz * u.GHz
+    else:
+        ref_freq = 1.4 * u.GHz
+
+    # Create unique names
+    names = [f"{origins[i]}_J{ras[i]:.4f}{decs[i]:+.4f}" for i in range(n_components)]
+
+    sky = SkyModel(
+        name=names,
+        skycoord=skycoord,
+        stokes=stokes,
+        spectral_type="flat",
+        component_type="point",
+        freq_array=np.array([ref_freq.to("Hz").value]) * u.Hz,
+    )
+
+    return sky
+
+
 def make_nvss_component_cl(
     center_ra_deg: float,
     center_dec_deg: float,
@@ -468,6 +641,7 @@ def make_nvss_component_cl(
     *,
     min_mjy: float = 10.0,
     freq_ghz: float | str = 1.4,
+    catalog: str = "nvss",
     out_path: str,
 ) -> str:
     """Build a multi-component list from NVSS sources in a sky region.
@@ -499,3 +673,166 @@ def make_nvss_component_cl(
 
     # Convert to componentlist
     return convert_skymodel_to_componentlist(sky, out_path=out_path, freq_ghz=freq_ghz)
+
+
+def write_wsclean_source_list(
+    sky: "Any",  # pyradiosky.SkyModel
+    out_path: str,
+    freq_ghz: float | str = 1.4,
+) -> str:
+    """Write pyradiosky SkyModel to WSClean text format.
+
+    Format: Name, Type, Ra, Dec, I, Q, U, V, SpectralIndex, LogarithmicSI, ReferenceFrequency, MajorAxis, MinorAxis, Orientation
+    """
+    from astropy.coordinates import Angle
+
+    try:
+        # Ensure we start with a fresh file
+        if os.path.exists(out_path):
+            try:
+                os.remove(out_path)
+            except OSError:
+                pass
+
+        with open(out_path, "w") as f:
+            # Write Header (WSClean 3.6 requires 'format = ...')
+            f.write(
+                "format = Name, Type, Ra, Dec, I, Q, U, V, SpectralIndex, LogarithmicSI, ReferenceFrequency, MajorAxis, MinorAxis, Orientation\n"
+            )
+
+            # Get ref freq
+            if sky.freq_array is not None and len(sky.freq_array) > 0:
+                ref_freq_hz = sky.freq_array[0].to("Hz").value
+            else:
+                ref_freq_hz = float(freq_ghz) * 1e9
+
+            for i in range(sky.Ncomponents):
+                name = sky.name[i]
+                ra = sky.skycoord[i].ra
+                dec = sky.skycoord[i].dec
+                flux_jy = sky.stokes[0, 0, i].to("Jy").value
+
+                # Format RA/Dec as hms/dms (WSClean 3.6 requirement)
+                # Re-do formatting to be safe and match WSClean strictness
+                ra_hours = ra.hour
+                ra_h = int(ra_hours)
+                ra_m = int((ra_hours - ra_h) * 60)
+                ra_s = ((ra_hours - ra_h) * 60 - ra_m) * 60
+                ra_fmt = f"{ra_h:02d}h{ra_m:02d}m{ra_s:06.3f}s"
+
+                dec_deg = dec.deg
+                dec_sign = "+" if dec_deg >= 0 else "-"
+                dec_abs = abs(dec_deg)
+                dec_d = int(dec_abs)
+                dec_m = int((dec_abs - dec_d) * 60)
+                dec_s = ((dec_abs - dec_d) * 60 - dec_m) * 60
+                dec_fmt = f"{dec_sign}{dec_d:02d}d{dec_m:02d}m{dec_s:06.3f}s"
+
+                # Spectral Index
+                si = "[]"
+                if sky.spectral_type == "spectral_index" and hasattr(sky, "spectral_index"):
+                    if sky.spectral_index is not None:
+                        si = f"[{float(sky.spectral_index[i])}]"
+                else:
+                    # Default to -0.7 for radio sources if not specified
+                    si = "[-0.7]"
+
+                # Check for extended source shape (WSClean uses arcsec for axes, deg for PA)
+                major = 0.0
+                minor = 0.0
+                pa = 0.0
+                source_type = "POINT"
+
+                # PyRadioSky typically stores these in SkyModel.major_axis etc as Quantities
+                if hasattr(sky, "major_axis") and sky.major_axis is not None:
+                    # Access the i-th element
+                    maj_val = sky.major_axis[i]
+                    if maj_val is not None and maj_val.value > 0:
+                        major = maj_val.to("arcsec").value
+                        source_type = "GAUSSIAN"
+
+                if hasattr(sky, "minor_axis") and sky.minor_axis is not None:
+                    min_val = sky.minor_axis[i]
+                    if min_val is not None and min_val.value > 0:
+                        minor = min_val.to("arcsec").value
+
+                if hasattr(sky, "position_angle") and sky.position_angle is not None:
+                    pa_val = sky.position_angle[i]
+                    if pa_val is not None:
+                        pa = pa_val.to("deg").value
+
+                # Line
+                # Name, Type, Ra, Dec, I, Q, U, V, SpectralIndex, LogarithmicSI, ReferenceFrequency, MajorAxis, MinorAxis, Orientation
+                line = f"{name},{source_type},{ra_fmt},{dec_fmt},{flux_jy},0,0,0,{si},[false],{ref_freq_hz},{major},{minor},{pa}\n"
+                f.write(line)
+
+    except Exception as e:
+        raise RuntimeError(f"Failed to write WSClean source list: {e}")
+
+    return out_path
+
+
+def make_nvss_wsclean_list(
+    center_ra_deg: float,
+    center_dec_deg: float,
+    radius_deg: float,
+    *,
+    min_mjy: float = 10.0,
+    freq_ghz: float | str = 1.4,
+    out_path: str,
+) -> str:
+    """Build a WSClean source list from NVSS sources.
+
+    Args:
+        center_ra_deg: Center RA
+        center_dec_deg: Center Dec
+        radius_deg: Radius
+        min_mjy: Min flux
+        freq_ghz: Ref freq
+        out_path: Output file path
+
+    Returns:
+        Path to source list
+    """
+    sky = make_nvss_skymodel(
+        center_ra_deg,
+        center_dec_deg,
+        radius_deg,
+        min_mjy=min_mjy,
+        freq_ghz=freq_ghz,
+    )
+
+    return write_wsclean_source_list(sky, out_path, freq_ghz=freq_ghz)
+
+
+def make_unified_wsclean_list(
+    center_ra_deg: float,
+    center_dec_deg: float,
+    radius_deg: float,
+    *,
+    min_mjy: float = 2.0,
+    freq_ghz: float | str = 1.4,
+    out_path: str,
+) -> str:
+    """Build a WSClean source list from the unified catalog (FIRST+RACS+NVSS).
+
+    Args:
+        center_ra_deg: Center RA
+        center_dec_deg: Center Dec
+        radius_deg: Radius
+        min_mjy: Min flux
+        freq_ghz: Ref freq
+        out_path: Output file path
+
+    Returns:
+        Path to source list
+    """
+    sky = make_unified_skymodel(
+        center_ra_deg,
+        center_dec_deg,
+        radius_deg,
+        min_mjy=min_mjy,
+        freq_ghz=freq_ghz,
+    )
+
+    return write_wsclean_source_list(sky, out_path, freq_ghz=freq_ghz)

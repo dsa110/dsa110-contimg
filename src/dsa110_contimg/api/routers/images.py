@@ -1,3 +1,4 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, Jy, etc.)
 """Image-related API routes extracted from routes.py."""
 
 from __future__ import annotations
@@ -6,7 +7,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, Request, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import FileResponse, HTMLResponse
 
 from dsa110_contimg.api.data_access import _connect
@@ -26,9 +27,7 @@ def images(
     ms_path: str | None = None,
     image_type: str | None = None,
     pbcor: bool | None = None,
-    start_date: str | None = Query(
-        None, description="Start date filter (ISO 8601 format)"
-    ),
+    start_date: str | None = Query(None, description="Start date filter (ISO 8601 format)"),
     end_date: str | None = Query(None, description="End date filter (ISO 8601 format)"),
     noise_max: float | None = Query(None, description="Maximum noise level (Jy)"),
     dec_min: float | None = Query(
@@ -123,9 +122,7 @@ def images(
 
         # For post-filtering (dec/calibrator), we need to fetch more rows first
         # Then apply post-filters, then apply offset/limit
-        needs_post_filter = (
-            dec_min is not None or dec_max is not None or has_calibrator is not None
-        )
+        needs_post_filter = dec_min is not None or dec_max is not None or has_calibrator is not None
         fetch_limit = limit + offset + 1000 if needs_post_filter else limit
         fetch_offset = 0 if needs_post_filter else offset
 
@@ -173,11 +170,11 @@ def images(
                                 KeyError,
                             ) as e:
                                 logger.debug(
-                                    f"Could not parse WCS for dec filter (image {r.get('id', 'unknown')}): {e}"
+                                    f"Could not parse WCS for dec filter (image {r['id'] if 'id' in r.keys() else 'unknown'}): {e}"
                                 )
                     except (OSError, IOError, KeyError) as e:
                         logger.debug(
-                            f"Could not read FITS for dec filter (image {r.get('id', 'unknown')}): {e}"
+                            f"Could not read FITS for dec filter (image {r['id'] if 'id' in r.keys() else 'unknown'}): {e}"
                         )
 
             # Apply declination filter
@@ -192,8 +189,7 @@ def images(
                 # This is a simple heuristic - may need refinement based on actual naming conventions
                 ms_path_lower = r["ms_path"].lower()
                 has_cal = any(
-                    indicator in ms_path_lower
-                    for indicator in ["cal", "calibrator", "3c", "j1331"]
+                    indicator in ms_path_lower for indicator in ["cal", "calibrator", "3c", "j1331"]
                 )
                 if has_calibrator and not has_cal:
                     continue
@@ -238,11 +234,11 @@ def images(
                                     )
                         except (ValueError, TypeError, AttributeError, KeyError) as e:
                             logger.debug(
-                                f"Could not parse WCS for response (image {r.get('id', 'unknown')}): {e}"
+                                f"Could not parse WCS for response (image {r['id'] if 'id' in r.keys() else 'unknown'}): {e}"
                             )
                 except (OSError, IOError, KeyError) as e:
                     logger.debug(
-                        f"Could not read FITS for response (image {r.get('id', 'unknown')}): {e}"
+                        f"Could not read FITS for response (image {r['id'] if 'id' in r.keys() else 'unknown'}): {e}"
                     )
 
             items.append(
@@ -251,9 +247,7 @@ def images(
                     path=r["path"],
                     ms_path=r["ms_path"],
                     created_at=(
-                        datetime.fromtimestamp(r["created_at"])
-                        if r["created_at"]
-                        else None
+                        datetime.fromtimestamp(r["created_at"]) if r["created_at"] else None
                     ),
                     type=r["type"],
                     beam_major_arcsec=r["beam_major_arcsec"],
@@ -278,9 +272,7 @@ def get_image_fits(request: Request, image_id: int):
     if not db_path.exists():
         return HTMLResponse(status_code=404, content="Database not found")
     with _connect(db_path) as conn:
-        row = conn.execute(
-            "SELECT path FROM images WHERE id = ?", (image_id,)
-        ).fetchone()
+        row = conn.execute("SELECT path FROM images WHERE id = ?", (image_id,)).fetchone()
         if not row:
             return HTMLResponse(status_code=404, content="Image not found")
         image_path = row["path"]
@@ -290,15 +282,13 @@ def get_image_fits(request: Request, image_id: int):
             status_code=404,
             content=f"FITS file not found for image {image_id}. Conversion may have failed.",
         )
-    return FileResponse(
-        fits_path, media_type="application/fits", filename=Path(fits_path).name
-    )
+    return FileResponse(fits_path, media_type="application/fits", filename=Path(fits_path).name)
 
 
 @router.get("/images/{image_id}", response_model=ImageDetail)
 def get_image_detail(request: Request, image_id: int):
-    from astropy.coordinates import SkyCoord
     from astropy import units as u
+    from astropy.coordinates import SkyCoord
     from astropy.io import fits
     from astropy.wcs import WCS
 
@@ -328,10 +318,7 @@ def get_image_detail(request: Request, image_id: int):
                 ).fetchall()
             }
             if "photometry" in tables:
-                cols = {
-                    r[1]
-                    for r in conn.execute("PRAGMA table_info(photometry)").fetchall()
-                }
+                cols = {r[1] for r in conn.execute("PRAGMA table_info(photometry)").fetchall()}
                 if "image_path" in cols:
                     count_row = conn.execute(
                         "SELECT COUNT(*) as cnt FROM photometry WHERE image_path = ?",
@@ -341,9 +328,7 @@ def get_image_detail(request: Request, image_id: int):
         except Exception as e:
             logger.debug(f"Could not count measurements for image {image_id}: {e}")
         n_runs = 0
-        ra = dec = ra_hms = dec_dms = l = b = frequency = bandwidth = datetime_str = (
-            None
-        )
+        ra = dec = ra_hms = dec_dms = gal_l = b = frequency = bandwidth = datetime_str = None
         fits_path = get_fits_path(image_path)
         if fits_path and Path(fits_path).exists():
             try:
@@ -357,25 +342,15 @@ def get_image_detail(request: Request, image_id: int):
                                 hdr.get("NAXIS2", 0) / 2,
                             ]
                             if hdr.get("NAXIS", 0) >= 2:
-                                ra, dec = wcs.all_pix2world(
-                                    center_pix[0], center_pix[1], 0
-                                )
-                                coord = SkyCoord(
-                                    ra=ra * u.deg, dec=dec * u.deg, frame="icrs"
-                                )
-                                ra_hms = coord.ra.to_string(
-                                    unit=u.hour, sep=":", precision=2
-                                )
-                                dec_dms = coord.dec.to_string(
-                                    unit=u.deg, sep=":", precision=2
-                                )
-                                l = coord.galactic.l.deg
+                                ra, dec = wcs.all_pix2world(center_pix[0], center_pix[1], 0)
+                                coord = SkyCoord(ra=ra * u.deg, dec=dec * u.deg, frame="icrs")
+                                ra_hms = coord.ra.to_string(unit=u.hour, sep=":", precision=2)
+                                dec_dms = coord.dec.to_string(unit=u.deg, sep=":", precision=2)
+                                gal_l = coord.galactic.l.deg
                                 b = coord.galactic.b.deg
                     except (ValueError, TypeError, AttributeError, KeyError) as e:
                         # WCS parsing can fail if header is incomplete or malformed
-                        logger.debug(
-                            f"Could not parse WCS coordinates for image {image_id}: {e}"
-                        )
+                        logger.debug(f"Could not parse WCS coordinates for image {image_id}: {e}")
                     if "RESTFRQ" in hdr:
                         frequency = hdr["RESTFRQ"] / 1e6
                     elif "CRVAL3" in hdr and "CUNIT3" in hdr:
@@ -416,30 +391,20 @@ def get_image_detail(request: Request, image_id: int):
             dec=dec,
             ra_hms=ra_hms,
             dec_dms=dec_dms,
-            l=l,
+            gal_l=gal_l,
             b=b,
             frequency=frequency,
             bandwidth=bandwidth,
             datetime=datetime.fromisoformat(datetime_str) if datetime_str else None,
             created_at=(
-                datetime.fromtimestamp(row["created_at"])
-                if row["created_at"] is not None
-                else None
+                datetime.fromtimestamp(row["created_at"]) if row["created_at"] is not None else None
             ),
             n_meas=n_meas,
             n_runs=n_runs,
             type=row["type"],
             pbcor=bool(row["pbcor"]),
-            beam_bmaj=(
-                (row["beam_major_arcsec"] / 3600.0)
-                if row["beam_major_arcsec"]
-                else None
-            ),
-            beam_bmin=(
-                (row["beam_minor_arcsec"] / 3600.0)
-                if row["beam_minor_arcsec"]
-                else None
-            ),
+            beam_bmaj=((row["beam_major_arcsec"] / 3600.0) if row["beam_major_arcsec"] else None),
+            beam_bmin=((row["beam_minor_arcsec"] / 3600.0) if row["beam_minor_arcsec"] else None),
             beam_bpa=row["beam_pa_deg"],
             rms_median=(row["noise_jy"] * 1000.0) if row["noise_jy"] else None,
             rms_min=None,

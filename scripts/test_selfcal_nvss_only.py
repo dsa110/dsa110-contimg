@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+"""Test self-cal with ONLY NVSS seeding (no calibrator model)."""
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, "/data/dsa110-contimg/src/dsa110_contimg/src")
+
+from dsa110_contimg.calibration.selfcal import SelfCalConfig, selfcal_ms
+
+MS_PATH = Path("/stage/dsa110-contimg/test_data/2025-10-19T14:31:45.ms")
+INITIAL_CALTABLES = [
+    "/stage/dsa110-contimg/test_data/2025-10-19T14:31:45_0~23_bpcal",
+    "/stage/dsa110-contimg/test_data/2025-10-19T14:31:45_0~23_gpcal",
+    "/stage/dsa110-contimg/test_data/2025-10-19T14:31:45_0~23_2gcal",
+]
+
+OUTPUT_DIR = Path("/stage/dsa110-contimg/test_data/selfcal_nvss_only")
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+print("=" * 80)
+print("SELF-CAL TEST WITH NVSS SEEDING ONLY (no calibrator model)")
+print("=" * 80)
+print(f"MS: {MS_PATH}")
+print(f"Output: {OUTPUT_DIR}")
+print("=" * 80)
+print()
+
+# Config: NVSS seeding YES, calibrator model NO
+config = SelfCalConfig(
+    max_iterations=1,
+    phase_solints=["inf"],
+    do_amplitude=False,
+    niter=10000,
+    threshold="0.0005Jy",
+    robust=-0.5,
+    field="0",
+    use_nvss_seeding=True,  # YES - NVSS seeding
+    nvss_min_mjy=10.0,
+    # NO calibrator model (leave these as None)
+    calib_ra_deg=None,
+    calib_dec_deg=None,
+    calib_flux_jy=None,
+)
+
+print("Starting self-cal (NVSS seeding only, no calibrator model)...")
+success, summary = selfcal_ms(
+    ms_path=MS_PATH,
+    output_dir=OUTPUT_DIR,
+    config=config,
+    initial_caltables=INITIAL_CALTABLES,
+)
+
+print()
+print("=" * 80)
+if success:
+    print("✅ SUCCESS!")
+    print(f"SNR: {summary.get('final_snr', 0.0):.2f}")
+else:
+    print("❌ FAILED")
+print("=" * 80)

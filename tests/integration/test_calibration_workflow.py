@@ -23,9 +23,7 @@ import shutil
 import sys
 import tempfile
 from pathlib import Path
-from typing import List, Optional
 
-import numpy as np
 import pytest
 
 # Add src to path
@@ -107,9 +105,6 @@ class TestSubbandOrderingIntegration:
 
     def test_subband_group_discovery(self, synthetic_uvh5_files):
         """Test that complete 16-subband groups are discovered correctly."""
-        from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-            find_subband_groups,
-        )
 
         # This would require the actual implementation
         # For now, verify files exist
@@ -140,9 +135,7 @@ class TestCalibrationWorkflowIntegration:
         # Step 1: Convert UVH5 to MS (would need to merge subbands first in real workflow)
         # For this test, assume single file conversion
         if len(synthetic_uvh5_files) > 0:
-            convert_single_file(
-                synthetic_uvh5_files[0], str(ms_path), add_imaging_columns=True
-            )
+            convert_single_file(synthetic_uvh5_files[0], str(ms_path), add_imaging_columns=True)
 
         # Step 2: Populate MODEL_DATA
         write_point_model_with_ft(
@@ -209,7 +202,6 @@ class TestCalibrationWorkflowIntegration:
         """Test that MS phasing verification logic works."""
         from astropy import units as u
         from astropy.coordinates import SkyCoord
-        from casacore.tables import table
 
         # This test would require an actual MS file
         # For now, verify the logic
@@ -246,9 +238,7 @@ class TestCalibrationParameterValidation:
         from dsa110_contimg.calibration.calibration import solve_prebandpass_phase
 
         sig = inspect.signature(solve_prebandpass_phase)
-        assert (
-            "solint" in sig.parameters
-        ), "solve_prebandpass_phase should have solint parameter"
+        assert "solint" in sig.parameters, "solve_prebandpass_phase should have solint parameter"
 
         # Default should be "inf" (problematic)
         default_solint = sig.parameters["solint"].default
@@ -261,9 +251,7 @@ class TestCalibrationParameterValidation:
         from dsa110_contimg.calibration.calibration import solve_prebandpass_phase
 
         sig = inspect.signature(solve_prebandpass_phase)
-        assert (
-            "minsnr" in sig.parameters
-        ), "solve_prebandpass_phase should have minsnr parameter"
+        assert "minsnr" in sig.parameters, "solve_prebandpass_phase should have minsnr parameter"
 
         # Default should be 5.0 (too strict)
         default_minsnr = sig.parameters["minsnr"].default
@@ -277,9 +265,7 @@ class TestCalibrationParameterValidation:
 
         sig = inspect.signature(solve_bandpass)
 
-        assert (
-            "combine_spw" in sig.parameters
-        ), "solve_bandpass should have combine_spw parameter"
+        assert "combine_spw" in sig.parameters, "solve_bandpass should have combine_spw parameter"
         assert (
             "combine_fields" in sig.parameters
         ), "solve_bandpass should have combine_fields parameter"

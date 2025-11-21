@@ -103,7 +103,7 @@ Searching for: 2>/dev/null
   ./scripts/scratch_sync.sh:147 [needs-review]   df -h "$SCRATCH_ROOT" "/" "$DATA_ROOT" 2>/dev/null | uniq
 
 Searching for: >/dev/null
-  ./scripts/agent-setup.sh:13 [error-detection]         source "/data/dsa110-contimg/scripts/auto-error-detection.sh" >/dev/null 2>&1
+  ./scripts/developer-setup.sh:13 [error-detection]         source "/data/dsa110-contimg/scripts/auto-error-detection.sh" >/dev/null 2>&1
   ./scripts/audit-output-suppression.sh:15 [needs-review] PATTERNS=("2>/dev/null" ">/dev/null" "&>/dev/null")
   ./scripts/auto-error-detection-env.sh:7 [error-detection]     source "/data/dsa110-contimg/scripts/auto-error-detection.sh" >/dev/null 2>&1
   ./scripts/auto-error-detection-universal.sh:24 [error-detection]     return 1 2>/dev/null || exit 1

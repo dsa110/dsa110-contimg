@@ -7,7 +7,6 @@ Evaluates quality of CASA image products to ensure scientific validity.
 import logging
 import os
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 # Ensure CASAPATH is set before importing CASA modules
@@ -16,7 +15,6 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 import numpy as np
 
-from dsa110_contimg.utils.runtime_safeguards import filter_non_finite_2d
 from dsa110_contimg.qa.base import ValidationInputError
 from dsa110_contimg.qa.config import ImageQualityConfig, get_default_config
 
@@ -27,9 +25,7 @@ try:
 except ImportError:
     HAVE_CASACORE_IMAGES = False
     logger = logging.getLogger(__name__)
-    logger.warning(
-        "casacore.images not available, image quality checks will be limited"
-    )
+    logger.warning("casacore.images not available, image quality checks will be limited")
 
 logger = logging.getLogger(__name__)
 
@@ -185,7 +181,7 @@ def validate_image_quality(
                 # Could be [ny, nx, channel] or [stokes, ny, nx]
                 # Assume spatial dimensions are largest
                 sorted_dims = sorted(enumerate(shape), key=lambda x: x[1], reverse=True)
-                spatial_indices = [sorted_dims[0][0], sorted_dims[1][0]]
+                [sorted_dims[0][0], sorted_dims[1][0]]
                 nx, ny = sorted_dims[0][1], sorted_dims[1][1]
                 n_channels = shape[sorted_dims[2][0]]
                 n_stokes = 1
@@ -208,11 +204,7 @@ def validate_image_quality(
 
                 # Extract first stokes, first channel, all spatial
                 # The spatial dimensions should be preserved
-                pixels = (
-                    full_data[0, 0, :, :]
-                    if spatial_idx == [2, 3]
-                    else full_data[:, :, 0, 0]
-                )
+                pixels = full_data[0, 0, :, :] if spatial_idx == [2, 3] else full_data[:, :, 0, 0]
             else:
                 nx = ny = n_channels = n_stokes = 0
                 pixels = np.array([])
@@ -283,9 +275,7 @@ def validate_image_quality(
 
                 # Count pixels above 5-sigma
                 if rms_pixel > 0:
-                    n_pixels_above_5sigma = int(
-                        np.sum(np.abs(valid_pixels) > 5 * rms_pixel)
-                    )
+                    n_pixels_above_5sigma = int(np.sum(np.abs(valid_pixels) > 5 * rms_pixel))
                 else:
                     n_pixels_above_5sigma = 0
 
@@ -301,9 +291,7 @@ def validate_image_quality(
                         warnings.append(f"Low peak SNR: {peak_snr:.1f}")
 
                     if n_pixels_above_5sigma < 10:  # Keep pixel count threshold
-                        warnings.append(
-                            f"Few pixels above 5-sigma: {n_pixels_above_5sigma}"
-                        )
+                        warnings.append(f"Few pixels above 5-sigma: {n_pixels_above_5sigma}")
 
                     # Check RMS noise threshold
                     if rms_pixel > config.max_rms_noise:

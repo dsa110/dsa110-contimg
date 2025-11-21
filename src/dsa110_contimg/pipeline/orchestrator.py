@@ -73,9 +73,7 @@ class PipelineOrchestrator:
         result = orchestrator.execute(initial_context)
     """
 
-    def __init__(
-        self, stages: List[StageDefinition], observer: Optional[PipelineObserver] = None
-    ):
+    def __init__(self, stages: List[StageDefinition], observer: Optional[PipelineObserver] = None):
         """Initialize orchestrator.
 
         Args:
@@ -122,9 +120,7 @@ class PipelineOrchestrator:
 
         return result
 
-    def _prerequisites_met(
-        self, stage_name: str, results: Dict[str, StageResult]
-    ) -> bool:
+    def _prerequisites_met(self, stage_name: str, results: Dict[str, StageResult]) -> bool:
         """Check if prerequisites for a stage are met.
 
         Args:
@@ -187,9 +183,7 @@ class PipelineOrchestrator:
             # CRITICAL: Validate outputs after successful execution
             # This catches issues early before downstream stages depend on invalid outputs
             try:
-                is_valid, validation_msg = stage_def.stage.validate_outputs(
-                    result_context
-                )
+                is_valid, validation_msg = stage_def.stage.validate_outputs(result_context)
                 if not is_valid:
                     raise ValueError(
                         f"Output validation failed for stage '{stage_def.name}': {validation_msg}"
@@ -211,9 +205,7 @@ class PipelineOrchestrator:
                 import logging
 
                 logger = logging.getLogger(__name__)
-                logger.warning(
-                    f"Cleanup failed for stage '{stage_def.name}': {e}", exc_info=True
-                )
+                logger.warning(f"Cleanup failed for stage '{stage_def.name}': {e}", exc_info=True)
 
             return StageResult(
                 status=StageStatus.COMPLETED,
@@ -247,9 +239,7 @@ class PipelineOrchestrator:
                 )
 
             # Check if we should retry
-            if stage_def.retry_policy and stage_def.retry_policy.should_retry(
-                attempt, e
-            ):
+            if stage_def.retry_policy and stage_def.retry_policy.should_retry(attempt, e):
                 # Wait before retry
                 delay = stage_def.retry_policy.get_delay(attempt)
                 if delay > 0:
@@ -354,9 +344,7 @@ class PipelineOrchestrator:
                         status=StageStatus.SKIPPED,
                         context=context,
                     )
-                    self.observer.stage_skipped(
-                        stage_name, context, "Prerequisites not met"
-                    )
+                    self.observer.stage_skipped(stage_name, context, "Prerequisites not met")
                     continue
 
                 # Notify observer of stage start
@@ -381,10 +369,7 @@ class PipelineOrchestrator:
                         result.attempt,
                     )
                     # Handle failure based on retry policy
-                    if (
-                        stage_def.retry_policy
-                        and stage_def.retry_policy.should_continue()
-                    ):
+                    if stage_def.retry_policy and stage_def.retry_policy.should_continue():
                         pipeline_status = PipelineStatus.PARTIAL
                         continue
                     else:
@@ -394,19 +379,13 @@ class PipelineOrchestrator:
             # Determine final status
             if pipeline_status == PipelineStatus.RUNNING:
                 # Check if all stages completed
-                all_completed = all(
-                    r.status == StageStatus.COMPLETED for r in results.values()
-                )
+                all_completed = all(r.status == StageStatus.COMPLETED for r in results.values())
                 pipeline_status = (
-                    PipelineStatus.COMPLETED
-                    if all_completed
-                    else PipelineStatus.PARTIAL
+                    PipelineStatus.COMPLETED if all_completed else PipelineStatus.PARTIAL
                 )
 
             total_duration = time.time() - start_time
-            self.observer.pipeline_completed(
-                context, total_duration, pipeline_status.value
-            )
+            self.observer.pipeline_completed(context, total_duration, pipeline_status.value)
 
             return PipelineResult(
                 status=pipeline_status,

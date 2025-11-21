@@ -41,7 +41,7 @@ def derive_default_scratch_root() -> Path:
     try:
         p.mkdir(parents=True, exist_ok=True)
         return p
-    except (OSError, IOError, PermissionError) as e:
+    except (OSError, IOError, PermissionError):
         # Fallback to /tmp if preferred directory cannot be created
         return Path("/tmp")
 
@@ -63,7 +63,7 @@ def prepare_temp_environment(
     tmp = root / "tmp"
     try:
         tmp.mkdir(parents=True, exist_ok=True)
-    except (OSError, IOError, PermissionError) as e:
+    except (OSError, IOError, PermissionError):
         # Best effort: fall back to /tmp
         tmp = Path("/tmp")
         try:
@@ -84,7 +84,7 @@ def prepare_temp_environment(
         outdir.mkdir(parents=True, exist_ok=True)
         try:
             os.chdir(outdir)
-        except (OSError, IOError, PermissionError) as e:
+        except (OSError, IOError, PermissionError):
             # If chdir fails, continue; env vars will still help
             pass
 
@@ -108,7 +108,7 @@ def derive_casa_log_dir() -> Path:
     try:
         log_dir.mkdir(parents=True, exist_ok=True)
         return log_dir
-    except (OSError, IOError, PermissionError) as e:
+    except (OSError, IOError, PermissionError):
         # Fallback to /tmp if we can't create the preferred directory
         return Path("/tmp")
 

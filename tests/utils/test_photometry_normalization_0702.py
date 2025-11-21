@@ -15,8 +15,8 @@ Validates:
 - Correction factor computation
 - Normalized flux scatter < 3% for stable sources
 """
+
 import argparse
-import sqlite3
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -27,17 +27,12 @@ import numpy as np
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from typing import Tuple
 
 from astropy.io import fits
 from astropy.wcs import WCS
 
-from dsa110_contimg.database.products import ensure_products_db
 from dsa110_contimg.photometry.forced import measure_forced_peak
 from dsa110_contimg.photometry.normalize import (
-    compute_ensemble_correction,
-    establish_baselines,
-    normalize_measurement,
     query_reference_sources,
 )
 
@@ -115,7 +110,7 @@ def mode_baseline(args):
 
     # Statistics
     measurements_arr = np.array(measurements)
-    print(f"\nBaseline statistics:")
+    print("\nBaseline statistics:")
     print(f"  N valid: {len(measurements)} / {len(ref_sources)}")
     print(f"  Median: {np.median(measurements_arr):.4f} Jy/beam")
     print(
@@ -132,7 +127,7 @@ def mode_baseline(args):
         f.write(f"# Baseline established: {datetime.utcnow().isoformat()}\n")
         f.write(f"# Image: {args.image}\n")
         f.write(f"# Center: RA={ra_center:.6f}, Dec={dec_center:.6f}\n")
-        f.write(f"# source_id,ra_deg,dec_deg,nvss_name,flux_baseline,baseline_rms\n")
+        f.write("# source_id,ra_deg,dec_deg,nvss_name,flux_baseline,baseline_rms\n")
         for ref, meas in zip(ref_sources, measurements):
             if ref.is_valid:
                 f.write(
@@ -207,9 +202,9 @@ def mode_validate(args):
     mad = np.median(np.abs(ratios_arr - correction))
     rms = 1.4826 * mad
 
-    print(f"\nCorrection factor statistics:")
+    print("\nCorrection factor statistics:")
     print(f"  Median ratio: {correction:.4f}")
-    print(f"  RMS scatter: {rms:.4f} ({100*rms:.2f}%)")
+    print(f"  RMS scatter: {rms:.4f} ({100 * rms:.2f}%)")
     print(f"  N valid: {len(ratios)} / {len(baselines)}")
 
     # Normalize measurements
@@ -219,31 +214,31 @@ def mode_validate(args):
         normalized[source_id] = flux_norm
 
     # Compare to baseline
-    print(f"\nNormalized vs Baseline comparison:")
+    print("\nNormalized vs Baseline comparison:")
     deviations = []
     for source_id, flux_norm in normalized.items():
         flux_base = baselines[source_id]
         dev = (flux_norm - flux_base) / flux_base
         deviations.append(dev)
         ra, dec, name = ref_coords[source_id]
-        print(f"  {name}: {flux_norm:.4f} vs {flux_base:.4f} ({100*dev:+.2f}%)")
+        print(f"  {name}: {flux_norm:.4f} vs {flux_base:.4f} ({100 * dev:+.2f}%)")
 
     dev_arr = np.array(deviations)
     dev_rms = np.std(dev_arr)
     dev_mad = 1.4826 * np.median(np.abs(dev_arr - np.median(dev_arr)))
 
-    print(f"\nDeviation statistics:")
-    print(f"  Median: {100*np.median(dev_arr):.2f}%")
-    print(f"  RMS: {100*dev_rms:.2f}%")
-    print(f"  MAD (robust RMS): {100*dev_mad:.2f}%")
+    print("\nDeviation statistics:")
+    print(f"  Median: {100 * np.median(dev_arr):.2f}%")
+    print(f"  RMS: {100 * dev_rms:.2f}%")
+    print(f"  MAD (robust RMS): {100 * dev_mad:.2f}%")
 
     # Success criteria
-    print(f"\nValidation:")
+    print("\nValidation:")
     if dev_mad < 0.03:
-        print(f"  ✓ Normalization PASSED: MAD={100*dev_mad:.2f}% < 3%")
+        print(f"  ✓ Normalization PASSED: MAD={100 * dev_mad:.2f}% < 3%")
         status = 0
     else:
-        print(f"  ✗ Normalization FAILED: MAD={100*dev_mad:.2f}% >= 3%")
+        print(f"  ✗ Normalization FAILED: MAD={100 * dev_mad:.2f}% >= 3%")
         status = 1
 
     # Plot
@@ -288,14 +283,12 @@ def mode_validate(args):
         # Ratio distribution
         ax = axes[1, 0]
         ax.hist(ratios, bins=20, alpha=0.7, edgecolor="black")
-        ax.axvline(
-            correction, color="r", linestyle="--", label=f"Median={correction:.4f}"
-        )
-        ax.axvline(correction - rms, color="orange", linestyle=":", label=f"±RMS")
+        ax.axvline(correction, color="r", linestyle="--", label=f"Median={correction:.4f}")
+        ax.axvline(correction - rms, color="orange", linestyle=":", label="±RMS")
         ax.axvline(correction + rms, color="orange", linestyle=":")
         ax.set_xlabel("Flux Ratio (Current / Baseline)")
         ax.set_ylabel("N References")
-        ax.set_title(f"Correction Factor Distribution (RMS={100*rms:.2f}%)")
+        ax.set_title(f"Correction Factor Distribution (RMS={100 * rms:.2f}%)")
         ax.legend()
         ax.grid(True, alpha=0.3)
 
@@ -303,18 +296,17 @@ def mode_validate(args):
         ax = axes[1, 1]
         ax.hist(100 * dev_arr, bins=20, alpha=0.7, edgecolor="black", color="green")
         ax.axvline(0, color="r", linestyle="--", label="Zero deviation")
-        ax.axvline(-100 * dev_mad, color="orange", linestyle=":", label=f"±MAD")
+        ax.axvline(-100 * dev_mad, color="orange", linestyle=":", label="±MAD")
         ax.axvline(+100 * dev_mad, color="orange", linestyle=":")
         ax.set_xlabel("Deviation (%)")
         ax.set_ylabel("N References")
-        ax.set_title(f"Normalized Flux Deviation (MAD={100*dev_mad:.2f}%)")
+        ax.set_title(f"Normalized Flux Deviation (MAD={100 * dev_mad:.2f}%)")
         ax.legend()
         ax.grid(True, alpha=0.3)
 
         plt.tight_layout()
         plot_file = (
-            Path(args.image).parent
-            / f"{Path(args.image).stem}_normalization_validation.png"
+            Path(args.image).parent / f"{Path(args.image).stem}_normalization_validation.png"
         )
         plt.savefig(plot_file, dpi=150)
         print(f"\nPlot saved to: {plot_file}")
@@ -352,12 +344,8 @@ def main():
     parser.add_argument(
         "--min-snr", type=float, default=50.0, help="Minimum NVSS SNR for references"
     )
-    parser.add_argument(
-        "--max-refs", type=int, default=20, help="Maximum number of references"
-    )
-    parser.add_argument(
-        "--box", type=int, default=5, help="Pixel box size for forced photometry"
-    )
+    parser.add_argument("--max-refs", type=int, default=20, help="Maximum number of references")
+    parser.add_argument("--box", type=int, default=5, help="Pixel box size for forced photometry")
     parser.add_argument(
         "--annulus",
         nargs=2,

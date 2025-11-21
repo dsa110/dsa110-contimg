@@ -1,3 +1,4 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, etc.)
 """
 DP3 wrappers for sky model seeding and calibration application.
 
@@ -29,7 +30,7 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, List, Optional
 
 LOG = logging.getLogger(__name__)
 
@@ -81,19 +82,19 @@ def convert_nvss_to_dp3_skymodel(
     """Convert NVSS catalog to DP3 sky model format (.skymodel).
 
     DP3 sky model format:
-        Format = Name, Type, Ra, Dec, I, SpectralIndex, LogarithmicSI, ReferenceFrequency='1400000000.0', MajorAxis, MinorAxis, Orientation
+        Format = Name, Type, Ra, Dec, I, SpectralIndex, LogarithmicSI,
+                ReferenceFrequency='1400000000.0', MajorAxis, MinorAxis, Orientation
         s0c0,POINT,07:02:53.6790,+44:31:11.940,2.4,[-0.7],false,1400000000.0,,,
     """
-    import astropy.units as u
     import numpy as np
-    from astropy.coordinates import SkyCoord
 
     # Use SQLite-first query function (falls back to CSV if needed)
-    from dsa110_contimg.calibration.catalogs import query_nvss_sources
+    from dsa110_contimg.catalog.query import query_sources
 
-    df = query_nvss_sources(
-        ra_deg=center_ra_deg,
-        dec_deg=center_dec_deg,
+    df = query_sources(
+        catalog_type="nvss",
+        ra_center=center_ra_deg,
+        dec_center=center_dec_deg,
         radius_deg=float(radius_deg),
         min_flux_mjy=float(min_mjy),
     )
@@ -107,6 +108,7 @@ def convert_nvss_to_dp3_skymodel(
     ref_freq_hz = float(freq_ghz) * 1e9
 
     out_file = Path(out_path)
+    num_sources = int(len(df))
     with open(out_file, "w") as f:
         # Write header
         f.write(
@@ -114,7 +116,7 @@ def convert_nvss_to_dp3_skymodel(
             f"ReferenceFrequency='{ref_freq_hz:.1f}', MajorAxis, MinorAxis, Orientation\n"
         )
 
-        # Write sources (already filtered by query_nvss_sources)
+        # Write sources (already filtered by query_sources)
         for idx, (ra, dec, flux) in enumerate(
             zip(
                 df["ra"].to_numpy(),
@@ -140,22 +142,34 @@ def convert_nvss_to_dp3_skymodel(
 
     LOG.info(
         "Created DP3 sky model with %d sources (>%.1f mJy, radius %.2f deg)",
-        keep.sum(),
+        num_sources,
         min_mjy,
         radius_deg,
     )
     return os.fspath(out_file)
 
 
-def concatenate_fields_in_ms(ms_path: str, output_ms_path: str) -> str:
+def concatenate_fields_in_ms(
+    ms_path: str,
+    output_ms_path: str,
+    *,
+    rephase_first: bool = False,
+    target_ra_deg: Optional[float] = None,
+    target_dec_deg: Optional[float] = None,
+) -> str:
     """Concatenate all fields in an MS into a single field.
 
-    After rephasing all fields to a common phase center, concatenate them
-    into a single field so DP3 can process the MS.
+    Optionally rephases all fields to a common phase center before
+    concatenating. This is critical for multi-field observations with
+    different phase centers (e.g., meridian tracking) to avoid phase
+    errors in calibration.
 
     Args:
-        ms_path: Path to multi-field MS (all fields should have same phase center)
+        ms_path: Path to multi-field MS
         output_ms_path: Path for output single-field MS
+        rephase_first: If True, rephase all fields to target phase center first
+        target_ra_deg: Target RA in degrees (required if rephase_first=True)
+        target_dec_deg: Target Dec in degrees (required if rephase_first=True)
 
     Returns:
         Path to concatenated MS
@@ -168,7 +182,6 @@ def concatenate_fields_in_ms(ms_path: str, output_ms_path: str) -> str:
     import casacore.tables as casatables
 
     table = casatables.table
-    from casatasks import concat
 
     # Check field count
     field_table = table(ms_path + "/FIELD", readonly=True)
@@ -184,8 +197,53 @@ def concatenate_fields_in_ms(ms_path: str, output_ms_path: str) -> str:
 
     LOG.info(f"Concatenating {nfields} fields into single field")
 
-    # Use manual concatenation (CASA concat may not work as expected for this)
-    return _concatenate_fields_manual(ms_path, output_ms_path)
+    # If rephasing requested, do it first
+    if rephase_first:
+        if target_ra_deg is None or target_dec_deg is None:
+            raise ValueError("rephase_first=True requires target_ra_deg and target_dec_deg")
+
+        import logging
+
+        from dsa110_contimg.calibration.cli_utils import (
+            rephase_ms_to_calibrator,
+        )
+
+        logger = logging.getLogger(__name__)
+
+        LOG.info(
+            f"Rephasing all {nfields} fields to common phase center "
+            f"({target_ra_deg:.6f}°, {target_dec_deg:.6f}°)"
+        )
+
+        # Create temporary rephased MS
+        temp_rephased_ms = ms_path + "_temp_rephased"
+        if os.path.exists(temp_rephased_ms):
+            shutil.rmtree(temp_rephased_ms)
+        shutil.copytree(ms_path, temp_rephased_ms)
+
+        # Rephase in place
+        rephase_success = rephase_ms_to_calibrator(
+            temp_rephased_ms,
+            target_ra_deg,
+            target_dec_deg,
+            "concat_target",
+            logger,
+        )
+
+        if not rephase_success:
+            LOG.warning("Rephasing may have failed, but continuing...")
+
+        # Concatenate the rephased MS
+        try:
+            result = _concatenate_fields_manual(temp_rephased_ms, output_ms_path)
+            return result
+        finally:
+            # Clean up temporary rephased MS
+            if os.path.exists(temp_rephased_ms):
+                shutil.rmtree(temp_rephased_ms)
+    else:
+        # Use manual concatenation (CASA concat may not work)
+        return _concatenate_fields_manual(ms_path, output_ms_path)
 
 
 def _concatenate_fields_manual(ms_path: str, output_ms_path: str) -> str:
@@ -305,7 +363,7 @@ def prepare_ms_for_dp3(
 
 
 def convert_skymodel_to_dp3(
-    sky: "SkyModel",
+    sky: "Any",  # pyradiosky.SkyModel - imported conditionally
     *,
     out_path: str,
     spectral_index: float = -0.7,
@@ -325,20 +383,20 @@ def convert_skymodel_to_dp3(
     Example: s0c0,POINT,07:02:53.6790,+44:31:11.940,2.4,[-0.7],false,1400000000.0,,,
     """
     try:
-        from pyradiosky import SkyModel
+        from pyradiosky import SkyModel  # noqa: F401
     except ImportError:
         raise ImportError(
             "pyradiosky is required for convert_skymodel_to_dp3(). "
             "Install with: pip install pyradiosky"
         )
 
-    import astropy.units as u
     from astropy.coordinates import Angle
 
     with open(out_path, "w") as f:
         # Write header
         f.write(
-            "Format = Name, Type, Ra, Dec, I, SpectralIndex, LogarithmicSI, ReferenceFrequency='1400000000.0', MajorAxis, MinorAxis, Orientation\n"
+            "Format = Name, Type, Ra, Dec, I, SpectralIndex, LogarithmicSI, "
+            "ReferenceFrequency='1400000000.0', MajorAxis, MinorAxis, Orientation\n"
         )
 
         for i in range(sky.Ncomponents):

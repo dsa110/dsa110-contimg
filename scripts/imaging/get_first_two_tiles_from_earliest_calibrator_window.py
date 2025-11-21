@@ -1,0 +1,383 @@
+#!/opt/miniforge/envs/casa6/bin/python
+"""Get the first two tiles from the first validity window of the calibrator assigned to the Dec of earliest observations.
+
+This script:
+1. Finds the earliest observations in /data/incoming
+2. Extracts the declination (Dec) from those observations
+3. Finds the calibrator assigned to that Dec
+4. Finds the first validity window (first transit) for that calibrator
+5. Gets the first two tiles from that validity window
+"""
+
+import argparse
+import sqlite3
+import sys
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+import astropy.units as u
+from astropy.time import Time, TimeDelta
+
+from dsa110_contimg.api.data_access import fetch_observation_timeline
+from dsa110_contimg.conversion.calibrator_ms_service import (
+  CalibratorMSConfig, CalibratorMSGenerator)
+from dsa110_contimg.conversion.strategies.hdf5_orchestrator import \
+  _peek_uvh5_phase_and_midtime
+from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
+from dsa110_contimg.pointing.utils import load_pointing
+
+# Add project root to path
+repo_root = Path(__file__).parent.parent
+sys.path.insert(0, str(repo_root / "src"))
+
+
+def find_earliest_observation(data_dir: Path) -> Optional[Dict]:
+    """Find the earliest observation in /data/incoming.
+
+    Returns:
+        Dict with 'earliest_time' (Time object) and 'file_path' (Path), or None
+    """
+    print("=" * 70)
+    print("Step 1: Finding earliest observations in /data/incoming")
+    print("=" * 70)
+
+    timeline = fetch_observation_timeline(data_dir)
+
+    if not timeline.earliest_time:
+        print(f"✗ No observations found in {data_dir}")
+        return None
+
+    print(f"✓ Earliest observation time: {timeline.earliest_time.isot}")
+    print(f"  Total files: {timeline.total_files}")
+    print(f"  Unique timestamps: {timeline.unique_timestamps}")
+
+    # Find the actual file for the earliest time
+    # Look for files matching the earliest timestamp
+    earliest_str = timeline.earliest_time.strftime("%Y-%m-%dT%H:%M:%S")
+    earliest_file = None
+
+    for segment in timeline.segments:
+        if segment.start_time == timeline.earliest_time:
+            # Try to find a file matching this timestamp
+            pattern = f"{earliest_str}_sb*.hdf5"
+            matching_files = list(data_dir.glob(pattern))
+            if matching_files:
+                earliest_file = matching_files[0]
+                break
+
+    if not earliest_file:
+        # Fallback: find any file from the earliest segment
+        for segment in timeline.segments:
+            if segment.start_time == timeline.earliest_time:
+                # Get first file from this segment
+                pattern = f"{segment.start_time.strftime('%Y-%m-%dT%H:%M:%S')}*_sb*.hdf5"
+                matching_files = list(data_dir.glob(pattern))
+                if matching_files:
+                    earliest_file = matching_files[0]
+                    break
+
+    if not earliest_file:
+        print(f"⚠ Could not find specific file for earliest time, using first available")
+        # Last resort: find any HDF5 file
+        hdf5_files = list(data_dir.glob("*_sb*.hdf5"))
+        if hdf5_files:
+            earliest_file = sorted(hdf5_files)[0]
+
+    if earliest_file:
+        print(f"✓ Using file: {earliest_file.name}")
+        return {
+            "earliest_time": timeline.earliest_time,
+            "file_path": earliest_file,
+        }
+    else:
+        print(f"✗ Could not find any HDF5 files")
+        return None
+
+
+def extract_declination(file_path: Path) -> Optional[float]:
+    """Extract declination from an HDF5 observation file.
+
+    Returns:
+        Declination in degrees, or None if extraction fails
+    """
+    print("\n" + "=" * 70)
+    print("Step 2: Extracting declination from earliest observation")
+    print("=" * 70)
+
+    try:
+        # Try using load_pointing first (handles both MS and UVH5)
+        pointing_info = load_pointing(file_path)
+        if pointing_info and "dec_deg" in pointing_info:
+            dec_deg = pointing_info["dec_deg"]
+            print(f"✓ Declination extracted: {dec_deg:.6f}°")
+            return dec_deg
+    except Exception as e:
+        print(f"⚠ load_pointing failed: {e}, trying direct HDF5 read...")
+
+    # Fallback: direct HDF5 read
+    try:
+        _, pt_dec, _ = _peek_uvh5_phase_and_midtime(str(file_path))
+        dec_deg = float(pt_dec.to_value(u.deg))
+        print(f"✓ Declination extracted (direct HDF5): {dec_deg:.6f}°")
+        return dec_deg
+    except Exception as e:
+        print(f"✗ Failed to extract declination: {e}")
+        return None
+
+
+def find_calibrator_for_dec(dec_deg: float, products_db: Path) -> Optional[Dict]:
+    """Find the calibrator assigned to a given declination.
+
+    Returns:
+        Dict with calibrator info, or None if not found
+    """
+    print("\n" + "=" * 70)
+    print(f"Step 3: Finding calibrator for Dec = {dec_deg:.6f}°")
+    print("=" * 70)
+
+    manager = StreamingMosaicManager(products_db=str(products_db))
+    calibrator_info = manager.get_bandpass_calibrator_for_dec(dec_deg)
+
+    if not calibrator_info:
+        print(f"✗ No calibrator registered for Dec = {dec_deg:.6f}°")
+        print("  You may need to register a calibrator first using:")
+        print("  python -m dsa110_contimg.mosaic.cli register-bp-calibrator \\")
+        print(f"    --calibrator <NAME>,<RA_DEG>,<DEC_DEG> \\")
+        print(f"    --dec-tolerance 5.0")
+        return None
+
+    print(f"✓ Found calibrator: {calibrator_info['name']}")
+    print(f"  RA: {calibrator_info['ra_deg']:.6f}°")
+    print(f"  Dec: {calibrator_info['dec_deg']:.6f}°")
+    print(
+        f"  Dec range: [{calibrator_info['dec_range_min']:.2f}°, {calibrator_info['dec_range_max']:.2f}°]"
+    )
+
+    return calibrator_info
+
+
+def find_first_validity_window(
+    calibrator_name: str,
+    data_dir: Path,
+    max_days_back: int = 60,
+) -> Optional[Dict]:
+    """Find the first validity window (first transit) for a calibrator.
+
+    The first validity window for a new calibrator is:
+    - Start: transit_time
+    - End: transit_time + 12 hours
+
+    Returns:
+        Dict with transit info and validity window, or None if not found
+    """
+    print("\n" + "=" * 70)
+    print(f"Step 4: Finding first validity window for {calibrator_name}")
+    print("=" * 70)
+
+    # Initialize calibrator service
+    config = CalibratorMSConfig.from_env()
+    service = CalibratorMSGenerator.from_config(config, verbose=False)
+
+    # List all available transits (sorted most recent first)
+    print(f"Searching for available transits (max {max_days_back} days back)...")
+    transits = service.list_available_transits(
+        calibrator_name,
+        max_days_back=max_days_back,
+    )
+
+    if not transits:
+        print(f"✗ No transits found for {calibrator_name}")
+        return None
+
+    print(f"✓ Found {len(transits)} transits with data")
+
+    # Get the earliest transit (last in list, since sorted most recent first)
+    earliest_transit = transits[-1]
+    transit_time = Time(earliest_transit["transit_iso"])
+
+    print(f"✓ First transit: {transit_time.isot}")
+    print(f"  Group ID: {earliest_transit.get('group_id', 'N/A')}")
+    print(f"  Files: {len(earliest_transit.get('files', []))} subband files")
+
+    # First validity window: transit_time to transit_time + 12 hours
+    # (For first transit of new calibrator, window starts at transit, not 12h before)
+    valid_start = transit_time
+    valid_end = transit_time + TimeDelta(12 * 3600, format="sec")
+
+    print(f"\n✓ First validity window:")
+    print(f"  Start: {valid_start.isot}")
+    print(f"  End: {valid_end.isot}")
+    print(f"  Duration: 12 hours")
+
+    return {
+        "transit_time": transit_time,
+        "valid_start": valid_start,
+        "valid_end": valid_end,
+        "transit_info": earliest_transit,
+    }
+
+
+def get_first_two_tiles(
+    valid_start: Time,
+    valid_end: Time,
+    products_db: Path,
+) -> List[str]:
+    """Get the first two tiles from the validity window.
+
+    Returns:
+        List of tile paths (first two tiles in chronological order)
+    """
+    print("\n" + "=" * 70)
+    print("Step 5: Getting first two tiles from validity window")
+    print("=" * 70)
+
+    # Convert Time objects to epoch seconds for database query
+    since_epoch = valid_start.unix
+    until_epoch = valid_end.unix
+
+    print(f"Querying tiles from {valid_start.isot} to {valid_end.isot}")
+
+    with ensure_products_db(products_db) as conn:
+        # Query for images (tiles) in the validity window
+        # Order by created_at to get chronological order
+        rows = conn.execute(
+            """
+            SELECT path, created_at, pbcor
+            FROM images
+            WHERE created_at >= ? AND created_at <= ?
+            AND pbcor = 1
+            ORDER BY created_at ASC
+            LIMIT 2
+            """,
+            (since_epoch, until_epoch),
+        ).fetchall()
+
+        if not rows:
+            print("✗ No tiles found in validity window")
+            print("  Tiles may need to be created first (convert → calibrate → image)")
+            return []
+
+        tiles = []
+        for i, row in enumerate(rows, 1):
+            tile_path = row[0] if isinstance(row, sqlite3.Row) else row[0]
+            created_at = row[1] if isinstance(row, sqlite3.Row) else row[1]
+            pbcor = row[2] if isinstance(row, sqlite3.Row) else row[2]
+
+            # Verify tile exists on disk
+            if Path(tile_path).exists():
+                tiles.append(tile_path)
+                created_time = Time(created_at, format="unix")
+                print(f"  {i}. {Path(tile_path).name}")
+                print(f"     Created: {created_time.isot}")
+                print(f"     PB-corrected: {pbcor}")
+            else:
+                print(f"  ⚠ Tile {i} not found on disk: {tile_path}")
+
+        if len(tiles) < 2:
+            print(f"\n⚠ Only {len(tiles)} tile(s) found (expected 2)")
+            print("  You may need to process more observations in this window")
+
+        print(f"\n✓ Found {len(tiles)} tile(s) in validity window")
+        return tiles
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Get first two tiles from first validity window of calibrator for earliest observations"
+    )
+    parser.add_argument(
+        "--data-dir",
+        type=Path,
+        default=Path("/data/incoming"),
+        help="Directory containing HDF5 observation files (default: /data/incoming)",
+    )
+    parser.add_argument(
+        "--products-db",
+        type=Path,
+        default=Path("state/products.sqlite3"),
+        help="Path to products database (default: state/products.sqlite3)",
+    )
+    parser.add_argument(
+        "--max-days-back",
+        type=int,
+        default=60,
+        help="Maximum days to search back for calibrator transits (default: 60)",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help="Optional: Save tile paths to file",
+    )
+
+    args = parser.parse_args()
+
+    # Step 1: Find earliest observation
+    earliest_obs = find_earliest_observation(args.data_dir)
+    if not earliest_obs:
+        print("\n✗ Failed to find earliest observations")
+        return 1
+
+    # Step 2: Extract declination
+    dec_deg = extract_declination(earliest_obs["file_path"])
+    if dec_deg is None:
+        print("\n✗ Failed to extract declination")
+        return 1
+
+    # Step 3: Find calibrator for this Dec
+    calibrator_info = find_calibrator_for_dec(dec_deg, args.products_db)
+    if not calibrator_info:
+        print("\n✗ Failed to find calibrator")
+        return 1
+
+    calibrator_name = calibrator_info["name"]
+
+    # Step 4: Find first validity window
+    validity_window = find_first_validity_window(
+        calibrator_name,
+        args.data_dir,
+        max_days_back=args.max_days_back,
+    )
+    if not validity_window:
+        print("\n✗ Failed to find validity window")
+        return 1
+
+    # Step 5: Get first two tiles
+    tiles = get_first_two_tiles(
+        validity_window["valid_start"],
+        validity_window["valid_end"],
+        args.products_db,
+    )
+
+    if not tiles:
+        print("\n✗ No tiles found in validity window")
+        return 1
+
+    # Summary
+    print("\n" + "=" * 70)
+    print("Summary")
+    print("=" * 70)
+    print(f"Earliest observation: {earliest_obs['earliest_time'].isot}")
+    print(f"Declination: {dec_deg:.6f}°")
+    print(f"Calibrator: {calibrator_name}")
+    print(
+        f"First validity window: {validity_window['valid_start'].isot} to {validity_window['valid_end'].isot}"
+    )
+    print(f"First {len(tiles)} tile(s):")
+    for i, tile in enumerate(tiles, 1):
+        print(f"  {i}. {tile}")
+
+    # Save to file if requested
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        with open(args.output, "w") as f:
+            for tile in tiles:
+                f.write(f"{tile}\n")
+        print(f"\n✓ Tile paths saved to: {args.output}")
+
+    print("\n✓ Success!")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

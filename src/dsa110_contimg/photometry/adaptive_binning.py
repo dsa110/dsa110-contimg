@@ -201,7 +201,6 @@ def adaptive_bin_channels(
 
     # Initialize: all channels available
     all_channels = list(range(n_channels))
-    misfit_channels = []
     detections = []
 
     # Iterate through bin widths

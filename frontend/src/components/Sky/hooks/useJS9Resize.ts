@@ -7,13 +7,10 @@
 
 import { useEffect, useRef } from "react";
 import { logger } from "../../../utils/logger";
-import { findDisplay, isJS9Available } from "../../../utils/js9";
-import { useJS9Safe } from "../../../contexts/JS9Context";
+// import { useJS9Safe } from "../../../contexts/JS9Context";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 interface UseJS9ResizeOptions {
@@ -31,7 +28,7 @@ export function useJS9Resize({
   isJS9Ready,
   getDisplaySafe,
 }: UseJS9ResizeOptions) {
-  const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const resizeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!initialized || !isJS9Ready) return;
@@ -52,7 +49,7 @@ export function useJS9Resize({
             try {
               const container = document.getElementById(displayId);
               if (container) {
-                js9Service.resizeDisplay(displayId);
+                JS9Service.resizeDisplay(displayId);
                 // Force canvas to match container width
                 const canvas = container.querySelector("canvas");
                 if (canvas && canvas.style) {

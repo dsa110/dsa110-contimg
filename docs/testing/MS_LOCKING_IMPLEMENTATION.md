@@ -1,19 +1,24 @@
 # MS Access Serialization Implementation
 
 **Date:** 2025-11-09  
-**Purpose:** Document the implementation of MS access serialization to prevent CASA table lock conflicts
+**Purpose:** Document the implementation of MS access serialization to prevent
+CASA table lock conflicts
 
 ## Overview
 
-MS access serialization has been implemented using file locking (`fcntl.flock`) to prevent CASA table lock conflicts when multiple processes try to access the same Measurement Set concurrently.
+MS access serialization has been implemented using file locking (`fcntl.flock`)
+to prevent CASA table lock conflicts when multiple processes try to access the
+same Measurement Set concurrently.
 
 ## Implementation Details
 
 ### New Module: `src/dsa110_contimg/utils/ms_locking.py`
 
 Provides:
+
 - `ms_lock()`: Context manager for MS access serialization
-- `cleanup_stale_locks()`: Utility to clean up stale lock files from crashed processes
+- `cleanup_stale_locks()`: Utility to clean up stale lock files from crashed
+  processes
 
 ### Integration Points
 
@@ -22,7 +27,8 @@ Provides:
    - When enabled, wraps entire SPW imaging operation in `ms_lock()` context
 
 2. **`src/dsa110_contimg/photometry/adaptive_photometry.py`**
-   - `measure_with_adaptive_binning()`: Extracts and passes `serialize_ms_access` parameter
+   - `measure_with_adaptive_binning()`: Extracts and passes
+     `serialize_ms_access` parameter
 
 3. **`src/dsa110_contimg/photometry/cli.py`**
    - Added `--serialize-ms-access` CLI flag to `adaptive` subcommand
@@ -82,11 +88,15 @@ result = measure_with_adaptive_binning(
 
 ## How It Works
 
-1. **Lock File Creation**: Creates a lock file `{ms_path}.lock` in the same directory as the MS
-2. **Exclusive Lock**: Uses `fcntl.flock()` with `LOCK_EX` to acquire exclusive lock
-3. **Blocking Behavior**: If lock is held, waits (with timeout) until it's released
+1. **Lock File Creation**: Creates a lock file `{ms_path}.lock` in the same
+   directory as the MS
+2. **Exclusive Lock**: Uses `fcntl.flock()` with `LOCK_EX` to acquire exclusive
+   lock
+3. **Blocking Behavior**: If lock is held, waits (with timeout) until it's
+   released
 4. **Automatic Release**: Lock is automatically released when context exits
-5. **Stale Lock Cleanup**: Checks for and removes stale locks (>1 hour old) before acquiring
+5. **Stale Lock Cleanup**: Checks for and removes stale locks (>1 hour old)
+   before acquiring
 
 ## Benefits
 
@@ -132,6 +142,7 @@ wait
 ```
 
 Expected behavior:
+
 - Both processes start
 - One acquires lock and proceeds
 - Other waits until first completes
@@ -139,9 +150,12 @@ Expected behavior:
 
 ## Limitations
 
-- **Single MS Only**: Locking is per-MS, so different MS files can still be processed in parallel
-- **File System Requirement**: Requires a shared file system (works on local FS, NFS, but not across separate machines)
-- **Timeout**: Default timeout is 3600 seconds (1 hour); may need adjustment for very long operations
+- **Single MS Only**: Locking is per-MS, so different MS files can still be
+  processed in parallel
+- **File System Requirement**: Requires a shared file system (works on local FS,
+  NFS, but not across separate machines)
+- **Timeout**: Default timeout is 3600 seconds (1 hour); may need adjustment for
+  very long operations
 
 ## Future Enhancements
 
@@ -149,4 +163,3 @@ Expected behavior:
 - Lock file location customization
 - Lock status monitoring/debugging utilities
 - Integration into pipeline orchestrator for automatic serialization
-

@@ -4,6 +4,8 @@ Provides data registry tables and functions for tracking all data instances
 through their lifecycle from staging to published.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import os
@@ -39,6 +41,8 @@ class DataRecord:
     auto_publish_enabled: bool
     publish_attempts: int = 0
     publish_error: Optional[str] = None
+    photometry_status: Optional[str] = None
+    photometry_job_id: Optional[str] = None
 
 
 def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
@@ -178,6 +182,18 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
 
     conn.commit()
     return conn
+
+
+def get_data_registry_connection() -> sqlite3.Connection:
+    """Get connection to the default data registry database.
+
+    Returns:
+        Connection to the data registry database at STATE_BASE/data_registry.db
+    """
+    from dsa110_contimg.database.data_config import STATE_BASE
+
+    db_path = STATE_BASE / "data_registry.db"
+    return ensure_data_registry_db(db_path)
 
 
 def register_data(
@@ -737,7 +753,7 @@ def get_data(conn: sqlite3.Connection, data_id: str) -> Optional[DataRecord]:
             SELECT id, data_type, data_id, base_path, status, stage_path, published_path,
                    created_at, staged_at, published_at, publish_mode, metadata_json,
                    qa_status, validation_status, finalization_status, auto_publish_enabled,
-                   publish_attempts, publish_error
+                   publish_attempts, publish_error, photometry_status, photometry_job_id
             FROM data_registry
             WHERE data_id = ?
             """,
@@ -749,7 +765,7 @@ def get_data(conn: sqlite3.Connection, data_id: str) -> Optional[DataRecord]:
             return None
 
         # Handle both old and new schema
-        if len(row) >= 18:
+        if len(row) >= 20:
             return DataRecord(
                 id=row[0],
                 data_type=row[1],
@@ -769,6 +785,8 @@ def get_data(conn: sqlite3.Connection, data_id: str) -> Optional[DataRecord]:
                 auto_publish_enabled=bool(row[15]),
                 publish_attempts=row[16] or 0,
                 publish_error=row[17],
+                photometry_status=row[18],
+                photometry_job_id=row[19],
             )
         else:
             # Old schema without new columns
@@ -868,7 +886,7 @@ def list_data(
             SELECT id, data_type, data_id, base_path, status, stage_path, published_path,
                    created_at, staged_at, published_at, publish_mode, metadata_json,
                    qa_status, validation_status, finalization_status, auto_publish_enabled,
-                   publish_attempts, publish_error
+                   publish_attempts, publish_error, photometry_status, photometry_job_id
             FROM data_registry
             WHERE 1=1
         """
@@ -915,6 +933,8 @@ def list_data(
                 auto_publish_enabled=bool(row[15]),
                 publish_attempts=(row[16] if len(row) > 16 and row[16] is not None else 0),
                 publish_error=row[17] if len(row) > 17 else None,
+                photometry_status=row[18] if len(row) > 18 else None,
+                photometry_job_id=row[19] if len(row) > 19 else None,
             )
             for row in rows
         ]
@@ -1091,20 +1111,40 @@ def check_auto_publish_criteria(
 ) -> Dict[str, Any]:
     """Check if auto-publish criteria are met for a data instance."""
     cur = conn.cursor()
-    cur.execute(
-        """
-        SELECT data_type, qa_status, validation_status, finalization_status, auto_publish_enabled
-        FROM data_registry
-        WHERE data_id = ?
-        """,
-        (data_id,),
-    )
-    row = cur.fetchone()
+    photometry_status: Optional[str]
+    try:
+        cur.execute(
+            """
+            SELECT data_type, qa_status, validation_status, finalization_status,
+                   auto_publish_enabled, photometry_status
+            FROM data_registry
+            WHERE data_id = ?
+            """,
+            (data_id,),
+        )
+        row = cur.fetchone()
+        photometry_status = row[5] if row else None
+    except sqlite3.OperationalError:
+        # Schema mismatch: photometry_status column doesn't exist
+        # Fall back to query without that column
+        photometry_status = None
+        cur.execute(
+            """
+            SELECT data_type, qa_status, validation_status, finalization_status, auto_publish_enabled
+            FROM data_registry
+            WHERE data_id = ?
+            """,
+            (data_id,),
+        )
+        row = cur.fetchone()
+    else:
+        # First query succeeded, no need for second query
+        pass
 
     if not row:
         return {"enabled": False, "criteria_met": False, "reason": "not_found"}
 
-    dtype, qa_status, validation_status, finalization_status, auto_enabled = row
+    dtype, qa_status, validation_status, finalization_status, auto_enabled = row[:5]
 
     if not auto_enabled:
         return {"enabled": False, "criteria_met": False, "reason": "disabled"}
@@ -1128,6 +1168,11 @@ def check_auto_publish_criteria(
             criteria_met = False
             reasons.append("qa_not_passed")
 
+    if dtype == "mosaic":
+        if photometry_status != "completed":
+            criteria_met = False
+            reasons.append("photometry_incomplete")
+
     return {
         "enabled": True,
         "criteria_met": criteria_met,
@@ -1135,4 +1180,5 @@ def check_auto_publish_criteria(
         "qa_status": qa_status,
         "validation_status": validation_status,
         "finalization_status": finalization_status,
+        "photometry_status": photometry_status,
     }

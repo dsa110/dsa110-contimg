@@ -83,7 +83,10 @@ def retry_with_backoff(
                             raise
 
                         # Calculate delay
-                        delay = min(initial_delay * (exponential_base ** (attempt - 1)), max_delay)
+                        delay = min(
+                            initial_delay * (exponential_base ** (attempt - 1)),
+                            max_delay,
+                        )
 
                         # Call retry callback
                         if on_retry:

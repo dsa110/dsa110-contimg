@@ -26,6 +26,10 @@ memory-profiler>=0.61.0
 # Additional utilities for testing
 pyyaml>=6.0  # For config file handling in tests
 
+# Frontend E2E testing (Playwright Python)
+playwright>=1.40.0  # Browser automation for frontend testing
+pytest-playwright>=0.4.0  # Pytest integration for Playwright
+
 # Runtime dependencies needed by tests (imports)
 numpy>=1.20.0  # Required by conftest.py and test files
 astropy>=5.0.0  # Required for astronomy calculations

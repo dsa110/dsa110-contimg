@@ -62,5 +62,3 @@ volumes:
   frontend-node-modules:
   playwright-report:
   test-results:
-
-

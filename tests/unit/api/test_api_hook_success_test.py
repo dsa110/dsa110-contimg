@@ -5,7 +5,6 @@ Unit tests for api module.
 Tests:
 - hook_success_test functionality
 """
-from unittest.mock import Mock, patch
 
 import pytest
 

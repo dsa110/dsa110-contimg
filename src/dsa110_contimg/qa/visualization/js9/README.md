@@ -1,12 +1,14 @@
 # JS9 Integration for QA Visualization
 
-JS9 is a JavaScript library for viewing FITS files in web browsers. This module provides integration for JS9 in Jupyter notebooks.
+JS9 is a JavaScript library for viewing FITS files in web browsers. This module
+provides integration for JS9 in Jupyter notebooks.
 
 ## Setup
 
 ### Option 1: Use CDN (Recommended for Development)
 
-JS9 will automatically fall back to CDN if local files are not found. No setup required!
+JS9 will automatically fall back to CDN if local files are not found. No setup
+required!
 
 ### Option 2: Bundle JS9 Files Locally
 
@@ -44,4 +46,3 @@ fits.show()
 - In Jupyter notebooks, files are typically served automatically
 - For production, ensure FITS files are accessible via HTTP URLs
 - CDN fallback is available if local files are not found
-

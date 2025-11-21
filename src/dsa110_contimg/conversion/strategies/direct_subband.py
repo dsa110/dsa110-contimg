@@ -118,9 +118,7 @@ class DirectSubbandWriter(MSWriter):
             ms_stage_path = part_base.parent / (ms_final_path.stem + ".staged.ms")
         else:
             # Use provided scratch or output directory parent
-            part_base = (
-                Path(self.scratch_dir or ms_final_path.parent) / ms_final_path.stem
-            )
+            part_base = Path(self.scratch_dir or ms_final_path.parent) / ms_final_path.stem
         part_base.mkdir(parents=True, exist_ok=True)
 
         # Compute shared pointing declination for entire group
@@ -160,12 +158,9 @@ class DirectSubbandWriter(MSWriter):
                             )
                             if group_pt_dec is None:
                                 group_pt_dec = (
-                                    temp_uv.extra_keywords.get("phase_center_dec", 0.0)
-                                    * u.rad
+                                    temp_uv.extra_keywords.get("phase_center_dec", 0.0) * u.rad
                                 )
-                            mid_mjd = Time(
-                                float(np.mean(temp_uv.time_array)), format="jd"
-                            ).mjd
+                            mid_mjd = Time(float(np.mean(temp_uv.time_array)), format="jd").mjd
                             mid_times.append(mid_mjd)
                             del temp_uv
                         except Exception:
@@ -233,9 +228,7 @@ class DirectSubbandWriter(MSWriter):
                         completed += 1
                         break
                 if completed % 4 == 0 or completed == len(futures):
-                    msg = (
-                        f"Per-subband writes completed: {completed}/" f"{len(futures)}"
-                    )
+                    msg = f"Per-subband writes completed: {completed}/{len(futures)}"
                     logger.info(msg)
             except Exception as e:
                 raise RuntimeError(f"A subband writer process failed: {e}")
@@ -254,9 +247,7 @@ class DirectSubbandWriter(MSWriter):
         # CRITICAL: Remove existing staged MS if it exists (from previous failed run)
         # CASA's concat doesn't handle existing output directories well
         if ms_stage_path.exists():
-            logger.warning(
-                f"Removing existing staged MS before concatenation: {ms_stage_path}"
-            )
+            logger.warning(f"Removing existing staged MS before concatenation: {ms_stage_path}")
             cleanup_casa_file_handles()
             shutil.rmtree(ms_stage_path, ignore_errors=True)
             # Ensure the directory is fully removed
@@ -401,9 +392,7 @@ class DirectSubbandWriter(MSWriter):
                     else:
                         logger.warning(f"Expected 1 SPW after merge, got {n_spw_after}")
             except Exception as merge_err:
-                logger.warning(
-                    f"SPW merging failed (non-fatal): {merge_err}", exc_info=True
-                )
+                logger.warning(f"SPW merging failed (non-fatal): {merge_err}", exc_info=True)
 
         # Solution 1: Clean up temporary per-subband Measurement Sets and staging dir
         # with verification that cleanup completed
@@ -557,9 +546,7 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
     from casatasks import concat as casa_concat
 
     ms_stage_path = ms_path
-    part_base = (
-        Path(scratch_dir or Path(ms_stage_path).parent) / Path(ms_stage_path).stem
-    )
+    part_base = Path(scratch_dir or Path(ms_stage_path).parent) / Path(ms_stage_path).stem
     part_base.mkdir(parents=True, exist_ok=True)
 
     # Compute shared pointing declination for entire group
@@ -595,9 +582,7 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
                         strict_uvw_antpos_check=False,
                     )
                     if group_pt_dec is None:
-                        group_pt_dec = (
-                            temp_uv.extra_keywords.get("phase_center_dec", 0.0) * u.rad
-                        )
+                        group_pt_dec = temp_uv.extra_keywords.get("phase_center_dec", 0.0) * u.rad
                     mid_mjd = Time(float(np.mean(temp_uv.time_array)), format="jd").mjd
                     if np.isfinite(mid_mjd) and mid_mjd > 0:
                         mid_times.append(mid_mjd)
@@ -634,7 +619,9 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
         part_out = part_base / f"{Path(ms_stage_path).stem}.sb{idx:02d}.ms"
         try:
             result = _write_ms_subband_part(
-                sb, str(part_out), group_pt_dec  # Pass shared pointing declination
+                sb,
+                str(part_out),
+                group_pt_dec,  # Pass shared pointing declination
             )
             parts.append(result)
         except Exception as e:

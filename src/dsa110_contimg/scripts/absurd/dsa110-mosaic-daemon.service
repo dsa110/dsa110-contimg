@@ -1,0 +1,29 @@
+[Unit]
+Description=DSA-110 Absurd Mosaic Daemon
+After=network.target postgresql.service dsa110-absurd-worker@1.service
+Wants=dsa110-absurd-worker@1.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/data/dsa110-contimg/src/dsa110_contimg
+Environment="ABSURD_ENABLED=true"
+Environment="ABSURD_DATABASE_URL=postgresql://user:password@localhost/dsa110_absurd"
+Environment="ABSURD_QUEUE_NAME=dsa110-pipeline"
+Environment="PYTHONPATH=/data/dsa110-contimg/src/dsa110_contimg/src"
+Environment="PIPELINE_INPUT_DIR=/data/incoming"
+Environment="PIPELINE_OUTPUT_DIR=/stage/dsa110-contimg"
+Environment="PIPELINE_PRODUCTS_DB=/data/dsa110-contimg/state/products.sqlite3"
+Environment="CAL_REGISTRY_DB=/data/dsa110-contimg/state/cal_registry.sqlite3"
+Environment="CONTIMG_OUTPUT_DIR=/stage/dsa110-contimg/raw/ms"
+Environment="CONTIMG_IMAGES_DIR=/stage/dsa110-contimg/images"
+Environment="CONTIMG_MOSAIC_DIR=/stage/dsa110-contimg/mosaics"
+ExecStart=/opt/miniforge/envs/casa6/bin/python scripts/absurd/start_mosaic_daemon.py --log-level INFO
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

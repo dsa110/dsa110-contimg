@@ -14,7 +14,6 @@ Tests everything that could break:
 
 import os
 import sys
-import traceback
 from pathlib import Path
 
 # Add src to path
@@ -51,12 +50,12 @@ class TestResults:
 
     def summary(self):
         total = self.passed + self.failed + self.errors
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         print(f"SUMMARY: {self.passed}/{total} passed")
         print(f"  Passed: {self.passed}")
         print(f"  Failed: {self.failed}")
         print(f"  Errors: {self.errors}")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
         return self.failed == 0 and self.errors == 0
 
 
@@ -214,8 +213,6 @@ def test_photometry_functions():
     print("=" * 70)
 
     try:
-        import numpy as np
-
         from dsa110_contimg.photometry import normalize
 
         # Test 1: Check required functions exist
@@ -234,7 +231,7 @@ def test_photometry_functions():
 
         # Test 2: ReferenceSource dataclass
         try:
-            ref = normalize.ReferenceSource(
+            normalize.ReferenceSource(
                 source_id=1,
                 ra_deg=123.456,
                 dec_deg=45.678,
@@ -248,7 +245,7 @@ def test_photometry_functions():
 
         # Test 3: CorrectionResult dataclass
         try:
-            corr = normalize.CorrectionResult(
+            normalize.CorrectionResult(
                 correction_factor=1.05,
                 correction_rms=0.02,
                 n_references=10,
@@ -261,7 +258,7 @@ def test_photometry_functions():
 
         # Test 4: Query with non-existent database
         try:
-            refs = normalize.query_reference_sources(
+            normalize.query_reference_sources(
                 db_path=Path("/nonexistent/db.sqlite3"),
                 ra_center=123.0,
                 dec_center=45.0,
@@ -342,7 +339,7 @@ def test_with_real_data():
                     quick_check_only=True,
                     alert_on_issues=False,
                 )
-                results.add_pass(f"MS validation on real data")
+                results.add_pass("MS validation on real data")
             except Exception as e:
                 results.add_fail("MS validation on real data", str(e))
         else:
@@ -369,7 +366,7 @@ def test_error_propagation():
                 results.add_pass("Detects corrupted MS structure")
             else:
                 results.add_fail("Should detect corrupted MS")
-        except Exception as e:
+        except Exception:
             results.add_pass("Raises exception for corrupted MS")
 
     except Exception as e:

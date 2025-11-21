@@ -1,6 +1,7 @@
 # Pipeline Framework Testing Strategy
 
-This document outlines a comprehensive testing approach for the new pipeline orchestration framework.
+This document outlines a comprehensive testing approach for the new pipeline
+orchestration framework.
 
 ## Testing Philosophy
 
@@ -42,6 +43,7 @@ tests/
 **Goal**: Test individual components in complete isolation.
 
 **Components to Test**:
+
 - `PipelineContext`: Immutability, output merging
 - `PipelineConfig`: Validation, from_dict, from_env
 - `StateRepository`: CRUD operations (both implementations)
@@ -50,6 +52,7 @@ tests/
 - `WorkflowBuilder`: Stage addition, dependency validation
 
 **Mocking Strategy**:
+
 - No external dependencies
 - Use in-memory implementations where possible
 - Mock file system operations
@@ -59,6 +62,7 @@ tests/
 **Goal**: Test components working together.
 
 **Scenarios**:
+
 - Orchestrator executing multiple stages
 - Dependency resolution and ordering
 - Observer collecting metrics
@@ -66,6 +70,7 @@ tests/
 - Resource cleanup across stage failures
 
 **Mocking Strategy**:
+
 - Mock stages (fast, predictable)
 - Real orchestrator, observer, state repository
 - In-memory state repository for speed
@@ -75,12 +80,14 @@ tests/
 **Goal**: Test complete workflows with realistic scenarios.
 
 **Scenarios**:
+
 - Full workflow execution (convert → calibrate → image)
 - Error handling and recovery
 - Retry policies in action
 - Adapter layer with legacy database
 
 **Mocking Strategy**:
+
 - Mock external dependencies (CASA, file I/O)
 - Use minimal test data
 - Real pipeline components
@@ -98,13 +105,13 @@ class MockStage(PipelineStage):
         self.name = name
         self.should_fail = should_fail
         self.executed = False
-    
+
     def execute(self, context):
         self.executed = True
         if self.should_fail:
             raise ValueError(f"Mock failure: {self.name}")
         return context.with_output(f"{self.name}_output", "value")
-    
+
     def validate(self, context):
         return True, None
 ```
@@ -296,7 +303,7 @@ from tests.fixtures.mock_stages import MockStage
 
 class TestOrchestrator:
     """Integration tests for PipelineOrchestrator."""
-    
+
     def test_linear_execution(self, test_config):
         """Test simple linear stage execution."""
         context = PipelineContext(config=test_config)
@@ -306,11 +313,11 @@ class TestOrchestrator:
         ]
         orchestrator = PipelineOrchestrator(stages)
         result = orchestrator.execute(context)
-        
+
         assert result.status == PipelineStatus.COMPLETED
         assert "stage1_output" in result.context.outputs
         assert "stage2_output" in result.context.outputs
-    
+
     def test_parallel_stages(self, test_config):
         """Test parallel stage execution."""
         context = PipelineContext(config=test_config)
@@ -322,13 +329,13 @@ class TestOrchestrator:
         ]
         orchestrator = PipelineOrchestrator(stages)
         result = orchestrator.execute(context)
-        
+
         assert result.status == PipelineStatus.COMPLETED
         # Both stage2a and stage2b should complete before stage3
         assert "stage2a_output" in result.context.outputs
         assert "stage2b_output" in result.context.outputs
         assert "stage3_output" in result.context.outputs
-    
+
     def test_circular_dependency(self, test_config):
         """Test circular dependency detection."""
         context = PipelineContext(config=test_config)
@@ -337,7 +344,7 @@ class TestOrchestrator:
             StageDefinition("stage2", MockStage("stage2"), ["stage1"]),
         ]
         orchestrator = PipelineOrchestrator(stages)
-        
+
         with pytest.raises(ValueError, match="Circular dependency"):
             orchestrator.execute(context)
 ```
@@ -351,4 +358,3 @@ class TestOrchestrator:
 5. Write E2E tests for complete workflows
 6. Set up CI/CD test execution
 7. Monitor test coverage and add tests for gaps
-

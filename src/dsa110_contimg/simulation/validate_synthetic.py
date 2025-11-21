@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """Validation utility for generated synthetic UVH5 files.
 
 Checks that generated files are readable and, when layout metadata is
@@ -7,7 +7,6 @@ channel width, etc.) against the reference configuration.
 """
 
 import argparse
-import json
 import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -43,9 +42,7 @@ def validate_uvh5_file(
     if layout_meta is not None:
         expected_nants = layout_meta.get("nants") or layout_meta.get("n_ants")
         if expected_nants is not None and uv.Nants_telescope != int(expected_nants):
-            errors.append(
-                f"Expected {expected_nants} antennas, got {uv.Nants_telescope}"
-            )
+            errors.append(f"Expected {expected_nants} antennas, got {uv.Nants_telescope}")
 
         expected_npol = layout_meta.get("npol")
         if expected_npol is not None and uv.Npols != int(expected_npol):
@@ -63,9 +60,7 @@ def validate_uvh5_file(
         expected_width = layout_meta.get("channel_width_hz")
         if expected_width is not None:
             widths = np.abs(np.array(uv.channel_width).reshape(-1))
-            if not np.allclose(
-                widths, abs(float(expected_width)), rtol=1e-6, atol=1e-3
-            ):
+            if not np.allclose(widths, abs(float(expected_width)), rtol=1e-6, atol=1e-3):
                 errors.append("channel width deviation detected")
 
     # Check integration time (DSA-110 typical: ~12-13 seconds)
@@ -76,9 +71,7 @@ def validate_uvh5_file(
     # Check data array shape
     expected_shape = (uv.Nblts, uv.Nspws, uv.Nfreqs, uv.Npols)
     if uv.data_array.shape != expected_shape:
-        errors.append(
-            f"Data array shape {uv.data_array.shape} != expected {expected_shape}"
-        )
+        errors.append(f"Data array shape {uv.data_array.shape} != expected {expected_shape}")
 
     # Check for NaN or Inf in data
     if np.any(np.isnan(uv.data_array)):
@@ -88,9 +81,7 @@ def validate_uvh5_file(
 
     # Check flag array
     if uv.flag_array.shape != uv.data_array.shape:
-        errors.append(
-            f"Flag array shape mismatch: {uv.flag_array.shape} vs {uv.data_array.shape}"
-        )
+        errors.append(f"Flag array shape mismatch: {uv.flag_array.shape} vs {uv.data_array.shape}")
 
     return (len(errors) == 0), errors
 
@@ -119,9 +110,7 @@ def validate_subband_group(
 
     # Check subband count
     if len(subband_files) not in [4, 16]:  # 4 for minimal, 16 for full
-        errors.append(
-            f"Expected 16 subbands (or 4 for minimal), found {len(subband_files)}"
-        )
+        errors.append(f"Expected 16 subbands (or 4 for minimal), found {len(subband_files)}")
 
     # Validate each subband
     for sb_file in subband_files:
@@ -162,7 +151,7 @@ def print_summary(filepath: Path):
         print(f"  Polarizations: {uv.Npols}")
         print(f"  Integration time: {uv.integration_time[0]:.2f} s")
         print(
-            f"  Freq range: {uv.freq_array.min()/1e6:.1f} - {uv.freq_array.max()/1e6:.1f} MHz"
+            f"  Freq range: {uv.freq_array.min() / 1e6:.1f} - {uv.freq_array.max() / 1e6:.1f} MHz"
         )
         print(f"  Data shape: {uv.data_array.shape}")
 
@@ -189,9 +178,7 @@ Examples:
 
     parser.add_argument("files", nargs="*", type=Path, help="UVH5 files to validate")
     parser.add_argument("--group", type=Path, help="Directory containing subband group")
-    parser.add_argument(
-        "--timestamp", type=str, help="Timestamp for subband group validation"
-    )
+    parser.add_argument("--timestamp", type=str, help="Timestamp for subband group validation")
     parser.add_argument(
         "--summary", action="store_true", help="Print summary instead of validation"
     )

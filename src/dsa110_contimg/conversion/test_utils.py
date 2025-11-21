@@ -8,7 +8,6 @@ import logging
 import os
 import shutil
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 
@@ -50,9 +49,9 @@ def create_test_ms(
     Returns:
         bool: True if successful, False otherwise
     """
-    print(f"\n{'='*70}")
-    print(f"Creating Test MS for K-Calibration")
-    print(f"{'='*70}\n")
+    print(f"\n{'=' * 70}")
+    print("Creating Test MS for K-Calibration")
+    print(f"{'=' * 70}\n")
     print(f"Input:  {ms_in}")
     print(f"Output: {ms_out}\n")
 
@@ -68,7 +67,7 @@ def create_test_ms(
         baselines = list(set(zip(ant1, ant2)))
         unique_times = sorted(set(times))
 
-        print(f"Input MS:")
+        print("Input MS:")
         print(f"  Total rows: {n_rows:,}")
         print(f"  Baselines: {len(baselines)}")
         print(f"  Time integrations: {len(unique_times)}")
@@ -85,9 +84,7 @@ def create_test_ms(
             selected_baselines.extend(other_baselines[:remaining])
 
         print(f"Selected baselines: {len(selected_baselines)}")
-        print(
-            f"  (Including {len(refant_baselines[:max_baselines])} with refant {refant})"
-        )
+        print(f"  (Including {len(refant_baselines[:max_baselines])} with refant {refant})")
 
         # Build antenna selection string
         ants_in_selected = set()
@@ -121,7 +118,7 @@ def create_test_ms(
         shutil.rmtree(ms_out, ignore_errors=True)
 
     # Use CASA split to create subset
-    print(f"\nCreating subset MS...")
+    print("\nCreating subset MS...")
 
     # Build time selection
     # Use format detection to handle both TIME formats (seconds since MJD 0 vs MJD 51544.0)
@@ -150,7 +147,7 @@ def create_test_ms(
     if timebin:
         split_kwargs["timebin"] = timebin
 
-    print(f"Split parameters:")
+    print("Split parameters:")
     print(f"  antenna: {antenna_str[:50]}... ({len(ants_in_selected)} antennas)")
     print(f"  timerange: {timerange_str}")
     if timebin:
@@ -170,7 +167,7 @@ def create_test_ms(
     try:
         with table(ms_out, readonly=True) as tb:
             n_rows_out = tb.nrows()
-            print(f"\nOutput MS:")
+            print("\nOutput MS:")
             print(f"  Total rows: {n_rows_out:,}")
             print(f"  Reduction: {n_rows / n_rows_out:.1f}x smaller")
 
@@ -211,7 +208,6 @@ def create_minimal_test_ms(output_ms: str, cleanup: bool = True) -> bool:
         bool: True if successful, False otherwise
     """
     import tempfile
-    from pathlib import Path
 
     logger.info("=" * 70)
     logger.info("Smoke Test: Minimal MS Generation")

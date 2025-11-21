@@ -57,9 +57,10 @@ def write_mock_catalogs(basedir: Path) -> tuple[Path, Path, Path]:
 
 def export_view_to_csv(db_path: Path, view: str, out_csv: Path) -> None:
     out_csv.parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(os.fspath(db_path)) as conn, open(
-        out_csv, "w", newline="", encoding="utf-8"
-    ) as f:
+    with (
+        sqlite3.connect(os.fspath(db_path)) as conn,
+        open(out_csv, "w", newline="", encoding="utf-8") as f,
+    ):
         cur = conn.execute(f"SELECT * FROM {view}")
         cols = [c[0] for c in cur.description]
         w = csv.writer(f)

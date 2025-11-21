@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Unit tests to validate run_first_mosaic.py workflow logic.
 
@@ -6,16 +6,14 @@ These tests verify critical assumptions and prevent race conditions,
 file existence issues, and database/filesystem mismatches.
 """
 
-import os
 import tempfile
+import time
 import unittest
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
-import time
+from unittest.mock import Mock, patch
 
 from dsa110_contimg.conversion.streaming.run_first_mosaic import (
     process_one_group,
-    process_groups_until_count,
 )
 from dsa110_contimg.conversion.streaming.streaming_converter import QueueDB
 from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
@@ -54,13 +52,14 @@ class TestMSFileExistenceValidation(unittest.TestCase):
 
             # Add a group
             gid = "2025-10-02T10:02:45"
-            queue.add_group(gid, ["test.hdf5"])
+            for i in range(16):
+                queue.record_subband(gid, i, Path(self.temp_dir) / f"test_sb{i:02d}.hdf5")
 
             with patch(
                 "dsa110_contimg.conversion.streaming.run_first_mosaic.extract_ms_time_range"
             ) as mock_extract:
                 # Process group - should fail gracefully if MS doesn't exist
-                result = process_one_group(gid, self.args, queue)
+                process_one_group(gid, self.args, queue)
 
                 # If MS doesn't exist, extract_ms_time_range should not be called
                 # OR if called, should handle the error gracefully
@@ -89,12 +88,13 @@ class TestMSFileExistenceValidation(unittest.TestCase):
             )
 
             gid = "2025-10-02T10:02:45"
-            queue.add_group(gid, ["test.hdf5"])
+            for i in range(16):
+                queue.record_subband(gid, i, Path(self.temp_dir) / f"test_sb{i:02d}.hdf5")
 
             with patch(
                 "dsa110_contimg.conversion.streaming.run_first_mosaic.apply_to_target"
             ) as mock_apply:
-                result = process_one_group(gid, self.args, queue)
+                process_one_group(gid, self.args, queue)
 
                 # If MS doesn't exist, apply_to_target should not be called
                 if mock_apply.called:
@@ -121,12 +121,13 @@ class TestMSFileExistenceValidation(unittest.TestCase):
             )
 
             gid = "2025-10-02T10:02:45"
-            queue.add_group(gid, ["test.hdf5"])
+            for i in range(16):
+                queue.record_subband(gid, i, Path(self.temp_dir) / f"test_sb{i:02d}.hdf5")
 
             with patch(
                 "dsa110_contimg.conversion.streaming.run_first_mosaic.image_ms"
             ) as mock_image:
-                result = process_one_group(gid, self.args, queue)
+                process_one_group(gid, self.args, queue)
 
                 # If MS doesn't exist, image_ms should not be called
                 if mock_image.called:
@@ -283,6 +284,7 @@ class TestTimeExtractionFallback(unittest.TestCase):
         # NOT time.time() which is the current system time
 
         from datetime import datetime
+
         from astropy.time import Time
 
         # Parse timestamp from filename
@@ -315,13 +317,11 @@ class TestPathMapperConsistency(unittest.TestCase):
         """Verify that path_mapper creates paths that can be found later."""
         from dsa110_contimg.utils.ms_organization import create_path_mapper
 
-        ms_base_dir = Path("/stage/dsa110-contimg/ms")
-        path_mapper = create_path_mapper(
-            ms_base_dir, is_calibrator=False, is_failed=False
-        )
+        ms_base_dir = Path("/stage/dsa110-contimg/raw/ms")
+        path_mapper = create_path_mapper(ms_base_dir, is_calibrator=False, is_failed=False)
 
         base_name = "2025-10-02T10:02:45"
-        ms_path = path_mapper(base_name, "/stage/dsa110-contimg/ms")
+        ms_path = path_mapper(base_name, "/stage/dsa110-contimg/raw/ms")
 
         # Path should be in organized location
         expected_path = ms_base_dir / "science" / "2025-10-02" / f"{base_name}.ms"

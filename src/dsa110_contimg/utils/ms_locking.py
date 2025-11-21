@@ -71,10 +71,7 @@ def ms_lock(ms_path: str, timeout: Optional[float] = None, poll_interval: float 
                 if timeout is not None:
                     elapsed = time.time() - start_time
                     if elapsed >= timeout:
-                        msg = (
-                            f"Timeout waiting for MS lock after {timeout}s: "
-                            f"{lock_file_path}"
-                        )
+                        msg = f"Timeout waiting for MS lock after {timeout}s: " f"{lock_file_path}"
                         raise TimeoutError(msg)
                     LOG.debug(
                         f"Waiting for MS lock "

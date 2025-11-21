@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 UVH5 to CASA Measurement Set Converter.
 
@@ -6,6 +6,7 @@ This module provides a single-file/directory writer for converting UVH5 data
 to a CASA Measurement Set (MS). It leverages shared helpers for phasing and
 finalization to ensure consistency with the main conversion pipeline.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -18,21 +19,13 @@ from typing import List, Optional
 import numpy as np
 from pyuvdata import UVData
 
-from dsa110_contimg.conversion.helpers import (
-    phase_to_meridian,
-    set_telescope_identity,
-)
+from dsa110_contimg.conversion.helpers import phase_to_meridian, set_telescope_identity
 from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
 from dsa110_contimg.utils.exceptions import ConversionError, ValidationError
-from dsa110_contimg.utils.runtime_safeguards import (
-    log_progress,
-    progress_monitor,
-)
+from dsa110_contimg.utils.runtime_safeguards import log_progress, progress_monitor
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -239,9 +232,7 @@ def _write_calibration_recommendations(ms_path: str, recommendations: dict) -> N
     else:
         # Fallback: write next to the file path
         parent_dir = os.path.dirname(ms_path) or "."
-        recommendations_path = os.path.join(
-            parent_dir, "calibration_recommendations.json"
-        )
+        recommendations_path = os.path.join(parent_dir, "calibration_recommendations.json")
 
     try:
         with open(recommendations_path, "w") as f:
@@ -331,9 +322,7 @@ def _phase_data_to_midpoint_reference(
         ra_rad = icrs.ra.to_value(u.rad)
         dec_rad = icrs.dec.to_value(u.rad)
     except Exception as e:
-        logger.warning(
-            f"CIRS->ICRS transform failed ({e}); using apparent-of-date coordinates"
-        )
+        logger.warning(f"CIRS->ICRS transform failed ({e}); using apparent-of-date coordinates")
         ra_rad = ra_app
 
     logger.info(
@@ -455,10 +444,7 @@ def read_uvh5_file(
     if not isinstance(create_time_binned_fields, bool):
         validation_errors.append("create_time_binned_fields must be a boolean")
 
-    if (
-        not isinstance(field_time_bin_minutes, (int, float))
-        or field_time_bin_minutes <= 0
-    ):
+    if not isinstance(field_time_bin_minutes, (int, float)) or field_time_bin_minutes <= 0:
         validation_errors.append("field_time_bin_minutes must be a positive number")
 
     if validation_errors:
@@ -493,7 +479,7 @@ def read_uvh5_file(
             suggestion="Check that the file was written correctly",
         )
 
-    logger.info(f"File size: {file_size / (1024*1024):.1f} MB")
+    logger.info(f"File size: {file_size / (1024 * 1024):.1f} MB")
 
     # Create UVData object and read the file
     uvd = UVData()
@@ -700,8 +686,7 @@ def _validate_data_quality(uvd: UVData) -> None:
         # Check for reasonable radio frequency range (10 MHz to 1 THz)
         if freq_min < 1e7 or freq_max > 1e12:
             logger.warning(
-                f"Unusual frequency range: {freq_min/1e6:.1f} - "
-                f"{freq_max/1e6:.1f} MHz"
+                f"Unusual frequency range: {freq_min / 1e6:.1f} - " f"{freq_max / 1e6:.1f} MHz"
             )
 
     # Check for reasonable time range
@@ -735,9 +720,7 @@ def _create_time_binned_fields(uvd: UVData, field_time_bin_minutes: float) -> UV
     # from astropy.coordinates import SkyCoord
     # import astropy.units as u
 
-    logger.info(
-        f"Creating time-binned fields with {field_time_bin_minutes} minute bins"
-    )
+    logger.info(f"Creating time-binned fields with {field_time_bin_minutes} minute bins")
 
     # Robust behavior: Disable custom time-binned FIELD generation until
     # pyuvdata multi-phase center catalog is wired. Returning unmodified UVData
@@ -750,9 +733,7 @@ def _create_time_binned_fields(uvd: UVData, field_time_bin_minutes: float) -> UV
     return uvd
 
 
-def write_ms_file(
-    uvd: UVData, output_path: str, add_imaging_columns: bool = True
-) -> None:
+def write_ms_file(uvd: UVData, output_path: str, add_imaging_columns: bool = True) -> None:
     """
     Write UVData to CASA Measurement Set.
 
@@ -807,9 +788,7 @@ def write_ms_file(
             os.makedirs(output_dir, exist_ok=True)
             logger.debug(f"Created output directory: {output_dir}")
         except OSError as e:
-            raise PermissionError(
-                f"Cannot create output directory {output_dir}: {e}"
-            ) from e
+            raise PermissionError(f"Cannot create output directory {output_dir}: {e}") from e
 
     # Check if we can write to the output location
     if os.path.exists(output_path):
@@ -826,8 +805,8 @@ def write_ms_file(
         )  # 8 bytes per complex, 2 for safety
         if free_space < estimated_size:
             logger.warning(
-                f"Low disk space: {free_space/(1024**3):.1f} GB available, "
-                f"estimated need: {estimated_size/(1024**3):.1f} GB"
+                f"Low disk space: {free_space / (1024**3):.1f} GB available, "
+                f"estimated need: {estimated_size / (1024**3):.1f} GB"
             )
     except OSError:
         logger.warning("Could not check available disk space")
@@ -840,9 +819,7 @@ def write_ms_file(
             shutil.rmtree(output_path)
             logger.info(f"Removed existing MS: {output_path}")
         except OSError as e:
-            raise PermissionError(
-                f"Cannot remove existing MS {output_path}: {e}"
-            ) from e
+            raise PermissionError(f"Cannot remove existing MS {output_path}: {e}") from e
 
     # Write the MS using pyuvdata
     temp_files: List[str] = []
@@ -875,7 +852,7 @@ def write_ms_file(
                 for dirpath, dirnames, filenames in os.walk(output_path)
                 for filename in filenames
             )
-        logger.info(f"MS file size: {ms_size / (1024*1024):.1f} MB")
+        logger.info(f"MS file size: {ms_size / (1024 * 1024):.1f} MB")
 
     except Exception as e:
         logger.error(f"Failed to write MS: {e}")
@@ -953,9 +930,7 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
                 try:
                     val = tb.getcell(col, r)
                     # If None or wrong shape, replace
-                    if (val is None) or (
-                        hasattr(val, "shape") and val.shape != data_shape
-                    ):
+                    if (val is None) or (hasattr(val, "shape") and val.shape != data_shape):
                         tb.putcell(col, r, np.zeros(data_shape, dtype=data_dtype))
                         fixed += 1
                 except Exception:
@@ -1078,10 +1053,7 @@ def convert_single_file(
         validation_errors.append("add_imaging_columns must be a boolean")
     if not isinstance(create_time_binned_fields, bool):
         validation_errors.append("create_time_binned_fields must be a boolean")
-    if (
-        not isinstance(field_time_bin_minutes, (int, float))
-        or field_time_bin_minutes <= 0
-    ):
+    if not isinstance(field_time_bin_minutes, (int, float)) or field_time_bin_minutes <= 0:
         validation_errors.append("field_time_bin_minutes must be a positive number")
 
     if validation_errors:
@@ -1115,9 +1087,7 @@ def convert_single_file(
     try:
         # Read UVH5 file
         logger.debug("Reading UVH5 file...")
-        uvd = read_uvh5_file(
-            input_file, create_time_binned_fields, field_time_bin_minutes
-        )
+        uvd = read_uvh5_file(input_file, create_time_binned_fields, field_time_bin_minutes)
 
         # Ensure telescope name + location are set before any downstream phasing/writes
         try:
@@ -1152,12 +1122,8 @@ def convert_single_file(
 
         # Calculate conversion time
         conversion_time = time.time() - start_time
-        logger.info(
-            f"Conversion completed successfully in " f"{conversion_time:.1f} seconds"
-        )
-        log_progress(
-            f"Completed conversion of {input_file} -> {output_file}", start_time_sec
-        )
+        logger.info(f"Conversion completed successfully in {conversion_time:.1f} seconds")
+        log_progress(f"Completed conversion of {input_file} -> {output_file}", start_time_sec)
 
     except Exception as e:
         conversion_time = time.time() - start_time
@@ -1244,10 +1210,7 @@ def convert_directory(
         validation_errors.append("add_imaging_columns must be a boolean")
     if not isinstance(create_time_binned_fields, bool):
         validation_errors.append("create_time_binned_fields must be a boolean")
-    if (
-        not isinstance(field_time_bin_minutes, (int, float))
-        or field_time_bin_minutes <= 0
-    ):
+    if not isinstance(field_time_bin_minutes, (int, float)) or field_time_bin_minutes <= 0:
         validation_errors.append("field_time_bin_minutes must be a positive number")
 
     if validation_errors:
@@ -1290,14 +1253,12 @@ def convert_directory(
         os.makedirs(output_dir, exist_ok=True)
         logger.debug(f"Created output directory: {output_dir}")
     except OSError as e:
-        raise PermissionError(
-            f"Cannot create output directory {output_dir}: {e}"
-        ) from e
+        raise PermissionError(f"Cannot create output directory {output_dir}: {e}") from e
 
     # Track conversion statistics
     import time
 
-    start_time = time.time()
+    time.time()
     successful_conversions = 0
     failed_conversions = 0
 
@@ -1331,18 +1292,14 @@ def convert_directory(
     # Report final statistics
     total_time = time.time() - start_time_sec
     logger.info(f"Directory conversion completed in {total_time:.1f} seconds")
-    logger.info(
-        f"Successfully converted: {successful_conversions}/" f"{len(uvh5_files)} files"
-    )
+    logger.info(f"Successfully converted: {successful_conversions}/{len(uvh5_files)} files")
     log_progress(
         f"Completed directory conversion: {successful_conversions}/{len(uvh5_files)} files processed",
         start_time_sec,
     )
 
     if failed_conversions > 0:
-        logger.warning(
-            f"Failed conversions: {failed_conversions}/" f"{len(uvh5_files)} files"
-        )
+        logger.warning(f"Failed conversions: {failed_conversions}/{len(uvh5_files)} files")
         if failed_conversions == len(uvh5_files):
             raise ConversionError(
                 message="All file conversions failed",

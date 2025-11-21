@@ -51,7 +51,10 @@ def create_synthetic_fits(
     # Create WCS
     w = WCS(naxis=2)
     w.wcs.crpix = [image_size / 2, image_size / 2]
-    w.wcs.cdelt = [-pixel_scale_arcsec / 3600.0, pixel_scale_arcsec / 3600.0]  # Negative for RA
+    w.wcs.cdelt = [
+        -pixel_scale_arcsec / 3600.0,
+        pixel_scale_arcsec / 3600.0,
+    ]  # Negative for RA
     w.wcs.crval = [ra_deg, dec_deg]
     w.wcs.ctype = ["RA---SIN", "DEC--SIN"]
 

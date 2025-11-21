@@ -3,7 +3,6 @@
 Test script to verify all implementations work as intended.
 """
 
-import os
 import sys
 from pathlib import Path
 
@@ -38,7 +37,7 @@ def test_performance_metrics():
     # Run function multiple times
     for i in range(5):
         result = test_function(i)
-        assert result == i * 2, f"Expected {i*2}, got {result}"
+        assert result == i * 2, f"Expected {i * 2}, got {result}"
 
     # Get stats
     stats = get_performance_stats("test_operation")
@@ -67,8 +66,6 @@ def test_error_context():
     print("Testing: Error Context Module")
     print("=" * 70)
 
-    import tempfile
-
     from dsa110_contimg.utils.error_context import (
         format_error_with_context,
         format_file_error_with_suggestions,
@@ -86,9 +83,7 @@ def test_error_context():
     # Test MS error formatting
     ms_error = FileNotFoundError("MS not found")
     suggestions = ["Check MS path", "Verify file exists"]
-    result = format_ms_error_with_suggestions(
-        ms_error, "/path/to/ms", "validation", suggestions
-    )
+    result = format_ms_error_with_suggestions(ms_error, "/path/to/ms", "validation", suggestions)
     assert "MS not found" in result, "Error message should be included"
     assert "Check MS path" in result, "First suggestion should be included"
 
@@ -110,14 +105,10 @@ def test_cache_stats():
     print("Testing: Cache Statistics Function")
     print("=" * 70)
 
-    import tempfile
-
     from dsa110_contimg.utils.ms_helpers import (
         clear_flag_validation_cache,
         clear_ms_metadata_cache,
         get_cache_stats,
-        get_ms_metadata,
-        validate_ms_unflagged_fraction,
     )
 
     # Clear caches first
@@ -142,17 +133,11 @@ def test_cache_stats():
     assert "misses" in flag_stats, "Should have misses"
 
     # Verify maxsize matches expected values
-    assert (
-        ms_stats["maxsize"] == 128
-    ), f"Expected maxsize=128, got {ms_stats['maxsize']}"
-    assert (
-        flag_stats["maxsize"] == 64
-    ), f"Expected maxsize=64, got {flag_stats['maxsize']}"
+    assert ms_stats["maxsize"] == 128, f"Expected maxsize=128, got {ms_stats['maxsize']}"
+    assert flag_stats["maxsize"] == 64, f"Expected maxsize=64, got {flag_stats['maxsize']}"
 
     print("✓ Cache statistics function works correctly")
-    print(
-        f"  MS metadata cache: maxsize={ms_stats['maxsize']}, currsize={ms_stats['currsize']}"
-    )
+    print(f"  MS metadata cache: maxsize={ms_stats['maxsize']}, currsize={ms_stats['currsize']}")
     print(
         f"  Flag validation cache: maxsize={flag_stats['maxsize']}, currsize={flag_stats['currsize']}"
     )
@@ -241,17 +226,13 @@ def test_type_annotations():
     assert (
         sig1.return_annotation != inspect.Signature.empty
     ), "clear_ms_metadata_cache should have return annotation"
-    assert sig1.return_annotation == type(
-        None
-    ), f"Expected None, got {sig1.return_annotation}"
+    assert sig1.return_annotation == type(None), f"Expected None, got {sig1.return_annotation}"
 
     sig2 = inspect.signature(clear_flag_validation_cache)
     assert (
         sig2.return_annotation != inspect.Signature.empty
     ), "clear_flag_validation_cache should have return annotation"
-    assert sig2.return_annotation == type(
-        None
-    ), f"Expected None, got {sig2.return_annotation}"
+    assert sig2.return_annotation == type(None), f"Expected None, got {sig2.return_annotation}"
 
     print("✓ Type annotations present and correct")
     print()
@@ -263,7 +244,6 @@ def test_duplicate_function_fix():
     print("Testing: Duplicate Function Fix")
     print("=" * 70)
 
-    import ast
     import re
 
     # Read the file

@@ -15,10 +15,7 @@ def _get_relative_antenna_positions(uv) -> np.ndarray:
     if hasattr(uv, "antenna_positions") and uv.antenna_positions is not None:
         return uv.antenna_positions
     telescope = getattr(uv, "telescope", None)
-    if (
-        telescope is not None
-        and getattr(telescope, "antenna_positions", None) is not None
-    ):
+    if telescope is not None and getattr(telescope, "antenna_positions", None) is not None:
         return telescope.antenna_positions
     raise AttributeError("UVData object has no antenna_positions information")
 
@@ -67,10 +64,7 @@ def set_antenna_positions(uvdata) -> np.ndarray:
     if hasattr(telescope_location, "value"):
         telescope_location = telescope_location.value
     telescope_location = np.asarray(telescope_location)
-    if (
-        getattr(telescope_location, "dtype", None) is not None
-        and telescope_location.dtype.names
-    ):
+    if getattr(telescope_location, "dtype", None) is not None and telescope_location.dtype.names:
         telescope_location = np.array(
             [telescope_location["x"], telescope_location["y"], telescope_location["z"]]
         )
@@ -81,10 +75,7 @@ def set_antenna_positions(uvdata) -> np.ndarray:
     except AttributeError:
         pass
 
-    if (
-        rel_positions_target is not None
-        and rel_positions_target.shape[0] != abs_positions.shape[0]
-    ):
+    if rel_positions_target is not None and rel_positions_target.shape[0] != abs_positions.shape[0]:
         raise ValueError(
             f"Mismatch between antenna counts ({rel_positions_target.shape[0]!r} vs "
             f"{abs_positions.shape[0]!r}) when loading antenna catalogue"
@@ -93,9 +84,7 @@ def set_antenna_positions(uvdata) -> np.ndarray:
     relative_positions = abs_positions - telescope_location
     _set_relative_antenna_positions(uvdata, relative_positions)
 
-    logger.info(
-        "Loaded dynamic antenna positions for %s antennas", abs_positions.shape[0]
-    )
+    logger.info("Loaded dynamic antenna positions for %s antennas", abs_positions.shape[0])
 
     # Ensure antenna mount metadata is populated (ALT-AZ for DSA-110)
     nants = abs_positions.shape[0]

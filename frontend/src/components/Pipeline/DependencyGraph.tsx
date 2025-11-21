@@ -1,4 +1,4 @@
-import React from "react";
+// import React from "react";
 import {
   Box,
   Card,
@@ -10,7 +10,7 @@ import {
   Chip,
 } from "@mui/material";
 import { useDependencyGraph } from "../../api/queries";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+// import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 export default function DependencyGraph() {
   const { data: graph, isLoading, error } = useDependencyGraph();

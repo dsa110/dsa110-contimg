@@ -1,8 +1,11 @@
 # Pipeline Visuals
 
-This page illustrates the streaming continuum imaging pipeline from ingest to products, plus decision points and fast-path options for speed.
+This page illustrates the streaming continuum imaging pipeline from ingest to
+products, plus decision points and fast-path options for speed.
 
-**For a comprehensive, detailed workflow visualization with complete stage breakdowns, see [Pipeline Workflow Visualization](pipeline_workflow_visualization.md).**
+**For a comprehensive, detailed workflow visualization with complete stage
+breakdowns, see
+[Pipeline Workflow Visualization](pipeline_workflow_visualization.md).**
 
 ## End-to-end Flow
 
@@ -25,7 +28,7 @@ flowchart TB
   Photometry --> Index
   Image --> Index
   Index["Index<br/>products DB"] --> API["API<br/>monitoring"]
-  
+
   %% Core path - vibrant colors, thick strokes, white text
   style Ingest fill:#2196F3,stroke:#0D47A1,stroke-width:3px,color:#FFF
   style Group fill:#2196F3,stroke:#0D47A1,stroke-width:3px,color:#FFF
@@ -37,7 +40,7 @@ flowchart TB
   style Image fill:#E91E63,stroke:#880E4F,stroke-width:3px,color:#FFF
   style Index fill:#00BCD4,stroke:#006064,stroke-width:3px,color:#FFF
   style API fill:#2196F3,stroke:#0D47A1,stroke-width:3px,color:#FFF
-  
+
   %% Optional path - lighter colors, dashed borders
   style Organize fill:#F5F5F5,stroke:#757575,stroke-width:2px,stroke-dasharray: 5 5,color:#000
   style Validate fill:#F5F5F5,stroke:#757575,stroke-width:2px,stroke-dasharray: 5 5,color:#000
@@ -47,14 +50,24 @@ flowchart TB
 
 Notes:
 
-- **Catalog Setup**: Prepares NVSS catalog for calibration (runs before conversion in standard workflow).
+- **Catalog Setup**: Prepares NVSS catalog for calibration (runs before
+  conversion in standard workflow).
 - Conversion uses a strategy pattern and can stage to tmpfs for speed.
-- Calibration is split into two stages: `calibrate_solve` (solves K/BP/G) and `calibrate_apply` (applies solutions).
-- Calibration supports quality tiers with explicit trade-offs for different use cases.
-- Imaging supports quality tiers: "standard" (recommended for science), "development" (⚠️ NON-SCIENCE), "high_precision" (enhanced quality).
-- Optional stages (organization, validation, cross-match, adaptive photometry) can be enabled via configuration.
-- **Organization Stage**: Organizes MS files into date-based directory structure (calibrators/science/failed subdirectories). Optional but recommended for production.
-- **Fast Validation**: Pipeline validation can run in <60 seconds using tiered validation with parallel execution. See [Fast Validation Implementation](../dev/qa_fast_validation_implementation.md) and [Validation Guide](../how-to/validation_guide.md).
+- Calibration is split into two stages: `calibrate_solve` (solves K/BP/G) and
+  `calibrate_apply` (applies solutions).
+- Calibration supports quality tiers with explicit trade-offs for different use
+  cases.
+- Imaging supports quality tiers: "standard" (recommended for science),
+  "development" (⚠️ NON-SCIENCE), "high_precision" (enhanced quality).
+- Optional stages (organization, validation, cross-match, adaptive photometry)
+  can be enabled via configuration.
+- **Organization Stage**: Organizes MS files into date-based directory structure
+  (calibrators/science/failed subdirectories). Optional but recommended for
+  production.
+- **Fast Validation**: Pipeline validation can run in <60 seconds using tiered
+  validation with parallel execution. See
+  [Fast Validation Implementation](../dev/qa_fast_validation_implementation.md)
+  and [Validation Guide](../how-to/validation_guide.md).
 
 ## Conversion: Writer Selection and Staging
 
@@ -70,29 +83,33 @@ flowchart LR
   Disk --> Concat
   Mono --> MS["Final<br/>MS"]
   Concat --> MS
-  
+
   %% Decision points - bright, prominent
   style Auto fill:#9C27B0,stroke:#4A148C,stroke-width:3px,color:#FFF
   style N fill:#FF9800,stroke:#E65100,stroke-width:4px,color:#FFF
   style Stage fill:#FF9800,stroke:#E65100,stroke-width:4px,color:#FFF
-  
+
   %% Production path - vibrant green
   style Par fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
   style Tmp fill:#2196F3,stroke:#0D47A1,stroke-width:3px,color:#FFF
   style Disk fill:#FF9800,stroke:#E65100,stroke-width:3px,color:#FFF
   style Concat fill:#9C27B0,stroke:#4A148C,stroke-width:3px,color:#FFF
-  
+
   %% Testing path - red/orange warning colors
   style Mono fill:#F44336,stroke:#B71C1C,stroke-width:3px,color:#FFF
-  
+
   %% Final output - success green
   style MS fill:#4CAF50,stroke:#1B5E20,stroke-width:4px,color:#FFF
 ```
 
-- **Production**: Always uses `parallel-subband` writer for 16 subbands (default).
-- **Testing**: `pyuvdata` writer is available for testing scenarios with <=2 subbands only.
-- `auto` mode selects `parallel-subband` for production (16 subbands) or `pyuvdata` for testing (<=2 subbands).
-- **Note**: `direct-subband` is an alias for `parallel-subband` (backward compatibility).
+- **Production**: Always uses `parallel-subband` writer for 16 subbands
+  (default).
+- **Testing**: `pyuvdata` writer is available for testing scenarios with <=2
+  subbands only.
+- `auto` mode selects `parallel-subband` for production (16 subbands) or
+  `pyuvdata` for testing (<=2 subbands).
+- **Note**: `direct-subband` is an alias for `parallel-subband` (backward
+  compatibility).
 - tmpfs staging reduces filesystem latency for part writes and final concat.
 
 ## Calibration: Fast Path
@@ -108,30 +125,31 @@ flowchart LR
   BP --> G["solve<br/>gains (G)"]
   G --> Tabs["caltables"]
   Tabs --> Reg["register<br/>& apply"]
-  
+
   %% Input - blue
   style MSIn fill:#2196F3,stroke:#0D47A1,stroke-width:3px,color:#FFF
-  
+
   %% Decision point - bright orange, prominent
   style Fast fill:#FF9800,stroke:#E65100,stroke-width:4px,color:#FFF
-  
+
   %% Fast path - orange/yellow
   style Subset fill:#FFC107,stroke:#F57C00,stroke-width:3px,color:#000
-  
+
   %% Full path - blue
   style Full fill:#2196F3,stroke:#0D47A1,stroke-width:3px,color:#FFF
-  
+
   %% Calibration steps - vibrant green
   style K fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
   style BP fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
   style G fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
-  
+
   %% Output - success green
   style Tabs fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
   style Reg fill:#4CAF50,stroke:#1B5E20,stroke-width:4px,color:#FFF
 ```
 
-- Typical fast knobs: `--timebin 30s`, `--chanbin 4`, `--uvrange >1klambda`, phase-only gains.
+- Typical fast knobs: `--timebin 30s`, `--chanbin 4`, `--uvrange >1klambda`,
+  phase-only gains.
 
 ## Imaging: Quick-look Options
 
@@ -145,27 +163,29 @@ flowchart LR
   WSClean --> Fits{"export<br/>FITS?"}
   Fits -->|yes| FITS["FITS<br/>export"]
   Fits -->|no| Done["CASA<br/>images"]
-  
+
   %% Input - green (calibrated)
   style CMS fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
-  
+
   %% Decision points - bright orange, prominent
   style Quick fill:#FF9800,stroke:#E65100,stroke-width:4px,color:#FFF
   style Fits fill:#FF9800,stroke:#E65100,stroke-width:4px,color:#FFF
-  
+
   %% Quick path - yellow/orange
   style Small fill:#FFC107,stroke:#F57C00,stroke-width:3px,color:#000
-  
+
   %% Default path - pink
   style Def fill:#E91E63,stroke:#880E4F,stroke-width:3px,color:#FFF
-  
+
   %% Imaging - vibrant pink
   style WSClean fill:#E91E63,stroke:#880E4F,stroke-width:4px,color:#FFF
-  
+
   %% Outputs - success green
   style Done fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
   style FITS fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
 ```
 
-- Quick-look is for speed and operator QA; omit `--quick` and `--skip-fits` for full-quality products.
-- **Imaging backend**: WSClean is the default (2-5x faster than tclean). tclean is available via `--backend tclean`.
+- Quick-look is for speed and operator QA; omit `--quick` and `--skip-fits` for
+  full-quality products.
+- **Imaging backend**: WSClean is the default (2-5x faster than tclean). tclean
+  is available via `--backend tclean`.

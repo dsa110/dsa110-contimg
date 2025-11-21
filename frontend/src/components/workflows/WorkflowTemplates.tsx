@@ -5,7 +5,6 @@
 import { useState } from "react";
 import {
   Box,
-  Paper,
   Typography,
   Grid,
   Card,
@@ -26,17 +25,7 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
-import {
-  PlayArrow,
-  Settings,
-  Save,
-  Download,
-  Visibility,
-  Build,
-  Image,
-  GridOn,
-  Science,
-} from "@mui/icons-material";
+import { PlayArrow, Save, Download, Build, Image, GridOn, Science } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
 export interface WorkflowTemplate {
@@ -204,7 +193,7 @@ interface WorkflowTemplatesProps {
   onTemplateSelect?: (template: WorkflowTemplate) => void;
 }
 
-export function WorkflowTemplates({ onTemplateSelect }: WorkflowTemplatesProps) {
+export function WorkflowTemplates({ _onTemplateSelect }: WorkflowTemplatesProps) {
   const navigate = useNavigate();
   const [selectedTemplate, setSelectedTemplate] = useState<WorkflowTemplate | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -294,10 +283,16 @@ export function WorkflowTemplates({ onTemplateSelect }: WorkflowTemplatesProps) 
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
         Astronomy-specific workflow templates with parameter presets
       </Typography>
-
       <Grid container spacing={2}>
         {TEMPLATES.map((template) => (
-          <Grid item xs={12} sm={6} md={4} key={template.id}>
+          <Grid
+            key={template.id}
+            size={{
+              xs: 12,
+              sm: 6,
+              md: 4,
+            }}
+          >
             <Card
               sx={{
                 height: "100%",
@@ -356,7 +351,6 @@ export function WorkflowTemplates({ onTemplateSelect }: WorkflowTemplatesProps) 
           </Grid>
         ))}
       </Grid>
-
       {/* Template Configuration Dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle>
@@ -377,7 +371,13 @@ export function WorkflowTemplates({ onTemplateSelect }: WorkflowTemplatesProps) 
           <Grid container spacing={2}>
             {selectedTemplate &&
               Object.entries(parameterValues).map(([key, value]) => (
-                <Grid item xs={12} sm={6} key={key}>
+                <Grid
+                  key={key}
+                  size={{
+                    xs: 12,
+                    sm: 6,
+                  }}
+                >
                   {typeof value === "boolean" ? (
                     <FormControl fullWidth>
                       <InputLabel>{key.replace(/_/g, " ")}</InputLabel>

@@ -12,11 +12,9 @@ This creates a synthetic FITS image with:
 
 from pathlib import Path
 
-import astropy.units as u
 import numpy as np
-from astropy.coordinates import SkyCoord
 
-from dsa110_contimg.photometry.forced import ForcedPhotometryResult, measure_forced_peak
+from dsa110_contimg.photometry.forced import measure_forced_peak
 from dsa110_contimg.simulation.synthetic_fits import create_synthetic_fits
 
 # create_synthetic_fits is now imported from dsa110_contimg.simulation.synthetic_fits
@@ -53,11 +51,11 @@ def test_forced_photometry_recovery(tmp_path):
     )
 
     print(f"\nCreated synthetic FITS image: {fits_path}")
-    print(f"Image size: 512x512 pixels")
-    print(f"Pixel scale: 0.001 deg/pixel (~3.6 arcsec/pixel)")
-    print(f"Beam FWHM: 3 pixels")
-    print(f"RMS noise: 0.001 Jy/beam")
-    print(f"\nTest sources:")
+    print("Image size: 512x512 pixels")
+    print("Pixel scale: 0.001 deg/pixel (~3.6 arcsec/pixel)")
+    print("Beam FWHM: 3 pixels")
+    print("RMS noise: 0.001 Jy/beam")
+    print("\nTest sources:")
     for src in test_sources:
         print(
             f"  {src['name']:20s}: RA={src['ra_deg']:8.5f}, Dec={src['dec_deg']:8.5f}, "
@@ -66,14 +64,14 @@ def test_forced_photometry_recovery(tmp_path):
 
     # Perform forced photometry on each source
     results = []
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("Forced Photometry Results:")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     print(
         f"{'Source':<20s} {'Expected':>10s} {'Measured':>10s} {'Error':>10s} "
         f"{'SNR':>8s} {'Recovered':>10s}"
     )
-    print(f"{'-'*80}")
+    print(f"{'-' * 80}")
 
     for src in test_sources:
         result = measure_forced_peak(
@@ -111,9 +109,9 @@ def test_forced_photometry_recovery(tmp_path):
         )
 
     # Summary statistics
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("Summary:")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
 
     n_recovered = sum(1 for r in results if r["recovered"])
     n_total = len(results)
@@ -133,16 +131,16 @@ def test_forced_photometry_recovery(tmp_path):
         mean_ratio = np.mean(flux_ratios)
         std_ratio = np.std(flux_ratios)
         print(f"Mean flux ratio (measured/expected): {mean_ratio:.4f} ± {std_ratio:.4f}")
-        print(f"Expected: 1.0000")
+        print("Expected: 1.0000")
 
         # Check if mean ratio is close to 1.0
         ratio_ok = abs(mean_ratio - 1.0) < 0.1  # Within 10%
         print(f"Flux scale accuracy: {'✓ PASS' if ratio_ok else '✗ FAIL'}")
 
     # Detailed results for each source
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("Detailed Results:")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     for r in results:
         src = r["source"]
         res = r["result"]
@@ -169,9 +167,9 @@ def test_forced_photometry_recovery(tmp_path):
             abs(mean_ratio - 1.0) < 0.15
         ), f"Flux scale error too large: {mean_ratio:.4f} (expected ~1.0)"
 
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("✓ All checks passed!")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
 
 def test_forced_photometry_low_snr(tmp_path):

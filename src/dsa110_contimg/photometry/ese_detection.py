@@ -218,6 +218,15 @@ def detect_ese_candidates(
         conn.commit()
         logger.info(f"Detected {len(detected)} ESE candidates")
 
+        # Hook: Update ESE candidate dashboard after detection
+        if detected:
+            try:
+                from dsa110_contimg.qa.pipeline_hooks import hook_ese_detection_complete
+
+                hook_ese_detection_complete()
+            except Exception as e:
+                logger.debug(f"ESE dashboard update hook failed: {e}")
+
         return detected
 
     except Exception as e:

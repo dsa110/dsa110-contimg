@@ -7,7 +7,6 @@ This should be imported before any CASA imports.
 
 import os
 import warnings
-from pathlib import Path
 
 # Suppress SWIG-generated deprecation warnings from casacore
 # These warnings come from SWIG bindings missing __module__ attributes
@@ -45,9 +44,34 @@ def ensure_casa_path() -> None:
     This function:
     1. Sets CASAPATH to point to the CASA data directory
     2. Creates symlinks so casacore can find the data tables
+    3. Ensures HOME is set correctly to prevent CASA from using /root/.casa/data
 
-    This prevents warnings about missing Observatories table.
+    This prevents warnings about missing Observatories table and measurespath ownership.
     """
+    # CRITICAL: Ensure HOME is set correctly to prevent CASA from using /root/.casa/data
+    # CASA uses $HOME/.casa/data as the default measurespath for writable measures data
+    if "HOME" not in os.environ or os.environ.get("HOME") == "/root":
+        # Get actual user home directory
+        import pwd
+
+        try:
+            user_home = pwd.getpwuid(os.getuid()).pw_dir
+            os.environ["HOME"] = user_home
+        except (KeyError, ImportError):
+            # Fallback to expanduser if pwd module unavailable
+            user_home = os.path.expanduser("~")
+            if user_home and user_home != "/root":
+                os.environ["HOME"] = user_home
+
+    # Ensure user's .casa directory exists and is writable
+    user_casa_dir = os.path.join(os.environ.get("HOME", os.path.expanduser("~")), ".casa")
+    user_casa_data_dir = os.path.join(user_casa_dir, "data")
+    try:
+        os.makedirs(user_casa_data_dir, exist_ok=True)
+    except (OSError, PermissionError):
+        # Non-critical - CASA will use read-only measures data from CASAPATH
+        pass
+
     # Set CASAPATH if not already set
     if "CASAPATH" not in os.environ:
         # Try common CASA installation paths
@@ -94,7 +118,7 @@ def ensure_casa_path() -> None:
                 if os.path.exists(geodetic_src) and not os.path.exists(geodetic_dest):
                     try:
                         os.symlink(geodetic_src, geodetic_dest)
-                    except (OSError, PermissionError) as e:
+                    except (OSError, PermissionError):
                         # Symlink creation failed (might not have permissions or already exists)
                         # This is non-critical - CASAPATH should be sufficient
                         pass
@@ -102,7 +126,7 @@ def ensure_casa_path() -> None:
                 if os.path.exists(ephemerides_src) and not os.path.exists(ephemerides_dest):
                     try:
                         os.symlink(ephemerides_src, ephemerides_dest)
-                    except (OSError, PermissionError) as e:
+                    except (OSError, PermissionError):
                         # Symlink creation failed
                         # This is non-critical - CASAPATH should be sufficient
                         pass

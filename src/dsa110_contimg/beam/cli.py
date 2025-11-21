@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 import argparse
 import os
 import sys
@@ -8,9 +8,7 @@ from dsa110_contimg.beam.vp_builder import build_vp_table
 
 
 def main(argv: Optional[list] = None) -> int:
-    p = argparse.ArgumentParser(
-        description=("Build a CASA VP table from a DSA-110 H5 beam model")
-    )
+    p = argparse.ArgumentParser(description=("Build a CASA VP table from a DSA-110 H5 beam model"))
     p.add_argument("--h5", required=True, help="Path to DSA-110 H5 beam file")
     p.add_argument(
         "--out",

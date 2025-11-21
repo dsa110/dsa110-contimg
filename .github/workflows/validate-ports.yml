@@ -23,9 +23,9 @@ jobs:
 
       - name: Validate Port Configuration
         run: |
-          python3 scripts/validate-port-config.py
+          python3 scripts/quality/validate-port-config.py
 
       - name: Check Ports
         run: |
-          chmod +x scripts/check-ports.sh
-          ./scripts/check-ports.sh || true
+          chmod +x scripts/utils/check-ports.sh
+          ./scripts/utils/check-ports.sh || true

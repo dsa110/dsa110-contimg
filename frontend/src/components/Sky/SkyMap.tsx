@@ -18,12 +18,13 @@ import {
   Button,
   Divider,
 } from "@mui/material";
-import Plot from "react-plotly.js";
-import type { Data, Layout } from "plotly.js";
+import { PlotlyLazy } from "../PlotlyLazy";
+import type { Data, Layout } from "../PlotlyLazy";
 import { usePointingHistory } from "../../api/queries";
 import { useImages } from "../../api/queries";
-import type { ImageInfo, PointingHistoryEntry } from "../../api/types";
-import dayjs from "dayjs";
+import type { ImageInfo } from "../../api/types";
+import { formatDateTime } from "../../utils/dateUtils";
+import { formatRA, formatDec } from "../../utils/coordinateUtils";
 
 interface SkyMapProps {
   height?: number;
@@ -65,7 +66,7 @@ export default function SkyMap({
     error: historyError,
   } = usePointingHistory(startMjd, endMjd);
 
-  const historyData = historyResponse?.items || [];
+  const historyData = useMemo(() => historyResponse?.items || [], [historyResponse]);
 
   // Fetch images for observed fields
   // Use a reasonable limit and filter for images with coordinates
@@ -78,7 +79,7 @@ export default function SkyMap({
     offset: 0,
   });
 
-  const images = imagesResponse?.items || [];
+  const images = useMemo(() => imagesResponse?.items || [], [imagesResponse]);
 
   // Filter images that have RA/Dec coordinates
   const fieldsWithCoords = useMemo(() => {
@@ -122,7 +123,7 @@ export default function SkyMap({
           width: 2,
         },
         hovertemplate: "RA: %{x:.2f}°<br>Dec: %{y:.2f}°<br>Time: %{customdata}<extra></extra>",
-        customdata: timestamps.map((ts) => dayjs(ts * 1000).format("YYYY-MM-DD HH:mm:ss")),
+        customdata: timestamps.map((ts) => formatDateTime(ts * 1000)),
         showlegend: true,
       });
 
@@ -146,7 +147,7 @@ export default function SkyMap({
           line: { color: "white", width: 1 },
         },
         hovertemplate: "RA: %{x:.2f}°<br>Dec: %{y:.2f}°<br>Time: %{customdata}<extra></extra>",
-        customdata: recentTimestamps.map((ts) => dayjs(ts * 1000).format("YYYY-MM-DD HH:mm:ss")),
+        customdata: recentTimestamps.map((ts) => formatDateTime(ts * 1000)),
         showlegend: true,
       });
     }
@@ -203,7 +204,7 @@ export default function SkyMap({
         customdata: fieldsWithCoords.map((img) => [
           img.path.split("/").pop() || "Unknown",
           img.noise_jy ? `${(img.noise_jy * 1000).toFixed(2)} mJy` : "N/A",
-          dayjs(img.created_at).format("YYYY-MM-DD HH:mm:ss"),
+          formatDateTime(img.created_at),
           img.id, // Store image ID at index 3 for click handling
         ]),
         showlegend: true,
@@ -271,8 +272,8 @@ export default function SkyMap({
       if (image && image.center_ra_deg !== undefined && image.center_dec_deg !== undefined) {
         setSelectedField({
           image,
-          ra: image.center_ra_deg,
-          dec: image.center_dec_deg,
+          ra: image.center_ra_deg ?? 0,
+          dec: image.center_dec_deg ?? 0,
         });
         setDialogOpen(true);
       }
@@ -345,7 +346,7 @@ export default function SkyMap({
                 </Stack>
               </Box>
 
-              <Plot
+              <PlotlyLazy
                 data={plotData}
                 layout={layout}
                 config={{
@@ -408,7 +409,7 @@ export default function SkyMap({
                     Right Ascension
                   </Typography>
                   <Typography variant="body1" fontWeight="bold">
-                    {selectedField.ra.toFixed(4)}°
+                    {formatRA(selectedField.ra)}
                   </Typography>
                 </Box>
                 <Box>
@@ -416,7 +417,7 @@ export default function SkyMap({
                     Declination
                   </Typography>
                   <Typography variant="body1" fontWeight="bold">
-                    {selectedField.dec.toFixed(4)}°
+                    {formatDec(selectedField.dec)}
                   </Typography>
                 </Box>
               </Stack>
@@ -429,7 +430,7 @@ export default function SkyMap({
                     Observation Time
                   </Typography>
                   <Typography variant="body1">
-                    {dayjs(selectedField.image.created_at).format("YYYY-MM-DD HH:mm:ss UTC")}
+                    {formatDateTime(selectedField.image.created_at)}
                   </Typography>
                 </Box>
                 <Box>

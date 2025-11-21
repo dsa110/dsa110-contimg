@@ -33,6 +33,7 @@ curl -s "http://localhost:8000/api/images?start_date=2025-10-28T00:00:00&end_dat
 ```
 
 **Expected:**
+
 - Returns filtered images
 - Fast response (<200ms)
 - Accurate pagination
@@ -47,9 +48,11 @@ curl -s "http://localhost:8000/api/images?noise_max=0.001&limit=3" | jq '.items[
 ```
 
 **Expected:**
+
 - Returns all images (no filtering)
 - All `noise_jy` values are `null`
-- **This is expected** - metadata not populated (see `docs/known-issues/image-metadata-population.md`)
+- **This is expected** - metadata not populated (see
+  `docs/known-issues/image-metadata-population.md`)
 
 ---
 
@@ -64,6 +67,7 @@ curl -s "http://localhost:8000/api/images?has_calibrator=true&limit=3" | jq '.to
 ```
 
 **Expected:**
+
 - Declination filter: Works but slow (1-5 seconds)
 - Calibrator filter: Works (pattern matching)
 
@@ -80,6 +84,7 @@ curl -s "http://localhost:8000/api/images?dec_min=-100&dec_max=200&limit=5" | jq
 ```
 
 **Expected:**
+
 - No crashes
 - Returns reasonable results (may ignore invalid inputs)
 
@@ -93,6 +98,7 @@ curl -s "http://localhost:8000/api/images?limit=1" | jq '.items[0] | {noise_jy, 
 ```
 
 **Expected:**
+
 - All values are `null` (metadata not populated)
 - **This confirms the metadata issue**
 
@@ -109,6 +115,7 @@ curl -s "http://localhost:8000/api/health" | jq '.'
 ```
 
 **Expected:**
+
 - Both return JSON with status information
 - No more 404 errors
 
@@ -117,17 +124,20 @@ curl -s "http://localhost:8000/api/health" | jq '.'
 ## What to Look For
 
 ### ✅ Success Indicators:
+
 - All curl commands return valid JSON
 - Date filters reduce result set appropriately
 - No 500 errors in API logs
 - Fast response times for date filters (<200ms)
 
 ### ⚠️ Expected Issues:
+
 - Noise filter doesn't filter (metadata null)
 - Declination filter is slow (FITS reading)
 - Some metadata fields are null
 
 ### ❌ Failure Indicators:
+
 - 500 errors in API logs
 - Connection refused errors
 - Invalid JSON responses
@@ -166,4 +176,3 @@ Run: `chmod +x test_filters.sh && ./test_filters.sh`
 ---
 
 **Last Updated:** 2025-11-12
-

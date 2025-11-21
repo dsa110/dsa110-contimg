@@ -1,0 +1,36 @@
+[Unit]
+Description=DSA-110 Pipeline Monitoring Service
+Documentation=file:///data/dsa110-contimg/internal/docs/dev/analysis/INTEGRATION_GUIDE.md
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=dsa
+Group=dsa
+WorkingDirectory=/data/dsa110-contimg/src
+Environment="PYTHONPATH=/data/dsa110-contimg/src"
+Environment="DSA110_QUEUE_DB=/data/dsa110-contimg/state/streaming_ingest.db"
+Environment="DSA110_PRODUCTS_DB=/data/dsa110-contimg/state/products.db"
+Environment="DSA110_QA_OUTPUTS=/data/dsa110-contimg/qa_outputs"
+Environment="DSA110_MONITOR_INTERVAL_PERFORMANCE=900"
+Environment="DSA110_MONITOR_INTERVAL_ANTENNA=1800"
+Environment="DSA110_MONITOR_INTERVAL_QUEUE=300"
+Environment="DSA110_ALERT_QUEUE_DEPTH=50"
+Environment="DSA110_ALERT_ANTENNA_HEALTH_SCORE=30"
+ExecStart=/opt/miniforge/envs/casa6/bin/python -m dsa110_contimg.qa.monitoring_service
+Restart=always
+RestartSec=60
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=dsa110-monitoring
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=false
+ProtectSystem=strict
+ReadWritePaths=/data/dsa110-contimg/qa_outputs /data/dsa110-contimg/state /tmp/dsa110_monitoring_plots
+ProtectHome=false
+
+[Install]
+WantedBy=multi-user.target

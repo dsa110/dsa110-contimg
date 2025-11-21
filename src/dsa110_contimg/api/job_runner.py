@@ -29,11 +29,10 @@ from dsa110_contimg.api.job_adapters import (
     run_mosaic_create_job,
 )
 
-# Keep helper functions that may still be used
-from dsa110_contimg.database.products import ensure_products_db
-
 # Import workflow adapter
 from dsa110_contimg.pipeline.adapter import LegacyWorkflowAdapter
+
+# Keep helper functions that may still be used
 
 
 def _python_cmd_for_jobs() -> list[str]:

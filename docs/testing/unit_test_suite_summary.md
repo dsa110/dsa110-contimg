@@ -3,13 +3,15 @@
 **Date:** 2025-11-11  
 **Last Updated:** 2025-11-11  
 **Status:** Complete  
-**Coverage:** Monitoring endpoints, database functions, monitoring script, API routers
+**Coverage:** Monitoring endpoints, database functions, monitoring script, API
+routers
 
 ---
 
 ## Test Suite Overview
 
-Created comprehensive unit test suite for production monitoring and recovery features:
+Created comprehensive unit test suite for production monitoring and recovery
+features:
 
 ### Test Files Created
 
@@ -60,64 +62,77 @@ All tests meet the speed requirement (< 1 second each).
 ### Database Functions (`test_data_registry_publish.py`)
 
 ✅ **Schema Migration**
+
 - Tests automatic addition of `publish_attempts` and `publish_error` columns
 - Verifies backward compatibility with old schema
 
 ✅ **Publish Failure Tracking**
+
 - Tests `_record_publish_failure()` increments attempt counter
 - Tests error message truncation (500 char limit)
 - Tests failure recording on publish errors
 
 ✅ **Publish Locking**
+
 - Tests `BEGIN IMMEDIATE` prevents concurrent access
 - Tests status transitions (staging → publishing → staging/published)
 - Tests max attempts check prevents infinite retries
 
 ✅ **Backward Compatibility**
+
 - Tests `get_data()` handles old schema gracefully
 - Tests `list_data()` handles old schema gracefully
 
 ✅ **Success Handling**
+
 - Tests successful publish clears attempts and errors
 
 ### API Endpoints (`test_monitoring_endpoints.py`)
 
 ✅ **Status Endpoint** (`GET /api/monitoring/publish/status`)
+
 - Tests response structure and fields
 - Tests metrics calculation (success rate, counts)
 
 ✅ **Failed Publishes Endpoint** (`GET /api/monitoring/publish/failed`)
+
 - Tests listing failed publishes
 - Tests filtering by max_attempts
 - Tests limit parameter
 
 ✅ **Retry Endpoint** (`POST /api/monitoring/publish/retry/{data_id}`)
+
 - Tests successful retry
 - Tests error handling (not found, already published)
 - Tests attempt counter reset
 
 ✅ **Retry All Endpoint** (`POST /api/monitoring/publish/retry-all`)
+
 - Tests bulk retry functionality
 - Tests limit parameter
 - Tests filtering by max_attempts
 
 ✅ **Edge Cases**
+
 - Tests empty database handling
 - Tests error responses
 
 ### Monitoring Script (`test_monitoring_script.py`)
 
 ✅ **Status Functions**
+
 - Tests `get_publish_status()` returns correct structure
 - Tests `get_failed_publishes()` filtering
 
 ✅ **Alert Detection**
+
 - Tests low success rate alerts
 - Tests high failed count alerts
 - Tests max attempts exceeded alerts
 - Tests no alerts when thresholds met
 
 ✅ **Retry Functions**
+
 - Tests dry run mode
 - Tests retry with limit
 - Tests attempt counter reset
@@ -128,7 +143,8 @@ All tests meet the speed requirement (< 1 second each).
 
 ### Speed & Efficiency
 
-- **Mocked dependencies:** All tests use mocked file operations and database connections
+- **Mocked dependencies:** All tests use mocked file operations and database
+  connections
 - **Temporary databases:** Use `tmp_path` fixture for isolated test databases
 - **No external I/O:** No real file system operations (except temp dirs)
 - **Fast execution:** All tests complete in < 1 second
@@ -207,6 +223,7 @@ When adding new features:
 ### Test Fixtures
 
 **Available Fixtures:**
+
 - `temp_registry_db` - Temporary data registry database
 - `api_client` - API test client with mocked database
 - `sample_staging_file` - Sample staging file for testing
@@ -216,8 +233,10 @@ When adding new features:
 
 ## Related Documentation
 
-- **Production Readiness Plan:** `docs/reports/production_readiness_plan_2025-11-11.md`
-- **Enhancements Implemented:** `docs/reports/enhancements_implemented_2025-11-11.md`
+- **Production Readiness Plan:**
+  `docs/reports/production_readiness_plan_2025-11-11.md`
+- **Enhancements Implemented:**
+  `docs/reports/enhancements_implemented_2025-11-11.md`
 - **Deployment Checklist:** `docs/operations/production_deployment_checklist.md`
 
 ---
@@ -227,25 +246,39 @@ When adding new features:
 ### Error Handling & Logging Enhancements
 
 **Fixed Issues:**
-1. **Silent Exception Swallowing** - Replaced all `except Exception: pass` with proper logging
-2. **Test Band-Aids** - Fixed test accepting both 200/404 to properly validate success
-3. **FITS Header Reading** - Improved exception handling with specific error types and logging
-4. **Observation Timeline Bug** - Fixed `rglob` iteration bug (Path objects vs tuples)
+
+1. **Silent Exception Swallowing** - Replaced all `except Exception: pass` with
+   proper logging
+2. **Test Band-Aids** - Fixed test accepting both 200/404 to properly validate
+   success
+3. **FITS Header Reading** - Improved exception handling with specific error
+   types and logging
+4. **Observation Timeline Bug** - Fixed `rglob` iteration bug (Path objects vs
+   tuples)
 
 **Files Updated:**
-- `src/dsa110_contimg/api/routers/photometry.py` - Added logging for all exception handlers
-- `src/dsa110_contimg/api/routers/images.py` - Added logging for FITS reading and WCS parsing
-- `src/dsa110_contimg/api/data_access.py` - Fixed observation timeline `rglob` bug
-- `tests/unit/api/test_routers.py` - Fixed source detail test to properly validate success
-- `tests/unit/api/test_data_access.py` - Added comprehensive observation timeline tests
+
+- `src/dsa110_contimg/api/routers/photometry.py` - Added logging for all
+  exception handlers
+- `src/dsa110_contimg/api/routers/images.py` - Added logging for FITS reading
+  and WCS parsing
+- `src/dsa110_contimg/api/data_access.py` - Fixed observation timeline `rglob`
+  bug
+- `tests/unit/api/test_routers.py` - Fixed source detail test to properly
+  validate success
+- `tests/unit/api/test_data_access.py` - Added comprehensive observation
+  timeline tests
 
 **Logging Patterns Established:**
-- `logger.warning()` with `exc_info=True` for recoverable errors that should be monitored
+
+- `logger.warning()` with `exc_info=True` for recoverable errors that should be
+  monitored
 - `logger.error()` with `exc_info=True` for unexpected errors
 - `logger.debug()` for non-critical failures that don't affect functionality
 - Specific exception types instead of broad `except Exception`
 
 **Test Results:**
+
 - 67 tests passing (up from 62)
 - 0 failures
 - 0 skipped tests (down from 1)
@@ -254,6 +287,6 @@ When adding new features:
 ---
 
 **Status:** Test Suite Complete  
-**Coverage:** All new monitoring and recovery features tested, API router error handling improved  
+**Coverage:** All new monitoring and recovery features tested, API router error
+handling improved  
 **Performance:** All tests < 1 second, total suite ~13 seconds
-

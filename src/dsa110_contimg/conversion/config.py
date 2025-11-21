@@ -50,12 +50,8 @@ class CalibratorMSConfig:
         # 2. Add CSV fallbacks (lower priority)
         catalogs.extend(
             [
-                Path(
-                    "/data/dsa110-contimg/data-samples/catalogs/vla_calibrators_parsed.csv"
-                ),
-                Path(
-                    "/data/dsa110-contimg/sim-data-samples/catalogs/vla_calibrators_parsed.csv"
-                ),
+                Path("/data/dsa110-contimg/data-samples/catalogs/vla_calibrators_parsed.csv"),
+                Path("/data/dsa110-contimg/sim-data-samples/catalogs/vla_calibrators_parsed.csv"),
                 base_state.parent
                 / "references"
                 / "dsa110-contimg-main-legacy"
@@ -67,16 +63,12 @@ class CalibratorMSConfig:
 
         return cls(
             input_dir=Path(os.getenv("CONTIMG_INPUT_DIR", "/data/incoming")),
-            output_dir=Path(
-                os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms")
-            ),
+            output_dir=Path(os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms")),
             products_db=Path(os.getenv("PIPELINE_PRODUCTS_DB", str(products_default))),
             catalogs=catalogs,
             # scratch_dir=None means "let service decide" - will use tmpfs if available,
             # otherwise falls back to output directory
             scratch_dir=(
-                Path(os.getenv("CONTIMG_SCRATCH_DIR"))
-                if os.getenv("CONTIMG_SCRATCH_DIR")
-                else None
+                Path(os.getenv("CONTIMG_SCRATCH_DIR")) if os.getenv("CONTIMG_SCRATCH_DIR") else None
             ),
         )

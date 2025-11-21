@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 EnvironmentFile=/data/dsa110-contimg/ops/systemd/contimg.env
 WorkingDirectory=/data/dsa110-contimg
-ExecStart=/usr/bin/python3 scripts/test_monitor_daemon.py \
+ExecStart=/bin/bash /data/dsa110-contimg/scripts/casa_wrapper.sh /opt/miniforge/envs/casa6/bin/python /data/dsa110-contimg/scripts/test_monitor_daemon.py \
   --db ${PIPELINE_STATE_DIR}/testing/test_results.sqlite3 \
   --interval 3600 \
   --log-level ${CONTIMG_LOG_LEVEL}

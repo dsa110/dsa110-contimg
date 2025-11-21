@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Copy phased MS and concatenate SPWs."""
+
 import sys
 
 sys.path.insert(0, "src")
@@ -22,15 +23,15 @@ print("COPYING AND CONCATENATING SPWs")
 print("=" * 70)
 
 # Step 1: Copy the phased MS
-print(f"\nStep 1: Copying phased MS...")
+print("\nStep 1: Copying phased MS...")
 print(f"  Source: {ms_path}")
 print(f"  Destination: {ms_copy}")
 
 if os.path.exists(ms_copy):
-    print(f"  Removing existing copy...")
+    print("  Removing existing copy...")
     shutil.rmtree(ms_copy)
 
-print(f"  Copying...")
+print("  Copying...")
 shutil.copytree(ms_path, ms_copy)
 print(f"  ✓ Copy created: {ms_copy}")
 
@@ -40,12 +41,12 @@ with table(ms_copy + "/SPECTRAL_WINDOW", readonly=True) as spw:
     print(f"  Copy verified: {nspw_orig} SPWs")
 
 # Step 2: Concatenate SPWs using merge_spws
-print(f"\nStep 2: Concatenating SPWs using merge_spws...")
+print("\nStep 2: Concatenating SPWs using merge_spws...")
 print(f"  Input: {ms_copy}")
 print(f"  Output: {ms_concat}")
 
 try:
-    print(f"  Running merge_spws...")
+    print("  Running merge_spws...")
     merge_spws(
         ms_in=ms_copy,
         ms_out=ms_concat,
@@ -64,23 +65,23 @@ except Exception as e:
     sys.exit(1)
 
 # Step 3: Verify the result
-print(f"\nStep 3: Verifying concatenated MS...")
+print("\nStep 3: Verifying concatenated MS...")
 
 with table(ms_concat + "/SPECTRAL_WINDOW", readonly=True) as spw:
     nspw = spw.nrows()
     print(f"  Number of SPWs in concatenated MS: {nspw}")
 
     if nspw == 1:
-        print(f"  ✓ Successfully concatenated to 1 SPW")
+        print("  ✓ Successfully concatenated to 1 SPW")
 
         # Get frequency info
         ref_freq = spw.getcol("REF_FREQUENCY")[0]
         nchans = spw.getcol("NUM_CHAN")[0]
         total_bw = spw.getcol("TOTAL_BANDWIDTH")[0]
 
-        print(f"  Reference frequency: {ref_freq/1e9:.6f} GHz")
+        print(f"  Reference frequency: {ref_freq / 1e9:.6f} GHz")
         print(f"  Total channels: {nchans}")
-        print(f"  Total bandwidth: {total_bw/1e6:.3f} MHz")
+        print(f"  Total bandwidth: {total_bw / 1e6:.3f} MHz")
     else:
         print(f"  ⚠ Expected 1 SPW, found {nspw}")
 

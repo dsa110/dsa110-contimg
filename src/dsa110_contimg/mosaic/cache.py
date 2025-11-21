@@ -21,10 +21,8 @@ import hashlib
 import json
 import logging
 import os
-import sqlite3
 import time
 import warnings
-from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -53,9 +51,7 @@ class MosaicCache:
     Provides in-memory and on-disk caching with automatic invalidation.
     """
 
-    def __init__(
-        self, cache_dir: Optional[Path] = None, enable_disk_cache: bool = True
-    ):
+    def __init__(self, cache_dir: Optional[Path] = None, enable_disk_cache: bool = True):
         """
         Initialize cache manager.
 
@@ -265,13 +261,9 @@ class MosaicCache:
             metadata = {
                 "ra_center": to_scalar(ra_val) if ra_val is not None else None,
                 "dec_center": to_scalar(dec_val) if dec_val is not None else None,
-                "cdelt_ra": (
-                    to_scalar(ra_incr) * 180.0 / np.pi if ra_incr is not None else None
-                ),
+                "cdelt_ra": (to_scalar(ra_incr) * 180.0 / np.pi if ra_incr is not None else None),
                 "cdelt_dec": (
-                    to_scalar(dec_incr) * 180.0 / np.pi
-                    if dec_incr is not None
-                    else None
+                    to_scalar(dec_incr) * 180.0 / np.pi if dec_incr is not None else None
                 ),
                 "shape": shape,
             }
@@ -571,9 +563,7 @@ class MosaicCache:
 _global_cache: Optional[MosaicCache] = None
 
 
-def get_cache(
-    cache_dir: Optional[Path] = None, enable_disk_cache: bool = True
-) -> MosaicCache:
+def get_cache(cache_dir: Optional[Path] = None, enable_disk_cache: bool = True) -> MosaicCache:
     """Get or create global cache instance."""
     global _global_cache
 
@@ -582,9 +572,7 @@ def get_cache(
             # Default cache directory
             cache_dir = Path(os.getenv("MOSAIC_CACHE_DIR", "/tmp/mosaic_cache"))
 
-        _global_cache = MosaicCache(
-            cache_dir=cache_dir, enable_disk_cache=enable_disk_cache
-        )
+        _global_cache = MosaicCache(cache_dir=cache_dir, enable_disk_cache=enable_disk_cache)
 
     return _global_cache
 

@@ -1,10 +1,5 @@
 """End-to-end integration tests for photometry automation."""
 
-import sqlite3
-import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
-
 import pytest
 
 from dsa110_contimg.database.data_registry import (

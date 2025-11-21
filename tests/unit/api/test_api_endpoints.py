@@ -11,7 +11,6 @@ Validates:
 """
 
 import sys
-import importlib.util
 from pathlib import Path
 
 
@@ -20,12 +19,12 @@ def test_imports():
     print("Testing imports...")
     try:
         from dsa110_contimg.api.models import (
-            SourceDetail,
             Detection,
             DetectionList,
             ImageDetail,
             Measurement,
             MeasurementList,
+            SourceDetail,
         )
 
         print("✓ All models imported successfully")
@@ -76,10 +75,10 @@ def test_model_structure():
 
     try:
         from dsa110_contimg.api.models import (
-            SourceDetail,
             Detection,
             ImageDetail,
             Measurement,
+            SourceDetail,
         )
 
         # Check SourceDetail fields
@@ -135,8 +134,8 @@ def test_database_queries():
     dangerous_patterns = [
         'f"SELECT',
         "f'SELECT",
-        f"{{source_id}}",
-        f"{{image_id}}",
+        "{source_id}",
+        "{image_id}",
     ]
 
     found_dangerous = False

@@ -4,9 +4,10 @@ FITS file utilities for proper format compliance.
 Ensures FITS headers conform to FITS standard format requirements.
 """
 
-from astropy.io import fits
-from typing import Optional, Dict, Any
+from typing import Optional
+
 import numpy as np
+from astropy.io import fits
 
 
 def format_fits_header_value(value: float, precision: int = 10) -> float:

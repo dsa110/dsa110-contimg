@@ -57,7 +57,6 @@ export default function QANotebookGenerator({
     }
 
     generateNotebookMutation.mutate({
-      ms_path: msPath || undefined,
       qa_root: qaRoot || undefined,
       output_path: outputPath,
       title: title || undefined,
@@ -72,7 +71,6 @@ export default function QANotebookGenerator({
     }
 
     runQAMutation.mutate({
-      ms_path: msPath,
       qa_root: qaRoot,
       generate_notebook: generateNotebook,
       display_summary: displaySummary,
@@ -248,7 +246,7 @@ export default function QANotebookGenerator({
                     <strong>Reasons:</strong>
                   </Typography>
                   <List dense>
-                    {qaResult.reasons.map((reason, idx) => (
+                    {qaResult.reasons.map((reason: string, idx: number) => (
                       <ListItem key={idx}>
                         <ListItemIcon>
                           {qaResult.success ? (
@@ -271,10 +269,10 @@ export default function QANotebookGenerator({
                   {qaResult.artifacts.map((artifact, idx) => (
                     <Chip
                       key={idx}
-                      label={artifact.split("/").pop()}
+                      label={artifact.path.split("/").pop()}
                       size="small"
                       icon={<Description />}
-                      onClick={() => downloadNotebook(artifact)}
+                      onClick={() => downloadNotebook(artifact.path)}
                       sx={{ mr: 0.5, mb: 0.5, cursor: "pointer" }}
                     />
                   ))}

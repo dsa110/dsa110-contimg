@@ -9,7 +9,6 @@ from __future__ import annotations
 import logging
 import signal
 import threading
-import time
 from contextlib import contextmanager
 from typing import Callable, Optional
 
@@ -33,9 +32,7 @@ class _TimeoutHandler:
     def _timeout_handler(self, signum, frame):
         """Signal handler for timeout."""
         self.timed_out = True
-        raise TimeoutError(
-            f"Stage execution exceeded timeout of {self.timeout_seconds}s"
-        )
+        raise TimeoutError(f"Stage execution exceeded timeout of {self.timeout_seconds}s")
 
     def __enter__(self):
         """Enter timeout context."""
@@ -44,9 +41,7 @@ class _TimeoutHandler:
 
         # Only use signal-based timeout on main thread (signal handlers are per-process)
         if threading.current_thread() is threading.main_thread():
-            self._original_handler = signal.signal(
-                signal.SIGALRM, self._timeout_handler
-            )
+            self._original_handler = signal.signal(signal.SIGALRM, self._timeout_handler)
             signal.alarm(int(self.timeout_seconds))
         else:
             # For non-main threads, use threading-based timeout
@@ -107,7 +102,7 @@ def stage_timeout(timeout_seconds: Optional[float], stage_name: str = "unknown")
         try:
             with _TimeoutHandler(timeout_seconds):
                 yield
-        except TimeoutError as e:
+        except TimeoutError:
             logger.error(f"Stage '{stage_name}' timed out after {timeout_seconds}s")
             raise
     else:
@@ -125,9 +120,7 @@ def stage_timeout(timeout_seconds: Optional[float], stage_name: str = "unknown")
             yield
             timer.cancel()
             if timeout_occurred.is_set():
-                raise TimeoutError(
-                    f"Stage execution exceeded timeout of {timeout_seconds}s"
-                )
+                raise TimeoutError(f"Stage execution exceeded timeout of {timeout_seconds}s")
         except Exception:
             timer.cancel()
             raise

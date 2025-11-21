@@ -24,7 +24,9 @@ except ImportError:
 
 if PROMETHEUS_AVAILABLE:
     ese_detection_requests = Counter(
-        "ese_detection_requests_total", "Total ESE detection requests", ["source", "min_sigma"]
+        "ese_detection_requests_total",
+        "Total ESE detection requests",
+        ["source", "min_sigma"],
     )
 
     ese_detection_duration = Histogram(
@@ -123,7 +125,9 @@ if PROMETHEUS_AVAILABLE:
     )
 
     pipeline_stage_attempts = Counter(
-        "pipeline_stage_attempts_total", "Total pipeline stage attempts", ["stage_name", "status"]
+        "pipeline_stage_attempts_total",
+        "Total pipeline stage attempts",
+        ["stage_name", "status"],
     )
 
     pipeline_throughput = Gauge(
@@ -194,7 +198,8 @@ else:
         "ese_candidates_current", "Current number of ESE candidates"
     )
     variability_stats_computation_time = SimpleHistogram(
-        "variability_stats_computation_seconds", "Time to compute variability statistics"
+        "variability_stats_computation_seconds",
+        "Time to compute variability statistics",
     )
     calibration_solve_attempts = SimpleCounter(
         "calibration_solve_attempts_total", "Total calibration solve attempts"
@@ -212,7 +217,8 @@ else:
         "photometry_measurements_total", "Total photometry measurements"
     )
     photometry_measurement_duration = SimpleHistogram(
-        "photometry_measurement_duration_seconds", "Photometry measurement execution time"
+        "photometry_measurement_duration_seconds",
+        "Photometry measurement execution time",
     )
     photometry_normalization_requests = SimpleCounter(
         "photometry_normalization_requests_total", "Total normalization requests"
@@ -266,7 +272,11 @@ def record_calibration_solve(
         calibration_solve_attempts.inc({"calibrator_name": calibrator_name, "status": status})
         if status == "success":
             calibration_solve_duration.observe(
-                duration, {"calibrator_name": calibrator_name, "calibration_type": calibration_type}
+                duration,
+                {
+                    "calibrator_name": calibrator_name,
+                    "calibration_type": calibration_type,
+                },
             )
 
 

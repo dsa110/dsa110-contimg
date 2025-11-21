@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Extract 1 minute from an existing Measurement Set using CASA split."""
 
-import os
 import sys
 from pathlib import Path
 
@@ -43,14 +42,10 @@ def extract_1minute(ms_in, ms_out):
 
     print(f"  Start MJD: {start_mjd:.6f}")
     print(f"  End MJD:   {end_mjd:.6f}")
-    print(
-        f"  Duration:  {duration_minutes:.2f} minutes ({duration_seconds:.1f} seconds)"
-    )
+    print(f"  Duration:  {duration_minutes:.2f} minutes ({duration_seconds:.1f} seconds)")
 
     if duration_seconds < 60.0:
-        print(
-            f"\nWarning: MS contains only {duration_seconds:.1f} seconds (< 1 minute)"
-        )
+        print(f"\nWarning: MS contains only {duration_seconds:.1f} seconds (< 1 minute)")
         print("Will extract all available data.")
         extract_end_mjd = end_mjd
     else:
@@ -61,9 +56,7 @@ def extract_1minute(ms_in, ms_out):
         # Make sure we don't exceed the available data
         if extract_end_mjd > end_mjd:
             extract_end_mjd = end_mjd
-            print(
-                f"\nWarning: MS is shorter than 1 minute, extracting all available data"
-            )
+            print("\nWarning: MS is shorter than 1 minute, extracting all available data")
 
     # Convert to Time objects for formatting
     t_start = Time(start_mjd, format="mjd")
@@ -71,7 +64,7 @@ def extract_1minute(ms_in, ms_out):
 
     extract_duration_seconds = (extract_end_mjd - start_mjd) * 86400.0
     print(
-        f"\nExtracting: {extract_duration_seconds:.1f} seconds ({extract_duration_seconds/60.0:.2f} minutes)"
+        f"\nExtracting: {extract_duration_seconds:.1f} seconds ({extract_duration_seconds / 60.0:.2f} minutes)"
     )
     print(f"  From: {t_start.isot}")
     print(f"  To:   {t_end.isot}")
@@ -92,7 +85,7 @@ def extract_1minute(ms_in, ms_out):
         shutil.rmtree(str(ms_out), ignore_errors=True)
 
     # Extract using CASA split
-    print(f"\nExtracting 1 minute subset...")
+    print("\nExtracting 1 minute subset...")
     try:
         split(
             vis=str(ms_in),
@@ -107,10 +100,8 @@ def extract_1minute(ms_in, ms_out):
         out_start, out_end, out_mid = _ms_time_range(str(ms_out))
         if out_start is not None and out_end is not None:
             out_duration = (out_end - out_start) * 86400.0
-            print(f"\nOutput MS verification:")
-            print(
-                f"  Duration: {out_duration:.1f} seconds ({out_duration/60.0:.2f} minutes)"
-            )
+            print("\nOutput MS verification:")
+            print(f"  Duration: {out_duration:.1f} seconds ({out_duration / 60.0:.2f} minutes)")
             print(f"  Start: {Time(out_start, format='mjd').isot}")
             print(f"  End:   {Time(out_end, format='mjd').isot}")
 

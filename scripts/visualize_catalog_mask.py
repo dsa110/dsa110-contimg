@@ -1,0 +1,207 @@
+#!/usr/bin/env python3
+"""
+Visualize multi-window catalog masks for self-calibration.
+
+Shows how NVSS+FIRST catalog sources are masked for faster imaging.
+"""
+
+import sys
+
+import matplotlib
+
+matplotlib.use("Agg")  # Non-interactive backend
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+from astropy.io import fits
+from astropy.wcs import WCS
+
+sys.path.insert(0, "/data/dsa110-contimg/src/dsa110_contimg/src")
+
+from dsa110_contimg.calibration.catalogs import query_merged_nvss_first_sources
+
+
+def create_mask_visualization(
+    ra_deg: float,
+    dec_deg: float,
+    fov_deg: float,
+    flux_limit_mjy: float,
+    output_path: str,
+    imsize: int = 2048,
+    mask_radius_arcsec: float = 60.0,
+):
+    """Create visualization of multi-window catalog mask.
+
+    Args:
+        ra_deg: Field center RA in degrees
+        dec_deg: Field center Dec in degrees
+        fov_deg: Field of view in degrees
+        flux_limit_mjy: Minimum flux in mJy
+        output_path: Path to save figure
+        imsize: Image size in pixels
+        mask_radius_arcsec: Mask radius around each source in arcseconds
+    """
+    # Query catalog
+    print(f"Querying NVSS+FIRST catalog...")
+    print(f"  Field center: RA={ra_deg:.3f}°, Dec={dec_deg:.3f}°")
+    print(f"  FOV: {fov_deg:.1f}° ({fov_deg*60:.0f}' diameter)")
+    print(f"  Flux limit: >{flux_limit_mjy} mJy")
+
+    radius_deg = fov_deg / 2.0
+    sources = query_merged_nvss_first_sources(
+        ra_deg=ra_deg,
+        dec_deg=dec_deg,
+        radius_deg=radius_deg,
+        min_flux_mjy=flux_limit_mjy,
+    )
+
+    print(f"✓ Found {len(sources)} sources")
+
+    # Create WCS
+    cell_arcsec = (fov_deg * 3600.0) / imsize
+    wcs = WCS(naxis=2)
+    wcs.wcs.crpix = [imsize / 2.0 + 0.5, imsize / 2.0 + 0.5]
+    wcs.wcs.crval = [ra_deg, dec_deg]
+    wcs.wcs.cdelt = [-cell_arcsec / 3600.0, cell_arcsec / 3600.0]
+    wcs.wcs.ctype = ["RA---SIN", "DEC--SIN"]
+
+    # Create mask array
+    mask = np.zeros((imsize, imsize), dtype=np.float32)
+    mask_radius_pix = mask_radius_arcsec / cell_arcsec
+
+    print(f"\nCreating mask:")
+    print(f"  Image size: {imsize}×{imsize} pixels")
+    print(f"  Pixel scale: {cell_arcsec:.2f} arcsec/pixel")
+    print(f'  Mask radius: {mask_radius_arcsec:.0f}" ({mask_radius_pix:.1f} pixels)')
+
+    # Add circular masks for each source
+    y, x = np.ogrid[0:imsize, 0:imsize]
+    for _, src in sources.iterrows():
+        # Convert RA/Dec to pixel coordinates
+        px, py = wcs.all_world2pix(src["ra_deg"], src["dec_deg"], 0)
+        # Create circular mask
+        circle_mask = ((x - px) ** 2 + (y - py) ** 2) <= mask_radius_pix**2
+        mask[circle_mask] = 1.0
+
+    # Calculate statistics
+    total_pixels = imsize * imsize
+    masked_pixels = np.sum(mask)
+    masked_fraction = masked_pixels / total_pixels
+
+    print(f"\nMask statistics:")
+    print(f"  Masked pixels: {masked_pixels:.0f} / {total_pixels} ({masked_fraction*100:.2f}%)")
+    print(f"  Speedup factor: ~{1/masked_fraction:.1f}x (if I/O not limiting)")
+
+    # Create visualization
+    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+
+    # Panel 1: Source positions
+    ax = axes[0]
+    ax.scatter(
+        sources["ra_deg"],
+        sources["dec_deg"],
+        s=np.log10(sources["flux_mjy"]) * 50,
+        c=sources["flux_mjy"],
+        cmap="hot",
+        alpha=0.7,
+        edgecolors="white",
+        linewidths=0.5,
+    )
+    ax.set_xlabel("RA (degrees)")
+    ax.set_ylabel("Dec (degrees)")
+    ax.set_title(f"Source Positions ({len(sources)} sources)")
+    ax.invert_xaxis()  # RA increases to the left
+    ax.grid(alpha=0.3)
+    cbar = plt.colorbar(ax.collections[0], ax=ax)
+    cbar.set_label("Flux (mJy)")
+
+    # Panel 2: Mask
+    ax = axes[1]
+    im = ax.imshow(mask, origin="lower", cmap="gray_r", interpolation="nearest")
+    ax.set_xlabel("X (pixels)")
+    ax.set_ylabel("Y (pixels)")
+    ax.set_title(f"Multi-Window Mask ({masked_fraction*100:.2f}% of image)")
+    plt.colorbar(im, ax=ax, label="Mask (1=clean, 0=skip)")
+
+    # Panel 3: Mask with source overlay
+    ax = axes[2]
+    ax.imshow(mask, origin="lower", cmap="gray_r", alpha=0.5, interpolation="nearest")
+    # Overlay source positions
+    for _, src in sources.iterrows():
+        px, py = wcs.all_world2pix(src["ra_deg"], src["dec_deg"], 0)
+        circle = plt.Circle(
+            (px, py),
+            mask_radius_pix,
+            fill=False,
+            edgecolor="red",
+            linewidth=1,
+            alpha=0.7,
+        )
+        ax.add_patch(circle)
+        # Mark bright sources
+        if src["flux_mjy"] > flux_limit_mjy * 5:
+            ax.plot(px, py, "r*", markersize=8, alpha=0.8)
+    ax.set_xlabel("X (pixels)")
+    ax.set_ylabel("Y (pixels)")
+    ax.set_title("Mask + Source Positions (bright sources marked)")
+    ax.set_xlim(0, imsize)
+    ax.set_ylim(0, imsize)
+
+    plt.suptitle(
+        f"Catalog-Based Masking: {fov_deg:.1f}° FOV, >{flux_limit_mjy} mJy\n"
+        f"{len(sources)} sources, {masked_fraction*100:.2f}% masked, ~{1/masked_fraction:.1f}x speedup",
+        fontsize=14,
+        fontweight="bold",
+    )
+
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
+    print(f"\n✓ Saved: {output_path}")
+
+    return sources, mask, masked_fraction
+
+
+if __name__ == "__main__":
+    # 0834+555 field
+    ra = 129.278
+    dec = 55.381
+    fov = 3.5  # Full FOV
+
+    # Test with different flux limits
+    flux_limits = [0.1, 1.0, 10.0]
+
+    output_dir = Path("/stage/dsa110-contimg/test_data")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    print("=" * 80)
+    print("MULTI-WINDOW MASK VISUALIZATION")
+    print("=" * 80)
+    print()
+
+    for flux_limit in flux_limits:
+        print(f"\n{'='*80}")
+        print(f"Flux limit: >{flux_limit} mJy")
+        print(f"{'='*80}")
+
+        output_file = output_dir / f"mask_visualization_{flux_limit}mJy.png"
+
+        sources, mask, frac = create_mask_visualization(
+            ra_deg=ra,
+            dec_deg=dec,
+            fov_deg=fov,
+            flux_limit_mjy=flux_limit,
+            output_path=str(output_file),
+            imsize=2048,
+            mask_radius_arcsec=60.0,
+        )
+
+        print()
+        print(f"Summary for {flux_limit} mJy:")
+        print(f"  Sources: {len(sources)}")
+        print(f"  Coverage: {frac*100:.2f}%")
+        print(f"  Speedup: ~{1/frac:.1f}x")
+
+    print("\n" + "=" * 80)
+    print("✅ All mask visualizations created!")
+    print("=" * 80)

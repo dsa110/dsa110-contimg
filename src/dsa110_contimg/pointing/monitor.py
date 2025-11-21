@@ -14,14 +14,12 @@ from typing import Dict, Optional
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.database.products import ensure_ingest_db
 from dsa110_contimg.pointing.utils import load_pointing
 
 # Configure logging
 logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
 class PointingMonitorMetrics:
@@ -58,9 +56,7 @@ class PointingMonitorMetrics:
         """Get current statistics."""
         uptime = time.time() - self.start_time
         success_rate = (
-            (self.files_succeeded / self.files_processed * 100)
-            if self.files_processed > 0
-            else 0.0
+            (self.files_succeeded / self.files_processed * 100) if self.files_processed > 0 else 0.0
         )
 
         return {
@@ -80,11 +76,9 @@ class PointingMonitorMetrics:
 class PointingMonitor:
     """Main pointing monitor with health checks and metrics."""
 
-    def __init__(
-        self, watch_dir: Path, products_db: Path, status_file: Optional[Path] = None
-    ):
+    def __init__(self, watch_dir: Path, ingest_db: Path, status_file: Optional[Path] = None):
         self.watch_dir = Path(watch_dir)
-        self.products_db = Path(products_db)
+        self.ingest_db = Path(ingest_db)
         self.status_file = Path(status_file) if status_file else None
         self.metrics = PointingMonitorMetrics()
         self.conn: Optional[sqlite3.Connection] = None
@@ -117,11 +111,11 @@ class PointingMonitor:
 
         # Check database accessibility
         try:
-            test_conn = ensure_products_db(self.products_db)
+            test_conn = ensure_ingest_db(self.ingest_db)
             test_conn.execute("SELECT 1").fetchone()
             test_conn.close()
         except Exception as e:
-            issues.append(f"Database not accessible: {self.products_db} ({e})")
+            issues.append(f"Database not accessible: {self.ingest_db} ({e})")
 
         # Check database connection if established
         if self.conn is not None:
@@ -146,7 +140,7 @@ class PointingMonitor:
                 "healthy": is_healthy,
                 "issues": issues,
                 "watch_dir": str(self.watch_dir),
-                "products_db": str(self.products_db),
+                "ingest_db": str(self.ingest_db),
                 "metrics": stats,
                 "timestamp": time.time(),
                 "timestamp_iso": datetime.utcnow().isoformat() + "Z",
@@ -160,6 +154,52 @@ class PointingMonitor:
         except Exception as e:
             logger.warning(f"Failed to write status file: {e}")
 
+    def _scan_existing_files(self):
+        """Scan and process existing files in the watch directory."""
+        logger.info(f"Scanning existing files in {self.watch_dir}...")
+
+        # Find all _sb00.hdf5 files and .ms directories
+        existing_files = []
+        for pattern in ["*_sb00.hdf5", "*.ms"]:
+            existing_files.extend(self.watch_dir.rglob(pattern))
+
+        # Filter to only files (not directories for .ms pattern)
+        existing_files = [
+            f for f in existing_files if f.is_file() or (f.is_dir() and f.name.endswith(".ms"))
+        ]
+
+        logger.info(f"Found {len(existing_files)} existing files to process")
+
+        # Process each file
+        for file_path in sorted(existing_files):
+            # Check if already processed by querying database
+            try:
+                if self.conn is None:
+                    self.conn = ensure_ingest_db(self.ingest_db)
+
+                # Try to load pointing to get timestamp
+                info = load_pointing(file_path)
+                if info and "mid_time" in info:
+                    # Check if this timestamp already exists
+                    cursor = self.conn.execute(
+                        "SELECT COUNT(*) FROM pointing_history WHERE timestamp = ?",
+                        (info["mid_time"].mjd,),
+                    )
+                    count = cursor.fetchone()[0]
+
+                    if count > 0:
+                        logger.debug(f"Skipping already processed file: {file_path}")
+                        continue
+            except Exception as e:
+                logger.debug(f"Could not check if file already processed: {file_path}, error: {e}")
+
+            # Process the file
+            self.log_pointing_from_file(file_path)
+
+        logger.info(
+            f"Finished scanning existing files. Processed {self.metrics.files_processed} files total."
+        )
+
     def log_pointing_from_file(self, file_path: Path):
         """Extracts pointing from a file and logs it to the database."""
         try:
@@ -167,7 +207,7 @@ class PointingMonitor:
 
             # Reconnect if connection lost
             if self.conn is None:
-                self.conn = ensure_products_db(self.products_db)
+                self.conn = ensure_ingest_db(self.ingest_db)
 
             info = load_pointing(file_path)
             if info and "mid_time" in info and "dec_deg" in info and "ra_deg" in info:
@@ -180,6 +220,31 @@ class PointingMonitor:
                     f"Logged pointing from {file_path}: RA={info['ra_deg']:.2f}, Dec={info['dec_deg']:.2f}"
                 )
                 self.metrics.record_success()
+
+                # Trigger auto-calibrator algorithm if HDF5 file
+                if file_path.suffix == ".hdf5" or "hdf5" in file_path.name.lower():
+                    try:
+                        from pathlib import Path
+
+                        from dsa110_contimg.pointing.auto_calibrator import (
+                            on_new_hdf5_file,
+                        )
+
+                        # Products DB is typically in same directory as ingest DB
+                        # Default: state/products.sqlite3
+                        products_db_path = self.ingest_db.parent / "products.sqlite3"
+                        if not products_db_path.exists():
+                            # Try alternative location
+                            products_db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+
+                        if products_db_path.exists():
+                            on_new_hdf5_file(
+                                file_path=file_path,
+                                products_db_path=products_db_path,
+                                dec_change_threshold=0.1,
+                            )
+                    except Exception as e:
+                        logger.warning(f"Auto-calibrator algorithm failed: {e}", exc_info=True)
             else:
                 error_msg = f"Missing required fields in pointing info: {list(info.keys()) if info else 'None'}"
                 logger.warning(error_msg)
@@ -209,20 +274,21 @@ class PointingMonitor:
 
         # Initialize database connection
         try:
-            self.conn = ensure_products_db(self.products_db)
-            logger.info(f"Connected to database: {self.products_db}")
+            self.conn = ensure_ingest_db(self.ingest_db)
+            logger.info(f"Connected to database: {self.ingest_db}")
         except Exception as e:
             logger.error(f"Failed to connect to database: {e}")
             raise
+
+        # Scan and process existing files on startup
+        self._scan_existing_files()
 
         # Setup file watcher
         event_handler = NewFileHandler(self)
         self.observer = Observer()
         self.observer.schedule(event_handler, self.watch_dir, recursive=True)
 
-        logger.info(
-            f"Starting to monitor {self.watch_dir} for new observation files..."
-        )
+        logger.info(f"Starting to monitor {self.watch_dir} for new observation files...")
         logger.info(f"Status file: {self.status_file}")
         self.running = True
         self.observer.start()
@@ -357,7 +423,7 @@ Examples:
     # Create and start monitor
     monitor = PointingMonitor(
         watch_dir=args.watch_dir,
-        products_db=args.products_db,
+        ingest_db=args.products_db,
         status_file=args.status_file,
     )
 

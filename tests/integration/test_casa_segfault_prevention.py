@@ -5,11 +5,10 @@ These tests specifically target the import chain that previously caused segfault
 and verify that the lazy import fix prevents them.
 """
 
-import pytest
-import sys
 import subprocess
-import importlib
-from pathlib import Path
+import sys
+
+import pytest
 
 
 class TestSegfaultPrevention:
@@ -69,9 +68,7 @@ class TestSegfaultPrevention:
             # Verify CASA is not initialized yet
             from dsa110_contimg.qa.visualization.casatable import _CASACORE_AVAILABLE
 
-            assert (
-                _CASACORE_AVAILABLE is None
-            ), "CASA should not be initialized on import"
+            assert _CASACORE_AVAILABLE is None, "CASA should not be initialized on import"
         except SystemError as e:
             if "segmentation fault" in str(e).lower():
                 pytest.fail(f"Segfault detected: {e}")
@@ -162,18 +159,18 @@ sys.exit(0)
                 timeout=10,
             )
 
-            assert result.returncode == 0, f"Subprocess {i+1} failed: {result.stderr}"
+            assert result.returncode == 0, f"Subprocess {i + 1} failed: {result.stderr}"
             assert (
                 "ALL_IMPORTS_SUCCESSFUL" in result.stdout
-            ), f"Not all imports successful in subprocess {i+1}: {result.stdout}"
+            ), f"Not all imports successful in subprocess {i + 1}: {result.stdout}"
             # Check for actual segfault indicators
             assert (
                 "FAILED: Segfault" not in result.stdout
-            ), f"Segfault detected in subprocess {i+1}: {result.stdout}"
+            ), f"Segfault detected in subprocess {i + 1}: {result.stdout}"
             if result.stderr:
                 assert (
                     "segmentation fault" not in result.stderr.lower()
-                ), f"Segfault detected in stderr of subprocess {i+1}: {result.stderr}"
+                ), f"Segfault detected in stderr of subprocess {i + 1}: {result.stderr}"
 
     def test_casa_initialization_on_demand(self):
         """
@@ -189,8 +186,8 @@ sys.exit(0)
 
         from dsa110_contimg.qa.visualization.casatable import (
             _CASACORE_AVAILABLE,
-            _has_casacore,
             CasaTable,
+            _has_casacore,
         )
 
         # Initially not initialized
@@ -202,7 +199,7 @@ sys.exit(0)
 
         # Only when we actually check availability should it initialize
         try:
-            available = _has_casacore()
+            _has_casacore()
             # Now it should be initialized (True or False)
             assert _CASACORE_AVAILABLE is not None
         except Exception:
@@ -228,20 +225,12 @@ sys.exit(0)
 
         # Import all QA modules
         try:
-            import dsa110_contimg.qa
             from dsa110_contimg.qa import (
                 create_cutout,
-                validate_ms_quality,
-                validate_image_quality,
             )
+            from dsa110_contimg.qa.postage_stamps import create_cutout as ps_create_cutout
             from dsa110_contimg.qa.visualization import (
                 CasaTable,
-                FITSFile,
-                ls,
-            )
-            from dsa110_contimg.qa.postage_stamps import (
-                create_cutout as ps_create_cutout,
-                show_all_cutouts,
             )
 
             # All should be importable

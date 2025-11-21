@@ -5,9 +5,10 @@ Tests the specific API calls that are failing:
 2. img.coordsys() - AttributeError
 """
 
-import pytest
 import os
 from pathlib import Path
+
+import pytest
 
 # Set CASAPATH before importing CASA
 if "CASAPATH" not in os.environ:
@@ -54,9 +55,7 @@ def test_casaimage_coordsys_method(mosaic_path):
     has_coordsys = hasattr(img, "coordsys")
     has_coordinates = hasattr(img, "coordinates")
 
-    assert (
-        has_coordsys or has_coordinates
-    ), "Neither coordsys() nor coordinates() available"
+    assert has_coordsys or has_coordinates, "Neither coordsys() nor coordinates() available"
 
     # Try to call the available method
     if has_coordsys:

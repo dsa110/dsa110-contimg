@@ -5,10 +5,7 @@ Focus: Fast, isolated tests with mocked file operations.
 
 from __future__ import annotations
 
-from pathlib import Path
-from unittest.mock import MagicMock, mock_open, patch
-
-import pytest
+from unittest.mock import patch
 
 from dsa110_contimg.api.image_utils import (
     convert_casa_to_fits,

@@ -38,7 +38,9 @@ PRESET_THRESHOLDS = {
 }
 
 
-def get_threshold_preset(preset: Union[ThresholdPreset, str, Dict[str, float]]) -> Dict[str, float]:
+def get_threshold_preset(
+    preset: Union[ThresholdPreset, str, Dict[str, float]],
+) -> Dict[str, float]:
     """
     Get threshold preset values.
 

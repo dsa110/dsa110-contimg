@@ -20,12 +20,8 @@ class PathsConfig(BaseModel):
 
     input_dir: Path = Field(..., description="Input directory for UVH5 files")
     output_dir: Path = Field(..., description="Output directory for MS files")
-    scratch_dir: Optional[Path] = Field(
-        None, description="Scratch directory for temporary files"
-    )
-    state_dir: Path = Field(
-        default=Path("state"), description="State directory for databases"
-    )
+    scratch_dir: Optional[Path] = Field(None, description="Scratch directory for temporary files")
+    state_dir: Path = Field(default=Path("state"), description="State directory for databases")
 
     @property
     def products_db(self) -> Path:
@@ -63,9 +59,7 @@ class ConversionConfig(BaseModel):
     max_workers: int = Field(
         default=16, ge=1, le=32, description="Maximum number of parallel workers"
     )
-    stage_to_tmpfs: bool = Field(
-        default=True, description="Stage files to tmpfs for faster I/O"
-    )
+    stage_to_tmpfs: bool = Field(default=True, description="Stage files to tmpfs for faster I/O")
     expected_subbands: int = Field(
         default=16, ge=1, le=32, description="Expected number of subbands"
     )
@@ -96,9 +90,7 @@ class ImagingConfig(BaseModel):
     field: Optional[str] = Field(None, description="Field name or coordinates")
     refant: Optional[str] = Field(default="103", description="Reference antenna")
     gridder: str = Field(default="wproject", description="Gridding algorithm")
-    wprojplanes: int = Field(
-        default=-1, description="W-projection planes (-1 for auto)"
-    )
+    wprojplanes: int = Field(default=-1, description="W-projection planes (-1 for auto)")
     run_catalog_validation: bool = Field(
         default=True,
         description="Run catalog-based flux scale validation after imaging",
@@ -108,14 +100,14 @@ class ImagingConfig(BaseModel):
     )
 
     # Masking parameters
-    use_nvss_mask: bool = Field(
-        default=True, description="Use NVSS-based mask for imaging (2-4x faster)"
+    use_unicat_mask: bool = Field(
+        default=True, description="Use unified catalog mask for imaging (2-4x faster)"
     )
     mask_radius_arcsec: float = Field(
         default=60.0,
         ge=10.0,
         le=300.0,
-        description="Mask radius around NVSS sources (arcsec)",
+        description="Mask radius around catalog sources (arcsec)",
     )
 
 
@@ -130,9 +122,7 @@ class ValidationConfig(BaseModel):
         default=["astrometry", "flux_scale", "source_counts"],
         description="Types of validation to run",
     )
-    generate_html_report: bool = Field(
-        default=True, description="Generate HTML validation report"
-    )
+    generate_html_report: bool = Field(default=True, description="Generate HTML validation report")
     min_snr: float = Field(default=5.0, description="Minimum SNR for source detection")
     search_radius_arcsec: float = Field(
         default=10.0, description="Search radius for source matching (arcsec)"
@@ -174,31 +164,110 @@ class CrossMatchConfig(BaseModel):
         ge=1.0,
         description="Maximum separation to consider a valid match (arcsec)",
     )
+    calculate_spectral_indices: bool = Field(
+        default=True,
+        description="Calculate spectral indices from multi-catalog matches (Proposal #1)",
+    )
+
+
+class TransientDetectionConfig(BaseModel):
+    """Configuration for transient detection stage."""
+
+    enabled: bool = Field(default=False, description="Enable transient detection stage")
+    detection_threshold_sigma: float = Field(
+        default=5.0,
+        ge=3.0,
+        description="Significance threshold for new sources [sigma]",
+    )
+    variability_threshold_sigma: float = Field(
+        default=3.0,
+        ge=2.0,
+        description="Threshold for flux variability [sigma]",
+    )
+    match_radius_arcsec: float = Field(
+        default=10.0,
+        ge=1.0,
+        le=30.0,
+        description="Matching radius for baseline catalog [arcsec]",
+    )
+    baseline_catalog: str = Field(
+        default="NVSS",
+        description=("Baseline catalog for transient detection: " "'NVSS', 'FIRST', 'RACS'"),
+    )
+    alert_threshold_sigma: float = Field(
+        default=7.0,
+        ge=5.0,
+        description="Minimum significance for generating alerts [sigma]",
+    )
+    store_lightcurves: bool = Field(
+        default=True,
+        description="Store flux measurements in lightcurves table",
+    )
+    min_baseline_flux_mjy: float = Field(
+        default=10.0,
+        ge=1.0,
+        description="Minimum baseline flux for fading source detection [mJy]",
+    )
+
+
+class AstrometricCalibrationConfig(BaseModel):
+    """Configuration for astrometric calibration."""
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable astrometric refinement in mosaic stage",
+    )
+    reference_catalog: str = Field(
+        default="FIRST",
+        description="High-precision reference catalog: 'FIRST'",
+    )
+    match_radius_arcsec: float = Field(
+        default=5.0,
+        ge=1.0,
+        le=15.0,
+        description="Matching radius for reference catalog [arcsec]",
+    )
+    min_matches: int = Field(
+        default=10,
+        ge=5,
+        description="Minimum number of matches required for solution",
+    )
+    flux_weight: bool = Field(
+        default=True,
+        description="Weight astrometric offsets by source flux",
+    )
+    apply_correction: bool = Field(
+        default=True,
+        description="Apply WCS correction to output mosaics",
+    )
+    accuracy_target_mas: float = Field(
+        default=1000.0,
+        ge=100.0,
+        description="Target astrometric accuracy [mas]",
+    )
 
 
 class PhotometryConfig(BaseModel):
     """Configuration for adaptive binning photometry stage."""
 
-    enabled: bool = Field(
-        default=False, description="Enable adaptive binning photometry stage"
-    )
+    enabled: bool = Field(default=False, description="Enable adaptive binning photometry stage")
     target_snr: float = Field(
         default=5.0, ge=1.0, description="Target SNR threshold for detections"
     )
-    max_width: int = Field(
-        default=16, ge=1, le=32, description="Maximum bin width in channels"
+    max_width: int = Field(default=16, ge=1, le=32, description="Maximum bin width in channels")
+    catalog: str = Field(
+        default="nvss",
+        description="Catalog to use for source queries: 'nvss', 'first', 'rax', 'vlass', 'master'",
     )
     sources: Optional[List[Dict[str, float]]] = Field(
         default=None,
         description="List of source coordinates [{'ra': 124.526, 'dec': 54.620}, ...]. "
-        "If None, queries NVSS catalog for sources in field.",
+        "If None, queries catalog for sources in field.",
     )
     min_flux_mjy: float = Field(
-        default=10.0, description="Minimum NVSS flux (mJy) for catalog sources"
+        default=10.0, description="Minimum catalog flux (mJy) for catalog sources"
     )
-    parallel: bool = Field(
-        default=True, description="Image SPWs in parallel for faster processing"
-    )
+    parallel: bool = Field(default=True, description="Image SPWs in parallel for faster processing")
     max_workers: Optional[int] = Field(
         default=None,
         description="Maximum number of parallel workers (default: CPU count)",
@@ -212,9 +281,7 @@ class PhotometryConfig(BaseModel):
         default="standard",
         description="Imaging quality tier: 'development', 'standard', or 'high_precision'",
     )
-    backend: str = Field(
-        default="tclean", description="Imaging backend: 'tclean' or 'wsclean'"
-    )
+    backend: str = Field(default="tclean", description="Imaging backend: 'tclean' or 'wsclean'")
 
 
 class PipelineConfig(BaseModel):
@@ -231,6 +298,10 @@ class PipelineConfig(BaseModel):
     validation: ValidationConfig = Field(default_factory=ValidationConfig)
     crossmatch: CrossMatchConfig = Field(default_factory=CrossMatchConfig)
     photometry: PhotometryConfig = Field(default_factory=PhotometryConfig)
+    transient_detection: TransientDetectionConfig = Field(default_factory=TransientDetectionConfig)
+    astrometric_calibration: AstrometricCalibrationConfig = Field(
+        default_factory=AstrometricCalibrationConfig
+    )
 
     @classmethod
     def from_env(
@@ -260,9 +331,7 @@ class PipelineConfig(BaseModel):
             HealthCheckError: If path validation fails (when validate_paths=True)
         """
         base_state = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
-        synthetic_dir = Path(
-            os.getenv("PIPELINE_SYNTHETIC_DIR", str(base_state / "synth"))
-        )
+        synthetic_dir = Path(os.getenv("PIPELINE_SYNTHETIC_DIR", str(base_state / "synth")))
 
         input_dir = os.getenv("PIPELINE_INPUT_DIR")
         output_dir = os.getenv("PIPELINE_OUTPUT_DIR")
@@ -332,11 +401,8 @@ class PipelineConfig(BaseModel):
             ),
             conversion=ConversionConfig(
                 writer=os.getenv("PIPELINE_WRITER", "auto"),
-                max_workers=safe_int(
-                    "PIPELINE_MAX_WORKERS", "4", min_val=1, max_val=32
-                ),
-                stage_to_tmpfs=os.getenv("PIPELINE_STAGE_TO_TMPFS", "true").lower()
-                == "true",
+                max_workers=safe_int("PIPELINE_MAX_WORKERS", "4", min_val=1, max_val=32),
+                stage_to_tmpfs=os.getenv("PIPELINE_STAGE_TO_TMPFS", "true").lower() == "true",
                 expected_subbands=safe_int(
                     "PIPELINE_EXPECTED_SUBBANDS", "16", min_val=1, max_val=32
                 ),
@@ -347,9 +413,7 @@ class PipelineConfig(BaseModel):
                 ),
                 cal_gain_solint=os.getenv("PIPELINE_CAL_GAIN_SOLINT", "inf"),
                 default_refant=os.getenv("PIPELINE_DEFAULT_REFANT", "103"),
-                auto_select_refant=os.getenv(
-                    "PIPELINE_AUTO_SELECT_REFANT", "true"
-                ).lower()
+                auto_select_refant=os.getenv("PIPELINE_AUTO_SELECT_REFANT", "true").lower()
                 == "true",
             ),
             imaging=ImagingConfig(
@@ -357,8 +421,7 @@ class PipelineConfig(BaseModel):
                 refant=os.getenv("PIPELINE_REFANT", "103"),
                 gridder=os.getenv("PIPELINE_GRIDDER", "wproject"),
                 wprojplanes=safe_int("PIPELINE_WPROJPLANES", "-1"),
-                use_nvss_mask=os.getenv("PIPELINE_USE_NVSS_MASK", "true").lower()
-                == "true",
+                use_unicat_mask=os.getenv("PIPELINE_USE_UNICAT_MASK", "true").lower() == "true",
                 mask_radius_arcsec=safe_float(
                     "PIPELINE_MASK_RADIUS_ARCSEC", "60.0", min_val=10.0, max_val=300.0
                 ),
@@ -387,7 +450,7 @@ class PipelineConfig(BaseModel):
         if "input_dir" in data and "paths" not in data:
             paths_data = {
                 "input_dir": data.pop("input_dir", "/data/incoming"),
-                "output_dir": data.pop("output_dir", "/stage/dsa110-contimg/ms"),
+                "output_dir": data.pop("output_dir", "/stage/dsa110-contimg/raw/ms"),
                 "scratch_dir": data.pop("scratch_dir", None),
                 "state_dir": data.pop("state_dir", "state"),
             }
@@ -410,7 +473,7 @@ class PipelineConfig(BaseModel):
             "refant",
             "gridder",
             "wprojplanes",
-            "use_nvss_mask",
+            "use_unicat_mask",
             "mask_radius_arcsec",
         ]
         has_imaging_params = any(key in data for key in imaging_keys)
@@ -421,7 +484,7 @@ class PipelineConfig(BaseModel):
                 "refant": data.pop("refant", "103"),
                 "gridder": data.pop("gridder", "wproject"),
                 "wprojplanes": data.pop("wprojplanes", -1),
-                "use_nvss_mask": data.pop("use_nvss_mask", True),
+                "use_unicat_mask": data.pop("use_unicat_mask", True),
                 "mask_radius_arcsec": data.pop("mask_radius_arcsec", 60.0),
             }
             data["imaging"] = imaging_data
@@ -442,7 +505,7 @@ class PipelineConfig(BaseModel):
         ```yaml
         paths:
           input_dir: "/data/incoming"
-          output_dir: "/stage/dsa110-contimg/ms"
+          output_dir: "/stage/dsa110-contimg/raw/ms"
           scratch_dir: "/tmp"
           state_dir: "state"
 

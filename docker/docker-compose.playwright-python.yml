@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  playwright-python-tests:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.playwright-python
+    container_name: dsa110-playwright-python-tests
+    working_dir: /app
+    volumes:
+      - ../tests:/app/tests
+      - ../src:/app/src
+      - playwright-test-results:/app/test-results
+    environment:
+      - FRONTEND_BASE_URL=${FRONTEND_BASE_URL:-http://host.docker.internal:5174}
+      - API_URL=${API_URL:-http://host.docker.internal:8000}
+      - PLAYWRIGHT_HEADLESS=${PLAYWRIGHT_HEADLESS:-true}
+      - PLAYWRIGHT_BROWSER=${PLAYWRIGHT_BROWSER:-chromium}
+      - PYTHONPATH=/app/src:/app
+    network_mode: "host"
+    # Use host network to access services on host or other containers
+    # Alternative: use external network if services are in docker-compose.yml
+    command: pytest tests/e2e/frontend/ -v -n auto --html=test-results/report.html --self-contained-html --junitxml=test-results/junit.xml
+    profiles:
+      - playwright-python
+      - test
+
+volumes:
+  playwright-test-results:

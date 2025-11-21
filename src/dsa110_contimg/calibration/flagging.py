@@ -1,5 +1,5 @@
-from dsa110_contimg.utils.error_context import format_ms_error_with_suggestions
-from casatasks import flagdata
+# CASA import moved to function level to prevent logs in workspace root
+# See: docs/dev/analysis/casa_log_handling_investigation.md
 import logging
 import os
 import shutil
@@ -12,6 +12,7 @@ from typing import Dict, List, Optional
 
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+from dsa110_contimg.utils.error_context import format_ms_error_with_suggestions
 
 ensure_casa_path()
 
@@ -62,11 +63,15 @@ def suppress_subprocess_stderr():
 
 def reset_flags(ms: str) -> None:
     with suppress_subprocess_stderr():
+        from casatasks import flagdata
+
         flagdata(vis=ms, mode="unflag")
 
 
 def flag_zeros(ms: str, datacolumn: str = "data") -> None:
     with suppress_subprocess_stderr():
+        from casatasks import flagdata
+
         flagdata(vis=ms, mode="clip", datacolumn=datacolumn, clipzeros=True)
 
 
@@ -131,6 +136,8 @@ def flag_rfi(
     else:
         # Two-stage RFI flagging using flagdata modes (tfcrop then rflag)
         with suppress_subprocess_stderr():
+            from casatasks import flagdata
+
             flagdata(
                 vis=ms,
                 mode="tfcrop",
@@ -143,6 +150,8 @@ def flag_rfi(
                 winsize=3,
                 extendflags=False,
             )
+            from casatasks import flagdata
+
             flagdata(
                 vis=ms,
                 mode="rflag",
@@ -200,22 +209,22 @@ def flag_rfi_aoflagger(
 ) -> None:
     """Flag RFI using AOFlagger (faster alternative to CASA tfcrop).
 
-    AOFlagger uses the SumThreshold algorithm which is typically 2-5x faster
-    than CASA's tfcrop+rflag combination for large datasets.
+        AOFlagger uses the SumThreshold algorithm which is typically 2-5x faster
+        than CASA's tfcrop+rflag combination for large datasets.
 
-    **Note:** On Ubuntu 18.x systems, Docker is required due to CMake/pybind11
-    compatibility issues. The default behavior is to use Docker if available.
+        **Note:** On Ubuntu 18.x systems, Docker is required due to CMake/pybind11
+        compatibility issues. The default behavior is to use Docker if available.
 
-    Args:
-        ms: Path to Measurement Set
-        datacolumn: Data column to use (default: "data")
-        aoflagger_path: Path to aoflagger executable, "docker" to force Docker, or None to auto-detect
-        strategy: Optional path to custom Lua strategy file. If None, uses DSA-110 default strategy
-                 from config/dsa110-default.lua if available, otherwise uses AOFlagger auto-detection.
+        Args:
+            ms: Path to Measurement Set
+            datacolumn: Data column to use (default: "data")
+            aoflagger_path: Path to aoflagger executable, "docker" to force Docker, or None to auto-detect
+            strategy: Optional path to custom Lua strategy file. If None, uses DSA-110 default strategy
+    from dsa110_contimg.config/dsa110-default.lua if available, otherwise uses AOFlagger auto-detection.
 
-    Raises:
-        RuntimeError: If AOFlagger is not available
-        subprocess.CalledProcessError: If AOFlagger execution fails
+        Raises:
+            RuntimeError: If AOFlagger is not available
+            subprocess.CalledProcessError: If AOFlagger execution fails
     """
     logger = logging.getLogger(__name__)
 
@@ -234,9 +243,7 @@ def flag_rfi_aoflagger(
                     "Use --aoflagger-path to specify native AOFlagger location",
                 ]
                 error_msg = format_ms_error_with_suggestions(
-                    RuntimeError(
-                        "Docker not found but --aoflagger-path=docker was specified"
-                    ),
+                    RuntimeError("Docker not found but --aoflagger-path=docker was specified"),
                     ms,
                     "AOFlagger setup",
                     suggestions,
@@ -309,9 +316,7 @@ def flag_rfi_aoflagger(
                 "Check AOFlagger installation documentation",
             ]
             error_msg = format_ms_error_with_suggestions(
-                RuntimeError(
-                    "AOFlagger not found. Docker is required on Ubuntu 18.x systems."
-                ),
+                RuntimeError("AOFlagger not found. Docker is required on Ubuntu 18.x systems."),
                 ms,
                 "AOFlagger setup",
                 suggestions,
@@ -330,9 +335,7 @@ def flag_rfi_aoflagger(
             strategy_to_use = default_strategy
             logger.info(f"Using DSA-110 default AOFlagger strategy: {strategy_to_use}")
         else:
-            logger.debug(
-                "No default strategy found; AOFlagger will auto-detect strategy"
-            )
+            logger.debug("No default strategy found; AOFlagger will auto-detect strategy")
 
     # Add strategy if we have one
     if strategy_to_use:
@@ -346,9 +349,7 @@ def flag_rfi_aoflagger(
                 docker_strategy_path = f"/data/dsa110-contimg/config/{strategy_name}"
                 if Path("/data/dsa110-contimg/config/dsa110-default.lua").exists():
                     strategy_to_use = docker_strategy_path
-                    logger.debug(
-                        f"Using Docker-accessible strategy path: {strategy_to_use}"
-                    )
+                    logger.debug(f"Using Docker-accessible strategy path: {strategy_to_use}")
                 else:
                     logger.warning(
                         f"Strategy file {strategy_to_use} may not be accessible in Docker container. "
@@ -389,11 +390,15 @@ def flag_antenna(
 ) -> None:
     antenna_sel = antenna if pol is None else f"{antenna}&{pol}"
     with suppress_subprocess_stderr():
+        from casatasks import flagdata
+
         flagdata(vis=ms, mode="manual", antenna=antenna_sel, datacolumn=datacolumn)
 
 
 def flag_baselines(ms: str, uvrange: str = "2~50m", datacolumn: str = "data") -> None:
     with suppress_subprocess_stderr():
+        from casatasks import flagdata
+
         flagdata(vis=ms, mode="manual", uvrange=uvrange, datacolumn=datacolumn)
 
 
@@ -443,25 +448,14 @@ def flag_manual(
     if correlation:
         kwargs["correlation"] = correlation
 
-    if (
-        len(
-            [
-                k
-                for k in [antenna, scan, spw, field, uvrange, timerange, correlation]
-                if k
-            ]
-        )
-        == 0
-    ):
+    if len([k for k in [antenna, scan, spw, field, uvrange, timerange, correlation] if k]) == 0:
         suggestions = [
             "Provide at least one selection parameter (antenna, time, baseline, etc.)",
             "Check manual flagging command syntax",
             "Review flagging documentation for parameter requirements",
         ]
         error_msg = format_ms_error_with_suggestions(
-            ValueError(
-                "At least one selection parameter must be provided for manual flagging"
-            ),
+            ValueError("At least one selection parameter must be provided for manual flagging"),
             ms,
             "manual flagging",
             suggestions,
@@ -469,6 +463,8 @@ def flag_manual(
         raise ValueError(error_msg)
 
     with suppress_subprocess_stderr():
+        from casatasks import flagdata
+
         flagdata(**kwargs)
 
 
@@ -484,6 +480,8 @@ def flag_shadow(ms: str, tolerance: float = 0.0) -> None:
         tolerance: Shadowing tolerance in degrees (default: 0.0)
     """
     with suppress_subprocess_stderr():
+        from casatasks import flagdata
+
         flagdata(vis=ms, mode="shadow", tolerance=tolerance)
 
 
@@ -506,6 +504,8 @@ def flag_quack(
         datacolumn: Data column to use (default: 'data')
     """
     with suppress_subprocess_stderr():
+        from casatasks import flagdata
+
         flagdata(
             vis=ms,
             mode="quack",
@@ -539,6 +539,8 @@ def flag_elevation(
     if upperlimit is not None:
         kwargs["upperlimit"] = upperlimit
     with suppress_subprocess_stderr():
+        from casatasks import flagdata
+
         flagdata(**kwargs)
 
 
@@ -586,6 +588,8 @@ def flag_clip(
         if timebin:
             kwargs["timebin"] = timebin
     with suppress_subprocess_stderr():
+        from casatasks import flagdata
+
         flagdata(**kwargs)
 
 
@@ -618,6 +622,8 @@ def flag_extend(
     # Try using CASA flagdata first
     try:
         with suppress_subprocess_stderr():
+            from casatasks import flagdata
+
             flagdata(
                 vis=ms,
                 mode="extend",
@@ -645,9 +651,7 @@ def flag_extend(
                     extendpols=extendpols,
                 )
             except Exception as e2:
-                logger.warning(
-                    f"Direct flag extension also failed: {e2}. Flag extension skipped."
-                )
+                logger.warning(f"Direct flag extension also failed: {e2}. Flag extension skipped.")
                 raise RuntimeError(f"Flag extension failed: {e}") from e
         else:
             raise
@@ -665,8 +669,8 @@ def _extend_flags_direct(
     For more complex extension (growaround, growtime, etc.), use CASA flagdata.
     """
     try:
-        import numpy as np
         import casacore.tables as casatables
+        import numpy as np
 
         table = casatables.table
 
@@ -702,13 +706,9 @@ def _extend_flags_direct(
                     if np.any(flags[row]):
                         # Flag adjacent rows (time samples)
                         if row > 0:
-                            extended_flags[row - 1] = (
-                                extended_flags[row - 1] | flags[row]
-                            )
+                            extended_flags[row - 1] = extended_flags[row - 1] | flags[row]
                         if row < nrows - 1:
-                            extended_flags[row + 1] = (
-                                extended_flags[row + 1] | flags[row]
-                            )
+                            extended_flags[row + 1] = extended_flags[row + 1] | flags[row]
 
             # Extend across polarizations
             if extendpols:
@@ -727,9 +727,7 @@ def _extend_flags_direct(
         raise
 
 
-def analyze_channel_flagging_stats(
-    ms_path: str, threshold: float = 0.5
-) -> Dict[int, List[int]]:
+def analyze_channel_flagging_stats(ms_path: str, threshold: float = 0.5) -> Dict[int, List[int]]:
     """Analyze flagging statistics per channel across all SPWs.
 
     After RFI flagging, this function identifies channels that have high flagging
@@ -747,8 +745,8 @@ def analyze_channel_flagging_stats(
         >>> problematic = analyze_channel_flagging_stats('data.ms', threshold=0.5)
         >>> # Returns: {1: [5, 10, 15, 20], 12: [3, 7, 11]}
     """
-    import numpy as np
     import casacore.tables as casatables
+    import numpy as np
 
     table = casatables.table
 
@@ -790,7 +788,7 @@ def analyze_channel_flagging_stats(
                     problematic_channels[int(spw)] = problematic
                     logger.debug(
                         f"SPW {spw}: {len(problematic)}/{len(channel_flagging)} channels "
-                        f"above {threshold*100:.1f}% flagging threshold"
+                        f"above {threshold * 100:.1f}% flagging threshold"
                     )
 
     except Exception as e:
@@ -852,9 +850,7 @@ def flag_problematic_channels(
             datacolumn=datacolumn,
             flagbackup=False,
         )
-        logger.info(
-            f"✓ Flagged {total_channels} problematic channel(s) before calibration"
-        )
+        logger.info(f"✓ Flagged {total_channels} problematic channel(s) before calibration")
     except Exception as e:
         logger.error(f"Failed to flag problematic channels: {e}")
         raise RuntimeError(f"Channel flagging failed: {e}") from e
@@ -914,8 +910,8 @@ def flag_summary(
 
     # Parse summary statistics directly from MS (faster and avoids casaplotserver)
     try:
-        import numpy as np
         import casacore.tables as casatables
+        import numpy as np
 
         table = casatables.table
 

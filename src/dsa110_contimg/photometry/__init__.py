@@ -6,10 +6,18 @@ from dsa110_contimg.photometry.forced import (
     measure_forced_peak,
     measure_many,
 )
+from dsa110_contimg.photometry.manager import (
+    PhotometryConfig,
+    PhotometryManager,
+    PhotometryResult,
+)
 
 __all__: list[str] = [
     "ForcedPhotometryResult",
     "measure_forced_peak",
     "measure_many",
     "inject_source",
+    "PhotometryManager",
+    "PhotometryConfig",
+    "PhotometryResult",
 ]

@@ -7,6 +7,8 @@ from typing import Optional
 
 from fastapi import HTTPException
 
+from dsa110_contimg.utils.cli_helpers import casa_log_environment
+
 LOG = logging.getLogger(__name__)
 
 
@@ -30,21 +32,17 @@ def resolve_image_path(image_id: str | int, db_path: Optional[Path] = None) -> s
     # If integer, query database
     if isinstance(image_id, int):
         if db_path is None:
-            cfg = ApiConfig()
+            cfg = ApiConfig.from_env()
             db_path = cfg.products_db
 
         if not db_path.exists():
             raise HTTPException(status_code=404, detail="Database not found")
 
         with _connect(db_path) as conn:
-            row = conn.execute(
-                "SELECT path FROM images WHERE id = ?", (image_id,)
-            ).fetchone()
+            row = conn.execute("SELECT path FROM images WHERE id = ?", (image_id,)).fetchone()
 
             if not row:
-                raise HTTPException(
-                    status_code=404, detail=f"Image {image_id} not found"
-                )
+                raise HTTPException(status_code=404, detail=f"Image {image_id} not found")
 
             image_path = row["path"]
     else:
@@ -61,9 +59,7 @@ def resolve_image_path(image_id: str | int, db_path: Optional[Path] = None) -> s
 
     # Verify path exists
     if not Path(image_path).exists():
-        raise HTTPException(
-            status_code=404, detail=f"Image file not found: {image_path}"
-        )
+        raise HTTPException(status_code=404, detail=f"Image file not found: {image_path}")
 
     return image_path
 
@@ -110,24 +106,21 @@ def convert_casa_to_fits(casa_image_path: str, fits_output_path: str) -> bool:
     Returns:
         True if conversion successful, False otherwise
     """
-    try:
-        from casatasks import exportfits  # type: ignore
-    except ImportError:
-        LOG.warning(
-            "casatasks.exportfits not available - cannot convert CASA image to FITS"
-        )
-        return False
-
     if not os.path.isdir(casa_image_path):
         LOG.warning(f"CASA image path is not a directory: {casa_image_path}")
         return False
 
     try:
-        exportfits(
-            imagename=casa_image_path, fitsimage=fits_output_path, overwrite=True
-        )
+        with casa_log_environment():
+            from casatasks import exportfits  # type: ignore
+
+            exportfits(imagename=casa_image_path, fitsimage=fits_output_path, overwrite=True)
+
         LOG.info(f"Converted CASA image to FITS: {fits_output_path}")
         return True
+    except ImportError:
+        LOG.warning("casatasks.exportfits not available - cannot convert CASA image to FITS")
+        return False
     except Exception as e:
         LOG.error(f"Failed to convert CASA image {casa_image_path} to FITS: {e}")
         return False

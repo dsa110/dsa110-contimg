@@ -92,10 +92,8 @@ def test_uvw_transformation_after_phaseshift(ms_path):
         uvw_diff = np.abs(uvw_orig_unflagged - uvw_new_unflagged)
         max_diff = np.max(uvw_diff)
 
-        print(f"\nUVW Transformation Check:")
-        print(
-            f"  Original phase center: RA={ref_ra_orig:.6f}°, Dec={ref_dec_orig:.6f}°"
-        )
+        print("\nUVW Transformation Check:")
+        print(f"  Original phase center: RA={ref_ra_orig:.6f}°, Dec={ref_dec_orig:.6f}°")
         print(f"  New phase center: RA={new_ra_deg:.6f}°, Dec={new_dec_deg:.6f}°")
         print(f"  Max UVW difference: {max_diff:.3f} meters")
 
@@ -104,15 +102,13 @@ def test_uvw_transformation_after_phaseshift(ms_path):
         # For 54 arcmin shift, expected UVW change: ~baseline_length * sin(54 arcmin) ≈ 1-2 meters
 
         if max_diff < 0.1:
-            print(f"\n✗ UVW coordinates NOT transformed by phaseshift!")
-            print(f"  This suggests phaseshift didn't update UVW correctly")
-            print(f"  ft() will use old phase center frame (WRONG)")
+            print("\n✗ UVW coordinates NOT transformed by phaseshift!")
+            print("  This suggests phaseshift didn't update UVW correctly")
+            print("  ft() will use old phase center frame (WRONG)")
             pytest.fail("phaseshift did not transform UVW coordinates")
         else:
-            print(f"\n✓ UVW coordinates transformed by phaseshift")
-            print(
-                f"  Max change: {max_diff:.3f} meters (expected for large phase shift)"
-            )
+            print("\n✓ UVW coordinates transformed by phaseshift")
+            print(f"  Max change: {max_diff:.3f} meters (expected for large phase shift)")
 
         # Verify new phase center in FIELD table
         with table(f"{shifted_ms}::FIELD", readonly=True) as field_tb:
@@ -123,15 +119,15 @@ def test_uvw_transformation_after_phaseshift(ms_path):
             offset_ra = abs(phase_ra - new_ra_deg) * 3600  # arcsec
             offset_dec = abs(phase_dec - new_dec_deg) * 3600  # arcsec
 
-            print(f"\nPHASE_DIR after phaseshift:")
+            print("\nPHASE_DIR after phaseshift:")
             print(f"  RA={phase_ra:.6f}° (offset: {offset_ra:.3f} arcsec)")
             print(f"  Dec={phase_dec:.6f}° (offset: {offset_dec:.3f} arcsec)")
 
             if offset_ra > 1.0 or offset_dec > 1.0:
-                print(f"\n✗ PHASE_DIR not correctly updated by phaseshift")
+                print("\n✗ PHASE_DIR not correctly updated by phaseshift")
                 pytest.fail("phaseshift did not update PHASE_DIR correctly")
             else:
-                print(f"\n✓ PHASE_DIR correctly updated by phaseshift")
+                print("\n✓ PHASE_DIR correctly updated by phaseshift")
 
     finally:
         # Cleanup

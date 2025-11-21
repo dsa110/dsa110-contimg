@@ -3,9 +3,9 @@
 import argparse
 import json
 import logging
+import os
 import sys
 from pathlib import Path
-from typing import Optional
 
 from dsa110_contimg.utils.cli_helpers import (
     add_common_logging_args,
@@ -289,6 +289,67 @@ def main(argv: list = None) -> int:
         help="Output as JSON",
     )
     list_parser.set_defaults(func=cmd_list)
+
+    # Index HDF5 files subcommand
+    from dsa110_contimg.database.hdf5_index import index_hdf5_files
+
+    def cmd_index_hdf5(args: argparse.Namespace) -> int:
+        """Index HDF5 files in input directory for fast queries."""
+
+        input_dir = Path(args.input_dir)
+        hdf5_db = Path(args.hdf5_db)
+
+        if not input_dir.exists():
+            print(f"Error: Input directory does not exist: {input_dir}")
+            return 1
+
+        print(f"Indexing HDF5 files in {input_dir}...")
+        stats = index_hdf5_files(
+            input_dir,
+            hdf5_db,
+            force_rescan=args.force,
+            max_files=args.max_files,
+        )
+
+        print("\nIndexing complete:")
+        print(f"  Total scanned: {stats['total_scanned']}")
+        print(f"  New indexed: {stats['new_indexed']}")
+        print(f"  Updated: {stats['updated']}")
+        print(f"  Skipped: {stats['skipped']}")
+        print(f"  Marked as not stored: {stats['deleted']}")
+        print(f"  Errors: {stats['errors']}")
+
+        return 0
+
+    index_parser = subparsers.add_parser(
+        "index-hdf5",
+        help="Index HDF5 files in input directory for fast queries",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    index_parser.add_argument(
+        "--input-dir",
+        type=str,
+        default=os.getenv("CONTIMG_INPUT_DIR", "/data/incoming"),
+        help="Directory containing HDF5 files",
+    )
+    index_parser.add_argument(
+        "--hdf5-db",
+        type=str,
+        default=os.getenv("HDF5_DB_PATH", "/data/dsa110-contimg/state/hdf5.sqlite3"),
+        help="Path to HDF5 index database",
+    )
+    index_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force re-indexing of all files",
+    )
+    index_parser.add_argument(
+        "--max-files",
+        type=int,
+        default=None,
+        help="Maximum number of files to index (for testing)",
+    )
+    index_parser.set_defaults(func=cmd_index_hdf5)
 
     # Parse arguments
     args = parser.parse_args(argv)

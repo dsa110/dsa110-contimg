@@ -10,7 +10,7 @@
 
 import { useEffect, useState } from "react";
 import { logger } from "../../../utils/logger";
-import { findDisplay, isJS9Available } from "../../../utils/js9";
+import { isJS9Available } from "../../../utils/js9";
 import { useJS9Safe } from "../../../contexts/JS9Context";
 import { js9Service } from "../../../services/js9";
 

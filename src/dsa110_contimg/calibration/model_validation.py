@@ -1,3 +1,4 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, etc.)
 """MODEL_DATA validation utilities.
 
 Provides comprehensive validation of MODEL_DATA column to ensure calibration correctness.
@@ -16,8 +17,8 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 
 ensure_casa_path()
 
-from astropy.coordinates import Angle, SkyCoord
 import casacore.tables as casatables
+from astropy.coordinates import SkyCoord
 
 table = casatables.table  # noqa: N816
 
@@ -88,9 +89,7 @@ def validate_model_data_populated(
                     "fraction_nonzero": fraction_nonzero,
                     "max_value": float(np.max(abs_values)),
                     "mean_value": (
-                        float(np.mean(abs_values[nonzero_mask]))
-                        if np.any(nonzero_mask)
-                        else 0.0
+                        float(np.mean(abs_values[nonzero_mask])) if np.any(nonzero_mask) else 0.0
                     ),
                     "n_rows_checked": n_sample,
                 }
@@ -167,9 +166,7 @@ def validate_model_data_against_catalog(
         validation["phase_center_dec_deg"] = ms_dec_deg
 
         # Calculate separation
-        catalog_coord = SkyCoord(
-            catalog_ra_deg * u.deg, catalog_dec_deg * u.deg, frame="icrs"
-        )
+        catalog_coord = SkyCoord(catalog_ra_deg * u.deg, catalog_dec_deg * u.deg, frame="icrs")
         ms_coord = SkyCoord(ms_ra_deg * u.deg, ms_dec_deg * u.deg, frame="icrs")
         separation = catalog_coord.separation(ms_coord)
         separation_arcmin = separation.to(u.arcmin).value

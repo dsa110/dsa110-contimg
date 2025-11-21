@@ -9,34 +9,35 @@ Tests:
 
 Uses real FITS images from /stage/dsa110-contimg/images/
 """
-import warnings
-from dsa110_contimg.utils.regions import (
-    RegionData,
-    create_region_mask,
-    calculate_region_statistics,
-)
-from dsa110_contimg.utils.fitting import (
-    fit_2d_gaussian,
-    fit_2d_moffat,
-    estimate_initial_guess,
-)
-from dsa110_contimg.utils.profiling import (
-    extract_line_profile,
-    extract_polyline_profile,
-    extract_point_profile,
-    fit_gaussian_profile,
-    fit_moffat_profile,
-)
-import numpy as np
-from pathlib import Path
-import sys
-import time
-from datetime import datetime
-from astropy.io import fits
-from astropy.wcs import WCS
 
 # Disable Python output buffering - use unbuffered mode
 import os
+import sys
+import time
+import warnings
+from datetime import datetime
+from pathlib import Path
+
+import numpy as np
+from astropy.io import fits
+from astropy.wcs import WCS
+
+from dsa110_contimg.utils.fitting import (
+    estimate_initial_guess,
+    fit_2d_gaussian,
+    fit_2d_moffat,
+)
+from dsa110_contimg.utils.profiling import (
+    extract_line_profile,
+    extract_point_profile,
+    extract_polyline_profile,
+    fit_gaussian_profile,
+)
+from dsa110_contimg.utils.regions import (
+    RegionData,
+    calculate_region_statistics,
+    create_region_mask,
+)
 
 os.environ["PYTHONUNBUFFERED"] = "1"
 # Suppress FITSFixedWarning (just header fixes, not errors)
@@ -75,12 +76,11 @@ def find_test_image():
 
 def test_spatial_profiler(fits_path: str):
     """Test spatial profiler functionality."""
-    test_start = time.time()
+    time.time()
     print("\n" + "=" * 60)
     print("TEST 1: Spatial Profiler")
     print("=" * 60)
     print(f"Image: {Path(fits_path).name}")
-    import sys
 
     try:
         # Load image to get dimensions
@@ -100,11 +100,10 @@ def test_spatial_profiler(fits_path: str):
 
             # Get WCS
             try:
-                wcs = WCS(header)
+                WCS(header)
                 print("✓ WCS loaded")
             except Exception as e:
                 print(f"⚠ WCS not available: {e}")
-                wcs = None
         log_progress(f"FITS loaded (shape: {nx}x{ny})", load_start)
 
         # Test 1.1: Line Profile (Short line for speed)
@@ -134,9 +133,7 @@ def test_spatial_profiler(fits_path: str):
             # Filter out NaN/Inf values for display
             valid_profile = [v for v in profile if np.isfinite(v)]
             if valid_profile:
-                print(
-                    f"  Min: {np.min(valid_profile):.6f}, Max: {np.max(valid_profile):.6f}"
-                )
+                print(f"  Min: {np.min(valid_profile):.6f}, Max: {np.max(valid_profile):.6f}")
 
             # Test 1D fitting
             try:
@@ -148,7 +145,7 @@ def test_spatial_profiler(fits_path: str):
                 flux_array = np.array(profile)
                 fit_result = fit_gaussian_profile(distance=distances, flux=flux_array)
                 if fit_result:
-                    print(f"✓ 1D Gaussian fit successful")
+                    print("✓ 1D Gaussian fit successful")
                     print(f"  Amplitude: {fit_result['amplitude']:.6f}")
                     print(f"  Center: {fit_result['center']:.2f}")
                     print(f"  FWHM: {fit_result['fwhm']:.2f} pixels")
@@ -224,7 +221,7 @@ def test_spatial_profiler(fits_path: str):
 
 def test_image_fitting(fits_path: str):
     """Test image fitting functionality."""
-    test_start = time.time()
+    time.time()
     print("\n" + "=" * 60)
     print("TEST 2: Image Fitting")
     print("=" * 60)
@@ -255,23 +252,19 @@ def test_image_fitting(fits_path: str):
         # Test 2.1: Gaussian Fitting (Small Sub-region for Speed)
         print("\n--- Test 2.1: Gaussian Fitting (Sub-region) ---")
         # Use a small sub-region around center for faster fitting
-        sub_size = min(
-            500, nx // 4, ny // 4
-        )  # 500x500 or 1/4 of image, whichever is smaller
+        sub_size = min(500, nx // 4, ny // 4)  # 500x500 or 1/4 of image, whichever is smaller
         x_center, y_center = nx // 2, ny // 2
         x_min = max(0, x_center - sub_size // 2)
         x_max = min(nx, x_center + sub_size // 2)
         y_min = max(0, y_center - sub_size // 2)
         y_max = min(ny, y_center + sub_size // 2)
 
-        log_progress(
-            f"  Using sub-region: {x_max-x_min}x{y_max-y_min} pixels (center region)"
-        )
+        log_progress(f"  Using sub-region: {x_max - x_min}x{y_max - y_min} pixels (center region)")
         sub_data = data[y_min:y_max, x_min:x_max]
         nan_count = np.sum(~np.isfinite(sub_data))
         if nan_count > 0:
             print(
-                f"  ⚠ Warning: {nan_count} non-finite values in sub-region ({100*nan_count/sub_data.size:.2f}%)"
+                f"  ⚠ Warning: {nan_count} non-finite values in sub-region ({100 * nan_count / sub_data.size:.2f}%)"
             )
 
         # Create a temporary FITS file with sub-region
@@ -312,10 +305,7 @@ def test_image_fitting(fits_path: str):
                 print(f"  R-squared: {stats['r_squared']:.4f}")
 
                 # Check if results are reasonable
-                if (
-                    stats["reduced_chi_squared"] > 0
-                    and stats["reduced_chi_squared"] < 100
-                ):
+                if stats["reduced_chi_squared"] > 0 and stats["reduced_chi_squared"] < 100:
                     print("  ✓ Fit quality reasonable")
                 else:
                     print(
@@ -424,7 +414,7 @@ def test_image_fitting(fits_path: str):
 
 def test_region_management(fits_path: str):
     """Test region management functionality."""
-    test_start = time.time()
+    time.time()
     print("\n" + "=" * 60)
     print("TEST 3: Region Management")
     print("=" * 60)
@@ -462,15 +452,11 @@ def test_region_management(fits_path: str):
                 center_pix = [nx // 2, ny // 2]
                 # Handle 4D WCS
                 if hasattr(wcs, "naxis") and wcs.naxis == 4:
-                    center_world = wcs.all_pix2world(
-                        center_pix[0], center_pix[1], 0, 0, 0
-                    )
+                    center_world = wcs.all_pix2world(center_pix[0], center_pix[1], 0, 0, 0)
                     center_ra = float(center_world[0])
                     center_dec = float(center_world[1])
                 else:
-                    center_world = wcs.pixel_to_world_values(
-                        center_pix[1], center_pix[0]
-                    )
+                    center_world = wcs.pixel_to_world_values(center_pix[1], center_pix[0])
                     center_ra = float(center_world[0])
                     center_dec = float(center_world[1])
             else:
@@ -494,7 +480,7 @@ def test_region_management(fits_path: str):
 
             n_pixels = np.sum(circle_mask)
             log_progress(
-                f"  Circle mask created: {n_pixels} pixels ({100*n_pixels/(nx*ny):.1f}% of image)",
+                f"  Circle mask created: {n_pixels} pixels ({100 * n_pixels / (nx * ny):.1f}% of image)",
                 circle_start,
             )
 
@@ -533,7 +519,7 @@ def test_region_management(fits_path: str):
 
             n_pixels = np.sum(rect_mask)
             log_progress(
-                f"  Rectangle mask created: {n_pixels} pixels ({100*n_pixels/(nx*ny):.1f}% of image)",
+                f"  Rectangle mask created: {n_pixels} pixels ({100 * n_pixels / (nx * ny):.1f}% of image)",
                 rect_start,
             )
 

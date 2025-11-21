@@ -17,7 +17,6 @@ These tests REQUIRE actual calibration tables and MS files to run.
 import os
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pytest
@@ -69,7 +68,6 @@ class TestActualCalibrationFluxScale:
     )
     def test_bandpass_normalization_from_table(self, calibration_table_paths):
         """Validate bandpass normalization from actual table."""
-        from casacore.tables import table
 
         from dsa110_contimg.qa.calibration_quality import validate_caltable_quality
 
@@ -228,9 +226,7 @@ class TestActualMSStructure:
         cal_ra = known_calibrator_info["ra_deg"]
         cal_dec = known_calibrator_info["dec_deg"]
 
-        ms_coord = SkyCoord(
-            ra=ref_ra_deg * u.deg, dec=ref_dec_deg * u.deg, frame="icrs"
-        )
+        ms_coord = SkyCoord(ra=ref_ra_deg * u.deg, dec=ref_dec_deg * u.deg, frame="icrs")
         cal_coord = SkyCoord(ra=cal_ra * u.deg, dec=cal_dec * u.deg, frame="icrs")
         separation = ms_coord.separation(cal_coord)
 

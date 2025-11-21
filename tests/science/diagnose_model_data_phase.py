@@ -52,9 +52,9 @@ def diagnose_model_data_phase(ms_path: str, cal_ra_deg: float, cal_dec_deg: floa
     print(f"   Separation: {separation.to(u.arcmin):.4f}")
 
     if separation.to(u.arcmin).value > 1.0:
-        print(f"   ✗ PROBLEM: Phase center offset > 1 arcmin!")
+        print("   ✗ PROBLEM: Phase center offset > 1 arcmin!")
     else:
-        print(f"   ✓ Phase center aligned")
+        print("   ✓ Phase center aligned")
 
     # 2. Check MODEL_DATA phase structure
     print("\n2. MODEL_DATA Phase Structure:")
@@ -78,22 +78,18 @@ def diagnose_model_data_phase(ms_path: str, cal_ra_deg: float, cal_dec_deg: floa
 
         # Amplitude
         amps = np.abs(model_unflagged)
-        print(
-            f"   Amplitude: median={np.median(amps):.3f} Jy, std={np.std(amps):.3f} Jy"
-        )
+        print(f"   Amplitude: median={np.median(amps):.3f} Jy, std={np.std(amps):.3f} Jy")
 
         # Phase
         phases_rad = np.angle(model_unflagged[:, 0, 0])  # First channel, first pol
         phases_deg = np.degrees(phases_rad)
-        print(
-            f"   Phase:      mean={np.mean(phases_deg):.1f}°, std={np.std(phases_deg):.1f}°"
-        )
+        print(f"   Phase:      mean={np.mean(phases_deg):.1f}°, std={np.std(phases_deg):.1f}°")
 
         if np.std(phases_deg) > 50:
             print(f"   ✗ PROBLEM: Phase scatter too high ({np.std(phases_deg):.1f}°)")
-            print(f"      Expected: < 10° for point source at phase center")
+            print("      Expected: < 10° for point source at phase center")
         else:
-            print(f"   ✓ Phase scatter acceptable")
+            print("   ✓ Phase scatter acceptable")
 
         # 3. Calculate expected phase for point source
         print("\n3. Expected Phase Calculation:")
@@ -103,9 +99,7 @@ def diagnose_model_data_phase(ms_path: str, cal_ra_deg: float, cal_dec_deg: floa
         #   phase = 2π * (u*ΔRA + v*ΔDec) / λ
         # where ΔRA, ΔDec are offsets from phase center
 
-        offset_ra_rad = (
-            (cal_ra_deg - ref_ra) * np.pi / 180.0 * np.cos(ref_dec * np.pi / 180.0)
-        )
+        offset_ra_rad = (cal_ra_deg - ref_ra) * np.pi / 180.0 * np.cos(ref_dec * np.pi / 180.0)
         offset_dec_rad = (cal_dec_deg - ref_dec) * np.pi / 180.0
 
         wavelength = 3e8 / 1.4e9  # meters at 1.4 GHz
@@ -115,19 +109,14 @@ def diagnose_model_data_phase(ms_path: str, cal_ra_deg: float, cal_dec_deg: floa
 
         # Expected phase for point source
         expected_phase = (
-            2
-            * np.pi
-            * (u_coord * offset_ra_rad + v_coord * offset_dec_rad)
-            / wavelength
+            2 * np.pi * (u_coord * offset_ra_rad + v_coord * offset_dec_rad) / wavelength
         )
-        expected_phase = (
-            np.mod(expected_phase + np.pi, 2 * np.pi) - np.pi
-        )  # Wrap to [-π, π]
+        expected_phase = np.mod(expected_phase + np.pi, 2 * np.pi) - np.pi  # Wrap to [-π, π]
         expected_phase_deg = np.degrees(expected_phase)
 
         print(
-            f"   Source offset: ΔRA={offset_ra_rad*180/np.pi*3600:.2f} arcsec, "
-            f"ΔDec={offset_dec_rad*180/np.pi*3600:.2f} arcsec"
+            f"   Source offset: ΔRA={offset_ra_rad * 180 / np.pi * 3600:.2f} arcsec, "
+            f"ΔDec={offset_dec_rad * 180 / np.pi * 3600:.2f} arcsec"
         )
         print(f"   Expected phase scatter: {np.std(expected_phase_deg):.1f}°")
 
@@ -139,19 +128,15 @@ def diagnose_model_data_phase(ms_path: str, cal_ra_deg: float, cal_dec_deg: floa
         print(f"   Actual - Expected phase scatter: {np.std(phase_diff_deg):.1f}°")
 
         if np.std(phase_diff_deg) > 50:
-            print(
-                f"   ✗ PROBLEM: MODEL_DATA phase doesn't match expected phase structure"
-            )
-            print(f"      This indicates ft() calculated MODEL_DATA incorrectly")
-            print(f"      Possible causes:")
-            print(f"        1. Component list position doesn't match MS phase center")
-            print(f"        2. ft() is using wrong phase center reference")
-            print(
-                f"        3. MODEL_DATA was written before MS rephasing and not properly cleared"
-            )
-            print(f"        4. ft() has a bug with phase calculation")
+            print("   ✗ PROBLEM: MODEL_DATA phase doesn't match expected phase structure")
+            print("      This indicates ft() calculated MODEL_DATA incorrectly")
+            print("      Possible causes:")
+            print("        1. Component list position doesn't match MS phase center")
+            print("        2. ft() is using wrong phase center reference")
+            print("        3. MODEL_DATA was written before MS rephasing and not properly cleared")
+            print("        4. ft() has a bug with phase calculation")
         else:
-            print(f"   ✓ MODEL_DATA phase matches expected structure")
+            print("   ✓ MODEL_DATA phase matches expected structure")
 
     # 4. Check if component list exists and verify position
     print("\n4. Component List Check:")
@@ -165,7 +150,7 @@ def diagnose_model_data_phase(ms_path: str, cal_ra_deg: float, cal_dec_deg: floa
         )
     else:
         print(f"   Component list not found (expected at: {comp_path})")
-        print(f"   (This is normal - component list may have been cleaned up)")
+        print("   (This is normal - component list may have been cleaned up)")
 
     print("\n" + "=" * 70)
     print("Diagnosis Complete")

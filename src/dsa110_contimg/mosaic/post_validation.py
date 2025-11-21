@@ -7,7 +7,7 @@ checking for artifacts, discontinuities, and statistical consistency.
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
@@ -77,9 +77,7 @@ def validate_mosaic_quality(
         else:
             mosaic_data = data.squeeze()
             if mosaic_data.ndim > 2:
-                mosaic_data = (
-                    mosaic_data[0, :, :] if mosaic_data.ndim == 3 else mosaic_data
-                )
+                mosaic_data = mosaic_data[0, :, :] if mosaic_data.ndim == 3 else mosaic_data
 
         # Check coverage
         valid_mask = np.isfinite(mosaic_data)
@@ -87,9 +85,7 @@ def validate_mosaic_quality(
         metrics["coverage_fraction"] = coverage_fraction
 
         if coverage_fraction < min_coverage_fraction:
-            issues.append(
-                f"Low coverage: {coverage_fraction:.1%} < {min_coverage_fraction:.1%}"
-            )
+            issues.append(f"Low coverage: {coverage_fraction:.1%} < {min_coverage_fraction:.1%}")
 
         # Compute RMS noise statistics
         valid_data = mosaic_data[valid_mask]
@@ -153,12 +149,10 @@ def validate_mosaic_quality(
             if check_artifacts:
                 # Check for negative bowls (significant negative pixels)
                 negative_pixels = valid_data[valid_data < -5 * rms_noise]
-                if (
-                    len(negative_pixels) > len(valid_data) * 0.01
-                ):  # More than 1% negative
+                if len(negative_pixels) > len(valid_data) * 0.01:  # More than 1% negative
                     issues.append(
                         f"Significant negative pixels detected: {len(negative_pixels)} pixels "
-                        f"({100*len(negative_pixels)/len(valid_data):.1f}%)"
+                        f"({100 * len(negative_pixels) / len(valid_data):.1f}%)"
                     )
 
                 # Check for extreme outliers

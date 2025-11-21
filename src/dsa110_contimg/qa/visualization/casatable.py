@@ -7,7 +7,7 @@ CasaTable functionality.
 
 import os
 from contextlib import contextmanager
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Union
 
 try:
     from IPython.display import HTML, display
@@ -88,7 +88,7 @@ import numpy as np
 from numpy.ma import masked_array
 
 from .file import FileBase
-from .render import render_error, render_status_message, render_table, rich_string
+from .render import render_error, render_table, rich_string
 
 
 class CasaTable(FileBase):
@@ -125,9 +125,7 @@ class CasaTable(FileBase):
             self._flagrow = flagrow
             self._flag = flag
 
-        def __call__(
-            self, start: int = 0, nrow: int = -1, incr: int = 1, flag: bool = False
-        ):
+        def __call__(self, start: int = 0, nrow: int = -1, incr: int = 1, flag: bool = False):
             """
             Get column data.
 
@@ -197,9 +195,7 @@ class CasaTable(FileBase):
                 flag=self._flag,
             )
 
-    def __init__(
-        self, name: str, table=None, title: Optional[str] = None, parent=None, **kwargs
-    ):
+    def __init__(self, name: str, table=None, title: Optional[str] = None, parent=None, **kwargs):
         """
         Initialize CASA table browser.
 
@@ -299,9 +295,7 @@ class CasaTable(FileBase):
                 self._columns = tab.colnames()
                 self._keywords = tab.getkeywords()
                 self._subtables = list(tab.getsubtables())
-                self._writeable = (
-                    tab.iswritable() if hasattr(tab, "iswritable") else False
-                )
+                self._writeable = tab.iswritable() if hasattr(tab, "iswritable") else False
 
                 # Create column proxies
                 self._create_column_proxies(tab)
@@ -401,9 +395,7 @@ class CasaTable(FileBase):
                 if nrow == -1:
                     coldata = tab.getcol(colname, startrow=start, rowincr=rowincr)
                 else:
-                    coldata = tab.getcol(
-                        colname, startrow=start, nrow=nrow, rowincr=rowincr
-                    )
+                    coldata = tab.getcol(colname, startrow=start, nrow=nrow, rowincr=rowincr)
             else:
                 coldata = tab.getcolslice(
                     colname,
@@ -420,20 +412,14 @@ class CasaTable(FileBase):
 
             # Apply flags if requested
             if flagrow or flag:
-                shape = (
-                    coldata.shape
-                    if isinstance(coldata, np.ndarray)
-                    else (len(coldata),)
-                )
+                shape = coldata.shape if isinstance(coldata, np.ndarray) else (len(coldata),)
                 mask = np.zeros(shape, dtype=bool)
 
                 if flagrow and "FLAG_ROW" in self._columns:
                     if nrow == -1:
                         fr = tab.getcol("FLAG_ROW", startrow=start, rowincr=rowincr)
                     else:
-                        fr = tab.getcol(
-                            "FLAG_ROW", startrow=start, nrow=nrow, rowincr=rowincr
-                        )
+                        fr = tab.getcol("FLAG_ROW", startrow=start, nrow=nrow, rowincr=rowincr)
                     if fr.shape[0] == shape[0]:
                         mask[fr, ...] = True
 
@@ -442,9 +428,7 @@ class CasaTable(FileBase):
                         if nrow == -1:
                             fl = tab.getcol("FLAG", startrow=start, rowincr=rowincr)
                         else:
-                            fl = tab.getcol(
-                                "FLAG", startrow=start, nrow=nrow, rowincr=rowincr
-                            )
+                            fl = tab.getcol("FLAG", startrow=start, nrow=nrow, rowincr=rowincr)
                     else:
                         fl = tab.getcolslice(
                             "FLAG",

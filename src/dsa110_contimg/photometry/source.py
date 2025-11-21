@@ -11,30 +11,35 @@ from __future__ import annotations
 
 import logging
 import sqlite3
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Any, List
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from astropy.coordinates import SkyCoord
 from astropy import units as u
+from astropy.coordinates import SkyCoord
 from astropy.time import Time
 
 try:
+    from dsa110_contimg.catalog.multiwavelength import (
+        check_all_services,
+        check_atnf,
+        check_first,
+        check_gaia,
+        check_nvss,
+        check_pulsarscraper,
+        check_simbad,
+    )
     from dsa110_contimg.photometry.variability import (
         calculate_eta_metric,
-        calculate_vs_metric,
         calculate_m_metric,
-    )
-    from dsa110_contimg.catalog.external import (
-        simbad_search,
-        ned_search,
-        gaia_search,
-        query_all_catalogs,
+        calculate_vs_metric,
     )
 except ImportError:
-    # Fallback if variability module not available
+    # Fallback
+    def check_all_services(*args, **kwargs):
+        return {}
+
     def calculate_eta_metric(*args, **kwargs):
         return 0.0
 
@@ -169,16 +174,13 @@ class Source:
 
                 # Rename columns for consistency
                 if "flux_jy" in df.columns:
-                    df = df.rename(
-                        columns={"flux_jy": "peak_jyb", "flux_err_jy": "peak_err_jyb"}
-                    )
+                    df = df.rename(columns={"flux_jy": "peak_jyb", "flux_err_jy": "peak_err_jyb"})
 
             # Fallback to photometry table
             elif "photometry" in tables:
                 # Check if source_id column exists
                 columns = {
-                    row[1]
-                    for row in conn.execute("PRAGMA table_info(photometry)").fetchall()
+                    row[1] for row in conn.execute("PRAGMA table_info(photometry)").fetchall()
                 }
 
                 if "source_id" in columns:
@@ -222,19 +224,21 @@ class Source:
             if missing_cols:
                 logger.warning(f"Missing columns in measurements: {missing_cols}")
 
+            # Ensure normalized flux columns exist (populate with None/NaN if missing)
+            if "normalized_flux_jy" not in df.columns:
+                df["normalized_flux_jy"] = np.nan
+            if "normalized_flux_err_jy" not in df.columns:
+                df["normalized_flux_err_jy"] = np.nan
+
             # Convert measured_at to datetime if present
             if "measured_at" in df.columns:
-                df["measured_at"] = pd.to_datetime(
-                    df["measured_at"], unit="s", errors="coerce"
-                )
+                df["measured_at"] = pd.to_datetime(df["measured_at"], unit="s", errors="coerce")
 
             return df
 
         except Exception as e:
             conn.close()
-            raise SourceError(
-                f"Failed to load measurements for {self.source_id}: {e}"
-            ) from e
+            raise SourceError(f"Failed to load measurements for {self.source_id}: {e}") from e
 
     @property
     def coord(self) -> SkyCoord:
@@ -273,10 +277,7 @@ class Source:
             else "peak_err_jyb"
         )
 
-        if (
-            flux_col in self.measurements.columns
-            and err_col in self.measurements.columns
-        ):
+        if flux_col in self.measurements.columns and err_col in self.measurements.columns:
             flux = self.measurements[flux_col]
             err = self.measurements[err_col]
             # Detection if flux > 3*error and error is finite
@@ -327,9 +328,7 @@ class Source:
 
         flux = self.measurements[flux_col].values
         flux_err = (
-            self.measurements[err_col].values
-            if err_col in self.measurements.columns
-            else None
+            self.measurements[err_col].values if err_col in self.measurements.columns else None
         )
 
         # Filter out NaN/inf values
@@ -350,22 +349,17 @@ class Source:
         flux_err_valid = flux_err[valid_mask] if flux_err is not None else None
 
         # V metric (coefficient of variation)
-        v = (
-            float(np.std(flux_valid) / np.mean(flux_valid))
-            if np.mean(flux_valid) > 0
-            else 0.0
-        )
+        v = float(np.std(flux_valid) / np.mean(flux_valid)) if np.mean(flux_valid) > 0 else 0.0
 
         # η metric (weighted variance)
         if flux_err_valid is not None and len(flux_valid) >= 2:
             df_for_eta = pd.DataFrame({flux_col: flux_valid, err_col: flux_err_valid})
             try:
-                eta = calculate_eta_metric(
-                    df_for_eta, flux_col=flux_col, err_col=err_col
-                )
+                eta = calculate_eta_metric(df_for_eta, flux_col=flux_col, err_col=err_col)
             except Exception as e:
                 logger.warning(f"Failed to calculate η metric: {e}")
-                eta = 0.0
+                # Use None instead of 0.0 to avoid falsely labeling unstable sources as stable
+                eta = None
         else:
             eta = 0.0
 
@@ -391,6 +385,250 @@ class Source:
             "vs_mean": float(np.mean(vs_metrics)) if vs_metrics else None,
             "m_mean": float(np.mean(m_metrics)) if m_metrics else None,
             "n_epochs": len(self.measurements),
+        }
+
+    def find_stable_neighbors(
+        self,
+        radius_deg: float = 0.5,
+        min_flux_ratio: float = 0.1,
+        max_flux_ratio: float = 10.0,
+        max_eta: float = 1.5,
+        min_epochs: int = 10,
+    ) -> List[str]:
+        """
+        Find stable neighbor sources suitable for relative photometry.
+
+        Args:
+            radius_deg: Search radius in degrees
+            min_flux_ratio: Minimum neighbor flux ratio (relative to target)
+            max_flux_ratio: Maximum neighbor flux ratio (relative to target)
+            max_eta: Maximum eta metric (variability) for stable neighbors
+            min_epochs: Minimum number of observation epochs required
+
+        Returns:
+            List of neighbor source IDs
+        """
+        if not self.products_db or not self.products_db.exists():
+            raise SourceError(f"Products database not found: {self.products_db}")
+
+        # Get target median flux to filter neighbors by brightness
+        if self.measurements.empty:
+            return []
+
+        flux_col = (
+            "normalized_flux_jy"
+            if "normalized_flux_jy" in self.measurements.columns
+            else "peak_jyb"
+        )
+        target_flux = self.measurements[flux_col].median()
+        if np.isnan(target_flux):
+            return []
+
+        conn = sqlite3.connect(str(self.products_db), timeout=30.0)
+        conn.row_factory = sqlite3.Row
+
+        try:
+            # We need variability_stats table
+            tables = {
+                row[0]
+                for row in conn.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table'"
+                ).fetchall()
+            }
+
+            if "variability_stats" not in tables:
+                logger.warning("variability_stats table not found, cannot select stable neighbors")
+                return []
+
+            # Spatial query + variability filter + flux filter
+            # Note: doing Haversine in SQLite is hard, so we do box filter + post-filter
+
+            # Handle Pole Singularity
+            cos_dec = np.cos(np.deg2rad(self.dec_deg))
+            if abs(self.dec_deg) > 89.0 or abs(cos_dec) < 1e-6:
+                # Near pole: search all RA
+                min_ra, max_ra = 0.0, 360.0
+                ra_clause = "(1=1)"  # Always true for RA
+                ra_params = ()
+            else:
+                ra_range = radius_deg / cos_dec
+                min_ra = self.ra_deg - ra_range
+                max_ra = self.ra_deg + ra_range
+
+                # Check for RA wrapping
+                if min_ra < 0 or max_ra > 360:
+                    # Wrapped case: ranges overlap 0/360 boundary
+                    # We search (ra >= min_norm) OR (ra <= max_norm)
+                    min_ra_norm = min_ra % 360
+                    max_ra_norm = max_ra % 360
+                    ra_clause = "(ra_deg >= ? OR ra_deg <= ?)"
+                    ra_params = (min_ra_norm, max_ra_norm)
+                else:
+                    # Standard case
+                    ra_clause = "(ra_deg BETWEEN ? AND ?)"
+                    ra_params = (min_ra, max_ra)
+
+            min_dec = max(-90.0, self.dec_deg - radius_deg)
+            max_dec = min(90.0, self.dec_deg + radius_deg)
+
+            query = f"""
+                SELECT source_id, ra_deg, dec_deg, mean_flux_mjy, eta_metric
+                FROM variability_stats
+                WHERE {ra_clause}
+                  AND dec_deg BETWEEN ? AND ?
+                  AND eta_metric < ?
+                  AND n_obs >= ?
+                  AND source_id != ?
+            """
+
+            params = ra_params + (min_dec, max_dec, max_eta, min_epochs, self.source_id)
+
+            cursor = conn.execute(query, params)
+            candidates = cursor.fetchall()
+
+            valid_neighbors = []
+            target_flux_mjy = target_flux * 1000.0
+
+            for row in candidates:
+                # 1. Precise distance check
+                dist = np.sqrt(
+                    ((row["ra_deg"] - self.ra_deg) * np.cos(np.deg2rad(self.dec_deg))) ** 2
+                    + (row["dec_deg"] - self.dec_deg) ** 2
+                )
+                if dist > radius_deg:
+                    continue
+
+                # 2. Flux ratio check
+                # Use mean_flux_mjy from stats
+                flux_ratio = row["mean_flux_mjy"] / target_flux_mjy
+                if min_flux_ratio <= flux_ratio <= max_flux_ratio:
+                    valid_neighbors.append(row["source_id"])
+
+            return valid_neighbors
+
+        finally:
+            conn.close()
+
+    def calculate_relative_lightcurve(
+        self,
+        radius_deg: float = 0.5,
+        min_flux_ratio: float = 0.1,
+        max_flux_ratio: float = 10.0,
+        max_eta: float = 1.5,
+        min_neighbors: int = 1,
+        max_neighbors: int = 20,
+    ) -> Dict[str, Any]:
+        """
+        Calculate relative lightcurve using stable neighbors.
+
+        This automatically finds neighbors, loads their data, aligns timestamps,
+        and calculates the relative flux metrics.
+
+        Args:
+            radius_deg: Search radius for neighbors
+            min_flux_ratio: Minimum flux ratio for neighbors
+            max_flux_ratio: Maximum flux ratio for neighbors
+            max_eta: Stability threshold for neighbors
+            min_neighbors: Minimum number of neighbors required
+            max_neighbors: Maximum number of neighbors to use (closest/brightest)
+
+        Returns:
+            Dictionary containing:
+            - relative_flux: Array of relative fluxes
+            - relative_flux_mean: Mean relative flux
+            - relative_flux_std: Std of relative flux
+            - n_neighbors: Number of neighbors used
+            - neighbor_ids: List of neighbor IDs used
+        """
+        from dsa110_contimg.photometry.variability import calculate_relative_flux
+
+        # 1. Find Neighbors
+        neighbor_ids = self.find_stable_neighbors(
+            radius_deg=radius_deg,
+            min_flux_ratio=min_flux_ratio,
+            max_flux_ratio=max_flux_ratio,
+            max_eta=max_eta,
+        )
+
+        if len(neighbor_ids) < min_neighbors:
+            logger.warning(f"Found only {len(neighbor_ids)} neighbors, need {min_neighbors}")
+            return {}
+
+        # Limit to max_neighbors (could optimize to pick best ones, currently just first N)
+        neighbor_ids = neighbor_ids[:max_neighbors]
+
+        # 2. Load Neighbor Data
+        # We need to align neighbor measurements to target epochs (by image_path or measured_at)
+        # Assuming 'image_path' is unique per epoch
+
+        if self.measurements.empty:
+            return {}
+
+        # Ensure required columns exist
+        required_cols = ["image_path", "mjd", "normalized_flux_jy"]
+        if not all(col in self.measurements.columns for col in required_cols):
+            logger.warning(f"Missing required columns for relative photometry: {required_cols}")
+            return {}
+
+        target_epochs = self.measurements[["image_path", "mjd", "normalized_flux_jy"]].copy()
+        target_epochs = target_epochs.set_index("image_path")
+
+        neighbor_flux_matrix = []
+        neighbor_error_matrix = []
+        valid_neighbor_ids = []
+        load_errors = []
+
+        for nid in neighbor_ids:
+            try:
+                n_src = Source(nid, products_db=self.products_db)
+                n_meas = n_src.measurements
+                if n_meas.empty:
+                    continue
+
+                # Align with target
+                # Join on image_path
+                n_data = n_meas[
+                    ["image_path", "normalized_flux_jy", "normalized_flux_err_jy"]
+                ].set_index("image_path")
+
+                # Reindex to target epochs (puts NaNs where missing)
+                aligned = n_data.reindex(target_epochs.index)
+
+                neighbor_flux_matrix.append(aligned["normalized_flux_jy"].values)
+                neighbor_error_matrix.append(aligned["normalized_flux_err_jy"].values)
+                valid_neighbor_ids.append(nid)
+
+            except Exception as e:
+                logger.warning(f"Error loading neighbor {nid}: {e}")
+                load_errors.append(str(e))
+                continue
+
+        if not valid_neighbor_ids:
+            if neighbor_ids and len(load_errors) == len(neighbor_ids):
+                logger.error(
+                    f"All {len(neighbor_ids)} neighbors failed to load. First error: {load_errors[0]}"
+                )
+            return {}
+
+        # Transpose to (n_epochs, n_neighbors)
+        neighbor_fluxes = np.array(neighbor_flux_matrix).T
+        neighbor_errors = np.array(neighbor_error_matrix).T
+
+        # 3. Calculate Relative Flux
+        rel_flux, mean_val, std_val = calculate_relative_flux(
+            target_fluxes=target_epochs["normalized_flux_jy"].values,
+            neighbor_fluxes=neighbor_fluxes,
+            neighbor_errors=neighbor_errors,
+            use_robust_stats=True,
+        )
+
+        return {
+            "relative_flux": rel_flux,
+            "relative_flux_mean": mean_val,
+            "relative_flux_std": std_val,
+            "n_neighbors": len(valid_neighbor_ids),
+            "neighbor_ids": valid_neighbor_ids,
+            "mjds": target_epochs["mjd"].values,
         }
 
     def plot_lightcurve(
@@ -467,10 +705,7 @@ class Source:
                 time = pd.to_datetime(self.measurements["measured_at"])
             elif "mjd" in self.measurements.columns:
                 time = pd.to_datetime(
-                    [
-                        Time(mjd, format="mjd").datetime
-                        for mjd in self.measurements["mjd"]
-                    ]
+                    [Time(mjd, format="mjd").datetime for mjd in self.measurements["mjd"]]
                 )
             else:
                 raise SourceError("No time column found in measurements")
@@ -478,9 +713,7 @@ class Source:
 
         # Get flux and errors
         flux = self.measurements[flux_col]
-        flux_err = (
-            self.measurements[err_col] if err_col in self.measurements.columns else None
-        )
+        flux_err = self.measurements[err_col] if err_col in self.measurements.columns else None
 
         # Filter out NaN/inf
         valid_mask = np.isfinite(flux)
@@ -508,9 +741,7 @@ class Source:
                 alpha=0.7,
             )
         else:
-            ax.plot(
-                time_valid, flux_valid, "o", label=flux_label, markersize=6, alpha=0.7
-            )
+            ax.plot(time_valid, flux_valid, "o", label=flux_label, markersize=6, alpha=0.7)
 
         # Highlight baseline period (first 10 epochs)
         if highlight_baseline and len(time_valid) >= 10:
@@ -538,9 +769,7 @@ class Source:
             if mjd:
                 time_range_days = float(time_valid.max() - time_valid.min())
             else:
-                time_range_days = (
-                    time_valid.max() - time_valid.min()
-                ).total_seconds() / 86400
+                time_range_days = (time_valid.max() - time_valid.min()).total_seconds() / 86400
 
             if 14 <= time_range_days <= 180:
                 ax.axvspan(
@@ -579,77 +808,70 @@ class Source:
         radius_arcsec: float = 5.0,
         catalogs: Optional[List[str]] = None,
         timeout: float = 30.0,
-    ) -> Dict[str, Optional[Dict[str, any]]]:
-        """Cross-match this source with external catalogs (SIMBAD, NED, Gaia).
+    ) -> Dict[str, Dict[str, Any]]:
+        """Cross-match this source with external catalogs.
 
         Queries external astronomical catalogs to identify the source and retrieve
-        additional information such as object type, redshift, proper motion, etc.
+        additional information. Uses the dsa110_contimg.catalog.multiwavelength module
+        (ported from vast-mw).
 
         Args:
             radius_arcsec: Search radius in arcseconds (default: 5.0)
-            catalogs: List of catalogs to query. Options: 'simbad', 'ned', 'gaia'.
-                     If None, queries all catalogs (default: None)
-            timeout: Query timeout in seconds (default: 30.0)
+            catalogs: List of catalogs to query. Options: 'Gaia', 'Simbad', 'ATNF', 'NVSS', etc.
+                     If None, queries all configured services.
+            timeout: Query timeout in seconds (not all services support this)
 
         Returns:
             Dictionary with catalog names as keys and query results as values.
-            Each result is a dictionary with catalog-specific fields, or None
-            if no match found or error occurred.
+            Each result is a dictionary of {source_id: separation_arcsec}.
 
         Example:
             >>> source = Source(source_id="NVSS J123456+012345")
             >>> results = source.crossmatch_external(radius_arcsec=10.0)
-            >>> if results['simbad']:
-            ...     print(f"SIMBAD ID: {results['simbad']['main_id']}")
-            >>> if results['ned'] and results['ned']['redshift']:
-            ...     print(f"Redshift: {results['ned']['redshift']}")
+            >>> if 'Simbad' in results:
+            ...     print(f"Matches: {results['Simbad']}")
         """
-        from astropy.coordinates import SkyCoord
         import astropy.units as u
+        from astropy.coordinates import SkyCoord
 
         if self.ra_deg is None or self.dec_deg is None:
-            logger.warning(
-                f"Cannot cross-match source {self.source_id}: " "RA/Dec not available"
-            )
-            return {"simbad": None, "ned": None, "gaia": None}
+            logger.warning(f"Cannot cross-match source {self.source_id}: RA/Dec not available")
+            return {}
 
-        coord = SkyCoord(ra=self.ra_deg * u.deg, dec=self.dec_deg * u.deg)
+        # Use J2000 epoch for static catalogs, or apply proper motion if time available
+        if not self.measurements.empty and "mjd" in self.measurements.columns:
+            t = Time(self.measurements["mjd"].iloc[0], format="mjd")
+        else:
+            t = None
+
+        coord = SkyCoord(ra=self.ra_deg * u.deg, dec=self.dec_deg * u.deg, obstime=t)
 
         if catalogs is None:
-            # Query all catalogs
-            return query_all_catalogs(
-                coord,
-                radius_arcsec=radius_arcsec,
-                timeout=timeout,
-            )
+            return check_all_services(coord, t=t, radius=radius_arcsec * u.arcsec)
 
-        # Query specific catalogs
         results = {}
-        if "simbad" in catalogs:
-            results["simbad"] = simbad_search(
-                coord,
-                radius_arcsec=radius_arcsec,
-                timeout=timeout,
-            )
-        else:
-            results["simbad"] = None
+        services = {
+            "Gaia": check_gaia,
+            "Simbad": check_simbad,
+            "ATNF": check_atnf,
+            "NVSS": check_nvss,
+            "FIRST": check_first,
+            "Pulsar Scraper": check_pulsarscraper,
+        }
 
-        if "ned" in catalogs:
-            results["ned"] = ned_search(
-                coord,
-                radius_arcsec=radius_arcsec,
-                timeout=timeout,
-            )
-        else:
-            results["ned"] = None
-
-        if "gaia" in catalogs:
-            results["gaia"] = gaia_search(
-                coord,
-                radius_arcsec=radius_arcsec,
-                timeout=timeout,
-            )
-        else:
-            results["gaia"] = None
+        for cat in catalogs:
+            if cat in services:
+                func = services[cat]
+                try:
+                    if func in [check_gaia, check_simbad, check_atnf]:
+                        res = func(coord, t=t, radius=radius_arcsec * u.arcsec)
+                    else:
+                        res = func(coord, radius=radius_arcsec * u.arcsec)
+                    if res:
+                        results[cat] = res
+                except Exception as e:
+                    logger.warning(f"Crossmatch for {cat} failed: {e}")
+            else:
+                logger.warning(f"Catalog {cat} not supported")
 
         return results

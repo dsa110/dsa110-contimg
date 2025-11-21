@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Streaming mosaic generation workflow for DSA-110 continuum imaging.
 
@@ -14,15 +14,13 @@ Key features:
 
 import logging
 import os
-import sqlite3
 import time
-from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import astropy.units as u
 import numpy as np
-from astropy.coordinates import EarthLocation, SkyCoord
+from astropy.coordinates import EarthLocation
 from astropy.time import Time
 
 from dsa110_contimg.calibration.applycal import apply_to_target
@@ -31,8 +29,6 @@ from dsa110_contimg.calibration.model import populate_model_from_catalog
 from dsa110_contimg.calibration.selection import select_bandpass_from_catalog
 from dsa110_contimg.database.products import (
     ensure_products_db,
-    get_storage_locations,
-    images_insert,
     ms_index_upsert,
     register_storage_location,
 )
@@ -44,8 +40,6 @@ from dsa110_contimg.database.registry import (
 from dsa110_contimg.imaging.cli import image_ms
 from dsa110_contimg.mosaic.validation import validate_tiles_consistency
 from dsa110_contimg.utils.ms_organization import (
-    determine_ms_type,
-    get_organized_ms_path,
     organize_ms_file,
 )
 
@@ -140,7 +134,11 @@ class StreamingMosaicManager:
         self.ms_output_dir = ms_output_dir
         self.images_dir = images_dir
         self.mosaic_output_dir = mosaic_output_dir
-        self.observatory_location = observatory_location or EarthLocation.of_site("greenwich")
+        # Use explicit None check to avoid EarthLocation truthiness ambiguity
+        if observatory_location is None:
+            self.observatory_location = EarthLocation.of_site("greenwich")
+        else:
+            self.observatory_location = observatory_location
 
         # Organized subdirectories within ms_output_dir
         self.ms_calibrators_dir = ms_output_dir / "calibrators"
@@ -188,11 +186,17 @@ class StreamingMosaicManager:
 
             try:
                 self.config = PipelineConfig.from_env(validate_paths=False)
+                # Enable Phase 3 features
+                self.config.transient_detection.enabled = True
+                self.config.astrometric_calibration.enabled = True
             except Exception:
                 # Create minimal config if env vars not available
                 # Only create config if we actually need it (not just for registration)
                 try:
                     self.config = PipelineConfig()
+                    # Enable Phase 3 features
+                    self.config.transient_detection.enabled = True
+                    self.config.astrometric_calibration.enabled = True
                 except Exception:
                     # If config creation fails, set to None - will be created lazily if needed
                     self.config = None
@@ -221,30 +225,8 @@ class StreamingMosaicManager:
             "CREATE INDEX IF NOT EXISTS idx_mosaic_groups_status ON mosaic_groups(status)"
         )
 
-        # Ensure bandpass calibrator registry table exists
-        self.products_db.execute(
-            """
-            CREATE TABLE IF NOT EXISTS bandpass_calibrators (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                calibrator_name TEXT NOT NULL,
-                ra_deg REAL NOT NULL,
-                dec_deg REAL NOT NULL,
-                dec_range_min REAL NOT NULL,
-                dec_range_max REAL NOT NULL,
-                registered_at REAL NOT NULL,
-                registered_by TEXT,
-                status TEXT DEFAULT 'active',
-                notes TEXT
-            )
-            """
-        )
-        self.products_db.execute(
-            "CREATE INDEX IF NOT EXISTS idx_bpcal_dec_range ON bandpass_calibrators(dec_range_min, dec_range_max)"
-        )
-        self.products_db.execute(
-            "CREATE INDEX IF NOT EXISTS idx_bpcal_status ON bandpass_calibrators(status)"
-        )
-        self.products_db.commit()
+        # Note: Bandpass calibrators are now stored in calibrators.sqlite3
+        # Use dsa110_contimg.database.calibrators module to access them
 
     def _register_storage_locations(self) -> None:
         """Register storage locations for recovery.
@@ -264,7 +246,6 @@ class StreamingMosaicManager:
         - MS files: ms_index table (updated when files are moved)
         - Calibration tables: cal_registry.sqlite3 (registered with full organized paths)
         """
-        from dsa110_contimg.database.products import register_storage_location
 
         # Register MS files location
         register_storage_location(
@@ -345,51 +326,84 @@ class StreamingMosaicManager:
             ValueError: If calibrator_name is invalid
         """
         # Validate calibrator name
+        from dsa110_contimg.database.calibrators import (
+            get_bandpass_calibrators,
+            register_bandpass_calibrator,
+        )
         from dsa110_contimg.utils.naming import validate_calibrator_name
 
         is_valid, error = validate_calibrator_name(calibrator_name)
         if not is_valid:
             raise ValueError(f"Invalid calibrator name: {error}")
+
         dec_range_min = dec_deg - dec_tolerance
         dec_range_max = dec_deg + dec_tolerance
 
         # Deactivate any existing calibrators in this Dec range
-        self.products_db.execute(
-            """
-            UPDATE bandpass_calibrators
-            SET status = 'inactive'
-            WHERE dec_range_min <= ? AND dec_range_max >= ?
-            AND status = 'active'
-            """,
-            (dec_range_max, dec_range_min),
-        )
+        existing = get_bandpass_calibrators(dec_deg=dec_deg, status="active")
+        for existing_cal in existing:
+            if (
+                existing_cal.get("dec_range_min") is not None
+                and existing_cal.get("dec_range_max") is not None
+            ):
+                if (
+                    existing_cal["dec_range_min"] <= dec_range_max
+                    and existing_cal["dec_range_max"] >= dec_range_min
+                ):
+                    # Deactivate by re-registering with inactive status
+                    register_bandpass_calibrator(
+                        calibrator_name=existing_cal["calibrator_name"],
+                        ra_deg=existing_cal["ra_deg"],
+                        dec_deg=existing_cal["dec_deg"],
+                        dec_range_min=existing_cal.get("dec_range_min"),
+                        dec_range_max=existing_cal.get("dec_range_max"),
+                        source_catalog=existing_cal.get("source_catalog"),
+                        flux_jy=existing_cal.get("flux_jy"),
+                        registered_by=existing_cal.get("registered_by"),
+                        status="inactive",
+                        notes=existing_cal.get("notes"),
+                    )
 
         # Register new calibrator
-        self.products_db.execute(
-            """
-            INSERT INTO bandpass_calibrators
-            (calibrator_name, ra_deg, dec_deg, dec_range_min, dec_range_max,
-             registered_at, registered_by, status, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'active', ?)
-            """,
-            (
-                calibrator_name,
-                ra_deg,
-                dec_deg,
-                dec_range_min,
-                dec_range_max,
-                time.time(),
-                registered_by,
-                notes,
-            ),
+        register_bandpass_calibrator(
+            calibrator_name=calibrator_name,
+            ra_deg=ra_deg,
+            dec_deg=dec_deg,
+            dec_range_min=dec_range_min,
+            dec_range_max=dec_range_max,
+            registered_by=registered_by,
+            status="active",
+            notes=notes,
         )
-        self.products_db.commit()
 
         logger.info(
             f"Registered bandpass calibrator {calibrator_name} "
             f"(RA={ra_deg:.6f}, Dec={dec_deg:.6f}) "
             f"for Dec range [{dec_range_min:.2f}, {dec_range_max:.2f}]"
         )
+
+        # Pre-calculate transit times for this calibrator
+        try:
+            from dsa110_contimg.conversion.transit_precalc import (
+                precalculate_transits_for_calibrator,
+            )
+
+            logger.info(f"Pre-calculating transit times for {calibrator_name}...")
+            transits_with_data = precalculate_transits_for_calibrator(
+                products_db=self.products_db,
+                calibrator_name=calibrator_name,
+                ra_deg=ra_deg,
+                dec_deg=dec_deg,
+                max_days_back=60,
+            )
+            logger.info(
+                f"✓ Pre-calculated transit times: {transits_with_data} transits have available data"
+            )
+        except Exception as e:
+            logger.warning(
+                f"Failed to pre-calculate transit times for {calibrator_name}: {e}. "
+                f"Transit times will be calculated on-demand."
+            )
 
     def get_bandpass_calibrator_for_dec(self, dec_deg: float) -> Optional[Dict]:
         """Get active bandpass calibrator for a given Dec.
@@ -400,30 +414,25 @@ class StreamingMosaicManager:
         Returns:
             Dictionary with calibrator info, or None if not found
         """
-        row = self.products_db.execute(
-            """
-            SELECT calibrator_name, ra_deg, dec_deg, dec_range_min, dec_range_max,
-                   registered_at, notes
-            FROM bandpass_calibrators
-            WHERE dec_range_min <= ? AND dec_range_max >= ?
-            AND status = 'active'
-            ORDER BY registered_at DESC
-            LIMIT 1
-            """,
-            (dec_deg, dec_deg),
-        ).fetchone()
+        from dsa110_contimg.database.calibrators import get_bandpass_calibrators
 
-        if not row:
+        calibrators = get_bandpass_calibrators(dec_deg=dec_deg, status="active")
+
+        if not calibrators:
             return None
 
+        # Sort by registered_at (most recent first) and return first match
+        calibrators.sort(key=lambda x: x.get("registered_at", 0), reverse=True)
+        cal = calibrators[0]
+
         return {
-            "name": row[0],
-            "ra_deg": row[1],
-            "dec_deg": row[2],
-            "dec_range_min": row[3],
-            "dec_range_max": row[4],
-            "registered_at": row[5],
-            "notes": row[6],
+            "name": cal["calibrator_name"],
+            "ra_deg": cal["ra_deg"],
+            "dec_deg": cal["dec_deg"],
+            "dec_range_min": cal.get("dec_range_min"),
+            "dec_range_max": cal.get("dec_range_max"),
+            "registered_at": cal.get("registered_at"),
+            "notes": cal.get("notes"),
         }
 
     def check_for_new_group(self) -> Optional[str]:
@@ -477,8 +486,8 @@ class StreamingMosaicManager:
         # and all files must be at the same declination (within tolerance)
         if not self._validate_sequential_5min_chunks(ms_paths_with_time):
             logger.debug(
-                f"MS files are not sequential 5-minute chunks at the same declination. "
-                f"Need exactly 10 neighboring 5-minute observations at the same Dec. Skipping group formation."
+                "MS files are not sequential 5-minute chunks at the same declination. "
+                "Need exactly 10 neighboring 5-minute observations at the same Dec. Skipping group formation."
             )
             return None
 
@@ -486,8 +495,8 @@ class StreamingMosaicManager:
         # 10 files × 5 minutes = 50 minutes ideal, allow up to 60 minutes total span
         if not self._validate_total_time_span(ms_paths_with_time):
             logger.debug(
-                f"Total time span too large for coherent mosaic. "
-                f"Need contiguous observations within 60 minutes. Skipping group formation."
+                "Total time span too large for coherent mosaic. "
+                "Need contiguous observations within 60 minutes. Skipping group formation."
             )
             return None
 
@@ -508,7 +517,8 @@ class StreamingMosaicManager:
         import hashlib
 
         ms_paths_hash = hashlib.sha256(ms_paths_str.encode()).hexdigest()[:12]
-        timestamp = int(time.time() * 1000000)  # Include microseconds for collision prevention
+        # Include microseconds for collision prevention
+        timestamp = int(time.time() * 1000000)
         group_id = f"group_{ms_paths_hash}_{timestamp}"
 
         # CRITICAL: Check for duplicate group_id (shouldn't happen, but safeguard)
@@ -734,37 +744,79 @@ class StreamingMosaicManager:
 
         return True
 
-    def select_calibration_ms(self, ms_paths: List[str]) -> Optional[str]:
-        """Select the 5th MS (middle by time) for calibration solving.
+    def select_calibration_ms(
+        self,
+        ms_paths: List[str],
+        min_required: Optional[int] = None,
+        calibrator_ra: Optional[float] = None,
+    ) -> Optional[str]:
+        """Select calibration MS, preferring one that contains peak transit.
 
         Args:
             ms_paths: List of MS file paths
+            min_required: Minimum required MS count (defaults to self.ms_per_group for streaming mode)
+            calibrator_ra: Optional calibrator RA in degrees for transit-based selection
 
         Returns:
             Path to calibration MS, or None if unable to determine
         """
-        # Get mid_mjd for each MS
+        # Get time ranges for each MS
         ms_times = []
         for ms_path in ms_paths:
             try:
-                _, _, mid_mjd = extract_ms_time_range(ms_path)
-                if mid_mjd is not None:
-                    ms_times.append((mid_mjd, ms_path))
+                start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path)
+                if mid_mjd is not None and start_mjd is not None and end_mjd is not None:
+                    ms_times.append((start_mjd, end_mjd, mid_mjd, ms_path))
             except Exception as e:
                 logger.warning(f"Failed to extract time from {ms_path}: {e}")
                 continue
 
-        if len(ms_times) < self.ms_per_group:
-            logger.warning(
-                f"Only {len(ms_times)} MS files have valid times, need {self.ms_per_group}"
-            )
+        # Use provided min_required for manual mode, otherwise use self.ms_per_group
+        required_count = min_required if min_required is not None else self.ms_per_group
+
+        if len(ms_times) < required_count:
+            logger.warning(f"Only {len(ms_times)} MS files have valid times, need {required_count}")
             return None
 
-        # Sort by time and select 5th (index 4)
-        ms_times.sort(key=lambda x: x[0])
-        calibration_ms = ms_times[CALIBRATION_MS_INDEX][1]
+        # Sort by time
+        ms_times.sort(key=lambda x: x[2])  # Sort by mid_mjd
 
-        logger.info(f"Selected calibration MS: {calibration_ms} (5th of {len(ms_times)} MS)")
+        # If calibrator RA is provided, try to find MS that contains peak transit
+        if calibrator_ra is not None:
+            # Calculate transit time for middle MS
+            mid_time = Time(ms_times[len(ms_times) // 2][2], format="mjd")
+            transit_mjd = self.calculate_calibrator_transit(calibrator_ra, mid_time)
+
+            # Find MS that contains transit time
+            for start_mjd, end_mjd, mid_mjd, ms_path in ms_times:
+                if start_mjd <= transit_mjd <= end_mjd:
+                    transit_offset_hours = abs(transit_mjd - mid_mjd) * 24.0
+                    logger.info(
+                        f"Selected calibration MS containing peak transit: {ms_path} "
+                        f"(transit at {transit_mjd:.6f} MJD, offset: {transit_offset_hours:.2f} hours)"
+                    )
+                    return ms_path
+
+            # If no MS contains transit, warn and fall back to default selection
+            logger.warning(
+                f"No MS found containing peak transit ({transit_mjd:.6f} MJD). "
+                f"Falling back to default selection (5th MS)."
+            )
+
+        # Default: select 5th MS (middle by time) for streaming mode
+        # For manual mode (<10 MS): select middle MS
+        if len(ms_times) >= 5:
+            # Standard case: select 5th MS (index 4)
+            calib_index = CALIBRATION_MS_INDEX
+        else:
+            # Manual mode with fewer MS: select middle MS
+            calib_index = len(ms_times) // 2
+
+        calibration_ms = ms_times[calib_index][3]
+
+        logger.info(
+            f"Selected calibration MS: {calibration_ms} ({calib_index + 1} of {len(ms_times)} MS)"
+        )
         return calibration_ms
 
     def check_registry_for_calibration(
@@ -812,28 +864,26 @@ class StreamingMosaicManager:
         Returns:
             Transit MJD
         """
-        # Convert RA to hours
-        ra_hours = calibrator_ra / 15.0
-
-        # Calculate local sidereal time at transit
+        # Calculate local sidereal time at observation
         # Transit occurs when LST = RA
         lst = observation_date.sidereal_time("mean", longitude=self.observatory_location.lon)
 
         # Calculate time difference to transit
-        ra_angle = calibrator_ra * u.deg
-        lst_angle = lst.to(u.deg)
+        # RA and LST are both in degrees (RA is already in degrees, LST converted to degrees)
+        ra_angle = calibrator_ra * u.deg  # pylint: disable=no-member
+        lst_angle = lst.to(u.deg)  # pylint: disable=no-member
         hour_angle_deg = ra_angle - lst_angle
 
         # Normalize to [-180, 180] degrees (equivalent to [-12, 12] hours)
-        hour_angle_deg = hour_angle_deg.wrap_at(180 * u.deg)
+        hour_angle_deg = hour_angle_deg.wrap_at(180 * u.deg)  # pylint: disable=no-member
 
         # Convert hour angle from degrees to days
         # 1 hour = 15 degrees, 1 day = 24 hours
         # So: degrees / 15 degrees/hour / 24 hours/day = degrees / 360 degrees/day
-        hour_angle_days = hour_angle_deg.to_value(u.deg) / 360.0
+        hour_angle_days = hour_angle_deg.to_value(u.deg) / 360.0  # pylint: disable=no-member
 
         # Transit time
-        transit_time = observation_date + hour_angle_days * u.day
+        transit_time = observation_date + hour_angle_days * u.day  # pylint: disable=no-member
 
         return transit_time.mjd
 
@@ -944,6 +994,82 @@ class StreamingMosaicManager:
             logger.warning(f"Failed to organize MS file {ms_path}: {e}. Using original path.")
             return ms_path
 
+    def _get_ms_declination(self, ms_path: str) -> Optional[float]:
+        """Look up declination for an MS path from ms_index."""
+        try:
+            row = self.products_db.execute(
+                "SELECT dec_deg FROM ms_index WHERE path = ?",
+                (str(ms_path),),
+            ).fetchone()
+            if row and row[0] is not None:
+                return float(row[0])
+        except Exception as exc:
+            logger.debug(f"Failed to fetch declination for {ms_path}: {exc}")
+        return None
+
+    def _model_data_is_populated(self, ms_path: str) -> bool:
+        """Return True if MODEL_DATA exists and contains non-zero entries."""
+        try:
+            import casacore.tables as casatables  # type: ignore[import]
+        except Exception as exc:  # pragma: no cover - CASA import guard
+            logger.debug(f"casacore.tables unavailable while checking MODEL_DATA: {exc}")
+            return False
+
+        try:
+            with casatables.table(ms_path, readonly=True) as tb:  # type: ignore[attr-defined]
+                if "MODEL_DATA" not in tb.colnames():
+                    return False
+                nrows = tb.nrows()
+                if nrows == 0:
+                    return False
+                sample_rows = min(4, nrows)
+                model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=sample_rows)
+                if np.any(np.abs(model_sample) > 1e-9):
+                    return True
+        except Exception as exc:
+            logger.debug(f"Error inspecting MODEL_DATA for {ms_path}: {exc}")
+        return False
+
+    def _populate_science_model(self, ms_path: str) -> bool:
+        """Populate MODEL_DATA for a science MS using the nearest bandpass calibrator."""
+        try:
+            dec_deg = self._get_ms_declination(ms_path)
+            if dec_deg is None:
+                logger.warning(f"Declination unknown for {ms_path}; cannot seed MODEL_DATA")
+                return False
+
+            bp_cal = self.get_bandpass_calibrator_for_dec(dec_deg)
+            if not bp_cal:
+                logger.warning(
+                    f"No bandpass calibrator registered for Dec={dec_deg:.3f}°. "
+                    f"Cannot seed MODEL_DATA for {ms_path}"
+                )
+                return False
+
+            populate_model_from_catalog(
+                ms_path,
+                field="0~63",  # cover all fields in the MS (meridian-tracking)
+                calibrator_name=bp_cal["name"],
+                cal_ra_deg=bp_cal["ra_deg"],
+                cal_dec_deg=bp_cal["dec_deg"],
+                cal_flux_jy=bp_cal.get("flux_jy", 2.5),
+            )
+            logger.info(f"MODEL_DATA populated for science MS {ms_path}")
+            return True
+        except Exception as exc:
+            logger.error(f"Failed to populate MODEL_DATA for {ms_path}: {exc}")
+            return False
+
+    def _ensure_model_ready_for_imaging(self, ms_path: str) -> bool:
+        """Ensure MODEL_DATA exists and is populated before imaging."""
+        if self._model_data_is_populated(ms_path):
+            return True
+
+        logger.info(f"MODEL_DATA missing for {ms_path}; repopulating before imaging")
+        if not self._populate_science_model(ms_path):
+            return False
+        return self._model_data_is_populated(ms_path)
+
     def _retry_on_transient_error(
         self, func: Callable, *args, **kwargs
     ) -> Tuple[bool, Optional[str]]:
@@ -1033,9 +1159,15 @@ class StreamingMosaicManager:
             is None on success or a descriptive error string on failure
         """
         try:
-            _, _, mid_mjd = extract_ms_time_range(calibration_ms_path)
+            start_mjd, end_mjd, mid_mjd = extract_ms_time_range(calibration_ms_path)
             if mid_mjd is None:
                 error_msg = f"Could not extract time from calibration MS: {calibration_ms_path}"
+                logger.error(error_msg)
+                return False, False, error_msg
+            if start_mjd is None or end_mjd is None:
+                error_msg = (
+                    f"Could not extract full time range from calibration MS: {calibration_ms_path}"
+                )
                 logger.error(error_msg)
                 return False, False, error_msg
         except Exception as e:
@@ -1059,7 +1191,7 @@ class StreamingMosaicManager:
             gp_table_path = registry_tables.get("GP", [])[0]
             g2_table_path = registry_tables.get("2G", [])[0]
             if not Path(gp_table_path).exists() or not Path(g2_table_path).exists():
-                logger.warning(f"Gain tables in registry do not exist on disk")
+                logger.warning("Gain tables in registry do not exist on disk")
                 has_g = False
 
         bpcal_solved = False
@@ -1077,13 +1209,65 @@ class StreamingMosaicManager:
                 import casacore.tables as casatables
 
                 table = casatables.table  # noqa: N816
-
-                t = table(calibration_ms_path)
-                field_table = t.getkeyword("FIELD")
                 import numpy as np
 
-                dec_deg = np.mean([f["REFERENCE_DIR"][0][1] * 180 / np.pi for f in field_table])
-                t.close()
+                # Read declination from FIELD table
+                with table(f"{calibration_ms_path}::FIELD", readonly=True) as field_tb:
+                    if "REFERENCE_DIR" in field_tb.colnames():
+                        ref_dir = field_tb.getcol("REFERENCE_DIR")
+                        # Shape: (nfields, 1, 2) or (nfields, 2)
+                        # Extract Dec from first field
+                        dec_rad = ref_dir[0][0][1] if ref_dir.ndim == 3 else ref_dir[0][1]
+                        dec_deg = float(np.degrees(dec_rad))
+                    elif "PHASE_DIR" in field_tb.colnames():
+                        phase_dir = field_tb.getcol("PHASE_DIR")
+                        dec_rad = phase_dir[0][0][1] if phase_dir.ndim == 3 else phase_dir[0][1]
+                        dec_deg = float(np.degrees(dec_rad))
+                    else:
+                        raise ValueError("No REFERENCE_DIR or PHASE_DIR column in FIELD table")
+
+                # CRITICAL: Extract all field positions (RA/Dec) from MS
+                # Each of the 24 fields is phased to a slightly different meridian,
+                # so we need to account for field-specific RAs when calculating transit
+                from dsa110_contimg.utils.ms_helpers import get_fields_cached
+
+                try:
+                    fields = get_fields_cached(calibration_ms_path)
+                    if not fields:
+                        error_msg = f"Could not extract field positions from {calibration_ms_path}"
+                        logger.error(error_msg)
+                        return False, False, error_msg
+
+                    # Extract RA and Dec for all fields
+                    field_ras = [ra for _, ra, _ in fields]
+                    field_decs = [dec for _, _, dec in fields]
+
+                    # Use mean Dec for calibrator lookup (fields track together in Dec)
+                    dec_deg = float(np.mean(field_decs))
+                    logger.debug(
+                        f"Extracted {len(fields)} fields from MS. "
+                        f"RA range: {min(field_ras):.6f}° - {max(field_ras):.6f}°, "
+                        f"Mean Dec: {dec_deg:.6f}°"
+                    )
+                except Exception as e:
+                    logger.warning(
+                        f"Could not extract all field positions, using first field only: {e}"
+                    )
+                    # Fallback to first field only
+                    if "REFERENCE_DIR" in field_tb.colnames():
+                        ref_dir = field_tb.getcol("REFERENCE_DIR")
+                        ra_rad = ref_dir[0][0][0] if ref_dir.ndim == 3 else ref_dir[0][0]
+                        dec_rad = ref_dir[0][0][1] if ref_dir.ndim == 3 else ref_dir[0][1]
+                    elif "PHASE_DIR" in field_tb.colnames():
+                        phase_dir = field_tb.getcol("PHASE_DIR")
+                        ra_rad = phase_dir[0][0][0] if phase_dir.ndim == 3 else phase_dir[0][0]
+                        dec_rad = phase_dir[0][0][1] if phase_dir.ndim == 3 else phase_dir[0][1]
+                    else:
+                        raise ValueError("No REFERENCE_DIR or PHASE_DIR column in FIELD table")
+
+                    dec_deg = float(np.degrees(dec_rad))
+                    field_ras = [float(np.degrees(ra_rad))]
+                    field_decs = [dec_deg]
 
                 # Check if bandpass calibrator is registered for this Dec
                 bp_cal = self.get_bandpass_calibrator_for_dec(dec_deg)
@@ -1100,11 +1284,83 @@ class StreamingMosaicManager:
                     f"for Dec={dec_deg:.6f} (RA={bp_cal['ra_deg']:.6f})"
                 )
 
+                # CRITICAL: Calculate transit time using calibrator's RA
+                # Each field is phased to a different meridian (different RA),
+                # but the calibrator has a fixed RA, so we calculate when it transits
+                # Then we verify that at least one field's meridian is close to the calibrator's RA
+                calibrator_ra = bp_cal["ra_deg"]
+                transit_mjd = self.calculate_calibrator_transit(
+                    calibrator_ra, Time(mid_mjd, format="mjd")
+                )
+
+                # Find which field's meridian is closest to the calibrator's RA
+                # This tells us which field will have the best SNR for calibration
+                best_field_idx = None
+                min_ra_separation = float("inf")
+
+                for field_idx, field_ra in enumerate(field_ras):
+                    # Calculate angular separation between field meridian and calibrator RA
+                    # Account for RA wrap-around (e.g., 359° and 1° are close)
+                    ra_diff = abs(field_ra - calibrator_ra)
+                    ra_separation = min(ra_diff, 360.0 - ra_diff)  # Handle wrap-around
+
+                    if ra_separation < min_ra_separation:
+                        min_ra_separation = ra_separation
+                        best_field_idx = field_idx
+
+                # Validate transit time is within MS time range
+                transit_within_range = start_mjd <= transit_mjd <= end_mjd
+                transit_offset_hours = abs(transit_mjd - mid_mjd) * 24.0
+
+                # Warn if no field is close to calibrator RA (calibrator may not be visible)
+                if min_ra_separation > 5.0:  # More than 5 degrees separation
+                    logger.warning(
+                        f"Calibrator RA ({calibrator_ra:.6f}°) is {min_ra_separation:.2f}° "
+                        f"from nearest field meridian (field {best_field_idx}, RA={field_ras[best_field_idx]:.6f}°). "
+                        f"Calibrator may have low visibility in this MS."
+                    )
+                else:
+                    logger.info(
+                        f"Field {best_field_idx} (RA={field_ras[best_field_idx]:.6f}°) is closest to "
+                        f"calibrator RA ({calibrator_ra:.6f}°), separation: {min_ra_separation:.2f}°"
+                    )
+
+                if not transit_within_range:
+                    error_msg = (
+                        f"CRITICAL: Calculated transit time for calibrator {bp_cal['name']} "
+                        f"({transit_mjd:.6f} MJD, RA={calibrator_ra:.6f}°) "
+                        f"is NOT within calibration MS time range ({start_mjd:.6f} - {end_mjd:.6f} MJD). "
+                        f"Offset: {transit_offset_hours:.2f} hours. "
+                        f"Closest field: {best_field_idx} (RA={field_ras[best_field_idx]:.6f}°, "
+                        f"separation: {min_ra_separation:.2f}°). "
+                        f"This indicates the MS is misassociated with the calibrator transit. "
+                        f"Bandpass solve will fail with low SNR."
+                    )
+                    logger.error(error_msg)
+                    return False, False, error_msg
+
+                # Warn if transit is far from MS center (more than 1 hour)
+                if transit_offset_hours > 1.0:
+                    logger.warning(
+                        f"Transit time for calibrator {bp_cal['name']} ({transit_mjd:.6f} MJD, "
+                        f"RA={calibrator_ra:.6f}°) is {transit_offset_hours:.2f} hours "
+                        f"from MS center ({mid_mjd:.6f} MJD). "
+                        f"Closest field: {best_field_idx} (RA={field_ras[best_field_idx]:.6f}°). "
+                        f"Calibrator may not be at peak transit in this MS."
+                    )
+                else:
+                    logger.info(
+                        f"✓ Transit time for calibrator {bp_cal['name']} ({transit_mjd:.6f} MJD, "
+                        f"RA={calibrator_ra:.6f}°) validated within MS time range. "
+                        f"Offset from MS center: {transit_offset_hours:.2f} hours. "
+                        f"Closest field: {best_field_idx} (RA={field_ras[best_field_idx]:.6f}°, "
+                        f"separation: {min_ra_separation:.2f}°)"
+                    )
+
                 # Check if calibrator is present in any MS in the group
                 ms_paths = self.get_group_ms_paths(group_id)
                 calibrator_ms = None
                 cal_field_sel = None
-                calibrator_info = None
 
                 # Try to find calibrator in each MS file
                 for ms_path in ms_paths:
@@ -1158,7 +1414,6 @@ class StreamingMosaicManager:
 
                             calibrator_ms = str(ms_path)
                             cal_field_sel = field_sel_str
-                            calibrator_info = cal_info
                             logger.info(
                                 f"Found and validated calibrator {bp_cal['name']} in {ms_path} "
                                 f"at fields {field_sel_str} (peak field: {peak_field_idx}, "
@@ -1212,7 +1467,6 @@ class StreamingMosaicManager:
                                 else:
                                     calibrator_ms = str(calibration_ms_path)
                                     cal_field_sel = field_sel_str
-                                    calibrator_info = cal_info
                                     logger.info(
                                         f"Found and validated calibrator {bp_cal['name']} in calibration MS "
                                         f"at fields {field_sel_str} (flux: {cal_flux_jy:.3f} Jy, "
@@ -1226,7 +1480,6 @@ class StreamingMosaicManager:
                                 )
                                 calibrator_ms = str(calibration_ms_path)
                                 cal_field_sel = field_sel_str
-                                calibrator_info = cal_info
                     except Exception as e:
                         logger.debug(f"Could not find calibrator in calibration MS: {e}")
 
@@ -1253,7 +1506,72 @@ class StreamingMosaicManager:
                             )
                         )
 
-                        # Solve bandpass calibration with retry logic for transient errors
+                        # CRITICAL: Rephase MS to calibrator position
+                        # BEFORE populating MODEL_DATA and calibration
+                        # This makes all 24 fields coherently phased to
+                        # the calibrator, enabling proper calibration
+                        logger.info(
+                            f"Rephasing MS to calibrator position: "
+                            f"{bp_cal['name']} @ ({bp_cal['ra_deg']:.6f}°, "
+                            f"{bp_cal['dec_deg']:.6f}°)"
+                        )
+                        try:
+                            from dsa110_contimg.calibration.cli_utils import (
+                                rephase_ms_to_calibrator,
+                            )
+
+                            rephase_success = rephase_ms_to_calibrator(
+                                calibrator_ms,
+                                bp_cal["ra_deg"],
+                                bp_cal["dec_deg"],
+                                bp_cal["name"],
+                                logger,
+                            )
+                            if not rephase_success:
+                                error_msg = (
+                                    f"Failed to rephase MS to calibrator "
+                                    f"position for {bp_cal['name']}"
+                                )
+                                logger.error(error_msg)
+                                return False, False, error_msg
+                            logger.info(f"Successfully rephased MS to " f"{bp_cal['name']}")
+                        except Exception as e:
+                            error_msg = f"Exception during MS rephasing: {e}"
+                            logger.error(error_msg, exc_info=True)
+                            return False, False, error_msg
+
+                        # Populate MODEL_DATA before solving bandpass
+                        # calibration (REQUIRED PRECONDITION)
+                        # solve_bandpass() requires MODEL_DATA beforehand
+                        # We use calibrator info from
+                        # select_bandpass_from_catalog()
+                        logger.info(
+                            f"Populating MODEL_DATA for bandpass "
+                            f"calibration using {bp_cal['name']}..."
+                        )
+                        try:
+                            populate_model_from_catalog(
+                                calibrator_ms,
+                                field=cal_field_sel,
+                                calibrator_name=bp_cal["name"],
+                                cal_ra_deg=bp_cal["ra_deg"],
+                                cal_dec_deg=bp_cal["dec_deg"],
+                                cal_flux_jy=2.5,  # Default flux
+                            )
+                            logger.info(
+                                f"MODEL_DATA successfully populated for "
+                                f"{bp_cal['name']} at fields "
+                                f"{cal_field_sel}"
+                            )
+                        except Exception as e:
+                            error_msg = (
+                                f"Failed to populate MODEL_DATA for " f"bandpass calibration: {e}"
+                            )
+                            logger.error(error_msg)
+                            return False, False, error_msg
+
+                        # Solve bandpass calibration with retry logic
+                        # for transient errors
                         bp_tables = None
                         last_error = None
                         for attempt in range(self.max_retries):
@@ -1546,7 +1864,12 @@ class StreamingMosaicManager:
             SET calibration_ms_path = ?, bpcal_solved = ?, gaincal_solved = ?
             WHERE group_id = ?
             """,
-            (calibration_ms_path, 1 if bpcal_solved else 0, 1 if gaincal_solved else 0, group_id),
+            (
+                calibration_ms_path,
+                1 if bpcal_solved else 0,
+                1 if gaincal_solved else 0,
+                group_id,
+            ),
         )
         self.products_db.commit()
 
@@ -1580,6 +1903,7 @@ class StreamingMosaicManager:
             return True
 
         success_count = 0
+        updated_paths: List[str] = []
         for ms_path in ms_paths:
             try:
                 ms_path_obj = Path(ms_path)
@@ -1627,15 +1951,24 @@ class StreamingMosaicManager:
                 organized_path = self._organize_ms_file(
                     ms_path_obj, is_calibrator=False, date_str=date_str
                 )
+                organized_str = str(organized_path)
 
                 # Update products database with organized path
                 ms_index_upsert(
                     self.products_db,
-                    str(organized_path),
+                    organized_str,
                     stage="calibrated",
                     cal_applied=1,
                 )
 
+                # Populate MODEL_DATA so imaging has a starting model
+                if not self._populate_science_model(organized_str):
+                    logger.warning(
+                        f"MODEL_DATA seeding failed for {organized_str}; "
+                        "imaging will retry before running."
+                    )
+
+                updated_paths.append(organized_str)
                 success_count += 1
                 logger.info(f"Applied calibration to {ms_path} (organized to {organized_path})")
 
@@ -1643,6 +1976,16 @@ class StreamingMosaicManager:
                 logger.error(f"Failed to apply calibration to {ms_path}: {e}", exc_info=True)
 
         self.products_db.commit()
+
+        if updated_paths and len(updated_paths) == len(ms_paths):
+            try:
+                self.products_db.execute(
+                    "UPDATE mosaic_groups SET ms_paths = ? WHERE group_id = ?",
+                    (",".join(updated_paths), group_id),
+                )
+                self.products_db.commit()
+            except Exception as exc:
+                logger.warning(f"Failed to record organized MS paths for group {group_id}: {exc}")
 
         if success_count == len(ms_paths):
             self.products_db.execute(
@@ -1737,6 +2080,12 @@ class StreamingMosaicManager:
                     logger.debug(f"Image already exists for {ms_path}, skipping")
                     success_count += 1
                     continue
+
+                if not self._ensure_model_ready_for_imaging(str(ms_path_obj)):
+                    logger.error(
+                        f"MODEL_DATA could not be populated for {ms_path}; aborting imaging workflow"
+                    )
+                    return False
 
                 # Image MS
                 image_ms(
@@ -2048,6 +2397,14 @@ class StreamingMosaicManager:
                 )
                 # Don't fail mosaic creation if registration fails, but log error
 
+            # Hook: Update mosaic quality monitoring after mosaic creation
+            try:
+                from dsa110_contimg.qa.pipeline_hooks import hook_mosaic_complete
+
+                hook_mosaic_complete()
+            except Exception as e:
+                logger.debug(f"Mosaic quality monitoring hook failed: {e}")
+
             return final_mosaic_path
 
         except Exception as e:
@@ -2172,67 +2529,6 @@ class StreamingMosaicManager:
                 exc_info=True,
             )
             return False
-
-    def process_next_group(self) -> bool:
-        """Process next available group through full workflow.
-
-        Returns:
-            True if a group was processed, False if no group available
-        """
-        group_id = self.check_for_new_group()
-        if not group_id:
-            return False
-
-        logger.info(f"Processing group: {group_id}")
-
-        # Get MS paths
-        ms_paths = self.get_group_ms_paths(group_id)
-        if len(ms_paths) < self.ms_per_group:
-            logger.warning(f"Group {group_id} has only {len(ms_paths)} MS files")
-            return False
-
-        # Select calibration MS
-        calibration_ms = self.select_calibration_ms(ms_paths)
-        if not calibration_ms:
-            logger.error(f"Could not select calibration MS for group {group_id}")
-            return False
-
-        # Solve calibration
-        bpcal_solved, gaincal_solved, error_msg = self.solve_calibration_for_group(
-            group_id, calibration_ms
-        )
-        if error_msg:
-            logger.error(f"Calibration solving failed for group {group_id}: {error_msg}")
-            return False
-
-        # Apply calibration
-        if not self.apply_calibration_to_group(group_id):
-            logger.error(f"Failed to apply calibration to group {group_id}")
-            return False
-
-        # Image all MS
-        if not self.image_group(group_id):
-            logger.error(f"Failed to image group {group_id}")
-            return False
-
-        # Create mosaic
-        mosaic_path = self.create_mosaic(group_id)
-        if not mosaic_path:
-            logger.error(f"Failed to create mosaic for group {group_id}")
-            return False
-
-        # Run cross-matching if enabled
-        if self.config and self.config.crossmatch.enabled:
-            try:
-                self.run_crossmatch_for_mosaic(group_id, mosaic_path)
-            except Exception as e:
-                logger.warning(
-                    f"Cross-matching failed for group {group_id}: {e}. "
-                    "Continuing without cross-match results."
-                )
-
-        logger.info(f"Successfully processed group {group_id}, mosaic: {mosaic_path}")
-        return True
 
     def get_last_group_overlap_ms(self) -> List[str]:
         """Get the last 2 MS files from the most recent completed group for overlap.
@@ -2382,7 +2678,8 @@ class StreamingMosaicManager:
         import hashlib
 
         ms_paths_hash = hashlib.sha256(ms_paths_str.encode()).hexdigest()[:12]
-        timestamp = int(time.time() * 1000000)  # Include microseconds for collision prevention
+        # Include microseconds for collision prevention
+        timestamp = int(time.time() * 1000000)
         group_id = f"group_{ms_paths_hash}_{timestamp}"
 
         # CRITICAL: Check for duplicate group_id (shouldn't happen, but safeguard)
@@ -2419,6 +2716,8 @@ class StreamingMosaicManager:
     def validate_group_dec(self, ms_paths: List[str]) -> Tuple[bool, Optional[float]]:
         """Validate that a bandpass calibrator is registered for the group's Dec.
 
+        If no calibrator is registered, attempts to auto-register one from catalog lookup.
+
         Args:
             ms_paths: List of MS file paths
 
@@ -2441,11 +2740,80 @@ class StreamingMosaicManager:
             # Check if calibrator is registered
             bp_cal = self.get_bandpass_calibrator_for_dec(dec_deg)
             if not bp_cal:
-                logger.error(
+                # DOCUMENTATION FIX: Auto-register calibrator from catalog if not found
+                # This enables zero-config operation as documented in DEFAULTS_AND_MINIMAL_INPUT.md
+                logger.info(
                     f"No bandpass calibrator registered for Dec={dec_deg:.6f}. "
-                    f"Cannot process group. Please register a calibrator first."
+                    f"Attempting to auto-register from catalog..."
                 )
-                return False, None
+
+                try:
+                    from dsa110_contimg.calibration.selection import select_bandpass_from_catalog
+
+                    # Try to find calibrator in the first MS
+                    (
+                        field_sel_str,
+                        field_indices,
+                        weighted_flux,
+                        cal_info,
+                        peak_field_idx,
+                    ) = select_bandpass_from_catalog(
+                        str(ms_paths[0]),
+                        catalog_path=None,  # Auto-resolve to SQLite catalog
+                        search_radius_deg=1.0,
+                        freq_GHz=1.4,
+                        window=3,
+                    )
+
+                    if cal_info:
+                        cal_name, cal_ra, cal_dec, cal_flux_jy = cal_info
+                        logger.info(
+                            f"Found calibrator {cal_name} in catalog "
+                            f"(RA={cal_ra:.6f}, Dec={cal_dec:.6f}, flux={cal_flux_jy:.3f} Jy). "
+                            f"Auto-registering..."
+                        )
+
+                        # Auto-register with default tolerance
+                        self.register_bandpass_calibrator(
+                            calibrator_name=cal_name,
+                            ra_deg=cal_ra,
+                            dec_deg=cal_dec,
+                            dec_tolerance=5.0,  # Default tolerance
+                            registered_by="auto-registration",
+                            notes=f"Auto-registered from catalog lookup for Dec={dec_deg:.6f}",
+                        )
+
+                        logger.info(
+                            f"Successfully auto-registered bandpass calibrator {cal_name} "
+                            f"for Dec={dec_deg:.6f}"
+                        )
+
+                        # Re-check after registration
+                        bp_cal = self.get_bandpass_calibrator_for_dec(dec_deg)
+                        if bp_cal:
+                            logger.info(
+                                f"Group Dec={dec_deg:.6f} validated: "
+                                f"bandpass calibrator {bp_cal['name']} is now registered"
+                            )
+                            return True, dec_deg
+                        else:
+                            logger.error(f"Failed to retrieve calibrator after auto-registration")
+                            return False, None
+                    else:
+                        logger.error(
+                            f"No bandpass calibrator found in catalog for Dec={dec_deg:.6f}. "
+                            f"Cannot process group. Please register a calibrator manually using "
+                            f"--register-bpcal or ensure catalog contains suitable calibrators."
+                        )
+                        return False, None
+
+                except Exception as e:
+                    logger.error(
+                        f"Failed to auto-register calibrator for Dec={dec_deg:.6f}: {e}. "
+                        f"Please register manually using --register-bpcal.",
+                        exc_info=True,
+                    )
+                    return False, None
 
             logger.info(
                 f"Group Dec={dec_deg:.6f} validated: "
@@ -2488,8 +2856,12 @@ class StreamingMosaicManager:
             logger.error(f"Group {group_id} validation failed: no calibrator registered for Dec")
             return False
 
-        # Select calibration MS
-        calibration_ms = self.select_calibration_ms(ms_paths)
+        # Get calibrator RA for transit-based MS selection
+        bp_cal = self.get_bandpass_calibrator_for_dec(dec_deg)
+        calibrator_ra = bp_cal["ra_deg"] if bp_cal else None
+
+        # Select calibration MS, preferring one that contains peak transit
+        calibration_ms = self.select_calibration_ms(ms_paths, calibrator_ra=calibrator_ra)
         if not calibration_ms:
             logger.error(f"Could not select calibration MS for group {group_id}")
             return False
@@ -2614,7 +2986,7 @@ def main() -> int:
     parser.add_argument(
         "--ms-dir",
         type=Path,
-        default=Path(os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms")),
+        default=Path(os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms")),
         help="Directory containing MS files",
     )
     parser.add_argument(
@@ -2701,6 +3073,7 @@ def main() -> int:
         products_db_path=args.products_db,
         registry_db_path=args.registry_db,
         ms_output_dir=args.ms_dir,
+        images_dir=args.images_dir,
         mosaic_output_dir=args.mosaic_dir,
     )
 

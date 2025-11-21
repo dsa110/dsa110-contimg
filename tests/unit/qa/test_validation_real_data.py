@@ -13,17 +13,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 import logging
+
 from dsa110_contimg.qa.catalog_validation import (
+    run_full_validation,
     validate_astrometry,
     validate_flux_scale,
     validate_source_counts,
-    run_full_validation,
 )
-from dsa110_contimg.qa.html_reports import generate_validation_report
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -92,14 +90,12 @@ def test_validation_with_real_data():
             )
             test_results["catalog_query"] = True
             test_results["astrometry"] = True
-            logger.info(f"✓ Catalog query successful")
+            logger.info("✓ Catalog query successful")
             logger.info(f"  - Matched sources: {astrometry_result.n_matched}")
             logger.info(f"  - Catalog sources: {astrometry_result.n_catalog}")
             logger.info(f"  - Detected sources: {astrometry_result.n_detected}")
             if astrometry_result.rms_offset_arcsec:
-                logger.info(
-                    f'  - RMS offset: {astrometry_result.rms_offset_arcsec:.2f}"'
-                )
+                logger.info(f'  - RMS offset: {astrometry_result.rms_offset_arcsec:.2f}"')
         except Exception as e:
             logger.error(f"✗ Catalog query failed: {e}", exc_info=True)
             return False
@@ -109,18 +105,14 @@ def test_validation_with_real_data():
         logger.info("Test 2: Flux Scale Validation")
         logger.info("=" * 70)
         try:
-            flux_result = validate_flux_scale(
-                image_path=test_image, catalog="nvss", min_snr=5.0
-            )
+            flux_result = validate_flux_scale(image_path=test_image, catalog="nvss", min_snr=5.0)
             test_results["flux_scale"] = True
-            logger.info(f"✓ Flux scale validation successful")
+            logger.info("✓ Flux scale validation successful")
             logger.info(f"  - Matched sources: {flux_result.n_matched}")
             if flux_result.mean_flux_ratio:
                 logger.info(f"  - Mean flux ratio: {flux_result.mean_flux_ratio:.3f}")
             if flux_result.flux_scale_error:
-                logger.info(
-                    f"  - Flux scale error: {flux_result.flux_scale_error*100:.1f}%"
-                )
+                logger.info(f"  - Flux scale error: {flux_result.flux_scale_error * 100:.1f}%")
         except Exception as e:
             logger.error(f"✗ Flux scale validation failed: {e}", exc_info=True)
             return False
@@ -137,17 +129,17 @@ def test_validation_with_real_data():
                 completeness_threshold=0.95,
             )
             test_results["source_counts"] = True
-            logger.info(f"✓ Source counts validation successful")
+            logger.info("✓ Source counts validation successful")
             logger.info(f"  - Matched sources: {completeness_result.n_matched}")
             logger.info(f"  - Catalog sources: {completeness_result.n_catalog}")
             logger.info(f"  - Detected sources: {completeness_result.n_detected}")
             if completeness_result.completeness:
                 logger.info(
-                    f"  - Overall completeness: {completeness_result.completeness*100:.1f}%"
+                    f"  - Overall completeness: {completeness_result.completeness * 100:.1f}%"
                 )
             if completeness_result.completeness_limit_jy:
                 logger.info(
-                    f"  - Completeness limit: {completeness_result.completeness_limit_jy*1000:.2f} mJy"
+                    f"  - Completeness limit: {completeness_result.completeness_limit_jy * 1000:.2f} mJy"
                 )
         except Exception as e:
             logger.error(f"✗ Source counts validation failed: {e}", exc_info=True)
@@ -167,7 +159,7 @@ def test_validation_with_real_data():
                 html_output_path=html_path,
             )
             test_results["html_report"] = True
-            logger.info(f"✓ Full validation with HTML report successful")
+            logger.info("✓ Full validation with HTML report successful")
             logger.info(f"  - HTML report: {html_path}")
 
             # Check if HTML file exists and contains expected content

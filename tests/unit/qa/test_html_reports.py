@@ -6,23 +6,20 @@ Tests the HTML report generation functionality with sample images.
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 import logging
+
 from dsa110_contimg.qa.catalog_validation import run_full_validation
 from dsa110_contimg.qa.html_reports import (
-    generate_validation_report,
-    ValidationReport,
     CatalogValidationResult,
+    generate_validation_report,
 )
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -66,14 +63,12 @@ def test_html_report_generation():
     try:
         # Test 1: Run full validation with HTML generation
         logger.info("Test 1: Running full validation with HTML generation...")
-        astrometry_result, flux_scale_result, source_counts_result = (
-            run_full_validation(
-                image_path=test_image,
-                catalog="nvss",
-                validation_types=["astrometry", "flux_scale", "source_counts"],
-                generate_html=True,
-                html_output_path=str(output_path),
-            )
+        astrometry_result, flux_scale_result, source_counts_result = run_full_validation(
+            image_path=test_image,
+            catalog="nvss",
+            validation_types=["astrometry", "flux_scale", "source_counts"],
+            generate_html=True,
+            html_output_path=str(output_path),
         )
 
         logger.info("✓ Validation completed")
@@ -192,12 +187,12 @@ def test_html_report_generation():
         logger.info("\n" + "=" * 70)
         logger.info("Test Summary")
         logger.info("=" * 70)
-        logger.info(f"✓ All tests passed!")
-        logger.info(f"\nGenerated HTML reports:")
+        logger.info("✓ All tests passed!")
+        logger.info("\nGenerated HTML reports:")
         logger.info(f"  1. {output_path}")
         logger.info(f"  2. {output_dir / f'{Path(test_image).stem}_report2.html'}")
         logger.info(f"  3. {output_dir / f'{Path(test_image).stem}_mock_report.html'}")
-        logger.info(f"\nOpen any of these files in a web browser to view the reports.")
+        logger.info("\nOpen any of these files in a web browser to view the reports.")
 
         return True
 

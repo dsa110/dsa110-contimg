@@ -6,11 +6,7 @@ Tests the normalize endpoint with focus on:
 - Error handling and edge cases
 """
 
-from pathlib import Path
-from typing import Tuple
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from dsa110_contimg.api.models import (
     PhotometryNormalizeRequest,
@@ -30,7 +26,10 @@ class TestPhotometryNormalizeEndpoint:
     def test_normalize_success(self, mock_normalize, mock_compute, mock_query, tmp_path):
         """Test successful normalization."""
         from dsa110_contimg.api.routers.photometry import normalize_photometry
-        from dsa110_contimg.photometry.normalize import CorrectionResult, ReferenceSource
+        from dsa110_contimg.photometry.normalize import (
+            CorrectionResult,
+            ReferenceSource,
+        )
 
         # Mock request
         request = MagicMock()

@@ -34,10 +34,6 @@ try:
 except ImportError:
     HAVE_SCIPY = False
 
-from dsa110_contimg.utils.runtime_safeguards import (
-    filter_non_finite_2d,
-)
-
 
 @dataclass
 class ForcedPhotometryResult:
@@ -111,16 +107,13 @@ class G2D:
 
         # Pre-compute coefficients for efficiency
         self.a = (
-            np.cos(self.pa) ** 2 / 2 / self.sigma_x**2
-            + np.sin(self.pa) ** 2 / 2 / self.sigma_y**2
+            np.cos(self.pa) ** 2 / 2 / self.sigma_x**2 + np.sin(self.pa) ** 2 / 2 / self.sigma_y**2
         )
         self.b = (
-            np.sin(2 * self.pa) / 2 / self.sigma_x**2
-            - np.sin(2 * self.pa) / 2 / self.sigma_y**2
+            np.sin(2 * self.pa) / 2 / self.sigma_x**2 - np.sin(2 * self.pa) / 2 / self.sigma_y**2
         )
         self.c = (
-            np.sin(self.pa) ** 2 / 2 / self.sigma_x**2
-            + np.cos(self.pa) ** 2 / 2 / self.sigma_y**2
+            np.sin(self.pa) ** 2 / 2 / self.sigma_x**2 + np.cos(self.pa) ** 2 / 2 / self.sigma_y**2
         )
 
     def __call__(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
@@ -268,9 +261,7 @@ def measure_forced_peak(
     if background_map_path:
         bg_data = np.asarray(fits.getdata(background_map_path)).squeeze()
         if bg_data.shape != data.shape:
-            raise ValueError(
-                f"Background map shape {bg_data.shape} != image shape {data.shape}"
-            )
+            raise ValueError(f"Background map shape {bg_data.shape} != image shape {data.shape}")
         data = data - bg_data
 
     # Load noise map if provided
@@ -280,9 +271,7 @@ def measure_forced_peak(
         if noise_path.exists():
             noise_map = np.asarray(fits.getdata(noise_path)).squeeze()
             if noise_map.shape != data.shape:
-                raise ValueError(
-                    f"Noise map shape {noise_map.shape} != image shape {data.shape}"
-                )
+                raise ValueError(f"Noise map shape {noise_map.shape} != image shape {data.shape}")
             # Convert zero-valued noise pixels to NaN
             noise_map[noise_map == 0] = np.nan
 
@@ -303,9 +292,7 @@ def measure_forced_peak(
         )
 
     # Check if we can use weighted convolution
-    has_beam_info = (
-        "BMAJ" in hdr and "BMIN" in hdr and "BPA" in hdr and use_weighted_convolution
-    )
+    has_beam_info = "BMAJ" in hdr and "BMIN" in hdr and "BPA" in hdr and use_weighted_convolution
 
     if has_beam_info:
         # Use weighted convolution method
@@ -366,9 +353,7 @@ def measure_forced_peak(
             cutout_noise = np.full_like(cutout_data, rms)
 
         # Filter NaN pixels
-        good = (
-            np.isfinite(cutout_data) & np.isfinite(cutout_noise) & np.isfinite(kernel)
-        )
+        good = np.isfinite(cutout_data) & np.isfinite(cutout_noise) & np.isfinite(kernel)
         if good.sum() == 0:
             return ForcedPhotometryResult(
                 ra_deg=ra_deg,
@@ -469,9 +454,7 @@ def _measure_cluster(
     if not ("BMAJ" in hdr and "BMIN" in hdr and "BPA" in hdr):
         # Fall back to individual measurements
         return [
-            measure_forced_peak(
-                fits_path, ra, dec, nbeam=nbeam, annulus_pix=annulus_pix
-            )
+            measure_forced_peak(fits_path, ra, dec, nbeam=nbeam, annulus_pix=annulus_pix)
             for ra, dec in positions
         ]
 
@@ -582,9 +565,7 @@ def _measure_cluster(
             weights=1.0 / cutout_noise[good] ** 2,
         )
         model = fitted_model(xx, yy)
-        chisq_total = (
-            ((cutout_data[good] - model[good]) / cutout_noise[good]) ** 2
-        ).sum()
+        chisq_total = (((cutout_data[good] - model[good]) / cutout_noise[good]) ** 2).sum()
         dof_total = int(good.sum() - len(positions))
     except Exception:
         # Fit failed, return NaN results
@@ -757,7 +738,7 @@ def measure_many(
 
         # Combine results in original order
         final_results: List[ForcedPhotometryResult] = []
-        cluster_idx = {cluster_id: 0 for cluster_id in clusters.keys()}
+        {cluster_id: 0 for cluster_id in clusters.keys()}
         for i, (ra, dec) in enumerate(coords):
             if i not in in_cluster:
                 # Find individual result

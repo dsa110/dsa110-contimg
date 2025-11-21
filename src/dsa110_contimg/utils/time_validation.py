@@ -65,9 +65,7 @@ def validate_ms_time_against_filename(
             return False, "Could not extract time from MS", None
 
         # Compare with filename timestamp
-        time_diff_hours = abs(
-            (Time(mid_mjd, format="mjd") - filename_timestamp).to("hour").value
-        )
+        time_diff_hours = abs((Time(mid_mjd, format="mjd") - filename_timestamp).to("hour").value)
 
         if time_diff_hours > tolerance_hours:
             error_msg = (
@@ -405,9 +403,7 @@ def comprehensive_time_validation(
 
     # Check 3: UVH5 cross-validation
     if uvh5_path is not None:
-        is_valid, error_msg, time_diff = validate_ms_time_against_uvh5(
-            ms_path, uvh5_path
-        )
+        is_valid, error_msg, time_diff = validate_ms_time_against_uvh5(ms_path, uvh5_path)
         results["checks"]["uvh5_validation"] = {
             "valid": is_valid,
             "error": error_msg,
@@ -419,9 +415,7 @@ def comprehensive_time_validation(
 
     # Check 4: LST consistency
     if pointing_ra_deg is not None:
-        is_valid, error_msg, lst_diff = validate_lst_consistency(
-            ms_path, pointing_ra_deg
-        )
+        is_valid, error_msg, lst_diff = validate_lst_consistency(ms_path, pointing_ra_deg)
         results["checks"]["lst_consistency"] = {
             "valid": is_valid,
             "error": error_msg,

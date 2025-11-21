@@ -20,17 +20,13 @@ class ApiConfig:
     def from_env(cls) -> "ApiConfig":
         """Build configuration from environment variables with sane defaults."""
 
-        def safe_int(
-            env_var: str, default: str, min_val: int = 1, max_val: int = 32
-        ) -> int:
+        def safe_int(env_var: str, default: str, min_val: int = 1, max_val: int = 32) -> int:
             """Safely convert environment variable to integer with validation."""
             value_str = os.getenv(env_var, default)
             try:
                 value = int(value_str)
                 if value < min_val or value > max_val:
-                    raise ValueError(
-                        f"{env_var}={value} must be between {min_val} and {max_val}"
-                    )
+                    raise ValueError(f"{env_var}={value} must be between {min_val} and {max_val}")
                 return value
             except ValueError as e:
                 if "invalid literal" in str(e) or "could not convert" in str(e):

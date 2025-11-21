@@ -122,6 +122,11 @@ nav:
       # (Dashboard sub-pages consolidated into Dashboard Guide)
       - Linear Integration: how-to/LINEAR_INTEGRATION.md
       - Frontend Initial Setup: how-to/frontend-initial-setup.md
+      - Development Setup:
+          - Environment Setup: how-to/ENVIRONMENT_SETUP.md
+          - Pre-commit Setup: how-to/PRE_COMMIT_SETUP.md
+          - CI/CD Setup: how-to/CI_CD_SETUP.md
+          - Test Database Setup: how-to/TEST_DATABASE_SETUP.md
       - AOFlagger Parameter Optimization: how-to/PARAMETER_OPTIMIZATION_GUIDE.md
       - Downsampling Guide: how-to/downsampling_guide.md
       - Conversion:

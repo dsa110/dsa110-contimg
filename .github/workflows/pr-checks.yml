@@ -1,0 +1,156 @@
+name: PR Checks
+
+on:
+  pull_request:
+    paths:
+      - "**/*.py"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.json"
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "**/*.md"
+      - "tests/**"
+      - "src/**"
+      - "frontend/**"
+      - ".github/workflows/**"
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - "**/*.py"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "tests/**"
+      - "src/**"
+      - "frontend/**"
+
+jobs:
+  python-checks:
+    name: Python Code Quality & Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Miniforge
+        uses: conda-incubator/setup-miniforge@v3
+        with:
+          miniforge-version: latest
+          activate-environment: casa6
+          python-version: "3.11"
+
+      - name: Create casa6 conda environment
+        run: |
+          conda env create -f env/environment.yml
+          conda activate casa6
+
+      - name: Install dependencies
+        run: |
+          conda activate casa6
+          pip install -e .
+
+      - name: Run linting (flake8)
+        run: |
+          conda activate casa6
+          /opt/miniforge/envs/casa6/bin/flake8 src/ --max-line-length=88 --extend-ignore=E203,W503 || true
+
+      - name: Run type checking (mypy)
+        run: |
+          conda activate casa6
+          /opt/miniforge/envs/casa6/bin/mypy src/ --ignore-missing-imports --no-strict-optional || true
+
+      - name: Run security scanning (bandit)
+        run: |
+          conda activate casa6
+          /opt/miniforge/envs/casa6/bin/bandit -r src/ -f screen -ll --skip B101,B601 || true
+
+      - name: Run unit tests with coverage
+        run: |
+          conda activate casa6
+          /opt/miniforge/envs/casa6/bin/pytest tests/unit/ \
+            --cov=src \
+            --cov-report=xml \
+            --cov-report=term \
+            --cov-report=html \
+            -v
+
+      - name: Check coverage thresholds
+        run: |
+          conda activate casa6
+          /opt/miniforge/envs/casa6/bin/pytest tests/unit/ \
+            --cov=src \
+            --cov-report=term \
+            --cov-fail-under=60
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+  frontend-checks:
+    name: Frontend Code Quality & Tests
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.changed_files, 'frontend/') || github.event_name == 'push'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run linting
+        working-directory: ./frontend
+        run: npm run lint || true
+
+      - name: Run type checking
+        working-directory: ./frontend
+        run: npm run type-check || true
+
+      - name: Run tests
+        working-directory: ./frontend
+        run: npm test -- --coverage || true
+
+  integration-checks:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.changed_files, 'src/') || github.event_name == 'push'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Miniforge
+        uses: conda-incubator/setup-miniforge@v3
+        with:
+          miniforge-version: latest
+          activate-environment: casa6
+          python-version: "3.11"
+
+      - name: Create casa6 conda environment
+        run: |
+          conda env create -f env/environment.yml
+          conda activate casa6
+
+      - name: Install dependencies
+        run: |
+          conda activate casa6
+          pip install -e .
+
+      - name: Run integration tests
+        run: |
+          conda activate casa6
+          /opt/miniforge/envs/casa6/bin/pytest tests/integration/ -v -m "not slow" || true

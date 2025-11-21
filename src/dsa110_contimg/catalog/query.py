@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 import sqlite3
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 import astropy.units as u
 import numpy as np
@@ -25,7 +25,7 @@ def resolve_catalog_path(
     """Resolve path to a catalog (SQLite or CSV) using standard precedence.
 
     Args:
-        catalog_type: One of "nvss", "first", "rax", "vlass", "master"
+        catalog_type: One of "nvss", "first", "rax", "vlass", "master", "atnf"
         dec_strip: Declination in degrees (for per-strip SQLite databases)
         explicit_path: Override path (highest priority)
 
@@ -121,13 +121,33 @@ def resolve_catalog_path(
         if best_match is not None:
             return best_match
 
-    # 4. Try standard master catalog location
+    # 4. Try standard catalog locations for all-sky catalogs (master, atnf)
     if catalog_type == "master":
         master_candidates = [
             Path("/data/dsa110-contimg/state/catalogs/master_sources.sqlite3"),
             Path("state/catalogs/master_sources.sqlite3"),
         ]
         for candidate in master_candidates:
+            if candidate.exists():
+                return candidate
+
+    if catalog_type == "atnf":
+        atnf_candidates = [
+            Path("/data/dsa110-contimg/state/catalogs/atnf_pulsars.sqlite3"),
+            Path("state/catalogs/atnf_pulsars.sqlite3"),
+        ]
+        # Also check for current directory variants
+        try:
+            current_file = Path(__file__).resolve()
+            potential_root = current_file.parents[3]
+            if (potential_root / "src" / "dsa110_contimg").exists():
+                atnf_candidates.insert(
+                    0, potential_root / "state" / "catalogs" / "atnf_pulsars.sqlite3"
+                )
+        except Exception:
+            pass
+
+        for candidate in atnf_candidates:
             if candidate.exists():
                 return candidate
 
@@ -153,12 +173,13 @@ def query_sources(
     min_flux_mjy: Optional[float] = None,
     max_sources: Optional[int] = None,
     catalog_path: Optional[str | os.PathLike[str]] = None,
+    validate_coverage: bool = True,
     **kwargs,
 ) -> pd.DataFrame:
     """Query sources from catalog within a field of view.
 
     Args:
-        catalog_type: One of "nvss", "first", "rax", "vlass", "master"
+        catalog_type: One of "nvss", "first", "rax", "vlass", "master", "atnf"
         ra_center: Field center RA in degrees
         dec_center: Field center Dec in degrees
         radius_deg: Search radius in degrees
@@ -166,11 +187,30 @@ def query_sources(
         min_flux_mjy: Minimum flux in mJy (catalog-specific)
         max_sources: Maximum number of sources to return
         catalog_path: Explicit path to catalog (overrides auto-resolution)
-        **kwargs: Catalog-specific query parameters
+        validate_coverage: If True, check if position is in catalog coverage
+        **kwargs: Catalog-specific query parameters (e.g., min_period_s for ATNF)
 
     Returns:
         DataFrame with columns: ra_deg, dec_deg, flux_mjy, and catalog-specific fields
     """
+    # Validate catalog coverage if requested
+    if validate_coverage:
+        try:
+            import logging
+
+            from dsa110_contimg.catalog.coverage import validate_catalog_choice
+
+            logger = logging.getLogger(__name__)
+
+            is_valid, warning = validate_catalog_choice(
+                catalog_type=catalog_type, ra_deg=ra_center, dec_deg=dec_center
+            )
+
+            if not is_valid:
+                logger.warning(f"Coverage validation: {warning}")
+        except ImportError:
+            pass  # coverage module not available
+
     # Auto-detect dec_strip from dec_center if not provided
     if dec_strip is None:
         # Ensure dec_center is a scalar (handle numpy arrays)
@@ -276,7 +316,7 @@ def _query_sqlite(
             query = f"""
             SELECT ra_deg, dec_deg, flux_mjy
             FROM sources
-            WHERE {' AND '.join(where_clauses)}
+            WHERE {" AND ".join(where_clauses)}
             ORDER BY flux_mjy DESC
             """
 
@@ -307,7 +347,7 @@ def _query_sqlite(
             query = f"""
             SELECT ra_deg, dec_deg, flux_mjy, maj_arcsec, min_arcsec
             FROM sources
-            WHERE {' AND '.join(where_clauses)}
+            WHERE {" AND ".join(where_clauses)}
             ORDER BY flux_mjy DESC
             """
 
@@ -338,7 +378,7 @@ def _query_sqlite(
             query = f"""
             SELECT ra_deg, dec_deg, flux_mjy
             FROM sources
-            WHERE {' AND '.join(where_clauses)}
+            WHERE {" AND ".join(where_clauses)}
             ORDER BY flux_mjy DESC
             """
 
@@ -356,6 +396,108 @@ def _query_sqlite(
 
             rows = conn.execute(query, params).fetchall()
 
+        elif catalog_type == "atnf":
+            # Check which schema is used (full database has 'pulsars' table, strip databases have 'sources' table)
+            cursor = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND (name='pulsars' OR name='sources')"
+            )
+            tables = [row[0] for row in cursor.fetchall()]
+
+            if "pulsars" in tables:
+                # Full ATNF Pulsar Catalogue schema
+                where_clauses = [
+                    "ra_deg BETWEEN ? AND ?",
+                    "dec_deg BETWEEN ? AND ?",
+                ]
+
+                # Add flux threshold (1400 MHz)
+                if min_flux_mjy is not None:
+                    where_clauses.append("flux_1400mhz_mjy >= ?")
+
+                # Add period threshold (if provided via kwargs)
+                min_period_s = kwargs.get("min_period_s")
+                max_period_s = kwargs.get("max_period_s")
+                if min_period_s is not None:
+                    where_clauses.append("period_s >= ?")
+                if max_period_s is not None:
+                    where_clauses.append("period_s <= ?")
+
+                # Add DM threshold (if provided via kwargs)
+                min_dm = kwargs.get("min_dm_pc_cm3")
+                max_dm = kwargs.get("max_dm_pc_cm3")
+                if min_dm is not None:
+                    where_clauses.append("dm_pc_cm3 >= ?")
+                if max_dm is not None:
+                    where_clauses.append("dm_pc_cm3 <= ?")
+
+                # Note: SQLite does not support NULLS LAST clause.
+                # DESC naturally places NULLs last for numeric values.
+                query = f"""
+                SELECT
+                    pulsar_name, ra_deg, dec_deg,
+                    period_s, period_dot, dm_pc_cm3,
+                    flux_400mhz_mjy, flux_1400mhz_mjy, flux_2000mhz_mjy,
+                    distance_kpc, pulsar_type, binary_type, association
+                FROM pulsars
+                WHERE {" AND ".join(where_clauses)}
+                ORDER BY flux_1400mhz_mjy DESC
+                """
+
+                params = [
+                    ra_center - ra_half,
+                    ra_center + ra_half,
+                    dec_center - dec_half,
+                    dec_center + dec_half,
+                ]
+                if min_flux_mjy is not None:
+                    params.append(min_flux_mjy)
+                if min_period_s is not None:
+                    params.append(min_period_s)
+                if max_period_s is not None:
+                    params.append(max_period_s)
+                if min_dm is not None:
+                    params.append(min_dm)
+                if max_dm is not None:
+                    params.append(max_dm)
+
+                if max_sources:
+                    query += f" LIMIT {max_sources}"
+
+                rows = conn.execute(query, params).fetchall()
+            elif "sources" in tables:
+                # ATNF strip database schema (simpler, like NVSS/FIRST)
+                where_clauses = [
+                    "ra_deg BETWEEN ? AND ?",
+                    "dec_deg BETWEEN ? AND ?",
+                ]
+                if min_flux_mjy is not None:
+                    where_clauses.append("flux_mjy >= ?")
+
+                query = f"""
+                SELECT ra_deg, dec_deg, flux_mjy
+                FROM sources
+                WHERE {" AND ".join(where_clauses)}
+                ORDER BY flux_mjy DESC
+                """
+
+                params = [
+                    ra_center - ra_half,
+                    ra_center + ra_half,
+                    dec_center - dec_half,
+                    dec_center + dec_half,
+                ]
+                if min_flux_mjy is not None:
+                    params.append(min_flux_mjy)
+
+                if max_sources:
+                    query += f" LIMIT {max_sources}"
+
+                rows = conn.execute(query, params).fetchall()
+            else:
+                raise ValueError(
+                    f"ATNF database {catalog_path} does not contain 'pulsars' or 'sources' table"
+                )
+
         elif catalog_type == "vlass":
             # VLASS catalog schema (similar to NVSS)
             flux_col = "flux_mjy"
@@ -369,7 +511,7 @@ def _query_sqlite(
             query = f"""
             SELECT ra_deg, dec_deg, flux_mjy
             FROM sources
-            WHERE {' AND '.join(where_clauses)}
+            WHERE {" AND ".join(where_clauses)}
             ORDER BY flux_mjy DESC
             """
 
@@ -400,7 +542,7 @@ def _query_sqlite(
             SELECT ra_deg, dec_deg, s_nvss * 1000.0 as flux_mjy,
                    snr_nvss, s_vlass, alpha, resolved_flag, confusion_flag
             FROM sources
-            WHERE {' AND '.join(where_clauses)}
+            WHERE {" AND ".join(where_clauses)}
             ORDER BY snr_nvss DESC
             """
 
@@ -421,7 +563,7 @@ def _query_sqlite(
         else:
             raise ValueError(
                 f"Unsupported catalog type for SQLite: {catalog_type}. "
-                f"Supported types: nvss, first, rax, vlass, master"
+                f"Supported types: nvss, first, rax, vlass, master, atnf"
             )
 
         # Convert to DataFrame
@@ -438,7 +580,9 @@ def _query_sqlite(
                 frame="icrs",
             )
             center = SkyCoord(
-                ra_center * u.deg, dec_center * u.deg, frame="icrs"  # pylint: disable=no-member
+                ra_center * u.deg,
+                dec_center * u.deg,
+                frame="icrs",  # pylint: disable=no-member
             )  # pylint: disable=no-member
             sep = sc.separation(center).deg
             df = df[sep <= radius_deg].copy()
@@ -466,7 +610,9 @@ def _query_nvss_csv(
         frame="icrs",
     )
     center = SkyCoord(
-        ra_center * u.deg, dec_center * u.deg, frame="icrs"  # pylint: disable=no-member
+        ra_center * u.deg,
+        dec_center * u.deg,
+        frame="icrs",  # pylint: disable=no-member
     )  # pylint: disable=no-member
     sep = sc.separation(center).deg
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Investigate MODEL_DATA phase center vs field phase centers."""
+
 import sys
 
 import astropy.units as u
@@ -19,9 +20,7 @@ print("=" * 70)
 # Get expected coordinates
 catalog = load_vla_catalog()
 expected_ra_deg, expected_dec_deg = get_calibrator_radec(catalog, "0834+555")
-expected_coord = SkyCoord(
-    expected_ra_deg * u.deg, expected_dec_deg * u.deg, frame="icrs"
-)
+expected_coord = SkyCoord(expected_ra_deg * u.deg, expected_dec_deg * u.deg, frame="icrs")
 
 print(f"\nExpected 0834+555: RA={expected_ra_deg:.10f}°, Dec={expected_dec_deg:.10f}°")
 
@@ -49,9 +48,9 @@ with table(ms_path + "/FIELD", readonly=True) as field:
 # Check component list phase center
 cl_path = "/stage/dsa110-contimg/ms/0834_20251029/0834+555.cl"
 
-print(f'\n{"="*70}')
+print(f"\n{'=' * 70}")
 print("Checking component list phase center:")
-print(f'{"="*70}')
+print(f"{'=' * 70}")
 
 try:
     from casatools import componentlist as cltool
@@ -86,9 +85,9 @@ except Exception as e:
     traceback.print_exc()
 
 # Check MODEL_DATA phase structure by field
-print(f'\n{"="*70}')
+print(f"\n{'=' * 70}")
 print("Checking MODEL_DATA phase structure by field:")
-print(f'{"="*70}')
+print(f"{'=' * 70}")
 
 with table(ms_path, readonly=True) as tb:
     # Get FIELD_ID for each row
@@ -104,9 +103,7 @@ with table(ms_path, readonly=True) as tb:
 
         if len(field_rows) > 0:
             sample_size = min(100, len(field_rows))
-            model_data = tb.getcol(
-                "MODEL_DATA", startrow=field_rows[0], nrow=sample_size
-            )
+            model_data = tb.getcol("MODEL_DATA", startrow=field_rows[0], nrow=sample_size)
 
             # Check if MODEL_DATA is purely real (phase = 0) for this field
             flat_data = model_data.flatten()
@@ -124,11 +121,11 @@ with table(ms_path, readonly=True) as tb:
 
                 if phase_std_deg < 0.01 and max_imag < 1e-6:
                     print(
-                        f"  ✓ MODEL_DATA is purely real (phase ≈ 0) - consistent with source at phase center"
+                        "  ✓ MODEL_DATA is purely real (phase ≈ 0) - consistent with source at phase center"
                     )
                 else:
                     print(
-                        f"  ✗ MODEL_DATA has phase variation - may indicate source not at phase center"
+                        "  ✗ MODEL_DATA has phase variation - may indicate source not at phase center"
                     )
 
 print("\n" + "=" * 70)

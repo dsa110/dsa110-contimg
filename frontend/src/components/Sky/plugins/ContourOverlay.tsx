@@ -6,9 +6,7 @@ import { useEffect, useRef } from "react";
 import { logger } from "../../../utils/logger";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 interface ContourPath {
@@ -51,7 +49,7 @@ const getContourColor = (
 
   // Use different shades/intensities based on level
   // Higher levels get brighter colors
-  const intensity = Math.floor(128 + normalized * 127);
+  const _intensity = Math.floor(128 + normalized * 127);
 
   // Convert hex color to RGB if needed
   if (baseColor.startsWith("#")) {
@@ -136,16 +134,18 @@ export default function ContourOverlay({
           // JS9 doesn't have a direct polyline overlay, so we draw line segments
           for (let i = 0; i < x.length - 1; i++) {
             try {
-              const overlay = window.JS9.AddOverlay(display.im.id, {
-                type: "line",
-                x1: x[i],
-                y1: y[i],
-                x2: x[i + 1],
-                y2: y[i + 1],
-                color: levelColor,
-                width: lineWidth,
-                opacity: opacity,
-              });
+              const overlay =
+                display.im &&
+                window.JS9.AddOverlay(display.im.id, {
+                  type: "line",
+                  x1: x[i],
+                  y1: y[i],
+                  x2: x[i + 1],
+                  y2: y[i + 1],
+                  color: levelColor,
+                  width: lineWidth,
+                  opacity: opacity,
+                });
 
               if (overlay) {
                 overlayRefs.current.push(overlay);

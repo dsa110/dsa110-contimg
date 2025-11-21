@@ -179,8 +179,7 @@ class Table:
                 cell_html = self._get_cell_html(irow, icol)
                 col_style = self.get_styles("table-cell", f"col{icol}")
                 html_parts.append(
-                    f'<div style="display: table-cell; {col_style}">'
-                    f"{cell_html}</div>"
+                    f'<div style="display: table-cell; {col_style}">{cell_html}</div>'
                 )
             html_parts.append("</div>")
 

@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """Run gaincal on SPW-merged MS (before field merge)."""
+
 import os
 import sys
 
 from casatasks import gaincal
 
-ms_path = (
-    "/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased_concat_spws.ms"
-)
+ms_path = "/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased_concat_spws.ms"
 
 # Use a common refant
 refant = "59"
@@ -47,17 +46,15 @@ try:
 
     # Check if table was created
     if os.path.exists(caltable):
-        print(f"\n✓ SUCCESS: Calibration table created")
+        print("\n✓ SUCCESS: Calibration table created")
         print(f"  Location: {caltable}")
         # Just check if directory exists and has files
         if os.path.isdir(caltable):
             files = os.listdir(caltable)
             print(f"  Table directory contains {len(files)} items")
-            print(
-                f"\n✓ This confirms the issue is with field merging, not SPW merging!"
-            )
+            print("\n✓ This confirms the issue is with field merging, not SPW merging!")
     else:
-        print(f"\n✗ ERROR: Table was not created")
+        print("\n✗ ERROR: Table was not created")
 
 except Exception as e:
     print(f"\n✗ ERROR: {e}")

@@ -1,5 +1,4 @@
 import fnmatch
-import json
 import logging
 import os
 from typing import Any, Dict, List, Optional, Union
@@ -7,8 +6,6 @@ from typing import Any, Dict, List, Optional, Union
 from casatasks import gaincal as casa_gaincal  # type: ignore[import]
 
 from dsa110_contimg.calibration.validate import (
-    validate_caltable_compatibility,
-    validate_caltable_exists,
     validate_caltables_for_use,
 )
 from dsa110_contimg.conversion.merge_spws import get_spw_count
@@ -464,20 +461,20 @@ def solve_delay(
     with table(ms) as tb:
         if "MODEL_DATA" not in tb.colnames():
             raise ValueError(
-                f"MODEL_DATA column does not exist in MS. "
-                f"This is a required precondition for K-calibration. "
-                f"Populate MODEL_DATA using setjy, ft(), or a catalog model before "
-                f"calling solve_delay()."
+                "MODEL_DATA column does not exist in MS. "
+                "This is a required precondition for K-calibration. "
+                "Populate MODEL_DATA using setjy, ft(), or a catalog model before "
+                "calling solve_delay()."
             )
 
         # Check if MODEL_DATA is populated (not all zeros)
         model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=min(100, tb.nrows()))
         if np.all(np.abs(model_sample) < 1e-10):
             raise ValueError(
-                f"MODEL_DATA column exists but is all zeros (unpopulated). "
-                f"This is a required precondition for K-calibration. "
-                f"Populate MODEL_DATA using setjy, ft(), or a catalog model before "
-                f"calling solve_delay()."
+                "MODEL_DATA column exists but is all zeros (unpopulated). "
+                "This is a required precondition for K-calibration. "
+                "Populate MODEL_DATA using setjy, ft(), or a catalog model before "
+                "calling solve_delay()."
             )
 
         field_ids = tb.getcol("FIELD_ID")
@@ -528,7 +525,7 @@ def solve_delay(
     # OPTIMIZATION: Allow skipping slow solve in fast mode for speed
     if not skip_slow:
         try:
-            logger.info(f"Running delay solve (K) on field {cal_field} " f"with refant {refant}...")
+            logger.info(f"Running delay solve (K) on field {cal_field} with refant {refant}...")
             kwargs = dict(
                 vis=ms,
                 caltable=f"{table_prefix}_kcal",
@@ -695,17 +692,17 @@ def solve_prebandpass_phase(
     with table(ms) as tb:
         if "MODEL_DATA" not in tb.colnames():
             raise ValueError(
-                f"MODEL_DATA column does not exist in MS. "
-                f"This is a required precondition for phase-only calibration. "
-                f"Populate MODEL_DATA before calling solve_prebandpass_phase()."
+                "MODEL_DATA column does not exist in MS. "
+                "This is a required precondition for phase-only calibration. "
+                "Populate MODEL_DATA before calling solve_prebandpass_phase()."
             )
 
         model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=min(100, tb.nrows()))
         if np.all(np.abs(model_sample) < 1e-10):
             raise ValueError(
-                f"MODEL_DATA column exists but is all zeros (unpopulated). "
-                f"This is a required precondition for phase-only calibration. "
-                f"Populate MODEL_DATA before calling solve_prebandpass_phase()."
+                "MODEL_DATA column exists but is all zeros (unpopulated). "
+                "This is a required precondition for phase-only calibration. "
+                "Populate MODEL_DATA before calling solve_prebandpass_phase()."
             )
 
     # Determine field selector based on combine_fields setting
@@ -750,7 +747,7 @@ def solve_prebandpass_phase(
         ref_freqs = tspw.getcol("REF_FREQUENCY")
         num_chan = tspw.getcol("NUM_CHAN")
         logger.info(f"MS contains {n_spws} spectral windows: SPW {spw_ids[0]} to SPW {spw_ids[-1]}")
-        logger.info(f"  Frequency range: {ref_freqs[0]/1e9:.4f} - {ref_freqs[-1]/1e9:.4f} GHz")
+        logger.info(f"  Frequency range: {ref_freqs[0] / 1e9:.4f} - {ref_freqs[-1] / 1e9:.4f} GHz")
         logger.info(f"  Total channels across all SPWs: {np.sum(num_chan)}")
 
     # Check data selection for the specified field
@@ -784,16 +781,16 @@ def solve_prebandpass_phase(
         logger.info(f"  Total SPWs to be processed: {len(spw_ids_with_data)}")
 
         if combine_spw:
-            logger.info(f"\n  COMBINE='spw' is ENABLED:")
+            logger.info("\n  COMBINE='spw' is ENABLED:")
             logger.info(
                 f"    → All {len(spw_ids_with_data)} SPWs will be used together in a single solve"
             )
-            logger.info(f"    → Solution will be stored in SPW ID 0 (aggregate SPW)")
+            logger.info("    → Solution will be stored in SPW ID 0 (aggregate SPW)")
             logger.info(
                 f"    → This improves SNR by using all {len(spw_ids_with_data)} subbands simultaneously"
             )
         else:
-            logger.info(f"\n  COMBINE='spw' is DISABLED:")
+            logger.info("\n  COMBINE='spw' is DISABLED:")
             logger.info(
                 f"    → Each of the {len(spw_ids_with_data)} SPWs will be solved separately"
             )
@@ -892,20 +889,20 @@ def solve_bandpass(
     with table(ms) as tb:
         if "MODEL_DATA" not in tb.colnames():
             raise ValueError(
-                f"MODEL_DATA column does not exist in MS. "
-                f"This is a required precondition for bandpass calibration. "
-                f"Populate MODEL_DATA using setjy, ft(), or a catalog model before "
-                f"calling solve_bandpass()."
+                "MODEL_DATA column does not exist in MS. "
+                "This is a required precondition for bandpass calibration. "
+                "Populate MODEL_DATA using setjy, ft(), or a catalog model before "
+                "calling solve_bandpass()."
             )
 
         # Check if MODEL_DATA is populated (not all zeros)
         model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=min(100, tb.nrows()))
         if np.all(np.abs(model_sample) < 1e-10):
             raise ValueError(
-                f"MODEL_DATA column exists but is all zeros (unpopulated). "
-                f"This is a required precondition for bandpass calibration. "
-                f"Populate MODEL_DATA using setjy, ft(), or a catalog model before "
-                f"calling solve_bandpass()."
+                "MODEL_DATA column exists but is all zeros (unpopulated). "
+                "This is a required precondition for bandpass calibration. "
+                "Populate MODEL_DATA using setjy, ft(), or a catalog model before "
+                "calling solve_bandpass()."
             )
 
     # NOTE: K-table is NOT used for bandpass solve (K-calibration is applied in gain step, not before bandpass)
@@ -964,7 +961,7 @@ def solve_bandpass(
         ref_freqs = tspw.getcol("REF_FREQUENCY")
         num_chan = tspw.getcol("NUM_CHAN")
         logger.info(f"MS contains {n_spws} spectral windows: SPW {spw_ids[0]} to SPW {spw_ids[-1]}")
-        logger.info(f"  Frequency range: {ref_freqs[0]/1e9:.4f} - {ref_freqs[-1]/1e9:.4f} GHz")
+        logger.info(f"  Frequency range: {ref_freqs[0] / 1e9:.4f} - {ref_freqs[-1] / 1e9:.4f} GHz")
         logger.info(f"  Total channels across all SPWs: {np.sum(num_chan)}")
 
     # Check data selection for the specified field
@@ -990,16 +987,16 @@ def solve_bandpass(
         logger.info(f"  Total SPWs to be processed: {len(spw_ids_with_data)}")
 
         if combine_spw:
-            logger.info(f"\n  COMBINE='spw' is ENABLED:")
+            logger.info("\n  COMBINE='spw' is ENABLED:")
             logger.info(
                 f"    → All {len(spw_ids_with_data)} SPWs will be used together in a single solve"
             )
-            logger.info(f"    → Solution will be stored in SPW ID 0 (aggregate SPW)")
+            logger.info("    → Solution will be stored in SPW ID 0 (aggregate SPW)")
             logger.info(
                 f"    → This improves SNR by using all {len(spw_ids_with_data)} subbands simultaneously"
             )
         else:
-            logger.info(f"\n  COMBINE='spw' is DISABLED:")
+            logger.info("\n  COMBINE='spw' is DISABLED:")
             logger.info(
                 f"    → Each of the {len(spw_ids_with_data)} SPWs will be solved separately"
             )
@@ -1016,7 +1013,7 @@ def solve_bandpass(
     # CRITICAL: Apply pre-bandpass phase-only calibration if provided. This corrects
     # phase drifts in raw uncalibrated data that cause decorrelation and low SNR.
     combine_desc = f" (combining across {comb})" if comb else ""
-    phase_desc = f" with pre-bandpass phase correction" if prebandpass_phase_table else ""
+    phase_desc = " with pre-bandpass phase correction" if prebandpass_phase_table else ""
     logger.info(
         f"Running bandpass solve using bandpass task (bandtype='B') on field {field_selector}{combine_desc}{phase_desc}..."
     )
@@ -1154,20 +1151,20 @@ def solve_gains(
     with table(ms) as tb:
         if "MODEL_DATA" not in tb.colnames():
             raise ValueError(
-                f"MODEL_DATA column does not exist in MS. "
-                f"This is a required precondition for gain calibration. "
-                f"Populate MODEL_DATA using setjy, ft(), or a catalog model before "
-                f"calling solve_gains()."
+                "MODEL_DATA column does not exist in MS. "
+                "This is a required precondition for gain calibration. "
+                "Populate MODEL_DATA using setjy, ft(), or a catalog model before "
+                "calling solve_gains()."
             )
 
         # Check if MODEL_DATA is populated (not all zeros)
         model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=min(100, tb.nrows()))
         if np.all(np.abs(model_sample) < 1e-10):
             raise ValueError(
-                f"MODEL_DATA column exists but is all zeros (unpopulated). "
-                f"This is a required precondition for gain calibration. "
-                f"Populate MODEL_DATA using setjy, ft(), or a catalog model before "
-                f"calling solve_gains()."
+                "MODEL_DATA column exists but is all zeros (unpopulated). "
+                "This is a required precondition for gain calibration. "
+                "Populate MODEL_DATA using setjy, ft(), or a catalog model before "
+                "calling solve_gains()."
             )
 
     # PRECONDITION CHECK: Validate all required calibration tables

@@ -4,7 +4,6 @@ Final comprehensive test - verifies all implementations work correctly.
 Uses timeouts to prevent hanging.
 """
 
-import ast
 import importlib.util
 import signal
 import sys
@@ -150,9 +149,7 @@ def test_parallel():
             print("  ✓ Parallel processing works correctly")
             return True
         else:
-            print(
-                "  ⚠ Parallel test timed out (may need ProcessPoolExecutor which can hang)"
-            )
+            print("  ⚠ Parallel test timed out (may need ProcessPoolExecutor which can hang)")
             print("  ✓ Module structure is correct (function exists and compiles)")
             return True  # Return True anyway since structure is correct
     except Exception as e:

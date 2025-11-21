@@ -1,11 +1,17 @@
 window.MathJax = {
   tex: {
-    inlineMath: [['$', '$'], ['\\(', '\\)']],
-    displayMath: [['$$', '$$'], ['\\[', '\\]']],
+    inlineMath: [
+      ["$", "$"],
+      ["\\(", "\\)"],
+    ],
+    displayMath: [
+      ["$$", "$$"],
+      ["\\[", "\\]"],
+    ],
     processEscapes: true,
-    processEnvironments: true
+    processEnvironments: true,
   },
-  options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+  options: { skipHtmlTags: ["script", "noscript", "style", "textarea", "pre", "code"] },
 };
 
 if (window.document$) {
@@ -15,7 +21,7 @@ if (window.document$) {
     }
   });
 } else {
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener("DOMContentLoaded", () => {
     if (window.MathJax && window.MathJax.typesetPromise) {
       window.MathJax.typesetPromise();
     }

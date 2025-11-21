@@ -5,12 +5,10 @@ linearmosaic.defineoutputimage() to prevent initialization errors.
 """
 
 import sys
-import os
 from pathlib import Path
-from unittest.mock import Mock, MagicMock, patch, call
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-import tempfile
-import shutil
 
 # Mock CASA early to speed up imports
 sys.modules["casatasks"] = MagicMock()
@@ -34,9 +32,7 @@ class TestWeightImageInitialization:
         from dsa110_contimg.mosaic.cli import _build_weighted_mosaic_linearmosaic
 
         # Mock that paths exist
-        mock_exists.side_effect = lambda p: p.endswith(".image") or p.endswith(
-            ".weight"
-        )
+        mock_exists.side_effect = lambda p: p.endswith(".image") or p.endswith(".weight")
         mock_isdir.return_value = True
 
         # Mock linearmosaic
@@ -45,9 +41,7 @@ class TestWeightImageInitialization:
         mock_lm.makemosaic = Mock()
 
         with patch("casatools.linearmosaic", return_value=mock_lm):
-            with patch(
-                "dsa110_contimg.mosaic.cli._calculate_mosaic_bounds"
-            ) as mock_bounds:
+            with patch("dsa110_contimg.mosaic.cli._calculate_mosaic_bounds") as mock_bounds:
                 with patch(
                     "dsa110_contimg.mosaic.cli._create_common_coordinate_system"
                 ) as mock_template:
@@ -81,9 +75,7 @@ class TestWeightImageInitialization:
                                 pass  # Expected to fail, we're just testing cleanup
 
             # Verify cleanup was attempted
-            assert (
-                mock_exists.called
-            ), "os.path.exists should be called to check for existing paths"
+            assert mock_exists.called, "os.path.exists should be called to check for existing paths"
 
     def test_both_image_and_weight_paths_removed(self):
         """Test that both image and weight paths are removed."""
@@ -111,9 +103,7 @@ class TestWeightImageInitialization:
         assert (
             len(cleanup_calls) == 2
         ), f"Cleanup should be called for both paths, got {len(cleanup_calls)}"
-        assert (
-            cleanup_calls[0][1] == output_path
-        ), "First cleanup should be for output_path"
+        assert cleanup_calls[0][1] == output_path, "First cleanup should be for output_path"
         assert (
             cleanup_calls[1][1] == output_weight_path
         ), "Second cleanup should be for output_weight_path"

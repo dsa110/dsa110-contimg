@@ -32,31 +32,35 @@ class TestNVSSRadiusCalculation:
         imagename = str(temp_work_dir / "test.img")
         Path(ms_path).mkdir(parents=True, exist_ok=True)
 
-        with patch("casacore.tables.table", side_effect=mock_table_factory), patch(
-            "dsa110_contimg.imaging.cli_imaging.table", side_effect=mock_table_factory
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.run_wsclean"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None
-        ), patch(
-            "dsa110_contimg.utils.validation.validate_corrected_data_quality",
-            return_value=[],
-        ), patch(
-            "dsa110_contimg.calibration.skymodels.make_nvss_component_cl"
-        ) as mock_make_cl, patch(
-            "dsa110_contimg.calibration.skymodels.ft_from_cl"
+        with (
+            patch("casacore.tables.table", side_effect=mock_table_factory),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.table",
+                side_effect=mock_table_factory,
+            ),
+            patch("dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0),
+            patch(
+                "dsa110_contimg.imaging.cli_utils.detect_datacolumn",
+                return_value="data",
+            ),
+            patch("dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec",
+                return_value=2.0,
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.detect_datacolumn",
+                return_value="data",
+            ),
+            patch("dsa110_contimg.imaging.cli_imaging.run_wsclean"),
+            patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
+            patch(
+                "dsa110_contimg.utils.validation.validate_corrected_data_quality",
+                return_value=[],
+            ),
+            patch("dsa110_contimg.calibration.skymodels.make_nvss_component_cl") as mock_make_cl,
+            patch("dsa110_contimg.calibration.skymodels.ft_from_cl"),
         ):
-
             image_ms(
                 ms_path,
                 imagename=imagename,
@@ -95,9 +99,7 @@ class TestNVSSRadiusCalculation:
                 ctx.nrows.return_value = 1
             elif "FIELD" in path:
                 # Phase center
-                ctx.getcol.return_value = np.array(
-                    [[[np.radians(120.0), np.radians(45.0)]]]
-                )
+                ctx.getcol.return_value = np.array([[[np.radians(120.0), np.radians(45.0)]]])
                 ctx.colnames.return_value = ["PHASE_DIR", "NAME"]
                 ctx.nrows.return_value = 1
             else:
@@ -115,31 +117,38 @@ class TestNVSSRadiusCalculation:
                 ctx.nrows.return_value = 1000
             return ctx
 
-        with patch("casacore.tables.table", side_effect=mock_table_with_freq), patch(
-            "dsa110_contimg.imaging.cli_imaging.table", side_effect=mock_table_with_freq
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_with_freq
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.run_wsclean"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None
-        ), patch(
-            "dsa110_contimg.utils.validation.validate_corrected_data_quality",
-            return_value=[],
-        ), patch(
-            "dsa110_contimg.calibration.skymodels.make_nvss_component_cl"
-        ) as mock_make_cl, patch(
-            "dsa110_contimg.calibration.skymodels.ft_from_cl"
+        with (
+            patch("casacore.tables.table", side_effect=mock_table_with_freq),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.table",
+                side_effect=mock_table_with_freq,
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_utils.table",
+                side_effect=mock_table_with_freq,
+            ),
+            patch("dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec",
+                return_value=2.0,
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_utils.detect_datacolumn",
+                return_value="data",
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.detect_datacolumn",
+                return_value="data",
+            ),
+            patch("dsa110_contimg.imaging.cli_imaging.run_wsclean"),
+            patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
+            patch(
+                "dsa110_contimg.utils.validation.validate_corrected_data_quality",
+                return_value=[],
+            ),
+            patch("dsa110_contimg.calibration.skymodels.make_nvss_component_cl") as mock_make_cl,
+            patch("dsa110_contimg.calibration.skymodels.ft_from_cl"),
         ):
-
             image_ms(
                 ms_path,
                 imagename=imagename,
@@ -165,9 +174,7 @@ class TestNVSSRadiusCalculation:
             fwhm_deg = math.degrees(fwhm_rad)
 
             # Radius at pblimit=0.2
-            pb_radius_deg = (
-                fwhm_deg * math.sqrt(-math.log(0.2)) / math.sqrt(-math.log(0.5))
-            )
+            pb_radius_deg = fwhm_deg * math.sqrt(-math.log(0.2)) / math.sqrt(-math.log(0.5))
 
             # NVSS radius should be limited to primary beam radius
             assert radius_deg <= pb_radius_deg + 0.1  # Allow small tolerance
@@ -189,9 +196,7 @@ class TestNVSSRadiusCalculation:
         fwhm_deg = math.degrees(fwhm_rad)
 
         # Calculate radius at pblimit
-        pb_radius_deg = (
-            fwhm_deg * math.sqrt(-math.log(pblimit)) / math.sqrt(-math.log(0.5))
-        )
+        pb_radius_deg = fwhm_deg * math.sqrt(-math.log(pblimit)) / math.sqrt(-math.log(0.5))
 
         # Verify reasonable values
         # For 1.4 GHz, DSA-110: FWHM ~ 3.2 degrees
@@ -214,9 +219,7 @@ class TestNVSSRadiusCalculation:
         lambda_m = c_mps / (freq_ghz * 1e9)
         fwhm_rad = 1.22 * lambda_m / dish_dia_m
         fwhm_deg = math.degrees(fwhm_rad)
-        pb_radius_deg = (
-            fwhm_deg * math.sqrt(-math.log(pblimit)) / math.sqrt(-math.log(0.5))
-        )
+        pb_radius_deg = fwhm_deg * math.sqrt(-math.log(pblimit)) / math.sqrt(-math.log(0.5))
 
         # Minimum should be selected
         nvss_radius_deg = min(image_radius_deg, pb_radius_deg)
@@ -230,9 +233,7 @@ class TestNVSSRadiusCalculation:
 class TestNVSSSeedingIntegration:
     """Test NVSS seeding integration with mocked dependencies."""
 
-    def test_nvss_seeding_skipped_when_not_requested(
-        self, mock_table_factory, temp_work_dir
-    ):
+    def test_nvss_seeding_skipped_when_not_requested(self, mock_table_factory, temp_work_dir):
         """Test that NVSS seeding is skipped when nvss_min_mjy is None."""
         from dsa110_contimg.imaging.cli_imaging import image_ms
 
@@ -240,27 +241,30 @@ class TestNVSSSeedingIntegration:
         imagename = str(temp_work_dir / "test.img")
         Path(ms_path).mkdir(parents=True, exist_ok=True)
 
-        with patch("casacore.tables.table", side_effect=mock_table_factory), patch(
-            "dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.run_wsclean"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None
-        ), patch(
-            "dsa110_contimg.utils.validation.validate_corrected_data_quality",
-            return_value=[],
-        ), patch(
-            "dsa110_contimg.calibration.skymodels.make_nvss_component_cl"
-        ) as mock_make_cl:
-
+        with (
+            patch("casacore.tables.table", side_effect=mock_table_factory),
+            patch("dsa110_contimg.imaging.cli_utils.table", side_effect=mock_table_factory),
+            patch("dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec",
+                return_value=2.0,
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_utils.detect_datacolumn",
+                return_value="data",
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.detect_datacolumn",
+                return_value="data",
+            ),
+            patch("dsa110_contimg.imaging.cli_imaging.run_wsclean"),
+            patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
+            patch(
+                "dsa110_contimg.utils.validation.validate_corrected_data_quality",
+                return_value=[],
+            ),
+            patch("dsa110_contimg.calibration.skymodels.make_nvss_component_cl") as mock_make_cl,
+        ):
             image_ms(
                 ms_path,
                 imagename=imagename,
@@ -285,9 +289,7 @@ class TestNVSSSeedingIntegration:
 
             if "FIELD" in path:
                 # Phase center: RA=120°, Dec=45°
-                ctx.getcol.return_value = np.array(
-                    [[[np.radians(120.0), np.radians(45.0)]]]
-                )
+                ctx.getcol.return_value = np.array([[[np.radians(120.0), np.radians(45.0)]]])
                 ctx.colnames.return_value = ["PHASE_DIR", "NAME"]
                 ctx.nrows.return_value = 1
             elif "SPECTRAL_WINDOW" in path:
@@ -309,37 +311,39 @@ class TestNVSSSeedingIntegration:
                 ctx.nrows.return_value = 1000
             return ctx
 
-        with patch(
-            "casacore.tables.table", side_effect=mock_table_with_phase_center
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.table",
-            side_effect=mock_table_with_phase_center,
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.table",
-            side_effect=mock_table_with_phase_center,
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec", return_value=2.0
-        ), patch(
-            "dsa110_contimg.imaging.cli_utils.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.detect_datacolumn", return_value="data"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.run_wsclean"
-        ), patch(
-            "dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None
-        ), patch(
-            "dsa110_contimg.utils.validation.validate_corrected_data_quality",
-            return_value=[],
-        ), patch(
-            "dsa110_contimg.calibration.skymodels.make_nvss_component_cl"
-        ) as mock_make_cl, patch(
-            "dsa110_contimg.calibration.skymodels.ft_from_cl"
-        ), patch(
-            "os.path.exists", return_value=True
+        with (
+            patch("casacore.tables.table", side_effect=mock_table_with_phase_center),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.table",
+                side_effect=mock_table_with_phase_center,
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_utils.table",
+                side_effect=mock_table_with_phase_center,
+            ),
+            patch("dsa110_contimg.imaging.cli_utils.default_cell_arcsec", return_value=2.0),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.default_cell_arcsec",
+                return_value=2.0,
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_utils.detect_datacolumn",
+                return_value="data",
+            ),
+            patch(
+                "dsa110_contimg.imaging.cli_imaging.detect_datacolumn",
+                return_value="data",
+            ),
+            patch("dsa110_contimg.imaging.cli_imaging.run_wsclean"),
+            patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
+            patch(
+                "dsa110_contimg.utils.validation.validate_corrected_data_quality",
+                return_value=[],
+            ),
+            patch("dsa110_contimg.calibration.skymodels.make_nvss_component_cl") as mock_make_cl,
+            patch("dsa110_contimg.calibration.skymodels.ft_from_cl"),
+            patch("os.path.exists", return_value=True),
         ):  # Component list exists
-
             image_ms(
                 ms_path,
                 imagename=imagename,

@@ -33,6 +33,7 @@ The dashboard uses a **hybrid state management approach**:
 ### State Categories
 
 **Server State (React Query):**
+
 - Pipeline status
 - System metrics
 - ESE candidates
@@ -41,12 +42,14 @@ The dashboard uses a **hybrid state management approach**:
 - Job status
 
 **Local State (useState):**
+
 - Form inputs
 - UI toggles (dialogs, menus)
 - Temporary selections
 - Component-specific state
 
 **Global UI State (Context):**
+
 - Notifications
 - Theme preferences
 - User preferences
@@ -58,6 +61,7 @@ The dashboard uses a **hybrid state management approach**:
 ### Query Client Configuration
 
 **Setup (`App.tsx`):**
+
 ```typescript
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -86,19 +90,21 @@ const queryClient = new QueryClient({
 ### Query Hooks Pattern
 
 **Standard Query:**
+
 ```typescript
 const { data, isLoading, error } = useQuery({
-  queryKey: ['pipeline', 'status'],
-  queryFn: () => apiClient.get('/status'),
+  queryKey: ["pipeline", "status"],
+  queryFn: () => apiClient.get("/status"),
   staleTime: 30000,
 });
 ```
 
 **Real-Time Query:**
+
 ```typescript
 const { data } = useRealtimeQuery(
-  ['pipeline', 'status'],
-  () => apiClient.get('/status'),
+  ["pipeline", "status"],
+  () => apiClient.get("/status"),
   wsClient,
   10000 // poll interval
 );
@@ -107,6 +113,7 @@ const { data } = useRealtimeQuery(
 ### Query Key Structure
 
 **Hierarchical Keys:**
+
 - `['pipeline', 'status']` - Pipeline status
 - `['system', 'metrics']` - System metrics
 - `['ese', 'candidates']` - ESE candidates
@@ -114,6 +121,7 @@ const { data } = useRealtimeQuery(
 - `['mosaics', mosaicId]` - Specific mosaic
 
 **Benefits:**
+
 - Efficient cache invalidation
 - Granular updates
 - Easy debugging
@@ -151,6 +159,7 @@ Component Re-render
 ### Client Implementation (`websocket.ts`)
 
 **Features:**
+
 - Automatic reconnection with exponential backoff
 - SSE fallback support
 - Message handler registration
@@ -158,14 +167,15 @@ Component Re-render
 - Connection state tracking
 
 **Usage:**
+
 ```typescript
 const wsClient = createWebSocketClient({
-  url: '/api/ws/status',
+  url: "/api/ws/status",
   reconnectInterval: 3000,
   maxReconnectAttempts: 10,
 });
 
-wsClient.on('status_update', (data) => {
+wsClient.on("status_update", (data) => {
   // Handle update
 });
 ```
@@ -173,6 +183,7 @@ wsClient.on('status_update', (data) => {
 ### Reconnection Strategy
 
 **Exponential Backoff:**
+
 ```typescript
 const delay = Math.min(
   reconnectInterval * Math.pow(2, reconnectAttempts - 1),
@@ -181,6 +192,7 @@ const delay = Math.min(
 ```
 
 **Reconnection Attempts:**
+
 - Initial: 3 seconds
 - After 1 failure: 6 seconds
 - After 2 failures: 12 seconds
@@ -194,6 +206,7 @@ const delay = Math.min(
 ### Implementation
 
 **When WebSocket Unavailable:**
+
 ```typescript
 const shouldPoll = !wsClient || !wsClient.connected;
 
@@ -207,6 +220,7 @@ return useQuery({
 ### Polling Intervals
 
 **By Data Type:**
+
 - Pipeline status: 10 seconds
 - System metrics: 10 seconds
 - ESE candidates: 10 seconds
@@ -215,6 +229,7 @@ return useQuery({
 - Jobs: 5 seconds
 
 **Optimization:**
+
 - Longer intervals for less critical data
 - Shorter intervals for real-time monitoring
 - Adaptive intervals based on connection state
@@ -226,16 +241,18 @@ return useQuery({
 ### Cache Invalidation
 
 **Manual Invalidation:**
+
 ```typescript
-queryClient.invalidateQueries(['pipeline', 'status']);
+queryClient.invalidateQueries(["pipeline", "status"]);
 ```
 
 **After Mutations:**
+
 ```typescript
 const mutation = useMutation({
-  mutationFn: (data) => apiClient.post('/resource', data),
+  mutationFn: (data) => apiClient.post("/resource", data),
   onSuccess: () => {
-    queryClient.invalidateQueries(['related', 'queries']);
+    queryClient.invalidateQueries(["related", "queries"]);
   },
 });
 ```
@@ -243,16 +260,17 @@ const mutation = useMutation({
 ### Cache Updates from WebSocket
 
 **Automatic Updates:**
+
 ```typescript
-wsClient.on('status_update', (data) => {
+wsClient.on("status_update", (data) => {
   if (data.data?.pipeline_status) {
-    queryClient.setQueryData(['pipeline', 'status'], data.data.pipeline_status);
+    queryClient.setQueryData(["pipeline", "status"], data.data.pipeline_status);
   }
   if (data.data?.metrics) {
-    queryClient.setQueryData(['system', 'metrics'], data.data.metrics);
+    queryClient.setQueryData(["system", "metrics"], data.data.metrics);
   }
   if (data.data?.ese_candidates) {
-    queryClient.setQueryData(['ese', 'candidates'], data.data.ese_candidates);
+    queryClient.setQueryData(["ese", "candidates"], data.data.ese_candidates);
   }
 });
 ```
@@ -260,11 +278,13 @@ wsClient.on('status_update', (data) => {
 ### Stale Time Strategy
 
 **Default: 30 seconds**
+
 - Balance between freshness and performance
 - Reduces unnecessary refetches
 - Allows stale-while-revalidate pattern
 
 **Per-Query Overrides:**
+
 - Static data: Longer stale time (5 minutes)
 - Real-time data: Shorter stale time (10 seconds)
 
@@ -275,28 +295,29 @@ wsClient.on('status_update', (data) => {
 ### Pattern
 
 **Update UI Immediately:**
+
 ```typescript
 const mutation = useMutation({
   mutationFn: updateSource,
   onMutate: async (newData) => {
     // Cancel outgoing queries
-    await queryClient.cancelQueries(['sources', newData.id]);
-    
+    await queryClient.cancelQueries(["sources", newData.id]);
+
     // Snapshot previous value
-    const previous = queryClient.getQueryData(['sources', newData.id]);
-    
+    const previous = queryClient.getQueryData(["sources", newData.id]);
+
     // Optimistically update
-    queryClient.setQueryData(['sources', newData.id], newData);
-    
+    queryClient.setQueryData(["sources", newData.id], newData);
+
     return { previous };
   },
   onError: (err, newData, context) => {
     // Rollback on error
-    queryClient.setQueryData(['sources', newData.id], context.previous);
+    queryClient.setQueryData(["sources", newData.id], context.previous);
   },
   onSettled: () => {
     // Refetch to ensure consistency
-    queryClient.invalidateQueries(['sources']);
+    queryClient.invalidateQueries(["sources"]);
   },
 });
 ```
@@ -315,6 +336,7 @@ const mutation = useMutation({
 ### WebSocket Message Types
 
 **Status Updates:**
+
 ```json
 {
   "type": "status_update",
@@ -327,6 +349,7 @@ const mutation = useMutation({
 ```
 
 **Metrics Updates:**
+
 ```json
 {
   "type": "metrics_update",
@@ -339,6 +362,7 @@ const mutation = useMutation({
 ```
 
 **ESE Updates:**
+
 ```json
 {
   "type": "ese_update",
@@ -351,11 +375,13 @@ const mutation = useMutation({
 ### Synchronization Strategy
 
 **Immediate Updates:**
+
 - WebSocket messages update cache immediately
 - No refetch required
 - UI updates automatically via React Query
 
 **Conflict Resolution:**
+
 - Last write wins
 - Server state is source of truth
 - Periodic refetch ensures consistency
@@ -364,7 +390,9 @@ const mutation = useMutation({
 
 ## See Also
 
-- [Frontend Architecture](./dashboard_frontend_architecture.md) - Component architecture
-- [Backend API & Integration](../reference/dashboard_backend_api.md) - API endpoints
-- [Error Handling & Resilience](./dashboard_error_handling.md) - Error handling patterns
-
+- [Frontend Architecture](./dashboard_frontend_architecture.md) - Component
+  architecture
+- [Backend API & Integration](../reference/dashboard_backend_api.md) - API
+  endpoints
+- [Error Handling & Resilience](./dashboard_error_handling.md) - Error handling
+  patterns

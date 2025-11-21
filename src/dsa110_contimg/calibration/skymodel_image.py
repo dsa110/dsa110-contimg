@@ -1,3 +1,4 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, Jy, etc.)
 """
 Generate images (.fits and .png) from sky models.
 
@@ -7,15 +8,10 @@ and PNG visualizations.
 
 from __future__ import annotations
 
-import os
-from pathlib import Path
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
-import astropy.units as u
 import matplotlib.pyplot as plt
 import numpy as np
-from astropy.coordinates import SkyCoord
-from astropy.io import fits
 from astropy.wcs import WCS
 from matplotlib.colors import LogNorm
 
@@ -26,7 +22,7 @@ from dsa110_contimg.utils.runtime_safeguards import (
 
 
 def skymodel_to_image(
-    sky: "SkyModel",
+    sky: "Any",  # pyradiosky.SkyModel - imported conditionally
     *,
     image_size: Tuple[int, int] = (512, 512),
     pixel_scale_arcsec: float = 10.0,
@@ -48,7 +44,7 @@ def skymodel_to_image(
         (image_array, wcs) tuple
     """
     try:
-        from pyradiosky import SkyModel
+        from pyradiosky import SkyModel  # noqa: F401
     except ImportError:
         raise ImportError("pyradiosky is required")
 
@@ -97,9 +93,7 @@ def skymodel_to_image(
     # Convolve with beam if specified
     if beam_fwhm_arcsec is not None:
         # Convert FWHM to sigma
-        beam_sigma_pix = (beam_fwhm_arcsec / pixel_scale_arcsec) / (
-            2 * np.sqrt(2 * np.log(2))
-        )
+        beam_sigma_pix = (beam_fwhm_arcsec / pixel_scale_arcsec) / (2 * np.sqrt(2 * np.log(2)))
         kernel = Gaussian2DKernel(beam_sigma_pix)
         image = convolve(image, kernel)
 
@@ -107,7 +101,7 @@ def skymodel_to_image(
 
 
 def write_skymodel_fits(
-    sky: "SkyModel",
+    sky: "Any",  # pyradiosky.SkyModel - imported conditionally
     output_path: str,
     *,
     image_size: Tuple[int, int] = (512, 512),
@@ -154,7 +148,7 @@ def write_skymodel_fits(
 
 
 def write_skymodel_png(
-    sky: "SkyModel",
+    sky: "Any",  # pyradiosky.SkyModel - imported conditionally
     output_path: str,
     *,
     image_size: Tuple[int, int] = (512, 512),
@@ -231,7 +225,7 @@ def write_skymodel_png(
 
 
 def write_skymodel_images(
-    sky: "SkyModel",
+    sky: "Any",  # pyradiosky.SkyModel - imported conditionally
     base_path: str,
     *,
     image_size: Tuple[int, int] = (512, 512),

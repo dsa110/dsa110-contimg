@@ -3,11 +3,7 @@
   "title": "DSA-110 Reference Layout Schema",
   "description": "Validation schema for reference_layout.json metadata files",
   "type": "object",
-  "required": [
-    "channel_width_hz",
-    "freq_array_hz",
-    "integration_time_sec"
-  ],
+  "required": ["channel_width_hz", "freq_array_hz", "integration_time_sec"],
   "properties": {
     "channel_width_hz": {
       "type": "number",

@@ -1,0 +1,49 @@
+.service-status {
+  display: flex;
+  gap: 15px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.service-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #fff;
+}
+
+.service-name {
+  text-transform: capitalize;
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot.ok {
+  background-color: #4caf50;
+  box-shadow: 0 0 4px #4caf50;
+}
+
+.status-dot.error {
+  background-color: #f44336;
+  box-shadow: 0 0 4px #f44336;
+}
+
+.status-dot.unknown {
+  background-color: #ff9800;
+  box-shadow: 0 0 4px #ff9800;
+}
+
+.service-error {
+  color: #ff9800;
+  margin-left: 4px;
+  cursor: help;
+}

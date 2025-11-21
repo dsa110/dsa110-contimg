@@ -7,19 +7,15 @@ Based on VAST Post-Processing crossmatch.py patterns.
 """
 
 import logging
-from typing import Tuple, Optional, Dict, List
-from pathlib import Path
+from typing import Dict, Optional, Tuple
 
+import astropy.units as u
 import numpy as np
 import pandas as pd
-from astropy.coordinates import SkyCoord, Angle, match_coordinates_sky
-from astropy.table import QTable, join, join_skycoord
-import astropy.units as u
+from astropy.coordinates import Angle, SkyCoord, match_coordinates_sky
 from astropy.stats import mad_std
 from uncertainties import ufloat
 from uncertainties.core import AffineScalarFunc
-
-from dsa110_contimg.catalog.query import query_sources
 
 logger = logging.getLogger(__name__)
 
@@ -129,12 +125,8 @@ def cross_match_sources(
     matched_detected = detected_coords[match_mask]
     matched_catalog = catalog_coords[idx[match_mask]]
 
-    results["dra_arcsec"] = (
-        (matched_detected.ra - matched_catalog.ra).to(u.arcsec).value
-    )
-    results["ddec_arcsec"] = (
-        (matched_detected.dec - matched_catalog.dec).to(u.arcsec).value
-    )
+    results["dra_arcsec"] = (matched_detected.ra - matched_catalog.ra).to(u.arcsec).value
+    results["ddec_arcsec"] = (matched_detected.dec - matched_catalog.dec).to(u.arcsec).value
 
     # Add flux information if provided
     if detected_flux is not None:
@@ -211,14 +203,10 @@ def cross_match_dataframes(
             else None
         ),
         detected_flux_err=(
-            detected_df.get("flux_err_jy")
-            if "flux_err_jy" in detected_df.columns
-            else None
+            detected_df.get("flux_err_jy") if "flux_err_jy" in detected_df.columns else None
         ),
         catalog_flux_err=(
-            catalog_df.get("flux_err_mjy")
-            if "flux_err_mjy" in catalog_df.columns
-            else None
+            catalog_df.get("flux_err_mjy") if "flux_err_mjy" in catalog_df.columns else None
         ),
         detected_ids=(
             detected_df[detected_id_col].values
@@ -432,8 +420,8 @@ def identify_duplicate_catalog_sources(
         The master_catalog_id is typically the NVSS ID if available, otherwise
         the FIRST ID, otherwise the RACS ID, or a generated ID.
     """
-    from astropy.coordinates import SkyCoord
     import astropy.units as u
+    from astropy.coordinates import SkyCoord
 
     # Collect all catalog entries with their positions
     all_entries = []
@@ -446,10 +434,7 @@ def identify_duplicate_catalog_sources(
 
         for idx, row in matches_df.iterrows():
             # Get catalog source position
-            if (
-                "catalog_ra_deg" in matches_df.columns
-                and "catalog_dec_deg" in matches_df.columns
-            ):
+            if "catalog_ra_deg" in matches_df.columns and "catalog_dec_deg" in matches_df.columns:
                 ra = row["catalog_ra_deg"]
                 dec = row["catalog_dec_deg"]
             elif "ra_deg" in matches_df.columns and "dra_arcsec" in matches_df.columns:
@@ -475,8 +460,7 @@ def identify_duplicate_catalog_sources(
     )
 
     # Find duplicates using search_around_sky
-    from astropy.coordinates import search_around_sky
-    from astropy.coordinates import Angle
+    from astropy.coordinates import Angle, search_around_sky
 
     radius = Angle(deduplication_radius_arcsec * u.arcsec)
     idx1, idx2, sep2d, _ = search_around_sky(all_coords, all_coords, radius)

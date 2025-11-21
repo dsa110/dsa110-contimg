@@ -166,25 +166,17 @@ def organize_ms_file(
                                 imagename=existing[6],
                             )
                             # Remove old path entry
-                            conn.execute(
-                                "DELETE FROM ms_index WHERE path = ?", (str(ms_path),)
-                            )
+                            conn.execute("DELETE FROM ms_index WHERE path = ?", (str(ms_path),))
                             conn.commit()
-                            logger.debug(
-                                f"Updated database path: {ms_path} → {organized_path}"
-                            )
+                            logger.debug(f"Updated database path: {ms_path} → {organized_path}")
                         else:
                             # No existing entry, just register new path
                             ms_index_upsert(conn, str(organized_path))
                             conn.commit()
-                            logger.debug(
-                                f"Registered new organized path: {organized_path}"
-                            )
+                            logger.debug(f"Registered new organized path: {organized_path}")
                         conn.close()
                     except Exception as e:
-                        logger.warning(
-                            f"Failed to update database after organizing MS: {e}"
-                        )
+                        logger.warning(f"Failed to update database after organizing MS: {e}")
 
                 return organized_path
             else:
@@ -194,9 +186,7 @@ def organize_ms_file(
         return organized_path
 
     except Exception as e:
-        logger.warning(
-            f"Failed to organize MS file {ms_path}: {e}. Using original path."
-        )
+        logger.warning(f"Failed to organize MS file {ms_path}: {e}. Using original path.")
         return ms_path
 
 
@@ -265,9 +255,7 @@ def determine_ms_type(ms_path: Path) -> Tuple[bool, bool]:
 
     # Check for calibrator indicators
     is_calibrator = (
-        "calibrator" in path_str
-        or "cal" in path_str
-        or ms_path.parent.name == "calibrators"
+        "calibrator" in path_str or "cal" in path_str or ms_path.parent.name == "calibrators"
     )
 
     # If already in organized structure, use parent directory

@@ -15,7 +15,6 @@ Flow:
 """
 
 import argparse
-import os
 from pathlib import Path
 from typing import Optional
 
@@ -102,7 +101,7 @@ def run(
 
         metrics = validate_caltable_quality(bptabs[0])
         frac = float(metrics.fraction_flagged)
-        print(f"Bandpass flagged solutions: {frac*100:.1f}%")
+        print(f"Bandpass flagged solutions: {frac * 100:.1f}%")
         if assert_bp_flagged_lt is not None and not (frac < assert_bp_flagged_lt):
             raise SystemExit(
                 f"FAIL: Bandpass flagged fraction {frac:.3f} not < {assert_bp_flagged_lt:.3f}"

@@ -5,7 +5,7 @@
  */
 
 import { Box, Paper, Typography } from "@mui/material";
-import { RegionHistogramData } from "../../services/cartaProtobuf";
+import type { RegionHistogramData } from "../../services/cartaProtobuf";
 import {
   BarChart,
   Bar,

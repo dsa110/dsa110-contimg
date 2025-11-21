@@ -8,16 +8,15 @@ before calibration and imaging.
 import logging
 import os
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
 
 ensure_casa_path()
 
-import numpy as np
 import casacore.tables as casatables  # type: ignore
+import numpy as np
 
 table = casatables.table  # noqa: N816
 
@@ -198,9 +197,7 @@ def validate_ms_quality(
                     data_sample = tb.getcol(
                         check_data_column, startrow=indices[0], nrow=len(indices)
                     )
-                    flags_sample = tb.getcol(
-                        "FLAG", startrow=indices[0], nrow=len(indices)
-                    )
+                    flags_sample = tb.getcol("FLAG", startrow=indices[0], nrow=len(indices))
 
                     # Compute amplitudes
                     amps = np.abs(data_sample)
@@ -232,20 +229,14 @@ def validate_ms_quality(
 
             # Quality checks
             if fraction_flagged > 0.5:
-                warnings.append(
-                    f"High fraction of flagged data: {fraction_flagged:.1%}"
-                )
+                warnings.append(f"High fraction of flagged data: {fraction_flagged:.1%}")
 
             if fraction_zeros > 0.3:
-                warnings.append(
-                    f"High fraction of zero amplitudes: {fraction_zeros:.1%}"
-                )
+                warnings.append(f"High fraction of zero amplitudes: {fraction_zeros:.1%}")
 
-            if median_amplitude > 0 and (
-                amplitude_range[1] / amplitude_range[0] > 1000
-            ):
+            if median_amplitude > 0 and (amplitude_range[1] / amplitude_range[0] > 1000):
                 warnings.append(
-                    f"Very large amplitude dynamic range: {amplitude_range[1]/amplitude_range[0]:.1f}x"
+                    f"Very large amplitude dynamic range: {amplitude_range[1] / amplitude_range[0]:.1f}x"
                 )
 
     except Exception as e:

@@ -377,9 +377,11 @@ export default function MSTable({
                     <Checkbox checked={isSelected} onChange={() => handleSelectOne(ms.path)} />
                   </TableCell>
                   <TableCell sx={{ fontFamily: "monospace", fontSize: "0.8rem" }}>
-                    {getFilename(ms.path)}
+                    {getFilename(ms.path ?? "")}
                   </TableCell>
-                  <TableCell sx={{ fontSize: "0.75rem" }}>{formatTime(ms.start_time)}</TableCell>
+                  <TableCell sx={{ fontSize: "0.75rem" }}>
+                    {formatTime(ms.start_time ?? undefined)}
+                  </TableCell>
                   <TableCell>
                     {ms.has_calibrator ? (
                       <Stack direction="row" spacing={0.5} alignItems="center">
@@ -387,7 +389,7 @@ export default function MSTable({
                           <Chip
                             label={ms.calibrator_name || "Unknown"}
                             size="small"
-                            color={getQualityColor(ms.calibrator_quality)}
+                            color={getQualityColor(ms.calibrator_quality ?? undefined)}
                             sx={{ fontSize: "0.7rem", height: 20 }}
                           />
                         </Tooltip>
@@ -433,7 +435,7 @@ export default function MSTable({
                       <Chip
                         label={ms.calibration_quality}
                         size="small"
-                        color={getQualityColor(ms.calibration_quality)}
+                        color={getQualityColor(ms.calibration_quality ?? undefined)}
                         sx={{ fontSize: "0.65rem", height: 18, mr: 0.5 }}
                       />
                     )}
@@ -441,13 +443,13 @@ export default function MSTable({
                       <Chip
                         label={ms.image_quality}
                         size="small"
-                        color={getQualityColor(ms.image_quality)}
+                        color={getQualityColor(ms.image_quality ?? undefined)}
                         sx={{ fontSize: "0.65rem", height: 18 }}
                       />
                     )}
                   </TableCell>
                   <TableCell align="right" sx={{ fontSize: "0.75rem" }}>
-                    {formatSize(ms.size_gb)}
+                    {formatSize(ms.size_gb ?? undefined)}
                   </TableCell>
                 </TableRow>
               );

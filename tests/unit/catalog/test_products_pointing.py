@@ -8,9 +8,6 @@ Tests for:
 
 from __future__ import annotations
 
-import sqlite3
-from pathlib import Path
-
 import pytest
 
 from dsa110_contimg.database.products import (
@@ -72,9 +69,7 @@ def test_schema_migration_adds_pointing_columns(temp_products_db):
 
     assert "ra_deg" in columns, f"ra_deg not found in columns: {sorted(columns.keys())}"
     assert columns["ra_deg"] == "REAL"
-    assert (
-        "dec_deg" in columns
-    ), f"dec_deg not found in columns: {sorted(columns.keys())}"
+    assert "dec_deg" in columns, f"dec_deg not found in columns: {sorted(columns.keys())}"
     assert columns["dec_deg"] == "REAL"
 
     conn.close()
@@ -103,9 +98,7 @@ def test_ms_index_upsert_with_pointing(temp_products_db):
 
     # Verify pointing was stored
     cur = conn.cursor()
-    row = cur.execute(
-        "SELECT ra_deg, dec_deg FROM ms_index WHERE path = ?", (ms_path,)
-    ).fetchone()
+    row = cur.execute("SELECT ra_deg, dec_deg FROM ms_index WHERE path = ?", (ms_path,)).fetchone()
 
     assert row is not None
     assert abs(row[0] - ra_deg) < 1e-6
@@ -141,9 +134,7 @@ def test_ms_index_upsert_pointing_update(temp_products_db):
 
     # Verify pointing was updated
     cur = conn.cursor()
-    row = cur.execute(
-        "SELECT ra_deg, dec_deg FROM ms_index WHERE path = ?", (ms_path,)
-    ).fetchone()
+    row = cur.execute("SELECT ra_deg, dec_deg FROM ms_index WHERE path = ?", (ms_path,)).fetchone()
 
     assert row is not None
     assert abs(row[0] - ra_deg) < 1e-6
@@ -179,9 +170,7 @@ def test_ms_index_upsert_pointing_preserves_existing(temp_products_db):
 
     # Verify pointing was preserved
     cur = conn.cursor()
-    row = cur.execute(
-        "SELECT ra_deg, dec_deg FROM ms_index WHERE path = ?", (ms_path,)
-    ).fetchone()
+    row = cur.execute("SELECT ra_deg, dec_deg FROM ms_index WHERE path = ?", (ms_path,)).fetchone()
 
     assert row is not None
     assert abs(row[0] - ra_deg) < 1e-6

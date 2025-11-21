@@ -2,15 +2,18 @@
 
 ## Overview
 
-A zero-bypass prevention pattern for environment dependency issues that can be applied to any non-obvious prerequisite or configuration requirement.
+A zero-bypass prevention pattern for environment dependency issues that can be
+applied to any non-obvious prerequisite or configuration requirement.
 
 ## Core Principle
 
-**Enforce environment dependencies automatically at the lowest possible level, rather than relying on documentation or human memory.**
+**Enforce environment dependencies automatically at the lowest possible level,
+rather than relying on documentation or human memory.**
 
 ## Pattern Structure
 
 ### 1. Identify the Dependency
+
 - What environment/configuration is required?
 - What happens if it's wrong? (silent failure vs. obvious error)
 - Where does the dependency manifest? (startup, runtime, tests)
@@ -18,30 +21,38 @@ A zero-bypass prevention pattern for environment dependency issues that can be a
 ### 2. Implement Multi-Layer Checks
 
 #### Layer 1: Lowest-Level Check (Cannot Be Bypassed)
-- **Location**: Configuration file that loads first (e.g., `vitest.config.ts`, `vite.config.ts`, `jest.config.js`)
+
+- **Location**: Configuration file that loads first (e.g., `vitest.config.ts`,
+  `vite.config.ts`, `jest.config.js`)
 - **Purpose**: Runs before any tool/library loads
 - **Behavior**: Check dependency, exit with clear error if wrong
 - **Effectiveness**: 100% (cannot be bypassed)
 
 #### Layer 2: Secondary Check (Before Execution)
-- **Location**: Setup file that runs before code execution (e.g., `setup.ts`, `setupFiles`)
+
+- **Location**: Setup file that runs before code execution (e.g., `setup.ts`,
+  `setupFiles`)
 - **Purpose**: Second layer protection
 - **Behavior**: Verify dependency again before tests/code run
 - **Effectiveness**: 100% (catches any bypass of Layer 1)
 
 #### Layer 3: Integration Check (Command Level)
+
 - **Location**: npm scripts, Makefile targets, wrapper scripts
 - **Purpose**: Enforce at command invocation level
 - **Behavior**: Check dependency before executing command
-- **Effectiveness**: 95% (can be bypassed by direct tool calls, but Layer 1 catches it)
+- **Effectiveness**: 95% (can be bypassed by direct tool calls, but Layer 1
+  catches it)
 
 #### Layer 4: CI/CD Enforcement
+
 - **Location**: GitHub Actions, GitLab CI, Jenkins pipelines
 - **Purpose**: Prevent merging/deploying with wrong environment
 - **Behavior**: Verify dependency in CI/CD pipeline
 - **Effectiveness**: 100% (enforced in automated pipeline)
 
 #### Layer 5: Improved Error Messages
+
 - **Location**: Error handlers, try-catch blocks, fallback checks
 - **Purpose**: Make root cause obvious if checks somehow fail
 - **Behavior**: Error messages explicitly mention dependency requirement
@@ -50,16 +61,17 @@ A zero-bypass prevention pattern for environment dependency issues that can be a
 ### 3. Error Message Template
 
 ```typescript
-console.error('\n❌ ERROR: [Tool/System] requires [Dependency]');
+console.error("\n❌ ERROR: [Tool/System] requires [Dependency]");
 console.error(`   Current: ${currentValue}`);
 console.error(`   Required: ${requiredValue}`);
-console.error('\n   Fix: [Clear instructions]\n');
+console.error("\n   Fix: [Clear instructions]\n");
 process.exit(1);
 ```
 
 ## Application Examples
 
 ### Example 1: Node.js Version (Current Implementation)
+
 - **Dependency**: casa6 Node.js v22.6.0
 - **Layer 1**: `vitest.config.ts` check
 - **Layer 2**: `src/test/setup.ts` check
@@ -68,6 +80,7 @@ process.exit(1);
 - **Layer 5**: Improved crypto error messages
 
 ### Example 2: Python Version
+
 - **Dependency**: casa6 Python 3.x
 - **Layer 1**: `pytest.ini` or `conftest.py` check
 - **Layer 2**: Test fixture that verifies Python path
@@ -76,6 +89,7 @@ process.exit(1);
 - **Layer 5**: Import error messages point to Python version
 
 ### Example 3: Database Connection
+
 - **Dependency**: Database available and accessible
 - **Layer 1**: Connection check in application startup
 - **Layer 2**: Health check endpoint
@@ -84,6 +98,7 @@ process.exit(1);
 - **Layer 5**: Connection error messages point to configuration
 
 ### Example 4: API Keys / Environment Variables
+
 - **Dependency**: Required environment variables set
 - **Layer 1**: Config file that validates on load
 - **Layer 2**: Application startup check
@@ -92,6 +107,7 @@ process.exit(1);
 - **Layer 5**: Error messages list missing variables
 
 ### Example 5: File System Paths
+
 - **Dependency**: Required directories/files exist
 - **Layer 1**: Config file path validation
 - **Layer 2**: Application startup path check
@@ -120,25 +136,27 @@ process.exit(1);
 
 ```typescript
 // In vitest.config.ts, vite.config.ts, jest.config.js, etc.
-import { execSync } from 'child_process';
+import { execSync } from "child_process";
 
-const REQUIRED_VALUE = 'expected-value';
-const REQUIRED_PATH = '/expected/path';
+const REQUIRED_VALUE = "expected-value";
+const REQUIRED_PATH = "/expected/path";
 
 function checkDependency(): void {
   try {
-    const currentValue = execSync('command-to-check', { encoding: 'utf-8' }).trim();
-    
+    const currentValue = execSync("command-to-check", {
+      encoding: "utf-8",
+    }).trim();
+
     if (currentValue !== REQUIRED_VALUE) {
-      console.error('\n❌ ERROR: [System] requires [Dependency]');
+      console.error("\n❌ ERROR: [System] requires [Dependency]");
       console.error(`   Current: ${currentValue}`);
       console.error(`   Required: ${REQUIRED_VALUE}`);
-      console.error('\n   Fix: [Clear instructions]\n');
+      console.error("\n   Fix: [Clear instructions]\n");
       process.exit(1);
     }
   } catch (error) {
-    console.error('\n❌ ERROR: Failed to check [Dependency]');
-    console.error('   Fix: [Clear instructions]\n');
+    console.error("\n❌ ERROR: Failed to check [Dependency]");
+    console.error("   Fix: [Clear instructions]\n");
     process.exit(1);
   }
 }
@@ -151,23 +169,25 @@ checkDependency();
 
 ```typescript
 // In setup.ts, setupFiles, conftest.py, etc.
-import { execSync } from 'child_process';
+import { execSync } from "child_process";
 
-const REQUIRED_PATH = '/expected/path';
+const REQUIRED_PATH = "/expected/path";
 
 function verifyDependency(): void {
   try {
-    const currentPath = execSync('which tool', { encoding: 'utf-8' }).trim();
+    const currentPath = execSync("which tool", { encoding: "utf-8" }).trim();
     if (currentPath !== REQUIRED_PATH) {
-      const currentVersion = execSync('tool --version', { encoding: 'utf-8' }).trim();
-      console.error('\n❌ ERROR: [Tests] require [Dependency]');
+      const currentVersion = execSync("tool --version", {
+        encoding: "utf-8",
+      }).trim();
+      console.error("\n❌ ERROR: [Tests] require [Dependency]");
       console.error(`   Current: ${currentPath} (${currentVersion})`);
       console.error(`   Required: ${REQUIRED_PATH}`);
-      console.error('\n   Fix: [Clear instructions]\n');
-      throw new Error('Invalid environment');
+      console.error("\n   Fix: [Clear instructions]\n");
+      throw new Error("Invalid environment");
     }
   } catch (error: any) {
-    if (error.message === 'Invalid environment') {
+    if (error.message === "Invalid environment") {
       throw error;
     }
     // Allow other errors (test environment)
@@ -205,22 +225,27 @@ verifyDependency();
 ## Anti-Patterns to Avoid
 
 ### ❌ Relying Only on Documentation
+
 - **Problem**: Humans forget, don't read, or skip steps
 - **Solution**: Enforce automatically
 
 ### ❌ Single Check Point
+
 - **Problem**: Easy to bypass
 - **Solution**: Multiple layers at different levels
 
 ### ❌ Vague Error Messages
+
 - **Problem**: Doesn't point to root cause
 - **Solution**: Explicit error messages with fix instructions
 
 ### ❌ Checks Only at High Level
+
 - **Problem**: Can be bypassed by direct tool calls
 - **Solution**: Check at lowest possible level (config files)
 
 ### ❌ No CI/CD Enforcement
+
 - **Problem**: Wrong environment can be merged
 - **Solution**: Enforce in CI/CD pipeline
 
@@ -243,7 +268,7 @@ A dependency enforcement implementation is successful when:
 
 ## References
 
-- Current implementation: `frontend/vitest.config.ts`, `frontend/src/test/setup.ts`
+- Current implementation: `frontend/vitest.config.ts`,
+  `frontend/src/test/setup.ts`
 - Prevention analysis: `frontend/PREVENTION_EFFECTIVENESS_ANALYSIS.md`
 - Zero bypass implementation: `frontend/ZERO_BYPASS_IMPLEMENTATION.md`
-

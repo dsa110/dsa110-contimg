@@ -1,6 +1,7 @@
 # DSA-110 Dashboard UI Mockups
 
-This document contains detailed ASCII wireframes and specifications for the key dashboard pages.
+This document contains detailed ASCII wireframes and specifications for the key
+dashboard pages.
 
 ---
 
@@ -102,19 +103,24 @@ This document contains detailed ASCII wireframes and specifications for the key 
 
 ### Interaction Specifications
 
-**Auto-refresh**: Dashboard polls `/api/status` every 10 seconds, smooth updates without page flicker
+**Auto-refresh**: Dashboard polls `/api/status` every 10 seconds, smooth updates
+without page flicker
 
 **Recent Observations Table**:
+
 - Click row → navigate to Group Detail page
 - Click "View QA" → open QA plots in modal or side panel
 - Hover over group ID → show tooltip with MJD, processing time
 
 **Latest Images**:
+
 - Click thumbnail → navigate to Image Detail page
 - Hover → show full metadata tooltip
 
 **Alerts**:
-- Click alert → navigate to relevant page (Sources for variability, Observing for calibrator)
+
+- Click alert → navigate to relevant page (Sources for variability, Observing
+  for calibrator)
 - Dismiss button marks as acknowledged (stored in localStorage)
 
 ---
@@ -671,4 +677,3 @@ Line 5:         #7EE787  (Green)
 **Document Version**: 1.0  
 **Last Updated**: 2025-10-24  
 **Status**: Design Specification
-

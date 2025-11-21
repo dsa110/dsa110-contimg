@@ -64,7 +64,7 @@ export async function loadCARTAProtobuf(): Promise<protobuf.Root | null> {
  * Downloads the latest .proto files from the CARTA protobuf repository.
  */
 export async function downloadCARTAProtoFiles(
-  outputDir: string = "/data/dsa110-contimg/frontend/public"
+  _outputDir: string = "/data/dsa110-contimg/frontend/public"
 ): Promise<boolean> {
   try {
     const protoUrl = "https://raw.githubusercontent.com/CARTAvis/carta-protobuf/main/carta.proto";

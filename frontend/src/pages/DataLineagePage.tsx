@@ -3,7 +3,7 @@
  * Visualizes data flow: UVH5 → MS → Calibrated MS → Image → Mosaic
  * Shows calibration chain and processing parameters
  */
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Container,
   Typography,
@@ -20,16 +20,8 @@ import {
   CircularProgress,
   Tabs,
   Tab,
-  Divider,
 } from "@mui/material";
-import {
-  ArrowForward,
-  ArrowDownward,
-  Info,
-  Settings,
-  Timeline,
-  Visibility,
-} from "@mui/icons-material";
+import { ArrowForward, ArrowDownward, Settings, Timeline, Visibility } from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDataLineage, useDataInstance } from "../api/queries";
 import DataLineageGraph from "../components/DataLineageGraph";
@@ -154,14 +146,26 @@ export default function DataLineagePage() {
             action={
               <Chip
                 label={DATA_TYPE_LABELS[currentInstance.data_type] || currentInstance.data_type}
-                color={DATA_TYPE_COLORS[currentInstance.data_type] || "default"}
+                color={
+                  (DATA_TYPE_COLORS[currentInstance.data_type] || "info") as
+                    | "primary"
+                    | "success"
+                    | "info"
+                    | "warning"
+                    | "error"
+                }
                 size="small"
               />
             }
           />
           <CardContent>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid
+                size={{
+                  xs: 12,
+                  md: 6,
+                }}
+              >
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Data ID
                 </Typography>
@@ -172,12 +176,17 @@ export default function DataLineagePage() {
                   variant="outlined"
                   size="small"
                   startIcon={<Visibility />}
-                  onClick={() => handleNavigateToData(id || "", currentInstance.data_type)}
+                  onClick={() => handleNavigateToData(id ?? ("" || ""), currentInstance.data_type)}
                 >
                   View Details
                 </Button>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid
+                size={{
+                  xs: 12,
+                  md: 6,
+                }}
+              >
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Status
                 </Typography>
@@ -295,7 +304,7 @@ export default function DataLineagePage() {
                                     : item.relation.includes("image")
                                       ? "image"
                                       : "ms";
-                                handleNavigateToData(item.id, dataType);
+                                handleNavigateToData(item.id ?? "", dataType);
                               }}
                             >
                               View

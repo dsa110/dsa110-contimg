@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page, expect } from "@playwright/test";
 
 /**
  * Helper functions for API testing and verification
@@ -15,9 +15,7 @@ export async function waitForAPIRequest(
   await page.waitForResponse(
     (response) => {
       const url = response.url();
-      return typeof urlPattern === 'string' 
-        ? url.includes(urlPattern)
-        : urlPattern.test(url);
+      return typeof urlPattern === "string" ? url.includes(urlPattern) : urlPattern.test(url);
     },
     { timeout }
   );
@@ -32,15 +30,15 @@ export async function verifyAPIResponseData(
   dataValidator: (data: any) => boolean,
   timeout = 10000
 ): Promise<boolean> {
-  const response = await page.waitForResponse(
-    (response) => {
-      const url = response.url();
-      return typeof urlPattern === 'string' 
-        ? url.includes(urlPattern)
-        : urlPattern.test(url);
-    },
-    { timeout }
-  ).catch(() => null);
+  const response = await page
+    .waitForResponse(
+      (response) => {
+        const url = response.url();
+        return typeof urlPattern === "string" ? url.includes(urlPattern) : urlPattern.test(url);
+      },
+      { timeout }
+    )
+    .catch(() => null);
 
   if (!response) return false;
 
@@ -79,10 +77,10 @@ export class APIMonitor {
   }
 
   private setupMonitoring(): void {
-    this.page.on('response', (response) => {
+    this.page.on("response", (response) => {
       const url = response.url();
       // Only track API requests
-      if (url.includes('/api/')) {
+      if (url.includes("/api/")) {
         this.requests.push({
           url,
           status: response.status(),
@@ -96,11 +94,11 @@ export class APIMonitor {
     return [...this.requests];
   }
 
-  getRequestsByPattern(pattern: string | RegExp): Array<{ url: string; status: number; timestamp: number }> {
+  getRequestsByPattern(
+    pattern: string | RegExp
+  ): Array<{ url: string; status: number; timestamp: number }> {
     return this.requests.filter((req) => {
-      return typeof pattern === 'string' 
-        ? req.url.includes(pattern)
-        : pattern.test(req.url);
+      return typeof pattern === "string" ? req.url.includes(pattern) : pattern.test(req.url);
     });
   }
 
@@ -116,12 +114,9 @@ export class APIMonitor {
     return this.page.waitForResponse(
       (response) => {
         const url = response.url();
-        return typeof pattern === 'string' 
-          ? url.includes(pattern)
-          : pattern.test(url);
+        return typeof pattern === "string" ? url.includes(pattern) : pattern.test(url);
       },
       { timeout }
     );
   }
 }
-

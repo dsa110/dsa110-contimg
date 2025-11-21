@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 DSA-110 UVH5 (in HDF5) → CASA MS orchestrator.
@@ -16,7 +15,7 @@ import os
 import shutil
 import time
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Sequence, cast
+from typing import Any, Callable, List, Optional, Sequence, Tuple, cast
 
 import astropy.units as u  # type: ignore[import]
 import numpy as np
@@ -24,19 +23,15 @@ from astropy.time import Time  # type: ignore[import]
 from pyuvdata import UVData  # type: ignore[import]
 
 from dsa110_contimg.conversion.helpers import (
-    _ensure_antenna_diameters,
     cleanup_casa_file_handles,
-    compute_and_set_uvw,
     get_meridian_coords,
     phase_to_meridian,
-    set_antenna_positions,
     set_model_column,
     set_telescope_identity,
     validate_antenna_positions,
     validate_model_data_quality,
     validate_ms_frequency_order,
     validate_phase_center_coherence,
-    validate_reference_antenna_stability,
     validate_uvw_precision,
 )
 from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
@@ -115,7 +110,7 @@ def _peek_uvh5_phase_and_midtime(
                     from dsa110_contimg.utils.constants import OVRO_LOCATION
 
                     # Get longitude from Header (default to DSA-110 location from constants)
-                    lon_deg = OVRO_LOCATION.lon.to(u.deg).value
+                    lon_deg = OVRO_LOCATION.lon.to(u.deg).value  # pylint: disable=no-member
                     if "Header" in f and "longitude" in f["Header"]:
                         lon_val = np.asarray(f["Header"]["longitude"])
                         if lon_val.size == 1:
@@ -127,7 +122,7 @@ def _peek_uvh5_phase_and_midtime(
 
                     location = EarthLocation(
                         lat=OVRO_LOCATION.lat,
-                        lon=lon_deg * u.deg,
+                        lon=lon_deg * u.deg,  # pylint: disable=no-member
                         height=OVRO_LOCATION.height,
                     )
                     tref = Time(mid_jd, format="jd")
@@ -181,12 +176,54 @@ def find_subband_groups(
     end_time: str,
     *,
     spw: Optional[Sequence[str]] = None,
-    tolerance_s: float = 30.0,
+    tolerance_s: float = 60.0,
 ) -> List[List[str]]:
-    """Identify complete subband groups within a time window."""
+    """Identify complete subband groups within a time window.
+
+    This function tries to use the database first for better performance,
+    falling back to filesystem scan if the database is not available.
+
+    Args:
+        input_dir: Directory containing HDF5 files
+        start_time: Start time (ISO format)
+        end_time: End time (ISO format)
+        spw: List of subband codes to expect (default: sb00-sb15)
+        tolerance_s: Time tolerance in seconds for clustering files into groups (default: 60.0)
+
+    Returns:
+        List of complete subband groups, each group is a list of file paths
+    """
     if spw is None:
         spw = [f"sb{idx:02d}" for idx in range(16)]
 
+    # Try to use database first (much faster)
+    try:
+        import os as _os
+
+        from dsa110_contimg.database.hdf5_index import query_subband_groups
+
+        hdf5_db = Path(_os.getenv("HDF5_DB_PATH", "state/hdf5.sqlite3"))
+        if hdf5_db.exists():
+            # Use database query with consistent clustering tolerance
+            groups = query_subband_groups(
+                hdf5_db,
+                start_time,
+                end_time,
+                tolerance_s=1.0,  # Small window expansion for query
+                cluster_tolerance_s=tolerance_s,  # Use same tolerance for clustering
+                only_stored=True,
+            )
+            if groups:
+                return groups
+            # If no groups found, fall through to filesystem scan as fallback
+            logger.debug(
+                f"No groups found in database for {start_time} to {end_time}, "
+                "falling back to filesystem scan"
+            )
+    except Exception as e:
+        logger.debug(f"Database query failed, using filesystem scan: {e}")
+
+    # Fallback to filesystem scan
     tmin = Time(start_time)
     tmax = Time(end_time)
 
@@ -264,6 +301,151 @@ def find_subband_groups(
                 used[idx] = True
 
     return groups
+
+
+def _create_synthetic_subband(
+    reference_file: str,
+    missing_subband_num: int,
+    output_path: str,
+) -> UVData:
+    """Create a zero-padded synthetic subband file for a missing subband.
+
+    Args:
+        reference_file: Path to an existing subband file in the same group
+        missing_subband_num: Subband number (0-15) to create
+        output_path: Where to write the synthetic HDF5 file
+
+    Returns:
+        UVData object with zero-padded data and all flags set
+    """
+    # Load reference file to get structure
+    ref_uv = UVData()
+    ref_uv.read(reference_file, file_type="uvh5", run_check=False)
+
+    # Calculate target subband frequency
+    freq_min_hz = 1.28e9
+    freq_max_hz = 1.53e9
+    n_subbands = 16
+    subband_bw = (freq_max_hz - freq_min_hz) / n_subbands
+    freq_start = freq_min_hz + missing_subband_num * subband_bw
+
+    # Create frequency array matching reference spacing
+    freq_array = ref_uv.freq_array
+    if freq_array.ndim == 2:
+        freq_spacing = np.median(np.diff(freq_array[0]))
+    else:
+        freq_spacing = np.median(np.diff(freq_array))
+    n_freqs = ref_uv.Nfreqs
+    target_freqs = freq_start + np.arange(n_freqs) * freq_spacing
+
+    # Create synthetic UVData object
+    synthetic_uv = ref_uv.copy()
+
+    # Update frequency array
+    if synthetic_uv.freq_array.ndim == 2:
+        synthetic_uv.freq_array = target_freqs.reshape(1, -1)
+    else:
+        synthetic_uv.freq_array = target_freqs
+
+    # Zero out visibility data
+    synthetic_uv.data_array = np.zeros_like(synthetic_uv.data_array)
+
+    # Flag all data as bad (corrupted/missing subband)
+    synthetic_uv.flag_array = np.ones_like(synthetic_uv.flag_array, dtype=bool)
+
+    # Set nsample to zero
+    synthetic_uv.nsample_array = np.zeros_like(synthetic_uv.nsample_array)
+
+    # Mark as synthetic placeholder
+    synthetic_uv.extra_keywords = synthetic_uv.extra_keywords.copy()
+    synthetic_uv.extra_keywords["IS_SYNTHETIC"] = "True"
+    synthetic_uv.extra_keywords["SUBBAND_CODE"] = f"sb{missing_subband_num:02d}"
+    synthetic_uv.extra_keywords["SUBBAND_NUM"] = str(missing_subband_num)
+    synthetic_uv.extra_keywords["SYNTHETIC_REASON"] = "Missing subband - zero-padded"
+
+    # Write to temporary HDF5 file
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    synthetic_uv.write_uvh5(output_path, clobber=True, run_check=False)
+
+    logger.info(f"Created synthetic subband sb{missing_subband_num:02d} at {output_path}")
+    return synthetic_uv
+
+
+def fill_missing_subbands(
+    group_info: "SubbandGroupInfo",
+    scratch_dir: Optional[str] = None,
+) -> Tuple[List[str], List[str]]:
+    """Fill missing subbands in a group with zero-padded synthetic subbands.
+
+    NEW PROTOCOL: Groups with 12-16 subbands (missing 4 or fewer) are accepted.
+    Missing subbands are replaced with zero-padded synthetic subbands that are
+    properly flagged as corrupted data.
+
+    Args:
+        group_info: SubbandGroupInfo object with metadata about the group
+        scratch_dir: Optional scratch directory for temporary synthetic files
+
+    Returns:
+        Tuple of (complete_file_list, temporary_files_to_cleanup)
+        - complete_file_list: List of 16 file paths (all non-None)
+        - temporary_files_to_cleanup: List of temporary synthetic file paths
+    """
+    from dsa110_contimg.database.hdf5_index import SubbandGroupInfo
+
+    if not isinstance(group_info, SubbandGroupInfo):
+        raise TypeError(f"Expected SubbandGroupInfo, got {type(group_info)}")
+
+    # If group is complete, no synthetic subbands needed
+    if group_info.is_complete:
+        return [f for f in group_info.files if f is not None], []
+
+    # Find reference file (prefer sb00, otherwise first available)
+    reference_file = None
+    for idx, fpath in enumerate(group_info.files):
+        if fpath is not None:
+            if reference_file is None:
+                reference_file = fpath
+            # Prefer sb00
+            if idx == 0:
+                reference_file = fpath
+                break
+
+    if reference_file is None:
+        raise ValueError("Cannot create synthetic subbands: no reference file available")
+
+    # Create scratch directory if needed
+    if scratch_dir is None:
+        scratch_dir = os.path.join(os.path.dirname(reference_file), ".synthetic_subbands")
+    os.makedirs(scratch_dir, exist_ok=True)
+
+    # Extract group ID from reference file
+    ref_basename = os.path.basename(reference_file)
+    group_id = ref_basename.split("_sb")[0]
+
+    complete_files = []
+    temp_files = []
+
+    # Use metadata to know exactly which subbands are missing
+    for idx, fpath in enumerate(group_info.files):
+        if fpath is not None:
+            complete_files.append(fpath)
+        else:
+            # Only create synthetic subband if it's in the missing set
+            if idx in group_info.missing_subbands:
+                synthetic_path = os.path.join(scratch_dir, f"{group_id}_sb{idx:02d}_synthetic.hdf5")
+                _create_synthetic_subband(reference_file, idx, synthetic_path)
+                complete_files.append(synthetic_path)
+                temp_files.append(synthetic_path)
+                logger.info(
+                    f"Filled missing subband sb{idx:02d} with synthetic zero-padded file "
+                    f"(group has {group_info.present_count}/16 subbands)"
+                )
+            else:
+                # This shouldn't happen, but handle gracefully
+                logger.warning(f"Unexpected None at index {idx} but not in missing_subbands")
+                complete_files.append(None)
+
+    return complete_files, temp_files
 
 
 def _load_and_merge_subbands(
@@ -516,8 +698,8 @@ def convert_subband_groups_to_ms(
     `write_ms_from_subbands()` directly with an explicit file list.
 
     Args:
-        input_dir: Directory containing UVH5 subband files
-        output_dir: Directory where MS files will be written
+        input_dir: Directory containing UVH5 subband files (NOT input_hdf5_dir)
+        output_dir: Directory where MS files will be written (NOT output_ms_dir)
         start_time: Start time in ISO format (e.g., "2025-10-29T13:53:00")
         end_time: End time in ISO format (must be after start_time)
         flux: Optional flux value for model population
@@ -530,6 +712,10 @@ def convert_subband_groups_to_ms(
                     If provided, MS files will be written directly to organized locations.
                     Function signature: (base_name: str, output_dir: str) -> str
                     Example: lambda name, dir: f"{dir}/science/2025-10-28/{name}.ms"
+
+    Note:
+        - No 'verbose' parameter exists (logging is controlled by logger level)
+        - Parameter names are 'input_dir' and 'output_dir', not 'input_hdf5_dir' or 'output_ms_dir'
 
     Raises:
         ValueError: If input/output directories are invalid or time range is invalid
@@ -660,7 +846,7 @@ def convert_subband_groups_to_ms(
         return
 
     # Print group filenames for visibility
-    logger.info(f"Found {len(groups)} complete subband group(s) ({len(groups)*16} total files)")
+    logger.info(f"Found {len(groups)} complete subband group(s) ({len(groups) * 16} total files)")
     for i, group in enumerate(groups, 1):
         logger.info(f"  Group {i}:")
         # Sort by subband number ONLY (0-15) to show correct spectral order
@@ -672,7 +858,7 @@ def convert_subband_groups_to_ms(
             sb_num = int(sb.replace("sb", "")) if sb else 999
             return sb_num
 
-        for f in sorted(group, key=sort_key):
+        for f in sorted([f for f in group if f], key=sort_key):
             logger.info(f"    {os.path.basename(f)}")
 
     # Solution 1: Cleanup verification before starting new groups
@@ -738,7 +924,11 @@ def convert_subband_groups_to_ms(
         mininterval=1.0,  # Update every 1s max for groups
     )
 
-    for file_list in groups_iter:
+    for group in groups_iter:
+        # Extract actual file list
+        # Groups from find_subband_groups are lists of strings (file paths)
+        file_list = [f for f in group if f is not None]
+
         # PRECONDITION CHECK: Validate all files exist before conversion
         # This ensures we follow "measure twice, cut once" - establish requirements upfront
         # before expensive conversion operations.
@@ -773,10 +963,87 @@ def convert_subband_groups_to_ms(
         if os.path.exists(ms_path):
             if skip_existing:
                 logger.info("MS already exists (--skip-existing), skipping: %s", ms_path)
-                continue
             else:
                 logger.info("MS already exists, skipping: %s", ms_path)
-                continue
+
+            # Register in database if not already present
+            try:
+                from pathlib import Path as PathLib
+
+                from dsa110_contimg.database.products import (
+                    ensure_products_db,
+                    ms_index_upsert,
+                )
+                from dsa110_contimg.utils.time_utils import extract_ms_time_range
+
+                # Find products database
+                products_db_path = PathLib(os.getenv("PRODUCTS_DB_PATH", "state/products.sqlite3"))
+                if not products_db_path.is_absolute():
+                    # Search in common locations
+                    for base_dir in [
+                        "/data/dsa110-contimg",
+                        "/stage/dsa110-contimg",
+                        os.getcwd(),
+                    ]:
+                        candidate = PathLib(base_dir) / products_db_path
+                        if candidate.exists():
+                            products_db_path = candidate
+                            break
+
+                if products_db_path.exists():
+                    conn = ensure_products_db(products_db_path)
+
+                    # Check if MS is already registered
+                    cursor = conn.cursor()
+                    existing = cursor.execute(
+                        "SELECT path FROM ms_index WHERE path = ?", (ms_path,)
+                    ).fetchone()
+
+                    if not existing:
+                        # Extract metadata from MS file
+                        start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path)
+
+                        # Get phase center from MS
+                        ra_deg = None
+                        dec_deg = None
+                        try:
+                            import casacore.tables as casatables
+
+                            with casatables.table(f"{ms_path}::FIELD", readonly=True) as field_tb:
+                                phase_dir = field_tb.getcol("PHASE_DIR")[
+                                    0, 0
+                                ]  # [field, poly_order, ra/dec]
+                                ra_deg = float(np.degrees(phase_dir[0]))
+                                dec_deg = float(np.degrees(phase_dir[1]))
+                        except Exception as e:
+                            logger.debug(f"Could not extract phase center from {ms_path}: {e}")
+
+                        # Register MS in database
+                        ms_index_upsert(
+                            conn,
+                            ms_path,
+                            start_mjd=start_mjd,
+                            end_mjd=end_mjd,
+                            mid_mjd=mid_mjd,
+                            status="converted",
+                            stage="converted",
+                            ra_deg=ra_deg,
+                            dec_deg=dec_deg,
+                        )
+                        conn.commit()
+                        logger.info(f"Registered existing MS in database: {ms_path}")
+                    else:
+                        logger.debug(f"MS already registered in database: {ms_path}")
+
+                    conn.close()
+                else:
+                    logger.debug(
+                        f"Products database not found at {products_db_path}, skipping registration"
+                    )
+            except Exception as e:
+                logger.warning(f"Failed to register existing MS in database: {e}")
+
+            continue
 
         # PRECONDITION CHECK: Estimate disk space requirement and verify availability
         # This ensures we follow "measure twice, cut once" - establish requirements upfront
@@ -859,7 +1126,10 @@ def convert_subband_groups_to_ms(
         if selected_writer not in ("parallel-subband", "direct-subband"):
             t0 = time.perf_counter()
             # Determine if progress should be shown
-            from dsa110_contimg.utils.progress import should_disable_progress
+            from dsa110_contimg.utils.progress import (
+                get_progress_bar,
+                should_disable_progress,
+            )
 
             show_progress = not should_disable_progress(
                 None,  # No args in this function scope
@@ -1233,7 +1503,7 @@ def convert_subband_groups_to_ms(
         skip_qa = writer_kwargs and writer_kwargs.get("skip_validation_during_conversion", False)
         if not skip_qa:
             try:
-                qa_passed, qa_metrics = check_ms_after_conversion(
+                qa_passed, _ = check_ms_after_conversion(
                     ms_path=ms_path,
                     quick_check_only=False,
                     alert_on_issues=True,
@@ -1497,7 +1767,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                     logger.info(f"Calculating transit for date: {args.transit_date}")
 
                     # Load RA/Dec for calibrator
-                    ra_deg, dec_deg = service._load_radec(args.calibrator)
+                    ra_deg, _ = service._load_radec(args.calibrator)
 
                     # Calculate transit time for that specific date
                     # Use end of target date as search start, then find previous transit
@@ -1615,7 +1885,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                 logger.info("\n" + "=" * 60)
                 logger.info("FIND-ONLY MODE: Not converting to MS")
                 logger.info("=" * 60)
-                logger.info(f"\nTransit Information:")
+                logger.info("\nTransit Information:")
                 logger.info(f"  Calibrator: {args.calibrator}")
                 logger.info(f"  Transit Time: {transit_info['transit_iso']}")
                 logger.info(f"  Group ID: {transit_info['group_id']}")
@@ -1636,7 +1906,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                     sorted(transit_info.get("files", []), key=sort_key_files), 1
                 ):
                     logger.info(f"  {i:2d}. {os.path.basename(fpath)}")
-                logger.info(f"\nTime Window:")
+                logger.info("\nTime Window:")
                 logger.info(f"  Start: {start_time}")
                 logger.info(f"  End: {end_time}")
                 return 0
@@ -1664,10 +1934,10 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
         logger.info("\n" + "=" * 60)
         logger.info("FIND-ONLY MODE: Not converting to MS")
         logger.info("=" * 60)
-        logger.info(f"\nTime Window:")
+        logger.info("\nTime Window:")
         logger.info(f"  Start: {start_time}")
         logger.info(f"  End: {end_time}")
-        logger.info(f"\nTo convert, run without --find-only flag")
+        logger.info("\nTo convert, run without --find-only flag")
         return 0
 
     # Check for dry-run mode

@@ -11,35 +11,29 @@ Provides endpoints for:
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException
-from fastapi import Path as PathParam
-from fastapi import Query
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
-from pydantic import BaseModel, Field
 import numpy as np
+from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import FileResponse, HTMLResponse
+from pydantic import BaseModel, Field
 
-from dsa110_contimg.qa.casa_ms_qa import QaResult, QaThresholds, run_ms_qa
+from dsa110_contimg.api.carta_service import get_carta_service_manager
+from dsa110_contimg.qa.casa_ms_qa import QaThresholds, run_ms_qa
 from dsa110_contimg.qa.visualization import (
     CasaTable,
     FITSFile,
     ImageFile,
     TextFile,
-    browse_qa_outputs,
-    display_qa_summary,
-    generate_fits_viewer_notebook,
     generate_qa_notebook,
     generate_qa_notebook_from_result,
-    ls,
-    FileList,
 )
-from dsa110_contimg.qa.visualization_qa import run_ms_qa_with_visualization
+from dsa110_contimg.utils.cli_helpers import casa_log_environment
+from dsa110_contimg.utils.path_validation import validate_path
 
 logger = logging.getLogger(__name__)
 
@@ -169,37 +163,47 @@ def browse_directory(
     Browse a directory and return file listing.
 
     Supports filtering by patterns and recursive scanning.
+
+    Note: Path is validated using validate_path() before use. CodeQL warnings
+    about path injection in error messages are false positives.
     """
     try:
-        # Validate path is within allowed directories
+        # Validate path is within allowed directories using path validation utility
         base_state = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
         qa_base = base_state / "qa"
+        output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
 
-        # Resolve and validate path
-        target_path = Path(path).resolve()
+        # Try validation against each allowed base directory
+        target_path = None
+        validation_errors = []
 
-        # Ensure path is within allowed directories
-        # Include both relative and absolute paths for flexibility
-        allowed_bases = [
-            base_state.resolve(),
-            qa_base.resolve(),
-            Path(
-                os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/ms")
-            ).resolve(),
-        ]
+        for base_dir in [base_state, qa_base, output_dir]:
+            try:
+                # Allow absolute paths if the base directory resolves to an absolute path
+                # This is necessary because output_dir is typically an absolute path,
+                # and relative base directories like "state" resolve to absolute paths
+                resolved_base = Path(base_dir).resolve()
+                allow_absolute = resolved_base.is_absolute()
+                target_path = validate_path(path, base_dir, allow_absolute=allow_absolute)
+                break
+            except ValueError as e:
+                validation_errors.append(str(e))
+                continue
 
-        if not any(str(target_path).startswith(str(base)) for base in allowed_bases):
+        if target_path is None:
+            # codeql[py/path-injection]: Path has been validated; using original path only in error message
             raise HTTPException(
-                status_code=403, detail=f"Path {path} is outside allowed directories"
+                status_code=403,
+                detail=f"Path {path} is outside allowed directories: {validation_errors[0] if validation_errors else 'Invalid path'}",
             )
 
         if not target_path.exists():
+            # codeql[py/path-injection]: Path has been validated; using original path only in error message
             raise HTTPException(status_code=404, detail=f"Path not found: {path}")
 
         if not target_path.is_dir():
-            raise HTTPException(
-                status_code=400, detail=f"Path is not a directory: {path}"
-            )
+            # codeql[py/path-injection]: Path has been validated; using original path only in error message
+            raise HTTPException(status_code=400, detail=f"Path is not a directory: {path}")
 
         # Browse directory using DataDir
         from dsa110_contimg.qa.visualization.datadir import DataDir
@@ -224,10 +228,8 @@ def browse_directory(
                 name=item.basename,
                 path=item.fullpath,
                 type=file_type,
-                size=item.size,
-                modified_time=(
-                    datetime.fromtimestamp(item.mtime) if item.mtime else None
-                ),
+                size=str(item.size) if item.size is not None else None,
+                modified_time=(datetime.fromtimestamp(item.mtime) if item.mtime else None),
                 is_dir=item.isdir,
             )
             entries.append(entry)
@@ -245,9 +247,7 @@ def browse_directory(
         raise
     except Exception as e:
         logger.exception(f"Error browsing directory {path}")
-        raise HTTPException(
-            status_code=500, detail=f"Error browsing directory: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error browsing directory: {str(e)}")
 
 
 @router.get("/directory/thumbnails")
@@ -279,9 +279,7 @@ def get_directory_thumbnails(
         allowed_bases = [
             base_state.resolve(),
             qa_base.resolve(),
-            Path(
-                os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/ms")
-            ).resolve(),
+            Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms")).resolve(),
         ]
 
         if not any(str(target_path).startswith(str(base)) for base in allowed_bases):
@@ -293,9 +291,7 @@ def get_directory_thumbnails(
             raise HTTPException(status_code=404, detail=f"Path not found: {path}")
 
         if not target_path.is_dir():
-            raise HTTPException(
-                status_code=400, detail=f"Path is not a directory: {path}"
-            )
+            raise HTTPException(status_code=400, detail=f"Path is not a directory: {path}")
 
         # Browse directory using DataDir
         from dsa110_contimg.qa.visualization.datadir import DataDir
@@ -326,9 +322,7 @@ def get_directory_thumbnails(
         raise
     except Exception as e:
         logger.exception(f"Error rendering thumbnails for {path}")
-        raise HTTPException(
-            status_code=500, detail=f"Error rendering thumbnails: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error rendering thumbnails: {str(e)}")
 
 
 # ============================================================================
@@ -342,8 +336,17 @@ def get_fits_info(
 ):
     """Get information about a FITS file."""
     try:
-        # Validate path
-        target_path = Path(path).resolve()
+        # Validate path to prevent path traversal
+        base_dir = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
+        try:
+            target_path = validate_path(path, base_dir)
+        except ValueError:
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
+            try:
+                target_path = validate_path(path, output_dir)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=f"Invalid path: {str(e)}")
+
         if not target_path.exists():
             raise HTTPException(status_code=404, detail=f"FITS file not found: {path}")
 
@@ -390,7 +393,18 @@ def view_fits_file(
     Returns HTML that can be embedded in the dashboard.
     """
     try:
-        target_path = Path(path).resolve()
+        # Validate path to prevent path traversal
+        base_dir = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
+        try:
+            target_path = validate_path(path, base_dir)
+        except ValueError:
+            # Try other allowed directories
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
+            try:
+                target_path = validate_path(path, output_dir)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=f"Invalid path: {str(e)}")
+
         if not target_path.exists():
             raise HTTPException(status_code=404, detail=f"FITS file not found: {path}")
 
@@ -409,9 +423,7 @@ def view_fits_file(
         raise
     except Exception as e:
         logger.exception(f"Error generating FITS viewer HTML for {path}")
-        raise HTTPException(
-            status_code=500, detail=f"Error generating viewer: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error generating viewer: {str(e)}")
 
 
 # ============================================================================
@@ -430,12 +442,10 @@ def get_casatable_info(
             raise HTTPException(status_code=404, detail=f"CASA table not found: {path}")
 
         if not target_path.is_dir():
-            raise HTTPException(
-                status_code=400, detail=f"Path is not a directory: {path}"
-            )
+            raise HTTPException(status_code=400, detail=f"Path is not a directory: {path}")
 
         casa_table = CasaTable(str(target_path))
-        casa_table.rescan()
+        casa_table.rescan()  # pylint: disable=no-member
 
         return CasaTableInfo(
             path=str(target_path),
@@ -443,9 +453,7 @@ def get_casatable_info(
             nrows=casa_table.nrows if casa_table.exists else None,
             columns=casa_table.columns if casa_table.exists else None,
             keywords=casa_table.keywords if casa_table.exists else None,
-            subtables=(
-                [str(s) for s in casa_table.subtables] if casa_table.exists else None
-            ),
+            subtables=([str(s) for s in casa_table.subtables] if casa_table.exists else None),
             is_writable=casa_table._is_writable if casa_table.exists else None,
             error=casa_table._error if hasattr(casa_table, "_error") else None,
         )
@@ -478,7 +486,7 @@ def view_casatable(
             raise HTTPException(status_code=404, detail=f"CASA table not found: {path}")
 
         casa_table = CasaTable(str(target_path))
-        casa_table.rescan()
+        casa_table.rescan()  # pylint: disable=no-member
 
         # Note: show() uses display() which won't work in API context
         # We need to generate HTML directly
@@ -494,9 +502,7 @@ def view_casatable(
         raise
     except Exception as e:
         logger.exception(f"Error generating CASA table viewer HTML for {path}")
-        raise HTTPException(
-            status_code=500, detail=f"Error generating viewer: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error generating viewer: {str(e)}")
 
 
 # ============================================================================
@@ -510,7 +516,17 @@ def get_image_info(
 ):
     """Get information about an image file."""
     try:
-        target_path = Path(path).resolve()
+        # Validate path to prevent path traversal
+        base_dir = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
+        try:
+            target_path = validate_path(path, base_dir)
+        except ValueError:
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
+            try:
+                target_path = validate_path(path, output_dir)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=f"Invalid path: {str(e)}")
+
         if not target_path.exists():
             raise HTTPException(status_code=404, detail=f"Image file not found: {path}")
 
@@ -558,12 +574,22 @@ def view_image_file(
     Returns HTML that can be embedded in the dashboard.
     """
     try:
-        target_path = Path(path).resolve()
+        # Validate path to prevent path traversal
+        base_dir = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
+        try:
+            target_path = validate_path(path, base_dir)
+        except ValueError:
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
+            try:
+                target_path = validate_path(path, output_dir)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=f"Invalid path: {str(e)}")
+
         if not target_path.exists():
             raise HTTPException(status_code=404, detail=f"Image file not found: {path}")
 
         img_file = ImageFile(str(target_path))
-        html = img_file.render_html(width=width)
+        html = img_file.render_html(width=width)  # pylint: disable=no-member
 
         return HTMLResponse(content=html)
 
@@ -571,9 +597,7 @@ def view_image_file(
         raise
     except Exception as e:
         logger.exception(f"Error generating image viewer HTML for {path}")
-        raise HTTPException(
-            status_code=500, detail=f"Error generating viewer: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error generating viewer: {str(e)}")
 
 
 @router.get("/image/thumbnail")
@@ -587,7 +611,17 @@ def get_image_thumbnail(
     Returns HTML with thumbnail that can be embedded in the dashboard.
     """
     try:
-        target_path = Path(path).resolve()
+        # Validate path to prevent path traversal
+        base_dir = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
+        try:
+            target_path = validate_path(path, base_dir)
+        except ValueError:
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
+            try:
+                target_path = validate_path(path, output_dir)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=f"Invalid path: {str(e)}")
+
         if not target_path.exists():
             raise HTTPException(status_code=404, detail=f"Image file not found: {path}")
 
@@ -600,9 +634,61 @@ def get_image_thumbnail(
         raise
     except Exception as e:
         logger.exception(f"Error generating thumbnail for {path}")
-        raise HTTPException(
-            status_code=500, detail=f"Error generating thumbnail: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error generating thumbnail: {str(e)}")
+
+
+@router.get("/file/icon")
+def get_file_type_icon(
+    path: str = Query(..., description="Path to file or directory"),
+    size: int = Query(64, description="Icon size in pixels (default: 64)"),
+    format: str = Query("svg", description="Format: 'svg', 'data-uri', or 'html'"),
+):
+    """
+    Get file type icon for a file or directory.
+
+    Returns an SVG icon, data URI, or HTML img tag representing the file type
+    (folder, FITS, MS, image, etc.) instead of an actual thumbnail.
+    This provides a cleaner visual representation for file browsers.
+    """
+    from dsa110_contimg.api.file_type_icons import (
+        get_file_type_icon_data_uri,
+        get_file_type_icon_html,
+        get_file_type_icon_svg,
+    )
+
+    try:
+        # Validate path to prevent path traversal
+        base_dir = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
+        try:
+            target_path = validate_path(path, base_dir)
+        except ValueError:
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg"))
+            try:
+                target_path = validate_path(path, output_dir)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=f"Invalid path: {str(e)}")
+
+        if not target_path.exists():
+            raise HTTPException(status_code=404, detail=f"File not found: {path}")
+
+        # Generate icon based on format
+        if format == "svg":
+            svg = get_file_type_icon_svg(str(target_path), size=size)
+            return Response(content=svg, media_type="image/svg+xml")
+        elif format == "data-uri":
+            data_uri = get_file_type_icon_data_uri(str(target_path), size=size)
+            return {"data_uri": data_uri}
+        elif format == "html":
+            html = get_file_type_icon_html(str(target_path), size=size)
+            return HTMLResponse(content=html)
+        else:
+            raise HTTPException(status_code=400, detail=f"Invalid format: {format}")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error generating file icon for {path}")
+        raise HTTPException(status_code=500, detail=f"Error generating file icon: {str(e)}")
 
 
 # ============================================================================
@@ -616,7 +702,17 @@ def get_text_info(
 ):
     """Get information about a text file."""
     try:
-        target_path = Path(path).resolve()
+        # Validate path to prevent path traversal
+        base_dir = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
+        try:
+            target_path = validate_path(path, base_dir)
+        except ValueError:
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
+            try:
+                target_path = validate_path(path, output_dir)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=f"Invalid path: {str(e)}")
+
         if not target_path.exists():
             raise HTTPException(status_code=404, detail=f"Text file not found: {path}")
 
@@ -656,7 +752,17 @@ def view_text_file(
     Returns HTML that can be embedded in the dashboard.
     """
     try:
-        target_path = Path(path).resolve()
+        # Validate path to prevent path traversal
+        base_dir = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
+        try:
+            target_path = validate_path(path, base_dir)
+        except ValueError:
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
+            try:
+                target_path = validate_path(path, output_dir)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=f"Invalid path: {str(e)}")
+
         if not target_path.exists():
             raise HTTPException(status_code=404, detail=f"Text file not found: {path}")
 
@@ -681,9 +787,7 @@ def view_text_file(
         raise
     except Exception as e:
         logger.exception(f"Error generating text viewer HTML for {path}")
-        raise HTTPException(
-            status_code=500, detail=f"Error generating viewer: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error generating viewer: {str(e)}")
 
 
 # ============================================================================
@@ -715,9 +819,7 @@ def generate_notebook(request: NotebookGenerateRequest):
 
     except Exception as e:
         logger.exception("Error generating notebook")
-        raise HTTPException(
-            status_code=500, detail=f"Error generating notebook: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error generating notebook: {str(e)}")
 
 
 @router.post("/notebook/qa", response_model=NotebookGenerateResponse)
@@ -729,9 +831,7 @@ def generate_qa_notebook_endpoint(request: QANotebookRequest):
     """
     try:
         # Run QA
-        thresholds = (
-            QaThresholds(**(request.thresholds or {})) if request.thresholds else None
-        )
+        thresholds = QaThresholds(**(request.thresholds or {})) if request.thresholds else None
 
         qa_result = run_ms_qa(
             ms_path=request.ms_path,
@@ -755,9 +855,7 @@ def generate_qa_notebook_endpoint(request: QANotebookRequest):
 
     except Exception as e:
         logger.exception("Error generating QA notebook")
-        raise HTTPException(
-            status_code=500, detail=f"Error generating QA notebook: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error generating QA notebook: {str(e)}")
 
 
 @router.get("/notebook/{notebook_path:path}")
@@ -768,8 +866,16 @@ def serve_notebook(notebook_path: str):
     Returns the notebook file for download or viewing.
     """
     try:
-        # Validate path
-        target_path = Path(notebook_path).resolve()
+        # Validate path to prevent path traversal
+        base_dir = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
+        try:
+            target_path = validate_path(notebook_path, base_dir)
+        except ValueError:
+            output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
+            try:
+                target_path = validate_path(notebook_path, output_dir)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=f"Invalid path: {str(e)}")
 
         # Ensure it's a .ipynb file
         if not target_path.suffix == ".ipynb":
@@ -825,10 +931,8 @@ def browse_qa_directory(
                     name=item.basename,
                     path=item.fullpath,
                     type=file_type,
-                    size=item.size,
-                    modified_time=(
-                        datetime.fromtimestamp(item.mtime) if item.mtime else None
-                    ),
+                    size=str(item.size) if item.size is not None else None,
+                    modified_time=(datetime.fromtimestamp(item.mtime) if item.mtime else None),
                     is_dir=item.is_dir,
                 )
             )
@@ -844,9 +948,7 @@ def browse_qa_directory(
 
     except Exception as e:
         logger.exception(f"Error browsing QA directory {qa_root}")
-        raise HTTPException(
-            status_code=500, detail=f"Error browsing QA directory: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error browsing QA directory: {str(e)}")
 
 
 # JS9 CASA Analysis Endpoints
@@ -856,9 +958,7 @@ def browse_qa_directory(
 class JS9AnalysisRequest(BaseModel):
     """Request for JS9 CASA analysis."""
 
-    task: str = Field(
-        ..., description="CASA task name (imstat, imfit, imview, specflux)"
-    )
+    task: str = Field(..., description="CASA task name (imstat, imfit, imview, specflux)")
     image_path: str = Field(..., description="Path to FITS image file")
     region: Optional[Dict[str, Any]] = Field(
         None, description="JS9 region object (optional, for region-based analysis)"
@@ -895,8 +995,9 @@ def js9_casa_analysis(request: JS9AnalysisRequest):
 
     Results are cached to avoid re-running identical analyses.
     """
-    import time
     import hashlib
+    import time
+
     from dsa110_contimg.utils.casa_init import ensure_casa_path
 
     start_time = time.time()
@@ -905,13 +1006,9 @@ def js9_casa_analysis(request: JS9AnalysisRequest):
         # Create cache key
         import json as json_module
 
-        region_str = (
-            json_module.dumps(request.region, sort_keys=True) if request.region else ""
-        )
+        region_str = json_module.dumps(request.region, sort_keys=True) if request.region else ""
         params_str = json_module.dumps(request.parameters or {}, sort_keys=True)
-        cache_key_data = (
-            f"{request.task}:{request.image_path}:{region_str}:{params_str}"
-        )
+        cache_key_data = f"{request.task}:{request.image_path}:{region_str}:{params_str}"
         cache_key = hashlib.sha256(cache_key_data.encode()).hexdigest()
 
         # Check cache
@@ -1060,15 +1157,16 @@ def _run_imstat(
     image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Run imstat CASA task."""
-    from casatasks import imstat
-
     # Convert JS9 region to CASA region string if provided
     region_str = None
     if region:
         region_str = _js9_region_to_casa(region)
 
     # Run imstat
-    stats = imstat(imagename=image_path, region=region_str, **parameters)
+    with casa_log_environment():
+        from casatasks import imstat
+
+        stats = imstat(imagename=image_path, region=region_str, **parameters)
 
     # Convert to JSON-serializable format
     result = {}
@@ -1077,9 +1175,7 @@ def _run_imstat(
         for key, value in stats.items():
             if isinstance(value, dict):
                 # Convert nested dicts
-                result[key] = {
-                    k: _convert_to_json_serializable(v) for k, v in value.items()
-                }
+                result[key] = {k: _convert_to_json_serializable(v) for k, v in value.items()}
             else:
                 result[key] = _convert_to_json_serializable(value)
     else:
@@ -1092,14 +1188,15 @@ def _run_imfit(
     image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Run imfit CASA task for source fitting."""
-    from casatasks import imfit
-
     region_str = None
     if region:
         region_str = _js9_region_to_casa(region)
 
     # Run imfit
-    fit_result = imfit(imagename=image_path, region=region_str, **parameters)
+    with casa_log_environment():
+        from casatasks import imfit
+
+        fit_result = imfit(imagename=image_path, region=region_str, **parameters)
 
     # Convert to JSON-serializable format
     return {"fit": _convert_to_json_serializable(fit_result)}
@@ -1109,7 +1206,6 @@ def _run_imview(
     image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Run imview CASA task for contour generation."""
-    import numpy as np
     from astropy.io import fits
     from scipy.ndimage import gaussian_filter
 
@@ -1119,7 +1215,7 @@ def _run_imview(
 
     # Load image data
     with fits.open(image_path) as hdul:
-        data = hdul[0].data
+        data = hdul[0].data  # pylint: disable=no-member
 
         # Handle multi-dimensional data
         if data.ndim > 2:
@@ -1182,16 +1278,18 @@ def _run_imview(
             }
         except ImportError:
             # Fallback: return statistics if matplotlib not available
-            from casatasks import imstat
-
             region_str = None
             if region:
                 region_str = _js9_region_to_casa(region)
 
-            stats = imstat(imagename=image_path, region=region_str, **parameters)
+            with casa_log_environment():
+                from casatasks import imstat
+
+                stats = imstat(imagename=image_path, region=region_str, **parameters)
+
             return {
                 "contour_data": _convert_to_json_serializable(stats),
-                "note": ("Matplotlib not available, " "returning statistics instead"),
+                "note": ("Matplotlib not available, returning statistics instead"),
             }
 
 
@@ -1199,14 +1297,15 @@ def _run_specflux(
     image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Run spectral flux extraction."""
-    from casatasks import imstat
-
     region_str = None
     if region:
         region_str = _js9_region_to_casa(region)
 
     # Extract flux statistics
-    stats = imstat(imagename=image_path, region=region_str, **parameters)
+    with casa_log_environment():
+        from casatasks import imstat
+
+        stats = imstat(imagename=image_path, region=region_str, **parameters)
 
     return {
         "flux": _convert_to_json_serializable(stats),
@@ -1218,8 +1317,6 @@ def _run_imval(
     image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Run imval CASA task for pixel value extraction."""
-    from casatasks import imval
-
     region_str = None
     if region:
         region_str = _js9_region_to_casa(region)
@@ -1230,12 +1327,15 @@ def _run_imval(
 
     # Run imval
     try:
-        val_result = imval(
-            imagename=image_path,
-            region=region_str,
-            box=box,
-            stokes=stokes,
-        )
+        with casa_log_environment():
+            from casatasks import imval
+
+            val_result = imval(
+                imagename=image_path,
+                region=region_str,
+                box=box,
+                stokes=stokes,
+            )
 
         # imval returns a dictionary with keys like 'data', 'mask', 'coords'
         result = {}
@@ -1248,12 +1348,11 @@ def _run_imval(
         return result
     except Exception as e:
         # Fallback: try to extract pixel values directly from FITS
-        import numpy as np
         from astropy.io import fits
 
         try:
             with fits.open(image_path) as hdul:
-                data = hdul[0].data
+                data = hdul[0].data  # pylint: disable=no-member
 
                 # Handle multi-dimensional data
                 if data.ndim > 2:
@@ -1264,12 +1363,13 @@ def _run_imval(
                 # If region provided, extract values from region
                 if region:
                     # Create mask from region
+                    from astropy.wcs import WCS
+
                     from dsa110_contimg.utils.regions import (
                         create_region_mask,
                     )
-                    from astropy.wcs import WCS
 
-                    wcs = WCS(hdul[0].header)
+                    wcs = WCS(hdul[0].header)  # pylint: disable=no-member
                     region_data = type(
                         "RegionData",
                         (),
@@ -1284,7 +1384,10 @@ def _run_imval(
                     )()
 
                     mask = create_region_mask(
-                        data.shape, region_data, wcs, hdul[0].header
+                        data.shape,
+                        region_data,
+                        wcs,
+                        hdul[0].header,  # pylint: disable=no-member
                     )
                     values = data[mask].tolist()
                 else:
@@ -1294,7 +1397,7 @@ def _run_imval(
                 return {
                     "values": values,
                     "shape": list(data.shape),
-                    "note": ("Extracted directly from FITS file " "(imval fallback)"),
+                    "note": ("Extracted directly from FITS file (imval fallback)"),
                 }
         except Exception as e2:
             return {
@@ -1307,23 +1410,24 @@ def _run_imhead(
     image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Run imhead CASA task to get image header information."""
-    from casatasks import imhead
-
     try:
-        # Get mode (list, get, put)
-        mode = parameters.get("mode", "list")
+        with casa_log_environment():
+            from casatasks import imhead
 
-        if mode == "list":
-            # List all header keywords
-            header_info = imhead(imagename=image_path, mode="list")
-        elif mode == "get":
-            # Get specific keyword
-            keyword = parameters.get("keyword", None)
-            if not keyword:
-                return {"error": "keyword parameter required for mode='get'"}
-            header_info = imhead(imagename=image_path, mode="get", hdkey=keyword)
-        else:
-            return {"error": f"Unsupported mode: {mode}"}
+            # Get mode (list, get, put)
+            mode = parameters.get("mode", "list")
+
+            if mode == "list":
+                # List all header keywords
+                header_info = imhead(imagename=image_path, mode="list")
+            elif mode == "get":
+                # Get specific keyword
+                keyword = parameters.get("keyword", None)
+                if not keyword:
+                    return {"error": "keyword parameter required for mode='get'"}
+                header_info = imhead(imagename=image_path, mode="get", hdkey=keyword)
+            else:
+                return {"error": f"Unsupported mode: {mode}"}
 
         return {"header": _convert_to_json_serializable(header_info)}
     except Exception as e:
@@ -1332,7 +1436,7 @@ def _run_imhead(
             from astropy.io import fits
 
             with fits.open(image_path) as hdul:
-                header = hdul[0].header
+                header = hdul[0].header  # pylint: disable=no-member
                 header_dict = {}
                 for key, value in header.items():
                     # Skip COMMENT and HISTORY cards
@@ -1361,9 +1465,8 @@ def _run_immath(
     image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Run immath CASA task for image arithmetic operations."""
-    from casatasks import immath
-    import tempfile
     import os
+    import tempfile
 
     try:
         # Get expression and output name
@@ -1378,18 +1481,18 @@ def _run_immath(
             temp_dir = tempfile.gettempdir()
             output_path = os.path.join(temp_dir, f"immath_temp_{os.getpid()}.fits")
 
-        # Run immath
-        immath(
-            imagename=image_path,
-            expr=expr,
-            outfile=output_path,
-            **{k: v for k, v in parameters.items() if k not in ["expr", "output"]},
-        )
+        # Run immath and gather stats
+        with casa_log_environment():
+            from casatasks import immath, imstat
 
-        # Read result statistics
-        from casatasks import imstat
+            immath(
+                imagename=image_path,
+                expr=expr,
+                outfile=output_path,
+                **{k: v for k, v in parameters.items() if k not in ["expr", "output"]},
+            )
 
-        stats = imstat(imagename=output_path)
+            stats = imstat(imagename=output_path)
 
         result = {
             "output_path": output_path,
@@ -1442,7 +1545,6 @@ def _js9_region_to_casa(region: Dict[str, Any]) -> str:
 
 def _convert_to_json_serializable(obj: Any) -> Any:
     """Convert numpy types and other non-JSON-serializable objects to JSON-compatible types."""
-    import numpy as np
 
     if isinstance(obj, (np.integer, np.floating)):
         return float(obj)
@@ -1457,6 +1559,82 @@ def _convert_to_json_serializable(obj: Any) -> Any:
     else:
         # Try to convert to string as fallback
         return str(obj)
+
+
+# CARTA Service Management
+# ============================================================================
+
+
+class CARTAServiceStatus(BaseModel):
+    """CARTA service status response."""
+
+    running: bool
+    backend_port_open: bool
+    frontend_port_open: bool
+    backend_healthy: bool
+    container_running: bool
+    method: str
+
+
+class CARTAServiceControlResponse(BaseModel):
+    """CARTA service control response."""
+
+    success: bool
+    message: str
+    method: Optional[str] = None
+
+
+@router.get("/carta/status", response_model=CARTAServiceStatus)
+def get_carta_status():
+    """
+    Get the current status of CARTA services.
+
+    Returns information about whether CARTA backend and frontend are running,
+    ports are open, and services are healthy.
+    """
+    manager = get_carta_service_manager()
+    status = manager.get_status()
+    return CARTAServiceStatus(**status)
+
+
+@router.post("/carta/start", response_model=CARTAServiceControlResponse)
+def start_carta_service():
+    """
+    Start CARTA services.
+
+    Attempts to start CARTA backend and frontend services. If Docker is available,
+    will create and start a CARTA container. Otherwise, checks if services are
+    already running.
+    """
+    manager = get_carta_service_manager()
+    result = manager.start_service()
+    return CARTAServiceControlResponse(**result)
+
+
+@router.post("/carta/stop", response_model=CARTAServiceControlResponse)
+def stop_carta_service():
+    """
+    Stop CARTA services.
+
+    Stops CARTA services if they are managed by Docker. If services are running
+    standalone, returns an error message indicating manual stop is required.
+    """
+    manager = get_carta_service_manager()
+    result = manager.stop_service()
+    return CARTAServiceControlResponse(**result)
+
+
+@router.post("/carta/restart", response_model=CARTAServiceControlResponse)
+def restart_carta_service():
+    """
+    Restart CARTA services.
+
+    Stops and then starts CARTA services. Useful for recovering from errors
+    or applying configuration changes.
+    """
+    manager = get_carta_service_manager()
+    result = manager.restart_service()
+    return CARTAServiceControlResponse(**result)
 
 
 # Demo/Viewer Page

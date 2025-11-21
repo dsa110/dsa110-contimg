@@ -4,18 +4,23 @@
 
 ### 1. API Path Handling for Image IDs ⚠️
 
-**Issue:** The catalog validation and overlay endpoints use `{image_id}` parameter but treat it as a direct file path. This may fail if:
+**Issue:** The catalog validation and overlay endpoints use `{image_id}`
+parameter but treat it as a direct file path. This may fail if:
+
 - Image IDs are database IDs, not paths
 - Paths need URL decoding
 - Images are accessed through a different mechanism
 
 **Current Code:**
+
 ```python
 image_path = f"/{image_id}" if not image_id.startswith('/') else image_id
 ```
 
 **Fix Needed:**
-- Check how other image endpoints handle image IDs (see `/api/images/{image_id}/fits`)
+
+- Check how other image endpoints handle image IDs (see
+  `/api/images/{image_id}/fits`)
 - May need to query database for image path instead of using ID directly
 - Or use `{image_path:path}` like other endpoints
 
@@ -25,24 +30,30 @@ image_path = f"/{image_id}" if not image_id.startswith('/') else image_id
 
 ### 2. Frontend SVG Overlay Integration ⚠️
 
-**Issue:** The `CatalogOverlay` component renders an SVG overlay, but it assumes:
+**Issue:** The `CatalogOverlay` component renders an SVG overlay, but it
+assumes:
+
 - The parent component provides a container with specific dimensions
 - The image viewer uses pixel coordinates matching the image dimensions
 - The SVG can be absolutely positioned over the image
 
 **Current Code:**
+
 ```tsx
 <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
 ```
 
 **Potential Failures:**
+
 - If image viewer uses canvas instead of img tag
 - If image is scaled/zoomed, pixel coordinates won't match
 - If image viewer has different coordinate system
 
 **Fix Needed:**
+
 - Check existing image viewer implementation
-- May need to integrate with specific image viewer library (e.g., OpenLayers, Leaflet, or custom)
+- May need to integrate with specific image viewer library (e.g., OpenLayers,
+  Leaflet, or custom)
 - May need to handle image transformations/zoom
 
 **Location:** `frontend/src/components/Sky/CatalogOverlay.tsx`
@@ -51,12 +62,15 @@ image_path = f"/{image_id}" if not image_id.startswith('/') else image_id
 
 ### 3. Source Extraction Without scipy ⚠️
 
-**Issue:** The fallback source extraction when scipy is unavailable is very basic:
+**Issue:** The fallback source extraction when scipy is unavailable is very
+basic:
+
 - Creates one source per pixel above threshold (no clustering)
 - No proper peak finding
 - Will create many false sources
 
 **Current Code:**
+
 ```python
 except ImportError:
     # Fallback: simple threshold-based extraction without scipy
@@ -67,13 +81,16 @@ except ImportError:
 ```
 
 **Impact:**
+
 - Validation will have many false matches
 - Flux measurements will be inaccurate
 - Astrometry offsets may be wrong due to poor source positions
 
 **Fix Needed:**
+
 - Install scipy as a dependency, OR
-- Implement better clustering algorithm without scipy (e.g., DBSCAN from sklearn or custom)
+- Implement better clustering algorithm without scipy (e.g., DBSCAN from sklearn
+  or custom)
 
 **Location:** `qa/catalog_validation.py` lines ~146-160
 
@@ -84,10 +101,12 @@ except ImportError:
 ### 4. Catalog Column Name Mismatch ⚠️
 
 **Issue:** The code assumes catalog DataFrames have specific column names:
+
 - `ra_deg`, `dec_deg` (required)
 - `flux_mjy` or `flux_jy` (for flux)
 
 **Current Code:**
+
 ```python
 if "flux_mjy" in catalog_sources.columns:
     catalog_sources["flux_jy"] = catalog_sources["flux_mjy"] / 1000.0
@@ -96,6 +115,7 @@ elif "flux_jy" not in catalog_sources.columns:
 ```
 
 **Potential Failure:**
+
 - If catalog returns different column names
 - If catalog structure changes
 
@@ -108,15 +128,18 @@ elif "flux_jy" not in catalog_sources.columns:
 ### 5. WCS Parsing for Non-Standard Images ⚠️
 
 **Issue:** WCS parsing assumes standard FITS headers:
+
 - `CRVAL1`, `CRVAL2`, `CDELT1`, `CDELT2`, `CRPIX1`, `CRPIX2`
 - `CTYPE1`, `CTYPE2` for coordinate types
 
 **Potential Failures:**
+
 - Non-standard WCS keywords
 - Different projection types
 - Missing WCS keywords
 
 **Current Handling:**
+
 - Uses `astropy.wcs.WCS` which is robust, but may fail silently
 - Falls back to defaults if keywords missing
 
@@ -129,9 +152,11 @@ elif "flux_jy" not in catalog_sources.columns:
 ### 6. Frequency Detection from FITS Headers ⚠️
 
 **Issue:** Frequency detection tries multiple keywords but may fail:
+
 - `RESTFRQ`, `FREQ`, `CRVAL3` with `CTYPE3='FREQ'`
 
 **Current Code:**
+
 ```python
 if "RESTFRQ" in header:
     return header["RESTFRQ"] * 1e6
@@ -142,10 +167,12 @@ elif "CRVAL3" in header and header.get("CTYPE3", "").startswith("FREQ"):
 ```
 
 **Impact:**
+
 - Flux scale validation will fail if frequency unknown
 - Can't scale catalog fluxes to image frequency
 
-**Fix:** Add fallback to use catalog frequency directly, or require frequency parameter
+**Fix:** Add fallback to use catalog frequency directly, or require frequency
+parameter
 
 **Location:** `qa/catalog_validation.py` - `get_image_frequency()`
 
@@ -154,11 +181,13 @@ elif "CRVAL3" in header and header.get("CTYPE3", "").startswith("FREQ"):
 ### 7. SPW Count Detection Failure ⚠️
 
 **Issue:** SPW count detection may fail if:
+
 - MS structure is non-standard
 - SPECTRAL_WINDOW table doesn't exist
 - casacore.tables import fails
 
 **Current Code:**
+
 ```python
 try:
     from casacore.tables import table
@@ -171,6 +200,7 @@ except Exception as e:
 ```
 
 **Impact:**
+
 - May create wrong number of expected BP tables
 - Validation may miss tables or expect non-existent tables
 
@@ -185,11 +215,13 @@ except Exception as e:
 ### 8. Catalog Query Failures
 
 **Issue:** Catalog queries may fail if:
+
 - Catalog database not accessible
 - Catalog files missing
 - Network issues (if remote catalog)
 
 **Current Handling:**
+
 - Functions will raise exceptions
 - API endpoints will return 500 errors
 
@@ -200,11 +232,13 @@ except Exception as e:
 ### 9. Large Catalog Queries
 
 **Issue:** Querying large fields may:
+
 - Return thousands of sources
 - Slow down validation
 - Cause memory issues
 
 **Current Handling:**
+
 - No limits on query size
 - No pagination
 
@@ -215,6 +249,7 @@ except Exception as e:
 ### 10. Frontend Type Mismatches
 
 **Issue:** TypeScript types may not match actual API responses:
+
 - Optional fields may be required
 - Array types may differ
 - Nested structures may be different
@@ -227,14 +262,19 @@ except Exception as e:
 
 ### Priority 1 (Critical)
 
-1. **Fix API path handling** - Check how images are accessed and update endpoints accordingly
-2. **Fix frontend overlay integration** - Verify image viewer structure and adjust overlay component
-3. **Improve source extraction** - Either require scipy or implement better fallback
+1. **Fix API path handling** - Check how images are accessed and update
+   endpoints accordingly
+2. **Fix frontend overlay integration** - Verify image viewer structure and
+   adjust overlay component
+3. **Improve source extraction** - Either require scipy or implement better
+   fallback
 
 ### Priority 2 (Important)
 
-4. **Add frequency parameter** - Allow manual frequency specification if header parsing fails
-5. **Add better error messages** - Improve user-facing error messages for all failure modes
+4. **Add frequency parameter** - Allow manual frequency specification if header
+   parsing fails
+5. **Add better error messages** - Improve user-facing error messages for all
+   failure modes
 6. **Add validation** - Validate WCS and image format before processing
 
 ### Priority 3 (Nice to Have)
@@ -268,4 +308,3 @@ except Exception as e:
    - No sources detected
    - Very large fields
    - Missing WCS keywords
-

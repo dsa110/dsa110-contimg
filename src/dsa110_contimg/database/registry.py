@@ -129,7 +129,7 @@ def ensure_db(path: Path) -> sqlite3.Connection:
         "CREATE INDEX IF NOT EXISTS idx_caltables_valid "
         "ON caltables(valid_start_mjd, valid_end_mjd)"
     )
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_caltables_source " "ON caltables(source_ms_path)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_caltables_source ON caltables(source_ms_path)")
     conn.commit()
     return conn
 

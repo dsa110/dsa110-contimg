@@ -1,0 +1,88 @@
+# Pre-commit hooks configuration
+# See https://pre-commit.com for more information
+#
+# CRITICAL: All Python hooks MUST use casa6 Python environment
+# Path: /opt/miniforge/envs/casa6/bin/python
+
+repos:
+  # Output handling validation
+  - repo: local
+    hooks:
+      - id: output-handling-validation
+        name: Validate Output Handling Rules
+        entry: bash scripts/validate-output-handling.sh
+        language: system
+        types: [shell]
+        pass_filenames: false
+        always_run: false
+        stages: [pre-commit]
+
+  # Python code formatting and linting (using casa6 Python)
+  - repo: local
+    hooks:
+      - id: black
+        name: black (casa6) - Code formatting
+        entry: /opt/miniforge/envs/casa6/bin/black
+        language: system
+        types: [python]
+        # No args = auto-format (files are modified in place)
+        exclude: ^(archive/|notebooks/|\.venv/|venv/|env/)
+
+      - id: isort
+        name: isort (casa6) - Import sorting
+        entry: /opt/miniforge/envs/casa6/bin/isort
+        language: system
+        types: [python]
+        # No args = auto-format (files are modified in place)
+        exclude: ^(archive/|notebooks/|\.venv/|venv/|env/)
+
+      - id: pylint
+        name: pylint (casa6) - Code quality
+        entry: /opt/miniforge/envs/casa6/bin/pylint
+        language: system
+        types: [python]
+        args: [--errors-only, --max-line-length=88, --ignore=archive, notebooks, .venv, venv, env]
+        exclude: ^(archive/|notebooks/|\.venv/|venv/|env/|tests/.*test_.*\.py)
+        # Note: Pylint on tests can be noisy; consider enabling separately if desired
+
+      - id: pyflakes
+        name: pyflakes (casa6) - Undefined variable detection
+        entry: /opt/miniforge/envs/casa6/bin/pyflakes
+        language: system
+        types: [python]
+        exclude: ^(archive/|notebooks/|\.venv/|venv/|env/)
+
+      - id: flake8
+        name: flake8 (casa6) - Style guide enforcement
+        entry: /opt/miniforge/envs/casa6/bin/flake8
+        language: system
+        types: [python]
+        args: [--max-line-length=88, --extend-ignore=E203, W503]
+        exclude: ^(archive/|notebooks/|\.venv/|venv/|env/)
+
+      - id: mypy
+        name: mypy (casa6) - Static type checking
+        entry: /opt/miniforge/envs/casa6/bin/mypy
+        language: system
+        types: [python]
+        args: [--ignore-missing-imports, --no-strict-optional]
+        exclude: ^(archive/|notebooks/|\.venv/|venv/|env/|tests/)
+
+      - id: bandit
+        name: bandit (casa6) - Security linting
+        entry: /opt/miniforge/envs/casa6/bin/bandit
+        language: system
+        types: [python]
+        args: [-r, ., -f, json, -o, /dev/null, --skip, B101, B601]
+        exclude: ^(archive/|notebooks/|\.venv/|venv/|env/|tests/)
+
+  # Port configuration validation
+  - repo: local
+    hooks:
+      - id: validate-port-config
+        name: Validate Port Configuration
+        entry: scripts/validate-port-config.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]

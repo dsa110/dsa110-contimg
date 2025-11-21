@@ -16,7 +16,7 @@
  * @module pages/SourceDetailPage
  */
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Container,
@@ -31,20 +31,23 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Tooltip,
+  Snackbar,
 } from "@mui/material";
 import { SkeletonLoader } from "../components/SkeletonLoader";
 import {
-  ArrowBack as ArrowBackIcon,
-  ArrowForward as ArrowForwardIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   Link as LinkIcon,
+  ContentCopy as ContentCopyIcon,
 } from "@mui/icons-material";
 import { useSourceDetail } from "../api/queries";
 import GenericTable from "../components/GenericTable";
 import type { TableColumn } from "../components/GenericTable";
 import { Box } from "@mui/material";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
+import { formatRA, formatDec, copyToClipboard } from "../utils/coordinateUtils";
+import { formatDateTime } from "../utils/dateUtils";
 
 export default function SourceDetailPage() {
   const { sourceId } = useParams<{ sourceId: string }>();
@@ -54,15 +57,14 @@ export default function SourceDetailPage() {
     detections: true,
     related: true,
   });
+  const [copyFeedback, setCopyFeedback] = useState(false);
+
   // Fetch source data
   const {
     data: source,
     isLoading: sourceLoading,
     error: sourceError,
   } = useSourceDetail(sourceId || null);
-
-  // Fetch previous/next source IDs for navigation (placeholder)
-  const navigationIds = { previousId: null, nextId: null };
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => ({
@@ -71,21 +73,11 @@ export default function SourceDetailPage() {
     }));
   };
 
-  // Format coordinates
-  const formatRA = (ra: number) => {
-    const hours = Math.floor(ra / 15);
-    const minutes = Math.floor((ra / 15 - hours) * 60);
-    const seconds = ((ra / 15 - hours) * 60 - minutes) * 60;
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toFixed(2).padStart(5, "0")}`;
-  };
-
-  const formatDec = (dec: number) => {
-    const sign = dec >= 0 ? "+" : "-";
-    const absDec = Math.abs(dec);
-    const degrees = Math.floor(absDec);
-    const minutes = Math.floor((absDec - degrees) * 60);
-    const seconds = ((absDec - degrees) * 60 - minutes) * 60;
-    return `${sign}${degrees.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toFixed(2).padStart(5, "0")}`;
+  const handleCopyCoordinates = () => {
+    if (source) {
+      const text = `RA: ${source.ra_deg}, Dec: ${source.dec_deg}`;
+      copyToClipboard(text).then(() => setCopyFeedback(true));
+    }
   };
 
   // Detection columns for GenericTable
@@ -143,7 +135,7 @@ export default function SourceDetailPage() {
       field: "measured_at",
       label: "Date",
       sortable: true,
-      render: (value) => (value ? new Date(value).toLocaleString() : "N/A"),
+      render: (value) => formatDateTime(value),
     },
   ];
 
@@ -215,27 +207,6 @@ export default function SourceDetailPage() {
             >
               NED
             </Button>
-            {/* Navigation */}
-            {navigationIds?.previousId && (
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<ArrowBackIcon />}
-                onClick={() => navigate(`/sources/${navigationIds.previousId}`)}
-              >
-                Previous
-              </Button>
-            )}
-            {navigationIds?.nextId && (
-              <Button
-                size="small"
-                variant="outlined"
-                endIcon={<ArrowForwardIcon />}
-                onClick={() => navigate(`/sources/${navigationIds.nextId}`)}
-              >
-                Next
-              </Button>
-            )}
           </Stack>
         </Box>
 
@@ -250,7 +221,16 @@ export default function SourceDetailPage() {
           {/* Column 1: Details */}
           <Box>
             <Card>
-              <CardHeader title="Details" />
+              <CardHeader
+                title="Details"
+                action={
+                  <Tooltip title="Copy Coordinates">
+                    <IconButton onClick={handleCopyCoordinates} size="small">
+                      <ContentCopyIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                }
+              />
               <CardContent>
                 <Typography variant="body2" paragraph>
                   <strong>Name:</strong> {source.name}
@@ -321,24 +301,28 @@ export default function SourceDetailPage() {
             </Card>
           </Box>
 
-          {/* Column 2: Sky Visualization (Aladin Lite) */}
+          {/* Column 2: Sky Visualization */}
+          {/* Temporarily simplified until Aladin Lite is fully integrated */}
           <Box>
             <Card>
               <CardHeader title="Sky View" />
               <CardContent>
                 <Box
-                  id="aladin-lite-div"
                   sx={{
                     width: "100%",
                     height: "400px",
-                    border: "1px solid #ddd",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    bgcolor: "background.default",
+                    border: "1px solid",
+                    borderColor: "divider",
                     borderRadius: 1,
                   }}
                 >
-                  {/* Aladin Lite will be initialized here */}
-                  <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-                    Aladin Lite integration coming soon
-                  </Typography>
+                  <Button variant="contained" onClick={() => navigate("/sky")}>
+                    Open Interactive Sky Map
+                  </Button>
                 </Box>
               </CardContent>
             </Card>
@@ -349,10 +333,7 @@ export default function SourceDetailPage() {
             <Card>
               <CardHeader title="Comments & Annotations" />
               <CardContent>
-                <Typography variant="body2" color="text.secondary">
-                  Comments system coming soon
-                </Typography>
-                {/* TODO: Add comments component */}
+                <Alert severity="info">No comments yet.</Alert>
               </CardContent>
             </Card>
           </Box>
@@ -371,10 +352,17 @@ export default function SourceDetailPage() {
             />
             <Collapse in={expandedSections.lightCurve}>
               <CardContent>
-                <Box sx={{ height: "400px" }}>
-                  {/* TODO: Add Plotly light curve visualization */}
-                  <Typography variant="body2" color="text.secondary">
-                    Light curve visualization coming soon
+                <Box
+                  sx={{
+                    height: "400px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    bgcolor: "background.default",
+                  }}
+                >
+                  <Typography color="text.secondary">
+                    Light curve visualization requires additional data
                   </Typography>
                 </Box>
               </CardContent>
@@ -396,7 +384,7 @@ export default function SourceDetailPage() {
             <Collapse in={expandedSections.detections}>
               <CardContent>
                 <GenericTable<any>
-                  apiEndpoint={`/api/sources/${sourceId}/detections`}
+                  apiEndpoint={`/sources/${sourceId}/detections`}
                   columns={detectionColumns}
                   title=""
                   searchable={true}
@@ -416,32 +404,14 @@ export default function SourceDetailPage() {
             </Collapse>
           </Card>
         </Box>
-
-        {/* Full-width: Related Sources */}
-        {/* TODO: Implement related sources when API endpoint is available */}
-        {false && (
-          <Box sx={{ mt: 3 }}>
-            <Card>
-              <CardHeader
-                title="Related Sources"
-                action={
-                  <IconButton onClick={() => toggleSection("related")}>
-                    {expandedSections.related ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                  </IconButton>
-                }
-              />
-              <Collapse in={expandedSections.related}>
-                <CardContent>
-                  <Typography variant="body2" color="text.secondary">
-                    Related sources table coming soon
-                  </Typography>
-                  {/* TODO: Add related sources GenericTable */}
-                </CardContent>
-              </Collapse>
-            </Card>
-          </Box>
-        )}
       </Container>
+
+      <Snackbar
+        open={copyFeedback}
+        autoHideDuration={2000}
+        onClose={() => setCopyFeedback(false)}
+        message="Coordinates copied to clipboard"
+      />
     </>
   );
 }

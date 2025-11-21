@@ -283,7 +283,7 @@ class PortManager:
         results = {}
         for service in self._ports:
             try:
-                port = self.get_port(service, check_conflict=True, auto_resolve=False)
+                self.get_port(service, check_conflict=True, auto_resolve=False)
                 results[service] = (True, None)
             except Exception as e:
                 results[service] = (False, str(e))

@@ -25,8 +25,6 @@ logger = logging.getLogger("dsa110_contimg.conversion.helpers")
 # Import all functions from specialized modules for backward compatibility
 from .helpers_antenna import (
     _ensure_antenna_diameters,
-    _get_relative_antenna_positions,
-    _set_relative_antenna_positions,
     set_antenna_positions,
 )
 from .helpers_coordinates import (

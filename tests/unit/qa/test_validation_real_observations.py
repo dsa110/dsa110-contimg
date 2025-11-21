@@ -18,12 +18,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 import logging
+
 from astropy.io import fits
+
 from dsa110_contimg.qa.catalog_validation import run_full_validation
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -143,13 +143,9 @@ def test_validation_with_real_observations():
             logger.info("=" * 70)
 
             if astrometry_result:
-                logger.info(
-                    f"Astrometry: {astrometry_result.n_matched} matched sources"
-                )
+                logger.info(f"Astrometry: {astrometry_result.n_matched} matched sources")
                 if astrometry_result.rms_offset_arcsec:
-                    logger.info(
-                        f'  RMS offset: {astrometry_result.rms_offset_arcsec:.2f}"'
-                    )
+                    logger.info(f'  RMS offset: {astrometry_result.rms_offset_arcsec:.2f}"')
 
             if flux_result:
                 logger.info(f"Flux Scale: {flux_result.n_matched} matched sources")
@@ -157,13 +153,9 @@ def test_validation_with_real_observations():
                     logger.info(f"  Mean flux ratio: {flux_result.mean_flux_ratio:.3f}")
 
             if completeness_result:
-                logger.info(
-                    f"Source Counts: {completeness_result.n_matched} matched sources"
-                )
+                logger.info(f"Source Counts: {completeness_result.n_matched} matched sources")
                 if completeness_result.completeness:
-                    logger.info(
-                        f"  Completeness: {completeness_result.completeness*100:.1f}%"
-                    )
+                    logger.info(f"  Completeness: {completeness_result.completeness * 100:.1f}%")
 
             logger.info("")
             logger.info(f"✓ HTML report generated: {html_path}")

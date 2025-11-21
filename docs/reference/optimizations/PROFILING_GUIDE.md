@@ -1,10 +1,12 @@
 # Profiling Guide for Performance Optimization
 
-This guide explains how to profile the DSA-110 continuum imaging pipeline to identify performance bottlenecks and optimization opportunities.
+This guide explains how to profile the DSA-110 continuum imaging pipeline to
+identify performance bottlenecks and optimization opportunities.
 
 ## Overview
 
 Profiling helps identify:
+
 - **Hot paths** (code that runs frequently)
 - **Bottlenecks** (operations that take the most time)
 - **Memory hotspots** (operations that use the most memory)
@@ -17,6 +19,7 @@ Profiling helps identify:
 **Purpose:** Statistical profiling of Python code
 
 **Usage:**
+
 ```python
 import cProfile
 import pstats
@@ -37,6 +40,7 @@ stats.print_stats(20)  # Print top 20 functions
 ```
 
 **Command Line:**
+
 ```bash
 python -m cProfile -o profile_results.prof -m dsa110_contimg.calibration.cli calibrate --ms /path/to/ms
 python -m pstats profile_results.prof
@@ -47,11 +51,13 @@ python -m pstats profile_results.prof
 **Purpose:** Line-by-line profiling (shows which lines take the most time)
 
 **Installation:**
+
 ```bash
 pip install line_profiler
 ```
 
 **Usage:**
+
 ```python
 # Add @profile decorator to function you want to profile
 @profile
@@ -68,11 +74,13 @@ kernprof -l -v your_script.py
 **Purpose:** Memory usage profiling
 
 **Installation:**
+
 ```bash
 pip install memory_profiler
 ```
 
 **Usage:**
+
 ```python
 from memory_profiler import profile
 
@@ -83,6 +91,7 @@ def your_function():
 ```
 
 **Command Line:**
+
 ```bash
 python -m memory_profiler your_script.py
 ```
@@ -92,11 +101,13 @@ python -m memory_profiler your_script.py
 **Purpose:** Sampling profiler that works on running processes
 
 **Installation:**
+
 ```bash
 pip install py-spy
 ```
 
 **Usage:**
+
 ```bash
 # Attach to running process
 py-spy record -o profile.svg --pid <PID>
@@ -110,11 +121,13 @@ py-spy record -o profile.svg -- python your_script.py
 ### Step 1: Identify Hot Paths
 
 1. **Run cProfile on main operation:**
+
 ```bash
 python -m cProfile -o calibration.prof -m dsa110_contimg.calibration.cli calibrate --ms /path/to/ms
 ```
 
 2. **Analyze results:**
+
 ```python
 import pstats
 stats = pstats.Stats('calibration.prof')
@@ -133,6 +146,7 @@ stats.print_stats(30)  # Top 30 functions
    - From Step 1, identify functions with high `tottime`
 
 2. **Use line_profiler:**
+
 ```python
 @profile
 def hot_function():
@@ -141,6 +155,7 @@ def hot_function():
 ```
 
 3. **Run:**
+
 ```bash
 kernprof -l -v your_script.py
 ```
@@ -148,6 +163,7 @@ kernprof -l -v your_script.py
 ### Step 3: Memory Profiling
 
 1. **Profile memory usage:**
+
 ```python
 from memory_profiler import profile
 
@@ -252,12 +268,12 @@ After optimization, aim for:
 
 ## Tools Comparison
 
-| Tool | Type | Overhead | Best For |
-|------|------|----------|----------|
-| cProfile | Statistical | Medium | Overall performance analysis |
-| line_profiler | Line-by-line | High | Detailed function analysis |
-| memory_profiler | Memory | High | Memory usage analysis |
-| py-spy | Sampling | Low | Production profiling |
+| Tool            | Type         | Overhead | Best For                     |
+| --------------- | ------------ | -------- | ---------------------------- |
+| cProfile        | Statistical  | Medium   | Overall performance analysis |
+| line_profiler   | Line-by-line | High     | Detailed function analysis   |
+| memory_profiler | Memory       | High     | Memory usage analysis        |
+| py-spy          | Sampling     | Low      | Production profiling         |
 
 ## Best Practices
 
@@ -273,4 +289,3 @@ After optimization, aim for:
 - Performance regression detection
 - Continuous profiling in production
 - Performance dashboard
-

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Mosaic Orchestrator - Intelligent mosaic creation with auto-inference and overrides.
 
@@ -9,28 +8,40 @@ This module implements the high-level logic for creating mosaics with minimal us
 - Hands-off operation: Single trigger → wait until published
 """
 
+# Version guard - prevent use of Python 2.7 or 3.6
+import sys
+
+if sys.version_info < (3, 11) or sys.version_info[:2] in [(2, 7), (3, 6)]:
+    sys.stderr.write("ERROR: Python 3.11+ required. Found: {}\n".format(sys.version))
+    sys.stderr.write("Use: /opt/miniforge/envs/casa6/bin/python\n")
+    sys.exit(1)
+
 import logging
 import os
-import sqlite3
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-import numpy as np
-from astropy.coordinates import EarthLocation, SkyCoord
+from astropy.coordinates import EarthLocation
 from astropy.time import Time
 
-from dsa110_contimg.calibration.schedule import previous_transits
-from dsa110_contimg.conversion.calibrator_ms_service import CalibratorMSGenerator
+from dsa110_contimg.conversion.calibrator_ms_service import (
+    CalibratorMSGenerator,
+)
 from dsa110_contimg.conversion.config import CalibratorMSConfig
 from dsa110_contimg.database.data_registry import (
     ensure_data_registry_db,
     get_data,
     link_photometry_to_data,
 )
+from dsa110_contimg.database.hdf5_index import query_subband_groups
 from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.mosaic.error_handling import check_disk_space
 from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
-from dsa110_contimg.photometry.helpers import query_sources_for_mosaic
+from dsa110_contimg.photometry.manager import (
+    PhotometryConfig,
+    PhotometryManager,
+)
 from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
 logger = logging.getLogger(__name__)
@@ -48,6 +59,7 @@ class MosaicOrchestrator:
     def __init__(
         self,
         products_db_path: Optional[Path] = None,
+        hdf5_db_path: Optional[Path] = None,
         registry_db_path: Optional[Path] = None,
         data_registry_db_path: Optional[Path] = None,
         ms_output_dir: Optional[Path] = None,
@@ -55,13 +67,14 @@ class MosaicOrchestrator:
         mosaic_output_dir: Optional[Path] = None,
         input_dir: Optional[Path] = None,
         observatory_location: Optional[EarthLocation] = None,
-        enable_photometry: bool = False,
+        enable_photometry: bool = True,
         photometry_config: Optional[Dict[str, Any]] = None,
     ):
         """Initialize mosaic orchestrator.
 
         Args:
             products_db_path: Path to products database (defaults from env)
+            hdf5_db_path: Path to HDF5 file index database (defaults from env)
             registry_db_path: Path to calibration registry (defaults from env)
             data_registry_db_path: Path to data registry (defaults from env)
             ms_output_dir: Directory for MS files (defaults from env)
@@ -70,6 +83,7 @@ class MosaicOrchestrator:
             input_dir: Input directory for HDF5 files (defaults from env)
             observatory_location: Observatory location (defaults to DSA-110)
             enable_photometry: Enable automatic photometry after mosaic creation
+                (default: True)
             photometry_config: Photometry configuration dict with keys:
                 catalog (str): Catalog to use ("nvss", "first", etc.)
                 radius_deg (float): Search radius in degrees
@@ -80,6 +94,9 @@ class MosaicOrchestrator:
         state_dir = Path(os.getenv("PIPELINE_STATE_DIR", "/data/dsa110-contimg/state"))
         self.products_db_path = products_db_path or Path(
             os.getenv("PIPELINE_PRODUCTS_DB", str(state_dir / "products.sqlite3"))
+        )
+        self.hdf5_db_path = hdf5_db_path or Path(
+            os.getenv("HDF5_DB_PATH", str(state_dir / "hdf5.sqlite3"))
         )
         self.registry_db_path = registry_db_path or Path(
             os.getenv(
@@ -126,14 +143,23 @@ class MosaicOrchestrator:
         # Initialize streaming mosaic manager (lazy, after we know what we're doing)
         self.mosaic_manager: Optional[StreamingMosaicManager] = None
 
-        # Photometry configuration
+        # Photometry configuration and manager
         self.enable_photometry = enable_photometry
-        self.photometry_config = photometry_config or {
+        photometry_config_dict = photometry_config or {
             "catalog": "nvss",
             "radius_deg": 1.0,
             "normalize": False,
             "max_sources": None,
         }
+        self.photometry_config = photometry_config_dict  # Keep for backward compatibility
+        self.photometry_manager: Optional[PhotometryManager] = None
+        if self.enable_photometry:
+            pm_config = PhotometryConfig.from_dict(photometry_config_dict)
+            self.photometry_manager = PhotometryManager(
+                products_db_path=self.products_db_path,
+                data_registry_db_path=self.data_registry_db_path,
+                default_config=pm_config,
+            )
 
     def _get_mosaic_manager(self) -> StreamingMosaicManager:
         """Get or create StreamingMosaicManager instance."""
@@ -228,18 +254,20 @@ class MosaicOrchestrator:
             return None
 
         calibrator_name = bp_calibrator["name"]
+        calibrator_ra = bp_calibrator["ra_deg"]
         transit_time = None
 
         # Calculate transit time for this calibrator at earliest observation
+        # CRITICAL: Use calibrator RA (not name) for transit calculation
         if earliest_mjd:
             transit_time = manager.calculate_calibrator_transit(
-                calibrator_name, Time(earliest_mjd, format="mjd")
+                calibrator_ra, Time(earliest_mjd, format="mjd")
             )
 
         # Check for existing published mosaics to find earliest incomplete window
         # Query data_registry for published mosaics in this time range
         data_registry_cursor = self.data_registry_db.cursor()
-        published_mosaics = data_registry_cursor.execute(
+        data_registry_cursor.execute(
             """
             SELECT data_id, metadata_json
             FROM data_registry
@@ -249,8 +277,22 @@ class MosaicOrchestrator:
         ).fetchall()
 
         # Find earliest incomplete window (no published mosaic covering this time)
-        # For now, start from earliest MS file
-        # TODO: Check if published mosaics cover this time range and skip if covered
+        # Check if published mosaics already cover this time range
+        if self._is_time_range_covered_by_published_mosaics(earliest_mjd):
+            logger.info(
+                f"Time range at MJD {earliest_mjd} already covered by published mosaic, "
+                "finding next uncovered window"
+            )
+            # Find next uncovered window by iterating through MS files
+            for row in rows[DEFAULT_MS_PER_MOSAIC:]:
+                mjd = row[1]
+                if not self._is_time_range_covered_by_published_mosaics(mjd):
+                    earliest_mjd = mjd
+                    break
+            else:
+                logger.info("All available MS time ranges are covered by published mosaics")
+                return None
+
         start_time = Time(earliest_mjd, format="mjd")
 
         # Default: process earliest data in pre-transit half (12 hours before transit)
@@ -288,20 +330,224 @@ class MosaicOrchestrator:
             "ms_count": len(earliest_ms_paths),
         }
 
+    def _is_time_range_covered_by_published_mosaics(
+        self, mjd: float, margin_hours: float = 1.0
+    ) -> bool:
+        """Check if a time (MJD) is covered by any published mosaic.
+
+        Args:
+            mjd: Modified Julian Date to check
+            margin_hours: Margin in hours to expand coverage check
+
+        Returns:
+            True if time range is covered by published mosaic
+        """
+        try:
+            from dsa110_contimg.database.data_registry import get_data_records_by_type
+
+            # Query published mosaics from data registry
+            records = get_data_records_by_type(
+                self.data_registry_db_path, data_type="mosaic", status="published"
+            )
+
+            if not records:
+                return False
+
+            # Convert margin to days
+            margin_days = margin_hours / 24.0
+
+            # Check if any published mosaic covers this time
+            for record in records:
+                # Parse mosaic metadata for time range
+                metadata = {}
+                if record.metadata_json:
+                    try:
+                        metadata = json.loads(record.metadata_json)
+                    except json.JSONDecodeError:
+                        continue
+
+                start_mjd = metadata.get("start_mjd")
+                end_mjd = metadata.get("end_mjd")
+
+                if start_mjd is not None and end_mjd is not None:
+                    # Check if mjd falls within mosaic coverage (with margin)
+                    if (start_mjd - margin_days) <= mjd <= (end_mjd + margin_days):
+                        logger.debug(
+                            f"MJD {mjd} covered by published mosaic {record.data_id} "
+                            f"(range: {start_mjd}-{end_mjd})"
+                        )
+                        return True
+
+            return False
+
+        except Exception as e:
+            logger.warning(f"Error checking published mosaic coverage: {e}")
+            return False  # Assume not covered on error
+
+    def check_existing_mosaic(
+        self,
+        calibrator_name: str,
+        start_time: Time,
+        end_time: Time,
+        timespan_minutes: int,
+    ) -> Optional[Dict]:
+        """Check if a mosaic with exact parameters already exists.
+
+        Args:
+            calibrator_name: Name of calibrator
+            start_time: Start time of mosaic window
+            end_time: End time of mosaic window
+            timespan_minutes: Mosaic timespan in minutes
+
+        Returns:
+            Dict with mosaic info if found, None otherwise
+        """
+        if not self.products_db_path.exists():
+            return None
+
+        cursor = self.products_db.cursor()
+        start_mjd = start_time.mjd
+        end_mjd = end_time.mjd
+
+        # Check if mosaics table exists
+        tables = {
+            row[0]
+            for row in cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            ).fetchall()
+        }
+
+        if "mosaics" not in tables:
+            return None
+
+        # Find mosaics with exact time range match (within 1 second tolerance)
+        # and matching calibrator (if stored in metadata)
+        rows = cursor.execute(
+            """
+            SELECT id, name, path, created_at, start_mjd, end_mjd,
+                   center_ra_deg, center_dec_deg, n_images
+            FROM mosaics
+            WHERE ABS(start_mjd - ?) < 0.00001 AND ABS(end_mjd - ?) < 0.00001
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            (start_mjd, end_mjd),
+        ).fetchall()
+
+        if rows:
+            r = rows[0]
+            return {
+                "id": r[0],
+                "name": r[1],
+                "path": r[2],
+                "created_at": r[3],
+                "start_mjd": r[4],
+                "end_mjd": r[5],
+                "center_ra_deg": r[6],
+                "center_dec_deg": r[7],
+                "n_images": r[8],
+            }
+        return None
+
+    def list_available_transits_with_quality(
+        self,
+        calibrator_name: str,
+        max_days_back: int = 60,
+        min_pb_response: Optional[float] = None,
+        min_ms_count: Optional[int] = None,
+    ) -> List[Dict]:
+        """List available transits with quality metrics.
+
+        Args:
+            calibrator_name: Name of calibrator
+            max_days_back: Maximum days to search back
+            min_pb_response: Minimum primary beam response (optional filter)
+            min_ms_count: Minimum MS file count (optional filter)
+
+        Returns:
+            List of transit dictionaries with quality metrics
+        """
+        if not self.calibrator_service:
+            logger.error("Calibrator service not available")
+            return []
+
+        transits = self.calibrator_service.list_available_transits(
+            calibrator_name, max_days_back=max_days_back
+        )
+
+        if not transits:
+            return []
+
+        # Enrich with MS count for each transit
+        enriched_transits = []
+        for transit in transits:
+            transit_time = Time(transit["transit_iso"])
+            # Calculate window (use default timespan for MS count check)
+            from astropy.time import TimeDelta
+
+            half_span = TimeDelta(DEFAULT_MOSAIC_SPAN_MINUTES / 2.0 * 60, format="sec")
+            start_time = transit_time - half_span
+            end_time = transit_time + half_span
+
+            # Count MS files in window
+            cursor = self.products_db.cursor()
+            start_mjd = start_time.mjd
+            end_mjd = end_time.mjd
+            rows = cursor.execute(
+                """
+                SELECT COUNT(*) as count
+                FROM ms_index
+                WHERE mid_mjd >= ? AND mid_mjd <= ?
+                AND status IN ('converted', 'calibrated', 'imaged', 'done')
+                """,
+                (start_mjd, end_mjd),
+            ).fetchone()
+            ms_count = rows[0] if rows else 0
+
+            # Apply filters
+            if min_pb_response is not None:
+                pb_response = transit.get("pb_response", 0.0)
+                if pb_response < min_pb_response:
+                    continue
+
+            if min_ms_count is not None:
+                if ms_count < min_ms_count:
+                    continue
+
+            enriched_transits.append(
+                {
+                    **transit,
+                    "ms_count": ms_count,
+                    "transit_time": transit_time,
+                }
+            )
+
+        return enriched_transits
+
     def find_transit_centered_window(
         self,
         calibrator_name: str,
         timespan_minutes: int = DEFAULT_MOSAIC_SPAN_MINUTES,
         max_days_back: int = 60,
+        transit_time: Optional[Time] = None,
+        start_time: Optional[Time] = None,
+        end_time: Optional[Time] = None,
     ) -> Optional[Dict]:
-        """Find window centered on earliest transit of specified calibrator.
+        """Find window centered on transit of specified calibrator.
 
         This implements the override behavior: center mosaic on specific RA (via calibrator).
+        Defaults to earliest transit if transit_time is not specified.
+        Supports time range override: if start_time and end_time are provided,
+        uses those directly instead of calculating from transit.
 
         Args:
             calibrator_name: Name of calibrator (e.g., "0834+555")
             timespan_minutes: Mosaic timespan in minutes (default: 50)
             max_days_back: Maximum days to search back
+            transit_time: Optional Time object specifying which transit to use.
+                         If None, defaults to earliest available transit.
+            start_time: Optional Time object for explicit start time (overrides transit-centered)
+            end_time: Optional Time object for explicit end time (overrides transit-centered)
 
         Returns:
             Dict with window info: {
@@ -318,29 +564,55 @@ class MosaicOrchestrator:
             logger.error("Calibrator service not available")
             return None
 
-        # List all available transits for this calibrator
-        transits = self.calibrator_service.list_available_transits(
-            calibrator_name, max_days_back=max_days_back
-        )
+        # Time range override: if both start_time and end_time provided, use them directly
+        if start_time is not None and end_time is not None:
+            logger.info(f"Using explicit time range: {start_time.isot} to {end_time.isot}")
+            # Calculate transit time as midpoint for reference
+            from astropy.time import TimeDelta
 
-        if not transits:
-            logger.warning(f"No transits found for {calibrator_name}")
-            return None
+            transit_time = start_time + (end_time - start_time) / 2.0
+            logger.info(f"Calculated transit time (midpoint): {transit_time.isot}")
+        else:
+            # If user specified a transit time, use it directly
+            if transit_time is not None:
+                logger.info(f"Using user-specified transit time: {transit_time.isot}")
+                # CRITICAL: Pass transit_time as reference_time to search for HDF5 groups
+                # around the specified transit, not around Time.now()
+                transits = self.calibrator_service.list_available_transits(
+                    calibrator_name,
+                    max_days_back=max_days_back,
+                    reference_time=transit_time,
+                )
+                if not transits:
+                    logger.warning(
+                        f"No transits found for {calibrator_name} near {transit_time.isot}, "
+                        f"but using user-specified transit"
+                    )
+            else:
+                # List all available transits for this calibrator (searches back from Time.now())
+                transits = self.calibrator_service.list_available_transits(
+                    calibrator_name, max_days_back=max_days_back
+                )
 
-        # Find earliest transit (list is sorted most recent first, so get last)
-        earliest_transit = transits[-1]
-        transit_iso = earliest_transit["transit_iso"]
-        transit_time = Time(transit_iso)
+                if not transits:
+                    logger.warning(f"No transits found for {calibrator_name}")
+                    return None
 
-        # Calculate window centered on transit
-        from astropy.time import TimeDelta
+                # Find earliest transit (list is sorted most recent first, so get last)
+                earliest_transit = transits[-1]
+                transit_iso = earliest_transit["transit_iso"]
+                transit_time = Time(transit_iso)
+                logger.info(f"Using default (earliest) transit: {transit_time.isot}")
 
-        half_span = TimeDelta(timespan_minutes / 2.0 * 60, format="sec")
-        start_time = transit_time - half_span
-        end_time = transit_time + half_span
+            # Calculate window centered on transit
+            from astropy.time import TimeDelta
+
+            half_span = TimeDelta(timespan_minutes / 2.0 * 60, format="sec")
+            start_time = transit_time - half_span
+            end_time = transit_time + half_span
 
         # Get Dec from calibrator
-        ra_deg, dec_deg = self.calibrator_service._load_radec(calibrator_name)
+        _, dec_deg = self.calibrator_service._load_radec(calibrator_name)
 
         # Check how many MS files exist in this window
         cursor = self.products_db.cursor()
@@ -366,6 +638,71 @@ class MosaicOrchestrator:
             "ms_count": ms_count,
         }
 
+    def _register_existing_ms_files(self, start_time: Time, end_time: Time) -> None:
+        """Register MS files that exist on disk but aren't in the database.
+
+        Args:
+            start_time: Window start time
+            end_time: Window end time
+        """
+        from dsa110_contimg.database.products import ms_index_upsert
+
+        # Scan for MS files in the output directory within the time window
+        ms_dir = self.ms_output_dir
+        if not ms_dir.exists():
+            return
+
+        # Ensure we have a valid database connection
+        if not hasattr(self.products_db, "execute"):
+            self.products_db = ensure_products_db(self.products_db_path)
+
+        registered_count = 0
+        start_mjd = start_time.mjd
+        end_mjd = end_time.mjd
+
+        # Walk through MS directory structure (organized by date)
+        for ms_file in ms_dir.rglob("*.ms"):
+            if not ms_file.is_dir():  # MS files are directories in CASA
+                continue
+
+            try:
+                # Extract time range from MS file
+                ms_start_mjd, ms_end_mjd, ms_mid_mjd = extract_ms_time_range(str(ms_file))
+
+                # Check if within time window (expand slightly to catch files just outside)
+                time_buffer = 0.5 / 86400.0  # 30 minutes in days
+                if ms_mid_mjd < start_mjd - time_buffer or ms_mid_mjd > end_mjd + time_buffer:
+                    continue
+
+                # Check if already in database
+                cursor = self.products_db.cursor()
+                existing = cursor.execute(
+                    "SELECT path FROM ms_index WHERE path = ?", (str(ms_file),)
+                ).fetchone()
+
+                if not existing:
+                    # Register in database
+                    ms_index_upsert(
+                        self.products_db,
+                        str(ms_file),
+                        start_mjd=ms_start_mjd,
+                        end_mjd=ms_end_mjd,
+                        mid_mjd=ms_mid_mjd,
+                        status="converted",
+                        stage="conversion",
+                    )
+                    registered_count += 1
+                    logger.info(f"Registered existing MS file: {ms_file}")
+
+            except Exception as e:
+                logger.warning(f"Failed to register MS file {ms_file}: {e}")
+
+        if registered_count > 0:
+            self.products_db.commit()
+            logger.info(
+                f"Registered {registered_count} MS files that were on disk but not in database"
+            )
+
     def _trigger_hdf5_conversion(self, start_time: Time, end_time: Time) -> bool:
         """Trigger conversion of HDF5 files to MS files for a time window.
 
@@ -377,7 +714,6 @@ class MosaicOrchestrator:
             True if conversion triggered successfully, False otherwise
         """
         try:
-            from dsa110_contimg.conversion.config import CalibratorMSConfig
             from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
                 convert_subband_groups_to_ms,
             )
@@ -421,7 +757,11 @@ class MosaicOrchestrator:
             return False
 
     def ensure_ms_files_in_window(
-        self, start_time: Time, end_time: Time, required_count: int
+        self,
+        start_time: Time,
+        end_time: Time,
+        required_count: int,
+        dry_run: bool = False,
     ) -> List[str]:
         """Ensure MS files exist in window, converting HDF5 if needed.
 
@@ -429,20 +769,28 @@ class MosaicOrchestrator:
             start_time: Window start time
             end_time: Window end time
             required_count: Required number of MS files
+            dry_run: If True, skip actual conversion and only check existing files
 
         Returns:
             List of MS file paths
         """
-        # Check existing MS files in window
-        cursor = self.products_db.cursor()
         start_mjd = start_time.mjd
         end_mjd = end_time.mjd
+
+        # CRITICAL FIX: Always register existing MS files on disk BEFORE checking database
+        # This ensures files from previous runs are discovered even if conversion is skipped
+        if not dry_run:
+            self._register_existing_ms_files(start_time, end_time)
+
+        # Check existing MS files in window
+        # Include 'discovered' status to catch files registered but not yet processed
+        cursor = self.products_db.cursor()
         rows = cursor.execute(
             """
             SELECT path
             FROM ms_index
             WHERE mid_mjd >= ? AND mid_mjd <= ?
-            AND status IN ('converted', 'calibrated', 'imaged', 'done')
+            AND status IN ('discovered', 'converted', 'calibrated', 'imaged', 'done')
             ORDER BY mid_mjd ASC
             """,
             (start_mjd, end_mjd),
@@ -454,6 +802,13 @@ class MosaicOrchestrator:
             return existing_ms[:required_count]
 
         # Need to convert HDF5 files
+        if dry_run:
+            logger.info(
+                f"DRY-RUN: Only {len(existing_ms)} MS files found, need {required_count}. "
+                "Would trigger HDF5 conversion (skipped in dry-run mode)"
+            )
+            return existing_ms  # Return what we have, don't convert
+
         logger.info(
             f"Only {len(existing_ms)} MS files found, need {required_count}. "
             "Triggering HDF5 conversion..."
@@ -462,17 +817,20 @@ class MosaicOrchestrator:
         # Trigger conversion
         if self._trigger_hdf5_conversion(start_time, end_time):
             # Wait a bit for conversion to complete and database to update
-            import time
-
             time.sleep(5)  # Give conversion time to complete
 
+            # Register any MS files that exist on disk but aren't in database
+            # (This is a second pass after conversion, in case new files were created)
+            self._register_existing_ms_files(start_time, end_time)
+
             # Re-check for MS files
+            # Include 'discovered' status to catch files registered but not yet processed
             rows = cursor.execute(
                 """
                 SELECT path
                 FROM ms_index
                 WHERE mid_mjd >= ? AND mid_mjd <= ?
-                AND status IN ('converted', 'calibrated', 'imaged', 'done')
+                AND status IN ('discovered', 'converted', 'calibrated', 'imaged', 'done')
                 ORDER BY mid_mjd ASC
                 """,
                 (start_mjd, end_mjd),
@@ -506,7 +864,7 @@ class MosaicOrchestrator:
         try:
             manager.products_db.execute(
                 """
-                INSERT OR REPLACE INTO mosaic_groups 
+                INSERT OR REPLACE INTO mosaic_groups
                 (group_id, ms_paths, created_at, status)
                 VALUES (?, ?, ?, 'pending')
                 """,
@@ -519,11 +877,14 @@ class MosaicOrchestrator:
             logger.error(f"Failed to create group {group_id}: {e}")
             return False
 
-    def _process_group_workflow(self, group_id: str) -> Optional[str]:
+    def _process_group_workflow(
+        self, group_id: str, min_ms_count: Optional[int] = None
+    ) -> Optional[str]:
         """Process a group through full workflow: calibration → imaging → mosaic.
 
         Args:
             group_id: Group identifier
+            min_ms_count: Minimum MS count (defaults to DEFAULT_MS_PER_MOSAIC for streaming mode)
 
         Returns:
             Mosaic path if successful, None otherwise
@@ -532,10 +893,13 @@ class MosaicOrchestrator:
 
         # Get MS paths
         ms_paths = manager.get_group_ms_paths(group_id)
-        if len(ms_paths) < DEFAULT_MS_PER_MOSAIC:
+
+        # Use provided min_ms_count for manual mode, otherwise use DEFAULT for streaming
+        required_count = min_ms_count if min_ms_count is not None else DEFAULT_MS_PER_MOSAIC
+
+        if len(ms_paths) < required_count:
             logger.warning(
-                f"Group {group_id} has only {len(ms_paths)} MS files, "
-                f"need {DEFAULT_MS_PER_MOSAIC}"
+                f"Group {group_id} has only {len(ms_paths)} MS files, " f"need {required_count}"
             )
             # Allow asymmetric mosaics if data availability requires it
             if len(ms_paths) < 3:
@@ -543,15 +907,13 @@ class MosaicOrchestrator:
                 return None
 
         # Select calibration MS (5th MS, index 4)
-        calibration_ms = manager.select_calibration_ms(ms_paths)
+        calibration_ms = manager.select_calibration_ms(ms_paths, min_required=min_ms_count)
         if not calibration_ms:
             logger.error(f"Could not select calibration MS for group {group_id}")
             return None
 
         # Solve calibration
-        bpcal_solved, gaincal_solved, error_msg = manager.solve_calibration_for_group(
-            group_id, calibration_ms
-        )
+        _, _, error_msg = manager.solve_calibration_for_group(group_id, calibration_ms)
         if error_msg:
             logger.error(f"Calibration solving failed for group {group_id}: {error_msg}")
             return None
@@ -586,7 +948,9 @@ class MosaicOrchestrator:
                 try:
                     mosaic_data_id = Path(mosaic_path).stem
                     if link_photometry_to_data(
-                        self.data_registry_db, mosaic_data_id, str(photometry_job_id)
+                        self.data_registry_db,
+                        mosaic_data_id,
+                        str(photometry_job_id),
                     ):
                         logger.debug(
                             f"Linked photometry job {photometry_job_id} to mosaic data_id {mosaic_data_id}"
@@ -616,64 +980,28 @@ class MosaicOrchestrator:
         Returns:
             Batch job ID if successful, None otherwise
         """
-        if not mosaic_path.exists():
-            logger.warning(f"Mosaic FITS file not found: {mosaic_path}")
+        if not self.photometry_manager:
+            logger.warning("Photometry manager not initialized")
             return None
 
         try:
-            from dsa110_contimg.api.batch_jobs import create_batch_photometry_job
-
-            # Query sources for the mosaic field
-            sources = query_sources_for_mosaic(
-                mosaic_path,
-                catalog=self.photometry_config.get("catalog", "nvss"),
-                radius_deg=self.photometry_config.get("radius_deg", 1.0),
-                max_sources=self.photometry_config.get("max_sources", None),
-            )
-
-            if not sources:
-                logger.info(f"No sources found for photometry in mosaic {mosaic_path}")
-                return None
-
-            # Extract coordinates from sources
-            coordinates = [
-                {
-                    "ra_deg": float(src.get("ra", src.get("ra_deg", 0.0))),
-                    "dec_deg": float(src.get("dec", src.get("dec_deg", 0.0))),
-                }
-                for src in sources
-            ]
-
-            logger.info(
-                f"Found {len(coordinates)} sources for photometry in mosaic {mosaic_path.name}"
-            )
-
-            # Prepare batch job parameters
-            params = {
-                "method": "peak",
-                "normalize": self.photometry_config.get("normalize", False),
-            }
-
-            # Get products DB connection
-            conn = ensure_products_db(self.products_db_path)
-
             # Generate data_id from mosaic path (stem without extension)
             mosaic_data_id = mosaic_path.stem
 
-            # Create batch photometry job
-            batch_job_id = create_batch_photometry_job(
-                conn=conn,
-                job_type="batch_photometry",
-                fits_paths=[str(mosaic_path)],
-                coordinates=coordinates,
-                params=params,
+            # Use PhotometryManager to handle the workflow
+            result = self.photometry_manager.measure_for_mosaic(
+                mosaic_path=mosaic_path,
+                create_batch_job=True,
                 data_id=mosaic_data_id,
+                group_id=group_id,
             )
 
-            logger.info(
-                f"Created photometry batch job {batch_job_id} for mosaic {mosaic_path.name}"
-            )
-            return batch_job_id
+            if result and result.batch_job_id:
+                logger.info(
+                    f"Created photometry batch job {result.batch_job_id} for mosaic {mosaic_path.name}"
+                )
+                return result.batch_job_id
+            return None
 
         except Exception as e:
             logger.error(
@@ -682,49 +1010,570 @@ class MosaicOrchestrator:
             )
             return None
 
-    def create_mosaic_centered_on_calibrator(
+    def _validate_databases(
+        self,
+    ) -> Tuple[List[str], List[str]]:
+        """Validate database connectivity and schema.
+
+        Returns:
+            Tuple of (errors, warnings)
+        """
+        errors = []
+        warnings = []
+
+        try:
+            cursor = self.products_db.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='ms_index'")
+            if not cursor.fetchone():
+                errors.append("ms_index table not found in products database")
+            else:
+                logger.info("✓ Database: products database accessible")
+        except Exception as e:
+            errors.append(f"Database connectivity issue: {e}")
+
+        try:
+            cursor = self.data_registry_db.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            if not cursor.fetchall():
+                warnings.append("data_registry database appears empty")
+            else:
+                logger.info("✓ Database: data_registry database accessible")
+        except Exception as e:
+            warnings.append(f"data_registry database issue: {e}")
+
+        return errors, warnings
+
+    def _validate_filesystem_permissions(
+        self,
+    ) -> Tuple[List[str], List[str]]:
+        """Validate file system permissions for required directories.
+
+        Returns:
+            Tuple of (errors, warnings)
+        """
+        errors = []
+        warnings = []
+
+        dirs_to_check = {
+            "MS output": self.ms_output_dir,
+            "Images": self.images_dir,
+            "Mosaics": self.mosaic_output_dir,
+        }
+        for name, dir_path in dirs_to_check.items():
+            try:
+                dir_path.mkdir(parents=True, exist_ok=True)
+                if not os.access(dir_path, os.W_OK):
+                    errors.append(f"{name} directory not writable: {dir_path}")
+                else:
+                    logger.info(f"✓ File system: {name} directory writable ({dir_path})")
+            except Exception as e:
+                errors.append(f"{name} directory error: {e}")
+
+        return errors, warnings
+
+    def _validate_calibrator(
         self,
         calibrator_name: str,
-        timespan_minutes: int = DEFAULT_MOSAIC_SPAN_MINUTES,
-        wait_for_published: bool = True,
-        poll_interval_seconds: int = 5,
-        max_wait_hours: float = 24.0,
-    ) -> Optional[str]:
-        """Create mosaic centered on earliest transit of specified calibrator.
-
-        Single trigger, hands-off operation: returns only when mosaic is published.
+    ) -> Tuple[List[str], List[str]]:
+        """Validate calibrator service and lookup.
 
         Args:
-            calibrator_name: Name of calibrator (e.g., "0834+555")
-            timespan_minutes: Mosaic timespan in minutes (default: 50)
-            wait_for_published: Wait until mosaic is published (default: True)
-            poll_interval_seconds: Polling interval for published status (default: 5)
-            max_wait_hours: Maximum hours to wait (default: 24)
+            calibrator_name: Name of calibrator
+
+        Returns:
+            Tuple of (errors, warnings)
+        """
+        errors = []
+        warnings = []
+
+        if not self.calibrator_service:
+            errors.append("Calibrator service not available")
+        else:
+            try:
+                ra_deg, dec_deg = self.calibrator_service._load_radec(calibrator_name)
+                logger.info(
+                    f"✓ Calibrator: {calibrator_name} found (RA={ra_deg:.6f}, Dec={dec_deg:.6f})"
+                )
+            except Exception as e:
+                errors.append(f"Calibrator lookup failed: {e}")
+
+        return errors, warnings
+
+    def _validate_ms_files(
+        self,
+        ms_paths: List[str],
+    ) -> Tuple[List[str], List[str]]:
+        """Validate MS files if they exist.
+
+        Args:
+            ms_paths: List of MS file paths
+
+        Returns:
+            Tuple of (errors, warnings)
+        """
+        errors = []
+        warnings = []
+
+        if ms_paths:
+            for i, ms_path in enumerate(ms_paths, 1):
+                ms_file = Path(ms_path)
+                if not ms_file.exists():
+                    errors.append(f"MS file {i} does not exist: {ms_path}")
+                elif not ms_file.is_dir():
+                    errors.append(f"MS file {i} is not a directory: {ms_path}")
+                elif not os.access(ms_file, os.R_OK):
+                    errors.append(f"MS file {i} not readable: {ms_path}")
+                else:
+                    logger.info(f"✓ MS file {i}: exists and readable ({ms_path})")
+
+        return errors, warnings
+
+    def _validate_mosaic_manager(
+        self,
+    ) -> Tuple[List[str], List[str]]:
+        """Validate mosaic manager initialization.
+
+        Returns:
+            Tuple of (errors, warnings)
+        """
+        errors = []
+        warnings = []
+
+        try:
+            manager = self._get_mosaic_manager()
+            try:
+                _ = manager.products_db
+                logger.info("✓ Mosaic manager: initialized successfully")
+            except Exception as e:
+                warnings.append(f"Mosaic manager accessible but may have issues: {e}")
+        except Exception as e:
+            error_str = str(e)
+            if "EarthLocation truthiness" in error_str or "ambiguous" in error_str.lower():
+                warnings.append(f"Mosaic manager initialization warning: {e}")
+            else:
+                errors.append(f"Mosaic manager initialization failed: {e}")
+
+        return errors, warnings
+
+    def _validate_environment_variables(
+        self,
+    ) -> Tuple[List[str], List[str]]:
+        """Validate required environment variables.
+
+        Returns:
+            Tuple of (errors, warnings)
+        """
+        errors = []
+        warnings = []
+
+        env_vars = {
+            "CONTIMG_INPUT_DIR": "HDF5 input directory",
+            "CONTIMG_SCRATCH_DIR": "Scratch directory",
+        }
+        for var, desc in env_vars.items():
+            value = os.getenv(var)
+            if not value:
+                warnings.append(f"Environment variable {var} not set ({desc})")
+            else:
+                path = Path(value)
+                if var == "CONTIMG_INPUT_DIR" and not path.exists():
+                    warnings.append(f"{desc} does not exist: {value}")
+                else:
+                    logger.info(f"✓ Environment: {var} = {value}")
+
+        return errors, warnings
+
+    def _validate_time_range(
+        self,
+        start_time: Time,
+        end_time: Time,
+    ) -> Tuple[List[str], List[str]]:
+        """Validate time range.
+
+        Args:
+            start_time: Window start time
+            end_time: Window end time
+
+        Returns:
+            Tuple of (errors, warnings)
+        """
+        errors = []
+        warnings = []
+
+        if start_time >= end_time:
+            errors.append("Invalid time range: start >= end")
+        else:
+            duration_minutes = (end_time - start_time).to("min").value
+            logger.info(f"✓ Time range: valid ({duration_minutes:.1f} minutes)")
+
+        return errors, warnings
+
+    def _validate_disk_space(
+        self,
+        required_ms_count: int,
+    ) -> Tuple[List[str], List[str]]:
+        """Validate disk space for MS files, images, and mosaics.
+
+        Args:
+            required_ms_count: Required number of MS files
+
+        Returns:
+            Tuple of (errors, warnings)
+        """
+        errors = []
+        warnings = []
+
+        try:
+            estimated_ms_gb = required_ms_count * 2.0
+            estimated_images_gb = required_ms_count * 0.5
+            estimated_mosaic_gb = 1.0
+
+            # Check MS output directory
+            has_space, space_msg = check_disk_space(
+                str(self.ms_output_dir),
+                required_gb=estimated_ms_gb,
+                operation="MS file creation",
+                fatal=False,
+            )
+            if not has_space:
+                warnings.append(f"MS directory disk space: {space_msg}")
+            else:
+                logger.info(
+                    f"✓ Disk space: MS directory has sufficient space (need ~{estimated_ms_gb:.1f} GB)"
+                )
+
+            # Check images directory
+            has_space, space_msg = check_disk_space(
+                str(self.images_dir),
+                required_gb=estimated_images_gb,
+                operation="Image creation",
+                fatal=False,
+            )
+            if not has_space:
+                warnings.append(f"Images directory disk space: {space_msg}")
+            else:
+                logger.info(
+                    f"✓ Disk space: Images directory has sufficient space (need ~{estimated_images_gb:.1f} GB)"
+                )
+
+            # Check mosaic output directory
+            has_space, space_msg = check_disk_space(
+                str(self.mosaic_output_dir),
+                required_gb=estimated_mosaic_gb,
+                operation="Mosaic creation",
+                fatal=False,
+            )
+            if not has_space:
+                warnings.append(f"Mosaics directory disk space: {space_msg}")
+            else:
+                logger.info(
+                    f"✓ Disk space: Mosaics directory has sufficient space (need ~{estimated_mosaic_gb:.1f} GB)"
+                )
+        except Exception as e:
+            warnings.append(f"Could not check disk space: {e}")
+
+        return errors, warnings
+
+    def _validate_calibration_availability(
+        self,
+        calibrator_name: str,
+    ) -> Tuple[List[str], List[str]]:
+        """Validate calibration availability for the calibrator.
+
+        Args:
+            calibrator_name: Name of calibrator
+
+        Returns:
+            Tuple of (errors, warnings)
+        """
+        errors = []
+        warnings = []
+
+        try:
+            manager = self._get_mosaic_manager()
+            _, dec_deg = self.calibrator_service._load_radec(calibrator_name)
+            bp_calibrator = manager.get_bandpass_calibrator_for_dec(dec_deg)
+            if bp_calibrator:
+                logger.info(
+                    f"✓ Calibration: Valid bandpass calibrator available for Dec {dec_deg:.2f}°"
+                )
+            else:
+                warnings.append(
+                    f"No valid bandpass calibrator found for Dec {dec_deg:.2f}°. "
+                    "Calibration will be solved during processing."
+                )
+        except Exception as e:
+            warnings.append(f"Could not check calibration availability: {e}")
+
+        return errors, warnings
+
+    def _validate_group_id_uniqueness(
+        self,
+        group_id: str,
+    ) -> Tuple[List[str], List[str]]:
+        """Validate group ID uniqueness.
+
+        Args:
+            group_id: Proposed group ID
+
+        Returns:
+            Tuple of (errors, warnings)
+        """
+        errors = []
+        warnings = []
+
+        try:
+            cursor = self.products_db.cursor()
+            existing = cursor.execute(
+                "SELECT group_id FROM mosaic_groups WHERE group_id = ?",
+                (group_id,),
+            ).fetchone()
+            if existing:
+                warnings.append(
+                    f"Group ID {group_id} already exists in database. "
+                    "Mosaic will be updated/replaced if created."
+                )
+            else:
+                logger.info(f"✓ Group ID: {group_id} is unique")
+        except Exception as e:
+            warnings.append(f"Could not check group ID uniqueness: {e}")
+
+        return errors, warnings
+
+    def _validate_hdf5_availability(
+        self,
+        ms_paths: List[str],
+        required_ms_count: int,
+        start_time: Time,
+        end_time: Time,
+    ) -> Tuple[List[str], List[str]]:
+        """Validate HDF5 file availability if MS files don't exist.
+
+        Checks for complete subband groups in the specific time window needed for conversion.
+
+        Args:
+            ms_paths: List of available MS file paths
+            required_ms_count: Required number of MS files
+            start_time: Window start time
+            end_time: Window end time
+
+        Returns:
+            Tuple of (errors, warnings)
+        """
+        errors = []
+        warnings = []
+
+        if len(ms_paths) < required_ms_count:
+            try:
+                input_dir = Path(os.getenv("CONTIMG_INPUT_DIR", "/data/incoming"))
+                if input_dir.exists():
+                    try:
+                        # Use HDF5 database for querying subband groups
+                        hdf5_db = self.hdf5_db_path
+
+                        if hdf5_db.exists():
+                            # Query for complete groups in the specific time window
+                            start_time_str = start_time.to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+                            end_time_str = end_time.to_datetime().strftime("%Y-%m-%d %H:%M:%S")
+
+                            groups = query_subband_groups(
+                                hdf5_db,
+                                start_time_str,
+                                end_time_str,
+                                tolerance_s=1.0,
+                                only_stored=True,
+                            )
+
+                            if groups:
+                                logger.info(
+                                    f"✓ HDF5 groups: Found {len(groups)} complete 16-subband group(s) "
+                                    f"in time window {start_time_str} to {end_time_str} "
+                                    f"(conversion will be attempted)"
+                                )
+                            else:
+                                # Fallback: check total count for informational purposes
+                                from dsa110_contimg.database.hdf5_db import (
+                                    ensure_hdf5_db,
+                                )
+
+                                conn = ensure_hdf5_db(self.hdf5_db_path)
+                                count = conn.execute(
+                                    "SELECT COUNT(*) FROM hdf5_file_index WHERE stored = 1"
+                                ).fetchone()[0]
+                                conn.close()
+
+                                if count > 0:
+                                    warnings.append(
+                                        f"No complete HDF5 groups found in time window "
+                                        f"({start_time_str} to {end_time_str}), "
+                                        f"but {count} total HDF5 files exist in database. "
+                                        "MS files must exist or HDF5 conversion must be possible."
+                                    )
+                                else:
+                                    warnings.append(
+                                        "No HDF5 files found in database. "
+                                        "MS files must exist or HDF5 conversion must be possible."
+                                    )
+                        else:
+                            hdf5_files = list(input_dir.glob("*.h5")) + list(
+                                input_dir.glob("*.hdf5")
+                            )
+                            if hdf5_files:
+                                logger.info(
+                                    f"✓ HDF5 files: Found {len(hdf5_files)} HDF5 files in input directory (conversion will be attempted)"
+                                )
+                            else:
+                                warnings.append(
+                                    f"No HDF5 files found in {input_dir}. "
+                                    "MS files must exist or HDF5 conversion must be possible."
+                                )
+                    except Exception as e:
+                        warnings.append(f"Could not check HDF5 file availability: {e}")
+                else:
+                    warnings.append(
+                        f"HDF5 input directory does not exist: {input_dir}. "
+                        "Cannot convert HDF5 to MS files."
+                    )
+            except Exception as e:
+                warnings.append(f"Could not check HDF5 file availability: {e}")
+
+        return errors, warnings
+
+    def _validate_photometry_service(
+        self,
+    ) -> Tuple[List[str], List[str]]:
+        """Validate photometry service if enabled.
+
+        Returns:
+            Tuple of (errors, warnings)
+        """
+        errors = []
+        warnings = []
+
+        if self.enable_photometry:
+            try:
+                if hasattr(self, "photometry_manager") and self.photometry_manager:
+                    logger.info("✓ Photometry: Service is enabled and available")
+                else:
+                    warnings.append("Photometry is enabled but manager not initialized")
+            except Exception as e:
+                warnings.append(f"Photometry service check failed: {e}")
+
+        return errors, warnings
+
+    def _validate_mosaic_plan(
+        self,
+        calibrator_name: str,
+        transit_time: Time,
+        start_time: Time,
+        end_time: Time,
+        timespan_minutes: int,
+        required_ms_count: int,
+        ms_paths: List[str],
+        group_id: str,
+    ) -> Tuple[List[str], List[str]]:
+        """Run comprehensive validation checks for mosaic creation plan.
+
+        Args:
+            calibrator_name: Name of calibrator
+            transit_time: Transit time
+            start_time: Window start time
+            end_time: Window end time
+            timespan_minutes: Mosaic timespan in minutes
+            required_ms_count: Required number of MS files
+            ms_paths: List of available MS file paths
+            group_id: Proposed group ID
+
+        Returns:
+            Tuple of (validation_errors, validation_warnings)
+        """
+        validation_errors = []
+        validation_warnings = []
+
+        # Run all validation checks
+        errs, warns = self._validate_databases()
+        validation_errors.extend(errs)
+        validation_warnings.extend(warns)
+
+        errs, warns = self._validate_filesystem_permissions()
+        validation_errors.extend(errs)
+        validation_warnings.extend(warns)
+
+        errs, warns = self._validate_calibrator(calibrator_name)
+        validation_errors.extend(errs)
+        validation_warnings.extend(warns)
+
+        errs, warns = self._validate_ms_files(ms_paths)
+        validation_errors.extend(errs)
+        validation_warnings.extend(warns)
+
+        errs, warns = self._validate_mosaic_manager()
+        validation_errors.extend(errs)
+        validation_warnings.extend(warns)
+
+        errs, warns = self._validate_environment_variables()
+        validation_errors.extend(errs)
+        validation_warnings.extend(warns)
+
+        errs, warns = self._validate_time_range(start_time, end_time)
+        validation_errors.extend(errs)
+        validation_warnings.extend(warns)
+
+        errs, warns = self._validate_disk_space(required_ms_count)
+        validation_errors.extend(errs)
+        validation_warnings.extend(warns)
+
+        errs, warns = self._validate_calibration_availability(calibrator_name)
+        validation_errors.extend(errs)
+        validation_warnings.extend(warns)
+
+        errs, warns = self._validate_group_id_uniqueness(group_id)
+        validation_errors.extend(errs)
+        validation_warnings.extend(warns)
+
+        errs, warns = self._validate_hdf5_availability(
+            ms_paths, required_ms_count, start_time, end_time
+        )
+        validation_errors.extend(errs)
+        validation_warnings.extend(warns)
+
+        errs, warns = self._validate_photometry_service()
+        validation_errors.extend(errs)
+        validation_warnings.extend(warns)
+
+        return validation_errors, validation_warnings
+
+    def _execute_mosaic_creation(
+        self,
+        calibrator_name: str,
+        transit_time: Time,
+        start_time: Time,
+        end_time: Time,
+        timespan_minutes: int,
+        required_ms_count: int,
+        ms_paths: List[str],
+        wait_for_published: bool,
+        poll_interval_seconds: int,
+        max_wait_hours: float,
+    ) -> Optional[str]:
+        """Execute the mosaic creation workflow.
+
+        Args:
+            calibrator_name: Name of calibrator
+            transit_time: Transit time
+            start_time: Window start time
+            end_time: Window end time
+            timespan_minutes: Mosaic timespan in minutes
+            required_ms_count: Required number of MS files
+            ms_paths: List of available MS file paths
+            wait_for_published: Wait until mosaic is published
+            poll_interval_seconds: Polling interval for published status
+            max_wait_hours: Maximum hours to wait
 
         Returns:
             Published mosaic path, or None if failed
         """
-        logger.info(f"Creating {timespan_minutes}-minute mosaic centered on {calibrator_name}")
-
-        # Find transit-centered window
-        window_info = self.find_transit_centered_window(calibrator_name, timespan_minutes)
-        if not window_info:
-            logger.error(f"Could not find transit window for {calibrator_name}")
-            return None
-
-        transit_time = window_info["transit_time"]
-        start_time = window_info["start_time"]
-        end_time = window_info["end_time"]
-        required_ms_count = int(timespan_minutes / MS_DURATION_MINUTES)
-
-        logger.info(
-            f"Transit time: {transit_time.isot}\n"
-            f"Window: {start_time.isot} to {end_time.isot}\n"
-            f"Required MS files: {required_ms_count}"
-        )
-
-        # Ensure MS files exist in window
-        ms_paths = self.ensure_ms_files_in_window(start_time, end_time, required_ms_count)
+        # Check MS file requirements
         if len(ms_paths) < required_ms_count:
             # Allow asymmetric mosaics if data availability requires it
             if len(ms_paths) < 3:
@@ -735,13 +1584,14 @@ class MosaicOrchestrator:
         # Form group ID (sanitize transit time for use as identifier)
         transit_str = transit_time.isot.replace(":", "-").replace(".", "-").replace("T", "_")
         group_id = f"mosaic_{transit_str}"
+
         if not self._form_group_from_ms_paths(ms_paths, group_id):
             logger.error("Failed to form group")
             return None
 
         # Process the group: calibration → imaging → mosaic creation
         logger.info(f"Processing group {group_id}...")
-        mosaic_path = self._process_group_workflow(group_id)
+        mosaic_path = self._process_group_workflow(group_id, min_ms_count=required_ms_count)
 
         if not mosaic_path:
             logger.error("Mosaic creation failed")
@@ -765,6 +1615,338 @@ class MosaicOrchestrator:
                 return None
 
         return mosaic_path
+
+    def create_mosaic_centered_on_calibrator(
+        self,
+        calibrator_name: str,
+        timespan_minutes: int = DEFAULT_MOSAIC_SPAN_MINUTES,
+        wait_for_published: bool = True,
+        poll_interval_seconds: int = 5,
+        max_wait_hours: float = 24.0,
+        dry_run: bool = False,
+        transit_time: Optional[Time] = None,
+        start_time: Optional[Time] = None,
+        end_time: Optional[Time] = None,
+        overwrite: bool = False,
+    ) -> Optional[str]:
+        """Create mosaic centered on transit of specified calibrator.
+
+        Single trigger, hands-off operation: returns only when mosaic is published.
+        Defaults to earliest transit if transit_time is not specified.
+        Supports time range override and checks for existing mosaics.
+
+        Args:
+            calibrator_name: Name of calibrator (e.g., "0834+555")
+            timespan_minutes: Mosaic timespan in minutes (default: 50)
+            wait_for_published: Wait until mosaic is published (default: True)
+            poll_interval_seconds: Polling interval for published status (default: 5)
+            max_wait_hours: Maximum hours to wait (default: 24)
+            dry_run: If True, validate and plan without creating mosaic (default: False)
+            transit_time: Optional Time object specifying which transit to use.
+                         If None, defaults to earliest available transit.
+                         Can be a Time object or ISO string (e.g., "2025-11-12T10:00:00").
+            start_time: Optional Time object for explicit start time (overrides transit-centered)
+            end_time: Optional Time object for explicit end time (overrides transit-centered)
+            overwrite: If True, allow overwriting existing mosaics (default: False)
+
+        Returns:
+            Published mosaic path, or None if failed (or "DRY_RUN" if dry_run=True)
+        """
+        logger.info(f"Creating {timespan_minutes}-minute mosaic centered on {calibrator_name}")
+
+        # Convert transit_time to Time object if it's a string
+        if transit_time is not None and isinstance(transit_time, str):
+            try:
+                transit_time = Time(transit_time, format="isot", scale="utc")
+            except Exception as e:
+                logger.error(f"Invalid transit_time format: {e}")
+                return None
+
+        # Convert start_time/end_time to Time objects if they're strings
+        if start_time is not None and isinstance(start_time, str):
+            try:
+                start_time = Time(start_time, format="isot", scale="utc")
+            except Exception as e:
+                logger.error(f"Invalid start_time format: {e}")
+                return None
+
+        if end_time is not None and isinstance(end_time, str):
+            try:
+                end_time = Time(end_time, format="isot", scale="utc")
+            except Exception as e:
+                logger.error(f"Invalid end_time format: {e}")
+                return None
+
+        # Find transit-centered window (or use explicit time range)
+        window_info = self.find_transit_centered_window(
+            calibrator_name,
+            timespan_minutes,
+            max_days_back=60,
+            transit_time=transit_time,
+            start_time=start_time,
+            end_time=end_time,
+        )
+        if not window_info:
+            logger.error(f"Could not find transit window for {calibrator_name}")
+            return None
+
+        selected_transit_time = window_info["transit_time"]
+        start_time = window_info["start_time"]
+        end_time = window_info["end_time"]
+        required_ms_count = int(timespan_minutes / MS_DURATION_MINUTES)
+
+        logger.info(
+            f"Transit time: {selected_transit_time.isot}\n"
+            f"Window: {start_time.isot} to {end_time.isot}\n"
+            f"Required MS files: {required_ms_count}"
+        )
+
+        # Check for existing mosaic with exact parameters (unless overwrite is True)
+        if not overwrite and not dry_run:
+            existing_mosaic = self.check_existing_mosaic(
+                calibrator_name, start_time, end_time, timespan_minutes
+            )
+            if existing_mosaic:
+                logger.error("=" * 60)
+                logger.error("EXISTING MOSAIC FOUND")
+                logger.error("=" * 60)
+                logger.error(
+                    f"A mosaic with these exact parameters already exists:\n"
+                    f"  ID: {existing_mosaic['id']}\n"
+                    f"  Name: {existing_mosaic['name']}\n"
+                    f"  Path: {existing_mosaic['path']}\n"
+                    f"  Created: {Time(existing_mosaic['created_at'], format='unix').isot}\n"
+                    f"  Start: {Time(existing_mosaic['start_mjd'], format='mjd').isot}\n"
+                    f"  End: {Time(existing_mosaic['end_mjd'], format='mjd').isot}\n"
+                    f"  Images: {existing_mosaic['n_images']}"
+                )
+                logger.error("")
+                logger.error("To overwrite this mosaic, add the --overwrite flag to your command.")
+                return None
+
+        # Ensure MS files exist in window (skip conversion in dry_run mode)
+        ms_paths = self.ensure_ms_files_in_window(
+            start_time, end_time, required_ms_count, dry_run=dry_run
+        )
+
+        # Form group ID (sanitize transit time for use as identifier)
+        transit_str = (
+            selected_transit_time.isot.replace(":", "-").replace(".", "-").replace("T", "_")
+        )
+        group_id = f"mosaic_{transit_str}"
+
+        # Dry-run mode: validate and plan without creating
+        if dry_run:
+            logger.info("=" * 60)
+            logger.info("DRY-RUN MODE: Validating mosaic plan without building")
+            logger.info("=" * 60)
+
+            # Run comprehensive validation
+            validation_errors, validation_warnings = self._validate_mosaic_plan(
+                calibrator_name=calibrator_name,
+                transit_time=selected_transit_time,
+                start_time=start_time,
+                end_time=end_time,
+                timespan_minutes=timespan_minutes,
+                required_ms_count=required_ms_count,
+                ms_paths=ms_paths,
+                group_id=group_id,
+            )
+
+            # Display plan
+            logger.info("")
+            logger.info("Mosaic plan:")
+            logger.info(f"  - Calibrator: {calibrator_name}")
+            logger.info(f"  - Transit time: {selected_transit_time.isot}")
+            logger.info(f"  - Window: {start_time.isot} to {end_time.isot}")
+            logger.info(f"  - Timespan: {timespan_minutes} minutes")
+            logger.info(f"  - Required MS files: {required_ms_count}")
+            logger.info(f"  - Available MS files: {len(ms_paths)}")
+            if len(ms_paths) < required_ms_count:
+                if len(ms_paths) < 3:
+                    validation_warnings.append(
+                        f"Only {len(ms_paths)} MS files available, need at least 3. "
+                        "HDF5 conversion would be triggered in normal mode."
+                    )
+                else:
+                    validation_warnings.append(
+                        f"Only {len(ms_paths)} MS files available, would create asymmetric mosaic."
+                    )
+            logger.info(f"  - Group ID: {group_id}")
+            if ms_paths:
+                logger.info("  - MS file paths:")
+                for i, ms_path in enumerate(ms_paths, 1):
+                    logger.info(f"      {i}. {ms_path}")
+            else:
+                logger.info("  - MS file paths: (none - would be created from HDF5)")
+
+            # Display validation results
+            logger.info("")
+            if validation_errors:
+                logger.error("=" * 60)
+                logger.error("VALIDATION ERRORS (must be fixed before running):")
+                logger.error("=" * 60)
+                for error in validation_errors:
+                    logger.error(f"  ✗ {error}")
+                logger.error("")
+            if validation_warnings:
+                logger.warning("=" * 60)
+                logger.warning("VALIDATION WARNINGS (may cause issues):")
+                logger.warning("=" * 60)
+                for warning in validation_warnings:
+                    logger.warning(f"  ⚠ {warning}")
+                logger.warning("")
+
+            if validation_errors:
+                logger.error("✗ Validation failed. Fix errors before running.")
+                return None
+            elif validation_warnings:
+                logger.warning("⚠ Validation complete with warnings. Review before running.")
+            else:
+                logger.info("✓ Validation complete. Ready to build.")
+            logger.info("Run with dry_run=False to create the mosaic.")
+            return "DRY_RUN"
+
+        # Normal mode: execute mosaic creation workflow
+        return self._execute_mosaic_creation(
+            calibrator_name=calibrator_name,
+            transit_time=selected_transit_time,
+            start_time=start_time,
+            end_time=end_time,
+            timespan_minutes=timespan_minutes,
+            required_ms_count=required_ms_count,
+            ms_paths=ms_paths,
+            wait_for_published=wait_for_published,
+            poll_interval_seconds=poll_interval_seconds,
+            max_wait_hours=max_wait_hours,
+        )
+
+    def create_mosaics_batch(
+        self,
+        calibrator_name: str,
+        transit_indices: Optional[List[int]] = None,
+        all_transits: bool = False,
+        timespan_minutes: int = DEFAULT_MOSAIC_SPAN_MINUTES,
+        max_days_back: int = 60,
+        min_pb_response: Optional[float] = None,
+        min_ms_count: Optional[int] = None,
+        wait_for_published: bool = False,
+        overwrite: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """Create mosaics for multiple transits in batch.
+
+        Args:
+            calibrator_name: Name of calibrator
+            transit_indices: List of transit indices to process (0-based)
+            all_transits: If True, process all available transits
+            timespan_minutes: Mosaic timespan in minutes
+            max_days_back: Maximum days to search back
+            min_pb_response: Minimum primary beam response filter
+            min_ms_count: Minimum MS file count filter
+            wait_for_published: Wait until each mosaic is published
+            overwrite: Allow overwriting existing mosaics
+
+        Returns:
+            List of results: [{"transit_index": int, "transit_time": str, "status": str, "path": str}, ...]
+        """
+        # Get list of available transits with quality metrics
+        transits = self.list_available_transits_with_quality(
+            calibrator_name,
+            max_days_back=max_days_back,
+            min_pb_response=min_pb_response,
+            min_ms_count=min_ms_count,
+        )
+
+        if not transits:
+            logger.error(f"No transits found for {calibrator_name}")
+            return []
+
+        # Determine which transits to process
+        if all_transits:
+            transit_indices = list(range(len(transits)))
+        elif transit_indices is None:
+            logger.error("Must specify either --transit-indices or --all-transits")
+            return []
+
+        results = []
+        for idx in transit_indices:
+            if idx < 0 or idx >= len(transits):
+                logger.warning(f"Transit index {idx} out of range (0-{len(transits) - 1})")
+                results.append(
+                    {
+                        "transit_index": idx,
+                        "transit_time": None,
+                        "status": "skipped",
+                        "path": None,
+                        "error": "Index out of range",
+                    }
+                )
+                continue
+
+            transit = transits[idx]
+            transit_time = transit["transit_time"]
+
+            logger.info(
+                f"\n{'=' * 60}\n"
+                f"Processing transit {idx + 1}/{len(transit_indices)}: {transit_time.isot}\n"
+                f"{'=' * 60}"
+            )
+
+            try:
+                mosaic_path = self.create_mosaic_centered_on_calibrator(
+                    calibrator_name=calibrator_name,
+                    timespan_minutes=timespan_minutes,
+                    wait_for_published=wait_for_published,
+                    dry_run=False,
+                    transit_time=transit_time,
+                    overwrite=overwrite,
+                )
+
+                if mosaic_path:
+                    results.append(
+                        {
+                            "transit_index": idx,
+                            "transit_time": transit_time.isot,
+                            "status": "success",
+                            "path": mosaic_path,
+                        }
+                    )
+                    logger.info(f"✓ Successfully created mosaic: {mosaic_path}")
+                else:
+                    results.append(
+                        {
+                            "transit_index": idx,
+                            "transit_time": transit_time.isot,
+                            "status": "failed",
+                            "path": None,
+                            "error": "Mosaic creation returned None",
+                        }
+                    )
+                    logger.error(f"✗ Failed to create mosaic for transit {idx + 1}")
+            except Exception as e:
+                logger.error(f"✗ Exception creating mosaic for transit {idx + 1}: {e}")
+                results.append(
+                    {
+                        "transit_index": idx,
+                        "transit_time": transit_time.isot,
+                        "status": "error",
+                        "path": None,
+                        "error": str(e),
+                    }
+                )
+
+        # Summary
+        logger.info("\n" + "=" * 60)
+        logger.info("BATCH PROCESSING SUMMARY")
+        logger.info("=" * 60)
+        success_count = sum(1 for r in results if r["status"] == "success")
+        failed_count = len(results) - success_count
+        logger.info(f"Total: {len(results)}")
+        logger.info(f"Success: {success_count}")
+        logger.info(f"Failed: {failed_count}")
+        logger.info("=" * 60)
+
+        return results
 
     def create_mosaic_default_behavior(
         self,
@@ -824,7 +2006,8 @@ class MosaicOrchestrator:
 
         # Process the group: calibration → imaging → mosaic creation
         logger.info(f"Processing group {group_id}...")
-        mosaic_path = self._process_group_workflow(group_id)
+        # Pass required_ms_count for manual mode (len(ms_paths) for actual count)
+        mosaic_path = self._process_group_workflow(group_id, min_ms_count=len(ms_paths))
 
         if not mosaic_path:
             logger.error("Mosaic creation failed")
@@ -907,7 +2090,7 @@ class MosaicOrchestrator:
 
         # Process the group: calibration → imaging → mosaic creation
         logger.info(f"Processing group {group_id}...")
-        mosaic_path = self._process_group_workflow(group_id)
+        mosaic_path = self._process_group_workflow(group_id, min_ms_count=required_ms_count)
 
         if not mosaic_path:
             logger.error("Mosaic creation failed")
@@ -1022,6 +2205,20 @@ class MosaicOrchestrator:
             # Check status in data_registry
             instance = get_data(self.data_registry_db, mosaic_id)
             if instance:
+                if self.enable_photometry:
+                    photometry_status = getattr(instance, "photometry_status", None)
+                    job_id = getattr(instance, "photometry_job_id", None)
+                    if photometry_status != "completed":
+                        readable_status = photometry_status or "not_started"
+                        logger.info(
+                            "Photometry for mosaic %s is %s (job_id=%s); waiting before publish",
+                            mosaic_id,
+                            readable_status,
+                            job_id or "unknown",
+                        )
+                        time.sleep(poll_interval_seconds)
+                        continue
+
                 if instance.status == "published":
                     published_path = instance.published_path
                     if published_path and Path(published_path).exists():

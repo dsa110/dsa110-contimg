@@ -8,7 +8,9 @@
 
 ## Executive Summary
 
-The DSA-110 Continuum Imaging Pipeline is **production-ready** with all critical safeguards and medium-priority enhancements implemented. Monitoring and recovery infrastructure has been added to support autonomous operation.
+The DSA-110 Continuum Imaging Pipeline is **production-ready** with all critical
+safeguards and medium-priority enhancements implemented. Monitoring and recovery
+infrastructure has been added to support autonomous operation.
 
 ---
 
@@ -17,6 +19,7 @@ The DSA-110 Continuum Imaging Pipeline is **production-ready** with all critical
 ### 1. Critical Safeguards (Previously Implemented)
 
 All 5 critical safeguards are in place:
+
 - ✅ Group ID collision prevention
 - ✅ Total time span validation
 - ✅ MS files stage validation
@@ -26,6 +29,7 @@ All 5 critical safeguards are in place:
 ### 2. Medium-Priority Enhancements (Previously Implemented)
 
 All 3 medium-priority enhancements are complete:
+
 - ✅ Error recovery for failed publishes (retry tracking)
 - ✅ Database-level locking (SELECT FOR UPDATE)
 - ✅ Enhanced path validation
@@ -33,12 +37,16 @@ All 3 medium-priority enhancements are complete:
 ### 3. Monitoring Infrastructure (Newly Added)
 
 **API Endpoints Added:**
+
 - `GET /api/monitoring/publish/status` - Get publish metrics and statistics
 - `GET /api/monitoring/publish/failed` - List failed publishes with details
-- `POST /api/monitoring/publish/retry/{data_id}` - Retry a specific failed publish
-- `POST /api/monitoring/publish/retry-all` - Retry all failed publishes (with limit)
+- `POST /api/monitoring/publish/retry/{data_id}` - Retry a specific failed
+  publish
+- `POST /api/monitoring/publish/retry-all` - Retry all failed publishes (with
+  limit)
 
 **Monitoring Script Created:**
+
 - `scripts/monitor_publish_status.py` - Command-line monitoring tool
   - Status checks
   - Alert detection
@@ -48,6 +56,7 @@ All 3 medium-priority enhancements are complete:
 ### 4. Production Deployment Tools (Newly Added)
 
 **Validation Script:**
+
 - `scripts/validate_production_setup.sh` - Pre-deployment validation
   - Environment checks
   - Directory validation
@@ -56,7 +65,9 @@ All 3 medium-priority enhancements are complete:
   - Dependency checks
 
 **Deployment Checklist:**
-- `docs/operations/production_deployment_checklist.md` - Complete deployment guide
+
+- `docs/operations/production_deployment_checklist.md` - Complete deployment
+  guide
   - Pre-deployment verification
   - Deployment steps
   - Post-deployment monitoring
@@ -73,6 +84,7 @@ All 3 medium-priority enhancements are complete:
 Get publish status metrics and statistics.
 
 **Response:**
+
 ```json
 {
   "total_published": 150,
@@ -91,10 +103,12 @@ Get publish status metrics and statistics.
 Get list of failed publishes.
 
 **Query Parameters:**
+
 - `max_attempts` (optional): Filter by minimum publish attempts
 - `limit` (optional): Maximum results (default: 50)
 
 **Response:**
+
 ```json
 {
   "count": 3,
@@ -117,6 +131,7 @@ Get list of failed publishes.
 Retry publishing a failed data instance.
 
 **Response:**
+
 ```json
 {
   "retried": true,
@@ -131,19 +146,21 @@ Retry publishing a failed data instance.
 Retry all failed publishes (up to limit).
 
 **Query Parameters:**
+
 - `max_attempts` (optional): Only retry publishes with attempts >= this value
 - `limit` (optional): Maximum number to retry (default: 10)
 
 **Response:**
+
 ```json
 {
   "total_attempted": 5,
   "successful": 4,
   "failed": 1,
   "results": [
-    {"data_id": "mosaic_1", "success": true},
-    {"data_id": "mosaic_2", "success": true},
-    {"data_id": "mosaic_3", "success": false, "error": "Disk full"}
+    { "data_id": "mosaic_1", "success": true },
+    { "data_id": "mosaic_2", "success": true },
+    { "data_id": "mosaic_3", "success": false, "error": "Disk full" }
   ]
 }
 ```
@@ -185,9 +202,10 @@ python scripts/monitor_publish_status.py --daemon --interval 300
 ### Cron Job Setup
 
 Add to crontab for periodic monitoring:
+
 ```bash
 # Check every 5 minutes
-*/5 * * * * /opt/miniforge/envs/casa6/bin/python /data/dsa110-contimg/scripts/monitor_publish_status.py
+*/5 * * * * /data/dsa110-contimg/scripts/run_casa_cmd.sh /opt/miniforge/envs/casa6/bin/python /data/dsa110-contimg/scripts/monitor_publish_status.py
 ```
 
 ---
@@ -202,6 +220,7 @@ cd /data/dsa110-contimg
 ```
 
 This script checks:
+
 - ✅ casa6 Python environment
 - ✅ Required directories exist
 - ✅ Directory permissions
@@ -224,11 +243,13 @@ cd /data/dsa110-contimg
 ### Step 2: Deploy Services
 
 **Option A: Using deployment script**
+
 ```bash
 ./ops/deploy.sh --mode both
 ```
 
 **Option B: Manual systemd deployment**
+
 ```bash
 sudo cp ops/systemd/contimg-api.service /etc/systemd/system/
 sudo cp ops/systemd/contimg-stream.service /etc/systemd/system/
@@ -285,6 +306,7 @@ crontab -e
 ### Alert Thresholds
 
 Configure alerts for:
+
 - Failed publishes > 5 in 1 hour
 - Mosaics stuck in staging > 24 hours
 - Publish success rate < 95%
@@ -311,9 +333,12 @@ Configure alerts for:
 
 ## Related Documentation
 
-- **Production Readiness Plan:** `docs/reports/production_readiness_plan_2025-11-11.md`
-- **Safeguards Implemented:** `docs/reports/safeguards_implemented_2025-11-10.md`
-- **Enhancements Implemented:** `docs/reports/enhancements_implemented_2025-11-11.md`
+- **Production Readiness Plan:**
+  `docs/reports/production_readiness_plan_2025-11-11.md`
+- **Safeguards Implemented:**
+  `docs/reports/safeguards_implemented_2025-11-10.md`
+- **Enhancements Implemented:**
+  `docs/reports/enhancements_implemented_2025-11-11.md`
 - **Deployment Checklist:** `docs/operations/production_deployment_checklist.md`
 
 ---
@@ -330,4 +355,3 @@ Configure alerts for:
 **Status:** Ready for Production Deployment  
 **Confidence:** High - All safeguards and monitoring infrastructure in place  
 **Last Updated:** 2025-11-11
-

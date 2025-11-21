@@ -73,15 +73,19 @@ curl http://localhost:5173
 - **Port:** `8000` (default, configurable via `CONTIMG_API_PORT`)
 - **Process:** `uvicorn` (ASGI server)
 - **Config location:** `ops/systemd/contimg.env` (`CONTIMG_API_PORT=8000`)
-- **Startup command:** `/opt/miniforge/envs/casa6/bin/uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8000`
+- **Startup command:**
+  `/opt/miniforge/envs/casa6/bin/uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8000`
 - **Entry point:** `src/dsa110_contimg/api/__init__.py` (exposes `app`)
 
 ### Frontend Dev Server
 
-- **Port:** `5173` (configured in `frontend/vite.config.ts`)
+- **Port:** `3210` (configured in `frontend/vite.config.ts` and
+  `config/ports.yaml`)
 - **Process:** `vite` (via `npm run dev`)
-- **Config location:** `frontend/vite.config.ts` (`server.port: 5173`)
-- **Startup command:** `npm run dev`
+- **Config location:** `frontend/vite.config.ts` (uses `VITE_PORT` env var,
+  defaults to 3210)
+- **Startup command:** `npm run dev` (or `npm run dev:safe` for duplicate
+  prevention)
 - **API Proxy:** Proxies `/api/*` requests to `http://127.0.0.1:8000`
 
 ### Other Services
@@ -100,7 +104,7 @@ If accessing from a local machine, set up SSH port forwarding:
 ```bash
 # On your LOCAL machine (not lxd110h17)
 ssh -L 8000:localhost:8000 \
-    -L 5173:localhost:5173 \
+    -L 3210:localhost:3210 \
     ubuntu@lxd110h17
 ```
 
@@ -112,7 +116,7 @@ Host lxd110h17
     HostName lxd110h17
     User ubuntu
     LocalForward 8000 localhost:8000
-    LocalForward 5173 localhost:5173
+    LocalForward 3210 localhost:3210
 ```
 
 Then connect: `ssh lxd110h17`
@@ -151,8 +155,10 @@ curl "http://localhost:8000/api/images?dec_min=-100&dec_max=200&limit=5"
 ```
 
 **Expected Results:**
+
 - Working filters: Fast response (<200ms), accurate results
-- Experimental filters: Slower response (1-5s acceptable), may have pagination issues
+- Experimental filters: Slower response (1-5s acceptable), may have pagination
+  issues
 - Edge cases: No crashes, graceful handling
 
 ### Frontend UI Tests
@@ -160,9 +166,11 @@ curl "http://localhost:8000/api/images?dec_min=-100&dec_max=200&limit=5"
 1. **Open browser:** `http://localhost:5173/sky` (or forwarded port)
 2. **Open DevTools** (F12) → Console tab
 3. **Verify no JavaScript errors**
-4. **Test filters** as described in `docs/reference/image_filters_manual_testing_guide.md`
+4. **Test filters** as described in
+   `docs/reference/image_filters_manual_testing_guide.md`
 
 **Quick UI Test Checklist:**
+
 - [ ] Navigate to Sky View page (`/sky`)
 - [ ] ImageBrowser component loads without errors
 - [ ] Expand/collapse advanced filters works
@@ -190,6 +198,7 @@ CAL_REGISTRY_DB=/data/dsa110-contimg/state/cal_registry.sqlite3
 ```
 
 **Usage:**
+
 ```bash
 source ops/systemd/contimg.env
 # Now $CONTIMG_API_PORT is set
@@ -198,19 +207,23 @@ source ops/systemd/contimg.env
 ### Frontend
 
 **Files:**
+
 - `frontend/.env.local` - Local development (uses `/api` proxy)
 - `frontend/.env.development` - Development environment
 - `frontend/.env.production` - Production builds
 
 **Key variables:**
+
 - `VITE_API_URL` - API base URL (defaults to `/api` for proxy)
-- `API_PROXY_TARGET` - Override API proxy target (defaults to `http://127.0.0.1:8000`)
+- `API_PROXY_TARGET` - Override API proxy target (defaults to
+  `http://127.0.0.1:8000`)
 
 ## Troubleshooting
 
 ### Backend won't start
 
 **Problem:** Port already in use
+
 ```bash
 # Check if port already in use
 sudo lsof -i :8000
@@ -223,6 +236,7 @@ CONTIMG_API_PORT=8001 uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8001
 ```
 
 **Problem:** Python environment not found
+
 ```bash
 # Check Python environment
 which python
@@ -236,6 +250,7 @@ conda activate casa6
 ```
 
 **Problem:** Syntax errors
+
 ```bash
 # Check for syntax errors
 /opt/miniforge/envs/casa6/bin/python -m py_compile src/dsa110_contimg/api/__init__.py
@@ -245,6 +260,7 @@ PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/python -c "fro
 ```
 
 **Problem:** Module not found
+
 ```bash
 # Ensure PYTHONPATH is set
 export PYTHONPATH=/data/dsa110-contimg/src
@@ -256,18 +272,20 @@ PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/uvicorn dsa110
 ### Frontend won't start
 
 **Problem:** Port already in use
+
 ```bash
 # Check if port already in use
-sudo lsof -i :5173
+sudo lsof -i :3210
 
 # Kill process if needed
 sudo kill -9 <PID>
 
 # Or use different port
-PORT=5174 npm run dev
+CONTIMG_FRONTEND_DEV_PORT=3211 npm run dev
 ```
 
 **Problem:** Node version incompatible
+
 ```bash
 # Check Node version
 node --version
@@ -279,6 +297,7 @@ nvm use 20
 ```
 
 **Problem:** Dependencies missing
+
 ```bash
 # Reinstall dependencies
 cd frontend
@@ -287,6 +306,7 @@ npm install
 ```
 
 **Problem:** API proxy not working
+
 ```bash
 # Check API proxy target in vite.config.ts
 # Default: http://127.0.0.1:8000
@@ -298,6 +318,7 @@ API_PROXY_TARGET=http://localhost:8000 npm run dev
 ### Cannot access from local machine
 
 **Problem:** SSH port forwarding not working
+
 ```bash
 # On LOCAL machine, verify SSH tunnel
 ps aux | grep ssh | grep 8000
@@ -306,10 +327,11 @@ ps aux | grep ssh | grep 8000
 curl http://localhost:8000/api/status
 
 # If fails, restart SSH with forwarding
-ssh -L 8000:localhost:8000 -L 5173:localhost:5173 ubuntu@lxd110h17
+ssh -L 8000:localhost:8000 -L 3210:localhost:3210 ubuntu@lxd110h17
 ```
 
 **Problem:** Server not listening on correct interface
+
 ```bash
 # Backend should listen on 0.0.0.0 (all interfaces)
 # Check startup command includes --host 0.0.0.0
@@ -319,6 +341,7 @@ ssh -L 8000:localhost:8000 -L 5173:localhost:5173 ubuntu@lxd110h17
 ```
 
 **Problem:** Firewall blocking ports
+
 ```bash
 # Check firewall rules
 sudo iptables -L -n | grep 8000
@@ -332,6 +355,7 @@ sudo ufw allow 5173/tcp
 ### API returns 404 for /api/images
 
 **Problem:** Routes not registered
+
 ```bash
 # Check router registration
 grep "include_router.*images" src/dsa110_contimg/api/routes.py
@@ -344,6 +368,7 @@ curl http://localhost:8000/api/status
 ```
 
 **Problem:** Database not accessible
+
 ```bash
 # Check database files exist
 ls -la /data/dsa110-contimg/state/*.sqlite3
@@ -355,6 +380,7 @@ ls -l /data/dsa110-contimg/state/products.sqlite3
 ### Frontend shows "Cannot connect to API"
 
 **Problem:** API not running
+
 ```bash
 # Check API is running
 curl http://localhost:8000/api/status
@@ -363,6 +389,7 @@ curl http://localhost:8000/api/status
 ```
 
 **Problem:** Proxy configuration incorrect
+
 ```bash
 # Check vite.config.ts proxy settings
 cat frontend/vite.config.ts | grep -A10 "proxy"
@@ -395,6 +422,7 @@ sudo journalctl -u contimg-api -f
 ```
 
 **Configuration:**
+
 - Uses `ops/systemd/contimg.env` for environment variables
 - Runs as `ubuntu` user
 - Auto-restarts on failure
@@ -404,6 +432,7 @@ sudo journalctl -u contimg-api -f
 See `ops/docker/README.md` for Docker deployment instructions.
 
 **Key files:**
+
 - `ops/docker/docker-compose.yml` - Docker Compose configuration
 - `ops/docker/.env` - Docker environment variables
 
@@ -412,6 +441,7 @@ See `ops/docker/README.md` for Docker deployment instructions.
 ### Typical Development Session
 
 1. **Start Backend:**
+
    ```bash
    cd /data/dsa110-contimg
    source ops/systemd/contimg.env
@@ -419,6 +449,7 @@ See `ops/docker/README.md` for Docker deployment instructions.
    ```
 
 2. **Start Frontend (separate terminal):**
+
    ```bash
    cd /data/dsa110-contimg/frontend
    npm run dev
@@ -439,6 +470,7 @@ See `ops/docker/README.md` for Docker deployment instructions.
 ### Persistent Development (Screen/Tmux)
 
 **Using Screen:**
+
 ```bash
 ./scripts/start-dashboard-screen.sh
 # Attach: screen -r dsa110-dashboard
@@ -447,6 +479,7 @@ See `ops/docker/README.md` for Docker deployment instructions.
 ```
 
 **Using Tmux:**
+
 ```bash
 ./scripts/start-dashboard-tmux.sh
 # Attach: tmux attach -t dsa110-dashboard
@@ -462,8 +495,10 @@ See `ops/docker/README.md` for Docker deployment instructions.
 - **Startup Scripts:** `scripts/start-dashboard-*.sh`
 - **Systemd Services:** `ops/systemd/`
 - **Docker Config:** `ops/docker/`
-- **Manual Testing Guide:** `docs/reference/image_filters_manual_testing_guide.md`
-- **Implementation Status:** `docs/reference/image_filters_implementation_status.md`
+- **Manual Testing Guide:**
+  `docs/reference/image_filters_manual_testing_guide.md`
+- **Implementation Status:**
+  `docs/reference/image_filters_implementation_status.md`
 - **Test Report:** `docs/reference/image_filters_test_report.md`
 
 ## Quick Reference Commands
@@ -493,4 +528,3 @@ sudo journalctl -u contimg-api -f
 
 **Last Updated:** 2025-11-12  
 **Maintained by:** Development Team
-

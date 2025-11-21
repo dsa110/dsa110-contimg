@@ -4,14 +4,14 @@
  */
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Container, Typography, Box, Tabs, Tab, Grid, Paper, Stack } from "@mui/material";
+import { Container, Typography, Box, Tabs, Tab, Stack } from "@mui/material";
 import {
   Settings as ControlIcon,
-  PlayArrow as StreamingIcon,
+  Task as AbsurdIcon,
   Visibility as ObservingIcon,
 } from "@mui/icons-material";
 import ControlPage from "./ControlPage";
-import StreamingPage from "./StreamingPage";
+import { TaskDashboard } from "../components/absurd/TaskDashboard";
 import ObservingPage from "./ObservingPage";
 import UnifiedSearch from "../components/UnifiedSearch";
 
@@ -68,7 +68,7 @@ export default function PipelineControlPage() {
 
       <Tabs value={tabValue} onChange={handleTabChange} sx={{ mb: 3 }}>
         <Tab label="Measurement Sets & Workflows" icon={<ControlIcon />} iconPosition="start" />
-        <Tab label="Streaming Service" icon={<StreamingIcon />} iconPosition="start" />
+        <Tab label="Absurd Workflow" icon={<AbsurdIcon />} iconPosition="start" />
         <Tab label="Observing" icon={<ObservingIcon />} iconPosition="start" />
       </Tabs>
 
@@ -80,7 +80,7 @@ export default function PipelineControlPage() {
 
       <TabPanel value={tabValue} index={1}>
         <Box sx={{ mt: -4 }}>
-          <StreamingPage />
+          <TaskDashboard queueName="dsa110-pipeline" />
         </Box>
       </TabPanel>
 

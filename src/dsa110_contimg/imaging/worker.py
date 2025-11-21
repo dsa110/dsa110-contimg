@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Imaging worker: watches a directory of freshly converted 5-minute MS files,
 looks up an active calibration apply list from the registry by observation
@@ -13,8 +12,9 @@ import argparse
 import logging
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 from dsa110_contimg.database.products import (
     ensure_products_db,
@@ -22,6 +22,7 @@ from dsa110_contimg.database.products import (
     ms_index_upsert,
 )
 from dsa110_contimg.database.registry import get_active_applylist
+from dsa110_contimg.imaging.fast_imaging import run_fast_imaging
 
 logger = logging.getLogger("imaging_worker")
 try:
@@ -57,14 +58,44 @@ def _apply_and_image(ms_path: str, out_dir: Path, gaintables: List[str]) -> List
 
         apply_to_target(ms_path, field="", gaintables=gaintables, calwt=True)
         imgroot = out_dir / (Path(ms_path).stem + ".img")
-        # Use image_ms with standard tier for production quality imaging
-        image_ms(
-            ms_path,
-            imagename=str(imgroot),
-            field="",
-            quality_tier="standard",
-            skip_fits=True,
-        )
+
+        # Run deep imaging (standard) and fast imaging (transients) in parallel
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            # Task 1: Standard Deep Imaging
+            future_deep = executor.submit(
+                image_ms,
+                ms_path,
+                imagename=str(imgroot),
+                field="",
+                quality_tier="standard",
+                skip_fits=True,
+            )
+
+            # Task 2: Fast Transient Imaging
+            # Note: Running on CORRECTED_DATA (calibrated visibilities).
+            # Ideally requires residuals for pure transient detection.
+            future_fast = executor.submit(
+                run_fast_imaging,
+                ms_path,
+                interval_seconds=None,  # Auto-detect
+                threshold_sigma=6.0,
+                datacolumn="CORRECTED_DATA",
+                work_dir=str(out_dir),
+            )
+
+            # Wait for deep imaging (critical path)
+            try:
+                future_deep.result()
+            except Exception as e:
+                logger.error("Deep imaging failed: %s", e)
+                raise e
+
+            # Wait for fast imaging (auxiliary)
+            try:
+                future_fast.result()
+            except Exception as e:
+                logger.warning("Fast imaging failed (non-fatal): %s", e)
+
         # Return whatever CASA produced
         for ext in [".image", ".image.pbcor", ".residual", ".psf", ".pb"]:
             p = f"{imgroot}{ext}"

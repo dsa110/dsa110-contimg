@@ -100,10 +100,16 @@ export function CircuitBreakerStatus() {
           </IconButton>
         </Tooltip>
       </Stack>
-
       <Grid container spacing={2}>
         {data.circuit_breakers.map((breaker) => (
-          <Grid item xs={12} md={6} lg={4} key={breaker.name}>
+          <Grid
+            key={breaker.name}
+            size={{
+              xs: 12,
+              md: 6,
+              lg: 4,
+            }}
+          >
             <Card>
               <CardContent>
                 <Stack spacing={2}>
@@ -168,7 +174,6 @@ export function CircuitBreakerStatus() {
           </Grid>
         ))}
       </Grid>
-
       <Dialog open={resetDialogOpen} onClose={() => setResetDialogOpen(false)}>
         <DialogTitle>Reset Circuit Breaker</DialogTitle>
         <DialogContent>

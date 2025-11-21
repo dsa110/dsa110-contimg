@@ -7,7 +7,7 @@ from pathlib import Path
 from astropy.time import Time
 
 from dsa110_contimg.calibration.schedule import DSA110_LOCATION
-from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.database.products import ensure_ingest_db
 
 
 def log_pointing(conn: sqlite3.Connection, pt_dec_deg: float):
@@ -21,9 +21,9 @@ def log_pointing(conn: sqlite3.Connection, pt_dec_deg: float):
     conn.commit()
 
 
-def main(products_db: Path, pt_dec_deg: float, interval_s: float):
+def main(ingest_db: Path, pt_dec_deg: float, interval_s: float):
     """Main loop for the pointing logger service."""
-    conn = ensure_products_db(products_db)
+    conn = ensure_ingest_db(ingest_db)
     scheduler = sched.scheduler(time.time, time.sleep)
 
     def run():
@@ -37,7 +37,7 @@ def main(products_db: Path, pt_dec_deg: float, interval_s: float):
 def cli():
     """Command line interface for the pointing logger service."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("products_db", type=Path, help="Path to the products database")
+    parser.add_argument("ingest_db", type=Path, help="Path to the ingest database")
     parser.add_argument(
         "--pt-dec-deg",
         type=float,
@@ -48,7 +48,7 @@ def cli():
         "--interval-s", type=float, default=60.0, help="Logging interval in seconds"
     )
     args = parser.parse_args()
-    main(args.products_db, args.pt_dec_deg, args.interval_s)
+    main(args.ingest_db, args.pt_dec_deg, args.interval_s)
 
 
 if __name__ == "__main__":

@@ -9,20 +9,17 @@ IMPORTANT: This script must be run in the casa6 conda environment:
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add src to path BEFORE importing dsa110_contimg modules
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 import logging
+
 from dsa110_contimg.qa.catalog_validation import CatalogValidationResult
-from dsa110_contimg.qa.html_reports import generate_validation_report, ValidationReport
+from dsa110_contimg.qa.html_reports import generate_validation_report
 
-
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -190,9 +187,7 @@ def test_html_report_with_mock_data():
             offset_dec_arcsec=7.0,
             has_issues=True,
             has_warnings=True,
-            issues=[
-                "Maximum astrometric offset (25.0 arcsec) exceeds threshold (5.0 arcsec)"
-            ],
+            issues=["Maximum astrometric offset (25.0 arcsec) exceeds threshold (5.0 arcsec)"],
             warnings=["Mean astrometric offset (8.5 arcsec) is significant"],
         )
 
@@ -251,7 +246,7 @@ def test_html_report_with_mock_data():
                 if missing:
                     logger.warning(f"  Missing elements: {missing}")
                 else:
-                    logger.info(f"  Content verified")
+                    logger.info("  Content verified")
             else:
                 logger.error(f"✗ {html_file.name} not found")
                 return False
@@ -265,7 +260,7 @@ def test_html_report_with_mock_data():
         logger.info("  1. test_report_pass.html (PASS status)")
         logger.info("  2. test_report_warning.html (WARNING status)")
         logger.info("  3. test_report_fail.html (FAIL status)")
-        logger.info(f"\nOpen any of these files in a web browser to view the reports.")
+        logger.info("\nOpen any of these files in a web browser to view the reports.")
 
         return True
 

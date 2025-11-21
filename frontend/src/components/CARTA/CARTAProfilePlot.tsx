@@ -6,7 +6,7 @@
 
 import { Box, Paper, Typography, Tabs, Tab } from "@mui/material";
 import { useState } from "react";
-import { SpatialProfileData, SpectralProfileData } from "../../services/cartaProtobuf";
+import type { SpatialProfileData, SpectralProfileData } from "../../services/cartaProtobuf";
 import {
   LineChart,
   Line,

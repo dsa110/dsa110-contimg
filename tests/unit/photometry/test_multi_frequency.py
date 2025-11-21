@@ -7,11 +7,8 @@ Task 4.1: Multi-Frequency Analysis
 from __future__ import annotations
 
 import sqlite3
-import tempfile
 import time
-from pathlib import Path
 
-import numpy as np
 import pytest
 
 from dsa110_contimg.photometry.multi_frequency import (
@@ -71,7 +68,17 @@ class TestMultiFrequencyAnalysis:
                  std_flux_mjy, sigma_deviation, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (f"{source_id}_{freq:.0f}", 120.0, 45.0, freq, 10, 50.0, 5.0, 4.0, time.time()),
+                (
+                    f"{source_id}_{freq:.0f}",
+                    120.0,
+                    45.0,
+                    freq,
+                    10,
+                    50.0,
+                    5.0,
+                    4.0,
+                    time.time(),
+                ),
             )
         conn.commit()
         conn.close()
@@ -113,7 +120,17 @@ class TestMultiFrequencyAnalysis:
                  std_flux_mjy, sigma_deviation, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (f"{source_id}_{freq:.0f}", 120.0, 45.0, freq, 10, 50.0, 1.0, 0.5, time.time()),
+                (
+                    f"{source_id}_{freq:.0f}",
+                    120.0,
+                    45.0,
+                    freq,
+                    10,
+                    50.0,
+                    1.0,
+                    0.5,
+                    time.time(),
+                ),
             )
         conn.commit()
         conn.close()
@@ -160,7 +177,17 @@ class TestMultiFrequencyAnalysis:
                  std_flux_mjy, sigma_deviation, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (f"{source_id}_{freq:.0f}", 120.0, 45.0, freq, 10, 50.0, 5.0, 4.0, time.time()),
+                (
+                    f"{source_id}_{freq:.0f}",
+                    120.0,
+                    45.0,
+                    freq,
+                    10,
+                    50.0,
+                    5.0,
+                    4.0,
+                    time.time(),
+                ),
             )
         conn.commit()
         conn.close()
@@ -250,7 +277,17 @@ class TestMultiFrequencyAnalysis:
                  std_flux_mjy, sigma_deviation, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (f"{source_id}_{freq:.0f}", 120.0, 45.0, freq, 10, 50.0, 5.0, 4.0, time.time()),
+                (
+                    f"{source_id}_{freq:.0f}",
+                    120.0,
+                    45.0,
+                    freq,
+                    10,
+                    50.0,
+                    5.0,
+                    4.0,
+                    time.time(),
+                ),
             )
         conn.commit()
         conn.close()

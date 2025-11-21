@@ -1,0 +1,21 @@
+[Unit]
+Description=DSA-110 Container Health Monitor
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/data/dsa110-contimg
+ExecStart=/data/dsa110-contimg/scripts/monitor-containers.sh --continuous --auto-restart
+Restart=always
+RestartSec=10
+StandardOutput=append:/data/dsa110-contimg/logs/container-monitor.log
+StandardError=append:/data/dsa110-contimg/logs/container-monitor-error.log
+
+# Restart service if it crashes
+StartLimitInterval=200
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target

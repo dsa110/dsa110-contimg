@@ -92,9 +92,7 @@ def run_shadems_quicklooks(
     python_bin = os.path.dirname(sys.executable)
     current_path = env.get("PATH", "")
     if python_bin and python_bin not in current_path.split(os.pathsep):
-        env["PATH"] = (
-            python_bin + os.pathsep + current_path if current_path else python_bin
-        )
+        env["PATH"] = python_bin + os.pathsep + current_path if current_path else python_bin
 
     generated: List[str] = []
     ran = 0
@@ -167,9 +165,7 @@ def run_ragavi_vis(
     python_bin = os.path.dirname(sys.executable)
     current_path = env.get("PATH", "")
     if python_bin and python_bin not in current_path.split(os.pathsep):
-        env["PATH"] = (
-            python_bin + os.pathsep + current_path if current_path else python_bin
-        )
+        env["PATH"] = python_bin + os.pathsep + current_path if current_path else python_bin
     html_base = f"ragavi_{stem}"
     html_name = f"{html_base}.html"
     cmd = [

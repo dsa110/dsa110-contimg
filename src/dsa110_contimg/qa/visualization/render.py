@@ -331,9 +331,7 @@ def render_titled_content(
     return html
 
 
-def render_refresh_button(
-    content: Optional[str] = None, style: Optional[str] = None
-) -> str:
+def render_refresh_button(content: Optional[str] = None, style: Optional[str] = None) -> str:
     """
     Render a refresh button.
 
@@ -406,9 +404,7 @@ class RenderingProxy:
                     )
                 kw[self._arg0] = args[0]
 
-        return RenderingProxy(
-            self._elem, self._method, self._name, arg0=self._arg0, kwargs=kw
-        )
+        return RenderingProxy(self._elem, self._method, self._name, arg0=self._arg0, kwargs=kw)
 
     def render_html(self, **kwargs) -> str:
         """

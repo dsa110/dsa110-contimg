@@ -68,11 +68,7 @@ def validate_preflight_conditions(
     if missing_tiles:
         issues.append(
             f"{len(missing_tiles)} tiles not found: {missing_tiles[:5]}"
-            + (
-                f" ... and {len(missing_tiles)-5} more"
-                if len(missing_tiles) > 5
-                else ""
-            )
+            + (f" ... and {len(missing_tiles) - 5} more" if len(missing_tiles) > 5 else "")
         )
 
     # Check PB images exist (if required)
@@ -96,7 +92,7 @@ def validate_preflight_conditions(
         if missing_pb:
             issues.append(
                 f"{len(missing_pb)} tiles missing PB images: {missing_pb[:5]}"
-                + (f" ... and {len(missing_pb)-5} more" if len(missing_pb) > 5 else "")
+                + (f" ... and {len(missing_pb) - 5} more" if len(missing_pb) > 5 else "")
             )
 
     # Check output directory
@@ -184,14 +180,9 @@ def estimate_resources(
             if os.path.exists(tile):
                 if os.path.isdir(tile):
                     # CASA image directory
-                    import shutil
 
                     try:
-                        size = sum(
-                            f.stat().st_size
-                            for f in Path(tile).rglob("*")
-                            if f.is_file()
-                        )
+                        size = sum(f.stat().st_size for f in Path(tile).rglob("*") if f.is_file())
                         total_size_mb += size / (1024**2)
                     except Exception:
                         pass

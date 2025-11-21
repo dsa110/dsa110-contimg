@@ -1,0 +1,27 @@
+
+
+#Ignore cursor AI rules
+.cursor/rules/codacy.mdc
+
+# Python build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Log files
+*.log
+mosaic_status.txt
+mosaic_errors.log
+mosaic_test.log
+run_with_monitor.log
+
+# Temporary files
+*.tmp
+*.bak
+*~

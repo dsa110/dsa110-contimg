@@ -8,11 +8,10 @@ import { logger } from "../../utils/logger";
 import { findDisplay, isJS9Available } from "../../utils/js9";
 import { throttle } from "../../utils/js9/throttle";
 import { useJS9Safe } from "../../contexts/JS9Context";
+import { formatRA, formatDec } from "../../utils/coordinateUtils";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 interface ImageMetadataProps {
@@ -39,7 +38,11 @@ export default function ImageMetadata({ displayId = "js9Display", imageInfo }: I
   // Use JS9 context if available (backward compatible)
   const js9Context = useJS9Safe();
   const isJS9Ready = js9Context?.isJS9Ready ?? isJS9Available();
-  const getDisplaySafe = (id: string) => js9Context?.getDisplay(id) ?? findDisplay(id);
+
+  const getDisplaySafe = useCallback(
+    (id: string) => js9Context?.getDisplay(id) ?? findDisplay(id),
+    [js9Context]
+  );
 
   const [cursorInfo, setCursorInfo] = useState<CursorInfo>({
     pixelX: null,
@@ -121,26 +124,7 @@ export default function ImageMetadata({ displayId = "js9Display", imageInfo }: I
     }, 200);
 
     return () => clearInterval(interval);
-  }, [throttledUpdateCursor]);
-
-  const formatRA = (raDeg: number | null): string => {
-    if (raDeg === null) return "--";
-    const hours = raDeg / 15;
-    const h = Math.floor(hours);
-    const m = Math.floor((hours - h) * 60);
-    const s = ((hours - h) * 60 - m) * 60;
-    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toFixed(1).padStart(4, "0")}`;
-  };
-
-  const formatDec = (decDeg: number | null): string => {
-    if (decDeg === null) return "--";
-    const sign = decDeg >= 0 ? "+" : "-";
-    const absDec = Math.abs(decDeg);
-    const d = Math.floor(absDec);
-    const m = Math.floor((absDec - d) * 60);
-    const s = ((absDec - d) * 60 - m) * 60;
-    return `${sign}${d.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toFixed(1).padStart(4, "0")}`;
-  };
+  }, [throttledUpdateCursor, isJS9Ready]);
 
   const formatBeam = (): string => {
     if (!imageInfo?.beam_major_arcsec || !imageInfo?.beam_minor_arcsec) {
@@ -207,12 +191,12 @@ export default function ImageMetadata({ displayId = "js9Display", imageInfo }: I
       </Box>
       <Box sx={{ mb: 1 }}>
         <Typography variant="body2" color="text.secondary">
-          <strong>RA:</strong> {formatRA(cursorInfo.ra)}
+          <strong>RA:</strong> {cursorInfo.ra !== null ? formatRA(cursorInfo.ra) : "--"}
         </Typography>
       </Box>
       <Box sx={{ mb: 1 }}>
         <Typography variant="body2" color="text.secondary">
-          <strong>Dec:</strong> {formatDec(cursorInfo.dec)}
+          <strong>Dec:</strong> {cursorInfo.dec !== null ? formatDec(cursorInfo.dec) : "--"}
         </Typography>
       </Box>
       {cursorInfo.flux !== null && (

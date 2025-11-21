@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, arcsec, etc.)
 """
 Build a master reference catalog by crossmatching NVSS with VLASS and FIRST.
 
@@ -36,7 +37,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Iterable, Optional, Tuple
 
-import astropy.units as u
+import astropy.units as u  # pylint: disable=no-member
 import numpy as np
 import pandas as pd
 from astropy.coordinates import SkyCoord
@@ -62,9 +63,7 @@ def _read_table(path: str) -> pd.DataFrame:
     return pd.read_csv(path, sep=None, engine="python")
 
 
-def _normalize_columns(
-    df: pd.DataFrame, mapping: Dict[str, Iterable[str]]
-) -> Dict[str, str]:
+def _normalize_columns(df: pd.DataFrame, mapping: Dict[str, Iterable[str]]) -> Dict[str, str]:
     """Return a mapping of canonical->actual column names found in df.
 
     mapping: {canonical: [candidate1, candidate2, ...]}
@@ -84,9 +83,7 @@ def _normalize_columns(
 
 
 def _skycoord_from_df(df: pd.DataFrame, ra_col: str, dec_col: str) -> SkyCoord:
-    return SkyCoord(
-        ra=df[ra_col].values * u.deg, dec=df[dec_col].values * u.deg, frame="icrs"
-    )
+    return SkyCoord(ra=df[ra_col].values * u.deg, dec=df[dec_col].values * u.deg, frame="icrs")
 
 
 # ---------------------------- Crossmatching --------------------------------
@@ -152,9 +149,7 @@ def _crossmatch(
         and "ra" in maps["vlass"]
         and "dec" in maps["vlass"]
     ):
-        vlass_sc = _skycoord_from_df(
-            df_vlass, maps["vlass"]["ra"], maps["vlass"]["dec"]
-        )
+        vlass_sc = _skycoord_from_df(df_vlass, maps["vlass"]["ra"], maps["vlass"]["dec"])
         v_flux_col = maps["vlass"].get("flux")
 
     # Prepare FIRST coord and morphology if provided
@@ -166,9 +161,7 @@ def _crossmatch(
         and "ra" in maps["first"]
         and "dec" in maps["first"]
     ):
-        first_sc = _skycoord_from_df(
-            df_first, maps["first"]["ra"], maps["first"]["dec"]
-        )
+        first_sc = _skycoord_from_df(df_first, maps["first"]["ra"], maps["first"]["dec"])
         f_maj = maps["first"].get("maj")
         f_min = maps["first"].get("min")
 
@@ -214,15 +207,11 @@ def _crossmatch(
                 confusion = 1
             if len(cand) >= 1:
                 # pick closest by angular sep
-                seps = SkyCoord(ra=ra * u.deg, dec=dec * u.deg).separation(
-                    vlass_sc[cand]
-                )
+                seps = SkyCoord(ra=ra * u.deg, dec=dec * u.deg).separation(vlass_sc[cand])
                 j = int(cand[int(np.argmin(seps.to_value(u.arcsec)))])
                 if v_flux_col and v_flux_col in df_vlass.columns:
                     try:
-                        s_vl = float(df_vlass.at[j, v_flux_col]) * float(
-                            scale_vlass_to_jy
-                        )
+                        s_vl = float(df_vlass.at[j, v_flux_col]) * float(scale_vlass_to_jy)
                     except Exception:
                         s_vl = None
 
@@ -233,9 +222,7 @@ def _crossmatch(
             if len(cand) > 1:
                 confusion = 1
             if len(cand) >= 1 and (f_maj or f_min):
-                seps = SkyCoord(ra=ra * u.deg, dec=dec * u.deg).separation(
-                    first_sc[cand]
-                )
+                seps = SkyCoord(ra=ra * u.deg, dec=dec * u.deg).separation(first_sc[cand])
                 j = int(cand[int(np.argmin(seps.to_value(u.arcsec)))])
                 maj = None
                 mn = None
@@ -320,9 +307,7 @@ def _write_sqlite(
             )
             """
         )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_sources_radec ON sources(ra_deg, dec_deg)"
-        )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_sources_radec ON sources(ra_deg, dec_deg)")
         # Overwrite (replace on conflict by recreating contents)
         conn.execute("DELETE FROM sources")
         out.to_sql("sources", conn, if_exists="append", index=False)
@@ -382,14 +367,10 @@ def _write_sqlite(
                 conn.execute("DROP TABLE IF EXISTS stable_ids")
             except Exception:
                 pass
-            conn.execute(
-                "CREATE TABLE IF NOT EXISTS stable_ids(source_id INTEGER PRIMARY KEY)"
-            )
+            conn.execute("CREATE TABLE IF NOT EXISTS stable_ids(source_id INTEGER PRIMARY KEY)")
             rows = [(int(i),) for i in finalref_ids if i is not None]
             if rows:
-                conn.executemany(
-                    "INSERT OR IGNORE INTO stable_ids(source_id) VALUES(?)", rows
-                )
+                conn.executemany("INSERT OR IGNORE INTO stable_ids(source_id) VALUES(?)", rows)
             conn.execute(
                 "INSERT OR REPLACE INTO meta(key, value) VALUES('finalref_ids_count', ?)",
                 (str(len(rows)),),
@@ -430,9 +411,7 @@ def _write_sqlite(
                 conn.execute("DROP TABLE IF EXISTS final_references_table")
             except Exception:
                 pass
-            conn.execute(
-                "CREATE TABLE final_references_table AS SELECT * FROM final_references"
-            )
+            conn.execute("CREATE TABLE final_references_table AS SELECT * FROM final_references")
 
 
 # ----------------------------- Column maps ---------------------------------
@@ -579,9 +558,7 @@ def build_master(
         try:
             with open(finalref_ids_file, "r", encoding="utf-8") as f:
                 final_ids = [
-                    int(x.strip())
-                    for x in f
-                    if x.strip() and not x.strip().startswith("#")
+                    int(x.strip()) for x in f if x.strip() and not x.strip().startswith("#")
                 ]
         except Exception:
             final_ids = None
@@ -611,9 +588,7 @@ def _add_map_args(p: argparse.ArgumentParser, prefix: str) -> None:
 
 
 def main(argv: Optional[list[str]] = None) -> int:
-    ap = argparse.ArgumentParser(
-        description="Build master catalog (NVSS + VLASS/FIRST)"
-    )
+    ap = argparse.ArgumentParser(description="Build master catalog (NVSS + VLASS/FIRST)")
     ap.add_argument("--nvss", required=True, help="Path to NVSS catalog (CSV/FITS)")
     ap.add_argument("--vlass", help="Path to VLASS catalog (CSV/FITS)")
     ap.add_argument("--first", help="Path to FIRST catalog (CSV/FITS)")
@@ -689,9 +664,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     args = ap.parse_args(argv)
 
     map_nv = {
-        k.split("map_nvss_")[1]: v
-        for k, v in vars(args).items()
-        if k.startswith("map_nvss_") and v
+        k.split("map_nvss_")[1]: v for k, v in vars(args).items() if k.startswith("map_nvss_") and v
     }
     map_vl = {
         k.split("map_vlass_")[1]: v
@@ -755,9 +728,7 @@ def main(argv: Optional[list[str]] = None) -> int:
                 export_path.parent.mkdir(parents=True, exist_ok=True)
                 df.to_csv(export_path, index=False)
                 logger.info(f"Exported {args.export_view} to: {export_path}")
-                print(
-                    f"Exported {args.export_view} to: {export_path}"
-                )  # User-facing output
+                print(f"Exported {args.export_view} to: {export_path}")  # User-facing output
             except Exception as _e:
                 logger.error(f"Export failed: {_e}", exc_info=True)
                 print(f"Export failed: {_e}")  # User-facing error

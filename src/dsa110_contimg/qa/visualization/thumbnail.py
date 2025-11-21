@@ -5,8 +5,8 @@ Provides thumbnail generation with caching support, similar to RadioPadre's
 thumbnail system.
 """
 
-import os
 import hashlib
+import os
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -68,7 +68,6 @@ def get_cache_file(
     # Generate cache filename
     file_path_obj = Path(file_path)
     base_name = file_path_obj.stem
-    ext = file_path_obj.suffix
 
     # Include keydict in filename hash if provided
     if keydict:
@@ -136,7 +135,7 @@ def make_thumbnail(
 
         return cache_file, cache_url
 
-    except Exception as e:
+    except Exception:
         # Silently fail - return None
         return None
 
@@ -191,4 +190,6 @@ def render_thumbnail_html(
             thumb_url = url
 
     width_attr = f' width="{width}"' if width else ""
-    return f'<a href="{url}" target="_blank"><img src="{thumb_url}"{width_attr} alt="thumbnail"></a>'
+    return (
+        f'<a href="{url}" target="_blank"><img src="{thumb_url}"{width_attr} alt="thumbnail"></a>'
+    )

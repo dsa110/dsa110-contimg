@@ -221,14 +221,10 @@ def suggest_fix(error_type: str, details: Dict[str, Any]) -> str:
     if suggester:
         return suggester(details)
 
-    return (
-        "No specific suggestion available. Check the error message above for details."
-    )
+    return "No specific suggestion available. Check the error message above for details."
 
 
-def format_error_with_suggestion(
-    error: Exception, error_type: str, details: Dict[str, Any]
-) -> str:
+def format_error_with_suggestion(error: Exception, error_type: str, details: Dict[str, Any]) -> str:
     """
     Format an error with both the error message and a suggested fix.
 

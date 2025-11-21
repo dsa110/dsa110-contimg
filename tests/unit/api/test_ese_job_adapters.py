@@ -6,9 +6,7 @@ Focus: Fast tests for run_ese_detect_job and run_batch_ese_detect_job functions.
 from __future__ import annotations
 
 import sqlite3
-import tempfile
 import time
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -278,7 +276,8 @@ class TestRunBatchESEDetectJob:
         conn = sqlite3.connect(temp_products_db)
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT status, completed_items, failed_items FROM batch_jobs WHERE id = ?", (batch_id,)
+            "SELECT status, completed_items, failed_items FROM batch_jobs WHERE id = ?",
+            (batch_id,),
         )
         row = cursor.fetchone()
         assert row[0] == "partial"

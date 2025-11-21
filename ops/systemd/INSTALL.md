@@ -3,12 +3,14 @@
 ## Prerequisites
 
 1. Create log directory:
+
 ```bash
 sudo mkdir -p /var/log/dsa110
 sudo chown ubuntu:ubuntu /var/log/dsa110
 ```
 
 2. Verify conda environment path:
+
 ```bash
 which conda
 # Adjust ExecStart path in dsa110-api.service if different
@@ -83,6 +85,7 @@ sudo systemctl status dsa110-dashboard.service
 ## Managing Services
 
 ### View Logs
+
 ```bash
 # API logs
 sudo journalctl -u dsa110-api.service -f
@@ -99,6 +102,7 @@ tail -f /data/dsa110-contimg/state/logs/pointing-monitor.err
 ```
 
 ### Control Services
+
 ```bash
 # Start
 sudo systemctl start dsa110-api.service
@@ -122,6 +126,7 @@ sudo systemctl status dsa110-dashboard.service
 ```
 
 ### Disable Auto-Start
+
 ```bash
 sudo systemctl disable dsa110-api.service
 sudo systemctl disable contimg-pointing-monitor.service
@@ -130,9 +135,11 @@ sudo systemctl disable dsa110-dashboard.service
 
 ## Port Reservation
 
-Systemd will automatically bind to ports 8000 (API) and 3000 (Dashboard) when services start. If another process tries to use these ports, it will fail.
+Systemd will automatically bind to ports 8000 (API) and 3000 (Dashboard) when
+services start. If another process tries to use these ports, it will fail.
 
 ### Check Port Usage
+
 ```bash
 # See what's using port 8000
 sudo lsof -i :8000
@@ -142,6 +149,7 @@ sudo lsof -i :3000
 ```
 
 ### Kill Conflicting Processes
+
 ```bash
 # Find and kill process on port 8000
 sudo fuser -k 8000/tcp
@@ -153,6 +161,7 @@ sudo fuser -k 3000/tcp
 ## Troubleshooting
 
 ### Service won't start
+
 ```bash
 # Check logs
 sudo journalctl -u dsa110-api.service -n 50 --no-pager
@@ -165,6 +174,7 @@ ls -la /data/dsa110-contimg/state/
 ```
 
 ### Port already in use
+
 ```bash
 # Find what's using the port
 sudo netstat -tlnp | grep :8000
@@ -177,6 +187,7 @@ sudo systemctl restart dsa110-api.service
 ```
 
 ### Service crashes on startup
+
 ```bash
 # Check environment variables
 sudo systemctl show dsa110-api.service | grep Environment
@@ -201,6 +212,7 @@ watch -n 5 'cat /data/dsa110-contimg/state/pointing-monitor-status.json | jq .me
 ```
 
 Status file includes:
+
 - `running`: Whether monitor is active
 - `healthy`: Health check status
 - `issues`: List of health issues (if any)
@@ -225,4 +237,3 @@ sudo rm /etc/systemd/system/dsa110-dashboard.service
 # Reload systemd
 sudo systemctl daemon-reload
 ```
-

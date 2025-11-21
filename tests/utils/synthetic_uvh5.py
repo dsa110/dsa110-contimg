@@ -9,7 +9,6 @@ Note: Requires pyuvdata installed in the active environment.
 """
 
 from pathlib import Path
-from typing import Tuple, Union
 
 import numpy as np
 
@@ -64,9 +63,7 @@ def _make_minimal_uvdata(
     uv.phase_center_frame = "icrs"
 
     # Generate visibilities as flat spectrum of a point source at phase center
-    data = (source_flux_jy + 0j) * np.ones(
-        (nblts, n_chans, uv.Npols), dtype=np.complex64
-    )
+    data = (source_flux_jy + 0j) * np.ones((nblts, n_chans, uv.Npols), dtype=np.complex64)
     flags = np.zeros((nblts, n_chans, uv.Npols), dtype=bool)
     nsample = np.ones((nblts, n_chans, uv.Npols), dtype=float)
 

@@ -56,12 +56,10 @@ def generate_mock_mosaics(start_time: str, end_time: str) -> List[Dict[str, Any]
         mosaics.append(
             {
                 "id": i + 1,
-                "name": f'mosaic_{mosaic_start.strftime("%Y%m%d_%H%M%S")}',
-                "path": f"/data/mosaics/mosaic_{i+1}.fits",
-                "start_mjd": (mosaic_start - datetime(1858, 11, 17)).total_seconds()
-                / 86400,
-                "end_mjd": (mosaic_end - datetime(1858, 11, 17)).total_seconds()
-                / 86400,
+                "name": f"mosaic_{mosaic_start.strftime('%Y%m%d_%H%M%S')}",
+                "path": f"/data/mosaics/mosaic_{i + 1}.fits",
+                "start_mjd": (mosaic_start - datetime(1858, 11, 17)).total_seconds() / 86400,
+                "end_mjd": (mosaic_end - datetime(1858, 11, 17)).total_seconds() / 86400,
                 "start_time": mosaic_start.isoformat(),
                 "end_time": mosaic_end.isoformat(),
                 "created_at": datetime.utcnow().isoformat(),
@@ -136,7 +134,7 @@ def generate_mock_alert_history(limit: int = 50) -> List[Dict[str, Any]]:
                 "source_id": f"NVSS J{random.randint(100000, 999999)}",
                 "alert_type": alert_type,
                 "severity": severity,
-                "message": f'{alert_type.replace("_", " ").title()}: Sample alert message',
+                "message": f"{alert_type.replace('_', ' ').title()}: Sample alert message",
                 "triggered_at": triggered.isoformat(),
                 "resolved_at": (
                     (triggered + timedelta(hours=2)).isoformat() if i % 3 == 0 else None

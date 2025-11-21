@@ -38,15 +38,18 @@ These filters are implemented but have performance and accuracy limitations:
    - **Accuracy:** Pagination may be inaccurate
    - **Implementation:** Extracts RA/Dec from FITS headers after database query
    - **Limitation:** Not stored in database, requires file I/O
-   - **Recommendation:** Add `center_ra_deg` and `center_dec_deg` columns to `images` table
+   - **Recommendation:** Add `center_ra_deg` and `center_dec_deg` columns to
+     `images` table
 
 2. **Calibrator Detection** (`has_calibrator`)
    - **Status:** ⚠️ Experimental (heuristic)
    - **Performance:** Moderate (pattern matching)
    - **Accuracy:** May have false positives/negatives
-   - **Implementation:** Pattern matching on MS path (looks for 'cal', 'calibrator', '3c', 'j1331')
+   - **Implementation:** Pattern matching on MS path (looks for 'cal',
+     'calibrator', '3c', 'j1331')
    - **Limitation:** Not based on actual calibrator detection results
-   - **Recommendation:** Store calibrator detection status in database or join with calibrator registry
+   - **Recommendation:** Store calibrator detection status in database or join
+     with calibrator registry
 
 ## Frontend Implementation
 
@@ -92,7 +95,7 @@ for row in rows:
     fits_path = get_fits_path(row["path"])
     # Extract dec from FITS header
     # Apply filter
-    
+
 # Calibrator filter (heuristic pattern matching)
 if has_calibrator:
     # Check MS path patterns
@@ -127,6 +130,7 @@ if has_calibrator:
 ### Long-Term (Recommended Improvements)
 
 1. **Database Schema Enhancement**
+
    ```sql
    ALTER TABLE images ADD COLUMN center_ra_deg REAL;
    ALTER TABLE images ADD COLUMN center_dec_deg REAL;
@@ -176,12 +180,14 @@ curl "http://localhost:8000/api/images?has_calibrator=true&limit=10"
 ## Frontend Usage
 
 The frontend automatically handles:
+
 - Unit conversion (mJy ↔ Jy)
 - URL parameter synchronization
 - Filter state management
 - Clear filters functionality
 
 Users can:
+
 - Share filtered views via URL
 - Use browser back/forward buttons
 - Clear all filters with one click
@@ -192,4 +198,3 @@ Users can:
 **Status:** ✅ Working filters ready for production  
 **Status:** ⚠️ Experimental filters available but limited  
 **Next Steps:** Database schema enhancement for full functionality
-

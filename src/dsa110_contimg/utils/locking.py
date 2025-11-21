@@ -11,7 +11,7 @@ import os
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from typing import ContextManager, Optional
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -164,9 +164,7 @@ def cleanup_stale_locks(lock_dir: Path, timeout_seconds: float = 3600.0) -> int:
             # Check file age
             file_age = current_time - lock_file.stat().st_mtime
             if file_age > timeout_seconds:
-                logger.warning(
-                    f"Removing stale lock file (age: {file_age:.0f}s): {lock_file}"
-                )
+                logger.warning(f"Removing stale lock file (age: {file_age:.0f}s): {lock_file}")
                 lock_file.unlink()
                 cleaned += 1
                 continue

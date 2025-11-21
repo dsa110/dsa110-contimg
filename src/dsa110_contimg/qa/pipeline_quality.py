@@ -7,17 +7,16 @@ for quality issues.
 
 import logging
 import os
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from dsa110_contimg.qa.calibration_quality import (
     check_corrected_data_quality,
     validate_caltable_quality,
 )
+from dsa110_contimg.qa.config import QAConfig, get_default_config
 from dsa110_contimg.qa.image_quality import quick_image_check, validate_image_quality
 from dsa110_contimg.qa.ms_quality import quick_ms_check, validate_ms_quality
 from dsa110_contimg.utils import alerting
-from dsa110_contimg.qa.config import QAConfig, get_default_config
 
 logger = logging.getLogger(__name__)
 
@@ -31,34 +30,22 @@ class QualityThresholds:
 
     def __init__(self):
         # MS quality thresholds
-        self.ms_max_flagged_fraction = float(
-            os.getenv("CONTIMG_QA_MS_MAX_FLAGGED", "0.5")
-        )
+        self.ms_max_flagged_fraction = float(os.getenv("CONTIMG_QA_MS_MAX_FLAGGED", "0.5"))
         self.ms_max_zeros_fraction = float(os.getenv("CONTIMG_QA_MS_MAX_ZEROS", "0.3"))
         self.ms_min_median_amplitude = float(os.getenv("CONTIMG_QA_MS_MIN_AMP", "1e-6"))
 
         # Calibration quality thresholds
-        self.cal_max_flagged_fraction = float(
-            os.getenv("CONTIMG_QA_CAL_MAX_FLAGGED", "0.3")
-        )
-        self.cal_min_median_amplitude = float(
-            os.getenv("CONTIMG_QA_CAL_MIN_AMP", "0.1")
-        )
-        self.cal_max_median_amplitude = float(
-            os.getenv("CONTIMG_QA_CAL_MAX_AMP", "10.0")
-        )
+        self.cal_max_flagged_fraction = float(os.getenv("CONTIMG_QA_CAL_MAX_FLAGGED", "0.3"))
+        self.cal_min_median_amplitude = float(os.getenv("CONTIMG_QA_CAL_MIN_AMP", "0.1"))
+        self.cal_max_median_amplitude = float(os.getenv("CONTIMG_QA_CAL_MAX_AMP", "10.0"))
         self.cal_max_phase_scatter_deg = float(
             os.getenv("CONTIMG_QA_CAL_MAX_PHASE_SCATTER", "90.0")
         )
 
         # Image quality thresholds
-        self.img_min_dynamic_range = float(
-            os.getenv("CONTIMG_QA_IMG_MIN_DYNAMIC_RANGE", "5.0")
-        )
+        self.img_min_dynamic_range = float(os.getenv("CONTIMG_QA_IMG_MIN_DYNAMIC_RANGE", "5.0"))
         self.img_min_peak_snr = float(os.getenv("CONTIMG_QA_IMG_MIN_PEAK_SNR", "5.0"))
-        self.img_min_5sigma_pixels = int(
-            os.getenv("CONTIMG_QA_IMG_MIN_5SIGMA_PIXELS", "10")
-        )
+        self.img_min_5sigma_pixels = int(os.getenv("CONTIMG_QA_IMG_MIN_5SIGMA_PIXELS", "10"))
 
 
 def check_ms_after_conversion(
@@ -91,7 +78,7 @@ def check_ms_after_conversion(
             if alert_on_issues:
                 alerting.error(
                     "ms_conversion",
-                    f"MS failed quality check after conversion",
+                    "MS failed quality check after conversion",
                     context={"ms_path": ms_path, "check": "quick", "reason": message},
                 )
         return passed, {"message": message}
@@ -106,7 +93,7 @@ def check_ms_after_conversion(
             if alert_on_issues:
                 alerting.critical(
                     "ms_conversion",
-                    f"MS has critical quality issues after conversion",
+                    "MS has critical quality issues after conversion",
                     context={
                         "ms_path": ms_path,
                         "issues": metrics.issues,
@@ -123,7 +110,7 @@ def check_ms_after_conversion(
             if alert_on_issues:
                 alerting.warning(
                     "ms_conversion",
-                    f"MS has quality warnings after conversion",
+                    "MS has quality warnings after conversion",
                     context={
                         "ms_path": ms_path,
                         "warnings": metrics.warnings,
@@ -141,7 +128,7 @@ def check_ms_after_conversion(
         if alert_on_issues:
             alerting.error(
                 "ms_conversion",
-                f"Exception during MS quality check",
+                "Exception during MS quality check",
                 context={"ms_path": ms_path, "exception": str(e)},
             )
         return False, {"exception": str(e)}
@@ -189,7 +176,7 @@ def check_calibration_quality(
                 if alert_on_issues:
                     alerting.error(
                         "calibration",
-                        f"Calibration table has quality issues",
+                        "Calibration table has quality issues",
                         context={
                             "caltable": os.path.basename(caltable),
                             "cal_type": metrics.cal_type,
@@ -201,7 +188,7 @@ def check_calibration_quality(
             if metrics.has_warnings and alert_on_issues:
                 alerting.warning(
                     "calibration",
-                    f"Calibration table has quality warnings",
+                    "Calibration table has quality warnings",
                     context={
                         "caltable": os.path.basename(caltable),
                         "cal_type": metrics.cal_type,
@@ -215,7 +202,7 @@ def check_calibration_quality(
             if alert_on_issues:
                 alerting.error(
                     "calibration",
-                    f"Exception during calibration quality check",
+                    "Exception during calibration quality check",
                     context={
                         "caltable": os.path.basename(caltable),
                         "exception": str(e),
@@ -245,13 +232,11 @@ def check_calibration_quality(
 
                 if not passed:
                     all_passed = False
-                    logger.error(
-                        f"CORRECTED_DATA quality check failed: {', '.join(issues)}"
-                    )
+                    logger.error(f"CORRECTED_DATA quality check failed: {', '.join(issues)}")
                     if alert_on_issues:
                         alerting.error(
                             "calibration",
-                            f"CORRECTED_DATA has quality issues",
+                            "CORRECTED_DATA has quality issues",
                             context={
                                 "ms_path": os.path.basename(ms_path),
                                 "issues": issues,
@@ -260,7 +245,7 @@ def check_calibration_quality(
             else:
                 # CORRECTED_DATA doesn't exist yet - this is expected if calibration hasn't been applied
                 logger.info(
-                    f"CORRECTED_DATA column not present - calibration not yet applied (expected)"
+                    "CORRECTED_DATA column not present - calibration not yet applied (expected)"
                 )
                 results["corrected_data"] = {
                     "status": "not_applied",
@@ -273,7 +258,7 @@ def check_calibration_quality(
             if alert_on_issues:
                 alerting.error(
                     "calibration",
-                    f"Exception checking CORRECTED_DATA",
+                    "Exception checking CORRECTED_DATA",
                     context={"ms_path": os.path.basename(ms_path), "exception": str(e)},
                 )
 
@@ -310,7 +295,7 @@ def check_image_quality(
             if alert_on_issues:
                 alerting.error(
                     "imaging",
-                    f"Image failed quality check",
+                    "Image failed quality check",
                     context={
                         "image_path": image_path,
                         "check": "quick",
@@ -328,7 +313,7 @@ def check_image_quality(
             if alert_on_issues:
                 alerting.error(
                     "imaging",
-                    f"Image has critical quality issues",
+                    "Image has critical quality issues",
                     context={
                         "image_path": image_path,
                         "image_type": metrics.image_type,
@@ -343,7 +328,7 @@ def check_image_quality(
             if alert_on_issues:
                 alerting.warning(
                     "imaging",
-                    f"Image has quality warnings",
+                    "Image has quality warnings",
                     context={
                         "image_path": image_path,
                         "image_type": metrics.image_type,
@@ -358,7 +343,7 @@ def check_image_quality(
             if metrics.image_type in ["image", "pbcor"] and metrics.peak_snr > 10:
                 alerting.info(
                     "imaging",
-                    f"High-quality image produced",
+                    "High-quality image produced",
                     context={
                         "image_path": os.path.basename(image_path),
                         "peak_snr": f"{metrics.peak_snr:.1f}",
@@ -375,7 +360,7 @@ def check_image_quality(
         if alert_on_issues:
             alerting.error(
                 "imaging",
-                f"Exception during image quality check",
+                "Exception during image quality check",
                 context={"image_path": image_path, "exception": str(e)},
             )
         return False, {"exception": str(e)}

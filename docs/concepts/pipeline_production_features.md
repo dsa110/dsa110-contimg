@@ -9,7 +9,9 @@
 
 ## Overview
 
-The pipeline framework includes comprehensive production-ready features for reliability, observability, and maintainability. This document describes the production features and how they work together.
+The pipeline framework includes comprehensive production-ready features for
+reliability, observability, and maintainability. This document describes the
+production features and how they work together.
 
 ## Production Features
 
@@ -17,14 +19,16 @@ The pipeline framework includes comprehensive production-ready features for reli
 
 **Location:** `pipeline/health.py`
 
-Pre-flight health checks validate system state before starting expensive operations:
+Pre-flight health checks validate system state before starting expensive
+operations:
 
 - **Disk Space**: Verifies sufficient space for operations
 - **Directory Writable**: Ensures output directories are accessible
 - **Database Accessible**: Validates database connectivity
 - **System Resources**: Checks memory and disk availability
 
-**Usage:** Automatically executed before pipeline starts. Failures are logged as warnings but don't block execution (allows override for testing).
+**Usage:** Automatically executed before pipeline starts. Failures are logged as
+warnings but don't block execution (allows override for testing).
 
 ### 2. Timeout Handling
 
@@ -57,7 +61,8 @@ Tracks resource usage during pipeline execution:
 - **CPU Time**: Estimated CPU time (percentage × duration)
 - **Optional Collection**: Requires `psutil`, gracefully degrades if unavailable
 
-**Usage:** Enabled by default in `PipelineObserver`. Metrics included in `StageMetrics` and logged.
+**Usage:** Enabled by default in `PipelineObserver`. Metrics included in
+`StageMetrics` and logged.
 
 ### 4. Graceful Shutdown
 
@@ -70,7 +75,8 @@ Handles SIGTERM/SIGINT signals for clean shutdown:
 - **Context Manager**: Wraps entire pipeline execution
 - **Windows Compatible**: Uses SIGINT only on Windows
 
-**Usage:** Automatically wraps pipeline execution. Cleanup handled by stage cleanup methods.
+**Usage:** Automatically wraps pipeline execution. Cleanup handled by stage
+cleanup methods.
 
 ### 5. Output Validation
 
@@ -83,6 +89,7 @@ Validates stage outputs before proceeding:
 - **Standardized interface**: `validate_outputs()` method on all stages
 
 **Implementation:**
+
 - `ConversionStage`: Validates MS exists, has required columns, contains data
 - `CalibrationSolveStage`: Validates calibration tables exist
 - `CalibrationStage`: Validates CORRECTED_DATA column exists and is populated
@@ -99,6 +106,7 @@ Cleans up partial outputs when stages fail:
 - **Stage-specific**: Each stage implements cleanup for its outputs
 
 **Implementation:**
+
 - `ConversionStage`: Removes partial MS files
 - `CalibrationSolveStage`: Removes partial calibration tables
 - `ImagingStage`: Removes partial image files (all related suffixes)
@@ -164,11 +172,13 @@ All production features emit structured logs:
 ## See Also
 
 - [Pipeline Overview](./pipeline_overview.md) - High-level pipeline overview
-- [Pipeline Stage Architecture](./pipeline_stage_architecture.md) - Stage-based architecture
-- [Pipeline Workflow Visualization](./pipeline_workflow_visualization.md) - Detailed workflow
+- [Pipeline Stage Architecture](./pipeline_stage_architecture.md) - Stage-based
+  architecture
+- [Pipeline Workflow Visualization](./pipeline_workflow_visualization.md) -
+  Detailed workflow
 
 ## References
 
-- [Pipeline Stage Architecture](./pipeline_stage_architecture.md) - Orchestrator details
+- [Pipeline Stage Architecture](./pipeline_stage_architecture.md) - Orchestrator
+  details
 - [Stage Implementation Guide](../how-to/create_pipeline_stage.md)
-

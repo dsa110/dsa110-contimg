@@ -10,10 +10,7 @@ Run with: pytest tests/validation/test_pipeline_validation_integration.py -v
 """
 
 import logging
-import os
-import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
@@ -108,9 +105,7 @@ class TestValidationLogic:
             side_effect=mock_table_context_manager,
         ):
             # Should detect descending order and raise error
-            with pytest.raises(
-                RuntimeError, match="frequencies are in DESCENDING order"
-            ):
+            with pytest.raises(RuntimeError, match="frequencies are in DESCENDING order"):
                 validate_ms_frequency_order("/fake/ms/path")
 
     def test_uvw_precision_validation_logic(self):
@@ -145,9 +140,7 @@ class TestValidationLogic:
             side_effect=mock_table_context_manager,
         ):
             # Should detect excessive UVW values
-            with pytest.raises(
-                RuntimeError, match="UVW coordinates contain unreasonable values"
-            ):
+            with pytest.raises(RuntimeError, match="UVW coordinates contain unreasonable values"):
                 validate_uvw_precision("/fake/ms/path", tolerance_lambda=0.1)
 
     def test_antenna_position_validation_logic(self):
@@ -192,16 +185,10 @@ class TestValidationLogic:
             "dsa110_contimg.conversion.helpers.table",
             side_effect=mock_table_context_manager,
         ):
-            with patch(
-                "dsa110_contimg.conversion.helpers.get_itrf", return_value=mock_ref_df
-            ):
+            with patch("dsa110_contimg.conversion.helpers.get_itrf", return_value=mock_ref_df):
                 # Should detect excessive position error
-                with pytest.raises(
-                    RuntimeError, match="Antenna position errors exceed tolerance"
-                ):
-                    validate_antenna_positions(
-                        "/fake/ms/path", position_tolerance_m=0.05
-                    )
+                with pytest.raises(RuntimeError, match="Antenna position errors exceed tolerance"):
+                    validate_antenna_positions("/fake/ms/path", position_tolerance_m=0.05)
 
     def test_model_data_quality_validation_logic(self):
         """Test MODEL_DATA quality validation logic with mock data."""
@@ -215,21 +202,17 @@ class TestValidationLogic:
                 "MODEL_DATA",
                 "FIELD_ID",
             ]
-            mock_table.__enter__.return_value.getcol.side_effect = (
-                lambda col, **kwargs: {
-                    "FIELD_ID": np.array([0, 0, 0, 0]),
-                    "MODEL_DATA": np.array(
-                        [
-                            [
-                                [0.0001 + 0.0001j, 0.0001 + 0.0001j]
-                            ],  # Too weak for calibrator
-                            [[0.001 + 0.001j, 0.001 + 0.001j]],
-                            [[0.001 + 0.001j, 0.001 + 0.001j]],
-                            [[0.001 + 0.001j, 0.001 + 0.001j]],
-                        ]
-                    ),  # Shape: (nrow, nchan, npol)
-                }[col]
-            )
+            mock_table.__enter__.return_value.getcol.side_effect = lambda col, **kwargs: {
+                "FIELD_ID": np.array([0, 0, 0, 0]),
+                "MODEL_DATA": np.array(
+                    [
+                        [[0.0001 + 0.0001j, 0.0001 + 0.0001j]],  # Too weak for calibrator
+                        [[0.001 + 0.001j, 0.001 + 0.001j]],
+                        [[0.001 + 0.001j, 0.001 + 0.001j]],
+                        [[0.001 + 0.001j, 0.001 + 0.001j]],
+                    ]
+                ),  # Shape: (nrow, nchan, npol)
+            }[col]
 
             mock_table.__exit__ = MagicMock(return_value=None)
             return mock_table
@@ -265,13 +248,9 @@ class TestValidationLogic:
                         [[[False, False], [False, False]]],  # ant0-ant1: good
                         [[[False, False], [False, False]]],  # ant0-ant2: good
                         [[[False, False], [False, False]]],  # ant1-ant0: good
-                        [
-                            [[True, True], [True, True]]
-                        ],  # ant1-ant2: flagged (affects ant2)
+                        [[[True, True], [True, True]]],  # ant1-ant2: flagged (affects ant2)
                         [[[False, False], [False, False]]],  # ant2-ant0: good
-                        [
-                            [[True, True], [True, True]]
-                        ],  # ant2-ant1: flagged (affects ant2)
+                        [[[True, True], [True, True]]],  # ant2-ant1: flagged (affects ant2)
                     ]
                 )
 
@@ -281,13 +260,9 @@ class TestValidationLogic:
                         [[[1.0 + 1.0j, 1.0 - 1.0j], [0.5 + 0.5j, 0.5 - 0.5j]]],
                         [[[1.1 + 1.1j, 1.1 - 1.1j], [0.6 + 0.6j, 0.6 - 0.6j]]],
                         [[[0.9 + 0.9j, 0.9 - 0.9j], [0.4 + 0.4j, 0.4 - 0.4j]]],
-                        [
-                            [[0.0 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]]
-                        ],  # Flagged
+                        [[[0.0 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]]],  # Flagged
                         [[[1.2 + 1.2j, 1.2 - 1.2j], [0.7 + 0.7j, 0.7 - 0.7j]]],
-                        [
-                            [[0.0 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]]
-                        ],  # Flagged
+                        [[[0.0 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]]],  # Flagged
                     ]
                 )
 
@@ -338,9 +313,7 @@ class TestValidationWorkflow:
         ]
 
         for func in validation_functions:
-            assert callable(
-                func
-            ), f"Validation function {func.__name__} is not callable"
+            assert callable(func), f"Validation function {func.__name__} is not callable"
 
         # Verify functions are properly documented
         for func in validation_functions:

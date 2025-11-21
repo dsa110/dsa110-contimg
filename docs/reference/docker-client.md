@@ -2,13 +2,16 @@
 
 ## Overview
 
-The Docker Client (`docker_client.py`) provides a clean abstraction layer for Docker container operations. It automatically uses the Docker Python SDK when available, with graceful fallback to subprocess calls.
+The Docker Client (`docker_client.py`) provides a clean abstraction layer for
+Docker container operations. It automatically uses the Docker Python SDK when
+available, with graceful fallback to subprocess calls.
 
 ## Architecture
 
 ### Design Principles
 
-1. **Automatic Detection**: Detects Docker SDK availability and Docker socket access
+1. **Automatic Detection**: Detects Docker SDK availability and Docker socket
+   access
 2. **Graceful Fallback**: Falls back to subprocess if SDK unavailable
 3. **Unified Interface**: Same API regardless of underlying implementation
 4. **Error Handling**: Clear error messages and exception handling
@@ -37,7 +40,8 @@ from dsa110_contimg.api.docker_client import get_docker_client
 client = get_docker_client()
 ```
 
-The `get_docker_client()` function returns a singleton instance that is reused across calls.
+The `get_docker_client()` function returns a singleton instance that is reused
+across calls.
 
 ### Methods
 
@@ -167,45 +171,45 @@ from typing import Optional, Dict, Any
 
 class ContainerManager:
     """Advanced container management with health monitoring."""
-    
+
     def __init__(self, container_name: str):
         self.container_name = container_name
         self.client = get_docker_client()
-    
+
     def ensure_running(self, max_retries: int = 3) -> bool:
         """Ensure container is running, start if needed."""
         for attempt in range(max_retries):
             if self.client.is_container_running(self.container_name):
                 return True
-            
+
             if attempt > 0:
                 time.sleep(2 ** attempt)  # Exponential backoff
-            
+
             result = self.client.start_container(self.container_name)
             if result["success"]:
                 # Wait a moment for container to fully start
                 time.sleep(2)
                 if self.client.is_container_running(self.container_name):
                     return True
-        
+
         return False
-    
+
     def graceful_restart(self, timeout: int = 30) -> bool:
         """Restart container gracefully."""
         if not self.client.is_container_running(self.container_name):
             return self.ensure_running()
-        
+
         result = self.client.restart_container(self.container_name, timeout=timeout)
         return result["success"]
-    
+
     def get_resource_usage(self) -> Optional[Dict[str, Any]]:
         """Get current resource usage."""
         if not self.client.is_container_running(self.container_name):
             return None
-        
+
         stats = self.client.get_container_stats(self.container_name)
         info = self.client.get_container_info(self.container_name)
-        
+
         if stats and info:
             return {
                 "cpu_percent": stats.get("cpu_percent"),
@@ -215,7 +219,7 @@ class ContainerManager:
                 "uptime": self._calculate_uptime(info.get("started_at")),
             }
         return None
-    
+
     def monitor(self, interval: int = 10, duration: int = 300):
         """Monitor container for specified duration."""
         start_time = time.time()
@@ -228,7 +232,7 @@ class ContainerManager:
             else:
                 print("Container not running")
             time.sleep(interval)
-    
+
     @staticmethod
     def _calculate_uptime(started_at: Optional[str]) -> Optional[float]:
         """Calculate uptime from start timestamp."""
@@ -278,7 +282,7 @@ def retry_on_failure(
             wait_time = delay * (backoff ** attempt)
             logger.warning(f"Attempt {attempt + 1} failed: {e}. Retrying in {wait_time}s...")
             time.sleep(wait_time)
-    
+
     raise RuntimeError(f"Function {func.__name__} failed after {max_retries} attempts")
 
 # Usage with retry
@@ -305,24 +309,24 @@ import time
 
 class StreamingServiceMonitor:
     """Monitor streaming service using both Docker client and service manager."""
-    
+
     def __init__(self):
         self.docker_client = get_docker_client()
         self.service_manager = StreamingServiceManager()
         self.container_name = "contimg-stream"
-    
+
     def get_comprehensive_status(self) -> dict:
         """Get status from both Docker and service manager."""
         status = self.service_manager.get_status()
         docker_info = self.docker_client.get_container_info(self.container_name)
         docker_stats = self.docker_client.get_container_stats(self.container_name)
-        
+
         result = {
             "service_running": status.running,
             "docker_running": docker_info.get("status") == "running" if docker_info else False,
             "pid": status.pid or docker_info.get("pid") if docker_info else None,
         }
-        
+
         # Prefer Docker stats if available (more accurate)
         if docker_stats:
             result["cpu_percent"] = docker_stats.get("cpu_percent")
@@ -330,35 +334,35 @@ class StreamingServiceMonitor:
         else:
             result["cpu_percent"] = status.cpu_percent
             result["memory_mb"] = status.memory_mb
-        
+
         # Check for inconsistencies
         if result["service_running"] != result["docker_running"]:
             result["warning"] = "Status mismatch between service manager and Docker"
-        
+
         return result
-    
+
     def health_check(self) -> tuple[bool, str]:
         """Perform comprehensive health check."""
         status = self.get_comprehensive_status()
-        
+
         if not status["service_running"]:
             return False, "Service is not running"
-        
+
         if not status["docker_running"]:
             return False, "Docker container is not running"
-        
+
         if status.get("warning"):
             return False, status["warning"]
-        
+
         # Check resource usage
         cpu = status.get("cpu_percent", 0)
         if cpu and cpu > 95:
             return False, f"CPU usage too high: {cpu:.1f}%"
-        
+
         memory = status.get("memory_mb", 0)
         if memory and memory > 8192:  # 8GB threshold
             return False, f"Memory usage too high: {memory:.1f} MB"
-        
+
         return True, "Service is healthy"
 
 # Usage
@@ -380,13 +384,13 @@ from dsa110_contimg.api.docker_client import DockerClient, get_docker_client
 
 class TestDockerClient:
     """Test suite for Docker client."""
-    
+
     @pytest.fixture
     def mock_docker_client(self):
         """Create mock Docker client."""
         client = Mock(spec=DockerClient)
         return client
-    
+
     def test_is_container_running_true(self):
         """Test container running check when running."""
         client = get_docker_client()
@@ -395,9 +399,9 @@ class TestDockerClient:
                 container = Mock()
                 container.status = "running"
                 mock_client.containers.get.return_value = container
-                
+
                 assert client.is_container_running("contimg-stream") is True
-    
+
     def test_is_container_running_false(self):
         """Test container running check when stopped."""
         client = get_docker_client()
@@ -406,9 +410,9 @@ class TestDockerClient:
                 container = Mock()
                 container.status = "stopped"
                 mock_client.containers.get.return_value = container
-                
+
                 assert client.is_container_running("contimg-stream") is False
-    
+
     def test_start_container_success(self):
         """Test successful container start."""
         client = get_docker_client()
@@ -416,11 +420,11 @@ class TestDockerClient:
             with patch.object(client, '_client') as mock_client:
                 container = Mock()
                 mock_client.containers.get.return_value = container
-                
+
                 result = client.start_container("contimg-stream")
                 assert result["success"] is True
                 container.start.assert_called_once()
-    
+
     def test_start_container_not_found(self):
         """Test starting non-existent container."""
         client = get_docker_client()
@@ -428,11 +432,11 @@ class TestDockerClient:
             with patch.object(client, '_client') as mock_client:
                 import docker.errors
                 mock_client.containers.get.side_effect = docker.errors.NotFound("Container not found")
-                
+
                 result = client.start_container("contimg-stream")
                 assert result["success"] is False
                 assert "not found" in result["message"].lower()
-    
+
     def test_get_container_stats(self):
         """Test getting container statistics."""
         client = get_docker_client()
@@ -455,7 +459,7 @@ class TestDockerClient:
                     },
                 }
                 mock_client.containers.get.return_value = container
-                
+
                 stats = client.get_container_stats("contimg-stream")
                 assert stats is not None
                 assert "cpu_percent" in stats
@@ -478,13 +482,13 @@ def monitor_with_recovery(container_name: str, interval: int = 10):
     client = get_docker_client()
     consecutive_failures = 0
     max_failures = 3
-    
+
     while True:
         try:
             if not client.is_container_running(container_name):
                 consecutive_failures += 1
                 logger.warning(f"Container not running (failure {consecutive_failures}/{max_failures})")
-                
+
                 if consecutive_failures >= max_failures:
                     logger.info("Attempting to restart container...")
                     result = client.start_container(container_name)
@@ -499,7 +503,7 @@ def monitor_with_recovery(container_name: str, interval: int = 10):
                 if stats:
                     logger.info(f"CPU: {stats.get('cpu_percent', 0):.1f}%, "
                               f"Memory: {stats.get('memory_mb', 0):.1f} MB")
-            
+
             time.sleep(interval)
         except KeyboardInterrupt:
             logger.info("Monitor stopped")
@@ -530,6 +534,7 @@ services:
 ### Without Socket Mount
 
 The client will automatically fall back to subprocess calls. This works but:
+
 - Slightly slower (subprocess overhead)
 - Less detailed stats (parsed from text output)
 - Still fully functional for basic operations
@@ -539,6 +544,7 @@ The client will automatically fall back to subprocess calls. This works but:
 ### SDK Mode
 
 When Docker SDK is available:
+
 - Uses `docker.from_env()` to connect
 - Direct container object manipulation
 - Native stats and info access
@@ -547,6 +553,7 @@ When Docker SDK is available:
 ### Fallback Mode
 
 When SDK unavailable:
+
 - Uses `subprocess.run()` with `docker` commands
 - Parses text output for stats
 - Uses `docker inspect` for container info
@@ -555,6 +562,7 @@ When SDK unavailable:
 ### CPU Calculation
 
 In SDK mode, CPU percentage is calculated from:
+
 ```
 cpu_percent = (cpu_delta / system_delta) * num_cpus * 100
 ```
@@ -574,6 +582,7 @@ In fallback mode, parses from `docker stats` output (e.g., "512MiB").
 **Cause:** Docker Python package not installed or socket not accessible.
 
 **Solution:**
+
 ```bash
 pip install docker
 ```
@@ -585,6 +594,7 @@ Or ensure Docker socket is mounted in container.
 **Cause:** Container name incorrect or container doesn't exist.
 
 **Solution:** Check container name:
+
 ```bash
 docker ps -a | grep contimg-stream
 ```
@@ -594,6 +604,7 @@ docker ps -a | grep contimg-stream
 **Cause:** Docker socket permissions or user not in docker group.
 
 **Solution:**
+
 ```bash
 sudo usermod -aG docker $USER
 # Or use sudo for docker commands
@@ -651,19 +662,19 @@ def check_resource_limits(container_name: str, max_cpu: float = 90.0, max_memory
     """Check if container exceeds resource limits."""
     client = get_docker_client()
     stats = client.get_container_stats(container_name)
-    
+
     if not stats:
         return False, "Could not get stats"
-    
+
     cpu = stats.get("cpu_percent", 0)
     memory = stats.get("memory_mb", 0)
-    
+
     issues = []
     if cpu and cpu > max_cpu:
         issues.append(f"CPU usage {cpu:.1f}% exceeds limit {max_cpu}%")
     if memory and memory > max_memory_mb:
         issues.append(f"Memory {memory:.1f} MB exceeds limit {max_memory_mb} MB")
-    
+
     return len(issues) == 0, "; ".join(issues) if issues else "OK"
 ```
 
@@ -677,6 +688,7 @@ def check_resource_limits(container_name: str, max_cpu: float = 90.0, max_memory
 ### Stats Collection
 
 Stats collection is the slowest operation:
+
 - SDK mode: ~100-500ms (depends on Docker daemon)
 - Subprocess mode: ~200-1000ms (command execution + parsing)
 
@@ -688,4 +700,3 @@ Stats collection is the slowest operation:
 - [Docker Deployment Guide](../operations/deploy-docker.md)
 - [Streaming API Reference](./streaming-api.md)
 - [Streaming Architecture](../concepts/streaming-architecture.md)
-

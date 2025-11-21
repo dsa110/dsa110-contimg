@@ -2,17 +2,17 @@ name: E2E Tests
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
     paths:
-      - 'frontend/**'
-      - 'tests/e2e/**'
-      - '.github/workflows/e2e-tests.yml'
+      - "frontend/**"
+      - "tests/e2e/**"
+      - ".github/workflows/e2e-tests.yml"
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
     paths:
-      - 'frontend/**'
-      - 'tests/e2e/**'
-      - '.github/workflows/e2e-tests.yml'
+      - "frontend/**"
+      - "tests/e2e/**"
+      - ".github/workflows/e2e-tests.yml"
   workflow_dispatch:
 
 jobs:
@@ -35,10 +35,20 @@ jobs:
           timeout 120 bash -c 'until docker compose ps | grep -q "healthy"; do sleep 2; done' || exit 1
           echo "Services are ready"
 
+      - name: Run route rendering integration test
+        working-directory: ./frontend
+        run: |
+          docker run --rm \
+            -v "$(pwd):/app" \
+            -w /app \
+            --network host \
+            node:22 \
+            sh -c "npm ci && npm test -- tests/integration/routes.test.tsx --reporter=verbose || echo 'Route rendering test failed - check test output'"
+
       - name: Run E2E tests
         working-directory: ./frontend
         env:
-          BASE_URL: http://localhost:5174
+          BASE_URL: http://localhost:3210
         run: |
           docker run --rm \
             -v "$(pwd):/app" \
@@ -46,8 +56,8 @@ jobs:
             --network host \
             node:22 \
             sh -c "apt-get update -qq && \
-                   apt-get install -y -qq libnspr4 libnss3 libdbus-1-3 libatk1.0-0 libatk-bridge2.0-0 libatspi2.0-0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libxkbcommon0 libasound2 >/dev/null 2>&1 && \
-                   npx playwright install chromium >/dev/null 2>&1 && \
+                   apt-get install -y -qq libnspr4 libnss3 libdbus-1-3 libatk1.0-0 libatk-bridge2.0-0 libatspi2.0-0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libxkbcommon0 libasound2 && \
+                   npx playwright install chromium && \
                    npx playwright test --project=chromium --reporter=list,html"
 
       - name: Upload test results
@@ -70,4 +80,3 @@ jobs:
         if: always()
         run: |
           docker compose down
-

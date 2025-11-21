@@ -8,15 +8,12 @@ in astronomical images, including support for region constraints and initial gue
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional
 
 import numpy as np
-from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.modeling import fitting, models
 from astropy.wcs import WCS
-from astropy.wcs.utils import skycoord_to_pixel
-from scipy import ndimage, optimize
 
 LOG = logging.getLogger(__name__)
 
@@ -64,9 +61,7 @@ def estimate_initial_guess(
         border_mask[border_size:-border_size, border_size:-border_size] = True
         background_data = data[~border_mask]
 
-    background = (
-        float(np.nanmedian(background_data)) if background_data.size > 0 else 0.0
-    )
+    background = float(np.nanmedian(background_data)) if background_data.size > 0 else 0.0
 
     # Estimate width using second moments
     # Subtract background for moment calculation
@@ -84,9 +79,7 @@ def estimate_initial_guess(
         # Second moments
         xx_moment = np.sum((x_coords - x_mean) ** 2 * signal_data) / total_flux
         yy_moment = np.sum((y_coords - y_mean) ** 2 * signal_data) / total_flux
-        xy_moment = (
-            np.sum((x_coords - x_mean) * (y_coords - y_mean) * signal_data) / total_flux
-        )
+        xy_moment = np.sum((x_coords - x_mean) * (y_coords - y_mean) * signal_data) / total_flux
 
         # Calculate eigenvalues and eigenvectors for ellipse parameters
         cov_matrix = np.array([[xx_moment, xy_moment], [xy_moment, yy_moment]])
@@ -413,13 +406,9 @@ def fit_2d_moffat(
             # For Moffat: FWHM = 2 * gamma * sqrt(2^(1/beta) - 1)
             # We'll use beta=2.5 as typical value, estimate gamma from FWHM
             beta = 2.5  # Typical value
-            major_gamma = initial_guess["major_axis"] / (
-                2 * np.sqrt(2 ** (1 / beta) - 1)
-            )
-            minor_gamma = initial_guess["minor_axis"] / (
-                2 * np.sqrt(2 ** (1 / beta) - 1)
-            )
-            theta = np.radians(initial_guess["pa"])
+            major_gamma = initial_guess["major_axis"] / (2 * np.sqrt(2 ** (1 / beta) - 1))
+            minor_gamma = initial_guess["minor_axis"] / (2 * np.sqrt(2 ** (1 / beta) - 1))
+            np.radians(initial_guess["pa"])
 
             if fit_background:
                 moffat_model = models.Moffat2D(

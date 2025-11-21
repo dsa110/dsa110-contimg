@@ -11,7 +11,7 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from dsa110_contimg.database.jobs import (
     append_job_log,
@@ -60,9 +60,7 @@ class LegacyWorkflowAdapter:
         try:
             # Update job status to running
             update_job_status(conn, job_id, "running", started_at=time.time())
-            append_job_log(
-                conn, job_id, "=== Starting Pipeline Workflow (New Framework) ===\n"
-            )
+            append_job_log(conn, job_id, "=== Starting Pipeline Workflow (New Framework) ===\n")
             append_job_log(
                 conn,
                 job_id,

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -9,7 +9,7 @@ import {
   AccordionDetails,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { PipelineExecutionResponse } from "../../api/types";
+import type { PipelineExecutionResponse } from "../../api/types";
 import { usePipelineExecution } from "../../api/queries";
 
 interface ExecutionDetailsProps {
@@ -33,7 +33,6 @@ export default function ExecutionDetails({ execution }: ExecutionDetailsProps) {
       >
         {expanded ? "Hide" : "Show"} Details
       </Button>
-
       <Collapse in={expanded}>
         <Box sx={{ mt: 2 }}>
           <Accordion>

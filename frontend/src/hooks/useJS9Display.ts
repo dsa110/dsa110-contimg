@@ -6,15 +6,10 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { findDisplay, isJS9Available, getDisplayImageId } from "../utils/js9";
-
-declare global {
-  interface Window {
-    JS9: any;
-  }
-}
+import type { JS9Display } from "../types/js9";
 
 interface UseJS9DisplayResult {
-  display: any | null;
+  display: JS9Display | null;
   imageId: string | null;
   isAvailable: boolean;
   refresh: () => void;
@@ -27,7 +22,7 @@ interface UseJS9DisplayResult {
  * @returns Display state and refresh function
  */
 export function useJS9Display(displayId: string): UseJS9DisplayResult {
-  const [display, setDisplay] = useState<any | null>(null);
+  const [display, setDisplay] = useState<JS9Display | null>(null);
   const [imageId, setImageId] = useState<string | null>(null);
   const [isAvailable, setIsAvailable] = useState(false);
 

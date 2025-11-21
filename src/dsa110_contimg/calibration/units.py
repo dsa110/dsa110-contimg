@@ -5,11 +5,10 @@ and ensure scientific correctness in calibration calculations.
 """
 
 import logging
-from typing import Optional, Tuple
+from typing import Optional
 
 import astropy.units as u
 import numpy as np
-from astropy.coordinates import Angle
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +35,7 @@ def frequency_to_hz(freq_value: float, unit: str = "Hz") -> u.Quantity:
     }
 
     if unit not in unit_map:
-        raise ValueError(
-            f"Unsupported frequency unit: {unit}. Use Hz, MHz, GHz, or kHz"
-        )
+        raise ValueError(f"Unsupported frequency unit: {unit}. Use Hz, MHz, GHz, or kHz")
 
     return freq_value * unit_map[unit]
 
@@ -151,8 +148,7 @@ def validate_units(
             # Check if conversion is exact (within tolerance)
             if abs(converted.value - value.to(expected_unit).value) > tolerance:
                 logger.warning(
-                    f"{name} unit conversion may have precision loss: "
-                    f"{value} -> {converted}"
+                    f"{name} unit conversion may have precision loss: " f"{value} -> {converted}"
                 )
     except u.UnitConversionError as e:
         raise ValueError(
@@ -191,9 +187,7 @@ def get_reference_frequency_from_ms(ms_path: str) -> Optional[u.Quantity]:
     return None
 
 
-def calculate_phase_error_from_delay(
-    delay: u.Quantity, bandwidth: u.Quantity
-) -> u.Quantity:
+def calculate_phase_error_from_delay(delay: u.Quantity, bandwidth: u.Quantity) -> u.Quantity:
     """Calculate phase error across bandwidth due to delay.
 
     Args:

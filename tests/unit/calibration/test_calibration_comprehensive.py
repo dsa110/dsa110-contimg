@@ -86,11 +86,7 @@ class TestSubbandOrdering:
 
         subband_codes = [_extract_subband_code(os.path.basename(f)) for f in files]
         subband_nums = sorted(
-            [
-                int(sb.replace("sb", ""))
-                for sb in subband_codes
-                if sb and sb.startswith("sb")
-            ]
+            [int(sb.replace("sb", "")) for sb in subband_codes if sb and sb.startswith("sb")]
         )
 
         assert len(subband_nums) == 16, "Should have 16 subbands"
@@ -130,9 +126,7 @@ class TestMSPhasing:
         aligned_coord = SkyCoord(ra=128.7287 * u.deg, dec=55.5725 * u.deg, frame="icrs")
         aligned_separation = aligned_coord.separation(cal_coord)
         aligned_sep_arcmin = aligned_separation.to(u.arcmin).value
-        assert (
-            aligned_sep_arcmin < 1.0
-        ), "After rephasing, separation should be < 1 arcmin"
+        assert aligned_sep_arcmin < 1.0, "After rephasing, separation should be < 1 arcmin"
 
 
 class TestModelData:
@@ -213,9 +207,7 @@ class TestBandpassCalibration:
         bp_minsnr = 3.0
         prebp_minsnr = 5.0
 
-        assert (
-            bp_minsnr < prebp_minsnr
-        ), "Bandpass should be more lenient than pre-bandpass"
+        assert bp_minsnr < prebp_minsnr, "Bandpass should be more lenient than pre-bandpass"
 
     def test_combine_spw_parameter(self):
         """Test that combine_spw parameter exists and works."""
@@ -225,9 +217,7 @@ class TestBandpassCalibration:
         from dsa110_contimg.calibration.calibration import solve_bandpass
 
         sig = inspect.signature(solve_bandpass)
-        assert (
-            "combine_spw" in sig.parameters
-        ), "solve_bandpass should have combine_spw parameter"
+        assert "combine_spw" in sig.parameters, "solve_bandpass should have combine_spw parameter"
 
     def test_combine_fields_parameter(self):
         """Test that combine_fields parameter exists and works."""

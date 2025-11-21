@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import logging
 import os
-from pathlib import Path
 from typing import List, Optional, Union
 
 # Ensure CASAPATH is set before importing CASA modules
@@ -17,8 +16,8 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 
 ensure_casa_path()
 
-import numpy as np  # type: ignore[import]
 import casacore.tables as casatables  # type: ignore[import]
+import numpy as np  # type: ignore[import]
 
 table = casatables.table  # noqa: N816
 
@@ -51,8 +50,7 @@ def validate_caltable_exists(caltable_path: str) -> None:
                 raise ValueError(f"Calibration table has no solutions: {caltable_path}")
     except Exception as e:
         raise ValueError(
-            f"Calibration table is unreadable or corrupted: {caltable_path}. "
-            f"Error: {e}"
+            f"Calibration table is unreadable or corrupted: {caltable_path}. Error: {e}"
         ) from e
 
 
@@ -97,9 +95,7 @@ def validate_caltable_compatibility(
             with table(f"{ms_path}/ANTENNA", readonly=True) as tb:
                 ms_antennas = set(range(tb.nrows()))
         except Exception as e:
-            raise ValueError(
-                f"Failed to read MS antenna table: {ms_path}. Error: {e}"
-            ) from e
+            raise ValueError(f"Failed to read MS antenna table: {ms_path}. Error: {e}") from e
 
     # Read MS frequency range
     ms_freq_min = None
@@ -150,9 +146,7 @@ def validate_caltable_compatibility(
                 # Check for critical mismatches
                 if len(cal_antennas) == 0:
                     # No antennas in caltable - this is critical
-                    raise ValueError(
-                        f"Calibration table has no antenna solutions: {caltable_path}"
-                    )
+                    raise ValueError(f"Calibration table has no antenna solutions: {caltable_path}")
 
                 missing_antennas = ms_antennas - cal_antennas
                 if missing_antennas:
@@ -236,20 +230,14 @@ def validate_caltable_compatibility(
                     # NOTE: Frequency checking is incomplete - CASA caltables don't always
                     # store frequencies directly. This would require matching SPW IDs and
                     # checking REF_FREQUENCY from SPW tables, which is complex.
-                    if (
-                        check_frequencies
-                        and ms_freq_min is not None
-                        and ms_freq_max is not None
-                    ):
+                    if check_frequencies and ms_freq_min is not None and ms_freq_max is not None:
                         warnings.append(
                             "Frequency compatibility check not fully implemented. "
                             "SPW compatibility check should be sufficient."
                         )
 
     except Exception as e:
-        raise ValueError(
-            f"Failed to read calibration table: {caltable_path}. Error: {e}"
-        ) from e
+        raise ValueError(f"Failed to read calibration table: {caltable_path}. Error: {e}") from e
 
     return warnings
 

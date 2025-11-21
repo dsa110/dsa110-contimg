@@ -1,6 +1,7 @@
 # Module Interconnections
 
-This diagram shows high-level dependencies among actively used modules, ops scripts, and docs.
+This diagram shows high-level dependencies among actively used modules, ops
+scripts, and docs.
 
 ```mermaid
 graph TB

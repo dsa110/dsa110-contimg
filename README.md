@@ -31,28 +31,30 @@ sub-stages.
 ## Directory Layout
 
 - `src/dsa110_contimg/`
-  - `conversion/`
-    - `streaming_converter.py`: stream daemon (ingest → convert →
-      calibrate/apply → image)
-    - `uvh5_to_ms.py`: standalone converter (legacy/utility)
-    - `strategies/`: Strategy orchestrator and writer plugins
-      - `hdf5_orchestrator.py`: orchestrator CLI (primary entry for conversion)
-      - `direct_subband.py`: parallel per-subband writer, robust for CASA
-      - `pyuvdata_monolithic.py`: single-shot writer via `UVData.write_ms`
-    - `helpers.py`: antenna positions, meridian phasing, model/weights, etc.
-  - `calibration/`: CASA-based solving (K/BA/BP/GA/GP/2G), applycal, selection
-  - `imaging/`: tclean CLI and a backfill imaging worker
-  - `database/`: SQLite helpers
-    - `registry.py`: calibration table registry (apply order + validity)
-    - `products.py`: products DB helpers (ms_index + images) and indices
-  - `api/`: FastAPI application (monitoring/status/products/QA)
-  - `qa/`: fast plots and helpers
-  - `mosaic/`: (new) mosaic planner/builder CLI
-- `ops/systemd/`: systemd unit files (+ shared env)
-- `ops/docker/`: Dockerfile, environment.yml, compose, and .env template
-- `ops/pipeline/housekeeping.py`: cleanup and queue recovery utility
-- `scripts/`: operational scripts (`run_conversion.sh`, etc.)
-- `state/`: default location for pipeline DBs and QA artifacts (configurable)
+  - `conversion/`: Streaming and legacy conversion logic
+    - `streaming_converter.py`: Main daemon for monitoring and processing
+    - `strategies/`: Pluggable processing strategies (orchestrator, direct
+      writers)
+  - `calibration/`: CASA-based calibration routines
+  - `imaging/`: Imaging workers (tclean wrappers)
+  - `database/`: Database interaction helpers (registry, products)
+  - `api/`: FastAPI application source
+  - `qa/`: Quality assurance plotting and metrics
+  - `mosaic/`: Mosaic planning and building tools
+- `docs/`: Project documentation (concepts, how-to, troubleshooting)
+- `ops/`: Operational configuration
+  - `systemd/`: Systemd service definitions
+  - `docker/`: Docker Compose and environment configuration
+  - `pipeline/`: Operational maintenance scripts (housekeeping)
+- `scripts/`: Operational and utility scripts
+  - `analysis/`: Test failure and log analysis tools
+  - `diagnostics/`: System health checks and statistical analysis
+  - `dev/`: Development helpers (build checks, environment setup)
+  - `quality/`: QA and verification scripts
+  - `test/`: Test runners and wrappers
+  - `utils/`: General utility scripts
+- `state/`: Runtime state (databases, logs, temporary artifacts)
+- `internal/`: Internal documentation and notes (not for general consumption)
 
 ## Services and Components
 
@@ -207,15 +209,15 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # Housekeeping hourly
 0 * * * * ubuntu cd /data/dsa110-contimg && \
   PIPELINE_QUEUE_DB=state/ingest.sqlite3 CONTIMG_SCRATCH_DIR=/data/scratch \
-  /usr/bin/python3 ops/pipeline/housekeeping.py >> state/logs/housekeeping.log 2>&1
+  /data/dsa110-contimg/scripts/run_casa_cmd.sh /usr/bin/python3 ops/pipeline/housekeeping.py >> state/logs/housekeeping.log 2>&1
 
 # Nightly mosaic at 03:15 UTC for previous day
 15 3 * * * ubuntu cd /data/dsa110-contimg && \
   PIPELINE_PRODUCTS_DB=state/products.sqlite3 \
-  /usr/bin/python3 -m dsa110_contimg.mosaic.cli plan --products-db state/products.sqlite3 \
+  /data/dsa110-contimg/scripts/run_casa_cmd.sh /usr/bin/python3 -m dsa110_contimg.mosaic.cli plan --products-db state/products.sqlite3 \
   --name night_$(date -u -d 'yesterday' +\%Y_\%m_\%d) --since $(date -u -d 'yesterday 00:00:00' +\%s) \
   --until $(date -u -d 'today 00:00:00 - 1 sec' +\%s) && \
-  /usr/bin/python3 -m dsa110_contimg.mosaic.cli build --products-db state/products.sqlite3 \
+  /data/dsa110-contimg/scripts/run_casa_cmd.sh /usr/bin/python3 -m dsa110_contimg.mosaic.cli build --products-db state/products.sqlite3 \
   --name night_$(date -u -d 'yesterday' +\%Y_\%m_\%d) --output /data/ms/mosaics/night_$(date -u -d 'yesterday' +\%Y_\%m_\%d).img \
   >> state/logs/mosaic_nightly.log 2>&1
 ```

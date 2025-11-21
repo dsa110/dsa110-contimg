@@ -1,14 +1,15 @@
+# pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, etc.)
 """Utility functions for calibration CLI."""
 
 import casacore.tables as casatables
 
 table = casatables.table  # noqa: N816
-from astropy.coordinates import Angle, SkyCoord
-from astropy import units as u
 import os
 import shutil
 
 import numpy as np
+from astropy import units as u
+from astropy.coordinates import Angle, SkyCoord
 
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
@@ -66,9 +67,7 @@ def rephase_ms_to_calibrator(
 
         print(f"Separation: {sep_arcmin:.2f} arcmin")
         if sep_arcmin < 1.0:
-            print(
-                f"✓ MS already phased to calibrator position (offset: {sep_arcmin:.2f} arcmin)"
-            )
+            print(f"✓ MS already phased to calibrator position (offset: {sep_arcmin:.2f} arcmin)")
             print("=" * 70)
             return True
         else:
@@ -111,15 +110,17 @@ def rephase_ms_to_calibrator(
             shutil.rmtree(ms_phased, ignore_errors=True)
 
         # Run phaseshift - this rephases ALL fields to the calibrator position
-        print(f"Running phaseshift (rephasing all fields to calibrator position)...")
-        print(f"This may take a while...")
+        # CRITICAL: Explicitly rephase ALL fields by using field='*' or no field parameter
+        # This ensures every field in the MS is rephased to the calibrator position
+        print("Running phaseshift (rephasing ALL fields to calibrator position)...")
+        print("This may take a while...")
         casa_phaseshift(
             vis=ms_path,
             outputvis=ms_phased,
             phasecenter=phasecenter_str,
-            # No field parameter = rephase ALL fields
+            field="",  # Explicitly rephase ALL fields (empty string = all)
         )
-        print(f"✓ phaseshift completed successfully")
+        print("✓ phaseshift completed successfully")
 
         # Update REFERENCE_DIR for all fields to match PHASE_DIR
         try:
@@ -145,44 +146,68 @@ def rephase_ms_to_calibrator(
                             f"Updating REFERENCE_DIR for all {nfields} fields to match PHASE_DIR..."
                         )
                         tf.putcol("REFERENCE_DIR", phase_dir_all)
-                        print(f"✓ REFERENCE_DIR updated for all fields")
+                        print("✓ REFERENCE_DIR updated for all fields")
                     else:
-                        print(f"✓ REFERENCE_DIR already correct for all fields")
+                        print("✓ REFERENCE_DIR already correct for all fields")
         except Exception as refdir_error:
             print(f"WARNING: Could not verify/update REFERENCE_DIR: {refdir_error}")
             logger.warning(f"Could not verify/update REFERENCE_DIR: {refdir_error}")
 
-        # Verify phase center after rephasing
+        # CRITICAL: Verify ALL fields were rephased to calibrator position
         try:
             with table(f"{ms_phased}::FIELD", readonly=True, ack=False) as tf:
+                nfields = tf.nrows()
+                print(f"Verifying rephasing for all {nfields} fields...")
+
                 if "REFERENCE_DIR" in tf.colnames():
-                    ref_dir = tf.getcol("REFERENCE_DIR")[0][0]
-                    ref_ra_deg = ref_dir[0] * 180.0 / np.pi
-                    ref_dec_deg = ref_dir[1] * 180.0 / np.pi
+                    ref_dir_all = tf.getcol("REFERENCE_DIR")
+                    all_fields_rephased = True
+                    max_separation = 0.0
 
-                    ms_coord = SkyCoord(ra=ref_ra_deg * u.deg, dec=ref_dec_deg * u.deg)
-                    cal_coord = SkyCoord(ra=cal_ra_deg * u.deg, dec=cal_dec_deg * u.deg)
-                    separation = ms_coord.separation(cal_coord)
+                    for field_idx in range(nfields):
+                        ref_dir = ref_dir_all[field_idx][0]
+                        ref_ra_deg = np.rad2deg(ref_dir[0])
+                        ref_dec_deg = np.rad2deg(ref_dir[1])
 
-                    print(
-                        f"Final phase center: RA={ref_ra_deg:.6f}°, Dec={ref_dec_deg:.6f}°"
-                    )
-                    print(f"Separation from calibrator: {separation.to(u.arcmin):.4f}")
+                        ms_coord = SkyCoord(ra=ref_ra_deg * u.deg, dec=ref_dec_deg * u.deg)
+                        cal_coord = SkyCoord(ra=cal_ra_deg * u.deg, dec=cal_dec_deg * u.deg)
+                        separation = ms_coord.separation(cal_coord).to(u.arcmin).value
 
-                    if separation.to(u.arcmin).value > 1.0:
-                        print(
-                            f"WARNING: Phase center still offset by {separation.to(u.arcmin):.4f}"
-                        )
+                        if separation > max_separation:
+                            max_separation = separation
+
+                        if separation > 1.0:
+                            all_fields_rephased = False
+                            print(
+                                f"  WARNING: Field {field_idx} phase center offset: "
+                                f"{separation:.4f} arcmin"
+                            )
+
+                    if all_fields_rephased:
+                        print(f"✓ All {nfields} fields correctly rephased to calibrator position")
+                        print(f"  Maximum separation: {max_separation:.4f} arcmin")
                     else:
-                        print(f"✓ Phase center correctly aligned")
+                        error_msg = (
+                            f"CRITICAL: Not all fields were rephased correctly. "
+                            f"Max separation: {max_separation:.4f} arcmin. "
+                            f"Bandpass solve will fail with low SNR."
+                        )
+                        print(f"ERROR: {error_msg}")
+                        logger.error(error_msg)
+                        raise RuntimeError(error_msg)
+                else:
+                    print("WARNING: Could not verify REFERENCE_DIR - assuming rephasing succeeded")
         except Exception as verify_error:
-            print(f"WARNING: Could not verify phase center: {verify_error}")
+            error_msg = f"CRITICAL: Could not verify rephasing: {verify_error}"
+            print(f"ERROR: {error_msg}")
+            logger.error(error_msg)
+            raise RuntimeError(error_msg)
 
         # Replace original MS with rephased version
-        print(f"Replacing original MS with rephased version...")
+        print("Replacing original MS with rephased version...")
         shutil.rmtree(ms_path, ignore_errors=True)
         shutil.move(ms_phased, ms_path)
-        print(f"✓ MS rephased to calibrator position")
+        print("✓ MS rephased to calibrator position")
         print("=" * 70)
         return True
 
@@ -201,9 +226,7 @@ def rephase_ms_to_calibrator(
         return False
 
 
-def clear_all_calibration_artifacts(
-    ms_path: str, logger, restore_field_names: bool = True
-) -> None:
+def clear_all_calibration_artifacts(ms_path: str, logger, restore_field_names: bool = True) -> None:
     """Clear all calibration artifacts from MS and directory.
 
     Clears:
@@ -299,7 +322,7 @@ def clear_all_calibration_artifacts(
             if len(removed_tables) > 5:
                 print(f"    ... and {len(removed_tables) - 5} more")
         else:
-            print(f"  ✓ No calibration tables found to remove")
+            print("  ✓ No calibration tables found to remove")
     except Exception as e:
         logger.warning(f"Could not remove calibration tables: {e}")
 
@@ -308,21 +331,17 @@ def clear_all_calibration_artifacts(
         try:
             with table(f"{ms_path}::FIELD", readonly=False, ack=False) as field_tb:
                 field_names = field_tb.getcol("NAME")
-                if len(field_names) > 0 and not field_names[0].startswith(
-                    "meridian_icrs_t"
-                ):
+                if len(field_names) > 0 and not field_names[0].startswith("meridian_icrs_t"):
                     # Field 0 was renamed to calibrator name, restore to meridian_icrs_t0
                     original_name = field_names[0]
                     field_names[0] = "meridian_icrs_t0"
                     field_tb.putcol("NAME", field_names)
-                    cleared_items.append(
-                        f"field_0_name (restored from '{original_name}')"
-                    )
-                    print(f"  ✓ Restored field 0 name to 'meridian_icrs_t0'")
+                    cleared_items.append(f"field_0_name (restored from '{original_name}')")
+                    print("  ✓ Restored field 0 name to 'meridian_icrs_t0'")
                 else:
-                    print(f"  ✓ Field 0 name is already correct")
+                    print("  ✓ Field 0 name is already correct")
         except Exception as e:
             logger.warning(f"Could not restore field names: {e}")
 
     if not cleared_items:
-        print(f"  ℹ No calibration artifacts found to clear")
+        print("  ℹ No calibration artifacts found to clear")

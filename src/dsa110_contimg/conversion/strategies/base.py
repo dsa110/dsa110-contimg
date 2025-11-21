@@ -5,7 +5,7 @@ This module defines the abstract base class for all MS writing strategies.
 """
 
 import abc
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
 if TYPE_CHECKING:
     from pyuvdata import UVData

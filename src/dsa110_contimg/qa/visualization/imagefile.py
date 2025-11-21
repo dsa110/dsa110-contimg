@@ -5,7 +5,6 @@ Provides ImageFile class for viewing image files (PNG, JPEG, etc.) with
 thumbnail generation, similar to RadioPadre's ImageFile functionality.
 """
 
-import os
 from typing import Optional
 
 try:
@@ -17,7 +16,9 @@ except ImportError:
     Image = None
 
 try:
-    from IPython.display import HTML, Image as IPythonImage, display
+    from IPython.display import HTML
+    from IPython.display import Image as IPythonImage
+    from IPython.display import display
 
     HAS_IPYTHON = True
 except ImportError:
@@ -31,7 +32,7 @@ except ImportError:
 
 from .file import FileBase
 from .render import render_error, render_url
-from .thumbnail import is_svg_file, make_thumbnail, render_thumbnail_html
+from .thumbnail import is_svg_file, render_thumbnail_html
 
 
 class ImageFile(FileBase):

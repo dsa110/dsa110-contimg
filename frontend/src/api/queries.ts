@@ -1,15 +1,17 @@
 /**
  * React Query hooks for API data fetching.
  */
+import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { UseQueryResult } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
 import { apiClient } from "./client";
 import { createWebSocketClient, WebSocketClient } from "./websocket";
 import { logger } from "../utils/logger";
+import { env } from "../config/env";
 import type {
   PipelineStatus,
   SystemMetrics,
+  DatabaseMetrics,
   ESECandidatesResponse,
   MosaicQueryRequest,
   MosaicQueryResponse,
@@ -40,7 +42,7 @@ import type {
   BatchJobCreateRequest,
   ImageList,
   ImageFilters,
-  DataInstance,
+  DataInstanceList,
   DataInstanceDetail,
   AutoPublishStatus,
   DataLineage,
@@ -55,9 +57,6 @@ import type {
   QAResultSummary,
   DLQItem,
   DLQStats,
-  DLQRetryRequest,
-  DLQResolveRequest,
-  CircuitBreakerState,
   CircuitBreakerList,
   HealthSummary,
   PipelineExecutionResponse,
@@ -72,6 +71,10 @@ import type {
   CacheKeysResponse,
   CacheKeyDetail,
   CachePerformance,
+  CalibrationStatus,
+  CalibrationConfig,
+  TransientAlert,
+  TransientCandidate,
 } from "./types";
 
 /**
@@ -98,7 +101,17 @@ function useRealtimeQuery<T>(
         queryClient.setQueryData(["pipeline", "status"], data.data.pipeline_status);
       }
       if (data.data?.metrics) {
-        queryClient.setQueryData(["system", "metrics"], data.data.metrics);
+        // Merge WebSocket metrics with existing cache to preserve all fields
+        // This prevents incomplete WebSocket updates from overwriting complete HTTP API data
+        const existingMetrics = queryClient.getQueryData<SystemMetrics>(["system", "metrics"]);
+        const wsMetrics = data.data.metrics;
+
+        // Only update if WebSocket metrics have the required fields (same format as HTTP API)
+        if (wsMetrics && typeof wsMetrics === "object") {
+          // Merge to preserve any fields that might be missing from WebSocket update
+          const mergedMetrics = existingMetrics ? { ...existingMetrics, ...wsMetrics } : wsMetrics;
+          queryClient.setQueryData(["system", "metrics"], mergedMetrics);
+        }
       }
       if (data.data?.ese_candidates) {
         queryClient.setQueryData(["ese", "candidates"], data.data.ese_candidates);
@@ -124,14 +137,14 @@ function useRealtimeQuery<T>(
 // Create WebSocket client instance (singleton)
 let wsClientInstance: WebSocketClient | null = null;
 
-function getWebSocketClient(): WebSocketClient | null {
+export function getWebSocketClient(): WebSocketClient | null {
   if (typeof window === "undefined") {
     return null;
   }
 
   if (!wsClientInstance) {
     // Use VITE_API_URL if set, otherwise use relative /api for Vite proxy
-    const apiUrl = import.meta.env.VITE_API_URL || "/api";
+    const apiUrl = env.VITE_API_URL || "/api";
     // For WebSocket, convert http:// to ws:// or use relative path
     const wsUrl = apiUrl.startsWith("http")
       ? `${apiUrl.replace(/^http/, "ws")}/ws/status`
@@ -180,6 +193,17 @@ export function useSystemMetrics(): UseQueryResult<SystemMetrics> {
     wsClient,
     10000
   );
+}
+
+export function useDatabaseMetrics(): UseQueryResult<DatabaseMetrics> {
+  return useQuery({
+    queryKey: ["metrics", "database"],
+    queryFn: async () => {
+      const response = await apiClient.get<DatabaseMetrics>("/metrics/database");
+      return response.data;
+    },
+    refetchInterval: 5000, // Poll every 5 seconds
+  });
 }
 
 export function useESECandidates(): UseQueryResult<ESECandidatesResponse> {
@@ -934,18 +958,76 @@ export function usePointingMonitorStatus(): UseQueryResult<PointingMonitorStatus
 
 export function usePointingHistory(
   startMjd: number,
-  endMjd: number
+  endMjd: number,
+  timeIntervalHours: number = 6.0
 ): UseQueryResult<PointingHistoryList> {
   return useQuery({
-    queryKey: ["pointing-history", startMjd, endMjd],
+    queryKey: ["pointing-history", startMjd, endMjd, timeIntervalHours],
     queryFn: async () => {
       const response = await apiClient.get<PointingHistoryList>(
-        `/pointing_history?start_mjd=${startMjd}&end_mjd=${endMjd}`
+        `/pointing_history?start_mjd=${startMjd}&end_mjd=${endMjd}&time_interval_hours=${timeIntervalHours}`
       );
       return response.data;
     },
     refetchInterval: 60000, // Refresh every minute
     staleTime: 30000, // Consider stale after 30 seconds
+  });
+}
+
+export interface SkyMapData {
+  x: number[];
+  y: number[];
+  z: number[][];
+}
+
+export function useSkyMapData(
+  frequencyMhz: number = 1400.0,
+  resolution: number = 90,
+  mapType: string = "gsm"
+): UseQueryResult<SkyMapData> {
+  return useQuery({
+    queryKey: ["sky-map-data", frequencyMhz, resolution, mapType],
+    queryFn: async () => {
+      try {
+        const response = await apiClient.get<SkyMapData>(
+          `/pointing/sky-map-data?frequency_mhz=${frequencyMhz}&resolution=${resolution}&map_type=${mapType}`
+        );
+        return response.data;
+      } catch (error: unknown) {
+        // If the endpoint returns 404 or fails, try fallback to synthetic
+        if (mapType !== "synthetic" && error && typeof error === "object" && "response" in error) {
+          const apiError = error as { response?: { status?: number } };
+          if (apiError.response?.status === 404) {
+            // Try synthetic as fallback
+            try {
+              const fallbackResponse = await apiClient.get<SkyMapData>(
+                `/pointing/sky-map-data?frequency_mhz=${frequencyMhz}&resolution=${resolution}&map_type=synthetic`
+              );
+              return fallbackResponse.data;
+            } catch (fallbackError) {
+              // If synthetic also fails, rethrow the original error
+              throw error;
+            }
+          }
+        }
+        // Rethrow if not a 404 or if already trying synthetic
+        throw error;
+      }
+    },
+    staleTime: Infinity, // Never stale - sky map data is cached on backend and doesn't change
+    gcTime: 24 * 60 * 60 * 1000, // Keep in cache for 24 hours (garbage collection time)
+    retry: (failureCount, error) => {
+      // Don't retry on 404 errors (endpoint doesn't exist)
+      if (error && typeof error === "object" && "response" in error) {
+        const apiError = error as { response?: { status?: number } };
+        if (apiError.response?.status === 404) {
+          return false;
+        }
+      }
+      // Retry up to 2 times for other errors
+      return failureCount < 2;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000),
   });
 }
 
@@ -1005,14 +1087,14 @@ export function useUpdateStreamingConfig() {
 export function useDataInstances(
   dataType?: string,
   status?: "staging" | "published"
-): UseQueryResult<DataInstance[]> {
+): UseQueryResult<DataInstanceList> {
   return useQuery({
     queryKey: ["data", "instances", dataType, status],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (dataType) params.append("data_type", dataType);
       if (status) params.append("status", status);
-      const response = await apiClient.get<DataInstance[]>(`/data?${params.toString()}`);
+      const response = await apiClient.get<DataInstanceList>(`/data?${params.toString()}`);
       return response.data;
     },
   });
@@ -1981,5 +2063,90 @@ export function useCachePerformance(): UseQueryResult<CachePerformance> {
       return response.data;
     },
     refetchInterval: 10000, // Refresh every 10 seconds
+  });
+}
+
+// Calibration Workflow Hooks
+export function useCalibrationStatus(): UseQueryResult<CalibrationStatus> {
+  return useQuery({
+    queryKey: ["calibration", "status"],
+    queryFn: async () => {
+      const response = await apiClient.get<CalibrationStatus>("/calibration/status");
+      return response.data;
+    },
+    refetchInterval: 2000, // Refresh every 2 seconds
+  });
+}
+
+export function useStartCalibration() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (config: CalibrationConfig) => {
+      const response = await apiClient.post<CalibrationStatus>("/calibration/start", config);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["calibration"] });
+    },
+  });
+}
+
+export function useStopCalibration() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.post<CalibrationStatus>("/calibration/stop");
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["calibration"] });
+    },
+  });
+}
+
+/**
+ * Transient Queries
+ */
+export function useTransientCandidates(
+  classification?: string,
+  followUpStatus?: string,
+  limit?: number
+): UseQueryResult<TransientCandidate[]> {
+  return useQuery({
+    queryKey: ["transients", "candidates", classification, followUpStatus, limit],
+    queryFn: async () => {
+      // TODO: Implement actual API call
+      return [] as TransientCandidate[];
+    },
+  });
+}
+
+export function useClassifyCandidate() {
+  return useMutation({
+    mutationFn: async (_data: { candidateId: string; data: Record<string, unknown> }) => {
+      // TODO: Implement actual API call
+    },
+  });
+}
+
+export function useTransientAlerts(
+  level?: string,
+  showAcknowledged?: boolean,
+  limit?: number
+): UseQueryResult<TransientAlert[]> {
+  return useQuery({
+    queryKey: ["transients", "alerts", level, showAcknowledged, limit],
+    queryFn: async () => {
+      // TODO: Implement actual API call
+      return [] as TransientAlert[];
+    },
+  });
+}
+
+export function useAcknowledgeAlert() {
+  return useMutation({
+    mutationFn: async (_data: { alertId: string; data: Record<string, unknown> }) => {
+      // TODO: Implement actual API call
+    },
   });
 }

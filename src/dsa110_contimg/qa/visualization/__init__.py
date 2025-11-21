@@ -17,34 +17,22 @@ This module provides an in-house implementation of RadioPadre-like functionality
 designed to be compatible with our architecture, Python version, and dependencies.
 """
 
-from .notebook import generate_qa_notebook, generate_fits_viewer_notebook
+from .executor import executor, ncpu, shutdown_executor
+from .htmlfile import URL, HTMLFile
 from .integration import (
     browse_qa_outputs,
     display_qa_summary,
     generate_qa_notebook_from_result,
 )
 from .js9 import init_js9, is_js9_available
-from .thumbnail import (
-    get_cache_dir,
-    get_cache_file,
-    make_thumbnail,
-    render_thumbnail_html,
-)
-from .executor import executor, ncpu, shutdown_executor
+from .layouts import Section as LayoutSection
 from .layouts import (
     Title,
-    Section as LayoutSection,
     add_section,
     render_bookmarks_bar,
 )
-from .settings_manager import (
-    QAVisualizationSettingsManager,
-    Section,
-    SettingsManager,
-    get_settings,
-    settings,
-)
-from .table import Table, tabulate
+from .notebook import generate_fits_viewer_notebook, generate_qa_notebook
+from .pdffile import PDFFile
 from .render import (
     RenderingProxy,
     display_html,
@@ -57,8 +45,20 @@ from .render import (
     render_titled_content,
     rich_string,
 )
-from .pdffile import PDFFile
-from .htmlfile import HTMLFile, URL
+from .settings_manager import (
+    QAVisualizationSettingsManager,
+    Section,
+    SettingsManager,
+    get_settings,
+    settings,
+)
+from .table import Table, tabulate
+from .thumbnail import (
+    get_cache_dir,
+    get_cache_file,
+    make_thumbnail,
+    render_thumbnail_html,
+)
 
 __version__ = "0.2.0"
 
@@ -68,7 +68,7 @@ from .datadir import DataDir, ls
 from .filelist import FileList
 from .fitsfile import FITSFile
 from .imagefile import ImageFile
-from .textfile import TextFile, NumberedLineList
+from .textfile import NumberedLineList, TextFile
 
 # Rendering utilities
 

@@ -137,3 +137,63 @@ export function getUserFriendlyMessage(error: unknown): string {
       return classified.message;
   }
 }
+
+/**
+ * Sanitize a navigation path to prevent open redirect and XSS attacks
+ *
+ * Security: This function validates paths before using them with window.location.href
+ * to prevent open redirect attacks (e.g., redirecting to malicious external sites)
+ * and XSS via javascript: URLs.
+ *
+ * @param path - The path to sanitize
+ * @returns Sanitized path if valid, null if invalid
+ *
+ * @example
+ * sanitizePath("/dashboard") // returns "/dashboard"
+ * sanitizePath("https://evil.com") // returns null
+ * sanitizePath("javascript:alert('xss')") // returns null
+ * sanitizePath("//evil.com") // returns null
+ */
+export function sanitizePath(path: string): string | null {
+  if (!path || typeof path !== "string") {
+    return null;
+  }
+
+  // Trim whitespace
+  const trimmed = path.trim();
+
+  // Reject empty paths
+  if (!trimmed) {
+    return null;
+  }
+
+  // Reject absolute URLs (http://, https://, ftp://, etc.)
+  if (/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(trimmed)) {
+    // Matches any protocol (http:, https:, javascript:, data:, etc.)
+    return null;
+  }
+
+  // Reject protocol-relative URLs (//example.com)
+  if (trimmed.startsWith("//")) {
+    return null;
+  }
+
+  // Only allow relative paths starting with /
+  if (!trimmed.startsWith("/")) {
+    return null;
+  }
+
+  // Remove path traversal sequences (..) for security
+  // This prevents attempts to escape the application's path structure
+  if (trimmed.includes("..")) {
+    return null;
+  }
+
+  // Allow valid relative paths like /dashboard, /users/123, etc.
+  // Basic validation: should contain only alphanumeric, /, -, _, and query string characters
+  if (!/^\/[a-zA-Z0-9\/\-_?#=&.]*$/.test(trimmed)) {
+    return null;
+  }
+
+  return trimmed;
+}

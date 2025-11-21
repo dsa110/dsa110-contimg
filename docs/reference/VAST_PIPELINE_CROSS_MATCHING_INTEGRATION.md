@@ -4,10 +4,15 @@
 
 ## Overview
 
-This document details how the VAST pipeline integrates cross-matching functionality into its workflow, providing guidance for pipeline-specific implementation in DSA-110. The VAST pipeline demonstrates several key integration patterns:
+This document details how the VAST pipeline integrates cross-matching
+functionality into its workflow, providing guidance for pipeline-specific
+implementation in DSA-110. The VAST pipeline demonstrates several key
+integration patterns:
 
-1. **Source Association** - Cross-matching for associating measurements across epochs
-2. **Corrections Workflow** - Cross-matching for astrometry and flux scale corrections
+1. **Source Association** - Cross-matching for associating measurements across
+   epochs
+2. **Corrections Workflow** - Cross-matching for astrometry and flux scale
+   corrections
 3. **Database Models** - Storing cross-match results in database
 4. **Duplicate Detection** - Using cross-matching to identify duplicate sources
 
@@ -19,11 +24,14 @@ This document details how the VAST pipeline integrates cross-matching functional
 
 ### Purpose
 
-Cross-matching is used to associate source detections across multiple epochs/images into unique sources. This is the core of VAST's variability analysis.
+Cross-matching is used to associate source detections across multiple
+epochs/images into unique sources. This is the core of VAST's variability
+analysis.
 
 ### Key Functions
 
 #### `basic_association()`
+
 - **Purpose:** Basic source association using nearest-neighbor matching
 - **Method:** `SkyCoord.match_to_catalog_sky()`
 - **Features:**
@@ -34,6 +42,7 @@ Cross-matching is used to associate source detections across multiple epochs/ima
   - Creates new source IDs for unmatched detections
 
 **Code Pattern:**
+
 ```python
 from astropy.coordinates import SkyCoord, Angle
 from astropy import units as u
@@ -48,30 +57,32 @@ def basic_association(
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     # Match new sources to existing sources
     idx, d2d, d3d = skyc2.match_to_catalog_sky(skyc1)
-    
+
     # Filter matches within association radius
     sel = d2d <= limit
-    
+
     # Assign source IDs to matched detections
     skyc2_srcs.loc[sel, 'source'] = skyc1_srcs.loc[idx[sel], 'source'].values
     skyc2_srcs.loc[sel, 'd2d'] = d2d[sel].arcsec
-    
+
     # Handle one-to-many associations
     skyc2_srcs, sources_df = one_to_many_basic(skyc2_srcs, sources_df)
-    
+
     # Create new source IDs for unmatched detections
     nan_sel = (skyc2_srcs['source'] == -1).values
     skyc2_srcs.loc[nan_sel, 'source'] = np.arange(
         sources_df['source'].values.max() + 1,
         sources_df['source'].values.max() + 1 + nan_sel.sum()
     )
-    
+
     return sources_df, skyc1_srcs
 ```
 
 #### `advanced_association()`
+
 - **Purpose:** Advanced association using de Ruiter radius
-- **Method:** `SkyCoord.search_around_sky()` (finds all matches, not just nearest)
+- **Method:** `SkyCoord.search_around_sky()` (finds all matches, not just
+  nearest)
 - **Features:**
   - Uses beamwidth limit for initial filtering
   - Calculates de Ruiter radius (statistical association metric)
@@ -79,6 +90,7 @@ def basic_association(
   - More sophisticated than basic association
 
 **Code Pattern:**
+
 ```python
 def advanced_association(
     method: str,
@@ -92,27 +104,28 @@ def advanced_association(
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     # Find all matches within beamwidth limit
     idx_skyc1, idx_skyc2, d2d, d3d = skyc2.search_around_sky(skyc1, bw_max)
-    
+
     # Merge candidate matches
     temp_srcs = merge_candidates(idx_skyc1, idx_skyc2, skyc1_srcs, skyc2_srcs)
-    
+
     # Apply beamwidth limit
     temp_srcs = temp_srcs[d2d <= bw_max].copy()
-    
+
     # Calculate and apply de Ruiter radius cut
     if method == 'deruiter':
         temp_srcs['dr'] = calc_de_ruiter(temp_srcs)
         temp_srcs = temp_srcs[temp_srcs['dr'] <= dr_limit]
-    
+
     # Handle many-to-many associations
     temp_srcs = many_to_many_advanced(temp_srcs, method)
-    
+
     return sources_df, skyc1_srcs
 ```
 
 ### Integration Points
 
 - **Pipeline Config:** Association parameters in `PipelineConfig`:
+
   ```python
   "source_association": {
       "method": "basic" | "advanced" | "deruiter",
@@ -125,9 +138,10 @@ def advanced_association(
   ```
 
 - **Pipeline Main:** Called from `pipeline/main.py`:
+
   ```python
   from vast_pipeline.pipeline.association import association
-  
+
   # After loading measurements
   sources_df = association(
       images_df=images_df,
@@ -139,10 +153,13 @@ def advanced_association(
 
 ### Key Design Patterns
 
-1. **Incremental Association:** Sources are associated incrementally as new images are processed
+1. **Incremental Association:** Sources are associated incrementally as new
+   images are processed
 2. **Source ID Management:** Unmatched detections get new source IDs
-3. **Relationship Tracking:** One-to-many and many-to-many relationships are tracked
-4. **Distance Metrics:** Both angular separation (`d2d`) and de Ruiter radius (`dr`) are stored
+3. **Relationship Tracking:** One-to-many and many-to-many relationships are
+   tracked
+4. **Distance Metrics:** Both angular separation (`d2d`) and de Ruiter radius
+   (`dr`) are stored
 
 ---
 
@@ -152,12 +169,15 @@ def advanced_association(
 
 ### Purpose
 
-Cross-matching is used to compare detected sources with reference catalogs to calculate astrometry and flux scale corrections.
+Cross-matching is used to compare detected sources with reference catalogs to
+calculate astrometry and flux scale corrections.
 
 ### Key Function
 
 #### `vast_xmatch_qc()`
-- **Purpose:** Cross-match detected sources with reference catalog for quality control
+
+- **Purpose:** Cross-match detected sources with reference catalog for quality
+  control
 - **Integration:** Uses `crossmatch_qtables()` from `crossmatch.py`
 - **Workflow:**
   1. Create `Catalog` objects for detected and reference catalogs
@@ -168,6 +188,7 @@ Cross-matching is used to compare detected sources with reference catalogs to ca
   6. Write outputs (CSV, cross-match table)
 
 **Code Pattern:**
+
 ```python
 from vast_post_processing.catalogs import Catalog
 from vast_post_processing.crossmatch import (
@@ -201,21 +222,21 @@ def vast_xmatch_qc(
         snr_limit=snr_limit,
         ...
     )
-    
+
     # Perform cross-match
     xmatch_qt = crossmatch_qtables(
-        catalog, 
-        reference_catalog, 
-        image_path, 
+        catalog,
+        reference_catalog,
+        image_path,
         radius=radius
     )
-    
+
     # Filter matches
     mask = xmatch_qt["flux_peak_err"] > 0
     mask &= xmatch_qt["flux_peak_err_reference"] > 0
     mask &= abs(xmatch_qt["fc_ddec"].to(u.deg)) < (crop_size/2)
     mask &= abs(xmatch_qt["fc_dra"].to(u.deg)) < (crop_size/2)
-    
+
     # Sigma clipping for outliers
     sigma_clip_mask = sigma_clip(
         data=np.asarray(xmatch_qt["flux_peak_ratio"]),
@@ -223,23 +244,24 @@ def vast_xmatch_qc(
         maxiters=None,
     ).mask
     mask &= ~(sigma_clip_mask)
-    
+
     data = xmatch_qt[mask]
-    
+
     # Calculate offsets
     dra_median, ddec_median, dra_madfm, ddec_madfm = calculate_positional_offsets(data)
     gradient, offset, gradient_err, offset_err = calculate_flux_offsets_Huber(data)
-    
+
     # Write outputs
     if crossmatch_output is not None:
         data.write(crossmatch_output, overwrite=True)
-    
+
     return dra_median, ddec_median, flux_corr_mult, flux_corr_add
 ```
 
 ### Integration Points
 
 - **CLI Integration:** Called from `cli/run_corrections.py`:
+
   ```python
   # For each epoch
   dra_median, ddec_median, flux_corr_mult, flux_corr_add = vast_xmatch_qc(
@@ -253,12 +275,13 @@ def vast_xmatch_qc(
   ```
 
 - **Epoch Processing:** Applied per epoch/field:
+
   ```python
   # Process each epoch
   for epoch_dir in epoch_dirs:
       epoch_corr_dir = epoch_dir / "corrections"
       crossmatch_file = epoch_corr_dir / f"{field}_crossmatch.csv"
-      
+
       corrections = vast_xmatch_qc(
           image_path=image_path,
           reference_catalog_path=reference_catalog,
@@ -270,16 +293,20 @@ def vast_xmatch_qc(
 
 ### Key Design Patterns
 
-1. **Catalog Abstraction:** Uses `Catalog` class to handle different input formats
-2. **Filtering Pipeline:** Multiple filtering steps (flux errors, crop size, sigma clipping)
-3. **Robust Statistics:** Uses MAD and Huber regression for robust offset calculations
+1. **Catalog Abstraction:** Uses `Catalog` class to handle different input
+   formats
+2. **Filtering Pipeline:** Multiple filtering steps (flux errors, crop size,
+   sigma clipping)
+3. **Robust Statistics:** Uses MAD and Huber regression for robust offset
+   calculations
 4. **Output Management:** Writes cross-match tables and correction CSV files
 
 ---
 
 ## 3. Database Model Integration
 
-**Location:** `vast-pipeline/vast_pipeline/models.py` and `migrations/0001_initial.py`
+**Location:** `vast-pipeline/vast_pipeline/models.py` and
+`migrations/0001_initial.py`
 
 ### Purpose
 
@@ -288,6 +315,7 @@ Cross-match results are stored in the database for tracking and querying.
 ### Database Schema
 
 #### `CrossMatch` Model
+
 ```python
 class CrossMatch(models.Model):
     """Cross-match between Source and SurveySource."""
@@ -300,6 +328,7 @@ class CrossMatch(models.Model):
 ```
 
 #### `Source` Model Relationship
+
 ```python
 class Source(models.Model):
     # ...
@@ -313,9 +342,10 @@ class Source(models.Model):
 
 - **Migration:** Database schema defined in migrations
 - **Loading:** Cross-matches loaded via `loading.py`:
+
   ```python
   from vast_pipeline.pipeline.loading import make_upload_crossmatches
-  
+
   # After association
   crossmatch_models = make_upload_crossmatches(
       crossmatch_df=crossmatch_df,
@@ -338,11 +368,13 @@ class Source(models.Model):
 
 ### Purpose
 
-Cross-matching is used to identify and remove duplicate source detections within the same epoch/image.
+Cross-matching is used to identify and remove duplicate source detections within
+the same epoch/image.
 
 ### Key Function
 
 #### `remove_duplicate_measurements()`
+
 - **Purpose:** Remove duplicate sources within an epoch
 - **Method:** `SkyCoord.search_around_sky()` for self-matching
 - **Features:**
@@ -351,6 +383,7 @@ Cross-matching is used to identify and remove duplicate source detections within
   - Removes duplicates from different images (not same image)
 
 **Code Pattern:**
+
 ```python
 def remove_duplicate_measurements(
     sources_df: pd.DataFrame,
@@ -358,19 +391,19 @@ def remove_duplicate_measurements(
 ) -> pd.DataFrame:
     if dup_lim is None:
         dup_lim = Angle(2.5 * u.arcsec)  # Default: ASKAP pixel size
-    
+
     # Sort by distance from image center (keep closest)
     sources_df = sources_df.sort_values(by='dist_from_centre')
-    
+
     sources_sc = SkyCoord(
         sources_df['ra'],
         sources_df['dec'],
         unit=(u.deg, u.deg)
     )
-    
+
     # Self-match to find duplicates
     idxc, idxcatalog, *_ = sources_sc.search_around_sky(sources_sc, dup_lim)
-    
+
     # Create results dataframe
     results = pd.DataFrame({
         'source_id': idxc,
@@ -378,26 +411,27 @@ def remove_duplicate_measurements(
         'source_image': sources_df.iloc[idxc]['image'].tolist(),
         'match_image': sources_df.iloc[idxcatalog]['image'].tolist()
     })
-    
+
     # Drop matches from same image (not duplicates)
     matching_image_mask = (results['source_image'] != results['match_image'])
     results = results.loc[matching_image_mask]
-    
+
     # Drop duplicate pairs (keep first, drop second)
     to_drop = results.loc[
         results['source_id'] != results['match_id'],
         'match_id'
     ]
-    
+
     # Remove duplicates
     sources_df = sources_df.drop(sources_df.index[to_drop])
-    
+
     return sources_df
 ```
 
 ### Integration Points
 
 - **Epoch Processing:** Called during epoch-based association:
+
   ```python
   # In prep_skysrc_df()
   if epoch_based:
@@ -467,11 +501,11 @@ def remove_duplicate_measurements(
 ```python
 class CrossMatchStage(PipelineStage):
     """Cross-match detected sources with reference catalogs."""
-    
+
     def execute(self, context: PipelineContext) -> PipelineContext:
         # Get detected sources from previous stage
         detected_sources = context.outputs.get("detected_sources")
-        
+
         # Query reference catalog
         catalog_sources = query_sources(
             catalog_type="nvss",
@@ -479,7 +513,7 @@ class CrossMatchStage(PipelineStage):
             dec_center=context.observation.dec_deg,
             radius_deg=1.5
         )
-        
+
         # Perform cross-match
         from dsa110_contimg.catalog.crossmatch import cross_match_sources
         matches = cross_match_sources(
@@ -487,10 +521,10 @@ class CrossMatchStage(PipelineStage):
             catalog_sources,
             radius=Angle("10arcsec")
         )
-        
+
         # Calculate offsets
         offsets = calculate_positional_offsets(matches)
-        
+
         # Store in context
         return context.with_output("cross_matches", matches) \
                       .with_output("astrometry_offsets", offsets)
@@ -578,8 +612,9 @@ associated_sources = associate_measurements(
 
 ## Related Documentation
 
-- `docs/reference/EXISTING_CROSS_MATCHING_TOOLS.md` - Current DSA-110 cross-matching tools
-- `docs/reference/EXTERNAL_CROSS_MATCHING_TOOLS_SURVEY.md` - External tool survey
+- `docs/reference/EXISTING_CROSS_MATCHING_TOOLS.md` - Current DSA-110
+  cross-matching tools
+- `docs/reference/EXTERNAL_CROSS_MATCHING_TOOLS_SURVEY.md` - External tool
+  survey
 - `docs/reference/CATALOG_CROSS_MATCHING_GUIDE.md` - Cross-matching strategies
 - `docs/reference/CATALOG_USAGE_GUIDE.md` - General catalog usage guide
-

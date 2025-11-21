@@ -7,23 +7,18 @@ from __future__ import annotations
 import logging
 import os
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
 
 ensure_casa_path()
 
-import numpy as np
 import casacore.tables as casatables
+import numpy as np
 
 table = casatables.table  # noqa: N816
 
-from dsa110_contimg.calibration.validate import (
-    validate_caltable_compatibility,
-    validate_caltable_exists,
-)
 from dsa110_contimg.qa.calibration_quality import (
     CalibrationQualityMetrics,
     check_corrected_data_quality,
@@ -81,9 +76,7 @@ class CalibrationDiagnostics:
                 "unflagged_fraction": self.flagging_unflagged_fraction,
                 "issues": self.flagging_issues,
             },
-            "caltables": {
-                path: metrics.to_dict() for path, metrics in self.caltables.items()
-            },
+            "caltables": {path: metrics.to_dict() for path, metrics in self.caltables.items()},
             "corrected_data": self.corrected_data_quality,
             "corrected_data_issues": self.corrected_data_issues,
             "assessment": {
@@ -108,11 +101,11 @@ class CalibrationDiagnostics:
         print(f"  Has Fields: {self.ms_has_fields}")
         print(f"  Rows: {self.ms_n_rows:,}")
         print(f"  Antennas: {self.ms_n_antennas}")
-        print(f"  Unflagged Fraction: {self.ms_unflagged_fraction*100:.1f}%")
+        print(f"  Unflagged Fraction: {self.ms_unflagged_fraction * 100:.1f}%")
         print()
 
         print("Flagging:")
-        print(f"  Unflagged Fraction: {self.flagging_unflagged_fraction*100:.1f}%")
+        print(f"  Unflagged Fraction: {self.flagging_unflagged_fraction * 100:.1f}%")
         if self.flagging_issues:
             print(f"  Issues: {', '.join(self.flagging_issues)}")
         print()
@@ -122,7 +115,7 @@ class CalibrationDiagnostics:
             for path, metrics in self.caltables.items():
                 print(f"  {os.path.basename(path)} ({metrics.cal_type}):")
                 print(f"    Solutions: {metrics.n_solutions}")
-                print(f"    Flagged: {metrics.fraction_flagged*100:.1f}%")
+                print(f"    Flagged: {metrics.fraction_flagged * 100:.1f}%")
                 if metrics.has_issues:
                     print(f"    Issues: {', '.join(metrics.issues)}")
                 if metrics.has_warnings:
@@ -204,7 +197,7 @@ def generate_calibration_diagnostics(
                 issues.append("MS has no fields")
                 ms_valid = False
             if ms_unflagged_fraction < 0.1:
-                warnings.append(f"Low unflagged data: {ms_unflagged_fraction*100:.1f}%")
+                warnings.append(f"Low unflagged data: {ms_unflagged_fraction * 100:.1f}%")
     except Exception as e:
         issues.append(f"Failed to read MS: {e}")
         ms_valid = False
@@ -224,13 +217,9 @@ def generate_calibration_diagnostics(
                     metrics = validate_caltable_quality(caltable_path)
                     caltables[caltable_path] = metrics
                     if metrics.has_issues:
-                        issues.append(
-                            f"Caltable {os.path.basename(caltable_path)} has issues"
-                        )
+                        issues.append(f"Caltable {os.path.basename(caltable_path)} has issues")
                     if metrics.has_warnings:
-                        warnings.append(
-                            f"Caltable {os.path.basename(caltable_path)} has warnings"
-                        )
+                        warnings.append(f"Caltable {os.path.basename(caltable_path)} has warnings")
                 except Exception as e:
                     warnings.append(f"Failed to validate {caltable_path}: {e}")
 
@@ -346,7 +335,7 @@ class CalibrationComparison:
 
         print("Agreement:")
         print(f"  Solutions Agree: {self.solutions_agree}")
-        print(f"  Agreement Fraction: {self.agreement_fraction*100:.1f}%")
+        print(f"  Agreement Fraction: {self.agreement_fraction * 100:.1f}%")
         print(f"  Tolerance: {self.tolerance:.6e}")
         print()
 
@@ -399,8 +388,7 @@ def compare_calibration_tables(
 
     # Structure comparison
     same_structure = (
-        metrics1.n_antennas == metrics2.n_antennas
-        and metrics1.n_spws == metrics2.n_spws
+        metrics1.n_antennas == metrics2.n_antennas and metrics1.n_spws == metrics2.n_spws
     )
     n_solutions_diff = abs(metrics1.n_solutions - metrics2.n_solutions)
     n_antennas_diff = abs(metrics1.n_antennas - metrics2.n_antennas)
@@ -411,9 +399,7 @@ def compare_calibration_tables(
     # Solution comparison (for complex gain tables)
     if metrics1.cal_type in ["BP", "G"] and metrics2.cal_type in ["BP", "G"]:
         # Compare amplitudes and phases
-        amplitude_median_diff = abs(
-            metrics1.median_amplitude - metrics2.median_amplitude
-        )
+        amplitude_median_diff = abs(metrics1.median_amplitude - metrics2.median_amplitude)
         amplitude_rms_diff = abs(metrics1.rms_amplitude - metrics2.rms_amplitude)
         phase_median_diff = abs(metrics1.median_phase_deg - metrics2.median_phase_deg)
         phase_rms_diff = abs(metrics1.rms_phase_deg - metrics2.rms_phase_deg)

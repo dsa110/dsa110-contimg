@@ -24,8 +24,6 @@ import {
 import {
   Folder,
   InsertDriveFile,
-  Image as ImageIcon,
-  TableChart,
   NavigateNext,
   Refresh,
   Home,
@@ -34,6 +32,8 @@ import {
 } from "@mui/icons-material";
 import { useDirectoryListing, useDirectoryThumbnails } from "../../api/queries";
 import type { DirectoryEntry } from "../../api/types";
+import DOMPurify from "dompurify";
+import { formatDateTime } from "../../utils/dateUtils";
 
 /**
  * Check if a path looks complete (not being actively typed).
@@ -127,7 +127,7 @@ export default function DirectoryBrowser({
       setDebouncedPath(path);
       onSelectDirectory?.(path);
     } else {
-      const entry = data?.entries.find((e) => e.path === path);
+      const entry = data?.entries?.find((e) => e.path === path);
       if (entry) {
         onSelectFile?.(path, entry.type);
       }
@@ -145,17 +145,45 @@ export default function DirectoryBrowser({
     setDebouncedPath(currentPath);
   };
 
-  const getIcon = (type: string) => {
-    switch (type) {
-      case "directory":
-        return <Folder />;
-      case "fits":
-        return <ImageIcon />;
-      case "casatable":
-        return <TableChart />;
-      default:
-        return <InsertDriveFile />;
-    }
+  const getIcon = (entry: DirectoryEntry) => {
+    // Use backend-generated file type icons for better visual representation
+    const filePath = entry.path || entry.name;
+    const iconUrl = `/api/visualization/file/icon?path=${encodeURIComponent(filePath)}&size=32&format=svg`;
+
+    // Fallback Material-UI icon based on type
+    const FallbackIcon = entry.type === "directory" ? Folder : InsertDriveFile;
+
+    return (
+      <Box
+        sx={{
+          width: 32,
+          height: 32,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <img
+          src={iconUrl}
+          alt={entry.name}
+          width={32}
+          height={32}
+          style={{ display: "block" }}
+          onError={(e) => {
+            // On error, hide image and show fallback icon
+            e.currentTarget.style.display = "none";
+          }}
+        />
+        <Box
+          sx={{
+            display: "none",
+            "[img][style*='display: none'] ~ &": { display: "flex" },
+          }}
+        >
+          <FallbackIcon />
+        </Box>
+      </Box>
+    );
   };
 
   const getTypeColor = (
@@ -243,7 +271,7 @@ export default function DirectoryBrowser({
             <Home fontSize="small" sx={{ mr: 0.5, verticalAlign: "middle" }} />
             Root
           </Link>
-          {breadcrumbs.map((crumb, index) => (
+          {breadcrumbs.map((crumb, _index) => (
             <Link
               key={crumb.path}
               component="button"
@@ -323,7 +351,7 @@ export default function DirectoryBrowser({
 
       {viewMode === "list" && data && !isLoading && (
         <List sx={{ flex: 1, overflow: "auto", bgcolor: "background.paper" }}>
-          {data.entries.length === 0 ? (
+          {!data.entries || data.entries.length === 0 ? (
             <Alert severity="info">No entries found</Alert>
           ) : (
             data.entries.map((entry: DirectoryEntry) => (
@@ -336,7 +364,7 @@ export default function DirectoryBrowser({
                 }}
               >
                 <ListItemButton
-                  onClick={() => handlePathClick(entry.path, entry.is_dir)}
+                  onClick={() => handlePathClick(entry.path ?? "", entry.is_dir)}
                   sx={{
                     bgcolor: "background.paper",
                     "&:hover": { bgcolor: "action.hover" },
@@ -352,7 +380,7 @@ export default function DirectoryBrowser({
                       width: "100%",
                     }}
                   >
-                    <ListItemIcon sx={{ minWidth: 40 }}>{getIcon(entry.type)}</ListItemIcon>
+                    <ListItemIcon sx={{ minWidth: 40 }}>{getIcon(entry)}</ListItemIcon>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Box
                         sx={{
@@ -368,12 +396,14 @@ export default function DirectoryBrowser({
                         <Chip label={entry.type} size="small" color={getTypeColor(entry.type)} />
                       </Box>
                       <Box sx={{ display: "flex", gap: 2 }}>
-                        <Typography variant="caption" color="text.secondary" component="span">
-                          {entry.size || "N/A"}
-                        </Typography>
-                        {entry.modified_time && (
+                        {!entry.is_dir && (
                           <Typography variant="caption" color="text.secondary" component="span">
-                            {new Date(entry.modified_time).toLocaleString()}
+                            {entry.size || "N/A"}
+                          </Typography>
+                        )}
+                        {entry.modified_at && (
+                          <Typography variant="caption" color="text.secondary" component="span">
+                            {formatDateTime(entry.modified_at)}
                           </Typography>
                         )}
                       </Box>
@@ -383,7 +413,7 @@ export default function DirectoryBrowser({
                         size="small"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handlePathClick(entry.path, true);
+                          handlePathClick(entry.path ?? "", true);
                         }}
                         sx={{ ml: "auto" }}
                       >
@@ -412,15 +442,117 @@ export default function DirectoryBrowser({
               <CircularProgress />
             </Box>
           ) : thumbnailHtml ? (
+            /* Security: HTML is sanitized with DOMPurify before rendering to prevent XSS attacks.
+               The HTML comes from our trusted backend API (/api/visualization/directory/thumbnails),
+               but we sanitize it as a defense-in-depth measure. DOMPurify removes any potentially
+               dangerous scripts, event handlers, and unsafe attributes while preserving safe HTML
+               elements needed for thumbnail display. This sanitization ensures that even if
+               the backend were compromised or if user-controlled data somehow entered the HTML
+               generation pipeline, we prevent XSS attacks at the client side. */
             <Box
-              dangerouslySetInnerHTML={{ __html: thumbnailHtml }}
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(thumbnailHtml, {
+                  // Allow common HTML elements and attributes needed for thumbnails
+                  ALLOWED_TAGS: [
+                    "div",
+                    "img",
+                    "a",
+                    "span",
+                    "p",
+                    "h1",
+                    "h2",
+                    "h3",
+                    "h4",
+                    "h5",
+                    "h6",
+                    "ul",
+                    "ol",
+                    "li",
+                    "table",
+                    "tr",
+                    "td",
+                    "th",
+                    "tbody",
+                    "thead",
+                  ],
+                  ALLOWED_ATTR: [
+                    "class",
+                    "id",
+                    "style",
+                    "src",
+                    "alt",
+                    "href",
+                    "target",
+                    "title",
+                    "width",
+                    "height",
+                  ],
+                  // Allow safe CSS in style attributes
+                  ALLOW_DATA_ATTR: false,
+                }),
+              }}
               sx={{
+                // Enhanced thumbnail styling for better readability
+                "& .qa-thumb-container": {
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                  gap: 3,
+                  p: 2,
+                },
                 "& .qa-thumb-item": {
                   cursor: "pointer",
+                  border: "1px solid rgba(255, 255, 255, 0.12)",
+                  borderRadius: "8px",
+                  padding: "16px",
+                  backgroundColor: "rgba(255, 255, 255, 0.05)",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                  "&:hover": {
+                    transform: "scale(1.03)",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+                    borderColor: "primary.main",
+                  },
                 },
-                "& .qa-thumb-item:hover": {
-                  transform: "scale(1.05)",
-                  transition: "transform 0.2s",
+                "& .qa-thumb-image": {
+                  width: "100%",
+                  height: "auto",
+                  borderRadius: "4px",
+                  display: "block",
+                },
+                "& .qa-thumb-filename": {
+                  fontSize: "1rem",
+                  fontWeight: 600,
+                  color: "text.primary",
+                  wordBreak: "break-word",
+                  lineHeight: 1.4,
+                  marginTop: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                },
+                "& .qa-thumb-metadata": {
+                  fontSize: "0.875rem",
+                  color: "text.secondary",
+                  marginTop: 0.5,
+                },
+                "& .qa-thumb-type-icon": {
+                  width: 24,
+                  height: 24,
+                  marginRight: 1,
+                  verticalAlign: "middle",
+                },
+                // Override any low-contrast colors from backend
+                "& span, & p, & div": {
+                  color: "inherit !important",
+                },
+                // Ensure text is readable
+                "& .qa-thumb-item span": {
+                  color: "text.secondary !important",
+                },
+                "& .qa-thumb-item .qa-thumb-filename": {
+                  color: "text.primary !important",
                 },
               }}
             />

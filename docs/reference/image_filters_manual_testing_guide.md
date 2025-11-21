@@ -7,6 +7,7 @@
 ## Prerequisites
 
 1. **Backend API Server:**
+
    ```bash
    cd /data/dsa110-contimg
    PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/python -m uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8000
@@ -88,7 +89,8 @@ curl -s "http://localhost:8000/api/images?dec_min=-100&dec_max=200&limit=5" | jq
 
 1. **Expand Advanced Filters:**
    - Click expand icon (▼) → Verify section expands
-   - Verify all controls visible: date pickers, slider, text input, checkbox, "Clear All" button
+   - Verify all controls visible: date pickers, slider, text input, checkbox,
+     "Clear All" button
 
 2. **Date Range:**
    - Click Start Date → Select date → Verify URL updates (`?start_date=...`)
@@ -128,11 +130,13 @@ curl -s "http://localhost:8000/api/images?dec_min=-100&dec_max=200&limit=5" | jq
 ## Success Criteria
 
 ✅ **API Tests:**
+
 - Working filters respond quickly (<200ms)
 - Experimental filters work (even if slow)
 - No crashes on edge cases
 
 ✅ **UI Tests:**
+
 - All filters functional
 - URL synchronization works
 - Clear All Filters works
@@ -143,16 +147,19 @@ curl -s "http://localhost:8000/api/images?dec_min=-100&dec_max=200&limit=5" | jq
 ## If Tests Fail
 
 **API Issues:**
+
 - Check server logs for errors
 - Verify database connection
 - Check FITS file accessibility
 
 **UI Issues:**
+
 - Check browser console for errors
 - Verify API responses in Network tab
 - Check React Query cache
 
 **Report Issues:**
+
 - Document exact steps to reproduce
 - Include error messages
 - Note browser/OS version
@@ -161,4 +168,3 @@ curl -s "http://localhost:8000/api/images?dec_min=-100&dec_max=200&limit=5" | jq
 
 **Estimated Time:** 15 minutes total  
 **Priority:** High (before commit)
-

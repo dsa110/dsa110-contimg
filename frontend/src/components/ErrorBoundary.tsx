@@ -4,10 +4,14 @@
  */
 import { Component } from "react";
 import type { ErrorInfo, ReactNode } from "react";
-import { Box, Typography, Button, Paper, Alert, Stack } from "@mui/material";
-import { ErrorOutline, Refresh, Home } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
-import { classifyError, getUserFriendlyMessage } from "../utils/errorUtils";
+import { Box, Typography, Button, Paper, Alert, Stack, Card, CardContent } from "@mui/material";
+import { ErrorOutline, Refresh, Home, Lightbulb } from "@mui/icons-material";
+// Note: We don't import useNavigate here because ErrorBoundary might be used
+// outside BrowserRouter (like the outer ErrorBoundary in App.tsx).
+// Instead, we use a dynamic import pattern to conditionally use Router when available.
+import { classifyError, getUserFriendlyMessage, sanitizePath } from "../utils/errorUtils";
+import { captureError } from "../utils/errorTracking";
+import { getRecoverySuggestions } from "../utils/errorRecovery";
 
 interface Props {
   children: ReactNode;
@@ -41,6 +45,13 @@ class ErrorBoundaryInner extends Component<Props & { navigate: (path: string) =>
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Use console.error here since logger might not be available if error occurs early
     console.error("ErrorBoundary caught an error:", error, errorInfo);
+
+    // Capture error to tracking service
+    captureError(error, {
+      componentStack: errorInfo.componentStack,
+      errorBoundary: true,
+    });
+
     this.setState({
       error,
       errorInfo,
@@ -69,6 +80,7 @@ class ErrorBoundaryInner extends Component<Props & { navigate: (path: string) =>
       const error = this.state.error;
       const classified = error ? classifyError(error) : null;
       const userMessage = error ? getUserFriendlyMessage(error) : "An unexpected error occurred";
+      const recoverySuggestions = classified ? getRecoverySuggestions(classified) : [];
 
       return (
         <Box sx={{ p: 3 }}>
@@ -78,12 +90,43 @@ class ErrorBoundaryInner extends Component<Props & { navigate: (path: string) =>
                 Something went wrong
               </Typography>
               <Typography variant="body2">{userMessage}</Typography>
-              {classified && classified.type === "network" && (
-                <Typography variant="body2" sx={{ mt: 1, fontStyle: "italic" }}>
-                  Please check your internet connection and try again.
-                </Typography>
-              )}
             </Alert>
+
+            {/* Recovery Suggestions */}
+            {recoverySuggestions.length > 0 && (
+              <Card sx={{ mb: 2, bgcolor: "action.hover" }}>
+                <CardContent>
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                    <Lightbulb color="primary" fontSize="small" />
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Recovery Suggestions
+                    </Typography>
+                  </Stack>
+                  <Stack spacing={1}>
+                    {recoverySuggestions.map((suggestion, index) => (
+                      <Box key={index}>
+                        <Typography variant="body2" fontWeight="medium">
+                          {suggestion.title}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                          {suggestion.description}
+                        </Typography>
+                        {suggestion.action && (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={suggestion.action.onClick}
+                            sx={{ mt: 0.5 }}
+                          >
+                            {suggestion.action.label}
+                          </Button>
+                        )}
+                      </Box>
+                    ))}
+                  </Stack>
+                </CardContent>
+              </Card>
+            )}
 
             <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
               <Button variant="contained" startIcon={<Refresh />} onClick={this.handleReset}>
@@ -140,23 +183,33 @@ class ErrorBoundaryInner extends Component<Props & { navigate: (path: string) =>
   }
 }
 
-// Wrapper to use hooks
+// Wrapper component
+// Note: ErrorBoundary might be used both inside and outside BrowserRouter.
+// To avoid hook issues (useNavigate() requires Router context), we use
+// window.location navigation which works everywhere.
 function ErrorBoundary(props: Props) {
-  // Try to get navigate, but handle case where Router context might not be available
-  let navigate: ((path: string) => void) | null = null;
-  try {
-    navigate = useNavigate();
-  } catch (e) {
-    // Router context not available, navigate will be null
-    navigate = null;
-  }
+  // Create safe navigation function that uses window.location
+  // This works both inside and outside Router context, avoiding hook issues
+  const safeNavigate = (path: string) => {
+    // Security: Validate path to prevent open redirect and XSS attacks
+    // sanitizePath() validates that the path is a safe relative path:
+    // - Rejects absolute URLs (http://, https://, javascript:, etc.)
+    // - Rejects protocol-relative URLs (//example.com)
+    // - Only allows relative paths starting with /
+    // - Rejects path traversal sequences (..)
+    // - Validates with regex pattern
+    const sanitizedPath = sanitizePath(path);
+    if (sanitizedPath) {
+      // Path has been validated by sanitizePath() - safe to use
 
-  const safeNavigate =
-    navigate ||
-    ((path: string) => {
-      // Fallback: use window.location if navigate not available
-      window.location.href = path;
-    });
+      window.location.href = sanitizedPath;
+    } else {
+      // If path is invalid, default to dashboard
+      console.warn(`Invalid navigation path: ${path}. Redirecting to dashboard.`);
+
+      window.location.href = "/dashboard";
+    }
+  };
 
   return <ErrorBoundaryInner {...props} navigate={safeNavigate} />;
 }

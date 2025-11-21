@@ -26,4 +26,12 @@ __all__ = [
     "model_validation",
     "caltable_paths",
     "streaming",
+    "flag_rfi_adaptive",
+    "CalibrationFailure",
 ]
+
+# Adaptive flagging (with automatic escalation)
+from dsa110_contimg.calibration.flagging_adaptive import (  # noqa: F401
+    CalibrationFailure,
+    flag_rfi_adaptive,
+)

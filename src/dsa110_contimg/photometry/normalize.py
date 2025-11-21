@@ -26,7 +26,7 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 
-from .forced import ForcedPhotometryResult, measure_forced_peak
+from .forced import measure_forced_peak
 
 
 @dataclass
@@ -238,9 +238,7 @@ def compute_ensemble_correction(
         valid_ids.append(ref.source_id)
 
     if len(ratios) < 3:
-        raise ValueError(
-            f"Insufficient valid reference measurements: {len(ratios)} < 3"
-        )
+        raise ValueError(f"Insufficient valid reference measurements: {len(ratios)} < 3")
 
     # Robust statistics
     ratios_arr = np.array(ratios)
@@ -289,9 +287,7 @@ def normalize_measurement(
     # Propagate errors
     # σ_norm^2 = (σ_raw / corr)^2 + (F_raw * σ_corr / corr^2)^2
     err_from_meas = raw_error / correction.correction_factor
-    err_from_corr = (
-        raw_flux * correction.correction_rms / (correction.correction_factor**2)
-    )
+    err_from_corr = raw_flux * correction.correction_rms / (correction.correction_factor**2)
     error_norm = np.sqrt(err_from_meas**2 + err_from_corr**2)
 
     return float(flux_norm), float(error_norm)

@@ -8,6 +8,7 @@ and the 20cm view. Run with casa6 Python.
 Usage:
   /opt/miniforge/envs/casa6/bin/python scripts/test_ingest_vla_catalog.py
 """
+
 from __future__ import annotations
 
 import os
@@ -51,9 +52,7 @@ def main() -> int:
             "SELECT name, ra_deg, dec_deg FROM calibrators WHERE name='0834+555'"
         ).fetchone()
         print("0834 coords:", row)
-        vrow = conn.execute(
-            "SELECT name, flux_jy FROM vla_20cm WHERE name='0834+555'"
-        ).fetchone()
+        vrow = conn.execute("SELECT name, flux_jy FROM vla_20cm WHERE name='0834+555'").fetchone()
         print("0834 20cm flux:", vrow)
         # meta
         meta = conn.execute(

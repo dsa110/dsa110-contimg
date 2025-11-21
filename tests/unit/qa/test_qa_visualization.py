@@ -5,19 +5,18 @@ Test script for QA visualization framework Phase 1 components.
 Tests directory browsing, file list filtering, and HTML rendering.
 """
 
-import sys
 import os
+import sys
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 from dsa110_contimg.qa.visualization import (
-    ls,
     FileList,
-    render_table,
-    render_status_message,
+    ls,
     render_error,
-    display_html,
+    render_status_message,
+    render_table,
 )
 
 
@@ -88,9 +87,7 @@ def test_datadir():
         if len(src_dir) > 0:
             dirs = src_dir.dirs
             files = (
-                src_dir.files
-                if hasattr(src_dir, "files")
-                else [f for f in src_dir if not f.isdir]
+                src_dir.files if hasattr(src_dir, "files") else [f for f in src_dir if not f.isdir]
             )
             print(f"✓ Filtering works: {len(dirs)} dirs, {len(files)} files")
 

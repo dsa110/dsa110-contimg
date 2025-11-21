@@ -80,7 +80,11 @@ def add_thermal_noise(
 
     # Calculate RMS noise per visibility
     rms_jy = calculate_thermal_noise_rms(
-        integration_time_sec, channel_width_hz, system_temperature_k, efficiency, frequency_hz
+        integration_time_sec,
+        channel_width_hz,
+        system_temperature_k,
+        efficiency,
+        frequency_hz,
     )
 
     # Generate complex Gaussian noise

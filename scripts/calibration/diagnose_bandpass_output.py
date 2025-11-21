@@ -1,0 +1,151 @@
+#!/opt/miniforge/envs/casa6/bin/python
+"""
+Diagnostic script to understand CASA bandpass output vs actual calibration table.
+
+This script:
+1. Reads the bandpass calibration table
+2. Shows flagging statistics for ALL channels (not just printed ones)
+3. Compares what CASA printed vs what's actually in the table
+4. Identifies discrepancies
+"""
+
+import argparse
+import sys
+from pathlib import Path
+
+import numpy as np
+
+try:
+    from casacore.tables import table
+except ImportError:
+    print("ERROR: casacore not available. Activate casa6 environment.")
+    sys.exit(1)
+
+
+def analyze_bandpass_table(bp_table_path: str, spw: int = None):
+    """Analyze bandpass table and show complete flagging statistics."""
+    
+    print("=" * 80)
+    print(f"BANDPASS TABLE ANALYSIS: {Path(bp_table_path).name}")
+    print("=" * 80)
+    
+    with table(bp_table_path, readonly=True) as tb:
+        # Get basic info
+        nrows = tb.nrows()
+        spw_ids = tb.getcol("SPECTRAL_WINDOW_ID")
+        flags = tb.getcol("FLAG")
+        
+        # Get unique SPWs
+        unique_spws = np.unique(spw_ids)
+        print(f"\nTotal rows: {nrows}")
+        print(f"Spectral windows: {sorted(unique_spws)}")
+        
+        # Filter by SPW if specified
+        if spw is not None:
+            if spw not in unique_spws:
+                print(f"ERROR: SPW {spw} not found in table")
+                return
+            mask = spw_ids == spw
+            spws_to_analyze = [spw]
+        else:
+            mask = np.ones(len(spw_ids), dtype=bool)
+            spws_to_analyze = sorted(unique_spws)
+        
+        # Analyze each SPW
+        for spw_id in spws_to_analyze:
+            spw_mask = (spw_ids == spw_id) & mask
+            flags_spw = flags[spw_mask]
+            
+            nrows_spw = flags_spw.shape[0]
+            nchan = flags_spw.shape[1]
+            npol = flags_spw.shape[2]
+            n_total_per_chan = nrows_spw * npol
+            
+            print(f"\n{'=' * 80}")
+            print(f"SPW {spw_id}: {nrows_spw} antenna pairs × {nchan} channels × {npol} pols")
+            print(f"Total solutions per channel: {n_total_per_chan}")
+            print(f"{'=' * 80}")
+            
+            # Analyze each channel
+            channel_stats = []
+            for chan in range(nchan):
+                chan_flags = flags_spw[:, chan, :]
+                n_flagged = np.sum(chan_flags)
+                n_unflagged = n_total_per_chan - n_flagged
+                pct_flagged = (n_flagged / n_total_per_chan) * 100
+                
+                # Count baselines with flags
+                flagged_per_baseline = np.sum(chan_flags, axis=1)
+                baselines_with_flags = np.sum(flagged_per_baseline > 0)
+                
+                channel_stats.append({
+                    'chan': chan,
+                    'n_flagged': n_flagged,
+                    'n_unflagged': n_unflagged,
+                    'n_total': n_total_per_chan,
+                    'pct_flagged': pct_flagged,
+                    'baselines_with_flags': baselines_with_flags,
+                })
+            
+            # Sort by flagging count
+            channel_stats.sort(key=lambda x: x['n_flagged'], reverse=True)
+            
+            # Print summary
+            print(f"\nChannel Flagging Summary (sorted by flag count):")
+            print(f"{'Channel':<10} {'Flagged':<12} {'Unflagged':<12} {'Total':<10} {'% Flagged':<12} {'Baselines':<12}")
+            print("-" * 80)
+            
+            for stat in channel_stats:
+                marker = " ⚠" if stat['n_flagged'] > 0 else " ✓"
+                print(f"chan={stat['chan']:<7} {stat['n_flagged']:>4}/{stat['n_total']:<7} "
+                      f"{stat['n_unflagged']:>4}/{stat['n_total']:<7} {stat['n_total']:>4}     "
+                      f"{stat['pct_flagged']:>5.1f}%      {stat['baselines_with_flags']:>3}/{nrows_spw:<7}{marker}")
+            
+            # Find channels that might match CASA's "182" count
+            print(f"\n{'=' * 80}")
+            print("Channels with ~182 unflagged solutions (matching CASA's '182' count):")
+            print(f"{'=' * 80}")
+            for stat in channel_stats:
+                if 180 <= stat['n_unflagged'] <= 185:
+                    print(f"  chan={stat['chan']:2d}: {stat['n_unflagged']} unflagged, "
+                          f"{stat['n_flagged']} flagged ({stat['pct_flagged']:.1f}%), "
+                          f"{stat['baselines_with_flags']} baselines affected")
+            
+            # Show channels that were likely printed by CASA (high flagging)
+            print(f"\n{'=' * 80}")
+            print("Channels with significant flagging (likely printed by CASA):")
+            print(f"{'=' * 80}")
+            high_flagging = [s for s in channel_stats if s['n_flagged'] > 50 or s['baselines_with_flags'] > 25]
+            for stat in high_flagging:
+                print(f"  chan={stat['chan']:2d}: {stat['n_flagged']}/{stat['n_total']} flagged "
+                      f"({stat['pct_flagged']:.1f}%), {stat['baselines_with_flags']} baselines affected")
+            
+            # Show channels with minimal flagging (likely NOT printed)
+            print(f"\n{'=' * 80}")
+            print("Channels with minimal flagging (likely NOT printed by CASA):")
+            print(f"{'=' * 80}")
+            low_flagging = [s for s in channel_stats if 0 < s['n_flagged'] <= 60 and s['baselines_with_flags'] <= 27]
+            for stat in sorted(low_flagging, key=lambda x: x['chan']):
+                print(f"  chan={stat['chan']:2d}: {stat['n_flagged']}/{stat['n_total']} flagged "
+                      f"({stat['pct_flagged']:.1f}%), {stat['baselines_with_flags']} baselines affected")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Analyze bandpass calibration table and compare with CASA output"
+    )
+    parser.add_argument("bp_table", type=str, help="Path to bandpass calibration table")
+    parser.add_argument("--spw", type=int, default=None, help="Analyze specific SPW (default: all)")
+    
+    args = parser.parse_args()
+    
+    if not Path(args.bp_table).exists():
+        print(f"ERROR: Table not found: {args.bp_table}")
+        sys.exit(1)
+    
+    analyze_bandpass_table(args.bp_table, args.spw)
+
+
+if __name__ == "__main__":
+    main()
+

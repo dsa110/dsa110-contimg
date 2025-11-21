@@ -8,7 +8,6 @@ import {
   Typography,
   Paper,
   Box,
-  Grid,
   Tabs,
   Tab,
   Stack,
@@ -36,7 +35,7 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-export function OperationsPage() {
+export default function OperationsPage() {
   const [tabValue, setTabValue] = useState(0);
   const [componentFilter, setComponentFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("pending");

@@ -4,10 +4,10 @@ Coordinate and source utilities for DSA-110.
 Adapted from dsacalib.utils
 """
 
-from . import constants as ct
 import astropy.units as u
-import casatools as cc
-import numpy as np
+
+# CASA import moved to function level to prevent logs in workspace root
+# See: docs/dev/analysis/casa_log_handling_investigation.md
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 
@@ -61,6 +61,8 @@ class Direction:
             self.obstime = None
 
         # Set up CASA tools
+        import casatools as cc
+
         self.me = cc.measures()
         self.qa = cc.quanta()
 
@@ -68,9 +70,7 @@ class Direction:
             self.me.doframe(self.me.observatory(self.observatory))
 
         if self.obstime is not None:
-            self.me.doframe(
-                self.me.epoch("UTC", self.qa.quantity(self.obstime.mjd, "d"))
-            )
+            self.me.doframe(self.me.epoch("UTC", self.qa.quantity(self.obstime.mjd, "d")))
 
     def J2000(self, obstime=None, observatory=None):
         """
@@ -99,9 +99,7 @@ class Direction:
         if self.observatory is not None:
             self.me.doframe(self.me.observatory(self.observatory))
         if self.obstime is not None:
-            self.me.doframe(
-                self.me.epoch("UTC", self.qa.quantity(self.obstime.mjd, "d"))
-            )
+            self.me.doframe(self.me.epoch("UTC", self.qa.quantity(self.obstime.mjd, "d")))
 
         # Convert to J2000
         direction = self.me.direction(
@@ -144,9 +142,7 @@ class Direction:
         if self.observatory is not None:
             self.me.doframe(self.me.observatory(self.observatory))
         if self.obstime is not None:
-            self.me.doframe(
-                self.me.epoch("UTC", self.qa.quantity(self.obstime.mjd, "d"))
-            )
+            self.me.doframe(self.me.epoch("UTC", self.qa.quantity(self.obstime.mjd, "d")))
 
         # Convert to HADEC
         direction = self.me.direction(

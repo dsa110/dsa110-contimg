@@ -26,12 +26,7 @@ import {
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
 } from "@mui/icons-material";
-import {
-  useRegions,
-  useDeleteRegion,
-  useUpdateRegion,
-  useRegionStatistics,
-} from "../../api/queries";
+import { useRegions, useDeleteRegion, useUpdateRegion } from "../../api/queries";
 import { logger } from "../../utils/logger";
 
 interface RegionListProps {

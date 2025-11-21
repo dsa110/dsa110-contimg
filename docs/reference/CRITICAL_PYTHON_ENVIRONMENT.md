@@ -2,7 +2,8 @@
 
 ## ⚠️ MANDATORY: Always Use casa6 Environment
 
-**ALL Python execution in the DSA-110 continuum imaging pipeline MUST use the `casa6` conda environment.**
+**ALL Python execution in the DSA-110 continuum imaging pipeline MUST use the
+`casa6` conda environment.**
 
 ### The Only Valid Python Path
 
@@ -16,27 +17,34 @@
 
 ### Why This Is Critical
 
-1. **CASA Dependencies**: The pipeline requires CASA 6.7 (casatools, casatasks, casacore) which are only available in the casa6 environment
-2. **Python Version**: System Python (3.6.9) is too old and lacks required features (e.g., `from __future__ import annotations`)
-3. **Package Dependencies**: pyuvdata, astropy, and other scientific packages are installed in casa6, not system Python
-4. **Consistency**: All pipeline scripts, tests, and tools expect casa6 environment
+1. **CASA Dependencies**: The pipeline requires CASA 6.7 (casatools, casatasks,
+   casacore) which are only available in the casa6 environment
+2. **Python Version**: System Python (3.6.9) is too old and lacks required
+   features (e.g., `from __future__ import annotations`)
+3. **Package Dependencies**: pyuvdata, astropy, and other scientific packages
+   are installed in casa6, not system Python
+4. **Consistency**: All pipeline scripts, tests, and tools expect casa6
+   environment
 
 ### What Happens If You Use System Python
 
 - ❌ Import errors: `No module named 'casatools'`
-- ❌ Syntax errors: `future feature annotations is not defined` (Python 3.6 doesn't support it)
+- ❌ Syntax errors: `future feature annotations is not defined` (Python 3.6
+  doesn't support it)
 - ❌ Missing dependencies: pyuvdata, astropy, etc. not found
 - ❌ Pipeline failures: Conversion, calibration, and imaging will all fail
 
 ### How to Use casa6 in Makefile
 
-The Makefile defines `CASA6_PYTHON` variable that **must** be used for all Python execution:
+The Makefile defines `CASA6_PYTHON` variable that **must** be used for all
+Python execution:
 
 ```makefile
 CASA6_PYTHON := /opt/miniforge/envs/casa6/bin/python
 ```
 
 **All Makefile targets automatically:**
+
 1. Check that casa6 Python exists
 2. Fail with clear error message if missing
 3. Use casa6 Python for execution
@@ -140,4 +148,3 @@ fi
 - ❌ **DON'T**: Silently fall back to system Python
 
 **This is not optional. The pipeline will not work without casa6.**
-

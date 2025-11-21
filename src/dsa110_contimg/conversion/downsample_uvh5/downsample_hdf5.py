@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Downsample UVH5 files by merging integrations and/or frequency channels.
 
@@ -21,9 +21,7 @@ import h5py  # type: ignore
 import numpy as np
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -66,17 +64,12 @@ def downsample_uvh5(
         n_downsampled_freq = n_channels // freq_factor
 
         if n_downsampled_time == 0:
-            raise ValueError(
-                f"Cannot downsample time: only {n_integrations} integrations"
-            )
+            raise ValueError(f"Cannot downsample time: only {n_integrations} integrations")
         if n_downsampled_freq == 0:
             raise ValueError(f"Cannot downsample frequency: only {n_channels} channels")
 
         logger.info(f"Input: {n_integrations} integrations, {n_channels} channels")
-        logger.info(
-            f"Output: {n_downsampled_time} integrations, "
-            f"{n_downsampled_freq} channels"
-        )
+        logger.info(f"Output: {n_downsampled_time} integrations, {n_downsampled_freq} channels")
 
         # Get data shapes
         vis_shape = f_in["Data/visdata"].shape
@@ -88,9 +81,7 @@ def downsample_uvh5(
         # Create output file
         with h5py.File(output_file, "w") as f_out:
             # Copy header structure
-            copy_header_structure(
-                f_in, f_out, n_downsampled_time, n_downsampled_freq, freq_factor
-            )
+            copy_header_structure(f_in, f_out, n_downsampled_time, n_downsampled_freq, freq_factor)
 
             # Create downsampled datasets
             create_downsampled_datasets(
@@ -116,14 +107,10 @@ def downsample_uvh5(
                 )
 
                 if chunk_start % (chunk_size * 10) == 0:
-                    logger.info(
-                        f"Processed {chunk_start}/{n_downsampled_time} integrations"
-                    )
+                    logger.info(f"Processed {chunk_start}/{n_downsampled_time} integrations")
 
 
-def copy_header_structure(
-    f_in, f_out, n_downsampled_time, n_downsampled_freq, freq_factor
-):
+def copy_header_structure(f_in, f_out, n_downsampled_time, n_downsampled_freq, freq_factor):
     """Copy header structure and modify for downsampled data."""
 
     # Copy all header groups
@@ -139,9 +126,7 @@ def copy_header_structure(
                 if name in dst:
                     del dst[name]
                 src_ds = src[name]
-                dst.create_dataset(
-                    name, data=src_ds[...], shape=src_ds.shape, dtype=src_ds.dtype
-                )
+                dst.create_dataset(name, data=src_ds[...], shape=src_ds.shape, dtype=src_ds.dtype)
 
     # Copy header
     copy_group(f_in, f_out, "Header")
@@ -232,9 +217,7 @@ def average_frequency_channels(freq_array, freq_factor):
     n_downsampled = n_channels // freq_factor
 
     # Reshape and average
-    freq_reshaped = freq_array[: n_downsampled * freq_factor].reshape(
-        n_downsampled, freq_factor
-    )
+    freq_reshaped = freq_array[: n_downsampled * freq_factor].reshape(n_downsampled, freq_factor)
     freq_averaged = np.mean(freq_reshaped, axis=1)
 
     return freq_averaged
@@ -272,9 +255,7 @@ def create_downsampled_datasets(
     )
 
 
-def process_chunk(
-    f_in, f_out, chunk_start, chunk_end, time_factor, freq_factor, method
-):
+def process_chunk(f_in, f_out, chunk_start, chunk_end, time_factor, freq_factor, method):
     """Process a chunk of integrations."""
     nbls = f_in["Header/Nbls"][()]
 
@@ -301,9 +282,7 @@ def process_chunk(
 
         # Calculate merged time
         merged_time = np.mean(times)
-        merged_integration_time = np.sum(
-            f_in["Header/integration_time"][start_idx:end_idx]
-        )
+        merged_integration_time = np.sum(f_in["Header/integration_time"][start_idx:end_idx])
 
         # Write merged data
         f_out["Data/visdata"][i, 0] = merged_vis[0]
@@ -349,9 +328,7 @@ def merge_average(vis_data, flags, nsamples, time_factor, freq_factor):
             freq_factor,
             flags.shape[3],
         )
-        nsamples_reshaped = nsamples[
-            :, :, : n_downsampled_freq * freq_factor, :
-        ].reshape(
+        nsamples_reshaped = nsamples[:, :, : n_downsampled_freq * freq_factor, :].reshape(
             nsamples.shape[0],
             nsamples.shape[1],
             n_downsampled_freq,
@@ -396,9 +373,7 @@ def merge_weighted(vis_data, flags, nsamples, time_factor, freq_factor):
             freq_factor,
             flags.shape[3],
         )
-        nsamples_reshaped = nsamples[
-            :, :, : n_downsampled_freq * freq_factor, :
-        ].reshape(
+        nsamples_reshaped = nsamples[:, :, : n_downsampled_freq * freq_factor, :].reshape(
             nsamples.shape[0],
             nsamples.shape[1],
             n_downsampled_freq,
@@ -461,9 +436,7 @@ Examples:
         default=1000,
         help="Chunk size for processing (default: 1000)",
     )
-    parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Enable verbose logging"
-    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
 
     args = parser.parse_args()
 
@@ -501,14 +474,12 @@ Examples:
         logger.info(f"Downsampling complete: {args.output}")
 
         # Print summary
-        with h5py.File(args.input, "r") as f_in, h5py.File(args.output, "r") as f_out:
+        with h5py.File(args.input, "r"), h5py.File(args.output, "r"):
             input_size = Path(args.input).stat().st_size / (1024**3)  # GB
             output_size = Path(args.output).stat().st_size / (1024**3)  # GB
             compression_ratio = input_size / output_size if output_size > 0 else 0
 
-            logger.info(
-                f"File size reduction: {input_size:.2f} GB -> {output_size:.2f} GB"
-            )
+            logger.info(f"File size reduction: {input_size:.2f} GB -> {output_size:.2f} GB")
             logger.info(f"Compression ratio: {compression_ratio:.1f}x")
 
     except Exception as e:

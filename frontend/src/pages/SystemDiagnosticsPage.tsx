@@ -4,20 +4,24 @@
  */
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Container, Typography, Box, Tabs, Tab, Grid, Stack } from "@mui/material";
+import { Container, Typography, Box, Tabs, Tab, Stack } from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
 import {
   HealthAndSafety as HealthIcon,
   Assessment as QAIcon,
   Cached as CacheIcon,
   Dashboard as DashboardIcon,
+  Storage as StorageIcon,
 } from "@mui/icons-material";
 import HealthPage from "./HealthPage";
-import QAVisualizationPage from "./QAVisualizationPage";
+import QAPage from "./QAPage";
 import CachePage from "./CachePage";
 import { StatCard } from "../components/StatCard";
-import { useSystemMetrics } from "../api/queries";
+import { useSystemMetrics, useDatabaseMetrics } from "../api/queries";
 import { useDLQStats } from "../api/queries";
 import UnifiedSearch from "../components/UnifiedSearch";
+import { DLQMetricsPanel } from "../components/metrics/DLQMetricsPanel";
+import { DatabaseMetricsPanel } from "../components/metrics/DatabaseMetricsPanel";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -45,6 +49,7 @@ export default function SystemDiagnosticsPage() {
   const initialTab = parseInt(searchParams.get("tab") || "0", 10);
   const [tabValue, setTabValue] = useState(initialTab);
   const { data: systemMetrics } = useSystemMetrics();
+  const { data: databaseMetrics } = useDatabaseMetrics();
 
   // Sync URL with tab changes
   useEffect(() => {
@@ -85,47 +90,19 @@ export default function SystemDiagnosticsPage() {
         <Grid container spacing={3}>
           {systemMetrics && (
             <>
-              <Grid xs={12} md={4}>
+              <Grid item xs={12} md={4}>
                 <StatCard
                   title="CPU Usage"
-                  value={`${systemMetrics.cpu_percent.toFixed(1)}%`}
-                  color={
-                    systemMetrics.cpu_percent > 70
-                      ? "error"
-                      : systemMetrics.cpu_percent > 50
-                        ? "warning"
-                        : "success"
-                  }
-                  icon={<HealthIcon />}
-                />
-              </Grid>
-              <Grid xs={12} md={4}>
-                <StatCard
-                  title="Memory Usage"
-                  value={`${systemMetrics.mem_percent.toFixed(1)}%`}
-                  color={
-                    systemMetrics.mem_percent > 80
-                      ? "error"
-                      : systemMetrics.mem_percent > 60
-                        ? "warning"
-                        : "success"
-                  }
-                  icon={<HealthIcon />}
-                />
-              </Grid>
-              <Grid xs={12} md={4}>
-                <StatCard
-                  title="Disk Usage"
                   value={
-                    systemMetrics.disk_total && systemMetrics.disk_used
-                      ? `${((systemMetrics.disk_used / systemMetrics.disk_total) * 100).toFixed(1)}%`
+                    systemMetrics.cpu_percent != null
+                      ? `${systemMetrics.cpu_percent.toFixed(1)}%`
                       : "N/A"
                   }
                   color={
-                    systemMetrics.disk_total && systemMetrics.disk_used
-                      ? (systemMetrics.disk_used / systemMetrics.disk_total) * 100 > 90
+                    systemMetrics.cpu_percent != null
+                      ? systemMetrics.cpu_percent > 70
                         ? "error"
-                        : (systemMetrics.disk_used / systemMetrics.disk_total) * 100 > 75
+                        : systemMetrics.cpu_percent > 50
                           ? "warning"
                           : "success"
                       : "default"
@@ -133,11 +110,51 @@ export default function SystemDiagnosticsPage() {
                   icon={<HealthIcon />}
                 />
               </Grid>
+              <Grid item xs={12} md={4}>
+                <StatCard
+                  title="Memory Usage"
+                  value={
+                    systemMetrics.mem_percent != null
+                      ? `${systemMetrics.mem_percent.toFixed(1)}%`
+                      : "N/A"
+                  }
+                  color={
+                    systemMetrics.mem_percent != null
+                      ? systemMetrics.mem_percent > 80
+                        ? "error"
+                        : systemMetrics.mem_percent > 60
+                          ? "warning"
+                          : "success"
+                      : "default"
+                  }
+                  icon={<HealthIcon />}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <StatCard
+                  title="Disk Usage"
+                  value={
+                    systemMetrics.disks?.[0]?.percent
+                      ? `${systemMetrics.disks[0].percent.toFixed(1)}%`
+                      : "N/A"
+                  }
+                  color={
+                    systemMetrics.disks?.[0]?.percent
+                      ? systemMetrics.disks[0].percent > 90
+                        ? "error"
+                        : systemMetrics.disks[0].percent > 75
+                          ? "warning"
+                          : "success"
+                      : "default"
+                  }
+                  icon={<StorageIcon />}
+                />
+              </Grid>
             </>
           )}
           {dlqStats && (
             <>
-              <Grid xs={12} md={4}>
+              <Grid item xs={12} md={4}>
                 <StatCard
                   title="DLQ Issues"
                   value={dlqStats.total}
@@ -145,7 +162,7 @@ export default function SystemDiagnosticsPage() {
                   icon={<HealthIcon />}
                 />
               </Grid>
-              <Grid xs={12} md={4}>
+              <Grid item xs={12} md={4}>
                 <StatCard
                   title="DLQ Pending"
                   value={dlqStats.pending}
@@ -154,6 +171,76 @@ export default function SystemDiagnosticsPage() {
                   }
                   icon={<HealthIcon />}
                 />
+              </Grid>
+            </>
+          )}
+
+          {/* Grafana-style DLQ Metrics Panel */}
+          <Grid item xs={12}>
+            <DLQMetricsPanel />
+          </Grid>
+
+          {databaseMetrics && (
+            <>
+              <Grid item xs={12}>
+                <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+                  Database Performance
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <StatCard
+                  title="Total Operations"
+                  value={databaseMetrics.total_operations.toLocaleString()}
+                  color="info"
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <StatCard
+                  title="Error Rate"
+                  value={
+                    databaseMetrics.error_rate > 0
+                      ? `${(databaseMetrics.error_rate * 100).toFixed(2)}%`
+                      : "0%"
+                  }
+                  color={
+                    databaseMetrics.error_rate > 0.01
+                      ? "error"
+                      : databaseMetrics.error_rate > 0.001
+                        ? "warning"
+                        : "success"
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <StatCard
+                  title="Avg Duration"
+                  value={`${(databaseMetrics.avg_duration * 1000).toFixed(1)}ms`}
+                  color={
+                    databaseMetrics.avg_duration > 0.1
+                      ? "error"
+                      : databaseMetrics.avg_duration > 0.05
+                        ? "warning"
+                        : "success"
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <StatCard
+                  title="P95 Duration"
+                  value={`${(databaseMetrics.p95_duration * 1000).toFixed(1)}ms`}
+                  color={
+                    databaseMetrics.p95_duration > 0.1
+                      ? "error"
+                      : databaseMetrics.p95_duration > 0.05
+                        ? "warning"
+                        : "success"
+                  }
+                />
+              </Grid>
+
+              {/* Grafana-style Database Metrics Panel */}
+              <Grid item xs={12}>
+                <DatabaseMetricsPanel />
               </Grid>
             </>
           )}
@@ -168,7 +255,7 @@ export default function SystemDiagnosticsPage() {
 
       <TabPanel value={tabValue} index={2}>
         <Box sx={{ mt: -4 }}>
-          <QAVisualizationPage />
+          <QAPage />
         </Box>
       </TabPanel>
 

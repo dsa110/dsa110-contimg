@@ -15,10 +15,10 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 
 ensure_casa_path()
 
-import casacore.tables as casatables
-
-table = casatables.table  # noqa: N816
 import numpy as np
+
+# Import wrap_phase_deg for angle wrapping
+from dsa110_contimg.utils.angles import wrap_phase_deg
 
 # casacore is only available inside the CASA / casa6 environment. Guard the
 # import so that running tests on plain runners (without CASA) doesn't fail at
@@ -34,18 +34,11 @@ except Exception:
     table = None
     HAVE_CASACORE = False
 
-from dsa110_contimg.calibration.units import (
-    delay_from_phase,
-    get_reference_frequency_from_ms,
-    validate_units,
-)
 
 logger = logging.getLogger(__name__)
 
 
-def check_caltable_completeness(
-    ms_path: str, caltable_dir: Optional[str] = None
-) -> Dict[str, Any]:
+def check_caltable_completeness(ms_path: str, caltable_dir: Optional[str] = None) -> Dict[str, Any]:
     """
     Check that all expected calibration tables exist for an MS.
 
@@ -194,6 +187,12 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
     if not os.path.exists(caltable_path):
         raise FileNotFoundError(f"Calibration table not found: {caltable_path}")
 
+    # Check if casacore is available
+    if table is None or not HAVE_CASACORE:
+        raise RuntimeError(
+            "casacore.tables is not available. This function requires CASA/casa6 environment."
+        )
+
     issues = []
     warnings = []
 
@@ -271,9 +270,7 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
 
                     if median_fparam < 1e-3:
                         # Likely delays in seconds (per CASA documentation)
-                        delays_ns = (
-                            unflagged_fparam * 1e9
-                        )  # Convert seconds to nanoseconds
+                        delays_ns = unflagged_fparam * 1e9  # Convert seconds to nanoseconds
                     else:
                         # Likely unwrapped phase (radians) - convert to delays
                         # Get reference frequency from MS if available
@@ -309,9 +306,7 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
 
                             # Try to open first valid MS
                             for ms_candidate in ms_candidates:
-                                if os.path.exists(ms_candidate) and os.path.isdir(
-                                    ms_candidate
-                                ):
+                                if os.path.exists(ms_candidate) and os.path.isdir(ms_candidate):
                                     try:
                                         with table(
                                             f"{ms_candidate}::SPECTRAL_WINDOW",
@@ -321,11 +316,9 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
                                             ref_freqs = spw_tb.getcol("REF_FREQUENCY")
                                             if len(ref_freqs) > 0:
                                                 # Use median reference frequency across SPWs
-                                                ref_freq_hz = float(
-                                                    np.median(ref_freqs)
-                                                )
+                                                ref_freq_hz = float(np.median(ref_freqs))
                                                 logger.debug(
-                                                    f"Extracted reference frequency {ref_freq_hz/1e6:.1f} MHz from MS {os.path.basename(ms_candidate)}"
+                                                    f"Extracted reference frequency {ref_freq_hz / 1e6:.1f} MHz from MS {os.path.basename(ms_candidate)}"
                                                 )
                                                 break
                                     except Exception:
@@ -335,12 +328,12 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
                             delays_ns = delays_sec * 1e9
                             # Log that we're interpreting as phase
                             logger.debug(
-                                f"Interpreting FPARAM as unwrapped phase (radians) for K-calibration, using {ref_freq_hz/1e6:.1f} MHz"
+                                f"Interpreting FPARAM as unwrapped phase (radians) for K-calibration, using {ref_freq_hz / 1e6:.1f} MHz"
                             )
                         except Exception as e:
                             # Fallback: treat as delays in seconds
                             logger.warning(
-                                f"Could not extract reference frequency from MS: {e}. Using default {ref_freq_hz/1e6:.1f} MHz"
+                                f"Could not extract reference frequency from MS: {e}. Using default {ref_freq_hz / 1e6:.1f} MHz"
                             )
                             delays_ns = unflagged_fparam * 1e9
 
@@ -362,9 +355,7 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
                     if abs(median_delay_ns) > 1000:  # > 1 microsecond
                         warnings.append(f"Large median delay: {median_delay_ns:.1f} ns")
                     if amplitude_scatter > 100:  # > 100 ns scatter
-                        warnings.append(
-                            f"High delay scatter: {amplitude_scatter:.1f} ns"
-                        )
+                        warnings.append(f"High delay scatter: {amplitude_scatter:.1f} ns")
 
             else:
                 # BP and G calibration: complex gains stored in CPARAM
@@ -411,28 +402,19 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
 
                     # Check for bad amplitudes (too close to zero or too large)
                     if median_amplitude < 0.1:
-                        warnings.append(
-                            f"Very low median amplitude: {median_amplitude:.3f}"
-                        )
+                        warnings.append(f"Very low median amplitude: {median_amplitude:.3f}")
                     elif median_amplitude > 10.0:
-                        warnings.append(
-                            f"Very high median amplitude: {median_amplitude:.3f}"
-                        )
+                        warnings.append(f"Very high median amplitude: {median_amplitude:.3f}")
 
                     # Check amplitude scatter (should be relatively stable)
-                    if (
-                        median_amplitude > 0
-                        and amplitude_scatter / median_amplitude > 0.5
-                    ):
+                    if median_amplitude > 0 and amplitude_scatter / median_amplitude > 0.5:
                         warnings.append(
-                            f"High amplitude scatter: {amplitude_scatter/median_amplitude:.1%} of median"
+                            f"High amplitude scatter: {amplitude_scatter / median_amplitude:.1%} of median"
                         )
 
                     # Check for large phase jumps
                     if phase_scatter_deg > 90:
-                        warnings.append(
-                            f"Large phase scatter: {phase_scatter_deg:.1f} degrees"
-                        )
+                        warnings.append(f"Large phase scatter: {phase_scatter_deg:.1f} degrees")
 
                 # Check for antennas with all solutions flagged
                 antennas_with_solutions = set()
@@ -454,9 +436,7 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
                         if len(unflagged_weights) > 0 and np.any(unflagged_weights > 0):
                             # Weight is proportional to SNR^2, so SNR = sqrt(weight / mean_weight)
                             # Normalize weights to get relative SNR
-                            mean_weight = np.mean(
-                                unflagged_weights[unflagged_weights > 0]
-                            )
+                            mean_weight = np.mean(unflagged_weights[unflagged_weights > 0])
                             if mean_weight > 0:
                                 snr_values = np.sqrt(unflagged_weights / mean_weight)
                                 median_snr = float(np.median(snr_values))
@@ -491,9 +471,7 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
 
                         if len(unflagged_times) > 1:
                             # Time coverage: fraction of time range with solutions
-                            time_range = np.max(unflagged_times) - np.min(
-                                unflagged_times
-                            )
+                            time_range = np.max(unflagged_times) - np.min(unflagged_times)
                             if time_range > 0:
                                 # Bin solutions by time to assess coverage
                                 n_bins = min(100, len(unflagged_times))
@@ -502,12 +480,9 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
                                     np.max(unflagged_times),
                                     n_bins,
                                 )
-                                solutions_per_bin = np.histogram(
-                                    unflagged_times, bins=time_bins
-                                )[0]
+                                solutions_per_bin = np.histogram(unflagged_times, bins=time_bins)[0]
                                 time_coverage = float(
-                                    np.sum(solutions_per_bin > 0)
-                                    / len(solutions_per_bin)
+                                    np.sum(solutions_per_bin > 0) / len(solutions_per_bin)
                                 )
 
                             # Solution stability: RMS of variations over time
@@ -528,9 +503,7 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
                                     ant_flags_flat = flags[ant_mask]
                                 ant_mask_unflagged = ~ant_flags_flat
 
-                                if (
-                                    np.sum(ant_mask_unflagged) > 1
-                                ):  # Need at least 2 solutions
+                                if np.sum(ant_mask_unflagged) > 1:  # Need at least 2 solutions
                                     ant_gains = gains[ant_mask][ant_mask_unflagged]
                                     ant_times = times[ant_mask][ant_mask_unflagged]
 
@@ -545,32 +518,20 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
                                             np.abs(ant_gains_sorted[1:])
                                             - np.abs(ant_gains_sorted[:-1])
                                         )
-                                        phase_diff = np.abs(
-                                            np.diff(np.angle(ant_gains_sorted))
-                                        )
+                                        phase_diff = np.abs(np.diff(np.angle(ant_gains_sorted)))
                                         # Wrap phase differences to [-pi, pi]
-                                        phase_diff = np.minimum(
-                                            phase_diff, 2 * np.pi - phase_diff
-                                        )
+                                        phase_diff = np.minimum(phase_diff, 2 * np.pi - phase_diff)
 
-                                        stability_values.append(
-                                            float(np.std(np.abs(gains_diff)))
-                                        )
-                                        amp_stability_values.append(
-                                            float(np.std(amp_diff))
-                                        )
+                                        stability_values.append(float(np.std(np.abs(gains_diff))))
+                                        amp_stability_values.append(float(np.std(amp_diff)))
                                         phase_stability_values.append(
                                             float(np.degrees(np.std(phase_diff)))
                                         )
 
                             if stability_values:
                                 solution_stability = float(np.median(stability_values))
-                                amplitude_stability = float(
-                                    np.median(amp_stability_values)
-                                )
-                                phase_stability = float(
-                                    np.median(phase_stability_values)
-                                )
+                                amplitude_stability = float(np.median(amp_stability_values))
+                                phase_stability = float(np.median(phase_stability_values))
 
                                 # Quality checks for stability
                                 if amplitude_stability > 0.1:
@@ -584,9 +545,7 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
 
                     # Antenna coverage: fraction of antennas with valid solutions
                     if len(antennas_with_solutions) > 0:
-                        antenna_coverage = float(
-                            len(antennas_with_solutions) / n_antennas
-                        )
+                        antenna_coverage = float(len(antennas_with_solutions) / n_antennas)
                         if antenna_coverage < 0.8:
                             warnings.append(
                                 f"Low antenna coverage: {antenna_coverage:.1%} ({len(antennas_with_solutions)}/{n_antennas} antennas)"
@@ -641,7 +600,7 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
     if metrics.has_warnings:
         logger.warning(f"Calibration table has warnings: {', '.join(warnings)}")
     if not metrics.has_issues and not metrics.has_warnings:
-        logger.info(f"Calibration table passed quality checks")
+        logger.info("Calibration table passed quality checks")
 
     return metrics
 
@@ -697,8 +656,8 @@ def analyze_per_spw_flagging(
         - NRAO VLA/VLBA calibration guides recommend per-SPW evaluation for diagnostics
         - Best practice: Use per-channel flagging first, SPW-level flagging as last resort
     """
-    import numpy as np
     import casacore.tables as casatables
+    import numpy as np
 
     table = casatables.table  # noqa: N816
 
@@ -719,11 +678,10 @@ def analyze_per_spw_flagging(
         # Get shape information
         if flags.ndim == 3:  # (n_solutions, n_channels, n_pols)
             n_channels = flags.shape[1]
-            n_pols = flags.shape[2]
+            flags.shape[2]
         elif flags.ndim == 2:  # (n_solutions, n_channels) or (n_solutions, n_pols)
             # For some tables, might be 2D
             n_channels = flags.shape[1]  # Assume second dimension is channels
-            n_pols = 1
         else:
             logger.warning(f"Unexpected FLAG shape: {flags.shape}")
             return stats_list
@@ -739,9 +697,7 @@ def analyze_per_spw_flagging(
             total_solutions = spw_flags.size
             flagged_solutions = np.sum(spw_flags)
             fraction_flagged = (
-                float(flagged_solutions / total_solutions)
-                if total_solutions > 0
-                else 0.0
+                float(flagged_solutions / total_solutions) if total_solutions > 0 else 0.0
             )
 
             # Analyze per-channel flagging
@@ -854,9 +810,7 @@ def flag_problematic_spws(
             spw_str = str(spw_id)
             flag_manual(ms_path, spw=spw_str, datacolumn=datacolumn)
             flagged_spws.append(spw_id)
-            logger.info(
-                f"Flagged SPW {spw_id} due to high bandpass solution flagging rate"
-            )
+            logger.info(f"Flagged SPW {spw_id} due to high bandpass solution flagging rate")
         except Exception as e:
             logger.warning(f"Failed to flag SPW {spw_id}: {e}")
 
@@ -881,7 +835,6 @@ def export_per_spw_stats(
     """
     import csv
     import json
-    from pathlib import Path
 
     output = Path(output_path)
 
@@ -973,10 +926,8 @@ def plot_per_spw_flagging(
     import matplotlib
 
     matplotlib.use("Agg", force=True)
-    from pathlib import Path
 
     import matplotlib.pyplot as plt
-    import numpy as np
 
     output = Path(output_path)
     if not output.suffix:
@@ -994,9 +945,7 @@ def plot_per_spw_flagging(
 
     # Plot 1: Overall flagged fraction per SPW
     colors = ["#d62728" if p else "#2ca02c" for p in problematic]
-    bars1 = ax1.bar(
-        spw_ids, fractions, color=colors, alpha=0.7, edgecolor="black", linewidth=0.5
-    )
+    bars1 = ax1.bar(spw_ids, fractions, color=colors, alpha=0.7, edgecolor="black", linewidth=0.5)
     ax1.axhline(
         y=80,
         color="red",
@@ -1005,9 +954,7 @@ def plot_per_spw_flagging(
         label="Problematic threshold (80%)",
     )
     ax1.set_ylabel("Flagged Fraction (%)", fontsize=11)
-    ax1.set_title(
-        f"{title}\nOverall Flagged Fraction per SPW", fontsize=12, fontweight="bold"
-    )
+    ax1.set_title(f"{title}\nOverall Flagged Fraction per SPW", fontsize=12, fontweight="bold")
     ax1.grid(True, alpha=0.3, axis="y")
     ax1.legend()
     ax1.set_ylim(0, max(fractions) * 1.1 if fractions else 100)
@@ -1065,7 +1012,7 @@ def plot_per_spw_flagging(
         ax2.text(
             0.02,
             0.98,
-            f'Problematic SPWs: {", ".join(map(str, problematic_spws))}',
+            f"Problematic SPWs: {', '.join(map(str, problematic_spws))}",
             transform=ax2.transAxes,
             fontsize=10,
             verticalalignment="top",
@@ -1095,6 +1042,14 @@ def check_corrected_data_quality(
     """
     logger.info(f"Checking CORRECTED_DATA quality: {ms_path}")
 
+    # Check if casacore is available
+    if table is None or not HAVE_CASACORE:
+        return (
+            False,
+            {},
+            ["casacore.tables is not available. This function requires CASA/casa6 environment."],
+        )
+
     issues = []
     metrics = {}
 
@@ -1113,17 +1068,13 @@ def check_corrected_data_quality(
             sample_size = max(100, int(n_rows * sample_fraction))
             indices = np.linspace(0, n_rows - 1, sample_size, dtype=int)
 
-            corrected_data = tb.getcol(
-                "CORRECTED_DATA", startrow=indices[0], nrow=len(indices)
-            )
+            corrected_data = tb.getcol("CORRECTED_DATA", startrow=indices[0], nrow=len(indices))
             data = tb.getcol("DATA", startrow=indices[0], nrow=len(indices))
             flags = tb.getcol("FLAG", startrow=indices[0], nrow=len(indices))
 
             # Check for all zeros
             if np.all(np.abs(corrected_data) < 1e-10):
-                issues.append(
-                    "CORRECTED_DATA is all zeros - calibration may have failed"
-                )
+                issues.append("CORRECTED_DATA is all zeros - calibration may have failed")
                 return False, metrics, issues
 
             # Compute statistics
@@ -1150,13 +1101,8 @@ def check_corrected_data_quality(
             )
 
             # Check for reasonable calibration factor (should be close to 1 for good calibration)
-            if (
-                metrics["calibration_factor"] > 10
-                or metrics["calibration_factor"] < 0.1
-            ):
-                issues.append(
-                    f"Unusual calibration factor: {metrics['calibration_factor']:.2f}x"
-                )
+            if metrics["calibration_factor"] > 10 or metrics["calibration_factor"] < 0.1:
+                issues.append(f"Unusual calibration factor: {metrics['calibration_factor']:.2f}x")
 
             logger.info(
                 f"CORRECTED_DATA quality check passed: median amp={metrics['median_corrected_amp']:.3e}, factor={metrics['calibration_factor']:.2f}x"
@@ -1174,9 +1120,7 @@ def check_corrected_data_quality(
 # ============================================================================
 
 
-def check_upstream_delay_correction(
-    ms_path: str, n_baselines: int = 100
-) -> Dict[str, Any]:
+def check_upstream_delay_correction(ms_path: str, n_baselines: int = 100) -> Dict[str, Any]:
     """
     Check if delays are already corrected upstream by analyzing phase vs frequency.
 
@@ -1201,10 +1145,10 @@ def check_upstream_delay_correction(
         - 'n_baselines': Number of baselines analyzed
         - 'recommendation': 'likely_corrected', 'partial', or 'needs_correction'
     """
-    logger.info(f"\n{'='*70}")
-    logger.info(f"Checking Upstream Delay Correction")
+    logger.info(f"\n{'=' * 70}")
+    logger.info("Checking Upstream Delay Correction")
     logger.info(f"MS: {ms_path}")
-    logger.info(f"{'='*70}\n")
+    logger.info(f"{'=' * 70}\n")
 
     with table(ms_path, readonly=True) as tb:
         n_rows = tb.nrows()
@@ -1298,56 +1242,46 @@ def check_upstream_delay_correction(
 
         if ant_delays:
             ant_delay_values = np.array(list(ant_delays.values()))
-            delay_stats["antenna_median_ns"] = float(
-                np.median(np.abs(ant_delay_values))
-            )
+            delay_stats["antenna_median_ns"] = float(np.median(np.abs(ant_delay_values)))
             delay_stats["antenna_std_ns"] = float(np.std(ant_delay_values))
             delay_stats["antenna_range_ns"] = float(
                 np.max(np.abs(ant_delay_values)) - np.min(np.abs(ant_delay_values))
             )
 
         # Log results
-        logger.info(f"Phase Slope Analysis:")
+        logger.info("Phase Slope Analysis:")
         logger.info(f"  Baselines analyzed: {delay_stats['n_baselines']}")
         logger.info(f"  Median |delay|: {delay_stats['median_ns']:.3f} ns")
         logger.info(f"  Mean |delay|: {delay_stats['mean_ns']:.3f} ns")
         logger.info(f"  Std dev: {delay_stats['std_ns']:.3f} ns")
-        logger.info(
-            f"  Range: {delay_stats['min_ns']:.3f} to {delay_stats['max_ns']:.3f} ns"
-        )
+        logger.info(f"  Range: {delay_stats['min_ns']:.3f} to {delay_stats['max_ns']:.3f} ns")
 
         if ant_delays:
-            logger.info(f"\nAntenna-Consistent Delays (Instrumental):")
+            logger.info("\nAntenna-Consistent Delays (Instrumental):")
             logger.info(f"  Antennas: {len(ant_delays)}")
             logger.info(f"  Median |delay|: {delay_stats['antenna_median_ns']:.3f} ns")
             logger.info(f"  Std dev: {delay_stats['antenna_std_ns']:.3f} ns")
             logger.info(f"  Range: {delay_stats['antenna_range_ns']:.3f} ns")
 
         # Assess if delays are corrected
-        logger.info(f"\n{'='*70}")
+        logger.info(f"\n{'=' * 70}")
         logger.info("Assessment:")
-        logger.info(f"{'='*70}\n")
-        print(f"\n{'='*70}")
+        logger.info(f"{'=' * 70}\n")
+        print(f"\n{'=' * 70}")
         print("Assessment:")
-        print(f"{'='*70}\n")
+        print(f"{'=' * 70}\n")
 
         # Thresholds for determining if delays are corrected
         threshold_well_corrected = 1.0  # ns
         threshold_needs_correction = 5.0  # ns
 
-        max_delay = (
-            delay_stats["antenna_median_ns"] if ant_delays else delay_stats["median_ns"]
-        )
+        max_delay = delay_stats["antenna_median_ns"] if ant_delays else delay_stats["median_ns"]
 
         if max_delay < threshold_well_corrected:
             logger.info("DELAYS APPEAR TO BE CORRECTED UPSTREAM")
-            logger.info(
-                f"Median delay ({max_delay:.3f} ns) is < {threshold_well_corrected} ns"
-            )
+            logger.info(f"Median delay ({max_delay:.3f} ns) is < {threshold_well_corrected} ns")
             print("✓ DELAYS APPEAR TO BE CORRECTED UPSTREAM")
-            print(
-                f"  Median delay ({max_delay:.3f} ns) is < {threshold_well_corrected} ns"
-            )
+            print(f"  Median delay ({max_delay:.3f} ns) is < {threshold_well_corrected} ns")
             print("  → K-calibration may be redundant")
             print("  → Phase slopes are minimal")
             recommendation = "likely_corrected"
@@ -1365,13 +1299,9 @@ def check_upstream_delay_correction(
             recommendation = "partial"
         else:
             logger.error("DELAYS NOT CORRECTED UPSTREAM")
-            logger.error(
-                f"Median delay ({max_delay:.3f} ns) is > {threshold_needs_correction} ns"
-            )
+            logger.error(f"Median delay ({max_delay:.3f} ns) is > {threshold_needs_correction} ns")
             print("✗ DELAYS NOT CORRECTED UPSTREAM")
-            print(
-                f"  Median delay ({max_delay:.3f} ns) is > {threshold_needs_correction} ns"
-            )
+            print(f"  Median delay ({max_delay:.3f} ns) is > {threshold_needs_correction} ns")
             print("  → Significant delays present")
             print("  → K-calibration is NECESSARY")
             recommendation = "needs_correction"
@@ -1381,10 +1311,10 @@ def check_upstream_delay_correction(
             ant_std = delay_stats["antenna_std_ns"]
             baseline_std = delay_stats["std_ns"]
 
-            logger.info(f"\nDelay Consistency Check:")
+            logger.info("\nDelay Consistency Check:")
             logger.info(f"Antenna std dev: {ant_std:.3f} ns")
             logger.info(f"Baseline std dev: {baseline_std:.3f} ns")
-            print(f"\nDelay Consistency Check:")
+            print("\nDelay Consistency Check:")
             print(f"  Antenna std dev: {ant_std:.3f} ns")
             print(f"  Baseline std dev: {baseline_std:.3f} ns")
 
@@ -1421,7 +1351,6 @@ def verify_kcal_delays(
         refant: Reference antenna (default: 103)
         no_create: Don't create K-cal table if missing, just report
     """
-    from pathlib import Path
 
     ms_dir = Path(ms_path).parent
     ms_stem = Path(ms_path).stem
@@ -1438,17 +1367,15 @@ def verify_kcal_delays(
             print(f"Found existing K-calibration table: {kcal_table}")
         else:
             if no_create:
-                logger.warning(
-                    f"No K-calibration table found and --no-create specified"
-                )
+                logger.warning("No K-calibration table found and --no-create specified")
                 logger.warning(f"MS: {ms_path}, Searched in: {ms_dir}")
-                print(f"✗ No K-calibration table found and --no-create specified")
+                print("✗ No K-calibration table found and --no-create specified")
                 print(f"  MS: {ms_path}")
                 print(f"  Searched in: {ms_dir}")
                 return
             else:
                 logger.info("No existing K-calibration table found. Creating one...")
-                print(f"No existing K-calibration table found. Creating one...")
+                print("No existing K-calibration table found. Creating one...")
                 from dsa110_contimg.calibration.calibration import solve_delay
 
                 if cal_field is None:
@@ -1464,9 +1391,7 @@ def verify_kcal_delays(
                         print("✗ Failed to create K-calibration table")
                         return
                 except Exception as e:
-                    logger.error(
-                        f"Failed to create K-calibration table: {e}", exc_info=True
-                    )
+                    logger.error(f"Failed to create K-calibration table: {e}", exc_info=True)
                     print(f"✗ Failed to create K-calibration table: {e}")
                     return
 
@@ -1485,7 +1410,6 @@ def inspect_kcal_simple(
         ms_path: Path to MS (to auto-find K-cal table if --find)
         find: If True, find K-cal tables for MS instead of inspecting
     """
-    from pathlib import Path
 
     if find:
         if not ms_path:
@@ -1505,9 +1429,7 @@ def inspect_kcal_simple(
         for pattern in kcal_patterns:
             found_tables.extend(ms_dir.glob(pattern))
 
-        found_tables = sorted(
-            set(found_tables), key=lambda p: p.stat().st_mtime, reverse=True
-        )
+        found_tables = sorted(set(found_tables), key=lambda p: p.stat().st_mtime, reverse=True)
 
         if found_tables:
             logger.info(f"Found {len(found_tables)} K-calibration table(s)")
@@ -1535,12 +1457,12 @@ def inspect_kcal_simple(
         print(f"✗ Error: File not found: {kcal_path}")
         return
 
-    logger.info(f"\n{'='*70}")
+    logger.info(f"\n{'=' * 70}")
     logger.info(f"Inspecting K-calibration table: {kcal_path}")
-    logger.info(f"{'='*70}\n")
-    print(f"\n{'='*70}")
+    logger.info(f"{'=' * 70}\n")
+    print(f"\n{'=' * 70}")
     print(f"Inspecting K-calibration table: {kcal_path}")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     try:
         with table(kcal_path, readonly=True, ack=False) as tb:
@@ -1558,9 +1480,7 @@ def inspect_kcal_simple(
             print(f"Table columns: {colnames}")
 
             if "CPARAM" not in colnames:
-                logger.warning(
-                    "CPARAM column not found. This may not be a K-calibration table."
-                )
+                logger.warning("CPARAM column not found. This may not be a K-calibration table.")
                 print("⚠ WARNING: CPARAM column not found.")
                 print("  This may not be a K-calibration table.")
                 return
@@ -1593,9 +1513,7 @@ def inspect_kcal_simple(
                 if ms_files:
                     ms_path_check = ms_files[0]
                     try:
-                        with table(
-                            f"{ms_path_check}::SPECTRAL_WINDOW", readonly=True
-                        ) as spw_tb:
+                        with table(f"{ms_path_check}::SPECTRAL_WINDOW", readonly=True) as spw_tb:
                             ref_freqs = spw_tb.getcol("REF_FREQUENCY")
                             logger.info(f"Found MS with {len(ref_freqs)} SPWs")
                             print(f"Found MS with {len(ref_freqs)} SPWs")
@@ -1605,9 +1523,7 @@ def inspect_kcal_simple(
                     logger.warning(
                         "No MS found in same directory. Using default frequency (1.4 GHz)"
                     )
-                    print(
-                        "⚠ No MS found in same directory. Using default frequency (1.4 GHz)"
-                    )
+                    print("⚠ No MS found in same directory. Using default frequency (1.4 GHz)")
                     ref_freqs = np.array([1400e6])
 
             # Extract delays per antenna
@@ -1668,17 +1584,17 @@ def inspect_kcal_simple(
             max_delay = np.max(delays_ns)
             delay_range = max_delay - min_delay
 
-            logger.info(f"\n{'='*70}")
+            logger.info(f"\n{'=' * 70}")
             logger.info("Delay Statistics:")
-            logger.info(f"{'='*70}\n")
+            logger.info(f"{'=' * 70}\n")
             logger.info(f"Number of antennas: {len(delays_ns)}")
             logger.info(f"Median delay: {median_delay:.3f} ns")
             logger.info(f"Mean delay: {mean_delay:.3f} ns")
             logger.info(f"Std dev: {std_delay:.3f} ns")
             logger.info(f"Range: {min_delay:.3f} to {max_delay:.3f} ns")
-            print(f"\n{'='*70}")
+            print(f"\n{'=' * 70}")
             print("Delay Statistics:")
-            print(f"{'='*70}\n")
+            print(f"{'=' * 70}\n")
             print(f"Number of antennas: {len(delays_ns)}")
             print(f"Median delay: {median_delay:.3f} ns")
             print(f"Mean delay:   {mean_delay:.3f} ns")
@@ -1688,14 +1604,13 @@ def inspect_kcal_simple(
             print(f"Range:        {delay_range:.3f} ns")
 
             # Impact assessment
-            logger.info(f"\n{'='*70}")
+            logger.info(f"\n{'=' * 70}")
             logger.info("Impact Assessment:")
-            logger.info(f"{'='*70}\n")
-            print(f"\n{'='*70}")
+            logger.info(f"{'=' * 70}\n")
+            print(f"\n{'=' * 70}")
             print("Impact Assessment:")
-            print(f"{'='*70}\n")
+            print(f"{'=' * 70}\n")
 
-            freq_center_hz = 1400e6  # L-band center
             bandwidth_hz = 200e6  # 200 MHz
 
             max_delay_sec = np.max(np.abs(delays_ns)) * 1e-9
@@ -1703,8 +1618,8 @@ def inspect_kcal_simple(
             phase_error_deg = np.degrees(phase_error_rad)
 
             logger.info(f"Phase error across 200 MHz bandwidth: {phase_error_deg:.1f}°")
-            print(f"Phase error across 200 MHz bandwidth:")
-            print(f"  Maximum delay ({max_delay_sec*1e9:.3f} ns):")
+            print("Phase error across 200 MHz bandwidth:")
+            print(f"  Maximum delay ({max_delay_sec * 1e9:.3f} ns):")
             print(f"    → Phase error: {phase_error_deg:.1f}°")
 
             # Coherence loss
@@ -1714,17 +1629,17 @@ def inspect_kcal_simple(
             logger.info(
                 f"Estimated coherence: {coherence:.3f}, Coherence loss: {coherence_loss_percent:.1f}%"
             )
-            print(f"\nCoherence Impact:")
+            print("\nCoherence Impact:")
             print(f"  Estimated coherence: {coherence:.3f}")
             print(f"  Coherence loss: {coherence_loss_percent:.1f}%")
 
             # Recommendation
-            logger.info(f"\n{'='*70}")
+            logger.info(f"\n{'=' * 70}")
             logger.info("Recommendation:")
-            logger.info(f"{'='*70}\n")
-            print(f"\n{'='*70}")
+            logger.info(f"{'=' * 70}\n")
+            print(f"\n{'=' * 70}")
             print("Recommendation:")
-            print(f"{'='*70}\n")
+            print(f"{'=' * 70}\n")
 
             if delay_range < 1.0:
                 logger.info("Delays are very small (< 1 ns range)")
@@ -1747,16 +1662,16 @@ def inspect_kcal_simple(
                 print(f"  → Significant coherence loss: {coherence_loss_percent:.1f}%")
 
             # Show top delays
-            logger.info(f"\n{'='*70}")
+            logger.info(f"\n{'=' * 70}")
             logger.info("Top 10 Antennas by Delay Magnitude:")
-            logger.info(f"{'='*70}\n")
-            print(f"\n{'='*70}")
+            logger.info(f"{'=' * 70}\n")
+            print(f"\n{'=' * 70}")
             print("Top 10 Antennas by Delay Magnitude:")
-            print(f"{'='*70}\n")
+            print(f"{'=' * 70}\n")
 
-            sorted_ants = sorted(
-                delays_per_antenna.items(), key=lambda x: abs(x[1]), reverse=True
-            )[:10]
+            sorted_ants = sorted(delays_per_antenna.items(), key=lambda x: abs(x[1]), reverse=True)[
+                :10
+            ]
 
             print(f"{'Antenna':<10} {'Delay (ns)':<15}")
             print("-" * 25)
@@ -1764,12 +1679,12 @@ def inspect_kcal_simple(
                 logger.debug(f"Antenna {ant_id}: {delay_ns:.3f} ns")
                 print(f"{ant_id:<10} {delay_ns:>13.3f}")
 
-            logger.info(f"\n{'='*70}")
+            logger.info(f"\n{'=' * 70}")
             logger.info("Inspection Complete")
-            logger.info(f"{'='*70}\n")
-            print(f"\n{'='*70}")
+            logger.info(f"{'=' * 70}\n")
+            print(f"\n{'=' * 70}")
             print("Inspection Complete")
-            print(f"{'='*70}\n")
+            print(f"{'=' * 70}\n")
 
     except Exception as e:
         logger.error(f"Error inspecting table: {e}", exc_info=True)

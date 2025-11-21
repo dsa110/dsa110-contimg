@@ -7,7 +7,7 @@ import logging
 import multiprocessing as mp
 import os
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, Callable, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -81,8 +81,7 @@ def parallel_process_spws(
     with executor_class(max_workers=n_workers) as executor:
         # Submit all tasks
         future_to_spw = {
-            executor.submit(process_func, ms_path, spw_id): spw_id
-            for spw_id in spw_list
+            executor.submit(process_func, ms_path, spw_id): spw_id for spw_id in spw_list
         }
 
         # Collect results as they complete
@@ -142,8 +141,7 @@ def parallel_process_antennas(
     with executor_class(max_workers=n_workers) as executor:
         # Submit all tasks
         future_to_ant = {
-            executor.submit(process_func, ms_path, ant_id): ant_id
-            for ant_id in antenna_list
+            executor.submit(process_func, ms_path, ant_id): ant_id for ant_id in antenna_list
         }
 
         # Collect results as they complete
@@ -203,9 +201,7 @@ def chunk_processing(
 
     # Split into chunks
     chunks = [items[i : i + chunk_size] for i in range(0, len(items), chunk_size)]
-    logger.info(
-        f"Processing {len(items)} items in {len(chunks)} chunk(s) of size {chunk_size}"
-    )
+    logger.info(f"Processing {len(items)} items in {len(chunks)} chunk(s) of size {chunk_size}")
 
     n_workers = get_optimal_workers(len(chunks), max_workers)
 
@@ -239,8 +235,8 @@ def estimate_memory_requirements(ms_path: str) -> dict:
     Returns:
         Dictionary with memory estimates (in GB)
     """
-    import numpy as np
     import casacore.tables as casatables
+    import numpy as np
 
     table = casatables.table
 

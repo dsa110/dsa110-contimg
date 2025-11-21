@@ -45,9 +45,9 @@ export default function DataLineageGraph({ dataId }: LineageGraphProps) {
     if (currentInstance) {
       nodes.push({
         id: dataId,
-        label: `${currentInstance.data_type}\n${dataId.slice(0, 8)}...`,
-        type: currentInstance.data_type,
-        color: DATA_TYPE_COLORS[currentInstance.data_type] || "#757575",
+        label: `${currentInstance.data_type ?? "unknown"}\n${dataId.slice(0, 8)}...`,
+        type: currentInstance.data_type ?? "unknown",
+        color: DATA_TYPE_COLORS[currentInstance.data_type ?? "unknown"] || "#757575",
       });
     }
 
@@ -188,7 +188,7 @@ export default function DataLineageGraph({ dataId }: LineageGraphProps) {
             }}
           >
             <Typography variant="subtitle2" fontWeight="bold">
-              {currentInstance?.data_type.toUpperCase() || "CURRENT"}
+              {currentInstance?.data_type?.toUpperCase() || "CURRENT"}
             </Typography>
             <Typography variant="body2" sx={{ fontFamily: "monospace", mt: 0.5 }}>
               {dataId.slice(0, 16)}...

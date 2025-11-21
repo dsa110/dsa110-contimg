@@ -15,13 +15,12 @@ import { useJS9Initialization } from "./hooks/useJS9Initialization";
 import { useJS9ImageLoader } from "./hooks/useJS9ImageLoader";
 import { useJS9Resize } from "./hooks/useJS9Resize";
 import { useJS9ContentPreservation } from "./hooks/useJS9ContentPreservation";
+import { useJS9PerformanceMonitoring } from "./hooks/useJS9PerformanceMonitoring";
 import styles from "./Sky.module.css";
 import WCSDisplay from "./WCSDisplay";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 interface SkyViewerProps {
@@ -39,7 +38,7 @@ export default function SkyViewer({
   const js9Context = useJS9Safe();
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Use context's JS9 readiness if available, otherwise check directly
   const isJS9Ready = js9Context?.isJS9Ready ?? isJS9Available();
@@ -91,6 +90,22 @@ export default function SkyViewer({
     imageLoadedRef,
     loading,
     getDisplaySafe,
+  });
+
+  // Performance monitoring (development only)
+  useJS9PerformanceMonitoring({
+    enabled: process.env.NODE_ENV === "development",
+    slowThresholdMs: 50,
+    autoLog: true,
+    onSlowOperation: (entry) => {
+      // Log slow operations for debugging
+      if (entry.duration > 100) {
+        console.warn(
+          `[SkyViewer] Slow JS9 operation: ${entry.operation} took ${entry.duration.toFixed(2)}ms`,
+          entry.details
+        );
+      }
+    },
   });
 
   // Combine errors from initialization and loading
@@ -221,9 +236,7 @@ export default function SkyViewer({
             right: 16,
           }}
         >
-          <Alert severity="error" onClose={() => setError(null)}>
-            {error}
-          </Alert>
+          <Alert severity="error">{error}</Alert>
         </Box>
       )}
 

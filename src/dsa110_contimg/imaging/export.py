@@ -16,8 +16,19 @@ def _find_casa_images(source: str, prefix: str) -> List[str]:
     return [p for p in paths if os.path.isdir(p)]
 
 
-def export_fits(images: Iterable[str]) -> List[str]:
-    """Export CASA images to FITS format."""
+def export_fits(
+    images: Iterable[str], register_metadata: bool = True, ms_path: str = "unknown"
+) -> List[str]:
+    """Export CASA images to FITS format and optionally register metadata.
+
+    Args:
+        images: Iterable of CASA image paths
+        register_metadata: If True, register FITS metadata in database
+        ms_path: Path to parent MS (for metadata registration)
+
+    Returns:
+        List of exported FITS file paths
+    """
     try:
         from casatasks import exportfits as _exportfits  # type: ignore
     except Exception as e:
@@ -31,6 +42,22 @@ def export_fits(images: Iterable[str]) -> List[str]:
             _exportfits(imagename=p, fitsimage=fits_out, overwrite=True)
             print("Exported FITS:", fits_out)
             exported.append(fits_out)
+
+            # Register metadata if requested
+            if register_metadata:
+                try:
+                    from dsa110_contimg.database.register_products import (
+                        register_image_with_metadata,
+                    )
+
+                    image_id = register_image_with_metadata(fits_out, ms_path=ms_path)
+                    if image_id:
+                        print(f"Registered metadata: image_id={image_id}")
+                except Exception as reg_error:
+                    print(
+                        f"Metadata registration failed for {fits_out}: {reg_error}",
+                        file=__import__("sys").stderr,
+                    )
         except Exception as e:
             print("exportfits failed for", p, ":", e, file=__import__("sys").stderr)
     return exported
@@ -44,9 +71,9 @@ def save_png_from_fits(paths: Iterable[str]) -> List[str]:
         import numpy as np
         from astropy.io import fits
         from astropy.visualization import (
-            ZScaleInterval,
-            ImageNormalize,
             AsinhStretch,
+            ImageNormalize,
+            ZScaleInterval,
         )
 
         from dsa110_contimg.utils.runtime_safeguards import validate_image_shape
@@ -63,10 +90,7 @@ def save_png_from_fits(paths: Iterable[str]) -> List[str]:
             with fits.open(f, memmap=True) as hdul:
                 data = None
                 for hdu in hdul:
-                    if (
-                        getattr(hdu, "data", None) is not None
-                        and getattr(hdu.data, "ndim", 0) >= 2
-                    ):
+                    if getattr(hdu, "data", None) is not None and getattr(hdu.data, "ndim", 0) >= 2:
                         # Validate image shape before processing
                         try:
                             validate_image_shape(hdu.data, min_size=1)
@@ -155,9 +179,7 @@ def save_png_from_fits(paths: Iterable[str]) -> List[str]:
                     img = np.arcsinh((img - lo) / max(1e-12, (hi - lo)))
                     img[~m] = np.nan
                     plt.figure(figsize=(6, 5), dpi=140)
-                    plt.imshow(
-                        img, origin="lower", cmap="inferno", interpolation="nearest"
-                    )
+                    plt.imshow(img, origin="lower", cmap="inferno", interpolation="nearest")
                     plt.colorbar(fraction=0.046, pad=0.04)
                     plt.title(os.path.basename(f))
                     plt.tight_layout()

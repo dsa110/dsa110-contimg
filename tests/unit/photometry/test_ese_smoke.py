@@ -6,9 +6,7 @@ Focus: Quick validation that all components work together.
 from __future__ import annotations
 
 import sqlite3
-import tempfile
 import time
-from pathlib import Path
 
 import pytest
 

@@ -19,7 +19,7 @@ import {
 } from "@mui/material";
 import { CheckCircle, Error, Warning } from "@mui/icons-material";
 import { useCatalogValidation, useRunCatalogValidation } from "../../api/queries";
-import type { CatalogValidationResult } from "../../api/types";
+import type { CatalogValidationResults } from "../../api/types";
 
 interface CatalogValidationPanelProps {
   imageId: string | null;
@@ -141,7 +141,7 @@ export default function CatalogValidationPanel({
                 Issues:
               </Typography>
               <ul style={{ margin: 0, paddingLeft: 20 }}>
-                {result.issues.map((issue, idx) => (
+                {result.issues.map((issue: string, idx: number) => (
                   <li key={idx}>
                     <Typography variant="body2">{issue}</Typography>
                   </li>
@@ -156,7 +156,7 @@ export default function CatalogValidationPanel({
                 Warnings:
               </Typography>
               <ul style={{ margin: 0, paddingLeft: 20 }}>
-                {result.warnings.map((warning, idx) => (
+                {result.warnings.map((warning: string, idx: number) => (
                   <li key={idx}>
                     <Typography variant="body2">{warning}</Typography>
                   </li>

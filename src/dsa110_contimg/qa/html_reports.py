@@ -52,9 +52,7 @@ class ValidationReport:
     warnings: List[str] = field(default_factory=list)
 
     # Metadata
-    generated_at: str = field(
-        default_factory=lambda: datetime.utcnow().isoformat() + "Z"
-    )
+    generated_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
     catalog_used: str = "nvss"
 
     def __post_init__(self):
@@ -435,17 +433,12 @@ def _generate_image_visualization(
         with fits.open(image_path, memmap=False) as hdul:
             data = None
             for hdu in hdul:
-                if (
-                    getattr(hdu, "data", None) is not None
-                    and getattr(hdu.data, "ndim", 0) >= 2
-                ):
+                if getattr(hdu, "data", None) is not None and getattr(hdu.data, "ndim", 0) >= 2:
                     # Validate image shape before processing
                     try:
                         validate_image_shape(hdu.data, min_size=1)
                     except ValueError as e:
-                        logger.warning(
-                            f"Invalid image shape in {image_path} (HDU {hdu.name}): {e}"
-                        )
+                        logger.warning(f"Invalid image shape in {image_path} (HDU {hdu.name}): {e}")
                         continue
                     data = hdu.data
                     break
@@ -479,9 +472,7 @@ def _generate_image_visualization(
             im = ax.imshow(img, origin="lower", cmap="inferno", interpolation="nearest")
             ax.set_xlabel("Pixel X", fontsize=11)
             ax.set_ylabel("Pixel Y", fontsize=11)
-            ax.set_title(
-                f"Image: {Path(image_path).name}", fontsize=12, fontweight="bold"
-            )
+            ax.set_title(f"Image: {Path(image_path).name}", fontsize=12, fontweight="bold")
 
             # Add colorbar
             cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
@@ -546,9 +537,7 @@ def _verify_real_observation(image_path: str) -> Tuple[bool, List[str]]:
             if has_date:
                 indicators.append("Has DATE-OBS field (real observation indicator)")
             if has_telescope:
-                indicators.append(
-                    f"Has TELESCOP field: {header.get('TELESCOP', 'N/A')}"
-                )
+                indicators.append(f"Has TELESCOP field: {header.get('TELESCOP', 'N/A')}")
             if has_object:
                 indicators.append(f"Has OBJECT field: {header.get('OBJECT', 'N/A')}")
     except Exception:
@@ -572,7 +561,7 @@ def _get_image_metadata(image_path: str) -> Dict[str, str]:
 
             metadata = {
                 "filename": Path(image_path).name,
-                "size": f"{Path(image_path).stat().st_size / (1024*1024):.2f} MB",
+                "size": f"{Path(image_path).stat().st_size / (1024 * 1024):.2f} MB",
             }
 
             # Try to get frequency
@@ -583,9 +572,7 @@ def _get_image_metadata(image_path: str) -> Dict[str, str]:
 
             # Try to get image dimensions
             if "NAXIS1" in header and "NAXIS2" in header:
-                metadata["dimensions"] = (
-                    f"{header['NAXIS1']} × {header['NAXIS2']} pixels"
-                )
+                metadata["dimensions"] = f"{header['NAXIS1']} × {header['NAXIS2']} pixels"
 
             # Try to get pixel scale
             if "CDELT1" in header:
@@ -632,9 +619,7 @@ def generate_html_report(
 
     # Verify if this is real observation or test data
     is_real_observation, data_indicators = _verify_real_observation(report.image_path)
-    data_type_label = (
-        "Real Observation" if is_real_observation else "Test/Synthetic Data"
-    )
+    data_type_label = "Real Observation" if is_real_observation else "Test/Synthetic Data"
     data_type_color = "#28a745" if is_real_observation else "#ffc107"
 
     # Build HTML
@@ -878,7 +863,7 @@ def generate_html_report(
     for key, value in image_metadata.items():
         html += f"""
             <tr>
-                <td>{key.replace('_', ' ').title()}</td>
+                <td>{key.replace("_", " ").title()}</td>
                 <td>{value}</td>
             </tr>
 """

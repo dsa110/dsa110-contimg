@@ -36,7 +36,7 @@ def main():
         # Extract specific diagram
         idx = int(sys.argv[2])
         if idx < 0 or idx >= len(blocks):
-            print(f"Error: Diagram index {idx} out of range (0-{len(blocks)-1})")
+            print(f"Error: Diagram index {idx} out of range (0-{len(blocks) - 1})")
             sys.exit(1)
         print(f"=== Diagram {idx} ===")
         print(blocks[idx].strip())

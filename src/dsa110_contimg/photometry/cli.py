@@ -1,4 +1,13 @@
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
+from __future__ import annotations
+
+# Version guard - prevent use of Python 2.7 or 3.6
+import sys
+
+if sys.version_info < (3, 11) or sys.version_info[:2] in [(2, 7), (3, 6)]:
+    sys.stderr.write("ERROR: Python 3.11+ required. Found: {}\n".format(sys.version))
+    sys.stderr.write("Use: /opt/miniforge/envs/casa6/bin/python\n")
+    sys.exit(1)
 """
 CLI for forced photometry on FITS images.
 
@@ -14,7 +23,6 @@ Examples:
     --fits /path/to/image.pbcor.fits \
     --coords "128.725,55.573; 129.002,55.610"
 """
-from __future__ import annotations
 
 import argparse
 import json
@@ -30,7 +38,7 @@ from astropy.io import fits  # type: ignore[reportMissingTypeStubs]
 from astropy.wcs import WCS  # type: ignore[reportMissingTypeStubs]
 from matplotlib.colors import Normalize
 
-from dsa110_contimg.calibration.catalogs import query_nvss_sources
+from dsa110_contimg.catalog.query import query_sources
 from dsa110_contimg.database.products import (
     ensure_products_db,
     photometry_insert,
@@ -129,7 +137,8 @@ def cmd_nvss(args: argparse.Namespace) -> int:
     ra0, dec0, auto_rad = _image_center_and_radius_deg(args.fits)
     radius_deg = float(args.radius_deg) if args.radius_deg is not None else auto_rad
     # Use SQLite-first query function (falls back to CSV if needed)
-    df = query_nvss_sources(
+    df = query_sources(
+        catalog_type=catalog,
         ra_deg=ra0,
         dec_deg=dec0,
         radius_deg=radius_deg,

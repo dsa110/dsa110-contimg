@@ -172,9 +172,7 @@ def quicklook_workflow(config: PipelineConfig) -> PipelineOrchestrator:
     builder = (
         WorkflowBuilder()
         .add_stage("catalog_setup", stages_impl.CatalogSetupStage(config))
-        .add_stage(
-            "convert", stages_impl.ConversionStage(config), depends_on=["catalog_setup"]
-        )
+        .add_stage("convert", stages_impl.ConversionStage(config), depends_on=["catalog_setup"])
         .add_stage("image", stages_impl.ImagingStage(config), depends_on=["convert"])
     )
 

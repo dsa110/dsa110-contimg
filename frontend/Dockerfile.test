@@ -14,9 +14,8 @@ RUN apk add --no-cache \
     ttf-freefont \
     && rm -rf /var/cache/apk/*
 
-# Set Playwright to use system Chromium
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+# Set Playwright browsers path (similar to Python Playwright setup)
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 # Set working directory
 WORKDIR /app/frontend
@@ -27,11 +26,15 @@ COPY frontend/package*.json ./
 # Install dependencies (including @playwright/test)
 RUN npm ci
 
-# Install Playwright browsers (system Chromium already installed)
-RUN npx playwright install chromium || true
+# Don't install Playwright browsers - they require glibc but Alpine uses musl
+# Instead, create symlink structure pointing to system Chromium (installed via apk)
+# Playwright Test looks for chromium_headless_shell-1194
+RUN mkdir -p /ms-playwright/chromium_headless_shell-1194/chrome-linux && \
+    ln -sf /usr/bin/chromium /ms-playwright/chromium_headless_shell-1194/chrome-linux/headless_shell && \
+    ls -la /ms-playwright/chromium_headless_shell-1194/chrome-linux/headless_shell || echo "Symlink created"
 
-# Install Playwright system dependencies (already done via apk, but ensure compatibility)
-RUN npx playwright install-deps chromium || true
+# Verify system Chromium works
+RUN chromium --version || echo "Chromium check failed"
 
 # Copy Playwright config (source code will be mounted as volume, but config needs to be in image)
 COPY frontend/playwright.config.ts ./

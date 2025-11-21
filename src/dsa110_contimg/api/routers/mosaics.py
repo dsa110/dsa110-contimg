@@ -35,7 +35,9 @@ def mosaics_query(request: Request, request_body: dict):
 
 @router.post("/mosaics/create", response_model=MosaicCreateResponse)
 def mosaics_create(
-    request: Request, request_body: MosaicCreateRequest, background_tasks: BackgroundTasks
+    request: Request,
+    request_body: MosaicCreateRequest,
+    background_tasks: BackgroundTasks,
 ) -> MosaicCreateResponse:
     """Create a mosaic via API.
 
@@ -44,13 +46,11 @@ def mosaics_create(
     2. Time-window: Provide start_time and end_time
     """
     import os
-    from datetime import datetime
 
     from dsa110_contimg.api.job_runner import run_mosaic_create_job
     from dsa110_contimg.database.jobs import create_job, get_job
     from dsa110_contimg.database.products import ensure_products_db
 
-    cfg = request.app.state.cfg
     db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
     conn = ensure_products_db(db_path)
 

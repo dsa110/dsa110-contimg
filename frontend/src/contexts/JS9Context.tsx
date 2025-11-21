@@ -5,22 +5,10 @@
  * Eliminates prop drilling of displayId and provides reactive JS9 state.
  */
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-  ReactNode,
-} from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import type { ReactNode } from "react";
 import { isJS9Available, findDisplay, getDisplayImageId } from "../utils/js9";
-
-declare global {
-  interface Window {
-    JS9: any;
-  }
-}
+import type { JS9Display } from "../types/js9";
 
 export interface DisplayState {
   displayId: string;
@@ -37,7 +25,7 @@ interface JS9ContextValue {
   js9Error: string | null;
 
   // Display management
-  getDisplay: (displayId: string) => any | null;
+  getDisplay: (displayId: string) => JS9Display | null;
   getImageId: (displayId: string) => string | null;
   hasImage: (displayId: string) => boolean;
 
@@ -147,7 +135,7 @@ export function JS9Provider({ children }: JS9ProviderProps) {
       if (state) return state;
 
       // Create state from current display
-      const display = getDisplay(displayId);
+      const _display = getDisplay(displayId);
       const imageId = getImageId(displayId);
       const hasImg = hasImage(displayId);
 
@@ -182,7 +170,7 @@ export function JS9Provider({ children }: JS9ProviderProps) {
   // Update display state
   const updateDisplayState = useCallback(
     (displayId: string) => {
-      const display = getDisplay(displayId);
+      const _display = getDisplay(displayId);
       const imageId = getImageId(displayId);
       const hasImg = hasImage(displayId);
       const isLoading = loadingRefs.current.get(displayId) ?? false;

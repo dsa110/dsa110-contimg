@@ -1,9 +1,7 @@
 """Integration tests for streaming converter photometry automation."""
 
 import sqlite3
-import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -76,7 +74,12 @@ class TestStreamingPhotometryIntegration:
     @patch("dsa110_contimg.conversion.streaming.streaming_converter.query_sources_for_fits")
     @patch("dsa110_contimg.api.batch_jobs.create_batch_photometry_job")
     def test_photometry_triggered_after_imaging(
-        self, mock_create_job, mock_query_sources, mock_fits_image, mock_args, temp_products_db
+        self,
+        mock_create_job,
+        mock_query_sources,
+        mock_fits_image,
+        mock_args,
+        temp_products_db,
     ):
         """Test that photometry is triggered after imaging completes."""
         # Setup mocks

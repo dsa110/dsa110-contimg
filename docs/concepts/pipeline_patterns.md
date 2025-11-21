@@ -1,6 +1,8 @@
 # Pipeline Stage Patterns and Anti-Patterns
 
-This document outlines common patterns (best practices) and anti-patterns (things to avoid) when working with pipeline stages in the DSA-110 Continuum Imaging Pipeline.
+This document outlines common patterns (best practices) and anti-patterns
+(things to avoid) when working with pipeline stages in the DSA-110 Continuum
+Imaging Pipeline.
 
 ## Common Patterns (Best Practices)
 
@@ -27,20 +29,21 @@ def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
     # Check required inputs exist
     if "input_path" not in context.inputs:
         return False, "input_path required in context.inputs"
-    
+
     # Check file exists
     input_path = context.inputs["input_path"]
     if not Path(input_path).exists():
         return False, f"Input file not found: {input_path}"
-    
+
     # Check file is readable
     if not os.access(input_path, os.R_OK):
         return False, f"Input file not readable: {input_path}"
-    
+
     return True, None
 ```
 
-**Why:** Catches errors early, provides clear error messages, prevents partial execution.
+**Why:** Catches errors early, provides clear error messages, prevents partial
+execution.
 
 ### Pattern 3: Cleanup on Failure
 
@@ -56,7 +59,8 @@ def cleanup(self, context: PipelineContext) -> None:
             logger.debug(f"Cleaned up temporary file: {temp_path}")
 ```
 
-**Why:** Prevents disk space issues, avoids leaving corrupted files, maintains clean state.
+**Why:** Prevents disk space issues, avoids leaving corrupted files, maintains
+clean state.
 
 ### Pattern 4: Output Validation
 
@@ -67,20 +71,21 @@ def cleanup(self, context: PipelineContext) -> None:
 def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
     if "output_path" not in context.outputs:
         return False, "output_path missing from context.outputs"
-    
+
     output_path = context.outputs["output_path"]
     if not Path(output_path).exists():
         return False, f"Output file not found: {output_path}"
-    
+
     # Check file size is reasonable
     file_size = Path(output_path).stat().st_size
     if file_size == 0:
         return False, f"Output file is empty: {output_path}"
-    
+
     return True, None
 ```
 
-**Why:** Catches errors before next stage, provides clear diagnostics, ensures data integrity.
+**Why:** Catches errors before next stage, provides clear diagnostics, ensures
+data integrity.
 
 ### Pattern 5: Descriptive Error Messages
 
@@ -92,7 +97,8 @@ if "ms_path" not in context.outputs:
     return False, "ms_path required in context.outputs (from previous conversion stage)"
 ```
 
-**Why:** Makes debugging easier, helps users understand what went wrong, guides fixes.
+**Why:** Makes debugging easier, helps users understand what went wrong, guides
+fixes.
 
 ### Pattern 6: Logging Important Events
 
@@ -103,9 +109,9 @@ if "ms_path" not in context.outputs:
 def execute(self, context: PipelineContext) -> PipelineContext:
     logger.info(f"Starting {self.get_name()} stage")
     logger.debug(f"Input: {context.inputs.get('input_path')}")
-    
+
     result = process_data(context.inputs["input_path"])
-    
+
     logger.info(f"Completed {self.get_name()} stage: {result}")
     return context.with_output("output", result)
 ```
@@ -125,7 +131,8 @@ stages = [
 ]
 ```
 
-**Why:** Makes execution order clear, enables parallel execution, prevents circular dependencies.
+**Why:** Makes execution order clear, enables parallel execution, prevents
+circular dependencies.
 
 ### Pattern 8: Configuration-Based Behavior
 
@@ -139,7 +146,8 @@ def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
     return True, None
 ```
 
-**Why:** Enables flexible pipeline configurations, allows disabling stages, supports testing.
+**Why:** Enables flexible pipeline configurations, allows disabling stages,
+supports testing.
 
 ## Anti-Patterns (Things to Avoid)
 
@@ -273,7 +281,8 @@ def execute(self, context: PipelineContext) -> PipelineContext:
 
 **Why:** Hard to test, violates single responsibility, difficult to maintain.
 
-**Fix:** Split into separate stages (ConversionStage, CalibrationStage, ImagingStage, ValidationStage).
+**Fix:** Split into separate stages (ConversionStage, CalibrationStage,
+ImagingStage, ValidationStage).
 
 ### Anti-Pattern 9: Not Handling Edge Cases
 
@@ -310,6 +319,7 @@ def execute(self, context: PipelineContext) -> PipelineContext:
 ## Summary
 
 **Do:**
+
 - Use immutable context updates (`with_output()`)
 - Validate comprehensively
 - Clean up resources
@@ -320,6 +330,7 @@ def execute(self, context: PipelineContext) -> PipelineContext:
 - Handle edge cases
 
 **Don't:**
+
 - Mutate input context
 - Skip validation
 - Ignore cleanup
@@ -331,5 +342,5 @@ def execute(self, context: PipelineContext) -> PipelineContext:
 - Ignore edge cases
 - Assume dependencies exist
 
-Following these patterns ensures robust, maintainable, and testable pipeline stages.
-
+Following these patterns ensures robust, maintainable, and testable pipeline
+stages.

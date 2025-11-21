@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Query
@@ -15,8 +14,6 @@ from dsa110_contimg.pipeline.circuit_breaker import (
     photometry_circuit_breaker,
 )
 from dsa110_contimg.pipeline.dead_letter_queue import (
-    DeadLetterQueueItem,
-    DLQStatus,
     get_dlq,
 )
 

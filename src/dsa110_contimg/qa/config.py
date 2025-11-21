@@ -120,9 +120,7 @@ class FastValidationConfig:
     calibration_sample_fraction: float = 0.01  # 1% for calibration checks
 
     # Performance settings
-    skip_expensive_checks: bool = (
-        True  # Skip forced photometry, detailed catalog matching
-    )
+    skip_expensive_checks: bool = True  # Skip forced photometry, detailed catalog matching
     parallel_workers: int = 4  # Number of parallel workers
     timeout_seconds: int = 60  # Maximum time for validation
 
@@ -281,20 +279,14 @@ def load_config_from_dict(config_dict: Dict[str, Any]) -> QAConfig:
         config.astrometry.max_offset_arcsec = astro_dict.get("max_offset_arcsec", 1.0)
         config.astrometry.max_rms_arcsec = astro_dict.get("max_rms_arcsec", 0.5)
         config.astrometry.min_match_fraction = astro_dict.get("min_match_fraction", 0.8)
-        config.astrometry.match_radius_arcsec = astro_dict.get(
-            "match_radius_arcsec", 2.0
-        )
+        config.astrometry.match_radius_arcsec = astro_dict.get("match_radius_arcsec", 2.0)
 
     # Update flux scale config
     if "flux_scale" in config_dict:
         flux_dict = config_dict["flux_scale"]
-        config.flux_scale.max_flux_ratio_deviation = flux_dict.get(
-            "max_flux_ratio_deviation", 0.2
-        )
+        config.flux_scale.max_flux_ratio_deviation = flux_dict.get("max_flux_ratio_deviation", 0.2)
         config.flux_scale.min_match_fraction = flux_dict.get("min_match_fraction", 0.5)
-        config.flux_scale.match_radius_arcsec = flux_dict.get(
-            "match_radius_arcsec", 2.0
-        )
+        config.flux_scale.match_radius_arcsec = flux_dict.get("match_radius_arcsec", 2.0)
         config.flux_scale.flux_box_size_pix = flux_dict.get("flux_box_size_pix", 5)
 
     # Update other configs similarly...

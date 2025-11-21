@@ -4,15 +4,16 @@ Tests the _create_common_coordinate_system function to ensure
 correct template creation and coordinate system centering.
 """
 
-from dsa110_contimg.mosaic.cli import _create_common_coordinate_system
-import sys
 import os
+import sys
+import tempfile
 from pathlib import Path
-from unittest.mock import Mock, MagicMock, patch, mock_open
+from unittest.mock import Mock, patch
+
 import numpy as np
 import pytest
-import tempfile
-import shutil
+
+from dsa110_contimg.mosaic.cli import _create_common_coordinate_system
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
@@ -152,12 +153,8 @@ class TestCoordinateSystemCreation:
         ra_center = (ra_min + ra_max) / 2.0
         dec_center = (dec_min + dec_max) / 2.0
 
-        assert (
-            abs(ra_center - 121.0) < 0.01
-        ), f"RA center should be 121.0°, got {ra_center}"
-        assert (
-            abs(dec_center - 54.0) < 0.01
-        ), f"Dec center should be 54.0°, got {dec_center}"
+        assert abs(ra_center - 121.0) < 0.01, f"RA center should be 121.0°, got {ra_center}"
+        assert abs(dec_center - 54.0) < 0.01, f"Dec center should be 54.0°, got {dec_center}"
 
     def test_pixel_scale_calculation(self):
         """Test pixel scale calculation for template."""
