@@ -148,9 +148,7 @@ export default defineConfig({
   preview: {
     port: parseInt(process.env.VITE_PORT || process.env.PORT || "3210", 10),
     host: "0.0.0.0",
-    // Always use /ui/ base path for preview to match production build
-    // The build uses /ui/ base, so preview must match for assets to load correctly
-    base: "/ui/",
+    // Note: base path is handled at the build level, not preview level
     proxy: {
       "/api": {
         target: API_PROXY_TARGET,

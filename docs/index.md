@@ -1,65 +1,47 @@
-# DSA-110 Continuum Imaging Pipeline
+# DSA-110 Continuum Imaging Pipeline Documentation
 
-Welcome. This pipeline turns incoming UVH5 subband data into calibrated,
-quick-look continuum images and exposes a monitoring API.
+Welcome to the documentation for the DSA-110 Continuum Imaging Pipeline.
 
-!!! info "Package Information" This documentation is for **dsa110-contimg**
-version **0.1.0**.
+## 📚 Documentation Structure
 
-    DSA-110 Continuum Imaging Pipeline
+### 🚀 [How-To Guides](how-to/)
 
-This documentation is organized to help you understand and use the pipeline
-effectively.
+Practical steps for common tasks.
 
-## Getting Started
+- **[Workflow](how-to/workflow/)**: Absurd pipeline, mosaicking, and streaming.
+- **[Operations](how-to/operations/)**: Deployment, monitoring, and
+  troubleshooting.
+- **[Dashboard](how-to/dashboard/)**: Using and developing the web interface.
+- **[Development](how-to/development/)**: Testing, CI/CD, and environment setup.
+- **[Data Processing](how-to/data-processing/)**: Calibration, imaging, and
+  flagging.
+- **[Error Handling](how-to/error-handling/)**: Automated error detection and
+  safety systems.
 
-- **[Documentation Guide](DOCUMENTATION_QUICK_REFERENCE.md)**: Guide to
-  documentation organization and location.
-- **[Quick Start Guide](how-to/quickstart.md)**: Get up and running quickly.
-- **[Mosaic Quickstart](how-to/mosaic_quickstart.md)**: Plan and build a basic
-  sky mosaic.
-- **[Dashboard Guide](how-to/dashboard.md)**: Development, deployment, testing
+### 🧠 [Concepts](concepts/)
 
-## Documentation Sections
+High-level architecture and design decisions.
 
-- **[Concepts](concepts/index.md)**: Understand the high-level architecture and
-  design.
-- **[Tutorials](tutorials/)**: Follow step-by-step guides for common tasks.
-- **[How-To Guides](how-to/)**: Find instructions for specific procedures.
-- **[Reference](reference/)**: API documentation and technical references.
-- **[Operations](operations/)**: Deployment and operational procedures.
-- **Authoring Guide**:
-  [Documentation Quick Reference](DOCUMENTATION_QUICK_REFERENCE.md)
+- Pipeline Architecture
+- Database Separation Strategy
+- QA Visualization Design
 
-## Key Features
+### 📖 [Reference](reference/)
 
-### Streaming
+Technical specifications and rules.
 
-- **[Streaming Guide](how-to/streaming.md)**: Control, deploy, troubleshoot, and
-  run standalone conversions
-- **[Streaming API Reference](reference/streaming-api.md)**: Complete API
-  documentation
-- **[Streaming Architecture](concepts/streaming-architecture.md)**: System
-  architecture and design
+- **[Rules](reference/rules/)**: Workspace rules and coding standards.
+- **[Documentation Standards](reference/documentation_standards/)**: How to
+  write and organize docs.
 
-### Dashboard
+### 🏛️ [Archive](archive/)
 
-- **[Dashboard Guide](how-to/dashboard.md)**: Quick start, development,
-  deployment, and testing
-- **[Dashboard API Reference](reference/dashboard_backend_api.md)**: Complete
-  API documentation
-- **[Control Panel Guide](how-to/control-panel-quickstart.md)**: Using the
-  control panel
-- **[QA Visualization Quick Start](QA_VISUALIZATION_QUICK_START.md)**: FITS
-  viewing, CASA browsing, QA notebooks
-- **[QA Visualization Usage Guide](QA_VISUALIZATION_USAGE.md)**: Full usage and
-  integration examples
+Historical records, status reports, and superseded documents.
 
-### Pipeline Operations
+---
 
-- **[Docker Deployment](operations/deploy-docker.md)**: Deploy with Docker
-- **[Systemd Deployment](operations/deploy-systemd.md)**: Deploy as system
-  service
-- **[CASA Log Daemon](operations/CASA_LOG_DAEMON_PROTECTION_SUMMARY.md)**:
-Automated log file management and monitoring
-<!-- Streaming Converter doc consolidated into Streaming Guide -->
+## 🔍 Quick Links
+
+- **[README](../../README.md)**: Project root and setup.
+- **[Troubleshooting](how-to/operations/troubleshooting.md)**: Common issues and
+  fixes.

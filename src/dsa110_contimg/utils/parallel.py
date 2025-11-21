@@ -111,9 +111,7 @@ def process_parallel(
                             RuntimeError,
                             MemoryError,
                         ) as e:
-                            logger.error(
-                                f"Error processing item {idx}: {e}", exc_info=True
-                            )
+                            logger.error(f"Error processing item {idx}: {e}", exc_info=True)
                             results[idx] = None
                         except Exception as e:
                             logger.error(
@@ -123,9 +121,7 @@ def process_parallel(
                             results[idx] = None
                         pbar.update(1)
             except (OSError, IOError, RuntimeError) as e:
-                logger.warning(
-                    f"Progress bar failed, continuing without progress display: {e}"
-                )
+                logger.warning(f"Progress bar failed, continuing without progress display: {e}")
                 for future in as_completed(futures):
                     idx = futures[future]
                     try:
@@ -209,9 +205,7 @@ def process_batch_parallel(
         batch = items[start_idx:end_idx]
 
         if show_progress:
-            logger.info(
-                f"Processing batch {batch_num + 1}/{total_batches} ({len(batch)} items)..."
-            )
+            logger.info(f"Processing batch {batch_num + 1}/{total_batches} ({len(batch)} items)...")
 
         batch_results = process_parallel(
             batch,

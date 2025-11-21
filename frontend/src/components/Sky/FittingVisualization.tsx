@@ -7,9 +7,7 @@ import { Box, Typography, Chip, Paper } from "@mui/material";
 import { logger } from "../../utils/logger";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 export interface FitResult {

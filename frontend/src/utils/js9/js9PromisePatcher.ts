@@ -44,7 +44,11 @@ class JS9PromisePatcher {
 
     const self = this;
 
-    window.setTimeout = function (handler: TimerHandler, timeout?: number, ...args: any[]): number {
+    (window.setTimeout as any) = function (
+      handler: TimerHandler,
+      timeout?: number,
+      ...args: any[]
+    ): number {
       // Patch handlers called with no timeout or timeout=0 (immediate execution)
       // This matches the pattern: window.setTimeout(process) in js9support.js:3884
       if (typeof handler === "function" && (timeout === undefined || timeout === 0)) {

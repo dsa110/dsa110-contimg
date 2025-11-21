@@ -82,7 +82,8 @@ def convert_nvss_to_dp3_skymodel(
     """Convert NVSS catalog to DP3 sky model format (.skymodel).
 
     DP3 sky model format:
-        Format = Name, Type, Ra, Dec, I, SpectralIndex, LogarithmicSI, ReferenceFrequency='1400000000.0', MajorAxis, MinorAxis, Orientation
+        Format = Name, Type, Ra, Dec, I, SpectralIndex, LogarithmicSI,
+                ReferenceFrequency='1400000000.0', MajorAxis, MinorAxis, Orientation
         s0c0,POINT,07:02:53.6790,+44:31:11.940,2.4,[-0.7],false,1400000000.0,,,
     """
     import numpy as np
@@ -91,7 +92,7 @@ def convert_nvss_to_dp3_skymodel(
     from dsa110_contimg.catalog.query import query_sources
 
     df = query_sources(
-        catalog_type=catalog,
+        catalog_type="nvss",
         ra_center=center_ra_deg,
         dec_center=center_dec_deg,
         radius_deg=float(radius_deg),
@@ -394,7 +395,8 @@ def convert_skymodel_to_dp3(
     with open(out_path, "w") as f:
         # Write header
         f.write(
-            "Format = Name, Type, Ra, Dec, I, SpectralIndex, LogarithmicSI, ReferenceFrequency='1400000000.0', MajorAxis, MinorAxis, Orientation\n"
+            "Format = Name, Type, Ra, Dec, I, SpectralIndex, LogarithmicSI, "
+            "ReferenceFrequency='1400000000.0', MajorAxis, MinorAxis, Orientation\n"
         )
 
         for i in range(sky.Ncomponents):

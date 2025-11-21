@@ -10,9 +10,7 @@ import { findDisplay, isJS9Available } from "../../utils/js9";
 import { throttle } from "../../utils/js9/throttle";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 interface WCSDisplayProps {
@@ -93,7 +91,7 @@ export default function WCSDisplay({ displayId = "js9Display" }: WCSDisplayProps
       // Fallback: Try PixToWCS if GetWCS doesn't work
       if ((ra === null || dec === null) && typeof window.JS9.PixToWCS === "function") {
         try {
-          const wcs = window.JS9.PixToWCS(imageId, x, y);
+          const wcs = window.JS9.PixToWCS(imageId, Number(x), Number(y));
           if (wcs && typeof wcs.ra === "number" && typeof wcs.dec === "number") {
             ra = wcs.ra;
             dec = wcs.dec;
@@ -107,7 +105,7 @@ export default function WCSDisplay({ displayId = "js9Display" }: WCSDisplayProps
       if ((ra === null || dec === null) && typeof window.JS9.GetVal === "function") {
         try {
           // Some JS9 versions return WCS in GetVal with options
-          const result = window.JS9.GetVal(imageId, x, y, { wcs: true });
+          const result = window.JS9.GetVal(imageId, x, y, { wcs: true }) as any;
           if (result && typeof result.ra === "number" && typeof result.dec === "number") {
             ra = result.ra;
             dec = result.dec;
@@ -182,7 +180,8 @@ export default function WCSDisplay({ displayId = "js9Display" }: WCSDisplayProps
         const y = evt.clientY - rect.top;
 
         // Get image ID from display
-        const imageId = display.im.id;
+        const imageId = display.im?.id;
+        if (!imageId) return;
 
         // Use throttled update to prevent excessive API calls
         throttledUpdateWCS(x, y, imageId);

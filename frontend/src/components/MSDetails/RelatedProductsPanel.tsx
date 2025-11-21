@@ -15,11 +15,7 @@ import {
   CircularProgress,
   Stack,
 } from "@mui/material";
-import {
-  Image as ImageIcon,
-  TableChart as CalTableIcon,
-  Description as LogIcon,
-} from "@mui/icons-material";
+import { Image as ImageIcon, TableChart as CalTableIcon } from "@mui/icons-material";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "../../api/client";
 import { useImages } from "../../api/queries";

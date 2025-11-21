@@ -26,7 +26,7 @@ import os
 import sys
 import time
 import warnings
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
 from astropy.wcs import WCS
@@ -58,7 +58,7 @@ def check_casa6_python() -> bool:
     ensure_casa_path()
 
     try:
-        import casatools
+        import casatools  # noqa: F401
 
         is_casa6 = True
     except ImportError:
@@ -119,7 +119,7 @@ def wcs_pixel_to_world_safe(
     wcs: WCS,
     x: float,
     y: float,
-    is_4d: bool = None,
+    is_4d: Optional[bool] = None,
     defaults: Tuple[float, float] = (0.0, 0.0),
 ) -> Tuple[float, float]:
     """Safely convert pixel to world coordinates, handling 4D WCS.
@@ -152,7 +152,7 @@ def wcs_world_to_pixel_safe(
     wcs: WCS,
     ra: float,
     dec: float,
-    is_4d: bool = None,
+    is_4d: Optional[bool] = None,
     defaults: Tuple[float, float] = (0.0, 0.0),
 ) -> Tuple[float, float]:
     """Safely convert world to pixel coordinates, handling 4D WCS.
@@ -188,7 +188,7 @@ def wcs_world_to_pixel_safe(
 
 def filter_non_finite(
     data: np.ndarray, min_points: int = 1, warn: bool = True, return_mask: bool = False
-) -> np.ndarray:
+) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:  # type: ignore[name-defined]
     """Filter non-finite values from array, with validation.
 
     Args:
@@ -222,7 +222,7 @@ def filter_non_finite(
 
     if return_mask:
         return filtered, finite_mask
-    return filtered
+    return filtered  # type: ignore[return-value]
 
 
 def filter_non_finite_2d(
@@ -304,7 +304,7 @@ def log_progress(message: str, start_time: Optional[float] = None, flush: bool =
         sys.stdout.flush()
 
 
-def progress_monitor(operation_name: str = None, warn_threshold: float = 10.0):
+def progress_monitor(operation_name: Optional[str] = None, warn_threshold: float = 10.0):
     """Decorator to monitor operation progress and warn on slow operations.
 
     Args:
@@ -349,7 +349,7 @@ def progress_monitor(operation_name: str = None, warn_threshold: float = 10.0):
 
 
 def validate_image_shape(
-    data: np.ndarray, min_size: int = 1, max_size: int = None
+    data: np.ndarray, min_size: int = 1, max_size: Optional[int] = None
 ) -> Tuple[int, int]:
     """Validate image shape and return (ny, nx).
 
@@ -386,7 +386,9 @@ def validate_image_shape(
     return ny, nx
 
 
-def validate_region_mask(mask: Optional[np.ndarray], image_shape: Tuple[int, int]) -> np.ndarray:
+def validate_region_mask(
+    mask: Optional[np.ndarray], image_shape: Tuple[int, int]
+) -> Optional[np.ndarray]:
     """Validate region mask and ensure it matches image shape.
 
     Args:

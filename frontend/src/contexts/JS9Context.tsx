@@ -5,15 +5,8 @@
  * Eliminates prop drilling of displayId and provides reactive JS9 state.
  */
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-  ReactNode,
-} from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import type { ReactNode } from "react";
 import { isJS9Available, findDisplay, getDisplayImageId } from "../utils/js9";
 import type { JS9Display } from "../types/js9";
 

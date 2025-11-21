@@ -9,9 +9,7 @@ import { logger } from "../../utils/logger";
 import { findDisplay } from "../../utils/js9";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 interface CatalogOverlayJS9Props {

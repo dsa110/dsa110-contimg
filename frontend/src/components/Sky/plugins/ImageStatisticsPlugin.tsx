@@ -17,9 +17,7 @@ import { logger } from "../../../utils/logger";
 import { findDisplay, isJS9Available } from "../../../utils/js9";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 interface ImageStatistics {
@@ -122,7 +120,7 @@ function calculateImageStatistics(
     // Try to get from FITS header if not provided
     if (!beamMajorArcsec || !beamMinorArcsec) {
       try {
-        const fitsHeader = window.JS9.GetFITSheader?.(imageId);
+        const fitsHeader = window.JS9.GetFITSHeader?.(imageId);
         if (fitsHeader) {
           // Common FITS keywords for beam
           beamMajorArcsec = beamMajorArcsec || fitsHeader.BMAJ || fitsHeader.BEAM_MAJ || null;

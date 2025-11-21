@@ -24,9 +24,7 @@ import { logger } from "../../utils/logger";
 import { findDisplay, isJS9Available } from "../../utils/js9";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 interface QuickAnalysisPanelProps {
@@ -126,8 +124,9 @@ export default function QuickAnalysisPanel({ displayId = "js9Display" }: QuickAn
         const y = evt.clientY - rect.top;
 
         // Get pixel value and WCS coordinates
-        const imageId = display.im.id;
-        const pixelValue = window.JS9.GetVal?.(imageId, x, y);
+        const imageId = display.im?.id;
+        if (!imageId) return;
+        const pixelValue = window.JS9.GetVal?.(imageId, x, y) as number | undefined;
         const wcs = window.JS9.GetWCS?.(imageId, x, y);
 
         if (wcs && pixelValue !== undefined) {
@@ -136,7 +135,7 @@ export default function QuickAnalysisPanel({ displayId = "js9Display" }: QuickAn
             dec: wcs.dec || 0,
             x: Math.round(x),
             y: Math.round(y),
-            value: pixelValue,
+            value: pixelValue as number,
           });
           setMousePosition({ x, y });
         }
@@ -273,7 +272,7 @@ export default function QuickAnalysisPanel({ displayId = "js9Display" }: QuickAn
 
       // Extract pixel values in region (simplified - would need proper region mask)
       const values: number[] = [];
-      const data = imageData.data as number[];
+      const data = imageData.data as unknown as number[];
 
       // Simple extraction: all pixels (in real implementation, mask by region)
       for (let i = 0; i < data.length; i++) {
@@ -381,7 +380,7 @@ export default function QuickAnalysisPanel({ displayId = "js9Display" }: QuickAn
       }
 
       // Export as CSV
-      const data = imageData.data as number[];
+      const data = imageData.data as unknown as number[];
       const csvRows = ["x,y,value"];
 
       for (let y = 0; y < imageData.height; y++) {

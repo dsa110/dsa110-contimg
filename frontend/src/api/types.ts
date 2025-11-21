@@ -248,6 +248,13 @@ export interface ImageInfo {
   peak?: number;
   imaging_backend?: "wsclean" | "tclean" | null;
   imager?: string;
+  // Additional properties used in components
+  fits_path?: string;
+  source_ms?: string;
+  image_id?: string;
+  thumbnail_path?: string;
+  image_type?: string;
+  stokes?: string;
 }
 
 // Additional types from backend API models
@@ -497,9 +504,9 @@ export interface FlaggingStats {
 }
 
 export interface CalTableCompatibility {
-  ms_path: string;
-  compatible_tables: string[];
-  incompatible_tables: string[];
+  is_compatible: boolean;
+  issues: string[];
+  warnings: string[];
 }
 
 export interface JobList {
@@ -517,7 +524,7 @@ export interface Job {
 }
 
 export interface JobCreateRequest {
-  type: string;
+  type?: string;
   params: Record<string, unknown>;
 }
 
@@ -906,4 +913,40 @@ export interface CalibrationStatus {
   started_at?: string;
   duration?: number;
   config?: CalibrationConfig;
+}
+
+// Transient Types
+export interface TransientAlert {
+  id: string | number;
+  timestamp: string;
+  level: "info" | "warning" | "critical";
+  alert_level?: string;
+  source: string;
+  message: string;
+  alert_message?: string;
+  created_at?: number;
+  acknowledged: boolean;
+  acknowledged_by?: string;
+  acknowledged_at?: string;
+}
+
+export interface TransientCandidate {
+  id: string | number;
+  ra: number;
+  dec: number;
+  snr: number;
+  flux: number;
+  timestamp: string;
+  detection_method: string;
+  classification?: string;
+  follow_up_status?: string;
+}
+
+// Job Parameters Types
+export interface CalibrateJobParams {
+  calibrator?: string;
+  refant?: string;
+  solint?: string;
+  gaintype?: string;
+  [key: string]: unknown;
 }

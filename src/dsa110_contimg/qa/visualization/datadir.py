@@ -33,9 +33,7 @@ def _match_pattern(path: str, pattern: str) -> bool:
     if "/" in pattern:
         patt_dir, patt_name = os.path.split(pattern)
         path_dir, path_name = os.path.split(path)
-        return fnmatch.fnmatch(path_dir, patt_dir) and fnmatch.fnmatch(
-            path_name, patt_name
-        )
+        return fnmatch.fnmatch(path_dir, patt_dir) and fnmatch.fnmatch(path_name, patt_name)
     else:
         return fnmatch.fnmatch(os.path.basename(path), pattern)
 
@@ -56,9 +54,7 @@ def _matches(
     Returns:
         True if filename matches criteria
     """
-    if include_patterns and not any(
-        [_match_pattern(filename, patt) for patt in include_patterns]
-    ):
+    if include_patterns and not any([_match_pattern(filename, patt) for patt in include_patterns]):
         return False
     return not any([_match_pattern(filename, patt) for patt in exclude_patterns])
 

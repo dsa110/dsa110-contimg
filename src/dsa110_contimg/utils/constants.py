@@ -25,9 +25,7 @@ OVRO_LON = -118.283405115 * np.pi / 180  # radians
 OVRO_ALT = 1188.0519  # meters
 
 # Legacy OVRO_LOCATION (deprecated - use DSA110_LOCATION instead)
-OVRO_LOCATION = EarthLocation(
-    lat=OVRO_LAT * u.rad, lon=OVRO_LON * u.rad, height=OVRO_ALT * u.m
-)
+OVRO_LOCATION = EarthLocation(lat=OVRO_LAT * u.rad, lon=OVRO_LON * u.rad, height=OVRO_ALT * u.m)
 
 # Telescope parameters
 NANTS = 117  # Total number of antennas

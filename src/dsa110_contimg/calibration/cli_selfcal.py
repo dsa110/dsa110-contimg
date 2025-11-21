@@ -9,14 +9,12 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
 
 from dsa110_contimg.calibration.selfcal import (
     SelfCalConfig,
-    SelfCalibrator,
     selfcal_ms,
 )
-from dsa110_contimg.utils.casa_requirements import require_casa6_python
+from dsa110_contimg.utils.runtime_safeguards import require_casa6_python
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +91,8 @@ def cmd_selfcal(args: argparse.Namespace) -> int:
     print("SELF-CALIBRATION SUMMARY")
     print("=" * 80)
     print(f"Status: {summary['status']}")
-    print(f"Iterations completed: {summary['iterations_completed']}")
+    if "iterations_completed" in summary:
+        print(f"Iterations completed: {summary['iterations_completed']}")
 
     if summary["status"] == "success":
         print(f"Initial SNR: {summary['initial_snr']:.1f}")

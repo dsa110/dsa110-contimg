@@ -19,7 +19,7 @@ import {
 } from "@mui/material";
 import { CheckCircle, Error, Warning } from "@mui/icons-material";
 import { useCatalogValidation, useRunCatalogValidation } from "../../api/queries";
-import type { CatalogValidationResult } from "../../api/types";
+import type { CatalogValidationResults } from "../../api/types";
 
 interface CatalogValidationPanelProps {
   imageId: string | null;

@@ -57,7 +57,7 @@ export default function AbsurdPage() {
     if (!health || !stats) return { color: "default" as const, label: "Unknown" };
 
     const failureRate = stats.failed / (stats.completed + stats.failed || 1);
-    const queueBacklog = stats.pending + stats.active;
+    const queueBacklog = stats.pending + stats.claimed;
 
     if (failureRate > 0.2 || stats.failed > 10) {
       return { color: "error" as const, label: "Degraded" };
@@ -120,7 +120,7 @@ export default function AbsurdPage() {
                     Active Tasks
                   </Typography>
                   <Typography variant="h6" color="primary.main">
-                    {stats.active}
+                    {stats.claimed}
                   </Typography>
                 </Box>
                 <Box>
@@ -150,7 +150,7 @@ export default function AbsurdPage() {
                     Retry Queue
                   </Typography>
                   <Typography variant="h6" color="warning.main">
-                    {stats.retry}
+                    {stats.cancelled}
                   </Typography>
                 </Box>
               </Stack>

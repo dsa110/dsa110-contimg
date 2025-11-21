@@ -27,9 +27,7 @@ import { logger } from "../../utils/logger";
 import { findDisplay } from "../../utils/js9";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 interface ProfileToolProps {
@@ -288,7 +286,8 @@ export default function ProfileTool({ displayId, imageId, onProfileExtracted }: 
             }
           }
           // Auto-complete for point profile (1 point)
-          else if (profileType === "point" && newCoords.length >= 1) {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          if ((profileType as string) === "point" && newCoords.length >= 1) {
             setIsDrawing(false);
             if (clickHandlerRef.current) {
               canvas.removeEventListener("click", clickHandlerRef.current);

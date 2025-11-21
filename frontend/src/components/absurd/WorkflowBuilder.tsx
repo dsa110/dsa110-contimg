@@ -6,7 +6,6 @@
 import { useState, useCallback } from "react";
 import {
   Box,
-  Paper,
   Typography,
   Button,
   Stepper,

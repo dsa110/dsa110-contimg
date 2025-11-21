@@ -23,9 +23,7 @@ import {
 import { logger } from "../../utils/logger";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 interface RegionToolsProps {

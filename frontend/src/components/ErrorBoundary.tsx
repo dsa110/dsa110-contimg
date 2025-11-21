@@ -201,12 +201,12 @@ function ErrorBoundary(props: Props) {
     const sanitizedPath = sanitizePath(path);
     if (sanitizedPath) {
       // Path has been validated by sanitizePath() - safe to use
-      // eslint-disable-next-line no-restricted-globals
+
       window.location.href = sanitizedPath;
     } else {
       // If path is invalid, default to dashboard
       console.warn(`Invalid navigation path: ${path}. Redirecting to dashboard.`);
-      // eslint-disable-next-line no-restricted-globals
+
       window.location.href = "/dashboard";
     }
   };

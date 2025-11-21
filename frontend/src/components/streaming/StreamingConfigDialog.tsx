@@ -7,10 +7,10 @@ import {
   Button,
   TextField,
   Stack,
-  Grid,
   FormControlLabel,
   Switch,
 } from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
 import type { StreamingConfig } from "../../api/queries";
 
 interface StreamingConfigDialogProps {

@@ -254,9 +254,7 @@ def generate_fits_viewer_notebook(
         title = f"FITS Viewer - {len(fits_paths)} files"
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    nb.cells.append(
-        nbformat.v4.new_markdown_cell(f"# {title}\n\nGenerated: {timestamp}")
-    )
+    nb.cells.append(nbformat.v4.new_markdown_cell(f"# {title}\n\nGenerated: {timestamp}"))
 
     # Imports
     imports_code = """
@@ -316,9 +314,7 @@ def generate_ms_explorer_notebook(
         title = f"MS Explorer - {Path(ms_path).name}"
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    nb.cells.append(
-        nbformat.v4.new_markdown_cell(f"# {title}\n\nGenerated: {timestamp}")
-    )
+    nb.cells.append(nbformat.v4.new_markdown_cell(f"# {title}\n\nGenerated: {timestamp}"))
 
     # Imports
     imports_code = """

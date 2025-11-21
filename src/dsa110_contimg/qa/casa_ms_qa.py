@@ -280,9 +280,7 @@ def calibration_dryrun(
     return result
 
 
-def tclean_smoketest(
-    ms_path: str, qa_root: str, imagename: str = "smoke"
-) -> Dict[str, Any]:
+def tclean_smoketest(ms_path: str, qa_root: str, imagename: str = "smoke") -> Dict[str, Any]:
     _, tasks, _ = _import_casa()
     imgroot = os.path.join(qa_root, imagename)
     try:
@@ -317,9 +315,7 @@ def tclean_smoketest(
     }
 
 
-def evaluate_pass_fail(
-    metrics: Dict[str, Any], thresholds: QaThresholds
-) -> Tuple[bool, List[str]]:
+def evaluate_pass_fail(metrics: Dict[str, Any], thresholds: QaThresholds) -> Tuple[bool, List[str]]:
     reasons: List[str] = []
     ok = True
 
@@ -349,9 +345,7 @@ def evaluate_pass_fail(
     naninf_frac = metrics.get("data_integrity", {}).get("naninf_fraction")
     if naninf_frac is not None and naninf_frac > thresholds.max_naninf_fraction:
         ok = False
-        reasons.append(
-            f"NaN/Inf fraction {naninf_frac:.3f} > {thresholds.max_naninf_fraction}"
-        )
+        reasons.append(f"NaN/Inf fraction {naninf_frac:.3f} > {thresholds.max_naninf_fraction}")
 
     # Antenna count
     n_ant = metrics.get("antenna_geometry", {}).get("num_antennas")

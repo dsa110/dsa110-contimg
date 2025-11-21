@@ -301,9 +301,7 @@ def construct_caltable_prefix(ms_path: Path, cal_type: str) -> str:
     return f"{sanitized_stem}_{cal_type}"
 
 
-def validate_path_safe(
-    path: Path, base_dir: Optional[Path] = None
-) -> Tuple[bool, Optional[str]]:
+def validate_path_safe(path: Path, base_dir: Optional[Path] = None) -> Tuple[bool, Optional[str]]:
     """Validate that a path is safe and within base directory if provided.
 
     Args:

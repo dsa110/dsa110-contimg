@@ -26,9 +26,7 @@ import { useJS9Safe } from "../../contexts/JS9Context";
 // import styles from "./Sky.module.css";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 interface ImageControlsProps {

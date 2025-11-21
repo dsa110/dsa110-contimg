@@ -1,6 +1,7 @@
 """Core imaging functions for imaging CLI."""
 
 import logging
+import math
 import os
 import shutil
 import subprocess
@@ -13,12 +14,12 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
 # Prefer module import so mocks on casacore.tables.table are respected at call time
-import casacore.tables as casatables
-import numpy as np
+import casacore.tables as casatables  # noqa: E402
+import numpy as np  # noqa: E402
 
 # Back-compat symbol for tests that patch dsa110_contimg.imaging.cli_imaging.table
 table = casatables.table  # noqa: N816 (kept for test patchability)
-from casatasks import exportfits, tclean  # type: ignore[import]
+from casatasks import exportfits, tclean  # type: ignore[import]  # noqa: E402
 
 try:
     from casatools import msmetadata as _msmd  # type: ignore[import]
@@ -27,11 +28,11 @@ except Exception:  # pragma: no cover
     _vpmanager = None
     _msmd = None
 
-from dsa110_contimg.imaging.cli_utils import default_cell_arcsec, detect_datacolumn
-from dsa110_contimg.utils.error_context import format_ms_error_with_suggestions
-from dsa110_contimg.utils.performance import track_performance
-from dsa110_contimg.utils.runtime_safeguards import require_casa6_python
-from dsa110_contimg.utils.validation import ValidationError, validate_ms
+from dsa110_contimg.imaging.cli_utils import default_cell_arcsec, detect_datacolumn  # noqa: E402
+from dsa110_contimg.utils.error_context import format_ms_error_with_suggestions  # noqa: E402
+from dsa110_contimg.utils.performance import track_performance  # noqa: E402
+from dsa110_contimg.utils.runtime_safeguards import require_casa6_python  # noqa: E402
+from dsa110_contimg.utils.validation import ValidationError, validate_ms  # noqa: E402
 
 LOG = logging.getLogger(__name__)
 
@@ -39,13 +40,9 @@ LOG = logging.getLogger(__name__)
 FIXED_IMAGE_EXTENT_DEG = 3.5
 
 try:
-    from dsa110_contimg.utils.tempdirs import (
-        derive_default_scratch_root,
-        prepare_temp_environment,
-    )
+    from dsa110_contimg.utils.tempdirs import prepare_temp_environment
 except Exception:  # pragma: no cover - defensive import
     prepare_temp_environment = None  # type: ignore
-    derive_default_scratch_root = None  # type: ignore
 
 
 @track_performance("wsclean", log_result=True)
@@ -98,17 +95,19 @@ def run_wsclean(
 
         if mask_path:
             try:
+                from pathlib import Path as PathlibPath
+
                 prepared_mask = prepare_cleaning_mask(
-                    fits_mask=mask_path,
-                    target_mask=target_mask,
-                    galvin_clip_mask=galvin_clip_mask,
+                    fits_mask=PathlibPath(mask_path),
+                    target_mask=PathlibPath(target_mask) if target_mask else None,
+                    galvin_clip_mask=PathlibPath(galvin_clip_mask) if galvin_clip_mask else None,
                     erode_beam_shape=erode_beam_shape,
                 )
                 if prepared_mask:
                     mask_path = str(prepared_mask)
             except Exception as e:
                 LOG.warning(
-                    f"Failed to prepare advanced mask: {e}. Proceeding with original mask if any."
+                    "Failed to prepare advanced mask: %s. Proceeding with original mask if any.", e
                 )
 
     # Find WSClean executable
@@ -283,7 +282,7 @@ def run_wsclean(
 
     num_threads = os.getenv("WSCLEAN_THREADS", str(multiprocessing.cpu_count()))
     cmd.extend(["-j", num_threads])
-    LOG.debug(f"Using {num_threads} threads for WSClean")
+    LOG.debug("Using %s threads for WSClean", num_threads)
 
     # Memory limit (optimized for performance)
     # Development tier: Use more memory for faster gridding/FFT (16GB default)
@@ -295,7 +294,7 @@ def run_wsclean(
         # Production mode: Scale with image size
         abs_mem = os.getenv("WSCLEAN_ABS_MEM", "32" if imsize > 2048 else "16")
     cmd.extend(["-abs-mem", abs_mem])
-    LOG.debug(f"WSClean memory allocation: {abs_mem}GB")
+    LOG.debug("WSClean memory allocation: %sGB", abs_mem)
 
     # Polarity
     cmd.extend(["-pol", "I"])
@@ -516,7 +515,7 @@ def image_ms(
         # CRITICAL: Check disk space (fatal check for imaging operations)
         from dsa110_contimg.mosaic.error_handling import check_disk_space
 
-        has_space, space_msg = check_disk_space(
+        _, space_msg = check_disk_space(
             imagename,
             required_bytes=image_size_estimate,
             operation=f"imaging of {ms_path}",
@@ -528,7 +527,7 @@ def image_ms(
         raise
     except Exception as e:
         # Other exceptions: log warning but don't fail (may be permission issues, etc.)
-        LOG.warning(f"Failed to check disk space: {e}")
+        LOG.warning("Failed to check disk space: %s", e)
 
     # Prepare temp dirs and working directory to keep TempLattice* off the repo
     try:
@@ -669,11 +668,9 @@ def image_ms(
     kwargs["savemodel"] = "none"
 
     # Compute approximate FoV radius from image geometry
-    import math as _math
-
     fov_x = (cell_arcsec * imsize) / 3600.0
     fov_y = (cell_arcsec * imsize) / 3600.0
-    radius_deg = 0.5 * float(_math.hypot(fov_x, fov_y))
+    radius_deg = 0.5 * float(math.hypot(fov_x, fov_y))
 
     # Get phase center from MS (needed for mask generation and unified catalog seeding)
     ra0_deg = dec0_deg = None
@@ -703,7 +700,7 @@ def image_ms(
             # crude small-angle separation in deg
             d_ra = (float(calib_ra_deg) - ra0_deg) * np.cos(np.deg2rad(dec0_deg))
             d_dec = float(calib_dec_deg) - dec0_deg
-            sep_deg = float(_math.hypot(d_ra, d_dec))
+            sep_deg = float(math.hypot(d_ra, d_dec))
             if sep_deg <= radius_deg * 1.05:
                 from dsa110_contimg.calibration.skymodels import (  # type: ignore
                     ft_from_cl,
@@ -761,8 +758,6 @@ def image_ms(
             # Primary beam FWHM = 1.22 * lambda / D
             # For DSA-110: D = 4.7 m, lambda = c / (freq_ghz * 1e9)
             # At pblimit=0.2, effective radius is approximately FWHM * sqrt(-ln(0.2)) / sqrt(-ln(0.5))
-            import math
-
             c_mps = 299792458.0
             dish_dia_m = 4.7
             lambda_m = c_mps / (freq_ghz * 1e9)
@@ -807,9 +802,6 @@ def image_ms(
                     )
 
                     # Determine wsclean executable
-                    import shutil
-                    import subprocess
-
                     wsclean_exec = wsclean_path
                     if not wsclean_exec:
                         wsclean_exec = shutil.which("wsclean")
@@ -825,10 +817,7 @@ def image_ms(
                     if use_docker:
                         # Docker command construction
                         # We need to map volumes. Assumes simple paths (no complex relative paths)
-                        ms_dir = os.path.dirname(os.path.abspath(ms_path))
-                        ms_name = os.path.basename(ms_path)
                         txt_dir = os.path.dirname(os.path.abspath(txt_path))
-                        txt_name = os.path.basename(txt_path)
 
                         # Convert decimal degrees to h:m:s and d:m:s format
                         # WSClean requires this format for -draw-centre
@@ -889,9 +878,9 @@ def image_ms(
                         model_file = os.path.join(txt_dir, "nvss_model-model.fits")
                         if os.path.exists(term_file):
                             shutil.move(term_file, model_file)
-                            LOG.info(f"Renamed {term_file} -> {model_file}")
+                            LOG.info("Renamed %s -> %s", term_file, model_file)
                         else:
-                            LOG.warning(f"Expected output file not found: {term_file}")
+                            LOG.warning("Expected output file not found: %s", term_file)
 
                         # Step 2: Predict from rendered image using long-running container
                         ms_container = convert_host_path_to_container(ms_path)
@@ -912,15 +901,15 @@ def image_ms(
                             )
 
                             elapsed = time.perf_counter() - start_time
-                            LOG.info(f"WSClean -predict completed successfully in {elapsed:.1f}s")
+                            LOG.info("WSClean -predict completed successfully in %.1fs", elapsed)
 
                         except subprocess.TimeoutExpired:
                             elapsed = time.perf_counter() - start_time
-                            LOG.error(f"WSClean -predict timeout after {elapsed:.1f}s")
+                            LOG.error("WSClean -predict timeout after %.1fs", elapsed)
                             raise
                         except subprocess.CalledProcessError as e:
                             elapsed = time.perf_counter() - start_time
-                            LOG.error(f"WSClean -predict failed after {elapsed:.1f}s: {e}")
+                            LOG.error("WSClean -predict failed after %.1fs: %s", elapsed, e)
                             raise
 
                     else:
@@ -968,9 +957,9 @@ def image_ms(
                         model_file = f"{imagename}.nvss_model-model.fits"
                         if os.path.exists(term_file):
                             shutil.move(term_file, model_file)
-                            LOG.info(f"Renamed {term_file} -> {model_file}")
+                            LOG.info("Renamed %s -> %s", term_file, model_file)
                         else:
-                            LOG.warning(f"Expected output file not found: {term_file}")
+                            LOG.warning("Expected output file not found: %s", term_file)
 
                         # Step 2: Predict
                         cmd_predict = [
@@ -989,7 +978,7 @@ def image_ms(
                         start_time = time.perf_counter()
 
                         try:
-                            result = subprocess.run(
+                            subprocess.run(
                                 cmd_predict, check=True, timeout=600, capture_output=True, text=True
                             )
                             elapsed = time.perf_counter() - start_time
@@ -997,7 +986,7 @@ def image_ms(
                                 "DIAGNOSTIC: Native WSClean -predict completed successfully in %.1fs",
                                 elapsed,
                             )
-                        except subprocess.TimeoutExpired as e:
+                        except subprocess.TimeoutExpired:
                             elapsed = time.perf_counter() - start_time
                             LOG.error("DIAGNOSTIC: subprocess.TimeoutExpired after %.1fs", elapsed)
                             raise
@@ -1021,19 +1010,19 @@ def image_ms(
 
             else:
                 # Use CASA ft() (standard/tclean)
-                cl_path = f"{imagename}.nvss_{float(nvss_min_mjy):g}mJy.cl"
+                cl_path = f"{imagename}.nvss_{float(unicat_min_mjy):g}mJy.cl"
                 LOG.info(
                     "Creating NVSS componentlist (>%s mJy, radius %.2f deg, center RA=%.6f° Dec=%.6f°)",
-                    nvss_min_mjy,
-                    nvss_radius_deg,
+                    unicat_min_mjy,
+                    unicat_radius_deg,
                     ra0_deg,
                     dec0_deg,
                 )
                 make_nvss_component_cl(
                     ra0_deg,
                     dec0_deg,
-                    nvss_radius_deg,
-                    min_mjy=float(nvss_min_mjy),
+                    unicat_radius_deg,
+                    min_mjy=float(unicat_min_mjy),
                     freq_ghz=freq_ghz,
                     out_path=cl_path,
                 )
@@ -1044,8 +1033,8 @@ def image_ms(
                 ft_from_cl(ms_path, cl_path, field=field or "0", usescratch=True)
                 LOG.info(
                     "Seeded MODEL_DATA with NVSS skymodel (>%s mJy, radius %.2f deg)",
-                    nvss_min_mjy,
-                    nvss_radius_deg,
+                    unicat_min_mjy,
+                    unicat_radius_deg,
                 )
 
             # Export MODEL_DATA as FITS image if requested
@@ -1054,7 +1043,7 @@ def image_ms(
                     from dsa110_contimg.calibration.model import export_model_as_fits
 
                     output_path = f"{imagename}.nvss_model"
-                    LOG.info(f"Exporting NVSS model image to {output_path}.fits...")
+                    LOG.info("Exporting NVSS model image to %s.fits...", output_path)
                     export_model_as_fits(
                         ms_path,
                         output_path,
@@ -1063,7 +1052,7 @@ def image_ms(
                         cell_arcsec=1.0,
                     )
                 except Exception as e:
-                    LOG.warning(f"Failed to export NVSS model image: {e}")
+                    LOG.warning("Failed to export NVSS model image: %s", e)
         except Exception as exc:
             LOG.warning("NVSS skymodel seeding skipped: %s", exc)
             import traceback
@@ -1167,10 +1156,14 @@ def image_ms(
 
             if mask_path:
                 try:
+                    from pathlib import Path as PathlibPath
+
                     prepared_mask = prepare_cleaning_mask(
-                        fits_mask=mask_path,
-                        target_mask=target_mask,
-                        galvin_clip_mask=galvin_clip_mask,
+                        fits_mask=PathlibPath(mask_path),
+                        target_mask=PathlibPath(target_mask) if target_mask else None,
+                        galvin_clip_mask=(
+                            PathlibPath(galvin_clip_mask) if galvin_clip_mask else None
+                        ),
                         erode_beam_shape=erode_beam_shape,
                     )
                     if prepared_mask:
@@ -1180,7 +1173,8 @@ def image_ms(
                         LOG.info("Using prepared mask for tclean: %s", mask_path)
                 except Exception as e:
                     LOG.warning(
-                        f"Failed to prepare advanced mask for tclean: {e}. Proceeding with default mask behavior."
+                        "Failed to prepare advanced mask for tclean: %s. Proceeding with default mask behavior.",
+                        e,
                     )
             elif target_mask:
                 # If only target_mask is provided, we could use it as the mask?
@@ -1208,7 +1202,7 @@ def image_ms(
                 kwargs["mask"] = casa_mask
                 kwargs["usemask"] = "user"
             except Exception as e:
-                LOG.warning(f"Failed to convert FITS mask to CASA image: {e}")
+                LOG.warning("Failed to convert FITS mask to CASA image: %s", e)
 
         if mask_path and not kwargs.get("mask"):
             LOG.warning(
@@ -1216,7 +1210,7 @@ def image_ms(
             )
 
         t0 = time.perf_counter()
-        tclean(**kwargs)
+        tclean(**kwargs)  # type: ignore[arg-type]  # CASA uses dynamic kwargs
         LOG.info("tclean completed in %.2fs", time.perf_counter() - t0)
 
     # QA validation of image products

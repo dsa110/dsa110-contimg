@@ -20,7 +20,6 @@ import {
   Tooltip,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import LabelIcon from "@mui/icons-material/Label";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import { useTransientAlerts, useAcknowledgeAlert } from "../../api/queries";

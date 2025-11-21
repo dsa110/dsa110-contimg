@@ -16,7 +16,7 @@ declare global {
  */
 export interface JS9Instance {
   displays: JS9Display[];
-  images: JS9Image[];
+  images: Record<string, JS9Image>;
   opts: Record<string, any>;
   InstallDir?: string;
 
@@ -40,14 +40,20 @@ export interface JS9Instance {
   RefreshImage(display?: JS9Display | string): void;
 
   // Display management
-  SetDisplay(displayId: string): void;
+  SetDisplay(displayId: string, imageId?: string): void;
   GetDisplays(): JS9Display[];
   AddDivs(divId: string, opts?: Record<string, unknown>): void;
-  ResizeDisplay(width: number, height: number, display?: JS9Display | string): void;
+  ResizeDisplay(displayId?: string): void;
 
   // Image data access
-  GetImageData(imageId?: string, display?: JS9Display | string): ImageData | null;
-  GetWCS(imageId?: string, display?: JS9Display | string): WCSInfo | null;
+  GetImageData(
+    imageId?: string,
+    display?: JS9Display | string
+  ): (ImageRawData & { file?: string }) | null;
+  GetWCS(imageId?: string, x?: number, y?: number): WCSInfo | null;
+  GetFITSHeader?(imageId?: string, display?: JS9Display | string): Record<string, any> | null;
+  PixToWCS?(imageId: string, x: number, y: number): WCSCoordinates | null;
+  Pix2Image?(imageId: string, x: number, y: number): { x: number; y: number } | null;
   PixToWCS(
     x: number,
     y: number,
@@ -63,23 +69,33 @@ export interface JS9Instance {
 
   // Colormap and scale
   SetColormap(
-    colormap: string,
+    imageIdOrColormap: string | ColormapInfo,
+    colormapOrContrast?: string | number | ColormapInfo,
     contrast?: number,
     bias?: number,
     display?: JS9Display | string
   ): void;
-  GetColormap(display?: JS9Display | string): ColormapInfo | null;
+  GetColormap(imageIdOrDisplay?: string | JS9Display): ColormapInfo | null;
   SetScale(
-    scale: string,
+    imageIdOrScale: string | ScaleInfo,
+    scaleOrScalemin?: string | number | ScaleInfo,
     scalemin?: number,
     scalemax?: number,
     display?: JS9Display | string
   ): void;
-  GetScale(display?: JS9Display | string): ScaleInfo | null;
+  GetScale(imageIdOrDisplay?: string | JS9Display): ScaleInfo | null;
+
+  // Image synchronization
+  SyncImages?(displayIds: string[], options?: Record<string, boolean>): void;
+  BlendImage?(enabled: boolean, imageId?: string, display?: JS9Display | string): void;
 
   // Zoom and pan
-  SetZoom(zoom: number | string, display?: JS9Display | string): void;
-  GetZoom(display?: JS9Display | string): number;
+  SetZoom(
+    imageIdOrZoom: string | number,
+    zoomOrDisplay?: number | string | JS9Display,
+    display?: JS9Display | string
+  ): void;
+  GetZoom(imageIdOrDisplay?: string | JS9Display): number;
   SetPan(x: number, y: number, display?: JS9Display | string): void;
   GetPan(display?: JS9Display | string): { x: number; y: number } | null;
 
@@ -143,6 +159,16 @@ export interface JS9Instance {
   // Utilities
   LookupImage(imageId: string | number, display?: JS9Display | string): JS9Image | null;
   GetDisplayImage(display: JS9Display | string): JS9Image | null;
+
+  // Additional methods used in components (may not be in standard JS9 API)
+  AddOverlay?(
+    imageId: string,
+    opts: Record<string, unknown>,
+    display?: JS9Display | string
+  ): unknown;
+  SetGrid?(enabled: boolean, display?: JS9Display | string): void;
+  GetVal?(imageId: string, x: number, y: number, opts?: Record<string, unknown>): unknown;
+  AddAnalysis?(opts: Record<string, unknown>): void;
 }
 
 /**
@@ -172,6 +198,9 @@ export interface JS9Image {
   header?: FITSHeader;
   params?: ImageParams;
   display?: JS9Display;
+  x?: number;
+  y?: number;
+  scale?: { scale: string; scalemin: number; scalemax: number };
   raw?: ImageRawData;
   offscreen?: {
     canvas: HTMLCanvasElement;
@@ -241,7 +270,12 @@ export type JS9EventType =
   | "mouseout"
   | "touchstart"
   | "touchmove"
-  | "touchend";
+  | "touchend"
+  | "zoom"
+  | "pan"
+  | "colormap"
+  | "scale"
+  | string;
 
 /**
  * JS9 Event callback
@@ -292,6 +326,12 @@ export interface WCSInfo {
   ctype2?: string;
   cunit1?: string;
   cunit2?: string;
+  // For pixel-to-WCS conversion
+  ra?: number;
+  dec?: number;
+  // For WCS-to-pixel conversion
+  x?: number;
+  y?: number;
   [key: string]: unknown;
 }
 

@@ -84,9 +84,7 @@ def get_declinations(
     3. For jumps, do granular search in that interval
     4. Otherwise use sparse sample
     """
-    print(
-        "Reading declinations using sparse sampling with granular search around jumps..."
-    )
+    print("Reading declinations using sparse sampling with granular search around jumps...")
 
     # Helper to read declination for a single timestamp
     def read_dec_for_timestamp(timestamp):
@@ -130,14 +128,10 @@ def get_declinations(
     last_idx = 0
 
     for i in range(1, len(sparse_dec_data)):
-        dec_diff = abs(
-            sparse_dec_data[i]["declination"] - sparse_dec_data[i - 1]["declination"]
-        )
+        dec_diff = abs(sparse_dec_data[i]["declination"] - sparse_dec_data[i - 1]["declination"])
 
         if dec_diff > jump_threshold_deg:
-            print(
-                f"  Declination jump of {dec_diff:.2f}° detected. Processing granularly..."
-            )
+            print(f"  Declination jump of {dec_diff:.2f}° detected. Processing granularly...")
 
             # Add the segment before the jump
             final_dec_data.extend(sparse_dec_data[last_idx:i])
@@ -149,9 +143,7 @@ def get_declinations(
             # Find all timestamps in this interval
             granular_timestamps = [t for t in timestamps if start_time <= t <= end_time]
 
-            print(
-                f"    Reading {len(granular_timestamps)} timestamps in jump interval..."
-            )
+            print(f"    Reading {len(granular_timestamps)} timestamps in jump interval...")
             for timestamp in granular_timestamps:
                 dec = read_dec_for_timestamp(timestamp)
                 if dec is not None:
@@ -212,9 +204,7 @@ def plot_timeline(
 
     # Get and plot declination data if data_dir provided
     if data_dir:
-        dec_data = get_declinations(
-            data_dir, timestamps, jump_threshold_deg=jump_threshold_deg
-        )
+        dec_data = get_declinations(data_dir, timestamps, jump_threshold_deg=jump_threshold_deg)
         if dec_data:
             dec_times = [d["datetime"] for d in dec_data]
             dec_values = [d["declination"] for d in dec_data]
@@ -306,9 +296,7 @@ def crossmatch_transits_pointings(
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="DSA-110 Pointing/Observation Utilities CLI"
-    )
+    parser = argparse.ArgumentParser(description="DSA-110 Pointing/Observation Utilities CLI")
     # Add common logging arguments to main parser
     add_common_logging_args(parser)
 
@@ -331,9 +319,7 @@ def main():
         "--data-dir", type=Path, required=True, help="Directory containing UVH5 files"
     )
     pt_parser.add_argument("--output", type=Path, required=True, help="Output PNG path")
-    pt_parser.add_argument(
-        "--start-date", type=str, help="Start date filter (YYYY-MM-DD)"
-    )
+    pt_parser.add_argument("--start-date", type=str, help="Start date filter (YYYY-MM-DD)")
     pt_parser.add_argument("--end-date", type=str, help="End date filter (YYYY-MM-DD)")
     pt_parser.add_argument(
         "--jump-threshold-deg",
@@ -355,9 +341,7 @@ def main():
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    cm_parser.add_argument(
-        "--name", required=True, help="Calibrator name (e.g., '0834+555')"
-    )
+    cm_parser.add_argument("--name", required=True, help="Calibrator name (e.g., '0834+555')")
     cm_parser.add_argument(
         "--input-dir", default="/data/incoming", help="Input directory with UVH5 files"
     )
@@ -387,9 +371,7 @@ def main():
         default=10.0,
         help="Time padding around transit (minutes)",
     )
-    cm_parser.add_argument(
-        "--days-back", type=int, default=21, help="Days to search back"
-    )
+    cm_parser.add_argument("--days-back", type=int, default=21, help="Days to search back")
     cm_parser.add_argument("--json", action="store_true", help="Output as JSON")
 
     args = parser.parse_args()
@@ -458,9 +440,7 @@ def main():
                 print(f"  Transit: {result['transit_iso']}")
                 print(f"  Group ID: {result['group_id']}")
                 print(f"  Declination: {result['dec_deg']:.2f}°")
-                print(
-                    f"  Delta from transit: {result['delta_minutes_mid']:.1f} minutes"
-                )
+                print(f"  Delta from transit: {result['delta_minutes_mid']:.1f} minutes")
                 print(f"  Files: {len(result['files'])}")
                 print()
 

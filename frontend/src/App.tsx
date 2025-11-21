@@ -26,11 +26,12 @@ const SystemDiagnosticsPage = lazy(() => import("./pages/SystemDiagnosticsPage")
 const QAPage = lazy(() => import("./pages/QAPage"));
 
 // Component pages (used within consolidated pages, not as standalone routes)
-const ControlPage = lazy(() => import("./pages/ControlPage"));
-const StreamingPage = lazy(() => import("./pages/StreamingPage"));
-const ObservingPage = lazy(() => import("./pages/ObservingPage"));
-const HealthPage = lazy(() => import("./pages/HealthPage"));
-const CachePage = lazy(() => import("./pages/CachePage"));
+// Commented out unused imports to fix TS6133
+// const ControlPage = lazy(() => import("./pages/ControlPage"));
+// const StreamingPage = lazy(() => import("./pages/StreamingPage"));
+// const ObservingPage = lazy(() => import("./pages/ObservingPage"));
+// const HealthPage = lazy(() => import("./pages/HealthPage"));
+// const CachePage = lazy(() => import("./pages/CachePage"));
 
 // Other pages
 const MosaicGalleryPage = lazy(() => import("./pages/MosaicGalleryPage"));

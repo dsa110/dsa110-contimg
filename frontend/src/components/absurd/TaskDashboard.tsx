@@ -18,7 +18,6 @@ import {
   Button,
   useTheme,
   alpha,
-  CircularProgress,
 } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
 import { Refresh, PlayArrow, CheckCircle, Error, Cancel, Schedule } from "@mui/icons-material";
@@ -41,11 +40,15 @@ export function TaskDashboard({ queueName = "dsa110-pipeline" }: TaskDashboardPr
   const {
     data: tasks,
     isLoading: tasksLoading,
+    isError: tasksError,
     refetch: refetchTasks,
   } = useAbsurdTasks(queueName, statusFilter === "all" ? undefined : statusFilter, 100);
 
-  const { data: stats, refetch: refetchStats } = useQueueStats(queueName);
-  const { data: health } = useAbsurdHealth();
+  const { data: stats, isError: statsError, refetch: refetchStats } = useQueueStats(queueName);
+  const { data: health, isError: healthError } = useAbsurdHealth();
+
+  // Check if ABSURD is unavailable (all queries failing)
+  const isUnavailable = (tasksError || statsError || healthError) && !health;
 
   // Handle task selection
   const handleTaskClick = (task: TaskInfo) => {
@@ -93,8 +96,34 @@ export function TaskDashboard({ queueName = "dsa110-pipeline" }: TaskDashboardPr
         </Button>
       </Box>
 
+      {/* ABSURD Unavailable Message */}
+      {isUnavailable && (
+        <Paper
+          sx={{
+            p: 3,
+            mb: 3,
+            bgcolor: alpha(theme.palette.warning.main, 0.1),
+            borderLeft: `4px solid ${theme.palette.warning.main}`,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Error sx={{ color: theme.palette.warning.main }} />
+            <Box>
+              <Typography variant="h6" sx={{ mb: 1 }}>
+                ABSURD Workflow Manager Unavailable
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                The ABSURD workflow manager is not currently available. This feature requires
+                PostgreSQL to be running and properly configured. To enable ABSURD, set
+                ABSURD_ENABLED=true and configure ABSURD_DATABASE_URL in your environment.
+              </Typography>
+            </Box>
+          </Box>
+        </Paper>
+      )}
+
       {/* Health Status Card */}
-      {health && (
+      {health && !isUnavailable && (
         <Paper
           sx={{
             p: 2,

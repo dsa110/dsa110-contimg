@@ -8,8 +8,9 @@ Provides functions to:
 """
 
 import logging
-from typing import List, Tuple, Optional
 from pathlib import Path
+from typing import List, Optional, Tuple
+
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -233,9 +234,7 @@ def filter_tiles_by_overlap(
     skipped = []
 
     for tile_path in tile_paths:
-        overlaps, reason = check_tile_overlaps_template(
-            tile_path, template_path, margin_pixels
-        )
+        overlaps, reason = check_tile_overlaps_template(tile_path, template_path, margin_pixels)
         if overlaps:
             overlapping.append(tile_path)
         else:

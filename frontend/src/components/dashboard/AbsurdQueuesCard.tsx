@@ -47,7 +47,7 @@ export function AbsurdQueuesCard() {
     if (!health || !queueStats) return "default";
 
     const failureRate = queueStats.failed / (queueStats.completed + queueStats.failed || 1);
-    const activeLoad = queueStats.active + queueStats.pending;
+    const activeLoad = queueStats.claimed + queueStats.pending;
 
     // Red: system unhealthy or high failure rate (>20%)
     if (health.status !== "healthy" || failureRate > 0.2) return "error";
@@ -128,7 +128,7 @@ export function AbsurdQueuesCard() {
               py: 2,
             }}
           >
-            <StatItem label="Active" value={queueStats?.active || 0} color="primary.main" />
+            <StatItem label="Active" value={queueStats?.claimed || 0} color="primary.main" />
             <StatItem label="Pending" value={queueStats?.pending || 0} color="warning.main" />
             <StatItem label="Failed" value={queueStats?.failed || 0} color="error.main" />
           </Box>

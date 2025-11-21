@@ -171,10 +171,19 @@ def create_unicat_fits_mask(
         if x < 0 or x >= imsize or y < 0 or y >= imsize:
             continue
 
-        # Create circular mask
-        y_grid, x_grid = np.ogrid[:imsize, :imsize]
-        dist_sq = (x_grid - x) ** 2 + (y_grid - y) ** 2
-        mask[dist_sq <= radius_pixels**2] = 1.0
+        # Create circular mask efficiently: only process bounding box
+        x_min = int(max(0, x - radius_pixels))
+        x_max = int(min(imsize, x + radius_pixels + 1))
+        y_min = int(max(0, y - radius_pixels))
+        y_max = int(min(imsize, y + radius_pixels + 1))
+
+        # Create meshgrid only for bounding box
+        yy, xx = np.mgrid[y_min:y_max, x_min:x_max]
+        dist_sq = (xx - x) ** 2 + (yy - y) ** 2
+        circle_mask = dist_sq <= radius_pixels**2
+
+        # Apply to mask
+        mask[y_min:y_max, x_min:x_max][circle_mask] = 1.0
 
     # Write FITS mask
     if out_path is None:

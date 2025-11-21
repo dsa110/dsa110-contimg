@@ -18,12 +18,6 @@ import { useFITSInfo } from "../../api/queries";
 import { apiClient } from "../../api/client";
 import DOMPurify from "dompurify";
 
-declare global {
-  interface Window {
-    JS9: any;
-  }
-}
-
 interface FITSViewerProps {
   fitsPath: string | null;
   height?: number;

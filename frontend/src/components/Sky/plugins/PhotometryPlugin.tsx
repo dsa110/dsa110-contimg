@@ -19,9 +19,7 @@ import { logger } from "../../../utils/logger";
 import { findDisplay, isJS9Available } from "../../../utils/js9";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 interface PhotometryStats {
@@ -177,7 +175,7 @@ class DSAPhotometryPlugin {
         if (typeof window.JS9.GetVal === "function") {
           for (const pixel of regionPixels) {
             try {
-              const value = window.JS9.GetVal(imageId, pixel.x, pixel.y);
+              const value = window.JS9.GetVal(imageId, Number(pixel.x), Number(pixel.y)) as number;
               if (value !== null && !isNaN(value) && isFinite(value)) {
                 pixels.push(value);
               }
@@ -245,7 +243,7 @@ class DSAPhotometryPlugin {
       // Register plugin with JS9
       // JS9.RegisterPlugin(class, name, constructor, {callbacks})
       if (typeof window.JS9.RegisterPlugin === "function") {
-        window.JS9.RegisterPlugin(
+        (window.JS9.RegisterPlugin as any)(
           DSAPhotometryPlugin,
           this.pluginName,
           (displayId: string) => new DSAPhotometryPlugin(displayId),

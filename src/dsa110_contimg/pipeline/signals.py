@@ -8,9 +8,9 @@ when interrupted (SIGTERM, SIGINT).
 from __future__ import annotations
 
 import logging
-from contextlib import contextmanager
 import signal
 import sys
+from contextlib import contextmanager
 from typing import Callable, Optional
 
 logger = logging.getLogger(__name__)
@@ -64,9 +64,7 @@ class GracefulShutdown:
                 self._original_handlers[sig] = signal.signal(sig, self._signal_handler)
                 logger.debug(f"Registered handler for {signal.Signals(sig).name}")
             except (ValueError, OSError) as e:
-                logger.warning(
-                    f"Could not register handler for {signal.Signals(sig).name}: {e}"
-                )
+                logger.warning(f"Could not register handler for {signal.Signals(sig).name}: {e}")
 
     def unregister(self):
         """Restore original signal handlers."""
@@ -75,9 +73,7 @@ class GracefulShutdown:
                 signal.signal(sig, handler)
                 logger.debug(f"Restored handler for {signal.Signals(sig).name}")
             except (ValueError, OSError) as e:
-                logger.warning(
-                    f"Could not restore handler for {signal.Signals(sig).name}: {e}"
-                )
+                logger.warning(f"Could not restore handler for {signal.Signals(sig).name}: {e}")
 
         self._original_handlers.clear()
 

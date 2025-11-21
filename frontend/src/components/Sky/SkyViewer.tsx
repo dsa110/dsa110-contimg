@@ -20,9 +20,7 @@ import styles from "./Sky.module.css";
 import WCSDisplay from "./WCSDisplay";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 interface SkyViewerProps {

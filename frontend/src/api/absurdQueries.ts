@@ -72,7 +72,12 @@ export function useAbsurdTasks(
   return useQuery({
     queryKey: ["absurd", "tasks", queueName, status, limit],
     queryFn: () => listTasks(queueName, status, limit),
-    refetchInterval: wsClient?.connected ? false : 5000, // Poll only if WebSocket not connected
+    refetchInterval: (query) => {
+      // Don't poll if WebSocket is connected OR if the last query failed
+      if (wsClient?.connected || query.state.status === "error") return false;
+      return 5000;
+    },
+    retry: false, // Don't retry if ABSURD is unavailable
   });
 }
 
@@ -167,7 +172,12 @@ export function useQueueStats(queueName: string): UseQueryResult<QueueStats> {
   return useQuery({
     queryKey: ["absurd", "queueStats", queueName],
     queryFn: () => getQueueStats(queueName),
-    refetchInterval: wsClient?.connected ? false : 5000, // Poll only if WebSocket not connected
+    refetchInterval: (query) => {
+      // Don't poll if WebSocket is connected OR if the last query failed
+      if (wsClient?.connected || query.state.status === "error") return false;
+      return 5000;
+    },
+    retry: false, // Don't retry if ABSURD is unavailable
   });
 }
 
@@ -178,7 +188,12 @@ export function useAbsurdHealth(): UseQueryResult<HealthStatus> {
   return useQuery({
     queryKey: ["absurd", "health"],
     queryFn: getHealthStatus,
-    refetchInterval: 10000, // Refresh every 10 seconds
+    refetchInterval: (query) => {
+      // Don't poll if the last query failed
+      if (query.state.status === "error") return false;
+      return 10000; // Refresh every 10 seconds
+    },
+    retry: false, // Don't retry if ABSURD is unavailable
   });
 }
 
@@ -195,7 +210,7 @@ export function useSpawnTask() {
 
   return useMutation({
     mutationFn: (request: SpawnTaskRequest) => spawnTask(request),
-    onSuccess: (taskId, variables) => {
+    onSuccess: (taskId, _variables) => {
       showSuccess(`Task spawned successfully: ${taskId.substring(0, 8)}...`);
       // Invalidate task list to show new task
       queryClient.invalidateQueries({ queryKey: ["absurd", "tasks"] });

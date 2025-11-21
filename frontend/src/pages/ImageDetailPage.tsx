@@ -46,7 +46,6 @@ import { useImageDetail } from "../api/queries";
 import GenericTable from "../components/GenericTable";
 import type { TableColumn } from "../components/GenericTable";
 import { formatRA, formatDec, copyToClipboard } from "../utils/coordinateUtils";
-import { formatDateTime } from "../utils/dateUtils";
 
 export default function ImageDetailPage() {
   const { imageId } = useParams<{ imageId: string }>();

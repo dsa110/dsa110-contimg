@@ -38,7 +38,11 @@ class JS9PerformanceProfiler {
 
     // Patch setTimeout to monitor long-running handlers
     const self = this;
-    window.setTimeout = function (handler: TimerHandler, timeout?: number, ...args: any[]): number {
+    (window.setTimeout as any) = function (
+      handler: TimerHandler,
+      timeout?: number,
+      ...args: any[]
+    ): number {
       if (typeof handler === "function") {
         const wrappedHandler = self.wrapHandler(handler);
         return self.originalSetTimeout.call(window, wrappedHandler, timeout, ...args);

@@ -26,7 +26,11 @@ class SetTimeoutPatcher {
     }
 
     const self = this;
-    window.setTimeout = function (handler: TimerHandler, timeout?: number, ...args: any[]): number {
+    (window.setTimeout as any) = function (
+      handler: TimerHandler,
+      timeout?: number,
+      ...args: any[]
+    ): number {
       if (typeof handler === "function") {
         // Check if this is likely the problematic handler from js9support.js
         const handlerString = handler.toString();

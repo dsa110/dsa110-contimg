@@ -45,7 +45,7 @@ export interface QueueStats {
 }
 
 export interface HealthStatus {
-  status: "healthy" | "disabled" | "error";
+  status: "healthy" | "disabled" | "error" | "degraded" | "critical" | "down";
   message: string;
   queue?: string;
 }

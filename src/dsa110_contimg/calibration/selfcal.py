@@ -90,7 +90,7 @@ def _fix_ms_permissions(ms_path: Path, user: Optional[str] = None) -> bool:
             timeout=30,  # 30 second timeout
         )
         logger.info("DIAGNOSTIC: sudo chmod completed")
-        logger.info(f"DIAGNOSTIC: _fix_ms_permissions END (success)")
+        logger.info("DIAGNOSTIC: _fix_ms_permissions END (success)")
 
         # Make directories executable
         subprocess.run(
@@ -218,9 +218,9 @@ class SelfCalibrator:
         # Fix MS permissions to ensure we can read/write
         # (CASA tasks may create MS files owned by root)
         logger.info(f"DIAGNOSTIC: Initialized SelfCalibrator for {self.ms_path}")
-        logger.info(f"DIAGNOSTIC: About to call _fix_ms_permissions()")
+        logger.info("DIAGNOSTIC: About to call _fix_ms_permissions()")
         _fix_ms_permissions(self.ms_path)
-        logger.info(f"DIAGNOSTIC: _fix_ms_permissions() completed")
+        logger.info("DIAGNOSTIC: _fix_ms_permissions() completed")
 
         logger.info(f"Output directory: {self.output_dir}")
         logger.info(f"Max iterations: {self.config.max_iterations}")
@@ -350,11 +350,11 @@ class SelfCalibrator:
 
             # Read reference image for WCS and shape
             with fits.open(reference_fits) as hdul:
-                header = hdul[0].header  # pylint: disable=no-member
+                header = hdul[0].header  # type: ignore[attr-defined]
                 wcs = WCS(header, naxis=2)
                 shape = (
-                    hdul[0].data.squeeze().shape[-2:]
-                )  # pylint: disable=no-member  # Get spatial dimensions
+                    hdul[0].data.squeeze().shape[-2:]  # type: ignore[attr-defined]
+                )  # Get spatial dimensions
 
             # Convert RA/Dec to pixel coordinates
             ra_pix, dec_pix = wcs.all_world2pix(
@@ -404,7 +404,7 @@ class SelfCalibrator:
             # Apply initial calibration tables if provided
             if self.initial_caltables:
                 logger.info(f"Applying initial calibration tables: {self.initial_caltables}")
-                if not CASATASKS_AVAILABLE:
+                if not CASATASKS_AVAILABLE or applycal is None:
                     raise RuntimeError("casatasks not available - required for self-calibration")
 
                 applycal(
@@ -509,7 +509,7 @@ class SelfCalibrator:
             # Step 1: Solve for gains using current model
             logger.info(f"  [1/3] Solving for {calmode} gains (solint={solint}, minsnr={minsnr})")
 
-            if not CASATASKS_AVAILABLE:
+            if not CASATASKS_AVAILABLE or gaincal is None:
                 raise RuntimeError("casatasks not available - required for self-calibration")
 
             # Fix permissions before gaincal
@@ -537,8 +537,9 @@ class SelfCalibrator:
 
             if cal_result.has_issues:
                 logger.warning(f"Calibration has issues: {cal_result.issues}")
-                if "flagged" in str(cal_result.fraction_flagged):
-                    frac = float(cal_result.fraction_flagged.replace("%", "")) / 100
+                frac_str = str(cal_result.fraction_flagged)
+                if "flagged" in frac_str or "%" in frac_str:
+                    frac = float(frac_str.replace("%", "").replace("flagged", "").strip()) / 100
                     if frac > self.config.max_flagged_fraction:
                         logger.error(f"Too much data flagged ({frac:.1%}), stopping")
                         return False
@@ -548,6 +549,9 @@ class SelfCalibrator:
 
             # Combine all calibration tables (initial + this iteration)
             all_caltables = self.initial_caltables + [caltable]
+
+            if applycal is None:
+                raise RuntimeError("casatasks.applycal not available")
 
             applycal(
                 vis=str(self.ms_path),
@@ -674,9 +678,7 @@ class SelfCalibrator:
         try:
             if self.config.backend == "wsclean":
                 # Use WSClean -predict (faster, multi-threaded, avoids CASA phase center bugs)
-                logger.info(
-                    f"  [4/4] Updating MODEL_DATA with cleaned model using WSClean -predict"
-                )
+                logger.info("  [4/4] Updating MODEL_DATA with cleaned model using WSClean -predict")
 
                 # Find WSClean executable
                 import shutil
@@ -688,8 +690,6 @@ class SelfCalibrator:
                     ms_dir = str(self.ms_path.parent)
                     ms_name = self.ms_path.name
                     model_dir = str(Path(model_fits).parent)
-                    model_name = Path(model_fits).name
-                    model_prefix = imagename
 
                     cmd_predict = [
                         "docker",
@@ -727,12 +727,10 @@ class SelfCalibrator:
 
             else:
                 # CASA backend: use ft() (slower, but works)
-                logger.info(f"  [4/4] Updating MODEL_DATA with cleaned model using CASA ft()")
+                logger.info("  [4/4] Updating MODEL_DATA with cleaned model using CASA ft()")
                 # Convert FITS to CASA image format if needed
                 # WSClean outputs FITS, but ft() expects CASA image format
                 # We need to import the FITS into CASA first
-                import tempfile
-
                 from dsa110_contimg.calibration.model import write_image_model_with_ft
 
                 casa_image = f"{imagename}.casa_model"
@@ -772,13 +770,13 @@ class SelfCalibrator:
         try:
             # Read image
             with fits.open(image_fits) as hdul:
-                image_data = np.asarray(hdul[0].data).squeeze()  # pylint: disable=no-member
+                image_data = np.asarray(hdul[0].data).squeeze()  # type: ignore[attr-defined]
                 if image_data.ndim > 2:
                     image_data = image_data[0] if image_data.ndim == 3 else image_data[0, 0]
 
             # Read residual
             with fits.open(residual_fits) as hdul:
-                residual_data = np.asarray(hdul[0].data).squeeze()  # pylint: disable=no-member
+                residual_data = np.asarray(hdul[0].data).squeeze()  # type: ignore[attr-defined]
                 if residual_data.ndim > 2:
                     residual_data = (
                         residual_data[0] if residual_data.ndim == 3 else residual_data[0, 0]

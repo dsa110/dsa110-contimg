@@ -11,10 +11,7 @@ import { useJS9Safe } from "../../contexts/JS9Context";
 import { formatRA, formatDec } from "../../utils/coordinateUtils";
 
 declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    JS9: any;
-  }
+  interface Window {}
 }
 
 interface ImageMetadataProps {

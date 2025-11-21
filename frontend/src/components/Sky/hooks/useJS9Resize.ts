@@ -10,9 +10,7 @@ import { logger } from "../../../utils/logger";
 // import { useJS9Safe } from "../../../contexts/JS9Context";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 interface UseJS9ResizeOptions {
@@ -51,7 +49,7 @@ export function useJS9Resize({
             try {
               const container = document.getElementById(displayId);
               if (container) {
-                js9Service.resizeDisplay(displayId);
+                JS9Service.resizeDisplay(displayId);
                 // Force canvas to match container width
                 const canvas = container.querySelector("canvas");
                 if (canvas && canvas.style) {

@@ -1020,7 +1020,7 @@ class CalibrationSolveStage(PipelineStage):
                 ktabs = cal_tables_result.get("ktabs", [])
                 bptabs = cal_tables_result.get("bptabs", [])
                 gtabs = cal_tables_result.get("gtabs", [])
-                prebp_table = cal_tables_result.get("prebp_table")
+                # prebp_table available in cal_tables_result if needed for debugging
 
             else:
                 # Legacy non-adaptive flagging
@@ -1039,7 +1039,8 @@ class CalibrationSolveStage(PipelineStage):
                         refant=refant,
                     )
                     logger.info(
-                        f"✓ Phase 1 flag snapshot captured: {phase1_snapshot.total_flagged_fraction * 100:.1f}% overall flagging"
+                        "✓ Phase 1 flag snapshot captured: %.1f%% overall flagging",
+                        phase1_snapshot.total_flagged_fraction * 100,
                     )
 
                     # Store snapshot for later comparison (will be saved to database in later step)
@@ -1081,7 +1082,7 @@ class CalibrationSolveStage(PipelineStage):
                 ktabs = cal_tables_result.get("ktabs", [])
                 bptabs = cal_tables_result.get("bptabs", [])
                 gtabs = cal_tables_result.get("gtabs", [])
-                prebp_table = cal_tables_result.get("prebp_table")
+                # prebp_table available in cal_tables_result if needed for debugging
 
             # Flag autocorrelations (after RFI flagging)
             if flag_autocorr:
@@ -1126,7 +1127,7 @@ class CalibrationSolveStage(PipelineStage):
             ktabs = cal_tables_result.get("ktabs", [])
             bptabs = cal_tables_result.get("bptabs", [])
             gtabs = cal_tables_result.get("gtabs", [])
-            prebp_table = cal_tables_result.get("prebp_table")
+            # prebp_table available in cal_tables_result if needed for debugging
 
         # Combine all tables
         all_tables = (ktabs[:1] if ktabs else []) + bptabs + gtabs
@@ -1154,9 +1155,9 @@ class CalibrationSolveStage(PipelineStage):
                 cal_table_paths=cal_table_paths,
             )
             logger.info(
-                f"✓ Phase 2 flag snapshot captured: {phase2_snapshot.total_flagged_fraction * 100:.1f}% overall flagging"
+                "✓ Phase 2 flag snapshot captured: %.1f%% overall flagging",
+                phase2_snapshot.total_flagged_fraction * 100,
             )
-
             # Store snapshot for later comparison
             if "_temporal_snapshots" not in params:
                 params["_temporal_snapshots"] = {}

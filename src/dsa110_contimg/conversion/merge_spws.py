@@ -270,9 +270,7 @@ def merge_fields(
                 dec_rad = phase_dirs[i, 0, 1]
 
                 # Calculate angular separation
-                separation_rad = angular_separation(
-                    ref_ra_rad, ref_dec_rad, ra_rad, dec_rad
-                )
+                separation_rad = angular_separation(ref_ra_rad, ref_dec_rad, ra_rad, dec_rad)
                 max_separation_rad = max(max_separation_rad, separation_rad)
 
                 if separation_rad > tolerance_rad:

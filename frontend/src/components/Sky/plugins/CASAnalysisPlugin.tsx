@@ -42,9 +42,7 @@ import { isJS9Available } from "../../../utils/js9";
 import ContourOverlay from "./ContourOverlay";
 
 declare global {
-  interface Window {
-    JS9: any;
-  }
+  interface Window {}
 }
 
 interface CASAnalysisResult {
@@ -75,7 +73,7 @@ interface RegionInfo {
  */
 class DSACASAnalysisPlugin {
   private displayId: string;
-  private pluginName: string = "DSA CASA Analysis";
+  private _pluginName: string = "DSA CASA Analysis";
   private resultCallback: ((result: CASAnalysisResult | null) => void) | null = null;
   private currentImagePath: string | null = null;
   private regionCallback: ((region: RegionInfo | null) => void) | null = null;
@@ -123,7 +121,7 @@ class DSACASAnalysisPlugin {
         if (imageInfo && imageInfo.file) {
           return imageInfo.file;
         }
-        const fitsHeader = window.JS9.GetFITSheader?.(imageId);
+        const fitsHeader = window.JS9.GetFITSHeader?.(imageId);
         if (fitsHeader && fitsHeader.FILENAME) {
           return fitsHeader.FILENAME;
         }
@@ -153,12 +151,12 @@ class DSACASAnalysisPlugin {
         if (regions && regions.length > 0) {
           const region = regions[regions.length - 1];
           return {
-            shape: region.shape || region.type || "circle",
-            x: region.x || region.xcen,
-            y: region.y || region.ycen,
-            r: region.r || region.radius,
-            width: region.width,
-            height: region.height,
+            shape: (region.shape || region.type || "circle") as string,
+            x: (region.x || region.xcen) as number,
+            y: (region.y || region.ycen) as number,
+            r: (region.r || region.radius) as number,
+            width: region.width as number | undefined,
+            height: region.height as number | undefined,
           };
         }
       }
@@ -591,11 +589,15 @@ export default function CASAnalysisPlugin({
       const batchSize = 5; // Process 5 regions at a time
       for (let i = 0; i < selectedRegions.length; i += batchSize) {
         const batch = selectedRegions.slice(i, i + batchSize);
-        const batchPromises = batch.map((region) =>
-          pluginRef.current!.executeAnalysis(selectedTask, region)
-        );
+        const batchPromises = batch.map(async (region) => {
+          await pluginRef.current!.executeAnalysis(selectedTask, region);
+          // executeAnalysis uses callback, return a placeholder for type safety
+          return null as CASAnalysisResult | null;
+        });
         const batchResults = await Promise.all(batchPromises);
-        results.push(...batchResults.filter((r) => r !== null && r !== undefined));
+        results.push(
+          ...(batchResults.filter((r) => r !== null && r !== undefined) as CASAnalysisResult[])
+        );
 
         // Update UI with progress
         setBatchResults([...results]);

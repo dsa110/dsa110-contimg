@@ -1,4 +1,4 @@
-import React from "react";
+// React import not needed with new JSX transform
 import { Box, Typography, Card, CardContent, Chip } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
 import { AccessTime, LocationOn } from "@mui/icons-material";

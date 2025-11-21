@@ -62,12 +62,8 @@ def main(argv=None) -> int:
 
     sp = sub.add_parser("inject", help="Inject a calibrator point model via CASA ft")
     sp.add_argument("--ms", required=True, help="Path to Measurement Set")
-    sp.add_argument(
-        "--catalog", required=True, help="VLA parsed CSV (with RA/Dec and FLUX_JY)"
-    )
-    sp.add_argument(
-        "--name", required=True, help="Calibrator J2000 name, e.g. 0834+555"
-    )
+    sp.add_argument("--catalog", required=True, help="VLA parsed CSV (with RA/Dec and FLUX_JY)")
+    sp.add_argument("--name", required=True, help="Calibrator J2000 name, e.g. 0834+555")
     sp.add_argument("--flux", type=float, help="Override flux (Jy) if missing in CSV")
     sp.add_argument(
         "--reffreq",

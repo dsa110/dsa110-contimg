@@ -151,9 +151,7 @@ class DockerClient:
         except Exception as e:
             return {"success": False, "message": f"Failed to stop: {str(e)}"}
 
-    def restart_container(
-        self, container_name: str, timeout: int = 10
-    ) -> Dict[str, Any]:
+    def restart_container(self, container_name: str, timeout: int = 10) -> Dict[str, Any]:
         """Restart a container."""
         if self._sdk_available and self._client:
             container = self.get_container(container_name)
@@ -293,17 +291,15 @@ class DockerClient:
             cpu_stats = stats.get("cpu_stats", {})
             precpu_stats = stats.get("precpu_stats", {})
 
-            cpu_delta = cpu_stats.get("cpu_usage", {}).get(
-                "total_usage", 0
-            ) - precpu_stats.get("cpu_usage", {}).get("total_usage", 0)
+            cpu_delta = cpu_stats.get("cpu_usage", {}).get("total_usage", 0) - precpu_stats.get(
+                "cpu_usage", {}
+            ).get("total_usage", 0)
             system_delta = cpu_stats.get("system_cpu_usage", 0) - precpu_stats.get(
                 "system_cpu_usage", 0
             )
 
             if system_delta > 0 and cpu_delta > 0:
-                num_cpus = (
-                    len(cpu_stats.get("cpu_usage", {}).get("percpu_usage", [])) or 1
-                )
+                num_cpus = len(cpu_stats.get("cpu_usage", {}).get("percpu_usage", [])) or 1
                 return (cpu_delta / system_delta) * num_cpus * 100.0
         except Exception:
             pass
@@ -330,9 +326,7 @@ class DockerClient:
             if mem_str_upper.endswith("MIB"):
                 return float(mem_str.replace("MiB", "").replace("miB", "").strip())
             elif mem_str_upper.endswith("GIB"):
-                return (
-                    float(mem_str.replace("GiB", "").replace("giB", "").strip()) * 1024
-                )
+                return float(mem_str.replace("GiB", "").replace("giB", "").strip()) * 1024
         except (ValueError, AttributeError):
             pass
         return None

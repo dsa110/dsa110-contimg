@@ -2,7 +2,7 @@
  * Unified Search Component
  * Search across all consolidated pages and their content using real API data
  */
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
   TextField,
   InputAdornment,

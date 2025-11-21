@@ -45,9 +45,7 @@ def cmd_register_prefix(args: argparse.Namespace) -> int:
 
 
 def cmd_active(args: argparse.Namespace) -> int:
-    applylist = registry.get_active_applylist(
-        Path(args.db), args.mjd, set_name=args.set
-    )
+    applylist = registry.get_active_applylist(Path(args.db), args.mjd, set_name=args.set)
     print(json.dumps({"applylist": applylist}, indent=2))
     return 0 if applylist else 1
 
@@ -56,10 +54,7 @@ def cmd_list_sets(args: argparse.Namespace) -> int:
     items = registry.list_sets(Path(args.db))
     print(
         json.dumps(
-            [
-                {"set": s, "rows": n, "active": a, "min_order": m}
-                for s, n, a, m in items
-            ],
+            [{"set": s, "rows": n, "active": a, "min_order": m} for s, n, a, m in items],
             indent=2,
         )
     )
