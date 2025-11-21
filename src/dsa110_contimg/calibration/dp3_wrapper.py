@@ -148,15 +148,27 @@ def convert_nvss_to_dp3_skymodel(
     return os.fspath(out_file)
 
 
-def concatenate_fields_in_ms(ms_path: str, output_ms_path: str) -> str:
+def concatenate_fields_in_ms(
+    ms_path: str,
+    output_ms_path: str,
+    *,
+    rephase_first: bool = False,
+    target_ra_deg: Optional[float] = None,
+    target_dec_deg: Optional[float] = None,
+) -> str:
     """Concatenate all fields in an MS into a single field.
 
-    After rephasing all fields to a common phase center, concatenate them
-    into a single field so DP3 can process the MS.
+    Optionally rephases all fields to a common phase center before
+    concatenating. This is critical for multi-field observations with
+    different phase centers (e.g., meridian tracking) to avoid phase
+    errors in calibration.
 
     Args:
-        ms_path: Path to multi-field MS (all fields should have same phase center)
+        ms_path: Path to multi-field MS
         output_ms_path: Path for output single-field MS
+        rephase_first: If True, rephase all fields to target phase center first
+        target_ra_deg: Target RA in degrees (required if rephase_first=True)
+        target_dec_deg: Target Dec in degrees (required if rephase_first=True)
 
     Returns:
         Path to concatenated MS
@@ -184,8 +196,53 @@ def concatenate_fields_in_ms(ms_path: str, output_ms_path: str) -> str:
 
     LOG.info(f"Concatenating {nfields} fields into single field")
 
-    # Use manual concatenation (CASA concat may not work as expected for this)
-    return _concatenate_fields_manual(ms_path, output_ms_path)
+    # If rephasing requested, do it first
+    if rephase_first:
+        if target_ra_deg is None or target_dec_deg is None:
+            raise ValueError("rephase_first=True requires target_ra_deg and target_dec_deg")
+
+        import logging
+
+        from dsa110_contimg.calibration.cli_utils import (
+            rephase_ms_to_calibrator,
+        )
+
+        logger = logging.getLogger(__name__)
+
+        LOG.info(
+            f"Rephasing all {nfields} fields to common phase center "
+            f"({target_ra_deg:.6f}°, {target_dec_deg:.6f}°)"
+        )
+
+        # Create temporary rephased MS
+        temp_rephased_ms = ms_path + "_temp_rephased"
+        if os.path.exists(temp_rephased_ms):
+            shutil.rmtree(temp_rephased_ms)
+        shutil.copytree(ms_path, temp_rephased_ms)
+
+        # Rephase in place
+        rephase_success = rephase_ms_to_calibrator(
+            temp_rephased_ms,
+            target_ra_deg,
+            target_dec_deg,
+            "concat_target",
+            logger,
+        )
+
+        if not rephase_success:
+            LOG.warning("Rephasing may have failed, but continuing...")
+
+        # Concatenate the rephased MS
+        try:
+            result = _concatenate_fields_manual(temp_rephased_ms, output_ms_path)
+            return result
+        finally:
+            # Clean up temporary rephased MS
+            if os.path.exists(temp_rephased_ms):
+                shutil.rmtree(temp_rephased_ms)
+    else:
+        # Use manual concatenation (CASA concat may not work)
+        return _concatenate_fields_manual(ms_path, output_ms_path)
 
 
 def _concatenate_fields_manual(ms_path: str, output_ms_path: str) -> str:

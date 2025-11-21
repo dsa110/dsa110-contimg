@@ -432,8 +432,8 @@ class SelfCalibrator:
                 field=self.config.field,
                 spw=self.config.spw,
                 uvrange=self.config.uvrange,
-                use_nvss_mask=self.config.use_nvss_seeding,
-                nvss_min_mjy=self.config.nvss_min_mjy,
+                use_unicat_mask=self.config.use_unicat_seeding,
+                unicat_min_mjy=self.config.unicat_min_mjy,
                 calib_ra_deg=self.config.calib_ra_deg,
                 calib_dec_deg=self.config.calib_dec_deg,
                 calib_flux_jy=self.config.calib_flux_jy,
@@ -574,8 +574,8 @@ class SelfCalibrator:
                 field=self.config.field,
                 spw=self.config.spw,
                 uvrange=self.config.uvrange,
-                use_nvss_mask=self.config.use_nvss_seeding,
-                nvss_min_mjy=self.config.nvss_min_mjy,
+                use_unicat_mask=self.config.use_unicat_seeding,
+                unicat_min_mjy=self.config.unicat_min_mjy,
                 calib_ra_deg=self.config.calib_ra_deg,
                 calib_dec_deg=self.config.calib_dec_deg,
                 calib_flux_jy=self.config.calib_flux_jy,
@@ -891,20 +891,51 @@ def selfcal_ms(
     # Optional: Concatenate rephased fields into single field for faster gaincal
     concat_ms_path = None
     if config.concatenate_fields:
-        from dsa110_contimg.calibration.dp3_wrapper import concatenate_fields_in_ms
+        from dsa110_contimg.calibration.dp3_wrapper import (
+            concatenate_fields_in_ms,
+        )
+        from dsa110_contimg.calibration.uvw_verification import (
+            get_phase_center_from_ms,
+        )
 
         concat_ms_path = ms_path + "_selfcal_concat"
-        logger.info("Concatenating rephased fields into single field for faster self-calibration")
+        logger.info(
+            "Concatenating rephased fields into single field " "for faster self-calibration"
+        )
         logger.info(f"  Input MS: {ms_path}")
         logger.info(f"  Concatenated MS: {concat_ms_path}")
 
         try:
-            concatenate_fields_in_ms(ms_path, concat_ms_path)
+            # Determine target phase center for rephasing
+            if config.calib_ra_deg is not None and config.calib_dec_deg is not None:
+                target_ra = config.calib_ra_deg
+                target_dec = config.calib_dec_deg
+                logger.info(
+                    f"  Using configured phase center: " f"({target_ra:.6f}°, {target_dec:.6f}°)"
+                )
+            else:
+                # Use phase center of field 0 as reference
+                target_ra, target_dec = get_phase_center_from_ms(ms_path, field=0)
+                logger.info(
+                    f"  Using field 0 phase center: " f"({target_ra:.6f}°, {target_dec:.6f}°)"
+                )
+
+            # Concatenate with rephasing
+            concatenate_fields_in_ms(
+                ms_path,
+                concat_ms_path,
+                rephase_first=True,
+                target_ra_deg=target_ra,
+                target_dec_deg=target_dec,
+            )
             # Use concatenated MS for self-cal
             ms_to_use = concat_ms_path
             # Update field selection to "" since all fields are now field 0
             config.field = ""
-            logger.info("✅ Field concatenation complete - using concatenated MS for self-cal")
+            logger.info(
+                "✅ Field concatenation with rephasing complete - "
+                "using concatenated MS for self-cal"
+            )
         except Exception as e:
             logger.error(f"Field concatenation failed: {e}")
             logger.warning("Falling back to non-concatenated self-cal")
