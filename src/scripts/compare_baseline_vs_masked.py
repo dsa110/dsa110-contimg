@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """Compare baseline (no mask) vs 0.1 mJy masked self-calibration results."""
 
+# pylint: disable=no-member  # FITS HDUList access
+
 import logging
 from pathlib import Path
 

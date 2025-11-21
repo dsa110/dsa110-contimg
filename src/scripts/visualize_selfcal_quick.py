@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """Quick visualization of selfcal results with downsampling for speed."""
 
+# pylint: disable=no-member  # FITS HDUList access
+
 import logging
 from pathlib import Path
 

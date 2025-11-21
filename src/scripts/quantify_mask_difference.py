@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """Quantitative comparison of baseline vs 0.1 mJy masked results."""
 
+# pylint: disable=no-member  # FITS HDUList access
+
 import logging
 from pathlib import Path
 

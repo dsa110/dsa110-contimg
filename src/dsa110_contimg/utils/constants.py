@@ -4,6 +4,8 @@ Constants for DSA-110 continuum imaging pipeline.
 Adapted from dsacalib.constants
 """
 
+# pylint: disable=no-member  # astropy.units dynamic attributes
+
 import astropy.units as u
 import numpy as np
 from astropy.coordinates import EarthLocation

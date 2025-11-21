@@ -603,8 +603,8 @@ class ConversionStage(PipelineStage):
 
         # Hook: Generate performance monitoring plots after MS conversion
         try:
-            from dsa110_contimg.qa.pipeline_hooks import (
-                hook_ms_conversion_complete,  # pylint: disable=import-error,no-name-in-module
+            from dsa110_contimg.qa.pipeline_hooks import (  # pylint: disable=import-error,no-name-in-module
+                hook_ms_conversion_complete,
             )
 
             hook_ms_conversion_complete()
@@ -1693,8 +1693,8 @@ class CalibrationStage(PipelineStage):
 
         # Hook: Generate calibration quality plots after calibration
         try:
-            from dsa110_contimg.qa.pipeline_hooks import (
-                hook_calibration_complete,  # pylint: disable=import-error,no-name-in-module
+            from dsa110_contimg.qa.pipeline_hooks import (  # pylint: disable=import-error,no-name-in-module
+                hook_calibration_complete,
             )
 
             hook_calibration_complete()

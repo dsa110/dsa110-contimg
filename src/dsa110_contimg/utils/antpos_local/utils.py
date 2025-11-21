@@ -1,5 +1,7 @@
 """Local copy of antenna position utilities for the DSA-110 array."""
 
+# pylint: disable=no-member  # astropy.units dynamic attributes
+
 from __future__ import annotations
 
 from dataclasses import dataclass

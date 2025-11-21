@@ -4,6 +4,8 @@ This module provides functions to verify that UVW coordinates are correctly
 transformed after rephasing operations (phaseshift, fixvis).
 """
 
+# pylint: disable=no-member  # astropy.units dynamic attributes
+
 from typing import Optional, Tuple
 
 import astropy.units as u

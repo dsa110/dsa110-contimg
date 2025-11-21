@@ -12,6 +12,8 @@ Usage:
     python compare_mask_strategies.py --ms /path/to/observation.ms --imagename /path/to/output
 """
 
+# pylint: disable=no-member  # FITS HDUList access
+
 import argparse
 import logging
 from pathlib import Path

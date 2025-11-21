@@ -197,7 +197,17 @@ py-version=3.11
 # Suppress false positives for astropy.units dynamic attributes
 # Note: astropy.units dynamically creates unit attributes (deg, arcsec, etc.)
 # at import time, which pylint's static analysis cannot detect
-extension-pkg-whitelist=["astropy"]
+extension-pkg-allow-list=["astropy"]
+
+# Generated members for dynamic attributes
+# Astropy units creates attributes like deg, arcsec, hourangle, m, arcmin dynamically
+# CASA tools create methods dynamically on coordinatesystem objects
+# FITS HDUList behaves like a list but pylint doesn't recognize indexing
+generated-members = [
+    "astropy.units.*",
+    "deg", "arcsec", "hourangle", "arcmin", "m", "cm", "dex",
+    "u.deg", "u.arcsec", "u.hourangle", "u.m", "u.arcmin", "u.cm",
+]
 
 [tool.pylint.format]
 max-line-length = 120
@@ -207,6 +217,12 @@ max-line-length = 120
 extend-ignore = ["E203", "W503"]
 
 [tool.pylint."messages control"]
+disable = [
+    "no-member",  # Astropy, CASA, FITS have dynamic attributes
+    "import-error",  # Optional modules like pipeline_hooks may not exist
+    "no-name-in-module",  # CASA modules have dynamic exports
+    "unexpected-keyword-arg",  # CASA APIs may have version-specific parameters
+]
 # Note: We cannot selectively disable no-member for just astropy.units
 # The astropy.units errors are false positives - units exist at runtime
 # but are created dynamically, so pylint's static analysis can't see them.

@@ -133,7 +133,7 @@ def generate_gain_plots(
     Raises:
         RuntimeError: If plot generation fails
     """
-    from casatasks import plotcal
+    from casatasks import plotcal  # pylint: disable=no-name-in-module
 
     if output_dir is None:
         output_dir = os.path.dirname(gcal_table) or "."

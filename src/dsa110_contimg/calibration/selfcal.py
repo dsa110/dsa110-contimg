@@ -23,6 +23,10 @@ Typical Workflow:
 Author: DSA-110 Continuum Imaging Team
 """
 
+# pylint: disable=no-member  # FITS HDUList and CASA dynamic attributes
+
+# pylint: disable=no-member  # FITS HDUList and CASA dynamic attributes
+
 import logging
 import os
 import shutil

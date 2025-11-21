@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """Visualize just the masks from selfcal comparison."""
 
+# pylint: disable=no-member  # FITS HDUList access
+
 import logging
 from pathlib import Path
 

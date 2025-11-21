@@ -93,7 +93,7 @@ def merge_spws(
 
     if regridms:
         # Build global frequency grid from all SPWs
-        with table(f"{ms_in}::SPECTRAL_WINDOW", readonly=True) as spw:
+        with table(f"{ms_in}::SPECTRAL_WINDOW", nomodify=True) as spw:
             cf = np.asarray(spw.getcol("CHAN_FREQ"))  # shape (nspw, nchan)
 
         # Flatten and sort all frequencies
@@ -125,7 +125,7 @@ def merge_spws(
     # channel).
     if remove_sigma_spectrum:
         try:
-            with table(ms_out, readonly=False) as tb:
+            with table(ms_out, nomodify=False) as tb:
                 if "SIGMA_SPECTRUM" in tb.colnames():
                     tb.removecols(["SIGMA_SPECTRUM"])
         except Exception:
@@ -138,7 +138,7 @@ def merge_spws(
         from casatools import table as casa_table
 
         tb_obs = casa_table()
-        tb_obs.open(ms_out + "/OBSERVATION", readonly=False)
+        tb_obs.open(ms_out + "/OBSERVATION", nomodify=False)
         current_name = tb_obs.getcol("TELESCOPE_NAME")
         # Only change if it's DSA_110 (or other unrecognized names)
         if current_name and "DSA_110" in str(current_name[0]):
@@ -199,7 +199,7 @@ def get_spw_count(ms_path: str) -> Optional[int]:
         Number of SPWs, or None if unable to read
     """
     try:
-        with table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True) as spw:
+        with table(f"{ms_path}::SPECTRAL_WINDOW", nomodify=True) as spw:
             return spw.nrows()
     except Exception:
         return None
@@ -244,7 +244,7 @@ def merge_fields(
 
     try:
         # Read field information from original MS
-        with table(f"{ms_in}::FIELD", readonly=True) as field_in:
+        with table(f"{ms_in}::FIELD", nomodify=True) as field_in:
             nfields = field_in.nrows()
             if nfields == 0:
                 raise RuntimeError("Input MS has no fields")
@@ -295,7 +295,7 @@ def merge_fields(
             print(f"Using phase center from field 0: {ref_name}")
 
         # Reassign all rows to field 0 in main table
-        with table(ms_out, readonly=False) as tb:
+        with table(ms_out, nomodify=False) as tb:
             if "FIELD_ID" not in tb.colnames():
                 raise RuntimeError("Main table has no FIELD_ID column")
 
@@ -307,7 +307,7 @@ def merge_fields(
             tb.putcol("FIELD_ID", field_ids)
 
         # Update FIELD table to have only one field
-        with table(ms_out + "/FIELD", readonly=False) as field_out:
+        with table(ms_out + "/FIELD", nomodify=False) as field_out:
             # Get all columns from original field table
             all_colnames = field_out.colnames()
 
@@ -333,7 +333,7 @@ def merge_fields(
         print(f"✓ Successfully merged {nfields} fields into 1 field")
 
         # Verify the result
-        with table(ms_out + "/FIELD", readonly=True) as field_check:
+        with table(ms_out + "/FIELD", nomodify=True) as field_check:
             nfields_out = field_check.nrows()
             if nfields_out != 1:
                 raise RuntimeError(f"Expected 1 field in output, got {nfields_out}")

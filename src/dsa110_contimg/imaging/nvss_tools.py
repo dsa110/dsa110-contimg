@@ -2,6 +2,8 @@
 NVSS catalog tools for imaging: masks and overlays.
 """
 
+# pylint: disable=no-member  # astropy.units dynamic attributes
+
 from __future__ import annotations
 
 import os
