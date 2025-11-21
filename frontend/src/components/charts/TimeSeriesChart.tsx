@@ -246,9 +246,12 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
           <Stack direction="row" spacing={2} alignItems="center">
             <Typography variant="h6">
               {React.isValidElement(icon) &&
-                React.cloneElement(icon as React.ReactElement, {
-                  sx: { mr: 1, verticalAlign: "middle" },
-                })}
+                React.cloneElement(
+                  icon as React.ReactElement<any>,
+                  {
+                    sx: { mr: 1, verticalAlign: "middle" },
+                  } as any
+                )}
               {title}
             </Typography>
             <Chip

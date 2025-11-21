@@ -38,6 +38,9 @@ def cmd_selfcal(args: argparse.Namespace) -> int:
     config = SelfCalConfig(
         max_iterations=args.max_iterations,
         min_snr_improvement=args.min_snr_improvement,
+        do_delay=not args.no_delay,
+        delay_solint=args.delay_solint,
+        delay_minsnr=args.delay_minsnr,
         phase_solints=args.phase_solints.split(","),
         phase_minsnr=args.phase_minsnr,
         do_amplitude=not args.no_amplitude,
@@ -153,6 +156,25 @@ def main():
         type=float,
         default=10.0,
         help="Minimum initial SNR required to attempt self-cal",
+    )
+
+    # Delay calibration (removes geometric offsets)
+    parser.add_argument(
+        "--no-delay",
+        action="store_true",
+        help="Skip delay (K) calibration (keeps geometric offsets)",
+    )
+    parser.add_argument(
+        "--delay-solint",
+        type=str,
+        default="inf",
+        help="Solution interval for delay calibration",
+    )
+    parser.add_argument(
+        "--delay-minsnr",
+        type=float,
+        default=3.0,
+        help="Minimum SNR for delay solutions",
     )
 
     # Phase-only iterations

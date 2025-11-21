@@ -95,7 +95,7 @@ export function RelatedProductsPanel({ msPath }: RelatedProductsPanelProps) {
               </Typography>
               <Grid container spacing={2}>
                 {relatedImages.slice(0, 8).map((img) => (
-                  <Grid item xs={12} sm={6} md={4} lg={3} key={img.image_id}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={img.image_id}>
                     <Card>
                       <CardActionArea>
                         {img.thumbnail_path ? (
@@ -157,7 +157,7 @@ export function RelatedProductsPanel({ msPath }: RelatedProductsPanelProps) {
               </Typography>
               <Grid container spacing={2}>
                 {calTables.map((table: any, idx: number) => (
-                  <Grid item xs={12} sm={6} md={4} key={idx}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={idx}>
                     <Card>
                       <CardContent>
                         <Box display="flex" alignItems="center" gap={1} mb={1}>

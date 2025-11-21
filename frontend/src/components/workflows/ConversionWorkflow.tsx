@@ -99,7 +99,11 @@ export function ConversionWorkflow({
   // Conversion submit handler
   const handleConvertSubmit = useCallback(() => {
     convertMutation.mutate(
-      { params: convertParams },
+      {
+        input_files: convertParams.input_files || [],
+        output_dir: convertParams.output_dir,
+        writer_type: convertParams.writer_type,
+      },
       {
         onSuccess: (job) => {
           onJobCreated?.(parseInt(job.id, 10));
@@ -118,7 +122,7 @@ export function ConversionWorkflow({
   const handleWorkflowSubmit = useCallback(() => {
     if (!workflowParams.start_time || !workflowParams.end_time) return;
     workflowMutation.mutate(
-      { params: workflowParams },
+      { workflow_type: "conversion", params: workflowParams },
       {
         onSuccess: (job) => {
           onJobCreated?.(parseInt(job.id, 10));

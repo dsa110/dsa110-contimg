@@ -73,7 +73,7 @@ export const CalibrationTablesList: React.FC = () => {
       <GenericTable<CalTableItem>
         apiEndpoint="/caltables" // Overridden by useCalTables
         columns={columns}
-        data={data?.items || []}
+        data={(data?.items || []) as unknown as CalTableItem[]}
         total={data?.total || 0}
         isLoading={isLoading}
         error={error}

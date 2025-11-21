@@ -225,9 +225,9 @@ export function useMosaicQuery(
 ): UseQueryResult<MosaicQueryResponse> {
   return useQuery({
     queryKey: ["mosaics", request],
-    queryFn: async () => {
+    queryFn: async (): Promise<MosaicQueryResponse> => {
       if (!request) {
-        return { mosaics: [], total: 0 };
+        return { mosaics: [], total: 0 } as MosaicQueryResponse;
       }
       const response = await apiClient.post<MosaicQueryResponse>("/mosaics/query", request);
       return response.data;

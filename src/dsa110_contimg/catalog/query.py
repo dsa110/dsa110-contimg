@@ -219,6 +219,10 @@ def query_sources(
         else:
             dec_strip = float(dec_center)
 
+    # Handle "racs" as an alias for "rax" (RACS catalog)
+    if catalog_type == "racs":
+        catalog_type = "rax"
+
     # Resolve catalog path
     try:
         catalog_file = resolve_catalog_path(

@@ -109,7 +109,7 @@ export default function MosaicGalleryPage() {
         </Typography>
       </Box>
 
-      {!status?.running && (
+      {status && !(status as any).running && (
         <Alert severity="warning" sx={{ mb: 4 }}>
           Pipeline service appears to be stopped. Some features may show stale data.
         </Alert>

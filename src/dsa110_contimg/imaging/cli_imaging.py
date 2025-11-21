@@ -255,7 +255,7 @@ def run_wsclean(
     # WGridder is WSClean's optimized wide-field gridding algorithm
     # Enable when wproject is requested OR for large images
     if gridder == "wproject" or imsize > 1024:
-        cmd.append("-use-wgridder")
+        cmd.extend(["-gridder", "wgridder"])
         # Note: wprojplanes parameter is not directly supported by WSClean's WGridder
         # WGridder automatically optimizes the number of planes based on image size and frequency
         LOG.debug("Enabled wide-field gridding (WGridder)")

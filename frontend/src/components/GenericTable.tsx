@@ -99,6 +99,16 @@ export interface GenericTableProps<T = any> {
   error?: Error | null;
   /** Refresh callback */
   onRefresh?: () => void;
+  /** Direct data override (disables fetching) */
+  data?: T[];
+  /** Total count override */
+  total?: number;
+  /** Loading state for external data */
+  isLoading?: boolean;
+  /** Disable internal fetching */
+  disableFetch?: boolean;
+  /** Refresh interval in ms */
+  refreshInterval?: number;
 }
 
 type SortDirection = "asc" | "desc";

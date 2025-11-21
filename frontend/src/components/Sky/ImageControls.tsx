@@ -150,9 +150,9 @@ export default function ImageControls({
       const display = getDisplaySafe(displayId);
       if (display?.im) {
         if (newGridVisible) {
-          window.JS9.SetGrid?.(display.im.id, true);
+          window.JS9.SetGrid?.(true, display.im.id);
         } else {
-          window.JS9.SetGrid?.(display.im.id, false);
+          window.JS9.SetGrid?.(false, display.im.id);
         }
       }
     } catch (e) {
@@ -180,7 +180,9 @@ export default function ImageControls({
       const display = getDisplaySafe(displayId);
       if (display?.im) {
         // Convert RA/Dec to pixel coordinates and pan
-        window.JS9.SetPan(display.im.id, ra, dec);
+        if (ra !== null && dec !== null) {
+          window.JS9.SetPan(ra, dec, display.im.id);
+        }
         setCoordDialogOpen(false);
         setRaInput("");
         setDecInput("");

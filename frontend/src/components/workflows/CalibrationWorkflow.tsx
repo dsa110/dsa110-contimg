@@ -165,7 +165,7 @@ export function CalibrationWorkflow({
       { ms_path: selectedMS, params: applyParams },
       {
         onSuccess: (job) => {
-          onJobCreated?.(job.id);
+          onJobCreated?.(typeof job.id === "string" ? parseInt(job.id, 10) : job.id);
           onRefreshJobs?.();
           showSuccess(`Apply calibration job #${job.id} started successfully`);
         },
@@ -227,7 +227,7 @@ export function CalibrationWorkflow({
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={calibParams.solve_delay}
+                    checked={Boolean(calibParams.solve_delay)}
                     onChange={(e) =>
                       setCalibParams({
                         ...calibParams,
@@ -248,7 +248,7 @@ export function CalibrationWorkflow({
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={calibParams.solve_bandpass}
+                    checked={Boolean(calibParams.solve_bandpass)}
                     onChange={(e) =>
                       setCalibParams({
                         ...calibParams,
@@ -269,7 +269,7 @@ export function CalibrationWorkflow({
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={calibParams.solve_gains}
+                    checked={Boolean(calibParams.solve_gains)}
                     onChange={(e) =>
                       setCalibParams({
                         ...calibParams,
@@ -958,7 +958,7 @@ export function CalibrationWorkflow({
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={calibParams.do_flagging || false}
+                      checked={Boolean(calibParams.do_flagging)}
                       onChange={(e) =>
                         setCalibParams({
                           ...calibParams,
@@ -974,12 +974,7 @@ export function CalibrationWorkflow({
 
             {selectedMS && (
               <>
-                <CalibrationSPWPanel
-                  msPath={selectedMS}
-                  onSPWChange={(_spwList: any) => {
-                    // Handle SPW selection if needed
-                  }}
-                />
+                <CalibrationSPWPanel msPath={selectedMS} />
                 <Box sx={{ mt: 2 }}>
                   <CalibrationQAPanel msPath={selectedMS || null} />
                 </Box>

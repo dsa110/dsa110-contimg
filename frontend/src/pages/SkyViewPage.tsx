@@ -17,9 +17,12 @@ import {
   FormControl,
   InputLabel,
   Stack,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import { CompareArrows } from "@mui/icons-material";
 import ImageBrowser from "../components/Sky/ImageBrowser";
+import DirectoryBrowser from "../components/QA/DirectoryBrowser";
 import SkyViewer from "../components/Sky/SkyViewer";
 import ImageControls from "../components/Sky/ImageControls";
 import ImageMetadata from "../components/Sky/ImageMetadata";
@@ -39,13 +42,20 @@ import PageBreadcrumbs from "../components/PageBreadcrumbs";
 
 export default function SkyViewPage() {
   const [selectedImage, setSelectedImage] = useState<ImageInfo | null>(null);
+  const [browserMode, setBrowserMode] = useState<"database" | "filesystem">("filesystem");
   const [catalogOverlayVisible, setCatalogOverlayVisible] = useState(false);
   const [selectedCatalog, setSelectedCatalog] = useState<string>("all");
   const [selectedRegionId, setSelectedRegionId] = useState<number | null>(null);
   const [compareDialogOpen, setCompareDialogOpen] = useState(false);
 
   // Construct FITS URL for selected image
-  const fitsUrl = selectedImage ? `/api/images/${selectedImage.id}/fits` : null;
+  // For filesystem images (id=0), use the file path directly via visualization API
+  // For database images, use the standard image API endpoint
+  const fitsUrl = selectedImage
+    ? selectedImage.id === 0
+      ? `/api/visualization/file?path=${encodeURIComponent(selectedImage.path)}`
+      : `/api/images/${selectedImage.id}/fits`
+    : null;
 
   // Extract image center coordinates for catalog overlay
   // Note: This would ideally come from image WCS, but for now use center coordinates if available
@@ -77,7 +87,43 @@ export default function SkyViewPage() {
         <Grid container spacing={3}>
           {/* Image Browser Sidebar */}
           <Grid size={{ xs: 12, md: 4 }}>
-            <ImageBrowser onSelectImage={setSelectedImage} selectedImageId={selectedImage?.id} />
+            <Paper sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+              {/* Browser Mode Tabs */}
+              <Tabs
+                value={browserMode}
+                onChange={(_, newValue) => setBrowserMode(newValue)}
+                sx={{ borderBottom: 1, borderColor: "divider", px: 2 }}
+              >
+                <Tab label="File Browser" value="filesystem" />
+                <Tab label="Database" value="database" />
+              </Tabs>
+
+              {/* Browser Content */}
+              <Box sx={{ flexGrow: 1, overflow: "hidden" }}>
+                {browserMode === "database" ? (
+                  <ImageBrowser
+                    onSelectImage={setSelectedImage}
+                    selectedImageId={selectedImage?.id}
+                  />
+                ) : (
+                  <DirectoryBrowser
+                    initialPath="/stage/dsa110-contimg"
+                    onSelectFile={(path, type) => {
+                      if (type === "fits") {
+                        // Create a minimal ImageInfo object from the file path
+                        setSelectedImage({
+                          id: 0, // Temporary ID for filesystem images
+                          path,
+                          ms_path: "filesystem",
+                          type: "filesystem",
+                          created_at: new Date().toISOString(),
+                        } as ImageInfo);
+                      }
+                    }}
+                  />
+                )}
+              </Box>
+            </Paper>
           </Grid>
 
           {/* Main Image Display */}

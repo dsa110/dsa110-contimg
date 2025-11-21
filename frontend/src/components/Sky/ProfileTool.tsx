@@ -202,7 +202,7 @@ export default function ProfileTool({ displayId, imageId, onProfileExtracted }: 
         const display = getJS9Display();
         if (display?.im && window.JS9 && typeof window.JS9.AddOverlay === "function") {
           // Estimate radius in pixels (rough conversion)
-          const pixelScale = display.im.scale || 1;
+          const pixelScale = Number(display.im.scale) || 1;
           const radiusPixels = (radius / 3600 / pixelScale) * 206265; // Rough conversion
           const overlay = window.JS9.AddOverlay(display.im.id, {
             type: "circle",

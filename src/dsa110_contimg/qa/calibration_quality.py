@@ -94,6 +94,9 @@ class CalibrationQualityMetrics:
     median_phase_deg: float
     rms_phase_deg: float
     phase_scatter_deg: float
+    median_antenna_phase_scatter: Optional[float] = (
+        None  # Median per-antenna temporal phase scatter
+    )
 
     # Enhanced quality metrics (SNR, stability)
     median_snr: Optional[float] = None  # Median signal-to-noise ratio
@@ -205,6 +208,7 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
     phase_stability = None
     time_coverage = None
     antenna_coverage = None
+    median_antenna_phase_scatter = None
 
     # Infer cal type from filename
     basename = os.path.basename(caltable_path).lower()
@@ -394,6 +398,40 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
                     rms_phase_deg = float(np.sqrt(np.mean(phases_deg**2)))
                     phase_scatter_deg = float(np.std(phases_deg))
 
+                    # NEW: Compute per-antenna temporal phase scatter (more meaningful metric)
+                    # This measures phase stability over time for each antenna, not cross-antenna offsets
+                    per_antenna_phase_scatter = None
+                    median_antenna_phase_scatter = None
+
+                    try:
+                        # Get single pol/chan for temporal analysis (avoid pol/chan dimension complexity)
+                        if gains.ndim == 3:  # (npol, nchan, nsoln)
+                            phases_single = phases_deg[0, 0, :]  # First pol, first chan
+                            flags_single = flags[0, 0, :]
+
+                            unflagged_mask_single = ~flags_single
+                            unflagged_phases_single = phases_single[unflagged_mask_single]
+                            unflagged_ants = antenna_ids[unflagged_mask_single]
+
+                            # Compute scatter for each antenna across time
+                            unique_ants = np.unique(unflagged_ants)
+                            ant_scatters = []
+
+                            for ant in unique_ants:
+                                ant_mask = unflagged_ants == ant
+                                ant_phases = unflagged_phases_single[ant_mask]
+
+                                if len(ant_phases) > 1:  # Need at least 2 points for scatter
+                                    ant_scatter = float(np.std(ant_phases))
+                                    ant_scatters.append(ant_scatter)
+
+                            if len(ant_scatters) > 0:
+                                per_antenna_phase_scatter = ant_scatters
+                                median_antenna_phase_scatter = float(np.median(ant_scatters))
+                    except Exception:
+                        # If per-antenna analysis fails, continue with original metrics
+                        pass
+
                     # Quality checks for gain/phase tables
                     if fraction_flagged > 0.3:
                         warnings.append(
@@ -412,9 +450,40 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
                             f"High amplitude scatter: {amplitude_scatter / median_amplitude:.1%} of median"
                         )
 
-                    # Check for large phase jumps
+                    # NEW: Check per-antenna temporal scatter (primary metric for phase stability)
+                    if (
+                        median_antenna_phase_scatter is not None
+                        and median_antenna_phase_scatter > 50
+                    ):
+                        warnings.append(
+                            f"High per-antenna phase variability: {median_antenna_phase_scatter:.1f}° median temporal scatter"
+                        )
+
+                    # LEGACY: Check pooled phase scatter (cross-antenna + temporal)
+                    # This can be high due to geometric delays between antennas (expected without delay cal)
+                    # Only flag if BOTH pooled AND per-antenna scatter are high
                     if phase_scatter_deg > 90:
-                        warnings.append(f"Large phase scatter: {phase_scatter_deg:.1f} degrees")
+                        if median_antenna_phase_scatter is not None:
+                            if median_antenna_phase_scatter < 50:
+                                # High pooled scatter but low per-antenna scatter = geometric offsets (benign)
+                                warnings.append(
+                                    f"Large pooled phase scatter: {phase_scatter_deg:.1f}° "
+                                    f"(but per-antenna temporal scatter is good: {median_antenna_phase_scatter:.1f}°) "
+                                    f"- likely geometric delays without delay calibration (benign)"
+                                )
+                            else:
+                                # Both high = actual instability problem
+                                warnings.append(
+                                    f"Large phase scatter: {phase_scatter_deg:.1f}° degrees"
+                                )
+                        else:
+                            # Can't compute per-antenna scatter (likely solint='inf')
+                            # Inform user but don't alarm - this is expected with long solints
+                            warnings.append(
+                                f"Large pooled phase scatter: {phase_scatter_deg:.1f}° "
+                                f"(per-antenna temporal scatter unavailable with solint='inf') "
+                                f"- likely cross-antenna geometric delays (expected without delay calibration)"
+                            )
 
                 # Check for antennas with all solutions flagged
                 antennas_with_solutions = set()
@@ -566,6 +635,7 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
         median_phase_deg = 0.0
         rms_phase_deg = 0.0
         phase_scatter_deg = 0.0
+        median_antenna_phase_scatter = None
 
     metrics = CalibrationQualityMetrics(
         caltable_path=caltable_path,
@@ -580,6 +650,7 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
         median_phase_deg=median_phase_deg,
         rms_phase_deg=rms_phase_deg,
         phase_scatter_deg=phase_scatter_deg,
+        median_antenna_phase_scatter=median_antenna_phase_scatter,
         median_snr=median_snr,
         mean_snr=mean_snr,
         snr_percentiles=snr_percentiles,

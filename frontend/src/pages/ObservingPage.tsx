@@ -140,11 +140,11 @@ export default function ObservingPage() {
     });
 
     const layout: Partial<Layout> = {
-      title: "Calibrator Flux vs Time",
-      xaxis: { title: "Time" },
-      yaxis: { title: "Flux (mJy)" },
+      title: "Calibrator Flux vs Time" as any,
+      xaxis: { title: "Time" as any },
+      yaxis: { title: "Flux (mJy)" as any },
       hovermode: "closest",
-      template: "plotly_dark",
+      template: "plotly_dark" as any,
     };
 
     return { data, layout };

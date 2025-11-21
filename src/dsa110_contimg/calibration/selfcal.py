@@ -144,6 +144,12 @@ class SelfCalConfig:
     min_snr_improvement: float = 1.05  # Minimum 5% SNR improvement to continue
     stop_on_divergence: bool = True
 
+    # Delay calibration (removes geometric delays before phase self-cal)
+    do_delay: bool = True  # Run delay (K) calibration to remove cross-antenna geometric offsets
+    delay_solint: str = "inf"  # One delay solution per antenna for entire observation
+    delay_minsnr: float = 3.0
+    delay_combine: str = "scan"  # Combine across scans for stability
+
     # Phase-only iterations
     phase_solints: List[str] = field(default_factory=lambda: ["30s", "60s", "inf"])
     phase_minsnr: float = 3.0
@@ -218,6 +224,7 @@ class SelfCalibrator:
 
         self.iterations: List[SelfCalIteration] = []
         self.best_iteration: Optional[SelfCalIteration] = None
+        self.delay_caltable: Optional[str] = None  # Delay calibration table (if run)
 
         # Fix MS permissions to ensure we can read/write
         # (CASA tasks may create MS files owned by root)
@@ -258,6 +265,17 @@ class SelfCalibrator:
             logger.warning("  2. Increase integration time")
             logger.warning("  3. Use stronger calibrator source")
             return False, msg
+
+        # Optional: Delay calibration to remove geometric offsets
+        if self.config.do_delay:
+            logger.info("=" * 80)
+            logger.info("[0.5/N] Running delay calibration (removes geometric offsets)")
+            logger.info("=" * 80)
+            delay_success = self._run_delay_calibration()
+            if delay_success:
+                logger.info("✓ Delay calibration complete - geometric offsets removed")
+            else:
+                logger.warning("Delay calibration failed, continuing without it")
 
         # Phase-only iterations
         phase_iter_count = 0
@@ -486,6 +504,68 @@ class SelfCalibrator:
             logger.error(f"Initial imaging failed: {e}", exc_info=True)
             return None
 
+    def _run_delay_calibration(self) -> bool:
+        """Run delay (K) calibration to remove geometric delays.
+
+        Delay calibration solves for a single delay offset per antenna that accounts
+        for geometric cable/position delays. This removes cross-antenna geometric
+        phase offsets, making QA metrics cleaner and potentially improving images by ~5-10%.
+
+        Returns:
+            Success status
+        """
+        delay_table = str(self.output_dir / "delay.kcal")
+
+        try:
+            logger.info(f"  Running delay calibration (gaintype='K')")
+            logger.info(f"    solint={self.config.delay_solint}, minsnr={self.config.delay_minsnr}")
+
+            if not CASATASKS_AVAILABLE or gaincal is None:
+                raise RuntimeError("casatasks not available")
+
+            # Fix permissions before gaincal
+            _fix_ms_permissions(self.ms_path)
+
+            gaincal(
+                vis=str(self.ms_path),
+                caltable=delay_table,
+                field=self.config.field,
+                spw=self.config.spw,
+                gaintype="K",  # K = delay calibration
+                solint=self.config.delay_solint,
+                refant=self.config.refant if self.config.refant else "",
+                combine=self.config.delay_combine,
+                minsnr=self.config.delay_minsnr,
+                uvrange=self.config.uvrange,
+                gaintable=self.initial_caltables,  # Apply initial calibration
+                append=False,
+            )
+
+            # Validate delay calibration
+            logger.info("  Validating delay calibration quality")
+            cal_result = validate_caltable_quality(delay_table)
+
+            if cal_result.has_issues:
+                logger.warning(f"Delay calibration has issues: {cal_result.issues}")
+                return False
+
+            if cal_result.has_warnings:
+                logger.info(f"Delay calibration warnings: {cal_result.warnings}")
+
+            # Store delay table path for use in subsequent iterations
+            self.delay_caltable = delay_table
+
+            logger.info(f"  ✓ Delay calibration saved: {delay_table}")
+            logger.info(
+                f"    {cal_result.n_antennas} antennas, {cal_result.fraction_flagged:.1%} flagged"
+            )
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Delay calibration failed: {e}")
+            return False
+
     def _run_selfcal_iteration(
         self,
         iteration: int,
@@ -519,6 +599,21 @@ class SelfCalibrator:
             # Fix permissions before gaincal
             _fix_ms_permissions(self.ms_path)
 
+            # CRITICAL: Reset CORRECTED_DATA to DATA before solving to avoid double-application
+            # Otherwise gaincal solves against already-corrected data, leading to divergence
+            logger.info("  Resetting CORRECTED_DATA = DATA before calibration solve")
+            import casacore.tables as casatables
+
+            with casatables.table(str(self.ms_path), readonly=False, ack=False) as t:
+                if "CORRECTED_DATA" in t.colnames():
+                    data = t.getcol("DATA")
+                    t.putcol("CORRECTED_DATA", data)
+
+            # Build full gaintable list: initial tables + delay table (if run)
+            gaintables_for_solve = self.initial_caltables.copy()
+            if self.delay_caltable:
+                gaintables_for_solve.append(self.delay_caltable)
+
             gaincal(
                 vis=str(self.ms_path),
                 caltable=caltable,
@@ -531,7 +626,7 @@ class SelfCalibrator:
                 refant=self.config.refant if self.config.refant else "",
                 combine=combine,
                 uvrange=self.config.uvrange,
-                gaintable=self.initial_caltables,  # Include initial calibration
+                gaintable=gaintables_for_solve,  # Include initial + delay calibration
                 append=False,
             )
 
@@ -551,8 +646,11 @@ class SelfCalibrator:
             # Step 3: Apply calibration and image
             logger.info("  [3/3] Applying calibration and imaging")
 
-            # Combine all calibration tables (initial + this iteration)
-            all_caltables = self.initial_caltables + [caltable]
+            # Combine all calibration tables (initial + delay + this iteration)
+            all_caltables = self.initial_caltables.copy()
+            if self.delay_caltable:
+                all_caltables.append(self.delay_caltable)
+            all_caltables.append(caltable)
 
             if applycal is None:
                 raise RuntimeError("casatasks.applycal not available")

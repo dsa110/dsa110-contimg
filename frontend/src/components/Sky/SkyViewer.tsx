@@ -87,6 +87,7 @@ export default function SkyViewer({
     containerRef,
     initialized,
     isJS9Ready,
+    imagePath,
     imageLoadedRef,
     loading,
     getDisplaySafe,

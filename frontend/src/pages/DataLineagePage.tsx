@@ -61,8 +61,8 @@ const DATA_TYPE_COLORS: Record<string, "primary" | "success" | "warning" | "erro
   image: "primary",
   mosaic: "success",
   catalog: "info",
-  qa: "default",
-};
+  qa: "info",
+} as const;
 
 export default function DataLineagePage() {
   const { id } = useParams<{ id: string }>();
@@ -176,7 +176,7 @@ export default function DataLineagePage() {
                   variant="outlined"
                   size="small"
                   startIcon={<Visibility />}
-                  onClick={() => handleNavigateToData(id ?? ("" || ""), currentInstance.data_type)}
+                  onClick={() => handleNavigateToData(id ?? "", currentInstance.data_type)}
                 >
                   View Details
                 </Button>

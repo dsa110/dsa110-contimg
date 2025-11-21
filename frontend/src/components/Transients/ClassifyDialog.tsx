@@ -17,7 +17,7 @@ interface ClassifyDialogProps {
   open: boolean;
   onClose: () => void;
   onConfirm: (classification: string, classifiedBy: string, notes?: string) => void;
-  candidateId?: number;
+  candidateId?: string | number;
   currentClassification?: string | null;
 }
 

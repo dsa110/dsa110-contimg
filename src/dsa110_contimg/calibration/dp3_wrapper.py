@@ -283,6 +283,22 @@ def _concatenate_fields_manual(ms_path: str, output_ms_path: str) -> str:
             field_table.putcell("NAME", 0, "CONCATENATED")
     field_table.close()
 
+    # Recalculate UVW coordinates for the unified field geometry
+    # This is CRITICAL - without this, MODEL_DATA from wsclean will be wrong
+    LOG.info("Recalculating UVW coordinates for concatenated geometry...")
+    try:
+        from casatasks import fixvis
+
+        fixvis(
+            vis=output_ms_path,
+            outputvis="",  # Modify in place
+            field="0",
+            phasecenter="",  # Keep existing phase center
+        )
+        LOG.info("✓ UVW coordinates recalculated")
+    except Exception as e:
+        LOG.warning(f"Failed to recalculate UVWs: {e}. Predictions may be inaccurate.")
+
     LOG.info(f"Manually concatenated MS created: {output_ms_path}")
     return output_ms_path
 

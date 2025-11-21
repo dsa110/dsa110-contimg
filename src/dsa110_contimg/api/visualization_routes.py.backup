@@ -172,13 +172,12 @@ def browse_directory(
         base_state = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
         qa_base = base_state / "qa"
         output_dir = Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"))
-        stage_base = Path("/stage/dsa110-contimg")
 
         # Try validation against each allowed base directory
         target_path = None
         validation_errors = []
 
-        for base_dir in [base_state, qa_base, output_dir, stage_base]:
+        for base_dir in [base_state, qa_base, output_dir]:
             try:
                 # Allow absolute paths if the base directory resolves to an absolute path
                 # This is necessary because output_dir is typically an absolute path,

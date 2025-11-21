@@ -52,7 +52,7 @@ export default function CatalogValidationPanel({
     });
   };
 
-  const renderValidationResult = (result: CatalogValidationResult | undefined, title: string) => {
+  const renderValidationResult = (result: CatalogValidationResults | undefined, title: string) => {
     if (!result) return null;
 
     const statusColor = result.has_issues ? "error" : result.has_warnings ? "warning" : "success";
@@ -224,15 +224,18 @@ export default function CatalogValidationPanel({
       {validationResults && (
         <>
           {validationType === "all" || validationType === "astrometry"
-            ? renderValidationResult(validationResults.astrometry, "Astrometry Validation")
+            ? renderValidationResult(validationResults.astrometry as any, "Astrometry Validation")
             : null}
 
           {validationType === "all" || validationType === "flux_scale"
-            ? renderValidationResult(validationResults.flux_scale, "Flux Scale Validation")
+            ? renderValidationResult(validationResults.flux_scale as any, "Flux Scale Validation")
             : null}
 
           {validationType === "all" || validationType === "source_counts"
-            ? renderValidationResult(validationResults.source_counts, "Source Counts Validation")
+            ? renderValidationResult(
+                validationResults.source_counts as any,
+                "Source Counts Validation"
+              )
             : null}
         </>
       )}
