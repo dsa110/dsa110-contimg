@@ -139,18 +139,33 @@ sub-stages.
 
 ## Databases
 
+**Note:** Use `.sqlite3` file extension (modern standard). Legacy `.db` files
+exist for historical reasons but should not be used for new development.
+
+**Active Databases:**
+
 - Queue DB (SQLite): `state/ingest.sqlite3`
   - `ingest_queue` (group state), `subband_files` (arrivals),
     `performance_metrics` (writer_type, timings)
 - Calibration Registry DB (SQLite): `state/cal_registry.sqlite3`
   - `caltables` with logical set names, apply order, validity windows
-- Products DB (SQLite): `state/products.sqlite3`
+- Calibrator Registry DB (SQLite): `state/calibrator_registry.sqlite3`
+  - `calibrator_sources` (pre-selected sources), `calibrator_blacklist`,
+    `pb_weights_cache`
+  - Created on first use via `create_calibrator_registry()`
+- Products DB (SQLite): `state/products.sqlite3` _(active - 27 tables, 940KB)_
   - `ms_index(path PRIMARY KEY, start_mjd, end_mjd, mid_mjd, processed_at, status, stage, stage_updated_at, cal_applied, imagename)`
   - `images(id, path, ms_path, created_at, type, beam_major_arcsec, noise_jy, pbcor)`
   - Indices:
     - `idx_images_ms_path ON images(ms_path)`
     - `idx_ms_index_stage_path ON ms_index(stage, path)`
     - `idx_ms_index_status ON ms_index(status)`
+
+**Removed Legacy Files:**
+
+- ~~`state/streaming_queue.sqlite3`~~ (replaced by `ingest.sqlite3`, removed)
+- ~~`state/products.db`, `state/queue.db`, `state/pipeline_queue.db`~~ (old
+  schema, removed)
 
 ## Environment Variables
 

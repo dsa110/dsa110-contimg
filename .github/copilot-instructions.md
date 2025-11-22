@@ -52,11 +52,30 @@ Follow the template in `alldir_structure_template.md`:
 ### Subband File Patterns
 
 ```
-2025-10-05T12:30:00_sb01.hdf5  # Timestamp must match exactly across all 16 subbands
-2025-10-05T12:30:00_sb02.hdf5
+2025-10-05T12:30:00_sb00.hdf5  # 16 subbands: sb00 through sb15
+2025-10-05T12:30:00_sb01.hdf5
 ...
-2025-10-05T12:30:00_sb16.hdf5
+2025-10-05T12:30:00_sb15.hdf5
 ```
+
+**CRITICAL: Time-Windowing for Grouping**
+
+Subbands from the same observation may have slightly different timestamps
+(seconds apart) due to write timing. **Never** group by exact timestamp match:
+
+```python
+# WRONG - will show fragmented groups
+SELECT group_id, COUNT(*) FROM hdf5_file_index
+GROUP BY group_id HAVING COUNT(*) = 16;
+
+# CORRECT - use pipeline's time-windowing functions
+from dsa110_contimg.database.hdf5_index import query_subband_groups
+groups = query_subband_groups(hdf5_db, start_time, end_time,
+                               cluster_tolerance_s=150.0)  # 2.5 min tolerance
+```
+
+The pipeline uses **±2.5 minute tolerance** to group subbands that belong
+together.
 
 ### Two Processing Modes
 
