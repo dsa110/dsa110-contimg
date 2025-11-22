@@ -37,12 +37,12 @@ export default function CARTAPage({ embedded = false }: { embedded?: boolean }) 
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [tab, setTab] = useState<TabValue>("viewer");
   // Ports follow allocation strategy: 9000-9099 for External Integrations
-  // CARTA Backend: 9002, CARTA Frontend: 9003
+  // CARTA Backend: 9002, CARTA Frontend: served by backend on 9002
   const [backendUrl, setBackendUrl] = useState<string>(
     env.VITE_CARTA_BACKEND_URL || "http://localhost:9002"
   );
   const [frontendUrl, setFrontendUrl] = useState<string>(
-    env.VITE_CARTA_FRONTEND_URL || "http://localhost:9003"
+    env.VITE_CARTA_FRONTEND_URL || "http://localhost:9002"
   );
 
   // Handle file parameter from URL query string
@@ -124,17 +124,19 @@ export default function CARTAPage({ embedded = false }: { embedded?: boolean }) 
           </Stack>
 
           {integrationMode === "iframe" && (
-            <Alert severity="info" sx={{ mt: 2 }}>
-              <strong>Iframe Mode:</strong> Embeds CARTA frontend in an iframe. Requires CARTA
-              frontend to be running separately. Best for quick validation.
+            <Alert severity="success" sx={{ mt: 2 }}>
+              <strong>Iframe Mode (Recommended):</strong> Embeds CARTA's official frontend with full
+              functionality. Uses CARTA's built-in Protocol Buffer support via WASM modules. This is
+              the officially supported integration method.
             </Alert>
           )}
 
           {integrationMode === "websocket" && (
-            <Alert severity="info" sx={{ mt: 2 }}>
-              <strong>WebSocket Mode:</strong> Native React component connecting directly to CARTA
-              backend. Provides full integration with dashboard. Requires Protocol Buffer support
-              for full functionality.
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              <strong>WebSocket Mode (Experimental - Not Functional):</strong> Direct WebSocket
+              connection to CARTA backend. <strong>This mode does not work</strong> because it
+              requires CARTA's internal Protocol Buffer definitions (.proto files) which are not
+              publicly available. Use Iframe Mode instead.
             </Alert>
           )}
         </Paper>

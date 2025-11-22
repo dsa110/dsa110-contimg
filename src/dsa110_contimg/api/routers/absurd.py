@@ -11,7 +11,7 @@ import logging
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
 from dsa110_contimg.absurd import AbsurdClient, AbsurdConfig
@@ -61,6 +61,7 @@ class TaskListResponse(BaseModel):
 
     tasks: List[TaskResponse]
     total: int
+    note: Optional[str] = None
 
 
 class QueueStatsResponse(BaseModel):
@@ -73,6 +74,7 @@ class QueueStatsResponse(BaseModel):
     failed: int
     cancelled: int
     total: int
+    note: Optional[str] = None
 
 
 # Dependency for getting client
@@ -213,7 +215,7 @@ async def get_task(task_id: UUID, client: AbsurdClient = Depends(get_absurd_clie
 @router.get("/tasks", response_model=TaskListResponse)
 async def list_tasks(
     queue_name: Optional[str] = None,
-    status: Optional[str] = None,
+    task_status: Optional[str] = Query(None, alias="status"),
     limit: int = 100,
     client: AbsurdClient = Depends(get_absurd_client),
 ):
@@ -221,15 +223,25 @@ async def list_tasks(
 
     Args:
         queue_name: Filter by queue name
-        status: Filter by status
+        task_status: Filter by status
         limit: Maximum number of tasks to return
         client: Absurd client (injected)
 
     Returns:
         List of tasks
     """
-    tasks = await client.list_tasks(queue_name=queue_name, status=status, limit=limit)
-    return TaskListResponse(tasks=[TaskResponse(**t) for t in tasks], total=len(tasks))
+    try:
+        tasks = await client.list_tasks(queue_name=queue_name, status=task_status, limit=limit)
+        return TaskListResponse(tasks=[TaskResponse(**t) for t in tasks], total=len(tasks))
+    except ValueError as e:
+        # Client not connected - return 200 with empty list and note (for health checks)
+        if "not connected" in str(e).lower():
+            return TaskListResponse(
+                tasks=[],
+                total=0,
+                note="ABSURD client not connected to database - Postgres configuration required",
+            )
+        raise
 
 
 @router.delete("/tasks/{task_id}")
@@ -290,17 +302,32 @@ async def get_queue_stats(queue_name: str, client: AbsurdClient = Depends(get_ab
     Returns:
         Queue statistics
     """
-    stats = await client.get_queue_stats(queue_name)
-    total = sum(stats.values())
-    return QueueStatsResponse(
-        queue_name=queue_name,
-        pending=stats.get("pending", 0),
-        claimed=stats.get("claimed", 0),
-        completed=stats.get("completed", 0),
-        failed=stats.get("failed", 0),
-        cancelled=stats.get("cancelled", 0),
-        total=total,
-    )
+    try:
+        stats = await client.get_queue_stats(queue_name)
+        total = sum(stats.values())
+        return QueueStatsResponse(
+            queue_name=queue_name,
+            pending=stats.get("pending", 0),
+            claimed=stats.get("claimed", 0),
+            completed=stats.get("completed", 0),
+            failed=stats.get("failed", 0),
+            cancelled=stats.get("cancelled", 0),
+            total=total,
+        )
+    except ValueError as e:
+        # Client not connected - return 200 with zero stats and note (for health checks)
+        if "not connected" in str(e).lower():
+            return QueueStatsResponse(
+                queue_name=queue_name,
+                pending=0,
+                claimed=0,
+                completed=0,
+                failed=0,
+                cancelled=0,
+                total=0,
+                note="ABSURD client not connected to database - Postgres configuration required",
+            )
+        raise
 
 
 @router.get("/health")

@@ -427,6 +427,54 @@ def view_fits_file(
         raise HTTPException(status_code=500, detail=f"Error generating viewer: {str(e)}")
 
 
+@router.get("/file")
+def get_visualization_file(path: str = Query(..., description="Path to a file to serve")):
+    """
+    Stream a file (e.g., FITS) for visualization components.
+
+    This is used by Sky View when selecting files from the filesystem browser.
+    Paths are validated against allowed roots to prevent traversal.
+    """
+
+    # Try multiple allowed roots in order
+    allowed_roots = [
+        Path(os.getenv("PIPELINE_STATE_DIR", "state")),
+        Path(os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms")),
+        Path("/stage/dsa110-contimg"),
+        Path("/data/dsa110-contimg"),
+        Path("/data"),
+    ]
+
+    target_path = None
+    last_error = None
+
+    for root in allowed_roots:
+        try:
+            target_path = validate_path(path, root)
+            break
+        except ValueError as e:
+            last_error = e
+            continue
+
+    if target_path is None:
+        raise HTTPException(status_code=400, detail=f"Invalid path: {last_error}")
+
+    if not target_path.exists():
+        raise HTTPException(status_code=404, detail=f"File not found: {path}")
+
+    # Guess media type based on extension (default to octet-stream)
+    media_type = "application/octet-stream"
+    suffix = target_path.suffix.lower()
+    if suffix == ".fits":
+        media_type = "application/fits"
+    elif suffix == ".png":
+        media_type = "image/png"
+    elif suffix in (".jpg", ".jpeg"):
+        media_type = "image/jpeg"
+
+    return FileResponse(str(target_path), media_type=media_type, filename=target_path.name)
+
+
 # ============================================================================
 # CASA Table Endpoints
 # ============================================================================

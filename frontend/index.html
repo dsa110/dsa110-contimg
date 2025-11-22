@@ -26,7 +26,7 @@
       connect-src 'self' ws: wss: http://127.0.0.1:8000 http://localhost:8000 http://localhost:2718 ws://localhost:2718;
       font-src 'self' data:;
       worker-src 'self' blob:;
-      frame-src 'self';
+      frame-src 'self' http://localhost:9002 http://localhost:9003;
       object-src 'none';
       base-uri 'self';
       form-action 'self';

@@ -11,6 +11,7 @@ import * as protobuf from "protobufjs";
 import {
   CARTAMessageType,
   getCARTAMessageTypeName,
+  getProtoMessageName,
   encodeHeader,
   decodeHeader,
   combineMessage,
@@ -451,11 +452,25 @@ export class CARTAClient {
         try {
           if (this.root) {
             // Decode using protobuf
-            const MessageType = this.root.lookupType(
-              `CARTA.${getCARTAMessageTypeName(messageType)}`
-            );
-            const message = MessageType.decode(new Uint8Array(payload));
-            data = MessageType.toObject(message, { longs: String, enums: String, bytes: String });
+            try {
+              const protoTypeName = getProtoMessageName(messageType);
+              const MessageType = this.root.lookupType(`CARTA.${protoTypeName}`);
+              const message = MessageType.decode(new Uint8Array(payload));
+              data = MessageType.toObject(message, {
+                longs: String,
+                enums: String,
+                bytes: String,
+              });
+            } catch (lookupError) {
+              logger.warn(
+                `Failed to decode with protobuf type for ${getCARTAMessageTypeName(messageType)}:`,
+                lookupError
+              );
+              // Fallback: try JSON decode
+              const textDecoder = new TextDecoder();
+              const jsonText = textDecoder.decode(payload);
+              data = JSON.parse(jsonText);
+            }
           } else {
             // JSON fallback for development
             const textDecoder = new TextDecoder();
@@ -542,11 +557,22 @@ export class CARTAClient {
       let payloadBuffer: ArrayBuffer;
       if (this.root) {
         // Encode using protobuf
-        const MessageType = this.root.lookupType(`CARTA.${getCARTAMessageTypeName(messageType)}`);
-        const message = MessageType.create(payload);
-        const encoded = MessageType.encode(message).finish();
-        // encoded.buffer is ArrayBufferLike, ensure it's ArrayBuffer
-        payloadBuffer = new Uint8Array(encoded).buffer;
+        try {
+          const protoTypeName = getProtoMessageName(messageType);
+          const MessageType = this.root.lookupType(`CARTA.${protoTypeName}`);
+          const message = MessageType.create(payload);
+          const encoded = MessageType.encode(message).finish();
+          // encoded.buffer is ArrayBufferLike, ensure it's ArrayBuffer
+          payloadBuffer = new Uint8Array(encoded).buffer;
+        } catch (lookupError) {
+          logger.warn(
+            `Failed to encode protobuf type for ${getCARTAMessageTypeName(messageType)}, using JSON fallback:`,
+            lookupError
+          );
+          const jsonText = JSON.stringify(payload);
+          const encoder = new TextEncoder();
+          payloadBuffer = encoder.encode(jsonText).buffer;
+        }
       } else {
         // JSON fallback for development
         const jsonText = JSON.stringify(payload);

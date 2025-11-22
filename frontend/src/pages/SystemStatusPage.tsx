@@ -237,7 +237,12 @@ const CONNECTION_TESTS: ConnectionTest[] = [
   },
 
   // ========== EXTERNAL SERVICES ==========
-  { service: "CARTA Frontend", url: "http://localhost:9002", method: "GET" },
+  {
+    service: "CARTA Frontend",
+    url: "/api/visualization/carta/status",
+    method: "GET",
+    expectedStatus: 200,
+  },
 ];
 
 const StatusIcon = ({ status }: { status: ServiceStatus["status"] }) => {

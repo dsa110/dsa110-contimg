@@ -57,6 +57,19 @@ export function getCARTAMessageTypeName(value: CARTAMessageType): string {
 }
 
 /**
+ * Convert a CARTA message type value to the protobuf message name used in the CARTA .proto files.
+ * The proto definitions use PascalCase names (e.g., RegisterViewer), while messageType enums are uppercase.
+ */
+export function getProtoMessageName(value: CARTAMessageType): string {
+  const typeName = getCARTAMessageTypeName(value);
+  // REGISTER_VIEWER -> RegisterViewer
+  return typeName
+    .split("_")
+    .map((part) => part.charAt(0) + part.slice(1).toLowerCase())
+    .join("");
+}
+
+/**
  * CARTA ICD Version
  * Current version as of CARTA v3.0+
  */
