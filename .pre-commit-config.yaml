@@ -52,7 +52,7 @@ repos:
             env,
             --ignore-patterns=^.venv.*,
           ]
-        exclude: ^(archive/|notebooks/|\.venv/|venv/|env/|tests/.*test_.*\.py)
+        exclude: ^(archive/|notebooks/|\.venv/|venv/|env/|tests/.*test_.*\.py|\.watch/)
         # Note: Pylint on tests can be noisy; consider enabling separately if desired
 
       - id: pyflakes
