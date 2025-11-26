@@ -169,3 +169,121 @@ class TestPhotometryMeasureBatchEndpoint:
         data = response.json()
         assert len(data["results"]) == 0
         assert data["error"] is not None
+
+
+class TestLightCurveEndpoint:
+    """Test GET /api/photometry/sources/{source_id}/lightcurve endpoint."""
+
+    @patch("dsa110_contimg.api.routers.photometry.Source")
+    def test_get_lightcurve_success(self, mock_source_class, client):
+        """Test successful lightcurve retrieval."""
+        import pandas as pd
+
+        # Mock Source instance
+        mock_source = MagicMock()
+        mock_source.ra_deg = 123.456
+        mock_source.dec_deg = -45.678
+        mock_source.measurements = pd.DataFrame({
+            "mjd": [60100.5, 60101.5, 60102.5],
+            "peak_jyb": [1.0, 1.2, 0.9],
+            "peak_err_jyb": [0.05, 0.06, 0.04],
+            "image_path": ["/img1.fits", "/img2.fits", "/img3.fits"],
+        })
+        mock_source_class.return_value = mock_source
+
+        response = client.get("/api/photometry/sources/SRC001/lightcurve")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["source_id"] == "SRC001"
+        assert data["ra_deg"] == 123.456
+        assert data["dec_deg"] == -45.678
+        assert len(data["flux_points"]) == 3
+        assert data["flux_points"][0]["flux_jy"] == 1.0
+        assert data["flux_points"][0]["flux_err_jy"] == 0.05
+
+    @patch("dsa110_contimg.api.routers.photometry.Source")
+    def test_get_lightcurve_with_normalized(self, mock_source_class, client):
+        """Test lightcurve with normalized flux points."""
+        import pandas as pd
+
+        mock_source = MagicMock()
+        mock_source.ra_deg = 123.456
+        mock_source.dec_deg = -45.678
+        mock_source.measurements = pd.DataFrame({
+            "mjd": [60100.5, 60101.5],
+            "peak_jyb": [1.0, 1.2],
+            "peak_err_jyb": [0.05, 0.06],
+            "normalized_flux_jy": [1.0, 1.1],
+            "normalized_flux_err_jy": [0.04, 0.05],
+            "image_path": ["/img1.fits", "/img2.fits"],
+        })
+        mock_source_class.return_value = mock_source
+
+        response = client.get("/api/photometry/sources/SRC002/lightcurve")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["normalized_flux_points"] is not None
+        assert len(data["normalized_flux_points"]) == 2
+        assert data["normalized_flux_points"][0]["flux_jy"] == 1.0
+
+    @patch("dsa110_contimg.api.routers.photometry.Source")
+    def test_get_lightcurve_no_measurements(self, mock_source_class, client):
+        """Test lightcurve for source with no measurements."""
+        import pandas as pd
+
+        mock_source = MagicMock()
+        mock_source.measurements = pd.DataFrame()
+        mock_source_class.return_value = mock_source
+
+        response = client.get("/api/photometry/sources/SRC_EMPTY/lightcurve")
+
+        assert response.status_code == 404
+        assert "No measurements found" in response.json()["detail"]
+
+    @patch("dsa110_contimg.api.routers.photometry.Source")
+    def test_get_lightcurve_source_not_found(self, mock_source_class, client):
+        """Test lightcurve for non-existent source."""
+        mock_source_class.side_effect = Exception("Source not found")
+
+        response = client.get("/api/photometry/sources/NONEXISTENT/lightcurve")
+
+        assert response.status_code == 404
+
+
+class TestSourceMetricsEndpoint:
+    """Test GET /api/photometry/sources/{source_id}/metrics endpoint."""
+
+    @patch("dsa110_contimg.api.routers.photometry.Source")
+    def test_get_source_metrics_success(self, mock_source_class, client):
+        """Test successful metrics retrieval."""
+        import pandas as pd
+
+        mock_source = MagicMock()
+        mock_source.ra_deg = 123.456
+        mock_source.dec_deg = -45.678
+        mock_source.measurements = pd.DataFrame({
+            "peak_jyb": [1.0, 1.2, 0.9, 1.1],
+            "peak_err_jyb": [0.05, 0.06, 0.04, 0.05],
+        })
+        mock_source_class.return_value = mock_source
+
+        response = client.get("/api/photometry/sources/SRC001/metrics")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["source_id"] == "SRC001"
+        assert data["ra_deg"] == 123.456
+        assert "mean_flux_jy" in data
+        assert "variability_index" in data
+        assert data["n_measurements"] == 4
+
+    @patch("dsa110_contimg.api.routers.photometry.Source")
+    def test_get_source_metrics_not_found(self, mock_source_class, client):
+        """Test metrics for non-existent source."""
+        mock_source_class.side_effect = Exception("Source not found")
+
+        response = client.get("/api/photometry/sources/NONEXISTENT/metrics")
+
+        assert response.status_code == 404

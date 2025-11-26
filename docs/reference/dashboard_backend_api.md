@@ -192,6 +192,7 @@ generated from the code and is the single source of truth.
 - `/api/pipeline/metrics/summary`
 - `/api/pipeline/stages/metrics`
 - `/api/pipeline/stages/{stage_name}/metrics`
+- `/api/pipeline/workflow-status`
 
 ### plots
 

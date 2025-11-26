@@ -304,7 +304,7 @@ jobs:
 
 ## 📚 Additional Resources
 
-### Related Scripts in `/scripts/`:
+### Related Scripts in `scripts/ops/`:
 
 - `migrate_to_new_structure.py` - Migration automation
 - `verify_migration.py` - Verify migration completeness
@@ -312,9 +312,9 @@ jobs:
 
 ### Documentation:
 
-- [Main docs](../dsa110_contimg/docs/README.md)
-- [Operations guide](../dsa110_contimg/docs/operations/)
-- [Phase 3 implementation](../dsa110_contimg/docs/reports/PHASE3_IMPLEMENTATION_GUIDE.md)
+- [Main docs](../../../../docs/README.md)
+- [Operations guide](../../../../docs/operations/)
+- [Reports](../../../../docs/reports/)
 
 ---
 

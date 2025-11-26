@@ -510,6 +510,101 @@ HDF5 → MS → Calibration → Imaging → Mosaic → Photometry → Light Curv
 
 ---
 
+## Workflow Definitions
+
+The pipeline provides several pre-built workflow compositions in
+`dsa110_contimg.pipeline.workflows`. These use the `WorkflowBuilder` to compose
+stages with dependencies, retry policies, and timeouts.
+
+### `streaming_workflow()`
+
+The **complete end-to-end streaming workflow** implements the full data path from
+HDF5 ingestion through transient detection. This is the primary workflow for
+production streaming operations.
+
+```python
+from dsa110_contimg.pipeline.workflows import streaming_workflow
+from dsa110_contimg.pipeline.config import PipelineConfig
+
+config = PipelineConfig.from_env()
+workflow = streaming_workflow(config)
+result = await workflow.execute(context)
+```
+
+**Stages (11 total):**
+
+| Stage | Timeout | Description |
+|-------|---------|-------------|
+| `catalog_setup` | 5 min | Initialize calibrator catalog |
+| `conversion` | 30 min | UVH5 → Measurement Set |
+| `calibration_solve` | 15 min | Solve delay, bandpass, gain tables |
+| `calibration_apply` | 10 min | Apply calibration to MS |
+| `imaging` | 30 min | WSClean imaging |
+| `mosaic` | 60 min | Combine images into mosaic (if enabled) |
+| `validation` | 5 min | QA checks (if enabled) |
+| `crossmatch` | 10 min | Catalog cross-matching (if enabled) |
+| `adaptive_photometry` | 20 min | Source extraction & photometry (if enabled) |
+| `light_curve` | 10 min | Time-series light curves (requires photometry) |
+| `transient_detection` | 5 min | ESE/transient detection (if enabled) |
+
+**Conditional Inclusion:**
+
+Stages are conditionally included based on configuration flags:
+
+```python
+config = PipelineConfig(
+    mosaic=MosaicConfig(enabled=True),        # Include mosaic stage
+    validation=ValidationConfig(enabled=True), # Include validation stage
+    crossmatch=CrossMatchConfig(enabled=True), # Include cross-match stage
+    photometry=PhotometryConfig(enabled=True), # Include photometry stage
+    light_curve=LightCurveConfig(enabled=True),# Include light curve stage
+    transient_detection=TransientDetectionConfig(enabled=True),
+)
+```
+
+**Dependency Graph:**
+
+```
+catalog_setup
+     ↓
+conversion
+     ↓
+calibration_solve
+     ↓
+calibration_apply
+     ↓
+imaging
+     ↓
+     ├── mosaic (if enabled)
+     │      ↓
+     │      └─┬── validation (if enabled)
+     │        │
+     │        └── crossmatch (depends on validation if enabled)
+     │
+     └── adaptive_photometry (if enabled)
+            ↓
+         light_curve (if enabled, requires photometry + mosaic)
+            ↓
+         transient_detection (if enabled)
+```
+
+**Retry Policy:**
+
+All stages use exponential backoff retry:
+- Max attempts: 3
+- Initial delay: 5 seconds
+- Max delay: 60 seconds
+
+### Other Workflows
+
+| Workflow | Description |
+|----------|-------------|
+| `standard_imaging_workflow()` | Convert → Calibrate → Image (production) |
+| `quicklook_workflow()` | Convert → Image (no calibration, fast preview) |
+| `reprocessing_workflow()` | Calibrate → Image (MS already exists) |
+
+---
+
 ## Error Handling
 
 ### Retry Policies

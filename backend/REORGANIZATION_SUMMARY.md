@@ -1,11 +1,13 @@
-# Backend Directory Reorganization Summary
+# Backend Directory Reorganization (November 2025)
 
-**Date**: November 26, 2025
+**Date**: November 26, 2025  
+**Purpose**: Simplify directory structure for dashboard frontend and pipeline development
 
-## Changes Made
+## Summary
 
-This document summarizes the directory reorganization performed to simplify the
-backend structure and eliminate duplication.
+This document records the directory reorganization performed to consolidate
+duplicated tests, scripts, documentation, and state directories into a cleaner,
+standard Python project layout.
 
 ### 1. Tests Consolidated
 
@@ -124,7 +126,9 @@ backend/
 - `src/dsa110_contimg/README.md` - Updated with correct doc paths
 - `docs/README.md` - Updated with new layout
 - `src/MANAGING_LARGE_REFACTORING.md` - Updated script paths
-- `tests/smoke/test_priority1_quick.py` - Fixed path reference
+- `src/dsa110_contimg/scripts/ops/REFACTORING_TOOLS.md` - Fixed stale doc paths
+- `tests/README.md` - Updated with current directory structure
+- `tests/smoke/test_priority1_quick.py` - Fixed path references and pytest warnings
 
 ## Cleanup Commands
 
