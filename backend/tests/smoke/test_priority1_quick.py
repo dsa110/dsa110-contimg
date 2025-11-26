@@ -28,26 +28,23 @@ def test_imports():
     try:
         print("✓ Region utilities imported")
     except Exception as e:
-        print(f"✗ Failed to import region utilities: {e}")
-        return False
+        pytest.fail(f"Failed to import region utilities: {e}")
 
     try:
         print("✓ Fitting utilities imported")
     except Exception as e:
-        print(f"✗ Failed to import fitting utilities: {e}")
-        return False
+        pytest.fail(f"Failed to import fitting utilities: {e}")
 
     try:
         print("✓ Astropy imports work")
     except Exception as e:
-        print(f"✗ Failed to import astropy: {e}")
-        return False
+        pytest.fail(f"Failed to import astropy: {e}")
 
     # Check that routes.py can import create_region_mask
     try:
         import importlib.util
 
-        routes_path = Path(__file__).parent / "src" / "dsa110_contimg" / "api" / "routes.py"
+        routes_path = Path(__file__).parent.parent.parent / "src" / "dsa110_contimg" / "api" / "routes.py"
         spec = importlib.util.spec_from_file_location("routes", routes_path)
         importlib.util.module_from_spec(spec)
         # Just check syntax, don't execute
@@ -56,10 +53,7 @@ def test_imports():
             compile(code, routes_path, "exec")
         print("✓ routes.py syntax is valid")
     except Exception as e:
-        print(f"✗ routes.py has syntax errors: {e}")
-        return False
-
-    return True
+        pytest.fail(f"routes.py has syntax errors: {e}")
 
 
 @pytest.mark.smoke
@@ -92,8 +86,7 @@ def test_region_mask_synthetic():
         wcs = WCS(header)
         print("✓ Created synthetic WCS")
     except Exception as e:
-        print(f"✗ Failed to create WCS: {e}")
-        return False
+        pytest.fail(f"Failed to create WCS: {e}")
 
     shape = (100, 100)
 
@@ -118,23 +111,18 @@ def test_region_mask_synthetic():
             f"✓ Circle mask created: {n_pixels} pixels ({100 * n_pixels / np.prod(shape):.1f}% of image)"
         )
 
-        if n_pixels == 0:
-            print("  WARNING: Mask is empty")
-            return False
-
-        if circle_mask.shape != shape:
-            print(f"  ERROR: Mask shape {circle_mask.shape} != image shape {shape}")
-            return False
+        assert n_pixels > 0, "Mask is empty"
+        assert circle_mask.shape == shape, f"Mask shape {circle_mask.shape} != image shape {shape}"
 
         print("  ✓ Mask shape is correct")
         print("  ✓ Mask is boolean array")
 
+    except AssertionError:
+        raise
     except Exception as e:
-        print(f"✗ Circle mask creation failed: {e}")
         import traceback
-
         traceback.print_exc()
-        return False
+        pytest.fail(f"Circle mask creation failed: {e}")
 
     # Test rectangle region
     print("\n--- Testing Rectangle Region ---")
@@ -159,25 +147,18 @@ def test_region_mask_synthetic():
             f"✓ Rectangle mask created: {n_pixels} pixels ({100 * n_pixels / np.prod(shape):.1f}% of image)"
         )
 
-        if n_pixels == 0:
-            print("  WARNING: Mask is empty")
-            return False
-
-        if rect_mask.shape != shape:
-            print(f"  ERROR: Mask shape {rect_mask.shape} != image shape {shape}")
-            return False
+        assert n_pixels > 0, "Mask is empty"
+        assert rect_mask.shape == shape, f"Mask shape {rect_mask.shape} != image shape {shape}"
 
         print("  ✓ Mask shape is correct")
         print("  ✓ Mask is boolean array")
 
+    except AssertionError:
+        raise
     except Exception as e:
-        print(f"✗ Rectangle mask creation failed: {e}")
         import traceback
-
         traceback.print_exc()
-        return False
-
-    return True
+        pytest.fail(f"Rectangle mask creation failed: {e}")
 
 
 @pytest.mark.smoke
@@ -218,15 +199,15 @@ def test_api_structure():
         ),
     ]
 
-    all_passed = True
+    failed_checks = []
     for name, search_term, found in checks:
         if found:
             print(f"✓ {name}")
         else:
             print(f"✗ {name} - not found")
-            all_passed = False
+            failed_checks.append(name)
 
-    return all_passed
+    assert not failed_checks, f"Failed checks: {', '.join(failed_checks)}"
 
 
 def main():

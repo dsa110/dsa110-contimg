@@ -14,6 +14,7 @@ import { QueueDepthChart } from "../components/QueueDepthChart";
 import { SystemHealthSection } from "../components/dashboard/SystemHealthSection";
 import { PipelineStatusSection } from "../components/dashboard/PipelineStatusSection";
 import { RecentObservationsTable } from "../components/dashboard/RecentObservationsTable";
+import { WorkflowStatusPanel } from "../components/dashboard/WorkflowStatusPanel";
 import { DASHBOARD_CONFIG } from "../config/dashboard";
 
 type QueueStatusType = "total" | "pending" | "in_progress" | "completed" | "failed" | "collecting";
@@ -60,6 +61,11 @@ export default function DashboardPage() {
         </Box>
 
         <Stack spacing={3}>
+          {/* Workflow Status Panel - Full pipeline visualization */}
+          <Box sx={{ width: "100%" }}>
+            <WorkflowStatusPanel />
+          </Box>
+
           {/* Row 1: Pipeline Status + Queue Details + System Health */}
           <Box sx={{ width: "100%" }}>
             <Stack
