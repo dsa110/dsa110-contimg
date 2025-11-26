@@ -69,38 +69,53 @@ conda run -n casa6 npm run preview
 
 ```
 frontend/
-├── src/
-│   ├── api/                # API client & React Query hooks
-│   │   ├── client.ts       # Axios instance
-│   │   ├── types.ts        # TypeScript interfaces
-│   │   └── queries.ts      # React Query hooks
-│   ├── components/         # React components
-│   │   ├── CARTA/          # CARTA integration components
-│   │   ├── Cache/          # Cache management components
-│   │   ├── CircuitBreaker/ # Circuit breaker components
-│   │   ├── DeadLetterQueue/# Dead letter queue components
-│   │   ├── Events/         # Event handling components
-│   │   ├── MSDetails/      # Measurement set detail components
-│   │   ├── Pipeline/       # Pipeline workflow components
-│   │   ├── QA/             # Quality assurance components
-│   │   ├── Sky/            # Sky/image gallery components
-│   │   └── workflows/      # Workflow orchestration components
-│   ├── pages/              # Page-level components
-│   │   ├── DashboardPage.tsx
-│   │   ├── HealthPage.tsx
-│   │   ├── ObservingPage.tsx
-│   │   └── [many more page components...]
-│   ├── theme/              # MUI theme configuration
-│   │   └── darkTheme.ts    # Dark mode theme
-│   ├── utils/              # Utility functions
-│   ├── App.tsx             # Main app component
-│   └── main.tsx            # Entry point
-├── public/                 # Static assets
-├── .env.development        # Dev environment vars
-├── .env.production         # Prod environment vars
-├── package.json
-├── tsconfig.json
-└── vite.config.ts
+├── README.md                 # This file
+├── index.html                # Entry point
+├── package.json              # Dependencies
+├── eslint.config.js          # Linting configuration
+│
+├── config/                   # All configuration files
+│   ├── docker/               # Docker configs (Dockerfile.dev, nginx.conf)
+│   ├── playwright/           # Playwright test configs
+│   ├── typescript/           # TypeScript configs (tsconfig.*.json)
+│   └── vite/                 # Vite/Vitest configs
+│
+├── scripts/                  # Utility scripts
+│   ├── build/                # Build scripts (build-in-scratch.sh)
+│   ├── dev/                  # Dev server scripts (start-dev.sh, etc.)
+│   ├── test/                 # Test runner scripts
+│   └── tools/                # Misc tools (fix-imports.js, etc.)
+│
+├── src/                      # Source code
+│   ├── api/                  # API client & React Query hooks
+│   │   ├── client.ts         # Axios instance
+│   │   ├── types.ts          # TypeScript interfaces
+│   │   └── queries.ts        # React Query hooks
+│   ├── components/           # React components
+│   │   ├── CARTA/            # CARTA integration
+│   │   ├── Pipeline/         # Pipeline workflow
+│   │   ├── QA/               # Quality assurance
+│   │   ├── Sky/              # Sky/image gallery
+│   │   └── ...               # Many more component groups
+│   ├── pages/                # Page-level components
+│   ├── theme/                # MUI theme (dark mode)
+│   ├── utils/                # Utility functions
+│   ├── App.tsx               # Main app component
+│   └── main.tsx              # Entry point
+│
+├── tests/                    # Test files
+├── docs/                     # Frontend-specific documentation
+├── public/                   # Static assets (JS9, CARTA protos)
+│
+├── dist/                     # Build output (gitignored)
+├── node_modules/             # Dependencies (gitignored)
+├── state/                    # Runtime cache (gitignored)
+└── playwright-report/        # Test reports (gitignored)
+
+# Root symlinks for tool compatibility:
+# tsconfig.json → config/typescript/tsconfig.json
+# vite.config.ts → config/vite/vite.config.ts
+# playwright.config.ts → config/playwright/playwright.config.ts
 ```
 
 ## Environment Variables
