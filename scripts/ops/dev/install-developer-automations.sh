@@ -5,7 +5,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+# Go up 3 levels from scripts/ops/dev to reach project root
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$PROJECT_ROOT"
 
 echo "Installing developer automation protections..."
@@ -57,19 +58,24 @@ if [ -x "$CASA6_PYTHON" ]; then
     LOCAL_BIN="$PROJECT_ROOT/.local/bin"
     mkdir -p "$LOCAL_BIN"
     
-    if [ -f "$SCRIPT_DIR/python-wrapper.sh" ]; then
-        # Create symlinks (if not already in PATH)
-        if [ ! -f "$LOCAL_BIN/python" ]; then
-            ln -sf "$SCRIPT_DIR/python-wrapper.sh" "$LOCAL_BIN/python"
-            echo "   ✓ Created python wrapper in $LOCAL_BIN/python"
-        fi
-        if [ ! -f "$LOCAL_BIN/python3" ]; then
-            ln -sf "$SCRIPT_DIR/python-wrapper.sh" "$LOCAL_BIN/python3"
-            echo "   ✓ Created python3 wrapper in $LOCAL_BIN/python3"
-        fi
+    WRAPPER_PATH="$PROJECT_ROOT/scripts/ops/utils/python-wrapper.sh"
+    # Relative path from .local/bin/ to scripts/ops/utils/python-wrapper.sh
+    WRAPPER_RELPATH="../../scripts/ops/utils/python-wrapper.sh"
+    
+    if [ -f "$WRAPPER_PATH" ]; then
+        # Create symlinks with relative paths for portability
+        # Use -f to force update even if symlink already exists
+        cd "$LOCAL_BIN"
+        ln -sf "$WRAPPER_RELPATH" python
+        echo "   ✓ Created python wrapper in $LOCAL_BIN/python"
+        ln -sf "$WRAPPER_RELPATH" python3
+        echo "   ✓ Created python3 wrapper in $LOCAL_BIN/python3"
+        cd "$PROJECT_ROOT"
         
         echo "   To use wrappers, add to PATH:"
         echo "     export PATH=\"$LOCAL_BIN:\$PATH\""
+    else
+        echo "   ✗ python-wrapper.sh not found at $WRAPPER_PATH"
     fi
 else
     echo "   ✗ casa6 Python not found at $CASA6_PYTHON"
