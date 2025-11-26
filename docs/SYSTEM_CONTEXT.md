@@ -5,7 +5,7 @@ DSA-110 Continuum Imaging Pipeline. It serves as a "mental model" for developers
 and AI agents to understand the system's implementation details without reading
 every source file.
 
-**Last Updated:** November 21, 2025
+**Last Updated:** November 25, 2025
 
 ---
 
@@ -28,9 +28,9 @@ astronomy data from the DSA-110 telescope.
 The system relies on direct SQLite interactions (no ORM) for performance and
 simplicity. It uses multiple separated databases to manage state.
 
-### **Products Database** (`src/state/products.sqlite3`)
+### **Products Database** (`state/products.sqlite3`)
 
-- **Managed by:** `src/dsa110_contimg/database/products.py`
+- **Managed by:** `backend/src/dsa110_contimg/database/products.py`
 - **Key Tables:**
   - `ms_index`: Tracks the lifecycle of a Measurement Set.
     - `path` (PK): Absolute path to the MS.
@@ -69,16 +69,17 @@ simplicity. It uses multiple separated databases to manage state.
 
 ### **The Stage Pattern**
 
-- **Base Class:** `PipelineStage` (in `src/dsa110_contimg/pipeline/stages.py`).
+- **Base Class:** `PipelineStage` (in
+  `backend/src/dsa110_contimg/pipeline/stages.py`).
 - **Implementation:** Concrete stages (e.g., `CatalogSetupStage`) are in
-  `src/dsa110_contimg/pipeline/stages_impl.py`.
+  `backend/src/dsa110_contimg/pipeline/stages_impl.py`.
 - **Context:** Data is passed between stages via a `PipelineContext` object
   (immutable Pydantic model).
 
 ### **The "Absurd" Workflow Engine**
 
 - **Type:** Custom Asyncio Task Queue.
-- **Worker:** `src/dsa110_contimg/absurd/worker.py`.
+- **Worker:** `backend/src/dsa110_contimg/absurd/worker.py`.
 - **Real-Time:** Uses WebSockets to broadcast `task_update` events to the
   frontend.
 - **Persistence:** Tasks are persisted to SQLite to survive restarts.
@@ -98,12 +99,13 @@ simplicity. It uses multiple separated databases to manage state.
 ### **Component Deep Dives**
 
 - **Transit Precalculation:**
-  - **Source:** `src/dsa110_contimg/conversion/transit_precalc.py`
+  - **Source:** `backend/src/dsa110_contimg/conversion/transit_precalc.py`
   - **Mechanism:** Calculates transit times for registered calibrators using
     `astropy`.
   - **Storage:** `calibrator_transits` table in `products.sqlite3`.
 - **Parallel-Subband Writer:**
-  - **Source:** `src/dsa110_contimg/conversion/strategies/direct_subband.py`
+  - **Source:**
+    `backend/src/dsa110_contimg/conversion/strategies/direct_subband.py`
   - **Implementation:** `DirectSubbandWriter` (aliased as `parallel-subband`).
   - **Usage:** Production default. Writes 16 subbands directly to MS.
 - **CARTA Integration:**
@@ -137,14 +139,14 @@ simplicity. It uses multiple separated databases to manage state.
 
 ## 5. Developer Cheat Sheet
 
-| Task                   | File/Directory to Check                                             |
-| :--------------------- | :------------------------------------------------------------------ |
-| **Modify DB Schema**   | `src/dsa110_contimg/database/products.py` (Look for `CREATE TABLE`) |
-| **Add Pipeline Stage** | `src/dsa110_contimg/pipeline/stages_impl.py`                        |
-| **Debug WSClean**      | `src/dsa110_contimg/imaging/cli_imaging.py`                         |
-| **Check Health Logic** | `src/dsa110_contimg/pipeline/health.py`                             |
-| **Frontend Routes**    | `frontend/src/App.tsx` (implied)                                    |
-| **Run Tests**          | `scripts/tests/`                                                    |
+| Task                   | File/Directory to Check                                                     |
+| :--------------------- | :-------------------------------------------------------------------------- |
+| **Modify DB Schema**   | `backend/src/dsa110_contimg/database/products.py` (Look for `CREATE TABLE`) |
+| **Add Pipeline Stage** | `backend/src/dsa110_contimg/pipeline/stages_impl.py`                        |
+| **Debug WSClean**      | `backend/src/dsa110_contimg/imaging/cli_imaging.py`                         |
+| **Check Health Logic** | `backend/src/dsa110_contimg/pipeline/health.py`                             |
+| **Frontend Routes**    | `frontend/src/App.tsx` (implied)                                            |
+| **Run Tests**          | `ops/scripts/tests/`                                                        |
 
 ---
 

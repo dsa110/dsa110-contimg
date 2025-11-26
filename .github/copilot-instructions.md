@@ -2,6 +2,8 @@
 
 ## Project Overview
 
+**Development Branch**: `master-dev` in `/data/dsa110-contimg/`.
+
 **DSA-110 continuum imaging pipeline** converts radio telescope visibility data
 from UVH5 (HDF5) format to CASA Measurement Sets for calibration and imaging.
 The DSA-110 telescope produces **16 separate subband files per observation**
@@ -54,10 +56,9 @@ all Python scripts and CASA tasks.
 **Active Code Structure**:
 
 - `backend/src/dsa110_contimg/` - Main Python package (active development)
-- `src/dsa110_contimg/` - Legacy code (being phased out)
 - `frontend/src/` - React dashboard
-- `ops/` - Operational configuration (systemd, docker)
-- `scripts/` - Utility scripts
+- `ops/` - Operational configuration (systemd, docker, scripts)
+- `docs/` - Documentation, examples, notebooks, simulations
 
 ## Critical Conversion Pipeline
 
@@ -364,13 +365,10 @@ python -m dsa110_contimg.simulation.generate_uvh5 \
 
 **Legacy/Deprecated** (avoid):
 
-- ❌ `src/dsa110_contimg/` - Legacy code (being phased out)
-- ❌ `archive/` - Old deprecated code, external references
+- ❌ `.local/archive/` - Old deprecated code, external references (gitignored)
 - ❌ Files with "legacy" in the path
 
-**When in doubt**: Check `backend/src/dsa110_contimg/` first. If functionality
-doesn't exist there, it may still be in `src/dsa110_contimg/` but should be
-considered for migration.
+**When in doubt**: Check `backend/src/dsa110_contimg/` first.
 
 ## Performance Considerations
 
@@ -442,14 +440,16 @@ insufficient resources.
 
 ## External Dependencies & References
 
-The `archive/references/` directory contains external repos for historical
-context:
+The `.local/archive/references/` directory contains external repos for
+historical context (gitignored, not committed):
 
-- `archive/references/dsa110-calib/` - Original calibration library
-- `archive/references/dsa110-meridian-fs/` - Meridian fringestopping reference
-- `archive/references/dsa110-xengine/` - Correlator output format documentation
+- `.local/archive/references/dsa110-calib/` - Original calibration library
+- `.local/archive/references/dsa110-meridian-fs/` - Meridian fringestopping
+  reference
+- `.local/archive/references/dsa110-xengine/` - Correlator output format
+  documentation
 
-**Do not modify** files in `archive/` - they're read-only references.
+**Do not modify** files in `.local/archive/` - they're read-only references.
 
 ## Database Locations
 

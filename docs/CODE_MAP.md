@@ -3,7 +3,7 @@
 **Purpose:** This document links the active source code directories to their
 corresponding documentation and status. Use this to navigate the codebase.
 
-**Last Updated:** November 21, 2025
+**Last Updated:** November 25, 2025
 
 ---
 
@@ -11,7 +11,8 @@ corresponding documentation and status. Use this to navigate the codebase.
 
 ### 1. Core Pipeline Infrastructure
 
-**Code Location:** `src/dsa110_contimg/pipeline/` **Status:** 🟢 **Production**
+**Code Location:** `backend/src/dsa110_contimg/pipeline/` **Status:** 🟢
+**Production**
 
 | Component         | Code File        | Documentation                                                                             |
 | :---------------- | :--------------- | :---------------------------------------------------------------------------------------- |
@@ -22,17 +23,18 @@ corresponding documentation and status. Use this to navigate the codebase.
 
 ### 2. Workflow Management ("Absurd")
 
-**Code Location:** `src/dsa110_contimg/absurd/` & `scripts/absurd/` **Status:**
-🟢 **Active Integration**
+**Code Location:** `backend/src/dsa110_contimg/absurd/` & `ops/scripts/absurd/`
+**Status:** 🟢 **Active Integration**
 
-| Component        | Code File                           | Documentation                                                                         |
-| :--------------- | :---------------------------------- | :------------------------------------------------------------------------------------ |
-| **Overview**     | `README.md`                         | [`concepts/absurd_documentation_index.md`](../concepts/absurd_documentation_index.md) |
-| **Setup Script** | `scripts/absurd/setup_absurd_db.sh` | [`how-to/workflow/`](../how-to/workflow/)                                             |
+| Component        | Code File                               | Documentation                                                                         |
+| :--------------- | :-------------------------------------- | :------------------------------------------------------------------------------------ |
+| **Overview**     | `README.md`                             | [`concepts/absurd_documentation_index.md`](../concepts/absurd_documentation_index.md) |
+| **Setup Script** | `ops/scripts/absurd/setup_absurd_db.sh` | [`how-to/workflow/`](../how-to/workflow/)                                             |
 
 ### 3. Quality Assurance (QA)
 
-**Code Location:** `src/dsa110_contimg/qa/` **Status:** 🟡 **In Development**
+**Code Location:** `backend/src/dsa110_contimg/qa/` **Status:** 🟡 **In
+Development**
 
 | Component              | Code File               | Documentation                                                                                     |
 | :--------------------- | :---------------------- | :------------------------------------------------------------------------------------------------ |
@@ -41,8 +43,8 @@ corresponding documentation and status. Use this to navigate the codebase.
 
 ### 4. Imaging & Calibration
 
-**Code Location:** `src/dsa110_contimg/imaging/` &
-`src/dsa110_contimg/calibration/` **Status:** 🟢 **Production**
+**Code Location:** `backend/src/dsa110_contimg/imaging/` &
+`backend/src/dsa110_contimg/calibration/` **Status:** 🟢 **Production**
 
 | Component           | Code File                | Documentation                                                                                 |
 | :------------------ | :----------------------- | :-------------------------------------------------------------------------------------------- |
