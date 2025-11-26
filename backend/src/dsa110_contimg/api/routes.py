@@ -27,7 +27,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import (
+from fastapi import (  # type: ignore[import-not-found]
     APIRouter,
     BackgroundTasks,
     Body,
@@ -38,14 +38,14 @@ from fastapi import (
     WebSocket,
     WebSocketDisconnect,
 )
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import (
+from fastapi.middleware.cors import CORSMiddleware  # type: ignore[import-not-found]
+from fastapi.responses import (  # type: ignore[import-not-found]
     FileResponse,
     HTMLResponse,
     RedirectResponse,
     StreamingResponse,
 )
-from fastapi.staticfiles import StaticFiles
+from fastapi.staticfiles import StaticFiles  # type: ignore[import-not-found]
 
 from dsa110_contimg.api.config import ApiConfig
 from dsa110_contimg.api.data_access import (
@@ -363,7 +363,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             absurd_config = AbsurdConfig.from_env()
             if absurd_config.enabled:
                 await initialize_absurd(absurd_config)
-                logging.getLogger(__name__).info("Absurd workflow manager initialized")
+                # Wire WebSocket manager to Absurd worker for real-time events
+                from dsa110_contimg.absurd.worker import set_websocket_manager
+
+                set_websocket_manager(manager)
+                logging.getLogger(__name__).info(
+                    "Absurd workflow manager initialized with WebSocket events"
+                )
             else:
                 logging.getLogger(__name__).info("Absurd workflow manager disabled")
         except Exception as e:
@@ -668,7 +674,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     # Prometheus metrics endpoint
     try:
         from fastapi.responses import Response
-        from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+        from prometheus_client import (  # type: ignore[import-not-found]
+            CONTENT_TYPE_LATEST,
+            generate_latest,
+        )
 
         @app.get("/metrics")
         def metrics():
@@ -726,6 +735,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     from dsa110_contimg.api.routers import absurd as absurd_router_module
 
     app.include_router(absurd_router_module.router, prefix="/api/absurd", tags=["absurd"])
+
+    # Dead Letter Queue management (Phase 2)
+    from dsa110_contimg.api.routers import dlq as dlq_router_module
+
+    app.include_router(dlq_router_module.router, prefix="/api/dlq", tags=["dlq"])
 
     @router.get("/images/{image_id}/measurements", response_model=MeasurementList)
     def get_image_measurements(
@@ -945,7 +959,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
             # Perform fitting if requested
             if fit_model and fit_model != "none":
-                import numpy as np
+                import numpy as np  # type: ignore[import-not-found]
 
                 distance = np.array(profile_data["distance"])
                 flux = np.array(profile_data["flux"])
@@ -985,9 +999,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """
         import json
 
-        import numpy as np
-        from astropy.io import fits
-        from astropy.wcs import WCS
+        import numpy as np  # type: ignore[import-not-found]
+        from astropy.io import fits  # type: ignore[import-not-found]
+        from astropy.wcs import WCS  # type: ignore[import-not-found]
 
         from dsa110_contimg.utils.fitting import fit_2d_gaussian, fit_2d_moffat
         from dsa110_contimg.utils.regions import create_region_mask, json_to_region
@@ -1388,7 +1402,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """
         from datetime import datetime, timedelta
 
-        from astropy.time import Time
+        from astropy.time import Time  # type: ignore[import-not-found]
 
         # If no MJD range provided, default to last 7 days
         if start_mjd is None or end_mjd is None:
@@ -1404,7 +1418,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             f"time_interval_hours={time_interval_hours}"
         )
         items = fetch_pointing_history(
-            cfg.queue_db, start_mjd, end_mjd, time_interval_hours=time_interval_hours
+            str(cfg.queue_db), start_mjd, end_mjd, time_interval_hours=time_interval_hours
         )
 
         # Apply limit if needed
@@ -1568,9 +1582,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """
         import tempfile
 
-        import matplotlib
-        import matplotlib.dates as mdates
-        import matplotlib.pyplot as plt
+        import matplotlib  # type: ignore[import-not-found]
+        import matplotlib.dates as mdates  # type: ignore[import-not-found]
+        import matplotlib.pyplot as plt  # type: ignore[import-not-found]
 
         matplotlib.use("Agg")  # Non-interactive backend
 
@@ -2016,9 +2030,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         # Fetch writer type from performance_metrics
         writer_type = None
         try:
-            pdb = _connect(cfg.queue_db)
-            with pdb:
-                w = pdb.execute(
+            perf_conn = _connect(cfg.queue_db)
+            with perf_conn:
+                w = perf_conn.execute(
                     "SELECT writer_type FROM performance_metrics WHERE group_id = ?",
                     (group_id,),
                 ).fetchone()
@@ -3213,6 +3227,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         jd = db_get_job(conn, job_id)
         conn.close()
 
+        if jd is None:
+            raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+
         return Job(
             id=jd["id"],
             type=jd["type"],
@@ -3252,6 +3269,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         jd = db_get_job(conn, job_id)
         conn.close()
 
+        if jd is None:
+            raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+
         return Job(
             id=jd["id"],
             type=jd["type"],
@@ -3290,6 +3310,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         jd = db_get_job(conn, job_id)
         conn.close()
+
+        if jd is None:
+            raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
 
         return Job(
             id=jd["id"],
@@ -3491,6 +3514,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         jd = db_get_job(conn, job_id)
         conn.close()
 
+        if jd is None:
+            raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+
         # For conversion jobs, use ConversionJobParams instead of JobParams
         return Job(
             id=jd["id"],
@@ -3615,8 +3641,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         # Use context manager to ensure CASA logs go to correct directory
         with casa_log_environment():
-            import numpy as np
-            from casatools import table
+            import numpy as np  # type: ignore[import-not-found]
+            from casatools import table  # type: ignore[import-not-found]
 
             try:
                 # Get basic info from MAIN table
@@ -3628,7 +3654,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
                 start_mjd, end_mjd, _ = extract_ms_time_range(str(ms_path))
                 if start_mjd is not None and end_mjd is not None:
-                    from astropy.time import Time
+                    from astropy.time import Time  # type: ignore[import-not-found]
 
                     start_time_obj = Time(start_mjd, format="mjd")
                     end_time_obj = Time(end_mjd, format="mjd")
@@ -3770,9 +3796,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         ensure_casa_path()
 
-        import astropy.units as u  # pylint: disable=no-member
-        import numpy as np
-        from astropy.time import Time
+        import astropy.units as u  # type: ignore[import-not-found]  # pylint: disable=no-member
+        import numpy as np  # type: ignore[import-not-found]
+        from astropy.time import Time  # type: ignore[import-not-found]
 
         from dsa110_contimg.calibration.catalogs import (
             airy_primary_beam_response,
@@ -3818,7 +3844,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 # This handles both TIME formats (seconds since MJD 0 vs MJD 51544.0)
                 from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
-                start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_full_path)
+                start_mjd, end_mjd, mid_mjd = extract_ms_time_range(str(ms_full_path))
 
                 if mid_mjd is None:
                     raise HTTPException(status_code=400, detail="MS has no valid time data")
@@ -3886,79 +3912,78 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     phase_center_ra_deg = best_match["ra_deg"]
                     phase_center_dec_deg = best_match["dec_deg"]
 
-                    # Convert to MSCalibratorMatch with quality assessment
-                    matches = []
-                    for m in matches_raw:
-                        # Get flux from catalog - use flux_jy column (already in Jy)
-                        flux_jy = df.loc[m["name"], "flux_jy"] if m["name"] in df.index else 0.0
+                # Convert to MSCalibratorMatch with quality assessment
+                matches: list[MSCalibratorMatch] = []
+                for m in matches_raw:
+                    # Get flux from catalog - use flux_jy column (already in Jy)
+                    flux_jy = df.loc[m["name"], "flux_jy"] if m["name"] in df.index else 0.0
 
-                        # Compute PB response
-                        # For phased MS files phased to a calibrator, use calibrator coordinates
-                        # Otherwise use telescope pointing (meridian)
-                        if use_calibrator_as_phase_center and phase_center_ra_deg is not None:
-                            # Use calibrator coordinates (MS is phased to this calibrator)
-                            pb_response = airy_primary_beam_response(
-                                np.deg2rad(phase_center_ra_deg),
-                                np.deg2rad(phase_center_dec_deg),
-                                np.deg2rad(m["ra_deg"]),
-                                np.deg2rad(m["dec_deg"]),
-                                1.4,
-                            )
-                        else:
-                            # Use telescope pointing (meridian) for unphased MS files
+                    # Compute PB response
+                    # For phased MS files phased to a calibrator, use calibrator coordinates
+                    # Otherwise use telescope pointing (meridian)
+                    if use_calibrator_as_phase_center and phase_center_ra_deg is not None:
+                        # Use calibrator coordinates (MS is phased to this calibrator)
+                        pb_response = airy_primary_beam_response(
+                            np.deg2rad(phase_center_ra_deg),
+                            np.deg2rad(phase_center_dec_deg),
+                            np.deg2rad(m["ra_deg"]),
+                            np.deg2rad(m["dec_deg"]),
+                            1.4,
+                        )
+                    else:
+                        # Use telescope pointing (meridian) for unphased MS files
 
-                            t = Time(mid_mjd, format="mjd", scale="utc")
-                            from dsa110_contimg.utils.constants import DSA110_LOCATION
+                        t = Time(mid_mjd, format="mjd", scale="utc")
+                        from dsa110_contimg.utils.constants import DSA110_LOCATION
 
-                            t.location = DSA110_LOCATION
-                            ra_meridian = t.sidereal_time("apparent").to_value(
-                                u.deg  # pylint: disable=no-member
-                            )
-                            dec_meridian = float(
-                                pt_dec.to_value(u.deg)
-                            )  # pylint: disable=no-member
+                        t.location = DSA110_LOCATION
+                        ra_meridian = t.sidereal_time("apparent").to_value(
+                            u.deg  # pylint: disable=no-member
+                        )
+                        dec_meridian = float(pt_dec.to_value(u.deg))  # pylint: disable=no-member
 
-                            pb_response = airy_primary_beam_response(
-                                np.deg2rad(ra_meridian),
-                                np.deg2rad(dec_meridian),
-                                np.deg2rad(m["ra_deg"]),
-                                np.deg2rad(m["dec_deg"]),
-                                1.4,
-                            )
-
-                        # Determine quality
-                        if pb_response >= 0.8:
-                            quality = "excellent"
-                        elif pb_response >= 0.5:
-                            quality = "good"
-                        elif pb_response >= 0.3:
-                            quality = "marginal"
-                        else:
-                            quality = "poor"
-
-                        matches.append(
-                            MSCalibratorMatch(
-                                name=m["name"],
-                                ra_deg=m["ra_deg"],
-                                dec_deg=m["dec_deg"],
-                                flux_jy=float(flux_jy),
-                                sep_deg=m["sep_deg"],
-                                pb_response=float(pb_response),
-                                weighted_flux=m.get("weighted_flux", 0.0),
-                                quality=quality,
-                                recommended_fields=None,  # Could add field detection here
-                            )
+                        pb_response = airy_primary_beam_response(
+                            np.deg2rad(ra_meridian),
+                            np.deg2rad(dec_meridian),
+                            np.deg2rad(m["ra_deg"]),
+                            np.deg2rad(m["dec_deg"]),
+                            1.4,
                         )
 
-                        has_calibrator = len(matches) > 0 and matches[0].pb_response > 0.3
+                    # Determine quality
+                    if pb_response >= 0.8:
+                        quality = "excellent"
+                    elif pb_response >= 0.5:
+                        quality = "good"
+                    elif pb_response >= 0.3:
+                        quality = "marginal"
+                    else:
+                        quality = "poor"
 
-                        return MSCalibratorMatchList(
-                            ms_path=ms_full_path,
-                            pointing_dec=float(pt_dec.to_value(u.deg)),  # pylint: disable=no-member
-                            mid_mjd=float(mid_mjd),
-                            matches=matches,
-                            has_calibrator=has_calibrator,
+                    matches.append(
+                        MSCalibratorMatch(
+                            name=m["name"],
+                            ra_deg=m["ra_deg"],
+                            dec_deg=m["dec_deg"],
+                            flux_jy=float(flux_jy),
+                            sep_deg=m["sep_deg"],
+                            pb_response=float(pb_response),
+                            weighted_flux=m.get("weighted_flux", 0.0),
+                            quality=quality,
+                            recommended_fields=None,  # Could add field detection here
                         )
+                    )
+
+                # Return after processing all matches
+                has_calibrator = len(matches) > 0 and matches[0].pb_response > 0.3
+
+                return MSCalibratorMatchList(
+                    ms_path=ms_full_path,
+                    pointing_dec=float(pt_dec.to_value(u.deg)),  # pylint: disable=no-member
+                    mid_mjd=float(mid_mjd),
+                    matches=matches,
+                    has_calibrator=has_calibrator,
+                )
 
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Error finding calibrators: {str(e)}")
@@ -4233,7 +4258,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         logger.debug(f"Bandpass plots request - validated path: {ms_full_path}")
 
         # Find bandpass table
-        caltables = discover_caltables(ms_full_path)
+        caltables = discover_caltables(str(ms_full_path))
         if "bp" not in caltables or not caltables["bp"]:
             return {"plots": [], "message": "No bandpass calibration table found"}
 
@@ -4368,7 +4393,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             # Find the bandpass table for this MS
             from dsa110_contimg.calibration.caltables import discover_caltables
 
-            caltables = discover_caltables(ms_full_path)
+            caltables = discover_caltables(str(ms_full_path))
 
             if "bp" not in caltables or not caltables["bp"] or not Path(caltables["bp"]).exists():
                 raise HTTPException(
@@ -4680,16 +4705,36 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             logger.debug(f"Could not check validation cache: {e}")
             # Continue to run validation
 
+        def _serialize_result(value):
+            try:
+                import dataclasses as _dc
+
+                if value is None:
+                    return None
+                if hasattr(value, "to_dict"):
+                    return value.to_dict()
+                if _dc.is_dataclass(value):
+                    return _dc.asdict(value)
+            except Exception:
+                pass
+            return value
+
         results = {}
 
         if validation_type in ("all", "astrometry"):
-            results["astrometry"] = validate_astrometry(image_path, catalog=catalog)
+            results["astrometry"] = _serialize_result(
+                validate_astrometry(image_path, catalog=catalog)
+            )
 
         if validation_type in ("all", "flux_scale"):
-            results["flux_scale"] = validate_flux_scale(image_path, catalog=catalog)
+            results["flux_scale"] = _serialize_result(
+                validate_flux_scale(image_path, catalog=catalog)
+            )
 
         if validation_type in ("all", "source_counts"):
-            results["source_counts"] = validate_source_counts(image_path, catalog=catalog)
+            results["source_counts"] = _serialize_result(
+                validate_source_counts(image_path, catalog=catalog)
+            )
 
         # Store results in database for future retrieval (caching)
         try:
@@ -4791,16 +4836,36 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         if validation_types is None:
             validation_types = ["astrometry", "flux_scale", "source_counts"]
 
+        def _serialize_result(value):
+            try:
+                import dataclasses as _dc
+
+                if value is None:
+                    return None
+                if hasattr(value, "to_dict"):
+                    return value.to_dict()
+                if _dc.is_dataclass(value):
+                    return _dc.asdict(value)
+            except Exception:
+                pass
+            return value
+
         results = {}
 
         if "astrometry" in validation_types:
-            results["astrometry"] = validate_astrometry(image_path, catalog=catalog)
+            results["astrometry"] = _serialize_result(
+                validate_astrometry(image_path, catalog=catalog)
+            )
 
         if "flux_scale" in validation_types:
-            results["flux_scale"] = validate_flux_scale(image_path, catalog=catalog)
+            results["flux_scale"] = _serialize_result(
+                validate_flux_scale(image_path, catalog=catalog)
+            )
 
         if "source_counts" in validation_types:
-            results["source_counts"] = validate_source_counts(image_path, catalog=catalog)
+            results["source_counts"] = _serialize_result(
+                validate_source_counts(image_path, catalog=catalog)
+            )
 
         try:
             import hashlib
@@ -5483,8 +5548,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         phases = np.nanmean(phases, axis=-1)
 
                     unique_spws = np.unique(spw_ids)
-                    freq_data = []
-                    phase_data = []
+                    freq_data = []  # type: ignore[no-redef]  # mutually exclusive branch
+                    phase_data: list[float] = []
 
                     for spw in unique_spws:
                         spw_mask = spw_ids == spw
@@ -5497,7 +5562,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             from dsa110_contimg.utils.angles import wrap_phase_deg
 
                             freq_data.extend(spw_freqs.tolist())
-                            phase_data.extend(wrap_phase_deg(np.degrees(spw_phases)).tolist())
+                            wrapped = wrap_phase_deg(np.degrees(spw_phases))
+                            phase_data.extend(
+                                wrapped.tolist() if hasattr(wrapped, "tolist") else [wrapped]
+                            )
 
                     ax.plot(freq_data, phase_data, "b-", alpha=0.7, linewidth=0.5)
                     ax.set_xlabel("Frequency (GHz)")
@@ -5555,6 +5623,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         jd = db_get_job(conn, job_id)
         conn.close()
 
+        if jd is None:
+            raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+
         return Job(
             id=jd["id"],
             type=jd["type"],
@@ -5594,6 +5665,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         jd = db_get_job(conn, job_id)
         conn.close()
+
+        if jd is None:
+            raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
 
         return Job(
             id=jd["id"],
@@ -6487,11 +6561,21 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         config = StreamingConfig(
             input_dir=request.input_dir,
             output_dir=request.output_dir,
-            queue_db=request.queue_db or os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
-            registry_db=request.registry_db
-            or os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
-            scratch_dir=request.scratch_dir
-            or os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg"),
+            queue_db=(
+                request.queue_db
+                if request.queue_db
+                else os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3")
+            ),
+            registry_db=(
+                request.registry_db
+                if request.registry_db
+                else os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3")
+            ),
+            scratch_dir=(
+                request.scratch_dir
+                if request.scratch_dir
+                else os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg")
+            ),
             expected_subbands=request.expected_subbands,
             chunk_duration=request.chunk_duration,
             log_level=request.log_level,
@@ -6529,11 +6613,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             config = StreamingConfig(
                 input_dir=request.input_dir,
                 output_dir=request.output_dir,
-                queue_db=request.queue_db or os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
+                queue_db=request.queue_db
+                or str(os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3")),
                 registry_db=request.registry_db
-                or os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
+                or str(os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3")),
                 scratch_dir=request.scratch_dir
-                or os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg"),
+                or str(os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg")),
                 expected_subbands=request.expected_subbands,
                 chunk_duration=request.chunk_duration,
                 log_level=request.log_level,
@@ -6565,11 +6650,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             config = StreamingConfig(
                 input_dir=request.input_dir,
                 output_dir=request.output_dir,
-                queue_db=request.queue_db or os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
+                queue_db=request.queue_db
+                or str(os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3")),
                 registry_db=request.registry_db
-                or os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
+                or str(os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3")),
                 scratch_dir=request.scratch_dir
-                or os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg"),
+                or str(os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg")),
                 expected_subbands=request.expected_subbands,
                 chunk_duration=request.chunk_duration,
                 log_level=request.log_level,
@@ -7318,11 +7404,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         return {"services": services, "timestamp": time.time()}
 
     @router.get("/mosaics")
-    def list_mosaics(limit: int = Query(10, ge=1, le=100)):
-        """List available mosaics."""
-        # TODO: Implement mosaic listing from database
-        # For now, return empty list (service is healthy, just no data)
-        return {"mosaics": [], "total": 0, "limit": limit}
+    def list_mosaics(request: Request, limit: int = Query(10, ge=1, le=100)):
+        """List available mosaics from the database."""
+        from dsa110_contimg.api.data_access import fetch_mosaics_recent
+
+        cfg = request.app.state.cfg
+        mosaics_data, total = fetch_mosaics_recent(cfg.products_db, limit=limit)
+        return {"mosaics": mosaics_data, "total": total, "limit": limit}
 
     @router.get("/sources")
     def list_sources(limit: int = Query(10, ge=1, le=100)):

@@ -1,0 +1,36 @@
+name: "Weak Source Recovery"
+description: "Test pipeline's ability to detect and measure weak sources near detection threshold"
+
+observation:
+  start_time: "2025-11-25T14:00:00"
+  duration_minutes: 10.0 # Longer integration for weak source
+  num_subbands: 16
+
+telescope:
+  num_antennas: 110
+
+sources:
+  - name: "WeakSource1"
+    ra_deg: 180.0
+    dec_deg: 35.0
+    flux_jy: 0.05 # 50 mJy - near detection limit
+    model: "point"
+
+noise:
+  enabled: true
+  system_temp_k: 150 # Higher noise
+
+calibration:
+  auto_select_field: true
+  auto_rename_fields: true
+
+imaging:
+  size_pix: 1024 # Larger image for better sensitivity
+  pixel_scale_arcsec: 2.5
+  niter: 20000
+  mgain: 0.8
+  threshold: "0.0005Jy" # Lower threshold for weak sources
+
+validation:
+  max_flux_error_percent: 20.0 # More lenient for weak sources
+  min_snr: 5.0 # Standard 5-sigma detection

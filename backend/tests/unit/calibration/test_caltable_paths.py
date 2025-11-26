@@ -99,10 +99,14 @@ class TestGetExpectedCaltables:
 class TestValidateCaltablesExist:
     """Test caltable existence validation."""
 
-    def test_all_tables_exist(self, tmp_path):
+    @patch("dsa110_contimg.calibration.caltable_paths._get_n_spws_from_ms")
+    def test_all_tables_exist(self, mock_get_spws, tmp_path):
         """Test validation when all tables exist."""
         ms_path = tmp_path / "test_obs.ms"
         ms_path.mkdir()
+
+        # Mock SPW count to 2 so B0 and B1 are expected
+        mock_get_spws.return_value = 2
 
         # Create expected caltables
         (tmp_path / "test_obs.K").mkdir()
@@ -118,10 +122,14 @@ class TestValidateCaltablesExist:
         assert len(existing["B"]) == 2
         assert len(existing["G"]) == 1
 
-    def test_some_tables_missing(self, tmp_path):
+    @patch("dsa110_contimg.calibration.caltable_paths._get_n_spws_from_ms")
+    def test_some_tables_missing(self, mock_get_spws, tmp_path):
         """Test validation when some tables are missing."""
         ms_path = tmp_path / "test_obs.ms"
         ms_path.mkdir()
+
+        # Mock SPW count to 2 so B0 and B1 are expected
+        mock_get_spws.return_value = 2
 
         # Create only some caltables
         (tmp_path / "test_obs.K").mkdir()

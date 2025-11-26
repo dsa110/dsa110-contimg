@@ -49,6 +49,7 @@ const DataLineagePage = lazy(() => import("./pages/DataLineagePage"));
 const CalibrationWorkflowPage = lazy(() => import("./pages/CalibrationWorkflowPage"));
 const ErrorAnalyticsPage = lazy(() => import("./pages/ErrorAnalyticsPage"));
 const SystemStatusPage = lazy(() => import("./pages/SystemStatusPage"));
+const AbsurdPage = lazy(() => import("./pages/AbsurdPage"));
 
 // Loading fallback component
 function PageLoadingFallback() {
@@ -281,6 +282,7 @@ function AppContent() {
                               <Route path="/system-status" element={<SystemStatusPage />} />
                               <Route path="/pipeline" element={<PipelinePage />} />
                               <Route path="/events" element={<EventsPage />} />
+                              <Route path="/absurd" element={<AbsurdPage />} />
                               {/* Domain-specific pages */}
                               <Route path="/lineage/:id" element={<DataLineagePage />} />
                               <Route path="/calibration" element={<CalibrationWorkflowPage />} />

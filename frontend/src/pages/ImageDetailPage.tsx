@@ -46,6 +46,7 @@ import { useImageDetail } from "../api/queries";
 import GenericTable from "../components/GenericTable";
 import type { TableColumn } from "../components/GenericTable";
 import { formatRA, formatDec, copyToClipboard } from "../utils/coordinateUtils";
+import CatalogValidationPanel from "../components/Sky/CatalogValidationPanel";
 
 export default function ImageDetailPage() {
   const { imageId } = useParams<{ imageId: string }>();
@@ -62,6 +63,7 @@ export default function ImageDetailPage() {
     isLoading: imageLoading,
     error: imageError,
   } = useImageDetail(imageId ? parseInt(imageId, 10) : null);
+  const catalogImageId = imageId ?? (image && image.id ? String(image.id) : null);
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => ({
@@ -364,6 +366,16 @@ export default function ImageDetailPage() {
               </CardContent>
             </Card>
           </Box>
+        </Box>
+
+        {/* Catalog Validation */}
+        <Box sx={{ mt: 3 }}>
+          <Card>
+            <CardHeader title="Catalog Validation" />
+            <CardContent>
+              <CatalogValidationPanel imageId={catalogImageId} />
+            </CardContent>
+          </Card>
         </Box>
 
         {/* Full-width: Measurements Table */}

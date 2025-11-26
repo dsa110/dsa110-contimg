@@ -78,6 +78,13 @@ jobs:
             --cov-report=html \
             -v
 
+      - name: Run backend unit tests (including diagnostics/mosaic)
+        env:
+          PYTHONPATH: backend/src
+        run: |
+          conda activate casa6
+          /opt/miniforge/envs/casa6/bin/pytest backend/tests/unit/ -v
+
       - name: Check coverage thresholds
         run: |
           conda activate casa6
@@ -154,3 +161,10 @@ jobs:
         run: |
           conda activate casa6
           /opt/miniforge/envs/casa6/bin/pytest tests/integration/ -v -m "not slow" || true
+
+      - name: Run backend integration tests (API)
+        env:
+          PYTHONPATH: backend/src
+        run: |
+          conda activate casa6
+          /opt/miniforge/envs/casa6/bin/pytest backend/tests/integration/ -v -m "not slow" || true

@@ -10,6 +10,7 @@ import logging
 import os
 import smtplib
 import time
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from email.mime.text import MIMEText
@@ -53,7 +54,7 @@ class Alert:
         }
 
 
-class AlertChannel:
+class AlertChannel(ABC):
     """Base class for alert channels."""
 
     def __init__(self, name: str, min_severity: AlertSeverity = AlertSeverity.WARNING):
@@ -65,9 +66,10 @@ class AlertChannel:
         """Check if this channel should handle this severity."""
         return self.enabled and severity.value >= self.min_severity.value
 
+    @abstractmethod
     def send(self, alert: Alert) -> bool:
         """Send alert through this channel. Returns success status."""
-        raise NotImplementedError
+        ...
 
 
 class SlackChannel(AlertChannel):

@@ -781,6 +781,100 @@ def fetch_mosaic_by_id(products_db: Path, mosaic_id: int) -> Optional[dict]:
         }
 
 
+def fetch_mosaics_recent(products_db: Path, limit: int = 10) -> tuple[list[dict], int]:
+    """Fetch recent mosaics from the database.
+
+    Args:
+        products_db: Path to products database
+        limit: Maximum number of mosaics to return
+
+    Returns:
+        Tuple of (list of mosaic dictionaries, total count)
+    """
+    if not products_db.exists():
+        return [], 0
+
+    from astropy.time import Time
+
+    with closing(_connect(products_db)) as conn:
+        # Check if mosaics table exists
+        tables = {
+            row[0]
+            for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+        }
+
+        if "mosaics" not in tables:
+            return [], 0
+
+        # Get total count
+        total = conn.execute("SELECT COUNT(*) FROM mosaics").fetchone()[0]
+
+        # Get recent mosaics ordered by created_at (descending)
+        rows = conn.execute(
+            """
+            SELECT 
+                id, name, path, created_at, start_mjd, end_mjd,
+                integration_sec, n_images, center_ra_deg, center_dec_deg,
+                dec_min_deg, dec_max_deg, noise_jy,
+                beam_major_arcsec, beam_minor_arcsec, beam_pa_deg,
+                n_sources, thumbnail_path, status, method
+            FROM mosaics
+            ORDER BY created_at DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+
+    mosaics = []
+    for r in rows:
+        # Convert MJD to ISO datetime (handle 0 or None values)
+        start_mjd = r["start_mjd"] if r["start_mjd"] and r["start_mjd"] > 0 else None
+        end_mjd = r["end_mjd"] if r["end_mjd"] and r["end_mjd"] > 0 else None
+
+        start_time_iso = None
+        end_time_iso = None
+        if start_mjd:
+            try:
+                start_time_iso = Time(start_mjd, format="mjd").datetime.isoformat()
+            except Exception:
+                pass
+        if end_mjd:
+            try:
+                end_time_iso = Time(end_mjd, format="mjd").datetime.isoformat()
+            except Exception:
+                pass
+
+        created_dt = (
+            datetime.fromtimestamp(r["created_at"]) if r["created_at"] else datetime.utcnow()
+        )
+
+        # Determine status
+        status = r["status"] if r["status"] else "completed"
+
+        mosaics.append(
+            {
+                "id": r["id"],
+                "name": r["name"],
+                "path": r["path"],
+                "start_mjd": start_mjd,
+                "end_mjd": end_mjd,
+                "start_time": start_time_iso,
+                "end_time": end_time_iso,
+                "created_at": created_dt.isoformat(),
+                "status": status,
+                "method": r["method"],
+                "image_count": r["n_images"],
+                "noise_jy": r["noise_jy"],
+                "source_count": r["n_sources"],
+                "center_ra_deg": r["center_ra_deg"],
+                "center_dec_deg": r["center_dec_deg"],
+                "thumbnail_path": r["thumbnail_path"],
+            }
+        )
+
+    return mosaics, total
+
+
 def fetch_source_timeseries(products_db: Path, source_id: str) -> Optional[dict]:
     """Fetch flux timeseries for a source from photometry table.
 

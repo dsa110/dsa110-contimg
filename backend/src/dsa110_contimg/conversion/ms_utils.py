@@ -701,6 +701,8 @@ def configure_ms_for_imaging(
     fix_mount: bool = True,
     stamp_observation_telescope: bool = True,
     validate_columns: bool = True,
+    rename_calibrator_fields: bool = True,
+    catalog_path: Optional[str] = None,
 ) -> None:
     """
     Make a Measurement Set safe and ready for imaging and calibration.
@@ -748,6 +750,16 @@ def configure_ms_for_imaging(
     validate_columns : bool, optional
         Validate that columns exist and contain data after creation.
         Set to False for high-throughput scenarios where validation overhead
+        is unacceptable. Default: True
+    rename_calibrator_fields : bool, optional
+        Auto-detect and rename fields containing known calibrators.
+        Uses VLA calibrator catalog to identify which field contains a calibrator,
+        then renames it from 'meridian_icrs_t{i}' to '{calibrator}_t{i}'.
+        Recommended for drift-scan observations. Default: True
+    catalog_path : str, optional
+        Path to VLA calibrator catalog (SQLite or CSV).
+        If None, uses automatic resolution (prefers SQLite).
+        Only used if rename_calibrator_fields=True. Default: None
         is a concern. Default: True
 
     Raises
@@ -958,6 +970,29 @@ def configure_ms_for_imaging(
     except Exception as e:
         operations_status["observation_time_range"] = f"failed: {e}"
         # Non-fatal: observation time range fix is best-effort
+
+    # Auto-detect and rename calibrator fields (recommended for drift-scan observations)
+    if rename_calibrator_fields:
+        try:
+            from dsa110_contimg.calibration.field_naming import (
+                rename_calibrator_fields_from_catalog,
+            )
+
+            result = rename_calibrator_fields_from_catalog(
+                ms_path,
+                catalog_path=catalog_path,
+            )
+            if result:
+                cal_name, field_idx = result
+                operations_status["calibrator_renaming"] = "success"
+                logger.info(f"✓ Auto-renamed field {field_idx} to '{cal_name}_t{field_idx}'")
+            else:
+                operations_status["calibrator_renaming"] = "no calibrator found"
+                logger.debug("No calibrator found in MS for field renaming")
+        except Exception as e:
+            operations_status["calibrator_renaming"] = f"failed: {e}"
+            logger.debug(f"Calibrator field renaming not available: {e}")
+            # Non-fatal: field renaming is optional
 
     # Summary logging - report what worked and what didn't
     success_ops = [op for op, status in operations_status.items() if status == "success"]

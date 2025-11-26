@@ -1,5 +1,4 @@
 """Caching layer for pipeline components.
-import os
 
 Provides in-memory caching with TTL support and optional Redis backend.
 Uses functools.lru_cache for simple cases, supports Redis for distributed caching.
@@ -10,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import time
+from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 
@@ -23,32 +23,38 @@ except ImportError:
     REDIS_AVAILABLE = False
 
 
-class CacheBackend:
+class CacheBackend(ABC):
     """Abstract cache backend interface."""
 
+    @abstractmethod
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache."""
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def set(self, key: str, value: Any, ttl: Optional[float] = None) -> None:
         """Set value in cache."""
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def delete(self, key: str) -> None:
         """Delete value from cache."""
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def clear(self) -> None:
         """Clear all cache."""
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def get_statistics(self) -> Dict[str, Any]:
         """Get cache statistics."""
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def list_keys(self, pattern: Optional[str] = None, limit: int = 100) -> List[str]:
         """List cache keys, optionally filtered by pattern."""
-        raise NotImplementedError
+        ...
 
 
 class InMemoryCache(CacheBackend):

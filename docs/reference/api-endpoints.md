@@ -121,10 +121,11 @@
 
 ## mosaics
 
-- `/api/mosaics/create`
-- `/api/mosaics/query`
-- `/api/mosaics/{mosaic_id}`
-- `/api/mosaics/{mosaic_id}/fits`
+- `/api/mosaics` - GET: List recent mosaics with pagination
+- `/api/mosaics/create` - POST: Create a new mosaic job
+- `/api/mosaics/query` - POST: Query mosaics by time range
+- `/api/mosaics/{mosaic_id}` - GET: Get mosaic by ID
+- `/api/mosaics/{mosaic_id}/fits` - GET: Download mosaic FITS file
 
 ## ms
 
@@ -155,6 +156,25 @@
 - `/api/operations/dlq/items/{item_id}/resolve`
 - `/api/operations/dlq/items/{item_id}/retry`
 - `/api/operations/dlq/stats`
+
+## dlq (Phase 2 - Enhanced DLQ API)
+
+- `/api/dlq/items` - List DLQ items with filtering
+- `/api/dlq/items/{item_id}` - Get specific DLQ item
+- `/api/dlq/items/{item_id}/retry` - Retry with Absurd resubmission option
+- `/api/dlq/items/{item_id}/resolve` - Mark as resolved
+- `/api/dlq/items/{item_id}/fail` - Mark as permanently failed
+- `/api/dlq/stats` - Statistics with by_component and by_error_type breakdowns
+- `DELETE /api/dlq/items/{item_id}` - Delete item permanently
+
+## absurd (Phase 2 & 3 - Workflow Manager)
+
+- `/api/absurd/health` - Health check
+- `/api/absurd/metrics` - Real-time metrics (JSON)
+- `/api/absurd/metrics/prometheus` - Prometheus exposition format metrics
+- `/api/absurd/tasks` - List/spawn tasks
+- `/api/absurd/tasks/{task_id}` - Get/cancel task
+- `/api/absurd/queues/{queue_name}/stats` - Queue statistics
 
 ## performance
 

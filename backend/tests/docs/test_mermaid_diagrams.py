@@ -14,9 +14,19 @@ import pytest
 import yaml
 from playwright.sync_api import sync_playwright
 
-BASE_URL = os.environ.get("DOCS_BASE_URL", "http://127.0.0.1:8001")
-REPO_ROOT = Path(__file__).resolve().parents[2]
+BASE_URL = os.environ.get("DOCS_BASE_URL")
+REPO_ROOT = Path(__file__).resolve().parents[3]
 MKDOCS_YML = REPO_ROOT / "mkdocs.yml"
+
+# Skip if mkdocs config is unavailable (e.g., backend-only checkouts)
+if not MKDOCS_YML.exists():  # pragma: no cover - guard for partial checkouts/CI shards
+    pytest.skip(
+        "mkdocs.yml not found at repo root; skipping Mermaid checks", allow_module_level=True
+    )
+
+# Require explicit docs base URL so we don't try to hit a server that isn't running
+if not BASE_URL:
+    pytest.skip("DOCS_BASE_URL not set; skipping Mermaid checks", allow_module_level=True)
 
 
 def _flatten_nav(nav: List[Union[Dict[str, Any], str]]) -> List[str]:

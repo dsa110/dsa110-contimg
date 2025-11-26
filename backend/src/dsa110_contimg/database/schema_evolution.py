@@ -64,12 +64,31 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
             )
         """
         )
+
+        # Add all missing columns for existing variability_stats tables
+        # before creating indexes (important for schema migration)
+        _add_column_if_missing(cur, "variability_stats", "nvss_flux_mjy", "REAL")
+        _add_column_if_missing(cur, "variability_stats", "n_obs", "INTEGER DEFAULT 0")
+        _add_column_if_missing(cur, "variability_stats", "mean_flux_mjy", "REAL")
+        _add_column_if_missing(cur, "variability_stats", "std_flux_mjy", "REAL")
+        _add_column_if_missing(cur, "variability_stats", "min_flux_mjy", "REAL")
+        _add_column_if_missing(cur, "variability_stats", "max_flux_mjy", "REAL")
+        _add_column_if_missing(cur, "variability_stats", "sigma_deviation", "REAL")
+        _add_column_if_missing(cur, "variability_stats", "eta_metric", "REAL")
+        _add_column_if_missing(cur, "variability_stats", "last_measured_at", "REAL")
+        _add_column_if_missing(cur, "variability_stats", "last_mjd", "REAL")
+        _add_column_if_missing(cur, "variability_stats", "updated_at", "REAL")
+
+        # Now create indexes (after columns exist)
         cur.execute("CREATE INDEX IF NOT EXISTS idx_variability_chi2 ON variability_stats(chi2_nu)")
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_variability_sigma ON variability_stats(sigma_deviation)"
         )
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_variability_last_mjd ON variability_stats(last_mjd)"
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_variability_eta ON variability_stats(eta_metric)"
         )
 
         # Table: ese_candidates

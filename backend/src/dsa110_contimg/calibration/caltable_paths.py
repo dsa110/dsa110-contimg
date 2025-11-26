@@ -191,9 +191,16 @@ def validate_caltables_exist(
                     missing[caltype_key].append(table_path)
                     missing["all"].append(table_path)
 
-    # If we found tables using DSA-110 convention, don't report standard convention as missing
-    if existing["all"]:
-        # Clear missing list if we found any tables (they're using a different naming convention)
+    # Check if we found DSA-110 convention tables
+    dsa110_tables_found = any(
+        path in existing[caltype_key]
+        for caltype_key in ["K", "B", "G"]
+        for path in expected_dsa110[caltype_key]
+    )
+
+    # If we found tables using DSA-110 convention (and not standard), don't report standard convention as missing
+    # This is because DSA-110 uses a different naming scheme and the standard tables won't exist
+    if dsa110_tables_found:
         missing = {"K": [], "B": [], "G": [], "all": []}
 
     if raise_on_missing and missing["all"]:

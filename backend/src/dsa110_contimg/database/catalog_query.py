@@ -259,8 +259,101 @@ def get_source_info(source_name: str, catalog: Optional[str] = None) -> Optional
     Returns:
         Source dictionary with detailed info, or None if not found
     """
+
+    def _parse_coords_from_name(prefix: str) -> Optional[Tuple[float, float]]:
+        """Extract RA/Dec in degrees from a catalog-style source name."""
+        name_upper = source_name.upper()
+        if not name_upper.startswith(prefix.upper()):
+            return None
+
+        # Strip prefix and common separators
+        remainder = source_name[len(prefix) :].lstrip("_")
+        if remainder.startswith("J"):
+            remainder = remainder[1:]
+
+        # Try underscore-separated decimal degrees (e.g., NVSS_202.7_30.5)
+        if "_" in remainder:
+            parts = remainder.split("_")
+            if len(parts) >= 2:
+                try:
+                    ra_val = float(parts[0])
+                    dec_val = float(parts[1])
+                    return ra_val, dec_val
+                except ValueError:
+                    pass
+
+        # Try compact sexagesimal (e.g., 123456+123456)
+        sep_idx = None
+        for sign in ["+", "-"]:
+            idx = remainder.find(sign, 1)
+            if idx != -1:
+                sep_idx = idx
+                break
+
+        if sep_idx is None:
+            return None
+
+        ra_str = remainder[:sep_idx]
+        dec_str = remainder[sep_idx + 1 :]
+        sign = -1 if remainder[sep_idx] == "-" else 1
+
+        try:
+            ra_hours = int(ra_str[0:2])
+            ra_minutes = int(ra_str[2:4])
+            ra_seconds = float(ra_str[4:])
+            dec_degrees = int(dec_str[0:2])
+            dec_minutes = int(dec_str[2:4])
+            dec_seconds = float(dec_str[4:])
+        except ValueError:
+            return None
+
+        ra_deg = 15.0 * (ra_hours + ra_minutes / 60.0 + ra_seconds / 3600.0)
+        dec_deg = sign * (dec_degrees + dec_minutes / 60.0 + dec_seconds / 3600.0)
+        return ra_deg, dec_deg
+
+    def _query_catalog_by_coords(
+        cat_key: str, coords: Optional[Tuple[float, float]]
+    ) -> Optional[Dict]:
+        """Query a catalog near the provided coordinates and normalize output."""
+        if coords is None:
+            return None
+
+        try:
+            from dsa110_contimg.catalog.query import query_sources
+
+            ra_deg, dec_deg = coords
+            df = query_sources(
+                catalog_type=cat_key,
+                ra_center=ra_deg,
+                dec_center=dec_deg,
+                radius_deg=0.05,
+                max_sources=1,
+            )
+            if df is None or getattr(df, "empty", False):
+                return None
+
+            row = df.iloc[0]
+            flux_mjy = row.get("flux_mjy")
+            flux_jy = row.get("flux_jy")
+            if flux_jy is None and flux_mjy is not None:
+                flux_jy = float(flux_mjy) / 1000.0
+
+            return {
+                "source_name": source_name,
+                "ra_deg": float(row.get("ra_deg", ra_deg)),
+                "dec_deg": float(row.get("dec_deg", dec_deg)),
+                "flux_jy": flux_jy,
+                "catalog": cat_key.upper(),
+                "catalog_id": row.get("source_name"),
+            }
+        except Exception as e:
+            logger.warning(f"Failed to query {cat_key.upper()} catalog: {e}")
+            return None
+
+    catalogs_to_search = [catalog.lower()] if catalog else ["vla", "nvss", "first", "racs"]
+
     # Try VLA calibrators first
-    if catalog is None or catalog.lower() == "vla":
+    if "vla" in catalogs_to_search:
         try:
             from dsa110_contimg.database.calibrators import get_bandpass_calibrators
 
@@ -281,7 +374,25 @@ def get_source_info(source_name: str, catalog: Optional[str] = None) -> Optional
         except Exception as e:
             logger.warning(f"Failed to query VLA catalog: {e}")
 
-    # TODO: Add queries for other catalogs when available
+    # Try NVSS/FIRST/RACS catalogs using coordinate parsing
+    if "nvss" in catalogs_to_search:
+        coords = _parse_coords_from_name("NVSS")
+        result = _query_catalog_by_coords("nvss", coords)
+        if result:
+            return result
+
+    if "first" in catalogs_to_search:
+        coords = _parse_coords_from_name("FIRST")
+        result = _query_catalog_by_coords("first", coords)
+        if result:
+            return result
+
+    if "racs" in catalogs_to_search:
+        coords = _parse_coords_from_name("RACS")
+        result = _query_catalog_by_coords("racs", coords)
+        if result:
+            return result
+
     return None
 
 

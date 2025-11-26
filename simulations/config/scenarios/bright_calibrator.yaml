@@ -1,0 +1,37 @@
+name: "Bright Calibrator - Ideal Conditions"
+description: "Test pipeline with strong calibrator source in ideal observing conditions"
+
+observation:
+  start_time: "2025-11-25T12:00:00"
+  duration_minutes: 5.0
+  num_subbands: 16
+
+telescope:
+  num_antennas: 110
+
+sources:
+  - name: "3C286"
+    ra_deg: 202.784538
+    dec_deg: 30.509155
+    flux_jy: 5.0
+    model: "point"
+    # Strong calibrator for testing
+
+noise:
+  enabled: true
+  system_temp_k: 100 # Reasonably low noise
+
+calibration:
+  auto_select_field: true
+  auto_rename_fields: true
+
+imaging:
+  size_pix: 512
+  pixel_scale_arcsec: 3.6
+  niter: 10000
+  mgain: 0.8
+  threshold: "0.001Jy"
+
+validation:
+  max_flux_error_percent: 10.0 # Allow 10% flux error
+  min_snr: 20.0 # Expect high SNR for bright source

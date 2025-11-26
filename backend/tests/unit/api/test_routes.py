@@ -22,7 +22,12 @@ def _init_queue_db(path: Path) -> None:
                 received_at REAL NOT NULL,
                 last_update REAL NOT NULL,
                 expected_subbands INTEGER DEFAULT 16,
-                chunk_minutes REAL DEFAULT 5.0
+                chunk_minutes REAL DEFAULT 5.0,
+                has_calibrator INTEGER DEFAULT NULL,
+                calibrators TEXT DEFAULT NULL,
+                processing_stage TEXT DEFAULT NULL,
+                retry_count INTEGER DEFAULT 0,
+                error_message TEXT DEFAULT NULL
             )
             """
         )

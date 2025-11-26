@@ -4,10 +4,13 @@ Base file class for QA visualization framework.
 Provides base functionality for file handling, similar to RadioPadre's FileBase.
 """
 
+import logging
 import os
 from typing import Optional
 
 from .thumbnail import get_cache_file
+
+logger = logging.getLogger(__name__)
 
 
 class FileBase:
@@ -121,7 +124,18 @@ class FileBase:
         appropriate display functionality.
         """
         self.mark_shown()
-        raise NotImplementedError("Subclasses must implement show()")
+        if not self.exists:
+            logger.warning("Attempted to show missing file: %s", self.fullpath)
+            return
+
+        thumb_html = self.render_thumb()
+        try:
+            from IPython.display import HTML, display  # type: ignore
+
+            display(HTML(thumb_html))
+        except Exception:
+            # Fallback for non-IPython environments
+            print(self.fullpath)
 
     def _get_cache_file(
         self, cache_type: str, extension: str, keydict: Optional[dict] = None

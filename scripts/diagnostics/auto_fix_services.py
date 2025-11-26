@@ -57,10 +57,16 @@ def get_health_services():
     "/api/mosaics": """
 @router.get("/api/mosaics")
 def list_mosaics(limit: int = Query(10, ge=1, le=100)):
-    \"\"\"List available mosaics.\"\"\"
-    # TODO: Implement mosaic listing from database
-    # For now, return empty list (service is healthy, just no data)
-    return {"mosaics": [], "total": 0, "limit": limit}
+    \"\"\"List available mosaics from the products database.\"\"\"
+    import os
+    from pathlib import Path
+
+    from dsa110_contimg.api.data_access import fetch_mosaics_recent
+
+    db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+
+    mosaics, total = fetch_mosaics_recent(db_path, limit=limit)
+    return {"mosaics": mosaics, "total": total, "limit": limit}
 """,
     "/api/sources": """
 @router.get("/api/sources")

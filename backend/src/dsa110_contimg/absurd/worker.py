@@ -10,6 +10,7 @@ import asyncio
 import logging
 import socket
 import uuid
+from datetime import datetime
 from typing import Any, Awaitable, Callable, Dict, Optional
 
 from dsa110_contimg.absurd.client import AbsurdClient
@@ -133,11 +134,7 @@ class AbsurdWorker:
             # Check result status
             if result.get("status") == "error":
                 error_msg = "; ".join(result.get("errors", ["Unknown error"]))
-                await self.client.fail_task(task_id, error_msg)
-                logger.error(f"Task {task_id} failed: {error_msg}")
-                await emit_task_update(
-                    self.config.queue_name, task_id, {"status": "failed", "error": error_msg}
-                )
+                await self._handle_failure(task, error_msg)
             else:
                 await self.client.complete_task(task_id, result)
                 logger.info(f"Task {task_id} completed successfully")
@@ -149,10 +146,7 @@ class AbsurdWorker:
 
         except Exception as e:
             logger.exception(f"Task {task_id} execution raised exception")
-            await self.client.fail_task(task_id, str(e))
-            await emit_task_update(
-                self.config.queue_name, task_id, {"status": "failed", "error": str(e)}
-            )
+            await self._handle_failure(task, str(e))
         finally:
             heartbeat_task.cancel()
             try:
@@ -160,6 +154,61 @@ class AbsurdWorker:
             except asyncio.CancelledError:
                 pass
             await emit_queue_stats_update(self.config.queue_name)
+
+    async def _handle_failure(self, task: Dict[str, Any], error_msg: str) -> None:
+        """Mark task failed and optionally route to DLQ."""
+        task_id = task["task_id"]
+        await self.client.fail_task(task_id, error_msg)
+        logger.error(f"Task {task_id} failed: {error_msg}")
+        await emit_task_update(
+            self.config.queue_name,
+            task_id,
+            {"status": "failed", "error": error_msg},
+        )
+        await self._maybe_route_to_dlq(task, error_msg)
+
+    async def _maybe_route_to_dlq(self, task: Dict[str, Any], error_msg: str) -> None:
+        """Send exhausted tasks to a dead letter queue for inspection."""
+        if not self.config.dead_letter_enabled:
+            return
+
+        retry_count = task.get("retry_count")
+        if retry_count is None:
+            return
+
+        # Route to DLQ once retries are exhausted
+        if retry_count < self.config.max_retries:
+            return
+
+        task_id = task["task_id"]
+        queue_name = task.get("queue_name", self.config.queue_name)
+
+        payload = {
+            "original_task_id": task_id,
+            "original_task_name": task.get("task_name"),
+            "original_queue": queue_name,
+            "params": task.get("params", {}),
+            "error": error_msg,
+            "retry_count": retry_count,
+            "dead_lettered_at": datetime.utcnow().isoformat() + "Z",
+            "worker_id": self.worker_id,
+        }
+
+        try:
+            dlq_task_id = await self.client.spawn_task(
+                queue_name=self.config.dead_letter_queue_name,
+                task_name="dead-letter",
+                params=payload,
+                priority=0,
+            )
+            logger.warning(
+                "Routed task %s to DLQ queue %s as %s",
+                task_id,
+                self.config.dead_letter_queue_name,
+                dlq_task_id,
+            )
+        except Exception as e:
+            logger.error(f"Failed to route task {task_id} to DLQ: {e}")
 
     async def _heartbeat_loop(self, task_id: str):
         """Send periodic heartbeats."""

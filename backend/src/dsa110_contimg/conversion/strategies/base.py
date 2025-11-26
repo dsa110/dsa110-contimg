@@ -35,7 +35,7 @@ class MSWriter(abc.ABC):
         Returns:
             The type of writer used (e.g., 'pyuvdata', 'dask-ms').
         """
-        raise NotImplementedError
+        ...
 
     def get_files_to_process(self) -> Optional[List[str]]:
         """Return a list of raw files needed for this writer, if applicable."""

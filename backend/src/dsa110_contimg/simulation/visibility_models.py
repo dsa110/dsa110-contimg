@@ -4,19 +4,143 @@ This module provides functions to generate visibilities with:
 - Extended source models (Gaussian, disk)
 - Thermal noise
 - Calibration errors
+
+Parameters can be loaded from dsa110_measured_parameters.yaml for rigor.
 """
 
+import logging
+import warnings
+from pathlib import Path
 from typing import Optional, Tuple
 
 import numpy as np
+import yaml
+
+logger = logging.getLogger(__name__)
+
+# Cache for loaded parameters
+_PARAMETER_CACHE = None
+
+
+def load_measured_parameters(config_path: Optional[Path] = None) -> dict:
+    """
+    Load DSA-110 measured parameters from YAML config file.
+
+    Parameters
+    ----------
+    config_path : Path, optional
+        Path to dsa110_measured_parameters.yaml
+        If None, uses default location in simulation/config/
+
+    Returns
+    -------
+    params : dict
+        Parameter dictionary with validation status
+    """
+    global _PARAMETER_CACHE
+
+    if _PARAMETER_CACHE is not None:
+        return _PARAMETER_CACHE
+
+    if config_path is None:
+        # Default location: simulations/config/
+        # visibility_models.py is in backend/src/dsa110_contimg/simulation/
+        # Go up to repo root, then to simulations/config/
+        repo_root = Path(__file__).parent.parent.parent.parent.parent
+        config_path = repo_root / "simulations" / "config" / "dsa110_measured_parameters.yaml"
+
+    if not config_path.exists():
+        warnings.warn(
+            f"Parameter file not found: {config_path}. Using hardcoded defaults. "
+            "Run scripts/characterize_dsa110_system.py to generate measured parameters.",
+            UserWarning,
+        )
+        _PARAMETER_CACHE = {}
+        return _PARAMETER_CACHE
+
+    try:
+        with open(config_path) as f:
+            params = yaml.safe_load(f)
+        _PARAMETER_CACHE = params
+        logger.info(f"Loaded measured parameters from {config_path}")
+        return params
+    except Exception as e:
+        warnings.warn(
+            f"Failed to load parameter file {config_path}: {e}. Using hardcoded defaults.",
+            UserWarning,
+        )
+        _PARAMETER_CACHE = {}
+        return _PARAMETER_CACHE
+
+
+def get_parameter(
+    param_category: str,
+    param_name: str,
+    default_value: float,
+    warn_if_assumed: bool = True,
+) -> float:
+    """
+    Get parameter value with validation status checking.
+
+    Parameters
+    ----------
+    param_category : str
+        Category in YAML (e.g., 'system_parameters', 'calibration_errors')
+    param_name : str
+        Parameter name (e.g., 'system_temperature', 'gain_amplitude_std')
+    default_value : float
+        Fallback value if parameter not measured
+    warn_if_assumed : bool, optional
+        Emit warning if using assumed/default value
+
+    Returns
+    -------
+    value : float
+        Parameter value
+    """
+    params = load_measured_parameters()
+
+    if not params or param_category not in params:
+        if warn_if_assumed:
+            warnings.warn(
+                f"Using default value for {param_name}: {default_value}. "
+                "Parameter not measured. Run characterize_dsa110_system.py for rigorous values.",
+                UserWarning,
+            )
+        return default_value
+
+    param_data = params[param_category].get(param_name)
+    if param_data is None:
+        if warn_if_assumed:
+            warnings.warn(
+                f"Using default value for {param_name}: {default_value}. "
+                "Parameter not in config file.",
+                UserWarning,
+            )
+        return default_value
+
+    value = param_data.get("value")
+    validation_status = param_data.get("validation_status", "unknown")
+
+    if validation_status == "assumed" and warn_if_assumed:
+        warnings.warn(
+            f"Parameter {param_name} is ASSUMED (not measured): {value}. "
+            "Consider running characterize_dsa110_system.py for measured values.",
+            UserWarning,
+        )
+    elif validation_status in ["measured", "validated"]:
+        logger.debug(f"Using measured parameter {param_name}: {value}")
+
+    return value
 
 
 def calculate_thermal_noise_rms(
     integration_time_sec: float,
     channel_width_hz: float,
-    system_temperature_k: float = 50.0,
-    efficiency: float = 0.7,
+    system_temperature_k: Optional[float] = None,
+    efficiency: Optional[float] = None,
     frequency_hz: float = 1.4e9,
+    use_measured_params: bool = True,
 ) -> float:
     """Calculate RMS thermal noise for a single visibility.
 
@@ -26,20 +150,73 @@ def calculate_thermal_noise_rms(
     Args:
         integration_time_sec: Integration time in seconds
         channel_width_hz: Channel width in Hz
-        system_temperature_k: System temperature in Kelvin (default: 50K for DSA-110)
-        efficiency: System efficiency (default: 0.7)
+        system_temperature_k: System temperature in Kelvin
+            If None and use_measured_params=True, loads from config
+            Otherwise defaults to 50K
+        efficiency: System efficiency
+            If None and use_measured_params=True, loads from config
+            Otherwise defaults to 0.7
         frequency_hz: Observing frequency in Hz (default: 1.4 GHz for DSA-110)
+        use_measured_params: If True, attempt to load from dsa110_measured_parameters.yaml
 
     Returns:
         RMS noise in Jy
     """
+    # Load parameters from config if requested
+    if use_measured_params:
+        params = load_measured_parameters()
+        if system_temperature_k is None:
+            system_temperature_k = (
+                params.get("thermal_noise", {}).get("system_temperature", {}).get("value_k", 50.0)
+            )
+            if (
+                params.get("thermal_noise", {})
+                .get("system_temperature", {})
+                .get("validation_status")
+                == "assumed"
+            ):
+                logger.warning("Using assumed T_sys (not measured from real data)")
+        if efficiency is None:
+            efficiency = (
+                params.get("telescope_efficiency", {})
+                .get("aperture_efficiency", {})
+                .get("value", 0.7)
+            )
+            if (
+                params.get("telescope_efficiency", {})
+                .get("aperture_efficiency", {})
+                .get("validation_status")
+                == "assumed"
+            ):
+                logger.warning("Using assumed efficiency (not measured from real data)")
+    else:
+        # Use provided values or hardcoded defaults
+        if system_temperature_k is None:
+            system_temperature_k = 50.0
+        if efficiency is None:
+            efficiency = 0.7
+
     # Convert system temperature to Jy
     # The conversion factor is frequency-dependent: S = 2*k*T / A_eff
     # For DSA-110 interferometer, the conversion scales approximately as (freq/1.4GHz)²
-    # At 1.4 GHz: ~2.0 Jy/K (calibrated value)
+    # At 1.4 GHz: ~2.0 Jy/K (from config or default)
     # General: conversion_factor ≈ 2.0 * (1.4e9 / frequency_hz)²
     reference_freq_hz = 1.4e9
-    conversion_factor = 2.0 * (reference_freq_hz / frequency_hz) ** 2
+
+    if use_measured_params:
+        params = load_measured_parameters()
+        base_conversion = (
+            params.get("thermal_noise", {}).get("conversion_factor", {}).get("value_jy_per_k", 2.0)
+        )
+        if (
+            params.get("thermal_noise", {}).get("conversion_factor", {}).get("validation_status")
+            == "assumed"
+        ):
+            logger.warning("Using assumed Jy/K conversion (not measured from real data)")
+    else:
+        base_conversion = 2.0
+
+    conversion_factor = base_conversion * (reference_freq_hz / frequency_hz) ** 2
     t_sys_jy = system_temperature_k * conversion_factor
 
     # Radiometer equation
@@ -207,9 +384,10 @@ def disk_source_visibility(
 def add_calibration_errors(
     visibilities: np.ndarray,
     nants: int,
-    gain_std: float = 0.1,
-    phase_std_deg: float = 10.0,
-    bandpass_std: float = 0.05,
+    gain_std: Optional[float] = None,
+    phase_std_deg: Optional[float] = None,
+    bandpass_std: Optional[float] = None,
+    use_measured_params: bool = True,
     rng: Optional[np.random.Generator] = None,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Add realistic calibration errors to visibilities.
@@ -220,9 +398,16 @@ def add_calibration_errors(
     Args:
         visibilities: Complex visibility array (shape: Nblts, Nspws, Nfreqs, Npols)
         nants: Number of antennas
-        gain_std: Standard deviation of gain errors (default: 0.1 = 10%)
-        phase_std_deg: Standard deviation of phase errors in degrees (default: 10 deg)
-        bandpass_std: Standard deviation of bandpass variations (default: 0.05 = 5%)
+        gain_std: Standard deviation of gain errors (fractional)
+            If None and use_measured_params=True, loads from config
+            Otherwise defaults to 0.1 (10%)
+        phase_std_deg: Standard deviation of phase errors in degrees
+            If None and use_measured_params=True, loads from config
+            Otherwise defaults to 10 deg
+        bandpass_std: Standard deviation of bandpass variations (fractional)
+            If None and use_measured_params=True, loads from config
+            Otherwise defaults to 0.05 (5%)
+        use_measured_params: If True, attempt to load from dsa110_measured_parameters.yaml
         rng: Random number generator (for reproducibility)
 
     Returns:
@@ -231,6 +416,57 @@ def add_calibration_errors(
     """
     if rng is None:
         rng = np.random.default_rng()
+
+    # Load parameters from config if requested
+    if use_measured_params:
+        params = load_measured_parameters()
+        if gain_std is None:
+            gain_std = (
+                params.get("calibration_errors", {})
+                .get("antenna_gains", {})
+                .get("rms_fractional", 0.1)
+            )
+            if (
+                params.get("calibration_errors", {})
+                .get("antenna_gains", {})
+                .get("validation_status")
+                == "assumed"
+            ):
+                logger.warning("Using assumed gain_std (not measured from real data)")
+        if phase_std_deg is None:
+            phase_std_deg = (
+                params.get("calibration_errors", {})
+                .get("antenna_phases", {})
+                .get("rms_degrees", 10.0)
+            )
+            if (
+                params.get("calibration_errors", {})
+                .get("antenna_phases", {})
+                .get("validation_status")
+                == "assumed"
+            ):
+                logger.warning("Using assumed phase_std (not measured from real data)")
+        if bandpass_std is None:
+            bandpass_std = (
+                params.get("calibration_errors", {})
+                .get("bandpass_stability", {})
+                .get("rms_fractional", 0.05)
+            )
+            if (
+                params.get("calibration_errors", {})
+                .get("bandpass_stability", {})
+                .get("validation_status")
+                == "assumed"
+            ):
+                logger.warning("Using assumed bandpass_std (not measured from real data)")
+    else:
+        # Use provided values or hardcoded defaults
+        if gain_std is None:
+            gain_std = 0.1
+        if phase_std_deg is None:
+            phase_std_deg = 10.0
+        if bandpass_std is None:
+            bandpass_std = 0.05
 
     nblts, nspws, nfreqs, npols = visibilities.shape
 
@@ -261,6 +497,115 @@ def add_calibration_errors(
     return visibilities, complex_gains, total_phases
 
 
+def load_real_calibration_solutions(
+    caltable_path: Path,
+    time_avg: bool = True,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Load real calibration solutions from a CASA caltable.
+
+    This provides the most rigorous approach to simulating calibration errors:
+    instead of generating random gains/phases, use actual measured solutions
+    from a real observation.
+
+    Parameters
+    ----------
+    caltable_path : Path
+        Path to CASA calibration table (e.g., 'observation_gcal')
+    time_avg : bool, optional
+        If True, average solutions over time to get single gain per antenna
+        If False, keep time-dependent solutions (default: True)
+
+    Returns
+    -------
+    complex_gains : np.ndarray
+        Complex gains (shape: nants, nfreqs, npols) if time_avg=True
+        or (nants, ntimes, nfreqs, npols) if time_avg=False
+    antenna_indices : np.ndarray
+        Antenna indices corresponding to gain solutions
+
+    Raises
+    ------
+    ImportError
+        If casacore is not available
+    FileNotFoundError
+        If caltable doesn't exist
+
+    Examples
+    --------
+    >>> # Load gains from a real observation
+    >>> gains, ants = load_real_calibration_solutions('obs_gcal')
+    >>> # Use these gains in simulation
+    >>> vis_corrupted = apply_calibration_errors_to_visibilities(
+    ...     visibilities, ant_1_array, ant_2_array, gains
+    ... )
+
+    Notes
+    -----
+    This approach is superior to synthetic calibration errors because:
+    - Captures real antenna-to-antenna gain variations
+    - Includes actual frequency-dependent effects
+    - Preserves correlations between antennas
+    - No assumptions about error distributions needed
+    """
+    try:
+        from casacore.tables import table
+    except ImportError:
+        raise ImportError(
+            "casacore is required to read caltables. " "Install with: pip install python-casacore"
+        )
+
+    if not Path(caltable_path).exists():
+        raise FileNotFoundError(f"Caltable not found: {caltable_path}")
+
+    logger.info(f"Loading calibration solutions from {caltable_path}")
+
+    # Open caltable
+    with table(str(caltable_path)) as tb:
+        # Read data
+        cparam = tb.getcol("CPARAM")  # Complex gains (npol, nchan, nrow)
+        antenna = tb.getcol("ANTENNA1")  # Antenna indices
+        flag = tb.getcol("FLAG")  # Flags (npol, nchan, nrow)
+
+        # Get unique antennas
+        unique_ants = np.unique(antenna)
+        nants = len(unique_ants)
+
+        # Get dimensions
+        npol, nchan, nrow = cparam.shape
+
+        if time_avg:
+            # Average over time for each antenna
+            gains = np.zeros((nants, nchan, npol), dtype=complex)
+
+            for i, ant in enumerate(unique_ants):
+                ant_mask = antenna == ant
+                ant_data = cparam[:, :, ant_mask]  # (npol, nchan, ntimes)
+                ant_flags = flag[:, :, ant_mask]  # (npol, nchan, ntimes)
+
+                # Mask flagged data
+                ant_data_ma = np.ma.masked_where(ant_flags, ant_data)
+
+                # Average over time: (npol, nchan, ntimes) -> (npol, nchan)
+                gains_time_avg = np.ma.mean(ant_data_ma, axis=2)
+
+                # Transpose to (nchan, npol)
+                gains[i, :, :] = gains_time_avg.T
+
+            logger.info(
+                f"Loaded time-averaged gains for {nants} antennas, "
+                f"{nchan} channels, {npol} polarizations"
+            )
+        else:
+            # Keep time dimension
+            # This is more complex - would need to track time indices
+            # For now, raise not implemented
+            raise NotImplementedError(
+                "Time-dependent gain loading not yet implemented. " "Use time_avg=True for now."
+            )
+
+    return gains, unique_ants
+
+
 def apply_calibration_errors_to_visibilities(
     visibilities: np.ndarray,
     ant_1_array: np.ndarray,
@@ -277,6 +622,15 @@ def apply_calibration_errors_to_visibilities(
 
     Returns:
         Visibilities with calibration errors applied
+
+    Notes
+    -----
+    The complex_gains can be either:
+    - Synthetically generated using add_calibration_errors()
+    - Real gains loaded from caltables using load_real_calibration_solutions()
+
+    The latter approach is recommended for rigorous simulations as it uses
+    actual measured calibration solutions from real observations.
     """
     nblts, nspws, nfreqs, npols = visibilities.shape
 

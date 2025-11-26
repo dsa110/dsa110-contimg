@@ -120,6 +120,8 @@ ABSURD_WORKER_CONCURRENCY=4        # Worker concurrency
 ABSURD_WORKER_POLL_INTERVAL=1.0    # Poll interval (sec)
 ABSURD_TASK_TIMEOUT=3600           # Task timeout (sec)
 ABSURD_MAX_RETRIES=3               # Max retry attempts
+ABSURD_DLQ_ENABLED=true            # Route exhausted tasks to dead-letter queue
+ABSURD_DLQ_QUEUE_NAME=dsa110-pipeline-dlq  # Dead-letter queue name
 ```
 
 ## Status

@@ -17,15 +17,18 @@ from astropy.time import Time, TimeDelta
 repo_root = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(repo_root / "src"))
 
+from dsa110_contimg.calibration.cli_calibrate import handle_calibrate
 from dsa110_contimg.calibration.schedule import next_transit_time
+from dsa110_contimg.conversion.strategies.direct_subband import write_ms_from_subbands
 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-  _peek_uvh5_phase_and_midtime, find_subband_groups)
-from dsa110_contimg.mosaic.cli import (_build_weighted_mosaic_linearmosaic,
-                                       _fetch_tiles)
+    _peek_uvh5_phase_and_midtime,
+    find_subband_groups,
+)
+from dsa110_contimg.imaging.cli_imaging import image_ms
+from dsa110_contimg.mosaic.cli import _build_weighted_mosaic_linearmosaic, _fetch_tiles
 from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
 from dsa110_contimg.mosaic.validation import TileQualityMetrics
-from dsa110_contimg.photometry.manager import (PhotometryConfig,
-                                               PhotometryManager)
+from dsa110_contimg.photometry.manager import PhotometryConfig, PhotometryManager
 from dsa110_contimg.pointing.utils import load_pointing
 
 # Suppress ERFA warnings about "dubious years" (harmless for dates in 2025+)
@@ -33,7 +36,9 @@ warnings.filterwarnings("ignore", category=UserWarning, module="erfa")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Get first 2 tiles, build mosaic, run photometry")
+    parser = argparse.ArgumentParser(
+        description="Get first 2 tiles, build mosaic, run photometry"
+    )
     parser.add_argument(
         "--dry-run",
         action="store_true",
@@ -154,19 +159,25 @@ def main():
             except Exception:
                 continue
 
-    print(f"  Found {len(candidate_files)} candidate files based on filename timestamps")
+    print(
+        f"  Found {len(candidate_files)} candidate files based on filename timestamps"
+    )
 
     # Verify actual observation times from files (especially important for boundary cases)
     # For files near the boundary, filename timestamp might not match actual observation time
     print("  Verifying actual observation times from files...")
-    boundary_buffer = TimeDelta(300, format="sec")  # 5 minutes buffer for boundary checking
+    boundary_buffer = TimeDelta(
+        300, format="sec"
+    )  # 5 minutes buffer for boundary checking
 
     for hdf5_file, file_time in candidate_files:
         try:
             # Check if file is near boundary - if so, we must verify actual time
             is_near_boundary = (window_start - boundary_buffer) <= file_time <= (
                 window_start + boundary_buffer
-            ) or (window_end - boundary_buffer) <= file_time <= (window_end + boundary_buffer)
+            ) or (window_end - boundary_buffer) <= file_time <= (
+                window_end + boundary_buffer
+            )
 
             if is_near_boundary:
                 # Near boundary: must check actual observation time
@@ -198,7 +209,9 @@ def main():
         )
 
     print(f"✓ Found {len(observations_in_window)} observation(s) in validity window:")
-    for i, (obs_file, obs_time) in enumerate(observations_in_window[:10], 1):  # Show first 10
+    for i, (obs_file, obs_time) in enumerate(
+        observations_in_window[:10], 1
+    ):  # Show first 10
         print(f"  {i}. {obs_file.name} ({obs_time.isot})")
     if len(observations_in_window) > 10:
         print(f"  ... and {len(observations_in_window) - 10} more")
@@ -224,14 +237,14 @@ def main():
             end_str,
             tolerance_s=30.0,
         )
-        
+
         if not groups:
             sys.exit("No complete 16-subband groups found in validity window")
-        
+
         print(f"✓ Found {len(groups)} complete group(s) in validity window")
         if len(groups) < 2:
             sys.exit(f"Need at least 2 groups, but only found {len(groups)}")
-        
+
         # Take first 2 groups
         selected_groups = groups[:2]
         print(f"  Selected first 2 groups:")
@@ -240,7 +253,7 @@ def main():
             first_file = Path(group[0])
             timestamp = first_file.name.split("_sb")[0]
             print(f"    Group {i}: {timestamp} ({len(group)} subbands)")
-        
+
         if dry_run:
             print("\nStep 5b: Simulating tile creation workflow (dry-run)...")
             print("  Would convert 2 groups of 16 subbands to MS files")
@@ -255,16 +268,89 @@ def main():
             print("✓ Found 2 tile(s) (simulated for dry-run)")
         else:
             print("\nStep 5b: Creating tiles from groups...")
-            # TODO: Implement actual conversion/calibration/imaging pipeline
-            # For now, this is a placeholder
-            print("  ERROR: Tile creation from groups not yet implemented")
-            print("  This requires:")
-            print("    1. Convert groups to MS files")
-            print("    2. Form group and solve calibration")
-            print("    3. Apply calibration")
-            print("    4. Image MS files")
-            sys.exit("Tile creation from groups requires implementation")
-    
+            ms_dir = Path("/stage/dsa110-contimg/ms")
+            images_dir = Path("/stage/dsa110-contimg/images")
+            scratch_dir = Path("/stage/dsa110-contimg/tmp")
+            ms_dir.mkdir(parents=True, exist_ok=True)
+            images_dir.mkdir(parents=True, exist_ok=True)
+            scratch_dir.mkdir(parents=True, exist_ok=True)
+
+            tiles = []
+            for i, group in enumerate(selected_groups, 1):
+                group_label = f"group {i}"
+                first_file = Path(group[0])
+                timestamp = first_file.stem.split("_sb")[0]
+                ms_path = ms_dir / f"{timestamp}.ms"
+                imagename = images_dir / ms_path.stem
+                pbcor_path = Path(f"{imagename}.image.pbcor")
+
+                if pbcor_path.exists():
+                    print(f"  ✓ Using existing tile for {group_label}: {pbcor_path}")
+                    tiles.append(str(pbcor_path))
+                    continue
+
+                if ms_path.exists():
+                    print(f"  ✓ MS already exists for {group_label}: {ms_path}")
+                else:
+                    print(f"  → Converting {group_label} to MS: {ms_path}")
+                    write_ms_from_subbands(
+                        group, str(ms_path), scratch_dir=str(scratch_dir)
+                    )
+
+                print(f"  → Calibrating {group_label} MS")
+                cal_args = argparse.Namespace(
+                    ms=str(ms_path),
+                    auto_fields=True,
+                    refant="103",
+                    preset="fast",
+                    model_source="catalog",
+                    cal_ra_deg=cal.get("ra_deg"),
+                    cal_dec_deg=cal.get("dec_deg"),
+                    cal_flux_jy=cal.get("flux_jy"),
+                    flagging_mode="quick",
+                    bp_combine_field=True,
+                    combine_spw=False,
+                    bp_minsnr=3.0,
+                    gain_solint="inf",
+                    gain_calmode="p",
+                    gain_minsnr=3.0,
+                    skip_bp=False,
+                    skip_g=False,
+                    do_k=False,
+                    fast=True,
+                    no_flagging=False,
+                    skip_rephase=False,
+                    export_model_image=False,
+                    diagnostics=False,
+                    cleanup_subset=True,
+                )
+                cal_result = handle_calibrate(cal_args)
+                if cal_result != 0:
+                    sys.exit(
+                        f"Calibration failed for {ms_path} (exit code {cal_result})"
+                    )
+
+                print(f"  → Imaging {group_label} (pbcor)")
+                image_ms(
+                    str(ms_path),
+                    imagename=str(imagename),
+                    quality_tier="development",
+                    pbcor=True,
+                    niter=300,
+                    threshold="0.0Jy",
+                    robust=0.0,
+                    imsize=1024,
+                    cell_arcsec=None,
+                )
+
+                if pbcor_path.exists():
+                    tiles.append(str(pbcor_path))
+                    print(f"  ✓ Created tile: {pbcor_path}")
+                else:
+                    sys.exit(
+                        f"Tile imaging failed for {ms_path}: {pbcor_path} not found"
+                    )
+
     if tiles:
         print(f"✓ Found {len(tiles)} tile(s):")
         for i, tile in enumerate(tiles, 1):
@@ -273,12 +359,14 @@ def main():
     # Build mosaic from tiles
     print("\nStep 6: Building mosaic...")
     mosaic_path = Path("/stage/dsa110-contimg/mosaics/first_two_tiles")
-    
+
     if tiles:
         if dry_run and tiles[0].startswith("simulated_"):
             print("  (dry-run: using simulated tiles)")
         metrics_dict = {t: TileQualityMetrics(tile_path=t) for t in tiles}
-        _build_weighted_mosaic_linearmosaic(tiles, metrics_dict, str(mosaic_path), dry_run=dry_run)
+        _build_weighted_mosaic_linearmosaic(
+            tiles, metrics_dict, str(mosaic_path), dry_run=dry_run
+        )
 
     if dry_run:
         print("✓ Mosaic plan validated (dry-run)")

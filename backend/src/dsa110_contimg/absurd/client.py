@@ -137,8 +137,8 @@ class AbsurdClient:
                 """
                 SELECT t.task_id, t.queue_name, t.task_name, t.params,
                        t.priority, t.status, t.created_at, t.claimed_at,
-                       t.completed_at, t.result, t.error, t.retry_count
-                FROM absurd.t_tasks t
+                       t.completed_at, t.result, t.error, t.attempt as retry_count
+                FROM absurd.tasks t
                 WHERE t.task_id = $1
                 """,
                 task_id,
@@ -187,8 +187,8 @@ class AbsurdClient:
         query = """
             SELECT t.task_id, t.queue_name, t.task_name, t.params,
                    t.priority, t.status, t.created_at, t.claimed_at,
-                   t.completed_at, t.retry_count
-            FROM absurd.t_tasks t
+                   t.completed_at, t.attempt as retry_count
+            FROM absurd.tasks t
             WHERE 1=1
         """
         params = []
@@ -220,6 +220,8 @@ class AbsurdClient:
                     "completed_at": (
                         row["completed_at"].isoformat() if row["completed_at"] else None
                     ),
+                    "result": None,
+                    "error": None,
                     "retry_count": row["retry_count"],
                 }
                 for row in rows
@@ -244,7 +246,7 @@ class AbsurdClient:
         async with self._pool.acquire() as conn:
             result = await conn.execute(
                 """
-                UPDATE absurd.t_tasks
+                UPDATE absurd.tasks
                 SET status = 'cancelled',
                     completed_at = NOW(),
                     error = 'Cancelled by user'
@@ -278,7 +280,7 @@ class AbsurdClient:
             rows = await conn.fetch(
                 """
                 SELECT status, COUNT(*) as count
-                FROM absurd.t_tasks
+                FROM absurd.tasks
                 WHERE queue_name = $1
                 GROUP BY status
                 """,
@@ -325,7 +327,7 @@ class AbsurdClient:
                 "params": json.loads(row["params"]) if row["params"] else {},
                 "priority": row["priority"],
                 "status": row["status"],
-                "retry_count": row["retry_count"],
+                "retry_count": row["attempt"],
             }
 
     async def complete_task(self, task_id: str, result: Dict[str, Any]) -> None:
@@ -370,3 +372,52 @@ class AbsurdClient:
         async with self._pool.acquire() as conn:
             result = await conn.fetchval("SELECT absurd.heartbeat_task($1)", task_id)
             return bool(result)
+
+    async def prune_tasks(
+        self,
+        retention_days: int = 7,
+        queue_name: Optional[str] = None,
+        statuses: Optional[List[str]] = None,
+    ) -> int:
+        """Prune completed/failed tasks older than retention.
+
+        Args:
+            retention_days: Age threshold in days
+            queue_name: Optional queue filter
+            statuses: Optional list of statuses to prune
+
+        Returns:
+            Number of tasks deleted
+        """
+        if self._pool is None:
+            raise ValueError("Client not connected. Call connect() first.")
+
+        status_filter = statuses or ["completed", "failed", "cancelled"]
+        params: List[Any] = [f"{retention_days} days"]
+        query = """
+            DELETE FROM absurd.tasks
+            WHERE completed_at IS NOT NULL
+              AND completed_at < NOW() - $1::interval
+        """
+
+        if queue_name:
+            params.append(queue_name)
+            query += f" AND queue_name = ${len(params)}"
+
+        if status_filter:
+            params.append(status_filter)
+            query += f" AND status = ANY(${len(params)}::text[])"
+
+        query += " RETURNING 1"
+
+        async with self._pool.acquire() as conn:
+            rows = await conn.fetch(query, *params)
+            pruned = len(rows)
+            logger.info(
+                "Pruned %s Absurd tasks older than %s (queue=%s, statuses=%s)",
+                pruned,
+                retention_days,
+                queue_name or "all",
+                ",".join(status_filter),
+            )
+            return pruned

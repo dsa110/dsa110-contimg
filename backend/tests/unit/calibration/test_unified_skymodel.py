@@ -35,7 +35,7 @@ def test_unified_merging_logic(mock_query_sources):
     def side_effect(catalog_type, **kwargs):
         if catalog_type == "first":
             return df_first
-        if catalog_type == "rax":
+        if catalog_type == "racs":
             return df_rax
         if catalog_type == "nvss":
             return df_nvss
@@ -83,11 +83,11 @@ def test_unified_empty_catalogs(mock_query_sources):
 
 def test_unified_fallback(mock_query_sources):
     # Test when FIRST is empty, should fallback to RACS/NVSS
-    df_rax = pd.DataFrame({"ra_deg": [100.0], "dec_deg": [45.0], "flux_mjy": [50.0]})
+    df_racs = pd.DataFrame({"ra_deg": [100.0], "dec_deg": [45.0], "flux_mjy": [50.0]})
 
     def side_effect(catalog_type, **kwargs):
-        if catalog_type == "rax":
-            return df_rax
+        if catalog_type == "racs":
+            return df_racs
         return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
 
     mock_query_sources.side_effect = side_effect

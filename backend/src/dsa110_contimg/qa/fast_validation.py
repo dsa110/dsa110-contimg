@@ -452,8 +452,30 @@ def _run_tier3_validation(
 
     # Catalog validation (if not skipped)
     if not fast_config.skip_catalog_validation and image_paths:
-        # Would run catalog validation here
-        results["warnings"].append("Catalog validation not yet implemented in fast mode")
+        try:
+            from dsa110_contimg.qa.catalog_validation import validate_astrometry
+
+            # Use the first image as a quick representative check to keep fast tier quick
+            image_path = image_paths[0]
+            astrometry = validate_astrometry(
+                image_path,
+                catalog="nvss",
+                search_radius_arcsec=config.astrometry.match_radius_arcsec,
+                max_offset_arcsec=config.astrometry.max_offset_arcsec,
+                min_snr=config.source_counts.min_detection_snr,
+            )
+            results["catalog_validation"] = {
+                "astrometry": astrometry.to_dict() if hasattr(astrometry, "to_dict") else astrometry
+            }
+
+            if astrometry.has_issues:
+                results["warnings"].append(
+                    f"Catalog astrometry validation failed for {Path(image_path).name}: "
+                    + "; ".join(astrometry.issues)
+                )
+        except Exception as exc:
+            logger.warning(f"Fast catalog validation failed: {exc}", exc_info=True)
+            results["warnings"].append(f"Catalog validation skipped (error: {exc})")
 
     # Photometry validation (if not skipped)
     if not fast_config.skip_photometry_validation and image_paths:

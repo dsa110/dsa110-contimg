@@ -5,7 +5,7 @@ All validation thresholds should be defined here for consistency and easy adjust
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 
 @dataclass
@@ -16,6 +16,8 @@ class AstrometryConfig:
     max_rms_arcsec: float = 0.5
     min_match_fraction: float = 0.8
     match_radius_arcsec: float = 2.0
+    use_pybdsf: bool = True
+    pybdsf_rms_box: Tuple[int, int] = (40, 10)
 
 
 @dataclass
@@ -35,6 +37,8 @@ class SourceCountsConfig:
     min_completeness: float = 0.7
     max_false_positive_rate: float = 0.1
     min_detection_snr: float = 5.0
+    use_pybdsf: bool = True
+    pybdsf_rms_box: Tuple[int, int] = (40, 10)
 
 
 @dataclass
@@ -177,6 +181,8 @@ class QAConfig:
                 "max_rms_arcsec": self.astrometry.max_rms_arcsec,
                 "min_match_fraction": self.astrometry.min_match_fraction,
                 "match_radius_arcsec": self.astrometry.match_radius_arcsec,
+                "use_pybdsf": self.astrometry.use_pybdsf,
+                "pybdsf_rms_box": self.astrometry.pybdsf_rms_box,
             },
             "flux_scale": {
                 "max_flux_ratio_deviation": self.flux_scale.max_flux_ratio_deviation,
@@ -188,6 +194,8 @@ class QAConfig:
                 "min_completeness": self.source_counts.min_completeness,
                 "max_false_positive_rate": self.source_counts.max_false_positive_rate,
                 "min_detection_snr": self.source_counts.min_detection_snr,
+                "use_pybdsf": self.source_counts.use_pybdsf,
+                "pybdsf_rms_box": self.source_counts.pybdsf_rms_box,
             },
             "image_quality": {
                 "max_rms_noise": self.image_quality.max_rms_noise,

@@ -6,6 +6,9 @@
  * - Task queue monitoring and management (TaskDashboard)
  * - Visual workflow builder for multi-stage pipelines (WorkflowBuilder)
  * - Real-time queue health and statistics
+ * - Scheduled task management
+ * - DAG-based workflow visualization
+ * - Historical metrics with time-series charts
  */
 
 import { useState } from "react";
@@ -26,10 +29,17 @@ import {
   AccountTree as WorkflowIcon,
   OpenInNew,
   Info as InfoIcon,
+  Group as WorkersIcon,
+  Schedule as ScheduleIcon,
+  Timeline as MetricsIcon,
 } from "@mui/icons-material";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
 import { TaskDashboard } from "../components/absurd/TaskDashboard";
 import { WorkflowBuilder } from "../components/absurd/WorkflowBuilder";
+import { QueueMetricsCharts } from "../components/absurd/QueueMetricsCharts";
+import { WorkerManagement } from "../components/absurd/WorkerManagement";
+import { ScheduleManager } from "../components/absurd/ScheduleManager";
+import { MetricsTimeSeriesChart } from "../components/absurd/MetricsTimeSeriesChart";
 import { useAbsurdHealth, useQueueStats } from "../api/absurdQueries";
 
 interface TabPanelProps {
@@ -184,12 +194,36 @@ export default function AbsurdPage() {
               label="Workflow Builder"
               sx={{ textTransform: "none" }}
             />
+            <Tab
+              icon={<WorkersIcon />}
+              iconPosition="start"
+              label="Workers"
+              sx={{ textTransform: "none" }}
+            />
+            <Tab
+              icon={<ScheduleIcon />}
+              iconPosition="start"
+              label="Schedules"
+              sx={{ textTransform: "none" }}
+            />
+            <Tab
+              icon={<MetricsIcon />}
+              iconPosition="start"
+              label="Metrics"
+              sx={{ textTransform: "none" }}
+            />
           </Tabs>
         </Paper>
 
         {/* Tab content */}
         <TabPanel value={tabValue} index={0}>
-          <TaskDashboard queueName="dsa110-pipeline" />
+          {/* Enhanced Metrics Charts */}
+          {stats && <QueueMetricsCharts queueName="dsa110-pipeline" />}
+
+          {/* Task Dashboard */}
+          <Box sx={{ mt: 3 }}>
+            <TaskDashboard queueName="dsa110-pipeline" />
+          </Box>
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>
@@ -201,6 +235,18 @@ export default function AbsurdPage() {
               setTabValue(0);
             }}
           />
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={2}>
+          <WorkerManagement showMetrics={true} showWorkerList={true} />
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={3}>
+          <ScheduleManager queueName="dsa110-pipeline" />
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={4}>
+          <MetricsTimeSeriesChart queueName="dsa110-pipeline" />
         </TabPanel>
       </Box>
     </>

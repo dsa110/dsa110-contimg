@@ -24,6 +24,7 @@ import pandas as pd
 import pytest
 from astropy.coordinates import SkyCoord
 
+from dsa110_contimg.calibration import catalogs
 from dsa110_contimg.calibration.catalogs import query_nvss_sources
 
 
@@ -275,9 +276,9 @@ class TestQueryNVSSSourcesNoFallback:
         assert list(df.columns) == ["ra_deg", "dec_deg", "flux_mjy"]
 
     @patch("sqlite3.connect")
-    @patch("dsa110_contimg.calibration.catalogs.logger")
+    @patch.object(catalogs.logger, "error")
     @patch("dsa110_contimg.calibration.catalogs.Path.exists")
-    def test_no_fallback_logs_error(self, mock_exists, mock_logger, mock_connect):
+    def test_no_fallback_logs_error(self, mock_exists, mock_error, mock_connect):
         """Test that error is logged when SQLite fails and fallback disabled."""
         mock_exists.return_value = True
         mock_connect.side_effect = Exception("Database connection failed")
@@ -285,8 +286,8 @@ class TestQueryNVSSSourcesNoFallback:
         query_nvss_sources(ra_deg=83.5, dec_deg=54.6, radius_deg=0.2)
 
         # Verify error was logged
-        mock_logger.error.assert_called_once()
-        error_call = mock_logger.error.call_args[0][0]
+        mock_error.assert_called_once()
+        error_call = mock_error.call_args[0][0]
         assert "SQLite query failed" in error_call
         assert "use_csv_fallback=True" in error_call
 

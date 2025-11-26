@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Request
 from fastapi.responses import FileResponse
 
 from dsa110_contimg.api.data_access import (
     fetch_mosaic_by_id,
     fetch_mosaics,
+    fetch_mosaics_recent,
 )
 from dsa110_contimg.api.models import (
     Mosaic,
@@ -19,6 +20,17 @@ from dsa110_contimg.api.models import (
 )
 
 router = APIRouter()
+
+
+@router.get("/mosaics")
+def list_mosaics(request: Request, limit: int = Query(10, ge=1, le=100)):
+    """List available mosaics.
+
+    Returns recent mosaics from the database, ordered by creation time.
+    """
+    cfg = request.app.state.cfg
+    mosaics_data, total = fetch_mosaics_recent(cfg.products_db, limit=limit)
+    return {"mosaics": mosaics_data, "total": total, "limit": limit}
 
 
 @router.post("/mosaics/query", response_model=MosaicQueryResponse)

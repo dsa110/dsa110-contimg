@@ -3,15 +3,20 @@ import json
 import os
 import sys
 
+import pytest
+
+# Only run when explicitly enabled and dependency is present
+if not os.environ.get("GRAPHITI_MCP_TESTS", ""):
+    pytest.skip("GRAPHITI_MCP_TESTS not set; skipping external MCP test", allow_module_level=True)
+
 try:
     from mcp.client.session import ClientSession
     from mcp.client.stdio import StdioServerParameters, stdio_client
-except Exception:
-    print(
-        "Missing mcp client library. Run with: uv run --with mcp scripts/test_graphiti_mcp.py",
-        file=sys.stderr,
+except Exception as exc:  # pragma: no cover - import guard
+    pytest.skip(
+        f"mcp client library not available ({exc}); set up deps to run this test",
+        allow_module_level=True,
     )
-    raise
 
 
 SERVER_COMMAND = "/home/ubuntu/.local/bin/uv"

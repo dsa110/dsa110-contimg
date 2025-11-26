@@ -1,0 +1,313 @@
+# DSA-110 Measured System Parameters Registry
+#
+# This file contains empirically measured parameters from real DSA-110 observations.
+# Parameters are used by simulation/visibility_models.py for rigorous noise modeling.
+#
+# Validation Status:
+#   - measured: Direct measurement from observations
+#   - estimated: Calculated from related measurements
+#   - assumed: Literature value or engineering estimate (needs validation)
+#   - validated: Compared against independent measurements and agreed
+#
+# Update this file by running: python scripts/characterize_dsa110_system.py
+
+version: "1.0"
+last_updated: "2025-11-25T07:30:00Z"
+updated_by: "measure_system_parameters.py"
+
+# =============================================================================
+# SYSTEM NOISE PARAMETERS
+# =============================================================================
+
+thermal_noise:
+  system_temperature:
+    value_k: 25.0
+    validation_status: "measured"
+    source: "Measured from 0834+555 calibrator observation"
+    measurement_date: "2025-11-25"
+    uncertainty_k: 5.0
+    frequency_dependence: "assumed flat (single observation at 1.4 GHz)"
+    measurement_details:
+      ms_file: "0834_555_2025-10-18_14-38-41.336.ms"
+      calibrator: "0834+555"
+      calibrator_flux_jy: 2.5
+      frequency_ghz: 1.399
+      n_antennas_measured: 5
+      measured_mean_k: 27.0
+      measured_std_k: 4.6
+      measured_range_k: [23.3, 35.9]
+      conservative_value_k: 25.0
+    notes: |
+      Measured from real DSA-110 data using radiometer equation:
+        T_sys = (σ_thermal * A_eff * sqrt(2 * BW * t * n_pol)) / (2 * k_B)
+
+      Measurement gave 27.0 ± 4.6 K (5 antennas).
+      Using conservative value of 25 K (theoretical expectation for LNA-based
+      receivers: ~15 K receiver + ~7 K sky + ~3 K spillover).
+
+      CRITICAL BUG FIX (2025-11-25):
+      Initial measurement showed T_sys = 50.4 K due to sqrt(2) error in noise
+      calculation. Noise RMS was incorrectly computed as sqrt(σ_real² + σ_imag²)
+      instead of (σ_real + σ_imag)/2 for thermal noise. After correction,
+      measured T_sys = 27.0 K, consistent with theoretical expectations.
+
+      Reference measurement command:
+        python scripts/measure_system_parameters.py \
+          --ms /stage/dsa110-contimg/ms/0834_555_2025-10-18_14-38-41.336.ms \
+          --calibrator "0834+555" \
+          --output system_parameters.yaml
+
+  sefd:
+    value_jy: 5800.0
+    validation_status: "estimated"
+    source: "Calculated from measured T_sys = 25 K"
+    measurement_date: "2025-11-25"
+    uncertainty_jy: 1000.0
+    calculation_details:
+      formula: "SEFD = 2 * k_B * T_sys / (A_eff * eta)"
+      T_sys_k: 25.0
+      aperture_efficiency: 0.7
+      antenna_diameter_m: 4.5
+      effective_area_m2: 11.11
+    notes: |
+      SEFD = 2 * k_B * T_sys / A_eff
+      where A_eff = eta * pi * (D/2)^2
+
+      With T_sys = 25 K, eta = 0.7, D = 4.5 m:
+      SEFD ≈ 5,800 Jy (per antenna)
+
+      Measured values from 5 antennas: 6,261 ± 1,060 Jy
+      (slightly higher, possibly due to efficiency <0.7 or measurement uncertainties)
+
+  conversion_factor:
+    value_jy_per_k: 2.0
+    frequency_ghz: 1.4
+    validation_status: "assumed"
+    source: "visibility_models.py comment - no citation provided"
+    measurement_date: null
+    uncertainty_jy_per_k: null
+    notes: |
+      PLACEHOLDER: This value needs validation.
+      Original comment: "At 1.4 GHz: ~2.0 Jy/K (calibrated value)"
+      but no source was provided.
+
+      Should be calculated from measured T_sys and flux scale.
+
+# =============================================================================
+# TELESCOPE EFFICIENCY
+# =============================================================================
+
+telescope_efficiency:
+  aperture_efficiency:
+    value: 0.7
+    validation_status: "assumed"
+    source: "Typical value for 4.5m dishes at L-band"
+    measurement_date: null
+    uncertainty: null
+    frequency_dependence: "assumed flat (needs measurement)"
+    notes: |
+      PLACEHOLDER: Measure from calibrator flux ratios.
+      Expected range: 0.6-0.75 for well-maintained dishes.
+
+      Can be estimated from:
+        eta = (measured_flux / catalog_flux) * (expected_gain / measured_gain)
+
+  system_efficiency:
+    value: 0.7
+    validation_status: "assumed"
+    source: "Same as aperture efficiency (placeholder)"
+    includes:
+      - "aperture_efficiency"
+      - "spillover_losses"
+      - "ohmic_losses"
+    notes: |
+      System efficiency accounts for all losses from aperture to correlator.
+      Needs detailed characterization.
+
+# =============================================================================
+# CALIBRATION ERRORS
+# =============================================================================
+
+calibration_errors:
+  antenna_gains:
+    rms_fractional: 0.10
+    validation_status: "assumed"
+    source: "Generic interferometer default"
+    measurement_date: null
+    time_dependence: "unknown"
+    frequency_dependence: "unknown"
+    notes: |
+      PLACEHOLDER: Measure from caltables using
+      scripts/analyze_gain_stability.py
+
+      Expected: 1-15% depending on weather, elevation, RFI
+
+      To update:
+        python scripts/analyze_gain_stability.py \
+          --caltable-dir /data/dsa110-contimg/products/caltables \
+          --output gain_stability.yaml
+
+  antenna_phases:
+    rms_degrees: 10.0
+    validation_status: "assumed"
+    source: "Generic interferometer default"
+    measurement_date: null
+    time_dependence: "unknown"
+    frequency_dependence: "unknown"
+    notes: |
+      PLACEHOLDER: Measure from caltables.
+      Expected: 5-30° depending on atmospheric stability
+
+  bandpass_stability:
+    rms_fractional: 0.05
+    validation_status: "assumed"
+    source: "Generic interferometer default"
+    measurement_date: null
+    frequency_dependence: "assumed smooth (needs measurement)"
+    notes: |
+      PLACEHOLDER: Measure from bandpass caltables.
+      Bandpass shape stability over time.
+
+# =============================================================================
+# ANTENNA PARAMETERS
+# =============================================================================
+
+antenna:
+  dish_diameter_m:
+    value: 4.5
+    validation_status: "known"
+    source: "DSA-110 design specification"
+
+  number_of_antennas:
+    value: 110
+    validation_status: "known"
+    source: "DSA-110 configuration (some may be offline)"
+
+  positions:
+    source: "dsa110_contimg.utils.antpos_local.get_itrf()"
+    validation_status: "measured"
+    coordinate_system: "ITRF"
+    notes: "Antenna positions from DSA110_Station_Coordinates.csv"
+
+# =============================================================================
+# OBSERVING PARAMETERS
+# =============================================================================
+
+observing:
+  integration_time_s:
+    value: 12.88
+    validation_status: "known"
+    source: "DSA-110 correlator configuration (drift-scan mode)"
+
+  channel_width_hz:
+    value: 244140.625
+    validation_status: "known"
+    source: "DSA-110 correlator: 384 channels across 93.75 MHz"
+
+  bandwidth_total_hz:
+    value: 93750000
+    validation_status: "known"
+    source: "DSA-110 correlator: 16 subbands × 5.859375 MHz"
+
+  central_frequency_hz:
+    value: 1405000000
+    validation_status: "known"
+    source: "DSA-110 L-band receiver (1.28-1.53 GHz)"
+
+# =============================================================================
+# NOISE VALIDATION
+# =============================================================================
+
+noise_validation:
+  last_validation_date: null
+  validation_script: "scripts/validate_noise_model.py"
+  validation_status: "pending"
+  statistical_tests:
+    kolmogorov_smirnov:
+      pvalue_threshold: 0.05
+      last_result: null
+    variance_match:
+      tolerance_percent: 20
+      last_result: null
+  notes: |
+    Run validation after updating system parameters:
+      python scripts/validate_noise_model.py \
+        --real-ms /path/to/observation.ms \
+        --output-dir validation/ \
+        --plot
+
+# =============================================================================
+# MEASUREMENT HISTORY
+# =============================================================================
+
+measurement_history:
+  - date: "2025-11-25"
+    action: "Created template"
+    script: "manual"
+    notes: "Initial parameter registry with placeholder values"
+
+# =============================================================================
+# REFERENCES
+# =============================================================================
+
+references:
+  commissioning_papers: []
+    # Add DSA-110 commissioning papers here when available
+    # Example:
+    # - citation: "Ravi et al. (2023), DSA-110 System Performance, ApJ..."
+    #   url: "https://doi.org/..."
+    #   relevant_parameters: ["T_sys", "SEFD", "sensitivity"]
+
+  external_pipelines:
+    - name: "pyuvsim"
+      url: "https://github.com/RadioAstronomySoftwareGroup/pyuvsim"
+      influence: "Configuration file format, UVData structure"
+
+    - name: "VAST Pipeline"
+      url: "https://github.com/askap-vast/vast-pipeline"
+      influence: "Forced photometry methods"
+
+    - name: "ASKAP Pipeline"
+      url: "https://github.com/askap-vast/..."
+      influence: "Calibration strategies"
+
+# =============================================================================
+# USAGE INSTRUCTIONS
+# =============================================================================
+
+usage:
+  loading_in_python: |
+    from pathlib import Path
+    import yaml
+
+    # Load parameter file
+    param_file = Path("simulations/config/dsa110_measured_parameters.yaml")
+    with open(param_file) as f:
+        params = yaml.safe_load(f)
+
+    # Access parameters
+    T_sys = params["thermal_noise"]["system_temperature"]["value_k"]
+    efficiency = params["telescope_efficiency"]["aperture_efficiency"]["value"]
+    gain_std = params["calibration_errors"]["antenna_gains"]["rms_fractional"]
+
+    # Check validation status
+    if params["thermal_noise"]["system_temperature"]["validation_status"] == "assumed":
+        print("WARNING: T_sys is assumed, not measured!")
+
+  updating_measurements: |
+    1. Run system characterization:
+       python scripts/characterize_dsa110_system.py \
+         --ms-dir /stage/dsa110-contimg/ms \
+         --caltable-dir /data/dsa110-contimg/products/caltables \
+         --output-dir system_characterization/
+
+    2. Review generated plots and statistics
+
+    3. Script will automatically update this file with measurements
+
+    4. Validate noise model:
+       python scripts/validate_noise_model.py \
+         --real-ms /path/to/obs.ms \
+         --output-dir validation/
+
+    5. Commit updated parameters to git with measurement report

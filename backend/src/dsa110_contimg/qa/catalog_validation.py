@@ -7,10 +7,11 @@ Note: ATNF is a pulsar catalog with time-variable flux, so flux scale validation
 may be less reliable for pulsars.
 """
 
+import dataclasses
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import astropy.units as u
 import numpy as np
@@ -83,6 +84,10 @@ class CatalogValidationResult:
     matched_pairs: Optional[List[Tuple]] = None
     matched_fluxes: Optional[List[Tuple]] = None
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Return a JSON-serializable representation."""
+        return dataclasses.asdict(self)
+
 
 def scale_flux_to_frequency(
     flux_jy: float,
@@ -112,21 +117,97 @@ def scale_flux_to_frequency(
 
 
 def extract_sources_from_image(
-    image_path: str, min_snr: float = 5.0, rms_estimate: Optional[float] = None
+    image_path: str,
+    min_snr: float = 5.0,
+    rms_estimate: Optional[float] = None,
+    use_pybdsf: bool = True,
+    pybdsf_kwargs: Optional[Dict[str, Any]] = None,
 ) -> pd.DataFrame:
     """
-    Extract source positions and fluxes from image using simple threshold method.
+    Extract source positions and fluxes from image.
 
-    This is a basic implementation. For production use, consider PyBDSF.
+    Prefers PyBDSF if available (more robust Gaussian decomposition) and falls back
+    to a simple threshold-based extractor when PyBDSF is unavailable or fails.
 
     Args:
         image_path: Path to FITS image
         min_snr: Minimum SNR threshold for source detection
         rms_estimate: RMS noise estimate (auto-calculated if None)
+        use_pybdsf: Attempt PyBDSF-based extraction if available
+        pybdsf_kwargs: Optional overrides for PyBDSF processing
 
     Returns:
         DataFrame with columns: ra_deg, dec_deg, flux_jy, snr
     """
+
+    def _extract_with_pybdsf() -> Optional[pd.DataFrame]:
+        """Try PyBDSF; return None on failure to allow fallback."""
+        if not use_pybdsf:
+            return None
+
+        try:
+            import bdsf  # type: ignore
+        except Exception:
+            logger.debug("PyBDSF not installed; falling back to threshold extractor")
+            return None
+
+        try:
+            # Conservative defaults; allow callers to override via kwargs
+            bdsf_params: Dict[str, Any] = {
+                "thresh_pix": float(min_snr),
+                "thresh_isl": max(3.0, float(min_snr) * 0.6),
+                "rms_box": pybdsf_kwargs.get("rms_box") if pybdsf_kwargs else (40, 10),
+                "blank_limit": 1e-4,
+            }
+            if pybdsf_kwargs:
+                bdsf_params.update(pybdsf_kwargs)
+
+            image = bdsf.process_image(str(image_path), **bdsf_params)
+            gaul = image.get_gaul()
+            if gaul is None or len(gaul) == 0:
+                logger.debug("PyBDSF returned no sources; falling back to threshold extractor")
+                return None
+
+            df = pd.DataFrame(gaul)
+            rename_map = {
+                "RA": "ra_deg",
+                "DEC": "dec_deg",
+                "Total_flux": "flux_jy",
+                "Peak_flux": "peak_jyb",
+            }
+            df = df.rename(columns=rename_map)
+
+            # Ensure required columns exist
+            if "ra_deg" not in df.columns or "dec_deg" not in df.columns:
+                logger.debug("PyBDSF output missing RA/Dec columns; falling back")
+                return None
+
+            # Compute SNR if possible
+            if "peak_jyb" in df.columns and "Isl_rms" in df.columns:
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    df["snr"] = df["peak_jyb"] / df["Isl_rms"]
+            elif "Peak_flux" in df.columns and "Isl_rms" in df.columns:
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    df["snr"] = df["Peak_flux"] / df["Isl_rms"]
+            else:
+                df["snr"] = np.nan
+
+            # Prefer total flux; fall back to peak if missing
+            if "flux_jy" not in df.columns and "peak_jyb" in df.columns:
+                df["flux_jy"] = df["peak_jyb"]
+
+            df = df[["ra_deg", "dec_deg", "flux_jy", "snr"]].copy()
+            df = df.replace([np.inf, -np.inf], np.nan).dropna(subset=["ra_deg", "dec_deg"])
+            return df.reset_index(drop=True)
+        except Exception as exc:  # pragma: no cover - PyBDSF optional
+            logger.warning(f"PyBDSF extraction failed for {image_path}: {exc}")
+            return None
+
+    # Try PyBDSF first (if available), then fallback
+    pybdsf_sources = _extract_with_pybdsf()
+    if pybdsf_sources is not None and len(pybdsf_sources) > 0:
+        return pybdsf_sources
+
     try:
         with fits.open(image_path) as hdul:
             data = hdul[0].data
@@ -352,8 +433,15 @@ def validate_astrometry(
 
     if not Path(image_path).exists():
         raise ValidationInputError(f"Image not found: {image_path}")
+
+    pybdsf_kwargs = {"rms_box": config.pybdsf_rms_box} if config and config.pybdsf_rms_box else {}
     # Extract sources from image
-    detected_sources = extract_sources_from_image(image_path, min_snr=min_snr)
+    detected_sources = extract_sources_from_image(
+        image_path,
+        min_snr=min_snr,
+        use_pybdsf=getattr(config, "use_pybdsf", True),
+        pybdsf_kwargs=pybdsf_kwargs,
+    )
     n_detected = len(detected_sources)
 
     if n_detected == 0:
@@ -449,14 +537,12 @@ def validate_astrometry(
 
     # Extract offsets for compatibility with existing result structure
     matched_sep = matches["separation_arcsec"].values
-    matches["dra_arcsec"].values
-    matches["ddec_arcsec"].values
 
-    mean_offset = np.mean(matched_sep)
-    rms_offset = np.std(matched_sep)
-    max_offset = np.max(matched_sep)
-    mean_ra_offset = dra_median.to(u.arcsec).value
-    mean_dec_offset = ddec_median.to(u.arcsec).value
+    mean_offset = float(np.mean(matched_sep))
+    rms_offset = float(np.std(matched_sep))
+    max_offset = float(np.max(matched_sep))
+    mean_ra_offset = float(dra_median.to(u.arcsec).value)
+    mean_dec_offset = float(ddec_median.to(u.arcsec).value)
 
     # Check for issues
     issues = []
@@ -483,10 +569,23 @@ def validate_astrometry(
             f"({n_matched}/{n_detected} sources matched)"
         )
 
-    matched_pairs = [
-        ((det.ra.deg, det.dec.deg), (cat.ra.deg, cat.dec.deg), sep.value)
-        for det, cat, sep in zip(matched_detected, matched_catalog, matched_sep * u.arcsec)
-    ]
+    matched_pairs: List[Tuple[Tuple[float, float], Tuple[float, float], float]] = []
+    for _, row in matches.iterrows():
+        det_idx = int(row["detected_idx"])
+        cat_idx = int(row["catalog_idx"])
+        matched_pairs.append(
+            (
+                (
+                    float(detected_sources.iloc[det_idx]["ra_deg"]),
+                    float(detected_sources.iloc[det_idx]["dec_deg"]),
+                ),
+                (
+                    float(catalog_sources.iloc[cat_idx]["ra_deg"]),
+                    float(catalog_sources.iloc[cat_idx]["dec_deg"]),
+                ),
+                float(row["separation_arcsec"]),
+            )
+        )
 
     result = CatalogValidationResult(
         validation_type="astrometry",
@@ -686,8 +785,8 @@ def validate_flux_scale(
             # Calculate flux ratio
             if catalog_flux_scaled > 0:
                 ratio = image_flux / catalog_flux_scaled
-                flux_ratios.append(ratio)
-                matched_fluxes.append((image_flux, catalog_flux_scaled, ratio))
+                flux_ratios.append(float(ratio))
+                matched_fluxes.append((float(image_flux), float(catalog_flux_scaled), float(ratio)))
                 n_valid += 1
             else:
                 n_failed += 1
@@ -806,7 +905,13 @@ def validate_source_counts(
         raise ValidationInputError(f"Image not found: {image_path}")
 
     # Extract sources
-    detected_sources = extract_sources_from_image(image_path, min_snr=min_snr)
+    pybdsf_kwargs = {"rms_box": config.pybdsf_rms_box} if config and config.pybdsf_rms_box else {}
+    detected_sources = extract_sources_from_image(
+        image_path,
+        min_snr=min_snr,
+        use_pybdsf=getattr(config, "use_pybdsf", True),
+        pybdsf_kwargs=pybdsf_kwargs,
+    )
     n_detected = len(detected_sources)
 
     # Get image field and frequency

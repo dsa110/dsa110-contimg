@@ -1,0 +1,43 @@
+[Unit]
+Description=DSA-110 Continuum Imaging Absurd Worker
+Documentation=https://github.com/dsa110/dsa110-contimg
+After=network-online.target postgresql.service
+Wants=network-online.target
+Requires=postgresql.service
+
+[Service]
+Type=simple
+EnvironmentFile=/data/dsa110-contimg/ops/systemd/contimg.env
+WorkingDirectory=/data/dsa110-contimg
+
+# Absurd worker requires casa6 Python environment
+ExecStart=/opt/miniforge/envs/casa6/bin/python -m dsa110_contimg.scripts.absurd.start_worker \
+  --database-url ${ABSURD_DATABASE_URL} \
+  --queue-name ${ABSURD_QUEUE_NAME} \
+  --concurrency ${ABSURD_WORKER_CONCURRENCY} \
+  --poll-interval ${ABSURD_WORKER_POLL_INTERVAL} \
+  --log-level INFO
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=300
+StartLimitBurst=5
+
+# Resource limits
+Nice=5
+IOSchedulingClass=best-effort
+IOSchedulingPriority=4
+LimitNOFILE=1048576
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Logging
+StandardOutput=append:/data/dsa110-contimg/state/logs/absurd-worker.out
+StandardError=append:/data/dsa110-contimg/state/logs/absurd-worker.err
+SyslogIdentifier=contimg-absurd-worker
+
+[Install]
+WantedBy=multi-user.target

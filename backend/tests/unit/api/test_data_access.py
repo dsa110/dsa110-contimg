@@ -18,6 +18,7 @@ from dsa110_contimg.api.data_access import (
     fetch_ese_candidates,
     fetch_mosaic_by_id,
     fetch_mosaics,
+    fetch_mosaics_recent,
     fetch_observation_timeline,
     fetch_pointing_history,
     fetch_queue_stats,
@@ -214,7 +215,9 @@ def mock_products_db(tmp_path):
                 beam_minor_arcsec REAL,
                 beam_pa_deg REAL,
                 n_sources INTEGER,
-                thumbnail_path TEXT
+                thumbnail_path TEXT,
+                status TEXT,
+                method TEXT
             )
             """
         )
@@ -279,8 +282,8 @@ def mock_products_db(tmp_path):
         )
         conn.execute(
             """
-            INSERT INTO mosaics(name, path, created_at, start_mjd, end_mjd, n_images, n_sources, noise_jy)
-            VALUES(?,?,?,?,?,?,?,?)
+            INSERT INTO mosaics(name, path, created_at, start_mjd, end_mjd, n_images, n_sources, noise_jy, status, method)
+            VALUES(?,?,?,?,?,?,?,?,?,?)
             """,
             (
                 "test_mosaic",
@@ -291,6 +294,8 @@ def mock_products_db(tmp_path):
                 12,
                 142,
                 0.00085,
+                "completed",
+                "pbweighted",
             ),
         )
         # pointing_history table is now in ingest database (mock_queue_db), not products database
@@ -488,6 +493,39 @@ class TestFetchMosaics:
             end_time=end_time,
         )
         assert len(mosaics) == 0  # Outside time range
+
+
+class TestFetchMosaicsRecent:
+    """Test fetch_mosaics_recent function."""
+
+    def test_fetch_mosaics_recent_success(self, mock_products_db):
+        """Test successful recent mosaics retrieval."""
+        mosaics, total = fetch_mosaics_recent(mock_products_db, limit=10)
+        assert total == 1
+        assert len(mosaics) == 1
+        assert mosaics[0]["name"] == "test_mosaic"
+        assert mosaics[0]["status"] == "completed"
+
+    def test_fetch_mosaics_recent_limit(self, mock_products_db):
+        """Test recent mosaics with limit parameter."""
+        mosaics, total = fetch_mosaics_recent(mock_products_db, limit=0)
+        assert total == 1  # Total count is still 1
+        assert len(mosaics) == 0  # But no results due to limit
+
+    def test_fetch_mosaics_recent_empty_db(self, tmp_path):
+        """Test recent mosaics with empty database."""
+        db_path = tmp_path / "empty.sqlite3"
+        db_path.touch()
+        mosaics, total = fetch_mosaics_recent(db_path, limit=10)
+        assert total == 0
+        assert len(mosaics) == 0
+
+    def test_fetch_mosaics_recent_nonexistent_db(self, tmp_path):
+        """Test recent mosaics with non-existent database."""
+        db_path = tmp_path / "nonexistent.sqlite3"
+        mosaics, total = fetch_mosaics_recent(db_path, limit=10)
+        assert total == 0
+        assert len(mosaics) == 0
 
 
 class TestFetchMosaicById:

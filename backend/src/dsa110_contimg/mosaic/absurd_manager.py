@@ -316,13 +316,36 @@ class AbsurdStreamingMosaicManager(StreamingMosaicManager):
         return True
 
     async def create_mosaic_absurd(self, group_id: str) -> Optional[str]:
-        """Run mosaic creation via Absurd (Phase 3c, but we can do it)."""
-        # If "create-mosaic" task exists in adapter? No, adapter has 'imaging'.
-        # Adapter has 'organize-files', 'catalog-setup'.
-        # It does NOT have 'create-mosaic'.
-        # So we must run this LOCALLY for now (Hybrid approach).
-        logger.info("Running mosaic creation locally (task executor pending)...")
-        return self.create_mosaic(group_id)
+        """Run mosaic creation via Absurd.
+
+        Spawns a create-mosaic task and waits for completion.
+        """
+        logger.info(f"Spawning create-mosaic task for group {group_id}")
+
+        params = {
+            "config": None,  # Use defaults/env
+            "inputs": {
+                "group_id": group_id,
+                "enable_photometry": True,
+            },
+            "priority": 5,
+        }
+
+        task_id = await self.client.spawn_task(
+            self.absurd_config.queue_name,
+            "create-mosaic",
+            params,
+        )
+        logger.info(f"Waiting for create-mosaic task {task_id}...")
+
+        try:
+            result = await self._wait_for_task(str(task_id))
+            mosaic_path = result.get("mosaic_path")
+            logger.info(f"Mosaic created: {mosaic_path}")
+            return mosaic_path
+        except RuntimeError as e:
+            logger.error(f"Create-mosaic task failed: {e}")
+            return None
 
     async def close(self):
         if self._connected:

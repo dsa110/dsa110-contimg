@@ -1,0 +1,28 @@
+# Simulation data outputs (not committed to repository)
+data/
+*.ms/
+*.fits
+*.hdf5
+*.png
+*.jpg
+*.pdf
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Results and logs
+*.log
+*.csv
+*.json
+!config/**/*.json
+!config/**/*.yaml
+!config/**/*.yml
+
+# Temporary files
+tmp/
+scratch/

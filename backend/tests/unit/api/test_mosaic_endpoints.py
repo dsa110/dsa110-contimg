@@ -34,6 +34,70 @@ def mock_products_db(monkeypatch):
     db_path.unlink(missing_ok=True)
 
 
+class TestMosaicListEndpoint:
+    """Test GET /api/mosaics endpoint."""
+
+    @patch("dsa110_contimg.api.routers.mosaics.fetch_mosaics_recent")
+    def test_list_mosaics_success(self, mock_fetch, client):
+        """Test successful mosaic listing."""
+        mock_fetch.return_value = (
+            [
+                {
+                    "id": 1,
+                    "name": "test_mosaic",
+                    "path": "/data/mosaics/test.fits",
+                    "status": "completed",
+                    "start_mjd": 60976.5,
+                    "end_mjd": 60976.6,
+                    "start_time": "2025-10-28T12:00:00",
+                    "end_time": "2025-10-28T14:00:00",
+                    "created_at": "2025-10-28T15:00:00",
+                    "method": None,
+                    "image_count": 10,
+                    "noise_jy": 0.001,
+                    "source_count": 150,
+                    "center_ra_deg": None,
+                    "center_dec_deg": None,
+                    "thumbnail_path": None,
+                }
+            ],
+            1,
+        )
+
+        response = client.get("/api/mosaics")
+        assert response.status_code == 200
+        data = response.json()
+        assert "mosaics" in data
+        assert len(data["mosaics"]) == 1
+        assert data["total"] == 1
+        assert data["mosaics"][0]["name"] == "test_mosaic"
+
+    @patch("dsa110_contimg.api.routers.mosaics.fetch_mosaics_recent")
+    def test_list_mosaics_empty(self, mock_fetch, client):
+        """Test mosaic listing with no results."""
+        mock_fetch.return_value = ([], 0)
+
+        response = client.get("/api/mosaics")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["mosaics"] == []
+        assert data["total"] == 0
+
+    @patch("dsa110_contimg.api.routers.mosaics.fetch_mosaics_recent")
+    def test_list_mosaics_with_limit(self, mock_fetch, client):
+        """Test mosaic listing with custom limit."""
+        mock_fetch.return_value = ([], 0)
+
+        response = client.get("/api/mosaics?limit=5")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["limit"] == 5
+        mock_fetch.assert_called_once()
+        # Verify limit was passed to function
+        call_args = mock_fetch.call_args
+        assert call_args[1]["limit"] == 5
+
+
 class TestMosaicCreateEndpoint:
     """Test POST /api/mosaics/create endpoint."""
 

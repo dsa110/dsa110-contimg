@@ -114,7 +114,9 @@ class DeadLetterQueue:
         item_id = cursor.lastrowid
         conn.commit()
         conn.close()
-        return item_id
+        # lastrowid can be None if no row was inserted, but INSERT always inserts
+        # so this is safe; cast to satisfy type checker
+        return item_id if item_id is not None else 0
 
     def get_pending(
         self, component: Optional[str] = None, limit: int = 100
@@ -215,6 +217,10 @@ class DeadLetterQueue:
         conn.commit()
         conn.close()
 
+    def resolve(self, item_id: int, note: Optional[str] = None):
+        """Alias for mark_resolved for API compatibility."""
+        self.mark_resolved(item_id, note)
+
     def mark_failed(self, item_id: int, note: Optional[str] = None):
         """Mark item as permanently failed."""
         conn = sqlite3.connect(str(self.db_path))
@@ -228,6 +234,65 @@ class DeadLetterQueue:
         )
         conn.commit()
         conn.close()
+
+    def get_by_id(self, item_id: int) -> Optional[DeadLetterQueueItem]:
+        """Get a specific DLQ item by ID.
+
+        Args:
+            item_id: The item ID
+
+        Returns:
+            DeadLetterQueueItem if found, None otherwise
+        """
+        conn = sqlite3.connect(str(self.db_path))
+        cursor = conn.execute(
+            """
+            SELECT id, component, operation, error_type, error_message,
+                   context_json, created_at, retry_count, status,
+                   resolved_at, resolution_note
+            FROM dead_letter_queue
+            WHERE id = ?
+        """,
+            (item_id,),
+        )
+        row = cursor.fetchone()
+        conn.close()
+
+        if row is None:
+            return None
+
+        return DeadLetterQueueItem(
+            id=row[0],
+            component=row[1],
+            operation=row[2],
+            error_type=row[3],
+            error_message=row[4],
+            context=json.loads(row[5]) if row[5] else {},
+            created_at=row[6],
+            retry_count=row[7],
+            status=DLQStatus(row[8]),
+            resolved_at=row[9],
+            resolution_note=row[10],
+        )
+
+    def delete(self, item_id: int) -> bool:
+        """Delete a DLQ item permanently.
+
+        Args:
+            item_id: The item ID
+
+        Returns:
+            True if item was deleted, False if not found
+        """
+        conn = sqlite3.connect(str(self.db_path))
+        cursor = conn.execute(
+            "DELETE FROM dead_letter_queue WHERE id = ?",
+            (item_id,),
+        )
+        deleted = cursor.rowcount > 0
+        conn.commit()
+        conn.close()
+        return deleted
 
     def get_stats(self) -> Dict[str, Any]:
         """Get dead letter queue statistics."""
@@ -253,6 +318,28 @@ class DeadLetterQueue:
             "resolved": row[3] or 0,
             "failed": row[4] or 0,
         }
+
+        # Get counts by component
+        cursor = conn.execute(
+            """
+            SELECT component, COUNT(*) as count
+            FROM dead_letter_queue
+            WHERE status = 'pending'
+            GROUP BY component
+            """
+        )
+        stats["by_component"] = {row[0]: row[1] for row in cursor.fetchall()}
+
+        # Get counts by error type
+        cursor = conn.execute(
+            """
+            SELECT error_type, COUNT(*) as count
+            FROM dead_letter_queue
+            WHERE status = 'pending'
+            GROUP BY error_type
+            """
+        )
+        stats["by_error_type"] = {row[0]: row[1] for row in cursor.fetchall()}
 
         conn.close()
         return stats

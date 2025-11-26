@@ -1423,8 +1423,10 @@ def convert_subband_groups_to_ms(
 
         # CRITICAL: Configure MS for imaging (creates MODEL_DATA and CORRECTED_DATA columns)
         # This is required for downstream calibration and imaging stages
+        # Also auto-detects and renames calibrator fields if enabled
         try:
-            configure_ms_for_imaging(ms_path)
+            rename_fields = getattr(args, "rename_calibrator_fields", True)
+            configure_ms_for_imaging(ms_path, rename_calibrator_fields=rename_fields)
             logger.info(f"✓ MS configured for imaging: {ms_path}")
         except ConversionError as e:
             # ConversionError already has context and suggestions
@@ -1614,6 +1616,18 @@ def add_args(p: argparse.ArgumentParser) -> None:
     )
     p.add_argument("--flux", type=float, help="Optional flux in Jy to write to MODEL_DATA.")
     p.add_argument("--scratch-dir", help="Scratch directory for temporary files.")
+    p.add_argument(
+        "--rename-calibrator-fields",
+        action="store_true",
+        default=True,
+        help="Auto-detect and rename fields with calibrator names (default: enabled)",
+    )
+    p.add_argument(
+        "--no-rename-calibrator-fields",
+        action="store_false",
+        dest="rename_calibrator_fields",
+        help="Disable automatic field renaming",
+    )
     p.add_argument(
         "--max-workers",
         type=int,

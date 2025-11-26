@@ -147,15 +147,20 @@ def setup_logging(level: str) -> None:
 class QueueDB:
     """SQLite-backed queue tracking subband arrivals and processing state."""
 
+    # Default clustering tolerance for grouping subbands with similar timestamps
+    DEFAULT_CLUSTER_TOLERANCE_S = 60.0  # ±60 seconds
+
     def __init__(
         self,
         path: Path,
         expected_subbands: int = 16,
         chunk_duration_minutes: float = 5.0,
+        cluster_tolerance_s: float = DEFAULT_CLUSTER_TOLERANCE_S,
     ) -> None:
         self.path = path
         self.expected_subbands = expected_subbands
         self.chunk_duration_minutes = chunk_duration_minutes
+        self.cluster_tolerance_s = cluster_tolerance_s
         self._lock = threading.Lock()
         # CRITICAL: Use WAL mode for better concurrency and thread safety
         # WAL (Write-Ahead Logging) allows multiple readers and one writer simultaneously
@@ -176,6 +181,7 @@ class QueueDB:
         self._ensure_schema()
         self._migrate_schema()
         self._normalize_existing_groups()
+        self._consolidate_fragmented_groups()
 
     def close(self) -> None:
         with self._lock:
@@ -349,16 +355,177 @@ class QueueDB:
                 except sqlite3.DatabaseError:
                     pass
 
+    def _consolidate_fragmented_groups(self) -> None:
+        """One-time migration to merge fragmented groups created before time-based clustering.
+
+        This function detects groups that should have been clustered together (timestamps
+        within cluster_tolerance_s) and merges them into a single group. This is a
+        one-time fix for databases created before the clustering logic was implemented.
+
+        The merge strategy:
+        1. Find all groups in 'collecting' or 'pending' state
+        2. Cluster them by timestamp similarity (within tolerance)
+        3. For each cluster, merge all groups into the one with the most subbands
+        4. Update subband_files foreign keys to point to the merged group
+        5. Delete the now-empty original groups
+        """
+        with self._lock, self._conn:
+            try:
+                # Get all collecting/pending groups ordered by timestamp
+                rows = self._conn.execute(
+                    """
+                    SELECT group_id, 
+                           (SELECT COUNT(*) FROM subband_files WHERE subband_files.group_id = ingest_queue.group_id) as subband_count
+                    FROM ingest_queue 
+                    WHERE state IN ('collecting', 'pending')
+                    ORDER BY group_id
+                    """
+                ).fetchall()
+            except sqlite3.DatabaseError:
+                return
+
+            if len(rows) < 2:
+                return  # Nothing to consolidate
+
+            # Parse timestamps and build clusters
+            groups_info: list[tuple[str, datetime, int]] = []
+            for row in rows:
+                gid = row["group_id"]
+                count = row["subband_count"]
+                try:
+                    dt = datetime.strptime(gid, "%Y-%m-%dT%H:%M:%S")
+                    groups_info.append((gid, dt, count))
+                except ValueError:
+                    continue
+
+            if len(groups_info) < 2:
+                return
+
+            # Sort by timestamp
+            groups_info.sort(key=lambda x: x[1])
+
+            # Build clusters of groups within tolerance
+            clusters: list[list[tuple[str, datetime, int]]] = []
+            current_cluster: list[tuple[str, datetime, int]] = [groups_info[0]]
+
+            for i in range(1, len(groups_info)):
+                gid, dt, count = groups_info[i]
+                # Check if this group is within tolerance of any in current cluster
+                cluster_start = current_cluster[0][1]
+                if (dt - cluster_start).total_seconds() <= self.cluster_tolerance_s:
+                    current_cluster.append((gid, dt, count))
+                else:
+                    if len(current_cluster) > 1:
+                        clusters.append(current_cluster)
+                    current_cluster = [(gid, dt, count)]
+
+            # Don't forget the last cluster
+            if len(current_cluster) > 1:
+                clusters.append(current_cluster)
+
+            if not clusters:
+                return  # No fragmented groups to merge
+
+            # Merge each cluster
+            merged_count = 0
+            for cluster in clusters:
+                # Pick the group with the most subbands as the target
+                cluster.sort(key=lambda x: x[2], reverse=True)
+                target_gid = cluster[0][0]
+                sources = [c[0] for c in cluster[1:]]
+
+                for src_gid in sources:
+                    try:
+                        # Move subbands to target group
+                        self._conn.execute(
+                            "UPDATE subband_files SET group_id = ? WHERE group_id = ?",
+                            (target_gid, src_gid),
+                        )
+                        # Delete the now-empty source group
+                        self._conn.execute(
+                            "DELETE FROM ingest_queue WHERE group_id = ?",
+                            (src_gid,),
+                        )
+                        merged_count += 1
+                        logging.info(f"Consolidated fragmented group {src_gid} into {target_gid}")
+                    except sqlite3.DatabaseError as exc:
+                        logging.warning(f"Failed to merge {src_gid} into {target_gid}: {exc}")
+                        continue
+
+            if merged_count > 0:
+                logging.info(f"Consolidated {merged_count} fragmented groups into their clusters")
+
+    def _find_cluster_group(self, timestamp_str: str) -> Optional[str]:
+        """Find an existing group_id within cluster_tolerance_s of the given timestamp.
+
+        This implements time-based clustering: if a subband arrives with timestamp
+        2025-11-07T23:50:19, but there's already a group 2025-11-07T23:50:18 (1 second
+        apart), the subband should join that existing group rather than create a new one.
+
+        Args:
+            timestamp_str: ISO timestamp string (YYYY-MM-DDTHH:MM:SS)
+
+        Returns:
+            Existing group_id if found within tolerance, None otherwise
+        """
+        try:
+            # Parse the incoming timestamp
+            incoming_dt = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S")
+        except ValueError:
+            return None
+
+        # Query existing collecting/pending groups
+        try:
+            rows = self._conn.execute(
+                """
+                SELECT group_id FROM ingest_queue 
+                WHERE state IN ('collecting', 'pending')
+                ORDER BY received_at DESC
+                LIMIT 100
+                """
+            ).fetchall()
+        except sqlite3.DatabaseError:
+            return None
+
+        best_match = None
+        best_delta = float("inf")
+
+        for row in rows:
+            existing_gid = row["group_id"]
+            try:
+                existing_dt = datetime.strptime(existing_gid, "%Y-%m-%dT%H:%M:%S")
+                delta_s = abs((incoming_dt - existing_dt).total_seconds())
+
+                if delta_s <= self.cluster_tolerance_s and delta_s < best_delta:
+                    best_delta = delta_s
+                    best_match = existing_gid
+            except ValueError:
+                continue
+
+        return best_match
+
     def record_subband(self, group_id: str, subband_idx: int, file_path: Path) -> None:
         """Record a subband file arrival.
 
-        CRITICAL: Uses explicit transaction boundaries for thread safety.
-        All operations within this method are atomic.
+        CRITICAL: Uses time-based clustering to group subbands with similar timestamps.
+        Subbands within cluster_tolerance_s (default 60s) are assigned to the same group.
+
+        All operations within this method are atomic via explicit transactions.
         """
         now = time.time()
         normalized_group = self._normalize_group_id_datetime(group_id)
         with self._lock:
             try:
+                # CRITICAL: Check for existing group within time tolerance BEFORE starting transaction
+                # This implements the clustering logic per DSA-110 requirements
+                clustered_group = self._find_cluster_group(normalized_group)
+                target_group = clustered_group if clustered_group else normalized_group
+
+                if clustered_group and clustered_group != normalized_group:
+                    logging.debug(
+                        f"Clustering subband {subband_idx} from {normalized_group} into existing group {clustered_group}"
+                    )
+
                 # CRITICAL: Use explicit transaction for atomicity
                 # This ensures all operations succeed or fail together
                 self._conn.execute("BEGIN")
@@ -368,7 +535,7 @@ class QueueDB:
                     VALUES (?, 'collecting', ?, ?, ?, ?)
                     """,
                     (
-                        normalized_group,
+                        target_group,
                         now,
                         now,
                         self.chunk_duration_minutes,
@@ -383,7 +550,7 @@ class QueueDB:
                     VALUES (?, ?, ?)
                     ON CONFLICT(path) DO NOTHING
                     """,
-                    (normalized_group, subband_idx, str(file_path)),
+                    (target_group, subband_idx, str(file_path)),
                 )
                 self._conn.execute(
                     """
@@ -391,11 +558,11 @@ class QueueDB:
                        SET last_update = ?
                      WHERE group_id = ?
                     """,
-                    (now, normalized_group),
+                    (now, target_group),
                 )
                 count = self._conn.execute(
                     "SELECT COUNT(*) FROM subband_files WHERE group_id = ?",
-                    (normalized_group,),
+                    (target_group,),
                 ).fetchone()[0]
                 if count >= self.expected_subbands:
                     self._conn.execute(
@@ -405,7 +572,7 @@ class QueueDB:
                                last_update = ?
                          WHERE group_id = ?
                         """,
-                        (now, normalized_group),
+                        (now, target_group),
                     )
                 # Commit transaction
                 self._conn.commit()

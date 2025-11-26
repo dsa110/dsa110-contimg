@@ -24,6 +24,7 @@ import { Refresh, PlayArrow, CheckCircle, Error, Cancel, Schedule } from "@mui/i
 import { useAbsurdTasks, useQueueStats, useAbsurdHealth } from "../../api/absurdQueries";
 import { TaskList } from "./TaskList";
 import { TaskInspector } from "./TaskInspector";
+import { AlertPanel } from "./AlertPanel";
 import type { TaskInfo } from "../../api/absurd";
 
 interface TaskDashboardProps {
@@ -122,34 +123,8 @@ export function TaskDashboard({ queueName = "dsa110-pipeline" }: TaskDashboardPr
         </Paper>
       )}
 
-      {/* Health Status Card */}
-      {health && !isUnavailable && (
-        <Paper
-          sx={{
-            p: 2,
-            mb: 3,
-            bgcolor: alpha(getHealthColor(), 0.1),
-            borderLeft: `4px solid ${getHealthColor()}`,
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Box
-              sx={{
-                width: 12,
-                height: 12,
-                borderRadius: "50%",
-                bgcolor: getHealthColor(),
-              }}
-            />
-            <Typography variant="h6" sx={{ textTransform: "capitalize" }}>
-              {health.status}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {health.message}
-            </Typography>
-          </Box>
-        </Paper>
-      )}
+      {/* Alert Panel - Shows health status and warnings */}
+      {!isUnavailable && <AlertPanel defaultCollapsed={false} maxVisible={3} />}
 
       {/* Queue Statistics */}
       {stats && (

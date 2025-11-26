@@ -7,11 +7,16 @@ from UVH5 (HDF5) format to CASA Measurement Sets for calibration and imaging.
 The DSA-110 telescope produces **16 separate subband files per observation**
 that must be grouped by timestamp and combined before processing.
 
-**Critical Architecture Pattern**: Every observation consists of 16 subband
-files (`*_sb01.hdf5` through `*_sb16.hdf5`) with identical timestamps. All
-conversion code must:
+**Critical Architecture Pattern**: Every observation consists of a group of 16
+subband files (`*_sb00.hdf5` through `*_sb15.hdf5`) with timestamps as
+filenames. For a single group, the timestamps can be identical or slightly
+variable within approximately +/- 30 seconds, and still belong to the same
+observation. This is why we introduce a time-windowing mechanism to group files
+that belong together.
 
-1. Group files by timestamp (within 2.5 min tolerance)
+The conversion code must:
+
+1. Group files by timestamp (within 60 second tolerance)
 2. Combine subbands using pyuvdata's `+=` operator
 3. Output a single Measurement Set per observation group
 
@@ -28,24 +33,31 @@ conda activate casa6  # Always activate before running scripts
 - Python 3.11 (casa6 environment)
 - CASA 6.7 (via casatools, casatasks, casacore)
 - pyuvdata 3.2.4 (uses `Nants_telescope`, not deprecated `Nants_data`)
-- pyuvsim, astropy, numpy (see `environment.yml` for complete list)
+- pyuvsim, astropy, numpy (see `ops/docker/environment.yml` for complete list)
 
 **Running Commands**: Use `run_in_terminal` with casa6 environment activated for
 all Python scripts and CASA tasks.
 
 ## Directory Structure
 
-Follow the template in `alldir_structure_template.md`:
+**Actual Production Paths**:
 
-- `/data/dsa110/raw/` - Raw HDF5 subband files from correlator
-- `/data/dsa110/processed/ms/` - CASA Measurement Sets (temporary)
-- `/data/dsa110/processed/images/` - FITS images (permanent)
-- `/data/dsa110/calibration/` - Calibration tables
-- `/data/dsa110/database/` - SQLite database
-- `/data/dsa110/logs/` - Pipeline execution logs
+- `/data/incoming/` - Raw HDF5 subband files from correlator (watched by
+  streaming converter)
+- `/stage/dsa110-contimg/` - Processed Measurement Sets and images (working
+  directory)
+- `/data/dsa110-contimg/state/` - SQLite databases and runtime state
+- `/data/dsa110-contimg/state/logs/` - Pipeline execution logs
+- `/data/dsa110-contimg/products/` - Final data products (images, caltables,
+  catalogs)
 
-**Active Code**: Use `pipeline/pipeline/` (new unified structure), not
-`pipeline/legacy/` or `backups/`.
+**Active Code Structure**:
+
+- `backend/src/dsa110_contimg/` - Main Python package (active development)
+- `src/dsa110_contimg/` - Legacy code (being phased out)
+- `frontend/src/` - React dashboard
+- `ops/` - Operational configuration (systemd, docker)
+- `scripts/` - Utility scripts
 
 ## Critical Conversion Pipeline
 
@@ -61,121 +73,182 @@ Follow the template in `alldir_structure_template.md`:
 **CRITICAL: Time-Windowing for Grouping**
 
 Subbands from the same observation may have slightly different timestamps
-(seconds apart) due to write timing. **Never** group by exact timestamp match:
+(seconds apart) due to write timing. **Never** group by exact timestamp match.
+
+The pipeline uses **±60 second tolerance** (default) to group subbands that
+belong together:
 
 ```python
-# WRONG - will show fragmented groups
-SELECT group_id, COUNT(*) FROM hdf5_file_index
-GROUP BY group_id HAVING COUNT(*) = 16;
-
 # CORRECT - use pipeline's time-windowing functions
 from dsa110_contimg.database.hdf5_index import query_subband_groups
-groups = query_subband_groups(hdf5_db, start_time, end_time,
-                               cluster_tolerance_s=150.0)  # 2.5 min tolerance
+groups = query_subband_groups(
+    hdf5_db,
+    start_time,
+    end_time,
+    tolerance_s=1.0,           # Small window expansion for query
+    cluster_tolerance_s=60.0   # Default 60s clustering tolerance
+)
 ```
 
-The pipeline uses **±2.5 minute tolerance** to group subbands that belong
-together.
+For filesystem-based grouping, use `find_subband_groups()` with `tolerance_s`
+parameter.
 
 ### Two Processing Modes
 
 1. **Batch Converter**
-   (`pipeline/pipeline/core/conversion/uvh5_to_ms_converter.py`):
+   (`backend/src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py`):
    - For historical/archived data processing
    - Function:
      `convert_subband_groups_to_ms(input_dir, output_dir, start_time, end_time)`
    - Groups files by timestamp, processes sequentially
 
 2. **Streaming Converter**
-   (`pipeline/pipeline/core/conversion/streaming_converter.py`):
+   (`backend/src/dsa110_contimg/conversion/streaming/streaming_converter.py`):
    - Real-time daemon for live data ingest
    - SQLite-backed queue with checkpoint recovery
-   - Run as systemd service or in screen session
+   - Run as systemd service (`ops/systemd/contimg-stream.service`)
    - **States**: `collecting` → `pending` → `in_progress` → `completed`/`failed`
    - **Performance tracking**: Records load/phase/write times per observation
 
 ### Conversion Data Flow
 
 ```
-UVH5 files → pyuvdata.UVData → combine subbands → UVFITS (temp) →
-CASA importuvfits → MS → addImagingColumns → update antenna positions
+UVH5 files → pyuvdata.UVData → combine subbands →
+direct MS writing → configure_ms_for_imaging →
+update antenna positions → auto-rename calibrator fields
 ```
 
 **Key Implementation Details**:
 
 - Use `pyuvdata.UVData()` with `strict_uvw_antpos_check=False` for DSA-110
   compatibility
-- Write temporary UVFITS before calling `importuvfits()` (required for metadata
-  fidelity)
-- Always add imaging columns via `casacore.tables.addImagingColumns()`
-- Update antenna positions from
-  `pipeline/pipeline/utils/data/DSA110_Station_Coordinates.csv`
-- Clean up temporary UVFITS files unless `keep_uvfits=True`
+- Direct MS writing via `strategies/writers.py` (no UVFITS intermediate)
+- Antenna positions from
+  `backend/src/dsa110_contimg/utils/antpos_local/data/DSA110_Station_Coordinates.csv`
+- Phase visibilities to meridian using `helpers_coordinates.py`
+- Use batched subband loading (default: 4 subbands per batch) to reduce memory
+- Auto-detect and rename calibrator fields (enabled by default, use
+  `--no-rename-calibrator-fields` to disable)
 
 ## DSA-110 Specific Utilities
 
-### Antenna Positions (`pipeline/pipeline/utils/antpos.py`)
+### Antenna Positions
+
+Go back to
 
 ```python
-from pipeline.utils.antpos import get_itrf, get_lonlat
-antpos = get_itrf()  # Returns ITRF coordinates as pandas DataFrame
+from dsa110_contimg.utils.antpos_local import get_itrf
+df_itrf = get_itrf()  # Returns DataFrame with ITRF coordinates
+antpos = np.array([df_itrf['x_m'], df_itrf['y_m'], df_itrf['z_m']]).T  # (nants, 3) in meters
 ```
 
-- Reads from `DSA110_Station_Coordinates.csv`
-- Filters out 200E/200W stations
-- Returns shape (nants, 3) ITRF coordinates
+- Reads from
+  `backend/src/dsa110_contimg/utils/antpos_local/data/DSA110_Station_Coordinates.csv`
+- Returns ITRF coordinates in meters (X, Y, Z)
+- Used during MS creation to set antenna positions
 
-### Fringestopping (`pipeline/pipeline/utils/fringestopping.py`)
+### Coordinate Transformations
 
 ```python
-from pipeline.utils.fringestopping import calc_uvw_blt, phase_to_direction
-# Calculate UVW coordinates using CASA measures
-buvw = calc_uvw_blt(blen, tobs, 'J2000', src_lon, src_lat, obs='OVRO_MMA')
+from dsa110_contimg.conversion.helpers_coordinates import phase_to_meridian
+from dsa110_contimg.utils.constants import OVRO_LOCATION
+
+# Phase visibilities to meridian (standard for DSA-110)
+phase_to_meridian(uvdata)
+
+# OVRO location (used for LST calculations)
+OVRO_LOCATION  # astropy EarthLocation object
 ```
 
-- Uses CASA tools (`casatools.measures()`) for coordinate transformations
-- Adapted from dsacalib/dsamfs libraries
-- Critical for phase referencing visibilities
-
-### Constants (`pipeline/pipeline/utils/constants.py`)
+### Constants
 
 ```python
-from pipeline.utils import constants as ct
-# DSA-110 specific parameters like TSAMP, NINT, CASA_TIME_OFFSET
+from dsa110_contimg.utils.constants import (
+    OVRO_LOCATION,      # Telescope location
+    DSA110_LATITUDE,    # Observatory latitude
+    DSA110_LONGITUDE,   # Observatory longitude
+)
 ```
 
-## MS I/O Pattern (`pipeline/pipeline/utils/ms_io.py`)
+## MS Writing Pattern
 
-**Avoid CASA simulator** - causes performance issues and shape mismatches.
-Instead:
+The pipeline uses **direct MS table writing** via the `writers` module:
 
 ```python
-from pipeline.utils.ms_io import convert_to_ms_data_driven, write_uvdata_to_ms_via_uvfits
+from dsa110_contimg.conversion.strategies.writers import get_writer
 
-# Data-driven MS creation (direct table manipulation)
-convert_to_ms_data_driven(source, vis, obstm, ofile, bname, antenna_order, antpos=antpos)
+# Get writer class (recommended: 'parallel-subband' for production)
+writer_cls = get_writer('parallel-subband')  # Or 'pyuvdata' for testing
+writer_instance = writer_cls(uvdata, output_path, **writer_kwargs)
+writer_type = writer_instance.write()  # Returns writer type string
 
-# Or via UVFITS intermediate (more robust)
-write_uvdata_to_ms_via_uvfits(uvdata, output_path, antenna_positions=antpos)
+# Direct class usage (alternative)
+from dsa110_contimg.conversion.strategies.direct_subband import DirectSubbandWriter
+writer = DirectSubbandWriter(uvdata, output_path, file_list=file_list)
+writer.write()
 ```
 
-**Expected visibility shape**: `(nblt, nfreq, npol)` or
-`(nblt, nspw, nfreq, npol)`
+**Expected visibility shape**: `(nblt, nfreq, npol)`
 
-- If `nspw=1`, squeeze that dimension before processing
-- Typical: `nblt = nbaselines * ntimes`, `nfreq = 1024`, `npol = 4`
+- Typical: `nblt = nbaselines * ntimes`, `nfreq = 1024 per subband`, `npol = 4`
+- After combining 16 subbands: `nfreq = 16384`
+
+## Field Naming and Calibrator Auto-Detection
+
+**Default Field Names**: All MS files have 24 fields named `meridian_icrs_t0`
+through `meridian_icrs_t23` (one per 12.88-second timestamp during drift-scan).
+
+**Auto-Renaming**: By default, the pipeline auto-detects which field contains a
+known calibrator from the VLA catalog and renames it to `{calibrator}_t{idx}`:
+
+```python
+# Field 17 contains 3C286 → renamed to "3C286_t17"
+# Field 5 contains J1331+3030 → renamed to "J1331+3030_t5"
+```
+
+**Implementation**: `configure_ms_for_imaging()` calls
+`rename_calibrator_fields_from_catalog()` which:
+
+1. Uses `select_bandpass_from_catalog()` to scan all 24 fields
+2. Computes primary-beam-weighted flux for each field
+3. Identifies field with peak response (closest to calibrator transit)
+4. Renames that field to `{calibrator}_t{field_idx}`
+
+**Disable auto-renaming**:
+
+```bash
+# CLI flag
+python -m dsa110_contimg.conversion.cli convert \
+    --no-rename-calibrator-fields \
+    ...
+
+# Python API
+from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
+configure_ms_for_imaging(ms_path, rename_calibrator_fields=False)
+```
+
+**Manual renaming**:
+
+```python
+from dsa110_contimg.calibration.field_naming import rename_calibrator_field
+
+# Rename field 17 to "3C286_t17"
+rename_calibrator_field("observation.ms", "3C286", 17, include_time_suffix=True)
+```
 
 ## Testing Patterns
 
-Tests live in `pipeline/tests/unit/`. Example from `test_ms_io_uvfits.py`:
+Tests live in `backend/tests/` and `backend/src/tests/`:
 
 ```python
-# Mock CASA tools to avoid CASA dependency in tests
-def test_write_uvdata_to_ms_via_uvfits(tmp_path, monkeypatch):
-    fake_uv = FakeUVData()
-    monkeypatch.setattr(ms_io, 'importuvfits', fake_importuvfits)
-    monkeypatch.setattr(ms_io, 'table', fake_table)
-    result = ms_io.write_uvdata_to_ms_via_uvfits(fake_uv, output_path, ...)
+# Mock CASA tools to avoid CASA dependency in unit tests
+def test_conversion(tmp_path, monkeypatch):
+    # Mock casacore.tables to avoid requiring CASA
+    fake_table = MagicMock()
+    monkeypatch.setattr('casacore.tables.table', fake_table)
+
+    # Test conversion logic
+    result = convert_function(input_path, output_path)
     assert result.exists()
 ```
 
@@ -183,7 +256,19 @@ def test_write_uvdata_to_ms_via_uvfits(tmp_path, monkeypatch):
 
 ```bash
 conda activate casa6
-pytest pipeline/tests/unit/test_ms_io_uvfits.py -v
+cd /data/dsa110-contimg/backend
+
+# IMPORTANT: Use 'python -m pytest' to ensure casa6's pytest is used
+# (not ~/.local/bin/pytest which may be linked to system Python)
+
+# Unit tests (no CASA required)
+python -m pytest tests/unit/ -v
+
+# Integration tests (requires CASA)
+python -m pytest tests/integration/ -v
+
+# Run specific test
+python -m pytest tests/unit/conversion/test_helpers.py -v
 ```
 
 ## Development Workflows
@@ -192,36 +277,60 @@ pytest pipeline/tests/unit/test_ms_io_uvfits.py -v
 
 ```bash
 conda activate casa6
-python pipeline/pipeline/core/conversion/uvh5_to_ms_converter.py \
-    /data/raw/2025-10-05 \
-    /data/processed/ms \
-    "2025-10-05 00:00:00" \
-    "2025-10-05 23:59:59"
+
+# Using Python module
+python -m dsa110_contimg.conversion.cli convert \
+    --input-dir /data/incoming/2025-10-05 \
+    --output-dir /stage/dsa110-contimg/ms \
+    --start-time "2025-10-05T00:00:00" \
+    --end-time "2025-10-05T23:59:59"
+
+# Or directly via orchestrator
+python -c "
+from dsa110_contimg.conversion.strategies.hdf5_orchestrator import convert_subband_groups_to_ms
+convert_subband_groups_to_ms(
+    '/data/incoming/2025-10-05',
+    '/stage/dsa110-contimg/ms',
+    '2025-10-05T00:00:00',
+    '2025-10-05T23:59:59'
+)
+"
 ```
 
 ### Starting Streaming Daemon
 
 ```bash
 conda activate casa6
-python pipeline/pipeline/core/conversion/streaming_converter.py \
+
+# Via systemd (recommended for production)
+sudo systemctl start contimg-stream.service
+sudo systemctl status contimg-stream.service
+
+# Or manually for testing
+python -m dsa110_contimg.conversion.streaming.streaming_converter \
     --input-dir /data/incoming \
-    --output-dir /data/processed/ms \
-    --scratch-dir /data/scratch \
-    --checkpoint-dir /data/checkpoints \
-    --chunk-duration 5.0 \
-    --omp-threads 4
+    --output-dir /stage/dsa110-contimg/ms \
+    --queue-db /data/dsa110-contimg/state/ingest.sqlite3 \
+    --registry-db /data/dsa110-contimg/state/cal_registry.sqlite3 \
+    --scratch-dir /stage/dsa110-contimg/scratch \
+    --monitoring \
+    --monitor-interval 60
 ```
 
 ### Queue Inspection
 
 ```bash
 # Check streaming queue status
-sqlite3 streaming_queue.sqlite3 \
+sqlite3 /data/dsa110-contimg/state/ingest.sqlite3 \
   "SELECT group_id, state, processing_stage, retry_count FROM ingest_queue ORDER BY received_at DESC LIMIT 10;"
 
 # Check performance metrics
-sqlite3 streaming_queue.sqlite3 \
+sqlite3 /data/dsa110-contimg/state/ingest.sqlite3 \
   "SELECT group_id, total_time, load_time, phase_time, write_time FROM performance_metrics ORDER BY recorded_at DESC LIMIT 10;"
+
+# Check HDF5 file index
+sqlite3 /data/dsa110-contimg/state/hdf5.sqlite3 \
+  "SELECT timestamp, COUNT(*) as subband_count FROM hdf5_file_index GROUP BY group_id HAVING subband_count = 16 LIMIT 10;"
 ```
 
 ### Creating Synthetic Test Data
@@ -229,41 +338,39 @@ sqlite3 streaming_queue.sqlite3 \
 ```bash
 conda activate casa6
 
-# Quick single observation (16 subbands, 5 minutes)
-python simulation/make_synthetic_uvh5.py \
-    --layout-meta simulation/config/reference_layout.json \
-    --telescope-config simulation/pyuvsim/telescope.yaml \
-    --output /tmp/synthetic_test \
+# Generate synthetic UVH5 files
+python -m dsa110_contimg.simulation.generate_uvh5 \
+    --output-dir /tmp/synthetic_test \
     --start-time "2025-10-06T12:00:00" \
-    --duration-minutes 5.0
+    --duration-minutes 5.0 \
+    --num-subbands 16
 
-# Or use example scripts
-./simulation/examples/basic_generation.sh
-
-# Validate generated data
-python simulation/validate_synthetic.py /tmp/synthetic_test/*.hdf5
+# Or use existing simulation tools (if available)
+# Check ops/simulation/ for deployment-specific tools
 ```
 
-## Migration Status & Code Organization
+## Code Organization
 
-**Active Development**: Code is being refactored from `pipeline/legacy/` to
-`pipeline/pipeline/`
+**Active Development** (use these):
 
-**Prefer**:
+- ✅ `backend/src/dsa110_contimg/` - Main Python package (production code)
+  - `conversion/` - UVH5 → MS conversion
+  - `calibration/` - Calibration routines
+  - `imaging/` - Imaging wrappers (WSClean, CASA tclean)
+  - `pipeline/` - Pipeline stage architecture
+  - `api/` - FastAPI backend
+  - `database/` - SQLite helpers
+  - `utils/` - Shared utilities
 
-- ✅ `pipeline/pipeline/core/conversion/` - New unified converters
-- ✅ `pipeline/pipeline/utils/` - Shared utilities (antpos, fringestopping,
-  ms_io)
+**Legacy/Deprecated** (avoid):
 
-**Avoid**:
+- ❌ `src/dsa110_contimg/` - Legacy code (being phased out)
+- ❌ `archive/` - Old deprecated code, external references
+- ❌ Files with "legacy" in the path
 
-- ❌ `pipeline/legacy/` - Deprecated scripts (kept for reference only)
-- ❌ `backups/` - Old deprecated code
-- ❌ `references/` - External reference repositories (dsacalib, dsa110-xengine,
-  etc.)
-
-**Migration Guide**: See `pipeline/legacy/conversion/MIGRATION_GUIDE.md` for
-patterns when updating legacy code.
+**When in doubt**: Check `backend/src/dsa110_contimg/` first. If functionality
+doesn't exist there, it may still be in `src/dsa110_contimg/` but should be
+considered for migration.
 
 ## Performance Considerations
 
@@ -297,8 +404,8 @@ insufficient resources.
    running scripts
 2. **Processing individual subbands**: Must group by timestamp first, never
    process `_sb01.hdf5` alone
-3. **Using legacy scripts**: Check `pipeline/pipeline/` first, not
-   `pipeline/legacy/`
+3. **Using legacy code**: Check `backend/src/dsa110_contimg/` first, not
+   `src/dsa110_contimg/`
 4. **pyuvdata compatibility**: Use `Nants_telescope`, not deprecated
    `Nants_data`
 5. **MS shape mismatches**: Squeeze `nspw=1` dimension before processing
@@ -309,32 +416,50 @@ insufficient resources.
 
 ## Key Files for Reference
 
-- `reports/CONVERSION_PROCESS_SUMMARY.md` - Detailed conversion documentation
-- `reports/DSA110_SUBBAND_UPDATE_SUMMARY.md` - Subband grouping architecture
-- `pipeline/docs/streaming_converter_README.md` - Streaming daemon deployment
-- `config/pipeline_config_template.yaml` - Pipeline configuration schema
-- `alldir_structure_template.md` - Expected directory layout
+- `docs/SYSTEM_CONTEXT.md` - System architecture overview
+- `docs/CODE_MAP.md` - Code-to-documentation mapping
+- `backend/src/dsa110_contimg/conversion/README.md` - Conversion module docs
+- `backend/src/dsa110_contimg/conversion/SEMI_COMPLETE_SUBBAND_GROUPS.md` -
+  Subband grouping
+- `ops/systemd/contimg.env` - Runtime configuration
+- `backend/src/dsa110_contimg/pipeline/stages_impl.py` - Pipeline stages
 
 ## When Making Changes
 
 1. **Subband Processing**: Any new converter must group files by timestamp
-   (within 2.5 min)
-2. **Testing**: Mock CASA tools (see `test_ms_io_uvfits.py` pattern)
-3. **Antenna Positions**: Always use `pipeline/pipeline/utils/antpos.py`, not
-   hardcoded values
-4. **Error Handling**: Log to files in `/data/dsa110/logs/`, use structured
-   logging
-5. **Documentation**: Update corresponding README in `pipeline/docs/` when
-   changing converters
-6. **Configuration**: Use YAML configs from `config/`, not hardcoded parameters
+   (default: within 60s tolerance)
+2. **Testing**: Mock CASA tools (see `backend/tests/unit/` for patterns)
+3. **Antenna Positions**: Always use
+   `dsa110_contimg.utils.antpos_local.get_itrf()`, not hardcoded values
+4. **Error Handling**: Log to files in `/data/dsa110-contimg/state/logs/`, use
+   structured logging
+5. **Documentation**: Update corresponding docs in `docs/` and module README
+   files
+6. **Configuration**: Use environment variables or config files in `ops/`, not
+   hardcoded parameters
+7. **Database Paths**: Use paths in `/data/dsa110-contimg/state/` for SQLite
+   databases
 
-## External Dependencies (References Only)
+## External Dependencies & References
 
-The `references/` directory contains external repos for context:
+The `archive/references/` directory contains external repos for historical
+context:
 
-- `dsa110-calib/` - Original calibration library (source of fringestopping
-  logic)
-- `dsa110-meridian-fs/` - Meridian fringestopping reference
-- `dsa110-xengine/` - Correlator output format documentation
+- `archive/references/dsa110-calib/` - Original calibration library
+- `archive/references/dsa110-meridian-fs/` - Meridian fringestopping reference
+- `archive/references/dsa110-xengine/` - Correlator output format documentation
 
-**Do not modify** files in `references/` - they're read-only references.
+**Do not modify** files in `archive/` - they're read-only references.
+
+## Database Locations
+
+All SQLite databases are in `/data/dsa110-contimg/state/`:
+
+- `products.sqlite3` - Product registry (MS, images, photometry)
+- `ingest.sqlite3` - Streaming queue management
+- `hdf5.sqlite3` - HDF5 file index
+- `cal_registry.sqlite3` - Calibration table registry
+- `calibrator_registry.sqlite3` - Known calibrators
+- `master_sources.sqlite3` - Source catalog (NVSS, FIRST, RAX)
+
+Use WAL mode for concurrent access. Connection timeouts are set to 30 seconds.

@@ -162,7 +162,8 @@ class TestCmdPublish:
         assert result == 0
 
         captured = capsys.readouterr()
-        assert "already published" in captured.out.lower()
+        # The output is JSON format with "already_published" status
+        assert "already_published" in captured.out or "already published" in captured.out.lower()
 
 
 class TestCmdStatus:
@@ -223,7 +224,13 @@ class TestCmdRetry:
 
         mock_record = MagicMock()
         mock_record.status = "staging"
-        mock_get_data.side_effect = [mock_record, mock_record]
+        mock_record.published_path = "/data/products/mosaics/mosaic_001.fits"
+
+        mock_updated_record = MagicMock()
+        mock_updated_record.status = "published"
+        mock_updated_record.published_path = "/data/products/mosaics/mosaic_001.fits"
+
+        mock_get_data.side_effect = [mock_record, mock_updated_record]
 
         mock_trigger.return_value = True
 
@@ -279,7 +286,7 @@ class TestCmdList:
         mock_record2.created_at = 1234567890.0
         mock_record2.published_at = 1234567890.0
 
-        mock_list.return_value = [mock_record1, mock_record2]
+        mock_list.return_value = ([mock_record1, mock_record2], 2)
 
         args = MagicMock()
         args.db = str(db_path)
@@ -308,7 +315,7 @@ class TestCmdList:
         mock_record.created_at = 1234567890.0
         mock_record.published_at = None
 
-        mock_list.return_value = [mock_record]
+        mock_list.return_value = ([mock_record], 1)
 
         args = MagicMock()
         args.db = str(db_path)

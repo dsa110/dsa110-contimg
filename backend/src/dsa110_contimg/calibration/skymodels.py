@@ -588,12 +588,15 @@ def make_unified_skymodel(
             unified_df = pd.concat([unified_df, unique_nvss], ignore_index=True)
 
     if unified_df.empty:
+        # Return an empty SkyModel with run_check=False to avoid validation errors
+        # on empty arrays (pyradiosky doesn't handle zero-component models well)
         return SkyModel(
             name=[],
             skycoord=SkyCoord([], [], unit=u.deg, frame="icrs"),
             stokes=np.zeros((4, 1, 0)) * u.Jy,
             spectral_type="flat",
             component_type="point",
+            run_check=False,
         )
 
     # 5. Create Final SkyModel

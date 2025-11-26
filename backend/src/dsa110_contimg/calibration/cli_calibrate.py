@@ -1962,11 +1962,13 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                         with table(f"{args.ms}::FIELD", readonly=False) as field_tb:
                             # Get current field names
                             field_names = field_tb.getcol("NAME")
-                            # Rename field 0 (the calibrator field) to calibrator name
-                            if len(field_names) > 0:
-                                field_names[0] = name
+                            # Rename the peak field (where calibrator is actually located) to calibrator name
+                            if len(field_names) > 0 and peak_field_idx is not None:
+                                # Use time suffix to preserve which timestamp contained the calibrator
+                                new_name = f"{name}_t{peak_field_idx}"
+                                field_names[peak_field_idx] = new_name
                                 field_tb.putcol("NAME", field_names)
-                                logger.info(f"✓ Renamed field 0 to '{name}'")
+                                logger.info(f"✓ Renamed field {peak_field_idx} to '{new_name}'")
                     except Exception as e:
                         logger.warning(f"Could not rename field to calibrator name: {e}")
                 else:

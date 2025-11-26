@@ -11,12 +11,12 @@ from unittest.mock import patch
 import pytest
 
 from dsa110_contimg.database.data_registry import (
+    _record_publish_failure,
     ensure_data_registry_db,
     get_data,
     list_data,
     register_data,
     trigger_auto_publish,
-    _record_publish_failure,
 )
 
 
@@ -115,9 +115,7 @@ def test_record_publish_failure_truncates_long_error(temp_registry_db):
 
 
 @pytest.mark.unit
-def test_trigger_auto_publish_checks_max_attempts(
-    temp_registry_db, sample_staging_file
-):
+def test_trigger_auto_publish_checks_max_attempts(temp_registry_db, sample_staging_file):
     """Test trigger_auto_publish rejects max attempts exceeded."""
     conn = ensure_data_registry_db(temp_registry_db)
 
@@ -148,9 +146,7 @@ def test_trigger_auto_publish_checks_max_attempts(
 
 
 @pytest.mark.unit
-def test_trigger_auto_publish_sets_publishing_status(
-    temp_registry_db, sample_staging_file
-):
+def test_trigger_auto_publish_sets_publishing_status(temp_registry_db, sample_staging_file):
     """Test trigger_auto_publish sets status to 'publishing'."""
     conn = ensure_data_registry_db(temp_registry_db)
 
@@ -182,9 +178,7 @@ def test_trigger_auto_publish_sets_publishing_status(
 
 
 @pytest.mark.unit
-def test_trigger_auto_publish_prevents_concurrent_access(
-    temp_registry_db, sample_staging_file
-):
+def test_trigger_auto_publish_prevents_concurrent_access(temp_registry_db, sample_staging_file):
     """Test BEGIN IMMEDIATE prevents concurrent publish attempts."""
     conn1 = ensure_data_registry_db(temp_registry_db)
     conn2 = ensure_data_registry_db(temp_registry_db)
@@ -302,7 +296,7 @@ def test_list_data_handles_old_schema(temp_registry_db):
     conn.commit()
 
     # Should handle gracefully
-    records = list_data(conn, status="staging")
+    records, total = list_data(conn, status="staging")
     assert len(records) >= 1
     old_record = next((r for r in records if r.data_id == "old_schema_list_test"), None)
     assert old_record is not None
