@@ -15,5 +15,5 @@ jobs:
         with:
           python-version: "3.11.13"
       - name: Run documentation audit
-        run: |
+        run: 
           python -m scripts/doc_audit.py
