@@ -75,6 +75,7 @@ import type {
   CalibrationConfig,
   TransientAlert,
   TransientCandidate,
+  WorkflowStatus,
 } from "./types";
 
 /**
@@ -1694,6 +1695,18 @@ export function useSourceDetections(
   });
 }
 
+export function useSourceLightcurve(sourceId: string | null): UseQueryResult<any> {
+  return useQuery({
+    queryKey: ["source", sourceId, "lightcurve"],
+    queryFn: async () => {
+      const response = await apiClient.get(`/sources/${sourceId}/lightcurve`);
+      return response.data;
+    },
+    enabled: !!sourceId,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+}
+
 // Image detail hooks
 export function useImageDetail(imageId: number | null): UseQueryResult<any> {
   return useQuery({
@@ -1840,6 +1853,23 @@ export function useHealthSummary(): UseQueryResult<HealthSummary> {
       return response.data;
     },
     refetchInterval: 10000, // Refresh every 10 seconds
+  });
+}
+
+/**
+ * Hook to fetch unified pipeline workflow status across all stages.
+ * Returns queue depths, bottleneck info, and overall health for the
+ * complete streaming workflow visualization.
+ */
+export function useWorkflowStatus(): UseQueryResult<WorkflowStatus> {
+  return useQuery({
+    queryKey: ["pipeline", "workflow-status"],
+    queryFn: async () => {
+      const response = await apiClient.get<WorkflowStatus>("/pipeline/workflow-status");
+      return response.data;
+    },
+    refetchInterval: 15000, // Refresh every 15 seconds
+    staleTime: 10000,
   });
 }
 

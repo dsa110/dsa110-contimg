@@ -41,13 +41,14 @@ import {
   Link as LinkIcon,
   ContentCopy as ContentCopyIcon,
 } from "@mui/icons-material";
-import { useSourceDetail } from "../api/queries";
+import { useSourceDetail, useSourceLightcurve } from "../api/queries";
 import GenericTable from "../components/GenericTable";
 import type { TableColumn } from "../components/GenericTable";
 import { Box } from "@mui/material";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
 import { formatRA, formatDec, copyToClipboard } from "../utils/coordinateUtils";
 import { formatDateTime } from "../utils/dateUtils";
+import { LightCurveChart } from "../components/LightCurveChart";
 
 export default function SourceDetailPage() {
   const { sourceId } = useParams<{ sourceId: string }>();
@@ -65,6 +66,13 @@ export default function SourceDetailPage() {
     isLoading: sourceLoading,
     error: sourceError,
   } = useSourceDetail(sourceId || null);
+
+  // Fetch lightcurve data
+  const {
+    data: lightcurveData,
+    isLoading: lightcurveLoading,
+    error: lightcurveError,
+  } = useSourceLightcurve(sourceId || null);
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => ({
@@ -352,19 +360,12 @@ export default function SourceDetailPage() {
             />
             <Collapse in={expandedSections.lightCurve}>
               <CardContent>
-                <Box
-                  sx={{
-                    height: "400px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    bgcolor: "background.default",
-                  }}
-                >
-                  <Typography color="text.secondary">
-                    Light curve visualization requires additional data
-                  </Typography>
-                </Box>
+                <LightCurveChart
+                  data={lightcurveData}
+                  isLoading={lightcurveLoading}
+                  error={lightcurveError as Error | null}
+                  height={400}
+                />
               </CardContent>
             </Collapse>
           </Card>
