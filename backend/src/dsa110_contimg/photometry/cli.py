@@ -107,6 +107,197 @@ def cmd_peak_many(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_batch(args: argparse.Namespace) -> int:
+    """Run batch photometry from a CSV source list across multiple images."""
+    import csv
+    import glob
+
+    # Parse source list
+    sources = []
+    with open(args.source_list, "r") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            name = row.get("name", row.get("source_id", "")).strip()
+            ra = float(row.get("ra", row.get("ra_deg", 0)))
+            dec = float(row.get("dec", row.get("dec_deg", 0)))
+            sources.append({"name": name, "ra": ra, "dec": dec})
+
+    if not sources:
+        print(json.dumps({"error": "No sources found in CSV file"}, indent=2))
+        return 1
+
+    # Get image list from either --image-dir or --image-list
+    image_paths: list[str] = []
+    if args.image_dir:
+        # Recursively search for FITS files
+        image_paths = sorted(glob.glob(os.path.join(args.image_dir, "**", "*.fits"), recursive=True))
+    elif args.image_list:
+        # Read paths from file
+        with open(args.image_list, "r") as f:
+            image_paths = [line.strip() for line in f if line.strip()]
+    else:
+        print(json.dumps({"error": "Either --image-dir or --image-list is required"}, indent=2))
+        return 1
+
+    if not image_paths:
+        print(json.dumps({"error": "No images found"}, indent=2))
+        return 1
+
+    # Setup database connection - always store results
+    pdb_path = os.getenv("PIPELINE_PRODUCTS_DB", args.products_db)
+    conn = ensure_products_db(Path(pdb_path))
+
+    results = []
+    now = time.time()
+    total_measured = 0
+    total_skipped = 0
+
+    for img_path in image_paths:
+        if not os.path.exists(img_path):
+            continue
+
+        for src in sources:
+            try:
+                m = measure_forced_peak(
+                    img_path,
+                    float(src["ra"]),
+                    float(src["dec"]),
+                    box_size_pix=args.box,
+                    annulus_pix=(args.annulus[0], args.annulus[1]),
+                )
+
+                if not np.isfinite(m.peak_jyb):
+                    total_skipped += 1
+                    continue
+
+                result_entry = {
+                    "source_name": src["name"],
+                    "image_path": img_path,
+                    "ra_deg": m.ra_deg,
+                    "dec_deg": m.dec_deg,
+                    "peak_jyb": m.peak_jyb,
+                    "peak_err_jyb": m.peak_err_jyb,
+                }
+                results.append(result_entry)
+                total_measured += 1
+
+                # Store in database if requested
+                if conn is not None:
+                    perr = (
+                        None
+                        if (m.peak_err_jyb is None or not np.isfinite(m.peak_err_jyb))
+                        else float(m.peak_err_jyb)
+                    )
+                    photometry_insert(
+                        conn,
+                        image_path=img_path,
+                        ra_deg=m.ra_deg,
+                        dec_deg=m.dec_deg,
+                        nvss_flux_mjy=None,
+                        peak_jyb=m.peak_jyb,
+                        peak_err_jyb=perr,
+                        measured_at=now,
+                        source_id=str(src["name"]) if src["name"] else None,
+                    )
+            except Exception as e:
+                total_skipped += 1
+                if args.verbose:
+                    print(f"Warning: Failed to measure {src['name']} in {img_path}: {e}", file=sys.stderr)
+
+    if conn is not None:
+        conn.commit()
+        conn.close()
+
+    # Write output CSV if requested
+    if args.output:
+        import csv as csv_module
+        with open(args.output, "w", newline="") as f:
+            if results:
+                writer = csv_module.DictWriter(f, fieldnames=results[0].keys())
+                writer.writeheader()
+                writer.writerows(results)
+        print(f"Wrote {len(results)} measurements to {args.output}")
+
+    # Print summary
+    summary: dict[str, object] = {
+        "source_list": args.source_list,
+        "image_dir": args.image_dir,
+        "image_list": args.image_list,
+        "n_sources": len(sources),
+        "n_images": len(image_paths),
+        "total_measured": total_measured,
+        "total_skipped": total_skipped,
+        "products_db": pdb_path,
+    }
+    if not args.output:
+        summary["results"] = results
+
+    print(json.dumps(summary, indent=2))
+    return 0
+
+
+def cmd_export(args: argparse.Namespace) -> int:
+    """Export lightcurve data for a source from the database."""
+    import csv as csv_module
+
+    pdb_path = os.getenv("PIPELINE_PRODUCTS_DB", args.products_db)
+    conn = ensure_products_db(Path(pdb_path))
+
+    # Query photometry for the source
+    rows = conn.execute(
+        """
+        SELECT source_id, image_path, ra_deg, dec_deg, peak_jyb, peak_err_jyb, measured_at
+        FROM photometry
+        WHERE source_id = ?
+        ORDER BY measured_at
+        """,
+        (args.source_id,),
+    ).fetchall()
+    conn.close()
+
+    if not rows:
+        print(json.dumps({"error": f"No photometry found for source: {args.source_id}"}, indent=2))
+        return 1
+
+    # Convert to list of dicts
+    data = [
+        {
+            "source_id": r[0],
+            "image_path": r[1],
+            "ra_deg": r[2],
+            "dec_deg": r[3],
+            "flux_jy": r[4],
+            "flux_err_jy": r[5],
+            "measured_at": r[6],
+        }
+        for r in rows
+    ]
+
+    # Output based on format
+    if args.format == "json":
+        output = json.dumps(data, indent=2)
+    elif args.format == "csv":
+        import io
+        buf = io.StringIO()
+        writer = csv_module.DictWriter(buf, fieldnames=data[0].keys())
+        writer.writeheader()
+        writer.writerows(data)
+        output = buf.getvalue()
+    else:
+        print(json.dumps({"error": f"Unknown format: {args.format}"}, indent=2))
+        return 1
+
+    # Write to file or stdout
+    if args.output:
+        with open(args.output, "w") as f:
+            f.write(output)
+        print(f"Exported {len(data)} measurements to {args.output}")
+    else:
+        print(output)
+
+    return 0
+
+
 def _image_center_and_radius_deg(fits_path: str) -> Tuple[float, float, float]:
     hdr = fits.getheader(fits_path)
     w = WCS(hdr).celestial
@@ -138,7 +329,7 @@ def cmd_nvss(args: argparse.Namespace) -> int:
     radius_deg = float(args.radius_deg) if args.radius_deg is not None else auto_rad
     # Use SQLite-first query function (falls back to CSV if needed)
     df = query_sources(
-        catalog_type=catalog,
+        catalog_type="nvss",
         ra_deg=ra0,
         dec_deg=dec0,
         radius_deg=radius_deg,
@@ -609,6 +800,89 @@ def build_parser() -> argparse.ArgumentParser:
         help="Enable multi-metric composite scoring for better confidence assessment",
     )
     sp.set_defaults(func=cmd_ese_detect)
+
+    # Batch photometry command
+    sp = sub.add_parser(
+        "batch", help="Batch photometry on multiple sources across multiple images"
+    )
+    sp.add_argument(
+        "--source-list",
+        type=str,
+        required=True,
+        help="CSV file with columns: name, ra, dec",
+    )
+    sp.add_argument(
+        "--image-dir",
+        type=str,
+        default=None,
+        help="Directory containing FITS images (searches recursively for *.fits)",
+    )
+    sp.add_argument(
+        "--image-list",
+        type=str,
+        default=None,
+        help="Text file with one image path per line (alternative to --image-dir)",
+    )
+    sp.add_argument(
+        "--output",
+        type=str,
+        default="batch_photometry.csv",
+        help="Output CSV file for results (default: batch_photometry.csv)",
+    )
+    sp.add_argument(
+        "--products-db",
+        type=str,
+        default="state/products.sqlite3",
+        help="Path to products database for storing results (default: state/products.sqlite3)",
+    )
+    sp.add_argument(
+        "--box",
+        type=int,
+        default=5,
+        help="Box size for peak measurement in pixels (default: 5)",
+    )
+    sp.add_argument(
+        "--annulus",
+        type=int,
+        nargs=2,
+        default=[12, 20],
+        help="Annulus for RMS estimation: inner outer (default: 12 20)",
+    )
+    sp.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Print verbose output including warnings",
+    )
+    sp.set_defaults(func=cmd_batch)
+
+    # Export photometry command
+    sp = sub.add_parser("export", help="Export photometry measurements for a source")
+    sp.add_argument(
+        "--source-id",
+        type=str,
+        required=True,
+        help="Source identifier to export measurements for",
+    )
+    sp.add_argument(
+        "--output",
+        type=str,
+        default=None,
+        help="Output file (default: stdout). Extension determines format: .csv, .json, .vot",
+    )
+    sp.add_argument(
+        "--format",
+        type=str,
+        choices=["csv", "json", "votable"],
+        default="csv",
+        help="Output format (default: csv). Overrides extension-based detection.",
+    )
+    sp.add_argument(
+        "--products-db",
+        type=str,
+        default="state/products.sqlite3",
+        help="Path to products database (default: state/products.sqlite3)",
+    )
+    sp.set_defaults(func=cmd_export)
 
     return p
 
