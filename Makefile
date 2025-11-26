@@ -9,48 +9,48 @@ CASA6_PYTHON ?= /opt/miniforge/envs/casa6/bin/python
 # Validate test organization
 test-validate:
 	@echo "Validating test organization..."
-	@$(CASA6_PYTHON) scripts/quality/validate-test-organization.py
+	@$(CASA6_PYTHON) scripts/ops/quality/validate-test-organization.py
 
 # Validate pytest usage patterns
 test-pytest-validate:
 	@echo "Validating pytest usage patterns..."
-	@./scripts/quality/validate-pytest-usage.sh
+	@./scripts/ops/quality/validate-pytest-usage.sh
 
 # Install pre-commit hook for test organization
 test-org-install:
-	@./scripts/quality/test-organization-enforcer.sh install
+	@./scripts/ops/tests/test-organization-enforcer.sh install
 
 # Check test organization
 test-org-check:
-	@./scripts/quality/test-organization-enforcer.sh check
+	@./scripts/ops/tests/test-organization-enforcer.sh check
 
 # Check development environment
 check-env:
-	@./scripts/check-environment.sh
+	@./scripts/ops/quality/check-environment.sh
 
 # Setup development environment
 setup-dev:
-	@./scripts/setup-dev.sh
+	@./scripts/ops/dev/setup-dev.sh
 
 # Auto-fix common gotchas
 auto-fix:
-	@./scripts/auto-fix-gotchas.sh
+	@./scripts/ops/quality/auto-fix-gotchas.sh
 
 # Check code quality
 check-code-quality:
-	@./scripts/check-code-quality.sh
+	@./scripts/ops/quality/check-code-quality.sh
 
 # Run documentation audit to verify endpoints and links
 doc-audit:
 	@echo "Running documentation audit..."
-	@$(CASA6_PYTHON) scripts/doc_audit.py
+	@$(CASA6_PYTHON) scripts/ops/utils/doc_audit.py
 
 # Validate Python version usage (prevents use of Python 2.7 or 3.6)
 validate-python-version:
 	@echo "Validating Python version usage..."
-	@./scripts/validate-python-version.sh
+	@./scripts/ops/validate-python-version.sh
 
 # Test Python version guards
 test-python-guards:
 	@echo "Testing Python version guards..."
-	@./scripts/test-python-guards.sh
+	@./scripts/ops/test-python-guards.sh

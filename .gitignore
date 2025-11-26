@@ -2,10 +2,12 @@
 *old*/
 archive/
 
-# Codeql
-.codeql/
+# CodeQL database directories (generated during analysis - don't track)
 .codeql-db-*/
-.codeql-db-*/
+
+# Exception: allow .codeql/ config files to be tracked (needed by .github/workflows/codeql-analysis.yml)
+!.codeql/
+!.codeql/**
 
 # Ignore Linear config (contains API keys)
 .linear_config.json
