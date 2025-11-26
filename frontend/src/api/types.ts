@@ -108,6 +108,27 @@ export interface PipelineMetricsSummary {
   timestamp: string;
 }
 
+// Workflow Status Types (Issue #53)
+export interface WorkflowStageStatus {
+  name: string;
+  display_name: string;
+  pending: number;
+  processing: number;
+  completed_today: number;
+  failed_today: number;
+}
+
+export interface WorkflowStatus {
+  stages: WorkflowStageStatus[];
+  bottleneck: string | null;
+  estimated_completion: string | null;
+  overall_health: "healthy" | "degraded" | "stalled";
+  total_pending: number;
+  total_completed_today: number;
+  total_failed_today: number;
+  updated_at: string;
+}
+
 // Event Bus Types (Phase 3)
 export interface EventStreamItem {
   event_type: string;

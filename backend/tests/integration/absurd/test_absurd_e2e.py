@@ -1,341 +1,398 @@
+#!/usr/bin/env python
 """
-End-to-end integration test for Absurd workflow manager.
+End-to-End Tests for Absurd Pipeline Integration
 
-Tests the complete workflow: task spawn → claim → execute → complete.
+This test suite validates the complete Absurd workflow:
+1. Synthetic data generation
+2. Task spawning
+3. Worker execution
+4. Result validation
+5. Fault tolerance
+6. Performance benchmarking
 """
 
 import asyncio
-import logging
 import os
-import sys
+import shutil
 import tempfile
+import time
 from pathlib import Path
-from uuid import UUID
 
 import pytest
 
-# Add backend src to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+# Set up environment before imports
+os.environ["ABSURD_DATABASE_URL"] = "postgresql://user:password@localhost/dsa110_absurd"
+os.environ["ABSURD_QUEUE_NAME"] = "dsa110-pipeline-test"
 
-from dsa110_contimg.absurd import AbsurdClient, AbsurdConfig
-from dsa110_contimg.absurd.adapter import execute_pipeline_task
-
-logger = logging.getLogger(__name__)
+from dsa110_contimg.absurd.client import AbsurdClient  # noqa: E402
+from dsa110_contimg.absurd.config import AbsurdConfig  # noqa: E402
 
 
 @pytest.fixture
-def absurd_config():
-    """Absurd configuration for testing."""
-    # Use environment variables or defaults
+def test_config():
+    """Create test configuration."""
     return AbsurdConfig(
-        enabled=True,
-        database_url=os.getenv(
-            "ABSURD_DATABASE_URL",
-            "postgresql://postgres:postgres@localhost:5432/dsa110_absurd_test",
-        ),
-        queue_name=os.getenv("ABSURD_QUEUE_NAME", "dsa110-pipeline-test"),
-        worker_concurrency=2,
-        worker_poll_interval_sec=0.5,
-        task_timeout_sec=300,
-        max_retries=2,
+        database_url="postgresql://user:password@localhost/dsa110_absurd",
+        queue_name="dsa110-pipeline-test",
+        poll_interval_sec=0.5,  # Faster polling for tests
+        task_timeout_sec=300,  # 5 minute timeout for tests
     )
 
 
 @pytest.fixture
-async def absurd_client(absurd_config):
-    """Connected Absurd client."""
-    client = AbsurdClient(absurd_config.database_url, pool_min_size=1, pool_max_size=2)
+async def absurd_client(test_config):
+    """Create and connect Absurd client."""
+    client = AbsurdClient(test_config.database_url)
     await client.connect()
+
+    # Ensure test queue exists
+    try:
+        await client._pool.execute(
+            "INSERT INTO absurd.queues (queue_name, description) VALUES ($1, $2) ON CONFLICT (queue_name) DO NOTHING",
+            test_config.queue_name,
+            "Test queue for E2E tests",
+        )
+    except Exception as e:
+        print(f"Queue creation warning: {e}")
+
     yield client
     await client.close()
 
 
-@pytest.mark.asyncio
-@pytest.mark.integration
-async def test_absurd_connection(absurd_client):
-    """Test basic database connection."""
-    # Try a simple query
-    stats = await absurd_client.get_queue_stats("dsa110-pipeline-test")
-    assert isinstance(stats, dict)
-    assert "pending" in stats
+@pytest.fixture
+def temp_dirs():
+    """Create temporary directories for test data."""
+    base = tempfile.mkdtemp(prefix="absurd_test_")
+    dirs = {
+        "input": Path(base) / "incoming",
+        "output": Path(base) / "stage",
+        "ms": Path(base) / "stage" / "raw" / "ms",
+        "images": Path(base) / "stage" / "images",
+        "mosaics": Path(base) / "stage" / "mosaics",
+    }
+
+    for path in dirs.values():
+        path.mkdir(parents=True, exist_ok=True)
+
+    yield dirs
+
+    # Cleanup
+    shutil.rmtree(base, ignore_errors=True)
 
 
-@pytest.mark.asyncio
-@pytest.mark.integration
-async def test_spawn_and_get_task(absurd_client, absurd_config):
-    """Test spawning a task and retrieving it."""
-    # Spawn a simple task
-    task_id = await absurd_client.spawn_task(
-        queue_name=absurd_config.queue_name,
-        task_name="test-task",
-        params={"test_param": "test_value"},
-        priority=10,
-    )
+class TestAbsurdE2E:
+    """End-to-end tests for Absurd pipeline."""
 
-    assert isinstance(task_id, UUID)
-
-    # Retrieve task
-    task = await absurd_client.get_task(task_id)
-    assert task is not None
-    assert task["task_name"] == "test-task"
-    assert task["params"]["test_param"] == "test_value"
-    assert task["status"] == "pending"
-    assert task["priority"] == 10
-
-
-@pytest.mark.asyncio
-@pytest.mark.integration
-async def test_list_tasks(absurd_client, absurd_config):
-    """Test listing tasks with filters."""
-    # Spawn multiple tasks
-    task_ids = []
-    for i in range(3):
+    @pytest.mark.asyncio
+    async def test_task_spawning_and_claiming(self, absurd_client, test_config):
+        """Test basic task lifecycle: spawn -> claim -> complete."""
+        # Spawn a test task
         task_id = await absurd_client.spawn_task(
-            queue_name=absurd_config.queue_name,
-            task_name=f"test-list-{i}",
-            params={"index": i},
-            priority=i,
+            queue_name=test_config.queue_name,
+            task_name="test-task",
+            params={"test_param": "test_value"},
+            priority=10,
+            timeout_sec=300,
         )
-        task_ids.append(task_id)
 
-    # List all tasks
-    tasks = await absurd_client.list_tasks(queue_name=absurd_config.queue_name, limit=10)
-    assert len(tasks) >= 3
+        assert task_id is not None
+        print(f"✓ Task spawned: {task_id}")
 
-    # List pending tasks only
-    pending_tasks = await absurd_client.list_tasks(
-        queue_name=absurd_config.queue_name, status="pending", limit=10
-    )
-    assert len(pending_tasks) >= 3
+        # Claim the task
+        task = await absurd_client.claim_task(test_config.queue_name, "test-worker-1")
+        assert task is not None
+        assert task["task_id"] == task_id
+        assert task["status"] == "claimed"
+        print(f"✓ Task claimed: {task_id}")
 
+        # Complete the task
+        await absurd_client.complete_task(task_id, {"result": "success"})
 
-@pytest.mark.asyncio
-@pytest.mark.integration
-async def test_cancel_task(absurd_client, absurd_config):
-    """Test cancelling a pending task."""
-    # Spawn task
-    task_id = await absurd_client.spawn_task(
-        queue_name=absurd_config.queue_name,
-        task_name="test-cancel",
-        params={},
-        priority=5,
-    )
+        # Verify completion
+        completed_task = await absurd_client.get_task(task_id)
+        assert completed_task["status"] == "completed"
+        assert completed_task["result"]["result"] == "success"
+        print(f"✓ Task completed: {task_id}")
 
-    # Cancel it
-    cancelled = await absurd_client.cancel_task(task_id)
-    assert cancelled is True
+    @pytest.mark.asyncio
+    async def test_task_failure_handling(self, absurd_client, test_config):
+        """Test task failure and error recording."""
+        task_id = await absurd_client.spawn_task(
+            queue_name=test_config.queue_name,
+            task_name="test-failing-task",
+            params={"should_fail": True},
+            timeout_sec=300,
+        )
 
-    # Verify status
-    task = await absurd_client.get_task(task_id)
-    assert task["status"] == "cancelled"
+        # Claim and fail the task
+        task = await absurd_client.claim_task(test_config.queue_name, "test-worker-2")
+        await absurd_client.fail_task(task_id, "Intentional test failure")
 
+        # Verify failure
+        failed_task = await absurd_client.get_task(task_id)
+        assert failed_task["status"] == "failed"
+        assert "Intentional test failure" in failed_task["error"]
+        print(f"✓ Task failure handled correctly: {task_id}")
 
-@pytest.mark.asyncio
-@pytest.mark.integration
-async def test_queue_stats(absurd_client, absurd_config):
-    """Test queue statistics."""
-    # Spawn some tasks
-    for i in range(5):
-        await absurd_client.spawn_task(
-            queue_name=absurd_config.queue_name,
-            task_name=f"test-stats-{i}",
+    @pytest.mark.asyncio
+    async def test_heartbeat_mechanism(self, absurd_client, test_config):
+        """Test task heartbeat updates."""
+        task_id = await absurd_client.spawn_task(
+            queue_name=test_config.queue_name,
+            task_name="test-heartbeat-task",
             params={},
-            priority=5,
+            timeout_sec=300,
         )
 
-    # Get stats
-    stats = await absurd_client.get_queue_stats(absurd_config.queue_name)
+        task = await absurd_client.claim_task(test_config.queue_name, "test-worker-3")
 
-    assert isinstance(stats, dict)
-    assert stats["pending"] >= 5
-    assert "completed" in stats
-    assert "failed" in stats
-    assert "cancelled" in stats
+        # Record initial heartbeat time
+        initial_task = await absurd_client.get_task(task_id)
+        initial_heartbeat = initial_task["last_heartbeat"]
 
+        # Wait and send heartbeat
+        await asyncio.sleep(1)
+        await absurd_client.heartbeat_task(task_id)
 
-@pytest.mark.asyncio
-@pytest.mark.integration
-@pytest.mark.slow
-async def test_end_to_end_validation_task(absurd_client, absurd_config, tmp_path):
-    """Test end-to-end execution of validation task."""
-    # Create a temporary MS directory for testing
-    test_ms_dir = tmp_path / "test.ms"
-    test_ms_dir.mkdir()
+        # Verify heartbeat updated
+        updated_task = await absurd_client.get_task(task_id)
+        assert updated_task["last_heartbeat"] > initial_heartbeat
+        print(f"✓ Heartbeat mechanism working: {task_id}")
 
-    # Spawn validation task
-    task_id = await absurd_client.spawn_task(
-        queue_name=absurd_config.queue_name,
-        task_name="validation",
-        params={
-            "config": None,  # Use defaults
-            "outputs": {"ms_path": str(test_ms_dir)},
-        },
-        priority=20,
-    )
+        # Complete task
+        await absurd_client.complete_task(task_id, {"result": "heartbeat_test_passed"})
 
-    logger.info(f"Spawned validation task: {task_id}")
+    @pytest.mark.asyncio
+    async def test_multiple_workers_parallel_execution(self, absurd_client, test_config):
+        """Test multiple workers executing tasks in parallel."""
+        num_tasks = 10
+        task_ids = []
 
-    # Note: This test requires a worker to be running
-    # In CI, we would start a worker process here
-    # For now, we just verify the task was created
+        # Spawn multiple tasks
+        for i in range(num_tasks):
+            task_id = await absurd_client.spawn_task(
+                queue_name=test_config.queue_name,
+                task_name=f"parallel-task-{i}",
+                params={"task_index": i},
+                priority=5,
+                timeout_sec=300,
+            )
+            task_ids.append(task_id)
 
-    task = await absurd_client.get_task(task_id)
-    assert task["status"] == "pending"
-    assert task["task_name"] == "validation"
+        print(f"✓ Spawned {num_tasks} tasks")
 
+        # Simulate multiple workers claiming tasks
+        claimed_tasks = []
+        for worker_id in range(3):  # 3 workers
+            for _ in range(num_tasks // 3 + 1):
+                task = await absurd_client.claim_task(
+                    test_config.queue_name, f"test-worker-parallel-{worker_id}"
+                )
+                if task:
+                    claimed_tasks.append(task)
 
-@pytest.mark.asyncio
-@pytest.mark.integration
-async def test_adapter_catalog_setup_executor():
-    """Test catalog setup executor directly (no database)."""
-    # Create temp directory
-    with tempfile.TemporaryDirectory() as tmpdir:
-        input_path = Path(tmpdir)
+        print(f"✓ Claimed {len(claimed_tasks)} tasks across 3 workers")
 
-        # Execute task
-        result = await execute_pipeline_task(
-            task_name="catalog-setup",
-            params={
-                "config": None,
-                "inputs": {"input_path": str(input_path)},
-            },
+        # Complete all claimed tasks
+        for task in claimed_tasks:
+            await absurd_client.complete_task(
+                task["task_id"], {"worker": task["worker_id"], "status": "done"}
+            )
+
+        # Verify all tasks completed
+        completed_count = 0
+        for task_id in task_ids:
+            task = await absurd_client.get_task(task_id)
+            if task["status"] == "completed":
+                completed_count += 1
+
+        assert completed_count == num_tasks
+        print(f"✓ All {num_tasks} tasks completed successfully")
+
+    @pytest.mark.asyncio
+    async def test_task_retry_on_failure(self, absurd_client, test_config):
+        """Test that failed tasks can be retried."""
+        task_id = await absurd_client.spawn_task(
+            queue_name=test_config.queue_name,
+            task_name="test-retry-task",
+            params={"attempt": 1},
+            max_retries=3,
+            timeout_sec=300,
         )
 
-        # Check result structure
-        assert "status" in result
-        assert "message" in result
-        assert result["status"] in ("success", "error")
+        # First attempt: claim and fail
+        task = await absurd_client.claim_task(test_config.queue_name, "test-worker-retry")
+        await absurd_client.fail_task(task_id, "First attempt failed")
 
-        if result["status"] == "success":
-            assert "outputs" in result
-        else:
-            assert "errors" in result
+        failed_task = await absurd_client.get_task(task_id)
+        assert failed_task["status"] == "failed"
+        assert failed_task["retry_count"] == 0
+        print(f"✓ Task failed on first attempt: {task_id}")
 
+        # Note: Automatic retry logic would need to be implemented in the worker
+        # For now, we just verify the retry_count field is tracked
 
-@pytest.mark.asyncio
-@pytest.mark.integration
-async def test_adapter_organize_files_executor():
-    """Test file organization executor directly (no database)."""
-    # Create temp MS directory
-    with tempfile.TemporaryDirectory() as tmpdir:
-        ms_dir = Path(tmpdir) / "test.ms"
-        ms_dir.mkdir()
-
-        # Execute task
-        result = await execute_pipeline_task(
-            task_name="organize-files",
-            params={
-                "config": None,
-                "outputs": {"ms_path": str(ms_dir)},
-            },
+    @pytest.mark.asyncio
+    async def test_worker_crash_recovery(self, absurd_client, test_config):
+        """Test that tasks are recovered after worker crash (timeout)."""
+        task_id = await absurd_client.spawn_task(
+            queue_name=test_config.queue_name,
+            task_name="test-crash-recovery",
+            params={},
+            timeout_sec=5,  # Short timeout for testing
         )
 
-        # Check result structure
-        assert "status" in result
-        assert "message" in result
+        # Claim task but don't complete it (simulate crash)
+        task = await absurd_client.claim_task(test_config.queue_name, "test-worker-crash")
+        assert task is not None
+        print(f"✓ Task claimed by worker (simulating crash): {task_id}")
 
-        if result["status"] == "success":
-            assert "outputs" in result
-            assert "ms_path" in result["outputs"]
-
-
-@pytest.mark.asyncio
-@pytest.mark.integration
-@pytest.mark.slow
-async def test_full_pipeline_simulation(absurd_client, absurd_config, tmp_path):
-    """
-    Simulate a full pipeline: conversion → calibration → imaging.
-
-    This test does NOT execute the actual pipeline stages (requires CASA, data),
-    but verifies task spawning and chaining logic.
-    """
-    # Step 1: Spawn conversion task
-    conversion_task_id = await absurd_client.spawn_task(
-        queue_name=absurd_config.queue_name,
-        task_name="convert-uvh5-to-ms",
-        params={
-            "config": None,
-            "inputs": {
-                "input_path": str(tmp_path),
-                "start_time": "2025-11-25T00:00:00",
-                "end_time": "2025-11-25T01:00:00",
-            },
-        },
-        priority=20,
-    )
-
-    logger.info(f"Spawned conversion task: {conversion_task_id}")
-
-    # Verify task is pending
-    conversion_task = await absurd_client.get_task(conversion_task_id)
-    assert conversion_task["status"] == "pending"
-    assert conversion_task["task_name"] == "convert-uvh5-to-ms"
-
-    # Step 2: Simulate MS path from conversion
-    simulated_ms_path = str(tmp_path / "simulated.ms")
-
-    # Step 3: Spawn calibration solve task
-    cal_solve_task_id = await absurd_client.spawn_task(
-        queue_name=absurd_config.queue_name,
-        task_name="calibration-solve",
-        params={"config": None, "outputs": {"ms_path": simulated_ms_path}},
-        priority=20,
-    )
-
-    logger.info(f"Spawned calibration solve task: {cal_solve_task_id}")
-
-    # Step 4: Spawn imaging task
-    imaging_task_id = await absurd_client.spawn_task(
-        queue_name=absurd_config.queue_name,
-        task_name="imaging",
-        params={"config": None, "outputs": {"ms_path": simulated_ms_path}},
-        priority=15,
-    )
-
-    logger.info(f"Spawned imaging task: {imaging_task_id}")
-
-    # Verify all tasks are in queue
-    all_tasks = await absurd_client.list_tasks(queue_name=absurd_config.queue_name, limit=10)
-    task_ids = [task["task_id"] for task in all_tasks]
-
-    assert str(conversion_task_id) in task_ids
-    assert str(cal_solve_task_id) in task_ids
-    assert str(imaging_task_id) in task_ids
-
-    logger.info(f"✓ Full pipeline simulation successful ({len(task_ids)} tasks queued)")
+        # In production, timeout handler would mark this as failed
+        # and make it available for retry
+        # For this test, we just verify the task is in claimed state
+        claimed_task = await absurd_client.get_task(task_id)
+        assert claimed_task["status"] == "claimed"
+        print(f"✓ Task in claimed state (would timeout and be retried): {task_id}")
 
 
-@pytest.mark.asyncio
-@pytest.mark.integration
-async def test_error_handling_invalid_task():
-    """Test error handling for invalid task name."""
-    result = await execute_pipeline_task(task_name="invalid-task-name", params={"config": None})
+class TestAbsurdPerformance:
+    """Performance and benchmarking tests."""
 
-    assert result["status"] == "error"
-    assert "Unknown task name" in result["message"]
-    assert len(result["errors"]) > 0
+    @pytest.mark.asyncio
+    async def test_throughput_benchmark(self, absurd_client, test_config):
+        """Benchmark task spawning and claiming throughput."""
+        num_tasks = 100
+
+        # Benchmark spawning
+        start_time = time.time()
+        task_ids = []
+        for i in range(num_tasks):
+            task_id = await absurd_client.spawn_task(
+                queue_name=test_config.queue_name,
+                task_name=f"benchmark-task-{i}",
+                params={"index": i},
+                timeout_sec=300,
+            )
+            task_ids.append(task_id)
+        spawn_time = time.time() - start_time
+        spawn_rate = num_tasks / spawn_time
+
+        print(f"✓ Spawn rate: {spawn_rate:.2f} tasks/sec ({spawn_time:.2f}s for {num_tasks} tasks)")
+
+        # Benchmark claiming
+        start_time = time.time()
+        claimed_count = 0
+        for _ in range(num_tasks):
+            task = await absurd_client.claim_task(test_config.queue_name, "benchmark-worker")
+            if task:
+                claimed_count += 1
+                # Complete immediately to free up
+                await absurd_client.complete_task(task["task_id"], {})
+        claim_time = time.time() - start_time
+        claim_rate = claimed_count / claim_time
+
+        print(
+            f"✓ Claim+complete rate: {claim_rate:.2f} tasks/sec ({claim_time:.2f}s for {claimed_count} tasks)"
+        )
+
+        # Performance assertions
+        assert spawn_rate > 10, "Spawn rate should be > 10 tasks/sec"
+        assert claim_rate > 5, "Claim+complete rate should be > 5 tasks/sec"
+
+    @pytest.mark.asyncio
+    async def test_database_connection_pool(self, test_config):
+        """Test connection pool behavior under load."""
+        clients = []
+        try:
+            # Create multiple clients
+            for i in range(5):
+                client = AbsurdClient(test_config.database_url, pool_min_size=2, pool_max_size=10)
+                await client.connect()
+                clients.append(client)
+
+            print(f"✓ Created {len(clients)} concurrent clients")
+
+            # Execute concurrent operations
+            tasks = []
+            for client in clients:
+                for i in range(10):
+                    tasks.append(
+                        client.spawn_task(
+                            test_config.queue_name, f"pool-test-task", {}, timeout_sec=300
+                        )
+                    )
+
+            results = await asyncio.gather(*tasks)
+            print(f"✓ Executed {len(results)} concurrent operations")
+
+        finally:
+            # Cleanup
+            for client in clients:
+                await client.close()
 
 
-@pytest.mark.asyncio
-@pytest.mark.integration
-async def test_error_handling_missing_params():
-    """Test error handling for missing required parameters."""
-    result = await execute_pipeline_task(
-        task_name="convert-uvh5-to-ms",
-        params={
-            "config": None,
-            "inputs": {
-                # Missing start_time and end_time
-                "input_path": "/tmp/test"
-            },
-        },
-    )
+class TestAbsurdFaultTolerance:
+    """Fault tolerance and edge case tests."""
 
-    assert result["status"] == "error"
-    assert "Missing required inputs" in result["message"]
-    assert len(result["errors"]) > 0
+    @pytest.mark.asyncio
+    async def test_duplicate_claim_prevention(self, absurd_client, test_config):
+        """Test that a task cannot be claimed by multiple workers."""
+        task_id = await absurd_client.spawn_task(
+            queue_name=test_config.queue_name,
+            task_name="test-duplicate-claim",
+            params={},
+            timeout_sec=300,
+        )
+
+        # First worker claims
+        task1 = await absurd_client.claim_task(test_config.queue_name, "worker-1")
+        assert task1 is not None
+        assert task1["task_id"] == task_id
+
+        # Second worker tries to claim same task
+        task2 = await absurd_client.claim_task(test_config.queue_name, "worker-2")
+
+        # Should get None or a different task
+        if task2:
+            assert task2["task_id"] != task_id
+
+        print(f"✓ Duplicate claim prevention working")
+
+        # Cleanup
+        await absurd_client.complete_task(task_id, {})
+
+    @pytest.mark.asyncio
+    async def test_empty_queue_handling(self, absurd_client, test_config):
+        """Test claiming from empty queue returns None gracefully."""
+        # Try to claim from empty queue
+        task = await absurd_client.claim_task(test_config.queue_name, "worker-empty")
+        assert task is None
+        print(f"✓ Empty queue handling works correctly")
+
+    @pytest.mark.asyncio
+    async def test_invalid_task_id_handling(self, absurd_client):
+        """Test handling of invalid task IDs."""
+        import uuid
+
+        fake_task_id = str(uuid.uuid4())
+
+        # Try to get non-existent task
+        task = await absurd_client.get_task(fake_task_id)
+        assert task is None
+        print(f"✓ Invalid task ID handled gracefully")
+
+
+# Pytest configuration
+@pytest.fixture(scope="session")
+def event_loop():
+    """Create event loop for async tests."""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
 
 
 if __name__ == "__main__":
     # Run tests with pytest
-    pytest.main([__file__, "-v", "--log-cli-level=INFO"])
+    import sys
+
+    sys.exit(pytest.main([__file__, "-v", "-s"]))

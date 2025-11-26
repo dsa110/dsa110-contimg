@@ -26,7 +26,12 @@ import { QueueStatsCard } from "../components/streaming/QueueStatsCard";
 import { ConfigurationCard } from "../components/streaming/ConfigurationCard";
 import { StreamingConfigDialog } from "../components/streaming/StreamingConfigDialog";
 
-export default function StreamingPage() {
+interface StreamingPageProps {
+  /** When true, renders without Container wrapper for embedding in other pages */
+  embedded?: boolean;
+}
+
+export default function StreamingPage({ embedded = false }: StreamingPageProps) {
   const { data: status, isLoading: statusLoading } = useStreamingStatus();
   const { data: health } = useStreamingHealth();
   const { data: config, isLoading: configLoading } = useStreamingConfig();
@@ -97,17 +102,18 @@ export default function StreamingPage() {
 
   if (statusLoading || configLoading) {
     return (
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        <SkeletonLoader variant="cards" rows={3} />
-      </Container>
+      <Box sx={embedded ? { py: 2 } : {}}>
+        {!embedded && <Container maxWidth="xl" sx={{ py: 4 }}><SkeletonLoader variant="cards" rows={3} /></Container>}
+        {embedded && <SkeletonLoader variant="cards" rows={3} />}
+      </Box>
     );
   }
 
   const isRunning = status?.running ?? false;
   const isHealthy = health?.healthy ?? false;
 
-  return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+  const content = (
+    <Box sx={embedded ? { py: 2 } : {}}>
       <Box
         sx={{
           display: "flex",
@@ -116,7 +122,7 @@ export default function StreamingPage() {
           mb: 4,
         }}
       >
-        <Typography variant="h2" component="h2">
+        <Typography variant={embedded ? "h4" : "h2"} component="h2">
           Streaming Service Control
         </Typography>
         <Stack direction="row" spacing={2}>
@@ -240,6 +246,17 @@ export default function StreamingPage() {
         onSave={handleSaveConfig}
         isSaving={updateConfigMutation.isPending}
       />
+    </Box>
+  );
+
+  // Wrap in Container only when not embedded
+  if (embedded) {
+    return content;
+  }
+
+  return (
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      {content}
     </Container>
   );
 }

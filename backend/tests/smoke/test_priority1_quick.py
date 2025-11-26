@@ -187,7 +187,7 @@ def test_api_structure():
     print("Test 3: API Endpoint Structure Verification")
     print("=" * 60)
 
-    routes_path = Path(__file__).parent.parent / "src" / "dsa110_contimg" / "api" / "routes.py"
+    routes_path = Path(__file__).parent.parent.parent / "src" / "dsa110_contimg" / "api" / "routes.py"
 
     with open(routes_path) as f:
         code = f.read()

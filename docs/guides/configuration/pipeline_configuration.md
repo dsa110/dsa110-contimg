@@ -1,6 +1,6 @@
 # Configuration Reference
 
-**Last Updated:** 2025-11-12  
+**Last Updated:** 2025-11-26  
 **Purpose:** Comprehensive reference for all configuration options and
 environment variables
 
@@ -277,6 +277,47 @@ Imaging stage configuration.
 - `run_catalog_validation: bool` - Run catalog validation (default: True)
 - `catalog_validation_catalog: str` - Catalog for validation (default: `"nvss"`)
 
+### MosaicConfig
+
+Mosaic stage configuration.
+
+**Properties:**
+
+- `enabled: bool` - Enable mosaic creation stage (default: True)
+- `ms_per_mosaic: int` - Number of MS files per mosaic group (default: 10,
+  range: 2-20)
+- `overlap_count: int` - Number of MS files to overlap between mosaics (default:
+  2, range: 0-5)
+- `min_images: int` - Minimum images required to create a mosaic (default: 5,
+  min: 1)
+- `enable_photometry: bool` - Run photometry after mosaic creation (default:
+  True)
+- `enable_crossmatch: bool` - Run cross-matching after mosaic creation (default:
+  True)
+- `output_format: str` - Output format: 'fits' or 'casa' (default: `"fits"`)
+
+### LightCurveConfig
+
+Light curve computation stage configuration.
+
+**Properties:**
+
+- `enabled: bool` - Enable light curve computation stage (default: True)
+- `min_epochs: int` - Minimum epochs required for variability metrics (default:
+  3, min: 2)
+- `eta_threshold: float` - η metric threshold for flagging variable sources
+  (default: 2.0, min: 0.0)
+- `v_threshold: float` - V metric (std/mean) threshold for variable sources
+  (default: 0.1, range: 0.0-1.0)
+- `sigma_threshold: float` - σ-deviation threshold for ESE candidate detection
+  (default: 3.0, min: 1.0)
+- `use_normalized_flux: bool` - Use normalized flux values for variability
+  computation (default: True)
+- `update_database: bool` - Update variability_stats table in products database
+  (default: True)
+- `trigger_alerts: bool` - Trigger alerts for sources exceeding variability
+  thresholds (default: True)
+
 ---
 
 ## Default Values Summary
@@ -306,6 +347,27 @@ Imaging stage configuration.
 - `PIPELINE_WPROJPLANES`: `-1` (auto)
 - `run_catalog_validation`: `true`
 - `catalog_validation_catalog`: `"nvss"`
+
+### Mosaic
+
+- `enabled`: `true`
+- `ms_per_mosaic`: `10`
+- `overlap_count`: `2`
+- `min_images`: `5`
+- `enable_photometry`: `true`
+- `enable_crossmatch`: `true`
+- `output_format`: `"fits"`
+
+### Light Curve
+
+- `enabled`: `true`
+- `min_epochs`: `3`
+- `eta_threshold`: `2.0`
+- `v_threshold`: `0.1`
+- `sigma_threshold`: `3.0`
+- `use_normalized_flux`: `true`
+- `update_database`: `true`
+- `trigger_alerts`: `true`
 
 ---
 

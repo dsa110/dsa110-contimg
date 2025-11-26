@@ -256,7 +256,7 @@ function AppContent() {
                               />
                               <Route
                                 path="/observing"
-                                element={<Navigate to="/control?tab=2" replace />}
+                                element={<Navigate to="/control?tab=3" replace />}
                               />
                               <Route
                                 path="/cache"

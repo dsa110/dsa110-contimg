@@ -6724,6 +6724,287 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         return metrics
 
+    @router.get("/streaming/mosaic-queue")
+    def get_mosaic_queue_status():
+        """Get mosaic queue status for monitoring.
+
+        Returns status of the automatic mosaic creation queue including:
+        - pending_count: Number of pending mosaic groups
+        - in_progress_count: Number of in-progress mosaics
+        - completed_count: Number of completed mosaics
+        - failed_count: Number of failed mosaics
+        - available_ms_count: MS files ready for next mosaic
+        - ms_until_next_mosaic: How many more MS files needed to trigger next mosaic
+        """
+        from dsa110_contimg.api.config import ApiConfig
+        from dsa110_contimg.conversion.streaming.streaming_converter import (
+            get_mosaic_queue_status as _get_mosaic_queue_status,
+        )
+
+        cfg = ApiConfig.from_env()
+        products_db = Path(cfg.products_db) if cfg.products_db else None
+
+        if not products_db or not products_db.exists():
+            return {
+                "error": "Products database not found",
+                "pending_count": 0,
+                "in_progress_count": 0,
+                "completed_count": 0,
+                "failed_count": 0,
+                "available_ms_count": 0,
+                "ms_until_next_mosaic": 8,  # Default: need 8 new MS files
+            }
+
+        try:
+            status = _get_mosaic_queue_status(products_db)
+            return status
+        except Exception as e:
+            logger.warning(f"Failed to get mosaic queue status: {e}")
+            return {
+                "error": str(e),
+                "pending_count": 0,
+                "in_progress_count": 0,
+                "completed_count": 0,
+                "failed_count": 0,
+                "available_ms_count": 0,
+                "ms_until_next_mosaic": 8,
+            }
+
+    @router.get("/pipeline/workflow-status")
+    def get_pipeline_workflow_status():
+        """Get unified workflow status across all pipeline stages.
+
+        Returns stage-by-stage queue depths, processing counts, and bottleneck info
+        for the complete streaming workflow visualization.
+
+        Returns:
+            Dictionary with stages array and bottleneck info:
+            {
+                "stages": [
+                    {"name": "ingest", "pending": 5, "processing": 2, "completed_today": 48, "failed_today": 1},
+                    {"name": "conversion", ...},
+                    ...
+                ],
+                "bottleneck": "mosaic",  # Stage with highest pending/processing ratio
+                "estimated_completion": "2025-11-26T18:30:00Z",  # ETA for pending items
+                "overall_health": "healthy"  # healthy, degraded, stalled
+            }
+        """
+        import sqlite3
+        import time
+        from datetime import datetime, timedelta, timezone
+
+        from dsa110_contimg.api.config import ApiConfig
+
+        cfg = ApiConfig.from_env()
+
+        # Initialize stage data
+        stages = [
+            {"name": "ingest", "display_name": "HDF5 Ingest", "pending": 0, "processing": 0, "completed_today": 0, "failed_today": 0},
+            {"name": "conversion", "display_name": "Conversion", "pending": 0, "processing": 0, "completed_today": 0, "failed_today": 0},
+            {"name": "calibration", "display_name": "Calibration", "pending": 0, "processing": 0, "completed_today": 0, "failed_today": 0},
+            {"name": "imaging", "display_name": "Imaging", "pending": 0, "processing": 0, "completed_today": 0, "failed_today": 0},
+            {"name": "mosaic", "display_name": "Mosaic", "pending": 0, "processing": 0, "completed_today": 0, "failed_today": 0},
+            {"name": "photometry", "display_name": "Photometry", "pending": 0, "processing": 0, "completed_today": 0, "failed_today": 0},
+            {"name": "light_curve", "display_name": "Light Curves", "pending": 0, "processing": 0, "completed_today": 0, "failed_today": 0},
+        ]
+
+        # Calculate today's start (midnight UTC)
+        now = datetime.now(timezone.utc)
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_start_ts = today_start.timestamp()
+
+        # Query ingest queue for ingest/conversion stages
+        queue_db = Path(cfg.queue_db) if cfg.queue_db else None
+        if queue_db and queue_db.exists():
+            try:
+                conn = sqlite3.connect(str(queue_db))
+                conn.row_factory = sqlite3.Row
+
+                # Ingest stage: collecting state
+                cursor = conn.execute(
+                    "SELECT COUNT(*) as cnt FROM ingest_queue WHERE state = 'collecting'"
+                )
+                row = cursor.fetchone()
+                stages[0]["processing"] = row["cnt"] if row else 0
+
+                # Ingest pending: files seen but not yet grouped
+                cursor = conn.execute(
+                    "SELECT COUNT(*) as cnt FROM ingest_queue WHERE state = 'pending'"
+                )
+                row = cursor.fetchone()
+                stages[0]["pending"] = row["cnt"] if row else 0
+
+                # Conversion in progress
+                cursor = conn.execute(
+                    "SELECT COUNT(*) as cnt FROM ingest_queue WHERE state = 'in_progress'"
+                )
+                row = cursor.fetchone()
+                stages[1]["processing"] = row["cnt"] if row else 0
+
+                # Completed today
+                cursor = conn.execute(
+                    "SELECT COUNT(*) as cnt FROM ingest_queue WHERE state = 'completed' AND last_update > ?",
+                    (today_start_ts,)
+                )
+                row = cursor.fetchone()
+                stages[1]["completed_today"] = row["cnt"] if row else 0
+
+                # Failed today
+                cursor = conn.execute(
+                    "SELECT COUNT(*) as cnt FROM ingest_queue WHERE state = 'failed' AND last_update > ?",
+                    (today_start_ts,)
+                )
+                row = cursor.fetchone()
+                stages[1]["failed_today"] = row["cnt"] if row else 0
+
+                conn.close()
+            except Exception as e:
+                logger.debug(f"Failed to query ingest queue: {e}")
+
+        # Query products database for downstream stages
+        products_db = Path(cfg.products_db) if cfg.products_db else None
+        if products_db and products_db.exists():
+            try:
+                conn = sqlite3.connect(str(products_db))
+                conn.row_factory = sqlite3.Row
+
+                # MS files by stage (calibration, imaging)
+                # Converted but not calibrated = pending calibration
+                cursor = conn.execute(
+                    "SELECT COUNT(*) as cnt FROM ms_index WHERE stage = 'converted'"
+                )
+                row = cursor.fetchone()
+                stages[2]["pending"] = row["cnt"] if row else 0
+
+                # Calibrated but not imaged = pending imaging
+                cursor = conn.execute(
+                    "SELECT COUNT(*) as cnt FROM ms_index WHERE stage = 'calibrated'"
+                )
+                row = cursor.fetchone()
+                stages[3]["pending"] = row["cnt"] if row else 0
+
+                # Imaged today
+                cursor = conn.execute(
+                    "SELECT COUNT(*) as cnt FROM ms_index WHERE stage = 'imaged' AND processed_at > ?",
+                    (today_start_ts,)
+                )
+                row = cursor.fetchone()
+                stages[3]["completed_today"] = row["cnt"] if row else 0
+
+                # Check for mosaic tracking table
+                cursor = conn.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name='mosaic_groups'"
+                )
+                if cursor.fetchone():
+                    # Mosaic pending
+                    cursor = conn.execute(
+                        "SELECT COUNT(*) as cnt FROM mosaic_groups WHERE status = 'pending'"
+                    )
+                    row = cursor.fetchone()
+                    stages[4]["pending"] = row["cnt"] if row else 0
+
+                    # Mosaic in progress
+                    cursor = conn.execute(
+                        "SELECT COUNT(*) as cnt FROM mosaic_groups WHERE status = 'in_progress'"
+                    )
+                    row = cursor.fetchone()
+                    stages[4]["processing"] = row["cnt"] if row else 0
+
+                    # Mosaic completed today
+                    cursor = conn.execute(
+                        "SELECT COUNT(*) as cnt FROM mosaic_groups WHERE status = 'completed' AND completed_at > ?",
+                        (today_start_ts,)
+                    )
+                    row = cursor.fetchone()
+                    stages[4]["completed_today"] = row["cnt"] if row else 0
+
+                    # Mosaic failed today
+                    cursor = conn.execute(
+                        "SELECT COUNT(*) as cnt FROM mosaic_groups WHERE status = 'failed' AND completed_at > ?",
+                        (today_start_ts,)
+                    )
+                    row = cursor.fetchone()
+                    stages[4]["failed_today"] = row["cnt"] if row else 0
+
+                # Photometry from batch_jobs table
+                cursor = conn.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name='batch_jobs'"
+                )
+                if cursor.fetchone():
+                    # Photometry pending
+                    cursor = conn.execute(
+                        "SELECT COUNT(*) as cnt FROM batch_jobs WHERE job_type = 'photometry' AND status = 'pending'"
+                    )
+                    row = cursor.fetchone()
+                    stages[5]["pending"] = row["cnt"] if row else 0
+
+                    # Photometry in progress
+                    cursor = conn.execute(
+                        "SELECT COUNT(*) as cnt FROM batch_jobs WHERE job_type = 'photometry' AND status = 'running'"
+                    )
+                    row = cursor.fetchone()
+                    stages[5]["processing"] = row["cnt"] if row else 0
+
+                    # Photometry completed today
+                    cursor = conn.execute(
+                        "SELECT COUNT(*) as cnt FROM batch_jobs WHERE job_type = 'photometry' AND status = 'completed' AND updated_at > ?",
+                        (today_start_ts,)
+                    )
+                    row = cursor.fetchone()
+                    stages[5]["completed_today"] = row["cnt"] if row else 0
+
+                conn.close()
+            except Exception as e:
+                logger.debug(f"Failed to query products database: {e}")
+
+        # Calculate bottleneck (highest pending count relative to throughput)
+        bottleneck = None
+        max_pending_ratio = 0
+        for stage in stages:
+            pending = stage["pending"]
+            completed = stage["completed_today"] or 1  # Avoid division by zero
+            ratio = pending / completed
+            if pending > 0 and ratio > max_pending_ratio:
+                max_pending_ratio = ratio
+                bottleneck = stage["name"]
+
+        # Determine overall health
+        total_pending = sum(s["pending"] for s in stages)
+        total_failed = sum(s["failed_today"] for s in stages)
+        total_completed = sum(s["completed_today"] for s in stages)
+
+        if total_failed > total_completed * 0.1:  # >10% failure rate
+            overall_health = "degraded"
+        elif total_pending > 50 and bottleneck:
+            overall_health = "stalled"
+        elif total_pending > 20:
+            overall_health = "degraded"
+        else:
+            overall_health = "healthy"
+
+        # Estimate completion time (rough: based on today's throughput)
+        estimated_completion = None
+        if total_pending > 0 and total_completed > 0:
+            hours_elapsed = (now - today_start).total_seconds() / 3600
+            if hours_elapsed > 0:
+                rate_per_hour = total_completed / hours_elapsed
+                if rate_per_hour > 0:
+                    hours_to_complete = total_pending / rate_per_hour
+                    eta = now + timedelta(hours=hours_to_complete)
+                    estimated_completion = eta.isoformat()
+
+        return {
+            "stages": stages,
+            "bottleneck": bottleneck,
+            "estimated_completion": estimated_completion,
+            "overall_health": overall_health,
+            "total_pending": total_pending,
+            "total_completed_today": total_completed,
+            "total_failed_today": total_failed,
+            "updated_at": now.isoformat(),
+        }
+
     @router.get("/jobs/healthz")
     def jobs_health():
         """Health check for job execution environment.

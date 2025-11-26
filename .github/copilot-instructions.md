@@ -40,6 +40,29 @@ conda activate casa6  # Always activate before running scripts
 **Running Commands**: Use `run_in_terminal` with casa6 environment activated for
 all Python scripts and CASA tasks.
 
+## I/O Performance & Build Practices
+
+**CRITICAL**: `/data/` is on HDD - avoid I/O-intensive operations there.
+
+**Use `/scratch/` for**:
+- Frontend builds (`npm run build`)
+- Python package installs with compilation
+- Large file processing and temporary files
+- Any operation that is I/O heavy
+
+**Build workflow for frontend**:
+```bash
+# Use the scratch-based build script
+cd /data/dsa110-contimg/frontend
+npm run build:scratch  # Builds in /scratch/, copies result back
+```
+
+**For Python/Backend**:
+```bash
+conda activate casa6
+# Run tests and builds - scratch is used automatically via TMPDIR when needed
+```
+
 ## Directory Structure
 
 **Actual Production Paths**:
@@ -50,15 +73,19 @@ all Python scripts and CASA tasks.
   directory)
 - `/data/dsa110-contimg/state/` - SQLite databases and runtime state
 - `/data/dsa110-contimg/state/logs/` - Pipeline execution logs
-- `/data/dsa110-contimg/products/` - Final data products (images, caltables,
-  catalogs)
+- `/data/dsa110-contimg/products/` - Final data products (symlinked to
+  /stage/dsa110-contimg/)
 
 **Active Code Structure**:
 
 - `backend/src/dsa110_contimg/` - Main Python package (active development)
 - `frontend/src/` - React dashboard
-- `ops/` - Operational configuration (systemd, docker, scripts)
-- `docs/` - Documentation, examples, notebooks, simulations
+- `config/` - Centralized configuration (docker, hooks, linting, editor)
+- `scripts/` - Consolidated utility scripts (backend, ops, archive)
+- `ops/` - Operational configuration (systemd, docker, deployment)
+- `docs/` - Documentation (architecture, guides, reference, operations)
+- `vendor/` - External dependencies (aocommon, everybeam)
+- `.ai/` - AI tool configurations (cursor, codex, gemini)
 
 ## Critical Conversion Pipeline
 

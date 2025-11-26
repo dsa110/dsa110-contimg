@@ -284,6 +284,75 @@ class PhotometryConfig(BaseModel):
     backend: str = Field(default="tclean", description="Imaging backend: 'tclean' or 'wsclean'")
 
 
+class MosaicConfig(BaseModel):
+    """Configuration for mosaic creation stage."""
+
+    enabled: bool = Field(default=True, description="Enable mosaic creation stage")
+    ms_per_mosaic: int = Field(
+        default=10, ge=2, le=20, description="Number of MS files per mosaic group"
+    )
+    overlap_count: int = Field(
+        default=2, ge=0, le=5, description="Number of MS files to overlap between mosaics"
+    )
+    min_images: int = Field(
+        default=5, ge=1, description="Minimum images required to create a mosaic"
+    )
+    enable_photometry: bool = Field(
+        default=True, description="Run photometry automatically after mosaic creation"
+    )
+    enable_crossmatch: bool = Field(
+        default=True, description="Run cross-matching after mosaic creation"
+    )
+    output_format: str = Field(
+        default="fits", description="Output format: 'fits' or 'casa'"
+    )
+
+
+class LightCurveConfig(BaseModel):
+    """Configuration for light curve computation stage.
+
+    This stage computes variability metrics from photometry measurements,
+    enabling automated detection of variable sources and ESE candidates.
+    """
+
+    enabled: bool = Field(
+        default=True, description="Enable light curve computation stage"
+    )
+    min_epochs: int = Field(
+        default=3,
+        ge=2,
+        description="Minimum number of epochs required to compute variability metrics",
+    )
+    eta_threshold: float = Field(
+        default=2.0,
+        ge=0.0,
+        description="Eta metric threshold for flagging variable sources",
+    )
+    v_threshold: float = Field(
+        default=0.1,
+        ge=0.0,
+        le=1.0,
+        description="V metric (std/mean) threshold for flagging variable sources",
+    )
+    sigma_threshold: float = Field(
+        default=3.0,
+        ge=1.0,
+        description="Sigma deviation threshold for ESE candidate detection",
+    )
+    use_normalized_flux: bool = Field(
+        default=True,
+        description="Use normalized flux values for variability computation",
+    )
+    update_database: bool = Field(
+        default=True,
+        description="Update variability_stats table in products database",
+    )
+    trigger_alerts: bool = Field(
+        default=True,
+        description="Trigger alerts for sources exceeding variability thresholds",
+    )
+
+
 class PipelineConfig(BaseModel):
     """Complete pipeline configuration.
 
@@ -295,6 +364,8 @@ class PipelineConfig(BaseModel):
     conversion: ConversionConfig = Field(default_factory=ConversionConfig)
     calibration: CalibrationConfig = Field(default_factory=CalibrationConfig)
     imaging: ImagingConfig = Field(default_factory=ImagingConfig)
+    mosaic: MosaicConfig = Field(default_factory=MosaicConfig)
+    light_curve: LightCurveConfig = Field(default_factory=LightCurveConfig)
     validation: ValidationConfig = Field(default_factory=ValidationConfig)
     crossmatch: CrossMatchConfig = Field(default_factory=CrossMatchConfig)
     photometry: PhotometryConfig = Field(default_factory=PhotometryConfig)

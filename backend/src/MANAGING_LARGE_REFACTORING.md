@@ -48,7 +48,7 @@ git init  # (skip if already done)
 5. Link related issues together
 6. Close when verified fixed
 
-### 2. **Analysis Tools** (in `/data/dsa110-contimg/backend/src/scripts/`)
+### 2. **Analysis Tools** (in `src/dsa110_contimg/scripts/ops/`)
 
 I've created 3 tools to help identify problems:
 
@@ -56,8 +56,8 @@ I've created 3 tools to help identify problems:
 
 ```bash
 # Scope to specific directories to avoid scanning everything
-python scripts/audit_documentation.py \
-  --root /data/dsa110-contimg/backend/src/dsa110_contimg/docs \
+python -m dsa110_contimg.scripts.ops.audit_documentation \
+  --root /data/dsa110-contimg/backend/docs \
   --output doc_audit.json
 
 # For just your main documentation
@@ -87,7 +87,7 @@ python scripts/generate_ai_context.py \
 **⚠️ Important:** Don't run these on the massive parent directory - scope to:
 
 - `backend/src/dsa110_contimg/` for code analysis
-- `backend/src/dsa110_contimg/docs/` for doc audits
+- `backend/docs/` for doc audits
 
 ### 3. **Create a Refactoring Tracking Document**
 

@@ -2063,6 +2063,682 @@ class ImagingStage(PipelineStage):
         return "imaging"
 
 
+class MosaicStage(PipelineStage):
+    """Mosaic stage: Create mosaics from groups of imaged MS files.
+
+    This stage combines multiple 5-minute continuum images into a larger mosaic,
+    typically spanning 50 minutes (10 images) with a 2-image overlap between
+    consecutive mosaics.
+
+    The stage uses StreamingMosaicManager to:
+    1. Group images by time (configurable, default 10 per mosaic)
+    2. Validate tile quality and consistency
+    3. Create weighted mosaics using optimal overlap handling
+    4. Register mosaics in the products database
+
+    Example:
+        >>> config = PipelineConfig(paths=PathsConfig(...))
+        >>> stage = MosaicStage(config)
+        >>> # Context should have image paths from previous imaging stages
+        >>> context = PipelineContext(
+        ...     config=config,
+        ...     outputs={
+        ...         "image_paths": ["/data/img1.fits", "/data/img2.fits", ...],
+        ...         "ms_paths": ["/data/obs1.ms", "/data/obs2.ms", ...]
+        ...     }
+        ... )
+        >>> # Validate prerequisites
+        >>> is_valid, error = stage.validate(context)
+        >>> if is_valid:
+        ...     # Execute mosaicking
+        ...     result_context = stage.execute(context)
+        ...     # Get mosaic path
+        ...     mosaic_path = result_context.outputs["mosaic_path"]
+
+    Inputs:
+        - `image_paths` (List[str]): Paths to input FITS images (from context.outputs)
+        - `ms_paths` (List[str], optional): Paths to source MS files for metadata
+
+    Outputs:
+        - `mosaic_path` (str): Path to output mosaic FITS file
+        - `mosaic_id` (int): Product ID of the mosaic in the database
+        - `group_id` (str): Mosaic group identifier
+    """
+
+    def __init__(self, config: PipelineConfig):
+        """Initialize mosaic stage.
+
+        Args:
+            config: Pipeline configuration
+        """
+        self.config = config
+
+    def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
+        """Validate prerequisites for mosaicking."""
+        # Check for image_paths in outputs
+        if "image_paths" not in context.outputs:
+            # Also accept single image_path
+            if "image_path" not in context.outputs:
+                return False, "image_paths or image_path required in context.outputs"
+
+        # Get image paths
+        if "image_paths" in context.outputs:
+            image_paths = context.outputs["image_paths"]
+        else:
+            image_paths = [context.outputs["image_path"]]
+
+        if not isinstance(image_paths, list):
+            image_paths = [image_paths]
+
+        # Check minimum number of images
+        min_images = self.config.mosaic.min_images
+        if len(image_paths) < min_images:
+            return (
+                False,
+                f"At least {min_images} images required for mosaic, got {len(image_paths)}",
+            )
+
+        # Verify images exist
+        missing = [p for p in image_paths if not Path(p).exists()]
+        if missing:
+            return False, f"Image files not found: {missing[:3]}{'...' if len(missing) > 3 else ''}"
+
+        return True, None
+
+    @require_casa6_python
+    @progress_monitor(operation_name="Mosaicking", warn_threshold=600.0)
+    def execute(self, context: PipelineContext) -> PipelineContext:
+        """Execute mosaic creation stage.
+
+        Creates a mosaic from the input images using StreamingMosaicManager.
+
+        Args:
+            context: Pipeline context with image_paths
+
+        Returns:
+            Updated context with mosaic_path, mosaic_id, and group_id
+        """
+        import time
+        from datetime import datetime
+
+        start_time_sec = time.time()
+        log_progress("Starting mosaic stage...")
+
+        from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
+        from dsa110_contimg.database.products import ensure_products_db
+        from dsa110_contimg.utils.time_utils import extract_ms_time_range
+
+        # Get image paths
+        if "image_paths" in context.outputs:
+            image_paths = context.outputs["image_paths"]
+        else:
+            image_paths = [context.outputs["image_path"]]
+
+        if not isinstance(image_paths, list):
+            image_paths = [image_paths]
+
+        logger.info(f"Mosaic stage: Creating mosaic from {len(image_paths)} images")
+
+        # Get MS paths if available (for metadata)
+        ms_paths = context.outputs.get("ms_paths", [])
+        if not isinstance(ms_paths, list):
+            ms_paths = [ms_paths] if ms_paths else []
+
+        # Determine output directories from config
+        output_dir = Path(context.config.paths.output_dir)
+        mosaic_output_dir = output_dir / "mosaics"
+        mosaic_output_dir.mkdir(parents=True, exist_ok=True)
+
+        images_dir = output_dir / "images"
+        ms_output_dir = output_dir / "ms"
+
+        # Initialize StreamingMosaicManager
+        products_db_path = Path(context.config.paths.products_db)
+        registry_db_path = Path(context.config.paths.cal_registry_db)
+
+        try:
+            manager = StreamingMosaicManager(
+                products_db_path=products_db_path,
+                registry_db_path=registry_db_path,
+                ms_output_dir=ms_output_dir,
+                images_dir=images_dir,
+                mosaic_output_dir=mosaic_output_dir,
+                ms_per_group=self.config.mosaic.ms_per_mosaic,
+            )
+        except Exception as e:
+            logger.error(f"Failed to initialize StreamingMosaicManager: {e}")
+            raise
+
+        # Generate group_id from first image timestamp
+        try:
+            first_image = Path(image_paths[0])
+            # Extract timestamp from image filename (format: YYYY-MM-DDTHH:MM:SS.img-MFS-image.fits)
+            timestamp_match = re.match(
+                r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})",
+                first_image.stem,
+            )
+            if timestamp_match:
+                group_id = f"mosaic_{timestamp_match.group(1)}"
+            else:
+                group_id = f"mosaic_{datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}"
+        except Exception:
+            group_id = f"mosaic_{datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}"
+
+        logger.info(f"Creating mosaic group: {group_id}")
+
+        # Build mosaic using the manager's weighted mosaic builder
+        try:
+            from dsa110_contimg.mosaic.cli import _build_weighted_mosaic, _ensure_mosaics_table
+
+            # Ensure mosaics table exists
+            products_db = ensure_products_db(products_db_path)
+            _ensure_mosaics_table(products_db)
+
+            # Build the mosaic
+            mosaic_name = group_id.replace("mosaic_", "")
+            mosaic_path = _build_weighted_mosaic(
+                image_paths=image_paths,
+                output_dir=mosaic_output_dir,
+                mosaic_name=mosaic_name,
+                products_db=products_db,
+            )
+
+            if mosaic_path is None:
+                raise RuntimeError("Mosaic creation returned None")
+
+            logger.info(f"Mosaic created: {mosaic_path}")
+
+            # Get mosaic_id from database
+            cursor = products_db.cursor()
+            cursor.execute(
+                "SELECT id FROM mosaics WHERE path = ? ORDER BY created_at DESC LIMIT 1",
+                (str(mosaic_path),),
+            )
+            row = cursor.fetchone()
+            mosaic_id = row[0] if row else None
+
+        except ImportError:
+            # Fallback: Use manager's create_mosaic if cli module not available
+            logger.warning("Using fallback mosaic creation via StreamingMosaicManager")
+
+            # Register group with manager
+            if ms_paths:
+                manager.products_db.execute(
+                    """
+                    INSERT OR REPLACE INTO mosaic_groups
+                    (group_id, ms_paths, created_at, status)
+                    VALUES (?, ?, ?, 'pending')
+                    """,
+                    (group_id, ",".join(str(p) for p in ms_paths), time.time()),
+                )
+                manager.products_db.commit()
+
+            mosaic_path = manager.create_mosaic(group_id)
+            if mosaic_path is None:
+                raise RuntimeError(f"Failed to create mosaic for group {group_id}")
+
+            mosaic_id = None
+
+        elapsed = time.time() - start_time_sec
+        logger.info(f"Mosaic stage completed in {elapsed:.1f}s: {mosaic_path}")
+
+        # Build result context
+        result = context.with_output("mosaic_path", str(mosaic_path))
+        result = result.with_output("group_id", group_id)
+        if mosaic_id is not None:
+            result = result.with_output("mosaic_id", mosaic_id)
+
+        return result
+
+    def cleanup(self, context: PipelineContext) -> None:
+        """Cleanup partial mosaic outputs on failure."""
+        # Get group_id if available
+        group_id = context.outputs.get("group_id")
+        if group_id:
+            logger.info(f"Cleaning up partial mosaic for group {group_id}")
+            # Mark group as failed in database
+            try:
+                from dsa110_contimg.database.products import ensure_products_db
+
+                products_db_path = Path(context.config.paths.products_db)
+                products_db = ensure_products_db(products_db_path)
+                products_db.execute(
+                    "UPDATE mosaic_groups SET status = 'failed' WHERE group_id = ?",
+                    (group_id,),
+                )
+                products_db.commit()
+            except Exception as e:
+                logger.warning(f"Could not mark mosaic group as failed: {e}")
+
+    def get_name(self) -> str:
+        """Get stage name."""
+        return "mosaic"
+
+
+class LightCurveStage(PipelineStage):
+    """Light curve stage: Compute variability metrics from photometry measurements.
+
+    This stage queries photometry measurements from the products database and
+    computes variability metrics (η, V, σ-deviation) for each source. It then
+    updates the variability_stats table and optionally triggers alerts for
+    sources exceeding configured thresholds.
+
+    The stage supports two modes:
+    1. **Per-mosaic mode**: Compute metrics for sources in a specific mosaic
+    2. **Full catalog mode**: Recompute metrics for all sources with sufficient epochs
+
+    Variability metrics computed:
+    - **η (eta)**: Weighted variance metric, sensitive to variability accounting for errors
+    - **V**: Coefficient of variation (std/mean), fractional variability
+    - **σ-deviation**: Maximum deviation from mean in units of std (ESE detection)
+    - **χ²/ν**: Reduced chi-squared relative to constant flux model
+
+    Example:
+        >>> config = PipelineConfig(paths=PathsConfig(...))
+        >>> stage = LightCurveStage(config)
+        >>> # Context should have photometry outputs from previous stage
+        >>> context = PipelineContext(
+        ...     config=config,
+        ...     outputs={
+        ...         "mosaic_path": "/data/mosaics/mosaic_2025-01-01T12:00:00.fits",
+        ...         "source_ids": ["NVSS_J123456+420312", "NVSS_J123500+420400"],
+        ...     }
+        ... )
+        >>> # Validate prerequisites
+        >>> is_valid, error = stage.validate(context)
+        >>> if is_valid:
+        ...     # Execute light curve computation
+        ...     result_context = stage.execute(context)
+        ...     # Get variability results
+        ...     variable_sources = result_context.outputs["variable_sources"]
+        ...     ese_candidates = result_context.outputs["ese_candidates"]
+
+    Inputs:
+        - `source_ids` (List[str], optional): Specific sources to process
+        - `mosaic_path` (str, optional): Mosaic to derive sources from
+        - If neither provided, processes all sources with sufficient epochs
+
+    Outputs:
+        - `variable_sources` (List[str]): Source IDs flagged as variable
+        - `ese_candidates` (List[str]): Source IDs flagged as ESE candidates
+        - `metrics_updated` (int): Number of sources with updated metrics
+    """
+
+    def __init__(self, config: PipelineConfig):
+        """Initialize light curve stage.
+
+        Args:
+            config: Pipeline configuration
+        """
+        self.config = config
+
+    def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
+        """Validate prerequisites for light curve computation.
+
+        Checks:
+        1. Products database exists and is accessible
+        2. Photometry table exists
+        3. Either source_ids provided OR mosaic_path provided OR sufficient epochs in DB
+        """
+        # Check products database exists
+        products_db_path = Path(context.config.paths.products_db)
+        if not products_db_path.exists():
+            return False, f"Products database not found: {products_db_path}"
+
+        # Check for source_ids or mosaic_path in context
+        has_source_ids = "source_ids" in context.outputs and context.outputs["source_ids"]
+        has_mosaic_path = "mosaic_path" in context.outputs and context.outputs["mosaic_path"]
+
+        # If neither provided, we'll process all sources - this is valid
+        # but we should warn if database is empty
+        if not has_source_ids and not has_mosaic_path:
+            logger.info(
+                "No source_ids or mosaic_path provided; "
+                "will compute metrics for all sources with sufficient epochs"
+            )
+
+        return True, None
+
+    @require_casa6_python
+    @progress_monitor(operation_name="Light Curve Computation", warn_threshold=120.0)
+    def execute(self, context: PipelineContext) -> PipelineContext:
+        """Execute light curve computation stage.
+
+        Queries photometry measurements, computes variability metrics,
+        and updates the variability_stats table.
+
+        Args:
+            context: Pipeline context with optional source_ids or mosaic_path
+
+        Returns:
+            Updated context with variable_sources, ese_candidates, metrics_updated
+        """
+        import time
+        from datetime import datetime
+
+        start_time_sec = time.time()
+        log_progress("Starting light curve computation stage...")
+
+        from dsa110_contimg.database.products import ensure_products_db
+        from dsa110_contimg.photometry.variability import (
+            calculate_eta_metric,
+            calculate_v_metric,
+            calculate_sigma_deviation,
+        )
+
+        products_db_path = Path(context.config.paths.products_db)
+        products_db = ensure_products_db(products_db_path)
+
+        # Get configuration
+        lc_config = context.config.light_curve
+        min_epochs = lc_config.min_epochs
+        eta_threshold = lc_config.eta_threshold
+        v_threshold = lc_config.v_threshold
+        sigma_threshold = lc_config.sigma_threshold
+        use_normalized = lc_config.use_normalized_flux
+
+        # Determine which sources to process
+        source_ids = context.outputs.get("source_ids", [])
+        mosaic_path = context.outputs.get("mosaic_path")
+
+        if source_ids:
+            logger.info(f"Processing {len(source_ids)} specified sources")
+        elif mosaic_path:
+            # Query sources that have photometry for this mosaic
+            logger.info(f"Querying sources with photometry from mosaic: {mosaic_path}")
+            cursor = products_db.cursor()
+            cursor.execute(
+                """
+                SELECT DISTINCT source_id FROM photometry
+                WHERE mosaic_path = ? OR image_path LIKE ?
+                """,
+                (mosaic_path, f"%{Path(mosaic_path).stem}%"),
+            )
+            source_ids = [row[0] for row in cursor.fetchall()]
+            logger.info(f"Found {len(source_ids)} sources from mosaic")
+        else:
+            # Query all sources with sufficient epochs
+            logger.info(f"Querying all sources with >= {min_epochs} epochs")
+            cursor = products_db.cursor()
+            cursor.execute(
+                """
+                SELECT source_id, COUNT(*) as n_epochs
+                FROM photometry
+                GROUP BY source_id
+                HAVING n_epochs >= ?
+                """,
+                (min_epochs,),
+            )
+            source_ids = [row[0] for row in cursor.fetchall()]
+            logger.info(f"Found {len(source_ids)} sources with sufficient epochs")
+
+        if not source_ids:
+            logger.warning("No sources found for light curve computation")
+            result = context.with_output("variable_sources", [])
+            result = result.with_output("ese_candidates", [])
+            result = result.with_output("metrics_updated", 0)
+            return result
+
+        # Ensure variability_stats table exists
+        self._ensure_variability_table(products_db)
+
+        # Process each source
+        variable_sources = []
+        ese_candidates = []
+        metrics_updated = 0
+
+        for source_id in source_ids:
+            try:
+                metrics = self._compute_source_metrics(
+                    products_db,
+                    source_id,
+                    use_normalized=use_normalized,
+                    min_epochs=min_epochs,
+                )
+
+                if metrics is None:
+                    continue
+
+                # Check thresholds
+                is_variable = metrics["eta"] > eta_threshold or metrics["v"] > v_threshold
+                is_ese_candidate = metrics["sigma_deviation"] > sigma_threshold
+
+                if is_variable:
+                    variable_sources.append(source_id)
+                if is_ese_candidate:
+                    ese_candidates.append(source_id)
+
+                # Update database if configured
+                if lc_config.update_database:
+                    self._update_variability_stats(products_db, source_id, metrics)
+                    metrics_updated += 1
+
+            except Exception as e:
+                logger.warning(f"Error computing metrics for {source_id}: {e}")
+                continue
+
+        products_db.commit()
+
+        # Trigger alerts if configured
+        if lc_config.trigger_alerts and ese_candidates:
+            self._trigger_ese_alerts(products_db, ese_candidates)
+
+        elapsed = time.time() - start_time_sec
+        logger.info(
+            f"Light curve computation completed in {elapsed:.1f}s: "
+            f"{metrics_updated} sources updated, "
+            f"{len(variable_sources)} variable, "
+            f"{len(ese_candidates)} ESE candidates"
+        )
+
+        # Build result context
+        result = context.with_output("variable_sources", variable_sources)
+        result = result.with_output("ese_candidates", ese_candidates)
+        result = result.with_output("metrics_updated", metrics_updated)
+
+        return result
+
+    def _ensure_variability_table(self, products_db) -> None:
+        """Ensure variability_stats table exists."""
+        products_db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS variability_stats (
+                source_id TEXT PRIMARY KEY,
+                ra_deg REAL,
+                dec_deg REAL,
+                nvss_flux_mjy REAL,
+                mean_flux_mjy REAL,
+                std_flux_mjy REAL,
+                chi2_nu REAL,
+                eta REAL,
+                v REAL,
+                sigma_deviation REAL,
+                n_epochs INTEGER,
+                last_measured_at TEXT,
+                last_mjd REAL,
+                updated_at TEXT
+            )
+            """
+        )
+
+    def _compute_source_metrics(
+        self,
+        products_db,
+        source_id: str,
+        use_normalized: bool = True,
+        min_epochs: int = 3,
+    ) -> Optional[Dict[str, Any]]:
+        """Compute variability metrics for a single source.
+
+        Args:
+            products_db: Database connection
+            source_id: Source identifier
+            use_normalized: Use normalized flux values
+            min_epochs: Minimum epochs required
+
+        Returns:
+            Dictionary with computed metrics, or None if insufficient data
+        """
+        import numpy as np
+        import pandas as pd
+        from dsa110_contimg.photometry.variability import (
+            calculate_eta_metric,
+            calculate_v_metric,
+            calculate_sigma_deviation,
+        )
+
+        # Query photometry for this source
+        cursor = products_db.cursor()
+        flux_col = "normalized_flux_jy" if use_normalized else "flux_jy"
+        err_col = "normalized_flux_err_jy" if use_normalized else "flux_err_jy"
+
+        cursor.execute(
+            f"""
+            SELECT
+                source_id, ra_deg, dec_deg, mjd,
+                {flux_col} as flux, {err_col} as flux_err,
+                nvss_flux_mjy
+            FROM photometry
+            WHERE source_id = ?
+            ORDER BY mjd
+            """,
+            (source_id,),
+        )
+        rows = cursor.fetchall()
+
+        if len(rows) < min_epochs:
+            return None
+
+        # Build DataFrame
+        df = pd.DataFrame(
+            rows,
+            columns=[
+                "source_id",
+                "ra_deg",
+                "dec_deg",
+                "mjd",
+                "flux",
+                "flux_err",
+                "nvss_flux_mjy",
+            ],
+        )
+
+        # Filter valid measurements
+        valid_mask = df["flux"].notna() & df["flux_err"].notna() & (df["flux_err"] > 0)
+        df = df[valid_mask]
+
+        if len(df) < min_epochs:
+            return None
+
+        # Compute metrics
+        fluxes = df["flux"].values
+        flux_errs = df["flux_err"].values
+
+        # η metric (weighted variance)
+        df_for_eta = df.rename(
+            columns={"flux": "normalized_flux_jy", "flux_err": "normalized_flux_err_jy"}
+        )
+        eta = calculate_eta_metric(df_for_eta)
+
+        # V metric (coefficient of variation)
+        v = calculate_v_metric(fluxes)
+
+        # σ-deviation
+        sigma_deviation = calculate_sigma_deviation(fluxes)
+
+        # χ²/ν (reduced chi-squared vs constant model)
+        mean_flux = np.mean(fluxes)
+        chi2 = np.sum(((fluxes - mean_flux) / flux_errs) ** 2)
+        dof = len(fluxes) - 1
+        chi2_nu = chi2 / dof if dof > 0 else 0.0
+
+        return {
+            "ra_deg": float(df["ra_deg"].iloc[0]),
+            "dec_deg": float(df["dec_deg"].iloc[0]),
+            "nvss_flux_mjy": float(df["nvss_flux_mjy"].iloc[0]) if pd.notna(df["nvss_flux_mjy"].iloc[0]) else None,
+            "mean_flux_mjy": float(mean_flux * 1000),  # Convert Jy to mJy
+            "std_flux_mjy": float(np.std(fluxes) * 1000),
+            "chi2_nu": float(chi2_nu),
+            "eta": float(eta),
+            "v": float(v),
+            "sigma_deviation": float(sigma_deviation),
+            "n_epochs": len(df),
+            "last_mjd": float(df["mjd"].max()),
+        }
+
+    def _update_variability_stats(
+        self, products_db, source_id: str, metrics: Dict[str, Any]
+    ) -> None:
+        """Update variability_stats table for a source."""
+        from datetime import datetime
+
+        products_db.execute(
+            """
+            INSERT OR REPLACE INTO variability_stats
+            (source_id, ra_deg, dec_deg, nvss_flux_mjy, mean_flux_mjy, std_flux_mjy,
+             chi2_nu, eta, v, sigma_deviation, n_epochs, last_mjd, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                source_id,
+                metrics["ra_deg"],
+                metrics["dec_deg"],
+                metrics.get("nvss_flux_mjy"),
+                metrics["mean_flux_mjy"],
+                metrics["std_flux_mjy"],
+                metrics["chi2_nu"],
+                metrics["eta"],
+                metrics["v"],
+                metrics["sigma_deviation"],
+                metrics["n_epochs"],
+                metrics["last_mjd"],
+                datetime.now().isoformat(),
+            ),
+        )
+
+    def _trigger_ese_alerts(self, products_db, ese_candidates: List[str]) -> None:
+        """Trigger alerts for ESE candidates."""
+        from datetime import datetime
+
+        # Ensure alerts table exists
+        products_db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS alerts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                source_id TEXT,
+                alert_type TEXT,
+                severity TEXT,
+                message TEXT,
+                triggered_at TEXT,
+                acknowledged INTEGER DEFAULT 0
+            )
+            """
+        )
+
+        for source_id in ese_candidates:
+            products_db.execute(
+                """
+                INSERT INTO alerts (source_id, alert_type, severity, message, triggered_at)
+                VALUES (?, 'ese_candidate', 'warning', ?, ?)
+                """,
+                (
+                    source_id,
+                    f"Source {source_id} exceeds sigma deviation threshold - potential ESE candidate",
+                    datetime.now().isoformat(),
+                ),
+            )
+
+        logger.info(f"Triggered {len(ese_candidates)} ESE candidate alerts")
+
+    def cleanup(self, context: PipelineContext) -> None:
+        """Cleanup on failure - nothing to clean for light curves."""
+        logger.info("Light curve stage cleanup - no cleanup needed")
+
+    def get_name(self) -> str:
+        """Get stage name."""
+        return "light_curve"
+
+
 class OrganizationStage(PipelineStage):
     """Organization stage: Organize MS files into date-based directory structure.
 

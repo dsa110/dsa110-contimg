@@ -821,15 +821,117 @@ class _FSHandler(FileSystemEventHandler):
         self._maybe_record(event.dest_path)
 
 
+# Constants for mosaic grouping
+MS_PER_MOSAIC = 10  # Number of MS files per mosaic
+MS_OVERLAP = 2      # Overlap between consecutive mosaics
+MS_NEW_PER_TRIGGER = MS_PER_MOSAIC - MS_OVERLAP  # 8 new MS files trigger next mosaic
+
+
+def _ensure_mosaic_tracking_table(conn) -> None:
+    """Ensure mosaic_groups tracking table exists in products database.
+
+    This table tracks which MS files have been included in mosaics to prevent
+    duplicate processing and implement the sliding window overlap pattern.
+    """
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS mosaic_groups (
+            group_id TEXT PRIMARY KEY,
+            ms_paths TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            mosaic_path TEXT,
+            created_at REAL NOT NULL,
+            completed_at REAL,
+            error TEXT
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS mosaic_ms_membership (
+            ms_path TEXT NOT NULL,
+            mosaic_group_id TEXT NOT NULL,
+            position_in_group INTEGER NOT NULL,
+            PRIMARY KEY (ms_path, mosaic_group_id)
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_mosaic_ms_path
+        ON mosaic_ms_membership(ms_path)
+        """
+    )
+    conn.commit()
+
+
+def get_mosaic_queue_status(products_db_path: Path) -> dict:
+    """Get mosaic queue status for API reporting.
+
+    Returns:
+        Dictionary with queue statistics:
+        - pending_count: Number of pending mosaic groups
+        - in_progress_count: Number of in-progress mosaics
+        - completed_count: Number of completed mosaics
+        - failed_count: Number of failed mosaics
+        - available_ms_count: MS files ready for next mosaic
+        - ms_until_next_mosaic: How many more MS files needed
+    """
+    import sqlite3
+
+    conn = sqlite3.connect(str(products_db_path))
+    try:
+        _ensure_mosaic_tracking_table(conn)
+
+        # Count mosaic groups by status
+        cursor = conn.execute(
+            """
+            SELECT status, COUNT(*) FROM mosaic_groups GROUP BY status
+            """
+        )
+        status_counts = dict(cursor.fetchall())
+
+        # Count MS files that haven't been in any mosaic yet
+        cursor = conn.execute(
+            """
+            SELECT COUNT(*) FROM ms_index
+            WHERE stage = 'imaged' AND status = 'done'
+            AND path NOT IN (SELECT ms_path FROM mosaic_ms_membership)
+            """
+        )
+        available_ms = cursor.fetchone()[0]
+
+        return {
+            "pending_count": status_counts.get("pending", 0),
+            "in_progress_count": status_counts.get("in_progress", 0),
+            "completed_count": status_counts.get("completed", 0),
+            "failed_count": status_counts.get("failed", 0),
+            "available_ms_count": available_ms,
+            "ms_until_next_mosaic": max(0, MS_NEW_PER_TRIGGER - available_ms),
+        }
+    finally:
+        conn.close()
+
+
 def check_for_complete_group(
-    ms_path: str, products_db_path: Path, time_window_minutes: float = 25.0
+    ms_path: str,
+    products_db_path: Path,
+    time_window_minutes: float = 55.0,
+    ms_per_mosaic: int = MS_PER_MOSAIC,
+    ms_overlap: int = MS_OVERLAP,
 ) -> Optional[List[str]]:
-    """Check if a complete group (10 MS files) exists within time window.
+    """Check if a complete group (10 MS files) exists for mosaic creation.
+
+    Implements a sliding window pattern:
+    - First mosaic: 10 completely new MS files
+    - Subsequent mosaics: 8 new + 2 overlap from previous mosaic
 
     Args:
-        ms_path: Path to MS file that was just imaged
+        ms_path: Path to MS file that was just imaged (trigger point)
         products_db_path: Path to products database
-        time_window_minutes: Time window in minutes (±window/2 around MS mid_mjd)
+        time_window_minutes: Time window in minutes to search for MS files
+        ms_per_mosaic: Number of MS files per mosaic (default: 10)
+        ms_overlap: Number of MS files to overlap between mosaics (default: 2)
 
     Returns:
         List of MS paths in complete group, or None if group incomplete
@@ -839,6 +941,8 @@ def check_for_complete_group(
     conn = sqlite3.connect(str(products_db_path))
 
     try:
+        _ensure_mosaic_tracking_table(conn)
+
         # Get mid_mjd for this MS
         cursor = conn.execute("SELECT mid_mjd FROM ms_index WHERE path = ?", (ms_path,))
         row = cursor.fetchone()
@@ -848,10 +952,10 @@ def check_for_complete_group(
         mid_mjd = row[0]
         window_half_days = time_window_minutes / (2 * 24 * 60)
 
-        # Query for MS files in same time window that are imaged
+        # Query for MS files in time window that are imaged
         cursor = conn.execute(
             """
-            SELECT path FROM ms_index
+            SELECT path, mid_mjd FROM ms_index
             WHERE mid_mjd BETWEEN ? AND ?
             AND stage = 'imaged'
             AND status = 'done'
@@ -860,12 +964,180 @@ def check_for_complete_group(
             (mid_mjd - window_half_days, mid_mjd + window_half_days),
         )
 
-        ms_paths = [row[0] for row in cursor.fetchall()]
+        all_ms = [(row[0], row[1]) for row in cursor.fetchall()]
 
-        # Check if we have a complete group (10 MS files = 50 minutes)
-        if len(ms_paths) >= 10:
-            return ms_paths[:10]  # Return first 10 for consistent group size
-        return None
+        if len(all_ms) < ms_per_mosaic:
+            return None  # Not enough MS files in window
+
+        # Find MS files that haven't been in any mosaic yet
+        ms_paths_only = [m[0] for m in all_ms]
+        placeholders = ",".join("?" * len(ms_paths_only))
+        cursor = conn.execute(
+            f"""
+            SELECT DISTINCT ms_path FROM mosaic_ms_membership
+            WHERE ms_path IN ({placeholders})
+            """,
+            ms_paths_only,
+        )
+        already_mosaicked = {row[0] for row in cursor.fetchall()}
+
+        # Separate new and already-mosaicked MS files
+        new_ms = [(p, mjd) for p, mjd in all_ms if p not in already_mosaicked]
+
+        # Check if we have enough new MS files for a mosaic
+        # For sliding window: need at least (ms_per_mosaic - ms_overlap) new files
+        ms_new_required = ms_per_mosaic - ms_overlap
+
+        if len(new_ms) < ms_new_required:
+            return None  # Not enough new MS files
+
+        # Build the mosaic group:
+        # - Take the oldest new MS files
+        # - Fill remaining slots with overlap from previous mosaic
+
+        # Sort new MS by time
+        new_ms.sort(key=lambda x: x[1])
+
+        # Take the first ms_new_required new MS files
+        group_new = new_ms[:ms_new_required]
+        earliest_new_mjd = group_new[0][1]
+
+        # Find overlap candidates: mosaicked MS files just before the earliest new one
+        if ms_overlap > 0 and already_mosaicked:
+            cursor = conn.execute(
+                """
+                SELECT path, mid_mjd FROM ms_index
+                WHERE path IN (SELECT ms_path FROM mosaic_ms_membership)
+                AND mid_mjd < ?
+                AND stage = 'imaged'
+                AND status = 'done'
+                ORDER BY mid_mjd DESC
+                LIMIT ?
+                """,
+                (earliest_new_mjd, ms_overlap),
+            )
+            overlap_ms = [(row[0], row[1]) for row in cursor.fetchall()]
+            overlap_ms.reverse()  # Put in chronological order
+        else:
+            overlap_ms = []
+
+        # If we don't have enough overlap, use more new MS files
+        if len(overlap_ms) < ms_overlap:
+            # First mosaic case: no overlap, use all new
+            needed_from_new = ms_per_mosaic
+            if len(new_ms) < needed_from_new:
+                return None
+            group_ms = new_ms[:needed_from_new]
+        else:
+            # Normal case: overlap + new
+            group_ms = overlap_ms + group_new
+
+        # Verify we have exactly ms_per_mosaic files
+        if len(group_ms) < ms_per_mosaic:
+            return None
+
+        # Return just the paths, sorted by time
+        group_ms.sort(key=lambda x: x[1])
+        return [m[0] for m in group_ms[:ms_per_mosaic]]
+
+    finally:
+        conn.close()
+
+
+def register_mosaic_group(
+    products_db_path: Path,
+    group_id: str,
+    ms_paths: List[str],
+    status: str = "pending",
+) -> None:
+    """Register a mosaic group and its MS membership.
+
+    Args:
+        products_db_path: Path to products database
+        group_id: Unique identifier for the mosaic group
+        ms_paths: List of MS file paths in chronological order
+        status: Initial status (default: pending)
+    """
+    import sqlite3
+    import time
+
+    conn = sqlite3.connect(str(products_db_path))
+    try:
+        _ensure_mosaic_tracking_table(conn)
+
+        # Insert mosaic group
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO mosaic_groups
+            (group_id, ms_paths, status, created_at)
+            VALUES (?, ?, ?, ?)
+            """,
+            (group_id, "|".join(ms_paths), status, time.time()),
+        )
+
+        # Insert MS membership
+        for i, ms_path in enumerate(ms_paths):
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO mosaic_ms_membership
+                (ms_path, mosaic_group_id, position_in_group)
+                VALUES (?, ?, ?)
+                """,
+                (ms_path, group_id, i),
+            )
+
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def update_mosaic_group_status(
+    products_db_path: Path,
+    group_id: str,
+    status: str,
+    mosaic_path: Optional[str] = None,
+    error: Optional[str] = None,
+) -> None:
+    """Update mosaic group status after processing.
+
+    Args:
+        products_db_path: Path to products database
+        group_id: Mosaic group identifier
+        status: New status (in_progress, completed, failed)
+        mosaic_path: Path to created mosaic (if completed)
+        error: Error message (if failed)
+    """
+    import sqlite3
+    import time
+
+    conn = sqlite3.connect(str(products_db_path))
+    try:
+        if status == "completed":
+            conn.execute(
+                """
+                UPDATE mosaic_groups
+                SET status = ?, mosaic_path = ?, completed_at = ?
+                WHERE group_id = ?
+                """,
+                (status, mosaic_path, time.time(), group_id),
+            )
+        elif status == "failed":
+            conn.execute(
+                """
+                UPDATE mosaic_groups
+                SET status = ?, error = ?, completed_at = ?
+                WHERE group_id = ?
+                """,
+                (status, error, time.time(), group_id),
+            )
+        else:
+            conn.execute(
+                """
+                UPDATE mosaic_groups SET status = ? WHERE group_id = ?
+                """,
+                (status, group_id),
+            )
+        conn.commit()
     finally:
         conn.close()
 
@@ -944,6 +1216,9 @@ def trigger_group_mosaic_creation(
 ) -> Optional[str]:
     """Trigger mosaic creation for a complete group of MS files.
 
+    Implements tracking via register_mosaic_group() and update_mosaic_group_status()
+    to prevent duplicate processing and enable queue status monitoring.
+
     Args:
         group_ms_paths: List of MS file paths in chronological order
         products_db_path: Path to products database
@@ -954,34 +1229,47 @@ def trigger_group_mosaic_creation(
     """
     log = logging.getLogger("stream.mosaic")
 
+    # Generate group ID from first MS timestamp
+    first_ms = Path(group_ms_paths[0])
+    import re
+
+    match = re.search(r"(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2})", first_ms.name)
+    if match:
+        timestamp_str = match.group(1).replace(" ", "T")
+        group_id = f"mosaic_{timestamp_str.replace(':', '-').replace('.', '-')}"
+    else:
+        # Fallback: use hash of paths (SHA256 for security, truncated for brevity)
+        import hashlib
+
+        paths_str = "|".join(sorted(group_ms_paths))
+        group_id = f"mosaic_{hashlib.sha256(paths_str.encode()).hexdigest()[:8]}"
+
+    log.info(f"Forming mosaic group {group_id} from {len(group_ms_paths)} MS files")
+
+    # Register mosaic group in tracking table BEFORE processing
+    # This prevents duplicate triggers and enables queue monitoring
     try:
+        register_mosaic_group(products_db_path, group_id, group_ms_paths, status="pending")
+        log.debug(f"Registered mosaic group {group_id} with {len(group_ms_paths)} MS files")
+    except Exception as e:
+        log.error(f"Failed to register mosaic group {group_id}: {e}")
+        return None
+
+    try:
+        # Update status to in_progress
+        update_mosaic_group_status(products_db_path, group_id, "in_progress")
+
         from dsa110_contimg.mosaic.orchestrator import MosaicOrchestrator
 
         # Initialize orchestrator
         orchestrator = MosaicOrchestrator(products_db_path=products_db_path)
 
-        # Generate group ID from first MS timestamp
-        # Extract timestamp from first MS path
-        first_ms = Path(group_ms_paths[0])
-        # Try to extract timestamp from filename (format: YYYY-MM-DDTHH:MM:SS)
-        import re
-
-        match = re.search(r"(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2})", first_ms.name)
-        if match:
-            timestamp_str = match.group(1).replace(" ", "T")
-            group_id = f"mosaic_{timestamp_str.replace(':', '-').replace('.', '-')}"
-        else:
-            # Fallback: use hash of paths (SHA256 for security, truncated for brevity)
-            import hashlib
-
-            paths_str = "|".join(sorted(group_ms_paths))
-            group_id = f"mosaic_{hashlib.sha256(paths_str.encode()).hexdigest()[:8]}"
-
-        log.info(f"Forming mosaic group {group_id} from {len(group_ms_paths)} MS files")
-
         # Form group
         if not orchestrator._form_group_from_ms_paths(group_ms_paths, group_id):
             log.error(f"Failed to form group {group_id}")
+            update_mosaic_group_status(
+                products_db_path, group_id, "failed", error="Failed to form group"
+            )
             return None
 
         # Process group workflow (calibration → imaging → mosaic)
@@ -989,13 +1277,22 @@ def trigger_group_mosaic_creation(
 
         if mosaic_path:
             log.info(f"Mosaic created successfully: {mosaic_path}")
+            update_mosaic_group_status(
+                products_db_path, group_id, "completed", mosaic_path=mosaic_path
+            )
             return mosaic_path
         else:
             log.error(f"Mosaic creation failed for group {group_id}")
+            update_mosaic_group_status(
+                products_db_path, group_id, "failed", error="Orchestrator returned None"
+            )
             return None
 
     except Exception as e:
         log.exception(f"Failed to trigger mosaic creation: {e}")
+        update_mosaic_group_status(
+            products_db_path, group_id, "failed", error=str(e)
+        )
         return None
 
 

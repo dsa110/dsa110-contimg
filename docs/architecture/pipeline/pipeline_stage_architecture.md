@@ -1,7 +1,7 @@
 # Pipeline Stage Architecture
 
 **Purpose:** Comprehensive guide to the stage-based pipeline architecture  
-**Last Updated:** 2025-11-11  
+**Last Updated:** 2025-11-26  
 **Status:** Production
 
 ---
@@ -367,6 +367,87 @@ class PipelineContext:
 
 ---
 
+### 10. MosaicStage
+
+**Purpose:** Create mosaics from groups of imaged MS files
+
+**Responsibilities:**
+
+- Group images by time (configurable, default 10 per mosaic)
+- Validate tile quality and consistency
+- Create weighted mosaics using optimal overlap handling
+- Register mosaics in the products database
+
+**Inputs:**
+
+- `image_paths` (list of image paths from previous imaging stages)
+- `ms_paths` (optional, source MS files for metadata)
+
+**Outputs:**
+
+- `mosaic_path` (path to output mosaic FITS file)
+- `mosaic_id` (product ID in database)
+- `group_id` (mosaic group identifier)
+
+**Dependencies:** ImagingStage
+
+**Configuration:** `MosaicConfig`
+
+- `enabled` (default: True) - Enable mosaic creation
+- `ms_per_mosaic` (default: 10) - Number of MS files per mosaic
+- `overlap_count` (default: 2) - MS files overlap between mosaics
+- `min_images` (default: 5) - Minimum images required
+- `enable_photometry` (default: True) - Run photometry after mosaic
+- `enable_crossmatch` (default: True) - Run cross-matching after mosaic
+
+---
+
+### 11. LightCurveStage
+
+**Purpose:** Compute variability metrics from photometry measurements
+
+**Responsibilities:**
+
+- Query photometry measurements from products database
+- Compute variability metrics (η, V, σ-deviation, χ²/ν)
+- Update variability_stats table
+- Trigger alerts for ESE candidates exceeding thresholds
+
+**Variability Metrics:**
+
+- **η (eta):** Weighted variance metric, sensitive to variability accounting
+  for measurement errors
+- **V:** Coefficient of variation (std/mean), fractional variability
+- **σ-deviation:** Maximum deviation from mean in units of std (ESE detection)
+- **χ²/ν:** Reduced chi-squared relative to constant flux model
+
+**Inputs:**
+
+- `source_ids` (optional, specific sources to process)
+- `mosaic_path` (optional, derive sources from mosaic)
+- If neither provided, processes all sources with sufficient epochs
+
+**Outputs:**
+
+- `variable_sources` (list of source IDs flagged as variable)
+- `ese_candidates` (list of source IDs flagged as ESE candidates)
+- `metrics_updated` (number of sources with updated metrics)
+
+**Dependencies:** AdaptivePhotometryStage, MosaicStage (optional)
+
+**Configuration:** `LightCurveConfig`
+
+- `enabled` (default: True) - Enable light curve computation
+- `min_epochs` (default: 3) - Minimum epochs required for metrics
+- `eta_threshold` (default: 2.0) - η threshold for variable flag
+- `v_threshold` (default: 0.1) - V threshold for variable flag
+- `sigma_threshold` (default: 3.0) - σ-deviation threshold for ESE detection
+- `use_normalized_flux` (default: True) - Use normalized flux values
+- `update_database` (default: True) - Update variability_stats table
+- `trigger_alerts` (default: True) - Trigger alerts for ESE candidates
+
+---
+
 ## Dependency Resolution
 
 The `PipelineOrchestrator` uses **topological sort** (Kahn's algorithm) to
@@ -411,10 +492,20 @@ CalibrationStage (depends on ConversionStage, CalibrationSolveStage)
     ↓
 ImagingStage (depends on CalibrationStage)
     ↓
-OrganizationStage (depends on ConversionStage)
-ValidationStage (depends on ImagingStage)
-CrossMatchStage (depends on ImagingStage)
-AdaptivePhotometryStage (depends on ImagingStage)
+    ├── OrganizationStage (depends on ConversionStage)
+    ├── ValidationStage (depends on ImagingStage)
+    ├── CrossMatchStage (depends on ImagingStage)
+    └── MosaicStage (depends on ImagingStage)
+            ↓
+        AdaptivePhotometryStage (depends on MosaicStage or ImagingStage)
+            ↓
+        LightCurveStage (depends on AdaptivePhotometryStage, MosaicStage)
+```
+
+**Complete Streaming Workflow:**
+
+```
+HDF5 → MS → Calibration → Imaging → Mosaic → Photometry → Light Curves
 ```
 
 ---

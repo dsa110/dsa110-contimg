@@ -1,21 +1,25 @@
 # DSA-110 Continuum Imaging Source
 
-This directory contains the source code for the pipeline.
+This directory contains the main Python package source code.
 
-## 📂 Structure
+## Structure
 
-- **`dsa110_contimg/`**: The main Python package.
-  - **`docs/`**: [Documentation Hub](dsa110_contimg/docs/README.md).
-- **`scripts/`**: Operational and maintenance scripts.
-- **`examples/`**: Example usage scripts.
+- **`dsa110_contimg/`**: The main Python package
+  - Core modules: `conversion/`, `calibration/`, `imaging/`, `pipeline/`
+  - API backend: `api/`
+  - Database utilities: `database/`
+  - Scripts: `scripts/` (operational scripts consolidated here)
 
-## 🛠️ Installation
+## Related Directories
 
-This project is managed from the parent directory (`../`). See
-`../pyproject.toml` for build configuration.
+See the parent directory (`../`) for:
 
-## ⚠️ Note on Scripts
+- **`docs/`**: [Documentation Hub](../docs/README.md)
+- **`tests/`**: All test files (unit, integration, e2e)
+- **`config/`**: Configuration files (YAML, Lua)
+- **`state/`**: SQLite databases and runtime state
 
-- General purpose scripts are in `scripts/`.
-- Package-internal scripts (e.g. service definitions) are in
-  `dsa110_contimg/scripts/`.
+## Installation
+
+This project is managed from the parent directory. See `../pyproject.toml`
+for build configuration.
