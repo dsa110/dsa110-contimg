@@ -50,13 +50,13 @@ def get_catalog_coverage_status(
         # Get current declination from pointing history
         if ingest_db_path is None:
             # Try to find ingest DB from common locations
-            # In Docker: /app/state/ingest_queue.sqlite3
-            # On host: /data/dsa110-contimg/state/ingest.sqlite3
+            # In Docker: /app/state/db/ingest_queue.sqlite3
+            # On host: /data/dsa110-contimg/state/db/ingest.sqlite3
             for path_str in [
-                "/app/state/ingest_queue.sqlite3",  # Docker container path
-                "state/ingest_queue.sqlite3",  # Relative Docker path
-                "/data/dsa110-contimg/state/ingest.sqlite3",  # Host path
-                "state/ingest.sqlite3",  # Relative host path
+                "/app/state/db/ingest_queue.sqlite3",  # Docker container path
+                "state/db/ingest_queue.sqlite3",  # Relative Docker path
+                "/data/dsa110-contimg/state/db/ingest.sqlite3",  # Host path
+                "state/db/ingest.sqlite3",  # Relative host path
             ]:
                 candidate = Path(path_str)
                 if candidate.exists():

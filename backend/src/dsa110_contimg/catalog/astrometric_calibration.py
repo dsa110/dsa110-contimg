@@ -19,7 +19,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def create_astrometry_tables(db_path: str = "/data/dsa110-contimg/state/products.sqlite3") -> bool:
+def create_astrometry_tables(db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3") -> bool:
     """Create database tables for astrometric calibration tracking.
 
     Tables created:
@@ -254,7 +254,7 @@ def store_astrometric_solution(
     solution: Dict,
     mosaic_id: int,
     reference_catalog: str = "FIRST",
-    db_path: str = "/data/dsa110-contimg/state/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
 ) -> Optional[int]:
     """Store astrometric solution in database.
 
@@ -394,7 +394,7 @@ def apply_wcs_correction(
 
 def mark_solution_applied(
     solution_id: int,
-    db_path: str = "/data/dsa110-contimg/state/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
 ) -> bool:
     """Mark astrometric solution as applied.
 
@@ -431,7 +431,7 @@ def mark_solution_applied(
 
 def get_astrometric_accuracy_stats(
     time_window_days: Optional[float] = 30.0,
-    db_path: str = "/data/dsa110-contimg/state/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
 ) -> Dict:
     """Get astrometric accuracy statistics.
 
@@ -485,7 +485,7 @@ def get_astrometric_accuracy_stats(
 
 def get_recent_astrometric_solutions(
     limit: int = 10,
-    db_path: str = "/data/dsa110-contimg/state/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
 ) -> pd.DataFrame:
     """Get recent astrometric solutions.
 

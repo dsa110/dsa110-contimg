@@ -16,7 +16,7 @@ print("=" * 70)
 
 try:
     refs = query_reference_sources(
-        db_path=Path("/data/dsa110-contimg/state/master_sources.sqlite3"),
+        db_path=Path("/data/dsa110-contimg/state/db/master_sources.sqlite3"),
         ra_center=105.0,  # 0702+445 field
         dec_center=44.5,
         fov_radius_deg=1.5,

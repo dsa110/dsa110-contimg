@@ -357,7 +357,7 @@ def get_dlq(db_path: Optional[Path] = None) -> DeadLetterQueue:
     if db_path is None:
         import os
 
-        products_db = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        products_db = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         db_path = products_db
 
     return DeadLetterQueue(db_path)

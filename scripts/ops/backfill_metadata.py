@@ -16,7 +16,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-DB_PATH = "/data/dsa110-contimg/state/products.sqlite3"
+DB_PATH = "/data/dsa110-contimg/state/db/products.sqlite3"
 IMAGES_DIR = Path("/stage/dsa110-contimg/images")
 MS_DIR = Path("/stage/dsa110-contimg/ms")
 

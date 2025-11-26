@@ -345,7 +345,7 @@ def extract_timestamp_index(filename: str) -> int:
 def save_candidates_to_db(
     candidates: List[Dict[str, Any]],
     ms_path: str,
-    db_path: str = "/data/dsa110-contimg/state/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
 ) -> None:
     """Save candidates to SQLite database."""
     if not candidates:

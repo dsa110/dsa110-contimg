@@ -5,7 +5,7 @@ This script builds the production calibrator registry database from
 NVSS catalog for declinations -40° to +90° in 10° strips.
 
 Expected runtime: ~10-15 minutes
-Output: /data/dsa110-contimg/state/calibrator_registry.sqlite3
+Output: /data/dsa110-contimg/state/db/calibrator_registry.sqlite3
 """
 
 import sys
@@ -28,7 +28,7 @@ print("=" * 70)
 print()
 
 # Configuration
-DB_PATH = "/data/dsa110-contimg/state/calibrator_registry.sqlite3"
+DB_PATH = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3"
 CATALOG_TYPE = "nvss"
 DEC_STRIPS = list(range(-40, 91, 10))  # -40° to +90° in 10° steps
 MIN_FLUX_JY = 0.5

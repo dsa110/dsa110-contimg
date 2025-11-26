@@ -395,8 +395,8 @@ def main():
     ingest_db_path = args.ingest_db
     if ingest_db_path is None:
         for path_str in [
-            "/data/dsa110-contimg/state/ingest.sqlite3",
-            "state/ingest.sqlite3",
+            "/data/dsa110-contimg/state/db/ingest.sqlite3",
+            "state/db/ingest.sqlite3",
         ]:
             candidate = Path(path_str)
             if candidate.exists():

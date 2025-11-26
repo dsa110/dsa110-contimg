@@ -425,7 +425,7 @@ def fetch_pointing_history(
     # Get data_registry path if available
     data_registry_db = None
     if exclude_synthetic:
-        registry_path = Path(os.getenv("PIPELINE_DATA_REGISTRY_DB", "state/data_registry.sqlite3"))
+        registry_path = Path(os.getenv("PIPELINE_DATA_REGISTRY_DB", "state/db/data_registry.sqlite3"))
         if registry_path.exists():
             data_registry_db = registry_path
 
@@ -457,15 +457,15 @@ def fetch_pointing_history(
 
     # Query HDF5 index database for files within the time range
     # This is much faster than scanning /data/incoming/ directly (80k+ files)
-    # In Docker: /app/state/hdf5.sqlite3, on host: /data/dsa110-contimg/state/hdf5.sqlite3
-    hdf5_db_path = Path(os.getenv("HDF5_DB_PATH", "state/hdf5.sqlite3"))
+    # In Docker: /app/state/db/hdf5.sqlite3, on host: /data/dsa110-contimg/state/db/hdf5.sqlite3
+    hdf5_db_path = Path(os.getenv("HDF5_DB_PATH", "state/db/hdf5.sqlite3"))
     if not hdf5_db_path.is_absolute():
         # Resolve relative to project root, not CWD (which may be /app/state/logs in API)
         # Try Docker path first, then host path
-        if Path("/app/state/hdf5.sqlite3").exists():
-            hdf5_db_path = Path("/app/state/hdf5.sqlite3")
-        elif Path("/data/dsa110-contimg/state/hdf5.sqlite3").exists():
-            hdf5_db_path = Path("/data/dsa110-contimg/state/hdf5.sqlite3")
+        if Path("/app/state/db/hdf5.sqlite3").exists():
+            hdf5_db_path = Path("/app/state/db/hdf5.sqlite3")
+        elif Path("/data/dsa110-contimg/state/db/hdf5.sqlite3").exists():
+            hdf5_db_path = Path("/data/dsa110-contimg/state/db/hdf5.sqlite3")
         else:
             hdf5_db_path = Path.cwd() / hdf5_db_path  # Fallback to CWD
 
@@ -1058,7 +1058,7 @@ def fetch_observation_timeline(
     Args:
         data_dir: Directory path (for backward compatibility, not used if products_db provided)
         gap_threshold_hours: Maximum gap in hours before starting a new segment
-        products_db: Path to products database (defaults to env var or state/products.sqlite3)
+        products_db: Path to products database (defaults to env var or state/db/products.sqlite3)
 
     Returns:
         ObservationTimeline with segments and statistics
@@ -1069,7 +1069,7 @@ def fetch_observation_timeline(
 
     # Get products database path
     if products_db is None:
-        products_db = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        products_db = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
 
     if not products_db.exists():
         return ObservationTimeline()

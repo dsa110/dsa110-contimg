@@ -93,7 +93,7 @@ def main() -> int:
         description='Build & calibrate central transit group for a calibrator')
     ap.add_argument('--input-dir', default='/data/incoming')
     ap.add_argument('--output-dir', default='state/ms/central_cal')
-    ap.add_argument('--products-db', default='state/products.sqlite3')
+    ap.add_argument('--products-db', default='state/db/products.sqlite3')
     ap.add_argument('--vla-db', default='state/catalogs/vla_calibrators.sqlite3', help='Optional VLA calibrator SQLite DB')
     ap.add_argument('--name', default='0834+555')
     ap.add_argument('--catalog', action='append', default=[

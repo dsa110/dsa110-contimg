@@ -295,8 +295,8 @@ def main():
     parser.add_argument(
         "--products-db",
         type=Path,
-        default=Path("state/products.sqlite3"),
-        help="Path to products database (default: state/products.sqlite3)",
+        default=Path("state/db/products.sqlite3"),
+        help="Path to products database (default: state/db/products.sqlite3)",
     )
     parser.add_argument(
         "--max-days-back",

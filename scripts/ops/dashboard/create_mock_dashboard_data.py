@@ -141,6 +141,6 @@ def create_mock_data(db_path: Path):
 
 if __name__ == "__main__":
     import sys
-    db_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("/data/dsa110-contimg/state/products.sqlite3")
+    db_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("/data/dsa110-contimg/state/db/products.sqlite3")
     create_mock_data(db_path)
 

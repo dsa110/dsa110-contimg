@@ -18,7 +18,7 @@ Arguments:
     --match-radius ARCSEC    Cross-match radius in arcsec (default: 5.0)
     --min-matches N          Minimum matches required (default: 10)
     --reference-catalog CAT  Reference catalog (default: FIRST)
-    --db-path PATH           Database path (default: state/products.sqlite3)
+    --db-path PATH           Database path (default: state/db/products.sqlite3)
     --max-files N            Maximum files to process (default: unlimited)
     --pattern GLOB           Glob pattern for mosaic files (default: *_mosaic.fits)
     --dry-run                Show what would be processed without doing it
@@ -363,8 +363,8 @@ def main():
     parser.add_argument(
         "--db-path",
         type=Path,
-        default=Path("state/products.sqlite3"),
-        help="Database path (default: state/products.sqlite3)",
+        default=Path("state/db/products.sqlite3"),
+        help="Database path (default: state/db/products.sqlite3)",
     )
 
     # Modes

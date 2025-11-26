@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from dsa110_contimg.api.data_access import _connect
 from dsa110_contimg.api.image_utils import get_fits_path, is_casa_image
 
-PRODUCTS_DB = Path(os.getenv("PIPELINE_PRODUCTS_DB", "/data/dsa110-contimg/state/products.sqlite3"))
+PRODUCTS_DB = Path(os.getenv("PIPELINE_PRODUCTS_DB", "/data/dsa110-contimg/state/db/products.sqlite3"))
 
 
 def test_database_images() -> Dict:

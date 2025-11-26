@@ -158,7 +158,7 @@ def test_calibrator_dec_range():
 def test_vla_calibrator_database_exists():
     """Smoke test to check if the actual VLA calibrator database exists."""
     # This tests the real database path
-    db_path = Path("/data/dsa110-contimg/state/vla_calibrators.sqlite3")
+    db_path = Path("/data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3")
 
     if db_path.exists():
         conn = sqlite3.connect(db_path)

@@ -28,7 +28,7 @@ def apply_astrometric_refinement(
     min_matches: int = 10,
     flux_weight: bool = True,
     apply_correction: bool = True,
-    db_path: str = "/data/dsa110-contimg/state/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
 ) -> Optional[dict]:
     """Apply astrometric refinement to a mosaic using reference catalog.
 

@@ -63,7 +63,7 @@ def list_mosaics(limit: int = Query(10, ge=1, le=100)):
 
     from dsa110_contimg.api.data_access import fetch_mosaics_recent
 
-    db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+    db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
 
     mosaics, total = fetch_mosaics_recent(db_path, limit=limit)
     return {"mosaics": mosaics, "total": total, "limit": limit}

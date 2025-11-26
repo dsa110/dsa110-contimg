@@ -119,7 +119,7 @@ def api_client(temp_registry_db, monkeypatch):
     def mock_ensure_db(path):
         """Mock ensure_data_registry_db to use temp db."""
         path_str = str(path)
-        if path_str == "/data/dsa110-contimg/state/products.sqlite3":
+        if path_str == "/data/dsa110-contimg/state/db/products.sqlite3":
             return original_ensure_db(temp_registry_db)
         return original_ensure_db(path)
 

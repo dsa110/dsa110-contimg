@@ -202,7 +202,7 @@ def find_subband_groups(
 
         from dsa110_contimg.database.hdf5_index import query_subband_groups
 
-        hdf5_db = Path(_os.getenv("HDF5_DB_PATH", "state/hdf5.sqlite3"))
+        hdf5_db = Path(_os.getenv("HDF5_DB_PATH", "state/db/hdf5.sqlite3"))
         if hdf5_db.exists():
             # Use database query with consistent clustering tolerance
             groups = query_subband_groups(
@@ -977,7 +977,7 @@ def convert_subband_groups_to_ms(
                 from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
                 # Find products database
-                products_db_path = PathLib(os.getenv("PRODUCTS_DB_PATH", "state/products.sqlite3"))
+                products_db_path = PathLib(os.getenv("PRODUCTS_DB_PATH", "state/db/products.sqlite3"))
                 if not products_db_path.is_absolute():
                     # Search in common locations
                     for base_dir in [

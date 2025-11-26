@@ -2646,7 +2646,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Mosaic planner/builder")
     sub = p.add_subparsers(dest="cmd")
     sp = sub.add_parser("plan", help="Plan a mosaic from products DB tiles")
-    sp.add_argument("--products-db", default="state/products.sqlite3")
+    sp.add_argument("--products-db", default="state/db/products.sqlite3")
     sp.add_argument("--name", required=True)
     sp.add_argument(
         "--since",
@@ -2668,7 +2668,7 @@ def build_parser() -> argparse.ArgumentParser:
     sp.set_defaults(func=cmd_plan)
 
     sp = sub.add_parser("build", help="Build a mosaic from a planned set")
-    sp.add_argument("--products-db", default="state/products.sqlite3")
+    sp.add_argument("--products-db", default="state/db/products.sqlite3")
     sp.add_argument("--name", required=True)
     sp.add_argument("--output", required=True, help="Output image base path (CASA image)")
     sp.add_argument(

@@ -44,8 +44,8 @@ logger = logging.getLogger(__name__)
 INCOMING_DIR = Path("/data/incoming")
 OUTPUT_MS_DIR = Path("/stage/dsa110-contimg/ms")
 SCRATCH_DIR = Path("/stage/dsa110-contimg")
-PRODUCTS_DB = Path("/stage/dsa110-contimg/state/products.sqlite3")
-CAL_REGISTRY_DB = Path("/stage/dsa110-contimg/state/cal_registry.sqlite3")
+PRODUCTS_DB = Path("/stage/dsa110-contimg/state/db/products.sqlite3")
+CAL_REGISTRY_DB = Path("/stage/dsa110-contimg/state/db/cal_registry.sqlite3")
 
 CALIBRATOR_NAME = "0834+555"
 TARGET_DATE = "2025-10-29"

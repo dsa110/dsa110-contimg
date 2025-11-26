@@ -78,8 +78,8 @@ class CalibratorMSGenerator:
         >>> gen = CalibratorMSGenerator(
         ...     input_dir=Path('/data/incoming'),
         ...     output_dir=Path('/stage/dsa110-contimg/ms/calibrators'),
-        ...     products_db=Path('/data/dsa110-contimg/state/products.sqlite3'),
-        ...     hdf5_db=Path('/data/dsa110-contimg/state/hdf5.sqlite3'),
+        ...     products_db=Path('/data/dsa110-contimg/state/db/products.sqlite3'),
+        ...     hdf5_db=Path('/data/dsa110-contimg/state/db/hdf5.sqlite3'),
         ...     catalogs=[Path('/data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3')]
         ... )
         >>> result = gen.generate_from_transit(
@@ -142,7 +142,7 @@ class CalibratorMSGenerator:
                         else None
                     ),
                     # 2. Standard absolute path
-                    Path("/data/dsa110-contimg/state/hdf5.sqlite3"),
+                    Path("/data/dsa110-contimg/state/db/hdf5.sqlite3"),
                     # 3. From PIPELINE_STATE_DIR if set
                     (
                         Path(os.getenv("PIPELINE_STATE_DIR", "")) / "hdf5.sqlite3"
@@ -162,7 +162,7 @@ class CalibratorMSGenerator:
 
                 # If no existing database found, use the most likely default
                 if self.hdf5_db is None:
-                    self.hdf5_db = Path("/data/dsa110-contimg/state/hdf5.sqlite3")
+                    self.hdf5_db = Path("/data/dsa110-contimg/state/db/hdf5.sqlite3")
 
         self.catalogs = [Path(c) for c in catalogs]
         self.scratch_dir = Path(scratch_dir) if scratch_dir else None

@@ -219,7 +219,7 @@ def main():
     # Now find tiles (which would be created from these observations)
     print("\nStep 5: Finding tiles in validity window...")
     tiles = _fetch_tiles(
-        Path("state/products.sqlite3"),
+        Path("state/db/products.sqlite3"),
         since=window_start.unix,
         until=window_end.unix,
         pbcor_only=True,

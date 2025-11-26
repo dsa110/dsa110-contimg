@@ -136,7 +136,7 @@ def process_one_group(
     queue.record_metrics(gid, total_time=total, writer_type=writer_type)
 
     # MS path already determined above, verify it exists and is valid
-    products_db_path = os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3")
+    products_db_path = os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3")
     try:
         # CRITICAL: Verify MS file exists and is valid before proceeding
         ms_path_obj = Path(ms_path)
@@ -350,18 +350,18 @@ def main():
     )
     parser.add_argument(
         "--queue-db",
-        default="state/ingest.sqlite3",
-        help="Queue database path (default: state/ingest.sqlite3)",
+        default="state/db/ingest.sqlite3",
+        help="Queue database path (default: state/db/ingest.sqlite3)",
     )
     parser.add_argument(
         "--products-db",
-        default="state/products.sqlite3",
-        help="Products database path (default: state/products.sqlite3)",
+        default="state/db/products.sqlite3",
+        help="Products database path (default: state/db/products.sqlite3)",
     )
     parser.add_argument(
         "--registry-db",
-        default="state/cal_registry.sqlite3",
-        help="Calibration registry database path (default: state/cal_registry.sqlite3)",
+        default="state/db/cal_registry.sqlite3",
+        help="Calibration registry database path (default: state/db/cal_registry.sqlite3)",
     )
     parser.add_argument(
         "--expected-subbands",

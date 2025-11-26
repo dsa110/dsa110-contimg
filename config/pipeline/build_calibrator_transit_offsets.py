@@ -71,7 +71,7 @@ def main() -> int:
     )
     ap.add_argument('--input-dir', default='/data/incoming')
     ap.add_argument('--output-dir', default='state/ms/transit_offsets')
-    ap.add_argument('--products-db', default='state/products.sqlite3')
+    ap.add_argument('--products-db', default='state/db/products.sqlite3')
     ap.add_argument('--name', default='0834+555')
     ap.add_argument('--catalog', action='append', default=[
         '/data/dsa110-contimg/data-samples/catalogs/vla_calibrators_parsed.csv'

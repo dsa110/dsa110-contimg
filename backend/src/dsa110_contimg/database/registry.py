@@ -20,8 +20,8 @@ code using the following precedence order:
    - Example: `export PIPELINE_STATE_DIR=/data/pipeline/state`
 
 3. **Default path** (lowest priority)
-   - Pipeline: `{config.paths.state_dir}/cal_registry.sqlite3` (defaults to `state/cal_registry.sqlite3`)
-   - CLI: `/data/dsa110-contimg/state/cal_registry.sqlite3`
+   - Pipeline: `{config.paths.state_dir}/cal_registry.sqlite3` (defaults to `state/db/cal_registry.sqlite3`)
+   - CLI: `/data/dsa110-contimg/state/db/cal_registry.sqlite3`
 
 This ensures that CLI and pipeline use the same registry database when
 environment variables are set consistently.

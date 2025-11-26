@@ -59,7 +59,7 @@ def main():
     parser.add_argument(
         "--products-db",
         type=str,
-        default="state/products.sqlite3",
+        default="state/db/products.sqlite3",
         help="Products database path",
     )
     parser.add_argument(

@@ -63,7 +63,7 @@ def mosaics_create(
     from dsa110_contimg.database.jobs import create_job, get_job
     from dsa110_contimg.database.products import ensure_products_db
 
-    db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+    db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
     conn = ensure_products_db(db_path)
 
     # Validate request

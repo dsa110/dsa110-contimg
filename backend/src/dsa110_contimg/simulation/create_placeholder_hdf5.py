@@ -368,7 +368,7 @@ def main():
     batch_parser.add_argument(
         "--hdf5-db",
         type=Path,
-        default=Path("/data/dsa110-contimg/state/hdf5.sqlite3"),
+        default=Path("/data/dsa110-contimg/state/db/hdf5.sqlite3"),
         help="HDF5 database path",
     )
     batch_parser.add_argument(

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+import sqlite3
+from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Query, Request
@@ -14,6 +16,39 @@ from dsa110_contimg.pipeline.state import SQLiteStateRepository, StateRepository
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+# Workflow Status Models
+class WorkflowStageStatus(BaseModel):
+    """Status of a single pipeline stage."""
+
+    name: str = Field(..., description="Stage name (e.g., 'ingest', 'conversion')")
+    display_name: str = Field(..., description="Human-readable stage name")
+    pending: int = Field(0, description="Items waiting to be processed")
+    processing: int = Field(0, description="Items currently being processed")
+    completed_today: int = Field(0, description="Items completed in the last 24 hours")
+    failed_today: int = Field(0, description="Items failed in the last 24 hours")
+
+
+class WorkflowStatusResponse(BaseModel):
+    """Unified workflow status across all pipeline stages."""
+
+    stages: List[WorkflowStageStatus] = Field(
+        ..., description="Status of each pipeline stage"
+    )
+    bottleneck: Optional[str] = Field(
+        None, description="Stage with highest backlog (bottleneck)"
+    )
+    estimated_completion: Optional[str] = Field(
+        None, description="ETA for clearing current backlog (ISO format)"
+    )
+    total_pending: int = Field(0, description="Total items pending across all stages")
+    total_completed_today: int = Field(0, description="Total completed today")
+    total_failed_today: int = Field(0, description="Total failed today")
+    overall_health: str = Field(
+        "healthy", description="Overall health: 'healthy', 'degraded', or 'stalled'"
+    )
+    updated_at: str = Field(..., description="Timestamp of this status (ISO format)")
 
 
 # Response Models
@@ -400,3 +435,255 @@ def get_metrics_summary(request: Request):
         "average_duration_seconds": avg_duration,
         "timestamp": datetime.now().isoformat(),
     }
+
+
+def _query_stage_counts(
+    conn: sqlite3.Connection, table: str, state_col: str, time_col: str
+) -> Dict[str, int]:
+    """Query pending/processing/completed counts for a stage table.
+
+    Args:
+        conn: SQLite connection
+        table: Table name
+        state_col: Column containing state/status
+        time_col: Column containing timestamp for today's filter
+
+    Returns:
+        Dict with pending, processing, completed_today, failed_today counts
+    """
+    result = {"pending": 0, "processing": 0, "completed_today": 0, "failed_today": 0}
+
+    # Calculate 24-hour cutoff (Unix timestamp)
+    cutoff = (datetime.now() - timedelta(hours=24)).timestamp()
+
+    try:
+        # Count by state
+        rows = conn.execute(
+            f"""
+            SELECT 
+                {state_col},
+                COUNT(*) as cnt,
+                SUM(CASE WHEN {time_col} >= ? THEN 1 ELSE 0 END) as today_cnt
+            FROM {table}
+            GROUP BY {state_col}
+            """,
+            (cutoff,),
+        ).fetchall()
+
+        for row in rows:
+            state = (row[0] or "").lower()
+            count = row[1] or 0
+            today_count = row[2] or 0
+
+            if state in ("pending", "collecting", "queued"):
+                result["pending"] += count
+            elif state in ("in_progress", "processing", "running"):
+                result["processing"] += count
+            elif state in ("completed", "success", "done"):
+                result["completed_today"] += today_count
+            elif state in ("failed", "error"):
+                result["failed_today"] += today_count
+
+    except sqlite3.OperationalError:
+        # Table doesn't exist or has different schema
+        pass
+
+    return result
+
+
+# Stage display name mapping
+STAGE_DISPLAY_NAMES = {
+    "ingest": "HDF5 Ingest",
+    "conversion": "MS Conversion",
+    "calibration": "Calibration",
+    "imaging": "Imaging",
+    "mosaic": "Mosaicking",
+    "photometry": "Photometry",
+}
+
+
+@router.get("/workflow-status", response_model=WorkflowStatusResponse)
+def get_workflow_status(request: Request) -> WorkflowStatusResponse:
+    """Get unified workflow status across all pipeline stages.
+
+    Returns queue depths and processing rates for each stage from
+    HDF5 ingestion through light curve generation. Identifies the
+    current bottleneck and estimates completion time.
+    """
+    cfg = request.app.state.cfg
+    stages: List[WorkflowStageStatus] = []
+
+    # Stage 1: Ingest (HDF5 files awaiting conversion)
+    try:
+        with sqlite3.connect(str(cfg.queue_db)) as conn:
+            conn.row_factory = sqlite3.Row
+            counts = _query_stage_counts(conn, "ingest_queue", "state", "received_at")
+            stages.append(
+                WorkflowStageStatus(
+                    name="ingest",
+                    pending=counts["pending"],
+                    processing=counts["processing"],
+                    completed_today=counts["completed_today"],
+                    failed_today=counts["failed_today"],
+                )
+            )
+    except (sqlite3.Error, FileNotFoundError) as e:
+        logger.warning(f"Failed to query ingest queue: {e}")
+        stages.append(WorkflowStageStatus(name="ingest"))
+
+    # Stage 2: Conversion (MS files - check ms_index for stage)
+    try:
+        with sqlite3.connect(str(cfg.products_db)) as conn:
+            conn.row_factory = sqlite3.Row
+            counts = _query_stage_counts(conn, "ms_index", "stage", "processed_at")
+            stages.append(
+                WorkflowStageStatus(
+                    name="conversion",
+                    pending=counts["pending"],
+                    processing=counts["processing"],
+                    completed_today=counts["completed_today"],
+                    failed_today=counts["failed_today"],
+                )
+            )
+    except (sqlite3.Error, FileNotFoundError) as e:
+        logger.warning(f"Failed to query ms_index: {e}")
+        stages.append(WorkflowStageStatus(name="conversion"))
+
+    # Stage 3: Calibration (MS files awaiting/in calibration)
+    try:
+        with sqlite3.connect(str(cfg.products_db)) as conn:
+            conn.row_factory = sqlite3.Row
+            cutoff = (datetime.now() - timedelta(hours=24)).timestamp()
+
+            # Count cal_applied = 0 (pending) vs cal_applied = 1 (completed)
+            row = conn.execute(
+                """
+                SELECT 
+                    SUM(CASE WHEN cal_applied = 0 THEN 1 ELSE 0 END) as pending,
+                    SUM(CASE WHEN cal_applied = 1 AND processed_at >= ? THEN 1 ELSE 0 END) as completed_today
+                FROM ms_index
+                """,
+                (cutoff,),
+            ).fetchone()
+
+            stages.append(
+                WorkflowStageStatus(
+                    name="calibration",
+                    pending=row["pending"] or 0 if row else 0,
+                    processing=0,  # No separate processing state for calibration
+                    completed_today=row["completed_today"] or 0 if row else 0,
+                )
+            )
+    except (sqlite3.Error, FileNotFoundError) as e:
+        logger.warning(f"Failed to query calibration status: {e}")
+        stages.append(WorkflowStageStatus(name="calibration"))
+
+    # Stage 4: Imaging (images created from calibrated MS)
+    try:
+        with sqlite3.connect(str(cfg.products_db)) as conn:
+            conn.row_factory = sqlite3.Row
+            cutoff = (datetime.now() - timedelta(hours=24)).timestamp()
+
+            row = conn.execute(
+                """
+                SELECT COUNT(*) as completed_today
+                FROM images
+                WHERE created_at >= ?
+                """,
+                (cutoff,),
+            ).fetchone()
+
+            stages.append(
+                WorkflowStageStatus(
+                    name="imaging",
+                    pending=0,  # No queue - driven by calibration
+                    processing=0,
+                    completed_today=row["completed_today"] or 0 if row else 0,
+                )
+            )
+    except (sqlite3.Error, FileNotFoundError) as e:
+        logger.warning(f"Failed to query imaging status: {e}")
+        stages.append(WorkflowStageStatus(name="imaging"))
+
+    # Stage 5: Mosaic (mosaic_groups status)
+    try:
+        with sqlite3.connect(str(cfg.products_db)) as conn:
+            conn.row_factory = sqlite3.Row
+            counts = _query_stage_counts(conn, "mosaic_groups", "status", "created_at")
+            stages.append(
+                WorkflowStageStatus(
+                    name="mosaic",
+                    pending=counts["pending"],
+                    processing=counts["processing"],
+                    completed_today=counts["completed_today"],
+                    failed_today=counts["failed_today"],
+                )
+            )
+    except (sqlite3.Error, FileNotFoundError) as e:
+        logger.warning(f"Failed to query mosaic status: {e}")
+        stages.append(WorkflowStageStatus(name="mosaic"))
+
+    # Stage 6: Photometry (photometry results)
+    try:
+        with sqlite3.connect(str(cfg.products_db)) as conn:
+            conn.row_factory = sqlite3.Row
+            cutoff = (datetime.now() - timedelta(hours=24)).timestamp()
+
+            row = conn.execute(
+                """
+                SELECT COUNT(*) as completed_today
+                FROM photometry
+                WHERE measured_at >= ?
+                """,
+                (cutoff,),
+            ).fetchone()
+
+            stages.append(
+                WorkflowStageStatus(
+                    name="photometry",
+                    pending=0,  # Photometry is driven by mosaics
+                    processing=0,
+                    completed_today=row["completed_today"] or 0 if row else 0,
+                )
+            )
+    except (sqlite3.Error, FileNotFoundError) as e:
+        logger.warning(f"Failed to query photometry status: {e}")
+        stages.append(WorkflowStageStatus(name="photometry"))
+
+    # Calculate totals and find bottleneck
+    total_pending = sum(s.pending for s in stages)
+    total_processing = sum(s.processing for s in stages)
+
+    # Bottleneck is stage with highest pending count
+    bottleneck = None
+    max_pending = 0
+    for stage in stages:
+        if stage.pending > max_pending:
+            max_pending = stage.pending
+            bottleneck = stage.name
+
+    # Determine health based on backlog
+    if total_pending == 0 and total_processing == 0:
+        health = "idle"
+    elif total_pending > 100 or (bottleneck and max_pending > 50):
+        health = "slow"
+    elif total_pending > 500 or (bottleneck and max_pending > 200):
+        health = "stalled"
+    else:
+        health = "healthy"
+
+    # Estimate completion time (rough: 1 item per minute average)
+    estimated_completion = None
+    if total_pending > 0:
+        estimated_minutes = total_pending * 1  # 1 minute per item estimate
+        eta = datetime.now() + timedelta(minutes=estimated_minutes)
+        estimated_completion = eta.isoformat()
+
+    return WorkflowStatusResponse(
+        stages=stages,
+        bottleneck=bottleneck,
+        estimated_completion=estimated_completion,
+        total_pending=total_pending,
+        total_processing=total_processing,
+        health=health,
+    )

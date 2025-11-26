@@ -128,10 +128,10 @@ print("\n6. DATABASE ACCESS")
 print("-" * 70)
 
 db_files = [
-    "/data/dsa110-contimg/state/ingest.sqlite3",
-    "/data/dsa110-contimg/state/products.sqlite3",
-    "/data/dsa110-contimg/state/cal_registry.sqlite3",
-    "/data/dsa110-contimg/state/master_sources.sqlite3",
+    "/data/dsa110-contimg/state/db/ingest.sqlite3",
+    "/data/dsa110-contimg/state/db/products.sqlite3",
+    "/data/dsa110-contimg/state/db/cal_registry.sqlite3",
+    "/data/dsa110-contimg/state/db/master_sources.sqlite3",
 ]
 
 for db_file in db_files:

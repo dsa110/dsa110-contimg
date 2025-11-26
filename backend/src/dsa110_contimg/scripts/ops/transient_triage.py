@@ -276,7 +276,7 @@ def main():
     )
     parser.add_argument(
         "--db",
-        default="/data/dsa110-contimg/state/products.sqlite3",
+        default="/data/dsa110-contimg/state/db/products.sqlite3",
         help="Path to products database (default: %(default)s)",
     )
 

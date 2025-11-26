@@ -22,13 +22,13 @@ def register_image_with_metadata(filepath: str, ms_path: str = "unknown", db_pat
     Args:
         filepath: Path to FITS image
         ms_path: Path to parent MS (if known)
-        db_path: Path to products database (default: state/products.sqlite3)
+        db_path: Path to products database (default: state/db/products.sqlite3)
 
     Returns:
         int: Image ID if successful, None otherwise
     """
     if db_path is None:
-        db_path = "/data/dsa110-contimg/state/products.sqlite3"
+        db_path = "/data/dsa110-contimg/state/db/products.sqlite3"
 
     filepath = Path(filepath)
     if not filepath.exists():

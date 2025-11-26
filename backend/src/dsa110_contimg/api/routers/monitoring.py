@@ -24,8 +24,8 @@ router = APIRouter()
 
 def _get_default_paths() -> tuple[Path, Path]:
     """Get default database paths from environment or defaults."""
-    queue_db = Path(os.getenv("DSA110_QUEUE_DB", "/data/dsa110-contimg/state/ingest.sqlite3"))
-    products_db = Path(os.getenv("DSA110_PRODUCTS_DB", "/data/dsa110-contimg/state/products.sqlite3"))
+    queue_db = Path(os.getenv("DSA110_QUEUE_DB", "/data/dsa110-contimg/state/db/ingest.sqlite3"))
+    products_db = Path(os.getenv("DSA110_PRODUCTS_DB", "/data/dsa110-contimg/state/db/products.sqlite3"))
     return queue_db, products_db
 
 

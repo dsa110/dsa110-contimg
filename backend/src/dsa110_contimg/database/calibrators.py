@@ -24,8 +24,8 @@ def get_calibrators_db_path() -> Path:
     """
     # Try standard locations
     candidates = [
-        Path("/data/dsa110-contimg/state/calibrators.sqlite3"),
-        Path("state/calibrators.sqlite3"),
+        Path("/data/dsa110-contimg/state/db/calibrators.sqlite3"),
+        Path("state/db/calibrators.sqlite3"),
         Path.cwd() / "state" / "calibrators.sqlite3",
     ]
 

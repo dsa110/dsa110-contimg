@@ -94,8 +94,8 @@ else
 fi
 
 # Check database
-if [ -f "$PROJECT_ROOT/state/products.sqlite3" ]; then
-    RESULT=$(sqlite3 "$PROJECT_ROOT/state/products.sqlite3" "SELECT COUNT(*), COUNT(name) FROM images;" 2>/dev/null || echo "0|0")
+if [ -f "$PROJECT_ROOT/state/db/products.sqlite3" ]; then
+    RESULT=$(sqlite3 "$PROJECT_ROOT/state/db/products.sqlite3" "SELECT COUNT(*), COUNT(name) FROM images;" 2>/dev/null || echo "0|0")
     TOTAL=$(echo $RESULT | cut -d'|' -f1)
     WITH_NAME=$(echo $RESULT | cut -d'|' -f2)
     log "Database: $WITH_NAME/$TOTAL images have metadata"

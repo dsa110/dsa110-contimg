@@ -29,7 +29,7 @@ def _record_artifacts(stem: str, out_dir: str, artifacts: List[str]) -> None:
     try:
         from sqlite3 import connect
 
-        db_path = os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3")
+        db_path = os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3")
         os.makedirs(os.path.dirname(db_path), exist_ok=True)
         conn = connect(db_path)
         with conn:

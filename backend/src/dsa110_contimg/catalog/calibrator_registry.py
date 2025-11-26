@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_calibrator_registry(
-    db_path: str = "/data/dsa110-contimg/state/calibrator_registry.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3",
 ):
     """Create calibrator registry database schema.
 
@@ -161,7 +161,7 @@ def blacklist_source(
     reason: str,
     source_type: Optional[str] = None,
     notes: Optional[str] = None,
-    db_path: str = "/data/dsa110-contimg/state/calibrator_registry.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3",
 ) -> bool:
     """Add a source to the calibrator blacklist.
 
@@ -206,7 +206,7 @@ def is_source_blacklisted(
     ra_deg: Optional[float] = None,
     dec_deg: Optional[float] = None,
     radius_deg: float = 0.01,
-    db_path: str = "/data/dsa110-contimg/state/calibrator_registry.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3",
 ) -> Tuple[bool, Optional[str]]:
     """Check if a source is blacklisted.
 
@@ -272,7 +272,7 @@ def add_calibrator_to_registry(
     compactness_score: Optional[float] = None,
     quality_score: Optional[float] = None,
     notes: Optional[str] = None,
-    db_path: str = "/data/dsa110-contimg/state/calibrator_registry.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3",
 ) -> Optional[int]:
     """Add a calibrator source to the registry.
 
@@ -401,7 +401,7 @@ def query_calibrators(
     min_flux_jy: float = 0.5,
     max_sources: int = 100,
     min_quality_score: float = 50.0,
-    db_path: str = "/data/dsa110-contimg/state/calibrator_registry.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3",
 ) -> List[Dict]:
     """Query calibrators from registry for a given declination.
 
@@ -481,7 +481,7 @@ def get_best_calibrator(
     dec_deg: float,
     dec_tolerance: float = 5.0,
     min_flux_jy: float = 1.0,
-    db_path: str = "/data/dsa110-contimg/state/calibrator_registry.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3",
 ) -> Optional[Dict]:
     """Get single best calibrator for a declination.
 
@@ -510,7 +510,7 @@ def get_best_calibrator(
 
 
 def get_registry_statistics(
-    db_path: str = "/data/dsa110-contimg/state/calibrator_registry.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3",
 ) -> Dict:
     """Get statistics on calibrator registry.
 
@@ -589,7 +589,7 @@ def build_calibrator_registry_from_catalog(
     dec_strips: Optional[List[int]] = None,
     min_flux_jy: float = 0.5,
     max_sources_per_strip: int = 1000,
-    db_path: str = "/data/dsa110-contimg/state/calibrator_registry.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3",
     catalog_db_path: Optional[str] = None,
 ) -> int:
     """Build calibrator registry by importing from a catalog database.

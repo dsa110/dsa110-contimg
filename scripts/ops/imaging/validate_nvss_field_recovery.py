@@ -742,7 +742,7 @@ def main():
     # Query photometry database directly
     import sqlite3
 
-    products_db = Path("state/products.sqlite3")
+    products_db = Path("state/db/products.sqlite3")
     if not products_db.exists():
         print(f"  ✗ Products database not found: {products_db}")
         sys.exit(1)

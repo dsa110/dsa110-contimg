@@ -14,7 +14,7 @@ from pathlib import Path
 def check_data_registry():
     """Check data registry database and schema."""
     print("\n=== Checking Data Registry ===")
-    db_path = Path("state/data_registry.sqlite3")
+    db_path = Path("state/db/data_registry.sqlite3")
 
     if not db_path.exists():
         print(f"❌ Data registry not found at {db_path}")
@@ -75,7 +75,7 @@ def check_data_registry():
 def check_cal_registry():
     """Check calibration registry."""
     print("\n=== Checking Calibration Registry ===")
-    db_path = Path("state/cal_registry.sqlite3")
+    db_path = Path("state/db/cal_registry.sqlite3")
 
     if not db_path.exists():
         print(f"❌ Calibration registry not found at {db_path}")
@@ -174,7 +174,7 @@ def check_hdf5_index():
 def check_products_db():
     """Check products database."""
     print("\n=== Checking Products Database ===")
-    db_path = Path("state/products.sqlite3")
+    db_path = Path("state/db/products.sqlite3")
 
     if not db_path.exists():
         print(f"   ℹ️  Products database not yet created (will be created on first use)")

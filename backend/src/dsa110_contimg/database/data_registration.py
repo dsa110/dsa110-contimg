@@ -36,7 +36,7 @@ def register_pipeline_data(
         True if successful
     """
     if db_path is None:
-        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
 
     try:
         # Ensure file_path is in staging directory
@@ -93,7 +93,7 @@ def link_pipeline_data(
         True if successful
     """
     if db_path is None:
-        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
 
     try:
         conn = ensure_data_registry_db(db_path)

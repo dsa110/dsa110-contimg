@@ -75,16 +75,16 @@ echo ""
 # 4. Database Check
 echo "4. Database Status"
 echo "-----------------"
-if [ -f "/data/dsa110-contimg/state/products.sqlite3" ]; then
+if [ -f "/data/dsa110-contimg/state/db/products.sqlite3" ]; then
     echo "✅ products.sqlite3 exists"
     
     # Check if we can query it
-    IMAGE_COUNT=$(sqlite3 /data/dsa110-contimg/state/products.sqlite3 "SELECT COUNT(*) FROM images;" 2>/dev/null)
+    IMAGE_COUNT=$(sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 "SELECT COUNT(*) FROM images;" 2>/dev/null)
     if [ -n "$IMAGE_COUNT" ]; then
         echo "✅ Database accessible: $IMAGE_COUNT images registered"
         
         # Check for metadata completeness
-        METADATA_COUNT=$(sqlite3 /data/dsa110-contimg/state/products.sqlite3 "SELECT COUNT(*) FROM images WHERE center_ra_deg IS NOT NULL;" 2>/dev/null)
+        METADATA_COUNT=$(sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 "SELECT COUNT(*) FROM images WHERE center_ra_deg IS NOT NULL;" 2>/dev/null)
         echo "   Images with metadata: $METADATA_COUNT / $IMAGE_COUNT"
     else
         echo "⚠️  Cannot query database"

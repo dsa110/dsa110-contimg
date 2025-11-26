@@ -116,7 +116,7 @@ def main():
     
     # Get tile paths
     from dsa110_contimg.mosaic.cli import _fetch_tiles
-    products_db = Path("/data/dsa110-contimg/state/products.sqlite3")
+    products_db = Path("/data/dsa110-contimg/state/db/products.sqlite3")
     all_tiles = _fetch_tiles(products_db, since=None, until=None, pbcor_only=True)
     stage_tiles = [t for t in all_tiles if t.startswith('/stage/')]
     test_tiles = stage_tiles[:3]

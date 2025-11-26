@@ -672,7 +672,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     sp = sub.add_parser("nvss", help="Forced photometry for NVSS sources within the image FoV")
     sp.add_argument("--fits", required=True, help="Input FITS image (PB-corrected)")
-    sp.add_argument("--products-db", default="state/products.sqlite3")
+    sp.add_argument("--products-db", default="state/db/products.sqlite3")
     sp.add_argument("--min-mjy", type=float, default=10.0)
     sp.add_argument("--radius-deg", type=float, default=None, help="Override FoV radius (deg)")
     sp.add_argument(
@@ -693,7 +693,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     sp = sub.add_parser("plot", help="Visualize photometry results overlaid on FITS image")
     sp.add_argument("--fits", required=True, help="Input FITS image (PB-corrected)")
-    sp.add_argument("--products-db", default="state/products.sqlite3")
+    sp.add_argument("--products-db", default="state/db/products.sqlite3")
     sp.add_argument("--out", default=None, help="Output PNG path")
     sp.add_argument("--cmap", default="viridis")
     sp.add_argument("--vmin", type=float, default=None)
@@ -767,8 +767,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument(
         "--products-db",
         type=str,
-        default="state/products.sqlite3",
-        help="Path to products database (default: state/products.sqlite3)",
+        default="state/db/products.sqlite3",
+        help="Path to products database (default: state/db/products.sqlite3)",
     )
     sp.add_argument(
         "--min-sigma",
@@ -832,8 +832,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument(
         "--products-db",
         type=str,
-        default="state/products.sqlite3",
-        help="Path to products database for storing results (default: state/products.sqlite3)",
+        default="state/db/products.sqlite3",
+        help="Path to products database for storing results (default: state/db/products.sqlite3)",
     )
     sp.add_argument(
         "--box",
@@ -879,8 +879,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument(
         "--products-db",
         type=str,
-        default="state/products.sqlite3",
-        help="Path to products database (default: state/products.sqlite3)",
+        default="state/db/products.sqlite3",
+        help="Path to products database (default: state/db/products.sqlite3)",
     )
     sp.set_defaults(func=cmd_export)
 

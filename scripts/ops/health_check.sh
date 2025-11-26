@@ -79,7 +79,7 @@ check_absurd() {
 
 # 4. Check database accessibility
 check_database() {
-    local db_path="$PROJECT_ROOT/state/products.sqlite3"
+    local db_path="$PROJECT_ROOT/state/db/products.sqlite3"
     
     if [ ! -f "$db_path" ]; then
         send_alert "CRITICAL: Database" "Database file not found: $db_path"

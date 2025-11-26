@@ -1,7 +1,7 @@
 import sqlite3
 import time
 
-DB_PATH = "/data/dsa110-contimg/state/products.sqlite3"
+DB_PATH = "/data/dsa110-contimg/state/db/products.sqlite3"
 
 
 def migrate():

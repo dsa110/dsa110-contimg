@@ -1170,7 +1170,7 @@ def trigger_photometry_for_image(
     try:
         # Get products DB path
         if products_db_path is None:
-            products_db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+            products_db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
 
         # Create photometry configuration from args
         config = PhotometryConfig(
@@ -1420,7 +1420,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 continue
 
             # Derive MS path from first subband filename (already organized if path_mapper was used)
-            products_db_path = os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3")
+            products_db_path = os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3")
             try:
                 files = queue.group_files(gid)
                 if not files:
@@ -1711,7 +1711,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
 
                 # Update products DB with imaging artifacts and stage
                 try:
-                    products_db_path = os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3")
+                    products_db_path = os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3")
                     conn = ensure_products_db(Path(products_db_path))
                     ms_index_upsert(
                         conn,
@@ -1747,7 +1747,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                             if Path(fits_image).exists():
                                 log.info(f"Triggering photometry for {Path(fits_image).name}")
                                 products_db_path = Path(
-                                    os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3")
+                                    os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3")
                                 )
                                 photometry_job_id = trigger_photometry_for_image(
                                     image_path=Path(fits_image),
@@ -1813,7 +1813,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     if getattr(args, "enable_group_imaging", False):
                         try:
                             products_db_path = os.getenv(
-                                "PIPELINE_PRODUCTS_DB", "state/products.sqlite3"
+                                "PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"
                             )
                             group_ms_paths = check_for_complete_group(
                                 ms_path, Path(products_db_path)
@@ -1940,8 +1940,8 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="DSA-110 streaming converter")
     p.add_argument("--input-dir", required=True)
     p.add_argument("--output-dir", required=True)
-    p.add_argument("--queue-db", default="state/ingest.sqlite3")
-    p.add_argument("--registry-db", default="state/cal_registry.sqlite3")
+    p.add_argument("--queue-db", default="state/db/ingest.sqlite3")
+    p.add_argument("--registry-db", default="state/db/cal_registry.sqlite3")
     p.add_argument("--scratch-dir", default="/stage/dsa110-contimg")
     p.add_argument("--expected-subbands", type=int, default=16)
     p.add_argument("--chunk-duration", type=float, default=5.0, help="Minutes per group")

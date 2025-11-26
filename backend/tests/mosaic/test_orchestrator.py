@@ -117,7 +117,7 @@ def test_database_path_resolution():
     """Test that database paths are correctly resolved."""
     # Test that products_db_path and hdf5_db_path are kept separate
 
-    products_db = Path("/data/dsa110-contimg/state/products.sqlite3")
+    products_db = Path("/data/dsa110-contimg/state/db/products.sqlite3")
     hdf5_db = Path("/data/dsa110-contimg/state/hdf5.sqlite3")
 
     assert products_db != hdf5_db

@@ -1169,7 +1169,7 @@ async def _recover_stuck_groups(config: PipelineConfig, max_stale_hours: float) 
     """Recover stuck queue groups back to pending state."""
     import sqlite3
 
-    queue_db = Path(os.environ.get("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"))
+    queue_db = Path(os.environ.get("CONTIMG_QUEUE_DB", "state/db/ingest.sqlite3"))
     if not queue_db.exists():
         return 0
 

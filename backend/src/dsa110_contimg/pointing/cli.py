@@ -347,7 +347,7 @@ def main():
     )
     cm_parser.add_argument(
         "--products-db",
-        default="/data/dsa110-contimg/state/products.sqlite3",
+        default="/data/dsa110-contimg/state/db/products.sqlite3",
         help="Products database path",
     )
     cm_parser.add_argument(

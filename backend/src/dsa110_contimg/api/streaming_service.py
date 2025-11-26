@@ -346,8 +346,8 @@ class StreamingServiceManager:
             config = StreamingConfig(
                 input_dir=os.getenv("CONTIMG_INPUT_DIR", "/data/incoming"),
                 output_dir=os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"),
-                queue_db=os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
-                registry_db=os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
+                queue_db=os.getenv("CONTIMG_QUEUE_DB", "state/db/ingest.sqlite3"),
+                registry_db=os.getenv("CONTIMG_REGISTRY_DB", "state/db/cal_registry.sqlite3"),
                 scratch_dir=os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg"),
                 expected_subbands=safe_int("CONTIMG_EXPECTED_SUBBANDS", "16"),
                 chunk_duration=safe_float("CONTIMG_CHUNK_MINUTES", "5.0", min_val=0.1),

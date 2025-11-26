@@ -18,8 +18,8 @@ echo -e "${GREEN}=== Calibrators.sqlite3 Migration Deployment ===${NC}"
 echo ""
 
 # Configuration
-PRODUCTS_DB="${PRODUCTS_DB:-state/products.sqlite3}"
-CALIBRATORS_DB="${CALIBRATORS_DB:-state/calibrators.sqlite3}"
+PRODUCTS_DB="${PRODUCTS_DB:-state/db/products.sqlite3}"
+CALIBRATORS_DB="${CALIBRATORS_DB:-state/db/calibrators.sqlite3}"
 PYTHON_ENV="${PYTHON_ENV:-/opt/miniforge/envs/casa6/bin/python}"
 
 # Step 1: Verify prerequisites

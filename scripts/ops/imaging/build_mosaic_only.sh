@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from dsa110_contimg.mosaic.cli import _fetch_tiles, _build_weighted_mosaic_linearmosaic
 from dsa110_contimg.mosaic.validation import TileQualityMetrics
 
-products_db = Path("/data/dsa110-contimg/state/products.sqlite3")
+products_db = Path("/data/dsa110-contimg/state/db/products.sqlite3")
 
 # Fetch tiles from /stage/
 all_tiles = _fetch_tiles(products_db, since=None, until=None, pbcor_only=True)

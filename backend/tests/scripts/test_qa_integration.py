@@ -105,7 +105,7 @@ try:
     from dsa110_contimg.photometry.normalize import query_reference_sources
 
     refs = query_reference_sources(
-        db_path=Path("/data/dsa110-contimg/state/master_sources.sqlite3"),
+        db_path=Path("/data/dsa110-contimg/state/db/master_sources.sqlite3"),
         ra_center=262.5,
         dec_center=-40.4,
         fov_radius_deg=1.5,

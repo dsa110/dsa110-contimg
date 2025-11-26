@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from dsa110_contimg.api.data_access import _connect
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8010/api")
-PRODUCTS_DB = Path(os.getenv("PIPELINE_PRODUCTS_DB", "/data/dsa110-contimg/state/products.sqlite3"))
+PRODUCTS_DB = Path(os.getenv("PIPELINE_PRODUCTS_DB", "/data/dsa110-contimg/state/db/products.sqlite3"))
 
 
 def test_fits_endpoint(image_id: int):

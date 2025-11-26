@@ -17,7 +17,7 @@ fi
 # Configuration
 INPUT_DIR="/data/incoming"
 OUTPUT_DIR="/stage/dsa110-contimg/ms"
-PRODUCTS_DB="/data/dsa110-contimg/state/products.sqlite3"
+PRODUCTS_DB="/data/dsa110-contimg/state/db/products.sqlite3"
 
 # Use casa6 paths (now set by casa6-env.sh)
 PYTHON_BIN="${CASA6_PYTHON}"

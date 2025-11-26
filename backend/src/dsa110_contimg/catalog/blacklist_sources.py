@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def blacklist_atnf_pulsars(
-    db_path: str = "/data/dsa110-contimg/state/calibrator_registry.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3",
     radius_deg: float = 0.1,
 ) -> int:
     """Blacklist known pulsars from ATNF pulsar catalog.
@@ -119,7 +119,7 @@ def _get_hardcoded_pulsars() -> List[Tuple[str, float, float]]:
 
 
 def blacklist_wise_agn(
-    db_path: str = "/data/dsa110-contimg/state/calibrator_registry.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3",
     radius_deg: float = 0.05,
     min_variability: float = 0.3,
 ) -> int:
@@ -179,7 +179,7 @@ def _query_wise_agn(min_variability: float = 0.3) -> List[Tuple[str, float, floa
 
 
 def blacklist_extended_sources(
-    db_path: str = "/data/dsa110-contimg/state/calibrator_registry.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3",
     max_size_arcmin: float = 1.0,
 ) -> int:
     """Blacklist extended sources that are unsuitable for calibration.
@@ -240,7 +240,7 @@ def _dms_to_deg(dms: str) -> float:
 
 
 def run_full_blacklist_update(
-    db_path: str = "/data/dsa110-contimg/state/calibrator_registry.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3",
 ) -> dict:
     """Run all blacklisting operations.
 
@@ -296,7 +296,7 @@ def manual_blacklist_source(
     ra_deg: float,
     dec_deg: float,
     reason: str,
-    db_path: str = "/data/dsa110-contimg/state/calibrator_registry.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3",
 ) -> bool:
     """Manually blacklist a source.
 

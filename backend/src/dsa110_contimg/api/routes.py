@@ -339,7 +339,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         # Pre-warm database connection to avoid cold-start delays
         try:
-            db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+            db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
             conn = ensure_data_registry_db(db_path)
             # Execute a simple query to initialize the connection
             conn.execute("SELECT 1").fetchone()
@@ -384,7 +384,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 # Pre-warm cache from database instead of filesystem scan
                 from dsa110_contimg.database.products import ensure_products_db
 
-                products_db = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+                products_db = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
                 if products_db.exists():
                     # Use context manager to ensure connection is always closed
                     with ensure_products_db(products_db) as conn:
@@ -1677,7 +1677,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     def qa(limit: int = 100) -> QAList:
         # Prefer DB-backed artifacts if available
         artifacts: list[QAArtifact] = []
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         try:
             if db_path.exists():
                 with _connect(db_path) as conn:
@@ -1882,7 +1882,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/qa/thumbs", response_model=QAList)
     def qa_thumbs(limit: int = 100) -> QAList:
         artifacts: list[QAArtifact] = []
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         try:
             if db_path.exists():
                 with _connect(db_path) as conn:
@@ -1996,7 +1996,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         qa_items: list[QAArtifact] = []
         # DB first
         try:
-            pdb = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+            pdb = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
             if pdb.exists():
                 with _connect(pdb) as conn:
                     rows = conn.execute(
@@ -2106,7 +2106,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     def ms_index(
         stage: str | None = None, status: str | None = None, limit: int = 100
     ) -> MsIndexList:
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         items: list[MsIndexEntry] = []
         if not db_path.exists():
             return MsIndexList(items=items)
@@ -2175,7 +2175,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         qdb = Path(
             os.getenv(
                 "PIPELINE_QUEUE_DB",
-                os.getenv("PIPELINE_QUEUE_DB", "state/ingest.sqlite3"),
+                os.getenv("PIPELINE_QUEUE_DB", "state/db/ingest.sqlite3"),
             )
         )
         if not qdb.exists():
@@ -2890,7 +2890,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             ensure_products_db,
         )
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
 
         # Optionally scan filesystem for MS files
         if scan:
@@ -3075,7 +3075,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """
         from dsa110_contimg.database.products import discover_ms_files
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
 
         if request is None:
             request = {}
@@ -3105,7 +3105,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.jobs import list_jobs as db_list_jobs
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
         jobs_data = db_list_jobs(conn, limit=limit, status=status)
         conn.close()
@@ -3140,7 +3140,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.jobs import get_job as db_get_job
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
         jd = db_get_job(conn, job_id)
         conn.close()
@@ -3167,7 +3167,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.jobs import get_job as db_get_job
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
 
         async def event_stream():
             last_pos = 0
@@ -3205,7 +3205,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.jobs import create_job
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         job_id = create_job(conn, "calibrate", request.ms_path, request.params.model_dump())
@@ -3251,7 +3251,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.jobs import create_job
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         job_id = create_job(conn, "apply", request.ms_path, request.params.model_dump())
@@ -3293,7 +3293,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.jobs import create_job
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         job_id = create_job(conn, "image", request.ms_path, request.params.model_dump())
@@ -3385,7 +3385,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
                 from dsa110_contimg.database.products import ensure_products_db
 
-                products_db = Path(_os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+                products_db = Path(_os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
                 if products_db.exists():
                     conn = ensure_products_db(products_db)
                     # Query all stored HDF5 files, sorted by path (newest first)
@@ -3497,7 +3497,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.jobs import create_job
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         # Create job with conversion params (ms_path is empty for conversion jobs)
@@ -4509,7 +4509,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         if not os.path.isdir(ms_full_path):
             raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -5113,7 +5113,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         if not os.path.isdir(ms_full_path):
             raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -5206,7 +5206,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         if not os.path.isdir(ms_full_path):
             raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -5323,7 +5323,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -5606,7 +5606,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.jobs import create_job
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         # Create workflow job
@@ -5649,7 +5649,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.jobs import create_job
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         # Create ESE detection job
@@ -5698,7 +5698,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         if not isinstance(request.params, BatchCalibrateParams):
             raise HTTPException(status_code=400, detail="Invalid params type for batch calibrate")
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -5778,7 +5778,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         if not isinstance(request.params, BatchApplyParams):
             raise HTTPException(status_code=400, detail="Invalid params type for batch apply")
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -5856,7 +5856,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         if not isinstance(request.params, BatchImageParams):
             raise HTTPException(status_code=400, detail="Invalid params type for batch image")
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -5924,7 +5924,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """List batch jobs with optional status filter."""
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -5995,7 +5995,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Get batch job details by ID."""
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -6062,7 +6062,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         if not isinstance(request.params, BatchConversionParams):
             raise HTTPException(status_code=400, detail="Invalid params type for batch convert")
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -6148,7 +6148,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         if not isinstance(request.params, BatchPublishParams):
             raise HTTPException(status_code=400, detail="Invalid params type for batch publish")
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -6228,7 +6228,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         if not isinstance(request.params, BatchPhotometryParams):
             raise HTTPException(status_code=400, detail="Invalid params type for batch photometry")
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -6317,7 +6317,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 status_code=400, detail="Invalid params type for batch ESE detection"
             )
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -6385,7 +6385,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Cancel a running batch job."""
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -6522,8 +6522,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             return StreamingConfigRequest(
                 input_dir=os.getenv("CONTIMG_INPUT_DIR", "/data/incoming"),
                 output_dir=os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/raw/ms"),
-                queue_db=os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
-                registry_db=os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
+                queue_db=os.getenv("CONTIMG_QUEUE_DB", "state/db/ingest.sqlite3"),
+                registry_db=os.getenv("CONTIMG_REGISTRY_DB", "state/db/cal_registry.sqlite3"),
                 scratch_dir=os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg"),
             )
 
@@ -6564,12 +6564,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             queue_db=(
                 request.queue_db
                 if request.queue_db
-                else os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3")
+                else os.getenv("CONTIMG_QUEUE_DB", "state/db/ingest.sqlite3")
             ),
             registry_db=(
                 request.registry_db
                 if request.registry_db
-                else os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3")
+                else os.getenv("CONTIMG_REGISTRY_DB", "state/db/cal_registry.sqlite3")
             ),
             scratch_dir=(
                 request.scratch_dir
@@ -6614,9 +6614,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 input_dir=request.input_dir,
                 output_dir=request.output_dir,
                 queue_db=request.queue_db
-                or str(os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3")),
+                or str(os.getenv("CONTIMG_QUEUE_DB", "state/db/ingest.sqlite3")),
                 registry_db=request.registry_db
-                or str(os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3")),
+                or str(os.getenv("CONTIMG_REGISTRY_DB", "state/db/cal_registry.sqlite3")),
                 scratch_dir=request.scratch_dir
                 or str(os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg")),
                 expected_subbands=request.expected_subbands,
@@ -6651,9 +6651,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 input_dir=request.input_dir,
                 output_dir=request.output_dir,
                 queue_db=request.queue_db
-                or str(os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3")),
+                or str(os.getenv("CONTIMG_QUEUE_DB", "state/db/ingest.sqlite3")),
                 registry_db=request.registry_db
-                or str(os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3")),
+                or str(os.getenv("CONTIMG_REGISTRY_DB", "state/db/cal_registry.sqlite3")),
                 scratch_dir=request.scratch_dir
                 or str(os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg")),
                 expected_subbands=request.expected_subbands,
@@ -7095,7 +7095,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             src_json = {"ok": False, "error": src_err}
 
         # 4) Products DB readability
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         db_ok = False
         db_exists = db_path.exists()
         db_error = None
@@ -7156,7 +7156,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             list_data,
         )
 
-        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
 
         records, total_count = list_data(
@@ -7201,7 +7201,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             get_data,
         )
 
-        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
 
         record = get_data(conn, data_id)
@@ -7240,7 +7240,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             get_data,
         )
 
-        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
 
         record = get_data(conn, data_id)
@@ -7272,7 +7272,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             publish_data_manual,
         )
 
-        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
 
         record = get_data(conn, data_id)
@@ -7303,7 +7303,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             ensure_data_registry_db,
         )
 
-        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
 
         success = enable_ap(conn, data_id)
@@ -7322,7 +7322,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             ensure_data_registry_db,
         )
 
-        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
 
         success = disable_ap(conn, data_id)
@@ -7341,7 +7341,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             ensure_data_registry_db,
         )
 
-        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
 
         status = check_auto_publish_criteria(conn, data_id)
@@ -7358,7 +7358,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             get_data_lineage,
         )
 
-        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
 
         record = get_data(conn, data_id)
@@ -7387,7 +7387,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             list_data,
         )
 
-        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
 
         # Get all published data
@@ -7454,7 +7454,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             list_data,
         )
 
-        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
 
         # Get staging data
@@ -7509,7 +7509,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             trigger_auto_publish,
         )
 
-        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
 
         record = get_data(conn, data_id)
@@ -7574,7 +7574,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             trigger_auto_publish,
         )
 
-        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
 
         # Get failed publishes
@@ -7885,7 +7885,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         # Check database connectivity
         try:
-            db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+            db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
             if db_path.exists():
                 import sqlite3
 

@@ -149,7 +149,7 @@ def validate_scratch_structure(scratch_dir: Path) -> bool:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Pipeline housekeeping")
-    ap.add_argument('--queue-db', default='state/ingest.sqlite3')
+    ap.add_argument('--queue-db', default='state/db/ingest.sqlite3')
     ap.add_argument('--scratch-dir', default=None, help='Scratch directory (defaults to CONTIMG_SCRATCH_DIR or /stage/dsa110-contimg)')
     ap.add_argument('--in-progress-timeout', type=float, default=3600.0, help='Seconds to recover in-progress to pending')
     ap.add_argument('--collecting-timeout', type=float, default=86400.0, help='Seconds to mark collecting as failed')

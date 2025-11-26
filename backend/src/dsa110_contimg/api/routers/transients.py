@@ -100,7 +100,7 @@ def list_alerts(
     ),
     limit: int = Query(50, description="Maximum number of alerts to return", ge=1, le=500),
     db_path: str = Query(
-        "/data/dsa110-contimg/state/products.sqlite3", description="Path to products database"
+        "/data/dsa110-contimg/state/db/products.sqlite3", description="Path to products database"
     ),
 ):
     """List transient alerts with optional filtering."""
@@ -120,7 +120,7 @@ def list_alerts(
 def get_alert(
     alert_id: int,
     db_path: str = Query(
-        "/data/dsa110-contimg/state/products.sqlite3", description="Path to products database"
+        "/data/dsa110-contimg/state/db/products.sqlite3", description="Path to products database"
     ),
 ):
     """Get details for a specific alert."""
@@ -152,7 +152,7 @@ def list_candidates(
     ),
     limit: int = Query(50, description="Maximum number of candidates to return", ge=1, le=500),
     db_path: str = Query(
-        "/data/dsa110-contimg/state/products.sqlite3", description="Path to products database"
+        "/data/dsa110-contimg/state/db/products.sqlite3", description="Path to products database"
     ),
 ):
     """List transient candidates with optional filtering."""
@@ -178,7 +178,7 @@ def list_candidates(
 def get_candidate(
     candidate_id: int,
     db_path: str = Query(
-        "/data/dsa110-contimg/state/products.sqlite3", description="Path to products database"
+        "/data/dsa110-contimg/state/db/products.sqlite3", description="Path to products database"
     ),
 ):
     """Get details for a specific candidate."""
@@ -208,7 +208,7 @@ def acknowledge_alert_endpoint(
     alert_id: int,
     request: AcknowledgeRequest,
     db_path: str = Query(
-        "/data/dsa110-contimg/state/products.sqlite3", description="Path to products database"
+        "/data/dsa110-contimg/state/db/products.sqlite3", description="Path to products database"
     ),
 ):
     """Acknowledge an alert."""
@@ -233,7 +233,7 @@ def classify_candidate_endpoint(
     candidate_id: int,
     request: ClassifyRequest,
     db_path: str = Query(
-        "/data/dsa110-contimg/state/products.sqlite3", description="Path to products database"
+        "/data/dsa110-contimg/state/db/products.sqlite3", description="Path to products database"
     ),
 ):
     """Classify a transient candidate."""
@@ -266,7 +266,7 @@ def update_alert_follow_up(
     alert_id: int,
     request: FollowUpRequest,
     db_path: str = Query(
-        "/data/dsa110-contimg/state/products.sqlite3", description="Path to products database"
+        "/data/dsa110-contimg/state/db/products.sqlite3", description="Path to products database"
     ),
 ):
     """Update follow-up status for an alert."""
@@ -294,7 +294,7 @@ def update_candidate_follow_up(
     candidate_id: int,
     request: FollowUpRequest,
     db_path: str = Query(
-        "/data/dsa110-contimg/state/products.sqlite3", description="Path to products database"
+        "/data/dsa110-contimg/state/db/products.sqlite3", description="Path to products database"
     ),
 ):
     """Update follow-up status for a candidate."""
@@ -322,7 +322,7 @@ def add_alert_notes(
     alert_id: int,
     request: NotesRequest,
     db_path: str = Query(
-        "/data/dsa110-contimg/state/products.sqlite3", description="Path to products database"
+        "/data/dsa110-contimg/state/db/products.sqlite3", description="Path to products database"
     ),
 ):
     """Add or update notes for an alert."""
@@ -354,7 +354,7 @@ def add_candidate_notes(
     candidate_id: int,
     request: NotesRequest,
     db_path: str = Query(
-        "/data/dsa110-contimg/state/products.sqlite3", description="Path to products database"
+        "/data/dsa110-contimg/state/db/products.sqlite3", description="Path to products database"
     ),
 ):
     """Add or update notes for a candidate."""
@@ -388,7 +388,7 @@ def bulk_acknowledge_alerts(
     acknowledged_by: str,
     notes: Optional[str] = None,
     db_path: str = Query(
-        "/data/dsa110-contimg/state/products.sqlite3", description="Path to products database"
+        "/data/dsa110-contimg/state/db/products.sqlite3", description="Path to products database"
     ),
 ):
     """Acknowledge multiple alerts at once."""
@@ -420,7 +420,7 @@ def bulk_classify_candidates(
     classified_by: str,
     notes: Optional[str] = None,
     db_path: str = Query(
-        "/data/dsa110-contimg/state/products.sqlite3", description="Path to products database"
+        "/data/dsa110-contimg/state/db/products.sqlite3", description="Path to products database"
     ),
 ):
     """Classify multiple candidates at once."""

@@ -134,7 +134,7 @@ To integrate QA into the pipeline:
 5. Database population:
    - Run: python -m dsa110_contimg.catalog.build_master \\
            --nvss <path> --vlass <path> --first <path> \\
-           --out state/master_sources.sqlite3
+           --out state/db/master_sources.sqlite3
 """
 )
 

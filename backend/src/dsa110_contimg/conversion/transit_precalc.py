@@ -102,7 +102,7 @@ def precalculate_transits_for_calibrator(
     # Determine filesystem path for the products database (needed by helpers that
     # expect a Path rather than an open sqlite3.Connection)
     products_db_path = Path(
-        os.getenv("PIPELINE_PRODUCTS_DB", "/data/dsa110-contimg/state/products.sqlite3")
+        os.getenv("PIPELINE_PRODUCTS_DB", "/data/dsa110-contimg/state/db/products.sqlite3")
     )
     try:
         pragma_entry = products_db.execute("PRAGMA database_list").fetchone()

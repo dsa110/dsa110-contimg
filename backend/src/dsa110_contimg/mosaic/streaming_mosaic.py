@@ -2974,13 +2974,13 @@ def main() -> int:
     parser.add_argument(
         "--products-db",
         type=Path,
-        default=Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3")),
+        default=Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3")),
         help="Path to products database",
     )
     parser.add_argument(
         "--registry-db",
         type=Path,
-        default=Path(os.getenv("CAL_REGISTRY_DB", "state/cal_registry.sqlite3")),
+        default=Path(os.getenv("CAL_REGISTRY_DB", "state/db/cal_registry.sqlite3")),
         help="Path to calibration registry database",
     )
     parser.add_argument(

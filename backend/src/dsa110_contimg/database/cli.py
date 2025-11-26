@@ -192,16 +192,16 @@ def main(argv: list = None) -> int:
             "Examples:\n"
             "  # Publish a data instance\n"
             "  python -m dsa110_contimg.database.cli publish \\\n"
-            "    --db state/products.sqlite3 --data-id mosaic_2025-11-12_10-00-00\n\n"
+            "    --db state/db/products.sqlite3 --data-id mosaic_2025-11-12_10-00-00\n\n"
             "  # Check publish status\n"
             "  python -m dsa110_contimg.database.cli status \\\n"
-            "    --db state/products.sqlite3 --data-id mosaic_2025-11-12_10-00-00\n\n"
+            "    --db state/db/products.sqlite3 --data-id mosaic_2025-11-12_10-00-00\n\n"
             "  # Retry failed publish\n"
             "  python -m dsa110_contimg.database.cli retry \\\n"
-            "    --db state/products.sqlite3 --data-id mosaic_2025-11-12_10-00-00\n\n"
+            "    --db state/db/products.sqlite3 --data-id mosaic_2025-11-12_10-00-00\n\n"
             "  # List all staging data\n"
             "  python -m dsa110_contimg.database.cli list \\\n"
-            "    --db state/products.sqlite3 --status staging\n"
+            "    --db state/db/products.sqlite3 --status staging\n"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -210,7 +210,7 @@ def main(argv: list = None) -> int:
     parser.add_argument(
         "--db",
         type=str,
-        default="state/products.sqlite3",
+        default="state/db/products.sqlite3",
         help="Path to products database",
     )
 
@@ -335,7 +335,7 @@ def main(argv: list = None) -> int:
     index_parser.add_argument(
         "--hdf5-db",
         type=str,
-        default=os.getenv("HDF5_DB_PATH", "/data/dsa110-contimg/state/hdf5.sqlite3"),
+        default=os.getenv("HDF5_DB_PATH", "/data/dsa110-contimg/state/db/hdf5.sqlite3"),
         help="Path to HDF5 index database",
     )
     index_parser.add_argument(

@@ -176,16 +176,16 @@ start_api() {
     # Start in background (avoid nested conda run if already in casa6)
     if [ "${CONDA_DEFAULT_ENV:-}" = "casa6" ] || [[ "${CONDA_PREFIX:-}" == *"/envs/casa6"* ]]; then
         nohup env PYTHONPATH="$PROJECT_DIR/src" \
-            PIPELINE_PRODUCTS_DB="$PROJECT_DIR/state/products.sqlite3" \
-            PIPELINE_QUEUE_DB="$PROJECT_DIR/state/ingest.sqlite3" \
+            PIPELINE_PRODUCTS_DB="$PROJECT_DIR/state/db/products.sqlite3" \
+            PIPELINE_QUEUE_DB="$PROJECT_DIR/state/db/ingest.sqlite3" \
             PIPELINE_STATE_DIR="$PROJECT_DIR/state" \
         $UVICORN_CMD \
         > "$LOG_DIR/api.log" 2>&1 &
     else
         nohup conda run -n casa6 \
             env PYTHONPATH="$PROJECT_DIR/src" \
-                PIPELINE_PRODUCTS_DB="$PROJECT_DIR/state/products.sqlite3" \
-                PIPELINE_QUEUE_DB="$PROJECT_DIR/state/ingest.sqlite3" \
+                PIPELINE_PRODUCTS_DB="$PROJECT_DIR/state/db/products.sqlite3" \
+                PIPELINE_QUEUE_DB="$PROJECT_DIR/state/db/ingest.sqlite3" \
                 PIPELINE_STATE_DIR="$PROJECT_DIR/state" \
             $UVICORN_CMD \
             > "$LOG_DIR/api.log" 2>&1 &

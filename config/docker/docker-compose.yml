@@ -17,8 +17,8 @@ services:
       - /data/incoming:/data/incoming:ro
     environment:
       - PYTHONPATH=/app/src
-      - PIPELINE_PRODUCTS_DB=/app/state/products.sqlite3
-      - PIPELINE_QUEUE_DB=/app/state/ingest_queue.sqlite3
+      - PIPELINE_PRODUCTS_DB=/app/state/db/products.sqlite3
+      - PIPELINE_QUEUE_DB=/app/state/db/ingest_queue.sqlite3
       - PIPELINE_STATE_DIR=/app/state
     restart: unless-stopped
     command: uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8000 --reload

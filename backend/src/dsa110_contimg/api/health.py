@@ -48,7 +48,7 @@ def _check_disk_space(path: Path, min_free_gb: float = 1.0) -> tuple[bool, Optio
 
 def _check_calibration_registry() -> tuple[bool, Optional[str]]:
     """Check calibration registry accessibility."""
-    registry_path = Path(os.getenv("CAL_REGISTRY_DB", "state/cal_registry.sqlite3"))
+    registry_path = Path(os.getenv("CAL_REGISTRY_DB", "state/db/cal_registry.sqlite3"))
     if not registry_path.exists():
         return False, f"Calibration registry not found: {registry_path}"
     return _check_database(registry_path)
@@ -56,13 +56,13 @@ def _check_calibration_registry() -> tuple[bool, Optional[str]]:
 
 def _check_products_database() -> tuple[bool, Optional[str]]:
     """Check products database accessibility."""
-    products_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+    products_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
     return _check_database(products_path)
 
 
 def _check_master_sources_database() -> tuple[bool, Optional[str]]:
     """Check master sources database accessibility."""
-    products_db = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+    products_db = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
     master_sources_path = products_db.parent / "master_sources.sqlite3"
     if not master_sources_path.exists():
         return False, f"Master sources database not found: {master_sources_path}"
@@ -263,7 +263,7 @@ def ese_detection_health():
     checks["database_accessible"] = {"healthy": healthy, "error": error}
 
     # Check if tables exist
-    products_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+    products_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
     if products_path.exists():
         try:
             conn = sqlite3.connect(str(products_path), timeout=1.0)

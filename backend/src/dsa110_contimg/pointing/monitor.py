@@ -231,11 +231,11 @@ class PointingMonitor:
                         )
 
                         # Products DB is typically in same directory as ingest DB
-                        # Default: state/products.sqlite3
+                        # Default: state/db/products.sqlite3
                         products_db_path = self.ingest_db.parent / "products.sqlite3"
                         if not products_db_path.exists():
                             # Try alternative location
-                            products_db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+                            products_db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
 
                         if products_db_path.exists():
                             on_new_hdf5_file(
@@ -380,12 +380,12 @@ def main():
         epilog="""
 Examples:
   # Basic usage
-  python -m dsa110_contimg.pointing.monitor /data/incoming /data/dsa110-contimg/state/products.sqlite3
+  python -m dsa110_contimg.pointing.monitor /data/incoming /data/dsa110-contimg/state/db/products.sqlite3
   
   # With status file for monitoring
   python -m dsa110_contimg.pointing.monitor \\
     /data/incoming \\
-    /data/dsa110-contimg/state/products.sqlite3 \\
+    /data/dsa110-contimg/state/db/products.sqlite3 \\
     --status-file /data/dsa110-contimg/state/pointing-monitor-status.json
         """,
     )

@@ -28,7 +28,7 @@ from dsa110_contimg.simulation.synthetic_fits import create_synthetic_fits
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-PRODUCTS_DB = Path(os.getenv("PIPELINE_PRODUCTS_DB", "/data/dsa110-contimg/state/products.sqlite3"))
+PRODUCTS_DB = Path(os.getenv("PIPELINE_PRODUCTS_DB", "/data/dsa110-contimg/state/db/products.sqlite3"))
 # Use synthetic data directory for test/synthetic images
 SYNTHETIC_DIR = Path(os.getenv("PIPELINE_SYNTHETIC_DIR", "/data/dsa110-contimg/state/synth"))
 IMAGES_DIR = SYNTHETIC_DIR / "images"

@@ -13,7 +13,7 @@ from dsa110_contimg.database.schema_evolution import evolve_products_schema
 from pathlib import Path
 import tempfile
 
-db_path = Path('/data/dsa110-contimg/state/products.sqlite3')
+db_path = Path('/data/dsa110-contimg/state/db/products.sqlite3')
 if db_path.exists():
     result = evolve_products_schema(db_path, verbose=False)
     print(f'   Migration: {\"✓\" if result else \"✗\"}')

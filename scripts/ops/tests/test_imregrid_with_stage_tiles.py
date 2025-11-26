@@ -22,7 +22,7 @@ from dsa110_contimg.mosaic.validation import TileQualityMetrics
 
 def test_imregrid_with_stage_tiles():
     """Test imregrid using tiles from /stage/."""
-    products_db = Path("/data/dsa110-contimg/state/products.sqlite3")
+    products_db = Path("/data/dsa110-contimg/state/db/products.sqlite3")
     
     if not products_db.exists():
         print(f"ERROR: Products database not found: {products_db}")

@@ -121,7 +121,7 @@ def main():
     print("=" * 60)
     
     # Test with real database (products.sqlite3)
-    db_real = Path("/data/dsa110-contimg/state/products.sqlite3")
+    db_real = Path("/data/dsa110-contimg/state/db/products.sqlite3")
     results_real = test_with_database(db_real, "Real Database (products.sqlite3)")
     
     # Test with empty/nonexistent database (graceful degradation)

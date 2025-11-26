@@ -14,7 +14,7 @@ from typing import Dict, Set, Tuple
 
 # Pipeline staging base directory
 STAGE_BASE = Path("/stage/dsa110-contimg")
-DATA_REGISTRY_DB = Path("/data/dsa110-contimg/state/data_registry.sqlite3")
+DATA_REGISTRY_DB = Path("/data/dsa110-contimg/state/db/data_registry.sqlite3")
 
 
 def get_used_directories_from_code() -> Set[str]:

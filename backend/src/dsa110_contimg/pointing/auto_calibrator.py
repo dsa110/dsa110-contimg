@@ -57,7 +57,7 @@ def get_data_time_range(products_db_path: Path) -> Optional[Tuple[Time, Time]]:
         # Determine HDF5 database path
         import os as _os_inner
 
-        hdf5_db_path = Path(_os_inner.getenv("HDF5_DB_PATH", "state/hdf5.sqlite3"))
+        hdf5_db_path = Path(_os_inner.getenv("HDF5_DB_PATH", "state/db/hdf5.sqlite3"))
 
         # Query for all groups with files on disk
         groups = query_subband_groups(

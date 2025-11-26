@@ -372,13 +372,13 @@ def main():
     parser.add_argument(
         "--products-db",
         type=Path,
-        default=Path("/data/dsa110-contimg/state/products.sqlite3"),
+        default=Path("/data/dsa110-contimg/state/db/products.sqlite3"),
         help="Products database path"
     )
     parser.add_argument(
         "--registry-db",
         type=Path,
-        default=Path("/data/dsa110-contimg/state/cal_registry.sqlite3"),
+        default=Path("/data/dsa110-contimg/state/db/cal_registry.sqlite3"),
         help="Calibration registry database path"
     )
     parser.add_argument(

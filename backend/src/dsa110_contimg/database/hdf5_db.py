@@ -3,7 +3,7 @@
 This database tracks incoming HDF5 visibility files, separate from the
 products database which tracks pipeline outputs (MS files, images, etc.).
 
-Database: /data/dsa110-contimg/state/hdf5.sqlite3
+Database: /data/dsa110-contimg/state/db/hdf5.sqlite3
 """
 
 import os
@@ -133,12 +133,12 @@ def get_hdf5_db_path() -> Path:
     """Get HDF5 database path from environment or default.
 
     Environment variable: HDF5_DB_PATH
-    Default: /data/dsa110-contimg/state/hdf5.sqlite3
+    Default: /data/dsa110-contimg/state/db/hdf5.sqlite3
 
     Returns:
         Path to HDF5 database
     """
-    db_path = os.getenv("HDF5_DB_PATH", "state/hdf5.sqlite3")
+    db_path = os.getenv("HDF5_DB_PATH", "state/db/hdf5.sqlite3")
     path = Path(db_path)
 
     # If relative path, resolve relative to project root

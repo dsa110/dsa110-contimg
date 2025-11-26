@@ -82,7 +82,7 @@ def main():
     from pathlib import Path
 
     # Get database path from environment or use default
-    products_db = Path(os.getenv("PRODUCTS_DB", "/data/dsa110-contimg/state/products.sqlite3"))
+    products_db = Path(os.getenv("PRODUCTS_DB", "/data/dsa110-contimg/state/db/products.sqlite3"))
 
     if not products_db.exists():
         print(f"ERROR: Database not found at {products_db}")

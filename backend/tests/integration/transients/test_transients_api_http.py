@@ -27,7 +27,7 @@ import requests
 
 # API base URL
 API_BASE = "http://localhost:8000/api/transients"
-DB_PATH = "/data/dsa110-contimg/state/products.sqlite3"
+DB_PATH = "/data/dsa110-contimg/state/db/products.sqlite3"
 
 
 @pytest.fixture(scope="session")

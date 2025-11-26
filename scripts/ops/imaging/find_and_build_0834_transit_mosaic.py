@@ -129,7 +129,7 @@ def main():
     
     if not products_db.exists():
         print(f"ERROR: Products DB not found at {products_db}")
-        print("Please set PIPELINE_PRODUCTS_DB environment variable or ensure state/products.sqlite3 exists")
+        print("Please set PIPELINE_PRODUCTS_DB environment variable or ensure state/db/products.sqlite3 exists")
         return 1
     
     # Create mosaic name from transit date

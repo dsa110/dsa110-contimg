@@ -630,7 +630,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--products-db",
         type=Path,
-        default=Path("/data/dsa110-contimg/state/products.sqlite3"),
+        default=Path("/data/dsa110-contimg/state/db/products.sqlite3"),
         help="Path to products database",
     )
     parser.add_argument(

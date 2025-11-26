@@ -124,9 +124,10 @@ def test_find_earliest_incomplete_window_extracts_dec(orchestrator):
         mock_manager = MagicMock()
         mock_get_manager.return_value = mock_manager
 
-        # Mock BP calibrator lookup
+        # Mock BP calibrator lookup - include ra_deg which is needed by orchestrator
         mock_manager.get_bandpass_calibrator_for_dec.return_value = {
             "name": "0834+555",
+            "ra_deg": 129.25,
             "dec_deg": -30.0,
         }
 

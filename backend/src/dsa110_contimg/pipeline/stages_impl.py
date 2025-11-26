@@ -1473,7 +1473,7 @@ class CalibrationStage(PipelineStage):
             registry_db = context.config.paths.state_dir / "cal_registry.sqlite3"
             if not registry_db.exists():
                 # Try alternative location
-                registry_db = Path("/data/dsa110-contimg/state/cal_registry.sqlite3")
+                registry_db = Path("/data/dsa110-contimg/state/db/cal_registry.sqlite3")
                 if not registry_db.exists():
                     error_msg = (
                         f"Cannot apply calibration: No calibration tables provided and "

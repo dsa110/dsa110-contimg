@@ -26,7 +26,7 @@ def select_bandpass_calibrator_fast(
     min_flux_jy: float = 1.0,
     use_registry: bool = True,
     fallback_to_catalog: bool = True,
-    db_path: str = "/data/dsa110-contimg/state/calibrator_registry.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3",
 ) -> Optional[Dict]:
     """Fast bandpass calibrator selection using registry.
 
@@ -160,7 +160,7 @@ def select_multiple_calibrators(
     dec_tolerance: float = 5.0,
     min_flux_jy: float = 0.5,
     min_separation_deg: float = 1.0,
-    db_path: str = "/data/dsa110-contimg/state/calibrator_registry.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3",
 ) -> List[Dict]:
     """Select multiple calibrators for a field.
 
@@ -272,7 +272,7 @@ def validate_calibrator_selection(
 
 
 def get_calibrator_performance_metrics(
-    calibrator_name: str, db_path: str = "/data/dsa110-contimg/state/calibrator_registry.sqlite3"
+    calibrator_name: str, db_path: str = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3"
 ) -> Optional[Dict]:
     """Get historical performance metrics for a calibrator.
 
@@ -335,7 +335,7 @@ def recommend_calibrator_for_observation(
     target_dec: float,
     observation_type: str = "general",
     prefer_monitored: bool = True,
-    db_path: str = "/data/dsa110-contimg/state/calibrator_registry.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/calibrator_registry.sqlite3",
 ) -> Optional[Dict]:
     """High-level calibrator recommendation for an observation.
 

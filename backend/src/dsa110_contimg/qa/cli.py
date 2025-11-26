@@ -181,7 +181,7 @@ def cmd_mosaic(args: argparse.Namespace) -> int:
         from dsa110_contimg.database.products import ensure_products_db
 
         products_db_path = Path(
-            args.products_db or os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3")
+            args.products_db or os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3")
         )
         conn = ensure_products_db(products_db_path)
 
@@ -289,7 +289,7 @@ def cmd_report(args: argparse.Namespace) -> int:
             get_data,
         )
 
-        products_db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        products_db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
         registry_conn = ensure_data_registry_db(products_db_path)
 
         record = get_data(registry_conn, data_id)

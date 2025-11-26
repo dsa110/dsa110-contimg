@@ -122,7 +122,7 @@ def get_test_tiles(mosaic_id=None, max_tiles=3):
                 return casa_tiles
 
     # Fallback: try products database
-    products_db = Path("/data/dsa110-contimg/state/products.sqlite3")
+    products_db = Path("/data/dsa110-contimg/state/db/products.sqlite3")
     if products_db.exists():
         conn = sqlite3.connect(str(products_db))
         cursor = conn.cursor()

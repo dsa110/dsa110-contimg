@@ -61,14 +61,14 @@ class TestDatabases:
     """Test that critical databases exist and are readable."""
 
     @pytest.mark.skipif(
-        not Path("/data/dsa110-contimg/state/products.sqlite3").exists(),
+        not Path("/data/dsa110-contimg/state/db/products.sqlite3").exists(),
         reason="Production products database not found",
     )
     def test_products_database_exists(self):
         """Smoke test: products database exists and is readable."""
         import sqlite3
 
-        db_path = "/data/dsa110-contimg/state/products.sqlite3"
+        db_path = "/data/dsa110-contimg/state/db/products.sqlite3"
         conn = sqlite3.connect(db_path)
 
         # Check tables exist
