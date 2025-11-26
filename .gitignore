@@ -250,3 +250,4 @@ docs/archive/
 !.local/bin/
 !.local/bin/python*
 internal/
+.ai/
