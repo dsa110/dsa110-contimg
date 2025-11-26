@@ -237,7 +237,7 @@ site/
 *.pid
 
 # Top-level markdown files (keep only README.md and MEMORY.md in repo)
-/*.md
+#/*.md
 !/README.md
 !/MEMORY.md
 
