@@ -388,7 +388,7 @@ Shows task lifecycle:
   multi-stage workflows
 - **[Absurd Operations Guide](absurd_operations.md)** - Backend operations and
   configuration
-- **[Performance Tuning Guide](../concepts/absurd_performance_tuning.md)** -
+- **[Performance Tuning Guide](../../architecture/pipeline/absurd_performance_tuning.md)** -
   Optimizing throughput
 
 ---

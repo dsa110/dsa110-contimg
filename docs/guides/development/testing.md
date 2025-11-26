@@ -497,6 +497,6 @@ with patch("dsa110_contimg.module.slow_operation") as mock_slow:
 
 ## Related Documentation
 
-- [Pipeline Stage Architecture](../concepts/pipeline_stage_architecture.md)
-- [Pipeline Patterns](../concepts/pipeline_patterns.md)
+- [Pipeline Stage Architecture](../../architecture/pipeline/pipeline_stage_architecture.md)
+- [Pipeline Patterns](../../architecture/pipeline/pipeline_patterns.md)
 - [Creating Pipeline Stages](create_pipeline_stage.md)

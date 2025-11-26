@@ -106,10 +106,41 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
             nvss_flux_mjy REAL,
             peak_jyb REAL NOT NULL,
             peak_err_jyb REAL,
-            measured_at REAL NOT NULL
+            flux_jy REAL,
+            flux_err_jy REAL,
+            normalized_flux_jy REAL,
+            normalized_flux_err_jy REAL,
+            measured_at REAL NOT NULL,
+            mjd REAL,
+            mosaic_path TEXT
         )
         """
     )
+    # Ensure new photometry columns exist for upgraded databases
+    photometry_cols = {
+        row[1]
+        for row in conn.execute("PRAGMA table_info(photometry)").fetchall()
+    }
+    for col_name, col_def in [
+        ("flux_jy", "REAL"),
+        ("flux_err_jy", "REAL"),
+        ("normalized_flux_jy", "REAL"),
+        ("normalized_flux_err_jy", "REAL"),
+        ("mjd", "REAL"),
+        ("mosaic_path", "TEXT"),
+    ]:
+        if col_name not in photometry_cols:
+            try:
+                conn.execute(f"ALTER TABLE photometry ADD COLUMN {col_name} {col_def}")
+            except sqlite3.OperationalError:
+                pass
+    # Index for fast time-series lookups
+    try:
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_photometry_source_mjd ON photometry(source_id, mjd)"
+        )
+    except Exception:
+        pass
     # Minimal index to speed lookups by Measurement Set
     try:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_images_ms_path ON images(ms_path)")
@@ -1097,15 +1128,30 @@ def photometry_insert(
     ra_deg: float,
     dec_deg: float,
     nvss_flux_mjy: float | None,
-    peak_jyb: float,
+    peak_jyb: float | None,
     peak_err_jyb: float | None,
     measured_at: float,
     source_id: str | None = None,
+    flux_jy: float | None = None,
+    flux_err_jy: float | None = None,
+    normalized_flux_jy: float | None = None,
+    normalized_flux_err_jy: float | None = None,
+    mjd: float | None = None,
+    mosaic_path: str | None = None,
 ) -> None:
     """Insert a forced photometry measurement."""
+    flux_val = peak_jyb if flux_jy is None else flux_jy
+    flux_err_val = peak_err_jyb if flux_err_jy is None else flux_err_jy
+    norm_flux_val = (
+        flux_val if normalized_flux_jy is None else normalized_flux_jy
+    )
+    norm_flux_err_val = (
+        flux_err_val if normalized_flux_err_jy is None else normalized_flux_err_jy
+    )
+    mjd_val = mjd if mjd is not None else (measured_at / 86400.0 + 40587.0)
     conn.execute(
-        "INSERT INTO photometry(source_id, image_path, ra_deg, dec_deg, nvss_flux_mjy, peak_jyb, peak_err_jyb, measured_at) "
-        "VALUES(?,?,?,?,?,?,?,?)",
+        "INSERT INTO photometry(source_id, image_path, ra_deg, dec_deg, nvss_flux_mjy, peak_jyb, peak_err_jyb, flux_jy, flux_err_jy, normalized_flux_jy, normalized_flux_err_jy, measured_at, mjd, mosaic_path) "
+        "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         (
             source_id,
             image_path,
@@ -1114,7 +1160,13 @@ def photometry_insert(
             nvss_flux_mjy,
             peak_jyb,
             peak_err_jyb,
+            flux_val,
+            flux_err_val,
+            norm_flux_val,
+            norm_flux_err_val,
             measured_at,
+            mjd_val,
+            mosaic_path,
         ),
     )
 

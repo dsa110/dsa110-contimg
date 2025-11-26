@@ -14,7 +14,7 @@
 - **Agent Guidelines:** [AGENT_GUIDELINES.md](./AGENT_GUIDELINES.md) - Templates
   and procedures
 - **Consolidation Strategy:**
-  [CONSOLIDATION_STRATEGY.md](./CONSOLIDATION_STRATEGY.md) - Overview of
+  [CONSOLIDATION_STRATEGY.md](../design/strategies/CONSOLIDATION_STRATEGY.md) - Overview of
   documentation system
 
 ---

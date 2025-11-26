@@ -417,11 +417,11 @@ sqlite3 state/products.sqlite3 ".recover" | \
 
 ## Related Documentation
 
-- **[Workspace Study](../dev/analysis/workspace_comprehensive_study.md)** -
+- **[Workspace Study](../archive/progress-logs/analysis/workspace_comprehensive_study.md)** -
   Complete workspace overview
 - **[Pipeline Documentation](../../dsa110_contimg/README_PIPELINE_DOCUMENTATION.md)** -
   Pipeline architecture
-- **[Directory Architecture](../concepts/DIRECTORY_ARCHITECTURE.md)** -
+- **[Directory Architecture](../architecture/architecture/DIRECTORY_ARCHITECTURE.md)** -
   Filesystem organization
 
 ---

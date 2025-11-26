@@ -526,11 +526,11 @@ Frontend Polling Timer → API Request → Backend Handler → Database Query �
 
 - **[Dashboard Vision & Design](./dashboard_vision_and_design.md)** - Design
   principles and vision
-- **[Frontend Architecture](../analysis/DASHBOARD_OVERVIEW_DETAILED.md#frontend-architecture-developer-focused)** -
+- **[Frontend Architecture](../../archive/analysis/DASHBOARD_OVERVIEW_DETAILED.md#frontend-architecture-developer-focused)** -
   Detailed frontend architecture
-- **[Backend API Reference](../reference/dashboard_backend_api.md)** - API
+- **[Backend API Reference](../../reference/dashboard_backend_api.md)** - API
   endpoint documentation
-- **[Streaming Architecture](./streaming-architecture.md)** - Streaming service
+- **[Streaming Architecture](../pipeline/streaming-architecture.md)** - Streaming service
   architecture
 
 ---

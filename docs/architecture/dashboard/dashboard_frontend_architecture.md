@@ -611,11 +611,11 @@ const computed = useMemo(() => expensiveCalculation(data), [data]);
 
 ## See Also
 
-- [Backend API & Integration](../reference/dashboard_backend_api.md) - API
+- [Backend API & Integration](../../reference/dashboard_backend_api.md) - API
   integration details
 - [State Management & Real-Time Updates](./dashboard_state_management.md) -
   State management patterns
 - [Error Handling & Resilience](./dashboard_error_handling.md) - Error handling
   strategies
-- [Dashboard Pages & Features Reference](../reference/dashboard_pages_and_features.md) -
+- [Dashboard Pages & Features Reference](../../reference/dashboard_pages_and_features.md) -
   Page documentation

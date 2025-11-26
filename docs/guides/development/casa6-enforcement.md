@@ -8,9 +8,9 @@ operations in the DSA-110 Continuum Imaging Pipeline.
 **Location**: `docs/how-to/casa6-enforcement.md`  
 **Related**:
 
-- [Critical Python Environment](../reference/CRITICAL_PYTHON_ENVIRONMENT.md)
+- [Critical Python Environment](../../reference/CRITICAL_PYTHON_ENVIRONMENT.md)
 - [Agentic Session Setup](agentic-session-setup.md)
-- [Environment Dependency Enforcement Framework](../concepts/environment_dependency_enforcement.md) -
+- [Environment Dependency Enforcement Framework](../../architecture/architecture/environment_dependency_enforcement.md) -
   Conceptual framework
 
 ## Overview
@@ -273,13 +273,13 @@ source scripts/casa6-env.sh
 
 ## See Also
 
-- [Critical Python Environment](../reference/CRITICAL_PYTHON_ENVIRONMENT.md) -
+- [Critical Python Environment](../../reference/CRITICAL_PYTHON_ENVIRONMENT.md) -
   Why casa6 is required
 - [Agentic Session Setup](agentic-session-setup.md) - Complete session setup
   guide
-- [Batch Mode Execution Guide](batch_mode_execution_guide.md) - Using casa6 in
+- [Batch Mode Execution Guide](../workflow/batch_mode_execution_guide.md) - Using casa6 in
   batch processing
-- [Environment Dependency Enforcement Framework](../concepts/environment_dependency_enforcement.md) -
+- [Environment Dependency Enforcement Framework](../../architecture/architecture/environment_dependency_enforcement.md) -
   Conceptual framework for dependency enforcement
 
 ## References

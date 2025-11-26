@@ -2,6 +2,9 @@
 
 This module patches expensive imports before any test modules are loaded.
 The key is using sys.modules to pre-install mocks BEFORE imports happen.
+
+NOTE: Be careful not to mock modules that are being tested. Only mock
+external heavy dependencies that aren't the subject of the tests.
 """
 
 import sys
@@ -12,6 +15,11 @@ from unittest.mock import MagicMock
 # =============================================================================
 # This is critical - patch() won't work because the module is imported
 # before the patch is applied. Instead, we pre-populate sys.modules.
+#
+# IMPORTANT: Only mock modules that are IMPORTED BY code under test, not
+# modules that ARE the code under test. For example:
+# - Mock calibrator_ms_service because orchestrator.py imports it
+# - DON'T mock streaming_mosaic because test_streaming_mosaic_manager_unit.py tests it
 
 def _install_mock_if_missing(module_path: str) -> MagicMock:
     """Install a MagicMock into sys.modules if not already present."""
@@ -21,24 +29,9 @@ def _install_mock_if_missing(module_path: str) -> MagicMock:
         return mock
     return sys.modules[module_path]
 
-# Mock heavy calibrator imports (CASA dependencies)
+# Mock heavy calibrator imports (CASA dependencies) - used by orchestrator.py
 _install_mock_if_missing("dsa110_contimg.conversion.calibrator_ms_service")
 
-# Mock photometry manager (heavy dependencies)
+# Mock photometry manager (heavy dependencies) - used by orchestrator.py
 _install_mock_if_missing("dsa110_contimg.photometry.manager")
-
-# Mock streaming mosaic (CASA dependencies)
-_install_mock_if_missing("dsa110_contimg.mosaic.streaming_mosaic")
-
-# Mock error handling (may have disk I/O)
-mock_error = _install_mock_if_missing("dsa110_contimg.mosaic.error_handling")
-mock_error.check_disk_space = MagicMock(return_value=(True, "OK"))
-
-# Mock time utils
-mock_time = _install_mock_if_missing("dsa110_contimg.utils.time_utils")
-mock_time.extract_ms_time_range = MagicMock(return_value=(0.0, 1.0))
-
-# Mock HDF5 index
-mock_hdf5 = _install_mock_if_missing("dsa110_contimg.database.hdf5_index")
-mock_hdf5.query_subband_groups = MagicMock(return_value=[])
 

@@ -443,7 +443,7 @@ execute in priority order.
 - **[Task Dashboard Guide](absurd_task_dashboard.md)** - Monitoring and managing
   tasks
 - **[Absurd Operations Guide](absurd_operations.md)** - Backend operations
-- **[Performance Tuning Guide](../concepts/absurd_performance_tuning.md)** -
+- **[Performance Tuning Guide](../../architecture/pipeline/absurd_performance_tuning.md)** -
   Optimizing workflows
 
 ---

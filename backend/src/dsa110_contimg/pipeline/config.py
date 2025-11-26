@@ -250,7 +250,7 @@ class AstrometricCalibrationConfig(BaseModel):
 class PhotometryConfig(BaseModel):
     """Configuration for adaptive binning photometry stage."""
 
-    enabled: bool = Field(default=False, description="Enable adaptive binning photometry stage")
+    enabled: bool = Field(default=True, description="Enable adaptive binning photometry stage")
     target_snr: float = Field(
         default=5.0, ge=1.0, description="Target SNR threshold for detections"
     )

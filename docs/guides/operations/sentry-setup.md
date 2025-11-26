@@ -290,6 +290,6 @@ catch (error) {
 
 ## See Also
 
-- [Error Handling & Resilience Guide](error-handling-resilience.md)
+- [Error Handling & Resilience Guide](../error-handling/error-handling-resilience.md)
 - [Sentry Documentation](https://docs.sentry.io/platforms/javascript/guides/react/)
 - [Sentry Free Tier Limits](https://sentry.io/pricing/)

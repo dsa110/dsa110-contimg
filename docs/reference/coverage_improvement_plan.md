@@ -177,4 +177,4 @@ pytest tests/unit/test_pipeline_stages_comprehensive.py
 
 - [Test Coverage Analysis](test_coverage_analysis.md)
 - [Testing Guide](../how-to/testing.md)
-- [Pipeline Stage Architecture](../concepts/pipeline_stage_architecture.md)
+- [Pipeline Stage Architecture](../architecture/pipeline/pipeline_stage_architecture.md)

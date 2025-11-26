@@ -6,6 +6,7 @@ direct calls to the new pipeline framework stages.
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 import os
 import sqlite3
@@ -22,7 +23,7 @@ from dsa110_contimg.database.jobs import (
     get_job,
     update_job_status,
 )
-from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.database.products import ensure_products_db, photometry_insert
 from dsa110_contimg.pipeline.config import PipelineConfig
 from dsa110_contimg.pipeline.context import PipelineContext
 from dsa110_contimg.pipeline.stages_impl import (
@@ -863,12 +864,33 @@ def run_batch_photometry_job(
 
     conn = ensure_products_db(products_db)
 
+    def _source_id_for_coord(coord: dict) -> str:
+        ra_sec = int(coord["ra_deg"] * 3600)
+        dec_sec = int(coord["dec_deg"] * 3600)
+        ra_h = ra_sec // 3600
+        ra_m = (ra_sec % 3600) // 60
+        ra_s = ra_sec % 60
+        dec_d = abs(dec_sec) // 3600
+        dec_m = (abs(dec_sec) % 3600) // 60
+        dec_s = abs(dec_sec) % 60
+        dec_sign = "+" if coord["dec_deg"] >= 0 else "-"
+        return f"J{ra_h:02d}{ra_m:02d}{ra_s:02d}{dec_sign}{dec_d:02d}{dec_m:02d}{dec_s:02d}"
+
     try:
         conn.execute("UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,))
         conn.commit()
 
         master_sources_db = Path(
             os.getenv("MASTER_SOURCES_DB", str(products_db.parent / "master_sources.sqlite3"))
+        )
+        max_workers = params.get("max_workers") or min(8, (os.cpu_count() or 4))
+        logger.info(
+            "batch_photometry_start",
+            batch_id=batch_id,
+            fits=len(fits_paths),
+            coords=len(coordinates),
+            max_workers=max_workers,
+            normalize=params.get("normalize", False),
         )
 
         for fits_path in fits_paths:
@@ -880,6 +902,7 @@ def run_batch_photometry_job(
 
             # Compute normalization correction if needed
             correction = None
+            ref_sources = []
             if params.get("normalize", False):
                 try:
                     # Use first coordinate as field center
@@ -906,138 +929,105 @@ def run_batch_photometry_job(
                         "Failed to compute normalization correction", error=str(e)
                     )
 
-            for coord in coordinates:
-                item_id = f"{fits_path}:{coord['ra_deg']}:{coord['dec_deg']}"
-                try:
-                    # Update batch item status
-                    update_batch_item(conn, batch_id, item_id, None, "running")
-                    conn.commit()
+            def _measure_single(coord: dict):
+                if params.get("use_aegean", False):
+                    from dsa110_contimg.photometry.aegean_fitting import measure_with_aegean
 
-                    # Perform photometry measurement
-                    if params.get("use_aegean", False):
-                        from dsa110_contimg.photometry.aegean_fitting import (
-                            measure_with_aegean,
-                        )
+                    res_local = measure_with_aegean(
+                        fits_path,
+                        coord["ra_deg"],
+                        coord["dec_deg"],
+                        use_prioritized=params.get("aegean_prioritized", False),
+                        negative=params.get("aegean_negative", False),
+                    )
+                    raw_flux = res_local.peak_flux_jy
+                    raw_error = res_local.err_peak_flux_jy
+                else:
+                    res_local = measure_forced_peak(
+                        fits_path,
+                        coord["ra_deg"],
+                        coord["dec_deg"],
+                        box_size_pix=params.get("box_size_pix", 5),
+                        annulus_pix=params.get("annulus_pix", (12, 20)),
+                        noise_map_path=params.get("noise_map_path"),
+                        background_map_path=params.get("background_map_path"),
+                        nbeam=params.get("nbeam", 3.0),
+                        use_weighted_convolution=params.get("use_weighted_convolution", True),
+                    )
+                    raw_flux = res_local.peak_jyb
+                    raw_error = res_local.peak_err_jyb
 
-                        res = measure_with_aegean(
-                            fits_path,
-                            coord["ra_deg"],
-                            coord["dec_deg"],
-                            use_prioritized=params.get("aegean_prioritized", False),
-                            negative=params.get("aegean_negative", False),
-                        )
-                        raw_flux = res.peak_flux_jy
-                        raw_error = res.err_peak_flux_jy
-                    else:
-                        res = measure_forced_peak(
-                            fits_path,
-                            coord["ra_deg"],
-                            coord["dec_deg"],
-                            box_size_pix=params.get("box_size_pix", 5),
-                            annulus_pix=params.get("annulus_pix", (12, 20)),
-                            noise_map_path=params.get("noise_map_path"),
-                            background_map_path=params.get("background_map_path"),
-                            nbeam=params.get("nbeam", 3.0),
-                            use_weighted_convolution=params.get("use_weighted_convolution", True),
-                        )
-                        raw_flux = res.peak_jyb
-                        raw_error = res.peak_err_jyb
+                # Apply normalization if requested and correction available
+                if params.get("normalize", False) and correction:
+                    normalized_flux, normalized_error = normalize_measurement(
+                        raw_flux, raw_error, correction
+                    )
+                else:
+                    normalized_flux = raw_flux
+                    normalized_error = raw_error
 
-                    # Apply normalization if requested and correction available
-                    if params.get("normalize", False) and correction:
-                        normalized_flux, normalized_error = normalize_measurement(
-                            raw_flux, raw_error, correction
-                        )
-                    else:
-                        normalized_flux = raw_flux
-                        normalized_error = raw_error
-
-                    # Store photometry results in database
-                    import time as time_module
-
-                    from dsa110_contimg.database.products import photometry_insert
-
-                    # Generate source_id from coordinates (format: "JHHMMSS+DDMMSS")
-                    # Round to nearest arcsecond for consistent ID
-                    ra_sec = int(coord["ra_deg"] * 3600)
-                    dec_sec = int(coord["dec_deg"] * 3600)
-                    ra_h = ra_sec // 3600
-                    ra_m = (ra_sec % 3600) // 60
-                    ra_s = ra_sec % 60
-                    dec_d = abs(dec_sec) // 3600
-                    dec_m = (abs(dec_sec) % 3600) // 60
-                    dec_s = abs(dec_sec) % 60
-                    dec_sign = "+" if coord["dec_deg"] >= 0 else "-"
-                    source_id = f"J{ra_h:02d}{ra_m:02d}{ra_s:02d}{dec_sign}{dec_d:02d}{dec_m:02d}{dec_s:02d}"
-
-                    # Get NVSS flux if available (from reference sources used for normalization)
-                    nvss_flux_mjy = None
-                    if params.get("normalize", False) and correction and ref_sources:
-                        # Try to find matching source in reference sources
-                        try:
-                            from astropy import coordinates as acoords
-
-                            target_coord = acoords.SkyCoord(
-                                coord["ra_deg"],
-                                coord["dec_deg"],
-                                unit="deg",
-                                frame="icrs",
-                            )
-                            min_sep = None
-                            closest_source = None
-                            for ref in ref_sources:
-                                ref_coord = acoords.SkyCoord(
-                                    ref["ra_deg"],
-                                    ref["dec_deg"],
-                                    unit="deg",
-                                    frame="icrs",
-                                )
-                                sep = target_coord.separation(ref_coord).arcsec
-                                if min_sep is None or sep < min_sep:
-                                    min_sep = sep
-                                    closest_source = ref
-                            if closest_source and min_sep < 5.0:  # Within 5 arcsec
-                                nvss_flux_mjy = closest_source.get("flux_mjy")
-                        except Exception:
-                            pass
-
-                    # Store photometry measurement
+                nvss_flux_mjy = None
+                if params.get("normalize", False) and correction and ref_sources:
                     try:
+                        from astropy import coordinates as acoords
+
+                        target_coord = acoords.SkyCoord(
+                            coord["ra_deg"], coord["dec_deg"], unit="deg", frame="icrs"
+                        )
+                        min_sep = None
+                        closest_source = None
+                        for ref in ref_sources:
+                            ref_coord = acoords.SkyCoord(
+                                ref["ra_deg"], ref["dec_deg"], unit="deg", frame="icrs"
+                            )
+                            sep = target_coord.separation(ref_coord).arcsec
+                            if min_sep is None or sep < min_sep:
+                                min_sep = sep
+                                closest_source = ref
+                        if closest_source and min_sep < 5.0:
+                            nvss_flux_mjy = closest_source.get("flux_mjy")
+                    except Exception:
+                        pass
+
+                return {
+                    "raw_flux": raw_flux,
+                    "raw_error": raw_error,
+                    "normalized_flux": normalized_flux,
+                    "normalized_error": normalized_error,
+                    "nvss_flux_mjy": nvss_flux_mjy,
+                }
+
+            futures = {}
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                for coord in coordinates:
+                    item_id = f"{fits_path}:{coord['ra_deg']}:{coord['dec_deg']}"
+                    update_batch_item(conn, batch_id, item_id, None, "running")
+                    futures[executor.submit(_measure_single, coord)] = (coord, item_id)
+                conn.commit()
+
+                for future in as_completed(futures):
+                    coord, item_id = futures[future]
+                    try:
+                        measurement = future.result()
+                        source_id = _source_id_for_coord(coord)
+                        measured_at = time.time()
+
                         photometry_insert(
                             conn,
                             image_path=fits_path,
                             ra_deg=coord["ra_deg"],
                             dec_deg=coord["dec_deg"],
-                            nvss_flux_mjy=nvss_flux_mjy,
-                            peak_jyb=normalized_flux,
-                            peak_err_jyb=normalized_error,
-                            measured_at=time_module.time(),
+                            nvss_flux_mjy=measurement.get("nvss_flux_mjy"),
+                            peak_jyb=measurement["normalized_flux"],
+                            peak_err_jyb=measurement["normalized_error"],
+                            flux_jy=measurement["raw_flux"],
+                            flux_err_jy=measurement["raw_error"],
+                            normalized_flux_jy=measurement["normalized_flux"],
+                            normalized_flux_err_jy=measurement["normalized_error"],
+                            measured_at=measured_at,
+                            source_id=source_id,
                         )
 
-                        # Update source_id in photometry table if column exists
-                        try:
-                            conn.execute(
-                                """
-                                UPDATE photometry 
-                                SET source_id = ?, mjd = ?
-                                WHERE image_path = ? AND ra_deg = ? AND dec_deg = ?
-                                ORDER BY rowid DESC LIMIT 1
-                                """,
-                                (
-                                    source_id,
-                                    time_module.time() / 86400.0 + 40587.0,  # Approximate MJD
-                                    fits_path,
-                                    coord["ra_deg"],
-                                    coord["dec_deg"],
-                                ),
-                            )
-                        except sqlite3.OperationalError:
-                            # Column may not exist, skip
-                            pass
-
-                        conn.commit()
-
-                        # Automatically detect ESE candidates for this source
                         if params.get("auto_detect_ese", True):
                             try:
                                 from dsa110_contimg.photometry.ese_pipeline import (
@@ -1058,15 +1048,12 @@ def run_batch_photometry_job(
                             except Exception as e:
                                 logger.warning(f"Auto ESE detection failed for {source_id}: {e}")
 
+                        update_batch_item(conn, batch_id, item_id, None, "done")
+                        conn.commit()
+
                     except Exception as e:
-                        logger.warning(f"Failed to store photometry result: {e}")
-
-                    update_batch_item(conn, batch_id, item_id, None, "done")
-                    conn.commit()
-
-                except Exception as e:
-                    update_batch_item(conn, batch_id, item_id, None, "failed", error=str(e))
-                    conn.commit()
+                        update_batch_item(conn, batch_id, item_id, None, "failed", error=str(e))
+                        conn.commit()
 
         # Update batch job status
         cursor = conn.execute(

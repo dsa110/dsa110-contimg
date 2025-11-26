@@ -140,6 +140,6 @@ docker compose -f docker/docker-compose.playwright-python.yml \
 
 ## See Also
 
-- [Port Assignments Quick Reference](../operations/PORT_ASSIGNMENTS_QUICK_REFERENCE.md)
+- [Port Assignments Quick Reference](../../operations/PORT_ASSIGNMENTS_QUICK_REFERENCE.md)
 - [Docker Compose Documentation](https://docs.docker.com/compose/)
 - [Playwright Python Documentation](https://playwright.dev/python/)

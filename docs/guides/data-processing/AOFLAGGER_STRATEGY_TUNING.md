@@ -315,4 +315,4 @@ For DSA-110's L-band (1.4 GHz):
   different strategies
 - [Temporal Flagging System](temporal_flagging_system.md) - Three-phase flagging
   system
-- [AOFlagger Concepts](../concepts/aoflagger.md) - Strategy file basics
+- [AOFlagger Concepts](../../architecture/science/aoflagger.md) - Strategy file basics

@@ -309,5 +309,5 @@ jobs:
 ## See Also
 
 - [Playwright Python Frontend Testing Guide](playwright-python-frontend-testing.md)
-- [Run All Frontend Tests](run-all-frontend-tests.md)
+- [Run All Frontend Tests](../dashboard/run-all-frontend-tests.md)
 - [Docker Compose Documentation](https://docs.docker.com/compose/)

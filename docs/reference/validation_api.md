@@ -9,7 +9,7 @@ consistency. All endpoints are prefixed with the base path
 api/qa/images/{image_id}.
 
 **Note:** The validation system uses a centralized configuration system. See
-[Validation Guide](../how-to/validation_guide.md) for details on using the
+[Validation Guide](../guides/development/validation_guide.md) for details on using the
 configuration system in Python.
 
 ## Endpoints
@@ -353,6 +353,6 @@ print(f"Report saved to: {report_info['report_path']}")
 
 ## See Also
 
-- [Validation Guide](../how-to/validation_guide.md)
+- [Validation Guide](../guides/development/validation_guide.md)
 - [Configuration Guide](../configuration.md)
-- [Pipeline Overview](../concepts/pipeline_overview.md)
+- [Pipeline Overview](../architecture/pipeline/pipeline_overview.md)

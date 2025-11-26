@@ -17,13 +17,12 @@ from dsa110_contimg.api.models import (
     CalibratorMatch,
     CalibratorMatchGroup,
     ObservationTimeline,
+    PointingHistoryEntry,
     ProductEntry,
     QueueGroup,
     QueueStats,
     TimelineSegment,
 )
-
-from .models import PointingHistoryEntry
 
 QUEUE_COLUMNS = [
     "group_id",
@@ -109,39 +108,50 @@ def _retry_db_operation(func, max_retries: int = 3, initial_delay: float = 0.1):
 
 
 def fetch_queue_stats(queue_db: Path) -> QueueStats:
-    """Fetch queue statistics with retry logic."""
+    """Fetch queue statistics with retry logic.
+
+    Returns empty stats if the ingest_queue table doesn't exist yet
+    (table is created when streaming converter first runs).
+    """
+    empty_stats = QueueStats(
+        total=0,
+        pending=0,
+        in_progress=0,
+        failed=0,
+        completed=0,
+        collecting=0,
+    )
 
     def _fetch():
-        with db_operation(queue_db, "fetch_queue_stats", use_pool=True) as conn:
-            row = conn.execute(
+        try:
+            with db_operation(queue_db, "fetch_queue_stats", use_pool=True) as conn:
+                row = conn.execute(
+                    """
+                SELECT 
+                    COUNT(*) AS total,
+                    SUM(CASE WHEN state = 'pending' THEN 1 ELSE 0 END) AS pending,
+                    SUM(CASE WHEN state = 'in_progress' THEN 1 ELSE 0 END) AS in_progress,
+                    SUM(CASE WHEN state = 'failed' THEN 1 ELSE 0 END) AS failed,
+                    SUM(CASE WHEN state = 'completed' THEN 1 ELSE 0 END) AS completed,
+                    SUM(CASE WHEN state = 'collecting' THEN 1 ELSE 0 END) AS collecting
+                FROM ingest_queue
                 """
-            SELECT 
-                COUNT(*) AS total,
-                SUM(CASE WHEN state = 'pending' THEN 1 ELSE 0 END) AS pending,
-                SUM(CASE WHEN state = 'in_progress' THEN 1 ELSE 0 END) AS in_progress,
-                SUM(CASE WHEN state = 'failed' THEN 1 ELSE 0 END) AS failed,
-                SUM(CASE WHEN state = 'completed' THEN 1 ELSE 0 END) AS completed,
-                SUM(CASE WHEN state = 'collecting' THEN 1 ELSE 0 END) AS collecting
-            FROM ingest_queue
-            """
-            ).fetchone()
-            if row is None:
+                ).fetchone()
+                if row is None:
+                    return empty_stats
                 return QueueStats(
-                    total=0,
-                    pending=0,
-                    in_progress=0,
-                    failed=0,
-                    completed=0,
-                    collecting=0,
+                    total=row["total"] or 0,
+                    pending=row["pending"] or 0,
+                    in_progress=row["in_progress"] or 0,
+                    failed=row["failed"] or 0,
+                    completed=row["completed"] or 0,
+                    collecting=row["collecting"] or 0,
                 )
-            return QueueStats(
-                total=row["total"] or 0,
-                pending=row["pending"] or 0,
-                in_progress=row["in_progress"] or 0,
-                failed=row["failed"] or 0,
-                completed=row["completed"] or 0,
-                collecting=row["collecting"] or 0,
-            )
+        except sqlite3.OperationalError as e:
+            # Handle missing table gracefully - table is created when streaming starts
+            if "no such table" in str(e).lower():
+                return empty_stats
+            raise
 
     return retry_db_operation(_fetch, operation_name="fetch_queue_stats")
 
@@ -149,71 +159,81 @@ def fetch_queue_stats(queue_db: Path) -> QueueStats:
 def fetch_recent_queue_groups(
     queue_db: Path, config: ApiConfig, limit: int = 20
 ) -> List[QueueGroup]:
-    """Fetch recent queue groups with retry logic."""
+    """Fetch recent queue groups with retry logic.
+
+    Returns empty list if the ingest_queue table doesn't exist yet
+    (table is created when streaming converter first runs).
+    """
 
     def _fetch():
-        with db_operation(queue_db, "fetch_recent_queue_groups", use_pool=True) as conn:
-            rows = conn.execute(
-                """
-                SELECT iq.group_id,
-                       iq.state,
-                       iq.received_at,
-                       iq.last_update,
-                       iq.chunk_minutes,
-                       iq.expected_subbands,
-                       iq.has_calibrator,
-                       iq.calibrators,
-                       COUNT(sf.subband_idx) AS subbands
-                  FROM ingest_queue iq
-             LEFT JOIN subband_files sf ON iq.group_id = sf.group_id
-              GROUP BY iq.group_id
-              ORDER BY iq.received_at DESC
-                 LIMIT ?
-                """,
-                (limit,),
-            ).fetchall()
+        try:
+            with db_operation(queue_db, "fetch_recent_queue_groups", use_pool=True) as conn:
+                rows = conn.execute(
+                    """
+                    SELECT iq.group_id,
+                           iq.state,
+                           iq.received_at,
+                           iq.last_update,
+                           iq.chunk_minutes,
+                           iq.expected_subbands,
+                           iq.has_calibrator,
+                           iq.calibrators,
+                           COUNT(sf.subband_idx) AS subbands
+                      FROM ingest_queue iq
+                 LEFT JOIN subband_files sf ON iq.group_id = sf.group_id
+                  GROUP BY iq.group_id
+                  ORDER BY iq.received_at DESC
+                     LIMIT ?
+                    """,
+                    (limit,),
+                ).fetchall()
+        except sqlite3.OperationalError as e:
+            # Handle missing table gracefully - table is created when streaming starts
+            if "no such table" in str(e).lower():
+                return []
+            raise
 
-            groups: List[QueueGroup] = []
-            for r in rows:
-                # parse calibrator matches JSON if present
-                has_cal = r["has_calibrator"]
-                cal_json = r["calibrators"] or "[]"
-                matches_parsed: List[CalibratorMatch] = []
-                try:
-                    parsed_list = _json.loads(cal_json)
-                    if isinstance(parsed_list, list):
-                        for m in parsed_list:
-                            try:
-                                matches_parsed.append(
-                                    CalibratorMatch(
-                                        name=str(m.get("name", "")),
-                                        ra_deg=float(m.get("ra_deg", 0.0)),
-                                        dec_deg=float(m.get("dec_deg", 0.0)),
-                                        sep_deg=float(m.get("sep_deg", 0.0)),
-                                        weighted_flux=(
-                                            float(m.get("weighted_flux"))
-                                            if m.get("weighted_flux") is not None
-                                            else None
-                                        ),
-                                    )
+        groups: List[QueueGroup] = []
+        for r in rows:
+            # parse calibrator matches JSON if present
+            has_cal = r["has_calibrator"]
+            cal_json = r["calibrators"] or "[]"
+            matches_parsed: List[CalibratorMatch] = []
+            try:
+                parsed_list = _json.loads(cal_json)
+                if isinstance(parsed_list, list):
+                    for m in parsed_list:
+                        try:
+                            matches_parsed.append(
+                                CalibratorMatch(
+                                    name=str(m.get("name", "")),
+                                    ra_deg=float(m.get("ra_deg", 0.0)),
+                                    dec_deg=float(m.get("dec_deg", 0.0)),
+                                    sep_deg=float(m.get("sep_deg", 0.0)),
+                                    weighted_flux=(
+                                        float(m.get("weighted_flux"))
+                                        if m.get("weighted_flux") is not None
+                                        else None
+                                    ),
                                 )
-                            except Exception:
-                                continue
-                except Exception:
-                    matches_parsed = []
-                groups.append(
-                    QueueGroup(
-                        group_id=r["group_id"],
-                        state=r["state"],
-                        received_at=datetime.fromtimestamp(r["received_at"]),
-                        last_update=datetime.fromtimestamp(r["last_update"]),
-                        subbands_present=r["subbands"] or 0,
-                        expected_subbands=r["expected_subbands"] or config.expected_subbands,
-                        has_calibrator=bool(has_cal) if has_cal is not None else None,
-                        matches=matches_parsed or None,
-                    )
+                            )
+                        except Exception:
+                            continue
+            except Exception:
+                matches_parsed = []
+            groups.append(
+                QueueGroup(
+                    group_id=r["group_id"],
+                    state=r["state"],
+                    received_at=datetime.fromtimestamp(r["received_at"]),
+                    last_update=datetime.fromtimestamp(r["last_update"]),
+                    subbands_present=r["subbands"] or 0,
+                    expected_subbands=r["expected_subbands"] or config.expected_subbands,
+                    has_calibrator=bool(has_cal) if has_cal is not None else None,
+                    matches=matches_parsed or None,
                 )
-            return groups
+            )
+        return groups
 
     return retry_db_operation(_fetch, operation_name="fetch_recent_queue_groups")
 
@@ -425,7 +445,9 @@ def fetch_pointing_history(
     # Get data_registry path if available
     data_registry_db = None
     if exclude_synthetic:
-        registry_path = Path(os.getenv("PIPELINE_DATA_REGISTRY_DB", "state/db/data_registry.sqlite3"))
+        registry_path = Path(
+            os.getenv("PIPELINE_DATA_REGISTRY_DB", "state/db/data_registry.sqlite3")
+        )
         if registry_path.exists():
             data_registry_db = registry_path
 

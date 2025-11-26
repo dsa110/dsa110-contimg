@@ -1131,7 +1131,7 @@ echo "Diagnostics saved to ${OUTPUT_DIR}.tar.gz"
 ## See Also
 
 - [Streaming Control Guide](./streaming-control.md) - Basic usage
-- [Streaming API Reference](../reference/streaming-api.md) - API documentation
-- [Streaming Architecture](../concepts/streaming-architecture.md) - System
+- [Streaming API Reference](../../reference/streaming-api.md) - API documentation
+- [Streaming Architecture](../../architecture/pipeline/streaming-architecture.md) - System
   design
-- [Docker Deployment](../operations/deploy-docker.md) - Deployment guide
+- [Docker Deployment](../../operations/deploy-docker.md) - Deployment guide

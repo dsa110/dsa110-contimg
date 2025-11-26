@@ -1040,12 +1040,12 @@ pages (`/data/:type/:id`) may provide lineage information.
 
 ## Related Documentation
 
-- **[Dashboard Quick Start](../how-to/dashboard-quickstart.md)** - Getting
+- **[Dashboard Quick Start](../guides/dashboard/dashboard-quickstart.md)** - Getting
   started guide
 - **[API Reference](./dashboard_backend_api.md)** - API endpoint documentation
-- **[Dashboard Architecture](../concepts/dashboard_architecture.md)** - System
+- **[Dashboard Architecture](../architecture/dashboard/dashboard_architecture.md)** - System
   architecture
-- **[Dashboard Vision & Design](../concepts/dashboard_vision_and_design.md)** -
+- **[Dashboard Vision & Design](../architecture/dashboard/dashboard_vision_and_design.md)** -
   Design principles
 
 ---

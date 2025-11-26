@@ -7781,11 +7781,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
                 # Get recent calibrations
                 cursor = conn.execute(
-                    "SELECT path, created_at, quality_score FROM caltables "
+                    "SELECT path, created_at, quality_metrics FROM caltables "
                     "ORDER BY created_at DESC LIMIT 5"
                 )
                 status["recent_calibrations"] = [
-                    {"path": row[0], "created_at": row[1], "quality_score": row[2]}
+                    {"path": row[0], "created_at": row[1], "quality_metrics": row[2]}
                     for row in cursor.fetchall()
                 ]
 

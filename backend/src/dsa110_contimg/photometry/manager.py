@@ -308,6 +308,7 @@ class PhotometryManager:
 
                             # Insert into photometry table
                             if res.success:
+                                measured_ts = time.time()
                                 photometry_insert(
                                     conn,
                                     image_path=str(fits_path),
@@ -316,7 +317,11 @@ class PhotometryManager:
                                     nvss_flux_mjy=float(nvss_flux) if nvss_flux else None,
                                     peak_jyb=res.peak_jyb,
                                     peak_err_jyb=res.peak_err_jyb,
-                                    measured_at=time.time(),
+                                    flux_jy=res.peak_jyb,
+                                    flux_err_jy=res.peak_err_jyb,
+                                    normalized_flux_jy=res.peak_jyb,
+                                    normalized_flux_err_jy=res.peak_err_jyb,
+                                    measured_at=measured_ts,
                                     source_id=source_id,
                                 )
 
@@ -480,6 +485,7 @@ class PhotometryManager:
                             nvss_flux = coordinates[i].get("nvss_flux_mjy")
 
                             if res.success:
+                                measured_ts = time.time()
                                 photometry_insert(
                                     conn,
                                     image_path=str(mosaic_path),
@@ -488,8 +494,13 @@ class PhotometryManager:
                                     nvss_flux_mjy=float(nvss_flux) if nvss_flux else None,
                                     peak_jyb=res.peak_jyb,
                                     peak_err_jyb=res.peak_err_jyb,
-                                    measured_at=time.time(),
+                                    flux_jy=res.peak_jyb,
+                                    flux_err_jy=res.peak_err_jyb,
+                                    normalized_flux_jy=res.peak_jyb,
+                                    normalized_flux_err_jy=res.peak_err_jyb,
+                                    measured_at=measured_ts,
                                     source_id=source_id,
+                                    mosaic_path=str(mosaic_path),
                                 )
 
                                 if config.detect_ese and source_id:

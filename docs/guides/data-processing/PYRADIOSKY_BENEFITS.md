@@ -230,9 +230,9 @@ pyradiosky provides:
 
 - [pyradiosky User Guide](./PYRADIOSKY_GUIDE.md) - Comprehensive guide with
   examples
-- [Technical Analysis](../analysis/pyradiosky_vs_componentlist.md) - Detailed
+- [Technical Analysis](../../archive/analysis/pyradiosky_vs_componentlist.md) - Detailed
   comparison
-- [Final Recommendation](../analysis/FINAL_RECOMMENDATION.md) - Decision
+- [Final Recommendation](../../archive/analysis/FINAL_RECOMMENDATION.md) - Decision
   rationale
-- [Changelog](../changelog/PYRADIOSKY_DEFAULT_UPDATE.md) - Implementation
+- [Changelog](../../changelog/PYRADIOSKY_DEFAULT_UPDATE.md) - Implementation
   details

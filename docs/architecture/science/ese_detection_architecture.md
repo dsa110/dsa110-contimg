@@ -342,7 +342,7 @@ Sources are identified using IAU-style coordinate-based IDs:
 
 ## Related Documentation
 
-- [ESE Detection Guide](../../how-to/ese_detection_guide.md)
-- [Implementation Summary](../../dev/ese_detection_implementation_summary.md)
-- [Automated Pipeline Summary](../../dev/ese_automated_pipeline_summary.md)
+- [ESE Detection Guide](../../guides/data-processing/ese_detection_guide.md)
+- [Implementation Summary](../../archive/progress-logs/ese_detection_implementation_summary.md)
+- [Automated Pipeline Summary](../../archive/progress-logs/ese_automated_pipeline_summary.md)
 - [Database Schema](../../reference/database_schema.md)

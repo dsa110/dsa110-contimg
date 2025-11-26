@@ -21,12 +21,13 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 SRC_PATH = REPO_ROOT / "backend" / "src"
 if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))
-# Also add repo root so scripts.diagnostics can be imported
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+# Also add scripts/ops so diagnostics can be imported
+SCRIPTS_OPS_PATH = REPO_ROOT / "scripts" / "ops"
+if str(SCRIPTS_OPS_PATH) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_OPS_PATH))
 
 from dsa110_contimg.api.data_access import fetch_mosaics_recent
-from scripts.diagnostics.auto_fix_services import MISSING_ENDPOINTS
+from diagnostics.auto_fix_services import MISSING_ENDPOINTS
 from tests.utils.mosaic_db import create_products_db_with_mosaic
 
 

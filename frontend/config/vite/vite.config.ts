@@ -162,13 +162,15 @@ export default defineConfig({
   },
   resolve: {
     // Ensure proper module resolution and prevent multiple React copies
-    dedupe: ["react", "react-dom", "date-fns"],
+    // recharts must be deduped to prevent "Cannot read properties of null (reading 'useRef')" errors
+    dedupe: ["react", "react-dom", "date-fns", "recharts"],
   },
   optimizeDeps: {
     // CRITICAL: Include all dependencies that need CommonJS -> ESM transformation
     // plotly.js must be pre-transformed because it contains CommonJS code
     // This happens once at startup, then the transformed version is cached
-    include: ["date-fns", "react", "react-dom", "react-plotly.js", "plotly.js"],
+    // recharts must be included to work properly with React 19
+    include: ["date-fns", "react", "react-dom", "react-plotly.js", "plotly.js", "recharts"],
     // Exclude only dependencies that are already ESM and don't need transformation
     exclude: [
       "golden-layout",

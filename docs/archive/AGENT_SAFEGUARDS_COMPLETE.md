@@ -150,8 +150,8 @@ To verify safeguards work:
 
 ## Related Documentation
 
-- [Documentation Consolidation Strategy](DOCUMENTATION_CONSOLIDATION_STRATEGY.md)
-- [Documentation Quick Reference](DOCUMENTATION_QUICK_REFERENCE.md)
+- [Documentation Consolidation Strategy](../reference/documentation_standards/DOCUMENTATION_CONSOLIDATION_STRATEGY.md)
+- [Documentation Quick Reference](../reference/documentation_standards/DOCUMENTATION_QUICK_REFERENCE.md)
 - Cursor Rule: Documentation Location: `../../.cursor/rules/documentation-location.mdc` (external file)
 - [Migration Phase 1 Complete](reports/PHASE1_CONSOLIDATION_COMPLETE.md)
 - [Migration Phase 2 Complete](reports/PHASE2_CONSOLIDATION_COMPLETE.md)

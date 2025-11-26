@@ -399,8 +399,8 @@ Future enhancements could add:
 
 ## See Also
 
-- [Conversion Pipeline Documentation](../how-to/uvh5_to_ms_conversion.md)
-- [Streaming Converter Guide](../how-to/streaming_converter_guide.md)
+- [Conversion Pipeline Documentation](../data-processing/uvh5_to_ms_conversion.md)
+- [Streaming Converter Guide](../workflow/streaming_converter_guide.md)
 - [PyUVData Documentation](https://pyuvdata.readthedocs.io/)
 
 ## Support

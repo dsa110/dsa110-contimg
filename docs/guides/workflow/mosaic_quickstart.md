@@ -23,7 +23,7 @@ This guide shows the minimal steps to plan and build a mosaic from 5‑minute,
 primary‑beam‑corrected tiles already indexed in the products database. It
 complements the full guide in [Mosaic (How‑To)](mosaic.md) and the conceptual
 background in
-[Streaming Mosaic Workflow](../concepts/STREAMING_MOSAIC_WORKFLOW.md).
+[Streaming Mosaic Workflow](../../architecture/pipeline/STREAMING_MOSAIC_WORKFLOW.md).
 
 ## Prerequisites
 
@@ -169,9 +169,9 @@ images, use `imhead` & `imstat` to inspect headers and basic stats.
 
 ## See Also
 
-- Concept: [Streaming Mosaic Workflow](../concepts/STREAMING_MOSAIC_WORKFLOW.md)
+- Concept: [Streaming Mosaic Workflow](../../architecture/pipeline/STREAMING_MOSAIC_WORKFLOW.md)
 - Concept:
-  [Pipeline Workflow Visualization](../concepts/pipeline_workflow_visualization.md)
+  [Pipeline Workflow Visualization](../../architecture/pipeline/pipeline_workflow_visualization.md)
 - How‑To: [Mosaic (detailed)](mosaic.md)
-- Reference: [CLI](../reference/cli.md),
-  [Database Schema](../reference/database_schema.md)
+- Reference: [CLI](../../reference/cli.md),
+  [Database Schema](../../reference/database_schema.md)

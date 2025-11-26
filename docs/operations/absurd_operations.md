@@ -537,7 +537,7 @@ sudo systemctl start contimg-absurd-worker
 
 ## References
 
-- [Absurd Quickstart Guide](../how-to/ABSURD_QUICKSTART.md)
+- [Absurd Quickstart Guide](../guides/ABSURD_QUICKSTART.md)
 - [API Endpoints Reference](../reference/api-endpoints.md)
-- [Pipeline Architecture](../concepts/pipeline_stage_architecture.md)
+- [Pipeline Architecture](../architecture/pipeline/pipeline_stage_architecture.md)
 - [Troubleshooting Guide](../troubleshooting/absurd_troubleshooting.md)

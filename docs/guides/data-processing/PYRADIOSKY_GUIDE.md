@@ -375,6 +375,6 @@ If conversion fails:
 ## Further Reading
 
 - [pyradiosky Documentation](https://pyradiosky.readthedocs.io/)
-- [Analysis: pyradiosky vs Component List](../analysis/pyradiosky_vs_componentlist.md)
-- [Final Recommendation](../analysis/FINAL_RECOMMENDATION.md)
-- [Changelog: pyradiosky Default Update](../changelog/PYRADIOSKY_DEFAULT_UPDATE.md)
+- [Analysis: pyradiosky vs Component List](../../archive/analysis/pyradiosky_vs_componentlist.md)
+- [Final Recommendation](../../archive/analysis/FINAL_RECOMMENDATION.md)
+- [Changelog: pyradiosky Default Update](../../changelog/PYRADIOSKY_DEFAULT_UPDATE.md)

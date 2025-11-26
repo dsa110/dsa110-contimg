@@ -12,9 +12,9 @@ import pytest
 
 # Import monitoring script functions
 REPO_ROOT = Path(__file__).resolve().parents[3]
-SCRIPTS_PATH = REPO_ROOT / "scripts"
-if str(SCRIPTS_PATH) not in sys.path:
-    sys.path.insert(0, str(SCRIPTS_PATH))
+SCRIPTS_OPS_PATH = REPO_ROOT / "scripts" / "ops"
+if str(SCRIPTS_OPS_PATH) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_OPS_PATH))
 
 from monitoring.monitor_publish_status import (  # noqa: E402
     check_alerts,

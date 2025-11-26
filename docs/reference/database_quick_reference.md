@@ -330,9 +330,9 @@ python -m dsa110_contimg.calibration.cli list-tables \
 
 ## Related Documentation
 
-- **[Comprehensive Workspace Study](../dev/analysis/workspace_comprehensive_study.md)**
+- **[Comprehensive Workspace Study](../archive/progress-logs/analysis/workspace_comprehensive_study.md)**
 - **[Pipeline Documentation](../../dsa110_contimg/README_PIPELINE_DOCUMENTATION.md)**
-- **[Data Directory Architecture](../concepts/DIRECTORY_ARCHITECTURE.md)**
+- **[Data Directory Architecture](../architecture/architecture/DIRECTORY_ARCHITECTURE.md)**
 
 ---
 

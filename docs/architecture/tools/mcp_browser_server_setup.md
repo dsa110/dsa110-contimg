@@ -259,7 +259,7 @@ Server code: `/home/ubuntu/proj/mcps/browser-mcp/mcp/`
 - [MCP Specification](https://modelcontextprotocol.io/)
 - Browser MCP Server README: `../../../proj/mcps/browser-mcp/mcp/README_HTTP.md`
   (external file)
-- [Directory Architecture](DIRECTORY_ARCHITECTURE.md)
+- [Directory Architecture](../architecture/DIRECTORY_ARCHITECTURE.md)
 
 ## History
 

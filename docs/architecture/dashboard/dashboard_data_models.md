@@ -623,9 +623,9 @@ def migrate_products_db(db_path: Path):
 
 ## See Also
 
-- [Database Schema Reference](../reference/database_schema.md) - Complete schema
+- [Database Schema Reference](../../reference/database_schema.md) - Complete schema
   documentation
-- [Backend API & Integration](../reference/dashboard_backend_api.md) - API
+- [Backend API & Integration](../../reference/dashboard_backend_api.md) - API
   endpoints using these models
 - [Frontend Architecture](./dashboard_frontend_architecture.md) - Frontend
   TypeScript types

@@ -7,7 +7,7 @@
 **Related**:
 
 - [Professional Script Development](professional_script_development.md)
-- [Critical Python Environment](../reference/CRITICAL_PYTHON_ENVIRONMENT.md)
+- [Critical Python Environment](../../reference/CRITICAL_PYTHON_ENVIRONMENT.md)
 
 ## Overview
 
@@ -26,7 +26,7 @@ using `pyproject.toml`. This allows:
 
 - **Python 3.11+** (required)
 - **casa6 conda environment** (see
-  [Critical Python Environment](../reference/CRITICAL_PYTHON_ENVIRONMENT.md))
+  [Critical Python Environment](../../reference/CRITICAL_PYTHON_ENVIRONMENT.md))
 - **pip** (included with conda)
 
 ### Development Installation (Recommended)
@@ -279,6 +279,6 @@ See `scripts/find_earliest_data.py` for an example of the hybrid approach.
 
 - [Professional Script Development](professional_script_development.md) - Best
   practices for script development
-- [Critical Python Environment](../reference/CRITICAL_PYTHON_ENVIRONMENT.md) -
+- [Critical Python Environment](../../reference/CRITICAL_PYTHON_ENVIRONMENT.md) -
   casa6 environment requirements
 - [Using the Orchestrator CLI](USING_ORCHESTRATOR_CLI.md) - CLI usage examples

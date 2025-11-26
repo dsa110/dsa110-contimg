@@ -451,9 +451,9 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
   orchestrator details
 - [Batch Mode Development Assessment](../dev/analysis/batch_mode_development_assessment.md) -
   Feature completeness
-- [API Reference](../reference/dashboard_backend_api.md) - Complete API
+- [API Reference](../../reference/dashboard_backend_api.md) - Complete API
   documentation
-- [Pipeline Testing Guide](PIPELINE_TESTING_GUIDE.md) - Testing batch workflows
+- [Pipeline Testing Guide](../qa/PIPELINE_TESTING_GUIDE.md) - Testing batch workflows
 
 ## Summary
 

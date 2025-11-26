@@ -384,7 +384,7 @@ curl -X POST http://localhost:8000/api/visualization/js9/analysis \
 
 ## Related Documentation
 
-- [How-To Guide: JS9 CASA Analysis](../how-to/js9_casa_analysis.md)
-- [Dashboard API Reference](./dashboard_backend_api.md)
+- [How-To Guide: JS9 CASA Analysis](../guides/dashboard/js9_casa_analysis.md)
+- [Dashboard API Reference](../reference/dashboard_backend_api.md)
 - [CASA Tasks Documentation](https://casa.nrao.edu/docs/casa-reference/)
 

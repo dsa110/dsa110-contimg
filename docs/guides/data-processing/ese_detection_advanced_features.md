@@ -292,6 +292,6 @@ photometry ese-detect --preset moderate --use-composite-scoring
 
 ## Related Documentation
 
-- [ESE Detection Architecture](../concepts/ese_detection_architecture.md)
+- [ESE Detection Architecture](../../architecture/science/ese_detection_architecture.md)
 - [ESE Detection CLI Reference](../reference/ese_detection_cli.md)
 - [ESE Detection API Reference](../reference/ese_detection_api.md)

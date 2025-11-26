@@ -3,7 +3,7 @@
 **Date:** 2025-11-19  
 **Type:** How-To Guide  
 **Status:** ✅ Implemented  
-**Related:** [NVSS Self-Cal Integration](../dev/status/2025-11/selfcal_nvss_integration_status.md)
+**Related:** [NVSS Self-Cal Integration](../../archive/progress-logs/status/2025-11/selfcal_nvss_integration_status.md)
 
 ---
 

@@ -4,7 +4,7 @@
 **Author:** AI Agent + Dana  
 **Type:** Implementation Guide  
 **Status:** ✅ Complete  
-**Related:** [SPW Flagging Process](../../frontend/docs/how-to/spw_flagging_process.md)
+**Related:** [SPW Flagging Process](spw_flagging_process.md)
 
 ---
 
@@ -515,12 +515,12 @@ python scripts/diagnose_spw_failures.py \
 
 ## Related Documentation
 
-- **[SPW Flagging Process](../../frontend/docs/how-to/spw_flagging_process.md)**
+- **[SPW Flagging Process](spw_flagging_process.md)**
   - Complete flagging timeline through all three phases
   - CASA's automatic flagging behavior
   - How to diagnose SPW failures with certainty
 
-- **[Temporal Flagging Tracking (Frontend)](../../frontend/docs/how-to/temporal_flagging_tracking.md)**
+- **[Temporal Flagging Tracking (Frontend)](temporal_flagging_tracking.md)**
   - Detailed implementation guide
   - Frontend integration plans
   - Database schema and access patterns

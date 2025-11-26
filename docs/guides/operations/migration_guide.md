@@ -491,6 +491,6 @@ If you encounter issues during migration:
 
 ## Related Documentation
 
-- [Pipeline Stage Architecture](../concepts/pipeline_stage_architecture.md)
-- [Creating Pipeline Stages](create_pipeline_stage.md)
+- [Pipeline Stage Architecture](../../architecture/pipeline/pipeline_stage_architecture.md)
+- [Creating Pipeline Stages](../development/create_pipeline_stage.md)
 - [Troubleshooting Guide](troubleshooting.md)

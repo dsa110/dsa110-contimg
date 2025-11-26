@@ -138,4 +138,4 @@ Focus on modules with 50-80% coverage that are frequently used:
 ## Related Documentation
 
 - [Testing Guide](../how-to/testing.md)
-- [Pipeline Stage Architecture](../concepts/pipeline_stage_architecture.md)
+- [Pipeline Stage Architecture](../architecture/pipeline/pipeline_stage_architecture.md)

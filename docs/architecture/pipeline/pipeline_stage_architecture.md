@@ -694,7 +694,7 @@ implemented)
   configuration
 - Testing Strategy: `../../../tests/PIPELINE_TESTING_STRATEGY.md` (external
   file)
-- [Directory Architecture](DIRECTORY_ARCHITECTURE.md)
+- [Directory Architecture](../architecture/DIRECTORY_ARCHITECTURE.md)
 
 ---
 

@@ -4,7 +4,7 @@
 infrastructure.**
 
 **✅ CURRENT STATUS (Nov 2025):** Automated testing is **fully functional**. See
-[Phase 1 Browser Testing Complete](../dev/phase1_browser_testing_complete.md)
+[Phase 1 Browser Testing Complete](../archive/progress-logs/phase1_browser_testing_complete.md)
 for the latest report.
 
 ---

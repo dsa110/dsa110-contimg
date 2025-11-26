@@ -465,13 +465,13 @@ All analysis operations are reproducible and traceable:
 
 ## Related Documentation
 
-- **[Frontend Design Strategy](../concepts/frontend_design.md)** - Strategic
+- **[Frontend Design Strategy](frontend_design.md)** - Strategic
   design document
-- **[Anticipatory Dashboard Implementation](../analysis/ANTICIPATORY_DASHBOARD_IMPLEMENTATION.md)** -
+- **[Anticipatory Dashboard Implementation](../../archive/analysis/ANTICIPATORY_DASHBOARD_IMPLEMENTATION.md)** -
   Detailed implementation plan
-- **[Dashboard Mockups](../concepts/dashboard_mockups.md)** - UI mockups and
+- **[Dashboard Mockups](dashboard_mockups.md)** - UI mockups and
   wireframes
-- **[Dashboard Overview](../analysis/DASHBOARD_OVERVIEW_DETAILED.md)** -
+- **[Dashboard Overview](../../archive/analysis/DASHBOARD_OVERVIEW_DETAILED.md)** -
   Comprehensive technical overview
 
 ---

@@ -14,7 +14,7 @@ guidelines for creating and maintaining documentation in a consistent,
 searchable, and maintainable format.
 
 **For formatting rules, see:**
-[DOCUMENTATION_QUICK_REFERENCE.md](./DOCUMENTATION_QUICK_REFERENCE.md)
+[DOCUMENTATION_QUICK_REFERENCE.md](documentation_standards/DOCUMENTATION_QUICK_REFERENCE.md)
 
 ---
 
@@ -490,7 +490,7 @@ Before finalizing a document, verify:
 - `testing_strategy.md`
 
 **See:**
-[DOCUMENTATION_QUICK_REFERENCE.md](./DOCUMENTATION_QUICK_REFERENCE.md#file-naming-conventions)
+[DOCUMENTATION_QUICK_REFERENCE.md](documentation_standards/DOCUMENTATION_QUICK_REFERENCE.md#file-naming-conventions)
 for full naming rules
 
 ### Directory Structure

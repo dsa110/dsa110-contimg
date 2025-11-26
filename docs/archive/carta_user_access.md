@@ -214,4 +214,4 @@ CARTA accepts both absolute and relative paths:
 
 - [CARTA Integration Guide](./carta_integration_guide.md)
 - [CARTA Quick Start](./carta_quick_start.md)
-- [Port Allocation](./carta_port_allocation.md)
+- [Port Allocation](../guides/dashboard/carta_port_allocation.md)

@@ -807,6 +807,6 @@ For runbooks, alert configurations, and disaster recovery procedures, see:
 ## References
 
 - [Absurd Operations Guide](../operations/absurd_operations.md)
-- [Pipeline Stage Architecture](../../concepts/pipeline_stage_architecture.md)
-- [Implementing Task Executors](implementing_absurd_executors.md)
-- [API Documentation](../../reference/api-endpoints.md)
+- [Pipeline Stage Architecture](../architecture/pipeline/pipeline_stage_architecture.md)
+- [Implementing Task Executors](workflow/implementing_absurd_executors.md)
+- [API Documentation](../reference/api-endpoints.md)

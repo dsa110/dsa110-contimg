@@ -28,6 +28,7 @@ from dsa110_contimg.database.registry import (
     register_set_from_prefix,
 )
 from dsa110_contimg.photometry.manager import PhotometryConfig, PhotometryManager
+from dsa110_contimg.photometry.worker import PhotometryBatchWorker
 
 try:
     from dsa110_contimg.utils.graphiti_logging import GraphitiRunLogger
@@ -2007,6 +2008,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--stage-to-tmpfs", action="store_true")
     p.add_argument("--tmpfs-path", default="/dev/shm")
+    p.set_defaults(enable_photometry=True)
     return p
 
 
@@ -2061,6 +2063,17 @@ def main(argv: Optional[List[str]] = None) -> int:
             return 1
 
     log.info("✓ Directory validation passed")
+
+    phot_worker = None
+    if getattr(args, "enable_photometry", False):
+        products_db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
+        phot_worker = PhotometryBatchWorker(
+            products_db_path=products_db_path,
+            poll_interval=float(args.worker_poll_interval),
+            max_workers=getattr(args, "max_workers", None),
+        )
+        phot_worker.start()
+        log.info("Photometry batch worker started")
 
     qdb = QueueDB(
         Path(args.queue_db),

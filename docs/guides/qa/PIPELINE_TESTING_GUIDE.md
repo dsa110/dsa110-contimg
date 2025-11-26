@@ -6,7 +6,7 @@ streaming/debugging
 **Related Guides:**
 
 - Finding calibrator transit data:
-  [`FIND_CALIBRATOR_TRANSIT_DATA.md`](FIND_CALIBRATOR_TRANSIT_DATA.md)
+  [`FIND_CALIBRATOR_TRANSIT_DATA.md`](../data-processing/FIND_CALIBRATOR_TRANSIT_DATA.md)
 
 ---
 

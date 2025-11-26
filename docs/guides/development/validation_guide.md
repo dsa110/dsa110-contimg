@@ -406,6 +406,6 @@ passed, metrics = check_image_quality(
 
 ## See Also
 
-- [Validation API Reference](../reference/validation_api.md)
+- [Validation API Reference](../../reference/validation_api.md)
 - [QA System Implementation](../dev/qa_system_implementation_complete.md)
 - [QA System Audit](../dev/analysis/qa_system_audit.md)

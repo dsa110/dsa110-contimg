@@ -343,7 +343,7 @@ Each document includes:
 
 - [INDEX.md](./INDEX.md) - Master documentation index
 - [AGENT_GUIDELINES.md](./AGENT_GUIDELINES.md) - Templates and guidelines
-- [STATUS_AND_REMAINING_TASKS.md](./STATUS_AND_REMAINING_TASKS.md) - Current
+- [STATUS_AND_REMAINING_TASKS.md](../../archive/reports/STATUS_AND_REMAINING_TASKS.md) - Current
   status
 
 ---

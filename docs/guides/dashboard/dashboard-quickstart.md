@@ -199,7 +199,7 @@ The dashboard uses polling to fetch updates every 10 seconds:
 
 ### API Data Models
 
-See [API Reference](../reference/dashboard_backend_api.md) for detailed endpoint
+See [API Reference](../../reference/dashboard_backend_api.md) for detailed endpoint
 documentation.
 
 ## Development
@@ -419,7 +419,7 @@ The dashboard currently uses mock data. To connect real data:
 3. **Update data models** if schema differs from mock data
 4. **Test with real pipeline data**
 
-See [Connecting Real Data](../reference/dashboard_backend_api.md) for detailed
+See [Connecting Real Data](../../reference/dashboard_backend_api.md) for detailed
 API details and wiring notes.
 
 ### Phase 2 Features
@@ -445,6 +445,6 @@ Placeholder is ready in `frontend/src/pages/SkyViewPage.tsx`.
 
 For issues or questions:
 
-- Check [Troubleshooting](troubleshooting.md)
-- See [API Reference](../reference/dashboard_backend_api.md)
-- Consult [Frontend Design](../concepts/frontend_design.md)
+- Check [Troubleshooting](../operations/troubleshooting.md)
+- See [API Reference](../../reference/dashboard_backend_api.md)
+- Consult [Frontend Design](../../architecture/dashboard/frontend_design.md)

@@ -100,8 +100,7 @@ class TestCheckExistingMosaic:
 class TestListAvailableTransitsWithQuality:
     """Tests for list_available_transits_with_quality method."""
 
-    @patch("dsa110_contimg.mosaic.orchestrator.CalibratorService")
-    def test_list_available_transits_with_quality(self, mock_cal_service, tmp_path):
+    def test_list_available_transits_with_quality(self, tmp_path):
         """Test listing transits with quality metrics."""
         products_db = tmp_path / "products.sqlite3"
         orchestrator = MosaicOrchestrator(products_db_path=products_db)
@@ -198,6 +197,10 @@ class TestTimeRangeOverride:
         products_db = tmp_path / "products.sqlite3"
         orchestrator = MosaicOrchestrator(products_db_path=products_db)
 
+        # Mock calibrator service (required even with time override for RA/Dec lookup)
+        orchestrator.calibrator_service = Mock()
+        orchestrator.calibrator_service._load_radec = Mock(return_value=(150.0, -30.0))
+
         start_time = Time("2025-01-01T10:00:00", format="isot", scale="utc")
         end_time = Time("2025-01-01T10:12:00", format="isot", scale="utc")
 
@@ -209,15 +212,14 @@ class TestTimeRangeOverride:
         )
 
         assert result is not None
-        assert abs((result["start_time"] - start_time).to("sec").value) < 1.0
-        assert abs((result["end_time"] - end_time).to("sec").value) < 1.0
+        assert abs((result["start_time"] - start_time).to_value("s")) < 1.0
+        assert abs((result["end_time"] - end_time).to_value("s")) < 1.0
 
 
 class TestBatchProcessing:
     """Tests for batch processing functionality."""
 
-    @patch("dsa110_contimg.mosaic.orchestrator.CalibratorService")
-    def test_create_mosaics_batch_all_transits(self, mock_cal_service, tmp_path):
+    def test_create_mosaics_batch_all_transits(self, tmp_path):
         """Test batch processing with all transits."""
         products_db = tmp_path / "products.sqlite3"
         orchestrator = MosaicOrchestrator(products_db_path=products_db)
@@ -316,13 +318,18 @@ class TestBatchProcessing:
         ]
         orchestrator.calibrator_service = Mock()
         orchestrator.calibrator_service.list_available_transits = Mock(return_value=mock_transits)
+        orchestrator.calibrator_service._load_radec = Mock(return_value=(150.0, -30.0))
 
-        result = orchestrator.create_mosaics_batch(
-            calibrator_name="0834+555",
-            transit_indices=[0, 5],  # Index 5 is out of range
-            timespan_minutes=12,
-            wait_for_published=False,
-        )
+        # Mock create_mosaic_centered_on_calibrator to avoid actual execution
+        with patch.object(orchestrator, "create_mosaic_centered_on_calibrator") as mock_create:
+            mock_create.return_value = "/stage/test/mosaic.fits"
+
+            result = orchestrator.create_mosaics_batch(
+                calibrator_name="0834+555",
+                transit_indices=[0, 5],  # Index 5 is out of range
+                timespan_minutes=12,
+                wait_for_published=False,
+            )
 
         # Should handle out-of-range index gracefully
         assert len(result) == 2

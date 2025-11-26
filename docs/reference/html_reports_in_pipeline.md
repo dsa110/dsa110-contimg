@@ -182,8 +182,8 @@ open frontend/playwright-report/index.html
 
 ## Related Documentation
 
-- [QA Validation Guide](../how-to/validation_guide.md)
-- [Pipeline Configuration](../concepts/pipeline_overview.md)
+- [QA Validation Guide](../guides/development/validation_guide.md)
+- [Pipeline Configuration](../architecture/pipeline/pipeline_overview.md)
 - E2E Testing Guide: `../frontend/tests/e2e/README.md` (external file)
 - HTML Reports Module: `../../src/dsa110_contimg/qa/html_reports.py` (external
   file)

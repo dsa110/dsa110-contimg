@@ -254,7 +254,7 @@ netstat -an | grep 6010 || ss -an | grep 6010
 
 ## Related Documentation
 
-- [Persistent Dashboard Setup](persistent-dashboard.md) - Running services
+- [Persistent Dashboard Setup](../dashboard/persistent-dashboard.md) - Running services
   persistently
-- [Development Setup](../development/DEVELOPMENT_SETUP.md) - Development
+- [Development Setup](../../development/DEVELOPMENT_SETUP.md) - Development
   environment setup

@@ -33,12 +33,8 @@ class WorkflowStageStatus(BaseModel):
 class WorkflowStatusResponse(BaseModel):
     """Unified workflow status across all pipeline stages."""
 
-    stages: List[WorkflowStageStatus] = Field(
-        ..., description="Status of each pipeline stage"
-    )
-    bottleneck: Optional[str] = Field(
-        None, description="Stage with highest backlog (bottleneck)"
-    )
+    stages: List[WorkflowStageStatus] = Field(..., description="Status of each pipeline stage")
+    bottleneck: Optional[str] = Field(None, description="Stage with highest backlog (bottleneck)")
     estimated_completion: Optional[str] = Field(
         None, description="ETA for clearing current backlog (ISO format)"
     )
@@ -521,6 +517,7 @@ def get_workflow_status(request: Request) -> WorkflowStatusResponse:
             stages.append(
                 WorkflowStageStatus(
                     name="ingest",
+                    display_name=STAGE_DISPLAY_NAMES.get("ingest", "Ingest"),
                     pending=counts["pending"],
                     processing=counts["processing"],
                     completed_today=counts["completed_today"],
@@ -529,7 +526,11 @@ def get_workflow_status(request: Request) -> WorkflowStatusResponse:
             )
     except (sqlite3.Error, FileNotFoundError) as e:
         logger.warning(f"Failed to query ingest queue: {e}")
-        stages.append(WorkflowStageStatus(name="ingest"))
+        stages.append(
+            WorkflowStageStatus(
+                name="ingest", display_name=STAGE_DISPLAY_NAMES.get("ingest", "Ingest")
+            )
+        )
 
     # Stage 2: Conversion (MS files - check ms_index for stage)
     try:
@@ -539,6 +540,7 @@ def get_workflow_status(request: Request) -> WorkflowStatusResponse:
             stages.append(
                 WorkflowStageStatus(
                     name="conversion",
+                    display_name=STAGE_DISPLAY_NAMES.get("conversion", "Conversion"),
                     pending=counts["pending"],
                     processing=counts["processing"],
                     completed_today=counts["completed_today"],
@@ -547,7 +549,11 @@ def get_workflow_status(request: Request) -> WorkflowStatusResponse:
             )
     except (sqlite3.Error, FileNotFoundError) as e:
         logger.warning(f"Failed to query ms_index: {e}")
-        stages.append(WorkflowStageStatus(name="conversion"))
+        stages.append(
+            WorkflowStageStatus(
+                name="conversion", display_name=STAGE_DISPLAY_NAMES.get("conversion", "Conversion")
+            )
+        )
 
     # Stage 3: Calibration (MS files awaiting/in calibration)
     try:
@@ -569,6 +575,7 @@ def get_workflow_status(request: Request) -> WorkflowStatusResponse:
             stages.append(
                 WorkflowStageStatus(
                     name="calibration",
+                    display_name=STAGE_DISPLAY_NAMES.get("calibration", "Calibration"),
                     pending=row["pending"] or 0 if row else 0,
                     processing=0,  # No separate processing state for calibration
                     completed_today=row["completed_today"] or 0 if row else 0,
@@ -576,7 +583,12 @@ def get_workflow_status(request: Request) -> WorkflowStatusResponse:
             )
     except (sqlite3.Error, FileNotFoundError) as e:
         logger.warning(f"Failed to query calibration status: {e}")
-        stages.append(WorkflowStageStatus(name="calibration"))
+        stages.append(
+            WorkflowStageStatus(
+                name="calibration",
+                display_name=STAGE_DISPLAY_NAMES.get("calibration", "Calibration"),
+            )
+        )
 
     # Stage 4: Imaging (images created from calibrated MS)
     try:
@@ -596,6 +608,7 @@ def get_workflow_status(request: Request) -> WorkflowStatusResponse:
             stages.append(
                 WorkflowStageStatus(
                     name="imaging",
+                    display_name=STAGE_DISPLAY_NAMES.get("imaging", "Imaging"),
                     pending=0,  # No queue - driven by calibration
                     processing=0,
                     completed_today=row["completed_today"] or 0 if row else 0,
@@ -603,7 +616,11 @@ def get_workflow_status(request: Request) -> WorkflowStatusResponse:
             )
     except (sqlite3.Error, FileNotFoundError) as e:
         logger.warning(f"Failed to query imaging status: {e}")
-        stages.append(WorkflowStageStatus(name="imaging"))
+        stages.append(
+            WorkflowStageStatus(
+                name="imaging", display_name=STAGE_DISPLAY_NAMES.get("imaging", "Imaging")
+            )
+        )
 
     # Stage 5: Mosaic (mosaic_groups status)
     try:
@@ -613,6 +630,7 @@ def get_workflow_status(request: Request) -> WorkflowStatusResponse:
             stages.append(
                 WorkflowStageStatus(
                     name="mosaic",
+                    display_name=STAGE_DISPLAY_NAMES.get("mosaic", "Mosaicking"),
                     pending=counts["pending"],
                     processing=counts["processing"],
                     completed_today=counts["completed_today"],
@@ -621,7 +639,11 @@ def get_workflow_status(request: Request) -> WorkflowStatusResponse:
             )
     except (sqlite3.Error, FileNotFoundError) as e:
         logger.warning(f"Failed to query mosaic status: {e}")
-        stages.append(WorkflowStageStatus(name="mosaic"))
+        stages.append(
+            WorkflowStageStatus(
+                name="mosaic", display_name=STAGE_DISPLAY_NAMES.get("mosaic", "Mosaicking")
+            )
+        )
 
     # Stage 6: Photometry (photometry results)
     try:
@@ -641,6 +663,7 @@ def get_workflow_status(request: Request) -> WorkflowStatusResponse:
             stages.append(
                 WorkflowStageStatus(
                     name="photometry",
+                    display_name=STAGE_DISPLAY_NAMES.get("photometry", "Photometry"),
                     pending=0,  # Photometry is driven by mosaics
                     processing=0,
                     completed_today=row["completed_today"] or 0 if row else 0,
@@ -648,7 +671,11 @@ def get_workflow_status(request: Request) -> WorkflowStatusResponse:
             )
     except (sqlite3.Error, FileNotFoundError) as e:
         logger.warning(f"Failed to query photometry status: {e}")
-        stages.append(WorkflowStageStatus(name="photometry"))
+        stages.append(
+            WorkflowStageStatus(
+                name="photometry", display_name=STAGE_DISPLAY_NAMES.get("photometry", "Photometry")
+            )
+        )
 
     # Calculate totals and find bottleneck
     total_pending = sum(s.pending for s in stages)
@@ -662,15 +689,17 @@ def get_workflow_status(request: Request) -> WorkflowStatusResponse:
             max_pending = stage.pending
             bottleneck = stage.name
 
-    # Determine health based on backlog
-    if total_pending == 0 and total_processing == 0:
-        health = "idle"
-    elif total_pending > 100 or (bottleneck and max_pending > 50):
-        health = "slow"
-    elif total_pending > 500 or (bottleneck and max_pending > 200):
+    # Determine health based on backlog (must be: "healthy", "degraded", or "stalled")
+    if total_pending > 500 or (bottleneck and max_pending > 200):
         health = "stalled"
+    elif total_pending > 100 or (bottleneck and max_pending > 50):
+        health = "degraded"
     else:
         health = "healthy"
+
+    # Calculate totals for completed and failed today
+    total_completed_today = sum(s.completed_today for s in stages)
+    total_failed_today = sum(s.failed_today for s in stages)
 
     # Estimate completion time (rough: 1 item per minute average)
     estimated_completion = None
@@ -684,6 +713,8 @@ def get_workflow_status(request: Request) -> WorkflowStatusResponse:
         bottleneck=bottleneck,
         estimated_completion=estimated_completion,
         total_pending=total_pending,
-        total_processing=total_processing,
-        health=health,
+        total_completed_today=total_completed_today,
+        total_failed_today=total_failed_today,
+        overall_health=health,
+        updated_at=datetime.now().isoformat(),
     )

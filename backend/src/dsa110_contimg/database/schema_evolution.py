@@ -272,6 +272,11 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
             _add_column_if_missing(cur, "photometry", "source_id", "TEXT")
             _add_column_if_missing(cur, "photometry", "snr", "REAL")
             _add_column_if_missing(cur, "photometry", "mjd", "REAL")
+            _add_column_if_missing(cur, "photometry", "flux_jy", "REAL")
+            _add_column_if_missing(cur, "photometry", "flux_err_jy", "REAL")
+            _add_column_if_missing(cur, "photometry", "normalized_flux_jy", "REAL")
+            _add_column_if_missing(cur, "photometry", "normalized_flux_err_jy", "REAL")
+            _add_column_if_missing(cur, "photometry", "mosaic_path", "TEXT")
             _add_column_if_missing(cur, "photometry", "sep_from_center_deg", "REAL")
             _add_column_if_missing(cur, "photometry", "flags", "INTEGER DEFAULT 0")
             cur.execute(

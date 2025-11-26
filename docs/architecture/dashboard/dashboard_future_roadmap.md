@@ -439,8 +439,8 @@
 
 ## See Also
 
-- [Vision & Design Principles](../concepts/dashboard_vision_and_design.md) -
+- [Vision & Design Principles](dashboard_vision_and_design.md) -
   Design philosophy
-- [Architecture](../concepts/dashboard_architecture.md) - System architecture
-- [Pages & Features](../reference/dashboard_pages_and_features.md) - Current
+- [Architecture](dashboard_architecture.md) - System architecture
+- [Pages & Features](../../reference/dashboard_pages_and_features.md) - Current
   features

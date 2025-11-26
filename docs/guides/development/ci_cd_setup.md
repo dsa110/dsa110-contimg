@@ -226,4 +226,4 @@ pylint src/
 
 - [Environment Setup](ENVIRONMENT_SETUP.md)
 - [Pre-commit Setup](PRE_COMMIT_SETUP.md)
-- [Testing Guide](../how-to/PIPELINE_TESTING_GUIDE.md)
+- [Testing Guide](../qa/PIPELINE_TESTING_GUIDE.md)

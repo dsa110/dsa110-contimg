@@ -9,7 +9,7 @@
 
 ### General Testing
 
-- **[Pipeline Testing Guide](PIPELINE_TESTING_GUIDE.md)** - Comprehensive guide
+- **[Pipeline Testing Guide](../qa/PIPELINE_TESTING_GUIDE.md)** - Comprehensive guide
   to testing all pipeline stages
   - End-to-end testing
   - Stage-by-stage testing
@@ -19,7 +19,7 @@
 ### Framework-Specific Testing
 
 - The pipeline framework is now the default. See
-  **[Pipeline Testing Guide](PIPELINE_TESTING_GUIDE.md)** for framework testing.
+  **[Pipeline Testing Guide](../qa/PIPELINE_TESTING_GUIDE.md)** for framework testing.
 
 ### Component-Specific Testing
 
@@ -35,7 +35,7 @@
 
 See also:
 
-- **[Automated Testing Strategy](../AUTOMATED_TESTING_STRATEGY.md)** - Overall
+- **[Automated Testing Strategy](../../archive/AUTOMATED_TESTING_STRATEGY.md)** - Overall
   testing strategy
 - **Pipeline Testing Strategy**: `../../../tests/PIPELINE_TESTING_STRATEGY.md`
   (external file) - Detailed testing approach

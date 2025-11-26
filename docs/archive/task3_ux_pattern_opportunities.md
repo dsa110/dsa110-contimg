@@ -2,7 +2,7 @@
 
 **Date:** 2025-11-13  
 **Status:** analysis-complete  
-**Related:** [Task 3 UX Final Integration](task3_ux_final_integration.md)
+**Related:** [Task 3 UX Final Integration](../guides/dashboard/task3_ux_final_integration.md)
 
 ---
 

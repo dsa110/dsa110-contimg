@@ -417,7 +417,7 @@ python test_rfi_backend_comparison.py /path/to/test.ms \
 
 - **[Temporal Flagging System](temporal_flagging_system.md)** - Understanding
   flagging phases
-- **[SPW Flagging Process](../../frontend/docs/how-to/spw_flagging_process.md)** -
+- **[SPW Flagging Process](spw_flagging_process.md)** -
   How flagging works
 - **[Calibration Workflow](calibration_workflow.md)** - Full calibration process
 

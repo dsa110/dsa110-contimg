@@ -181,4 +181,4 @@ All production features emit structured logs:
 
 - [Pipeline Stage Architecture](./pipeline_stage_architecture.md) - Orchestrator
   details
-- [Stage Implementation Guide](../how-to/create_pipeline_stage.md)
+- [Stage Implementation Guide](../../guides/development/create_pipeline_stage.md)

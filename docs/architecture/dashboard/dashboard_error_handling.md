@@ -488,6 +488,6 @@ apiClient.interceptors.response.use(
 
 - [Frontend Architecture](./dashboard_frontend_architecture.md) - Component
   architecture
-- [Backend API & Integration](../reference/dashboard_backend_api.md) - API error
+- [Backend API & Integration](../../reference/dashboard_backend_api.md) - API error
   handling
 - [State Management](./dashboard_state_management.md) - State error handling

@@ -115,4 +115,4 @@ If CASA tools are not found:
 
 - [CASA6 Environment Guide](CASA6_ENVIRONMENT_GUIDE.md)
 - [Development Setup](../TODO.md)
-- [Pre-commit Setup](PRE_COMMIT_SETUP.md)
+- [Pre-commit Setup](../PRE_COMMIT_SETUP.md)

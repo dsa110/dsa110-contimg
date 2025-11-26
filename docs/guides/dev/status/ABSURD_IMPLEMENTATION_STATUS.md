@@ -265,7 +265,7 @@ Based on development testing:
 
 **Documentation**:
 
-- [Quickstart Guide](../../docs/how-to/ABSURD_QUICKSTART.md)
+- [Quickstart Guide](../../ABSURD_QUICKSTART.md)
 - [Operations Guide](../../docs/how-to/workflow/absurd_operations.md)
 - [Troubleshooting](../../docs/troubleshooting/absurd.md)
 

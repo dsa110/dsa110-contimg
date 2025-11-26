@@ -472,6 +472,6 @@ When writing a new stage:
 
 ## Related Documentation
 
-- [Pipeline Stage Architecture](pipeline_stage_architecture.md)
-- [Pipeline Patterns](pipeline_patterns.md)
+- [Pipeline Stage Architecture](../pipeline/pipeline_stage_architecture.md)
+- [Pipeline Patterns](../pipeline/pipeline_patterns.md)
 - [Testing Guide](../how-to/testing.md)

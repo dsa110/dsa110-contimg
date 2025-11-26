@@ -438,5 +438,5 @@ kill -9 <PID>
 
 - [Development Workflow](./dashboard_development_workflow.md) - Development
   setup
-- [Architecture](../concepts/dashboard_architecture.md) - System architecture
-- [Backend API](../reference/dashboard_backend_api.md) - API documentation
+- [Architecture](../../architecture/dashboard/dashboard_architecture.md) - System architecture
+- [Backend API](../../reference/dashboard_backend_api.md) - API documentation

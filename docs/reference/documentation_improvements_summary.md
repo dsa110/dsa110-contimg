@@ -206,6 +206,6 @@ Analyzes coverage reports and generates gap analysis.
 ## Related Documentation
 
 - [Testing Guide](../how-to/testing.md)
-- [Pipeline Stage Architecture](../concepts/pipeline_stage_architecture.md)
-- [Performance Considerations](../concepts/performance_considerations.md)
-- [Migration Guide](../how-to/migration_guide.md)
+- [Pipeline Stage Architecture](../architecture/pipeline/pipeline_stage_architecture.md)
+- [Performance Considerations](../architecture/architecture/performance_considerations.md)
+- [Migration Guide](../guides/operations/migration_guide.md)

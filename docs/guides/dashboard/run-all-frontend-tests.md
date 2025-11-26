@@ -256,6 +256,6 @@ playwright install chromium
 
 ## See Also
 
-- [Playwright Python Frontend Testing Guide](playwright-python-frontend-testing.md)
-- [Quick Start Guide](playwright-python-quick-start.md)
+- [Playwright Python Frontend Testing Guide](../development/playwright-python-frontend-testing.md)
+- [Quick Start Guide](../development/playwright-python-quick-start.md)
 - [Test Directory README](../../tests/e2e/frontend/README.md)

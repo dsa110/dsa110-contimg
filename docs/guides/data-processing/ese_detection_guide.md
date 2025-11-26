@@ -357,7 +357,7 @@ python -m dsa110_contimg.photometry.cli ese-detect --recompute
 
 ## Related Documentation
 
-- [ESE Detection Implementation Summary](../../dev/ese_detection_implementation_summary.md)
-- [Automated Pipeline Summary](../../dev/ese_automated_pipeline_summary.md)
+- [ESE Detection Implementation Summary](../../archive/progress-logs/ese_detection_implementation_summary.md)
+- [Automated Pipeline Summary](../../archive/progress-logs/ese_automated_pipeline_summary.md)
 - [Photometry Guide](photometry_guide.md)
 - [API Reference](../../reference/api_reference_generated.md)

@@ -22,12 +22,12 @@ This directory contains step-by-step guides for common tasks.
 
 ## Essential Reading
 
-- **[CRITICAL_HANDOVER_WARNINGS.md](CRITICAL_HANDOVER_WARNINGS.md)** - ⚠️ READ
+- **[CRITICAL_HANDOVER_WARNINGS.md](../development/CRITICAL_HANDOVER_WARNINGS.md)** - ⚠️ READ
   FIRST
   - Common pitfalls and how to avoid them
   - Critical warnings for new developers
 
-- **[AUTOMATION_GUIDE.md](AUTOMATION_GUIDE.md)** - 🚀 Automation Overview
+- **[AUTOMATION_GUIDE.md](../automation/AUTOMATION_GUIDE.md)** - 🚀 Automation Overview
   - What's automated and how it works
   - Setup workflows and troubleshooting
 

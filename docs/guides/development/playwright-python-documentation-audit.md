@@ -146,6 +146,6 @@ These are appropriate for test-specific documentation:
 
 ## See Also
 
-- [Documentation Quick Reference](../DOCUMENTATION_QUICK_REFERENCE.md)
+- [Documentation Quick Reference](../../reference/documentation_standards/DOCUMENTATION_QUICK_REFERENCE.md)
 - [Documentation Location Rules](../../.cursor/rules/documentation-location.mdc)
-- [Port Assignments Quick Reference](../operations/PORT_ASSIGNMENTS_QUICK_REFERENCE.md)
+- [Port Assignments Quick Reference](../../operations/PORT_ASSIGNMENTS_QUICK_REFERENCE.md)

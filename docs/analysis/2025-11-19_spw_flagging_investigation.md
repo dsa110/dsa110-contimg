@@ -510,9 +510,9 @@ observations.
 
 ## References
 
-- [Temporal Flagging System](temporal_flagging_system.md) - Complete
+- [Temporal Flagging System](../guides/data-processing/temporal_flagging_system.md) - Complete
   implementation guide
-- [SPW Flagging Process](../../frontend/docs/how-to/spw_flagging_process.md) -
+- [SPW Flagging Process](../guides/data-processing/spw_flagging_process.md) -
   Three-phase flagging timeline
 - CASA Documentation: `applycal` task - Automatic flagging behavior
 - DSA-110 RFI Environment - Frequency allocations and known interference sources

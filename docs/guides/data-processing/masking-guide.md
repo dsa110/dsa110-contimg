@@ -273,11 +273,11 @@ Potential future improvements:
 ## References
 
 - **Analysis**:
-  [Masked Imaging Analysis](../analysis/MASKED_IMAGING_ANALYSIS.md)
+  [Masked Imaging Analysis](../../archive/analysis/MASKED_IMAGING_ANALYSIS.md)
 - **Efficiency**:
-  [Masking Efficiency Analysis](../analysis/MASKING_EFFICIENCY_ANALYSIS.md)
+  [Masking Efficiency Analysis](../../archive/analysis/MASKING_EFFICIENCY_ANALYSIS.md)
 - **Implementation**:
-  [Masking Implementation Complete](../analysis/MASKING_IMPLEMENTATION_COMPLETE.md)
+  [Masking Implementation Complete](../../archive/analysis/MASKING_IMPLEMENTATION_COMPLETE.md)
 - **Configuration**: See pipeline configuration in
-  [Pipeline Overview](../concepts/pipeline_overview.md)
-- **CLI Reference**: [CLI Reference](../reference/cli.md)
+  [Pipeline Overview](../../architecture/pipeline/pipeline_overview.md)
+- **CLI Reference**: [CLI Reference](../../reference/cli.md)

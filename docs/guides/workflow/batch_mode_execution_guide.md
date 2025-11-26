@@ -334,4 +334,4 @@ After batch conversion:
   with API examples
 - [Using the Orchestrator CLI](USING_ORCHESTRATOR_CLI.md) - Detailed
   orchestrator documentation
-- [Pipeline Testing Guide](PIPELINE_TESTING_GUIDE.md) - Testing batch workflows
+- [Pipeline Testing Guide](../qa/PIPELINE_TESTING_GUIDE.md) - Testing batch workflows

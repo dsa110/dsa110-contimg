@@ -563,6 +563,9 @@ def test_wait_for_published_success(orchestrator, tmp_path):
     Path(published_path).parent.mkdir(parents=True)
     Path(published_path).touch()
 
+    # Disable photometry check to simplify test
+    orchestrator.enable_photometry = False
+
     # Mock data registry to return published status
     mock_instance = MagicMock()
     mock_instance.status = "published"
@@ -596,6 +599,9 @@ def test_wait_for_published_success(orchestrator, tmp_path):
 def test_wait_for_published_timeout(orchestrator):
     """Test wait_for_published times out when not published."""
     mosaic_id = "test_mosaic_timeout"
+
+    # Disable photometry check to simplify test
+    orchestrator.enable_photometry = False
 
     # Mock data registry to return non-published status
     mock_instance = MagicMock()
@@ -632,6 +638,9 @@ def test_wait_for_published_timeout(orchestrator):
 def test_wait_for_published_file_not_found(orchestrator):
     """Test wait_for_published handles file not found scenario."""
     mosaic_id = "test_mosaic_no_file"
+
+    # Disable photometry check to simplify test
+    orchestrator.enable_photometry = False
 
     # Mock data registry: status is published but file doesn't exist
     mock_instance = MagicMock()
@@ -672,6 +681,9 @@ def test_wait_for_published_no_registry_entry(orchestrator):
     """Test wait_for_published handles missing registry entry."""
     mosaic_id = "test_mosaic_no_entry"
 
+    # Disable photometry check to simplify test
+    orchestrator.enable_photometry = False
+
     call_count = [0]
 
     def time_side_effect():
@@ -707,6 +719,9 @@ def test_wait_for_published_polling_interval(orchestrator, tmp_path):
     published_path = str(tmp_path / "published" / "mosaic.fits")
     Path(published_path).parent.mkdir(parents=True)
     Path(published_path).touch()
+
+    # Disable photometry check to simplify test
+    orchestrator.enable_photometry = False
 
     mock_instance = MagicMock()
     mock_instance.status = "staging"

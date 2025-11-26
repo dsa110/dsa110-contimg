@@ -312,11 +312,11 @@ First 2 tile(s):
 
 ## Related Documentation
 
-- [Batch Mode Guide](batch_mode_guide.md) - Complete batch processing workflow
-- [Mosaic Quickstart](mosaic_quickstart.md) - Basic mosaic creation
-- [Streaming Mosaic Workflow](../concepts/STREAMING_MOSAIC_WORKFLOW.md) -
+- [Batch Mode Guide](../workflow/batch_mode_guide.md) - Complete batch processing workflow
+- [Mosaic Quickstart](../workflow/mosaic_quickstart.md) - Basic mosaic creation
+- [Streaming Mosaic Workflow](../../architecture/pipeline/STREAMING_MOSAIC_WORKFLOW.md) -
   Validity window details
-- [Calibration Validity Windows](../concepts/STREAMING_MOSAIC_WORKFLOW.md#calibration-validity-windows) -
+- [Calibration Validity Windows](../../architecture/pipeline/STREAMING_MOSAIC_WORKFLOW.md#calibration-validity-windows) -
   Window calculation rules
 
 ## Script Reference

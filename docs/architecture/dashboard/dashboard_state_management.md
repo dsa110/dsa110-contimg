@@ -392,7 +392,7 @@ const mutation = useMutation({
 
 - [Frontend Architecture](./dashboard_frontend_architecture.md) - Component
   architecture
-- [Backend API & Integration](../reference/dashboard_backend_api.md) - API
+- [Backend API & Integration](../../reference/dashboard_backend_api.md) - API
   endpoints
 - [Error Handling & Resilience](./dashboard_error_handling.md) - Error handling
   patterns
