@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-"""Smoke test for Phase 1 features: Flux monitoring and spectral indices.
+"""Smoke test for flux monitoring and spectral indices.
 
-This script verifies that the Phase 1 implementations work correctly.
+This script verifies that flux monitoring and spectral index features work correctly.
 """
 
 import sqlite3

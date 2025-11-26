@@ -1,7 +1,7 @@
 # mypy: disable-error-code="import-not-found,import-untyped"
-"""Smoke tests for Phase 3 - Production Deployment & Operations.
+"""Smoke tests for Absurd Transient Detection Deployment & Operations.
 
-These tests verify that all Phase 3 deployment components exist and are properly
+These tests verify that all transient detection deployment components exist and are properly
 structured without requiring a running database or services.
 """
 
@@ -16,7 +16,7 @@ PROJECT_ROOT = Path(__file__).parents[3]  # Go up from smoke -> tests -> backend
 
 
 @pytest.mark.smoke
-class TestPhase3DeploymentScripts:
+class TestTransientDeploymentScripts:
     """Tests for deployment script existence and structure."""
 
     @pytest.fixture
@@ -66,7 +66,7 @@ class TestPhase3DeploymentScripts:
 
 
 @pytest.mark.smoke
-class TestPhase3SystemdFiles:
+class TestTransientSystemdFiles:
     """Tests for systemd service files."""
 
     @pytest.fixture
@@ -113,7 +113,7 @@ class TestPhase3SystemdFiles:
 
 
 @pytest.mark.smoke
-class TestPhase3LogrotateConfig:
+class TestTransientLogrotateConfig:
     """Tests for logrotate configuration."""
 
     @pytest.fixture
@@ -137,7 +137,7 @@ class TestPhase3LogrotateConfig:
 
 
 @pytest.mark.smoke
-class TestPhase3PrometheusEndpoint:
+class TestTransientPrometheusEndpoint:
     """Tests for Prometheus metrics endpoint."""
 
     def test_prometheus_endpoint_in_router(self):
@@ -163,7 +163,7 @@ class TestPhase3PrometheusEndpoint:
 
 
 @pytest.mark.smoke
-class TestPhase3OperationsDocumentation:
+class TestTransientOperationsDocumentation:
     """Tests for operations documentation."""
 
     @pytest.fixture
@@ -194,11 +194,11 @@ class TestPhase3OperationsDocumentation:
 
 
 @pytest.mark.smoke
-class TestPhase3Integration:
-    """Integration smoke tests for Phase 3 components."""
+class TestTransientIntegration:
+    """Integration smoke tests for transient detection components."""
 
-    def test_all_phase3_components_importable(self):
-        """Verify all Phase 3 components can be imported."""
+    def test_all_transient_components_importable(self):
+        """Verify all transient detection components can be imported."""
         # These should all import without error
         from dsa110_contimg.absurd import AbsurdClient, AbsurdConfig
         from dsa110_contimg.absurd.monitoring import AbsurdMonitor

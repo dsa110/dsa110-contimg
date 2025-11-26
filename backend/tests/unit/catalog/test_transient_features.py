@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Comprehensive unit tests for Phase 3: Transient Detection & Astrometric Calibration.
+"""Comprehensive unit tests for Transient Detection & Astrometric Calibration.
 
 Tests cover:
 - Transient detection database tables

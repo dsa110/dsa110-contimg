@@ -1,6 +1,6 @@
 # mypy: disable-error-code="import-not-found,import-untyped"
 """
-Unit tests for Absurd adapter Phase 2 features.
+Unit tests for Absurd adapter task chaining features.
 
 Tests task chaining, housekeeping, and streaming bridge functionality.
 """

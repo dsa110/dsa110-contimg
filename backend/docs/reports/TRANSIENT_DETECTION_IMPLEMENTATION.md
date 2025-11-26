@@ -1,4 +1,4 @@
-# Phase 3: Transient Detection & Astrometric Calibration - COMPLETE ✓
+# Transient Detection & Astrometric Calibration Implementation
 
 **Implementation Date**: November 19, 2025  
 **Branch**: `feature/phase3-transient-detection` → `jakob-wdash`  
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-Phase 3 of the DSA-110 Continuum Imaging Pipeline is **complete and
+The transient detection and astrometric calibration features are **complete and
 production-ready**. This implementation delivers two critical enhancements:
 
 1. **Transient Detection & Classification** (Proposal #2)
@@ -35,14 +35,14 @@ production-ready**. This implementation delivers two critical enhancements:
 | `astrometric_integration.py`               | 184              | ✓ Complete            |
 | **Pipeline Integration**                   |                  |                       |
 | `stages_impl.py` (TransientDetectionStage) | +168             | ✓ Complete            |
-| `config.py` (Phase 3 configs)              | +81              | ✓ Complete            |
+| `config.py` (transient detection configs)  | +81              | ✓ Complete            |
 | **Testing**                                |                  |                       |
-| `smoke_test_phase3.py`                     | 411              | ✓ 7/7 tests passing   |
-| `test_phase3_features.py`                  | 797              | ✓ 29/29 tests passing |
+| `smoke_test_transient_detection.py`        | 411              | ✓ 7/7 tests passing   |
+| `test_transient_features.py`               | 797              | ✓ 29/29 tests passing |
 | **Documentation**                          |                  |                       |
-| `PHASE3_IMPLEMENTATION_GUIDE.md`           | 1,012            | ✓ Complete            |
+| `TRANSIENT_DETECTION_GUIDE.md`             | 1,012            | ✓ Complete            |
 | **Deployment**                             |                  |                       |
-| `initialize_phase3_tables.py`              | 460              | ✓ Tested & Working    |
+| `initialize_transient_tables.py`           | 460              | ✓ Tested & Working    |
 | `run_astrometry_calibration.py`            | 410              | ✓ Tested & Working    |
 | **TOTAL**                                  | **~4,600 lines** | **100% Complete**     |
 
@@ -77,7 +77,7 @@ production-ready**. This implementation delivers two critical enhancements:
 ### Smoke Tests (7/7 passing)
 
 ```
-✓ PASS: Phase 3 module imports
+✓ PASS: Transient detection module imports
 ✓ PASS: Transient detection table creation
 ✓ PASS: Astrometry table creation
 ✓ PASS: Transient detection algorithm
@@ -147,7 +147,7 @@ Execution time: ~3.5 seconds
 
 ```
 Total: 29/29 tests passing (100%)
-Coverage: All Phase 3 functionality validated
+Coverage: All transient detection functionality validated
 Execution time: ~4.6 seconds
 ```
 
@@ -164,16 +164,16 @@ Execution time: ~4.6 seconds
 - `astrometric_integration.py` (184 lines)
 - `stages_impl.py` (+168 lines TransientDetectionStage)
 - `config.py` (+81 lines configs)
-- `smoke_test_phase3.py` (411 lines, 7 tests)
+- `smoke_test_transient_detection.py` (411 lines, 7 tests)
 
 **Commit 2: Documentation & Comprehensive Tests**
 
-- `PHASE3_IMPLEMENTATION_GUIDE.md` (1,012 lines)
-- `test_phase3_features.py` (797 lines, 29 tests)
+- `TRANSIENT_DETECTION_GUIDE.md` (1,012 lines)
+- `test_transient_features.py` (797 lines, 29 tests)
 
 **Commit 3: Production Deployment Scripts**
 
-- `initialize_phase3_tables.py` (460 lines)
+- `initialize_transient_tables.py` (460 lines)
 - `run_astrometry_calibration.py` (410 lines)
 
 **Branch Merge**: `feature/phase3-transient-detection` → `jakob-wdash` ✓
@@ -198,7 +198,7 @@ Execution time: ~4.6 seconds
 
    ```bash
    cd /data/dsa110-contimg
-   python scripts/initialize_phase3_tables.py --db-path state/products.sqlite3
+   python scripts/initialize_transient_tables.py --db-path state/products.sqlite3
    ```
 
    Expected: ✓ All 5 tables created successfully
@@ -206,16 +206,16 @@ Execution time: ~4.6 seconds
 2. **Verify Table Creation**
 
    ```bash
-   python scripts/initialize_phase3_tables.py --verify --db-path state/products.sqlite3
+   python scripts/initialize_transient_tables.py --verify --db-path state/products.sqlite3
    ```
 
-   Expected: ✓ All Phase 3 tables exist
+   Expected: ✓ All transient detection tables exist
 
 3. **Run Smoke Tests**
 
    ```bash
    cd src
-   python tests/smoke_test_phase3.py
+   python tests/smoke/smoke_test_transient_detection.py
    ```
 
    Expected: 7/7 tests passing
@@ -224,7 +224,7 @@ Execution time: ~4.6 seconds
 
    ```bash
    cd src
-   python -m pytest tests/unit/catalog/test_phase3_features.py -v
+   python -m pytest tests/unit/catalog/test_transient_features.py -v
    ```
 
    Expected: 29/29 tests passing
@@ -363,7 +363,7 @@ AstrometricCalibrationConfig:
 
 ### Implementation Guide
 
-**File**: `dsa110_contimg/docs/PHASE3_IMPLEMENTATION_GUIDE.md` (1,012 lines)
+**File**: `docs/reports/TRANSIENT_DETECTION_GUIDE.md` (1,012 lines)
 
 **Contents**:
 
@@ -471,7 +471,7 @@ AstrometricCalibrationConfig:
 
 ## Conclusion
 
-**Phase 3 implementation is COMPLETE and PRODUCTION READY.**
+**Transient detection implementation is COMPLETE and PRODUCTION READY.**
 
 All deliverables have been implemented, tested, documented, and validated. The
 system is ready for deployment with:

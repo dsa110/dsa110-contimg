@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Smoke tests for Phase 2: Coverage-Aware Catalog Selection + Smart Calibrators.
+"""Smoke tests for Coverage-Aware Catalog Selection + Smart Calibrators.
 
 Tests both Proposal #8 (Coverage-Aware Catalog Selection) and
 Proposal #3 (Smart Calibrator Pre-Selection).
 
-Run with: python tests/smoke_test_phase2.py
+Run with: python tests/smoke_test_coverage_calibrators.py
 """
 
 import sys
@@ -18,7 +18,7 @@ if src_path.exists():
 
 # Test imports
 print("=" * 70)
-print("PHASE 2 SMOKE TESTS: Coverage-Aware Selection + Smart Calibrators")
+print("SMOKE TESTS: Coverage-Aware Selection + Smart Calibrators")
 print("=" * 70)
 print()
 
@@ -279,7 +279,7 @@ print("Next steps:")
 print("  1. Build production calibrator registry: build_calibrator_registry_from_catalog()")
 print("  2. Run blacklist update: run_full_blacklist_update()")
 print("  3. Integrate with pipeline: Update calibration/bandpass.py")
-print("  4. Run unit tests: pytest tests/unit/catalog/test_phase2_features.py")
+print("  4. Run unit tests: pytest tests/unit/catalog/test_coverage_calibrator_features.py")
 print()
 
 # Cleanup

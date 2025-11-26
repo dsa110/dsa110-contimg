@@ -1,12 +1,12 @@
-# Phase 3 Implementation Guide: Transient Detection & Astrometric Calibration
+# Transient Detection & Astrometric Calibration Guide
 
-**DSA-110 Continuum Imaging Pipeline - Phase 3**  
+**DSA-110 Continuum Imaging Pipeline**  
 **Implementation Date**: November 2025  
 **Status**: Production Ready
 
 ## Executive Summary
 
-Phase 3 implements two critical enhancements to the DSA-110 continuum imaging
+This module implements two critical enhancements to the DSA-110 continuum imaging
 pipeline:
 
 1. **Transient Detection & Classification** (Proposal #2)
@@ -47,7 +47,7 @@ dsa110_contimg/
 ├── mosaic/
 │   └── astrometric_integration.py  # Mosaic integration (177 lines)
 └── pipeline/
-    ├── config.py                   # Configuration (+ Phase 3 configs)
+    ├── config.py                   # Configuration (+ transient detection configs)
     └── stages_impl.py              # Pipeline stages (+ TransientDetectionStage)
 ```
 
@@ -544,7 +544,7 @@ class AstrometricCalibrationConfig(BaseModel):
 ### Environment Variables
 
 ```bash
-# No specific Phase 3 environment variables required
+# No specific transient detection environment variables required
 # Uses existing pipeline configuration
 ```
 
@@ -559,7 +559,7 @@ class AstrometricCalibrationConfig(BaseModel):
 Run once during deployment:
 
 ```bash
-python scripts/initialize_phase3_tables.py
+python scripts/initialize_transient_tables.py
 ```
 
 #### 2. Monitor Transient Alerts
@@ -829,7 +829,7 @@ Enable detailed logging:
 ```python
 import logging
 
-# Set Phase 3 module logging
+# Set transient detection module logging
 logging.getLogger('dsa110_contimg.catalog.transient_detection').setLevel(
     logging.DEBUG
 )
@@ -863,8 +863,8 @@ print(f"Rate: {len(observed_sources)/elapsed:.1f} sources/sec")
 Run quick validation:
 
 ```bash
-cd /data/dsa110-contimg/src
-python tests/smoke_test_phase3.py
+cd /data/dsa110-contimg/backend
+python tests/smoke/smoke_test_transient_detection.py
 ```
 
 Expected output:
@@ -886,8 +886,8 @@ Expected output:
 Run full test suite:
 
 ```bash
-cd /data/dsa110-contimg/src
-python -m pytest tests/unit/catalog/test_phase3_features.py -v
+cd /data/dsa110-contimg/backend
+python -m pytest tests/unit/catalog/test_transient_features.py -v
 ```
 
 Expected: **29/29 tests passing**
@@ -1001,9 +1001,9 @@ View details: http://dsa110-pipeline/transients/view/12345
 
 ## Change Log
 
-| Date       | Version | Changes                        |
-| ---------- | ------- | ------------------------------ |
-| 2025-11-19 | 1.0.0   | Initial Phase 3 implementation |
+| Date       | Version | Changes                                    |
+| ---------- | ------- | ------------------------------------------ |
+| 2025-11-19 | 1.0.0   | Initial transient detection implementation |
 
 ## Contact
 

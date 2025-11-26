@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # mypy: disable-error-code="import-not-found,import-untyped"
 """
-Smoke tests for Absurd Phase 2 features.
+Smoke tests for Absurd mosaic and task chaining features.
 
 Tests:
 1. Task chaining imports and structure
@@ -21,8 +21,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))  # noqa: E4
 
 
 @pytest.mark.smoke
-class TestPhase2Imports:
-    """Verify Phase 2 imports work correctly."""
+class TestMosaicImports:
+    """Verify mosaic and chaining imports work correctly."""
 
     def test_task_chain_imports(self):
         """Test TaskChain and chain imports."""
@@ -69,7 +69,7 @@ class TestPhase2Imports:
 
 
 @pytest.mark.smoke
-class TestPhase2ChainStructure:
+class TestChainStructure:
     """Verify chain structure is correct."""
 
     def test_standard_chain_order(self):
@@ -106,7 +106,7 @@ class TestPhase2ChainStructure:
 
 
 @pytest.mark.smoke
-class TestPhase2StreamingBridge:
+class TestStreamingBridge:
     """Verify streaming bridge can be instantiated."""
 
     def test_bridge_instantiation(self):
@@ -127,7 +127,7 @@ class TestPhase2StreamingBridge:
 
 
 @pytest.mark.smoke
-class TestPhase2DLQRouter:
+class TestDLQRouter:
     """Verify DLQ router is correctly structured."""
 
     def test_dlq_router_exists(self):
@@ -162,8 +162,8 @@ class TestPhase2DLQRouter:
 
 
 @pytest.mark.smoke
-class TestPhase2DeadLetterQueue:
-    """Verify DeadLetterQueue has Phase 2 methods."""
+class TestDeadLetterQueue:
+    """Verify DeadLetterQueue has required methods."""
 
     def test_dlq_has_required_methods(self):
         """Test DeadLetterQueue has all required methods."""
@@ -171,7 +171,7 @@ class TestPhase2DeadLetterQueue:
 
         dlq_methods = dir(DeadLetterQueue)
 
-        # Phase 2 required methods
+        # Required methods
         assert "get_by_id" in dlq_methods
         assert "delete" in dlq_methods
         assert "resolve" in dlq_methods
@@ -186,17 +186,17 @@ class TestPhase2DeadLetterQueue:
 
 
 @pytest.mark.smoke
-class TestPhase2Integration:
+class TestMosaicIntegration:
     """Integration-level smoke tests."""
 
     def test_absurd_package_exports(self):
-        """Test all Phase 2 exports from absurd package."""
+        """Test all chaining exports from absurd package."""
         from dsa110_contimg import absurd
 
         # Verify __all__ exports
         exports = absurd.__all__
 
-        phase2_exports = [
+        chaining_exports = [
             "AbsurdStreamingBridge",
             "TaskChain",
             "execute_chained_task",
@@ -208,10 +208,10 @@ class TestPhase2Integration:
             "TARGET_CHAIN",
         ]
 
-        for export in phase2_exports:
+        for export in chaining_exports:
             assert export in exports, f"Missing export: {export}"
 
-        print(f"✓ All {len(phase2_exports)} Phase 2 exports present")
+        print(f"✓ All {len(chaining_exports)} chaining exports present")
 
     def test_task_chain_dataclass(self):
         """Test TaskChain is a proper dataclass."""

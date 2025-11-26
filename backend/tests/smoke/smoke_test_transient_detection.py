@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Smoke tests for Phase 3: Transient Detection & Astrometric Calibration.
+"""Smoke tests for Transient Detection & Astrometric Calibration.
 
-Quick validation of core Phase 3 functionality:
+Quick validation of core transient detection functionality:
 - Transient detection module imports
 - Astrometric calibration module imports
 - Database table creation
@@ -23,7 +23,7 @@ import pandas as pd
 
 
 def test_imports():
-    """Test that Phase 3 modules can be imported."""
+    """Test that transient detection modules can be imported."""
     print("Testing imports...")
 
     try:
@@ -361,7 +361,7 @@ def test_astrometry_storage():
 def main():
     """Run all smoke tests."""
     print("=" * 60)
-    print("Phase 3 Smoke Tests: Transient Detection & Astrometry")
+    print("Transient Detection & Astrometry Smoke Tests")
     print("=" * 60)
 
     tests = [
@@ -400,7 +400,7 @@ def main():
     print(f"\n{passed}/{total} tests passed")
 
     if passed == total:
-        print("\n✓ All Phase 3 smoke tests passed!")
+        print("\n✓ All transient detection smoke tests passed!")
         return 0
     else:
         print(f"\n✗ {total - passed} tests failed")

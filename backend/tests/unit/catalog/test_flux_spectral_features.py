@@ -1,4 +1,4 @@
-"""Unit tests for flux monitoring and spectral index features (Phase 1).
+"""Unit tests for flux monitoring and spectral index features.
 
 Tests Proposal #6: Flux Calibration Monitoring & Alerts
 Tests Proposal #1: Spectral Index Mapping

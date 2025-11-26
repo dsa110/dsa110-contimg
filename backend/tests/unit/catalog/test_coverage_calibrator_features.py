@@ -1,4 +1,4 @@
-"""Unit tests for Phase 2: Coverage-Aware Catalog Selection + Smart Calibrator Pre-Selection.
+"""Unit tests for Coverage-Aware Catalog Selection + Smart Calibrator Pre-Selection.
 
 Tests for:
 - Proposal #8: Coverage-Aware Catalog Selection (coverage.py)
