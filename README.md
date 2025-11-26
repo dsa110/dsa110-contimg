@@ -1,13 +1,13 @@
 # DSA-110 Continuum Imaging Pipeline
 
-## 🚀 QUICK START (READ THIS FIRST!)
+## QUICK START (READ THIS FIRST!)
 
 **New to this project? Start here:**
 
 1. **Run the setup script:**
 
    ```bash
-   ./scripts/setup-dev.sh
+   ./scripts/ops/dev/setup-dev.sh
    ```
 
    This will:
@@ -19,16 +19,16 @@
 2. **Verify your setup:**
 
    ```bash
-   ./scripts/check-environment.sh
+   ./scripts/ops/quality/check-environment.sh
    ```
 
 3. **Read the developer guide:**
-   - [`docs/how-to/DEVELOPER_HANDOFF_WARNINGS.md`](docs/how-to/DEVELOPER_HANDOFF_WARNINGS.md) -
+   - [`docs/guides/development/DEVELOPER_HANDOFF_WARNINGS.md`](docs/guides/development/DEVELOPER_HANDOFF_WARNINGS.md) -
      Critical warnings
-   - [`docs/how-to/QUICK_REFERENCE_WARNINGS.md`](docs/how-to/QUICK_REFERENCE_WARNINGS.md) -
+   - [`docs/guides/operations/QUICK_REFERENCE_WARNINGS.md`](docs/guides/operations/QUICK_REFERENCE_WARNINGS.md) -
      Quick reference
 
-**⚠️ CRITICAL:** Always use casa6 Python environment:
+**CRITICAL:** Always use casa6 Python environment:
 
 ```bash
 # WRONG
@@ -37,14 +37,14 @@ python script.py
 # CORRECT
 /opt/miniforge/envs/casa6/bin/python script.py
 # Or use wrapper:
-./scripts/run-python.sh script.py
+./scripts/ops/utils/run-python.sh script.py
 ```
 
 ---
 
 Note: Before creating any markdown documentation, see
-[`docs/DOCUMENTATION_QUICK_REFERENCE.md`](docs/DOCUMENTATION_QUICK_REFERENCE.md).
-Do not create markdown files in the repository root — use the `docs/` structure
+[`docs/reference/documentation_standards/DOCUMENTATION_QUICK_REFERENCE.md`](docs/reference/documentation_standards/DOCUMENTATION_QUICK_REFERENCE.md).
+Do not create markdown files in the repository root - use the `docs/` structure
 instead.
 
 ---
@@ -62,14 +62,8 @@ The pipeline can be run via systemd (recommended for the stream worker) or via
 Docker Compose (good for API and reproducible deployments). A simple mosaicking
 skeleton and housekeeping tool are also included.
 
-Quick look: see `docs/quicklook.md` for a sub-minute convert→calibrate→image
-flow using RAM staging, fast calibration, and quick imaging. Visual overview:
-see `docs/pipeline.md` for diagrams of the end-to-end pipeline and its
-sub-stages.
-
-- Consolidated docs hub: see Project Handbook at `docs/handbook/index.md` for
-  links to previously root-level documents (Control Panel, Operations notes,
-  Reports, Reference).
+Quick look: see `docs/guides/operations/quicklook.md` for a sub-minute convert-calibrate-image
+flow using RAM staging, fast calibration, and quick imaging.
 
 ## Data Paths
 
@@ -79,9 +73,9 @@ sub-stages.
 
 ## Directory Layout
 
-- `src/dsa110_contimg/`
+- `backend/src/dsa110_contimg/`
   - `conversion/`: Streaming and legacy conversion logic
-    - `streaming_converter.py`: Main daemon for monitoring and processing
+    - `streaming/streaming_converter.py`: Main daemon for monitoring and processing
     - `strategies/`: Pluggable processing strategies (orchestrator, direct
       writers)
   - `calibration/`: CASA-based calibration routines
@@ -90,20 +84,27 @@ sub-stages.
   - `api/`: FastAPI application source
   - `qa/`: Quality assurance plotting and metrics
   - `mosaic/`: Mosaic planning and building tools
-- `docs/`: Project documentation (concepts, how-to, troubleshooting)
+  - `pipeline/`: Pipeline orchestration framework
+  - `pointing/`: Pointing and transit calculations
+  - `photometry/`: Photometry analysis tools
+  - `catalog/`: Catalog management and cross-matching
+- `frontend/`: React dashboard application
+- `docs/`: Project documentation
+  - `guides/`: How-to guides (development, operations, workflows)
+  - `reference/`: API reference, CLI docs, configuration
+  - `architecture/`: System design documents
+  - `troubleshooting/`: Problem resolution guides
 - `ops/`: Operational configuration
   - `systemd/`: Systemd service definitions
   - `docker/`: Docker Compose and environment configuration
-  - `pipeline/`: Operational maintenance scripts (housekeeping)
-- `scripts/`: Operational and utility scripts
-  - `analysis/`: Test failure and log analysis tools
-  - `diagnostics/`: System health checks and statistical analysis
-  - `dev/`: Development helpers (build checks, environment setup)
-  - `quality/`: QA and verification scripts
-  - `test/`: Test runners and wrappers
-  - `utils/`: General utility scripts
+  - `scripts/`: Operational scripts (also mirrored in `scripts/ops/`)
+- `scripts/`: Utility and operational scripts
+  - `ops/`: Operational scripts (dev, quality, utils, monitoring)
+  - `archive/`: Archived scripts
+- `config/`: Configuration files (docker, editor, hooks, linting, pipeline)
 - `state/`: Runtime state (databases, logs, temporary artifacts)
-- `internal/`: Internal documentation and notes (not for general consumption)
+- `products/`: Output data products (images, mosaics, caltables)
+- `vendor/`: External dependencies (aocommon, everybeam)
 
 ## Services and Components
 
@@ -115,21 +116,23 @@ sub-stages.
   - Writes artifacts (CASA images) and updates `ms_index` in products DB
   - Records performance metrics (including WRITER_TYPE)
 
-- Monitoring API
+- Monitoring API (FastAPI)
   - Status of queue, recent groups, calibration sets, system metrics
   - Products and QA thumbnails; group detail view
-  - New endpoints:
-    - `GET /api/ms_index?stage=&status=&limit=` → filtered `ms_index` rows
-    - `POST /api/reprocess/{group_id}` → nudge a group back to `pending`
+  - Endpoints:
+    - `GET /api/ms_index?stage=&status=&limit=` - filtered `ms_index` rows
+    - `POST /api/reprocess/{group_id}` - nudge a group back to `pending`
+    - `GET /api/ese/candidates` - ESE candidate viewer
+    - `GET /api/status` - pipeline status overview
 
 - Backfill Imaging Worker (optional)
   - One-shot or daemon scan of an MS directory; applies current calibration and
     images anything missed
 
 - Mosaicking (skeleton)
-  - `python -m dsa110_contimg.mosaic.cli plan` → record a mosaic plan from
+  - `python -m dsa110_contimg.mosaic.cli plan` - record a mosaic plan from
     products DB tiles
-  - `python -m dsa110_contimg.mosaic.cli build` → CASA `immath` mean mosaic if
+  - `python -m dsa110_contimg.mosaic.cli build` - CASA `immath` mean mosaic if
     tiles are co-aligned
 
 - Housekeeping
@@ -175,15 +178,11 @@ exist for historical reasons but should not be used for new development.
   - `HDF5_USE_FILE_LOCKING=FALSE` (recommended)
   - `OMP_NUM_THREADS`, `MKL_NUM_THREADS` (e.g., 4)
 - PIPELINE FRAMEWORK
-  - The new pipeline orchestration framework is now the default and only
-    implementation
+  - The pipeline orchestration framework is the default implementation
     - All job execution uses direct function calls (no subprocess overhead)
     - Declarative pipeline with dependency resolution, retry policies, and
       improved error handling
-    - Legacy subprocess-based code has been archived to
-      `archive/legacy/api/job_runner_legacy.py`
-    - See `src/dsa110_contimg/pipeline/` for the framework implementation
-    - See `docs/migration/LEGACY_CLEANUP_PLAN.md` for details on the cleanup
+    - See `backend/src/dsa110_contimg/pipeline/` for the framework implementation
 - STREAMING
   - `PIPELINE_POINTING_DEC_DEG`, `VLA_CATALOG`, `CAL_MATCH_RADIUS_DEG`,
     `CAL_MATCH_TOPN` (optional calibrator matching)
@@ -265,7 +264,7 @@ Image:
 - Cron snippets (alternative to scheduler service):
   - Nightly mosaic at 03:15 UTC for previous day, and hourly housekeeping:
 
-```
+```bash
 # /etc/cron.d/contimg
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -273,30 +272,27 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # Housekeeping hourly
 0 * * * * ubuntu cd /data/dsa110-contimg && \
   PIPELINE_QUEUE_DB=state/ingest.sqlite3 CONTIMG_SCRATCH_DIR=/data/scratch \
-  /data/dsa110-contimg/scripts/run_casa_cmd.sh /usr/bin/python3 ops/pipeline/housekeeping.py >> state/logs/housekeeping.log 2>&1
+  /data/dsa110-contimg/scripts/ops/utils/run_casa_cmd.sh /usr/bin/python3 ops/pipeline/housekeeping.py >> state/logs/housekeeping.log 2>&1
 
 # Nightly mosaic at 03:15 UTC for previous day
 15 3 * * * ubuntu cd /data/dsa110-contimg && \
   PIPELINE_PRODUCTS_DB=state/products.sqlite3 \
-  /data/dsa110-contimg/scripts/run_casa_cmd.sh /usr/bin/python3 -m dsa110_contimg.mosaic.cli plan --products-db state/products.sqlite3 \
+  /data/dsa110-contimg/scripts/ops/utils/run_casa_cmd.sh /usr/bin/python3 -m dsa110_contimg.mosaic.cli plan --products-db state/products.sqlite3 \
   --name night_$(date -u -d 'yesterday' +\%Y_\%m_\%d) --since $(date -u -d 'yesterday 00:00:00' +\%s) \
   --until $(date -u -d 'today 00:00:00 - 1 sec' +\%s) && \
-  /data/dsa110-contimg/scripts/run_casa_cmd.sh /usr/bin/python3 -m dsa110_contimg.mosaic.cli build --products-db state/products.sqlite3 \
+  /data/dsa110-contimg/scripts/ops/utils/run_casa_cmd.sh /usr/bin/python3 -m dsa110_contimg.mosaic.cli build --products-db state/products.sqlite3 \
   --name night_$(date -u -d 'yesterday' +\%Y_\%m_\%d) --output /data/ms/mosaics/night_$(date -u -d 'yesterday' +\%Y_\%m_\%d).img \
   >> state/logs/mosaic_nightly.log 2>&1
 ```
 
-## Development Notes and Recent Changes
+## Development Notes
 
-- Strategy orchestrator is now primary in streaming paths (`direct-subband`
-  writer)
+- Strategy orchestrator is primary in streaming paths (`direct-subband` writer)
   - Emits `WRITER_TYPE:` to stdout, recorded in `performance_metrics`
   - In-process path also aligned to orchestrator for consistency
-- Products DB helpers added (`database/products.py`)
+- Products DB helpers (`database/products.py`)
   - Centralizes `ms_index`/`images` schema, upserts, and indices
   - Used by streaming worker and imaging worker to avoid schema drift
-- API enhancements
-  - `/api/ms_index` filtering endpoint and `/api/reprocess/{group_id}` added
 - Stability and CASA best practices
   - Initialize `MODEL_DATA`/`CORRECTED_DATA` and `WEIGHT_SPECTRUM` as needed
   - Set antenna mounts to `ALT-AZ` and fix antenna positions/diameters
@@ -311,7 +307,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 #### Option 1: Local Development (Recommended)
 
 If you brought up the API container on a different port (e.g., 8010 via
-`ops/docker/.env` → `CONTIMG_API_PORT=8010`), point the frontend at it during
+`ops/docker/.env` - `CONTIMG_API_PORT=8010`), point the frontend at it during
 development:
 
 - Quick run with env var (recommended):
@@ -368,16 +364,16 @@ docker compose stop dashboard-dev api
 - **Frontend (dashboard-dev)**: Hot module replacement (HMR) - code changes
   reflect immediately
 - Volume-mounted source code - no image rebuilds needed after initial build
-- Frontend available at http://localhost:5174 (avoids conflict with local dev
+- Frontend available at `http://localhost:5174` (avoids conflict with local dev
   server on 5173)
-- Backend available at http://localhost:8000
+- Backend available at `http://localhost:8000`
 - Services connect via Docker network
 
 **Requirements:**
 
 - Both services build from local Dockerfiles (no external image pulls needed)
 - Frontend code changes in `frontend/src/` will trigger automatic reloads
-- Backend code changes in `src/` are mounted and will reload (if using uvicorn
+- Backend code changes in `backend/src/` are mounted and will reload (if using uvicorn
   reload)
 - Uses `docker-compose.yml` in repository root (not
   `ops/docker/docker-compose.yml`)
