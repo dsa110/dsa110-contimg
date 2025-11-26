@@ -1,12 +1,19 @@
 #!/usr/bin/env python
 """Initialize Phase 3 database tables for transient detection and astrometric calibration.
 
-This script should be run once during deployment to create the required database tables:
-- transient_candidates
+NOTE: As of v0.9, Phase 3 tables are automatically created by ensure_products_db()
+in backend/src/dsa110_contimg/database/products.py. This script is kept for:
+  1. Verification of existing databases
+  2. Force-recreating tables if needed
+  3. Backward compatibility
+
+The following tables are now auto-created:
+- transient_candidates (extended schema with variability tracking)
 - transient_alerts
 - transient_lightcurves
 - astrometric_solutions
 - astrometric_residuals
+- monitoring_sources (new in v0.9)
 
 Usage:
     python scripts/initialize_phase3_tables.py [--db-path PATH] [--force]
@@ -17,14 +24,11 @@ Arguments:
     --verify          Verify tables exist without creating them
 
 Example:
-    # Initialize tables with default database
-    python scripts/initialize_phase3_tables.py
-
-    # Initialize with custom database path
-    python scripts/initialize_phase3_tables.py --db-path /data/custom.sqlite3
-
-    # Verify tables exist
+    # Verify tables exist (recommended - tables are auto-created now)
     python scripts/initialize_phase3_tables.py --verify
+
+    # Initialize with custom database path (legacy usage)
+    python scripts/initialize_phase3_tables.py --db-path /data/custom.sqlite3
 
 Exit codes:
     0: Success
@@ -258,7 +262,9 @@ def drop_tables(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
-def initialize_tables(db_path: Path, force: bool = False, verify_only: bool = False) -> int:
+def initialize_tables(
+    db_path: Path, force: bool = False, verify_only: bool = False
+) -> int:
     """Initialize Phase 3 database tables.
 
     Args:
@@ -355,11 +361,15 @@ def main():
     )
 
     parser.add_argument(
-        "--force", action="store_true", help="Drop existing tables before recreating (dangerous!)"
+        "--force",
+        action="store_true",
+        help="Drop existing tables before recreating (dangerous!)",
     )
 
     parser.add_argument(
-        "--verify", action="store_true", help="Verify tables exist without creating them"
+        "--verify",
+        action="store_true",
+        help="Verify tables exist without creating them",
     )
 
     args = parser.parse_args()
@@ -377,7 +387,9 @@ def main():
             return 0
 
     # Initialize
-    exit_code = initialize_tables(db_path=args.db_path, force=args.force, verify_only=args.verify)
+    exit_code = initialize_tables(
+        db_path=args.db_path, force=args.force, verify_only=args.verify
+    )
 
     if exit_code == 0:
         if args.verify:

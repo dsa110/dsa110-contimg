@@ -3,6 +3,32 @@ Products database helpers for imaging artifacts and MS index.
 
 Provides a single place to create/migrate the products DB schema and helper
 routines to upsert ms_index rows and insert image artifacts.
+
+Tables (automatically created/migrated):
+  Core tables:
+    - ms_index: Measurement Set tracking with pipeline stage
+    - images: Image artifacts with QA metadata
+    - photometry: Forced photometry measurements
+    - hdf5_file_index: HDF5 subband file index
+
+  Batch processing:
+    - batch_jobs: Batch job tracking
+    - batch_job_items: Individual items in batch jobs
+    - calibration_qa: Calibration quality metrics
+    - image_qa: Image quality metrics
+
+  Phase 3 - Transient detection (auto-created since v0.9):
+    - transient_candidates: Transient/variable source candidates
+    - transient_alerts: Alert queue for transient events
+    - transient_lightcurves: Time-series flux measurements
+    - monitoring_sources: Sources being monitored with variability metrics
+
+  Phase 3 - Astrometry (auto-created since v0.9):
+    - astrometric_solutions: WCS correction solutions
+    - astrometric_residuals: Per-source astrometric residuals
+
+  Infrastructure:
+    - storage_locations: Storage location registry for recovery
 """
 
 import os
@@ -257,25 +283,150 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
         """
     )
 
-    # Transient candidates table
+    # Transient candidates table (Phase 3 extended schema)
+    # Note: This is the extended schema with variability tracking.
+    # The simpler schema was used in early development; new columns are
+    # added via migration below for existing databases.
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS transient_candidates (
-            id INTEGER PRIMARY KEY,
-            image_path TEXT NOT NULL,
-            ms_path TEXT NOT NULL,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_name TEXT,
+            image_path TEXT,
+            ms_path TEXT,
             ra_deg REAL NOT NULL,
             dec_deg REAL NOT NULL,
-            peak_mjy REAL NOT NULL,
-            rms_mjy REAL NOT NULL,
-            snr REAL NOT NULL,
+            peak_mjy REAL,
+            flux_obs_mjy REAL,
+            flux_baseline_mjy REAL,
+            flux_ratio REAL,
+            rms_mjy REAL,
+            snr REAL,
+            significance_sigma REAL,
+            detection_type TEXT,
+            baseline_catalog TEXT,
             timestamp_mjd REAL,
-            detected_at REAL NOT NULL
+            detected_at REAL NOT NULL,
+            mosaic_id INTEGER,
+            classification TEXT,
+            variability_index REAL,
+            last_updated REAL,
+            notes TEXT
         )
         """
     )
 
-    # Indices for batch jobs
+    # Transient alerts table (Phase 3)
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS transient_alerts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            candidate_id INTEGER NOT NULL,
+            alert_level TEXT NOT NULL,
+            alert_message TEXT NOT NULL,
+            created_at REAL NOT NULL,
+            acknowledged INTEGER DEFAULT 0,
+            acknowledged_at REAL,
+            acknowledged_by TEXT,
+            follow_up_status TEXT,
+            notes TEXT,
+            FOREIGN KEY (candidate_id) REFERENCES transient_candidates(id)
+        )
+        """
+    )
+
+    # Transient lightcurves table (Phase 3)
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS transient_lightcurves (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            candidate_id INTEGER NOT NULL,
+            mjd REAL NOT NULL,
+            flux_mjy REAL NOT NULL,
+            flux_err_mjy REAL,
+            frequency_ghz REAL,
+            mosaic_id INTEGER,
+            image_path TEXT,
+            measured_at REAL NOT NULL,
+            FOREIGN KEY (candidate_id) REFERENCES transient_candidates(id)
+        )
+        """
+    )
+
+    # Astrometric solutions table (Phase 3)
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS astrometric_solutions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            mosaic_id INTEGER,
+            image_path TEXT,
+            reference_catalog TEXT NOT NULL,
+            n_matches INTEGER NOT NULL,
+            ra_offset_mas REAL NOT NULL,
+            dec_offset_mas REAL NOT NULL,
+            ra_offset_err_mas REAL,
+            dec_offset_err_mas REAL,
+            rotation_deg REAL,
+            scale_factor REAL,
+            rms_residual_mas REAL,
+            applied INTEGER DEFAULT 0,
+            computed_at REAL NOT NULL,
+            applied_at REAL,
+            notes TEXT
+        )
+        """
+    )
+
+    # Astrometric residuals table (Phase 3)
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS astrometric_residuals (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            solution_id INTEGER NOT NULL,
+            source_ra_deg REAL NOT NULL,
+            source_dec_deg REAL NOT NULL,
+            reference_ra_deg REAL NOT NULL,
+            reference_dec_deg REAL NOT NULL,
+            ra_offset_mas REAL NOT NULL,
+            dec_offset_mas REAL NOT NULL,
+            separation_mas REAL NOT NULL,
+            source_flux_mjy REAL,
+            reference_flux_mjy REAL,
+            measured_at REAL NOT NULL,
+            FOREIGN KEY (solution_id) REFERENCES astrometric_solutions(id)
+        )
+        """
+    )
+
+    # Monitoring sources table for lightcurve tracking
+    # Stores sources being monitored with their variability metrics
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS monitoring_sources (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_id TEXT UNIQUE NOT NULL,
+            name TEXT,
+            ra_deg REAL NOT NULL,
+            dec_deg REAL NOT NULL,
+            catalog TEXT,
+            priority TEXT DEFAULT 'normal',
+            n_detections INTEGER DEFAULT 0,
+            mean_flux_jy REAL,
+            std_flux_jy REAL,
+            eta REAL,
+            v_index REAL,
+            chi_squared REAL,
+            is_variable INTEGER DEFAULT 0,
+            ese_candidate INTEGER DEFAULT 0,
+            first_detected_at REAL,
+            last_detected_at REAL,
+            last_updated REAL,
+            notes TEXT
+        )
+        """
+    )
+
+    # Indices for batch jobs and Phase 3 tables
     try:
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_batch_items_batch_id ON batch_job_items(batch_id)"
@@ -290,6 +441,51 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
         )
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_transient_timestamp ON transient_candidates(timestamp_mjd)"
+        )
+        # Phase 3 indices for transient detection
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_transients_type ON transient_candidates(detection_type, significance_sigma DESC)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_transients_coords ON transient_candidates(ra_deg, dec_deg)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_transients_detected ON transient_candidates(detected_at DESC)"
+        )
+        # Transient alerts indices
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_alerts_level ON transient_alerts(alert_level, created_at DESC)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_alerts_status ON transient_alerts(acknowledged, created_at DESC)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_alerts_candidate ON transient_alerts(candidate_id)"
+        )
+        # Transient lightcurves indices
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_lightcurves_candidate ON transient_lightcurves(candidate_id, mjd)"
+        )
+        # Astrometric solutions indices
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_astrometry_mosaic ON astrometric_solutions(mosaic_id, computed_at DESC)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_astrometry_applied ON astrometric_solutions(applied, computed_at DESC)"
+        )
+        # Astrometric residuals indices
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_residuals_solution ON astrometric_residuals(solution_id)"
+        )
+        # Monitoring sources indices
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_monitoring_coords ON monitoring_sources(ra_deg, dec_deg)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_monitoring_variable ON monitoring_sources(is_variable, eta DESC)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_monitoring_ese ON monitoring_sources(ese_candidate)"
         )
     except Exception:
         pass
@@ -339,6 +535,37 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
                     "CREATE INDEX IF NOT EXISTS idx_photometry_source_id ON photometry(source_id)"
                 )
                 conn.commit()
+
+        # Migrate transient_candidates table to Phase 3 extended schema
+        cur.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='transient_candidates'"
+        )
+        if cur.fetchone() is not None:
+            cur.execute("PRAGMA table_info(transient_candidates)")
+            cols = {r[1] for r in cur.fetchall()}
+            phase3_cols = [
+                ("source_name", "TEXT"),
+                ("flux_obs_mjy", "REAL"),
+                ("flux_baseline_mjy", "REAL"),
+                ("flux_ratio", "REAL"),
+                ("significance_sigma", "REAL"),
+                ("detection_type", "TEXT"),
+                ("baseline_catalog", "TEXT"),
+                ("mosaic_id", "INTEGER"),
+                ("classification", "TEXT"),
+                ("variability_index", "REAL"),
+                ("last_updated", "REAL"),
+                ("notes", "TEXT"),
+            ]
+            for col_name, col_type in phase3_cols:
+                if col_name not in cols:
+                    try:
+                        cur.execute(
+                            f"ALTER TABLE transient_candidates ADD COLUMN {col_name} {col_type}"
+                        )
+                    except sqlite3.OperationalError:
+                        pass  # Column may already exist
+            conn.commit()
 
     except Exception as e:
         # Log the error but don't fail - migration errors are non-fatal
@@ -516,6 +743,204 @@ def get_storage_locations(
         }
         for row in rows
     ]
+
+
+def register_monitoring_sources(
+    conn: sqlite3.Connection,
+    sources_csv: str,
+    catalog: str = "user",
+    default_priority: str = "normal",
+) -> int:
+    """Register sources for lightcurve monitoring from a CSV file.
+
+    CSV format: name,ra,dec[,priority]
+    The priority column is optional (defaults to default_priority).
+
+    Args:
+        conn: Database connection
+        sources_csv: Path to CSV file with source list
+        catalog: Catalog name for these sources (default: 'user')
+        default_priority: Default priority if not in CSV (default: 'normal')
+
+    Returns:
+        Number of sources registered
+
+    Example CSV:
+        name,ra,dec,priority
+        3C286,202.784,30.509,high
+        Cygnus_A,299.868,40.734,high
+        My_Target,180.0,45.0,normal
+    """
+    import csv
+
+    count = 0
+    now = time.time()
+
+    with open(sources_csv, "r") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            name = row.get("name", "").strip()
+            ra = float(row.get("ra", row.get("ra_deg", 0)))
+            dec = float(row.get("dec", row.get("dec_deg", 0)))
+            priority = row.get("priority", default_priority).strip() or default_priority
+
+            # Generate source_id from name or coordinates
+            source_id = name if name else f"J{ra:.3f}{dec:+.3f}"
+
+            conn.execute(
+                """
+                INSERT INTO monitoring_sources
+                (source_id, name, ra_deg, dec_deg, catalog, priority, last_updated)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(source_id) DO UPDATE SET
+                    name = COALESCE(excluded.name, monitoring_sources.name),
+                    ra_deg = excluded.ra_deg,
+                    dec_deg = excluded.dec_deg,
+                    catalog = excluded.catalog,
+                    priority = excluded.priority,
+                    last_updated = excluded.last_updated
+                """,
+                (source_id, name, ra, dec, catalog, priority, now),
+            )
+            count += 1
+
+    conn.commit()
+    return count
+
+
+def get_monitoring_sources(
+    conn: sqlite3.Connection,
+    *,
+    variable_only: bool = False,
+    ese_only: bool = False,
+    min_detections: int = 0,
+    priority: Optional[str] = None,
+    limit: int = 1000,
+) -> List[dict]:
+    """Get registered monitoring sources with their variability metrics.
+
+    Args:
+        conn: Database connection
+        variable_only: Only return sources flagged as variable
+        ese_only: Only return ESE candidates
+        min_detections: Minimum number of detections required
+        priority: Filter by priority level
+        limit: Maximum number of sources to return
+
+    Returns:
+        List of source dictionaries with variability metrics
+    """
+    conditions = ["1=1"]
+    params: list = []
+
+    if variable_only:
+        conditions.append("is_variable = 1")
+    if ese_only:
+        conditions.append("ese_candidate = 1")
+    if min_detections > 0:
+        conditions.append("n_detections >= ?")
+        params.append(min_detections)
+    if priority:
+        conditions.append("priority = ?")
+        params.append(priority)
+
+    params.append(limit)
+    where_clause = " AND ".join(conditions)
+
+    rows = conn.execute(
+        f"""
+        SELECT source_id, name, ra_deg, dec_deg, catalog, priority,
+               n_detections, mean_flux_jy, std_flux_jy, eta, v_index,
+               chi_squared, is_variable, ese_candidate, first_detected_at,
+               last_detected_at, notes
+        FROM monitoring_sources
+        WHERE {where_clause}
+        ORDER BY eta DESC NULLS LAST, n_detections DESC
+        LIMIT ?
+        """,
+        params,
+    ).fetchall()
+
+    return [
+        {
+            "source_id": row[0],
+            "name": row[1],
+            "ra_deg": row[2],
+            "dec_deg": row[3],
+            "catalog": row[4],
+            "priority": row[5],
+            "n_detections": row[6],
+            "mean_flux_jy": row[7],
+            "std_flux_jy": row[8],
+            "eta": row[9],
+            "v_index": row[10],
+            "chi_squared": row[11],
+            "is_variable": bool(row[12]),
+            "ese_candidate": bool(row[13]),
+            "first_detected_at": row[14],
+            "last_detected_at": row[15],
+            "notes": row[16],
+        }
+        for row in rows
+    ]
+
+
+def update_source_variability(
+    conn: sqlite3.Connection,
+    source_id: str,
+    *,
+    n_detections: Optional[int] = None,
+    mean_flux_jy: Optional[float] = None,
+    std_flux_jy: Optional[float] = None,
+    eta: Optional[float] = None,
+    v_index: Optional[float] = None,
+    chi_squared: Optional[float] = None,
+    is_variable: Optional[bool] = None,
+    ese_candidate: Optional[bool] = None,
+) -> None:
+    """Update variability metrics for a monitoring source.
+
+    Args:
+        conn: Database connection
+        source_id: Source identifier
+        n_detections: Number of detections
+        mean_flux_jy: Mean flux in Jy
+        std_flux_jy: Standard deviation of flux in Jy
+        eta: Variability index (eta statistic)
+        v_index: Fractional variability V = std / mean
+        chi_squared: Reduced chi-squared against constant model
+        is_variable: Whether source is flagged as variable
+        ese_candidate: Whether source is an ESE candidate
+    """
+    now = time.time()
+    conn.execute(
+        """
+        UPDATE monitoring_sources SET
+            n_detections = COALESCE(?, n_detections),
+            mean_flux_jy = COALESCE(?, mean_flux_jy),
+            std_flux_jy = COALESCE(?, std_flux_jy),
+            eta = COALESCE(?, eta),
+            v_index = COALESCE(?, v_index),
+            chi_squared = COALESCE(?, chi_squared),
+            is_variable = COALESCE(?, is_variable),
+            ese_candidate = COALESCE(?, ese_candidate),
+            last_updated = ?
+        WHERE source_id = ?
+        """,
+        (
+            n_detections,
+            mean_flux_jy,
+            std_flux_jy,
+            eta,
+            v_index,
+            chi_squared,
+            1 if is_variable else (0 if is_variable is False else None),
+            1 if ese_candidate else (0 if ese_candidate is False else None),
+            now,
+            source_id,
+        ),
+    )
+    conn.commit()
 
 
 def extract_ms_pointing_center(ms_path: str) -> Tuple[Optional[float], Optional[float]]:
