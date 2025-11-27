@@ -154,6 +154,15 @@ def phase_to_meridian(uvdata, pt_dec: Optional[u.Quantity] = None) -> None:
     unique_times, _, time_inverse = np.unique(
         uvdata.time_array, return_index=True, return_inverse=True
     )
+    n_unique = len(unique_times)
+
+    # OPTIMIZATION: Pre-allocate arrays for phase center coordinates
+    # This avoids repeated array allocations in the loop
+    phase_ra_arr = np.zeros(n_unique, dtype=np.float64)
+    phase_dec_arr = np.zeros(n_unique, dtype=np.float64)
+
+    # OPTIMIZATION: Batch convert JD to MJD once (avoids repeated Time object creation)
+    mjd_unique = Time(unique_times, format="jd").mjd
 
     # Clear existing phase centers and create time-dependent ones
     uvdata.phase_center_catalog = {}
@@ -161,27 +170,32 @@ def phase_to_meridian(uvdata, pt_dec: Optional[u.Quantity] = None) -> None:
 
     # Create a phase center for each unique time
     # Use rigorous astropy calculation for accurate phase centers
-    for i, time_jd in enumerate(unique_times):
-        time_mjd = Time(time_jd, format="jd").mjd
-        phase_ra, phase_dec = get_meridian_coords(pt_dec, time_mjd, fast=False)
+    for i in range(n_unique):
+        phase_ra, phase_dec = get_meridian_coords(pt_dec, float(mjd_unique[i]), fast=False)
+        phase_ra_arr[i] = float(phase_ra.to_value(u.rad))
+        phase_dec_arr[i] = float(phase_dec.to_value(u.rad))
 
         # Create phase center with unique name per time
         pc_id = uvdata._add_phase_center(
             cat_name=f"meridian_icrs_t{i}",
             cat_type="sidereal",
-            cat_lon=float(phase_ra.to_value(u.rad)),
-            cat_lat=float(phase_dec.to_value(u.rad)),
+            cat_lon=phase_ra_arr[i],
+            cat_lat=phase_dec_arr[i],
             cat_frame="icrs",
             cat_epoch=2000.0,
         )
-        phase_center_ids[time_jd] = pc_id
+        phase_center_ids[unique_times[i]] = pc_id
 
-    # Map each baseline-time to its corresponding phase center (vectorized)
+    # OPTIMIZATION: Pre-allocate phase_center_id_array if needed
     if getattr(uvdata, "phase_center_id_array", None) is None:
-        uvdata.phase_center_id_array = np.zeros(uvdata.Nblts, dtype=int)
+        uvdata.phase_center_id_array = np.zeros(uvdata.Nblts, dtype=np.int32)
 
     # Vectorized mapping: create array of phase center IDs indexed by time
-    pc_id_array = np.array([phase_center_ids[t] for t in unique_times])
+    # OPTIMIZATION: Use numpy array operations instead of list comprehension
+    pc_id_array = np.array(
+        [phase_center_ids[unique_times[i]] for i in range(n_unique)],
+        dtype=np.int32
+    )
     uvdata.phase_center_id_array[:] = pc_id_array[time_inverse]
 
     # Recompute UVW coordinates

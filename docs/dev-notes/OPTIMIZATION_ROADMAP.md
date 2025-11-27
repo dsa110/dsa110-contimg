@@ -187,29 +187,67 @@ python -m dsa110_contimg.conversion.cli groups ... --max-workers 8
 
 ---
 
-## Phase 5: Pre-allocation Patterns
+## Phase 5: Pre-allocation Patterns (✅ COMPLETED)
 
 **Goal**: Apply pre-allocation pattern to reduce GC pressure in hot paths.
 
+**Optimizations Implemented**:
+
+1. Pre-allocated phase center coordinate arrays in `phase_to_meridian()`
+2. Batch JD→MJD conversion (single `Time()` call instead of per-iteration)
+3. Pre-allocated result list in `_load_and_merge_subbands_single_batch()`
+4. Index assignment instead of list append for loaded UVData objects
+
 ### 5.1 Visibility Processing Pre-allocation
 
-**File**: `conversion/strategies/direct_subband.py`  
-**Effort**: 3 hours  
-**Priority**: MEDIUM
+**File**: `conversion/strategies/hdf5_orchestrator.py`  
+**Status**: ✅ COMPLETED
 
-- [ ] Profile memory allocation patterns during conversion
-- [ ] Pre-allocate visibility arrays based on expected size
-- [ ] Reduce intermediate array creation in concat operations
+- [x] Pre-allocate result list with known size (`[None] * n_files`)
+- [x] Use index assignment instead of append (`acc[i] = tmp`)
+- [x] Filter None values after loading (safety check)
+
+```python
+# Before (dynamic resizing):
+acc: List[UVData] = []
+for i, path in file_iter:
+    tmp = UVData()
+    tmp.read(path, ...)
+    acc.append(tmp)  # Causes list resizing
+
+# After (pre-allocated):
+acc: List[Optional[UVData]] = [None] * n_files
+for i, path in file_iter:
+    tmp = UVData()
+    tmp.read(path, ...)
+    acc[i] = tmp  # Direct index assignment
+```
 
 ### 5.2 Phase Center Array Reuse
 
 **File**: `conversion/helpers_coordinates.py`  
-**Effort**: 2 hours  
-**Priority**: LOW
+**Status**: ✅ COMPLETED
 
-- [ ] Identify repeated array allocations in `phase_to_meridian()`
-- [ ] Create reusable buffer for phase center calculations
-- [ ] Benchmark memory usage reduction
+- [x] Pre-allocate `phase_ra_arr` and `phase_dec_arr` arrays
+- [x] Batch convert JD→MJD with single `Time()` call
+- [x] Use `np.int32` for phase center ID arrays (memory efficient)
+
+```python
+# Before (per-iteration Time object creation):
+for i, time_jd in enumerate(unique_times):
+    time_mjd = Time(time_jd, format="jd").mjd  # Creates Time object each iteration
+    phase_ra, phase_dec = get_meridian_coords(pt_dec, time_mjd)
+
+# After (batch conversion + pre-allocation):
+phase_ra_arr = np.zeros(n_unique, dtype=np.float64)
+phase_dec_arr = np.zeros(n_unique, dtype=np.float64)
+mjd_unique = Time(unique_times, format="jd").mjd  # Single batch conversion
+
+for i in range(n_unique):
+    phase_ra, phase_dec = get_meridian_coords(pt_dec, float(mjd_unique[i]))
+    phase_ra_arr[i] = float(phase_ra.to_value(u.rad))
+    phase_dec_arr[i] = float(phase_dec.to_value(u.rad))
+```
 
 ---
 

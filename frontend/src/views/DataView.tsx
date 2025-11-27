@@ -62,8 +62,8 @@ function TabPanel({ children, value, index }: TabPanelProps) {
     <Box
       role="tabpanel"
       hidden={value !== index}
-      id={`data-tabpanel-${index}`}
-      aria-labelledby={`data-tab-${index}`}
+      id={`data-tabpanel-${String(index)}`}
+      aria-labelledby={`data-tab-${String(index)}`}
       sx={{ py: 2 }}
     >
       {value === index && children}
@@ -102,7 +102,7 @@ export default function DataView() {
   // Sync URL with tab changes
   useEffect(() => {
     const tab = TABS[tabValue];
-    if (tab && tab.id !== "browse") {
+    if (tab.id !== "browse") {
       setSearchParams({ tab: tab.id }, { replace: true });
     } else if (searchParams.has("tab")) {
       setSearchParams({}, { replace: true });
@@ -161,8 +161,8 @@ export default function DataView() {
               icon={tab.icon}
               iconPosition="start"
               label={tab.label}
-              id={`data-tab-${index}`}
-              aria-controls={`data-tabpanel-${index}`}
+              id={`data-tab-${String(index)}`}
+              aria-controls={`data-tabpanel-${String(index)}`}
             />
           ))}
         </Tabs>

@@ -4,19 +4,16 @@
  * Quick status dashboard showing:
  * - Workflow stage status (Ingest → Convert → Calibrate → Image → QA)
  * - Recent observations
- * - Queue summary
  * - System health at a glance
  */
-import React from "react";
-import { Alert, Stack } from "@mui/material";
+import { useState } from "react";
+import { Alert, Stack, Paper, Typography, Box, Chip } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
 import { usePipelineStatus, useSystemMetrics, useHealthSummary } from "../../api/queries";
 import { SkeletonLoader } from "../../components/SkeletonLoader";
 import { WorkflowStatusPanel } from "../../components/dashboard/WorkflowStatusPanel";
-import { PipelineStatusSection } from "../../components/dashboard/PipelineStatusSection";
 import { RecentObservationsTable } from "../../components/dashboard/RecentObservationsTable";
 import { SystemHealthSection } from "../../components/dashboard/SystemHealthSection";
-import QueueDetailsPanel from "../../components/QueueDetailsPanel";
 import { CircuitBreakerStatus } from "../../components/CircuitBreaker";
 
 export default function OverviewTab() {
@@ -41,15 +38,39 @@ export default function OverviewTab() {
       {/* Workflow Stages - Primary focus */}
       <WorkflowStatusPanel />
 
-      {/* Queue & Pipeline Status */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} lg={8}>
-          <PipelineStatusSection status={status} isLoading={isLoading} />
-        </Grid>
-        <Grid item xs={12} lg={4}>
-          <QueueDetailsPanel />
-        </Grid>
-      </Grid>
+      {/* Queue Summary */}
+      <Paper sx={{ p: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          Queue Status
+        </Typography>
+        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+          <Chip
+            label={`Total: ${status?.queue_status?.total ?? 0}`}
+            color="default"
+            variant="outlined"
+          />
+          <Chip
+            label={`Pending: ${status?.queue_status?.pending ?? 0}`}
+            color="warning"
+            variant="outlined"
+          />
+          <Chip
+            label={`In Progress: ${status?.queue_status?.in_progress ?? 0}`}
+            color="info"
+            variant="outlined"
+          />
+          <Chip
+            label={`Completed: ${status?.queue_status?.completed ?? 0}`}
+            color="success"
+            variant="outlined"
+          />
+          <Chip
+            label={`Failed: ${status?.queue_status?.failed ?? 0}`}
+            color="error"
+            variant="outlined"
+          />
+        </Box>
+      </Paper>
 
       {/* Recent Observations */}
       <RecentObservationsTable status={status} />
@@ -59,9 +80,8 @@ export default function OverviewTab() {
         <Grid item xs={12} lg={8}>
           <SystemHealthSection
             metrics={metrics}
-            isLoading={metricsLoading}
+            loading={metricsLoading || healthLoading}
             healthSummary={healthSummary}
-            healthLoading={healthLoading}
           />
         </Grid>
         <Grid item xs={12} lg={4}>

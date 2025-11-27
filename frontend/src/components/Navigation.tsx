@@ -43,7 +43,7 @@ export default function Navigation() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { open: commandPaletteOpen, setOpen: setCommandPaletteOpen } = useCommandPalette();
   const { currentWorkflow } = useWorkflow();
 
@@ -52,10 +52,7 @@ export default function Navigation() {
   };
 
   const isActive = (path: string) => {
-    if (path === "/dashboard") {
-      return location.pathname === "/dashboard";
-    }
-    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+    return location.pathname === path || location.pathname.startsWith(`${path}?`);
   };
 
   const drawer = (
@@ -63,40 +60,36 @@ export default function Navigation() {
       sx={{ textAlign: "center", pt: 2, height: "100%", display: "flex", flexDirection: "column" }}
     >
       <Typography variant="h6" sx={{ my: 2 }}>
-        DSA-110
+        DSA-110 Pipeline
       </Typography>
       <Box sx={{ overflowY: "auto", flexGrow: 1 }}>
         <List>
-          {navGroups.map((group, index) => (
-            <Box key={group.title}>
-              {index > 0 && <Divider />}
-              <ListSubheader sx={{ bgcolor: "transparent", lineHeight: "32px", pt: 1 }}>
-                {group.title}
-              </ListSubheader>
-              {group.items.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.path);
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
 
-                return (
-                  <ListItem key={item.path} disablePadding>
-                    <ListItemButton
-                      component={RouterLink}
-                      to={item.path}
-                      selected={active}
-                      onClick={handleDrawerToggle}
-                      onMouseEnter={() => prefetchRoute(item.path)}
-                      sx={{ pl: 4 }}
-                    >
-                      <ListItemIcon>
-                        <Icon color={active ? "primary" : "inherit"} />
-                      </ListItemIcon>
-                      <ListItemText primary={item.label} />
-                    </ListItemButton>
-                  </ListItem>
-                );
-              })}
-            </Box>
-          ))}
+            return (
+              <ListItem key={item.path} disablePadding>
+                <ListItemButton
+                  component={RouterLink}
+                  to={item.path}
+                  selected={active}
+                  onClick={handleDrawerToggle}
+                  onMouseEnter={() => {
+                    prefetchRoute(item.path);
+                  }}
+                >
+                  <ListItemIcon>
+                    <Icon color={active ? "primary" : "inherit"} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.label}
+                    secondary={item.description}
+                  />
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
         </List>
       </Box>
     </Box>
@@ -143,58 +136,44 @@ export default function Navigation() {
             <Box
               sx={{
                 display: "flex",
-                gap: 0.5,
+                gap: 2,
                 flexGrow: 1,
                 alignItems: "center",
-                flexWrap: "nowrap",
-                overflowX: "auto",
-                "&::-webkit-scrollbar": { display: "none" },
-                scrollbarWidth: "none",
               }}
             >
-              {navGroups.map((group, groupIndex) => (
-                <Box key={group.title} sx={{ display: "flex", alignItems: "center" }}>
-                  {groupIndex > 0 && (
-                    <Divider
-                      orientation="vertical"
-                      flexItem
-                      sx={{ mx: 1, height: 24, borderColor: "rgba(255,255,255,0.2)" }}
-                    />
-                  )}
-                  {group.items.map((item) => {
-                    const Icon = item.icon;
-                    const active = isActive(item.path);
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.path);
 
-                    return (
-                      <Button
-                        key={item.path}
-                        component={RouterLink}
-                        to={item.path}
-                        startIcon={<Icon />}
-                        onMouseEnter={() => prefetchRoute(item.path)}
-                        sx={{
-                          color: active ? "primary.main" : "text.secondary",
-                          bgcolor: active ? "rgba(144, 202, 249, 0.08)" : "transparent",
-                          fontWeight: active ? 600 : 400,
-                          fontSize: "0.875rem",
-                          px: 1.5,
-                          py: 0.75,
-                          minWidth: "auto",
-                          whiteSpace: "nowrap",
-                          "&:hover": {
-                            bgcolor: active
-                              ? "rgba(144, 202, 249, 0.12)"
-                              : "rgba(255, 255, 255, 0.05)",
-                          },
-                          transition: "all 0.2s ease-in-out",
-                        }}
-                      >
-                        {item.label}
-                      </Button>
-                    );
-                  })}
-                </Box>
-              ))}
+                return (
+                  <Button
+                    key={item.path}
+                    component={RouterLink}
+                    to={item.path}
+                    startIcon={<Icon />}
+                    onMouseEnter={() => {
+                      prefetchRoute(item.path);
+                    }}
+                    sx={{
+                      color: active ? "primary.main" : "text.secondary",
+                      bgcolor: active ? "rgba(144, 202, 249, 0.12)" : "transparent",
+                      fontWeight: active ? 600 : 400,
+                      fontSize: "1rem",
+                      px: 3,
+                      py: 1,
+                      borderRadius: 2,
+                      "&:hover": {
+                        bgcolor: active
+                          ? "rgba(144, 202, 249, 0.16)"
+                          : "rgba(255, 255, 255, 0.08)",
+                      },
+                      transition: "all 0.2s ease-in-out",
+                    }}
+                  >
+                    {item.label}
+                  </Button>
+                );
+              })}
             </Box>
           )}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, ml: "auto" }}>
@@ -224,7 +203,7 @@ export default function Navigation() {
           keepMounted: true, // Better open performance on mobile.
         }}
         sx={{
-          display: { xs: "block", lg: "none" },
+          display: { xs: "block", md: "none" },
           "& .MuiDrawer-paper": { boxSizing: "border-box", width: 280 },
         }}
       >

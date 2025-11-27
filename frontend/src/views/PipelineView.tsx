@@ -66,8 +66,8 @@ function TabPanel({ children, value, index }: TabPanelProps) {
     <Box
       role="tabpanel"
       hidden={value !== index}
-      id={`pipeline-tabpanel-${index}`}
-      aria-labelledby={`pipeline-tab-${index}`}
+      id={`pipeline-tabpanel-${String(index)}`}
+      aria-labelledby={`pipeline-tab-${String(index)}`}
       sx={{ py: 2 }}
     >
       {value === index && children}
@@ -106,7 +106,7 @@ export default function PipelineView() {
   // Sync URL with tab changes
   useEffect(() => {
     const tab = TABS[tabValue];
-    if (tab && tab.id !== "overview") {
+    if (tab.id !== "overview") {
       setSearchParams({ tab: tab.id }, { replace: true });
     } else if (searchParams.has("tab")) {
       setSearchParams({}, { replace: true });
@@ -165,8 +165,8 @@ export default function PipelineView() {
               icon={tab.icon}
               iconPosition="start"
               label={tab.label}
-              id={`pipeline-tab-${index}`}
-              aria-controls={`pipeline-tabpanel-${index}`}
+              id={`pipeline-tab-${String(index)}`}
+              aria-controls={`pipeline-tabpanel-${String(index)}`}
             />
           ))}
         </Tabs>

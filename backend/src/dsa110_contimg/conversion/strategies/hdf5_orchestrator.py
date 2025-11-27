@@ -693,9 +693,13 @@ def _load_and_merge_subbands_single_batch(
 
     This is the original single-batch loading logic, extracted for reuse
     in both single-batch and batched loading scenarios.
+
+    OPTIMIZATION: Pre-allocates result list to avoid dynamic resizing.
     """
-    uv = UVData()
-    acc: List[UVData] = []
+    # OPTIMIZATION: Pre-allocate result list with known size
+    n_files = len(file_list)
+    acc: List[Optional[UVData]] = [None] * n_files
+
     _pyuv_lg = logging.getLogger("pyuvdata")
     _prev_level = _pyuv_lg.level
     try:
@@ -706,7 +710,7 @@ def _load_and_merge_subbands_single_batch(
 
         file_iter = get_progress_bar(
             enumerate(file_list),
-            total=len(file_list),
+            total=n_files,
             desc="Reading subbands",
             disable=not show_progress,
             mininterval=0.5,  # Update every 0.5s max
@@ -782,7 +786,8 @@ def _load_and_merge_subbands_single_batch(
                 check_extra=False,
             )
             tmp.uvw_array = tmp.uvw_array.astype(np.float64)
-            acc.append(tmp)
+            # OPTIMIZATION: Use index assignment instead of append
+            acc[i] = tmp
 
             # Log details at debug level to avoid cluttering progress bar output
             logger.debug(
@@ -795,11 +800,17 @@ def _load_and_merge_subbands_single_batch(
             )
     finally:
         _pyuv_lg.setLevel(_prev_level)
+
+    # OPTIMIZATION: Filter None values (shouldn't happen, but safety check)
+    loaded_data: List[UVData] = [uv for uv in acc if uv is not None]
+    if not loaded_data:
+        return UVData()
+
     t_cat0 = time.perf_counter()
-    uv = acc[0]
-    if len(acc) > 1:
-        uv.fast_concat(acc[1:], axis="freq", inplace=True, run_check=False)
-    logger.debug("Concatenated %d subbands in %.2fs", len(acc), time.perf_counter() - t_cat0)
+    uv = loaded_data[0]
+    if len(loaded_data) > 1:
+        uv.fast_concat(loaded_data[1:], axis="freq", inplace=True, run_check=False)
+    logger.debug("Concatenated %d subbands in %.2fs", len(loaded_data), time.perf_counter() - t_cat0)
     uv.reorder_freqs(channel_order="freq", run_check=False)
     return uv
 
