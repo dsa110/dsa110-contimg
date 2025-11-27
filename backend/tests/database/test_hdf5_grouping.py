@@ -210,7 +210,8 @@ class TestProximityBasedGrouping:
             # Should find 2 complete groups
             assert len(groups) == 2
             for group in groups:
-                assert len(group) == 16
+                assert group.present_count == 16
+                assert group.is_complete is True
         finally:
             if db_path.exists():
                 db_path.unlink()

@@ -28,6 +28,14 @@ from dsa110_contimg.utils.fast_meta import (
     get_uvh5_times,
 )
 
+# Optimized HDF5 I/O with proper chunk cache sizing
+from dsa110_contimg.utils.hdf5_io import (
+    open_uvh5,
+    open_uvh5_large_cache,
+    open_uvh5_metadata,
+    open_uvh5_streaming,
+)
+
 __all__ = [
     "check_casa6_python",
     "require_casa6_python",
@@ -48,4 +56,9 @@ __all__ = [
     "get_uvh5_mid_mjd",
     "get_uvh5_freqs",
     "get_uvh5_basic_info",
+    # HDF5 I/O
+    "open_uvh5",
+    "open_uvh5_metadata",
+    "open_uvh5_streaming",
+    "open_uvh5_large_cache",
 ]
