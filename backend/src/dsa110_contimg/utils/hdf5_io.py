@@ -60,6 +60,140 @@ HDF5_CACHE_SIZE_STREAMING = 0  # Disabled
 # Default h5py is 521; we use larger for better distribution
 HDF5_CACHE_SLOTS = 1009
 
+# Track whether global defaults have been configured
+_h5py_defaults_configured = False
+_original_h5py_file_init = None
+
+
+def configure_h5py_cache_defaults(
+    cache_size: int = HDF5_CACHE_SIZE_DEFAULT,
+    cache_slots: int = HDF5_CACHE_SLOTS,
+) -> bool:
+    """Configure h5py global default chunk cache settings via monkey-patching.
+
+    This patches h5py.File.__init__ to inject default cache parameters for ALL
+    h5py.File() calls in the process, including those made by third-party
+    libraries like pyuvdata.
+
+    IMPORTANT: Call this BEFORE importing pyuvdata or any other library that
+    uses h5py, to ensure the patch is applied before their module-level imports.
+
+    Args:
+        cache_size: Default chunk cache size in bytes (default: 16 MB)
+        cache_slots: Number of hash table slots (default: 1009)
+
+    Returns:
+        True if defaults were configured, False if already configured
+
+    Example:
+        # At the top of your script, before other imports:
+        from dsa110_contimg.utils.hdf5_io import configure_h5py_cache_defaults
+        configure_h5py_cache_defaults()
+
+        # Now import pyuvdata - it will use 16 MB cache by default
+        from pyuvdata import UVData
+    """
+    global _h5py_defaults_configured, _original_h5py_file_init
+
+    if _h5py_defaults_configured:
+        logger.debug("h5py cache defaults already configured, skipping")
+        return False
+
+    try:
+        import h5py
+
+        # Save original __init__
+        _original_h5py_file_init = h5py.File.__init__
+
+        # Create wrapper that injects cache defaults
+        def _patched_file_init(
+            self,
+            name,
+            mode="r",
+            driver=None,
+            libver=None,
+            userblock_size=None,
+            swmr=False,
+            rdcc_nslots=None,
+            rdcc_nbytes=None,
+            rdcc_w0=None,
+            track_order=None,
+            fs_strategy=None,
+            fs_persist=False,
+            fs_threshold=1,
+            fs_page_size=None,
+            page_buf_size=None,
+            min_meta_keep=0,
+            min_raw_keep=0,
+            locking=None,
+            alignment_threshold=1,
+            alignment_interval=1,
+            meta_block_size=None,
+            **kwds,
+        ):
+            # Inject defaults if not explicitly provided
+            if rdcc_nbytes is None:
+                rdcc_nbytes = cache_size
+            if rdcc_nslots is None:
+                rdcc_nslots = cache_slots
+
+            return _original_h5py_file_init(
+                self,
+                name,
+                mode=mode,
+                driver=driver,
+                libver=libver,
+                userblock_size=userblock_size,
+                swmr=swmr,
+                rdcc_nslots=rdcc_nslots,
+                rdcc_nbytes=rdcc_nbytes,
+                rdcc_w0=rdcc_w0,
+                track_order=track_order,
+                fs_strategy=fs_strategy,
+                fs_persist=fs_persist,
+                fs_threshold=fs_threshold,
+                fs_page_size=fs_page_size,
+                page_buf_size=page_buf_size,
+                min_meta_keep=min_meta_keep,
+                min_raw_keep=min_raw_keep,
+                locking=locking,
+                alignment_threshold=alignment_threshold,
+                alignment_interval=alignment_interval,
+                meta_block_size=meta_block_size,
+                **kwds,
+            )
+
+        # Apply patch
+        h5py.File.__init__ = _patched_file_init
+        _h5py_defaults_configured = True
+
+        logger.info(
+            f"Configured h5py cache defaults via monkey-patch: "
+            f"rdcc_nbytes={cache_size / (1024 * 1024):.1f}MB, "
+            f"rdcc_nslots={cache_slots}"
+        )
+        return True
+
+    except Exception as e:
+        logger.warning(f"Failed to configure h5py cache defaults: {e}")
+        return False
+
+
+def get_h5py_cache_info() -> dict:
+    """Get current h5py cache configuration.
+
+    Returns:
+        Dictionary with cache settings and status
+    """
+    return {
+        "default_rdcc_nbytes": HDF5_CACHE_SIZE_DEFAULT,
+        "default_rdcc_nslots": HDF5_CACHE_SLOTS,
+        "default_rdcc_nbytes_mb": HDF5_CACHE_SIZE_DEFAULT / (1024 * 1024),
+        "configured_by_pipeline": _h5py_defaults_configured,
+        "patch_applied": _original_h5py_file_init is not None,
+    }:
+        return {"error": str(e)}
+
 
 @contextmanager
 def open_uvh5(

@@ -9,26 +9,36 @@ group using a scratch directory for staging.
 The queue is persisted in SQLite so the service can resume after restarts.
 """
 
-import argparse
-import logging
-import os
-import re
-import sqlite3
-import subprocess
-import sys
-import threading
-import time
-from contextlib import contextmanager
-from datetime import datetime
-from pathlib import Path
-from typing import Dict, Iterator, List, Optional, Tuple
+# CRITICAL: Configure h5py cache defaults BEFORE any imports that use h5py/pyuvdata
+# This ensures all HDF5 file opens (including in pyuvdata) use optimized cache settings
+# fmt: off
+# isort: off
+from dsa110_contimg.utils.hdf5_io import configure_h5py_cache_defaults  # noqa: E402
 
-from dsa110_contimg.database.registry import (
+configure_h5py_cache_defaults()  # Sets 16MB cache for all h5py.File() calls
+# isort: on
+# fmt: on
+
+import argparse  # noqa: E402
+import logging  # noqa: E402
+import os  # noqa: E402
+import re  # noqa: E402
+import sqlite3  # noqa: E402
+import subprocess  # noqa: E402
+import sys  # noqa: E402
+import threading  # noqa: E402
+import time  # noqa: E402
+from contextlib import contextmanager  # noqa: E402
+from datetime import datetime  # noqa: E402
+from pathlib import Path  # noqa: E402
+from typing import Dict, Iterator, List, Optional, Tuple  # noqa: E402
+
+from dsa110_contimg.database.registry import (  # noqa: E402
     get_active_applylist,
     register_set_from_prefix,
 )
-from dsa110_contimg.photometry.manager import PhotometryConfig, PhotometryManager
-from dsa110_contimg.photometry.worker import PhotometryBatchWorker
+from dsa110_contimg.photometry.manager import PhotometryConfig, PhotometryManager  # noqa: E402
+from dsa110_contimg.photometry.worker import PhotometryBatchWorker  # noqa: E402
 
 try:
     from dsa110_contimg.utils.graphiti_logging import GraphitiRunLogger

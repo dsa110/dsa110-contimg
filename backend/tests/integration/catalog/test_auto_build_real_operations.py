@@ -56,8 +56,6 @@ def test_auto_build_detects_missing_databases():
                 # If catalog doesn't exist but we're within coverage, it's just missing
                 print(f"⚠️  {catalog_type.upper()}: missing (within coverage for dec={dec_deg}°)")
 
-    return True
-
 
 def test_auto_build_respects_coverage_limits():
     """Test that auto-build only attempts builds within coverage."""
@@ -92,8 +90,6 @@ def test_auto_build_respects_coverage_limits():
     assert isinstance(missing_inside, dict)
     print("✅ Databases within coverage correctly identified")
 
-    return True
-
 
 def test_auto_build_function_callable():
     """Test that auto-build function is callable."""
@@ -116,8 +112,6 @@ def test_auto_build_function_callable():
         print(f"⚠️  Auto-build function callable but failed (expected): {type(e).__name__}")
         print("   This is expected if catalog source files are not available")
 
-    return True
-
 
 def test_coverage_limits_complete():
     """Test that all required catalogs have coverage limits defined."""
@@ -134,8 +128,6 @@ def test_coverage_limits_complete():
         assert "dec_max" in limits, f"{catalog} missing dec_max"
         assert limits["dec_min"] < limits["dec_max"], f"{catalog} invalid range"
         print(f"✅ {catalog.upper()}: {limits['dec_min']}° to {limits['dec_max']}°")
-
-    return True
 
 
 def run_all_tests():

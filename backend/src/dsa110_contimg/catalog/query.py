@@ -21,6 +21,7 @@ def resolve_catalog_path(
     catalog_type: str,
     dec_strip: Optional[float] = None,
     explicit_path: Optional[str | os.PathLike[str]] = None,
+    auto_build: bool = False,
 ) -> Path:
     """Resolve path to a catalog (SQLite or CSV) using standard precedence.
 
@@ -28,12 +29,15 @@ def resolve_catalog_path(
         catalog_type: One of "nvss", "first", "rax", "vlass", "master", "atnf"
         dec_strip: Declination in degrees (for per-strip SQLite databases)
         explicit_path: Override path (highest priority)
+        auto_build: If True, automatically build missing databases when within
+            catalog coverage limits (default: False)
 
     Returns:
         Path object pointing to catalog file
 
     Raises:
-        FileNotFoundError: If no catalog can be found
+        FileNotFoundError: If no catalog can be found (and auto_build=False or
+            declination is outside catalog coverage)
     """
     # 1. Explicit path takes highest priority
     if explicit_path:
@@ -160,6 +164,51 @@ def resolve_catalog_path(
         # CSV fallback is handled in query_sources() function
         pass
 
+    # 6. Auto-build if requested and within coverage
+    if auto_build and dec_strip is not None:
+        from dsa110_contimg.catalog.builders import (
+            CATALOG_COVERAGE_LIMITS,
+            build_nvss_strip_db,
+            build_first_strip_db,
+            build_rax_strip_db,
+            build_vlass_strip_db,
+            build_atnf_strip_db,
+        )
+
+        limits = CATALOG_COVERAGE_LIMITS.get(catalog_type, {})
+        dec_min = limits.get("dec_min", -90.0)
+        dec_max = limits.get("dec_max", 90.0)
+
+        # Handle array inputs
+        dec_val = float(dec_strip.flat[0]) if isinstance(dec_strip, np.ndarray) else float(dec_strip)
+
+        if dec_min <= dec_val <= dec_max:
+            # Within coverage - build the database
+            dec_range = (dec_val - 6.0, dec_val + 6.0)
+
+            try:
+                if catalog_type == "nvss":
+                    db_path = build_nvss_strip_db(dec_center=dec_val, dec_range=dec_range)
+                elif catalog_type == "first":
+                    db_path = build_first_strip_db(dec_center=dec_val, dec_range=dec_range)
+                elif catalog_type == "rax":
+                    db_path = build_rax_strip_db(dec_center=dec_val, dec_range=dec_range)
+                elif catalog_type == "vlass":
+                    db_path = build_vlass_strip_db(dec_center=dec_val, dec_range=dec_range)
+                elif catalog_type == "atnf":
+                    db_path = build_atnf_strip_db(dec_center=dec_val, dec_range=dec_range)
+                else:
+                    db_path = None
+
+                if db_path and db_path.exists():
+                    return db_path
+            except Exception as e:
+                # Log but don't crash - fall through to FileNotFoundError
+                import logging
+                logging.getLogger(__name__).warning(
+                    f"Auto-build of {catalog_type} catalog for dec={dec_val:.1f}° failed: {e}"
+                )
+
     raise FileNotFoundError(
         f"Catalog '{catalog_type}' not found. "
         f"Searched SQLite databases and standard locations. "
@@ -178,6 +227,7 @@ def query_sources(
     max_sources: Optional[int] = None,
     catalog_path: Optional[str | os.PathLike[str]] = None,
     validate_coverage: bool = True,
+    auto_build: bool = False,
     **kwargs,
 ) -> pd.DataFrame:
     """Query sources from catalog within a field of view.
@@ -192,6 +242,8 @@ def query_sources(
         max_sources: Maximum number of sources to return
         catalog_path: Explicit path to catalog (overrides auto-resolution)
         validate_coverage: If True, check if position is in catalog coverage
+        auto_build: If True, automatically build missing databases when within
+            catalog coverage limits (default: False)
         **kwargs: Catalog-specific query parameters (e.g., min_period_s for ATNF)
 
     Returns:
@@ -233,6 +285,7 @@ def query_sources(
             catalog_type=catalog_type,
             dec_strip=dec_strip,
             explicit_path=catalog_path,
+            auto_build=auto_build,
         )
     except FileNotFoundError:
         # Fallback to CSV for supported catalogs

@@ -1,10 +1,21 @@
 """Unified command-line interface for UVH5 to MS conversion."""
 
-import argparse
-import logging
-import sys
+# CRITICAL: Configure h5py cache defaults BEFORE any imports that use h5py/pyuvdata
+# This ensures all HDF5 file opens (including in pyuvdata) use optimized cache settings
+# fmt: off
+# isort: off
+from dsa110_contimg.utils.hdf5_io import configure_h5py_cache_defaults  # noqa: E402
 
-from dsa110_contimg.utils.cli_helpers import (
+configure_h5py_cache_defaults()  # Sets 16MB cache for all h5py.File() calls
+# isort: on
+# fmt: on
+
+import argparse  # noqa: E402
+import logging  # noqa: E402
+import os  # noqa: E402
+import sys  # noqa: E402
+
+from dsa110_contimg.utils.cli_helpers import (  # noqa: E402
     add_common_logging_args,
     configure_logging_from_args,
     setup_casa_environment,
@@ -12,7 +23,7 @@ from dsa110_contimg.utils.cli_helpers import (
 
 logger = logging.getLogger(__name__)
 
-from . import uvh5_to_ms
+from . import uvh5_to_ms  # noqa: E402
 from .strategies import hdf5_orchestrator  # noqa: E402
 
 # Set up CASA environment

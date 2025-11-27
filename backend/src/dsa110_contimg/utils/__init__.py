@@ -30,6 +30,8 @@ from dsa110_contimg.utils.fast_meta import (
 
 # Optimized HDF5 I/O with proper chunk cache sizing
 from dsa110_contimg.utils.hdf5_io import (
+    configure_h5py_cache_defaults,
+    get_h5py_cache_info,
     open_uvh5,
     open_uvh5_large_cache,
     open_uvh5_metadata,
@@ -57,6 +59,8 @@ __all__ = [
     "get_uvh5_freqs",
     "get_uvh5_basic_info",
     # HDF5 I/O
+    "configure_h5py_cache_defaults",
+    "get_h5py_cache_info",
     "open_uvh5",
     "open_uvh5_metadata",
     "open_uvh5_streaming",
