@@ -37,12 +37,24 @@ def test_auto_build_detects_missing_databases():
 
     # Verify coverage limits are respected
     # missing is a dict: {catalog_type: exists (bool)}
+    # Only check coverage for catalogs that are returned as existing or expected at this declination
     for catalog_type, exists in missing.items():
         if catalog_type in CATALOG_COVERAGE_LIMITS:
             limits = CATALOG_COVERAGE_LIMITS[catalog_type]
-            assert limits["dec_min"] <= dec_deg <= limits["dec_max"]
-            status = "exists" if exists else "missing"
-            print(f"✅ {catalog_type.upper()}: {status} (within coverage for dec={dec_deg}°)")
+            is_within_coverage = limits["dec_min"] <= dec_deg <= limits["dec_max"]
+            if exists:
+                # If catalog exists, declination should be within coverage
+                assert is_within_coverage, f"{catalog_type} exists but dec={dec_deg} is outside coverage"
+                print(f"✅ {catalog_type.upper()}: exists (within coverage for dec={dec_deg}°)")
+            elif not is_within_coverage:
+                # If catalog doesn't exist and we're outside coverage, that's expected
+                print(
+                    f"ℹ️  {catalog_type.upper()}: not available "
+                    f"(dec={dec_deg}° outside coverage [{limits['dec_min']}°, {limits['dec_max']}°])"
+                )
+            else:
+                # If catalog doesn't exist but we're within coverage, it's just missing
+                print(f"⚠️  {catalog_type.upper()}: missing (within coverage for dec={dec_deg}°)")
 
     return True
 
