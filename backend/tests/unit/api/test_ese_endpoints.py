@@ -271,7 +271,8 @@ class TestBatchESEDetectEndpoint:
         request_body = {
             "job_type": "ese-detect",
             "params": {
-                "fits_paths": ["/path/to/file.fits"],  # Wrong params type
+                "ms_paths": ["/path/to/file.ms"],  # Mimics calibration payload
+                "params": {"refant": "100"},
             },
         }
 
