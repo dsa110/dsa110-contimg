@@ -4,7 +4,7 @@
 
 Auto error detection automatically wraps all commands with error detection,
 ensuring errors are never ignored. This enforces the
-[Error Acknowledgment Rule](../.cursor/rules/error-acknowledgment.mdc) at the
+Error Acknowledgment Rule at the
 shell level.
 
 ## Quick Setup
@@ -199,9 +199,9 @@ SKIP_ERROR_DETECTION=1 high_frequency_command
 
 ## Related Documentation
 
-- [Error Detection Wrapper](../scripts/README-error-detection.md) - Wrapper
+- Error Detection Wrapper - Wrapper
   documentation
 - [Immediate Error Termination](./immediate-error-termination.md) - How
   immediate kill works
-- [Error Acknowledgment Rule](../.cursor/rules/error-acknowledgment.mdc) - The
+- Error Acknowledgment Rule - The
   rule being enforced

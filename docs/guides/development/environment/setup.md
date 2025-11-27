@@ -113,6 +113,6 @@ If CASA tools are not found:
 
 ## Related Documentation
 
-- [CASA6 Environment Guide](CASA6_ENVIRONMENT_GUIDE.md)
-- [Development Setup](../TODO.md)
+- CASA6 Environment Guide
+- Development Setup
 - [Pre-commit Setup](../PRE_COMMIT_SETUP.md)

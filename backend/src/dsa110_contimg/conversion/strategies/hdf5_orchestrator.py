@@ -858,7 +858,9 @@ def convert_subband_groups_to_ms(
             sb_num = int(sb.replace("sb", "")) if sb else 999
             return sb_num
 
-        for f in sorted([f for f in group if f], key=sort_key):
+        # Access files from SubbandGroupInfo object
+        group_files = group.files if hasattr(group, "files") else group
+        for f in sorted([f for f in group_files if f], key=sort_key):
             logger.info(f"    {os.path.basename(f)}")
 
     # Solution 1: Cleanup verification before starting new groups
@@ -925,9 +927,10 @@ def convert_subband_groups_to_ms(
     )
 
     for group in groups_iter:
-        # Extract actual file list
-        # Groups from find_subband_groups are lists of strings (file paths)
-        file_list = [f for f in group if f is not None]
+        # Extract actual file list from SubbandGroupInfo object
+        # Groups from find_subband_groups are SubbandGroupInfo objects with .files attribute
+        group_files = group.files if hasattr(group, "files") else group
+        file_list = [f for f in group_files if f is not None]
 
         # PRECONDITION CHECK: Validate all files exist before conversion
         # This ensures we follow "measure twice, cut once" - establish requirements upfront
@@ -977,7 +980,9 @@ def convert_subband_groups_to_ms(
                 from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
                 # Find products database
-                products_db_path = PathLib(os.getenv("PRODUCTS_DB_PATH", "state/db/products.sqlite3"))
+                products_db_path = PathLib(
+                    os.getenv("PRODUCTS_DB_PATH", "state/db/products.sqlite3")
+                )
                 if not products_db_path.is_absolute():
                     # Search in common locations
                     for base_dir in [
@@ -1425,7 +1430,8 @@ def convert_subband_groups_to_ms(
         # This is required for downstream calibration and imaging stages
         # Also auto-detects and renames calibrator fields if enabled
         try:
-            rename_fields = getattr(args, "rename_calibrator_fields", True)
+            # Get rename_calibrator_fields from writer_kwargs if available
+            rename_fields = (writer_kwargs or {}).get("rename_calibrator_fields", True)
             configure_ms_for_imaging(ms_path, rename_calibrator_fields=rename_fields)
             logger.info(f"✓ MS configured for imaging: {ms_path}")
         except ConversionError as e:

@@ -4,7 +4,7 @@
 **Status:** complete  
 **Related:**
 
-- [create_mosaic_centered.py](../../scripts/mosaic/create_mosaic_centered.py) -
+- create_mosaic_centered.py -
   Base script
 - [Batch Mode Guide](batch_mode_guide.md) - General batch processing
 - [Mosaic Quickstart](mosaic_quickstart.md) - Single mosaic creation
@@ -700,9 +700,9 @@ PYTHONPATH=/data/dsa110-contimg/src \
 
 ## See Also
 
-- [create_mosaic_centered.py](../../scripts/mosaic/create_mosaic_centered.py) -
+- create_mosaic_centered.py -
   Base script implementation
-- [Mosaic Orchestrator](../../src/dsa110_contimg/mosaic/orchestrator.py) - Core
+- Mosaic Orchestrator - Core
   orchestrator class
 - [Batch Mode Guide](batch_mode_guide.md) - General batch processing patterns
 - [Mosaic Quickstart](mosaic_quickstart.md) - Single mosaic creation tutorial

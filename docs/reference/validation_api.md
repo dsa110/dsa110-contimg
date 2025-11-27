@@ -354,5 +354,5 @@ print(f"Report saved to: {report_info['report_path']}")
 ## See Also
 
 - [Validation Guide](../guides/development/validation_guide.md)
-- [Configuration Guide](../configuration.md)
+- Configuration Guide
 - [Pipeline Overview](../architecture/pipeline/pipeline_overview.md)

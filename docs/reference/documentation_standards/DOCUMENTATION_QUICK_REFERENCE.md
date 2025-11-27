@@ -188,7 +188,7 @@ Content here.
 - ✅ Quick reference snippets
 
 **For more details:** See
-[DOCUMENTATION_FORMAT_RECOMMENDATION.md](../.cursor/rules/DOCUMENTATION_FORMAT_RECOMMENDATION.md)
+DOCUMENTATION_FORMAT_RECOMMENDATION.md
 
 ---
 
@@ -262,7 +262,7 @@ Investigation findings, root cause, fix
 
 - Check `docs/DOCUMENTATION_CONSOLIDATION_STRATEGY.md` for full strategy
 - Review
-  [DOCUMENTATION_FORMAT_RECOMMENDATION.md](../.cursor/rules/DOCUMENTATION_FORMAT_RECOMMENDATION.md)
+  DOCUMENTATION_FORMAT_RECOMMENDATION.md
   for format guidelines
 - Review existing docs in target directory for examples
 - When in doubt, ask before creating new docs

@@ -1,0 +1,115 @@
+#!/bin/bash
+# Process 0834+555 lightcurve using CLI tools
+# Uses /stage as scratch to avoid cross-device link issues
+
+set -e
+PYTHON="/opt/miniforge/envs/casa6/bin/python"
+SCRATCH="/stage/dsa110-contimg/scratch"
+MS_DIR="/stage/dsa110-contimg/ms/0834_lightcurve"
+IMG_DIR="/stage/dsa110-contimg/images/0834_lightcurve"
+
+mkdir -p "$SCRATCH" "$MS_DIR" "$IMG_DIR"
+
+# 0834+555 coordinates
+RA_DEG=128.7287
+DEC_DEG=55.5725
+
+# Read selected groups from JSON
+GROUPS=$(cat /tmp/selected_transit_groups.json)
+
+echo "========================================"
+echo "0834+555 LIGHTCURVE PIPELINE (CLI)"
+echo "========================================"
+
+# Process first 3 groups as a test
+for i in 0 1 2; do
+    echo ""
+    echo "========================================"
+    TS=$(echo "$GROUPS" | $PYTHON -c "import sys,json; g=json.load(sys.stdin); print(g[$i]['timestamp'])")
+    echo "Processing group $((i+1)): $TS"
+    echo "========================================"
+    
+    # Get file list
+    FILES=$(echo "$GROUPS" | $PYTHON -c "import sys,json; g=json.load(sys.stdin); print(' '.join(g[$i]['files']))")
+    
+    MS_NAME="0834_${TS//:/-}.ms"
+    MS_PATH="$MS_DIR/$MS_NAME"
+    IMG_PATH="$IMG_DIR/0834_${TS//:/-}"
+    
+    if [ -d "$MS_PATH" ]; then
+        echo "  MS already exists: $MS_NAME"
+    else
+        echo "  [Step 1/4] Converting to MS..."
+        # Use orchestrator with proper scratch directory
+        $PYTHON -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
+            /data/incoming \
+            "$MS_DIR" \
+            "${TS}Z" \
+            "$(echo "$TS" | $PYTHON -c 'import sys; from datetime import datetime, timedelta; t=datetime.fromisoformat(sys.stdin.read().strip()); print((t+timedelta(minutes=5)).isoformat())')Z" \
+            --scratch-dir "$SCRATCH" \
+            --no-stage-to-tmpfs \
+            --writer parallel-subband \
+            --skip-existing \
+            2>&1 | tail -5
+        
+        # Find the created MS
+        MS_PATH=$(ls -d "$MS_DIR"/*.ms 2>/dev/null | grep "$TS" | head -1 || echo "")
+    fi
+    
+    if [ ! -d "$MS_PATH" ]; then
+        echo "  ⚠ MS not found, skipping..."
+        continue
+    fi
+    
+    echo "  [Step 2/4] Calibrating..."
+    $PYTHON -m dsa110_contimg.calibration.cli calibrate \
+        --ms "$MS_PATH" \
+        --field 0 \
+        --auto-fields \
+        --fast \
+        --timebin 30s \
+        --chanbin 4 \
+        --prebp-phase \
+        --no-plot-bandpass \
+        --no-plot-gain \
+        2>&1 | tail -5
+    
+    echo "  [Step 3/4] Imaging..."
+    $PYTHON -m dsa110_contimg.imaging.cli image \
+        --ms "$MS_PATH" \
+        --imagename "$IMG_PATH" \
+        --imsize 512 \
+        --niter 500 \
+        --threshold 0.5mJy \
+        --quality-tier development \
+        2>&1 | tail -5
+    
+    # Find FITS file
+    FITS=$(ls "$IMG_PATH"*.pbcor.fits 2>/dev/null | head -1 || echo "")
+    if [ -z "$FITS" ]; then
+        FITS=$(ls "$IMG_PATH"*image*.fits 2>/dev/null | head -1 || echo "")
+    fi
+    
+    if [ -n "$FITS" ] && [ -f "$FITS" ]; then
+        echo "  [Step 4/4] Photometry..."
+        $PYTHON -m dsa110_contimg.photometry.cli peak \
+            --fits "$FITS" \
+            --ra $RA_DEG \
+            --dec $DEC_DEG \
+            --box 7 \
+            --annulus 15 25
+    else
+        echo "  ⚠ No FITS file found for photometry"
+    fi
+    
+    echo "  ✓ Completed group $((i+1))"
+done
+
+echo ""
+echo "========================================"
+echo "PIPELINE COMPLETE"
+echo "========================================"
+echo "Output directories:"
+echo "  MS:     $MS_DIR"
+echo "  Images: $IMG_DIR"
+

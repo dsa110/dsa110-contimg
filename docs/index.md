@@ -4,105 +4,59 @@ Welcome to the documentation for the DSA-110 Continuum Imaging Pipeline.
 
 ## 🚀 Quick Start for Developers
 
-- **[System Context](SYSTEM_CONTEXT.md)**: **START HERE.** Technical
-  architecture and implementation details.
-- **[Code Map](CODE_MAP.md)**: Navigate the codebase and find relevant
-  documentation.
-- **[Roadmap](DEVELOPMENT_ROADMAP.md)**: Current project status and active
-  phases.
+- **[System Context](SYSTEM_CONTEXT.md)**: **START HERE.** Technical architecture and implementation details.
+- **[Code Map](CODE_MAP.md)**: Navigate the codebase and find relevant documentation.
+- **[Roadmap](DEVELOPMENT_ROADMAP.md)**: Current project status and active phases.
 - **[Testing Status](testing/CURRENT_STATUS.md)**: Latest on automated testing.
 
 ---
 
 ## 📚 Documentation Structure
 
-### 🏗️ [Architecture & Design](design/)
+### 🏗️ Architecture
 
 System design, strategies, and analysis.
 
-- **[System Context](SYSTEM_CONTEXT.md)**: **START HERE.** Technical
-  architecture and implementation details.
-- **[Strategies](design/strategies/)**: Implementation strategies and decisions.
-- **[Analysis](design/analysis/)**: Deep dives into specific components.
+- **[System Context](SYSTEM_CONTEXT.md)**: Technical architecture overview
+- **[Architecture Overview](architecture/index.md)**: System architecture and design
+- **[Pipeline Overview](architecture/pipeline/pipeline_overview.md)**: Pipeline architecture
+- **[Dashboard Architecture](architecture/dashboard/dashboard_architecture.md)**: Frontend design
 
-### 🛠️ [Development](development/)
+### 🚀 Guides
 
-Guides for building, testing, and debugging.
+Practical how-to guides for common tasks.
 
-- **[Build](development/build/)**: Build options and troubleshooting.
-- **[Debugging](development/debugging.md)**: Debugging techniques and tools.
-- **[Testing](development/testing.md)**: Testing strategies and execution.
+- **[Guides Index](guides/index.md)**: All practical guides
+- **[ABSURD Quickstart](guides/ABSURD_QUICKSTART.md)**: Getting started with the pipeline
+- **[Dashboard Quickstart](guides/dashboard/dashboard-quickstart.md)**: Web interface guide
+- **[Mosaic Quickstart](guides/workflow/mosaic_quickstart.md)**: Creating mosaics
 
-### 📝 [Implementation Plans](implementation/)
+### 📖 Reference
 
-Active and past implementation plans.
+Technical specifications and standards.
 
-- **[High Priority Improvements](implementation/high_priority_improvements.md)**:
-  Critical next steps.
-- **[Phase 3 Plan](implementation/phase3_implementation_plan.md)**: Recent major
-  milestone.
+- **[Reference Index](reference/README.md)**: Technical reference documentation
+- **[CLI Reference](reference/cli.md)**: Command-line interface
+- **[API Reference](reference/api_reference.md)**: Backend API documentation
+- **[Database Reference](reference/DATABASE_REFERENCE_INDEX.md)**: Database schemas
 
-### 📜 [Logs & History](logs/)
-
-Historical logs of development phases and status reports.
-
-- **[Phase 1 Completion](logs/phase1_completion_summary.md)**
-- **[Phase 3 Completion](logs/phase3_complete.md)**
-
-### ⚙️ [Operations](operations/)
+### ⚙️ Operations
 
 Deployment, monitoring, and maintenance.
 
-- **[Service Stability](operations/service_stability.md)**: Guide to service
-  stability.
-- **[Grafana](operations/grafana.md)**: Visualization dashboards.
-- **[Disk Space](operations/disk_space.md)**: Managing disk usage.
+- **[Operations Index](operations/README.md)**: Operational documentation
+- **[Service Stability](operations/service_stability.md)**: Service management
+- **[Grafana](operations/grafana.md)**: Visualization dashboards
+- **[Troubleshooting](guides/operations/troubleshooting.md)**: Common issues and fixes
 
-### 🚀 [How-To Guides](how-to/)
+### 🏛️ Archive
 
-Practical steps for common tasks.
+Historical records and superseded documents.
 
-- **[Workflow](how-to/workflow/)**: Absurd pipeline, mosaicking, and streaming.
-- **[Operations](how-to/operations/)**: Deployment, monitoring, and
-  troubleshooting.
-- **[Dashboard](how-to/dashboard/)**: Using and developing the web interface.
-- **[Development](how-to/development/)**: Testing, CI/CD, and environment setup.
-- **[Data Processing](how-to/data-processing/)**: Calibration, imaging, and
-  flagging.
-- **[Error Handling](how-to/error-handling/)**: Automated error detection and
-  safety systems.
-
-### 🧠 [Concepts](concepts/)
-
-High-level architecture and design decisions.
-
-- Pipeline Architecture
-- Database Separation Strategy
-- QA Visualization Design
-
-### 📖 [Reference](reference/)
-
-Technical specifications and rules.
-
-- **[Rules](reference/rules/)**: Workspace rules and coding standards.
-- **[Documentation Standards](reference/documentation_standards/)**: How to
-  write and organize docs.
-- **[Agent Guidelines](reference/agent_guidelines.md)**: Guidelines for AI
-  agents.
-
-### 🏛️ [Archive](archive/)
-
-Historical records, status reports, and superseded documents.
-
-- **[Reports](archive/reports/)**: Status reports, verification summaries, and
-  implementation logs.
-- **[Features](archive/features/)**: Documentation for specific completed
-  features/fixes.
+- Browse `archive/` for historical status reports and completed features.
 
 ---
 
 ## 🔍 Quick Links
 
-- **[README](../../README.md)**: Project root and setup.
-- **[Troubleshooting](how-to/operations/troubleshooting.md)**: Common issues and
-  fixes.
+- **[Troubleshooting](guides/operations/troubleshooting.md)**: Common issues and fixes

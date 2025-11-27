@@ -341,8 +341,8 @@ Each document includes:
 
 ## 📚 Related Documentation
 
-- [INDEX.md](./INDEX.md) - Master documentation index
-- [AGENT_GUIDELINES.md](./AGENT_GUIDELINES.md) - Templates and guidelines
+- INDEX.md - Master documentation index
+- AGENT_GUIDELINES.md - Templates and guidelines
 - [STATUS_AND_REMAINING_TASKS.md](../../archive/reports/STATUS_AND_REMAINING_TASKS.md) - Current
   status
 

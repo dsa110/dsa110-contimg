@@ -386,4 +386,4 @@ See existing stages in `src/dsa110_contimg/pipeline/stages_impl.py`:
 
 - [Pipeline Stage Architecture](../../architecture/pipeline/pipeline_stage_architecture.md)
 - [Pipeline Overview](../../architecture/pipeline/pipeline_overview.md) - Configuration details
-- [Testing Guide](../how-to/testing.md)
+- Testing Guide

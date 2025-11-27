@@ -24,4 +24,4 @@ Practical guides for operators, developers, and users.
 
 ## Operations
 
-- [Operations Guide](operations/index.md) (if exists)
+- Operations Guide (if exists)

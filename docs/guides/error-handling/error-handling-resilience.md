@@ -422,7 +422,7 @@ Error tracking is configured in `frontend/src/utils/errorTracking.ts`:
 
 ## See Also
 
-- [Error Utils](../reference/error-utils.md)
-- [Circuit Breaker Pattern](../concepts/circuit-breaker.md)
-- [Retry Logic](../reference/retry-logic.md)
+- Error Utils
+- Circuit Breaker Pattern
+- Retry Logic
 - [Service Worker API](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API)

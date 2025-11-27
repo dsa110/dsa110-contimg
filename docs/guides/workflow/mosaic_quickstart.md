@@ -33,7 +33,7 @@ background in
   table).
 - Sufficient disk space for the output mosaic directory.
 - Optional (recommended for metrics and CASA image output): a working CASA6
-  environment. See [CASA6 Environment Guide](../CASA6_ENVIRONMENT_GUIDE.md). If
+  environment. See CASA6 Environment Guide. If
   using conda: `conda activate casa6`.
 
 ## Steps
@@ -164,7 +164,7 @@ images, use `imhead` & `imstat` to inspect headers and basic stats.
     image shape). See the detailed [Mosaic How‑To](mosaic.md).
 - Missing CASA tools
   - Some metrics or operations may be skipped without CASA; see
-    [CASA6 Environment Guide](../CASA6_ENVIRONMENT_GUIDE.md) to enable full
+    CASA6 Environment Guide to enable full
     functionality.
 
 ## See Also

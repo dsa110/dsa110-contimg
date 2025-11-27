@@ -223,11 +223,11 @@ result = manager.measure_for_fits(
 
 ## Related Documentation
 
-- [Variability Metrics](science/variability_metrics.md) - Definitions of
+- Variability Metrics - Definitions of
   variability statistics
-- [Photometry Module](../reference/photometry.md) - Detailed photometry API
-- [Mosaic Orchestrator](mosaic_orchestrator.md) - Mosaic workflow coordination
-- [Streaming Converter](../how-to/streaming_converter.md) - Streaming pipeline
+- Photometry Module - Detailed photometry API
+- Mosaic Orchestrator - Mosaic workflow coordination
+- Streaming Converter - Streaming pipeline
 
 ---
 

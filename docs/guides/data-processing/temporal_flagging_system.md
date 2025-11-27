@@ -525,11 +525,11 @@ python scripts/diagnose_spw_failures.py \
   - Frontend integration plans
   - Database schema and access patterns
 
-- **[Calibration Workflow](calibration_workflow.md)**
+- **Calibration Workflow**
   - Overall calibration process
   - How temporal tracking integrates into pipeline
 
-- **[Error Acknowledgment Rule](../../.cursor/rules/error-acknowledgment.mdc)**
+- **Error Acknowledgment Rule**
   - Why we don't dismiss errors or use hedging language
   - Importance of stating things with certainty when data supports it
 

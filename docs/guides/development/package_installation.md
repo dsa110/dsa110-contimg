@@ -281,4 +281,4 @@ See `scripts/find_earliest_data.py` for an example of the hybrid approach.
   practices for script development
 - [Critical Python Environment](../../reference/CRITICAL_PYTHON_ENVIRONMENT.md) -
   casa6 environment requirements
-- [Using the Orchestrator CLI](USING_ORCHESTRATOR_CLI.md) - CLI usage examples
+- Using the Orchestrator CLI - CLI usage examples

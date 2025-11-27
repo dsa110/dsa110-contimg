@@ -540,4 +540,4 @@ sudo systemctl start contimg-absurd-worker
 - [Absurd Quickstart Guide](../guides/ABSURD_QUICKSTART.md)
 - [API Endpoints Reference](../reference/api-endpoints.md)
 - [Pipeline Architecture](../architecture/pipeline/pipeline_stage_architecture.md)
-- [Troubleshooting Guide](../troubleshooting/absurd_troubleshooting.md)
+- Troubleshooting Guide

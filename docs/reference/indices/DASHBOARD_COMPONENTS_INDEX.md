@@ -37,11 +37,11 @@ dashboard.
 
 ### Advanced Topics
 
-- [UX Pattern Opportunities](../archive/task3_ux_pattern_opportunities.md)
-- [Phase Implementations](../dev/phase1_implementation_status.md),
+- UX Pattern Opportunities
+- Phase Implementations,
   [Phase 2](../../architecture/implementation/phase2_implementation_plan.md),
   [Phase 3](../../architecture/implementation/phase3_implementation_plan.md)
-- [UI Testing Results](../dev/phase1_ui_testing_complete.md)
+- UI Testing Results
 
 ---
 
@@ -55,21 +55,21 @@ dashboard.
 
 | Getting Started                                     | Usage                                                      | Development                                  |
 | --------------------------------------------------- | ---------------------------------------------------------- | -------------------------------------------- |
-| [JS9 CASA Analysis](../../guides/dashboard/js9_casa_analysis.md) | [CASA Analysis API](../reference/js9_casa_analysis_api.md) | [JS9 Setup](../../guides/dashboard/js9_casa_analysis.md) |
+| [JS9 CASA Analysis](../../guides/dashboard/js9_casa_analysis.md) | CASA Analysis API | [JS9 Setup](../../guides/dashboard/js9_casa_analysis.md) |
 
 ### CARTA Integration
 
 | User Guide                                          | Quick Start                                         | Advanced                                                     | Deployment                                                |
 | --------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------- |
-| [CARTA Guide](../how-to/carta_integration_guide.md) | [CARTA Quick Start](../how-to/carta_quick_start.md) | [CARTA Websocket](../../guides/dashboard/carta_websocket_enhancements.md) | [Enable Production](../../guides/dashboard/enable-carta-production.md) |
-| [Testing Guide](../../guides/dashboard/carta_testing_guide.md)   |                                                     | [Port Allocation](../../guides/dashboard/carta_port_allocation.md)        | [User Access](../how-to/carta_user_access.md)             |
+| CARTA Guide | CARTA Quick Start | [CARTA Websocket](../../guides/dashboard/carta_websocket_enhancements.md) | [Enable Production](../../guides/dashboard/enable-carta-production.md) |
+| [Testing Guide](../../guides/dashboard/carta_testing_guide.md)   |                                                     | [Port Allocation](../../guides/dashboard/carta_port_allocation.md)        | User Access             |
 
 ### Visualization Features
 
 | Image Filters                                                                | Data Display                                                    | Pointing Monitor                                              | QA Visualization                                     |
 | ---------------------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------- |
-| [Implementation Status](../image_filters_implementation_status.md) | [Dashboard Pages](../dashboard_pages_and_features.md) | [Pointing Visualization](../../guides/dashboard/pointing-visualization.md) | [QA Framework](../QA_VISUALIZATION_DESIGN.md)        |
-| [Test Results](../image_filters_test_results.md)                   | [HTML Reports](../html_reports_in_pipeline.md)        | [Deployment](../../guides/dashboard/pointing-monitor-deployment.md)        | [QA Quick Start](../QA_VISUALIZATION_QUICK_START.md) |
+| [Implementation Status](../image_filters_implementation_status.md) | [Dashboard Pages](../dashboard_pages_and_features.md) | [Pointing Visualization](../../guides/dashboard/pointing-visualization.md) | QA Framework        |
+| [Test Results](../image_filters_test_results.md)                   | [HTML Reports](../html_reports_in_pipeline.md)        | [Deployment](../../guides/dashboard/pointing-monitor-deployment.md)        | QA Quick Start |
 
 ### Pointing Monitor
 
@@ -103,7 +103,7 @@ dashboard.
 - [Mockups & Design](../../architecture/dashboard/dashboard_mockups.md)
 - [Future Roadmap](../../architecture/dashboard/dashboard_future_roadmap.md)
 - [MCP Browser Architecture](../../architecture/tools/browser_mcp_chrome_remote_desktop_architecture.md)
-- [Design Improvements](../analysis/DASHBOARD_DESIGN_IMPROVEMENTS.md)
+- Design Improvements
 
 ---
 
@@ -148,8 +148,8 @@ dashboard.
 
 | System Health                                                          | Pointing Tracking                                       | Log Management                                                | Performance                                                       |
 | ---------------------------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------- |
-| [CASA Log Daemon](../operations/CASA_LOG_DAEMON_PROTECTION_SUMMARY.md) | [Pointing Monitor](../../guides/dashboard/pointing-visualization.md) | [Log Monitoring](../operations/CASA_LOG_DAEMON_MONITORING.md) | [Performance Guide](../how-to/performance_and_scalability.md)     |
-|                                                                        | [Deployment](../../guides/dashboard/pointing-monitor-deployment.md)  | [Log Fixes](../operations/CASA_LOG_DAEMON_FIXES.md)           | [Implementation](../how-to/performance_implementation_summary.md) |
+| CASA Log Daemon | [Pointing Monitor](../../guides/dashboard/pointing-visualization.md) | Log Monitoring | Performance Guide     |
+|                                                                        | [Deployment](../../guides/dashboard/pointing-monitor-deployment.md)  | Log Fixes           | Implementation |
 
 ---
 
@@ -171,8 +171,8 @@ dashboard.
 
 | Feature               | Status   | Documentation                                                 | Notes                   |
 | --------------------- | -------- | ------------------------------------------------------------- | ----------------------- |
-| Image Viewing (JS9)   | Complete | [Reference](../reference/js9_casa_analysis_api.md)            | FITS file inspection    |
-| Image Viewing (CARTA) | Complete | [Guide](../how-to/carta_quick_start.md)                       | Advanced visualization  |
+| Image Viewing (JS9)   | Complete | Reference            | FITS file inspection    |
+| Image Viewing (CARTA) | Complete | Guide                       | Advanced visualization  |
 | Pointing Monitor      | Complete | [Guide](../../guides/dashboard/pointing-visualization.md)                  | Real-time tracking      |
 | Source Display        | Complete | [Reference](../dashboard_pages_and_features.md)     | Catalog visualization   |
 | Image Filters         | Complete | [Status](../image_filters_implementation_status.md) | Filtering and selection |
@@ -196,7 +196,7 @@ dashboard.
 ### Phase 1: Core Features
 
 - Status: Complete
-- Documentation: [Phase 1 Status](../dev/phase1_implementation_status.md)
+- Documentation: Phase 1 Status
 - Testing: [Results](../../archive/progress-logs/phase1_test_results.md)
 
 ### Phase 2: Advanced Features
@@ -266,7 +266,7 @@ Docker Containers
 
 ## Navigation
 
-- [Back to Main Index](../START_HERE_DOCUMENT_INVENTORY.md)
+- Back to Main Index
 - [Pipeline Stages Index](./PIPELINE_STAGES_INDEX.md)
 - [General Themes Index](./GENERAL_THEMES_INDEX.md)
 - [Documentation Framework](../documentation_standards/DOCUMENTATION_ORGANIZATIONAL_FRAMEWORK.md)

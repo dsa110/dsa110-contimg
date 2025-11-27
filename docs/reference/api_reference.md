@@ -574,5 +574,5 @@ Stage execution mode.
 
 - [Pipeline Stage Architecture](../architecture/pipeline/pipeline_stage_architecture.md)
 - [Creating Pipeline Stages](../guides/development/create_pipeline_stage.md)
-- [Testing Guide](../how-to/testing.md)
+- Testing Guide
 - [Real-World Examples](../examples/real_world_examples.md)

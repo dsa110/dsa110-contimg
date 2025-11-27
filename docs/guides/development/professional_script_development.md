@@ -272,6 +272,6 @@ relative to the script location.
 
 ## Related Documentation
 
-- [Using the Orchestrator CLI](USING_ORCHESTRATOR_CLI.md)
+- Using the Orchestrator CLI
 - [Directory Architecture](../../architecture/architecture/DIRECTORY_ARCHITECTURE.md)
 - [Critical Python Environment](../../reference/CRITICAL_PYTHON_ENVIRONMENT.md)

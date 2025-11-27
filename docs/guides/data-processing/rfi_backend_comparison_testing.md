@@ -419,7 +419,7 @@ python test_rfi_backend_comparison.py /path/to/test.ms \
   flagging phases
 - **[SPW Flagging Process](spw_flagging_process.md)** -
   How flagging works
-- **[Calibration Workflow](calibration_workflow.md)** - Full calibration process
+- **Calibration Workflow** - Full calibration process
 
 ---
 

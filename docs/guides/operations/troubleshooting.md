@@ -406,5 +406,5 @@ If you're still stuck:
 
 - [Pipeline Stage Architecture](../../architecture/pipeline/pipeline_stage_architecture.md)
 - [Pipeline Patterns](../../architecture/pipeline/pipeline_patterns.md)
-- [Testing Guide](testing.md)
+- Testing Guide
 - [Creating Pipeline Stages](../development/create_pipeline_stage.md)

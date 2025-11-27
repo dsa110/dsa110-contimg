@@ -127,5 +127,5 @@ export PLAYWRIGHT_BROWSER=chromium
 
 - [Complete Guide](playwright-python-frontend-testing.md): Detailed
   documentation
-- [Test Directory README](../../tests/e2e/frontend/README.md): Test directory
+- Test Directory README: Test directory
   reference

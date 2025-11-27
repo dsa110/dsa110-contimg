@@ -155,7 +155,7 @@ VERSION=$(command --version 2>/dev/null | sed 's/v//')
 
 ## Related Documentation
 
-- [Output Suppression Rules](../.cursor/rules/output-suppression.mdc) - Full
+- Output Suppression Rules - Full
   rule specification
-- [Error Detection Wrapper](../scripts/README-error-detection.md) - Error
+- Error Detection Wrapper - Error
   detection wrapper documentation

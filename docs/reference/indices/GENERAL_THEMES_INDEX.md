@@ -21,7 +21,7 @@ documentation.
 | Framework                                                      | Strategy                                                     | Planning                                                   | Approach                                               |
 | -------------------------------------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------- | ------------------------------------------------------ |
 | [Comprehensive Plan](../../testing/plans/COMPREHENSIVE_TESTING_PLAN.md) | [Automated Testing](../../archive/AUTOMATED_TESTING_STRATEGY.md) | [Unit Test Summary](../../testing/reports/unit_test_suite_summary.md) | [Practical Approach](../../testing/plans/PRACTICAL_APPROACH.md) |
-| [Quick Start](../../testing/guides/QUICK_START.md)                       | [Implementation](../testing/IMPLEMENTATION_SUMMARY.md)       | [Current Status](../../testing/CURRENT_STATUS.md)             | [Test Organization](../../testing/plans/TEST_ORGANIZATION.md)  |
+| [Quick Start](../../testing/guides/QUICK_START.md)                       | Implementation       | [Current Status](../../testing/CURRENT_STATUS.md)             | [Test Organization](../../testing/plans/TEST_ORGANIZATION.md)  |
 
 ### Test Execution
 
@@ -34,7 +34,7 @@ documentation.
 
 | Phase 1                                                                | Phase 2                                         | Frontend                                                      | Streaming                                              |
 | ---------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------ |
-| [Results](../../archive/status_reports/PHASE1_TESTING_RESULTS.md)                        | [Results](../testing/PHASE2_TESTING_SUMMARY.md) | [Browser Testing](../../guides/development/playwright-python-quick-start.md) | [Completion](../../testing/reports/STREAMING_TESTS_COMPLETION.md) |
+| [Results](../../archive/status_reports/PHASE1_TESTING_RESULTS.md)                        | Results | [Browser Testing](../../guides/development/playwright-python-quick-start.md) | [Completion](../../testing/reports/STREAMING_TESTS_COMPLETION.md) |
 | [Multiple Sources](../../archive/status_reports/PHASE1_MULTIPLE_SOURCES_TEST_RESULTS.md) |                                                 | [Automation Guide](../../archive/progress-logs/browser_testing_guide.md)           |                                                        |
 
 ### Validation & Coverage
@@ -56,8 +56,8 @@ documentation.
 
 | Roadmap                                          | Checklist                                                  | Phases                                                   | Status                                         |
 | ------------------------------------------------ | ---------------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------- |
-| [Development Roadmap](../../DEVELOPMENT_ROADMAP.md) | [Implementation Checklist](../IMPLEMENTATION_CHECKLIST.md) | [Phase Summary](../../archive/progress-logs/implementation_summary.md)        | [Current Status](../../testing/CURRENT_STATUS.md) |
-|                                                  |                                                            | [Phase 1 Status](../dev/phase1_implementation_status.md) |                                                |
+| [Development Roadmap](../../DEVELOPMENT_ROADMAP.md) | Implementation Checklist | [Phase Summary](../../archive/progress-logs/implementation_summary.md)        | [Current Status](../../testing/CURRENT_STATUS.md) |
+|                                                  |                                                            | Phase 1 Status |                                                |
 |                                                  |                                                            | [Phase 2 Status](../../architecture/implementation/phase2_implementation_plan.md)   |                                                |
 |                                                  |                                                            | [Phase 3 Status](../../archive/progress-logs/phase3_complete.md)              |                                                |
 
@@ -65,15 +65,15 @@ documentation.
 
 | Completion                                              | Next Steps                                                     | Analysis                                                                       | Reports                                                         |
 | ------------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------- |
-| [Phase 1 Complete](../../archive/progress-logs/phase1_completion_summary.md) | [Phase 1 Next](../../archive/progress-logs/phase1_next_steps_detailed.md)           | [Readiness Assessment](../dev/analysis/implementation_readiness_assessment.md) | [Monthly Updates](../../archive/analysis/IMPLEMENTATION_STATUS.md) |
-| [Phase 2 Complete](../../architecture/implementation/implementation_plan.md)       | [Task Assessment](../dev/analysis/unaddressed_tasks_review.md) | [Cost Analysis](../dev/analysis/cost_free_improvements.md)                     |                                                                 |
+| [Phase 1 Complete](../../archive/progress-logs/phase1_completion_summary.md) | [Phase 1 Next](../../archive/progress-logs/phase1_next_steps_detailed.md)           | Readiness Assessment | [Monthly Updates](../../archive/analysis/IMPLEMENTATION_STATUS.md) |
+| [Phase 2 Complete](../../architecture/implementation/implementation_plan.md)       | Task Assessment | Cost Analysis                     |                                                                 |
 
 ### Feature Implementation
 
 | Photometry                                                             | ESE Detection                                                            | Catalog Work                                                            | Image Filters                                                         |
 | ---------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| [Automation Roadmap](../dev/analysis/photometry_automation_roadmap.md) | [Architecture](../../architecture/science/ese_detection_architecture.md)                | [Migration Plan](../../archive/progress-logs/catalog_migration_to_sqlite.md)                 | [Implementation](../image_filters_implementation_status.md) |
-| [Assessment](../dev/analysis/photometry_automation_assessment.md)      | [Implementation Summary](../../archive/progress-logs/ese_detection_implementation_summary.md) | [Query Implementation](../../archive/progress-logs/catalog_query_implementation_complete.md) | [Testing](../image_filters_manual_testing_guide.md)         |
+| Automation Roadmap | [Architecture](../../architecture/science/ese_detection_architecture.md)                | [Migration Plan](../../archive/progress-logs/catalog_migration_to_sqlite.md)                 | [Implementation](../image_filters_implementation_status.md) |
+| Assessment      | [Implementation Summary](../../archive/progress-logs/ese_detection_implementation_summary.md) | [Query Implementation](../../archive/progress-logs/catalog_query_implementation_complete.md) | [Testing](../image_filters_manual_testing_guide.md)         |
 
 ### Code Improvements
 
@@ -94,21 +94,21 @@ documentation.
 
 | Quick Reference                                                          | Quick Start                                                | Guides                                       | Indices                                                    |
 | ------------------------------------------------------------------------ | ---------------------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------- |
-| [Quick Reference Card](../../guides/operations/QUICK_REFERENCE_CARD.md)                | [QA Visualization](../QA_VISUALIZATION_QUICK_START.md)     | [Setup Guide](../CASA6_ENVIRONMENT_GUIDE.md) | [Documentation Index](../START_HERE_DOCUMENT_INVENTORY.md) |
-| [Organizational Framework](../documentation_standards/DOCUMENTATION_ORGANIZATIONAL_FRAMEWORK.md) | [Dashboard Quick Start](../../guides/dashboard/dashboard-quickstart.md) | [Contributing](../contributing/index.md)     | [Inventory Report](../DOCUMENTATION_INVENTORY_REPORT.md)   |
+| [Quick Reference Card](../../guides/operations/QUICK_REFERENCE_CARD.md)                | QA Visualization     | Setup Guide | Documentation Index |
+| [Organizational Framework](../documentation_standards/DOCUMENTATION_ORGANIZATIONAL_FRAMEWORK.md) | [Dashboard Quick Start](../../guides/dashboard/dashboard-quickstart.md) | Contributing     | Inventory Report   |
 
 ### Reference & API
 
 | General Reference                                      | API Docs                                                 | CLI Reference                       | Config                               |
 | ------------------------------------------------------ | -------------------------------------------------------- | ----------------------------------- | ------------------------------------ |
-| [Quick Reference](../documentation_standards/DOCUMENTATION_QUICK_REFERENCE.md) | [API Reference](../api_reference.md)           | [CLI Commands](../cli.md) | [Configuration](../configuration.md) |
-| [README](../reference/README.md)                       | [Generated API](../api_reference_generated.md) |                                     |                                      |
+| [Quick Reference](../documentation_standards/DOCUMENTATION_QUICK_REFERENCE.md) | [API Reference](../api_reference.md)           | [CLI Commands](../cli.md) | Configuration |
+| README                       | [Generated API](../api_reference_generated.md) |                                     |                                      |
 
 ### Documentation Authoring
 
 | Improvements                                                               | Audit                                              | Organization                                                         | Best Practices                      |
 | -------------------------------------------------------------------------- | -------------------------------------------------- | -------------------------------------------------------------------- | ----------------------------------- |
-| [Improvements Summary](../documentation_improvements_summary.md) | [Audit Summary](../DOCUMENTATION_AUDIT_SUMMARY.md) | [Consolidation Strategy](../documentation_standards/DOCUMENTATION_CONSOLIDATION_STRATEGY.md) | [Glossary](../../architecture/GLOSSARY.md) |
+| [Improvements Summary](../documentation_improvements_summary.md) | Audit Summary | [Consolidation Strategy](../documentation_standards/DOCUMENTATION_CONSOLIDATION_STRATEGY.md) | [Glossary](../../architecture/GLOSSARY.md) |
 
 ---
 
@@ -149,8 +149,8 @@ documentation.
 
 | Port Management                                                           | Service Restart                                             | Log Daemon                                                                | Safeguards                                                            |
 | ------------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| [Port System Guide](../operations/PORT_SYSTEM_IMPLEMENTATION_GUIDE.md)    | [API Restart](../../operations/API_RESTART_GUIDE.md)           | [Protection Summary](../operations/CASA_LOG_DAEMON_PROTECTION_SUMMARY.md) | [Proactive Prevention](../../archive/status_reports/PROACTIVE_PREVENTION_SUMMARY.md) |
-| [Port Quick Reference](../../operations/PORT_ASSIGNMENTS_QUICK_REFERENCE.md) | [Service Restart Fix](../../operations/service_restart_fix.md) | [Monitoring](../operations/CASA_LOG_DAEMON_MONITORING.md)                 | [Safeguards Complete](../../archive/AGENT_SAFEGUARDS_COMPLETE.md)                |
+| Port System Guide    | [API Restart](../../operations/API_RESTART_GUIDE.md)           | Protection Summary | [Proactive Prevention](../../archive/status_reports/PROACTIVE_PREVENTION_SUMMARY.md) |
+| [Port Quick Reference](../../operations/PORT_ASSIGNMENTS_QUICK_REFERENCE.md) | [Service Restart Fix](../../operations/service_restart_fix.md) | Monitoring                 | [Safeguards Complete](../../archive/AGENT_SAFEGUARDS_COMPLETE.md)                |
 
 ### Deployment & Infrastructure
 
@@ -162,7 +162,7 @@ documentation.
 
 | Monitoring                                                    | Scheduling                                                | Dashboard Ops                                              | Reference                                   |
 | ------------------------------------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------- |
-| [Log Monitoring](../operations/CASA_LOG_DAEMON_MONITORING.md) | [Maintenance Schedule](../how-to/MAINTENANCE_SCHEDULE.md) | [Safe Startup](../../operations/starting_dashboard_safely.md) | [Operations Guide](../operations/README.md) |
+| Log Monitoring | Maintenance Schedule | [Safe Startup](../../operations/starting_dashboard_safely.md) | Operations Guide |
 
 ---
 
@@ -189,8 +189,8 @@ documentation.
 
 | WABIFAT                                                                       | CARTA                                                            | Worksheet Tools                                                    |
 | ----------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------ |
-| [Implementation Status](../../archive/analysis/WABIFAT_IMPLEMENTATION_STATUS.md) | [Integration Complete](../archive/carta_integration_complete.md) | [Workspace Tools](../../archive/analysis/ANALYSIS_WORKSPACE_TOOLS.md) |
-| [Verification Results](../../archive/analysis/WABIFAT_VERIFICATION_RESULTS.md)   | [Quick Start](../archive/carta_quick_start.md)                   |                                                                    |
+| [Implementation Status](../../archive/analysis/WABIFAT_IMPLEMENTATION_STATUS.md) | Integration Complete | [Workspace Tools](../../archive/analysis/ANALYSIS_WORKSPACE_TOOLS.md) |
+| [Verification Results](../../archive/analysis/WABIFAT_VERIFICATION_RESULTS.md)   | Quick Start                   |                                                                    |
 
 ---
 
@@ -204,7 +204,7 @@ documentation.
 
 | Guide                                                    | Setup                                                    | Enforcement                                                      | Reference                                                           |
 | -------------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------- |
-| [CASA6 Environment Guide](../CASA6_ENVIRONMENT_GUIDE.md) | [Development Setup](../../development/DEVELOPMENT_SETUP.md) | [Enforcement](../../architecture/architecture/environment_dependency_enforcement.md) | [Critical Environment](../CRITICAL_PYTHON_ENVIRONMENT.md) |
+| CASA6 Environment Guide | [Development Setup](../../development/DEVELOPMENT_SETUP.md) | [Enforcement](../../architecture/architecture/environment_dependency_enforcement.md) | [Critical Environment](../CRITICAL_PYTHON_ENVIRONMENT.md) |
 |                                                          |                                                          | [Casa6 Enforcement](../../guides/development/casa6-enforcement.md)              | [Analysis Report](../../archive/status_reports/ENVIRONMENT_ANALYSIS_REPORT.md)    |
 
 ### Conda & Dependencies
@@ -254,14 +254,14 @@ documentation.
 
 | Guide                                                               | Profiling                                                          | Implementation                                                            | Analysis                                                         |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| [Parameter Optimization](../how-to/PARAMETER_OPTIMIZATION_GUIDE.md) | [Profiling Guide](../optimizations/PROFILING_GUIDE.md)   | [Implementation Summary](../how-to/performance_implementation_summary.md) | [Scalability Analysis](../how-to/performance_and_scalability.md) |
+| Parameter Optimization | [Profiling Guide](../optimizations/PROFILING_GUIDE.md)   | Implementation Summary | Scalability Analysis |
 |                                                                     | [Optimization API](../optimizations/OPTIMIZATION_API.md) |                                                                           |                                                                  |
 
 ### Model Optimization
 
 | Improvements                                                              | Latest Optimization                                                       |
 | ------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| [Implementation Summary](../how-to/performance_implementation_summary.md) | [model.py Optimization](../../changelog/2025-11-06-model-py-optimization.md) |
+| Implementation Summary | [model.py Optimization](../../changelog/2025-11-06-model-py-optimization.md) |
 
 ---
 
@@ -275,7 +275,7 @@ documentation.
 
 | Safeguards                                             | Protections                                                    | Enhancements                                                                          | Verification                                                     |
 | ------------------------------------------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| [Safeguards Complete](../../archive/AGENT_SAFEGUARDS_COMPLETE.md) | [Final Protections](../how-to/FINAL_PROTECTIONS_ADDED.md)      | [Enhancements Implemented](../../archive/reports/enhancements_implemented_2025-11-11.md) | [Status Verification](../../operations/port_safeguards_analysis.md) |
+| [Safeguards Complete](../../archive/AGENT_SAFEGUARDS_COMPLETE.md) | Final Protections      | [Enhancements Implemented](../../archive/reports/enhancements_implemented_2025-11-11.md) | [Status Verification](../../operations/port_safeguards_analysis.md) |
 |                                                        | [Missing Safeguards](../../operations/MISSING_PORT_SAFEGUARDS.md) |                                                                                       |                                                                  |
 
 ### CodeQL & Vulnerability Management
@@ -332,7 +332,7 @@ documentation.
 
 ## Navigation
 
-- [Back to Main Index](../START_HERE_DOCUMENT_INVENTORY.md)
+- Back to Main Index
 - [Pipeline Stages Index](./PIPELINE_STAGES_INDEX.md)
 - [Dashboard Components Index](./DASHBOARD_COMPONENTS_INDEX.md)
 - [Documentation Framework](../documentation_standards/DOCUMENTATION_ORGANIZATIONAL_FRAMEWORK.md)

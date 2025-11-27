@@ -266,5 +266,5 @@ VITE_SENTRY_DSN=https://your-dsn@sentry.io/project-id
 ## See Also
 
 - [Error Handling & Resilience Guide](error-handling-resilience.md)
-- [Error Utils Reference](../reference/error-utils.md)
-- [Circuit Breaker Pattern](../concepts/circuit-breaker.md)
+- Error Utils Reference
+- Circuit Breaker Pattern

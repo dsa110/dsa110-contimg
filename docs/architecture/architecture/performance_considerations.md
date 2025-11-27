@@ -474,4 +474,4 @@ When writing a new stage:
 
 - [Pipeline Stage Architecture](../pipeline/pipeline_stage_architecture.md)
 - [Pipeline Patterns](../pipeline/pipeline_patterns.md)
-- [Testing Guide](../how-to/testing.md)
+- Testing Guide

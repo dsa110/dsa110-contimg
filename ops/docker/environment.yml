@@ -29,3 +29,5 @@ dependencies:
   - pip:
       - typing-extensions
       - uncertainties
+      - structlog
+      - astroquery

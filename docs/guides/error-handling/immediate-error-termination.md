@@ -150,7 +150,7 @@ may require manual cleanup.
 
 ## Related Documentation
 
-- [Error Detection Wrapper](../scripts/README-error-detection.md) - Full error
+- Error Detection Wrapper - Full error
   detection documentation
-- [Output Suppression Rules](../.cursor/rules/output-suppression.mdc) - Output
+- Output Suppression Rules - Output
   handling rules

@@ -243,9 +243,9 @@ TEST_DATABASE_CLEANUP=true
 
 ## Related Documentation
 
-- [Environment Setup](ENVIRONMENT_SETUP.md)
+- Environment Setup
 - [Testing Guide](../qa/PIPELINE_TESTING_GUIDE.md)
-- [CI/CD Setup](CI_CD_SETUP.md)
+- CI/CD Setup
 
 ## Next Steps
 

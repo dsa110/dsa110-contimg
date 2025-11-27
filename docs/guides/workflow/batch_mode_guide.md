@@ -7,8 +7,8 @@ data files.
 **Location**: `docs/how-to/batch_mode_guide.md`  
 **Related**:
 
-- [Using the Orchestrator CLI](USING_ORCHESTRATOR_CLI.md)
-- [Batch Mode Development Assessment](../dev/analysis/batch_mode_development_assessment.md)
+- Using the Orchestrator CLI
+- Batch Mode Development Assessment
 
 ## Overview
 
@@ -447,9 +447,9 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
 
 ## Related Documentation
 
-- [Using the Orchestrator CLI](USING_ORCHESTRATOR_CLI.md) - Conversion
+- Using the Orchestrator CLI - Conversion
   orchestrator details
-- [Batch Mode Development Assessment](../dev/analysis/batch_mode_development_assessment.md) -
+- Batch Mode Development Assessment -
   Feature completeness
 - [API Reference](../../reference/dashboard_backend_api.md) - Complete API
   documentation

@@ -345,9 +345,9 @@ Distinguish between:
 ## Related Documentation
 
 - [SPW Flagging Process](./spw_flagging_process.md) - Complete flagging timeline
-- [Calibration Workflow](../../docs/how-to/calibration_workflow.md) - Overall
+- Calibration Workflow - Overall
   calibration process
-- [Error Acknowledgment Rule](../../.cursor/rules/error-acknowledgment.mdc) -
+- Error Acknowledgment Rule -
   Why we don't dismiss errors
 
 ---

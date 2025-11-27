@@ -9,7 +9,7 @@ consistency. This guide explains how to use the validation system.
 
 **Note:** The validation system has been enhanced with a centralized
 configuration system and new validation modules. See
-[QA System Implementation](../dev/qa_system_implementation_complete.md) for
+QA System Implementation for
 details.
 
 ## Quick Start
@@ -52,7 +52,7 @@ print(f"Warnings: {result.warnings}")
 - `ValidationMode.COMPREHENSIVE`: <5min, 10% sampling, full validation
 
 See
-[Fast Validation Implementation](../dev/qa_fast_validation_implementation.md)
+Fast Validation Implementation
 for details.
 
 ### Running Validation via API
@@ -407,5 +407,5 @@ passed, metrics = check_image_quality(
 ## See Also
 
 - [Validation API Reference](../../reference/validation_api.md)
-- [QA System Implementation](../dev/qa_system_implementation_complete.md)
-- [QA System Audit](../dev/analysis/qa_system_audit.md)
+- QA System Implementation
+- QA System Audit

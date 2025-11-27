@@ -527,6 +527,6 @@ This is **by design** and **automatic**—CASA handles it during `applycal`.
 
 ## Related Documentation
 
-- [Calibration Workflow](../../docs/how-to/calibration_workflow.md)
-- [RFI Flagging Strategy](../../docs/how-to/rfi_flagging.md)
-- [QA Procedures](../../docs/how-to/qa_procedures.md)
+- Calibration Workflow
+- RFI Flagging Strategy
+- QA Procedures

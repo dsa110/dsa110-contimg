@@ -17,7 +17,7 @@ Complete documentation guide for each stage of the DSA-110 imaging pipeline.
 
 | Learn                                                                 | Do                                               | Reference                                                 | Troubleshoot                                              |
 | --------------------------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------- | --------------------------------------------------------- |
-| [Architecture](../../architecture/pipeline/streaming-architecture.md)                 | [Quick Start](../how-to/streaming.md)            | [Streaming API](../streaming-api.md)            | [Troubleshooting](../../guides/workflow/streaming-troubleshooting.md) |
+| [Architecture](../../architecture/pipeline/streaming-architecture.md)                 | Quick Start            | [Streaming API](../streaming-api.md)            | [Troubleshooting](../../guides/workflow/streaming-troubleshooting.md) |
 | [Streaming vs Orchestrator](../../architecture/pipeline/streaming_vs_orchestrator.md) | [Control Guide](../../guides/workflow/streaming-control.md)  | [Converter Guide](../../guides/workflow/streaming_converter_guide.md) |                                                           |
 | [Workflow](../../architecture/pipeline/STREAMING_MOSAIC_WORKFLOW.md)                  | [UVH5 to MS](../../guides/data-processing/uvh5_to_ms_conversion.md) | [CLI Reference](../cli.md)                      |                                                           |
 
@@ -34,7 +34,7 @@ Complete documentation guide for each stage of the DSA-110 imaging pipeline.
 | Learn                                                         | Do                                                                 | Reference                                                        | Find Data                                                            |
 | ------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------- | -------------------------------------------------------------------- |
 | [Theory](../../architecture/pipeline/pipeline_overview.md#calibration)        | [Detailed Procedure](../../guides/data-processing/CALIBRATION_DETAILED_PROCEDURE.md)  | [Reference Antenna](../../operations/refant_quick_reference.md)     | [Calibrator Transit Data](../../guides/data-processing/FIND_CALIBRATOR_TRANSIT_DATA.md) |
-| [Improvements](../../changelog/CALIBRATION_IMPROVEMENTS_2024.md) | [Current Procedure](../CURRENT_CALIBRATION_PROCEDURE.md) | [Calibrator Helper](../tutorials/notebooks/calibrator_helper.py) | [ESE Field Mapping](../../archive/analysis/FIELD_MAPPING_COMPLETE.md)   |
+| [Improvements](../../changelog/CALIBRATION_IMPROVEMENTS_2024.md) | [Current Procedure](../CURRENT_CALIBRATION_PROCEDURE.md) | Calibrator Helper | [ESE Field Mapping](../../archive/analysis/FIELD_MAPPING_COMPLETE.md)   |
 |                                                               | [Tutorial](../../guides/tutorials/calibrate-apply.md)                        |                                                                  |                                                                      |
 
 **Test Coverage:** [Validation](../validation_api.md)
@@ -64,8 +64,8 @@ settings.
 
 | Learn                                                                | Do                                                             | Reference                                                              | Troubleshoot                                               |
 | -------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------- |
-| [Pipeline Overview](../../architecture/pipeline/pipeline_overview.md#imaging)        | [CASA6 Guide](../CASA6_ENVIRONMENT_GUIDE.md)                   | [CASA Log Daemon](../operations/CASA_LOG_DAEMON_PROTECTION_SUMMARY.md) | [Log Daemon Fixes](../operations/CASA_LOG_DAEMON_FIXES.md) |
-| [Stage Architecture](../../architecture/pipeline/pipeline_stage_architecture.md)     | [WSClean Usage](../../archive/analysis/WSCLEAN_USAGE_ANALYSIS.md) | [Log Monitoring](../operations/CASA_LOG_DAEMON_MONITORING.md)          |                                                            |
+| [Pipeline Overview](../../architecture/pipeline/pipeline_overview.md#imaging)        | CASA6 Guide                   | CASA Log Daemon | Log Daemon Fixes |
+| [Stage Architecture](../../architecture/pipeline/pipeline_stage_architecture.md)     | [WSClean Usage](../../archive/analysis/WSCLEAN_USAGE_ANALYSIS.md) | Log Monitoring          |                                                            |
 | [Image Filters](../image_filters_implementation_status.md) | [Image Testing](../image_filters_test_results.md)    | [Image Expectations](../../guides/data-processing/SKYMODEL_IMAGE_EXPECTATIONS.md)         |                                                            |
 
 **Coverage:** [Test Execution](../../archive/status_reports/PHASE1_TESTING_RESULTS.md)
@@ -109,8 +109,8 @@ settings.
 
 | Learn                                                   | Do                                                     | Reference                                       | Dashboard                                                                                      |
 | ------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| [QA Framework Design](../QA_VISUALIZATION_DESIGN.md)    | [Quick Start](../QA_VISUALIZATION_QUICK_START.md)      | [Usage Guide](../QA_VISUALIZATION_USAGE.md)     | [Dashboard Integration](../../archive/qa_visualization/QA_VISUALIZATION_DASHBOARD_INTEGRATION.md) |
-| [Image Quality](../../guides/dashboard/js9_casa_analysis.md)         | [CASA Analysis](../reference/js9_casa_analysis_api.md) | [User Guide](../../archive/user_guide_qa_visualization.md) | [Dashboard Testing](../../archive/qa_visualization/QA_VISUALIZATION_DASHBOARD_TESTING.md)         |
+| QA Framework Design    | Quick Start      | Usage Guide     | [Dashboard Integration](../../archive/qa_visualization/QA_VISUALIZATION_DASHBOARD_INTEGRATION.md) |
+| [Image Quality](../../guides/dashboard/js9_casa_analysis.md)         | CASA Analysis | [User Guide](../../archive/user_guide_qa_visualization.md) | [Dashboard Testing](../../archive/qa_visualization/QA_VISUALIZATION_DASHBOARD_TESTING.md)         |
 | [Quality Control](../../guides/automation/QUALITY_ASSURANCE_SETUP.md) |                                                        |                                                 | [Dashboard Summary](../../archive/qa_visualization/QA_VISUALIZATION_DASHBOARD_SUMMARY.md)         |
 
 **Coverage:** [Code Quality](../../archive/reports/CODE_QUALITY_FINAL_SUMMARY.md)
@@ -141,8 +141,8 @@ settings.
 
 | Learn                                                                   | Do                                                                           | Reference                                                                           |
 | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| [Photometry Manager](../../architecture/science/photometry_manager.md)                 | [Automation Assessment](../dev/analysis/photometry_automation_assessment.md) | [Forced Photometry](../dev/analysis/photometry_automation_implementation_review.md) |
-| [Normalization Theory](../../architecture/science/photometry_normalization.md) | [Automation Roadmap](../dev/analysis/photometry_automation_roadmap.md)       | [Enhancements](../../archive/analysis/FORCED_PHOTOMETRY_ENHANCEMENTS.md)               |
+| [Photometry Manager](../../architecture/science/photometry_manager.md)                 | Automation Assessment | Forced Photometry |
+| [Normalization Theory](../../architecture/science/photometry_normalization.md) | Automation Roadmap       | [Enhancements](../../archive/analysis/FORCED_PHOTOMETRY_ENHANCEMENTS.md)               |
 |                                                                         | [Test Results](../../archive/analysis/FORCED_PHOTOMETRY_TESTS.md)               | [VAST Analysis](../../archive/analysis/VAST_FORCED_PHOTOMETRY_ANALYSIS.md)             |
 
 ---
@@ -211,7 +211,7 @@ Raw Data          Processing                         Products
 
 ## Navigation
 
-- [Back to Main Index](../START_HERE_DOCUMENT_INVENTORY.md)
+- Back to Main Index
 - [Dashboard Components Index](./DASHBOARD_COMPONENTS_INDEX.md)
 - [General Themes Index](./GENERAL_THEMES_INDEX.md)
 - [Documentation Framework](../documentation_standards/DOCUMENTATION_ORGANIZATIONAL_FRAMEWORK.md)

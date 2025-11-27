@@ -14,11 +14,11 @@ DSA-110 continuum imaging pipeline.
 
 ### CASA Log Management
 
-- **[CASA Log Daemon Protection Summary](CASA_LOG_DAEMON_PROTECTION_SUMMARY.md)** -
+- **CASA Log Daemon Protection Summary** -
   Quick overview of protection features (start here)
-- **[CASA Log Daemon Monitoring](CASA_LOG_DAEMON_MONITORING.md)** - Complete
+- **CASA Log Daemon Monitoring** - Complete
   monitoring and health check guide
-- **[CASA Log Daemon Fixes](CASA_LOG_DAEMON_FIXES.md)** - Technical details of
+- **CASA Log Daemon Fixes** - Technical details of
   fixes and improvements
 
 ### Deployment

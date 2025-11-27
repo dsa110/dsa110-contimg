@@ -44,7 +44,7 @@ See also:
 
 ## Quick Links
 
-- [How-To Guides Index](README.md)
+- How-To Guides Index
 - [Main Documentation Index](../index.md)
 
 ---

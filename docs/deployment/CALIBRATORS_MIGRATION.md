@@ -226,6 +226,6 @@ For issues or questions:
 
 ## Related Documentation
 
-- [Calibrators Database API](../api/calibrators.md)
-- [Catalog Query Interface](../api/catalog_query.md)
-- [Skymodel Storage](../api/skymodel_storage.md)
+- Calibrators Database API
+- Catalog Query Interface
+- Skymodel Storage

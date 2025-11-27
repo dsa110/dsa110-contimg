@@ -7,7 +7,7 @@ DSA-110 Continuum Imaging Pipeline.
 **Related**:
 
 - [Batch Mode Guide](batch_mode_guide.md) - Complete batch mode documentation
-- [Using the Orchestrator CLI](USING_ORCHESTRATOR_CLI.md) - Conversion
+- Using the Orchestrator CLI - Conversion
   orchestrator details
 
 ## Quick Start
@@ -332,6 +332,6 @@ After batch conversion:
 
 - [Batch Mode Guide](batch_mode_guide.md) - Complete batch mode documentation
   with API examples
-- [Using the Orchestrator CLI](USING_ORCHESTRATOR_CLI.md) - Detailed
+- Using the Orchestrator CLI - Detailed
   orchestrator documentation
 - [Pipeline Testing Guide](../qa/PIPELINE_TESTING_GUIDE.md) - Testing batch workflows

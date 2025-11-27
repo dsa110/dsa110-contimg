@@ -149,34 +149,19 @@ export function useJS9Initialization({
 
           // Configure JS9 paths to use local files (already configured in index.html)
           // Use the same paths as index.html to avoid conflicts
-          const js9Base = "/ui/js9";
+          const js9Base = "/js9";
           try {
-            // Configure JS9 paths
-            const installDirFn = js9Service.getInstallDir();
-            if (installDirFn) {
-              // Override InstallDir to always return absolute path
-              (window as any).JS9.InstallDir = function (path: string) {
-                if (path && path.startsWith("/")) {
-                  return path; // Already absolute
-                }
-                return js9Base + "/" + (path || "");
-              };
-            }
-
+            // Configure JS9 options using the safe setOptions method
+            // Do NOT try to assign to JS9.InstallDir directly - it's read-only
             js9Service.setOptions({
-              InstallDir: js9Base,
-              workerPath: js9Base + "/js9worker.js",
-              wasmPath: js9Base + "/astroemw.wasm",
-              wasmJS: js9Base + "/astroemw.js",
-              prefsPath: js9Base + "/js9Prefs.json",
               loadImage: false,
-              helperType: "none",
+              helperType: "none",  // Disable helper to prevent socket.io connection attempts
               helperPort: 0,
               loadProxy: false,
               resizeDisplay: true,
               autoResize: true,
             });
-            logger.debug("JS9 paths configured to use local files:", js9Base);
+            logger.debug("JS9 options configured successfully");
           } catch (configErr) {
             logger.debug("JS9 path configuration failed:", configErr);
           }

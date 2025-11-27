@@ -828,73 +828,94 @@ def fetch_mosaics_recent(products_db: Path, limit: int = 10) -> tuple[list[dict]
         if "mosaics" not in tables:
             return [], 0
 
+        # Check which columns exist in the table
+        pragma_cursor = conn.execute("PRAGMA table_info(mosaics)")
+        columns = {row[1] for row in pragma_cursor.fetchall()}
+        
+        # Build SELECT clause based on available columns
+        base_columns = [
+            "id", "name", "path", "created_at", "start_mjd", "end_mjd",
+            "integration_sec", "n_images", "center_ra_deg", "center_dec_deg",
+            "dec_min_deg", "dec_max_deg", "noise_jy",
+            "beam_major_arcsec", "beam_minor_arcsec", "beam_pa_deg",
+            "n_sources", "thumbnail_path"
+        ]
+        
+        # Add optional columns if they exist
+        select_columns = base_columns[:]
+        has_status = "status" in columns
+        has_method = "method" in columns
+        
+        if has_status:
+            select_columns.append("status")
+        if has_method:
+            select_columns.append("method")
+
         # Get total count
         total = conn.execute("SELECT COUNT(*) FROM mosaics").fetchone()[0]
 
         # Get recent mosaics ordered by created_at (descending)
-        rows = conn.execute(
-            """
-            SELECT 
-                id, name, path, created_at, start_mjd, end_mjd,
-                integration_sec, n_images, center_ra_deg, center_dec_deg,
-                dec_min_deg, dec_max_deg, noise_jy,
-                beam_major_arcsec, beam_minor_arcsec, beam_pa_deg,
-                n_sources, thumbnail_path, status, method
+        query = f"""
+            SELECT {', '.join(select_columns)}
             FROM mosaics
             ORDER BY created_at DESC
             LIMIT ?
-            """,
-            (limit,),
-        ).fetchall()
+        """
+        rows = conn.execute(query, (limit,)).fetchall()
 
-    mosaics = []
-    for r in rows:
-        # Convert MJD to ISO datetime (handle 0 or None values)
-        start_mjd = r["start_mjd"] if r["start_mjd"] and r["start_mjd"] > 0 else None
-        end_mjd = r["end_mjd"] if r["end_mjd"] and r["end_mjd"] > 0 else None
+        mosaics = []
+        for r in rows:
+            # Convert MJD to ISO datetime (handle 0 or None values)
+            start_mjd = r["start_mjd"] if r["start_mjd"] and r["start_mjd"] > 0 else None
+            end_mjd = r["end_mjd"] if r["end_mjd"] and r["end_mjd"] > 0 else None
 
-        start_time_iso = None
-        end_time_iso = None
-        if start_mjd:
-            try:
-                start_time_iso = Time(start_mjd, format="mjd").datetime.isoformat()
-            except Exception:
-                pass
-        if end_mjd:
-            try:
-                end_time_iso = Time(end_mjd, format="mjd").datetime.isoformat()
-            except Exception:
-                pass
+            start_time_iso = None
+            end_time_iso = None
+            if start_mjd:
+                try:
+                    start_time_iso = Time(start_mjd, format="mjd").datetime.isoformat()
+                except Exception:
+                    pass
+            if end_mjd:
+                try:
+                    end_time_iso = Time(end_mjd, format="mjd").datetime.isoformat()
+                except Exception:
+                    pass
 
-        created_dt = (
-            datetime.fromtimestamp(r["created_at"]) if r["created_at"] else datetime.utcnow()
-        )
+            created_dt = (
+                datetime.fromtimestamp(r["created_at"]) if r["created_at"] else datetime.utcnow()
+            )
 
-        # Determine status
-        status = r["status"] if r["status"] else "completed"
+            # Determine status (use default if column doesn't exist)
+            status = r.get("status") if has_status else "completed"
+            if not status:
+                status = "completed"
+            
+            # Get method if column exists
+            method = r.get("method") if has_method else None
 
-        mosaics.append(
-            {
-                "id": r["id"],
-                "name": r["name"],
-                "path": r["path"],
-                "start_mjd": start_mjd,
-                "end_mjd": end_mjd,
-                "start_time": start_time_iso,
-                "end_time": end_time_iso,
-                "created_at": created_dt.isoformat(),
-                "status": status,
-                "method": r["method"],
-                "image_count": r["n_images"],
-                "noise_jy": r["noise_jy"],
-                "source_count": r["n_sources"],
-                "center_ra_deg": r["center_ra_deg"],
-                "center_dec_deg": r["center_dec_deg"],
-                "thumbnail_path": r["thumbnail_path"],
-            }
-        )
+            mosaics.append(
+                {
+                    "id": r["id"],
+                    "name": r["name"],
+                    "path": r["path"],
+                    "start_mjd": start_mjd,
+                    "end_mjd": end_mjd,
+                    "start_time": start_time_iso,
+                    "end_time": end_time_iso,
+                    "created_at": created_dt.isoformat(),
+                    "status": status,
+                    "method": method,
+                    "image_count": r.get("n_images"),
+                    "noise_jy": r.get("noise_jy"),
+                    "source_count": r.get("n_sources"),
+                    "center_ra_deg": r.get("center_ra_deg"),
+                    "center_dec_deg": r.get("center_dec_deg"),
+                    "thumbnail_path": r.get("thumbnail_path"),
+                }
+            )
 
-    return mosaics, total
+        return mosaics, total
 
 
 def fetch_source_timeseries(products_db: Path, source_id: str) -> Optional[dict]:

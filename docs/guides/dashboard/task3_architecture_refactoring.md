@@ -3,7 +3,7 @@
 **Date:** 2025-11-13  
 **Status:** in-progress  
 **Related:** [Task 3 Progress](task3_progress.md),
-[Dashboard Remodeling](../dev/analysis/dashboard_remodeling.md)
+Dashboard Remodeling
 
 ---
 

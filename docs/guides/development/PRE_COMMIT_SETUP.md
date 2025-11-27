@@ -202,4 +202,4 @@ Pre-commit hooks are also run in CI:
 
 - [Prettier Setup](prettier_setup.md)
 - [Black/Pylint Handover](BLACK_PYLINT_PRE_COMMIT_HANDOVER.md)
-- [Environment Setup](ENVIRONMENT_SETUP.md)
+- Environment Setup

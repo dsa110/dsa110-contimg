@@ -266,7 +266,7 @@ Quantitative summary...
 1. **Update Content**: Make necessary changes
 2. **Update Date**: Change `**Date:**` field if significant
 3. **Update Status**: Change if needed (Current → Complete, etc.)
-4. **Update INDEX.md**: Update entry in [INDEX.md](./INDEX.md)
+4. **Update INDEX.md**: Update entry in INDEX.md
 5. **Update Last Updated**: At end of document
 
 ### Example Update
@@ -291,7 +291,7 @@ Quantitative summary...
 ### Step-by-Step Process
 
 1. **Determine Category**
-   - Check [INDEX.md](./INDEX.md) for appropriate category
+   - Check INDEX.md for appropriate category
    - Choose document type (Implementation, Troubleshooting, etc.)
 
 2. **Create Document**
@@ -533,7 +533,7 @@ docs/
 
 ## 📞 Questions or Issues?
 
-- Check [INDEX.md](./INDEX.md) for document location
+- Check INDEX.md for document location
 - Review existing documents for format examples
 - Follow templates in this guide
 - Maintain consistency with existing documentation

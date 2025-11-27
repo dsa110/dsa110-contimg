@@ -9,9 +9,9 @@
 
 ## 📚 Quick Navigation
 
-- **Master Index:** [INDEX.md](./INDEX.md) - All documentation organized by
+- **Master Index:** INDEX.md - All documentation organized by
   category
-- **Agent Guidelines:** [AGENT_GUIDELINES.md](./AGENT_GUIDELINES.md) - Templates
+- **Agent Guidelines:** AGENT_GUIDELINES.md - Templates
   and procedures
 - **Consolidation Strategy:**
   [CONSOLIDATION_STRATEGY.md](../design/strategies/CONSOLIDATION_STRATEGY.md) - Overview of
@@ -64,7 +64,7 @@ the root `.prettierrc`:
 
 ### Organization by Category
 
-See [INDEX.md](./INDEX.md) for complete categorization. Main categories:
+See INDEX.md for complete categorization. Main categories:
 
 1. **Getting Started & Overview** - Main README, codebase analysis
 2. **Implementation Guides** - Feature implementation step-by-step
@@ -225,7 +225,7 @@ Content here.
 - References
 
 **Template:** See
-[AGENT_GUIDELINES.md](./AGENT_GUIDELINES.md#template-1-implementation-guide)
+AGENT_GUIDELINES.md
 
 ### Troubleshooting Guide
 
@@ -240,7 +240,7 @@ Content here.
 - Related Issues
 
 **Template:** See
-[AGENT_GUIDELINES.md](./AGENT_GUIDELINES.md#template-2-troubleshooting-guide)
+AGENT_GUIDELINES.md
 
 ### Analysis Document
 
@@ -255,7 +255,7 @@ Content here.
 - References
 
 **Template:** See
-[AGENT_GUIDELINES.md](./AGENT_GUIDELINES.md#template-3-analysis-document)
+AGENT_GUIDELINES.md
 
 ### Status Report
 
@@ -270,7 +270,7 @@ Content here.
 - Statistics
 
 **Template:** See
-[AGENT_GUIDELINES.md](./AGENT_GUIDELINES.md#template-4-status-report)
+AGENT_GUIDELINES.md
 
 ---
 
@@ -279,11 +279,11 @@ Content here.
 ### Step-by-Step Process
 
 1. **Determine Category**
-   - Check [INDEX.md](./INDEX.md) for appropriate category
+   - Check INDEX.md for appropriate category
    - Choose document type (Implementation, Troubleshooting, etc.)
 
 2. **Create Document**
-   - Use appropriate template from [AGENT_GUIDELINES.md](./AGENT_GUIDELINES.md)
+   - Use appropriate template from AGENT_GUIDELINES.md
    - Name file descriptively using lowercase with underscores
    - Place in `docs/` or `docs/analysis/` as appropriate
 
@@ -484,7 +484,7 @@ frontend/docs/
 
 ### Creating New Documentation (6 Steps)
 
-1. **Choose template** from [AGENT_GUIDELINES.md](./AGENT_GUIDELINES.md) based
+1. **Choose template** from AGENT_GUIDELINES.md based
    on document type
 2. **Create file** with descriptive name (lowercase_with_underscores.md)
 3. **Fill template** with content (keep to 80 char lines)
@@ -507,9 +507,9 @@ frontend/docs/
 - **Line width:** 80 characters for markdown
 - **Auto-formatting:** Enabled via pre-commit hooks
 - **CI validation:** Checks formatting in pull requests
-- **Style guide:** Templates in [AGENT_GUIDELINES.md](./AGENT_GUIDELINES.md)
+- **Style guide:** Templates in AGENT_GUIDELINES.md
 - **File naming:** lowercase_with_underscores.md
-- **Master index:** [INDEX.md](./INDEX.md)
+- **Master index:** INDEX.md
 
 Prettier enforces consistent markdown formatting across the documentation.
 
@@ -517,8 +517,8 @@ Prettier enforces consistent markdown formatting across the documentation.
 
 ## ❓ Questions or Issues?
 
-- Check [INDEX.md](./INDEX.md) for document location
-- Review [AGENT_GUIDELINES.md](./AGENT_GUIDELINES.md) for templates
+- Check INDEX.md for document location
+- Review AGENT_GUIDELINES.md for templates
 - Review existing documents for format examples
 - Follow templates in this guide
 - Maintain consistency with existing documentation

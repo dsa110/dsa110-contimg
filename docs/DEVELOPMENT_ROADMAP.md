@@ -18,7 +18,7 @@ Pipeline.
 - **Key Deliverables:**
   - Playwright Test Suite (`scripts/tests/test_operations_page_playwright.js`)
   - Pipeline Health Checks (`src/dsa110_contimg/pipeline/health.py`)
-  - [Details: Phase 1 Browser Testing Complete](logs/phase1_browser_testing_complete.md)
+  - Details: Phase 1 Browser Testing Complete
 
 #### **January 2025: Advanced Monitoring & Dashboard**
 
@@ -28,8 +28,8 @@ Pipeline.
   - Event Bus Monitor (`/api/events`)
   - Cache Statistics (`/api/cache`)
   - Pipeline Stage Dashboard
-  - [Details: Phase 3 Implementation Complete](logs/phase3_complete.md)
-  - [Details: Phase 2 Implementation Summary](logs/phase2_implementation_summary.md)
+  - Details: Phase 3 Implementation Complete
+  - Details: Phase 2 Implementation Summary
 
 ---
 
@@ -39,7 +39,7 @@ Pipeline.
 
 - **Goal:** Fully migrate all cron-based tasks to the Absurd workflow manager.
 - **Status:** In Progress (Integration Phase)
-- **Docs:** [Absurd Documentation Index](concepts/absurd_documentation_index.md)
+- **Docs:** Absurd Documentation Index
 
 ### **2. Catalog-Based Validation**
 
@@ -48,7 +48,7 @@ Pipeline.
 - **Status:** Implementation Started
   (`src/dsa110_contimg/qa/catalog_validation.py`)
 - **Docs:**
-  [High Priority Improvements](implementation/high_priority_improvements.md)
+  High Priority Improvements
 
 ---
 
