@@ -9,6 +9,9 @@ Tests cover:
 - Error handling and fallback behavior
 
 Run with: pytest tests/unit/test_masking.py -v
+
+NOTE: The NVSS-specific API was replaced by a unified catalog ("unicat") interface.
+These tests exercise the current unicat-based masking workflow.
 """
 
 import os
