@@ -281,9 +281,10 @@ known calibrator from the VLA catalog and renames it to `{calibrator}_t{idx}`:
 
 ```bash
 # CLI flag
-python -m dsa110_contimg.conversion.cli convert \
+python -m dsa110_contimg.conversion.cli groups \
     --no-rename-calibrator-fields \
-    ...
+    /data/incoming /stage/dsa110-contimg/ms \
+    "2025-10-05T00:00:00" "2025-10-05T01:00:00"
 
 # Python API
 from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
@@ -340,24 +341,57 @@ python -m pytest tests/unit/conversion/test_helpers.py -v
 
 ```bash
 conda activate casa6
+cd /data/dsa110-contimg/backend
 
-# Using Python module
-python -m dsa110_contimg.conversion.cli convert \
-    --input-dir /data/incoming/2025-10-05 \
-    --output-dir /stage/dsa110-contimg/ms \
-    --start-time "2025-10-05T00:00:00" \
-    --end-time "2025-10-05T23:59:59"
+# Convert subband groups in a time window
+python -m dsa110_contimg.conversion.cli groups \
+    /data/incoming \
+    /stage/dsa110-contimg/ms \
+    "2025-10-05T00:00:00" \
+    "2025-10-05T23:59:59"
 
-# Or directly via orchestrator
-python -c "
+# Dry-run to preview what would be converted
+python -m dsa110_contimg.conversion.cli groups --dry-run \
+    /data/incoming /stage/dsa110-contimg/ms \
+    "2025-10-05T00:00:00" "2025-10-05T01:00:00"
+
+# Convert by calibrator transit (auto-finds time window)
+python -m dsa110_contimg.conversion.cli groups \
+    --calibrator "0834+555" \
+    /data/incoming /stage/dsa110-contimg/ms
+
+# Find calibrator transit without converting
+python -m dsa110_contimg.conversion.cli groups \
+    --calibrator "3C286" --find-only \
+    /data/incoming
+
+# Convert a single UVH5 file
+python -m dsa110_contimg.conversion.cli single \
+    /data/incoming/observation.uvh5 \
+    /stage/dsa110-contimg/ms/observation.ms
+```
+
+**Key CLI options for `groups` command:**
+
+- `--dry-run` - Preview without writing files
+- `--find-only` - Find groups/transits without converting
+- `--calibrator NAME` - Auto-find transit time for calibrator
+- `--skip-existing` - Skip groups with existing MS files
+- `--no-rename-calibrator-fields` - Disable auto calibrator detection
+- `--writer {parallel-subband,pyuvdata}` - MS writing strategy
+- `--scratch-dir PATH` - Temp file location
+
+**Python API (alternative):**
+
+```python
 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import convert_subband_groups_to_ms
+
 convert_subband_groups_to_ms(
-    '/data/incoming/2025-10-05',
-    '/stage/dsa110-contimg/ms',
-    '2025-10-05T00:00:00',
-    '2025-10-05T23:59:59'
+    input_dir="/data/incoming",
+    output_dir="/stage/dsa110-contimg/ms",
+    start_time="2025-10-05T00:00:00",
+    end_time="2025-10-05T23:59:59",
 )
-"
 ```
 
 ### Starting Streaming Daemon

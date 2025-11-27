@@ -19,6 +19,30 @@ import time
 from pathlib import Path
 
 import pytest
+import pytest_asyncio
+
+
+# Check if PostgreSQL is available before running tests
+def _check_postgres_available():
+    """Check if PostgreSQL is reachable for absurd tests."""
+    import socket
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        result = sock.connect_ex(('localhost', 5432))
+        sock.close()
+        return result == 0
+    except Exception:
+        return False
+
+
+POSTGRES_AVAILABLE = _check_postgres_available()
+
+# Skip all tests in this module if PostgreSQL is not available
+pytestmark = pytest.mark.skipif(
+    not POSTGRES_AVAILABLE,
+    reason="PostgreSQL not available on localhost:5432"
+)
 
 # Set up environment before imports
 os.environ["ABSURD_DATABASE_URL"] = "postgresql://user:password@localhost/dsa110_absurd"
@@ -32,14 +56,15 @@ from dsa110_contimg.absurd.config import AbsurdConfig  # noqa: E402
 def test_config():
     """Create test configuration."""
     return AbsurdConfig(
+        enabled=True,
         database_url="postgresql://user:password@localhost/dsa110_absurd",
         queue_name="dsa110-pipeline-test",
-        poll_interval_sec=0.5,  # Faster polling for tests
+        worker_poll_interval_sec=0.5,  # Faster polling for tests
         task_timeout_sec=300,  # 5 minute timeout for tests
     )
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def absurd_client(test_config):
     """Create and connect Absurd client."""
     client = AbsurdClient(test_config.database_url)

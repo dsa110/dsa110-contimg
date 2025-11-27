@@ -37,6 +37,21 @@ conda activate casa6  # Always activate before running scripts
 - pyuvdata 3.2.4 (uses `Nants_telescope`, not deprecated `Nants_data`)
 - pyuvsim, astropy, numpy (see `ops/docker/environment.yml` for complete list)
 
+**Fast Metadata Reading**: Use `FastMeta` for reading UVH5 metadata (~700x
+faster):
+
+```python
+from dsa110_contimg.utils import FastMeta, get_uvh5_mid_mjd
+
+# Quick helper
+mid_mjd = get_uvh5_mid_mjd("/path/to/file.hdf5")
+
+# Context manager for multiple attributes
+with FastMeta("/path/to/file.hdf5") as meta:
+    times = meta.time_array
+    freqs = meta.freq_array
+```
+
 **Running Commands**: Use `run_in_terminal` with casa6 environment activated for
 all Python scripts and CASA tasks.
 
@@ -45,19 +60,34 @@ all Python scripts and CASA tasks.
 **CRITICAL**: `/data/` is on HDD - avoid I/O-intensive operations there.
 
 **Use `/scratch/` for**:
+
 - Frontend builds (`npm run build`)
+- MkDocs documentation builds
 - Python package installs with compilation
 - Large file processing and temporary files
 - Any operation that is I/O heavy
 
 **Build workflow for frontend**:
+
 ```bash
 # Use the scratch-based build script
 cd /data/dsa110-contimg/frontend
 npm run build:scratch  # Builds in /scratch/, copies result back
 ```
 
+**Build workflow for MkDocs documentation**:
+
+```bash
+# Build on scratch SSD, then move back
+mkdir -p /scratch/mkdocs-build
+mkdocs build -f /data/dsa110-contimg/mkdocs.yml -d /scratch/mkdocs-build/site
+rm -rf /data/dsa110-contimg/site
+mv /scratch/mkdocs-build/site /data/dsa110-contimg/site
+rmdir /scratch/mkdocs-build
+```
+
 **For Python/Backend**:
+
 ```bash
 conda activate casa6
 # Run tests and builds - scratch is used automatically via TMPDIR when needed
@@ -73,15 +103,19 @@ conda activate casa6
   directory)
 - `/data/dsa110-contimg/state/` - SQLite databases and runtime state
 - `/data/dsa110-contimg/state/logs/` - Pipeline execution logs
-- `/data/dsa110-contimg/products/` - Final data products (images, caltables,
-  catalogs)
+- `/data/dsa110-contimg/products/` - Final data products (symlinked to
+  /stage/dsa110-contimg/)
 
 **Active Code Structure**:
 
 - `backend/src/dsa110_contimg/` - Main Python package (active development)
 - `frontend/src/` - React dashboard
-- `ops/` - Operational configuration (systemd, docker, scripts)
-- `docs/` - Documentation, examples, notebooks, simulations
+- `config/` - Centralized configuration (docker, hooks, linting, editor)
+- `scripts/` - Consolidated utility scripts (backend, ops, archive)
+- `ops/` - Operational configuration (systemd, docker, deployment)
+- `docs/` - Documentation (architecture, guides, reference, operations)
+- `vendor/` - External dependencies (aocommon, everybeam)
+- `.ai/` - AI tool configurations (cursor, codex, gemini)
 
 ## Critical Conversion Pipeline
 
@@ -121,6 +155,7 @@ parameter.
 
 1. **Batch Converter**
    (`backend/src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py`):
+
    - For historical/archived data processing
    - Function:
      `convert_subband_groups_to_ms(input_dir, output_dir, start_time, end_time)`
@@ -219,6 +254,10 @@ writer.write()
 
 ## Field Naming and Calibrator Auto-Detection
 
+**Observation Duration**: Each measurement set covers **~5 minutes (309
+seconds)** of observation time, consisting of 24 fields × 12.88 seconds per
+field.
+
 **Default Field Names**: All MS files have 24 fields named `meridian_icrs_t0`
 through `meridian_icrs_t23` (one per 12.88-second timestamp during drift-scan).
 
@@ -242,9 +281,10 @@ known calibrator from the VLA catalog and renames it to `{calibrator}_t{idx}`:
 
 ```bash
 # CLI flag
-python -m dsa110_contimg.conversion.cli convert \
+python -m dsa110_contimg.conversion.cli groups \
     --no-rename-calibrator-fields \
-    ...
+    /data/incoming /stage/dsa110-contimg/ms \
+    "2025-10-05T00:00:00" "2025-10-05T01:00:00"
 
 # Python API
 from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
@@ -301,24 +341,57 @@ python -m pytest tests/unit/conversion/test_helpers.py -v
 
 ```bash
 conda activate casa6
+cd /data/dsa110-contimg/backend
 
-# Using Python module
-python -m dsa110_contimg.conversion.cli convert \
-    --input-dir /data/incoming/2025-10-05 \
-    --output-dir /stage/dsa110-contimg/ms \
-    --start-time "2025-10-05T00:00:00" \
-    --end-time "2025-10-05T23:59:59"
+# Convert subband groups in a time window
+python -m dsa110_contimg.conversion.cli groups \
+    /data/incoming \
+    /stage/dsa110-contimg/ms \
+    "2025-10-05T00:00:00" \
+    "2025-10-05T23:59:59"
 
-# Or directly via orchestrator
-python -c "
+# Dry-run to preview what would be converted
+python -m dsa110_contimg.conversion.cli groups --dry-run \
+    /data/incoming /stage/dsa110-contimg/ms \
+    "2025-10-05T00:00:00" "2025-10-05T01:00:00"
+
+# Convert by calibrator transit (auto-finds time window)
+python -m dsa110_contimg.conversion.cli groups \
+    --calibrator "0834+555" \
+    /data/incoming /stage/dsa110-contimg/ms
+
+# Find calibrator transit without converting
+python -m dsa110_contimg.conversion.cli groups \
+    --calibrator "3C286" --find-only \
+    /data/incoming
+
+# Convert a single UVH5 file
+python -m dsa110_contimg.conversion.cli single \
+    /data/incoming/observation.uvh5 \
+    /stage/dsa110-contimg/ms/observation.ms
+```
+
+**Key CLI options for `groups` command:**
+
+- `--dry-run` - Preview without writing files
+- `--find-only` - Find groups/transits without converting
+- `--calibrator NAME` - Auto-find transit time for calibrator
+- `--skip-existing` - Skip groups with existing MS files
+- `--no-rename-calibrator-fields` - Disable auto calibrator detection
+- `--writer {parallel-subband,pyuvdata}` - MS writing strategy
+- `--scratch-dir PATH` - Temp file location
+
+**Python API (alternative):**
+
+```python
 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import convert_subband_groups_to_ms
+
 convert_subband_groups_to_ms(
-    '/data/incoming/2025-10-05',
-    '/stage/dsa110-contimg/ms',
-    '2025-10-05T00:00:00',
-    '2025-10-05T23:59:59'
+    input_dir="/data/incoming",
+    output_dir="/stage/dsa110-contimg/ms",
+    start_time="2025-10-05T00:00:00",
+    end_time="2025-10-05T23:59:59",
 )
-"
 ```
 
 ### Starting Streaming Daemon
@@ -484,5 +557,66 @@ All SQLite databases are in `/data/dsa110-contimg/state/`:
 - `cal_registry.sqlite3` - Calibration table registry
 - `calibrator_registry.sqlite3` - Known calibrators
 - `master_sources.sqlite3` - Source catalog (NVSS, FIRST, RAX)
+- `docsearch.sqlite3` - Local documentation search index
+- `embedding_cache.sqlite3` - Cached OpenAI embeddings
 
 Use WAL mode for concurrent access. Connection timeouts are set to 30 seconds.
+
+## Local Documentation Search
+
+**Use `DocSearch` for semantic search over project documentation.** This is the
+preferred method for finding relevant documentation - no external services
+required.
+
+### Command Line
+
+```bash
+conda activate casa6
+
+# Search documentation
+python -m dsa110_contimg.docsearch.cli search "how to convert UVH5 to MS"
+
+# More results
+python -m dsa110_contimg.docsearch.cli search "calibration" --top-k 10
+
+# Re-index after doc changes (incremental - only changed files)
+python -m dsa110_contimg.docsearch.cli index
+```
+
+### Python API
+
+```python
+from dsa110_contimg.docsearch import DocSearch
+
+search = DocSearch()
+results = search.search("streaming converter queue states", top_k=5)
+
+for r in results:
+    print(f"{r.score:.3f} - {r.file_path}: {r.heading}")
+    print(r.content[:200])
+```
+
+### When to Use
+
+- Finding documentation on specific pipeline features
+- Looking up API usage patterns
+- Understanding module architecture
+- Locating configuration examples
+
+**Alternative**: RAGFlow is also available (`dsa110_contimg.ragflow`) for
+full-featured RAG with chat, but requires Docker containers. Use DocSearch by
+default; RAGFlow is optional for advanced use cases.
+
+### RAGFlow (Alternative)
+
+For questions requiring synthesis across multiple documents:
+
+```python
+from dsa110_contimg.ragflow import RAGFlowClient
+
+client = RAGFlowClient()  # Uses RAGFLOW_API_KEY env var
+answer = client.ask("What error detection protections are implemented?")
+print(answer)
+```
+
+RAGFlow runs on `localhost:9380` (API) and `localhost:9080` (UI).
