@@ -250,6 +250,12 @@ config = PipelineConfig(
 )
 ```
 
+**Note (2025-11):** `CrossMatchConfig.catalog_types` now defaults to
+`["nvss", "rax"]`, so the pipeline queries both NVSS (northern coverage) and
+RACS (southern coverage) without extra configuration. Catalog resolution for
+RACS strip databases accepts filenames up to ±6° from the requested declination
+to match the 12° strip width produced by `build_rax_strip_db`.
+
 ## Pipeline Stages
 
 ### CatalogSetupStage

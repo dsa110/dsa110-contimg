@@ -60,10 +60,11 @@ class TestMaskingIntegration:
                 assert len(hdul) > 0
                 mask_data = hdul[0].data
                 assert mask_data.shape == (imsize, imsize)
-                assert mask_data.dtype == np.float32
+                # FITS may return big-endian float32 ('>f4'); accept any float32 variant
+                assert np.issubdtype(mask_data.dtype, np.floating) and mask_data.dtype.itemsize == 4
 
         except Exception as e:
-            # If NVSS catalog is not available, skip test
+            # If unified catalog is not available, skip test
             pytest.skip(f"Unified catalog not available: {e}")
 
     def test_imaging_stage_with_masking(self, test_config, context_with_repo, temp_work_dir):
