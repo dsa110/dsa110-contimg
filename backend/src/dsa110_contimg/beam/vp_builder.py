@@ -85,7 +85,9 @@ def build_vp_table(
     """
     if h5py is None:  # pragma: no cover
         raise RuntimeError("h5py is required to build VP table")
-    with h5py.File(h5_path, "r") as f:
+    from dsa110_contimg.utils.hdf5_io import open_uvh5_metadata
+
+    with open_uvh5_metadata(h5_path) as f:
         freqs = np.asarray(f["freq_Hz"], dtype=float)
         theta = np.asarray(f["theta_pts"], dtype=float)
         phi = np.asarray(f["phi_pts"], dtype=float)

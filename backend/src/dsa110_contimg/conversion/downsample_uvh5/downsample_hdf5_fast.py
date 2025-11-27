@@ -48,7 +48,10 @@ def downsample_uvh5_fast(
     logger.info(f"Time factor: {time_factor}, Frequency factor: {freq_factor}")
     logger.info(f"Method: {method}")
 
-    with h5py.File(input_file, "r") as f_in:
+    # Use large cache for intensive I/O operations (64 MB)
+    from dsa110_contimg.utils.hdf5_io import HDF5_CACHE_SIZE_LARGE, HDF5_CACHE_SLOTS
+
+    with h5py.File(input_file, "r", rdcc_nbytes=HDF5_CACHE_SIZE_LARGE, rdcc_nslots=HDF5_CACHE_SLOTS) as f_in:
         # Get dimensions
         n_integrations = f_in["Header/time_array"].shape[0]
         n_channels = f_in["Header/freq_array"].shape[1]

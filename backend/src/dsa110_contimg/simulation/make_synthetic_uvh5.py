@@ -575,7 +575,10 @@ def write_subband_uvh5(
     output_dir.mkdir(parents=True, exist_ok=True)
     uv.write_uvh5(output_path, run_check=False, clobber=True)
 
-    with h5py.File(output_path, "r+") as handle:
+    # Use optimized HDF5 access for post-write modifications
+    from dsa110_contimg.utils.hdf5_io import open_uvh5
+
+    with open_uvh5(output_path, "r+") as handle:
         hdr = handle["Header"]
         if "channel_width" in hdr:
             data = np.array([sign * delta_f], dtype=np.float64)
