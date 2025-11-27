@@ -23,7 +23,7 @@ def client():
 class TestPhotometryMeasureEndpoint:
     """Test POST /api/photometry/measure endpoint."""
 
-    @patch("dsa110_contimg.api.routers.photometry.measure_forced_peak")
+    @patch("dsa110_contimg.photometry.forced.measure_forced_peak")
     def test_measure_photometry_peak(self, mock_measure, client):
         """Test single photometry measurement with peak method."""
         # Mock result
@@ -57,7 +57,7 @@ class TestPhotometryMeasureEndpoint:
 
         mock_measure.assert_called_once()
 
-    @patch("dsa110_contimg.api.routers.photometry.measure_with_aegean")
+    @patch("dsa110_contimg.photometry.aegean_fitting.measure_with_aegean")
     def test_measure_photometry_aegean(self, mock_measure, client):
         """Test single photometry measurement with Aegean method."""
         # Mock result
@@ -90,7 +90,7 @@ class TestPhotometryMeasureEndpoint:
 
         mock_measure.assert_called_once()
 
-    @patch("dsa110_contimg.api.routers.photometry.measure_forced_peak")
+    @patch("dsa110_contimg.photometry.forced.measure_forced_peak")
     def test_measure_photometry_error(self, mock_measure, client):
         """Test photometry measurement error handling."""
         mock_measure.side_effect = Exception("File not found")
@@ -108,7 +108,7 @@ class TestPhotometryMeasureEndpoint:
 class TestPhotometryMeasureBatchEndpoint:
     """Test POST /api/photometry/measure-batch endpoint."""
 
-    @patch("dsa110_contimg.api.routers.photometry.measure_many")
+    @patch("dsa110_contimg.photometry.forced.measure_many")
     def test_measure_photometry_batch(self, mock_measure, client):
         """Test batch photometry measurement."""
         # Mock results
@@ -154,7 +154,7 @@ class TestPhotometryMeasureBatchEndpoint:
 
         mock_measure.assert_called_once()
 
-    @patch("dsa110_contimg.api.routers.photometry.measure_many")
+    @patch("dsa110_contimg.photometry.forced.measure_many")
     def test_measure_photometry_batch_error(self, mock_measure, client):
         """Test batch photometry measurement error handling."""
         mock_measure.side_effect = Exception("File not found")

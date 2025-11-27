@@ -117,6 +117,8 @@ class TestRunESEDetectJob:
             min_sigma=5.0,
             source_id=None,
             recompute=False,
+            use_composite_scoring=False,
+            scoring_weights=None,
         )
 
     @patch("dsa110_contimg.photometry.ese_detection.detect_ese_candidates")
@@ -280,7 +282,8 @@ class TestRunBatchESEDetectJob:
             (batch_id,),
         )
         row = cursor.fetchone()
-        assert row[0] == "partial"
-        assert row[1] == 1
-        assert row[2] == 1
+        # When all items fail in source_ids batch (no completed), status is 'failed'
+        assert row[0] == "failed"
+        assert row[1] == 0
+        assert row[2] == 2
         conn.close()

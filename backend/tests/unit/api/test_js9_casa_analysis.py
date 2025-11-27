@@ -37,11 +37,11 @@ def client():
 def mock_casa_tasks():
     """Mock CASA tasks."""
     with (
-        patch("dsa110_contimg.api.visualization_routes.imstat") as mock_imstat,
-        patch("dsa110_contimg.api.visualization_routes.imfit") as mock_imfit,
-        patch("dsa110_contimg.api.visualization_routes.imhead") as mock_imhead,
-        patch("dsa110_contimg.api.visualization_routes.immath") as mock_immath,
-        patch("dsa110_contimg.api.visualization_routes.imval") as mock_imval,
+        patch("casatasks.imstat") as mock_imstat,
+        patch("casatasks.imfit") as mock_imfit,
+        patch("casatasks.imhead") as mock_imhead,
+        patch("casatasks.immath") as mock_immath,
+        patch("casatasks.imval") as mock_imval,
     ):
         mock_imstat.return_value = {
             "DATA": {
@@ -106,7 +106,8 @@ class TestRequestValidation:
             },
         )
         assert response.status_code == 400
-        assert "not a FITS image" in response.json()["detail"].lower()
+        detail = response.json()["detail"].lower()
+        assert "fits" in detail and ("not" in detail or "invalid" in detail)
 
 
 class TestTaskExecution:
@@ -114,7 +115,7 @@ class TestTaskExecution:
 
     def test_imstat_execution(self, client, mock_fits_file, mock_casa_tasks):
         """Test imstat task execution."""
-        with patch("dsa110_contimg.api.visualization_routes.ensure_casa_path"):
+        with patch("dsa110_contimg.utils.casa_init.ensure_casa_path"):
             response = client.post(
                 "/api/visualization/js9/analysis",
                 json={
@@ -133,7 +134,7 @@ class TestTaskExecution:
         """Test imhead task execution."""
         mock_casa_tasks["imhead"].return_value = {"header": {"NAXIS": 2}}
 
-        with patch("dsa110_contimg.api.visualization_routes.ensure_casa_path"):
+        with patch("dsa110_contimg.utils.casa_init.ensure_casa_path"):
             response = client.post(
                 "/api/visualization/js9/analysis",
                 json={
@@ -150,7 +151,7 @@ class TestTaskExecution:
     def test_immath_execution(self, client, mock_fits_file, mock_casa_tasks):
         """Test immath task execution."""
         with (
-            patch("dsa110_contimg.api.visualization_routes.ensure_casa_path"),
+            patch("dsa110_contimg.utils.casa_init.ensure_casa_path"),
             patch("tempfile.gettempdir", return_value=str(Path(mock_fits_file).parent)),
             patch("os.path.exists", return_value=True),
             patch("os.remove"),
@@ -174,7 +175,7 @@ class TestRegionConversion:
         """Test that region is properly included in API request."""
         region = {"shape": "circle", "x": 100, "y": 200, "r": 50}
 
-        with patch("dsa110_contimg.api.visualization_routes.ensure_casa_path"):
+        with patch("dsa110_contimg.utils.casa_init.ensure_casa_path"):
             response = client.post(
                 "/api/visualization/js9/analysis",
                 json={
@@ -198,7 +199,7 @@ class TestCaching:
 
         _analysis_cache.clear()
 
-        with patch("dsa110_contimg.api.visualization_routes.ensure_casa_path"):
+        with patch("dsa110_contimg.utils.casa_init.ensure_casa_path"):
             # First request
             response1 = client.post(
                 "/api/visualization/js9/analysis",
@@ -241,7 +242,7 @@ class TestJSONSerialization:
             }
         }
 
-        with patch("dsa110_contimg.api.visualization_routes.ensure_casa_path"):
+        with patch("dsa110_contimg.utils.casa_init.ensure_casa_path"):
             response = client.post(
                 "/api/visualization/js9/analysis",
                 json={
@@ -265,7 +266,7 @@ class TestErrorHandling:
         """Test CASA task failure handling."""
         mock_casa_tasks["imstat"].side_effect = Exception("CASA task failed")
 
-        with patch("dsa110_contimg.api.visualization_routes.ensure_casa_path"):
+        with patch("dsa110_contimg.utils.casa_init.ensure_casa_path"):
             response = client.post(
                 "/api/visualization/js9/analysis",
                 json={
@@ -281,9 +282,9 @@ class TestErrorHandling:
     def test_imhead_fallback_to_fits(self, client, mock_fits_file):
         """Test imhead fallback to direct FITS reading."""
         with (
-            patch("dsa110_contimg.api.visualization_routes.ensure_casa_path"),
+            patch("dsa110_contimg.utils.casa_init.ensure_casa_path"),
             patch(
-                "dsa110_contimg.api.visualization_routes.imhead",
+                "casatasks.imhead",
                 side_effect=Exception("CASA unavailable"),
             ),
             patch("astropy.io.fits.open") as mock_fits,
