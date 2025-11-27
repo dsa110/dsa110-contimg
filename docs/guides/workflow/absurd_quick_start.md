@@ -329,7 +329,7 @@ pip install asyncpg>=0.29.0
 - Absurd Implementation Roadmap:
   `/data/dsa110-contimg/src/absurd/ABSURD_IMPLEMENTATION_ROADMAP.md`
 - Absurd Source: `~/proj/absurd/`
-- DSA-110 Pipeline: `/data/dsa110-contimg/src/dsa110_contimg/pipeline/`
+- DSA-110 Pipeline: `/data/dsa110-contimg/backend/src/dsa110_contimg/pipeline/`
 
 ---
 

@@ -25,7 +25,7 @@ monitoring 10³-10⁴ sources per day.
 
 ### 1.1 Existing Infrastructure
 
-**Backend API** (`/data/dsa110-contimg/src/dsa110_contimg/api/`)
+**Backend API** (`/data/dsa110-contimg/backend/src/dsa110_contimg/api/`)
 
 - FastAPI application with comprehensive REST endpoints
 - Real-time system metrics (CPU, memory, disk, load)

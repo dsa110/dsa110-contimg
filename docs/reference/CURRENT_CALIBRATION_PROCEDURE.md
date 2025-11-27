@@ -63,6 +63,7 @@ calibration is **optional** and skipped by default for connected-element arrays.
 **Process:**
 
 1. **With `--auto-fields`:**
+
    - Searches VLA catalog for calibrator in MS field of view
    - Selects fields around peak signal
    - Rephases MS to calibrator position (unless `--skip-rephase`)
@@ -383,5 +384,5 @@ python -m dsa110_contimg.calibration.cli calibrate \
 
 - [Detailed Calibration Procedure](calibration-overview.md)
 - [pyradiosky Guide](calibration-overview.md)
-- Calibration Defaults: `../../src/dsa110_contimg/utils/defaults.py` (external
-  file)
+- Calibration Defaults: `../../backend/src/dsa110_contimg/utils/defaults.py`
+  (external file)
