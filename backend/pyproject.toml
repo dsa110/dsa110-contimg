@@ -88,6 +88,8 @@ dsa110-mosaic = "dsa110_contimg.mosaic.cli:main"
 dsa110-photometry = "dsa110_contimg.photometry.cli:main"
 dsa110-registry = "dsa110_contimg.database.registry_cli:main"
 dsa110-streaming = "dsa110_contimg.conversion.streaming.streaming_converter:main"
+# Performance benchmarking
+dsa110-benchmark = "dsa110_contimg.benchmark.cli:main"
 # DOCUMENTATION FIX: Add CLI entry points referenced in documentation
 dsa110-contimg-convert-stream = "dsa110_contimg.conversion.streaming.streaming_converter:main"
 dsa110-contimg-streaming-mosaic = "dsa110_contimg.mosaic.streaming_mosaic:main"

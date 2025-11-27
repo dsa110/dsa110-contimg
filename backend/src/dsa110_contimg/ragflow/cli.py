@@ -344,8 +344,11 @@ def main() -> int:
     )
     upload_parser.add_argument(
         "--chunk-method",
-        default="markdown",
-        choices=["naive", "markdown", "paper", "book", "qa", "table"],
+        default="naive",
+        choices=[
+            "naive", "book", "email", "laws", "manual", "one",
+            "paper", "picture", "presentation", "qa", "table", "tag",
+        ],
         help="Document chunking method",
     )
     upload_parser.add_argument(

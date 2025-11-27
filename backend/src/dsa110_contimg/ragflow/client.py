@@ -250,8 +250,16 @@ class RAGFlowClient:
         }
         if name:
             params["name"] = name
-            
-        return self._request("GET", "/datasets", params=params)
+        
+        try:
+            return self._request("GET", "/datasets", params=params)
+        except RAGFlowError as e:
+            # RAGFlow returns permission error when searching for datasets
+            # owned by other users - treat as empty results
+            if "permission" in str(e).lower():
+                logger.debug(f"Permission error listing datasets with name={name}, returning empty")
+                return []
+            raise
     
     def get_dataset(self, name: str) -> dict[str, Any] | None:
         """
@@ -261,10 +269,16 @@ class RAGFlowClient:
             name: Dataset name
             
         Returns:
-            Dataset info dict or None if not found
+            Dataset info dict or None if not found (or not accessible)
         """
-        datasets = self.list_datasets(name=name)
-        return datasets[0] if datasets else None
+        try:
+            datasets = self.list_datasets(name=name)
+            return datasets[0] if datasets else None
+        except RAGFlowError as e:
+            # Permission error means dataset exists but isn't ours
+            if "permission" in str(e).lower():
+                return None
+            raise
     
     def get_or_create_dataset(
         self,
