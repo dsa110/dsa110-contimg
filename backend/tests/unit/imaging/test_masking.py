@@ -1,26 +1,24 @@
 #!/usr/bin/env python3
 """
-Unit tests for NVSS masking functionality.
+Unit tests for unified catalog ("unicat") masking functionality.
 
 Tests cover:
-- FITS mask generation (create_nvss_fits_mask)
+- FITS mask generation (create_unicat_fits_mask)
 - Mask integration in imaging pipeline
 - Configuration parameter handling
 - Error handling and fallback behavior
 
 Run with: pytest tests/unit/test_masking.py -v
-
-NOTE: The NVSS-specific API was replaced by a unified catalog ("unicat") interface.
-These tests exercise the current unicat-based masking workflow.
 """
 
 import os
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest
+import pandas as pd
 from astropy.io import fits
 
 # Add src to path for imports
@@ -28,65 +26,46 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 
 @pytest.mark.unit
-class TestCreateNVSSFitsMask:
-    """Test create_nvss_fits_mask function."""
+class TestCreateUnicatFitsMask:
+    """Test create_unicat_fits_mask function."""
 
     def test_mask_creation_basic(self, temp_work_dir):
         """Test basic mask creation with valid parameters."""
-        from dsa110_contimg.imaging.nvss_tools import create_nvss_fits_mask
+        from dsa110_contimg.imaging.nvss_tools import create_unicat_fits_mask
 
         imagename = str(temp_work_dir / "test.img")
         imsize = 512
         cell_arcsec = 2.0
         ra0_deg = 120.0
         dec0_deg = 45.0
-        nvss_min_mjy = 10.0
+        unicat_min_mjy = 10.0
         radius_arcsec = 60.0
 
-        # Mock NVSS catalog to return sources
-        mock_nvss_df = MagicMock()
-
-        def _series(values):
-            s = MagicMock()
-            s.values = np.asarray(values)
-            return s
-
-        mock_nvss_df.__getitem__ = Mock(
-            side_effect=lambda key: {
-                "ra": _series([120.0, 120.1, 120.2]),
-                "dec": _series([45.0, 45.1, 45.2]),
-                "flux_20_cm": _series([50.0, 30.0, 15.0]),  # All above 10 mJy
-            }[key]
+        mock_sources = pd.DataFrame(
+            {
+                "ra_deg": [120.0, 120.1, 120.2],
+                "dec_deg": [45.0, 45.1, 45.2],
+                "flux_mjy": [50.0, 30.0, 15.0],
+            }
         )
-        # Pandas-like .loc indexer that returns a subset via __getitem__
-        mock_nvss_df.loc = MagicMock()
-        mock_nvss_df.loc.__getitem__ = Mock(return_value=mock_nvss_df)
-        mock_nvss_df.iterrows = Mock(
-            return_value=[
-                (0, {"ra": 120.0, "dec": 45.0, "flux_20_cm": 50.0}),
-                (1, {"ra": 120.1, "dec": 45.1, "flux_20_cm": 30.0}),
-                (2, {"ra": 120.2, "dec": 45.2, "flux_20_cm": 15.0}),
-            ]
-        )
-        mock_nvss_df.__len__ = Mock(return_value=3)
 
         with patch(
-            "dsa110_contimg.calibration.catalogs.read_nvss_catalog",
-            return_value=mock_nvss_df,
+            "dsa110_contimg.calibration.catalogs.query_merged_nvss_first_sources",
+            return_value=mock_sources,
         ):
-            mask_path = create_nvss_fits_mask(
+            mask_path = create_unicat_fits_mask(
                 imagename=imagename,
                 imsize=imsize,
                 cell_arcsec=cell_arcsec,
                 ra0_deg=ra0_deg,
                 dec0_deg=dec0_deg,
-                nvss_min_mjy=nvss_min_mjy,
+                unicat_min_mjy=unicat_min_mjy,
                 radius_arcsec=radius_arcsec,
             )
 
         # Verify mask file was created
         assert os.path.exists(mask_path)
-        assert mask_path.endswith(".nvss_mask.fits")
+        assert mask_path.endswith(".unicat_mask.fits")
 
         # Verify mask file is valid FITS
         with fits.open(mask_path) as hdul:
@@ -105,47 +84,30 @@ class TestCreateNVSSFitsMask:
 
     def test_mask_no_sources(self, temp_work_dir):
         """Test mask creation when no sources found."""
-        from dsa110_contimg.imaging.nvss_tools import create_nvss_fits_mask
+        from dsa110_contimg.imaging.nvss_tools import create_unicat_fits_mask
 
         imagename = str(temp_work_dir / "test.img")
         imsize = 512
         cell_arcsec = 2.0
         ra0_deg = 120.0
         dec0_deg = 45.0
-        nvss_min_mjy = 1000.0  # Very high threshold - no sources
+        unicat_min_mjy = 1000.0  # Very high threshold - no sources
         radius_arcsec = 60.0
 
-        # Mock NVSS catalog with no matching sources
-        mock_nvss_df = MagicMock()
-
-        def _series(values):
-            s = MagicMock()
-            s.values = np.asarray(values)
-            return s
-
-        mock_nvss_df.__getitem__ = Mock(
-            side_effect=lambda key: {
-                "ra": _series([120.0]),
-                "dec": _series([45.0]),
-                "flux_20_cm": _series([5.0]),  # Below threshold
-            }[key]
-        )
-        empty_sel = MagicMock()
-        empty_sel.__len__ = Mock(return_value=0)
-        mock_nvss_df.loc = MagicMock()
-        mock_nvss_df.loc.__getitem__ = Mock(return_value=empty_sel)
+        # Mock unified catalog with no matching sources (already filtered by API)
+        mock_sources = pd.DataFrame({"ra_deg": [], "dec_deg": [], "flux_mjy": []})
 
         with patch(
-            "dsa110_contimg.calibration.catalogs.read_nvss_catalog",
-            return_value=mock_nvss_df,
+            "dsa110_contimg.calibration.catalogs.query_merged_nvss_first_sources",
+            return_value=mock_sources,
         ):
-            mask_path = create_nvss_fits_mask(
+            mask_path = create_unicat_fits_mask(
                 imagename=imagename,
                 imsize=imsize,
                 cell_arcsec=cell_arcsec,
                 ra0_deg=ra0_deg,
                 dec0_deg=dec0_deg,
-                nvss_min_mjy=nvss_min_mjy,
+                unicat_min_mjy=unicat_min_mjy,
                 radius_arcsec=radius_arcsec,
             )
 
@@ -158,51 +120,32 @@ class TestCreateNVSSFitsMask:
 
     def test_mask_radius_calculation(self, temp_work_dir):
         """Test that mask radius is correctly applied."""
-        from dsa110_contimg.imaging.nvss_tools import create_nvss_fits_mask
+        from dsa110_contimg.imaging.nvss_tools import create_unicat_fits_mask
 
         imagename = str(temp_work_dir / "test.img")
         imsize = 512
         cell_arcsec = 2.0
         ra0_deg = 120.0
         dec0_deg = 45.0
-        nvss_min_mjy = 10.0
+        unicat_min_mjy = 10.0
         radius_arcsec = 60.0
 
-        # Mock NVSS catalog with one source at image center
-        mock_nvss_df = MagicMock()
-
-        def _series(values):
-            s = MagicMock()
-            s.values = np.asarray(values)
-            return s
-
-        mock_nvss_df.__getitem__ = Mock(
-            side_effect=lambda key: {
-                "ra": _series([ra0_deg]),
-                "dec": _series([dec0_deg]),
-                "flux_20_cm": _series([50.0]),
-            }[key]
+        # Mock unified catalog with one source at image center
+        mock_sources = pd.DataFrame(
+            {"ra_deg": [ra0_deg], "dec_deg": [dec0_deg], "flux_mjy": [50.0]}
         )
-        mock_nvss_df.loc = MagicMock()
-        mock_nvss_df.loc.__getitem__ = Mock(return_value=mock_nvss_df)
-        mock_nvss_df.iterrows = Mock(
-            return_value=[
-                (0, {"ra": ra0_deg, "dec": dec0_deg, "flux_20_cm": 50.0}),
-            ]
-        )
-        mock_nvss_df.__len__ = Mock(return_value=1)
 
         with patch(
-            "dsa110_contimg.calibration.catalogs.read_nvss_catalog",
-            return_value=mock_nvss_df,
+            "dsa110_contimg.calibration.catalogs.query_merged_nvss_first_sources",
+            return_value=mock_sources,
         ):
-            mask_path = create_nvss_fits_mask(
+            mask_path = create_unicat_fits_mask(
                 imagename=imagename,
                 imsize=imsize,
                 cell_arcsec=cell_arcsec,
                 ra0_deg=ra0_deg,
                 dec0_deg=dec0_deg,
-                nvss_min_mjy=nvss_min_mjy,
+                unicat_min_mjy=unicat_min_mjy,
                 radius_arcsec=radius_arcsec,
             )
 
@@ -229,7 +172,7 @@ class TestCreateNVSSFitsMask:
 
     def test_mask_custom_output_path(self, temp_work_dir):
         """Test mask creation with custom output path."""
-        from dsa110_contimg.imaging.nvss_tools import create_nvss_fits_mask
+        from dsa110_contimg.imaging.nvss_tools import create_unicat_fits_mask
 
         imagename = str(temp_work_dir / "test.img")
         custom_path = str(temp_work_dir / "custom_mask.fits")
@@ -237,40 +180,23 @@ class TestCreateNVSSFitsMask:
         cell_arcsec = 2.0
         ra0_deg = 120.0
         dec0_deg = 45.0
-        nvss_min_mjy = 10.0
+        unicat_min_mjy = 10.0
         radius_arcsec = 60.0
 
-        # Mock empty catalog
-        mock_nvss_df = MagicMock()
-
-        def _series(values):
-            s = MagicMock()
-            s.values = np.asarray(values)
-            return s
-
-        mock_nvss_df.__getitem__ = Mock(
-            side_effect=lambda key: {
-                "ra": _series([]),
-                "dec": _series([]),
-                "flux_20_cm": _series([]),
-            }[key]
-        )
-        empty_sel = MagicMock()
-        empty_sel.__len__ = Mock(return_value=0)
-        mock_nvss_df.loc = MagicMock()
-        mock_nvss_df.loc.__getitem__ = Mock(return_value=empty_sel)
+        # Mock empty unified catalog
+        mock_sources = pd.DataFrame({"ra_deg": [], "dec_deg": [], "flux_mjy": []})
 
         with patch(
-            "dsa110_contimg.calibration.catalogs.read_nvss_catalog",
-            return_value=mock_nvss_df,
+            "dsa110_contimg.calibration.catalogs.query_merged_nvss_first_sources",
+            return_value=mock_sources,
         ):
-            mask_path = create_nvss_fits_mask(
+            mask_path = create_unicat_fits_mask(
                 imagename=imagename,
                 imsize=imsize,
                 cell_arcsec=cell_arcsec,
                 ra0_deg=ra0_deg,
                 dec0_deg=dec0_deg,
-                nvss_min_mjy=nvss_min_mjy,
+                unicat_min_mjy=unicat_min_mjy,
                 radius_arcsec=radius_arcsec,
                 out_path=custom_path,
             )
@@ -284,7 +210,7 @@ class TestMaskingIntegration:
     """Test masking integration in imaging pipeline."""
 
     def test_image_ms_with_masking_enabled(self, mock_table_factory, temp_work_dir):
-        """Test image_ms generates mask when use_nvss_mask=True."""
+        """Test image_ms generates mask when use_unicat_mask=True."""
         from dsa110_contimg.imaging.cli_imaging import image_ms
 
         ms_path = str(temp_work_dir / "test.ms")
@@ -296,7 +222,7 @@ class TestMaskingIntegration:
 
         def mock_create_mask(*args, **kwargs):
             mask_generated.append(True)
-            return str(temp_work_dir / "test.img.nvss_mask.fits")
+            return str(temp_work_dir / "test.img.unicat_mask.fits")
 
         with (
             patch("casacore.tables.table", side_effect=mock_table_factory),
@@ -321,15 +247,15 @@ class TestMaskingIntegration:
                 return_value=[],
             ),
             patch(
-                "dsa110_contimg.imaging.nvss_tools.create_nvss_fits_mask",
+                "dsa110_contimg.imaging.nvss_tools.create_unicat_fits_mask",
                 side_effect=mock_create_mask,
             ),
         ):
             image_ms(
                 ms_path,
                 imagename=imagename,
-                use_nvss_mask=True,
-                nvss_min_mjy=10.0,
+                use_unicat_mask=True,
+                unicat_min_mjy=10.0,
                 backend="wsclean",
             )
 
@@ -343,7 +269,7 @@ class TestMaskingIntegration:
         assert call_kwargs["mask_path"] is not None
 
     def test_image_ms_with_masking_disabled(self, mock_table_factory, temp_work_dir):
-        """Test image_ms skips mask when use_nvss_mask=False."""
+        """Test image_ms skips mask when use_unicat_mask=False."""
         from dsa110_contimg.imaging.cli_imaging import image_ms
 
         ms_path = str(temp_work_dir / "test.ms")
@@ -372,13 +298,13 @@ class TestMaskingIntegration:
                 "dsa110_contimg.utils.validation.validate_corrected_data_quality",
                 return_value=[],
             ),
-            patch("dsa110_contimg.imaging.nvss_tools.create_nvss_fits_mask") as mock_create_mask,
+            patch("dsa110_contimg.imaging.nvss_tools.create_unicat_fits_mask") as mock_create_mask,
         ):
             image_ms(
                 ms_path,
                 imagename=imagename,
-                use_nvss_mask=False,
-                nvss_min_mjy=10.0,
+                use_unicat_mask=False,
+                unicat_min_mjy=10.0,
                 backend="wsclean",
             )
 
@@ -421,7 +347,7 @@ class TestMaskingIntegration:
                 return_value=[],
             ),
             patch(
-                "dsa110_contimg.imaging.nvss_tools.create_nvss_fits_mask",
+                "dsa110_contimg.imaging.nvss_tools.create_unicat_fits_mask",
                 side_effect=Exception("Mask generation failed"),
             ),
         ):
@@ -429,8 +355,8 @@ class TestMaskingIntegration:
             image_ms(
                 ms_path,
                 imagename=imagename,
-                use_nvss_mask=True,
-                nvss_min_mjy=10.0,
+                use_unicat_mask=True,
+                unicat_min_mjy=10.0,
                 backend="wsclean",
             )
 
@@ -545,7 +471,7 @@ class TestMaskingConfiguration:
         from dsa110_contimg.pipeline.config import ImagingConfig
 
         config = ImagingConfig()
-        assert config.use_nvss_mask is True
+        assert config.use_unicat_mask is True
         assert config.mask_radius_arcsec == 60.0
 
     def test_imaging_config_custom_values(self):
@@ -553,10 +479,10 @@ class TestMaskingConfiguration:
         from dsa110_contimg.pipeline.config import ImagingConfig
 
         config = ImagingConfig(
-            use_nvss_mask=False,
+            use_unicat_mask=False,
             mask_radius_arcsec=120.0,
         )
-        assert config.use_nvss_mask is False
+        assert config.use_unicat_mask is False
         assert config.mask_radius_arcsec == 120.0
 
     def test_imaging_config_radius_validation(self):
@@ -590,12 +516,12 @@ class TestMaskingConfiguration:
                 "input_dir": "/test/input",
                 "output_dir": "/test/output",
             },
-            "use_nvss_mask": False,
+            "use_unicat_mask": False,
             "mask_radius_arcsec": 120.0,
         }
 
         config = PipelineConfig.from_dict(params)
-        assert config.imaging.use_nvss_mask is False
+        assert config.imaging.use_unicat_mask is False
         assert config.imaging.mask_radius_arcsec == 120.0
 
     def test_pipeline_config_from_dict_nested_imaging(self):
@@ -608,13 +534,13 @@ class TestMaskingConfiguration:
                 "output_dir": "/test/output",
             },
             "imaging": {
-                "use_nvss_mask": False,
+                "use_unicat_mask": False,
                 "mask_radius_arcsec": 120.0,
             },
         }
 
         config = PipelineConfig.from_dict(params)
-        assert config.imaging.use_nvss_mask is False
+        assert config.imaging.use_unicat_mask is False
         assert config.imaging.mask_radius_arcsec == 120.0
 
 
