@@ -58,7 +58,7 @@ describe("ImageStatisticsPlugin", () => {
   const setupComponentWithImage = (imageData: any, wcsData?: any, fitsHeader?: any) => {
     mockJS9.GetImageData.mockReturnValue(imageData);
     mockJS9.GetWCS.mockReturnValue(wcsData || { ra: 180, dec: 0 });
-    mockJS9.GetFITSheader.mockReturnValue(fitsHeader || null);
+    mockJS9.GetFITSHeader.mockReturnValue(fitsHeader || null);
 
     const { rerender } = render(<ImageStatisticsPlugin displayId="skyViewDisplay" />);
 
@@ -96,7 +96,7 @@ describe("ImageStatisticsPlugin", () => {
       displays: [mockDisplay],
       GetImageData: vi.fn(),
       GetWCS: vi.fn(),
-      GetFITSheader: vi.fn(),
+      GetFITSHeader: vi.fn(), // Note: capital H to match actual JS9 API
       GetVal: vi.fn(),
       AddEventListener: vi.fn(),
       RemoveEventListener: vi.fn(),
@@ -199,7 +199,7 @@ describe("ImageStatisticsPlugin", () => {
 
       setupComponentWithImage(imageData, undefined, fitsHeader);
 
-      expect(mockJS9.GetFITSheader).toHaveBeenCalled();
+      expect(mockJS9.GetFITSHeader).toHaveBeenCalled();
       expect(screen.getByText("Image Statistics")).toBeInTheDocument();
     });
 
@@ -241,12 +241,12 @@ describe("ImageStatisticsPlugin", () => {
         },
       },
       {
-        name: "GetFITSheader",
+        name: "GetFITSHeader",
         setup: () => {
           mockJS9.GetImageData.mockReturnValue(createMockImageData(100, 100, 1.0));
           mockJS9.GetWCS.mockReturnValue({ ra: 180, dec: 0 });
-          mockJS9.GetFITSheader.mockImplementation(() => {
-            throw new Error("GetFITSheader failed");
+          mockJS9.GetFITSHeader.mockImplementation(() => {
+            throw new Error("GetFITSHeader failed");
           });
         },
       },

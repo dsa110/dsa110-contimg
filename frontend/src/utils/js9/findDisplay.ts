@@ -17,8 +17,8 @@ export function findDisplay(displayId: string): JS9Display | null {
 
   return (
     window.JS9.displays.find((d: JS9Display) => {
-      const divId = d.id;
-      return divId === displayId;
+      // JS9 uses inconsistent property names for display ID
+      return d.id === displayId || d.display === displayId || d.divID === displayId;
     }) || null
   );
 }

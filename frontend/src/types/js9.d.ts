@@ -176,6 +176,8 @@ export interface JS9Instance {
  */
 export interface JS9Display {
   id: string;
+  display?: string; // Alternative identifier used by some JS9 versions
+  divID?: string; // Another alternative identifier
   divjquery: unknown; // jQuery element
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
