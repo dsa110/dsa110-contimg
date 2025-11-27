@@ -578,3 +578,66 @@ class RAGFlowClient:
             "/chats",
             params={"page": page, "page_size": page_size},
         )
+
+    def ask(
+        self,
+        question: str,
+        chat_name: str | None = None,
+    ) -> str:
+        """
+        Ask a question and get an answer from RAGFlow.
+        
+        This is a convenience method that handles session management
+        automatically. For repeated queries, consider managing sessions
+        manually for better performance.
+        
+        Args:
+            question: The question to ask
+            chat_name: Name of chat assistant to use (defaults to first available)
+            
+        Returns:
+            Answer string from RAGFlow
+            
+        Example:
+            >>> client = RAGFlowClient()
+            >>> answer = client.ask("What is the conversion pipeline?")
+            >>> print(answer)
+        """
+        # Get available chats
+        chats = self.list_chats()
+        if not chats:
+            return "No chat assistants configured in RAGFlow"
+        
+        # Find the requested chat or use first one
+        chat = None
+        if chat_name:
+            chat = next((c for c in chats if c["name"] == chat_name), None)
+        if not chat:
+            chat = chats[0]
+        
+        chat_id = chat["id"]
+        
+        # Create a temporary session
+        session = self._request(
+            "POST",
+            f"/chats/{chat_id}/sessions",
+            json_data={"name": f"ask-{hash(question) % 10000}"},
+        )
+        session_id = session["id"]
+        
+        # Get the answer
+        try:
+            response = requests.post(
+                f"{self.api_url}/chats/{chat_id}/completions",
+                headers={**self._headers, "Content-Type": "application/json"},
+                json={"question": question, "session_id": session_id, "stream": False},
+                timeout=self.timeout,
+            )
+            data = response.json()
+            
+            if data.get("code") == 0:
+                return data.get("data", {}).get("answer", "No answer returned")
+            else:
+                return f"Error: {data.get('message', 'Unknown error')}"
+        except Exception as e:
+            return f"Request failed: {e}"
