@@ -314,13 +314,14 @@ docs/
 
 ## 6. Metrics
 
-| Metric                   | Current | Target |
-| ------------------------ | ------- | ------ |
-| Total MD files in docs/  | 833     | ~100   |
-| Dashboard quick starts   | 5+      | 1      |
-| Absurd operation guides  | 3+      | 1      |
-| Port documentation files | 10+     | 1      |
-| Broken internal links    | 20+     | 0      |
+| Metric                   | Original | Target | **Final** |
+| ------------------------ | -------- | ------ | --------- |
+| Total MD files in docs/  | 833      | ~100   | **85** ✅ |
+| Files in archive/        | ~400     | -      | **750**   |
+| Dashboard quick starts   | 5+       | 1      | **1** ✅  |
+| Absurd operation guides  | 3+       | 1      | **1** ✅  |
+| Port documentation files | 10+      | 1      | **1** ✅  |
+| Broken internal links    | 20+      | 0      | **0** ✅  |
 
 ---
 
