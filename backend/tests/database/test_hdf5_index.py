@@ -85,13 +85,11 @@ def test_query_subband_groups_empty_db(temp_hdf5_db):
 
 
 def test_get_group_count_empty_db(temp_hdf5_db):
-    """Test getting group count from an empty database."""
+    """Test getting group count for a non-existent group."""
     conn, db_path = temp_hdf5_db
 
-    start_time = "2025-10-01T00:00:00"
-    end_time = "2025-10-01T01:00:00"
-
-    count = get_group_count(db_path, start_time, end_time)
+    # get_group_count takes a group_id, not time range
+    count = get_group_count(db_path, group_id="nonexistent_group")
     assert count == 0
 
 

@@ -252,8 +252,9 @@ class TestGroupingReturnFormat:
             group = groups[0]
 
             # Verify ordering: sb00 to sb15
-            for idx, filepath in enumerate(group):
-                assert f"sb{idx:02d}" in filepath
+            for idx, filepath in enumerate(group.files):
+                if filepath is not None:  # Skip None placeholders for missing subbands
+                    assert f"sb{idx:02d}" in filepath
         finally:
             if db_path.exists():
                 db_path.unlink()
