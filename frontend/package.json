@@ -29,7 +29,7 @@
     "check-env": "bash ../scripts/check-environment.sh",
     "auto-fix": "bash ../scripts/auto-fix-gotchas.sh",
     "check-code-quality": "bash ../scripts/check-code-quality.sh",
-    "test": "bash scripts/check-casa6-node.sh && vitest",
+    "test": "vitest",
     "test:safe": "../scripts/run-safe.sh 'npm test'",
     "test:error-detection": "bash ../scripts/lib/__tests__/error-detection.test.sh",
     "test:error-detection:integration": "bash ../scripts/lib/__tests__/integration.test.sh",
