@@ -2145,16 +2145,45 @@ export function useTransientCandidates(
   return useQuery({
     queryKey: ["transients", "candidates", classification, followUpStatus, limit],
     queryFn: async () => {
-      // TODO: Implement actual API call
-      return [] as TransientCandidate[];
+      const response = await apiClient.get<TransientCandidate[]>("/transients/candidates", {
+        params: {
+          limit,
+        },
+      });
+
+      let candidates = response.data;
+
+      if (classification) {
+        candidates = candidates.filter((c) => c.classification === classification);
+      }
+
+      if (followUpStatus) {
+        candidates = candidates.filter((c) => c.follow_up_status === followUpStatus);
+      }
+
+      return candidates;
     },
   });
 }
 
 export function useClassifyCandidate() {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (_data: { candidateId: string; data: Record<string, unknown> }) => {
-      // TODO: Implement actual API call
+    mutationFn: async ({
+      candidateId,
+      data,
+    }: {
+      candidateId: string | number;
+      data: { classification: string; classified_by: string; notes?: string };
+    }) => {
+      const response = await apiClient.put(
+        `/transients/candidates/${candidateId}/classify`,
+        data
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["transients", "candidates"] });
     },
   });
 }
@@ -2167,16 +2196,40 @@ export function useTransientAlerts(
   return useQuery({
     queryKey: ["transients", "alerts", level, showAcknowledged, limit],
     queryFn: async () => {
-      // TODO: Implement actual API call
-      return [] as TransientAlert[];
+      const params: Record<string, string | number | boolean | undefined> = {
+        acknowledged: showAcknowledged ?? false,
+      };
+
+      if (level) {
+        params.alert_level = level;
+      }
+      if (limit) {
+        params.limit = limit;
+      }
+
+      const response = await apiClient.get<TransientAlert[]>("/transients/alerts", {
+        params,
+      });
+      return response.data;
     },
   });
 }
 
 export function useAcknowledgeAlert() {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (_data: { alertId: string; data: Record<string, unknown> }) => {
-      // TODO: Implement actual API call
+    mutationFn: async ({
+      alertId,
+      data,
+    }: {
+      alertId: string | number;
+      data: { acknowledged_by: string; notes?: string };
+    }) => {
+      const response = await apiClient.put(`/transients/alerts/${alertId}/acknowledge`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["transients", "alerts"] });
     },
   });
 }

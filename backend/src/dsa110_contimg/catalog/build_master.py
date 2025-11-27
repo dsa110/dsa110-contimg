@@ -49,6 +49,9 @@ logger = logging.getLogger(__name__)
 # ----------------------------- IO helpers ---------------------------------
 
 
+FITS_SUFFIXES = (".fits", ".fit", ".fz", ".fits.gz", ".fit.gz")
+
+
 def _read_table(path: str) -> pd.DataFrame:
     """Read a catalog (CSV/TSV/FITS) into a pandas DataFrame.
 
@@ -56,7 +59,7 @@ def _read_table(path: str) -> pd.DataFrame:
     """
     path = os.fspath(path)
     lower = path.lower()
-    if lower.endswith(".fits") or lower.endswith(".fit") or lower.endswith(".fz"):
+    if lower.endswith(FITS_SUFFIXES):
         t = Table.read(path)
         return t.to_pandas()
     # text

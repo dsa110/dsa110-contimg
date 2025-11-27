@@ -137,7 +137,7 @@ class CrossMatchConfig(BaseModel):
 
     enabled: bool = Field(default=True, description="Enable cross-matching stage")
     catalog_types: List[str] = Field(
-        default=["nvss"],
+        default=["nvss", "rax"],
         description="Catalogs to cross-match against ('nvss', 'first', 'rax')",
     )
     radius_arcsec: float = Field(

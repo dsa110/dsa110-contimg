@@ -973,29 +973,38 @@ export interface CalibrationStatus {
 
 // Transient Types
 export interface TransientAlert {
-  id: string | number;
-  timestamp: string;
-  level: "info" | "warning" | "critical";
-  alert_level?: string;
-  source: string;
-  message: string;
-  alert_message?: string;
-  created_at?: number;
+  id: number;
+  candidate_id: number;
+  alert_level: string;
+  alert_message: string;
+  created_at: number;
   acknowledged: boolean;
   acknowledged_by?: string;
-  acknowledged_at?: string;
+  acknowledged_at?: number;
+  follow_up_status?: string;
+  notes?: string;
 }
 
 export interface TransientCandidate {
-  id: string | number;
-  ra: number;
-  dec: number;
-  snr: number;
-  flux: number;
-  timestamp: string;
-  detection_method: string;
+  id: number;
+  source_name: string;
+  ra_deg: number;
+  dec_deg: number;
+  detection_type: string;
+  flux_obs_mjy: number;
+  flux_baseline_mjy?: number;
+  flux_ratio?: number;
+  significance_sigma: number;
+  baseline_catalog?: string;
+  detected_at: number;
+  mosaic_id?: number;
   classification?: string;
+  classified_by?: string;
+  classified_at?: number;
+  variability_index?: number;
+  last_updated: number;
   follow_up_status?: string;
+  notes?: string;
 }
 
 // Job Parameters Types

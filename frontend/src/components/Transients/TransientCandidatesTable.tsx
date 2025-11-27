@@ -126,7 +126,7 @@ export function TransientCandidatesTable() {
               <TableCell>ID</TableCell>
               <TableCell>RA</TableCell>
               <TableCell>Dec</TableCell>
-              <TableCell>SNR</TableCell>
+              <TableCell>Significance</TableCell>
               <TableCell>Classification</TableCell>
               <TableCell>Follow-up</TableCell>
               <TableCell>Actions</TableCell>
@@ -143,9 +143,9 @@ export function TransientCandidatesTable() {
               candidates?.map((candidate) => (
                 <TableRow key={candidate.id}>
                   <TableCell>{candidate.id}</TableCell>
-                  <TableCell>{candidate.ra?.toFixed(5) || "N/A"}</TableCell>
-                  <TableCell>{candidate.dec?.toFixed(5) || "N/A"}</TableCell>
-                  <TableCell>{candidate.snr?.toFixed(2) || "N/A"}</TableCell>
+                  <TableCell>{candidate.ra_deg?.toFixed(5) ?? "N/A"}</TableCell>
+                  <TableCell>{candidate.dec_deg?.toFixed(5) ?? "N/A"}</TableCell>
+                  <TableCell>{candidate.significance_sigma?.toFixed(2) ?? "N/A"}</TableCell>
                   <TableCell>
                     {candidate.classification ? (
                       <Chip

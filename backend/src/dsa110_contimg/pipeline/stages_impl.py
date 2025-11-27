@@ -12,12 +12,13 @@ import logging
 import re
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import astropy.units as u  # pylint: disable=no-member
 import numpy as np
 import pandas as pd
 
+from dsa110_contimg.catalog.coverage import validate_catalog_choice
 from dsa110_contimg.pipeline.config import PipelineConfig
 from dsa110_contimg.pipeline.context import PipelineContext
 from dsa110_contimg.pipeline.stages import PipelineStage
@@ -3196,6 +3197,16 @@ class CrossMatchStage(PipelineStage):
 
         for catalog_type in catalog_types:
             try:
+                # Validate catalog coverage before querying
+                is_valid, warning = validate_catalog_choice(
+                    catalog_type=catalog_type, ra_deg=ra_center, dec_deg=dec_center
+                )
+                if not is_valid:
+                    logger.info(
+                        f"Skipping {catalog_type.upper()}: {warning}"
+                    )
+                    continue
+
                 logger.info(f"Querying {catalog_type.upper()} catalog...")
 
                 # Query catalog sources
