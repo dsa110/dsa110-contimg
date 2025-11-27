@@ -1,7 +1,7 @@
 #!/opt/miniforge/envs/casa6/bin/python
 # pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, arcsec, etc.)
 """
-"""Build a master reference catalog by crossmatching NVSS with VLASS and FIRST.
+Build a master reference catalog by crossmatching NVSS with VLASS and FIRST.
 
 Outputs an SQLite DB at state/db/master_sources.sqlite3 (by default)
 containing one row per NVSS source with optional VLASS/FIRST matches and
