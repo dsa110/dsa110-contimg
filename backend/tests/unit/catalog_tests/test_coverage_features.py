@@ -68,11 +68,10 @@ def test_auto_build_functionality():
             logger.info(f"   {catalog_type.upper()}: exists={exists}, path={db_path}")
 
         logger.info("\n✓ Auto-build functionality tests completed")
-        return True
 
     except Exception as e:
         logger.error(f"✗ Auto-build functionality test failed: {e}", exc_info=True)
-        return False
+        raise
 
 
 def test_api_status_endpoint():
@@ -124,11 +123,10 @@ def test_api_status_endpoint():
         logger.info(f"   Result: {coverage_status}")
 
         logger.info("\n✓ API status endpoint tests completed")
-        return True
 
     except Exception as e:
         logger.error(f"✗ API status endpoint test failed: {e}", exc_info=True)
-        return False
+        raise
 
 
 def test_visualization_tool():
@@ -184,15 +182,16 @@ def test_visualization_tool():
                 logger.error(f"   ✗ Plot not generated: {result_path}")
 
         logger.info("\n✓ Visualization tool tests completed")
-        return True
 
     except ImportError as e:
         logger.warning(f"   Visualization dependencies not available: {e}")
         logger.info("   (This is expected if matplotlib is not installed)")
-        return True  # Not a failure, just missing dependencies
+        # Not a failure, just missing dependencies - skip gracefully
+        import pytest
+        pytest.skip(f"Visualization dependencies not available: {e}")
     except Exception as e:
         logger.error(f"✗ Visualization tool test failed: {e}", exc_info=True)
-        return False
+        raise
 
 
 def test_edge_cases():
@@ -242,11 +241,10 @@ def test_edge_cases():
             tmp_db.unlink()
 
         logger.info("\n✓ Edge case tests completed")
-        return True
 
     except Exception as e:
         logger.error(f"✗ Edge case test failed: {e}", exc_info=True)
-        return False
+        raise
 
 
 def main():

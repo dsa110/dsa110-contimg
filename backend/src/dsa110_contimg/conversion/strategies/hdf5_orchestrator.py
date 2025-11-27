@@ -449,13 +449,21 @@ def fill_missing_subbands(
 
 
 def _load_and_merge_subbands(
-    file_list: Sequence[str], show_progress: bool = True, batch_size: int = 4
+    file_list: Sequence[str],
+    show_progress: bool = True,
+    batch_size: int = 4,
+    parallel_io: bool = True,
+    max_io_workers: int = 4,
 ) -> UVData:
     """Load and merge subband files into a single UVData object.
 
-    OPTIMIZATION: Processes subbands in batches to reduce peak memory usage.
-    For 16 subbands with batch_size=4, peak memory is reduced by ~60% compared
-    to loading all subbands simultaneously.
+    OPTIMIZATION 1: Parallel I/O - Uses ThreadPoolExecutor to overlap disk reads
+    for multiple subbands. This significantly improves throughput on HDD storage
+    where seek time dominates. Enabled by default with 4 workers.
+
+    OPTIMIZATION 2: Batched processing - Processes subbands in batches to reduce
+    peak memory usage. For 16 subbands with batch_size=4, peak memory is reduced
+    by ~60% compared to loading all subbands simultaneously.
 
     CRITICAL: Files are sorted by subband number (0-15) to ensure correct
     spectral order. If files are out of order, frequency channels will be
@@ -467,6 +475,8 @@ def _load_and_merge_subbands(
         batch_size: Number of subbands to load per batch (default: 4)
                    Smaller batches = lower memory, more merges
                    Larger batches = higher memory, fewer merges
+        parallel_io: Whether to use parallel I/O for loading subbands (default: True)
+        max_io_workers: Maximum number of I/O worker threads (default: 4)
     """
 
     # CRITICAL: DSA-110 subbands use DESCENDING frequency order:
@@ -484,13 +494,23 @@ def _load_and_merge_subbands(
 
     sorted_file_list = sorted(file_list, key=sort_by_subband, reverse=True)
 
-    # OPTIMIZATION: Use batched loading to reduce peak memory
+    # OPTIMIZATION 1: Parallel I/O for loading multiple subbands concurrently
+    # This overlaps disk I/O operations, significantly improving throughput on HDD
+    if parallel_io and len(sorted_file_list) > 1:
+        return _load_and_merge_subbands_parallel(
+            sorted_file_list,
+            show_progress=show_progress,
+            batch_size=batch_size,
+            max_workers=max_io_workers,
+        )
+
+    # OPTIMIZATION 2: Use batched loading to reduce peak memory
     # For small file lists (< batch_size), load all at once (original behavior)
     if len(sorted_file_list) <= batch_size:
         # Original single-batch behavior
         return _load_and_merge_subbands_single_batch(sorted_file_list, show_progress)
 
-    # Batched loading for larger file lists
+    # Batched loading for larger file lists (sequential fallback)
     merged = None
     batch_num = 0
     total_batches = (len(sorted_file_list) + batch_size - 1) // batch_size
@@ -531,6 +551,139 @@ def _load_and_merge_subbands(
         _pyuv_lg.setLevel(_prev_level)
 
     return merged if merged is not None else UVData()
+
+
+def _load_single_subband(path: str) -> UVData:
+    """Load a single subband file into a UVData object.
+
+    This is a helper function for parallel loading. It's designed to be
+    called from a ThreadPoolExecutor.
+
+    Args:
+        path: Path to the subband file
+
+    Returns:
+        UVData object with the subband data
+    """
+    tmp = UVData()
+    tmp.read(
+        path,
+        file_type="uvh5",
+        run_check=False,
+        run_check_acceptability=False,
+        strict_uvw_antpos_check=False,
+        check_extra=False,
+    )
+    tmp.uvw_array = tmp.uvw_array.astype(np.float64)
+    return tmp
+
+
+def _load_and_merge_subbands_parallel(
+    file_list: Sequence[str],
+    show_progress: bool = True,
+    batch_size: int = 4,
+    max_workers: int = 4,
+) -> UVData:
+    """Load and merge subbands using parallel I/O.
+
+    OPTIMIZATION: Uses ThreadPoolExecutor to overlap disk reads for multiple
+    subbands. This significantly improves throughput on HDD storage where
+    seek time dominates. On SSD, benefits are smaller but still measurable.
+
+    Args:
+        file_list: List of subband file paths (should be pre-sorted)
+        show_progress: Whether to show progress bar
+        batch_size: Number of subbands to process per merge batch
+        max_workers: Maximum number of I/O worker threads
+
+    Returns:
+        Merged UVData object with all subbands
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    _pyuv_lg = logging.getLogger("pyuvdata")
+    _prev_level = _pyuv_lg.level
+
+    try:
+        _pyuv_lg.setLevel(logging.ERROR)
+
+        # Validate files upfront before parallel loading
+        for path in file_list:
+            if not os.path.exists(path):
+                raise FileNotFoundError(f"Subband file does not exist: {path}")
+            if not os.access(path, os.R_OK):
+                raise PermissionError(f"Subband file is not readable: {path}")
+
+        # OPTIMIZATION 4: Pre-allocate result list to avoid resizing
+        results: List[Optional[UVData]] = [None] * len(file_list)
+        file_indices = {path: i for i, path in enumerate(file_list)}
+
+        t_load_start = time.perf_counter()
+
+        # Submit all files for parallel loading
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {
+                executor.submit(_load_single_subband, path): path
+                for path in file_list
+            }
+
+            # Collect results as they complete
+            completed = 0
+            for future in as_completed(futures):
+                path = futures[future]
+                idx = file_indices[path]
+                try:
+                    results[idx] = future.result()
+                    completed += 1
+                    if show_progress:
+                        logger.debug(
+                            f"Loaded {completed}/{len(file_list)}: {os.path.basename(path)}"
+                        )
+                except Exception as e:
+                    raise ConversionError(
+                        f"Failed to load subband {os.path.basename(path)}: {e}"
+                    ) from e
+
+        t_load_end = time.perf_counter()
+        logger.info(
+            f"Parallel I/O: loaded {len(file_list)} subbands in {t_load_end - t_load_start:.2f}s "
+            f"({max_workers} workers)"
+        )
+
+        # Merge results in order (results list is already ordered by file_list)
+        # Filter out any None values (shouldn't happen if all succeeded)
+        loaded_data: List[UVData] = [r for r in results if r is not None]
+
+        if not loaded_data:
+            return UVData()
+
+        # OPTIMIZATION 4: Merge in batches to reduce peak memory
+        t_merge_start = time.perf_counter()
+
+        if len(loaded_data) <= batch_size:
+            # Small number of files: merge all at once
+            merged = loaded_data[0]
+            if len(loaded_data) > 1:
+                merged.fast_concat(loaded_data[1:], axis="freq", inplace=True, run_check=False)
+        else:
+            # Batch merging for larger file sets
+            merged = loaded_data[0]
+            for i in range(1, len(loaded_data), batch_size):
+                batch = loaded_data[i : i + batch_size]
+                merged.fast_concat(batch, axis="freq", inplace=True, run_check=False)
+                # Help garbage collector
+                for uv in batch:
+                    del uv
+
+        merged.reorder_freqs(channel_order="freq", run_check=False)
+
+        t_merge_end = time.perf_counter()
+        logger.debug(f"Merged {len(loaded_data)} subbands in {t_merge_end - t_merge_start:.2f}s")
+
+        return merged
+
+    finally:
+        _pyuv_lg.setLevel(_prev_level)
 
 
 def _load_and_merge_subbands_single_batch(

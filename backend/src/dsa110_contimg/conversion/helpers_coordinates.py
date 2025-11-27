@@ -7,20 +7,38 @@ import astropy.units as u
 import numpy as np
 from astropy.coordinates import SkyCoord
 
+# OPTIMIZATION 3: Try to use numba-accelerated angular separation
 try:
-    from astropy.coordinates import angular_separation  # type: ignore
-except Exception:  # pragma: no cover - fallback for older astropy
+    from dsa110_contimg.utils.numba_accel import (
+        angular_separation_jit,
+        NUMBA_AVAILABLE,
+    )
+    _USE_NUMBA_ANGULAR_SEP = NUMBA_AVAILABLE
+except ImportError:
+    _USE_NUMBA_ANGULAR_SEP = False
 
-    def angular_separation(ra1, dec1, ra2, dec2):
-        import numpy as _np
 
-        ra1 = _np.asarray(ra1, dtype=float)
-        dec1 = _np.asarray(dec1, dtype=float)
-        ra2 = _np.asarray(ra2, dtype=float)
-        dec2 = _np.asarray(dec2, dtype=float)
-        cossep = _np.sin(dec1) * _np.sin(dec2) + _np.cos(dec1) * _np.cos(dec2) * _np.cos(ra1 - ra2)
-        cossep = _np.clip(cossep, -1.0, 1.0)
-        return _np.arccos(cossep)
+def angular_separation(ra1, dec1, ra2, dec2):
+    """Compute angular separation, using numba if available.
+
+    Falls back to pure numpy implementation if numba is not installed.
+    """
+    if _USE_NUMBA_ANGULAR_SEP:
+        # Use numba-accelerated version
+        return angular_separation_jit(
+            np.asarray(ra1, dtype=np.float64),
+            np.asarray(dec1, dtype=np.float64),
+            np.asarray(ra2, dtype=np.float64),
+            np.asarray(dec2, dtype=np.float64),
+        )
+    # Pure numpy fallback
+    ra1 = np.asarray(ra1, dtype=float)
+    dec1 = np.asarray(dec1, dtype=float)
+    ra2 = np.asarray(ra2, dtype=float)
+    dec2 = np.asarray(dec2, dtype=float)
+    cossep = np.sin(dec1) * np.sin(dec2) + np.cos(dec1) * np.cos(dec2) * np.cos(ra1 - ra2)
+    cossep = np.clip(cossep, -1.0, 1.0)
+    return np.arccos(cossep)
 
 
 from astropy.time import Time

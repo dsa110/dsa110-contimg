@@ -51,8 +51,6 @@ def test_auto_build_integration():
     assert nvss_limits["dec_max"] == 90.0
     print(f"✅ NVSS coverage: {nvss_limits['dec_min']}° to {nvss_limits['dec_max']}°")
 
-    return True
-
 
 def test_api_status_integration():
     """Test API status endpoint integration."""
@@ -70,8 +68,6 @@ def test_api_status_integration():
     status = get_catalog_coverage_status(ingest_db_path=None)
     print(f"✅ API status handles None gracefully: {status is None or hasattr(status, 'dec_deg')}")
 
-    return True
-
 
 def test_visualization_integration():
     """Test visualization tools integration."""
@@ -84,8 +80,6 @@ def test_visualization_integration():
     # Verify function exists and is callable
     assert callable(plot_catalog_coverage)
     print("✅ Visualization function callable")
-
-    return True
 
 
 def test_nvss_query_integration():
@@ -102,7 +96,6 @@ def test_nvss_query_integration():
 
     # Note: Actual query would require catalog databases
     # This test just verifies the function is available
-    return True
 
 
 def test_coverage_limits_validation():
@@ -120,11 +113,9 @@ def test_coverage_limits_validation():
         assert limits["dec_min"] < limits["dec_max"]
         print(f"✅ {catalog.upper()}: {limits['dec_min']}° to {limits['dec_max']}°")
 
-    return True
 
-
-def test_full_integration():
-    """Run all integration tests."""
+def _run_all_integration_tests():
+    """Run all integration tests (script entry point, not a pytest test)."""
     print("\n" + "=" * 60)
     print("Full Integration Test Suite")
     print("=" * 60)
@@ -132,31 +123,36 @@ def test_full_integration():
     results = []
 
     try:
-        results.append(("Auto-build", test_auto_build_integration()))
+        test_auto_build_integration()
+        results.append(("Auto-build", True))
     except Exception as e:
         print(f"❌ Auto-build test failed: {e}")
         results.append(("Auto-build", False))
 
     try:
-        results.append(("API Status", test_api_status_integration()))
+        test_api_status_integration()
+        results.append(("API Status", True))
     except Exception as e:
         print(f"❌ API Status test failed: {e}")
         results.append(("API Status", False))
 
     try:
-        results.append(("Visualization", test_visualization_integration()))
+        test_visualization_integration()
+        results.append(("Visualization", True))
     except Exception as e:
         print(f"❌ Visualization test failed: {e}")
         results.append(("Visualization", False))
 
     try:
-        results.append(("NVSS Query", test_nvss_query_integration()))
+        test_nvss_query_integration()
+        results.append(("NVSS Query", True))
     except Exception as e:
         print(f"❌ NVSS Query test failed: {e}")
         results.append(("NVSS Query", False))
 
     try:
-        results.append(("Coverage Limits", test_coverage_limits_validation()))
+        test_coverage_limits_validation()
+        results.append(("Coverage Limits", True))
     except Exception as e:
         print(f"❌ Coverage Limits test failed: {e}")
         results.append(("Coverage Limits", False))
@@ -184,4 +180,4 @@ def test_full_integration():
 
 
 if __name__ == "__main__":
-    sys.exit(test_full_integration())
+    sys.exit(_run_all_integration_tests())

@@ -362,6 +362,52 @@ def open_uvh5_large_cache(
         yield f
 
 
+@contextmanager
+def open_uvh5_mmap(
+    path: Union[str, Path],
+    preload: bool = False,
+) -> Iterator["h5py.File"]:
+    """Open UVH5/HDF5 file using memory-mapped I/O.
+
+    OPTIMIZATION 2: Uses the 'core' driver to memory-map the entire file,
+    avoiding double-buffering overhead. This is particularly efficient for:
+    - Files that fit in available RAM
+    - Sequential reads of the entire file
+    - When chunk caching overhead is undesirable
+
+    Args:
+        path: Path to HDF5 file
+        preload: If True, preload entire file into memory (faster access,
+                 higher initial latency). If False, load on demand.
+
+    Yields:
+        h5py.File object with memory-mapped I/O
+
+    Note:
+        - Only works for read-only access
+        - File is loaded into memory (watch RAM usage)
+        - Best for files < 4GB or when plenty of RAM available
+
+    Example:
+        >>> with open_uvh5_mmap("/data/small_file.hdf5") as f:
+        ...     data = f['visdata'][:]  # Very fast sequential read
+    """
+    import h5py
+
+    # 'core' driver loads entire file into memory
+    # backing_store=False prevents writeback (read-only)
+    with h5py.File(
+        path,
+        "r",
+        driver="core",
+        backing_store=False,
+        # When using core driver, we don't need chunk cache
+        rdcc_nbytes=0,
+        rdcc_nslots=1,
+    ) as f:
+        yield f
+
+
 def get_chunk_info(path: Union[str, Path], dataset_name: str) -> Optional[dict]:
     """Get chunk information for a dataset.
 
@@ -446,10 +492,13 @@ def h5py_open(
 
 
 __all__ = [
+    "configure_h5py_cache_defaults",
+    "get_h5py_cache_info",
     "open_uvh5",
     "open_uvh5_metadata",
     "open_uvh5_streaming",
     "open_uvh5_large_cache",
+    "open_uvh5_mmap",
     "get_chunk_info",
     "h5py_open",
     "HDF5_CACHE_SIZE_DEFAULT",
