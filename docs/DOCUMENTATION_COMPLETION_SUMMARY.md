@@ -53,6 +53,12 @@ knowledge base.
 - ✅ Fixed database location references (3 files corrected)
 - ✅ Documented findings in ACCURACY_AUDIT_RESULTS.md
 
+### Phase 4: Code Bug Fixes (Nov 27)
+
+- ✅ Fixed catalog lookup bug in `catalog/query.py`
+- ✅ Fixed default output path in `catalog/build_master.py`
+- ✅ Verified fix: now correctly finds 108MB database with 1.6M sources
+
 ---
 
 ## Key Deliverables
@@ -123,28 +129,28 @@ docs/archive/
 
 ## Known Issues Identified
 
-### Code Bug: Catalog Lookup (Not Fixed - Out of Scope)
+### ~~Code Bug: Catalog Lookup~~ ✅ FIXED (Nov 27)
 
-**Location**: `backend/src/dsa110_contimg/catalog/query.py:127-128`
+**Location**: `backend/src/dsa110_contimg/catalog/query.py` and
+`catalog/build_master.py`
 
-**Issue**: Code searches for `state/catalogs/master_sources.sqlite3` (16KB, 5
-sources), but real data is at `state/db/master_sources.sqlite3` (108MB, 1.6M
+**Issue**: Code was searching for `state/catalogs/master_sources.sqlite3` (16KB,
+5 sources), but real data is at `state/db/master_sources.sqlite3` (108MB, 1.6M
 sources).
 
-**Impact**: Catalog queries return minimal results (5 instead of 1.6M sources)
+**Impact**: Catalog queries returned minimal results (5 instead of 1.6M sources)
 
-**Recommendation**: Update code to search `state/db/` first:
+**Resolution**: ✅ FIXED
 
-```python
-master_candidates = [
-    Path("/data/dsa110-contimg/state/db/master_sources.sqlite3"),  # Add
-    Path("state/db/master_sources.sqlite3"),  # Add
-    Path("/data/dsa110-contimg/state/catalogs/master_sources.sqlite3"),
-    Path("state/catalogs/master_sources.sqlite3"),
-]
-```
+- Updated `query.py` to prioritize `state/db/` paths
+- Updated `build_master.py` default output to `state/db/`
+- Verified: now correctly resolves to 108MB database with 1.6M sources
 
-**Documentation Status**: ✅ Docs now correctly reference `state/db/`
+**Files Modified**:
+
+- `backend/src/dsa110_contimg/catalog/query.py` (search priority fixed)
+- `backend/src/dsa110_contimg/catalog/build_master.py` (default output path
+  fixed)
 
 ---
 
@@ -159,7 +165,7 @@ master_candidates = [
 
 ### For Developers:
 
-1. **Fix catalog bug**: Update `catalog/query.py` (see above)
+1. ~~**Fix catalog bug**: Update `catalog/query.py`~~ ✅ FIXED (Nov 27)
 2. **Remove legacy code**: Archive or delete root `src/dsa110_contimg/`
 3. **Consolidate databases**: Clarify `state/` vs `state/db/` strategy
 4. **Update on changes**: Keep docs synced with code changes

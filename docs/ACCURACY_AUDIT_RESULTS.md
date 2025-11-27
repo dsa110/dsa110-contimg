@@ -193,9 +193,10 @@ directories, likely due to migration or backup strategies.
 
 ## Known Issues
 
-### 1. Code Bug: Catalog Lookup Uses Wrong Path ⚠️
+### ~~1. Code Bug: Catalog Lookup Uses Wrong Path~~ ✅ FIXED (Nov 27)
 
-**Location**: `backend/src/dsa110_contimg/catalog/query.py:127-128`
+**Location**: `backend/src/dsa110_contimg/catalog/query.py` and
+`catalog/build_master.py`
 
 **Issue**: Code searches for `state/catalogs/master_sources.sqlite3` (16KB, 5
 sources), but real data is at `state/db/master_sources.sqlite3` (108MB, 1.6M
@@ -206,19 +207,36 @@ sources).
 - Catalog queries may return minimal results (only 5 sources vs. 1.6M)
 - Photometry lookups will fail for most sources
 
-**Recommended Fix** (not implemented - code change out of scope):
+**Resolution**: ✅ FIXED (Nov 27)
 
 ```python
-# In backend/src/dsa110_contimg/catalog/query.py
+# Updated in backend/src/dsa110_contimg/catalog/query.py
 master_candidates = [
-    Path("/data/dsa110-contimg/state/db/master_sources.sqlite3"),  # Add this
-    Path("state/db/master_sources.sqlite3"),  # Add this
+    # Primary location (1.6M+ sources) - NOW CHECKED FIRST
+    Path("/data/dsa110-contimg/state/db/master_sources.sqlite3"),
+    Path("state/db/master_sources.sqlite3"),
+    # Legacy location (fallback)
     Path("/data/dsa110-contimg/state/catalogs/master_sources.sqlite3"),
     Path("state/catalogs/master_sources.sqlite3"),
 ]
 ```
 
-**Documentation Status**: ✅ Documentation now correctly reflects actual file
+Also updated `build_master.py` default output to
+`state/db/master_sources.sqlite3`.
+
+**Verification**:
+
+```bash
+$ conda run -n casa6 python -c "from dsa110_contimg.catalog.query import resolve_catalog_path; print(resolve_catalog_path('master'))"
+✅ /data/dsa110-contimg/state/db/master_sources.sqlite3 (107.9 MB)
+```
+
+**Files Modified**:
+
+- `backend/src/dsa110_contimg/catalog/query.py`
+- `backend/src/dsa110_contimg/catalog/build_master.py`
+
+**Documentation Status**: ✅ Documentation correctly reflects actual file
 locations.
 
 ---
@@ -273,8 +291,8 @@ mv /scratch/mkdocs-build/site /data/dsa110-contimg/site
 
 ### For Developers:
 
-1. **Fix catalog lookup bug**: Update `catalog/query.py` to use
-   `state/db/master_sources.sqlite3`
+1. ~~**Fix catalog lookup bug**: Update `catalog/query.py` to use
+   `state/db/master_sources.sqlite3`~~ ✅ FIXED (Nov 27)
 2. **Consolidate databases**: Clarify which databases in `state/` vs `state/db/`
    are active
 3. **Remove legacy code**: Archive or delete root `src/dsa110_contimg/`
