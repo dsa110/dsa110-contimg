@@ -385,6 +385,57 @@ docker compose stop dashboard-dev api
 **Note:** Port 5174 is used for the Docker frontend to avoid conflict with local
 dev server on 5173. Both can run simultaneously.
 
+## Performance Benchmarking
+
+The pipeline includes statistical performance benchmarks using
+[airspeed-velocity (asv)](https://asv.readthedocs.io/) to track performance
+across commits and detect regressions.
+
+### Quick Start
+
+```bash
+conda activate casa6
+
+# Quick check (~5 minutes, single iteration)
+make bench-quick
+
+# Full run with statistics (~30 minutes)
+make bench
+
+# Generate HTML report
+make bench-report && make bench-preview
+```
+
+### CLI Alternative
+
+```bash
+dsa110-benchmark quick              # Quick check
+dsa110-benchmark run                # Full run
+dsa110-benchmark report --open      # Generate and view report
+dsa110-benchmark compare HEAD~1 HEAD  # Regression check
+```
+
+### Benchmark Categories
+
+| Category    | Command                    | Measures                           |
+| ----------- | -------------------------- | ---------------------------------- |
+| Conversion  | `make bench-conversion`    | HDF5 → MS conversion (SSD staging) |
+| Calibration | `make bench-calibration`   | Bandpass, gain, applycal           |
+| Flagging    | (included in `make bench`) | Flag reset, zero flagging          |
+| Imaging     | (disabled by default)      | WSClean imaging                    |
+
+### Reference Results (lxd110h17)
+
+| Benchmark                    | Time  |
+| ---------------------------- | ----- |
+| `time_convert_subband_group` | 4.05m |
+| `time_bandpass_single_field` | 31.1s |
+| `time_gaincal_single_field`  | 10.3s |
+| `time_flag_zeros`            | 18.2s |
+
+**Full documentation**: See `docs/guides/benchmarking.md` or
+`benchmarks/README.md`.
+
 ## Troubleshooting
 
 - `casatools` errors opening MS

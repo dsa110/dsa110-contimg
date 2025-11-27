@@ -121,6 +121,7 @@ nav:
           - Warning Detection: guides/error-handling/warning-detection.md
       - Configuration:
           - Pipeline Configuration: guides/configuration/pipeline_configuration.md
+      - Benchmarking: guides/benchmarking.md
       - Contributing:
           - Overview: guides/contributing/index.md
 

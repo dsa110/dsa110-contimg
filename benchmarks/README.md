@@ -3,9 +3,8 @@
 This directory contains **statistical performance benchmarks** for the DSA-110
 continuum imaging pipeline, using
 [airspeed-velocity (asv)](https://asv.readthedocs.io/). These benchmarks follow
-the methodology established by
-[casabench](https://github.com/casangi/casabench) for rigorous, reproducible
-performance testing.
+the methodology established by [casabench](https://github.com/casangi/casabench)
+for rigorous, reproducible performance testing.
 
 ## Why Benchmark?
 
@@ -97,11 +96,11 @@ dsa110-benchmark info
 
 Measures HDF5 → Measurement Set conversion performance.
 
-| Benchmark                     | Typical Time | Description                              |
-| ----------------------------- | ------------ | ---------------------------------------- |
-| `time_load_single_subband`    | 4-5s         | Load one HDF5 subband via pyuvdata       |
-| `time_load_four_subbands`     | 65-75s       | Load + merge 4 subbands (batched loader) |
-| `time_convert_subband_group`  | 4-5min       | Full 16-subband conversion pipeline      |
+| Benchmark                    | Typical Time | Description                              |
+| ---------------------------- | ------------ | ---------------------------------------- |
+| `time_load_single_subband`   | 4-5s         | Load one HDF5 subband via pyuvdata       |
+| `time_load_four_subbands`    | 65-75s       | Load + merge 4 subbands (batched loader) |
+| `time_convert_subband_group` | 4-5min       | Full 16-subband conversion pipeline      |
 
 **Note**: Conversion benchmarks stage HDF5 files from HDD (`/data/incoming`) to
 SSD (`/scratch/`) before processing, matching the production pipeline behavior.
@@ -110,30 +109,30 @@ SSD (`/scratch/`) before processing, matching the production pipeline behavior.
 
 Measures CASA calibration task performance.
 
-| Benchmark                    | Typical Time | Description                       |
-| ---------------------------- | ------------ | --------------------------------- |
-| `time_import_calibration`    | <1s          | Import calibration module         |
-| `time_bandpass_single_field` | 30-35s       | Bandpass solve (1.8M visibilities)|
-| `time_gaincal_single_field`  | 10-12s       | Gain calibration                  |
-| `time_applycal_single_table` | 4-5s         | Apply calibration table           |
+| Benchmark                    | Typical Time | Description                        |
+| ---------------------------- | ------------ | ---------------------------------- |
+| `time_import_calibration`    | <1s          | Import calibration module          |
+| `time_bandpass_single_field` | 30-35s       | Bandpass solve (1.8M visibilities) |
+| `time_gaincal_single_field`  | 10-12s       | Gain calibration                   |
+| `time_applycal_single_table` | 4-5s         | Apply calibration table            |
 
 ### Flagging (`bench_flagging.py`)
 
 Measures RFI flagging operations.
 
-| Benchmark          | Typical Time | Description                     |
-| ------------------ | ------------ | ------------------------------- |
-| `time_reset_flags` | 9-10s        | Clear all flags from MS         |
-| `time_flag_zeros`  | 18-20s       | Flag zero-amplitude visibilities|
+| Benchmark          | Typical Time | Description                      |
+| ------------------ | ------------ | -------------------------------- |
+| `time_reset_flags` | 9-10s        | Clear all flags from MS          |
+| `time_flag_zeros`  | 18-20s       | Flag zero-amplitude visibilities |
 
 ### Imaging (`bench_imaging.py`)
 
 WSClean imaging benchmarks (disabled by default - too slow for routine testing).
 
-| Benchmark             | Typical Time | Description           |
-| --------------------- | ------------ | --------------------- |
-| `time_dirty_imaging`  | ~minutes     | Dirty image (no clean)|
-| `time_clean_imaging`  | ~10+ min     | Full CLEAN deconvolution|
+| Benchmark            | Typical Time | Description              |
+| -------------------- | ------------ | ------------------------ |
+| `time_dirty_imaging` | ~minutes     | Dirty image (no clean)   |
+| `time_clean_imaging` | ~10+ min     | Full CLEAN deconvolution |
 
 ---
 
@@ -221,7 +220,7 @@ class TimeSomething:
 
     def setup(self):
         """Called before each benchmark iteration - NOT timed.
-        
+
         Use for data loading, path validation, and setup.
         Raise NotImplementedError to skip if data unavailable.
         """
@@ -231,14 +230,14 @@ class TimeSomething:
 
     def time_operation(self):
         """Timed method - name must start with 'time_'.
-        
+
         Only the code inside this method is timed.
         """
         do_operation(self.data)
 
     def teardown(self):
         """Called after each benchmark - NOT timed.
-        
+
         Use for cleanup.
         """
         cleanup()
@@ -247,6 +246,7 @@ class TimeSomething:
 ### Best Practices
 
 1. **Stage to SSD**: For I/O benchmarks, copy data to SSD first
+
    ```python
    def setup(self):
        # Copy from HDD to SSD for realistic pipeline timing
@@ -254,12 +254,14 @@ class TimeSomething:
    ```
 
 2. **Work on copies**: Never modify original test data
+
    ```python
    self.ms_copy = f"/tmp/bench_{uuid4()}.ms"
    shutil.copytree(self.ms_path, self.ms_copy)
    ```
 
 3. **Validate data**: Skip gracefully if data unavailable
+
    ```python
    if not Path(self.ms_path).exists():
        raise NotImplementedError("Test MS not found")
@@ -341,16 +343,16 @@ asv machine --yes
 
 Baseline results on production hardware (Intel Xeon Silver 4210, 128GB RAM):
 
-| Benchmark                              | Time    | Notes                    |
-| -------------------------------------- | ------- | ------------------------ |
-| `time_load_single_subband`             | 4.54s   | Single HDF5 file         |
-| `time_load_four_subbands`              | 69s     | 4-file batch load+merge  |
-| `time_convert_subband_group`           | 4.05min | Full 16-subband pipeline |
-| `time_bandpass_single_field`           | 31.1s   | 1.8M row MS              |
-| `time_gaincal_single_field`            | 10.3s   | 1.8M row MS              |
-| `time_applycal_single_table`           | 4.08s   | Single caltable          |
-| `time_reset_flags`                     | 9.29s   | Clear all flags          |
-| `time_flag_zeros`                      | 18.2s   | Flag zero amplitudes     |
+| Benchmark                    | Time    | Notes                    |
+| ---------------------------- | ------- | ------------------------ |
+| `time_load_single_subband`   | 4.54s   | Single HDF5 file         |
+| `time_load_four_subbands`    | 69s     | 4-file batch load+merge  |
+| `time_convert_subband_group` | 4.05min | Full 16-subband pipeline |
+| `time_bandpass_single_field` | 31.1s   | 1.8M row MS              |
+| `time_gaincal_single_field`  | 10.3s   | 1.8M row MS              |
+| `time_applycal_single_table` | 4.08s   | Single caltable          |
+| `time_reset_flags`           | 9.29s   | Clear all flags          |
+| `time_flag_zeros`            | 18.2s   | Flag zero amplitudes     |
 
 ---
 
@@ -359,4 +361,3 @@ Baseline results on production hardware (Intel Xeon Silver 4210, 128GB RAM):
 - **Project Docs**: `docs/guides/benchmarking.md` (full guide)
 - **ASV Documentation**: https://asv.readthedocs.io/
 - **casabench**: https://github.com/casangi/casabench (methodology reference)
-
