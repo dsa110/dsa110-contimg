@@ -2,7 +2,20 @@
 
 ## alerts
 
+- `/api/alerts`
+- `/api/alerts/bulk-acknowledge`
 - `/api/alerts/history`
+- `/api/alerts/{alert_id}`
+- `/api/alerts/{alert_id}/acknowledge`
+- `/api/alerts/{alert_id}/follow-up`
+- `/api/alerts/{alert_id}/notes`
+
+## antenna-health
+
+- `/api/antenna-health/metrics`
+- `/api/antenna-health/plots/heatmap`
+- `/api/antenna-health/plots/refant-report`
+- `/api/antenna-health/plots/stability-trends`
 
 ## available
 
@@ -25,6 +38,15 @@
 
 - `/api/cache/stats`
 
+## calibration
+
+- `/api/calibration/status`
+
+## calibration-quality
+
+- `/api/calibration-quality/metrics`
+- `/api/calibration-quality/plots/snr-trends`
+
 ## calibrator_matches
 
 - `/api/calibrator_matches`
@@ -33,6 +55,15 @@
 
 - `/api/caltables`
 
+## candidates
+
+- `/api/candidates`
+- `/api/candidates/bulk-classify`
+- `/api/candidates/{candidate_id}`
+- `/api/candidates/{candidate_id}/classify`
+- `/api/candidates/{candidate_id}/follow-up`
+- `/api/candidates/{candidate_id}/notes`
+
 ## catalog
 
 - `/api/catalog/overlay`
@@ -40,6 +71,10 @@
 ## clear
 
 - `/api/clear`
+
+## dashboard
+
+- `/api/dashboard/summary`
 
 ## data
 
@@ -52,6 +87,12 @@
 - `/api/data/{data_id:path}/lineage`
 - `/api/data/{data_id:path}/publish`
 
+## disk-usage
+
+- `/api/disk-usage/current`
+- `/api/disk-usage/plots/current`
+- `/api/disk-usage/plots/projection`
+
 ## ese
 
 - `/api/ese/candidates`
@@ -60,6 +101,12 @@
 - `/api/ese/candidates/{source_id}/postage_stamps`
 - `/api/ese/candidates/{source_id}/variability`
 
+## ese-candidates
+
+- `/api/ese-candidates/list`
+- `/api/ese-candidates/plots/flux-variations`
+- `/api/ese-candidates/plots/sky-distribution`
+
 ## groups
 
 - `/api/groups/{group_id}`
@@ -67,6 +114,8 @@
 ## health
 
 - `/api/health`
+- `/api/health/detailed`
+- `/api/health/services`
 
 ## images
 
@@ -76,6 +125,14 @@
 - `/api/images/{image_id}/fits`
 - `/api/images/{image_id}/measurements`
 - `/api/images/{image_id}/profile`
+
+## items
+
+- `/api/items`
+- `/api/items/{item_id}`
+- `/api/items/{item_id}/fail`
+- `/api/items/{item_id}/resolve`
+- `/api/items/{item_id}/retry`
 
 ## jobs
 
@@ -109,6 +166,9 @@
 ## metrics
 
 - `/api/metrics`
+- `/api/metrics/database`
+- `/api/metrics/history`
+- `/api/metrics/prometheus`
 - `/api/metrics/system`
 - `/api/metrics/system/history`
 
@@ -119,13 +179,19 @@
 - `/api/monitoring/publish/retry/{data_id:path}`
 - `/api/monitoring/publish/status`
 
+## mosaic-quality
+
+- `/api/mosaic-quality/metrics`
+- `/api/mosaic-quality/plots/dynamic-range`
+- `/api/mosaic-quality/plots/rms-trends`
+
 ## mosaics
 
-- `/api/mosaics` - GET: List recent mosaics with pagination
-- `/api/mosaics/create` - POST: Create a new mosaic job
-- `/api/mosaics/query` - POST: Query mosaics by time range
-- `/api/mosaics/{mosaic_id}` - GET: Get mosaic by ID
-- `/api/mosaics/{mosaic_id}/fits` - GET: Download mosaic FITS file
+- `/api/mosaics`
+- `/api/mosaics/create`
+- `/api/mosaics/query`
+- `/api/mosaics/{mosaic_id}`
+- `/api/mosaics/{mosaic_id}/fits`
 
 ## ms
 
@@ -157,28 +223,14 @@
 - `/api/operations/dlq/items/{item_id}/retry`
 - `/api/operations/dlq/stats`
 
-## dlq (Phase 2 - Enhanced DLQ API)
-
-- `/api/dlq/items` - List DLQ items with filtering
-- `/api/dlq/items/{item_id}` - Get specific DLQ item
-- `/api/dlq/items/{item_id}/retry` - Retry with Absurd resubmission option
-- `/api/dlq/items/{item_id}/resolve` - Mark as resolved
-- `/api/dlq/items/{item_id}/fail` - Mark as permanently failed
-- `/api/dlq/stats` - Statistics with by_component and by_error_type breakdowns
-- `DELETE /api/dlq/items/{item_id}` - Delete item permanently
-
-## absurd (Phase 2 & 3 - Workflow Manager)
-
-- `/api/absurd/health` - Health check
-- `/api/absurd/metrics` - Real-time metrics (JSON)
-- `/api/absurd/metrics/prometheus` - Prometheus exposition format metrics
-- `/api/absurd/tasks` - List/spawn tasks
-- `/api/absurd/tasks/{task_id}` - Get/cancel task
-- `/api/absurd/queues/{queue_name}/stats` - Queue statistics
-
 ## performance
 
 - `/api/performance`
+- `/api/performance/metrics`
+- `/api/performance/plots/failure-rate`
+- `/api/performance/plots/stage-duration`
+- `/api/performance/plots/throughput`
+- `/api/performance/plots/writer-comparison`
 
 ## photometry
 
@@ -201,6 +253,14 @@
 ## plots
 
 - `/api/plots/caltable/{caltable_path:path}`
+
+## pointing
+
+- `/api/pointing/history`
+- `/api/pointing/mollweide-sky-map`
+- `/api/pointing/mollweide-sky-map-data`
+- `/api/pointing/sky-map`
+- `/api/pointing/sky-map-data`
 
 ## pointing-monitor
 
@@ -232,8 +292,18 @@
 - `/api/qa/thumbs`
 - `/api/qa/{ms_path:path}`
 
+## queue-health
+
+- `/api/queue-health/metrics`
+- `/api/queue-health/plots/depth-trends`
+- `/api/queue-health/plots/processing-rate`
+- `/api/queue-health/plots/state-transitions`
+- `/api/queue-health/plots/time-to-completion`
+
 ## queues
 
+- `/api/queues`
+- `/api/queues/stats`
 - `/api/queues/{queue_name}/enqueue`
 - `/api/queues/{queue_name}/stats`
 
@@ -251,8 +321,15 @@
 
 - `/api/reprocess/{group_id}`
 
+## schedules
+
+- `/api/schedules`
+- `/api/schedules/{name}`
+- `/api/schedules/{name}/trigger`
+
 ## sources
 
+- `/api/sources`
 - `/api/sources/search`
 - `/api/sources/{source_id}`
 - `/api/sources/{source_id}/detections`
@@ -282,10 +359,23 @@
 - `/api/streaming/config`
 - `/api/streaming/health`
 - `/api/streaming/metrics`
+- `/api/streaming/mosaic-queue`
 - `/api/streaming/restart`
 - `/api/streaming/start`
 - `/api/streaming/status`
 - `/api/streaming/stop`
+
+## tasks
+
+- `/api/tasks`
+- `/api/tasks/with-deps`
+- `/api/tasks/{task_id}`
+
+## templates
+
+- `/api/templates`
+- `/api/templates/{template_name}`
+- `/api/templates/{template_name}/run`
 
 ## test
 
@@ -306,6 +396,23 @@
 ## uvh5
 
 - `/api/uvh5`
+
+## visualization
+
+- `/api/visualization/casatable/info`
+
+## workers
+
+- `/api/workers`
+- `/api/workers/metrics`
+- `/api/workers/{worker_id}/heartbeat`
+
+## workflows
+
+- `/api/workflows`
+- `/api/workflows/{workflow_id}`
+- `/api/workflows/{workflow_id}/dag`
+- `/api/workflows/{workflow_id}/ready`
 
 ## ws
 

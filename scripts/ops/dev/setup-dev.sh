@@ -4,7 +4,8 @@
 
 set -e
 
-REPO_ROOT="$(cd "$(dirname -- "$0")/.." && pwd)"
+# This script lives under scripts/ops/dev/, so hop three levels to reach repo root
+REPO_ROOT="$(cd "$(dirname -- "$0")/../../.." && pwd)"
 cd "$REPO_ROOT"
 
 echo "Setting up development environment..."

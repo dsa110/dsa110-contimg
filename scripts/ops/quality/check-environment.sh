@@ -4,7 +4,8 @@
 
 set -e
 
-REPO_ROOT="$(cd "$(dirname -- "$0")/.." && pwd)"
+# This script lives under scripts/ops/quality/, so hop three levels to reach repo root
+REPO_ROOT="$(cd "$(dirname -- "$0")/../../.." && pwd)"
 cd "$REPO_ROOT"
 
 ERRORS=0
@@ -19,12 +20,12 @@ NC='\033[0m'
 
 error() {
   echo -e "${RED}❌ ERROR:${NC} $1" >&2
-  ((ERRORS++))
+  ((ERRORS++)) || true
 }
 
 warning() {
   echo -e "${YELLOW}⚠️  WARNING:${NC} $1" >&2
-  ((WARNINGS++))
+  ((WARNINGS++)) || true
 }
 
 success() {
@@ -179,4 +180,3 @@ else
   echo "  3. Re-run this check: ./scripts/check-environment.sh"
   exit 1
 fi
-

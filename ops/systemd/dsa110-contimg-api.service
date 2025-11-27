@@ -10,7 +10,7 @@ Group=ubuntu
 EnvironmentFile=/data/dsa110-contimg/ops/systemd/contimg.env
 Environment="PYTHONPATH=/data/dsa110-contimg/src"
 WorkingDirectory=/data/dsa110-contimg
-ExecStart=/bin/bash /data/dsa110-contimg/scripts/casa_wrapper.sh /opt/miniforge/envs/casa6/bin/uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port ${CONTIMG_API_PORT}
+ExecStart=/bin/bash /data/dsa110-contimg/scripts/ops/casa/casa_wrapper.sh /opt/miniforge/envs/casa6/bin/uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port ${CONTIMG_API_PORT}
 
 # Resource limits
 MemoryMax=4G

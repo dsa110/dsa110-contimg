@@ -1,11 +1,10 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+set -e
 
 # Error detection and anti-pattern detection pre-commit hook
 # Runs pre-flight checks and anti-pattern detection before allowing commit
 
-# Get absolute path to repo root (more robust than assuming current directory)
-REPO_ROOT="$(cd "$(dirname -- "$0")/../.." && pwd)"
+# Get absolute path to repo root (hook lives in .husky/)
+REPO_ROOT="$(cd "$(dirname -- "$0")/.." && pwd)"
 FRONTEND_DIR="${REPO_ROOT}/frontend"
 
 # Change to repo root to ensure all paths work correctly

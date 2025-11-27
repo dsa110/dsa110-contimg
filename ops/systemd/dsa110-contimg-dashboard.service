@@ -17,9 +17,9 @@ WorkingDirectory=/data/dsa110-contimg/frontend
 ExecStartPre=/data/dsa110-contimg/scripts/build-dashboard-production.sh
 ExecStart=/data/dsa110-contimg/scripts/serve-dashboard-production.sh
 
-# Resource limits
-MemoryMax=2G
-MemoryHigh=1.5G
+# Resource limits (increased for build process)
+MemoryMax=6G
+MemoryHigh=5G
 CPUQuota=200%
 CPUWeight=100
 

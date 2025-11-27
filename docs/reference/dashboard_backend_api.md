@@ -18,7 +18,20 @@ generated from the code and is the single source of truth.
 
 ### alerts
 
+- `/api/alerts`
+- `/api/alerts/bulk-acknowledge`
 - `/api/alerts/history`
+- `/api/alerts/{alert_id}`
+- `/api/alerts/{alert_id}/acknowledge`
+- `/api/alerts/{alert_id}/follow-up`
+- `/api/alerts/{alert_id}/notes`
+
+### antenna-health
+
+- `/api/antenna-health/metrics`
+- `/api/antenna-health/plots/heatmap`
+- `/api/antenna-health/plots/refant-report`
+- `/api/antenna-health/plots/stability-trends`
 
 ### available
 
@@ -41,6 +54,15 @@ generated from the code and is the single source of truth.
 
 - `/api/cache/stats`
 
+### calibration
+
+- `/api/calibration/status`
+
+### calibration-quality
+
+- `/api/calibration-quality/metrics`
+- `/api/calibration-quality/plots/snr-trends`
+
 ### calibrator_matches
 
 - `/api/calibrator_matches`
@@ -49,6 +71,15 @@ generated from the code and is the single source of truth.
 
 - `/api/caltables`
 
+### candidates
+
+- `/api/candidates`
+- `/api/candidates/bulk-classify`
+- `/api/candidates/{candidate_id}`
+- `/api/candidates/{candidate_id}/classify`
+- `/api/candidates/{candidate_id}/follow-up`
+- `/api/candidates/{candidate_id}/notes`
+
 ### catalog
 
 - `/api/catalog/overlay`
@@ -56,6 +87,10 @@ generated from the code and is the single source of truth.
 ### clear
 
 - `/api/clear`
+
+### dashboard
+
+- `/api/dashboard/summary`
 
 ### data
 
@@ -68,6 +103,12 @@ generated from the code and is the single source of truth.
 - `/api/data/{data_id:path}/lineage`
 - `/api/data/{data_id:path}/publish`
 
+### disk-usage
+
+- `/api/disk-usage/current`
+- `/api/disk-usage/plots/current`
+- `/api/disk-usage/plots/projection`
+
 ### ese
 
 - `/api/ese/candidates`
@@ -76,6 +117,12 @@ generated from the code and is the single source of truth.
 - `/api/ese/candidates/{source_id}/postage_stamps`
 - `/api/ese/candidates/{source_id}/variability`
 
+### ese-candidates
+
+- `/api/ese-candidates/list`
+- `/api/ese-candidates/plots/flux-variations`
+- `/api/ese-candidates/plots/sky-distribution`
+
 ### groups
 
 - `/api/groups/{group_id}`
@@ -83,6 +130,8 @@ generated from the code and is the single source of truth.
 ### health
 
 - `/api/health`
+- `/api/health/detailed`
+- `/api/health/services`
 
 ### images
 
@@ -92,6 +141,14 @@ generated from the code and is the single source of truth.
 - `/api/images/{image_id}/fits`
 - `/api/images/{image_id}/measurements`
 - `/api/images/{image_id}/profile`
+
+### items
+
+- `/api/items`
+- `/api/items/{item_id}`
+- `/api/items/{item_id}/fail`
+- `/api/items/{item_id}/resolve`
+- `/api/items/{item_id}/retry`
 
 ### jobs
 
@@ -125,6 +182,9 @@ generated from the code and is the single source of truth.
 ### metrics
 
 - `/api/metrics`
+- `/api/metrics/database`
+- `/api/metrics/history`
+- `/api/metrics/prometheus`
 - `/api/metrics/system`
 - `/api/metrics/system/history`
 
@@ -135,8 +195,15 @@ generated from the code and is the single source of truth.
 - `/api/monitoring/publish/retry/{data_id:path}`
 - `/api/monitoring/publish/status`
 
+### mosaic-quality
+
+- `/api/mosaic-quality/metrics`
+- `/api/mosaic-quality/plots/dynamic-range`
+- `/api/mosaic-quality/plots/rms-trends`
+
 ### mosaics
 
+- `/api/mosaics`
 - `/api/mosaics/create`
 - `/api/mosaics/query`
 - `/api/mosaics/{mosaic_id}`
@@ -175,6 +242,11 @@ generated from the code and is the single source of truth.
 ### performance
 
 - `/api/performance`
+- `/api/performance/metrics`
+- `/api/performance/plots/failure-rate`
+- `/api/performance/plots/stage-duration`
+- `/api/performance/plots/throughput`
+- `/api/performance/plots/writer-comparison`
 
 ### photometry
 
@@ -197,6 +269,14 @@ generated from the code and is the single source of truth.
 ### plots
 
 - `/api/plots/caltable/{caltable_path:path}`
+
+### pointing
+
+- `/api/pointing/history`
+- `/api/pointing/mollweide-sky-map`
+- `/api/pointing/mollweide-sky-map-data`
+- `/api/pointing/sky-map`
+- `/api/pointing/sky-map-data`
 
 ### pointing-monitor
 
@@ -228,8 +308,18 @@ generated from the code and is the single source of truth.
 - `/api/qa/thumbs`
 - `/api/qa/{ms_path:path}`
 
+### queue-health
+
+- `/api/queue-health/metrics`
+- `/api/queue-health/plots/depth-trends`
+- `/api/queue-health/plots/processing-rate`
+- `/api/queue-health/plots/state-transitions`
+- `/api/queue-health/plots/time-to-completion`
+
 ### queues
 
+- `/api/queues`
+- `/api/queues/stats`
 - `/api/queues/{queue_name}/enqueue`
 - `/api/queues/{queue_name}/stats`
 
@@ -247,8 +337,15 @@ generated from the code and is the single source of truth.
 
 - `/api/reprocess/{group_id}`
 
+### schedules
+
+- `/api/schedules`
+- `/api/schedules/{name}`
+- `/api/schedules/{name}/trigger`
+
 ### sources
 
+- `/api/sources`
 - `/api/sources/search`
 - `/api/sources/{source_id}`
 - `/api/sources/{source_id}/detections`
@@ -278,10 +375,23 @@ generated from the code and is the single source of truth.
 - `/api/streaming/config`
 - `/api/streaming/health`
 - `/api/streaming/metrics`
+- `/api/streaming/mosaic-queue`
 - `/api/streaming/restart`
 - `/api/streaming/start`
 - `/api/streaming/status`
 - `/api/streaming/stop`
+
+### tasks
+
+- `/api/tasks`
+- `/api/tasks/with-deps`
+- `/api/tasks/{task_id}`
+
+### templates
+
+- `/api/templates`
+- `/api/templates/{template_name}`
+- `/api/templates/{template_name}/run`
 
 ### test
 
@@ -302,6 +412,23 @@ generated from the code and is the single source of truth.
 ### uvh5
 
 - `/api/uvh5`
+
+### visualization
+
+- `/api/visualization/casatable/info`
+
+### workers
+
+- `/api/workers`
+- `/api/workers/metrics`
+- `/api/workers/{worker_id}/heartbeat`
+
+### workflows
+
+- `/api/workflows`
+- `/api/workflows/{workflow_id}`
+- `/api/workflows/{workflow_id}/dag`
+- `/api/workflows/{workflow_id}/ready`
 
 ### ws
 

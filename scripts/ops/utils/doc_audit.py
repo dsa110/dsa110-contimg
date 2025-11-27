@@ -16,7 +16,8 @@ import sys
 from pathlib import Path
 from typing import Dict, Iterable, List, Set, Tuple
 
-ROOT = Path(__file__).resolve().parents[1]
+# Compute repository root (this script lives at scripts/ops/utils/)
+ROOT = Path(__file__).resolve().parents[3]
 
 
 def gather_routes() -> Set[str]:
@@ -34,12 +35,20 @@ def gather_routes() -> Set[str]:
 
     routes: Set[str] = set()
 
+    # Locate API source tree (supports legacy src/ and current backend/src/)
+    api_root_candidates = [
+        ROOT / "backend" / "src" / "dsa110_contimg" / "api",
+        ROOT / "src" / "dsa110_contimg" / "api",
+    ]
+    api_root = next((p for p in api_root_candidates if p.exists()), None)
+    if not api_root:
+        return routes
+
+    routes_py = api_root / "routes.py"
     # Map router alias -> module name
     alias_to_mod: Dict[str, str] = {}
     # Map module/alias -> prefix as included
     alias_prefix: Dict[str, str] = {}
-
-    routes_py = ROOT / "src/dsa110_contimg/api/routes.py"
     if routes_py.exists():
         s = routes_py.read_text(encoding="utf-8")
         for m in import_alias_pat.finditer(s):
@@ -71,7 +80,7 @@ def gather_routes() -> Set[str]:
             routes.add(full)
 
     # Include subrouter modules with discovered prefixes
-    routers_dir = ROOT / "src/dsa110_contimg/api/routers"
+    routers_dir = api_root / "routers"
     if routers_dir.exists():
         for f in routers_dir.glob("*.py"):
             mod = f.stem
