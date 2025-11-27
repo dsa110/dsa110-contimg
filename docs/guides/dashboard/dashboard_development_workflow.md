@@ -201,9 +201,9 @@ const Component = (props: any) => { ... }
 **Standard Component Pattern:**
 
 ```typescript
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Box, Typography } from '@mui/material';
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Box, Typography } from "@mui/material";
 
 interface ComponentProps {
   id: string;
@@ -211,7 +211,7 @@ interface ComponentProps {
 
 export default function Component({ id }: ComponentProps) {
   const { data, isLoading } = useQuery({
-    queryKey: ['resource', id],
+    queryKey: ["resource", id],
     queryFn: () => apiClient.get(`/resource/${id}`),
   });
 
@@ -303,9 +303,9 @@ export default function NewPage() {
 
 ```typescript
 // src/App.tsx
-import NewPage from './pages/NewPage';
+import NewPage from "./pages/NewPage";
 
-<Route path="/new-page" element={<NewPage />} />
+<Route path="/new-page" element={<NewPage />} />;
 ```
 
 3. **Add Navigation Link:**
@@ -431,8 +431,8 @@ npm install
 **Solutions:**
 
 ```bash
-# Use different port
-npm run dev -- --port 3000
+# Use different port (if 5173 is busy)
+npm run dev -- --port 5174
 
 # Or kill process using port
 lsof -ti:5173 | xargs kill

@@ -5,7 +5,6 @@ Focus: Fast tests for POST /api/jobs/ese-detect and POST /api/batch/ese-detect e
 
 from __future__ import annotations
 
-import sqlite3
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -37,7 +36,9 @@ def mock_products_db(monkeypatch):
 @pytest.fixture
 def setup_jobs_tables(mock_products_db):
     """Set up jobs tables in test database."""
-    conn = sqlite3.connect(mock_products_db)
+    import sqlite3
+
+    conn = sqlite3.connect(mock_products_db, check_same_thread=False)
     cursor = conn.cursor()
 
     cursor.execute(
@@ -103,7 +104,7 @@ class TestESEDetectJobEndpoint:
         """Test creating an ESE detection job."""
         import sqlite3
 
-        conn = sqlite3.connect(mock_products_db)
+        conn = sqlite3.connect(mock_products_db, check_same_thread=False)
         mock_ensure_db.return_value = conn
 
         request_body = {
@@ -132,7 +133,7 @@ class TestESEDetectJobEndpoint:
         """Test creating ESE detection job with specific source ID."""
         import sqlite3
 
-        conn = sqlite3.connect(mock_products_db)
+        conn = sqlite3.connect(mock_products_db, check_same_thread=False)
         mock_ensure_db.return_value = conn
 
         request_body = {
@@ -174,8 +175,9 @@ class TestBatchESEDetectEndpoint:
         """Test creating a batch ESE detection job."""
         import sqlite3
 
-        conn = sqlite3.connect(mock_products_db)
-        mock_ensure_db.return_value = conn
+        mock_ensure_db.side_effect = lambda path: sqlite3.connect(
+            mock_products_db, check_same_thread=False
+        )
 
         request_body = {
             "job_type": "ese-detect",
@@ -185,8 +187,9 @@ class TestBatchESEDetectEndpoint:
                 "source_ids": None,
             },
         }
-
-        response = client.post("/api/batch/ese-detect", json=request_body)
+        mock_ensure_db.side_effect = lambda path: sqlite3.connect(
+            mock_products_db, check_same_thread=False
+        )
 
         assert response.status_code == 200
         data = response.json()

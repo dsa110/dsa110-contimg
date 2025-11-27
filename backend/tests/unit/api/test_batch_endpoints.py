@@ -46,7 +46,7 @@ class TestBatchConvertEndpoint:
         import sqlite3
 
         # Create real in-memory database
-        conn = sqlite3.connect(":memory:")
+        conn = sqlite3.connect(":memory:", check_same_thread=False)
         cursor = conn.cursor()
 
         # Create tables
@@ -194,7 +194,7 @@ class TestBatchPublishEndpoint:
         """Test creating a batch publish job."""
         import sqlite3
 
-        conn = sqlite3.connect(":memory:")
+        conn = sqlite3.connect(":memory:", check_same_thread=False)
         cursor = conn.cursor()
 
         cursor.execute(

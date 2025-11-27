@@ -68,17 +68,19 @@ curl -s "http://localhost:8000/api/images?dec_min=-100&dec_max=200&limit=5" | jq
 
 ### Navigate to Sky View
 
-1. Open browser: `http://localhost:3000/sky` (or your frontend port)
+1. Open browser: `http://localhost:5173/sky`
 2. Open DevTools (F12) → Console tab
 3. Verify no JavaScript errors
 
 ### Test Basic Filters
 
 1. **MS Path Search:**
+
    - Type in search box → Press Enter
    - Verify images filter
 
 2. **Image Type Dropdown:**
+
    - Select "Image" → Verify filter applies
    - Select "All Types" → Verify filter clears
 
@@ -88,26 +90,31 @@ curl -s "http://localhost:8000/api/images?dec_min=-100&dec_max=200&limit=5" | jq
 ### Test Advanced Filters
 
 1. **Expand Advanced Filters:**
+
    - Click expand icon (▼) → Verify section expands
    - Verify all controls visible: date pickers, slider, text input, checkbox,
      "Clear All" button
 
 2. **Date Range:**
+
    - Click Start Date → Select date → Verify URL updates (`?start_date=...`)
    - Click End Date → Select date → Verify images filter
    - Check URL bar for parameters
 
 3. **Noise Threshold:**
+
    - Enter "0.5" in noise input (0.5 mJy)
    - Verify images filter
    - Clear input → Verify filter removes
 
 4. **Declination Slider:**
+
    - Move slider to [30, 60]
    - Verify displayed range updates
    - Note: May be slow (this is expected)
 
 5. **Calibrator Checkbox:**
+
    - Check box → Verify filter applies
    - Uncheck → Verify filter removes
 

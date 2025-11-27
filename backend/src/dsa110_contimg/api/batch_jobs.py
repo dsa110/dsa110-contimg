@@ -405,7 +405,7 @@ def create_batch_ese_detect_job(
             total_items,
             0,
             0,
-            str(params),
+            json.dumps(params),
         ),
     )
     batch_id = cursor.lastrowid

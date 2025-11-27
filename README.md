@@ -11,6 +11,7 @@
    ```
 
    This will:
+
    - Set up git hooks
    - Install dependencies
    - Verify your environment
@@ -62,8 +63,9 @@ The pipeline can be run via systemd (recommended for the stream worker) or via
 Docker Compose (good for API and reproducible deployments). A simple mosaicking
 skeleton and housekeeping tool are also included.
 
-Quick look: see `docs/guides/operations/quicklook.md` for a sub-minute convert-calibrate-image
-flow using RAM staging, fast calibration, and quick imaging.
+Quick look: see `docs/guides/operations/quicklook.md` for a sub-minute
+convert-calibrate-image flow using RAM staging, fast calibration, and quick
+imaging.
 
 ## Data Paths
 
@@ -75,7 +77,8 @@ flow using RAM staging, fast calibration, and quick imaging.
 
 - `backend/src/dsa110_contimg/`
   - `conversion/`: Streaming and legacy conversion logic
-    - `streaming/streaming_converter.py`: Main daemon for monitoring and processing
+    - `streaming/streaming_converter.py`: Main daemon for monitoring and
+      processing
     - `strategies/`: Pluggable processing strategies (orchestrator, direct
       writers)
   - `calibration/`: CASA-based calibration routines
@@ -109,6 +112,7 @@ flow using RAM staging, fast calibration, and quick imaging.
 ## Services and Components
 
 - Streaming Worker (core)
+
   - Watches `/data/incoming/` for `*_sb??.hdf5` files, groups by time, converts
     via strategy orchestrator
   - Calibrator matching (optional); solves calibrator MS and registers caltables
@@ -117,6 +121,7 @@ flow using RAM staging, fast calibration, and quick imaging.
   - Records performance metrics (including WRITER_TYPE)
 
 - Monitoring API (FastAPI)
+
   - Status of queue, recent groups, calibration sets, system metrics
   - Products and QA thumbnails; group detail view
   - Endpoints:
@@ -126,10 +131,12 @@ flow using RAM staging, fast calibration, and quick imaging.
     - `GET /api/status` - pipeline status overview
 
 - Backfill Imaging Worker (optional)
+
   - One-shot or daemon scan of an MS directory; applies current calibration and
     images anything missed
 
 - Mosaicking (skeleton)
+
   - `python -m dsa110_contimg.mosaic.cli plan` - record a mosaic plan from
     products DB tiles
   - `python -m dsa110_contimg.mosaic.cli build` - CASA `immath` mean mosaic if
@@ -142,27 +149,22 @@ flow using RAM staging, fast calibration, and quick imaging.
 
 ## Databases
 
-**Note:** Use `.sqlite3` file extension (modern standard). Legacy `.db` files
-exist for historical reasons but should not be used for new development.
+The pipeline uses SQLite databases for state management and product tracking.
+All databases are stored in `state/` with `.sqlite3` extension.
 
 **Active Databases:**
 
-- Queue DB (SQLite): `state/ingest.sqlite3`
-  - `ingest_queue` (group state), `subband_files` (arrivals),
-    `performance_metrics` (writer_type, timings)
-- Calibration Registry DB (SQLite): `state/cal_registry.sqlite3`
-  - `caltables` with logical set names, apply order, validity windows
-- Calibrator Registry DB (SQLite): `state/calibrator_registry.sqlite3`
-  - `calibrator_sources` (pre-selected sources), `calibrator_blacklist`,
-    `pb_weights_cache`
-  - Created on first use via `create_calibrator_registry()`
-- Products DB (SQLite): `state/products.sqlite3` _(active - 27 tables, 940KB)_
-  - `ms_index(path PRIMARY KEY, start_mjd, end_mjd, mid_mjd, processed_at, status, stage, stage_updated_at, cal_applied, imagename)`
-  - `images(id, path, ms_path, created_at, type, beam_major_arcsec, noise_jy, pbcor)`
-  - Indices:
-    - `idx_images_ms_path ON images(ms_path)`
-    - `idx_ms_index_stage_path ON ms_index(stage, path)`
-    - `idx_ms_index_status ON ms_index(status)`
+| Database                      | Purpose                                                 |
+| ----------------------------- | ------------------------------------------------------- |
+| `ingest.sqlite3`              | Queue management, subband tracking, performance metrics |
+| `cal_registry.sqlite3`        | Calibration table registry with validity windows        |
+| `calibrator_registry.sqlite3` | Known calibrators, blacklist, PB weights cache          |
+| `products.sqlite3`            | MS index, images, photometry, mosaic groups             |
+| `hdf5.sqlite3`                | HDF5 file index for fast queries                        |
+
+> **📖 Full Documentation:** See
+> [Database Reference](docs/reference/DATABASE_REFERENCE_INDEX.md) for complete
+> schemas, common queries, and Python access examples.
 
 **Removed Legacy Files:**
 
@@ -182,7 +184,8 @@ exist for historical reasons but should not be used for new development.
     - All job execution uses direct function calls (no subprocess overhead)
     - Declarative pipeline with dependency resolution, retry policies, and
       improved error handling
-    - See `backend/src/dsa110_contimg/pipeline/` for the framework implementation
+    - See `backend/src/dsa110_contimg/pipeline/` for the framework
+      implementation
 - STREAMING
   - `PIPELINE_POINTING_DEC_DEG`, `VLA_CATALOG`, `CAL_MATCH_RADIUS_DEG`,
     `CAL_MATCH_TOPN` (optional calibrator matching)
@@ -254,6 +257,7 @@ Image:
 ## Nightly Mosaic and Housekeeping
 
 - Docker Compose scheduler (optional):
+
   - Enabled by the `scheduler` service in `ops/docker/docker-compose.yml`
   - Configure with env in `ops/docker/.env` (SCHED\_\* variables)
     - Runs housekeeping every `SCHED_HOUSEKEEP_INTERVAL_SEC`
@@ -373,8 +377,8 @@ docker compose stop dashboard-dev api
 
 - Both services build from local Dockerfiles (no external image pulls needed)
 - Frontend code changes in `frontend/src/` will trigger automatic reloads
-- Backend code changes in `backend/src/` are mounted and will reload (if using uvicorn
-  reload)
+- Backend code changes in `backend/src/` are mounted and will reload (if using
+  uvicorn reload)
 - Uses `docker-compose.yml` in repository root (not
   `ops/docker/docker-compose.yml`)
 

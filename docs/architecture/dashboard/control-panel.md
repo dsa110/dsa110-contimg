@@ -87,10 +87,10 @@ apply, and imaging jobs on Measurement Sets. It provides:
 2. **Frontend** (from `/data/dsa110-contimg/frontend`):
 
    ```bash
-   npm start
+   npm run dev
    ```
 
-3. Navigate to `http://localhost:3000/control`
+3. Navigate to `http://localhost:5173/control`
 
 ### Running a Calibration Job
 

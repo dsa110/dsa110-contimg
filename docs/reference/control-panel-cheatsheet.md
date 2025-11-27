@@ -17,8 +17,8 @@ sudo fuser -k 8000/tcp
 ## 🌐 URLs
 
 - **API**: http://localhost:8000
-- **Dashboard**: http://localhost:3000
-- **Control Panel**: http://localhost:3000/control
+- **Dashboard**: http://localhost:5173 (dev) / http://localhost:3000 (Docker)
+- **Control Panel**: http://localhost:5173/control
 
 ## 📡 API Endpoints
 
@@ -175,11 +175,11 @@ sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
 # Check API health
 curl -f http://localhost:8000/api/status || echo "API down"
 
-# Check dashboard health
-curl -f http://localhost:3000 || echo "Dashboard down"
+# Check dashboard health (dev mode)
+curl -f http://localhost:5173 || echo "Dashboard down"
 
 # Check ports
-netstat -tlnp | grep -E ":(8000|3000)"
+netstat -tlnp | grep -E ":(8000|5173)"
 
 # Check processes
 ps aux | grep -E "uvicorn|dsa110"
@@ -224,7 +224,7 @@ sudo fuser -k 8000/tcp
 ./scripts/manage-services.sh start api
 
 # 2. Open control panel
-# Navigate to http://localhost:3000/control
+# Navigate to http://localhost:5173/control
 
 # 3. Calibrate calibrator MS
 # Select MS → Calibrate tab → Set field=0, refant=103 → Run
