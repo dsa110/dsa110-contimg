@@ -135,11 +135,11 @@ def test_find_calibrator_by_name(temp_calibrator_db):
     conn, db_path = temp_calibrator_db
     df = load_vla_catalog_from_sqlite(str(db_path))
 
-    calibrator = df[df["source_name"] == "0834+555"]
+    # Name is the index, so use .loc to look up by name
+    calibrator = df.loc["0834+555"]
 
-    assert len(calibrator) == 1
-    assert calibrator.iloc[0]["ra_deg"] == pytest.approx(128.72876715416666)
-    assert calibrator.iloc[0]["dec_deg"] == pytest.approx(55.57251971666667)
+    assert calibrator["ra_deg"] == pytest.approx(128.72876715416666)
+    assert calibrator["dec_deg"] == pytest.approx(55.57251971666667)
 
 
 def test_calibrator_dec_range():
@@ -165,15 +165,19 @@ def test_vla_calibrator_database_exists():
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
 
-        # Check if table exists
+        # Check if table exists - actual table is 'calibrators' or 'vla_20cm'
         tables = cursor.execute(
-            "SELECT name FROM sqlite_master " "WHERE type='table' AND name='calibrator_sources'"
+            "SELECT name FROM sqlite_master "
+            "WHERE type='table' AND name IN ('calibrators', 'vla_20cm', 'calibrator_sources')"
         ).fetchall()
 
-        assert len(tables) > 0, "calibrator_sources table not found"
+        assert len(tables) > 0, "No calibrator table found (expected calibrators, vla_20cm, or calibrator_sources)"
 
-        # Check row count
-        count = cursor.execute("SELECT COUNT(*) FROM calibrator_sources").fetchone()[0]
+        # Check row count from vla_20cm (the standard view/table)
+        try:
+            count = cursor.execute("SELECT COUNT(*) FROM vla_20cm").fetchone()[0]
+        except Exception:
+            count = cursor.execute("SELECT COUNT(*) FROM calibrators").fetchone()[0]
         conn.close()
 
         # Database should have multiple calibrators
