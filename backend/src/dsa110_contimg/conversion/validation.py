@@ -14,7 +14,6 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import astropy.units as u
-import h5py
 import numpy as np
 from astropy.time import Time
 
@@ -99,7 +98,9 @@ def validate_hdf5_file(file_path: str, check_readable: bool = True) -> HDF5Valid
     phase_center_dec_deg = None
 
     try:
-        with h5py.File(file_path, "r") as f:
+        from dsa110_contimg.utils.hdf5_io import open_uvh5_metadata
+
+        with open_uvh5_metadata(file_path) as f:
             # Check for time_array
             if "time_array" in f:
                 has_time_array = True

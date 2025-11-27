@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import astropy.units as u
-import h5py
 import numpy as np
 from astropy.time import Time
 
@@ -172,7 +171,9 @@ def load_pointing(path: str | Path, field_id: Optional[int] = None) -> Dict[str,
         info["source_type"] = "uvh5"
 
         try:
-            with h5py.File(path, "r") as f:
+            from dsa110_contimg.utils.hdf5_io import open_uvh5_metadata
+
+            with open_uvh5_metadata(path) as f:
                 header = f.get("Header")
                 if header is None:
                     raise ValueError("No Header group found in UVH5 file")

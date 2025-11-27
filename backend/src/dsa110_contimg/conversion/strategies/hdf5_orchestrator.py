@@ -50,12 +50,12 @@ def _peek_uvh5_phase_and_midtime(
     uvh5_path: str,
 ) -> tuple[u.Quantity, u.Quantity, float]:
     """Lightweight HDF5 peek: return (pt_ra [rad], pt_dec [rad], mid_time [MJD])."""
-    import h5py  # type: ignore[import]
+    from dsa110_contimg.utils.hdf5_io import open_uvh5_metadata
 
     pt_ra_val: float = 0.0
     pt_dec_val: float = 0.0
     mid_jd: float = 0.0
-    with h5py.File(uvh5_path, "r") as f:
+    with open_uvh5_metadata(uvh5_path) as f:
         # Check for time_array at root or in Header group
         time_arr = None
         if "time_array" in f:
@@ -592,9 +592,9 @@ def _load_and_merge_subbands_single_batch(
 
             # Quick HDF5 structure check
             try:
-                import h5py
+                from dsa110_contimg.utils.hdf5_io import open_uvh5_metadata
 
-                with h5py.File(path, "r") as f:
+                with open_uvh5_metadata(path) as f:
                     # Verify file has required structure (Header or Data group)
                     if "Header" not in f and "Data" not in f:
                         suggestions = [

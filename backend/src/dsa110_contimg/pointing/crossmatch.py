@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 import astropy.units as u
-import h5py
 import numpy as np
 from astropy.time import Time
 
@@ -29,7 +28,9 @@ def _read_dec_start_end(
     dec_rad = None
     jd0 = None
     jd1 = None
-    with h5py.File(sb_path, "r") as f:
+    from dsa110_contimg.utils.hdf5_io import open_uvh5_metadata
+
+    with open_uvh5_metadata(sb_path) as f:
         if "time_array" in f:
             arr = np.asarray(f["time_array"])  # pyuvdata JD times
             if arr.size > 0:

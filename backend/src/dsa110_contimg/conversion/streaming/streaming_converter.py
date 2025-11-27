@@ -794,9 +794,9 @@ class _FSHandler(FileSystemEventHandler):
 
         # Quick HDF5 structure check
         try:
-            import h5py
+            from dsa110_contimg.utils.hdf5_io import open_uvh5_metadata
 
-            with h5py.File(path, "r") as f:
+            with open_uvh5_metadata(path) as f:
                 # Verify file has required structure (Header or Data group)
                 if "Header" not in f and "Data" not in f:
                     log.warning(f"File does not appear to be valid HDF5/UVH5: {path}")
