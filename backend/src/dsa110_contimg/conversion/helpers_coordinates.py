@@ -6,6 +6,18 @@ from typing import Optional, Tuple
 import astropy.units as u
 import numpy as np
 from astropy.coordinates import SkyCoord
+from astropy.time import Time
+from pyuvdata import utils as uvutils
+
+try:  # pyuvdata>=3.2: faster uvw calculator
+    from pyuvdata.utils.phasing import calc_uvw as _PU_CALC_UVW  # type: ignore
+except Exception:  # pragma: no cover - fallback
+    _PU_CALC_UVW = None
+
+from dsa110_contimg.conversion.helpers_antenna import (
+    _ensure_antenna_diameters,
+    set_antenna_positions,
+)
 
 # OPTIMIZATION 3: Try to use numba-accelerated angular separation
 try:
@@ -16,6 +28,8 @@ try:
     _USE_NUMBA_ANGULAR_SEP = NUMBA_AVAILABLE
 except ImportError:
     _USE_NUMBA_ANGULAR_SEP = False
+
+logger = logging.getLogger("dsa110_contimg.conversion.helpers")
 
 
 def angular_separation(ra1, dec1, ra2, dec2):
@@ -39,22 +53,6 @@ def angular_separation(ra1, dec1, ra2, dec2):
     cossep = np.sin(dec1) * np.sin(dec2) + np.cos(dec1) * np.cos(dec2) * np.cos(ra1 - ra2)
     cossep = np.clip(cossep, -1.0, 1.0)
     return np.arccos(cossep)
-
-
-from astropy.time import Time
-from pyuvdata import utils as uvutils
-
-try:  # pyuvdata>=3.2: faster uvw calculator
-    from pyuvdata.utils.phasing import calc_uvw as _PU_CALC_UVW  # type: ignore
-except Exception:  # pragma: no cover - fallback
-    _PU_CALC_UVW = None
-
-from dsa110_contimg.conversion.helpers_antenna import (
-    _ensure_antenna_diameters,
-    set_antenna_positions,
-)
-
-logger = logging.getLogger("dsa110_contimg.conversion.helpers")
 
 
 def get_meridian_coords(pt_dec: u.Quantity, time_mjd: float) -> Tuple[u.Quantity, u.Quantity]:

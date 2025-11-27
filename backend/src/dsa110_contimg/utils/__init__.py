@@ -35,8 +35,27 @@ from dsa110_contimg.utils.hdf5_io import (
     open_uvh5,
     open_uvh5_large_cache,
     open_uvh5_metadata,
+    open_uvh5_mmap,
     open_uvh5_streaming,
 )
+
+# Numba-accelerated functions (optional, graceful fallback)
+try:
+    from dsa110_contimg.utils.numba_accel import (
+        NUMBA_AVAILABLE,
+        angular_separation_jit,
+        is_numba_available,
+        warm_up_jit,
+    )
+except ImportError:
+    NUMBA_AVAILABLE = False
+    angular_separation_jit = None
+
+    def is_numba_available():
+        return False
+
+    def warm_up_jit():
+        pass
 
 __all__ = [
     "check_casa6_python",
@@ -65,4 +84,10 @@ __all__ = [
     "open_uvh5_metadata",
     "open_uvh5_streaming",
     "open_uvh5_large_cache",
+    "open_uvh5_mmap",
+    # Numba acceleration
+    "NUMBA_AVAILABLE",
+    "angular_separation_jit",
+    "is_numba_available",
+    "warm_up_jit",
 ]
