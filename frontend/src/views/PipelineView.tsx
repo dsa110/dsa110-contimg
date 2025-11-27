@@ -31,6 +31,7 @@ import {
   Queue,
   MonitorHeart,
 } from "@mui/icons-material";
+import TabErrorBoundary from "../components/TabErrorBoundary";
 
 // Lazy-load tab content components for code splitting
 const OverviewTab = lazy(() => import("./pipeline/OverviewTab"));
@@ -177,9 +178,11 @@ export default function PipelineView() {
         const TabComponent = tab.component;
         return (
           <TabPanel key={tab.id} value={tabValue} index={index}>
-            <Suspense fallback={<TabLoadingFallback />}>
-              <TabComponent />
-            </Suspense>
+            <TabErrorBoundary tabName={tab.label}>
+              <Suspense fallback={<TabLoadingFallback />}>
+                <TabComponent />
+              </Suspense>
+            </TabErrorBoundary>
           </TabPanel>
         );
       })}

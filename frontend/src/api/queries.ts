@@ -9,7 +9,15 @@ import { createWebSocketClient, WebSocketClient } from "./websocket";
 import { logger } from "../utils/logger";
 import { env } from "../config/env";
 import { ZodError } from "zod";
-import { validatePipelineStatus } from "./schemas/pipelineStatus";
+import {
+  validatePipelineStatus,
+  validateSystemMetrics,
+  validateHealthSummary,
+  validateWorkflowStatus,
+  validateEventStatistics,
+  validateDLQStats,
+  validateCircuitBreakerList,
+} from "./schemas";
 import type {
   PipelineStatus,
   SystemMetrics,
@@ -204,7 +212,18 @@ export function useSystemMetrics(): UseQueryResult<SystemMetrics> {
     ["system", "metrics"],
     async () => {
       const response = await apiClient.get<SystemMetrics>("/metrics/system");
-      return response.data;
+      try {
+        return validateSystemMetrics(response.data);
+      } catch (error) {
+        if (error instanceof ZodError) {
+          const details = error.issues
+            .map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`)
+            .join("; ");
+          logger.error("System metrics payload failed schema validation", { details });
+          throw new Error(`System metrics response failed validation: ${details}`);
+        }
+        throw error;
+      }
     },
     wsClient,
     10000
@@ -1781,7 +1800,18 @@ export function useDLQStats(): UseQueryResult<DLQStats> {
     queryKey: ["dlq", "stats"],
     queryFn: async () => {
       const response = await apiClient.get<DLQStats>("/operations/dlq/stats");
-      return response.data;
+      try {
+        return validateDLQStats(response.data);
+      } catch (error) {
+        if (error instanceof ZodError) {
+          const details = error.issues
+            .map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`)
+            .join("; ");
+          logger.error("DLQ stats payload failed schema validation", { details });
+          throw new Error(`DLQ stats response failed validation: ${details}`);
+        }
+        throw error;
+      }
     },
     refetchInterval: 10000, // Refresh every 10 seconds
   });
@@ -1841,7 +1871,18 @@ export function useCircuitBreakers(): UseQueryResult<CircuitBreakerList> {
     queryKey: ["circuit-breakers"],
     queryFn: async () => {
       const response = await apiClient.get<CircuitBreakerList>("/operations/circuit-breakers");
-      return response.data;
+      try {
+        return validateCircuitBreakerList(response.data);
+      } catch (error) {
+        if (error instanceof ZodError) {
+          const details = error.issues
+            .map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`)
+            .join("; ");
+          logger.error("Circuit breakers payload failed schema validation", { details });
+          throw new Error(`Circuit breakers response failed validation: ${details}`);
+        }
+        throw error;
+      }
     },
     refetchInterval: 5000, // Refresh every 5 seconds
   });
@@ -1865,7 +1906,18 @@ export function useHealthSummary(): UseQueryResult<HealthSummary> {
     queryKey: ["health", "summary"],
     queryFn: async () => {
       const response = await apiClient.get<HealthSummary>("/health/summary");
-      return response.data;
+      try {
+        return validateHealthSummary(response.data);
+      } catch (error) {
+        if (error instanceof ZodError) {
+          const details = error.issues
+            .map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`)
+            .join("; ");
+          logger.error("Health summary payload failed schema validation", { details });
+          throw new Error(`Health summary response failed validation: ${details}`);
+        }
+        throw error;
+      }
     },
     refetchInterval: 10000, // Refresh every 10 seconds
   });
@@ -1881,7 +1933,18 @@ export function useWorkflowStatus(): UseQueryResult<WorkflowStatus> {
     queryKey: ["pipeline", "workflow-status"],
     queryFn: async () => {
       const response = await apiClient.get<WorkflowStatus>("/pipeline/workflow-status");
-      return response.data;
+      try {
+        return validateWorkflowStatus(response.data);
+      } catch (error) {
+        if (error instanceof ZodError) {
+          const details = error.issues
+            .map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`)
+            .join("; ");
+          logger.error("Workflow status payload failed schema validation", { details });
+          throw new Error(`Workflow status response failed validation: ${details}`);
+        }
+        throw error;
+      }
     },
     refetchInterval: 15000, // Refresh every 15 seconds
     staleTime: 10000,
@@ -2040,7 +2103,18 @@ export function useEventStatistics(): UseQueryResult<EventStatistics> {
     queryKey: ["events", "stats"],
     queryFn: async () => {
       const response = await apiClient.get<EventStatistics>("/events/stats");
-      return response.data;
+      try {
+        return validateEventStatistics(response.data);
+      } catch (error) {
+        if (error instanceof ZodError) {
+          const details = error.issues
+            .map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`)
+            .join("; ");
+          logger.error("Event statistics payload failed schema validation", { details });
+          throw new Error(`Event statistics response failed validation: ${details}`);
+        }
+        throw error;
+      }
     },
     refetchInterval: 10000, // Refresh every 10 seconds
   });

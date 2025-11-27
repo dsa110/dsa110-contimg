@@ -29,6 +29,7 @@ import {
   Visibility,
   Science,
 } from "@mui/icons-material";
+import TabErrorBoundary from "../components/TabErrorBoundary";
 
 // Lazy-load tab content components for code splitting
 const BrowseTab = lazy(() => import("./data/BrowseTab"));
@@ -173,9 +174,11 @@ export default function DataView() {
         const TabComponent = tab.component;
         return (
           <TabPanel key={tab.id} value={tabValue} index={index}>
-            <Suspense fallback={<TabLoadingFallback />}>
-              <TabComponent />
-            </Suspense>
+            <TabErrorBoundary tabName={tab.label}>
+              <Suspense fallback={<TabLoadingFallback />}>
+                <TabComponent />
+              </Suspense>
+            </TabErrorBoundary>
           </TabPanel>
         );
       })}

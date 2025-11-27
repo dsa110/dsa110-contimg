@@ -11,14 +11,32 @@ This roadmap tracks the implementation of performance optimizations for the
 DSA-110 continuum imaging pipeline. All 6 phases have been completed, achieving
 significant performance improvements in HDF5 I/O and conversion operations.
 
+## Storage Architecture
+
+| Mount Point | Type     | Purpose                                |
+| ----------- | -------- | -------------------------------------- |
+| `/data/`    | HDD      | Raw HDF5 files, source code, databases |
+| `/stage/`   | NVMe SSD | Output MS files, working data          |
+| `/scratch/` | NVMe SSD | Temporary files, builds                |
+| `/dev/shm/` | tmpfs    | In-memory staging during conversion    |
+
 ## Final Performance Results
 
-| Metric                  | Before Optimization | After All Phases | Target         | Status |
-| ----------------------- | ------------------- | ---------------- | -------------- | ------ |
-| Single group conversion | 2m 40s              | ~1m 30s          | < 1m 30s       | ✅     |
-| HDF5 read time          | 115.8s              | ~50s             | < 45s          | ~✅    |
-| Batch Time() conversion | 2.73ms              | 0.12ms           | —              | ✅     |
-| Streaming latency       | —                   | ~1m 30s          | < 2m per group | ✅     |
+**Benchmark**: 0834+555 calibrator conversion (9 groups, 2025-11-27)
+
+| Metric                  | Before Optimization | After All Phases | Target   | Status |
+| ----------------------- | ------------------- | ---------------- | -------- | ------ |
+| Single group conversion | 2m 40s              | 2m 08s (mean)    | < 2m 30s | ✅     |
+| Per-group range         | —                   | 1m 18s - 2m 31s  | —        | ✅     |
+| Batch Time() conversion | 2.73ms              | 0.12ms           | —        | ✅     |
+| MS file size            | —                   | ~5.1 GB          | —        | ✅     |
+
+**Notes**:
+
+- Times include full pipeline: HDF5 load → phase → write → concatenate →
+  configure → validate
+- First group is faster (~78s) due to filesystem caching
+- Variance (±20s) is normal due to I/O patterns and concurrent disk activity
 
 ---
 

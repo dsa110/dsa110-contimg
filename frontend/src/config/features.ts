@@ -145,4 +145,3 @@ export { useFeatureFlag } from "../hooks/useFeatureFlag";
 
 // Export the features object for direct access
 export const features = getFeatures();
-export type { FeatureFlags as Features };

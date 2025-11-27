@@ -9,6 +9,24 @@ The DSA-110 Continuum Imaging Pipeline processes large datasets (GB to TB scale)
 and must balance throughput, latency, and resource usage. This guide helps
 developers write performant stages.
 
+## Storage Architecture
+
+Understanding storage types is critical for performance optimization:
+
+| Mount Point | Type     | Speed     | Purpose                                |
+| ----------- | -------- | --------- | -------------------------------------- |
+| `/data/`    | HDD      | ~150 MB/s | Raw HDF5 files, source code, databases |
+| `/stage/`   | NVMe SSD | ~2 GB/s   | Output MS files, working data          |
+| `/scratch/` | NVMe SSD | ~2 GB/s   | Temporary files, builds                |
+| `/dev/shm/` | tmpfs    | RAM speed | In-memory staging during conversion    |
+
+**Key implications**:
+
+- Read from `/data/` (HDD) is the I/O bottleneck
+- Write to `/stage/` (SSD) is fast; prefer SSD for output
+- Use `/dev/shm/` for intermediate files that are immediately consumed
+- Use `/scratch/` for builds and temporary processing
+
 ## Key Performance Metrics
 
 ### 1. Throughput

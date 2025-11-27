@@ -57,9 +57,18 @@ all Python scripts and CASA tasks.
 
 ## I/O Performance & Build Practices
 
+**Storage Architecture**:
+
+| Mount       | Type     | Purpose                                 |
+| ----------- | -------- | --------------------------------------- |
+| `/data/`    | HDD      | Raw HDF5, source code, databases (slow) |
+| `/stage/`   | NVMe SSD | Output MS files, working data (fast)    |
+| `/scratch/` | NVMe SSD | Temporary files, builds (fast)          |
+| `/dev/shm/` | tmpfs    | In-memory staging during conversion     |
+
 **CRITICAL**: `/data/` is on HDD - avoid I/O-intensive operations there.
 
-**Use `/scratch/` for**:
+**Use `/scratch/` or `/stage/` for**:
 
 - Frontend builds (`npm run build`)
 - MkDocs documentation builds
