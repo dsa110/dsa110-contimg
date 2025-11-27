@@ -14,7 +14,7 @@ from typing import Any
 
 import requests
 
-from .config import RAGFlowConfig, DSA110_DATASETS
+from config import RAGFlowConfig, DSA110_DATASETS
 
 logger = logging.getLogger(__name__)
 

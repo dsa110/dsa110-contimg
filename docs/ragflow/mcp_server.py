@@ -1,15 +1,21 @@
 """
 MCP Server for RAGFlow Integration.
 
+**Location:** This script has been moved to `docs/ragflow/` and should be run
+directly from that directory.
+
 This creates an MCP server that exposes RAGFlow's retrieval and chat capabilities
 as tools that VS Code/Copilot can use.
 
 Usage:
+    # Navigate to the directory
+    cd /data/dsa110-contimg/docs/ragflow
+    
     # SSE mode (default):
-    python -m dsa110_contimg.ragflow.mcp_server --sse --port 9400
+    python mcp_server.py --sse --port 9400
 
     # STDIO mode (for direct integration):
-    python -m dsa110_contimg.ragflow.mcp_server --stdio
+    python mcp_server.py --stdio
 """
 
 import asyncio
@@ -42,8 +48,8 @@ try:
 except ImportError:
     HAS_STARLETTE = False
 
-from dsa110_contimg.ragflow.config import RAGFlowConfig
-from dsa110_contimg.ragflow.client import RAGFlowClient
+from config import RAGFlowConfig
+from client import RAGFlowClient
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -13,8 +13,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Generator
 
-from .client import RAGFlowClient, RAGFlowError
-from .config import RAGFlowConfig
+from client import RAGFlowClient, RAGFlowError
+from config import RAGFlowConfig
 
 logger = logging.getLogger(__name__)
 

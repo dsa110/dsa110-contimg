@@ -1,11 +1,26 @@
-# RAGFlow Integration
+# RAGFlow Integration - Reference Implementation
 
-This module provides integration with [RAGFlow](https://ragflow.io/) for
-documentation retrieval using RAG (Retrieval-Augmented Generation).
+> **IMPORTANT:** This directory contains **reference code and examples only**.
+> These files have been moved from `backend/src/dsa110_contimg/ragflow/` to
+> `docs/ragflow/` and are **no longer part of the Python package**.
+
+## Location Change
+
+- **Old location:** `backend/src/dsa110_contimg/ragflow/` (removed)
+- **New location:** `docs/ragflow/` (reference/examples)
+- **Import path:** No longer available - use standalone scripts
 
 ## Overview
 
-RAGFlow is deployed locally to provide:
+This directory provides reference implementations for integrating with
+[RAGFlow](https://ragflow.io/) for documentation retrieval using RAG
+(Retrieval-Augmented Generation).
+
+**Recommended Alternative:** For lightweight documentation search, use
+`DocSearch` (`dsa110_contimg.docsearch`) instead. RAGFlow is optional and
+intended for advanced use cases requiring full RAG capabilities.
+
+RAGFlow provides:
 
 - **Document indexing** for DSA-110 documentation
 - **Semantic search** with embedding-based retrieval
@@ -15,7 +30,7 @@ RAGFlow is deployed locally to provide:
 
 ### 1. Set Up API Key
 
-First, create an account and get an API key:
+First, deploy RAGFlow (see `docs/ops/ragflow/README.md`), then create an API key:
 
 1. Open http://localhost:9080 in your browser
 2. Register or log in
@@ -29,17 +44,17 @@ export RAGFLOW_API_KEY="ragflow-xxxxxxxxxxxxxxxxxxxxx"
 
 ### 2. Upload Documentation
 
-Upload the DSA-110 documentation:
+Upload the DSA-110 documentation using the standalone script:
 
 ```bash
 conda activate casa6
+cd /data/dsa110-contimg/docs/ragflow
 
 # Upload all docs with default settings
-python -m dsa110_contimg.ragflow.cli upload \
-    --api-key $RAGFLOW_API_KEY
+python cli.py upload --api-key $RAGFLOW_API_KEY
 
 # Or upload a specific directory
-python -m dsa110_contimg.ragflow.cli upload \
+python cli.py upload \
     --docs-dir /data/dsa110-contimg/docs \
     --dataset "DSA-110 Documentation" \
     --api-key $RAGFLOW_API_KEY
@@ -48,16 +63,21 @@ python -m dsa110_contimg.ragflow.cli upload \
 ### 3. Query the Knowledge Base
 
 ```bash
+cd /data/dsa110-contimg/docs/ragflow
 # Search for information
-python -m dsa110_contimg.ragflow.cli query \
+python cli.py query \
     "How do I convert UVH5 files to Measurement Sets?" \
     --api-key $RAGFLOW_API_KEY
 ```
 
-### 4. Use from Python
+### 4. Use from Python (Advanced)
+
+Since this is reference code, you can import locally if needed:
 
 ```python
-from dsa110_contimg.ragflow import RAGFlowClient
+import sys
+sys.path.insert(0, '/data/dsa110-contimg/docs/ragflow')
+from client import RAGFlowClient
 
 client = RAGFlowClient()  # Uses RAGFLOW_API_KEY env var
 
@@ -76,12 +96,21 @@ for chunk in results:
     print(chunk["content"][:200])
 ```
 
+**Note:** This approach is for reference/testing only. For production, use the
+REST API directly or the DocSearch module.
+
 ## CLI Commands
+
+All commands should be run from the `docs/ragflow/` directory:
+
+```bash
+cd /data/dsa110-contimg/docs/ragflow
+```
 
 ### Upload Documents
 
 ```bash
-python -m dsa110_contimg.ragflow.cli upload [OPTIONS]
+python cli.py upload [OPTIONS]
 
 Options:
   --docs-dir PATH      Documentation directory (default: /data/dsa110-contimg/docs)
@@ -97,19 +126,19 @@ Options:
 ### List Datasets
 
 ```bash
-python -m dsa110_contimg.ragflow.cli list-datasets
+python cli.py list-datasets
 ```
 
 ### List Documents
 
 ```bash
-python -m dsa110_contimg.ragflow.cli list-documents "DSA-110 Documentation"
+python cli.py list-documents "DSA-110 Documentation"
 ```
 
 ### Query
 
 ```bash
-python -m dsa110_contimg.ragflow.cli query "your question" [OPTIONS]
+python cli.py query "your question" [OPTIONS]
 
 Options:
   --dataset NAME      Dataset to search (default: all)
@@ -120,28 +149,29 @@ Options:
 ### Create Chat Assistant
 
 ```bash
-python -m dsa110_contimg.ragflow.cli create-chat "DSA-110 Assistant" \
+python cli.py create-chat "DSA-110 Assistant" \
     --datasets "DSA-110 Documentation" \
     --prompt "You are an expert on DSA-110..."
 ```
 
 ## MCP Server Integration
 
-This module includes a custom MCP (Model Context Protocol) server that exposes
-RAGFlow's retrieval capabilities as tools for VS Code/Copilot and other AI
-agents.
+This directory includes a custom MCP (Model Context Protocol) server that
+exposes RAGFlow's retrieval capabilities as tools for VS Code/Copilot and other
+AI agents.
 
 ### Start the MCP Server
 
 ```bash
 # Activate environment
 conda activate casa6
+cd /data/dsa110-contimg/docs/ragflow
 
 # Start MCP server on port 9400
 export RAGFLOW_API_KEY="your-api-key"
-python -m dsa110_contimg.ragflow.mcp_server --sse --port 9400
+python mcp_server.py --sse --port 9400
 
-# Or use systemd
+# Or use systemd (update service file to point to new location)
 sudo cp ops/systemd/ragflow-mcp.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl start ragflow-mcp
@@ -149,7 +179,7 @@ sudo systemctl start ragflow-mcp
 
 ### VS Code GitHub Copilot
 
-The MCP configuration is in `.vscode/mcp.json`:
+Update the MCP configuration in `.vscode/mcp.json`:
 
 ```json
 {
@@ -158,6 +188,23 @@ The MCP configuration is in `.vscode/mcp.json`:
       "type": "sse",
       "url": "http://localhost:9400/sse",
       "description": "DSA-110 documentation search via RAGFlow"
+    }
+  }
+}
+```
+
+Or use stdio mode:
+
+```json
+{
+  "servers": {
+    "ragflow-dsa110": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["/data/dsa110-contimg/docs/ragflow/mcp_server.py", "--stdio"],
+      "env": {
+        "RAGFLOW_API_KEY": "your-api-key"
+      }
     }
   }
 }

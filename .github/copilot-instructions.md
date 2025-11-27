@@ -164,7 +164,6 @@ parameter.
 
 1. **Batch Converter**
    (`backend/src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py`):
-
    - For historical/archived data processing
    - Function:
      `convert_subband_groups_to_ms(input_dir, output_dir, start_time, end_time)`
@@ -612,20 +611,34 @@ for r in results:
 - Understanding module architecture
 - Locating configuration examples
 
-**Alternative**: RAGFlow is also available (`dsa110_contimg.ragflow`) for
-full-featured RAG with chat, but requires Docker containers. Use DocSearch by
-default; RAGFlow is optional for advanced use cases.
+**Alternative**: RAGFlow is also available for full-featured RAG with chat, but
+requires Docker containers and manual setup. Use DocSearch by default; RAGFlow
+is optional for advanced use cases.
 
 ### RAGFlow (Alternative)
 
-For questions requiring synthesis across multiple documents:
+**Note:** RAGFlow reference code and examples are located in `docs/ragflow/`.
+This code is **not part of the Python package** and must be run as standalone
+scripts.
 
-```python
-from dsa110_contimg.ragflow import RAGFlowClient
+To use RAGFlow:
 
-client = RAGFlowClient()  # Uses RAGFLOW_API_KEY env var
-answer = client.ask("What error detection protections are implemented?")
-print(answer)
+1. Deploy RAGFlow containers (see `docs/ops/ragflow/README.md`)
+2. Access via REST API at `localhost:9380` or web UI at `localhost:9080`
+3. Use the standalone scripts in `docs/ragflow/`:
+
+```bash
+# Navigate to the ragflow directory
+cd /data/dsa110-contimg/docs/ragflow
+
+# Example: Query documentation
+python cli.py query "your question"
+
+# Example: Upload documents
+python cli.py upload --docs-dir /path/to/docs
+
+# Example: Start MCP server
+python mcp_server.py --sse --port 9400
 ```
 
-RAGFlow runs on `localhost:9380` (API) and `localhost:9080` (UI).
+For detailed documentation and examples, see `docs/ragflow/README.md`.

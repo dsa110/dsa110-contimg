@@ -2,23 +2,29 @@
 """
 RAGFlow document upload CLI for DSA-110.
 
+**Location:** This script has been moved to `docs/ragflow/` and should be run
+directly from that directory.
+
 Upload documentation to RAGFlow knowledge base for retrieval.
 
 Usage:
+    # Navigate to the directory
+    cd /data/dsa110-contimg/docs/ragflow
+    
     # Upload all docs with default settings
-    python -m dsa110_contimg.ragflow.cli upload --api-key YOUR_KEY
+    python cli.py upload --api-key YOUR_KEY
     
     # Upload specific directory
-    python -m dsa110_contimg.ragflow.cli upload \
+    python cli.py upload \
         --docs-dir /data/dsa110-contimg/docs \
         --dataset "My Dataset" \
         --api-key YOUR_KEY
     
     # List datasets
-    python -m dsa110_contimg.ragflow.cli list-datasets --api-key YOUR_KEY
+    python cli.py list-datasets --api-key YOUR_KEY
     
     # Test retrieval
-    python -m dsa110_contimg.ragflow.cli query \
+    python cli.py query \
         --question "How do I convert UVH5 files?" \
         --api-key YOUR_KEY
 """
@@ -32,9 +38,9 @@ import os
 import sys
 from pathlib import Path
 
-from .client import RAGFlowClient, RAGFlowError
-from .config import RAGFlowConfig
-from .uploader import DocumentUploader, upload_dsa110_docs
+from client import RAGFlowClient, RAGFlowError
+from config import RAGFlowConfig
+from uploader import DocumentUploader, upload_dsa110_docs
 
 logging.basicConfig(
     level=logging.INFO,
