@@ -14,8 +14,8 @@ from typing import Any
 # Default configuration values
 DEFAULT_BASE_URL = "http://localhost:9380"
 DEFAULT_MCP_URL = "http://localhost:9382"
-DEFAULT_CHUNK_METHOD = "markdown"  # Best for documentation
-DEFAULT_EMBEDDING_MODEL = "BAAI/bge-large-en-v1.5"
+DEFAULT_CHUNK_METHOD = "naive"  # Simple chunking - works without special config
+DEFAULT_EMBEDDING_MODEL = ""  # Empty = use server default
 
 
 @dataclass
@@ -32,8 +32,11 @@ class RAGFlowConfig:
         RAGFLOW_API_KEY: API key for authentication
         RAGFLOW_BASE_URL: RAGFlow API base URL (default: http://localhost:9380)
         RAGFLOW_MCP_URL: MCP server URL (default: http://localhost:9382)
-        RAGFLOW_EMBEDDING_MODEL: Embedding model to use
+        RAGFLOW_EMBEDDING_MODEL: Embedding model (format: model@provider, or empty for default)
         RAGFLOW_CHUNK_METHOD: Document chunking method
+    
+    Valid chunk_method values:
+        naive, book, email, laws, manual, one, paper, picture, presentation, qa, table, tag
     """
     
     api_key: str | None = field(default=None)
@@ -42,11 +45,12 @@ class RAGFlowConfig:
     embedding_model: str = field(default=DEFAULT_EMBEDDING_MODEL)
     chunk_method: str = field(default=DEFAULT_CHUNK_METHOD)
     
-    # Parser configuration for markdown documents
+    # Parser configuration for documents
     parser_config: dict[str, Any] = field(default_factory=lambda: {
         "chunk_token_num": 512,  # Tokens per chunk
-        "layout_recognize": False,  # Not needed for markdown
+        "delimiter": "\\n",
         "html4excel": False,
+        "graphrag": {"use_graphrag": False},
         "raptor": {"use_raptor": False},
     })
     
@@ -129,14 +133,15 @@ class RAGFlowConfig:
 
 
 # DSA-110 specific dataset configurations
+# Valid chunk_method: naive, book, email, laws, manual, one, paper, picture, presentation, qa, table, tag
 DSA110_DATASETS = {
     "dsa110-docs": {
         "name": "DSA-110 Documentation",
         "description": "Technical documentation for the DSA-110 continuum imaging pipeline",
-        "chunk_method": "markdown",
+        "chunk_method": "naive",
         "parser_config": {
             "chunk_token_num": 512,
-            "layout_recognize": False,
+            "delimiter": "\\n",
         },
     },
     "dsa110-api": {
@@ -150,7 +155,7 @@ DSA110_DATASETS = {
     "dsa110-guides": {
         "name": "DSA-110 User Guides",
         "description": "Tutorials and how-to guides",
-        "chunk_method": "markdown",
+        "chunk_method": "naive",
         "parser_config": {
             "chunk_token_num": 768,  # Larger chunks for narrative
         },

@@ -187,10 +187,14 @@ class RAGFlowClient:
         payload = {
             "name": name,
             "description": description,
-            "embedding_model": embedding_model or self.config.embedding_model,
             "chunk_method": chunk_method or self.config.chunk_method,
             "permission": permission,
         }
+        
+        # Only include embedding_model if explicitly set (non-empty)
+        emb_model = embedding_model or self.config.embedding_model
+        if emb_model:
+            payload["embedding_model"] = emb_model
         
         if parser_config:
             payload["parser_config"] = parser_config
@@ -270,6 +274,9 @@ class RAGFlowClient:
         """
         Get existing dataset or create new one.
         
+        If a dataset with the same name exists but belongs to another user,
+        appends a suffix to create a unique dataset name.
+        
         Args:
             name: Dataset name
             **create_kwargs: Arguments for create_dataset
@@ -281,7 +288,22 @@ class RAGFlowClient:
         if existing:
             logger.info(f"Using existing dataset: {name}")
             return existing
-        return self.create_dataset(name, **create_kwargs)
+        
+        # Try to create with the original name
+        try:
+            return self.create_dataset(name, **create_kwargs)
+        except RAGFlowError as e:
+            # If permission error (name exists but owned by another user),
+            # try with a unique suffix
+            if "permission" in str(e).lower() or "exists" in str(e).lower():
+                import time
+                unique_name = f"{name} ({int(time.time()) % 10000})"
+                logger.warning(
+                    f"Dataset '{name}' exists but not accessible. "
+                    f"Creating '{unique_name}' instead."
+                )
+                return self.create_dataset(unique_name, **create_kwargs)
+            raise
     
     def delete_dataset(self, dataset_id: str) -> None:
         """Delete a dataset by ID."""
