@@ -4,14 +4,18 @@
 
 set -e
 
-REPO_ROOT="${1:-/data/dsa110-contimg}"
+# Auto-detect project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="${1:-$(dirname "$SCRIPT_DIR")}"
+
 ERRORS=0
 
 echo "Validating script references..."
+echo "Project root: $PROJECT_ROOT"
 
 # Check package.json script references
 echo "--- Checking frontend/package.json ---"
-cd "$REPO_ROOT/frontend"
+cd "$PROJECT_ROOT/frontend"
 
 # Extract bash script paths from package.json
 scripts=$(grep -oE 'bash [^"]+\.sh' package.json 2>/dev/null | sed 's/bash //' || true)
