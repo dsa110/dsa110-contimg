@@ -38,7 +38,16 @@ const noConsoleRule = [
 ];
 
 export default defineConfig([
-  globalIgnores(["node_modules", "dist", "build", ".local", "playwright-report", "config/playwright", "config/vite"]),
+  globalIgnores([
+    "node_modules",
+    "dist",
+    "build",
+    ".local",
+    "playwright-report",
+    "config/playwright",
+    "config/vite",
+    "public",
+  ]),
   {
     files: ["**/*.{ts,tsx}"],
     ignores: nodeTsFilePatterns,
