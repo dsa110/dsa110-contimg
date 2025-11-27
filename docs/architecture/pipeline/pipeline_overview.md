@@ -5,7 +5,7 @@ products, plus decision points and fast-path options for speed.
 
 **For a comprehensive, detailed workflow visualization with complete stage
 breakdowns, see
-[Pipeline Workflow Visualization](pipeline_workflow_visualization.md).**
+[Pipeline Workflow Visualization](pipeline_patterns.md).**
 
 ## End-to-end Flow
 
@@ -67,7 +67,7 @@ Notes:
 - **Fast Validation**: Pipeline validation can run in <60 seconds using tiered
   validation with parallel execution. See
   Fast Validation Implementation
-  and [Validation Guide](../../guides/development/validation_guide.md).
+  and [Validation Guide](../../../reference/validation_api.md).
 
 ## Conversion: Writer Selection and Staging
 

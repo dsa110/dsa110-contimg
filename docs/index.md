@@ -36,8 +36,7 @@ Practical how-to guides for common tasks.
   pipeline
 - **[Dashboard Quickstart](guides/dashboard/dashboard-quickstart.md)**: Web
   interface guide
-- **[Mosaic Quickstart](guides/workflow/mosaic_quickstart.md)**: Creating
-  mosaics
+- **[Streaming Guide](guides/workflow/streaming.md)**: Real-time data processing
 
 ### 📖 Reference
 
@@ -48,23 +47,14 @@ Technical specifications and standards.
 - **[API Reference](reference/api_reference.md)**: Backend API documentation
 - **[Database Reference](reference/DATABASE_REFERENCE_INDEX.md)**: Database
   schemas
-- **[Port Configuration](operations/ports.md)**: Network port assignments
-
-### ⚙️ Operations
-
-Deployment, monitoring, and maintenance.
-
-- **[Operations Index](operations/README.md)**: Operational documentation
-- **[Service Stability](operations/service_stability.md)**: Service management
-- **[Port Configuration](operations/ports.md)**: Port assignments
-  (authoritative)
-- **[Absurd Operations](operations/absurd_operations.md)**: Workflow manager ops
+- **[Environment Variables](reference/env.md)**: Configuration options
 
 ### 🛠️ Troubleshooting
 
 Problem resolution and known issues.
 
-- **[Troubleshooting Index](troubleshooting/)**: Common issues and fixes
+- **[Docker WSClean Issues](troubleshooting/docker_wsclean_known_issue.md)**:
+  Known Docker issues
 - **[Known Issues](troubleshooting/known-issues/)**: Tracked issues
 
 ### 🏛️ Archive

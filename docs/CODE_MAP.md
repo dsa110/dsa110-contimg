@@ -26,30 +26,30 @@ corresponding documentation and status. Use this to navigate the codebase.
 **Code Location:** `backend/src/dsa110_contimg/absurd/` & `ops/scripts/absurd/`
 **Status:** 🟢 **Active Integration**
 
-| Component        | Code File                               | Documentation                                                       |
-| :--------------- | :-------------------------------------- | :------------------------------------------------------------------ |
-| **Overview**     | `README.md`                             | [Absurd Index](architecture/pipeline/absurd_documentation_index.md) |
-| **Setup Script** | `ops/scripts/absurd/setup_absurd_db.sh` | [Workflow Guides](guides/workflow/)                                 |
+| Component        | Code File                               | Documentation                                    |
+| :--------------- | :-------------------------------------- | :----------------------------------------------- |
+| **Overview**     | `README.md`                             | [ABSURD Quickstart](guides/ABSURD_QUICKSTART.md) |
+| **Setup Script** | `ops/scripts/absurd/setup_absurd_db.sh` | [Workflow Guides](guides/workflow/)              |
 
 ### 3. Quality Assurance (QA)
 
 **Code Location:** `backend/src/dsa110_contimg/qa/` **Status:** 🟡 **In
 Development**
 
-| Component              | Code File               | Documentation                                                         |
-| :--------------------- | :---------------------- | :-------------------------------------------------------------------- |
-| **Catalog Validation** | `catalog_validation.py` | [QA Guides](guides/qa/)                                               |
-| **Visualization**      | `visualization/`        | [QA Visualization](architecture/dashboard/qa_visualization_design.md) |
+| Component              | Code File               | Documentation                               |
+| :--------------------- | :---------------------- | :------------------------------------------ |
+| **Catalog Validation** | `catalog_validation.py` | [API Reference](reference/api_reference.md) |
+| **Visualization**      | `visualization/`        | [Dashboard](guides/dashboard/)              |
 
 ### 4. Imaging & Calibration
 
 **Code Location:** `backend/src/dsa110_contimg/imaging/` &
 `backend/src/dsa110_contimg/calibration/` **Status:** 🟢 **Production**
 
-| Component           | Code File                | Documentation                                             |
-| :------------------ | :----------------------- | :-------------------------------------------------------- |
-| **WSClean Wrapper** | `imaging/cli_imaging.py` | [WSClean Fix](troubleshooting/wsclean_docker_hang_fix.md) |
-| **Self-Cal**        | `calibration/selfcal.py` | [Architecture](architecture/architecture/architecture.md) |
+| Component           | Code File                | Documentation                                                  |
+| :------------------ | :----------------------- | :------------------------------------------------------------- |
+| **WSClean Wrapper** | `imaging/cli_imaging.py` | [Docker Issues](troubleshooting/docker_wsclean_known_issue.md) |
+| **Self-Cal**        | `calibration/selfcal.py` | [Architecture](architecture/architecture/architecture.md)      |
 
 ### 5. Frontend Dashboard
 

@@ -524,9 +524,9 @@ Frontend Polling Timer → API Request → Backend Handler → Database Query �
 
 ## Related Documentation
 
-- **[Dashboard Vision & Design](./dashboard_vision_and_design.md)** - Design
+- **[Dashboard Vision & Design](./dashboard_frontend_architecture.md)** - Design
   principles and vision
-- **[Frontend Architecture](../../archive/analysis/DASHBOARD_OVERVIEW_DETAILED.md#frontend-architecture-developer-focused)** -
+- **[Frontend Architecture](../../dashboard_frontend_architecture.md)** -
   Detailed frontend architecture
 - **[Backend API Reference](../../reference/dashboard_backend_api.md)** - API
   endpoint documentation

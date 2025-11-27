@@ -490,4 +490,4 @@ apiClient.interceptors.response.use(
   architecture
 - [Backend API & Integration](../../reference/dashboard_backend_api.md) - API error
   handling
-- [State Management](./dashboard_state_management.md) - State error handling
+- [State Management](./dashboard_architecture.md) - State error handling

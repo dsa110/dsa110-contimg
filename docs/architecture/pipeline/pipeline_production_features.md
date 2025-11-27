@@ -174,11 +174,11 @@ All production features emit structured logs:
 - [Pipeline Overview](./pipeline_overview.md) - High-level pipeline overview
 - [Pipeline Stage Architecture](./pipeline_stage_architecture.md) - Stage-based
   architecture
-- [Pipeline Workflow Visualization](./pipeline_workflow_visualization.md) -
+- [Pipeline Workflow Visualization](./pipeline_patterns.md) -
   Detailed workflow
 
 ## References
 
 - [Pipeline Stage Architecture](./pipeline_stage_architecture.md) - Orchestrator
   details
-- [Stage Implementation Guide](../../guides/development/create_pipeline_stage.md)
+- [Stage Implementation Guide](../../../architecture/pipeline/pipeline_patterns.md)

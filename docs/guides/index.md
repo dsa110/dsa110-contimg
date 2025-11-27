@@ -2,26 +2,35 @@
 
 Practical guides for operators, developers, and users.
 
-## Automation & QA
+## Getting Started
 
-- [Automation Guide](automation/AUTOMATION_GUIDE.md)
-- [QA Setup](automation/QUALITY_ASSURANCE_SETUP.md)
-
-## Development
-
-- [Backend Fixes](development/backend_fixes_quick_start.md)
-- [Integration Fixes](development/integration_fixes_quick_start.md)
-- [CASA 6 Enforcement](development/casa6-enforcement.md)
-
-## Data Processing
-
-- [SPW Flagging](data-processing/spw_flagging_process.md)
-- [Temporal Flagging](data-processing/temporal_flagging_tracking.md)
+- [ABSURD Quickstart](ABSURD_QUICKSTART.md) - Pipeline workflow setup
+- [Dashboard Quickstart](dashboard/dashboard-quickstart.md) - Web interface
 
 ## Workflow
 
-- [Troubleshooting Summary](workflow/workflow_troubleshooting_summary.md)
+- [Streaming Guide](workflow/streaming.md) - Real-time data processing
+- [Streaming Converter](workflow/streaming_converter_guide.md) - Converter
+  details
+- [Batch Mode](workflow/batch_mode_guide.md) - Batch processing
+- [Mosaic Creation](workflow/batch_mosaic_creation.md) - Creating mosaics
 
-## Operations
+## Dashboard
 
-- Operations Guide (if exists)
+- [Control Panel Quickstart](dashboard/control-panel-quickstart.md)
+- [Development Workflow](dashboard/dashboard_development_workflow.md)
+- [Deployment](dashboard/dashboard_deployment.md)
+- [CARTA Testing](dashboard/carta_testing_guide.md)
+
+## Error Handling
+
+- [Resilience](error-handling/error-handling-resilience.md)
+- [Warning Detection](error-handling/warning-detection.md)
+
+## Configuration
+
+- [Pipeline Configuration](configuration/pipeline_configuration.md)
+
+## Contributing
+
+- [Contributing Guide](contributing/index.md)
