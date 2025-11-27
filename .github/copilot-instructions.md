@@ -46,6 +46,7 @@ all Python scripts and CASA tasks.
 
 **Use `/scratch/` for**:
 - Frontend builds (`npm run build`)
+- MkDocs documentation builds
 - Python package installs with compilation
 - Large file processing and temporary files
 - Any operation that is I/O heavy
@@ -55,6 +56,16 @@ all Python scripts and CASA tasks.
 # Use the scratch-based build script
 cd /data/dsa110-contimg/frontend
 npm run build:scratch  # Builds in /scratch/, copies result back
+```
+
+**Build workflow for MkDocs documentation**:
+```bash
+# Build on scratch SSD, then move back
+mkdir -p /scratch/mkdocs-build
+mkdocs build -f /data/dsa110-contimg/mkdocs.yml -d /scratch/mkdocs-build/site
+rm -rf /data/dsa110-contimg/site
+mv /scratch/mkdocs-build/site /data/dsa110-contimg/site
+rmdir /scratch/mkdocs-build
 ```
 
 **For Python/Backend**:
