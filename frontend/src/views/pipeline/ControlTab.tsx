@@ -8,8 +8,8 @@
  * - Imaging workflow
  * - Live operations monitoring
  */
-import React, { useState } from "react";
-import { Box, Stack, Alert } from "@mui/material";
+import { useState } from "react";
+import { Box, Stack } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
 import { logger } from "../../utils/logger";
 import type { MSListEntry } from "../../api/types";

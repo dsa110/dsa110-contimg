@@ -20,6 +20,24 @@ import { useSystemMetrics, useDatabaseMetrics, useDLQStats } from "../../api/que
 import { DLQMetricsPanel } from "../../components/metrics/DLQMetricsPanel";
 import { DatabaseMetricsPanel } from "../../components/metrics/DatabaseMetricsPanel";
 import { CacheStats, CacheKeys, CachePerformance } from "../../components/Cache";
+import type { SystemMetrics } from "../../api/types";
+
+// Helper functions for disk metrics
+function getDiskPercent(metrics?: SystemMetrics): string {
+  if (!metrics?.disk_used || !metrics?.disk_total || metrics.disk_total === 0) {
+    return "0%";
+  }
+  const percent = (metrics.disk_used / metrics.disk_total) * 100;
+  return `${percent.toFixed(1)}%`;
+}
+
+function getDiskColor(metrics?: SystemMetrics): "success" | "warning" | "error" {
+  if (!metrics?.disk_used || !metrics?.disk_total || metrics.disk_total === 0) {
+    return "success";
+  }
+  const percent = (metrics.disk_used / metrics.disk_total) * 100;
+  return percent > 90 ? "error" : "success";
+}
 
 interface TabPanelProps {
   children: React.ReactNode;
@@ -58,18 +76,18 @@ export default function HealthTab() {
         <Grid item xs={6} sm={3}>
           <StatCard
             title="CPU Usage"
-            value={metricsLoading ? "..." : `${systemMetrics?.cpu_percent?.toFixed(1) ?? "0"}%`}
+            value={metricsLoading ? "..." : `${String(systemMetrics?.cpu_percent?.toFixed(1) ?? "0")}%`}
             color={
-              systemMetrics?.cpu_percent && systemMetrics.cpu_percent > 80 ? "error" : "success"
+              systemMetrics?.cpu_percent != null && systemMetrics.cpu_percent > 80 ? "error" : "success"
             }
           />
         </Grid>
         <Grid item xs={6} sm={3}>
           <StatCard
             title="Memory"
-            value={metricsLoading ? "..." : `${systemMetrics?.memory_percent?.toFixed(1) ?? "0"}%`}
+            value={metricsLoading ? "..." : `${String(systemMetrics?.mem_percent?.toFixed(1) ?? "0")}%`}
             color={
-              systemMetrics?.memory_percent && systemMetrics.memory_percent > 80
+              systemMetrics?.mem_percent != null && systemMetrics.mem_percent > 80
                 ? "error"
                 : "success"
             }
@@ -78,17 +96,15 @@ export default function HealthTab() {
         <Grid item xs={6} sm={3}>
           <StatCard
             title="Disk"
-            value={metricsLoading ? "..." : `${systemMetrics?.disk_percent?.toFixed(1) ?? "0"}%`}
-            color={
-              systemMetrics?.disk_percent && systemMetrics.disk_percent > 90 ? "error" : "success"
-            }
+            value={metricsLoading ? "..." : getDiskPercent(systemMetrics)}
+            color={getDiskColor(systemMetrics)}
           />
         </Grid>
         <Grid item xs={6} sm={3}>
           <StatCard
             title="DLQ Items"
             value={String(dlqStats?.pending ?? 0)}
-            color={dlqStats?.pending && dlqStats.pending > 0 ? "warning" : "success"}
+            color={dlqStats?.pending != null && dlqStats.pending > 0 ? "warning" : "success"}
           />
         </Grid>
       </Grid>

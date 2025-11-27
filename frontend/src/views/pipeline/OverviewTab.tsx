@@ -6,7 +6,6 @@
  * - Recent observations
  * - System health at a glance
  */
-import { useState } from "react";
 import { Alert, Stack, Paper, Typography, Box, Chip } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
 import { usePipelineStatus, useSystemMetrics, useHealthSummary } from "../../api/queries";
@@ -43,38 +42,43 @@ export default function OverviewTab() {
         <Typography variant="h6" gutterBottom>
           Queue Status
         </Typography>
-        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-          <Chip
-            label={`Total: ${String(status?.queue?.total ?? 0)}`}
-            color="default"
-            variant="outlined"
-          />
-          <Chip
-            label={`Collecting: ${String(status?.queue?.collecting ?? 0)}`}
-            color="secondary"
-            variant="outlined"
-          />
-          <Chip
-            label={`Pending: ${String(status?.queue?.pending ?? 0)}`}
-            color="warning"
-            variant="outlined"
-          />
-          <Chip
-            label={`In Progress: ${String(status?.queue?.in_progress ?? 0)}`}
-            color="info"
-            variant="outlined"
-          />
-          <Chip
-            label={`Completed: ${String(status?.queue?.completed ?? 0)}`}
-            color="success"
-            variant="outlined"
-          />
-          <Chip
-            label={`Failed: ${String(status?.queue?.failed ?? 0)}`}
-            color="error"
-            variant="outlined"
-          />
-        </Box>
+        {(() => {
+          const q = status?.queue;
+          return (
+            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+              <Chip
+                label={`Total: ${String(q?.total ?? 0)}`}
+                color="default"
+                variant="outlined"
+              />
+              <Chip
+                label={`Collecting: ${String(q?.collecting ?? 0)}`}
+                color="secondary"
+                variant="outlined"
+              />
+              <Chip
+                label={`Pending: ${String(q?.pending ?? 0)}`}
+                color="warning"
+                variant="outlined"
+              />
+              <Chip
+                label={`In Progress: ${String(q?.in_progress ?? 0)}`}
+                color="info"
+                variant="outlined"
+              />
+              <Chip
+                label={`Completed: ${String(q?.completed ?? 0)}`}
+                color="success"
+                variant="outlined"
+              />
+              <Chip
+                label={`Failed: ${String(q?.failed ?? 0)}`}
+                color="error"
+                variant="outlined"
+              />
+            </Box>
+          );
+        })()}
       </Paper>
 
       {/* Recent Observations */}
