@@ -1,12 +1,23 @@
 #!/bin/bash
 # Preflight check - validates all services and dependencies before starting
 # Run this before any deployment or after any refactor
+# Usage: ./preflight-check.sh [project-root]
 
 set -e
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
+
+# Auto-detect project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="${1:-$(cd "$SCRIPT_DIR/.." && pwd)}"
+
+if [ ! -d "$PROJECT_ROOT/frontend" ] || [ ! -d "$PROJECT_ROOT/backend" ]; then
+    echo "Error: Invalid project root: $PROJECT_ROOT"
+    echo "Usage: $0 [project-root]"
+    exit 1
+fi
 
 ERRORS=0
 WARNINGS=0
@@ -39,14 +50,14 @@ check "Python 3.11 in casa6" "/opt/miniforge/envs/casa6/bin/python --version | g
 
 echo ""
 echo "--- Frontend Scripts ---"
-check "scripts/dev/start-dev.sh exists" "test -f /data/dsa110-contimg/frontend/scripts/dev/start-dev.sh"
-check "scripts/dev/restart-dev.sh exists" "test -f /data/dsa110-contimg/frontend/scripts/dev/restart-dev.sh"
-check "package.json dev script valid" "grep -q 'scripts/dev/start-dev.sh' /data/dsa110-contimg/frontend/package.json"
+check "scripts/dev/start-dev.sh exists" "test -f '$PROJECT_ROOT/frontend/scripts/dev/start-dev.sh'"
+check "scripts/dev/restart-dev.sh exists" "test -f '$PROJECT_ROOT/frontend/scripts/dev/restart-dev.sh'"
+check "package.json dev script valid" "grep -q 'scripts/dev/start-dev.sh' '$PROJECT_ROOT/frontend/package.json'"
 
 echo ""
 echo "--- Production Scripts ---"
-check "build-dashboard-production.sh exists" "test -x /data/dsa110-contimg/scripts/build-dashboard-production.sh"
-check "serve-dashboard-production.sh exists" "test -x /data/dsa110-contimg/scripts/serve-dashboard-production.sh"
+check "build-dashboard-production.sh exists" "test -x '$PROJECT_ROOT/scripts/build-dashboard-production.sh'"
+check "serve-dashboard-production.sh exists" "test -x '$PROJECT_ROOT/scripts/serve-dashboard-production.sh'"
 
 echo ""
 echo "--- Systemd Services ---"
