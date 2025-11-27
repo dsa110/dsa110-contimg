@@ -364,9 +364,9 @@ class TestBuildUVDataFromScratch:
             )
 
             assert isinstance(uv, UVData)
-            # Nants_data may be less than nants if some antennas not used
-            assert uv.Nants_data <= nants
-            assert uv.Ntimes == ntimes
+            # Check array dimensions instead of computed properties (pyuvdata 3.x compatibility)
+            assert len(uv.antenna_numbers) <= nants
+            assert len(np.unique(uv.time_array)) == ntimes
             assert uv.extra_keywords.get("synthetic") is True
             assert uv.extra_keywords.get("template_free") is True
         except AttributeError:
@@ -401,7 +401,10 @@ class TestBuildUVDataFromScratch:
         """Test frequency array is set up correctly."""
         try:
             uv = build_uvdata_from_scratch(sample_config, nants=3, ntimes=2)
-            assert uv.Nfreqs == sample_config.channels_per_subband
+            # Check freq_array shape instead of computed Nfreqs (pyuvdata 3.x compatibility)
+            freq_arr = uv.freq_array
+            nfreqs = freq_arr.shape[-1] if freq_arr.ndim > 1 else len(freq_arr)
+            assert nfreqs == sample_config.channels_per_subband
             assert uv.Nspws == 1
             assert len(uv.channel_width) == sample_config.channels_per_subband
         except AttributeError:

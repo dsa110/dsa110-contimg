@@ -124,6 +124,10 @@ def resolve_catalog_path(
     # 4. Try standard catalog locations for all-sky catalogs (master, atnf)
     if catalog_type == "master":
         master_candidates = [
+            # Primary location (1.6M+ sources)
+            Path("/data/dsa110-contimg/state/db/master_sources.sqlite3"),
+            Path("state/db/master_sources.sqlite3"),
+            # Legacy location (fallback, may have fewer sources)
             Path("/data/dsa110-contimg/state/catalogs/master_sources.sqlite3"),
             Path("state/catalogs/master_sources.sqlite3"),
         ]

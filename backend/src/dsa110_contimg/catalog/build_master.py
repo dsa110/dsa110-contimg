@@ -1,9 +1,9 @@
 #!/opt/miniforge/envs/casa6/bin/python
 # pylint: disable=no-member  # astropy.units uses dynamic attributes (deg, arcsec, etc.)
 """
-Build a master reference catalog by crossmatching NVSS with VLASS and FIRST.
+"""Build a master reference catalog by crossmatching NVSS with VLASS and FIRST.
 
-Outputs an SQLite DB at state/catalogs/master_sources.sqlite3 (by default)
+Outputs an SQLite DB at state/db/master_sources.sqlite3 (by default)
 containing one row per NVSS source with optional VLASS/FIRST matches and
 derived spectral index and compactness/confusion flags.
 
@@ -13,7 +13,7 @@ Usage examples:
       --nvss /data/catalogs/NVSS.csv \
       --vlass /data/catalogs/VLASS.csv \
       --first /data/catalogs/FIRST.csv \
-      --out state/catalogs/master_sources.sqlite3 \
+      --out state/db/master_sources.sqlite3 \
       --match-radius-arcsec 7.5 \
       --export-view final_references --export-csv state/catalogs/final_refs.csv
 
@@ -448,7 +448,7 @@ def build_master(
     *,
     vlass_path: Optional[str] = None,
     first_path: Optional[str] = None,
-    out_db: str = "state/catalogs/master_sources.sqlite3",
+    out_db: str = "state/db/master_sources.sqlite3",
     match_radius_arcsec: float = 7.5,
     map_nvss: Optional[Dict[str, str]] = None,
     map_vlass: Optional[Dict[str, str]] = None,
@@ -594,7 +594,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     ap.add_argument("--first", help="Path to FIRST catalog (CSV/FITS)")
     ap.add_argument(
         "--out",
-        default="state/catalogs/master_sources.sqlite3",
+        default="state/db/master_sources.sqlite3",
         help="Output SQLite DB path",
     )
     ap.add_argument("--match-radius-arcsec", type=float, default=7.5)

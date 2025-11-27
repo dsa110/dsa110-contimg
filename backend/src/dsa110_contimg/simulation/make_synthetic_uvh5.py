@@ -371,15 +371,12 @@ def build_uvdata_from_scratch(
     # Set polarization
     uv.polarization_array = np.array(config.polarizations, dtype=int)
 
-    # Set telescope metadata
-    uv.telescope_name = "DSA-110"
-    uv.telescope_location = np.array(
-        [
-            config.site_location.lon.to_value(u.rad),
-            config.site_location.lat.to_value(u.rad),
-            config.site_location.height.to_value(u.m),
-        ]
-    )
+    # Set telescope metadata using the Telescope object (pyuvdata 3.x API)
+    from pyuvdata import Telescope
+    tel = Telescope()
+    tel.name = "DSA-110"
+    tel.location = config.site_location
+    uv.telescope = tel
 
     # Set data arrays using calculated dimensions
     uv.data_array = np.zeros((nblts, nspws, nfreqs, npols), dtype=np.complex64)
@@ -471,13 +468,20 @@ def write_subband_uvh5(
 
     uv.freq_array = freqs.reshape(1, -1)
     uv.channel_width = np.full_like(uv.freq_array, sign * delta_f)
-    uv.Nfreqs = nchan
     uv.Nspws = 1
 
     uv.time_array = times_mjd
     uv.lst_array = lst_array
     uv.integration_time = integration_time
     uv.uvw_array = uvw_array
+
+    # Calculate dimensions from arrays (pyuvdata 3.x compatibility)
+    # Computed properties like Nblts, Nfreqs, Npols may be None
+    nblts = len(times_mjd)
+    nspws = 1
+    nfreqs = nchan
+    npols = len(uv.polarization_array)
+    nants = len(uv.antenna_numbers)
 
     # Calculate u, v coordinates in wavelengths for extended sources
     u_lambda = None
@@ -493,10 +497,10 @@ def write_subband_uvh5(
 
     # Generate visibilities
     uv.data_array = make_visibilities(
-        uv.Nblts,
-        uv.Nspws,
-        uv.Nfreqs,
-        uv.Npols,
+        nblts,
+        nspws,
+        nfreqs,
+        npols,
         amplitude_jy,
         u_lambda=u_lambda,
         v_lambda=v_lambda,
@@ -538,7 +542,7 @@ def write_subband_uvh5(
 
         _, complex_gains, _ = add_calibration_errors(
             uv.data_array,
-            uv.Nants_telescope,
+            nants,  # Use calculated nants instead of uv.Nants_telescope
             gain_std=gain_std,
             phase_std_deg=phase_std_deg,
             rng=rng,
