@@ -147,6 +147,7 @@ nav:
       - Control Panel Cheatsheet: reference/control-panel-cheatsheet.md
       - Agent Guidelines: reference/agent_guidelines.md
       - MCP Tools: reference/mcp-tools.md
+      - Local Doc Search: reference/docsearch.md
 
   - Testing:
       - Overview: testing/index.md
