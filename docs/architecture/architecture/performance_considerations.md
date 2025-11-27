@@ -316,6 +316,140 @@ print(info)
 Based on HDF Group best practices:
 [Improving I/O Performance When Working with HDF5 Compressed Datasets](https://www.hdfgroup.org/2022/10/improving-io-performance-when-working-with-hdf5-compressed-datasets/)
 
+## Conversion Pipeline Optimizations
+
+The conversion pipeline (UVH5 → MS) has been optimized with several techniques
+implemented in November 2025. These optimizations reduce total conversion time
+by ~35% and HDF5 read time by ~48%.
+
+### Optimization Summary
+
+| Optimization             | Speedup | Location                                      |
+| ------------------------ | ------- | --------------------------------------------- |
+| h5py 16MB chunk cache    | 32%     | `utils/hdf5_io.py`                            |
+| Batch Time() conversion  | 21.9x   | `conversion/helpers_coordinates.py`           |
+| Parallel subband loading | ~2-3x   | `conversion/strategies/hdf5_orchestrator.py`  |
+| Pre-allocated arrays     | ~10-15% | Multiple files                                |
+| JIT warm-up at startup   | ~64ms   | `conversion/streaming/streaming_converter.py` |
+
+### Batch Time Conversion
+
+**Problem**: Creating `astropy.Time` objects in a loop is expensive (~2.7ms per
+call for 24 times).
+
+**Solution**: Batch convert all times with a single `Time()` call.
+
+```python
+# SLOW: Per-iteration Time object creation
+for i, time_jd in enumerate(unique_times):
+    time_mjd = Time(time_jd, format="jd").mjd  # 2.7ms for 24 times
+
+# FAST: Batch conversion (21.9x faster)
+mjd_unique = Time(unique_times, format="jd").mjd  # 0.12ms for 24 times
+for i in range(n_unique):
+    time_mjd = float(mjd_unique[i])
+```
+
+**Impact**: 21.9x speedup for JD→MJD conversion in `phase_to_meridian()`.
+
+### Pre-allocation Patterns
+
+**Problem**: Dynamic list resizing causes GC pressure with large objects.
+
+**Solution**: Pre-allocate arrays and lists with known sizes.
+
+```python
+# SLOW: Dynamic list growth
+acc = []
+for path in file_paths:
+    uvdata = UVData()
+    uvdata.read(path)
+    acc.append(uvdata)  # List resizing
+
+# FAST: Pre-allocated list with index assignment
+acc = [None] * len(file_paths)
+for i, path in enumerate(file_paths):
+    uvdata = UVData()
+    uvdata.read(path)
+    acc[i] = uvdata  # Direct index assignment
+acc = [x for x in acc if x is not None]  # Safety filter
+```
+
+**Impact**: Reduced GC pressure when processing 16 subbands (~2-4 GB each).
+
+### Parallel I/O for Subband Loading
+
+**Problem**: Loading 16 subbands sequentially is I/O-bound.
+
+**Solution**: Use `ThreadPoolExecutor` to parallelize HDF5 reads.
+
+```bash
+# CLI options for parallel I/O control
+python -m dsa110_contimg.conversion.cli groups \
+    --parallel-io \              # Enable parallel loading (default)
+    --io-batch-size 4 \          # Subbands per batch
+    --max-workers 4 \            # Thread pool size
+    /data/incoming /stage/ms "2025-01-01" "2025-01-02"
+
+# Disable for debugging or low-memory systems
+python -m dsa110_contimg.conversion.cli groups \
+    --no-parallel-io \
+    /data/incoming /stage/ms "2025-01-01" "2025-01-02"
+```
+
+**Impact**: ~2-3x speedup for I/O-bound subband loading on systems with
+sufficient memory and I/O bandwidth.
+
+### Astropy for Astrometric Precision
+
+**Note**: The pipeline uses rigorous `astropy` calculations for LST and
+coordinate transformations instead of approximate numba fast paths. While numba
+provided ~327x speedup for LST calculation, the ~1200 arcsec offset from
+aberration-corrected ICRS coordinates was deemed unacceptable for scientific
+data products. Astrometric rigor takes priority over performance in phase center
+calculations.
+
+### Optimization Decision Tree
+
+Use this decision tree when optimizing conversion code:
+
+```
+Is the operation I/O-bound?
+├─ Yes → Consider parallel I/O with ThreadPoolExecutor
+│        └─ Check: Is there enough memory for concurrent loads?
+│
+├─ No, it's CPU-bound
+│   ├─ Is it a numpy/array operation?
+│   │   └─ Yes → Use vectorized operations, avoid loops
+│   │
+│   ├─ Is it creating many small objects?
+│   │   └─ Yes → Pre-allocate arrays/lists
+│   │
+│   └─ Is it calling astropy repeatedly?
+│       └─ Yes → Batch the calls (e.g., Time(array) not Time(scalar))
+│
+└─ Is astrometric precision required?
+    ├─ Yes → Use astropy (fast=False)
+    └─ No  → Consider numba fast path (if available)
+```
+
+### Performance Regression Tests
+
+Regression tests ensure optimizations remain effective. Run with:
+
+```bash
+conda activate casa6
+python -m pytest tests/performance/test_io_optimizations.py -v
+```
+
+Key thresholds:
+
+- Batch Time() conversion: <0.6ms for 24 times
+- Batch speedup: >5x compared to per-iteration
+- JIT warm-up: <500ms
+
+See `tests/performance/test_io_optimizations.py` for detailed assertions.
+
 ## Stage-Specific Performance
 
 ### Conversion Stage
