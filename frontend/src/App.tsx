@@ -19,33 +19,30 @@ import { registerServiceWorker } from "./utils/serviceWorker";
 
 // Lazy load all page components for code splitting
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
-// Merged pages - consolidated functionality
+
+// Consolidated Views - Two main entry points
+const PipelineView = lazy(() => import("./views/PipelineView"));
+const DataView = lazy(() => import("./views/DataView"));
+
+// Detail pages (remain as standalone routes for deep linking)
+const MosaicViewPage = lazy(() => import("./pages/MosaicViewPage"));
+const SourceDetailPage = lazy(() => import("./pages/SourceDetailPage"));
+const ImageDetailPage = lazy(() => import("./pages/ImageDetailPage"));
+const DataDetailPage = lazy(() => import("./pages/DataDetailPage"));
+const DataLineagePage = lazy(() => import("./pages/DataLineagePage"));
+
+// Legacy pages for backward compatibility redirects
 const PipelineControlPage = lazy(() => import("./pages/PipelineControlPage"));
 const PipelineOperationsPage = lazy(() => import("./pages/PipelineOperationsPage"));
 const SystemDiagnosticsPage = lazy(() => import("./pages/SystemDiagnosticsPage"));
 const QAPage = lazy(() => import("./pages/QAPage"));
-
-// Component pages (used within consolidated pages, not as standalone routes)
-// Commented out unused imports to fix TS6133
-// const ControlPage = lazy(() => import("./pages/ControlPage"));
-// const StreamingPage = lazy(() => import("./pages/StreamingPage"));
-// const ObservingPage = lazy(() => import("./pages/ObservingPage"));
-// const HealthPage = lazy(() => import("./pages/HealthPage"));
-// const CachePage = lazy(() => import("./pages/CachePage"));
-
-// Other pages
 const MosaicGalleryPage = lazy(() => import("./pages/MosaicGalleryPage"));
-const MosaicViewPage = lazy(() => import("./pages/MosaicViewPage"));
 const SourceMonitoringPage = lazy(() => import("./pages/SourceMonitoringPage"));
-const SourceDetailPage = lazy(() => import("./pages/SourceDetailPage"));
-const ImageDetailPage = lazy(() => import("./pages/ImageDetailPage"));
 const SkyViewPage = lazy(() => import("./pages/SkyViewPage"));
 const DataBrowserPage = lazy(() => import("./pages/DataBrowserPage"));
-const DataDetailPage = lazy(() => import("./pages/DataDetailPage"));
 const CARTAPage = lazy(() => import("./pages/CARTAPage"));
 const PipelinePage = lazy(() => import("./pages/PipelinePage"));
 const EventsPage = lazy(() => import("./pages/EventsPage"));
-const DataLineagePage = lazy(() => import("./pages/DataLineagePage"));
 const CalibrationWorkflowPage = lazy(() => import("./pages/CalibrationWorkflowPage"));
 const ErrorAnalyticsPage = lazy(() => import("./pages/ErrorAnalyticsPage"));
 const SystemStatusPage = lazy(() => import("./pages/SystemStatusPage"));
@@ -224,16 +221,94 @@ function AppContent() {
                         <ErrorBoundary>
                           <Suspense fallback={<PageLoadingFallback />}>
                             <Routes>
-                              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                              <Route path="/dashboard" element={<DashboardPage />} />
-                              {/* Legacy route redirects */}
+                              {/* Default route - redirect to Pipeline view */}
+                              <Route path="/" element={<Navigate to="/pipeline" replace />} />
+
+                              {/* ============================================ */}
+                              {/* CONSOLIDATED VIEWS - Primary Navigation      */}
+                              {/* ============================================ */}
+                              <Route path="/pipeline" element={<PipelineView />} />
+                              <Route path="/data" element={<DataView />} />
+
+                              {/* Legacy dashboard - redirect to pipeline overview */}
+                              <Route
+                                path="/dashboard"
+                                element={<Navigate to="/pipeline" replace />}
+                              />
+
+                              {/* ============================================ */}
+                              {/* DETAIL PAGES - Deep linking support          */}
+                              {/* ============================================ */}
+                              <Route path="/mosaics/:mosaicId" element={<MosaicViewPage />} />
+                              <Route path="/sources/:sourceId" element={<SourceDetailPage />} />
+                              <Route path="/images/:imageId" element={<ImageDetailPage />} />
+                              <Route path="/data/:type/:id" element={<DataDetailPage />} />
+                              <Route path="/lineage/:id" element={<DataLineagePage />} />
+
+                              {/* ============================================ */}
+                              {/* LEGACY REDIRECTS - Backward compatibility    */}
+                              {/* ============================================ */}
+                              {/* Old page routes → new consolidated views */}
+                              <Route
+                                path="/control"
+                                element={<Navigate to="/pipeline?tab=control" replace />}
+                              />
+                              <Route
+                                path="/streaming"
+                                element={<Navigate to="/pipeline?tab=streaming" replace />}
+                              />
+                              <Route
+                                path="/calibration"
+                                element={<Navigate to="/pipeline?tab=calibration" replace />}
+                              />
+                              <Route
+                                path="/operations"
+                                element={<Navigate to="/pipeline?tab=operations" replace />}
+                              />
+                              <Route
+                                path="/absurd"
+                                element={<Navigate to="/pipeline?tab=queue" replace />}
+                              />
+                              <Route
+                                path="/health"
+                                element={<Navigate to="/pipeline?tab=health" replace />}
+                              />
+                              <Route
+                                path="/system-status"
+                                element={<Navigate to="/pipeline?tab=health" replace />}
+                              />
+                              <Route
+                                path="/events"
+                                element={<Navigate to="/pipeline?tab=operations" replace />}
+                              />
+                              <Route
+                                path="/mosaics"
+                                element={<Navigate to="/data?tab=mosaics" replace />}
+                              />
+                              <Route
+                                path="/sources"
+                                element={<Navigate to="/data?tab=sources" replace />}
+                              />
+                              <Route
+                                path="/sky"
+                                element={<Navigate to="/data?tab=sky" replace />}
+                              />
+                              <Route
+                                path="/carta"
+                                element={<Navigate to="/data?tab=carta" replace />}
+                              />
+                              <Route
+                                path="/qa"
+                                element={<Navigate to="/data?tab=qa" replace />}
+                              />
+                              {/* Very old legacy routes */}
                               <Route
                                 path="/pipeline-control"
-                                element={<Navigate to="/control" replace />}
+                                element={<Navigate to="/pipeline?tab=control" replace />}
                               />
                               <Route
                                 path="/pipeline-operations"
-                                element={<Navigate to="/pipeline" replace />}
+                                element={<Navigate to="/pipeline?tab=operations" replace />}
                               />
                               <Route
                                 path="/data-explorer"
@@ -241,51 +316,24 @@ function AppContent() {
                               />
                               <Route
                                 path="/system-diagnostics"
-                                element={<Navigate to="/health" replace />}
-                              />
-                              {/* Consolidated pages - primary routes */}
-                              <Route path="/control" element={<PipelineControlPage />} />
-                              <Route path="/operations" element={<PipelineOperationsPage />} />
-                              <Route path="/health" element={<SystemDiagnosticsPage />} />
-                              <Route path="/qa" element={<QAPage />} />
-
-                              {/* Redirects - old routes to consolidated pages */}
-                              <Route
-                                path="/streaming"
-                                element={<Navigate to="/control?tab=1" replace />}
+                                element={<Navigate to="/pipeline?tab=health" replace />}
                               />
                               <Route
                                 path="/observing"
-                                element={<Navigate to="/control?tab=3" replace />}
+                                element={<Navigate to="/pipeline?tab=control" replace />}
                               />
                               <Route
                                 path="/cache"
-                                element={<Navigate to="/health?tab=3" replace />}
+                                element={<Navigate to="/pipeline?tab=health" replace />}
                               />
-                              <Route path="/qa/carta" element={<Navigate to="/qa" replace />} />
                               <Route
                                 path="/ms-browser"
-                                element={<Navigate to="/control" replace />}
+                                element={<Navigate to="/pipeline?tab=control" replace />}
                               />
-
-                              {/* Other pages */}
-                              <Route path="/mosaics" element={<MosaicGalleryPage />} />
-                              <Route path="/mosaics/:mosaicId" element={<MosaicViewPage />} />
-                              <Route path="/sources" element={<SourceMonitoringPage />} />
-                              <Route path="/sources/:sourceId" element={<SourceDetailPage />} />
-                              <Route path="/images/:imageId" element={<ImageDetailPage />} />
-                              <Route path="/sky" element={<SkyViewPage />} />
-                              <Route path="/data" element={<DataBrowserPage />} />
-                              <Route path="/data/:type/:id" element={<DataDetailPage />} />
-                              <Route path="/carta" element={<CARTAPage />} />
-                              <Route path="/error-analytics" element={<ErrorAnalyticsPage />} />
-                              <Route path="/system-status" element={<SystemStatusPage />} />
-                              <Route path="/pipeline" element={<PipelinePage />} />
-                              <Route path="/events" element={<EventsPage />} />
-                              <Route path="/absurd" element={<AbsurdPage />} />
-                              {/* Domain-specific pages */}
-                              <Route path="/lineage/:id" element={<DataLineagePage />} />
-                              <Route path="/calibration" element={<CalibrationWorkflowPage />} />
+                              <Route
+                                path="/error-analytics"
+                                element={<Navigate to="/pipeline?tab=operations" replace />}
+                              />
                             </Routes>
                           </Suspense>
                         </ErrorBoundary>

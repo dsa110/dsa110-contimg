@@ -1294,11 +1294,24 @@ def convert_subband_groups_to_ms(
                 env_var="CONTIMG_DISABLE_PROGRESS",
             )
 
-            uv = _load_and_merge_subbands(file_list, show_progress=show_progress)
+            # Extract parallel I/O settings from writer_kwargs
+            parallel_io = writer_kwargs.get("parallel_io", True) if writer_kwargs else True
+            io_batch_size = writer_kwargs.get("io_batch_size", 4) if writer_kwargs else 4
+            max_io_workers = writer_kwargs.get("max_workers", 4) if writer_kwargs else 4
+
+            uv = _load_and_merge_subbands(
+                file_list,
+                show_progress=show_progress,
+                batch_size=io_batch_size,
+                parallel_io=parallel_io,
+                max_io_workers=max_io_workers,
+            )
             logger.info(
-                "Loaded and merged %d subbands in %.2fs",
+                "Loaded and merged %d subbands in %.2fs (parallel_io=%s, workers=%d)",
                 len(file_list),
                 time.perf_counter() - t0,
+                parallel_io,
+                max_io_workers,
             )
 
             t1 = time.perf_counter()
@@ -1791,7 +1804,25 @@ def add_args(p: argparse.ArgumentParser) -> None:
         "--max-workers",
         type=int,
         default=4,
-        help="Parallel workers for parallel-subband writer.",
+        help="Parallel workers for parallel-subband writer and parallel I/O loading.",
+    )
+    p.add_argument(
+        "--parallel-io",
+        action="store_true",
+        default=True,
+        help="Enable parallel I/O for loading subbands (default: enabled).",
+    )
+    p.add_argument(
+        "--no-parallel-io",
+        action="store_false",
+        dest="parallel_io",
+        help="Disable parallel I/O for loading subbands (sequential loading).",
+    )
+    p.add_argument(
+        "--io-batch-size",
+        type=int,
+        default=4,
+        help="Number of subbands to process per batch during loading (default: 4).",
     )
     p.add_argument(
         "--stage-to-tmpfs",
@@ -2151,6 +2182,10 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
     if getattr(args, "stage_to_tmpfs", False):
         writer_kwargs["stage_to_tmpfs"] = True
         writer_kwargs["tmpfs_path"] = getattr(args, "tmpfs_path", "/dev/shm")
+
+    # Pass parallel I/O settings for subband loading (used by pyuvdata writer path)
+    writer_kwargs["parallel_io"] = getattr(args, "parallel_io", True)
+    writer_kwargs["io_batch_size"] = getattr(args, "io_batch_size", 4)
 
     # Enable SPW merging if requested
     if getattr(args, "merge_spws", False):

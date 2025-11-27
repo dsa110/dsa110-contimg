@@ -80,11 +80,17 @@ def get_meridian_coords(
         pt_dec: Pointing declination
         time_mjd: Time in MJD
         fast: If True, use approximate LST calculation (numba-accelerated).
-              Accuracy is ~1 arcsec, sufficient for phase center tracking.
-              If False, use full astropy calculation (higher precision).
+              Returns LST as RA (not aberration-corrected ICRS).
+              If False (default), use full astropy calculation with proper
+              aberration/precession/nutation corrections for rigorous astrometry.
 
     Returns:
         Tuple of (RA, Dec) as astropy Quantities in radians
+
+    Note:
+        The default fast=False ensures rigorous coordinate transformations.
+        The fast path is available for non-critical applications but should
+        not be used where astrometric accuracy is important.
     """
     if fast:
         # OPTIMIZATION: Use numba-accelerated LST approximation
@@ -154,10 +160,10 @@ def phase_to_meridian(uvdata, pt_dec: Optional[u.Quantity] = None) -> None:
     phase_center_ids = {}
 
     # Create a phase center for each unique time
-    # OPTIMIZATION: Use fast=True for LST calculation (numba-accelerated)
+    # Use rigorous astropy calculation for accurate phase centers
     for i, time_jd in enumerate(unique_times):
         time_mjd = Time(time_jd, format="jd").mjd
-        phase_ra, phase_dec = get_meridian_coords(pt_dec, time_mjd, fast=True)
+        phase_ra, phase_dec = get_meridian_coords(pt_dec, time_mjd, fast=False)
 
         # Create phase center with unique name per time
         pc_id = uvdata._add_phase_center(
@@ -231,8 +237,8 @@ def compute_and_set_uvw(uvdata, pt_dec: u.Quantity) -> None:
     frame_pa_unique = _np.zeros(len(utime), dtype=float)
 
     for i, mjd in enumerate(mjd_unique):
-        # OPTIMIZATION: Use fast=True for numba-accelerated LST calculation
-        ra_icrs, dec_icrs = get_meridian_coords(pt_dec, float(mjd), fast=True)
+        # Use rigorous astropy calculation for accurate UVW computation
+        ra_icrs, dec_icrs = get_meridian_coords(pt_dec, float(mjd), fast=False)
         try:
             new_app_ra, new_app_dec = uvutils.calc_app_coords(
                 ra_icrs.to_value(u.rad),

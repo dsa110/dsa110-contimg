@@ -53,78 +53,59 @@ modules; this document tracks integration into production code paths.
 
 ---
 
-## Phase 2: Numba Integration (✅ COMPLETED)
+## Phase 2: Numba Integration (⚠️ PARTIALLY REVERTED)
 
 **Goal**: Replace numpy/astropy computations with JIT-compiled versions in hot
 paths.
 
-**Results**:
-
-- LST calculation: **327x speedup** (5.15ms → 0.02ms)
-- JIT warm-up: **64ms** overhead at daemon start
-- LST accuracy: **4 µhours** vs astropy (but returns LST not ICRS RA)
+**Status Update**: LST/coordinate calculations reverted to use rigorous astropy
+path. Astrometric accuracy is prioritized over performance in this critical
+calculation. JIT warm-up and angular separation acceleration remain active.
 
 ### 2.1 UVW Calculation Acceleration
 
 **File**: `conversion/helpers_coordinates.py`  
 **Function**: `compute_and_set_uvw()`  
-**Status**: ✅ COMPLETED (fast path added)
+**Status**: ⚠️ REVERTED to astropy
 
 - [x] Profile current `compute_and_set_uvw()` to identify bottlenecks
 - [x] Add `fast=True` parameter using numba LST calculation
 - [x] Benchmark improvement: **327x for LST portion**
-- [x] Integrated into `phase_to_meridian()` loop
+- [x] ~~Integrated into `phase_to_meridian()` loop~~
 - [x] Update docstrings with performance notes
 
-**Note**: Full numba UVW rotation (`rotate_xyz_to_uvw_jit`) is available but
-pyuvdata's `calc_uvw` is still used as it handles edge cases. The fast path
-provides significant speedup by accelerating LST/coordinate calculations.
+**Decision**: Reverted to `fast=False` (astropy). Astrometric rigor is more
+important than performance for phase center calculations. The ~1200 arcsec
+difference between approximate LST and aberration-corrected ICRS coordinates is
+not acceptable for scientific data products.
 
 ### 2.2 LST Calculation Optimization
 
 **File**: `conversion/helpers_coordinates.py`  
 **Function**: `get_meridian_coords()`  
-**Status**: ✅ COMPLETED
+**Status**: ⚠️ REVERTED to astropy
 
 - [x] Profile astropy overhead in `get_meridian_coords()` → **5.15ms/call**
 - [x] Add fast path using `approx_lst_jit()` → **0.02ms/call**
 - [x] Keep astropy path for high-precision requirements (`fast=False`)
 - [x] Add `OVRO_LON_RAD` constant for numba compatibility
 
-**Important Accuracy Note**: Fast path returns LST as RA (not
-aberration-corrected ICRS). This is ~1200 arcsec different from true ICRS
-coordinates but is correct for phase tracking where relative phases matter, not
-absolute astrometry.
-
-```python
-# Implementation in get_meridian_coords():
-def get_meridian_coords(pt_dec, time_mjd, fast=True):
-    if fast and NUMBA_AVAILABLE:
-        lst = approx_lst_jit(np.array([time_mjd]), OVRO_LON_RAD)[0]
-        return lst * u.rad, pt_dec  # RA = LST at meridian
-    else:
-        # Existing astropy implementation (precise ICRS)
-        ...
-```
+**Decision**: Production code now uses `fast=False` by default. The numba fast
+path remains available for future non-critical applications but is not used in
+the main conversion pipeline. Rigorous astrometry takes priority.
 
 ### 2.3 Streaming Converter JIT Warm-up
 
 **File**: `conversion/streaming/streaming_converter.py`  
-**Status**: ✅ COMPLETED
+**Status**: ✅ ACTIVE
 
 - [x] Call `warm_up_jit()` during daemon initialization
 - [x] Log warm-up timing (~64ms)
 - [x] Warm-up happens after directory validation, before processing
 
-```python
-# Implemented in main():
-from dsa110_contimg.utils.numba_accel import warm_up_jit, NUMBA_AVAILABLE
-
-if NUMBA_AVAILABLE:
-    t0 = time.time()
-    warm_up_jit()
-    logger.info(f"JIT warm-up completed in {time.time()-t0:.3f}s")
-```
+**Note**: JIT warm-up remains active as it still benefits
+`angular_separation_jit` which is used in calibrator matching and other
+non-critical paths.
 
 ---
 
@@ -162,25 +143,43 @@ single-file validation.
 
 ---
 
-## Phase 4: Parallel Loading Integration
+## Phase 4: Parallel Loading Integration (✅ COMPLETED)
 
 **Goal**: Enable parallel subband loading in all applicable code paths.
 
+**Status**: Parallel I/O was already enabled by default (`parallel_io=True`).
+CLI options added for explicit control.
+
 ### 4.1 PyUVData Writer Strategy
 
-**File**: `conversion/strategies/pyuvdata_monolithic.py`  
-**Effort**: 2 hours  
-**Priority**: MEDIUM
+**File**: `conversion/strategies/hdf5_orchestrator.py`  
+**Status**: ✅ COMPLETED
 
-- [ ] Update to use `_load_and_merge_subbands()` with `parallel_io=True`
-- [ ] Add CLI flag `--parallel-load` (default: True)
-- [ ] Benchmark improvement for pyuvdata writer
+- [x] Verify `_load_and_merge_subbands()` defaults to `parallel_io=True`
+- [x] Add CLI flags: `--parallel-io`, `--no-parallel-io`, `--io-batch-size`
+- [x] Pass parallel I/O settings through writer_kwargs to conversion function
+- [x] Log parallel I/O status during conversion
+
+**CLI Options Added**:
+
+```bash
+# Enable parallel I/O (default)
+python -m dsa110_contimg.conversion.cli groups ... --parallel-io
+
+# Disable parallel I/O (sequential loading)
+python -m dsa110_contimg.conversion.cli groups ... --no-parallel-io
+
+# Adjust batch size (default: 4 subbands per batch)
+python -m dsa110_contimg.conversion.cli groups ... --io-batch-size 8
+
+# Adjust worker count (default: 4 threads)
+python -m dsa110_contimg.conversion.cli groups ... --max-workers 8
+```
 
 ### 4.2 Benchmark Suite Update
 
 **File**: `benchmarks/bench_conversion.py`  
-**Effort**: 1 hour  
-**Priority**: LOW
+**Status**: Pending (LOW priority)
 
 - [ ] Add benchmark for parallel vs sequential loading
 - [ ] Add benchmark for different `max_io_workers` values

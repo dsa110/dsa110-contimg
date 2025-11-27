@@ -1,6 +1,6 @@
 /**
  * Main Navigation Component
- * Grouped navigation for better organization
+ * Simplified two-view navigation: Pipeline | Data
  */
 import {
   AppBar,
@@ -17,7 +17,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  ListSubheader,
   Chip,
   Divider,
 } from "@mui/material";
@@ -25,61 +24,19 @@ import { Link as RouterLink, useLocation } from "react-router-dom";
 import { Menu as MenuIcon, Keyboard } from "@mui/icons-material";
 import { useState } from "react";
 import {
-  Dashboard,
-  Image,
-  TableChart,
-  Public,
-  ShowChart,
-  Settings,
-  Storage,
-  Assessment,
-  Build,
   AccountTree,
-  EventNote,
-  Science,
-  Visibility,
+  Storage,
+  ShowChart,
 } from "@mui/icons-material";
 import CommandPalette from "./CommandPalette";
 import { useCommandPalette } from "../hooks/useCommandPalette";
 import { useWorkflow } from "../contexts/WorkflowContext";
 import { prefetchRoute } from "../utils/routePrefetch";
 
-// Grouped navigation items
-const navGroups = [
-  {
-    title: "Main",
-    items: [
-      { path: "/dashboard", label: "Dashboard", icon: Dashboard },
-      { path: "/pipeline", label: "Pipeline", icon: AccountTree },
-    ],
-  },
-  {
-    title: "Operations",
-    items: [
-      { path: "/control", label: "Control", icon: Settings },
-      { path: "/operations", label: "Operations", icon: Build },
-      { path: "/calibration", label: "Calibration", icon: Build },
-      { path: "/events", label: "Events", icon: EventNote },
-    ],
-  },
-  {
-    title: "Data & Analysis",
-    items: [
-      { path: "/data", label: "Data Browser", icon: Storage },
-      { path: "/sources", label: "Sources", icon: TableChart },
-      { path: "/mosaics", label: "Mosaics", icon: Image },
-      { path: "/sky", label: "Sky View", icon: Public },
-      { path: "/carta", label: "CARTA", icon: Visibility },
-    ],
-  },
-  {
-    title: "System",
-    items: [
-      { path: "/qa", label: "QA Tools", icon: Science },
-      { path: "/system-status", label: "System Status", icon: ShowChart },
-      { path: "/health", label: "Diagnostics", icon: Assessment },
-    ],
-  },
+// Simplified navigation - just two main views
+const navItems = [
+  { path: "/pipeline", label: "Pipeline", icon: AccountTree, description: "Execute & Monitor" },
+  { path: "/data", label: "Data", icon: Storage, description: "Browse & Analyze" },
 ];
 
 export default function Navigation() {
