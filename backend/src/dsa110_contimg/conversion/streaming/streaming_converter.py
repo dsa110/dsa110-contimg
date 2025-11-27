@@ -802,15 +802,22 @@ class _FSHandler(FileSystemEventHandler):
             log.warning(f"Failed to check file size: {path}. Error: {e}")
             return
 
-        # Quick HDF5 structure check
+        # Quick HDF5 structure check using memory-mapped I/O for speed
         try:
-            from dsa110_contimg.utils.hdf5_io import open_uvh5_metadata
+            from dsa110_contimg.utils.hdf5_io import open_uvh5_mmap
 
-            with open_uvh5_metadata(path) as f:
+            # OPTIMIZATION: Use memory-mapped I/O for fast validation
+            # This avoids chunk cache overhead for simple structure checks
+            with open_uvh5_mmap(path) as f:
                 # Verify file has required structure (Header or Data group)
                 if "Header" not in f and "Data" not in f:
                     log.warning(f"File does not appear to be valid HDF5/UVH5: {path}")
                     return
+                # Quick sanity check on time_array
+                if "Header/time_array" in f:
+                    if f["Header/time_array"].shape[0] == 0:
+                        log.warning(f"File has empty time_array: {path}")
+                        return
         except Exception as e:
             log.warning(f"File is not readable HDF5: {path}. Error: {e}")
             return
@@ -2073,6 +2080,17 @@ def main(argv: Optional[List[str]] = None) -> int:
             return 1
 
     log.info("✓ Directory validation passed")
+
+    # OPTIMIZATION: Warm up JIT-compiled functions before first observation
+    # This eliminates compilation latency during time-critical processing
+    try:
+        from dsa110_contimg.utils.numba_accel import NUMBA_AVAILABLE, warm_up_jit
+        if NUMBA_AVAILABLE:
+            t0 = time.time()
+            warm_up_jit()
+            log.info(f"✓ JIT functions warmed up in {time.time() - t0:.2f}s")
+    except ImportError:
+        log.debug("Numba not available, skipping JIT warm-up")
 
     phot_worker = None
     if getattr(args, "enable_photometry", False):
