@@ -239,6 +239,10 @@ writer.write()
 
 ## Field Naming and Calibrator Auto-Detection
 
+**Observation Duration**: Each measurement set covers **~5 minutes (309
+seconds)** of observation time, consisting of 24 fields × 12.88 seconds per
+field.
+
 **Default Field Names**: All MS files have 24 fields named `meridian_icrs_t0`
 through `meridian_icrs_t23` (one per 12.88-second timestamp during drift-scan).
 
