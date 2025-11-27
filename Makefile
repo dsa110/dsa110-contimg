@@ -6,7 +6,7 @@ BENCHMARK_DIR := benchmarks
 
 .PHONY: test-validate test-org-install test-org-check test-pytest-validate check-env setup-dev auto-fix check-code-quality
 .PHONY: doc-audit validate-python-version test-python-guards
-.PHONY: bench bench-quick bench-report bench-check bench-info bench-compare
+.PHONY: bench bench-quick bench-report bench-check bench-info bench-compare bench-preview bench-calibration bench-conversion
 
 # ============================================================================
 # BENCHMARKING TARGETS
