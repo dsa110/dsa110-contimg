@@ -1,0 +1,11 @@
+{
+    "lxd110h17": {
+        "arch": "x86_64",
+        "cpu": "Intel(R) Xeon(R) Silver 4210 CPU @ 2.20GHz",
+        "machine": "lxd110h17",
+        "num_cpu": "40",
+        "os": "Linux 4.15.0-213-generic",
+        "ram": "128GB",
+        "version": 1
+    }
+}
