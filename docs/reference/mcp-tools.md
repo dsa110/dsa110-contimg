@@ -209,7 +209,7 @@ perplexity-server_recency_filter(filter="week")
 **Configuration:** Built-in to Cursor
 
 - Uses native Chrome on Mac (when X11 forwarding is disabled)
-- See [Remote Access Tools Guide](../env.md) for setup
+- See [Remote Access Tools Guide](env.md) for setup
 
 **Use Cases:**
 
@@ -613,7 +613,7 @@ Contains user-specific servers:
 ### Browser Tools Not Working
 
 - Ensure X11 forwarding is **disabled** in SSH config (see
-  [Remote Access Tools Guide](../env.md))
+  [Remote Access Tools Guide](env.md))
 - Verify DISPLAY is unset: `echo $DISPLAY` should be empty
 - Restart Cursor after changing SSH config
 
@@ -701,7 +701,7 @@ Contains user-specific servers:
 
 ## Related Documentation
 
-- [Remote Access Tools Guide](../env.md) - SSH, Chrome
+- [Remote Access Tools Guide](env.md) - SSH, Chrome
   Remote Desktop, Browser tool setup
 - Graphiti Rules: `../../.cursor/rules/graphiti/` (external directory) -
   Knowledge graph maintenance rules

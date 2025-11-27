@@ -1134,4 +1134,4 @@ echo "Diagnostics saved to ${OUTPUT_DIR}.tar.gz"
 - [Streaming API Reference](../../reference/streaming-api.md) - API documentation
 - [Streaming Architecture](../../architecture/pipeline/streaming-architecture.md) - System
   design
-- [Docker Deployment](../../../dashboard/dashboard_deployment.md) - Deployment guide
+- [Docker Deployment](../dashboard/dashboard_deployment.md) - Deployment guide

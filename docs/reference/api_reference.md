@@ -573,6 +573,6 @@ Stage execution mode.
 ## Related Documentation
 
 - [Pipeline Stage Architecture](../architecture/pipeline/pipeline_stage_architecture.md)
-- [Creating Pipeline Stages](../../architecture/pipeline/pipeline_patterns.md)
+- [Creating Pipeline Stages](../architecture/pipeline/pipeline_patterns.md)
 - Testing Guide
 - [Real-World Examples](../examples/real_world_examples.md)

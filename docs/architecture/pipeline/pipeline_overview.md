@@ -67,7 +67,7 @@ Notes:
 - **Fast Validation**: Pipeline validation can run in <60 seconds using tiered
   validation with parallel execution. See
   Fast Validation Implementation
-  and [Validation Guide](../../../reference/validation_api.md).
+  and [Validation Guide](../../reference/validation_api.md).
 
 ## Conversion: Writer Selection and Staging
 

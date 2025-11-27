@@ -111,6 +111,10 @@ if(OpenMP_CXX_FOUND)
   target_link_libraries(everybeam_py PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
+# Match the EveryBeam build, which uses AVX2/FMA matrix types.
+target_compile_definitions(everybeam_py PRIVATE USE_AVX_MATRIX)
+target_compile_options(everybeam_py PRIVATE -mavx2 -mfma)
+
 # Provide the staged lib directory as an RPATH hint for runtime loading
 set_target_properties(
   everybeam_py PROPERTIES

@@ -794,7 +794,7 @@ sudo logrotate -f /etc/logrotate.d/absurd-worker
 
 For runbooks, alert configurations, and disaster recovery procedures, see:
 
-- [Absurd Operations Guide](../workflow/absurd_quick_start.md)
+- [Absurd Operations Guide](workflow/absurd_quick_start.md)
 
 ## Next Steps
 
@@ -806,7 +806,7 @@ For runbooks, alert configurations, and disaster recovery procedures, see:
 
 ## References
 
-- [Absurd Operations Guide](../workflow/absurd_quick_start.md)
+- [Absurd Operations Guide](workflow/absurd_quick_start.md)
 - [Pipeline Stage Architecture](../architecture/pipeline/pipeline_stage_architecture.md)
 - [Implementing Task Executors](workflow/streaming_converter_guide.md)
 - [API Documentation](../reference/api-endpoints.md)

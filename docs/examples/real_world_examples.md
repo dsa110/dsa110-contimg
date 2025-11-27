@@ -463,6 +463,6 @@ stages = [
 ## Related Documentation
 
 - [Pipeline Stage Architecture](../architecture/pipeline/pipeline_stage_architecture.md)
-- [Creating Pipeline Stages](../../architecture/pipeline/pipeline_patterns.md)
+- [Creating Pipeline Stages](../architecture/pipeline/pipeline_patterns.md)
 - Testing Guide
 - [Troubleshooting Guide](../../troubleshooting/)
