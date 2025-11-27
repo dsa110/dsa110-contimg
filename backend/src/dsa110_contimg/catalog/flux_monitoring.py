@@ -307,8 +307,14 @@ def _compute_trend_stats(calibrator_name: str, ratios: List[float], mjds: List[f
     min_ratio = np.min(ratios_arr)
     max_ratio = np.max(ratios_arr)
 
-    # Calculate drift as percentage deviation from mean
-    drift_percent = (max_ratio - min_ratio) / mean_ratio * 100.0 if mean_ratio > 0 else 0.0
+    # Calculate drift relative to the most stable baseline (min value).
+    # This is more sensitive to long-term drift than mean-normalized spread.
+    if min_ratio > 0:
+        drift_percent = (max_ratio / min_ratio - 1.0) * 100.0
+    elif mean_ratio > 0:
+        drift_percent = (max_ratio - min_ratio) / mean_ratio * 100.0
+    else:
+        drift_percent = 0.0
 
     return {
         "n_measurements": len(ratios),

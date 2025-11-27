@@ -1,7 +1,14 @@
 # Absurd Worker Operations Guide
 
+**Status:** ✅ Authoritative Reference  
+**Last Updated:** November 26, 2025
+
 Complete operations guide for the Absurd durable workflow worker in the DSA-110
 continuum imaging pipeline.
+
+> **Note:** This is the canonical Absurd operations documentation. Other guides
+> in `docs/guides/workflow/` provide supplementary information for specific use
+> cases.
 
 ## Overview
 
@@ -27,6 +34,7 @@ sudo systemctl stop contimg-absurd-worker
 
 # Restart worker
 sudo systemctl restart contimg-absurd-worker
+
 
 # Check status
 sudo systemctl status contimg-absurd-worker

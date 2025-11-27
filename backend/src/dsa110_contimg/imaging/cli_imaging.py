@@ -375,6 +375,7 @@ def image_ms(
     wbawp: Optional[bool] = None,
     cfcache: Optional[str] = None,
     unicat_min_mjy: Optional[float] = None,
+    nvss_min_mjy: Optional[float] = None,
     calib_ra_deg: Optional[float] = None,
     calib_dec_deg: Optional[float] = None,
     calib_flux_jy: Optional[float] = None,
@@ -405,9 +406,10 @@ def image_ms(
         The seeding radius is calculated from the primary beam FWHM and pblimit.
 
     Masking:
-        When use_nvss_mask=True and nvss_min_mjy is provided, generates a FITS mask
-        from NVSS sources for WSClean. This provides 2-4x faster imaging by restricting
-        cleaning to known source locations. Masking is only supported for WSClean backend.
+        When use_nvss_mask=True and unicat_min_mjy is provided (or nvss_min_mjy alias),
+        generates a FITS mask from NVSS sources for WSClean. This provides 2-4x faster
+        imaging by restricting cleaning to known source locations. Masking is only
+        supported for WSClean backend.
     """
     from dsa110_contimg.utils.validation import validate_corrected_data_quality
 
@@ -541,6 +543,17 @@ def image_ms(
     datacolumn = detect_datacolumn(ms_path)
     if cell_arcsec is None:
         cell_arcsec = default_cell_arcsec(ms_path)
+
+    # Backwards compatibility: accept deprecated nvss_min_mjy alias
+    if nvss_min_mjy is not None:
+        if unicat_min_mjy is None:
+            unicat_min_mjy = nvss_min_mjy
+        else:
+            LOG.warning(
+                "Both unicat_min_mjy and deprecated nvss_min_mjy provided; "
+                "using unicat_min_mjy=%s",
+                unicat_min_mjy,
+            )
 
     # Enforce 3.5° x 3.5° image extent
     desired_extent_arcsec = FIXED_IMAGE_EXTENT_DEG * 3600.0  # 12600 arcsec

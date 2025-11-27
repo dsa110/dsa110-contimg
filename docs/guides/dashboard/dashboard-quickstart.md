@@ -1,8 +1,9 @@
-# Moved
+# Dashboard Quick Start Guide
 
-See `docs/how-to/dashboard.md`.
+This is the primary dashboard documentation. For a TL;DR version, see
+[quickstart_dashboard.md](quickstart_dashboard.md).
 
-### Accessing the Dashboard
+## Accessing the Dashboard
 
 Open your browser to:
 
@@ -22,12 +23,14 @@ The main dashboard provides an at-a-glance view of pipeline health and system
 status:
 
 - **Pipeline Status Panel**
+
   - Queue statistics (total, pending, in-progress, completed, failed,
     collecting)
   - Active calibration sets
   - Recent observations table with group IDs and processing state
 
 - **System Health Panel**
+
   - CPU usage percentage
   - Memory usage percentage
   - Disk usage percentage
@@ -49,16 +52,19 @@ status:
 Time-range query interface for hour-long mosaics:
 
 - **Time Range Selection**
+
   - Start/End DateTime pickers (UTC timezone)
   - MJD conversion support
   - Default: last 1 hour
 
 - **Mosaic Query**
+
   - Query existing mosaics by time range
   - View mosaic metadata (source count, noise level, image count)
   - Status tracking (pending, in_progress, completed, failed)
 
 - **Mosaic Generation**
+
   - Create new mosaics from time ranges
   - Background processing with status updates
   - Progress tracking
@@ -76,10 +82,12 @@ Time-range query interface for hour-long mosaics:
 Per-source flux timeseries monitoring with high-performance data table:
 
 - **Source Search**
+
   - Search by NVSS ID (e.g., `NVSS J123456.7+420312`)
   - Support for other survey IDs (future)
 
 - **Flux Time Series Chart**
+
   - Interactive Plotly.js visualization
   - Flux measurements with error bars
   - Mean flux reference line
@@ -105,11 +113,13 @@ Per-source flux timeseries monitoring with high-performance data table:
 FITS image viewer and sky navigation (integration in progress):
 
 - **Coordinate Navigation**
+
   - RA/Dec input (J2000 coordinates)
   - Image path loading
   - Go to coordinate functionality
 
 - **Image Controls**
+
   - Zoom controls
   - Pan/Reset buttons
   - Colormap selection
@@ -199,8 +209,8 @@ The dashboard uses polling to fetch updates every 10 seconds:
 
 ### API Data Models
 
-See [API Reference](../../reference/dashboard_backend_api.md) for detailed endpoint
-documentation.
+See [API Reference](../../reference/dashboard_backend_api.md) for detailed
+endpoint documentation.
 
 ## Development
 
@@ -251,10 +261,10 @@ frontend/
 2. **Add route in App.tsx:**
 
    ```typescript
-   import NewPage from './pages/NewPage';
+   import NewPage from "./pages/NewPage";
 
    // In Routes:
-   <Route path="/new" element={<NewPage />} />
+   <Route path="/new" element={<NewPage />} />;
    ```
 
 3. **Add navigation link:**
@@ -419,8 +429,8 @@ The dashboard currently uses mock data. To connect real data:
 3. **Update data models** if schema differs from mock data
 4. **Test with real pipeline data**
 
-See [Connecting Real Data](../../reference/dashboard_backend_api.md) for detailed
-API details and wiring notes.
+See [Connecting Real Data](../../reference/dashboard_backend_api.md) for
+detailed API details and wiring notes.
 
 ### Phase 2 Features
 

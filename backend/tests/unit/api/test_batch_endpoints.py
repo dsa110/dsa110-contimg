@@ -36,9 +36,9 @@ def mock_products_db(monkeypatch):
 class TestBatchConvertEndpoint:
     """Test POST /api/batch/convert endpoint."""
 
-    @patch("dsa110_contimg.api.routes.create_batch_conversion_job")
-    @patch("dsa110_contimg.api.routes.run_batch_convert_job")
-    @patch("dsa110_contimg.api.routes.ensure_products_db")
+    @patch("dsa110_contimg.api.batch_jobs.create_batch_conversion_job")
+    @patch("dsa110_contimg.api.job_runner.run_batch_convert_job")
+    @patch("dsa110_contimg.database.products.ensure_products_db")
     def test_create_batch_convert_job(
         self, mock_ensure_db, mock_run_job, mock_create_job, client, mock_products_db
     ):
@@ -177,9 +177,9 @@ class TestBatchConvertEndpoint:
 class TestBatchPublishEndpoint:
     """Test POST /api/batch/publish endpoint."""
 
-    @patch("dsa110_contimg.api.routes.create_batch_publish_job")
-    @patch("dsa110_contimg.api.routes.run_batch_publish_job")
-    @patch("dsa110_contimg.api.routes.ensure_products_db")
+    @patch("dsa110_contimg.api.batch_jobs.create_batch_publish_job")
+    @patch("dsa110_contimg.api.job_runner.run_batch_publish_job")
+    @patch("dsa110_contimg.database.products.ensure_products_db")
     def test_create_batch_publish_job(
         self, mock_ensure_db, mock_run_job, mock_create_job, client, mock_products_db
     ):

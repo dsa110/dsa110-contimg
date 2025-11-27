@@ -1,5 +1,11 @@
 # Absurd Pipeline Operations Guide
 
+> **⚠️ CONSOLIDATION NOTICE:** The canonical Absurd operations documentation is
+> at
+> [`docs/operations/absurd_operations.md`](/data/dsa110-contimg/docs/operations/absurd_operations.md).
+> This file in `backend/docs/` provides supplementary context and may be merged
+> or archived in a future documentation cleanup.
+
 ## Overview
 
 The DSA-110 continuum imaging pipeline now uses **Absurd**, a durable task queue
@@ -8,7 +14,7 @@ procedures for production use.
 
 ## Architecture
 
-```
+```text
 ┌─────────────────┐
 │  UVH5 Data      │
 │  /data/incoming │

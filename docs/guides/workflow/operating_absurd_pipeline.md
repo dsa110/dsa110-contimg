@@ -1,5 +1,11 @@
 # Operating the DSA-110 Pipeline with Absurd
 
+> **⚠️ CONSOLIDATION NOTICE:** This document overlaps with the canonical
+> operations guide at
+> [`docs/operations/absurd_operations.md`](../../operations/absurd_operations.md).
+> Please use that document for authoritative operations procedures. This file
+> provides pipeline-specific context and may be merged in a future cleanup.
+
 **Date:** 2025-11-18  
 **Type:** Operations Guide  
 **Status:** ✅ Production-Ready
@@ -477,6 +483,7 @@ Or use systemd with instance templates: `dsa110-absurd-worker@{1..4}.service`
    ```
 
 2. **Check task priorities:**
+
    - Higher priority = processed first
    - Default priority = 0
 

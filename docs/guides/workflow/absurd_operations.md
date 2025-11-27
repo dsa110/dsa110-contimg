@@ -1,5 +1,11 @@
 # Absurd Operations Guide
 
+> **⚠️ CONSOLIDATION NOTICE:** This document overlaps significantly with the
+> canonical operations guide at
+> [`docs/operations/absurd_operations.md`](../../operations/absurd_operations.md).
+> Please use that document for authoritative operations procedures. This file is
+> retained for additional detail and may be archived in a future cleanup.
+
 **Author:** DSA-110 Team  
 **Date:** 2025-11-18  
 **Status:** Production Ready

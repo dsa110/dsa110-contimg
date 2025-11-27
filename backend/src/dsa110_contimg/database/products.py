@@ -76,10 +76,25 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
             cal_applied INTEGER DEFAULT 0,
             imagename TEXT,
             ra_deg REAL,
-            dec_deg REAL
+            dec_deg REAL,
+            pointing_ra_deg REAL,
+            pointing_dec_deg REAL
         )
         """
     )
+    # Ensure new pointing columns exist on upgraded databases
+    ms_cols = {row[1] for row in conn.execute("PRAGMA table_info(ms_index)").fetchall()}
+    for col_name, col_def in [
+        ("ra_deg", "REAL"),
+        ("dec_deg", "REAL"),
+        ("pointing_ra_deg", "REAL"),
+        ("pointing_dec_deg", "REAL"),
+    ]:
+        if col_name not in ms_cols:
+            try:
+                conn.execute(f"ALTER TABLE ms_index ADD COLUMN {col_name} {col_def}")
+            except sqlite3.OperationalError:
+                pass
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS images (

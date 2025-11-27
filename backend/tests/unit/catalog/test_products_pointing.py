@@ -40,6 +40,10 @@ def temp_products_db(tmp_path):
         cur.execute("ALTER TABLE ms_index ADD COLUMN ra_deg REAL")
     if "dec_deg" not in cols:
         cur.execute("ALTER TABLE ms_index ADD COLUMN dec_deg REAL")
+    if "pointing_ra_deg" not in cols:
+        cur.execute("ALTER TABLE ms_index ADD COLUMN pointing_ra_deg REAL")
+    if "pointing_dec_deg" not in cols:
+        cur.execute("ALTER TABLE ms_index ADD COLUMN pointing_dec_deg REAL")
     conn.commit()
     conn.close()
     return db_path

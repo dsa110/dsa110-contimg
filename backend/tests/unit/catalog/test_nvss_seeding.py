@@ -66,6 +66,7 @@ class TestNVSSRadiusCalculation:
                 imagename=imagename,
                 pbcor=False,  # No primary beam correction
                 nvss_min_mjy=10.0,
+                backend="casa",
             )
 
             # Verify make_nvss_component_cl was called
@@ -155,6 +156,7 @@ class TestNVSSRadiusCalculation:
                 pbcor=True,  # Primary beam correction enabled
                 pblimit=0.2,  # 20% of peak
                 nvss_min_mjy=10.0,
+                backend="casa",
             )
 
             # Verify make_nvss_component_cl was called
@@ -269,6 +271,7 @@ class TestNVSSSeedingIntegration:
                 ms_path,
                 imagename=imagename,
                 nvss_min_mjy=None,  # Not requested
+                backend="casa",
             )
 
             # NVSS seeding should not be called
@@ -350,6 +353,7 @@ class TestNVSSSeedingIntegration:
                 nvss_min_mjy=10.0,
                 pbcor=True,
                 pblimit=0.2,
+                backend="casa",
             )
 
             # Verify make_nvss_component_cl was called
