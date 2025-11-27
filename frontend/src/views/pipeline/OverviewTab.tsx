@@ -18,7 +18,7 @@ import { CircuitBreakerStatus } from "../../components/CircuitBreaker";
 export default function OverviewTab() {
   const { data: status, isLoading, error } = usePipelineStatus();
   const { data: metrics, isLoading: metricsLoading } = useSystemMetrics();
-  const { data: healthSummary, isLoading: healthLoading } = useHealthSummary();
+  const { data: healthSummary } = useHealthSummary();
 
   if (isLoading) {
     return <SkeletonLoader variant="cards" rows={4} />;
@@ -95,8 +95,8 @@ export default function OverviewTab() {
           {metrics != null ? (
             <SystemHealthSection
               metrics={metrics}
-              loading={metricsLoading || healthLoading}
-              healthSummary={healthSummary ?? null}
+              loading={metricsLoading}
+              healthSummary={healthSummary}
             />
           ) : (
             <Paper sx={{ p: 2, textAlign: "center", color: "text.secondary" }}>

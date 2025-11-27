@@ -100,7 +100,9 @@ export default function ControlTab() {
       <Paper sx={{ p: 2 }}>
         <Tabs
           value={workflowTab}
-          onChange={(_, val: number) => setWorkflowTab(val)}
+          onChange={(_, val: number) => {
+            setWorkflowTab(val);
+          }}
           sx={{ mb: 2, borderBottom: 1, borderColor: "divider" }}
         >
           <Tab label="Templates" />
