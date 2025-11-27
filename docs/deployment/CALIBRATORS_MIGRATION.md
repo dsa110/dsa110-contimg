@@ -52,13 +52,13 @@ Or manually:
 # Dry-run first
 python backend/src/dsa110_contimg/database/migrate_calibrators.py \
     --products-db state/products.sqlite3 \
-    --calibrators-db state/calibrators.sqlite3 \
+    --calibrators-db state/db/calibrators.sqlite3 \
     --dry-run
 
 # Actual migration
 python backend/src/dsa110_contimg/database/migrate_calibrators.py \
     --products-db state/products.sqlite3 \
-    --calibrators-db state/calibrators.sqlite3
+    --calibrators-db state/db/calibrators.sqlite3
 ```
 
 ### 3. Verify Migration
@@ -67,7 +67,7 @@ python backend/src/dsa110_contimg/database/migrate_calibrators.py \
 # Check calibrator counts
 python -c "
 import sqlite3
-conn = sqlite3.connect('state/calibrators.sqlite3')
+conn = sqlite3.connect('state/db/calibrators.sqlite3')
 cursor = conn.execute('SELECT COUNT(*) FROM bandpass_calibrators')
 print(f'Calibrators migrated: {cursor.fetchone()[0]}')
 conn.close()
@@ -102,7 +102,7 @@ If issues are detected:
 # Restore from backup
 BACKUP_DIR="state/backups/YYYYMMDD_HHMMSS"  # Use actual backup directory
 cp "$BACKUP_DIR/products.sqlite3.backup" state/products.sqlite3
-cp "$BACKUP_DIR/calibrators.sqlite3.backup" state/calibrators.sqlite3
+cp "$BACKUP_DIR/calibrators.sqlite3.backup" state/db/calibrators.sqlite3
 
 # Revert code changes (if needed)
 git checkout main  # Or specific commit before migration

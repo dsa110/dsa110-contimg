@@ -334,13 +334,15 @@ def build_uvdata_from_scratch(
     # Create UVData object
     uv = UVData()
 
-    # Set basic dimensions
-    # Note: Nblts, Nbls, Ntimes, Nfreqs, Nants_data, Nants_telescope are computed
-    # properties in pyuvdata 3.x - they are derived from the data arrays
-    # We set the arrays first, then the computed properties are derived automatically
-    uv.Nspws = 1
-    uv.Npols = len(config.polarizations)
-    uv.Nfreqs = config.channels_per_subband
+    # Calculate dimensions - in pyuvdata 3.x these are computed properties
+    # so we need to calculate them before creating arrays
+    nblts = nbls * ntimes
+    nspws = 1
+    nfreqs = config.channels_per_subband
+    npols = len(config.polarizations)
+
+    # Set basic dimensions that can still be set
+    uv.Nspws = nspws
 
     # Set antenna arrays (these define Nants_data and Nants_telescope)
     uv.ant_1_array = np.repeat(ant1_list, ntimes)
@@ -354,8 +356,8 @@ def build_uvdata_from_scratch(
     uv.integration_time = integration_time
 
     # Set frequency array (will be set per subband)
-    uv.freq_array = np.zeros((1, config.channels_per_subband), dtype=float)
-    uv.channel_width = np.full(config.channels_per_subband, config.channel_width_hz, dtype=float)
+    uv.freq_array = np.zeros((nspws, nfreqs), dtype=float)
+    uv.channel_width = np.full(nfreqs, config.channel_width_hz, dtype=float)
 
     # Set phase center
     uv.phase_center_ra = config.phase_ra.to_value(u.rad)
@@ -379,10 +381,10 @@ def build_uvdata_from_scratch(
         ]
     )
 
-    # Set data arrays (will be populated per subband)
-    uv.data_array = np.zeros((uv.Nblts, uv.Nspws, uv.Nfreqs, uv.Npols), dtype=np.complex64)
-    uv.flag_array = np.zeros((uv.Nblts, uv.Nspws, uv.Nfreqs, uv.Npols), dtype=bool)
-    uv.nsample_array = np.ones((uv.Nblts, uv.Nspws, uv.Nfreqs, uv.Npols), dtype=np.float32)
+    # Set data arrays using calculated dimensions
+    uv.data_array = np.zeros((nblts, nspws, nfreqs, npols), dtype=np.complex64)
+    uv.flag_array = np.zeros((nblts, nspws, nfreqs, npols), dtype=bool)
+    uv.nsample_array = np.ones((nblts, nspws, nfreqs, npols), dtype=np.float32)
 
     # Set units and metadata
     uv.vis_units = "Jy"

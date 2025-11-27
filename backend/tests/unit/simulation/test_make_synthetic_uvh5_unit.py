@@ -157,7 +157,8 @@ class TestBuildTimeArrays:
         assert len(unique_times) == ntimes
         assert len(time_array) == nbls * ntimes
         assert len(lst_array) == nbls * ntimes
-        assert int_time == sample_config.integration_time_sec
+        # int_time is an array with all values equal to integration_time_sec
+        assert np.all(int_time == sample_config.integration_time_sec)
         assert np.all(time_array >= start_time.mjd)
 
     def test_build_time_arrays_single_time(self, sample_config):
