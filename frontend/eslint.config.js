@@ -70,6 +70,8 @@ export default defineConfig([
       ...sharedTsRules,
       // Require React import when using react-router-dom hooks (React 19 requirement)
       "require-react-for-router-hooks/require-react-for-router-hooks": "error",
+      // Allow GridLegacy usage - Grid2 not available in this MUI version
+      "@typescript-eslint/no-deprecated": "off",
     },
   },
   {

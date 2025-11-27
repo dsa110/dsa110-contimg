@@ -23,19 +23,27 @@ import { CacheStats, CacheKeys, CachePerformance } from "../../components/Cache"
 import type { SystemMetrics } from "../../api/types";
 
 // Helper functions for disk metrics
-function getDiskPercent(metrics?: SystemMetrics): string {
-  if (!metrics?.disk_used || !metrics?.disk_total || metrics.disk_total === 0) {
+function getDiskPercent(metrics: SystemMetrics | undefined): string {
+  if (metrics == null) {
     return "0%";
   }
-  const percent = (metrics.disk_used / metrics.disk_total) * 100;
+  const { disk_used, disk_total } = metrics;
+  if (disk_used == null || disk_total == null || disk_total === 0) {
+    return "0%";
+  }
+  const percent = (disk_used / disk_total) * 100;
   return `${percent.toFixed(1)}%`;
 }
 
-function getDiskColor(metrics?: SystemMetrics): "success" | "warning" | "error" {
-  if (!metrics?.disk_used || !metrics?.disk_total || metrics.disk_total === 0) {
+function getDiskColor(metrics: SystemMetrics | undefined): "success" | "warning" | "error" {
+  if (metrics == null) {
     return "success";
   }
-  const percent = (metrics.disk_used / metrics.disk_total) * 100;
+  const { disk_used, disk_total } = metrics;
+  if (disk_used == null || disk_total == null || disk_total === 0) {
+    return "success";
+  }
+  const percent = (disk_used / disk_total) * 100;
   return percent > 90 ? "error" : "success";
 }
 
@@ -76,7 +84,7 @@ export default function HealthTab() {
         <Grid item xs={6} sm={3}>
           <StatCard
             title="CPU Usage"
-            value={metricsLoading ? "..." : `${String(systemMetrics?.cpu_percent?.toFixed(1) ?? "0")}%`}
+            value={metricsLoading ? "..." : `${systemMetrics?.cpu_percent?.toFixed(1) ?? "0"}%`}
             color={
               systemMetrics?.cpu_percent != null && systemMetrics.cpu_percent > 80 ? "error" : "success"
             }
@@ -85,7 +93,7 @@ export default function HealthTab() {
         <Grid item xs={6} sm={3}>
           <StatCard
             title="Memory"
-            value={metricsLoading ? "..." : `${String(systemMetrics?.mem_percent?.toFixed(1) ?? "0")}%`}
+            value={metricsLoading ? "..." : `${systemMetrics?.mem_percent?.toFixed(1) ?? "0"}%`}
             color={
               systemMetrics?.mem_percent != null && systemMetrics.mem_percent > 80
                 ? "error"

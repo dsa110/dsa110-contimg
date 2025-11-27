@@ -6,7 +6,6 @@
  * - AG-Grid table view
  * - Light curve visualization
  */
-import React from "react";
 import SourceMonitoringPage from "../../pages/SourceMonitoringPage";
 
 export default function SourcesTab() {

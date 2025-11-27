@@ -7,7 +7,6 @@
  * - Resource usage
  * - Configuration
  */
-import React from "react";
 import StreamingPage from "../../pages/StreamingPage";
 
 export default function StreamingTab() {

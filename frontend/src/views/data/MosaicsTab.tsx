@@ -5,7 +5,6 @@
  * - Grid of mosaic thumbnails
  * - Preview and metadata
  */
-import React from "react";
 import MosaicGalleryPage from "../../pages/MosaicGalleryPage";
 
 export default function MosaicsTab() {

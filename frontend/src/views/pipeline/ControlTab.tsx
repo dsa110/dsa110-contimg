@@ -2,17 +2,18 @@
  * Pipeline Control Tab
  *
  * Main execution interface for pipeline workflows:
- * - MS selection table
+ * - MS selection table with filtering
  * - Conversion workflow
  * - Calibration workflow
  * - Imaging workflow
  * - Live operations monitoring
  */
 import { useState } from "react";
-import { Box, Stack } from "@mui/material";
+import { Box, Stack, Paper, Typography, Tabs, Tab } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
 import { logger } from "../../utils/logger";
 import type { MSListEntry } from "../../api/types";
+import { useMSList, useMSMetadata, useJobs } from "../../api/queries";
 import MSTable from "../../components/MSTable";
 import { computeSelectedMS } from "../../utils/selectionLogic";
 import { ConversionWorkflow } from "../../components/workflows/ConversionWorkflow";
@@ -25,69 +26,133 @@ import { LiveOperationsCard } from "../../components/Pipeline";
 export default function ControlTab() {
   const [selectedMS, setSelectedMS] = useState("");
   const [selectedMSList, setSelectedMSList] = useState<string[]>([]);
-  const [msMetadata, setMsMetadata] = useState<MSListEntry | null>(null);
+  const [workflowTab, setWorkflowTab] = useState(0);
+
+  // Queries
+  const { data: msList, refetch: refetchMS } = useMSList({
+    scan: String(true),
+    scan_dir: "/stage/dsa110-contimg/ms",
+  });
+  const { data: msMetadata } = useMSMetadata(selectedMS || null);
+  const { refetch: refetchJobs } = useJobs();
 
   const handleMSSelectionChange = (paths: string[]) => {
     const newSelectedMS = computeSelectedMS(paths, selectedMSList, selectedMS);
     setSelectedMSList(paths);
     setSelectedMS(newSelectedMS);
-
-    if (!newSelectedMS) {
-      setMsMetadata(null);
-    }
   };
 
-  const handleMSRowClick = (row: MSListEntry) => {
-    setSelectedMS(row.path);
-    setMsMetadata(row);
-    logger.info("Selected MS for details:", { path: row.path });
+  const handleMSClick = (ms: MSListEntry) => {
+    setSelectedMS(ms.path);
+    setSelectedMSList((prev) => {
+      if (!prev.includes(ms.path)) {
+        return [...prev, ms.path];
+      }
+      return prev;
+    });
+    logger.info("Selected MS for details:", { path: ms.path });
+  };
+
+  const handleMSSelectFromDetails = (ms: MSListEntry) => {
+    setSelectedMS(ms.path);
+    setSelectedMSList((prev) => {
+      if (!prev.includes(ms.path)) {
+        return [...prev, ms.path];
+      }
+      return prev;
+    });
+  };
+
+  const handleJobCreated = (_jobId: number) => {
+    void refetchJobs();
   };
 
   return (
     <Stack spacing={3}>
-      {/* Main layout: MS Table + Details Panel */}
+      {/* MS Selection & Details */}
       <Grid container spacing={3}>
         <Grid item xs={12} lg={8}>
-          <MSTable
-            selectedMS={selectedMS}
-            selectedMSList={selectedMSList}
-            onSelectionChange={handleMSSelectionChange}
-            onRowClick={handleMSRowClick}
-          />
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Measurement Sets
+            </Typography>
+            <MSTable
+              data={msList?.items ?? []}
+              total={msList?.total}
+              filtered={msList?.filtered?.length}
+              selected={selectedMSList}
+              onSelectionChange={handleMSSelectionChange}
+              onMSClick={handleMSClick}
+              onRefresh={() => void refetchMS()}
+            />
+          </Paper>
         </Grid>
         <Grid item xs={12} lg={4}>
-          {msMetadata ? (
-            <MSDetailsPanel msPath={selectedMS} metadata={msMetadata} />
-          ) : (
-            <Box sx={{ p: 3, textAlign: "center", color: "text.secondary" }}>
-              Select a measurement set to view details
-            </Box>
-          )}
+          <MSDetailsPanel
+            selectedMS={selectedMS}
+            metadata={msMetadata}
+            onMSSelect={handleMSSelectFromDetails}
+          />
         </Grid>
       </Grid>
 
       {/* Workflow Controls */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6} lg={4}>
-          <ConversionWorkflow />
-        </Grid>
-        <Grid item xs={12} md={6} lg={4}>
-          <CalibrationWorkflow selectedMS={selectedMS} selectedMSList={selectedMSList} />
-        </Grid>
-        <Grid item xs={12} md={6} lg={4}>
-          <ImagingWorkflow selectedMS={selectedMS} />
-        </Grid>
-      </Grid>
+      <Paper sx={{ p: 2 }}>
+        <Tabs
+          value={workflowTab}
+          onChange={(_, val: number) => setWorkflowTab(val)}
+          sx={{ mb: 2, borderBottom: 1, borderColor: "divider" }}
+        >
+          <Tab label="Templates" />
+          <Tab label="Convert" />
+          <Tab label="Calibrate" />
+          <Tab label="Image" />
+        </Tabs>
 
-      {/* Workflow Templates & Live Operations */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} lg={6}>
-          <WorkflowTemplates />
-        </Grid>
-        <Grid item xs={12} lg={6}>
-          <LiveOperationsCard />
-        </Grid>
-      </Grid>
+        {/* Templates Tab */}
+        {workflowTab === 0 && (
+          <WorkflowTemplates
+            onTemplateSelect={(template) => {
+              if (template.category === "calibration") {
+                setWorkflowTab(2);
+              } else if (template.category === "imaging") {
+                setWorkflowTab(3);
+              }
+            }}
+          />
+        )}
+
+        {/* Convert Tab */}
+        {workflowTab === 1 && (
+          <ConversionWorkflow
+            selectedMS={selectedMS}
+            onJobCreated={handleJobCreated}
+            onRefreshJobs={() => void refetchJobs()}
+          />
+        )}
+
+        {/* Calibrate Tab */}
+        {workflowTab === 2 && (
+          <CalibrationWorkflow
+            selectedMS={selectedMS}
+            selectedMSList={selectedMSList}
+            onJobCreated={handleJobCreated}
+            onRefreshJobs={() => void refetchJobs()}
+          />
+        )}
+
+        {/* Image Tab */}
+        {workflowTab === 3 && (
+          <ImagingWorkflow
+            selectedMS={selectedMS}
+            onJobCreated={handleJobCreated}
+            onRefreshJobs={() => void refetchJobs()}
+          />
+        )}
+      </Paper>
+
+      {/* Live Operations */}
+      <LiveOperationsCard />
     </Stack>
   );
 }

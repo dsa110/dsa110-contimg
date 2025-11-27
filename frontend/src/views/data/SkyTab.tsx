@@ -9,7 +9,6 @@
  * - Region tools
  * - Analysis plugins
  */
-import React from "react";
 import SkyViewPage from "../../pages/SkyViewPage";
 
 export default function SkyTab() {
