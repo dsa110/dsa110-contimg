@@ -226,9 +226,39 @@ When the chunk cache is smaller than the chunk size, h5py must:
 With DSA-110's 2-4 MB chunks and 1 MB default cache, this causes catastrophic
 performance degradation for random access patterns.
 
-### Solution: Use `dsa110_contimg.utils.hdf5_io`
+### Solution 1: Global h5py Cache Configuration (Recommended)
 
-The `hdf5_io` module provides optimized context managers:
+The pipeline automatically configures h5py's default chunk cache via
+monkey-patching. This affects **all** h5py.File() calls, including those in
+third-party libraries like pyuvdata.
+
+**Automatic activation**: The CLI and streaming converter call this at startup:
+
+```python
+from dsa110_contimg.utils.hdf5_io import configure_h5py_cache_defaults
+
+configure_h5py_cache_defaults()  # Sets 16 MB cache for ALL h5py.File() calls
+```
+
+**Measured performance improvement**: 32% faster total conversion time, 48%
+faster HDF5 reading phase (tested on 16-subband group conversion).
+
+**For custom scripts**, call this before importing pyuvdata:
+
+```python
+# MUST be called BEFORE importing pyuvdata or other h5py-using libraries
+from dsa110_contimg.utils.hdf5_io import configure_h5py_cache_defaults
+configure_h5py_cache_defaults()
+
+# Now pyuvdata will use 16 MB cache by default
+from pyuvdata import UVData
+uv = UVData()
+uv.read("file.uvh5")  # Uses optimized 16 MB cache automatically
+```
+
+### Solution 2: Explicit Context Managers
+
+For direct h5py access, use the optimized context managers:
 
 ```python
 from dsa110_contimg.utils.hdf5_io import (
@@ -254,18 +284,32 @@ with open_uvh5_large_cache("/path/to/file.hdf5") as f:
 
 ### Cache Size Guidelines
 
-| Access Pattern  | Function                  | Cache Size | Use Case              |
-| --------------- | ------------------------- | ---------- | --------------------- |
-| Metadata only   | `open_uvh5_metadata()`    | 1 MB       | Quick header reads    |
-| Sequential read | `open_uvh5()`             | 16 MB      | Normal processing     |
-| Single-pass     | `open_uvh5_streaming()`   | 0          | Streaming ingest      |
-| Random access   | `open_uvh5_large_cache()` | 64 MB      | Downsampling, slicing |
+| Access Pattern  | Function                          | Cache Size | Use Case              |
+| --------------- | --------------------------------- | ---------- | --------------------- |
+| Global default  | `configure_h5py_cache_defaults()` | 16 MB      | All h5py.File() calls |
+| Metadata only   | `open_uvh5_metadata()`            | 1 MB       | Quick header reads    |
+| Sequential read | `open_uvh5()`                     | 16 MB      | Normal processing     |
+| Single-pass     | `open_uvh5_streaming()`           | 0          | Streaming ingest      |
+| Random access   | `open_uvh5_large_cache()`         | 64 MB      | Downsampling, slicing |
 
 ### Performance Impact
 
+- **Global cache patch**: 32% faster conversion, 48% faster HDF5 reads
 - **Metadata reads**: Already fast via `FastMeta`, now with proper cache
 - **Sequential reads**: 10-100x improvement
 - **Random access**: Up to 1000x improvement
+
+### Checking Cache Status
+
+```python
+from dsa110_contimg.utils.hdf5_io import get_h5py_cache_info
+
+info = get_h5py_cache_info()
+print(info)
+# {'default_rdcc_nbytes': 16777216, 'default_rdcc_nslots': 1009,
+#  'default_rdcc_nbytes_mb': 16.0, 'configured_by_pipeline': True,
+#  'patch_applied': True}
+```
 
 ### Reference
 
@@ -284,6 +328,7 @@ Based on HDF Group best practices:
 
 **Optimizations:**
 
+- Global h5py cache configuration (automatic in CLI)
 - Use `hdf5_io` functions for optimized HDF5 access
 - Use tmpfs for staging (fast I/O)
 - Parallel subband processing

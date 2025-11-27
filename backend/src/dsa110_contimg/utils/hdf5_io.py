@@ -14,7 +14,25 @@ DSA-110 UVH5 File Characteristics:
     - Recommended cache size: 16 MB (holds multiple chunks)
     - For metadata-only reads: cache can be disabled (0 bytes)
 
-Usage:
+Two Optimization Approaches:
+    1. Global h5py Configuration (RECOMMENDED):
+       Call configure_h5py_cache_defaults() once at application startup.
+       This monkey-patches h5py.File to use optimized cache settings for ALL
+       HDF5 operations, including third-party libraries like pyuvdata.
+
+    2. Explicit Context Managers:
+       Use the provided context managers (open_uvh5, open_uvh5_metadata, etc.)
+       for fine-grained control over cache settings per file.
+
+Usage - Global Configuration (recommended):
+    # At application entry point (before any h5py imports):
+    from dsa110_contimg.utils.hdf5_io import configure_h5py_cache_defaults
+    configure_h5py_cache_defaults()  # Patches h5py globally
+
+    # All subsequent h5py.File() calls use 16MB cache automatically
+    # This includes pyuvdata.UVData.read() and other library code
+
+Usage - Context Managers (explicit control):
     # For repeated reads (hot path):
     with open_uvh5(path) as f:
         data = f['visdata'][:]
@@ -26,6 +44,11 @@ Usage:
     # For single-pass bulk reads:
     with open_uvh5_streaming(path) as f:
         data = f['visdata'][:]  # Read all at once
+
+Cache Status Checking:
+    from dsa110_contimg.utils.hdf5_io import get_h5py_cache_info
+    info = get_h5py_cache_info()
+    print(f"Cache enabled: {info['patched']}, size: {info['rdcc_nbytes']/1e6:.1f}MB")
 
 Reference:
     https://support.hdfgroup.org/documentation/hdf5/latest/improve_compressed_perf.html
