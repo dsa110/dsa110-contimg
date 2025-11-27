@@ -9,7 +9,7 @@ for all conversion workflows, with flags enabling different modes.
 
 ## Philosophy: One Pathway with Flags
 
-The orchestrator CLI (`dsa110_contimg.conversion.strategies.hdf5_orchestrator`)
+The orchestrator CLI (`dsa110_contimg.conversion.strategies.hdf5_orchestrator_orchestrator`)
 is the **single entry point** for all conversion workflows. Instead of creating
 separate scripts for different use cases, we use flags to enable different
 modes:
@@ -26,7 +26,7 @@ This keeps the codebase clean and avoids redundant wrapper scripts.
 This is the default mode used by the streaming pipeline:
 
 ```bash
-python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator_orchestrator \
     /data/incoming \
     /stage/dsa110-contimg/ms \
     "2025-10-30 13:00:00" \
@@ -50,7 +50,7 @@ This mode finds the calibrator transit and calculates the time window
 automatically:
 
 ```bash
-python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator_orchestrator \
     /data/incoming \
     /stage/dsa110-contimg/ms \
     --calibrator 0834+555 \
@@ -66,7 +66,7 @@ available)
 To target a specific transit date:
 
 ```bash
-python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator_orchestrator \
     /data/incoming \
     /stage/dsa110-contimg/ms \
     --calibrator 0834+555 \
@@ -82,7 +82,7 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
 For a known transit time:
 
 ```bash
-python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator_orchestrator \
     /data/incoming \
     /stage/dsa110-contimg/ms \
     --calibrator 0834+555 \
@@ -106,7 +106,7 @@ When using `--calibrator`, you can customize the search:
 Example with custom window:
 
 ```bash
-python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator_orchestrator \
     /data/incoming \
     /stage/dsa110-contimg/ms \
     --calibrator 0834+555 \
@@ -143,7 +143,7 @@ INFO:   Files: 16 subband files
 
 ```bash
 # Find and convert 0834+555 transit on 2025-10-30
-python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator_orchestrator \
     /data/incoming \
     /tmp/test-ms \
     --calibrator 0834+555 \
@@ -156,7 +156,7 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
 
 ```bash
 # Process most recent 0834+555 transit (no date specified)
-python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator_orchestrator \
     /data/incoming \
     /stage/dsa110-contimg/ms \
     --calibrator 0834+555 \
@@ -167,7 +167,7 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
 
 ```bash
 # Process all groups in time window (streaming pipeline style)
-python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator_orchestrator \
     /data/incoming \
     /stage/dsa110-contimg/ms \
     "2025-10-30 00:00:00" \

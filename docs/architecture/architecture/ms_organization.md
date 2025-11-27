@@ -53,7 +53,7 @@ function:
 
 ```python
 from dsa110_contimg.utils.ms_organization import create_path_mapper
-from dsa110_contimg.conversion.strategies.hdf5_orchestrator import convert_subband_groups_to_ms
+from dsa110_contimg.conversion.strategies.hdf5_orchestrator_orchestrator import convert_subband_groups_to_ms
 
 # Create path mapper for organized output
 ms_base_dir = Path('/stage/dsa110-contimg/ms')

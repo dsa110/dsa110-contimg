@@ -39,7 +39,7 @@ Process multiple time windows using the orchestrator CLI:
 
 ```bash
 # Process all groups in a time window (batch processing)
-python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator_orchestrator \
     /data/incoming \
     /stage/dsa110-contimg/ms \
     "2025-10-30 00:00:00" \
@@ -364,7 +364,7 @@ python scripts/mosaic/create_mosaic_centered.py \
 
 ```bash
 # 1. Convert all data for the night
-python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator_orchestrator \
     /data/incoming \
     /stage/dsa110-contimg/ms \
     "2025-10-30 00:00:00" \
@@ -403,7 +403,7 @@ curl -X POST http://localhost:8000/api/batch/image \
 ```bash
 # Process data from multiple days
 for date in 2025-10-28 2025-10-29 2025-10-30; do
-    python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
+    python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator_orchestrator \
         /data/incoming \
         /stage/dsa110-contimg/ms \
         "${date} 00:00:00" \
@@ -416,7 +416,7 @@ done
 
 ```bash
 # Process specific calibrator transit
-python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator_orchestrator \
     /data/incoming \
     /stage/dsa110-contimg/ms \
     --calibrator 0834+555 \

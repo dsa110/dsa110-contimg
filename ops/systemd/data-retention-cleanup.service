@@ -1,0 +1,17 @@
+[Unit]
+Description=DSA-110 data retention cleanup
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/data/dsa110-contimg
+EnvironmentFile=-/data/dsa110-contimg/ops/systemd/contimg.env
+# Set DRY_RUN=false in contimg.env once validated
+Environment=DRY_RUN=false
+ExecStart=/data/dsa110-contimg/scripts/ops/cleanup_old_data.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+
+[Install]
+WantedBy=multi-user.target

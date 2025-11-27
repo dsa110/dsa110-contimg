@@ -658,7 +658,7 @@ class MosaicTaskAdapter(TaskAdapter):
         Returns:
             {"mosaic_path": str, "stats": dict}
         """
-        from dsa110_contimg.mosaic.create_mosaic import create_mosaic
+        from dsa110_contimg.mosaic.orchestrator import create_mosaic
 
         input_images = params["input_images"]
         config = params["mosaic_config"]

@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily data retention cleanup
+After=network.target
+
+[Timer]
+OnCalendar=daily
+OnBootSec=1h
+Persistent=true
+Unit=data-retention-cleanup.service
+
+[Install]
+WantedBy=timers.target

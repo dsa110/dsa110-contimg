@@ -41,11 +41,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Configuration
-INCOMING_DIR = Path("/data/incoming")
-OUTPUT_MS_DIR = Path("/stage/dsa110-contimg/ms")
-SCRATCH_DIR = Path("/stage/dsa110-contimg")
-PRODUCTS_DB = Path("/stage/dsa110-contimg/state/db/products.sqlite3")
-CAL_REGISTRY_DB = Path("/stage/dsa110-contimg/state/db/cal_registry.sqlite3")
+STATE_DIR = Path(
+    os.getenv("PIPELINE_STATE_DIR")
+    or os.getenv("CONTIMG_STATE_DIR", "/data/dsa110-contimg/state")
+)
+INCOMING_DIR = Path(os.getenv("CONTIMG_INPUT_DIR", "/data/incoming"))
+OUTPUT_MS_DIR = Path(os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms"))
+SCRATCH_DIR = Path(os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg"))
+PRODUCTS_DB = Path(os.getenv("PIPELINE_PRODUCTS_DB", str(STATE_DIR / "products.sqlite3")))
+CAL_REGISTRY_DB = Path(os.getenv("CAL_REGISTRY_DB", str(STATE_DIR / "cal_registry.sqlite3")))
 
 CALIBRATOR_NAME = "0834+555"
 TARGET_DATE = "2025-10-29"
@@ -537,4 +541,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

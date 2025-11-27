@@ -331,10 +331,13 @@ class TestAddCalibrationErrors:
         gain_std = 0.1
         phase_std_deg = 10.0
 
-        _, _, phases = add_calibration_errors(vis, nants, gain_std, phase_std_deg)
+        _, _, phases = add_calibration_errors(
+            vis, nants, gain_std, phase_std_deg, use_measured_params=False
+        )
 
-        # Phases should be in degrees
-        phase_std_actual_deg = np.std(phases)
+        # Phases returned are in radians - convert to degrees for comparison
+        phases_deg = np.rad2deg(phases)
+        phase_std_actual_deg = np.std(phases_deg)
         assert abs(phase_std_actual_deg - phase_std_deg) < phase_std_deg * 0.5
 
     def test_cal_errors_reproducibility(self):
@@ -357,8 +360,11 @@ class TestAddCalibrationErrors:
         vis = np.ones((10, 1, 64, 2), dtype=np.complex64)
         nants = 3
 
+        # Must also set bandpass_std=0 and use_measured_params=False
+        # to ensure no random variations are applied
         vis_corr, gains, phases = add_calibration_errors(
-            vis, nants, gain_std=0.0, phase_std_deg=0.0
+            vis, nants, gain_std=0.0, phase_std_deg=0.0, bandpass_std=0.0,
+            use_measured_params=False
         )
 
         # With zero std, gains should be very close to 1.0 and phases close to 0

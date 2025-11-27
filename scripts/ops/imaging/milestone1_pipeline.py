@@ -17,6 +17,7 @@ import signal
 import sys
 import time
 from datetime import datetime
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -389,12 +390,16 @@ def main():
     )
     
     # Step 2: Configure pipeline
+    state_dir = Path(
+        os.getenv("PIPELINE_STATE_DIR")
+        or os.getenv("CONTIMG_STATE_DIR", "/data/dsa110-contimg/state")
+    )
     config = PipelineConfig(
         paths=PathsConfig(
-            input_dir=Path("/data/incoming"),
-            output_dir=Path("/stage/dsa110-contimg/ms"),
-            scratch_dir=Path("/stage/dsa110-contimg"),
-            state_dir=Path("/stage/dsa110-contimg/state"),
+            input_dir=Path(os.getenv("CONTIMG_INPUT_DIR", "/data/incoming")),
+            output_dir=Path(os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms")),
+            scratch_dir=Path(os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg")),
+            state_dir=state_dir,
         ),
         conversion=ConversionConfig(
             writer="parallel-subband",
@@ -634,4 +639,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

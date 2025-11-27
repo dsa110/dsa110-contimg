@@ -10,6 +10,10 @@
 #   --auto-restart    Automatically restart unhealthy containers
 #   --notify          Send notifications (requires notification setup)
 #   --continuous      Run continuously (check every 60s)
+# Environment (notifications):
+#   NOTIFICATION_METHOD=slack,email,webhook,log
+#   SLACK_WEBHOOK_URL, EMAIL_RECIPIENTS, NOTIFICATION_WEBHOOK_URL
+#   NOTIFICATION_TITLE_PREFIX (optional), NOTIFY_LOG_FILE (optional)
 #
 
 set -euo pipefail
@@ -20,6 +24,16 @@ NOTIFY=false
 CONTINUOUS=false
 CHECK_INTERVAL=60
 LOG_FILE="/data/dsa110-contimg/logs/container-health.log"
+
+# Load notification helpers if available
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+NOTIFY_LIB="${SCRIPT_DIR}/lib/notifications.sh"
+if [[ -f "$NOTIFY_LIB" ]]; then
+  # shellcheck source=scripts/ops/lib/notifications.sh
+  source "$NOTIFY_LIB"
+else
+  echo "[WARN] Notifications library not found at $NOTIFY_LIB; notifications disabled" >&2
+fi
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -99,8 +113,13 @@ send_notification() {
   local status="$2"
   local health="$3"
   
-  # TODO: Implement notification (email, Slack, etc.)
-  log "NOTIFY" "Container $container is unhealthy (Status: $status, Health: $health)"
+  if declare -F notify_send >/dev/null 2>&1; then
+    local subject="Container $container unhealthy"
+    local body="Container $container is unhealthy\nStatus: $status\nHealth: $health"
+    notify_send "$subject" "$body" "critical"
+  else
+    log "NOTIFY" "Container $container is unhealthy (Status: $status, Health: $health) [notifications lib missing]"
+  fi
 }
 
 # Main monitoring loop
