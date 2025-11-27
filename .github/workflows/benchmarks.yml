@@ -41,7 +41,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for commit comparison
+          fetch-depth: 0 # Full history for commit comparison
 
       - name: Setup conda environment
         run: |
@@ -125,7 +125,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            
+
             // Try to read results summary
             let summary = '## Performance Benchmark Results\n\n';
             summary += '✅ Benchmark check completed for commit ${{ github.sha }}\n\n';
@@ -135,7 +135,7 @@ jobs:
             summary += 'make bench-quick  # Run quick benchmark locally\n';
             summary += 'make bench-report # Generate HTML report\n';
             summary += '```\n';
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

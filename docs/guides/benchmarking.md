@@ -124,6 +124,34 @@ WSClean imaging benchmarks (disabled by default).
 take too long for routine testing. Enable by removing the `_` prefix from class
 names.
 
+### Memory Benchmarks
+
+**File**: `benchmarks/bench_memory.py`
+
+Peak memory usage benchmarks using ASV's `peakmem_*` convention.
+
+| Benchmark                     | Description                     |
+| ----------------------------- | ------------------------------- |
+| `peakmem_load_single_subband` | RAM when loading one HDF5 file  |
+| `peakmem_merge_four_subbands` | RAM when merging 4 subbands     |
+| `peakmem_bandpass_solve`      | RAM during bandpass calibration |
+| `peakmem_read_visibilities`   | RAM when reading MS DATA column |
+| `peakmem_read_flags`          | RAM when reading MS FLAG column |
+
+### Photometry Benchmarks
+
+**File**: `benchmarks/bench_photometry.py`
+
+Forced photometry and FITS image operations.
+
+| Benchmark                        | Description             | Typical Time |
+| -------------------------------- | ----------------------- | ------------ |
+| `time_single_source_measurement` | Flux at single position | varies       |
+| `time_batch_photometry`          | Batch flux extraction   | varies       |
+| `time_fits_open`                 | Open FITS file          | <1s          |
+| `time_fits_load_data`            | Load FITS data array    | varies       |
+| `time_wcs_creation`              | Create WCS from header  | <1s          |
+
 ---
 
 ## Understanding Results
@@ -436,16 +464,29 @@ watch -n1 'cat /proc/meminfo | grep -E "MemFree|Cached|Dirty"'
 - **GPU**: 2× NVIDIA RTX 2080 Ti
 - **Storage**: HDD (`/data/`), NVMe SSD (`/scratch/`, `/stage/`)
 
+Baseline captured November 27, 2025 at commit `3e5d1b3b`.
+
 | Benchmark                    | Time    | Notes                      |
 | ---------------------------- | ------- | -------------------------- |
-| `time_load_single_subband`   | 4.54s   | Single HDF5 file           |
-| `time_load_four_subbands`    | 69s     | 4-file batch               |
-| `time_convert_subband_group` | 4.05min | Full 16-subband conversion |
-| `time_bandpass_single_field` | 31.1s   | 1.8M row MS                |
-| `time_gaincal_single_field`  | 10.3s   | 1.8M row MS                |
-| `time_applycal_single_table` | 4.08s   | Single caltable            |
-| `time_reset_flags`           | 9.29s   | Full MS                    |
-| `time_flag_zeros`            | 18.2s   | Full MS                    |
+| `time_load_single_subband`   | 4.25s   | Single HDF5 file           |
+| `time_load_four_subbands`    | 1.15min | 4-file batch               |
+| `time_convert_subband_group` | 4.40min | Full 16-subband conversion |
+| `time_bandpass_single_field` | 30.4s   | 1.8M row MS                |
+| `time_gaincal_single_field`  | 10.7s   | 1.8M row MS                |
+| `time_applycal_single_table` | 4.19s   | Single caltable            |
+| `time_reset_flags`           | 9.12s   | Full MS                    |
+| `time_flag_zeros`            | 18.0s   | Full MS                    |
+| `time_import_calibration`    | 3.11s   | Module import              |
+| `time_import_casa_tasks`     | 1.43s   | CASA tasks import          |
+
+### Performance Insights
+
+- **Conversion dominates**: At 4.4 minutes, HDF5→MS conversion is the largest
+  time sink. Potential optimizations include parallel subband loading.
+- **Calibration is efficient**: CASA solvers (bandpass, gaincal) perform well
+  for 1.8M visibility datasets.
+- **I/O staging matters**: SSD staging reduces conversion time significantly
+  compared to HDD-only workflows.
 
 ---
 

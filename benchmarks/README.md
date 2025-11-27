@@ -134,6 +134,30 @@ WSClean imaging benchmarks (disabled by default - too slow for routine testing).
 | `time_dirty_imaging` | ~minutes     | Dirty image (no clean)   |
 | `time_clean_imaging` | ~10+ min     | Full CLEAN deconvolution |
 
+### Memory (`bench_memory.py`)
+
+Peak memory usage benchmarks using ASV's `peakmem_*` convention.
+
+| Benchmark                     | Description                     |
+| ----------------------------- | ------------------------------- |
+| `peakmem_load_single_subband` | RAM when loading one HDF5 file  |
+| `peakmem_merge_four_subbands` | RAM when merging 4 subbands     |
+| `peakmem_bandpass_solve`      | RAM during bandpass calibration |
+| `peakmem_read_visibilities`   | RAM when reading MS DATA column |
+| `peakmem_read_flags`          | RAM when reading MS FLAG column |
+
+### Photometry (`bench_photometry.py`)
+
+Forced photometry and FITS image operations.
+
+| Benchmark                        | Typical Time | Description             |
+| -------------------------------- | ------------ | ----------------------- |
+| `time_single_source_measurement` | varies       | Flux at single position |
+| `time_batch_photometry`          | varies       | Batch flux extraction   |
+| `time_fits_open`                 | <1s          | Open FITS file          |
+| `time_fits_load_data`            | varies       | Load FITS data array    |
+| `time_wcs_creation`              | <1s          | Create WCS from header  |
+
 ---
 
 ## Test Data Requirements
@@ -142,6 +166,7 @@ Benchmarks require access to:
 
 - **HDF5 files**: `/data/incoming/` (raw subband files)
 - **Measurement Sets**: `/stage/dsa110-contimg/ms/` (calibrated MS files)
+- **FITS images**: `/stage/dsa110-contimg/images/` (for photometry benchmarks)
 
 The `setup()` method in each benchmark verifies data availability and skips if
 missing.
@@ -197,6 +222,8 @@ benchmarks/
 ├── bench_conversion.py     # HDF5 → MS conversion benchmarks
 ├── bench_flagging.py       # RFI flagging benchmarks
 ├── bench_imaging.py        # WSClean imaging benchmarks (disabled)
+├── bench_memory.py         # Memory usage benchmarks (peakmem_*)
+├── bench_photometry.py     # Forced photometry benchmarks
 │
 └── .asv/                   # ASV working directory (gitignored)
     ├── machine.json        # Machine configuration
@@ -341,23 +368,51 @@ asv machine --yes
 
 ## Reference Results (lxd110h17)
 
-Baseline results on production hardware (Intel Xeon Silver 4210, 128GB RAM):
+Baseline results on production hardware (Intel Xeon Silver 4210, 128GB RAM).
+Captured November 27, 2025 at commit `3e5d1b3b`.
+
+### Timing Benchmarks
 
 | Benchmark                    | Time    | Notes                    |
 | ---------------------------- | ------- | ------------------------ |
-| `time_load_single_subband`   | 4.54s   | Single HDF5 file         |
-| `time_load_four_subbands`    | 69s     | 4-file batch load+merge  |
-| `time_convert_subband_group` | 4.05min | Full 16-subband pipeline |
-| `time_bandpass_single_field` | 31.1s   | 1.8M row MS              |
-| `time_gaincal_single_field`  | 10.3s   | 1.8M row MS              |
-| `time_applycal_single_table` | 4.08s   | Single caltable          |
-| `time_reset_flags`           | 9.29s   | Clear all flags          |
-| `time_flag_zeros`            | 18.2s   | Flag zero amplitudes     |
+| `time_load_single_subband`   | 4.25s   | Single HDF5 file         |
+| `time_load_four_subbands`    | 1.15min | 4-file batch load+merge  |
+| `time_convert_subband_group` | 4.40min | Full 16-subband pipeline |
+| `time_bandpass_single_field` | 30.4s   | 1.8M row MS              |
+| `time_gaincal_single_field`  | 10.7s   | 1.8M row MS              |
+| `time_applycal_single_table` | 4.19s   | Single caltable          |
+| `time_reset_flags`           | 9.12s   | Clear all flags          |
+| `time_flag_zeros`            | 18.0s   | Flag zero amplitudes     |
+| `time_import_calibration`    | 3.11s   | Module import            |
+| `time_import_casa_tasks`     | 1.43s   | CASA tasks import        |
+
+### Performance Analysis
+
+- **Conversion is the bottleneck**: At 4.4 minutes, conversion dominates the
+  pipeline. Potential optimizations include parallel subband loading.
+- **Calibration is efficient**: Bandpass (30s) and gaincal (11s) are reasonable
+  for 1.8M visibilities.
+- **Module imports are slow**: First-time imports take 3-4s due to CASA
+  initialization.
+
+---
+
+## GitHub Actions Workflow
+
+Performance benchmarks run automatically on PRs via GitHub Actions
+(`.github/workflows/benchmarks.yml`). The workflow:
+
+1. Validates benchmark configuration
+2. Runs quick benchmarks on self-hosted runner
+3. Compares against base branch (flags >10% regressions)
+4. Posts summary comment on PR
+5. Uploads results as artifacts
 
 ---
 
 ## Further Reading
 
-- **Project Docs**: `docs/guides/benchmarking.md` (full guide)
-- **ASV Documentation**: https://asv.readthedocs.io/
-- **casabench**: https://github.com/casangi/casabench (methodology reference)
+- **Project Docs**:
+  [docs/guides/benchmarking.md](../docs/guides/benchmarking.md) (full guide)
+- **ASV Documentation**: <https://asv.readthedocs.io/>
+- **casabench**: <https://github.com/casangi/casabench> (methodology reference)
