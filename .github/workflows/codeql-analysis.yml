@@ -37,7 +37,7 @@ jobs:
           config-file: .codeql/codeql-config.yml
 
       - name: Setup Python Environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           # Use casa6 Python if available in CI
@@ -63,7 +63,7 @@ jobs:
           #   node_modules/
 
       - name: Upload SARIF results as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: codeql-results
