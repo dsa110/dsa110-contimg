@@ -96,7 +96,7 @@ def setup_jobs_tables(mock_products_db):
 class TestESEDetectJobEndpoint:
     """Test POST /api/jobs/ese-detect endpoint."""
 
-    @patch("dsa110_contimg.api.job_adapters.run_ese_detect_job")
+    @patch("dsa110_contimg.api.job_runner.run_ese_detect_job")
     @patch("dsa110_contimg.database.products.ensure_products_db")
     def test_create_ese_detect_job(
         self, mock_ensure_db, mock_run_job, client, mock_products_db, setup_jobs_tables
@@ -104,8 +104,9 @@ class TestESEDetectJobEndpoint:
         """Test creating an ESE detection job."""
         import sqlite3
 
-        conn = sqlite3.connect(mock_products_db, check_same_thread=False)
-        mock_ensure_db.return_value = conn
+        mock_ensure_db.side_effect = lambda path: sqlite3.connect(  # noqa: ARG005
+            mock_products_db, check_same_thread=False
+        )
 
         request_body = {
             "params": {
@@ -123,9 +124,9 @@ class TestESEDetectJobEndpoint:
         assert data["status"] == "pending"
         assert "id" in data
 
-        mock_run_job.assert_not_called()  # Background task
+        mock_run_job.assert_called_once()
 
-    @patch("dsa110_contimg.api.job_adapters.run_ese_detect_job")
+    @patch("dsa110_contimg.api.job_runner.run_ese_detect_job")
     @patch("dsa110_contimg.database.products.ensure_products_db")
     def test_create_ese_detect_job_with_source_id(
         self, mock_ensure_db, mock_run_job, client, mock_products_db, setup_jobs_tables
@@ -133,8 +134,9 @@ class TestESEDetectJobEndpoint:
         """Test creating ESE detection job with specific source ID."""
         import sqlite3
 
-        conn = sqlite3.connect(mock_products_db, check_same_thread=False)
-        mock_ensure_db.return_value = conn
+        mock_ensure_db.side_effect = lambda path: sqlite3.connect(  # noqa: ARG005
+            mock_products_db, check_same_thread=False
+        )
 
         request_body = {
             "params": {
@@ -149,9 +151,20 @@ class TestESEDetectJobEndpoint:
         assert response.status_code == 200
         data = response.json()
         assert data["type"] == "ese-detect"
+        mock_run_job.assert_called_once()
 
-    def test_create_ese_detect_job_invalid_params(self, client):
+    @patch("dsa110_contimg.api.job_runner.run_ese_detect_job")
+    @patch("dsa110_contimg.database.products.ensure_products_db")
+    def test_create_ese_detect_job_invalid_params(
+        self, mock_ensure_db, mock_run_job, client, mock_products_db, setup_jobs_tables
+    ):
         """Test creating ESE detection job with invalid parameters."""
+        import sqlite3
+
+        mock_ensure_db.side_effect = lambda path: sqlite3.connect(  # noqa: ARG005
+            mock_products_db, check_same_thread=False
+        )
+
         request_body = {
             "params": {
                 "min_sigma": -1.0,  # Invalid negative value
@@ -162,12 +175,16 @@ class TestESEDetectJobEndpoint:
 
         # Should still accept (validation happens in job execution)
         assert response.status_code in [200, 422]
+        if response.status_code == 200:
+            mock_run_job.assert_called_once()
+        else:
+            mock_run_job.assert_not_called()
 
 
 class TestBatchESEDetectEndpoint:
     """Test POST /api/batch/ese-detect endpoint."""
 
-    @patch("dsa110_contimg.api.job_adapters.run_batch_ese_detect_job")
+    @patch("dsa110_contimg.api.job_runner.run_batch_ese_detect_job")
     @patch("dsa110_contimg.database.products.ensure_products_db")
     def test_create_batch_ese_detect_job(
         self, mock_ensure_db, mock_run_job, client, mock_products_db, setup_jobs_tables
@@ -175,7 +192,7 @@ class TestBatchESEDetectEndpoint:
         """Test creating a batch ESE detection job."""
         import sqlite3
 
-        mock_ensure_db.side_effect = lambda path: sqlite3.connect(
+        mock_ensure_db.side_effect = lambda path: sqlite3.connect(  # noqa: ARG005
             mock_products_db, check_same_thread=False
         )
 
@@ -187,18 +204,16 @@ class TestBatchESEDetectEndpoint:
                 "source_ids": None,
             },
         }
-        mock_ensure_db.side_effect = lambda path: sqlite3.connect(
-            mock_products_db, check_same_thread=False
-        )
-
+        response = client.post("/api/batch/ese-detect", json=request_body)
         assert response.status_code == 200
         data = response.json()
         assert data["type"] == "batch_ese-detect"
         assert data["status"] == "pending"
         assert "id" in data
         assert data["total_items"] == 1  # All sources = 1 item
+        mock_run_job.assert_called_once()
 
-    @patch("dsa110_contimg.api.job_adapters.run_batch_ese_detect_job")
+    @patch("dsa110_contimg.api.job_runner.run_batch_ese_detect_job")
     @patch("dsa110_contimg.database.products.ensure_products_db")
     def test_create_batch_ese_detect_job_with_source_ids(
         self, mock_ensure_db, mock_run_job, client, mock_products_db, setup_jobs_tables
@@ -206,8 +221,9 @@ class TestBatchESEDetectEndpoint:
         """Test creating batch ESE detection job with specific source IDs."""
         import sqlite3
 
-        conn = sqlite3.connect(mock_products_db)
-        mock_ensure_db.return_value = conn
+        mock_ensure_db.side_effect = lambda path: sqlite3.connect(  # noqa: ARG005
+            mock_products_db, check_same_thread=False
+        )
 
         request_body = {
             "job_type": "ese-detect",
@@ -224,8 +240,13 @@ class TestBatchESEDetectEndpoint:
         data = response.json()
         assert data["type"] == "batch_ese-detect"
         assert data["total_items"] == 3
+        mock_run_job.assert_called_once()
 
-    def test_create_batch_ese_detect_job_invalid_type(self, client):
+    @patch("dsa110_contimg.api.job_runner.run_batch_ese_detect_job")
+    @patch("dsa110_contimg.database.products.ensure_products_db")
+    def test_create_batch_ese_detect_job_invalid_type(
+        self, mock_ensure_db, mock_run_job, client, mock_products_db
+    ):
         """Test creating batch ESE detection job with invalid job type."""
         request_body = {
             "job_type": "invalid-type",
@@ -238,8 +259,14 @@ class TestBatchESEDetectEndpoint:
 
         assert response.status_code == 400
         assert "ese-detect" in response.json()["detail"].lower()
+        mock_ensure_db.assert_not_called()
+        mock_run_job.assert_not_called()
 
-    def test_create_batch_ese_detect_job_invalid_params(self, client):
+    @patch("dsa110_contimg.api.job_runner.run_batch_ese_detect_job")
+    @patch("dsa110_contimg.database.products.ensure_products_db")
+    def test_create_batch_ese_detect_job_invalid_params(
+        self, mock_ensure_db, mock_run_job, client, mock_products_db
+    ):
         """Test creating batch ESE detection job with invalid params type."""
         request_body = {
             "job_type": "ese-detect",
@@ -251,3 +278,5 @@ class TestBatchESEDetectEndpoint:
         response = client.post("/api/batch/ese-detect", json=request_body)
 
         assert response.status_code == 400
+        mock_ensure_db.assert_not_called()
+        mock_run_job.assert_not_called()
