@@ -1,21 +1,32 @@
 # Testing
 
-Documentation for the testing strategy, plans, and execution reports.
+Documentation for testing strategy and current status.
 
-## Plans & Strategy
+## Current Status
 
-- [Comprehensive Plan](plans/COMPREHENSIVE_TESTING_PLAN.md)
-- [Revised Strategy](plans/REVISED_STRATEGY.md)
-- [System Analysis](plans/SYSTEM_ANALYSIS.md)
+See the [Current Status](CURRENT_STATUS.md) document for the current state of
+testing.
 
-## Guides
+## Running Tests
 
-- [Quick Start](guides/QUICK_START.md)
-- [Docker Testing](guides/DOCKER_TESTING_GUIDE.md)
-- [Ready to Use](guides/READY_TO_USE.md)
+```bash
+conda activate casa6
+cd /data/dsa110-contimg/backend
 
-## Reports & Status
+# Run all tests
+python -m pytest tests/ -v
 
-- [Current Status](CURRENT_STATUS.md)
-- [Progress Update](reports/PROGRESS_UPDATE.md)
-- [Execution Log](reports/TEST_EXECUTION_LOG.md)
+# Run unit tests only
+python -m pytest tests/unit/ -v
+
+# Run integration tests
+python -m pytest tests/integration/ -v
+
+# Run with coverage
+python -m pytest tests/ --cov=dsa110_contimg --cov-report=html
+```
+
+## Archived Documentation
+
+Historical testing reports and detailed plans have been archived to
+`docs/archive/testing-reports/`.

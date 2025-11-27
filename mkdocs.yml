@@ -71,92 +71,56 @@ nav:
           - Modules: architecture/architecture/modules.md
           - MS Organization: architecture/architecture/ms_organization.md
           - Performance: architecture/architecture/performance_considerations.md
-          - Anti-Patterns: architecture/architecture/anti_patterns_reference.md
       - Pipeline:
           - Overview: architecture/pipeline/pipeline_overview.md
           - Stage Architecture: architecture/pipeline/pipeline_stage_architecture.md
-          - Workflow Visualization: architecture/pipeline/pipeline_workflow_visualization.md
           - Production Features: architecture/pipeline/pipeline_production_features.md
           - Patterns: architecture/pipeline/pipeline_patterns.md
           - Streaming Architecture: architecture/pipeline/streaming-architecture.md
-          - Streaming vs Orchestrator: architecture/pipeline/streaming_vs_orchestrator.md
-          - Absurd Documentation: architecture/pipeline/absurd_documentation_index.md
       - Dashboard:
           - Architecture: architecture/dashboard/dashboard_architecture.md
+          - Frontend Architecture: architecture/dashboard/dashboard_frontend_architecture.md
           - Frontend Design: architecture/dashboard/frontend_design.md
           - Control Panel: architecture/dashboard/control-panel.md
-          - State Management: architecture/dashboard/dashboard_state_management.md
           - Data Models: architecture/dashboard/dashboard_data_models.md
           - Error Handling: architecture/dashboard/dashboard_error_handling.md
-          - Mockups: architecture/dashboard/dashboard_mockups.md
-          - QA Visualization: architecture/dashboard/qa_visualization_design.md
-      - Science:
-          - Photometry Normalization: architecture/science/photometry_normalization.md
-          - Photometry Manager: architecture/science/photometry_manager.md
-          - AOFlagger: architecture/science/aoflagger.md
-          - Auto Calibrator: architecture/science/auto_calibrator_algorithm.md
-          - ESE Detection: architecture/science/ese_detection_architecture.md
-      - Implementation:
-          - Plan: architecture/implementation/implementation_plan.md
-          - Phase 2: architecture/implementation/phase2_implementation_plan.md
-          - Phase 3: architecture/implementation/phase3_implementation_plan.md
-          - Data Registry: architecture/implementation/data_registry_implementation.md
-      - Tools:
-          - MCP Browser Setup: architecture/tools/mcp_browser_server_setup.md
-          - Browser MCP Diagnostics: architecture/tools/browser_mcp_diagnostics.md
 
   - Guides:
       - Overview: guides/index.md
       - Quickstarts:
           - Absurd Quickstart: guides/ABSURD_QUICKSTART.md
-          - Mosaic Quickstart: guides/workflow/mosaic_quickstart.md
           - Dashboard Quickstart: guides/dashboard/dashboard-quickstart.md
           - Control Panel Quickstart: guides/dashboard/control-panel-quickstart.md
-      - Tutorials:
-          - HDF5 to MS: guides/tutorials/HDF5_TO_MS_TUTORIAL.md
-          - Simulation: guides/tutorials/simulation-tutorial.md
-          - Calibrate and Apply: guides/tutorials/calibrate-apply.md
-          - Convert Standalone: guides/tutorials/convert-standalone.md
-          - Minimal Imaging: guides/tutorials/MINIMAL_IMAGING_WORKFLOW.md
-          - Lightcurve Generation: guides/tutorials/lightcurve_generation.md
       - Workflow:
           - Streaming Guide: guides/workflow/streaming.md
-          - Streaming Control: guides/workflow/streaming-control.md
+          - Streaming Converter: guides/workflow/streaming_converter_guide.md
           - Streaming Troubleshooting: guides/workflow/streaming-troubleshooting.md
           - Batch Mode: guides/workflow/batch_mode_guide.md
           - Mosaic Creation: guides/workflow/batch_mosaic_creation.md
+          - Mosaic: guides/workflow/mosaic.md
+          - Orchestrator Usage: guides/workflow/mosaic_orchestrator_usage.md
           - Using Orchestrator CLI: guides/workflow/using_orchestrator_cli.md
-          - Operating Absurd Pipeline: guides/workflow/operating_absurd_pipeline.md
-      - Data Processing:
-          - UVH5 to MS Conversion: guides/data-processing/uvh5_to_ms_conversion.md
-          - Calibration Procedure: guides/data-processing/CALIBRATION_DETAILED_PROCEDURE.md
-          - Find Calibrator Transit: guides/data-processing/FIND_CALIBRATOR_TRANSIT_DATA.md
-          - Self Calibration: guides/data-processing/self_calibration.md
-          - Build VP from H5: guides/data-processing/build-vp-from-h5.md
-          - Downsampling: guides/data-processing/downsampling_guide.md
-          - Masking: guides/data-processing/masking-guide.md
-          - Cross Matching: guides/data-processing/cross-matching-guide.md
-          - ESE Detection: guides/data-processing/ese_detection_guide.md
-          - Skymodel Imaging: guides/data-processing/SKYMODEL_IMAGING.md
-          - LINEAR Integration: guides/data-processing/LINEAR_INTEGRATION.md
-          - LINEAR Setup: guides/data-processing/LINEAR_SETUP_QUICKSTART.md
+          - Absurd Quick Start: guides/workflow/absurd_quick_start.md
       - Dashboard:
-          - Dashboard Guide: guides/dashboard/dashboard.md
-          - Dashboard Quickstart: guides/dashboard/dashboard-quickstart.md
+          - Quickstart: guides/dashboard/dashboard-quickstart.md
           - Control Panel Quickstart: guides/dashboard/control-panel-quickstart.md
-      - Development:
-          - Testing Guide: guides/development/testing.md
-          - Fast Testing: guides/development/FAST_TESTING.md
-          - Adding Tests: guides/development/adding-new-tests.md
-          - Pre-commit Setup: guides/development/PRE_COMMIT_SETUP.md
-          - CI/CD Setup: guides/development/ci_cd_setup.md
-          - Test Database Setup: guides/development/TEST_DATABASE_SETUP.md
-          - GitHub Pages: guides/development/github_pages_walkthrough.md
-          - Playwright Quick Start: guides/development/playwright-python-quick-start.md
+          - Development Workflow: guides/dashboard/dashboard_development_workflow.md
+          - Deployment: guides/dashboard/dashboard_deployment.md
+          - Persistent Dashboard: guides/dashboard/persistent-dashboard.md
+          - CARTA Testing: guides/dashboard/carta_testing_guide.md
+          - CARTA Port Allocation: guides/dashboard/carta_port_allocation.md
+          - CARTA WebSocket: guides/dashboard/carta_websocket_enhancements.md
+          - Enable CARTA Production: guides/dashboard/enable-carta-production.md
+          - Pointing Visualization: guides/dashboard/pointing-visualization.md
+          - Pointing Monitor: guides/dashboard/pointing-monitor-deployment.md
+          - Troubleshooting Blank Page: guides/dashboard/TROUBLESHOOTING_DASHBOARD_BLANK_PAGE.md
+          - Run Frontend Tests: guides/dashboard/run-all-frontend-tests.md
+          - Path Map: guides/dashboard/DASHBOARD_PATH_MAP.md
+      - Error Handling:
+          - Resilience: guides/error-handling/error-handling-resilience.md
+          - Warning Detection: guides/error-handling/warning-detection.md
       - Configuration:
-          - AOFlagger Tuning: guides/data-processing/AOFLAGGER_STRATEGY_TUNING.md
-          - Adaptive Flagging: guides/data-processing/ADAPTIVE_FLAGGING_USAGE.md
-          - Temporal Flagging: guides/data-processing/temporal_flagging_system.md
+          - Pipeline Configuration: guides/configuration/pipeline_configuration.md
       - Contributing:
           - Overview: guides/contributing/index.md
 
@@ -166,80 +130,44 @@ nav:
           - Endpoints: reference/api-endpoints.md
           - API Reference: reference/api_reference.md
           - Dashboard API: reference/dashboard_backend_api.md
+          - Pipeline API: reference/pipeline-api.md
           - Streaming API: reference/streaming-api.md
           - Validation API: reference/validation_api.md
       - CLI: reference/cli.md
-      - Dashboard:
-          - Pages & Features: reference/dashboard_pages_and_features.md
-          - Backend Integration: reference/backend_integration_snippets.md
-          - Implementation Status: reference/dashboard_implementation_status.md
       - Databases:
+          - Reference Index: reference/DATABASE_REFERENCE_INDEX.md
           - Schema: reference/database_schema.md
-          - Quick Reference: reference/database_quick_reference.md
-          - Products DB: reference/database_products_sqlite3.md
-          - HDF5 DB: reference/database_hdf5_sqlite3.md
-          - Ingest DB: reference/database_ingest_sqlite3.md
-          - Cal Registry: reference/database_cal_registry_sqlite3.md
-          - Master Sources: reference/database_master_sources_sqlite3.md
-      - Calibration: reference/calibration-overview.md
+      - Calibration:
+          - Overview: reference/calibration-overview.md
+          - Current Procedure: reference/CURRENT_CALIBRATION_PROCEDURE.md
       - Catalogs:
           - Usage Guide: reference/CATALOG_USAGE_GUIDE.md
-          - Cross Matching: reference/CATALOG_CROSS_MATCHING_GUIDE.md
-          - Documentation Index: reference/CATALOG_DOCUMENTATION_INDEX.md
-      - Environment:
-          - Variables: reference/env.md
-          - Python Environment: reference/CRITICAL_PYTHON_ENVIRONMENT.md
+      - Environment: reference/env.md
       - Control Panel Cheatsheet: reference/control-panel-cheatsheet.md
-      - Optimizations:
-          - API: reference/optimizations/OPTIMIZATION_API.md
-          - Profiling: reference/optimizations/PROFILING_GUIDE.md
-      - Documentation Standards:
-          - Quick Reference: reference/documentation_standards/DOCUMENTATION_QUICK_REFERENCE.md
-          - Consolidation Strategy: reference/documentation_standards/DOCUMENTATION_CONSOLIDATION_STRATEGY.md
-
-  - Operations:
-      - Overview: operations/README.md
-      - Deployment:
-          - Docker: operations/deploy-docker.md
-          - systemd: operations/deploy-systemd.md
-          - Checklist: operations/production_deployment_checklist.md
-      - Port Management: operations/port-management.md
-      - Ports Reference: operations/ports.md
-      - Service Stability: operations/service_stability.md
-      - Service Restart Fix: operations/service_restart_fix.md
-      - systemd Migration: operations/systemd-migration.md
-      - Refant Quick Reference: operations/refant_quick_reference.md
-      - Starting Dashboard: operations/starting_dashboard_safely.md
+      - Agent Guidelines: reference/agent_guidelines.md
+      - MCP Tools: reference/mcp-tools.md
 
   - Testing:
       - Overview: testing/index.md
       - Current Status: testing/CURRENT_STATUS.md
-      - Guides:
-          - Quick Start: testing/guides/QUICK_START.md
-          - Docker Testing: testing/guides/DOCKER_TESTING_GUIDE.md
-          - Demonstration: testing/guides/DEMONSTRATION.md
-      - Plans:
-          - Comprehensive Plan: testing/plans/COMPREHENSIVE_TESTING_PLAN.md
-          - Test Organization: testing/plans/TEST_ORGANIZATION.md
-      - Reports:
-          - Progress: testing/reports/PROGRESS_UPDATE.md
-          - Streaming Tests: testing/reports/STREAMING_TESTS_COMPLETION.md
 
   - Troubleshooting:
       - Docker WSClean: troubleshooting/docker_wsclean_known_issue.md
       - WSClean Debugging: troubleshooting/wsclean_docker_debugging_steps.md
-      - WSClean Hang Fix: troubleshooting/wsclean_docker_hang_fix.md
-      - CASA Warning Fix: troubleshooting/casa_warning_fix.md
       - MS Permission Errors: troubleshooting/ms_permission_errors.md
       - Frontend Restart: troubleshooting/frontend-restart-needed.md
-      - Selfcal NVSS Hang: troubleshooting/selfcal_nvss_hang_fix.md
+      - Frontend API Audit: troubleshooting/frontend_api_audit_report.md
+      - Known Issues:
+          - Image Metadata: troubleshooting/known-issues/image-metadata-population.md
 
-  - Simulations:
-      - Overview: simulations/README.md
-      - Quickstart: simulations/QUICKSTART.md
+  - Deployment:
+      - CARTA: deployment/carta.md
+      - Calibrators Migration: deployment/CALIBRATORS_MIGRATION.md
 
   - Examples:
       - Real World Examples: examples/real_world_examples.md
 
-  - Archive:
-      - Note: archive/2025-01/ARCHIVAL_NOTE.md
+  - Development:
+      - Roadmap: DEVELOPMENT_ROADMAP.md
+      - Runtime Analysis: RUNTIME_ANALYSIS_REPORT.md
+      - Documentation Audit: DOCUMENTATION_AUDIT.md
