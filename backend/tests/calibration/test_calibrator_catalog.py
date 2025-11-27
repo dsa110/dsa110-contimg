@@ -107,7 +107,8 @@ def test_load_vla_catalog_from_sqlite(temp_calibrator_db):
     assert df is not None
     assert isinstance(df, pd.DataFrame)
     assert len(df) == 3
-    assert "source_name" in df.columns
+    # The 'name' column becomes the index, so check index.name instead
+    assert df.index.name == "name"
     assert "ra_deg" in df.columns
     assert "dec_deg" in df.columns
 
