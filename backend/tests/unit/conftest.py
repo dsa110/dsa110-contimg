@@ -40,6 +40,12 @@ def _install_mock_if_missing(module_path: str) -> MagicMock:
 # Mock heavy calibrator imports (CASA dependencies) - used by orchestrator.py
 _install_mock_if_missing("dsa110_contimg.conversion.calibrator_ms_service")
 
+# Mock astroquery.gaia to prevent network calls during test collection/import
+# The Gaia module tries to configure connections at import time
+_gaia_mock = _install_mock_if_missing("astroquery.gaia")
+_gaia_mock.Gaia = MagicMock()
+_gaia_mock.Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"
+
 # NOTE: We do NOT mock dsa110_contimg.photometry.manager here because:
 # 1. test_manager.py directly tests PhotometryConfig, PhotometryManager, PhotometryResult
 # 2. The module imports fine without CASA dependencies
