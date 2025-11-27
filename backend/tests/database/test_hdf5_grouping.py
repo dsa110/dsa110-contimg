@@ -133,7 +133,8 @@ class TestProximityBasedGrouping:
 
             # Should find 1 complete group despite timestamp jitter
             assert len(groups) == 1
-            assert len(groups[0]) == 16
+            assert groups[0].present_count == 16
+            assert groups[0].is_complete is True
         finally:
             # Clean up
             if db_path.exists():
@@ -325,7 +326,8 @@ class TestGroupingEdgeCases:
             # Should find 1 group
             assert len(groups) == 1
             # Should have 16 unique files
-            assert len(groups[0]) == 16
+            assert groups[0].present_count == 16
+            assert groups[0].is_complete is True
         finally:
             if db_path.exists():
                 db_path.unlink()

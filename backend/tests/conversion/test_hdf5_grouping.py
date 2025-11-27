@@ -128,14 +128,19 @@ class TestHDF5ProximityGrouping:
         )
 
         assert len(groups) == 1
-        assert len(groups[0]) == 16
+        group = groups[0]
+        assert group.present_count == 16
+        assert group.is_complete is True
 
-        # Check all subbands present
-        subband_nums = sorted([int(Path(f).stem.split("_")[-1][2:]) for f in groups[0]])
-        assert subband_nums == list(range(16))
+        # Check all subbands present (no None in files list)
+        assert all(f is not None for f in group.files)
 
     def test_query_incomplete_group(self, mock_hdf5_db):
-        """Test that incomplete groups are not returned."""
+        """Test that semi-complete groups (12-15 subbands) are returned.
+        
+        The new protocol accepts groups with 12-16 subbands. Groups with
+        fewer than 12 subbands are rejected.
+        """
         groups = query_subband_groups(
             mock_hdf5_db,
             start_time="2025-10-02T02:00:00",
@@ -144,8 +149,13 @@ class TestHDF5ProximityGrouping:
             only_stored=False,
         )
 
-        # Should not return incomplete group
-        assert len(groups) == 0
+        # Should return semi-complete group (15 subbands, missing sb06)
+        assert len(groups) == 1
+        group = groups[0]
+        assert group.present_count == 15
+        assert group.is_complete is False
+        assert 6 in group.missing_subbands
+        assert "sb06" in group.missing_subband_codes
 
     def test_tolerance_too_small(self, mock_hdf5_db):
         """Test that too-small tolerance fails to group files."""
@@ -248,8 +258,9 @@ class TestHDF5GroupingEdgeCases:
 
         # Should still return complete group
         assert len(groups) == 1
-        # One of the duplicates should be included
-        assert len(groups[0]) == 16
+        # All 16 subbands should be present
+        assert groups[0].present_count == 16
+        assert groups[0].is_complete is True
 
     def test_empty_database(self, tmp_path):
         """Test querying empty database."""

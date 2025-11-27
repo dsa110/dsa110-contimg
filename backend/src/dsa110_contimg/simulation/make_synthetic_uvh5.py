@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import astropy.units as u  # pylint: disable=no-member
-import h5py
 import numpy as np
 import yaml
 from astropy.coordinates import EarthLocation
