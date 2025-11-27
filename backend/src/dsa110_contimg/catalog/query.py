@@ -112,7 +112,7 @@ def resolve_catalog_path(
                     dec_str = catalog_file.stem.replace(f"{catalog_type}_dec", "").replace("+", "")
                     file_dec = float(dec_str)
                     diff = abs(file_dec - float(dec_strip))
-                    if diff < best_diff and diff <= 1.0:  # Within 1 degree tolerance
+                    if diff < best_diff and diff <= 6.0:  # Within 6 degree tolerance (matches strip width)
                         best_diff = diff
                         best_match = catalog_file
                 except (ValueError, AttributeError):

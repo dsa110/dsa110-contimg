@@ -406,10 +406,10 @@ def image_ms(
         The seeding radius is calculated from the primary beam FWHM and pblimit.
 
     Masking:
-        When use_nvss_mask=True and unicat_min_mjy is provided (or nvss_min_mjy alias),
-        generates a FITS mask from NVSS sources for WSClean. This provides 2-4x faster
-        imaging by restricting cleaning to known source locations. Masking is only
-        supported for WSClean backend.
+        When use_unicat_mask=True and unicat_min_mjy is provided (or nvss_min_mjy alias),
+        generates a FITS mask from unified catalog sources for WSClean. This provides
+        2-4x faster imaging by restricting cleaning to known source locations. Masking is
+        only supported for the WSClean backend.
     """
     from dsa110_contimg.utils.validation import validate_corrected_data_quality
 

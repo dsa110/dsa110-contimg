@@ -69,9 +69,9 @@ def main():
         quality_tier="development",
         niter=10000,  # Enable cleaning
         threshold="0.0005Jy",  # Stop at 0.5 mJy
-        nvss_min_mjy=10.0,  # Trigger NVSS seeding
+        unicat_min_mjy=10.0,  # Trigger unified catalog seeding
         backend="wsclean",
-        use_nvss_mask=False,  # WSClean's auto-mask is better
+        use_unicat_mask=False,  # WSClean's auto-mask is better
     )
 
     LOG.info("=" * 80)

@@ -43,7 +43,7 @@ export function ImagingWorkflow({ selectedMS, onJobCreated, onRefreshJobs }: Ima
     datacolumn: "corrected",
     quick: false,
     skip_fits: true,
-    use_nvss_mask: true,
+    use_unicat_mask: true,
     mask_radius_arcsec: 60.0,
   });
 
@@ -262,11 +262,11 @@ export function ImagingWorkflow({ selectedMS, onJobCreated, onRefreshJobs }: Ima
         <FormControlLabel
           control={
             <Switch
-              checked={imageParams.use_nvss_mask ?? true}
+              checked={imageParams.use_unicat_mask ?? true}
               onChange={(e) =>
                 setImageParams({
                   ...imageParams,
-                  use_nvss_mask: e.target.checked,
+                  use_unicat_mask: e.target.checked,
                 })
               }
               color="primary"
@@ -274,7 +274,7 @@ export function ImagingWorkflow({ selectedMS, onJobCreated, onRefreshJobs }: Ima
           }
           label={
             <Box>
-              <Typography variant="body2">Use NVSS Masking</Typography>
+              <Typography variant="body2">Use Unified Catalog Masking</Typography>
               <Typography variant="caption" color="text.secondary" display="block">
                 Enable masked imaging (2-4x faster, recommended)
               </Typography>
@@ -283,7 +283,7 @@ export function ImagingWorkflow({ selectedMS, onJobCreated, onRefreshJobs }: Ima
           sx={{ mb: 2 }}
         />
 
-        {imageParams.use_nvss_mask && (
+        {imageParams.use_unicat_mask && (
           <TextField
             fullWidth
             label="Mask Radius (arcsec)"
@@ -300,7 +300,7 @@ export function ImagingWorkflow({ selectedMS, onJobCreated, onRefreshJobs }: Ima
             }}
             sx={{ mb: 2 }}
             size="small"
-            helperText="Radius around NVSS sources (default: 60 arcsec, ~2-3× beam)"
+            helperText="Radius around catalog sources (default: 60 arcsec, ~2-3× beam)"
             inputProps={{ min: 10, max: 300, step: 5 }}
           />
         )}

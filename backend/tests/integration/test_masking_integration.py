@@ -3,7 +3,7 @@
 Integration tests for masking functionality.
 
 Tests the end-to-end masking workflow:
-1. Mask generation from NVSS sources
+1. Mask generation from unified catalog sources
 2. Mask integration in imaging pipeline
 3. Configuration parameter flow
 4. Error handling and fallback
@@ -28,32 +28,32 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 class TestMaskingIntegration:
     """Integration tests for masking workflow."""
 
-    def test_mask_generation_with_real_nvss_catalog(self, temp_work_dir):
-        """Test mask generation using real NVSS catalog (if available)."""
-        from dsa110_contimg.imaging.nvss_tools import create_nvss_fits_mask
+    def test_mask_generation_with_real_unicat_sources(self, temp_work_dir):
+        """Test mask generation using real unified catalog (if available)."""
+        from dsa110_contimg.imaging.nvss_tools import create_unicat_fits_mask
 
         imagename = str(temp_work_dir / "test.img")
         imsize = 512
         cell_arcsec = 2.0
         ra0_deg = 120.0  # Test coordinates
         dec0_deg = 45.0
-        nvss_min_mjy = 10.0
+        unicat_min_mjy = 10.0
         radius_arcsec = 60.0
 
         try:
-            mask_path = create_nvss_fits_mask(
+            mask_path = create_unicat_fits_mask(
                 imagename=imagename,
                 imsize=imsize,
                 cell_arcsec=cell_arcsec,
                 ra0_deg=ra0_deg,
                 dec0_deg=dec0_deg,
-                nvss_min_mjy=nvss_min_mjy,
+                unicat_min_mjy=unicat_min_mjy,
                 radius_arcsec=radius_arcsec,
             )
 
             # Verify mask file exists and is valid
             assert os.path.exists(mask_path)
-            assert mask_path.endswith(".nvss_mask.fits")
+            assert mask_path.endswith(".unicat_mask.fits")
 
             # Verify FITS structure
             with fits.open(mask_path) as hdul:
@@ -64,7 +64,7 @@ class TestMaskingIntegration:
 
         except Exception as e:
             # If NVSS catalog is not available, skip test
-            pytest.skip(f"NVSS catalog not available: {e}")
+            pytest.skip(f"Unified catalog not available: {e}")
 
     def test_imaging_stage_with_masking(self, test_config, context_with_repo, temp_work_dir):
         """Test ImagingStage with masking enabled."""
@@ -79,7 +79,7 @@ class TestMaskingIntegration:
                 scratch_dir=temp_work_dir / "scratch",
             ),
             imaging=ImagingConfig(
-                use_nvss_mask=True,
+                use_unicat_mask=True,
                 mask_radius_arcsec=60.0,
             ),
             **{k: v for k, v in test_config.__dict__.items() if k != "paths" and k != "imaging"},
@@ -135,7 +135,7 @@ class TestMaskingIntegration:
 
         def mock_create_mask(*args, **kwargs):
             mask_generated.append(True)
-            return str(temp_work_dir / "test.img.nvss_mask.fits")
+            return str(temp_work_dir / "test.img.unicat_mask.fits")
 
         with (
             patch("casacore.tables.table", side_effect=mock_table_factory),
@@ -167,7 +167,7 @@ class TestMaskingIntegration:
                 side_effect=mock_image_ms_side_effect,
             ) as mock_image_ms,
             patch(
-                "dsa110_contimg.imaging.nvss_tools.create_nvss_fits_mask",
+                "dsa110_contimg.imaging.nvss_tools.create_unicat_fits_mask",
                 side_effect=mock_create_mask,
             ),
         ):
@@ -181,7 +181,7 @@ class TestMaskingIntegration:
                 # Verify image_ms was called with masking parameters
                 assert mock_image_ms.called
                 call_kwargs = mock_image_ms.call_args[1]
-                assert call_kwargs.get("use_nvss_mask") is True
+                assert call_kwargs.get("use_unicat_mask") is True
                 assert call_kwargs.get("mask_radius_arcsec") == 60.0
             except Exception as e:
                 # If imaging fails due to missing dependencies, that's okay for integration test
@@ -200,7 +200,7 @@ class TestMaskingIntegration:
                 "input_dir": "/test/input",
                 "output_dir": "/test/output",
             },
-            "use_nvss_mask": False,
+            "use_unicat_mask": False,
             "mask_radius_arcsec": 120.0,
             "gridder": "wproject",
         }
@@ -209,7 +209,7 @@ class TestMaskingIntegration:
         config = PipelineConfig.from_dict(api_params)
 
         # Verify masking parameters are correctly extracted
-        assert config.imaging.use_nvss_mask is False
+        assert config.imaging.use_unicat_mask is False
         assert config.imaging.mask_radius_arcsec == 120.0
         assert config.imaging.gridder == "wproject"
 
@@ -275,7 +275,7 @@ class TestMaskingIntegration:
                 return_value=[],
             ),
             patch(
-                "dsa110_contimg.imaging.nvss_tools.create_nvss_fits_mask",
+                "dsa110_contimg.imaging.nvss_tools.create_unicat_fits_mask",
                 side_effect=RuntimeError("Catalog unavailable"),
             ),
         ):
@@ -283,8 +283,8 @@ class TestMaskingIntegration:
             image_ms(
                 ms_path,
                 imagename=imagename,
-                use_nvss_mask=True,
-                nvss_min_mjy=10.0,
+                use_unicat_mask=True,
+                unicat_min_mjy=10.0,
                 backend="wsclean",
             )
 

@@ -920,7 +920,7 @@ export interface JobParams {
   datacolumn?: string;
   quick?: boolean;
   skip_fits?: boolean;
-  use_nvss_mask?: boolean;
+  use_unicat_mask?: boolean;
   mask_radius_arcsec?: number;
   [key: string]: unknown;
 }

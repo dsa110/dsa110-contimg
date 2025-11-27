@@ -55,9 +55,9 @@ def main():
         cell_arcsec=2.5,
         quality_tier="development",
         niter=0,  # Dirty image
-        nvss_min_mjy=10.0,  # Trigger seeding
+        unicat_min_mjy=10.0,  # Trigger unified catalog seeding
         backend="wsclean",
-        use_nvss_mask=False,
+        use_unicat_mask=False,
     )
 
     LOG.info("Test completed successfully!")

@@ -50,6 +50,17 @@ CATALOG_COVERAGE = {
         "best_for": ["southern", "spectral_index", "general"],
         "notes": "Southern sky survey Dec < +41°, ASKAP data",
     },
+    "rax": {  # Alias for RACS (used internally in code)
+        "name": "RACS",
+        "frequency_ghz": 0.888,
+        "dec_min": -90.0,
+        "dec_max": 41.0,
+        "resolution_arcsec": 15.0,
+        "typical_rms_mjy": 0.25,
+        "flux_limit_mjy": 1.5,
+        "best_for": ["southern", "spectral_index", "general"],
+        "notes": "Southern sky survey Dec < +41°, ASKAP data (alias: rax)",
+    },
     "vlass": {
         "name": "VLASS",
         "frequency_ghz": 3.0,

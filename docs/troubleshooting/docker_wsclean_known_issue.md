@@ -114,12 +114,12 @@ Then run self-cal without `use_nvss_seeding`.
 
 ### 3. Use FITS Masks Only (No MODEL_DATA Seeding)
 
-Use NVSS catalog for cleaning masks but skip MODEL_DATA seeding:
+Use the unified catalog for cleaning masks but skip MODEL_DATA seeding:
 
 ```python
 # Future enhancement needed in code
-use_nvss_mask=True,     # For cleaning mask
-seed_nvss_model=False,  # Skip MODEL_DATA seeding
+use_unicat_mask=True,     # For unified catalog cleaning mask
+seed_nvss_model=False,    # Skip MODEL_DATA seeding
 ```
 
 **Pros:** Fast cleaning with masks, no Docker hang  
