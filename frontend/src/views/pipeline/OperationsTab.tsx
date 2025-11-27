@@ -52,22 +52,22 @@ export default function OperationsTab() {
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={6} sm={3}>
           <StatCard
-            title="Active"
-            value={metricsLoading ? "..." : String(metricsSummary?.active_executions ?? 0)}
-            color="info"
+            title="Running"
+            value={metricsLoading ? "..." : String(metricsSummary?.running_jobs ?? 0)}
+            color="primary"
           />
         </Grid>
         <Grid item xs={6} sm={3}>
           <StatCard
             title="Completed"
-            value={metricsLoading ? "..." : String(metricsSummary?.completed_today ?? 0)}
+            value={metricsLoading ? "..." : String(metricsSummary?.completed_jobs ?? 0)}
             color="success"
           />
         </Grid>
         <Grid item xs={6} sm={3}>
           <StatCard
             title="Failed"
-            value={metricsLoading ? "..." : String(metricsSummary?.failed_today ?? 0)}
+            value={metricsLoading ? "..." : String(metricsSummary?.failed_jobs ?? 0)}
             color="error"
           />
         </Grid>
@@ -75,7 +75,7 @@ export default function OperationsTab() {
           <StatCard
             title="DLQ Pending"
             value={String(dlqStats?.pending ?? 0)}
-            color={dlqStats?.pending && dlqStats.pending > 0 ? "warning" : "success"}
+            color={dlqStats?.pending != null && dlqStats.pending > 0 ? "warning" : "success"}
           />
         </Grid>
       </Grid>

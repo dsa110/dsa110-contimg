@@ -35,7 +35,8 @@ function TabPanel({ children, value, index }: TabPanelProps) {
 
 export default function BrowseTab() {
   const [tabValue, setTabValue] = useState(0);
-  const { error: statusError } = usePipelineStatus();
+  // Pipeline status is available if needed for future use
+  usePipelineStatus();
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);

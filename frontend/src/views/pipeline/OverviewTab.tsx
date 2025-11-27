@@ -82,16 +82,27 @@ export default function OverviewTab() {
       </Paper>
 
       {/* Recent Observations */}
-      <RecentObservationsTable status={status} />
+      {status != null && <RecentObservationsTable status={status} />}
+      {status == null && (
+        <Paper sx={{ p: 2, textAlign: "center", color: "text.secondary" }}>
+          No pipeline status available
+        </Paper>
+      )}
 
       {/* System Health Summary */}
       <Grid container spacing={3}>
         <Grid item xs={12} lg={8}>
-          <SystemHealthSection
-            metrics={metrics}
-            loading={metricsLoading || healthLoading}
-            healthSummary={healthSummary}
-          />
+          {metrics != null ? (
+            <SystemHealthSection
+              metrics={metrics}
+              loading={metricsLoading || healthLoading}
+              healthSummary={healthSummary ?? null}
+            />
+          ) : (
+            <Paper sx={{ p: 2, textAlign: "center", color: "text.secondary" }}>
+              Loading system metrics...
+            </Paper>
+          )}
         </Grid>
         <Grid item xs={12} lg={4}>
           <CircuitBreakerStatus />

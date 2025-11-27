@@ -9,7 +9,7 @@
  * - Live operations monitoring
  */
 import { useState } from "react";
-import { Box, Stack, Paper, Typography, Tabs, Tab } from "@mui/material";
+import { Stack, Paper, Typography, Tabs, Tab } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
 import { logger } from "../../utils/logger";
 import type { MSListEntry } from "../../api/types";

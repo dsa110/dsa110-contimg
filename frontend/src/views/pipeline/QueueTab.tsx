@@ -8,7 +8,8 @@
  * - Worker management
  * - Schedule manager
  */
-import React, { useState } from "react";
+import type { SyntheticEvent } from "react";
+import { useState } from "react";
 import { Box, Tabs, Tab, Paper } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
 import { TaskDashboard } from "../../components/absurd/TaskDashboard";
@@ -17,7 +18,6 @@ import { QueueMetricsCharts } from "../../components/absurd/QueueMetricsCharts";
 import { WorkerManagement } from "../../components/absurd/WorkerManagement";
 import { ScheduleManager } from "../../components/absurd/ScheduleManager";
 import { MetricsTimeSeriesChart } from "../../components/absurd/MetricsTimeSeriesChart";
-import { useAbsurdHealth, useQueueStats } from "../../api/absurdQueries";
 
 interface TabPanelProps {
   children: React.ReactNode;
@@ -41,10 +41,8 @@ function TabPanel({ children, value, index }: TabPanelProps) {
 
 export default function QueueTab() {
   const [tabValue, setTabValue] = useState(0);
-  const { data: health, isLoading: healthLoading } = useAbsurdHealth();
-  const { data: stats } = useQueueStats();
 
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 

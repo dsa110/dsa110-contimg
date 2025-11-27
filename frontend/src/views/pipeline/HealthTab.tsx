@@ -70,7 +70,8 @@ function TabPanel({ children, value, index }: TabPanelProps) {
 export default function HealthTab() {
   const [tabValue, setTabValue] = useState(0);
   const { data: systemMetrics, isLoading: metricsLoading } = useSystemMetrics();
-  const { data: dbMetrics } = useDatabaseMetrics();
+  // Database metrics available for future use in sub-tabs
+  useDatabaseMetrics();
   const { data: dlqStats } = useDLQStats();
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
