@@ -45,6 +45,7 @@ all Python scripts and CASA tasks.
 **CRITICAL**: `/data/` is on HDD - avoid I/O-intensive operations there.
 
 **Use `/scratch/` for**:
+
 - Frontend builds (`npm run build`)
 - MkDocs documentation builds
 - Python package installs with compilation
@@ -52,6 +53,7 @@ all Python scripts and CASA tasks.
 - Any operation that is I/O heavy
 
 **Build workflow for frontend**:
+
 ```bash
 # Use the scratch-based build script
 cd /data/dsa110-contimg/frontend
@@ -59,6 +61,7 @@ npm run build:scratch  # Builds in /scratch/, copies result back
 ```
 
 **Build workflow for MkDocs documentation**:
+
 ```bash
 # Build on scratch SSD, then move back
 mkdir -p /scratch/mkdocs-build
@@ -69,6 +72,7 @@ rmdir /scratch/mkdocs-build
 ```
 
 **For Python/Backend**:
+
 ```bash
 conda activate casa6
 # Run tests and builds - scratch is used automatically via TMPDIR when needed
@@ -136,6 +140,7 @@ parameter.
 
 1. **Batch Converter**
    (`backend/src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py`):
+
    - For historical/archived data processing
    - Function:
      `convert_subband_groups_to_ms(input_dir, output_dir, start_time, end_time)`
@@ -499,5 +504,52 @@ All SQLite databases are in `/data/dsa110-contimg/state/`:
 - `cal_registry.sqlite3` - Calibration table registry
 - `calibrator_registry.sqlite3` - Known calibrators
 - `master_sources.sqlite3` - Source catalog (NVSS, FIRST, RAX)
+- `docsearch.sqlite3` - Local documentation search index
+- `embedding_cache.sqlite3` - Cached OpenAI embeddings
 
 Use WAL mode for concurrent access. Connection timeouts are set to 30 seconds.
+
+## Local Documentation Search
+
+**Use `DocSearch` for semantic search over project documentation.** This is the
+preferred method for finding relevant documentation - no external services
+required.
+
+### Command Line
+
+```bash
+conda activate casa6
+
+# Search documentation
+python -m dsa110_contimg.docsearch.cli search "how to convert UVH5 to MS"
+
+# More results
+python -m dsa110_contimg.docsearch.cli search "calibration" --top-k 10
+
+# Re-index after doc changes (incremental - only changed files)
+python -m dsa110_contimg.docsearch.cli index
+```
+
+### Python API
+
+```python
+from dsa110_contimg.docsearch import DocSearch
+
+search = DocSearch()
+results = search.search("streaming converter queue states", top_k=5)
+
+for r in results:
+    print(f"{r.score:.3f} - {r.file_path}: {r.heading}")
+    print(r.content[:200])
+```
+
+### When to Use
+
+- Finding documentation on specific pipeline features
+- Looking up API usage patterns
+- Understanding module architecture
+- Locating configuration examples
+
+**Alternative**: RAGFlow is also available (`dsa110_contimg.ragflow`) for
+full-featured RAG with chat, but requires Docker containers. Use DocSearch by
+default; RAGFlow is optional for advanced use cases.
