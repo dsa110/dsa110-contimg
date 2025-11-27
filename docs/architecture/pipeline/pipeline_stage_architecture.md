@@ -6,6 +6,60 @@
 
 ---
 
+## Executive Summary
+
+### Pipeline Stages (12 total)
+
+| #   | Stage                       | Line | Purpose                                       | Inputs                                 | Outputs                |
+| --- | --------------------------- | ---- | --------------------------------------------- | -------------------------------------- | ---------------------- |
+| 1   | **CatalogSetupStage**       | 39   | Build NVSS/FIRST/RAX catalogs for declination | `input_path`                           | `catalog_setup_status` |
+| 2   | **ConversionStage**         | 383  | Convert UVH5 → Measurement Set                | `input_path`, `start_time`, `end_time` | `ms_path`              |
+| 3   | **CalibrationSolveStage**   | 673  | Solve calibration tables (K, BP, G)           | `ms_path`                              | `calibration_tables`   |
+| 4   | **CalibrationStage**        | 1351 | Apply calibration solutions to MS             | `ms_path`, `calibration_tables`        | `ms_path` (calibrated) |
+| 5   | **ImagingStage**            | 1746 | Create continuum images via tclean            | `ms_path`                              | `image_path`           |
+| 6   | **MosaicStage**             | 2066 | Combine multiple images into mosaic           | `image_paths`                          | `mosaic_path`          |
+| 7   | **LightCurveStage**         | 2318 | Compute variability metrics (η, V, σ)         | `source_ids` or `mosaic_path`          | `variable_sources`     |
+| 8   | **OrganizationStage**       | 2742 | Organize MS into date-based dirs              | `ms_path`                              | Updated paths          |
+| 9   | **ValidationStage**         | 2899 | Astrometry & flux validation                  | `image_path`                           | `validation_results`   |
+| 10  | **CrossMatchStage**         | 3070 | Match sources with NVSS/FIRST/RACS            | `detected_sources`                     | `crossmatch_results`   |
+| 11  | **AdaptivePhotometryStage** | 3641 | Measure photometry with adaptive binning      | `ms_path`                              | `photometry_results`   |
+| 12  | **TransientDetectionStage** | 3912 | Detect new/variable/fading sources            | `detected_sources`                     | `transient_results`    |
+
+> **Source:** `backend/src/dsa110_contimg/pipeline/stages_impl.py`
+
+### Predefined Workflows (4 total)
+
+| Workflow             | Stages                                                                                 | Use Case                         |
+| -------------------- | -------------------------------------------------------------------------------------- | -------------------------------- |
+| **standard_imaging** | CatalogSetup → Conversion → CalibrationSolve → CalibrationApply → Imaging [+ optional] | Full end-to-end processing       |
+| **quicklook**        | CatalogSetup → Conversion → Imaging                                                    | Fast preview without calibration |
+| **reprocessing**     | CatalogSetup → Calibration → Imaging                                                   | Re-process existing MS           |
+| **streaming**        | Full pipeline with TransientDetection                                                  | Real-time ingest with alerts     |
+
+> **Source:** `backend/src/dsa110_contimg/pipeline/workflows.py`
+
+### Stage Dependency Graph
+
+```text
+                    CatalogSetup
+                         │
+                    Conversion
+                         │
+                  CalibrationSolve
+                         │
+                  CalibrationApply
+                         │
+                      Imaging
+                    /    │    \
+               Mosaic  Validation  AdaptivePhotometry
+                 │        │              │
+                 └────CrossMatch    LightCurve
+                                        │
+                                TransientDetection
+```
+
+---
+
 ## Overview
 
 The DSA-110 continuum imaging pipeline uses a **stage-based architecture** with
@@ -415,8 +469,8 @@ class PipelineContext:
 
 **Variability Metrics:**
 
-- **η (eta):** Weighted variance metric, sensitive to variability accounting
-  for measurement errors
+- **η (eta):** Weighted variance metric, sensitive to variability accounting for
+  measurement errors
 - **V:** Coefficient of variation (std/mean), fractional variability
 - **σ-deviation:** Maximum deviation from mean in units of std (ESE detection)
 - **χ²/ν:** Reduced chi-squared relative to constant flux model
@@ -518,9 +572,9 @@ stages with dependencies, retry policies, and timeouts.
 
 ### `streaming_workflow()`
 
-The **complete end-to-end streaming workflow** implements the full data path from
-HDF5 ingestion through transient detection. This is the primary workflow for
-production streaming operations.
+The **complete end-to-end streaming workflow** implements the full data path
+from HDF5 ingestion through transient detection. This is the primary workflow
+for production streaming operations.
 
 ```python
 from dsa110_contimg.pipeline.workflows import streaming_workflow
@@ -533,19 +587,19 @@ result = await workflow.execute(context)
 
 **Stages (11 total):**
 
-| Stage | Timeout | Description |
-|-------|---------|-------------|
-| `catalog_setup` | 5 min | Initialize calibrator catalog |
-| `conversion` | 30 min | UVH5 → Measurement Set |
-| `calibration_solve` | 15 min | Solve delay, bandpass, gain tables |
-| `calibration_apply` | 10 min | Apply calibration to MS |
-| `imaging` | 30 min | WSClean imaging |
-| `mosaic` | 60 min | Combine images into mosaic (if enabled) |
-| `validation` | 5 min | QA checks (if enabled) |
-| `crossmatch` | 10 min | Catalog cross-matching (if enabled) |
-| `adaptive_photometry` | 20 min | Source extraction & photometry (if enabled) |
-| `light_curve` | 10 min | Time-series light curves (requires photometry) |
-| `transient_detection` | 5 min | ESE/transient detection (if enabled) |
+| Stage                 | Timeout | Description                                    |
+| --------------------- | ------- | ---------------------------------------------- |
+| `catalog_setup`       | 5 min   | Initialize calibrator catalog                  |
+| `conversion`          | 30 min  | UVH5 → Measurement Set                         |
+| `calibration_solve`   | 15 min  | Solve delay, bandpass, gain tables             |
+| `calibration_apply`   | 10 min  | Apply calibration to MS                        |
+| `imaging`             | 30 min  | WSClean imaging                                |
+| `mosaic`              | 60 min  | Combine images into mosaic (if enabled)        |
+| `validation`          | 5 min   | QA checks (if enabled)                         |
+| `crossmatch`          | 10 min  | Catalog cross-matching (if enabled)            |
+| `adaptive_photometry` | 20 min  | Source extraction & photometry (if enabled)    |
+| `light_curve`         | 10 min  | Time-series light curves (requires photometry) |
+| `transient_detection` | 5 min   | ESE/transient detection (if enabled)           |
 
 **Conditional Inclusion:**
 
@@ -591,17 +645,18 @@ imaging
 **Retry Policy:**
 
 All stages use exponential backoff retry:
+
 - Max attempts: 3
 - Initial delay: 5 seconds
 - Max delay: 60 seconds
 
 ### Other Workflows
 
-| Workflow | Description |
-|----------|-------------|
-| `standard_imaging_workflow()` | Convert → Calibrate → Image (production) |
-| `quicklook_workflow()` | Convert → Image (no calibration, fast preview) |
-| `reprocessing_workflow()` | Calibrate → Image (MS already exists) |
+| Workflow                      | Description                                    |
+| ----------------------------- | ---------------------------------------------- |
+| `standard_imaging_workflow()` | Convert → Calibrate → Image (production)       |
+| `quicklook_workflow()`        | Convert → Image (no calibration, fast preview) |
+| `reprocessing_workflow()`     | Calibrate → Image (MS already exists)          |
 
 ---
 
