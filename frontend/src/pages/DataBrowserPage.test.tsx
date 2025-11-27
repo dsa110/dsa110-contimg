@@ -3,7 +3,7 @@
  *
  * Tests verify:
  * 1. Component renders without errors
- * 2. Tab switching functionality 
+ * 2. Tab switching functionality
  * 3. Error state display
  * 4. All expected tabs are present
  */
@@ -82,7 +82,7 @@ describe("DataBrowserPage", () => {
 
     it("should display all expected tabs", () => {
       renderWithProviders();
-      
+
       expect(screen.getByRole("tab", { name: /data products/i })).toBeInTheDocument();
       expect(screen.getByRole("tab", { name: /file system/i })).toBeInTheDocument();
       expect(screen.getByRole("tab", { name: /batch jobs/i })).toBeInTheDocument();
@@ -156,7 +156,7 @@ describe("DataBrowserPage", () => {
       // Navigate to another tab first
       const cartaTab = screen.getByRole("tab", { name: /carta/i });
       await user.click(cartaTab);
-      
+
       await waitFor(() => {
         expect(cartaTab).toHaveAttribute("aria-selected", "true");
       });
@@ -183,9 +183,7 @@ describe("DataBrowserPage", () => {
       renderWithProviders();
 
       expect(screen.getByRole("alert")).toBeInTheDocument();
-      expect(
-        screen.getByText(/error connecting to pipeline api/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/error connecting to pipeline api/i)).toBeInTheDocument();
     });
 
     it("should not display error alert when no error", () => {
