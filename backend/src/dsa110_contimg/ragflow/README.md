@@ -126,8 +126,25 @@ python -m dsa110_contimg.ragflow.cli create-chat "DSA-110 Assistant" \
 
 ## MCP Server Integration
 
-RAGFlow provides an MCP (Model Context Protocol) server for AI agent
-integration.
+This module includes a custom MCP (Model Context Protocol) server that exposes
+RAGFlow's retrieval capabilities as tools for VS Code/Copilot and other AI
+agents.
+
+### Start the MCP Server
+
+```bash
+# Activate environment
+conda activate casa6
+
+# Start MCP server on port 9400
+export RAGFLOW_API_KEY="your-api-key"
+python -m dsa110_contimg.ragflow.mcp_server --sse --port 9400
+
+# Or use systemd
+sudo cp ops/systemd/ragflow-mcp.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl start ragflow-mcp
+```
 
 ### VS Code GitHub Copilot
 
@@ -136,16 +153,27 @@ The MCP configuration is in `.vscode/mcp.json`:
 ```json
 {
   "servers": {
-    "ragflow": {
+    "ragflow-dsa110": {
       "type": "sse",
-      "url": "http://localhost:9382/sse",
-      "headers": {
-        "api_key": "${RAGFLOW_API_KEY}"
-      }
+      "url": "http://localhost:9400/sse",
+      "description": "DSA-110 documentation search via RAGFlow"
     }
   }
 }
 ```
+
+### Available MCP Tools
+
+The MCP server exposes these tools:
+
+1. **search_dsa110_docs**: Search documentation with a query
+
+   - Parameters: `query` (string), `top_k` (integer, optional)
+   - Returns: Relevant document chunks with similarity scores
+
+2. **ask_dsa110_assistant**: Ask a question to the chat assistant
+   - Parameters: `question` (string)
+   - Returns: AI-generated answer with source citations
 
 ### Claude Desktop
 
@@ -154,11 +182,12 @@ Add to `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "ragflow": {
+    "ragflow-dsa110": {
       "command": "python",
-      "args": ["-m", "mcp.client.sse", "http://localhost:9382/sse"],
+      "args": ["-m", "dsa110_contimg.ragflow.mcp_server", "--stdio"],
       "env": {
-        "api_key": "YOUR_API_KEY"
+        "RAGFLOW_API_KEY": "YOUR_API_KEY",
+        "RAGFLOW_BASE_URL": "http://localhost:9380"
       }
     }
   }
@@ -168,33 +197,35 @@ Add to `claude_desktop_config.json`:
 ### Test MCP Connection
 
 ```bash
-python scripts/test_ragflow_mcp.py --api-key $RAGFLOW_API_KEY
+# Health check
+curl http://localhost:9400/health
+
+# SSE endpoint test (should return session endpoint)
+curl -H "Accept: text/event-stream" http://localhost:9400/sse
 ```
 
 ## Configuration
 
 ### Environment Variables
 
-| Variable                  | Description                | Default                  |
-| ------------------------- | -------------------------- | ------------------------ |
-| `RAGFLOW_API_KEY`         | API key for authentication | Required                 |
-| `RAGFLOW_BASE_URL`        | RAGFlow API URL            | `http://localhost:9380`  |
-| `RAGFLOW_MCP_URL`         | MCP server URL             | `http://localhost:9382`  |
-| `RAGFLOW_EMBEDDING_MODEL` | Embedding model            | `BAAI/bge-large-en-v1.5` |
-| `RAGFLOW_CHUNK_METHOD`    | Default chunking           | `markdown`               |
+| Variable             | Description                | Default                 |
+| -------------------- | -------------------------- | ----------------------- |
+| `RAGFLOW_API_KEY`    | API key for authentication | Required                |
+| `RAGFLOW_BASE_URL`   | RAGFlow API URL            | `http://localhost:9380` |
+| `RAGFLOW_DATASET_ID` | Default dataset ID         | DSA-110 Docs dataset    |
+| `RAGFLOW_CHAT_ID`    | Default chat assistant ID  | DSA-110 Assistant       |
 
 ### Service URLs
 
-| Service  | URL                       | Description         |
-| -------- | ------------------------- | ------------------- |
-| Web UI   | http://localhost:9080     | User interface      |
-| API      | http://localhost:9380     | REST API            |
-| MCP SSE  | http://localhost:9382/sse | MCP SSE transport   |
-| MCP HTTP | http://localhost:9382/mcp | MCP streamable HTTP |
+| Service    | URL                         | Description            |
+| ---------- | --------------------------- | ---------------------- |
+| Web UI     | `http://localhost:9080`     | RAGFlow user interface |
+| REST API   | `http://localhost:9380`     | RAGFlow REST API       |
+| Custom MCP | `http://localhost:9400/sse` | Our MCP server (SSE)   |
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    RAGFlow Stack                            │
 ├─────────────────────────────────────────────────────────────┤

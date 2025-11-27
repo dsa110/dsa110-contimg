@@ -15,6 +15,21 @@ Example:
     >>> from dsa110_contimg.ragflow import RAGFlowClient
     >>> client = RAGFlowClient()
     >>> datasets = client.list_datasets()
+
+MCP Server:
+    The module includes an MCP server for VS Code/Copilot integration:
+    
+    >>> python -m dsa110_contimg.ragflow.mcp_server --sse --port 9400
+    
+    Or configure in .vscode/mcp.json:
+    {
+        "servers": {
+            "ragflow-dsa110": {
+                "type": "sse",
+                "url": "http://localhost:9400/sse"
+            }
+        }
+    }
 """
 
 from .client import RAGFlowClient
