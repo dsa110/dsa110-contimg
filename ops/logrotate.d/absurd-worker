@@ -1,0 +1,51 @@
+# Logrotate configuration for Absurd worker logs
+#
+# Install: sudo cp absurd-worker /etc/logrotate.d/
+# Test: sudo logrotate -d /etc/logrotate.d/absurd-worker
+
+/data/dsa110-contimg/state/logs/absurd-worker.out
+/data/dsa110-contimg/state/logs/absurd-worker.err
+{
+    # Rotate daily
+    daily
+    
+    # Keep 14 days of logs
+    rotate 14
+    
+    # Compress old logs
+    compress
+    
+    # Delay compression to allow log reading
+    delaycompress
+    
+    # Don't error if log file is missing
+    missingok
+    
+    # Don't rotate empty logs
+    notifempty
+    
+    # Create new log files with these permissions
+    create 0644 root root
+    
+    # Run postrotate script only once for all logs
+    sharedscripts
+    
+    # Signal the service to reopen logs after rotation
+    postrotate
+        # Send HUP signal to worker to reopen log files
+        systemctl reload contimg-absurd-worker.service 2>/dev/null || true
+    endscript
+}
+
+# CASA-related logs
+/data/dsa110-contimg/state/logs/casa.log
+{
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0644 root root
+    copytruncate
+}

@@ -2,6 +2,9 @@
 *old*/
 archive/
 
+cmake-tools-kits.json  
+codeium.codeium-1.48.2.vsix
+
 # CodeQL database directories (generated during analysis - don't track)
 .codeql-db-*/
 

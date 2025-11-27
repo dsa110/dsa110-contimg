@@ -6,12 +6,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Allow callers to override the staged EveryBeam artifacts location
-set(EVERYBEAM_ROOT "${PROJECT_SOURCE_DIR}/../../external/everybeam"
+set(EVERYBEAM_ROOT "${PROJECT_SOURCE_DIR}/../everybeam"
     CACHE PATH "Path to staged EveryBeam headers and libraries")
 set(EVERYBEAM_INCLUDE_DIR "${EVERYBEAM_ROOT}/include")
 set(EVERYBEAM_LIB_DIR "${EVERYBEAM_ROOT}/lib")
 
-set(AOCOMMON_ROOT "${PROJECT_SOURCE_DIR}/../../external/aocommon"
+set(AOCOMMON_ROOT "${PROJECT_SOURCE_DIR}/../aocommon"
     CACHE PATH "Path to staged aocommon headers")
 set(AOCOMMON_INCLUDE_DIR "${AOCOMMON_ROOT}")
 
