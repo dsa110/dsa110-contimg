@@ -15,7 +15,7 @@ const CircuitBreakerStateSchemaInternal = z.object({
   name: z.string(),
   state: z.enum(["closed", "open", "half_open"]),
   failure_count: countNumber,
-  last_failure_time: unixTimestamp.optional(),
+  last_failure_time: unixTimestamp.nullable().optional(),
   recovery_timeout: z.number().finite().min(0),
 });
 

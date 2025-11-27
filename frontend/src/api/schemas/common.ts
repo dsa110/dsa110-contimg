@@ -47,7 +47,7 @@ export const CalibratorMatchSchema = z.object({
 /** Health check result for a single service */
 export const HealthCheckResultSchema = z.object({
   healthy: z.boolean(),
-  error: z.string().optional(),
+  error: z.string().nullable().optional(),
   message: z.string().optional(),
   timestamp: unixTimestamp.optional(),
 });
@@ -57,7 +57,7 @@ export const CircuitBreakerStateSchema = z.object({
   name: z.string(),
   state: z.enum(["closed", "open", "half_open"]),
   failure_count: countNumber,
-  last_failure_time: unixTimestamp.optional(),
+  last_failure_time: unixTimestamp.nullable().optional(),
   recovery_timeout: positiveNumber,
 });
 

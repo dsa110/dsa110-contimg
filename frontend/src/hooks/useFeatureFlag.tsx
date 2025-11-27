@@ -46,7 +46,9 @@ export function useFeatureFlag(featureName: keyof FeatureFlags): FeatureFlagStat
     };
 
     const interval = setInterval(checkFeature, 5000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, [featureName]);
 
   return state;
@@ -62,7 +64,9 @@ export function useFeatureFlags(): FeatureFlags {
     const interval = setInterval(() => {
       setFeatures(getFeatures());
     }, 5000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   return features;
