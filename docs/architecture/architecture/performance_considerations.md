@@ -468,6 +468,35 @@ Key thresholds:
 
 See `tests/performance/test_io_optimizations.py` for detailed assertions.
 
+### Benchmark Results (November 2025)
+
+**Test**: 0834+555 calibrator conversion, 9 groups of 16 subbands each
+
+| Metric                 | Value             |
+| ---------------------- | ----------------- |
+| Mean conversion time   | 2m 08s (128.6s)   |
+| Median conversion time | 2m 08s (128.1s)   |
+| Min conversion time    | 1m 18s (78.4s)    |
+| Max conversion time    | 2m 31s (151.3s)   |
+| Standard deviation     | ±20.5s            |
+| MS file size           | ~5.1 GB per group |
+
+**Pipeline stages included in timing**:
+
+1. HDF5 parallel loading (4 subbands per batch)
+2. Phase center computation (rigorous astropy)
+3. Per-subband MS writes
+4. MS concatenation (16 parts → 1)
+5. Move from `/dev/shm/` to `/stage/` (SSD)
+6. MS configuration and validation
+
+**Notes**:
+
+- First group is often faster (~78s) due to filesystem caching effects
+- Variance is normal due to I/O patterns and concurrent system activity
+- Reads from `/data/` (HDD) are the primary bottleneck
+- Writes to `/stage/` (NVMe SSD) are fast
+
 ## Stage-Specific Performance
 
 ### Conversion Stage

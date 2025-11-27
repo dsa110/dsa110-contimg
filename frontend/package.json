@@ -45,7 +45,11 @@
     "verify:page-exports": "node scripts/verify-page-exports.js",
     "verify:build": "./scripts/verify-build.sh",
     "test:skyview": "./scripts/test-skyview.sh",
-    "test:routes": "vitest run tests/integration/routes.test.tsx tests/integration/routePreviewSmoke.test.tsx"
+    "test:routes": "vitest run tests/integration/routes.test.tsx tests/integration/routePreviewSmoke.test.tsx",
+    "test:contract": "vitest run tests/contract",
+    "test:scientific": "vitest run tests/unit/scientific",
+    "test:all": "vitest run tests/contract tests/unit tests/integration",
+    "sync:api-types": "bash scripts/sync-api-types.sh"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
