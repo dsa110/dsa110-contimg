@@ -26,12 +26,12 @@
 The pipeline uses **4 SQLite databases** for state management and product
 tracking:
 
-| Database                 | Location                               | Purpose                            |
-| ------------------------ | -------------------------------------- | ---------------------------------- |
-| `ingest.sqlite3`         | `/data/dsa110-contimg/state/`          | Queue management, subband tracking |
-| `cal_registry.sqlite3`   | `/data/dsa110-contimg/state/`          | Calibration table registry         |
-| `products.sqlite3`       | `/data/dsa110-contimg/state/`          | Images, photometry, MS index       |
-| `master_sources.sqlite3` | `/data/dsa110-contimg/state/catalogs/` | NVSS/VLASS/FIRST crossmatch        |
+| Database                 | Location                         | Purpose                                     |
+| ------------------------ | -------------------------------- | ------------------------------------------- |
+| `ingest.sqlite3`         | `/data/dsa110-contimg/state/`    | Queue management, subband tracking          |
+| `cal_registry.sqlite3`   | `/data/dsa110-contimg/state/`    | Calibration table registry                  |
+| `products.sqlite3`       | `/data/dsa110-contimg/state/`    | Images, photometry, MS index                |
+| `master_sources.sqlite3` | `/data/dsa110-contimg/state/db/` | NVSS/VLASS/FIRST crossmatch (1.6M+ sources) |
 
 ### Design Principles
 
@@ -623,8 +623,8 @@ def migrate_products_db(db_path: Path):
 
 ## See Also
 
-- [Database Schema Reference](../../reference/database_schema.md) - Complete schema
-  documentation
+- [Database Schema Reference](../../reference/database_schema.md) - Complete
+  schema documentation
 - [Backend API & Integration](../../reference/dashboard_backend_api.md) - API
   endpoints using these models
 - [Frontend Architecture](./dashboard_frontend_architecture.md) - Frontend

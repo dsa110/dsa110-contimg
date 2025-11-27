@@ -10,12 +10,12 @@ requirements.
 
 ## Database Files
 
-| Database                 | Location                               | Purpose                            |
-| ------------------------ | -------------------------------------- | ---------------------------------- |
-| `ingest.sqlite3`         | `/data/dsa110-contimg/state/`          | Queue management, subband tracking |
-| `cal_registry.sqlite3`   | `/data/dsa110-contimg/state/`          | Calibration table registry         |
-| `products.sqlite3`       | `/data/dsa110-contimg/state/`          | Images, photometry, MS index       |
-| `master_sources.sqlite3` | `/data/dsa110-contimg/state/catalogs/` | NVSS/VLASS/FIRST crossmatch        |
+| Database                 | Location                         | Purpose                                     |
+| ------------------------ | -------------------------------- | ------------------------------------------- |
+| `ingest.sqlite3`         | `/data/dsa110-contimg/state/`    | Queue management, subband tracking          |
+| `cal_registry.sqlite3`   | `/data/dsa110-contimg/state/`    | Calibration table registry                  |
+| `products.sqlite3`       | `/data/dsa110-contimg/state/`    | Images, photometry, MS index                |
+| `master_sources.sqlite3` | `/data/dsa110-contimg/state/db/` | NVSS/VLASS/FIRST crossmatch (1.6M+ sources) |
 
 ---
 

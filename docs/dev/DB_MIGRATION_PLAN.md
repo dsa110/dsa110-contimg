@@ -39,6 +39,11 @@ state; keep them separate from the DB migration work.
    - Restart services; watch logs for path errors.
    - Remove or archive old `/stage/.../state` after a backup window.
 
+> Pending host actions (Ops required):
+> - `sudo systemctl daemon-reload && sudo systemctl restart contimg-stream.service contimg-api.service`
+> - `sudo systemctl enable --now data-retention-cleanup.timer`
+> - If notification secrets change in `ops/systemd/contimg.env`, rerun daemon-reload + service restarts
+
 ## Quick Commands
 
 ```bash

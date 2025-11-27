@@ -12,6 +12,8 @@ ExecStart=/data/dsa110-contimg/scripts/ops/cleanup_old_data.sh
 Nice=10
 IOSchedulingClass=best-effort
 IOSchedulingPriority=7
+# Enable timer after deploy:
+#   sudo systemctl daemon-reload && sudo systemctl enable --now data-retention-cleanup.timer
 
 [Install]
 WantedBy=multi-user.target
