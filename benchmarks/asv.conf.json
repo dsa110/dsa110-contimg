@@ -1,0 +1,34 @@
+{
+    "version": 1,
+    "project": "dsa110-contimg",
+    "project_url": "https://github.com/dsa110/dsa110-contimg",
+    "repo": ".",
+    "branches": ["master-dev"],
+    "dvcs": "git",
+    "environment_type": "conda",
+    "install_timeout": 600,
+    "show_commit_url": "https://github.com/dsa110/dsa110-contimg/commit/",
+    
+    "conda_channels": ["conda-forge", "defaults"],
+    
+    "matrix": {
+        "python": ["3.11"]
+    },
+    
+    "benchmark_dir": ".",
+    "env_dir": ".asv/env",
+    "results_dir": ".asv/results",
+    "html_dir": ".asv/html",
+    
+    "install_command": [
+        "python -m pip install -e {project}[test] --no-build-isolation"
+    ],
+    
+    "build_command": [],
+    
+    "regressions_first_commits": {},
+    
+    "regressions_thresholds": {
+        ".*": 0.1
+    }
+}

@@ -44,7 +44,8 @@
     "check:imports": "node scripts/check-imports.js",
     "verify:page-exports": "node scripts/verify-page-exports.js",
     "verify:build": "./scripts/verify-build.sh",
-    "test:skyview": "./scripts/test-skyview.sh"
+    "test:skyview": "./scripts/test-skyview.sh",
+    "test:routes": "vitest run tests/integration/routes.test.tsx tests/integration/routePreviewSmoke.test.tsx"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -71,6 +72,7 @@
     "react-plotly.js": "^2.6.0",
     "react-router-dom": "^7.9.4",
     "recharts": "^3.4.1",
+    "zod": "^4.1.13",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

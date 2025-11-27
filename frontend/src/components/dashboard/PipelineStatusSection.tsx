@@ -18,6 +18,10 @@ export const PipelineStatusSection: React.FC<PipelineStatusSectionProps> = ({
   selectedQueueStatus,
   onSelectQueueStatus,
 }) => {
+  const recentGroupCount = status?.recent_groups?.length ?? 0;
+  const recentCalibrators = status?.recent_groups?.filter((group) => group.has_calibrator).length ?? 0;
+  const matchedRecent = status?.matched_recent ?? recentCalibrators;
+
   return (
     <CollapsibleSection title="Pipeline Status" defaultExpanded={true} variant="outlined">
       <Box sx={{ mt: 2 }}>
@@ -28,6 +32,12 @@ export const PipelineStatusSection: React.FC<PipelineStatusSectionProps> = ({
           helperText="Select a queue state to filter the details panel."
           variant="inline"
         />
+
+        {status && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            Schema validated {recentGroupCount} recent groups with {matchedRecent} calibrator matches.
+          </Typography>
+        )}
 
         <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
           Calibration Sets

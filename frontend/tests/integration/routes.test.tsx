@@ -10,9 +10,8 @@
  * 3. React.lazy() imports work correctly
  */
 
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, waitFor } from "@testing-library/react";
-import { BrowserRouter, MemoryRouter } from "react-router-dom";
 import App from "../../src/App";
 
 // Mock all API calls to prevent network requests during testing
@@ -55,6 +54,10 @@ const routes = [
 ];
 
 describe("Route Rendering", () => {
+  beforeEach(() => {
+    window.history.replaceState({}, "", "/");
+  });
+
   it.each(routes)("should render route %s without errors", async (route) => {
     // Capture console errors
     const errors: string[] = [];
@@ -72,11 +75,9 @@ describe("Route Rendering", () => {
     };
 
     try {
-      const { container, unmount } = render(
-        <MemoryRouter initialEntries={[route]}>
-          <App />
-        </MemoryRouter>
-      );
+      window.history.replaceState({}, "", route);
+
+      const { container, unmount } = render(<App />);
 
       // Wait for component to load (lazy components need time)
       await waitFor(
@@ -102,11 +103,9 @@ describe("Route Rendering", () => {
   });
 
   it("should handle root redirect to dashboard", async () => {
-    const { container } = render(
-      <MemoryRouter initialEntries={["/"]}>
-        <App />
-      </MemoryRouter>
-    );
+    window.history.replaceState({}, "", "/");
+
+    const { container } = render(<App />);
 
     await waitFor(
       () => {
@@ -125,11 +124,9 @@ describe("Route Rendering", () => {
     ];
 
     for (const route of legacyRoutes) {
-      const { container, unmount } = render(
-        <MemoryRouter initialEntries={[route]}>
-          <App />
-        </MemoryRouter>
-      );
+      window.history.replaceState({}, "", route);
+
+      const { container, unmount } = render(<App />);
 
       await waitFor(
         () => {

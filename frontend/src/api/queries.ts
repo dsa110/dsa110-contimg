@@ -8,6 +8,8 @@ import { apiClient } from "./client";
 import { createWebSocketClient, WebSocketClient } from "./websocket";
 import { logger } from "../utils/logger";
 import { env } from "../config/env";
+import { ZodError } from "zod";
+import { validatePipelineStatus } from "./schemas/pipelineStatus";
 import type {
   PipelineStatus,
   SystemMetrics,
@@ -175,7 +177,20 @@ export function usePipelineStatus(): UseQueryResult<PipelineStatus> {
     ["pipeline", "status"],
     async () => {
       const response = await apiClient.get<PipelineStatus>("/status");
-      return response.data;
+      try {
+        return validatePipelineStatus(response.data);
+      } catch (error) {
+        if (error instanceof ZodError) {
+          const details = error.issues
+            .map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`)
+            .join("; ");
+          logger.error("Pipeline status payload failed schema validation", {
+            details,
+          });
+          throw new Error(`Pipeline status response failed validation: ${details}`);
+        }
+        throw error;
+      }
     },
     wsClient,
     10000 // Fallback polling interval
