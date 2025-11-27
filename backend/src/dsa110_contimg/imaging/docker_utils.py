@@ -11,7 +11,10 @@ import os
 import signal
 import subprocess
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from dsa110_contimg.utils.gpu_utils import GPUConfig
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +35,12 @@ class WSCleanContainer:
         container.start()
         container.wsclean(["-predict", ...])
         container.stop()
+        
+        # With GPU acceleration
+        from dsa110_contimg.utils.gpu_utils import get_gpu_config
+        gpu_config = get_gpu_config()
+        with WSCleanContainer(gpu_config=gpu_config) as container:
+            container.wsclean(["-gridder", "idg", "-idg-mode", "gpu", ...])
 
     See: docs/troubleshooting/docker_wsclean_longrunning_solution.md
     """
@@ -42,6 +51,7 @@ class WSCleanContainer:
         image: str = "wsclean-everybeam:0.7.4",
         mount_path: str = "/stage/dsa110-contimg",
         container_mount: str = "/data",
+        gpu_config: Optional["GPUConfig"] = None,
     ):
         """Initialize WSClean container manager.
 
@@ -50,11 +60,13 @@ class WSCleanContainer:
             image: Docker image to use
             mount_path: Host path to mount
             container_mount: Path inside container for mount
+            gpu_config: GPU configuration for enabling GPU acceleration
         """
         self.container_name = container_name or f"wsclean-worker-{os.getpid()}"
         self.image = image
         self.mount_path = mount_path
         self.container_mount = container_mount
+        self.gpu_config = gpu_config
         self._started = False
 
     def start(self) -> bool:
@@ -75,12 +87,20 @@ class WSCleanContainer:
                 "-d",  # Detached
                 "--name",
                 self.container_name,
+            ]
+            
+            # Add GPU support if enabled
+            if self.gpu_config is not None and self.gpu_config.enabled and self.gpu_config.has_gpu:
+                cmd.extend(["--gpus", "all"])
+                logger.info(f"Container {self.container_name} will have GPU access")
+            
+            cmd.extend([
                 "-v",
                 f"{self.mount_path}:{self.container_mount}",
                 self.image,
                 "sleep",
                 "infinity",  # Keep container running
-            ]
+            ])
 
             logger.info(f"Starting WSClean container: {self.container_name}")
             result = subprocess.run(

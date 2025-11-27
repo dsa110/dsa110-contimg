@@ -30,6 +30,11 @@ except Exception:  # pragma: no cover
 
 from dsa110_contimg.imaging.cli_utils import default_cell_arcsec, detect_datacolumn  # noqa: E402
 from dsa110_contimg.utils.error_context import format_ms_error_with_suggestions  # noqa: E402
+from dsa110_contimg.utils.gpu_utils import (  # noqa: E402
+    build_docker_command,
+    build_wsclean_gpu_args,
+    get_gpu_config,
+)
 from dsa110_contimg.utils.performance import track_performance  # noqa: E402
 from dsa110_contimg.utils.runtime_safeguards import require_casa6_python  # noqa: E402
 from dsa110_contimg.utils.validation import ValidationError, validate_ms  # noqa: E402
@@ -112,65 +117,60 @@ def run_wsclean(
 
     # Find WSClean executable
     # Priority: Prefer native WSClean over Docker for better performance (2-5x faster)
+    # But for GPU acceleration, Docker with nvidia-container-toolkit is required
+    gpu_config = get_gpu_config()
+    use_docker_for_gpu = gpu_config.enabled and gpu_config.has_gpu
+    
     if wsclean_path:
         if wsclean_path == "docker":
-            # Check for native WSClean first (faster than Docker)
+            # Check for native WSClean first (faster than Docker) - unless GPU is needed
             native_wsclean = shutil.which("wsclean")
-            if native_wsclean:
+            if native_wsclean and not use_docker_for_gpu:
                 LOG.info("Using native WSClean (faster than Docker)")
                 wsclean_cmd = [native_wsclean]
             else:
-                # Fall back to Docker if native not available
+                # Use Docker with GPU support
                 docker_cmd = shutil.which("docker")
                 if not docker_cmd:
                     raise RuntimeError("Docker not found but --wsclean-path=docker was specified")
-                wsclean_cmd = [
-                    docker_cmd,
-                    "run",
-                    "--rm",
-                    "-v",
-                    "/scratch:/scratch",
-                    "-v",
-                    "/data:/data",
-                    "-v",
-                    "/stage:/stage",
-                    "-v",
-                    "/dev/shm:/dev/shm",
-                    "wsclean-everybeam:0.7.4",
-                    "wsclean",
-                ]
+                
+                # Build Docker command with GPU support
+                docker_base = build_docker_command(
+                    image="wsclean-everybeam:0.7.4",
+                    command=["wsclean"],
+                    gpu_config=gpu_config,
+                )
+                wsclean_cmd = docker_base
+                if gpu_config.has_gpu:
+                    LOG.info("Using Docker WSClean with GPU acceleration (IDG gridder)")
+                else:
+                    LOG.info("Using Docker WSClean (CPU mode)")
         else:
             wsclean_cmd = [wsclean_path]
     else:
-        # Check for native WSClean first (preferred)
-        wsclean_cmd = shutil.which("wsclean")
-        if not wsclean_cmd:
-            # Fall back to Docker container if native not available
+        # Check for native WSClean first (preferred) - unless GPU is needed
+        native_wsclean = shutil.which("wsclean")
+        if native_wsclean and not use_docker_for_gpu:
+            wsclean_cmd = [native_wsclean]
+            LOG.debug("Using native WSClean (faster than Docker)")
+        else:
+            # Fall back to Docker container with GPU support
             docker_cmd = shutil.which("docker")
             if docker_cmd:
-                wsclean_cmd = [
-                    docker_cmd,
-                    "run",
-                    "--rm",
-                    "-v",
-                    "/scratch:/scratch",
-                    "-v",
-                    "/data:/data",
-                    "-v",
-                    "/stage:/stage",
-                    "-v",
-                    "/dev/shm:/dev/shm",
-                    "wsclean-everybeam:0.7.4",
-                    "wsclean",
-                ]
+                # Build Docker command with GPU support
+                docker_base = build_docker_command(
+                    image="wsclean-everybeam:0.7.4",
+                    command=["wsclean"],
+                    gpu_config=gpu_config,
+                )
+                wsclean_cmd = docker_base
+                if gpu_config.has_gpu:
+                    LOG.info("Using Docker WSClean with GPU acceleration (IDG gridder)")
             else:
                 raise RuntimeError(
                     "WSClean not found. Install WSClean or set WSCLEAN_PATH environment variable, "
                     "or ensure Docker is available with wsclean-everybeam:0.7.4 image."
                 )
-        else:
-            wsclean_cmd = [wsclean_cmd]
-            LOG.debug("Using native WSClean (faster than Docker)")
 
     # Build command
     cmd = wsclean_cmd.copy()
@@ -251,14 +251,17 @@ def run_wsclean(
     if pblimit > 0:
         cmd.extend(["-primary-beam-limit", str(pblimit)])
 
-    # Wide-field gridding (wproject equivalent)
-    # WGridder is WSClean's optimized wide-field gridding algorithm
-    # Enable when wproject is requested OR for large images
-    if gridder == "wproject" or imsize > 1024:
+    # Wide-field gridding with GPU acceleration
+    # Use IDG gridder with GPU when available, otherwise fall back to wgridder
+    if gpu_config.enabled and gpu_config.has_gpu:
+        # Use GPU-accelerated IDG gridder
+        gpu_args = build_wsclean_gpu_args(gpu_config)
+        cmd.extend(gpu_args)
+        LOG.info("Using GPU-accelerated IDG gridder (mode: %s)", gpu_config.effective_idg_mode)
+    elif gridder == "wproject" or imsize > 1024:
+        # CPU fallback - use wgridder (still fast, but CPU-only)
         cmd.extend(["-gridder", "wgridder"])
-        # Note: wprojplanes parameter is not directly supported by WSClean's WGridder
-        # WGridder automatically optimizes the number of planes based on image size and frequency
-        LOG.debug("Enabled wide-field gridding (WGridder)")
+        LOG.debug("Using CPU-only wgridder (no GPU available)")
 
     # Reordering (required for multi-spw, but can be slow - only if needed)
     # CRITICAL: Always reorder data - required for correct multi-SPW processing

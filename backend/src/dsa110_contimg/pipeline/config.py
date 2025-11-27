@@ -89,7 +89,7 @@ class ImagingConfig(BaseModel):
 
     field: Optional[str] = Field(None, description="Field name or coordinates")
     refant: Optional[str] = Field(default="103", description="Reference antenna")
-    gridder: str = Field(default="wproject", description="Gridding algorithm")
+    gridder: str = Field(default="idg", description="Gridding algorithm (idg, wgridder, wstacking)")
     wprojplanes: int = Field(default=-1, description="W-projection planes (-1 for auto)")
     run_catalog_validation: bool = Field(
         default=True,
@@ -108,6 +108,20 @@ class ImagingConfig(BaseModel):
         ge=10.0,
         le=300.0,
         description="Mask radius around catalog sources (arcsec)",
+    )
+
+    # GPU acceleration settings
+    gpu_enabled: bool = Field(
+        default=True,
+        description="Enable GPU acceleration for imaging (auto-detects if GPU available)",
+    )
+    gpu_idg_mode: str = Field(
+        default="hybrid",
+        description="IDG gridder mode: 'cpu', 'gpu', or 'hybrid' (best balance)",
+    )
+    gpu_device_ids: Optional[List[int]] = Field(
+        default=None,
+        description="GPU device IDs to use (None = all available GPUs)",
     )
 
 
