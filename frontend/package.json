@@ -19,7 +19,7 @@
     "build:watch": "vite build --watch",
     "build:safe": "../scripts/run-safe.sh 'npm run build'",
     "type-check": "npx tsc --noEmit",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings=0",
     "lint:safe": "../scripts/run-safe.sh 'npm run lint'",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,scss,less,html,md,graphql,vue}\" \"*.{js,json,yaml,yml,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,scss,less,html,md,graphql,vue}\" \"*.{js,json,yaml,yml,md}\"",
