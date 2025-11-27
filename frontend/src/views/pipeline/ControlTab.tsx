@@ -28,11 +28,11 @@ export default function ControlTab() {
   const [msMetadata, setMsMetadata] = useState<MSListEntry | null>(null);
 
   const handleMSSelectionChange = (paths: string[]) => {
-    const result = computeSelectedMS(paths, selectedMSList);
-    setSelectedMSList(result.list);
-    setSelectedMS(result.selected);
+    const newSelectedMS = computeSelectedMS(paths, selectedMSList, selectedMS);
+    setSelectedMSList(paths);
+    setSelectedMS(newSelectedMS);
 
-    if (!result.selected) {
+    if (!newSelectedMS) {
       setMsMetadata(null);
     }
   };
@@ -72,7 +72,7 @@ export default function ControlTab() {
           <ConversionWorkflow />
         </Grid>
         <Grid item xs={12} md={6} lg={4}>
-          <CalibrationWorkflow selectedMS={selectedMS} />
+          <CalibrationWorkflow selectedMS={selectedMS} selectedMSList={selectedMSList} />
         </Grid>
         <Grid item xs={12} md={6} lg={4}>
           <ImagingWorkflow selectedMS={selectedMS} />
