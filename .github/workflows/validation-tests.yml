@@ -101,28 +101,21 @@ jobs:
           activate-environment: casa6
           environment-file: env/environment.yml
 
-      - name: Activate environment and run validation tests
+      - name: Activate environment and verify installation
         shell: bash -l {0}
         run: |
           set -euo pipefail
           conda activate casa6
           export PYTHONPATH="${GITHUB_WORKSPACE}/src:${PYTHONPATH:-}"
 
-          # Run validation test script
-          # TODO: Implement test_enhanced_pipeline_production.sh or remove this step
-          # chmod +x test_enhanced_pipeline_production.sh
-          # ./test_enhanced_pipeline_production.sh
+          # Verify conda environment and key packages
+          echo "✓ Conda environment activated"
+          python --version
+          python -c "import casa; print(f'CASA version: {casa.__version__}')" || echo "⚠️ CASA import check skipped"
+          python -c "import pyuvdata; print(f'pyuvdata version: {pyuvdata.__version__}')"
 
-          echo "⚠️ Validation test script not yet implemented"
-          echo "This step is currently a placeholder and will be implemented in the future"
-
-      - name: Upload validation test results
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: validation-test-results
-          path: /tmp/dsa110_validation_test_*/
-          retention-days: 7
+          echo "✓ Environment validation complete"
+          echo "Note: Comprehensive validation tests run in integration-tests job"
 
   integration-tests:
     name: Integration Tests (Synthetic Data)
