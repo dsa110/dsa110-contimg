@@ -444,5 +444,5 @@ lsof -ti:5173 | xargs kill
 
 - [Frontend Architecture](../../architecture/dashboard/dashboard_frontend_architecture.md) -
   Architecture details
-- [Testing Guide](./dashboard_testing.md) - Testing setup
+- [Testing Guide](./dashboard_development_workflow.md) - Testing setup
 - [Deployment Guide](./dashboard_deployment.md) - Deployment steps

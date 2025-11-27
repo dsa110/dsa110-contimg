@@ -108,7 +108,7 @@ python -m dsa110_contimg.imaging.cli image \
     --no-nvss-mask
 ```
 
-**See Also:** [Masking Guide](../guides/data-processing/masking-guide.md) for detailed usage
+**See Also:** [Masking Guide](../calibration-overview.md) for detailed usage
 instructions.
 
 ---
@@ -151,7 +151,7 @@ wait $PID1 $PID2
 
 **See Also:**
 
-- [MS Access Serialization](../testing/reports/MS_LOCKING_IMPLEMENTATION.md) for
+- [MS Access Serialization](../../testing/CURRENT_STATUS.md) for
   detailed documentation
 - [Phase 1 Multiple Sources Test Results](../archive/status_reports/PHASE1_MULTIPLE_SOURCES_TEST_RESULTS.md)
   for background on why serialization is needed

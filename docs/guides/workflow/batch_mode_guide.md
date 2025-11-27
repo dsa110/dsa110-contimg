@@ -453,7 +453,7 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
   Feature completeness
 - [API Reference](../../reference/dashboard_backend_api.md) - Complete API
   documentation
-- [Pipeline Testing Guide](../qa/PIPELINE_TESTING_GUIDE.md) - Testing batch workflows
+- [Pipeline Testing Guide](../dashboard/carta_testing_guide.md) - Testing batch workflows
 
 ## Summary
 

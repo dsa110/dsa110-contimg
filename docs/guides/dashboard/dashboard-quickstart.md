@@ -479,6 +479,6 @@ Placeholder is ready in `frontend/src/pages/SkyViewPage.tsx`.
 
 For issues or questions:
 
-- Check [Troubleshooting](../operations/troubleshooting.md)
+- Check [Troubleshooting](../../troubleshooting/)
 - See [API Reference](../../reference/dashboard_backend_api.md)
 - Consult [Frontend Design](../../architecture/dashboard/frontend_design.md)

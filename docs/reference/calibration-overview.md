@@ -127,7 +127,7 @@ See the calibration procedure documentation for detailed technical explanation.
 
 ## Related Documentation
 
-- [Calibration Tutorial](../guides/tutorials/calibrate-apply.md) - Step-by-step
+- [Calibration Tutorial](../CURRENT_CALIBRATION_PROCEDURE.md) - Step-by-step
   workflow
 - Memory - Project-specific notes and practices
 - [Calibration Procedure](CURRENT_CALIBRATION_PROCEDURE.md) - Current

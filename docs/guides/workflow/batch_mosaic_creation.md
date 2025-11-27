@@ -7,7 +7,7 @@
 - create_mosaic_centered.py -
   Base script
 - [Batch Mode Guide](batch_mode_guide.md) - General batch processing
-- [Mosaic Quickstart](mosaic_quickstart.md) - Single mosaic creation
+- [Mosaic Quickstart](mosaic.md) - Single mosaic creation
 
 ---
 
@@ -705,7 +705,7 @@ PYTHONPATH=/data/dsa110-contimg/src \
 - Mosaic Orchestrator - Core
   orchestrator class
 - [Batch Mode Guide](batch_mode_guide.md) - General batch processing patterns
-- [Mosaic Quickstart](mosaic_quickstart.md) - Single mosaic creation tutorial
+- [Mosaic Quickstart](mosaic.md) - Single mosaic creation tutorial
 
 ---
 
