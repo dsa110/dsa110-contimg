@@ -40,8 +40,10 @@ def _install_mock_if_missing(module_path: str) -> MagicMock:
 # Mock heavy calibrator imports (CASA dependencies) - used by orchestrator.py
 _install_mock_if_missing("dsa110_contimg.conversion.calibrator_ms_service")
 
-# Mock photometry manager (heavy dependencies) - used by orchestrator.py
-_install_mock_if_missing("dsa110_contimg.photometry.manager")
+# NOTE: We do NOT mock dsa110_contimg.photometry.manager here because:
+# 1. test_manager.py directly tests PhotometryConfig, PhotometryManager, PhotometryResult
+# 2. The module imports fine without CASA dependencies
+# 3. Orchestrator tests that need to mock it can do so locally with patch()
 
 # =============================================================================
 # Shared fixtures for unit tests

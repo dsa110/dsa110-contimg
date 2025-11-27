@@ -1,13 +1,17 @@
 # Database Reference Documentation Index
 
-**Location**: `/data/dsa110-contimg/state/`
+**Locations**:
+
+- `/data/dsa110-contimg/state/` - Primary databases
+- `/data/dsa110-contimg/state/db/` - Additional databases
+- `/data/dsa110-contimg/state/catalogs/` - Source catalogs
 
 ---
 
 ## Overview
 
 The DSA-110 continuum imaging pipeline uses SQLite databases for state
-management. All databases are in `/data/dsa110-contimg/state/`.
+management.
 
 See [Database Schema](database_schema.md) for detailed table definitions and
 example queries.
@@ -16,15 +20,31 @@ example queries.
 
 ## Database Summary
 
-| Database | Purpose | Size |
-|----------|---------|------|
-| `products.sqlite3` | MS index, images, mosaics, photometry | ~800 KB |
-| `hdf5.sqlite3` | HDF5 file index for subband grouping | ~33 MB |
-| `ingest.sqlite3` | Streaming converter queue management | ~428 KB |
-| `cal_registry.sqlite3` | Calibration table registry | ~24 KB |
-| `calibrator_registry.sqlite3` | Calibrator source catalog | ~104 KB |
-| `master_sources.sqlite3` | Source catalog (NVSS, FIRST, RAX) | ~86 MB |
-| `data_registry.sqlite3` | Data product registry | Variable |
+### Primary (`/state/`)
+
+| Database                | Purpose                               | Size    |
+| ----------------------- | ------------------------------------- | ------- |
+| `products.sqlite3`      | MS index, images, mosaics, photometry | ~500 KB |
+| `hdf5.sqlite3`          | HDF5 file index for subband grouping  | ~65 KB  |
+| `ingest.sqlite3`        | Streaming converter queue management  | ~16 KB  |
+| `cal_registry.sqlite3`  | Calibration table registry            | ~24 KB  |
+| `data_registry.sqlite3` | Data product registry                 | ~65 KB  |
+
+### Secondary (`/state/db/`)
+
+| Database                 | Purpose                           | Size    |
+| ------------------------ | --------------------------------- | ------- |
+| `master_sources.sqlite3` | Source catalog (NVSS, FIRST, RAX) | ~113 MB |
+| `calibrators.sqlite3`    | Calibrator source catalog         | ~106 KB |
+| `ingest_queue.sqlite3`   | Legacy ingest queue               | ~32 KB  |
+
+### Catalogs (`/state/catalogs/`)
+
+| Database                  | Purpose                      |
+| ------------------------- | ---------------------------- |
+| `vla_calibrators.sqlite3` | VLA calibrator catalog       |
+| `nvss_dec+*.sqlite3`      | NVSS sources by declination  |
+| `first_dec+*.sqlite3`     | FIRST sources by declination |
 
 ---
 

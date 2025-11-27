@@ -53,9 +53,9 @@ simplicity. It uses multiple separated databases to manage state.
   - `caltables`: Path, validity window, quality metrics.
 - **`hdf5.sqlite3`**: Index of raw HDF5 files.
   - `hdf5_file_index`: Maps subbands to files.
-- **`master_sources.sqlite3`**: Large catalog of sources (1.6M+).
-- **`calibrator_registry.sqlite3`**: Registry of known calibrators (created on
-  demand).
+- **`state/db/master_sources.sqlite3`**: Large catalog of sources (1.6M+).
+- **`state/db/calibrators.sqlite3`**: Registry of known calibrators.
+- **`state/catalogs/vla_calibrators.sqlite3`**: VLA calibrator catalog.
 
 ### **Concurrency Strategy**
 
