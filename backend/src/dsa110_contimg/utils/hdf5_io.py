@@ -191,8 +191,7 @@ def get_h5py_cache_info() -> dict:
         "default_rdcc_nbytes_mb": HDF5_CACHE_SIZE_DEFAULT / (1024 * 1024),
         "configured_by_pipeline": _h5py_defaults_configured,
         "patch_applied": _original_h5py_file_init is not None,
-    }:
-        return {"error": str(e)}
+    }
 
 
 @contextmanager
