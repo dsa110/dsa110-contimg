@@ -30,7 +30,8 @@ RAGFlow provides:
 
 ### 1. Set Up API Key
 
-First, deploy RAGFlow (see `docs/ops/ragflow/README.md`), then create an API key:
+First, deploy RAGFlow (see `docs/ops/ragflow/README.md`), then create an API
+key:
 
 1. Open http://localhost:9080 in your browser
 2. Register or log in
@@ -215,7 +216,6 @@ Or use stdio mode:
 The MCP server exposes these tools:
 
 1. **search_dsa110_docs**: Search documentation with a query
-
    - Parameters: `query` (string), `top_k` (integer, optional)
    - Returns: Relevant document chunks with similarity scores
 

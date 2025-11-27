@@ -1,15 +1,21 @@
 """
 Command-line interface for local documentation search.
 
+**Location:** This script has been moved to `docs/docsearch/` and should be run
+directly from that directory.
+
 Usage:
+    # Navigate to the directory
+    cd /data/dsa110-contimg/docs/docsearch
+
     # Index documentation
-    python -m dsa110_contimg.docsearch.cli index
+    python cli.py index
 
     # Search
-    python -m dsa110_contimg.docsearch.cli search "how to convert uvh5"
+    python cli.py search "how to convert uvh5"
 
     # Show stats
-    python -m dsa110_contimg.docsearch.cli stats
+    python cli.py stats
 """
 
 import argparse
@@ -26,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 def cmd_index(args):
     """Index documentation directory."""
-    from .search import DocSearch
+    from search import DocSearch
 
     search = DocSearch()
 
