@@ -19,6 +19,15 @@ from dsa110_contimg.utils.runtime_safeguards import (
     wcs_world_to_pixel_safe,
 )
 
+# Fast UVH5 metadata reading (700x faster than UVData.read)
+from dsa110_contimg.utils.fast_meta import (
+    FastMeta,
+    get_uvh5_basic_info,
+    get_uvh5_freqs,
+    get_uvh5_mid_mjd,
+    get_uvh5_times,
+)
+
 __all__ = [
     "check_casa6_python",
     "require_casa6_python",
@@ -33,4 +42,10 @@ __all__ = [
     "validate_image_shape",
     "validate_region_mask",
     "check_performance_threshold",
+    # Fast metadata
+    "FastMeta",
+    "get_uvh5_times",
+    "get_uvh5_mid_mjd",
+    "get_uvh5_freqs",
+    "get_uvh5_basic_info",
 ]

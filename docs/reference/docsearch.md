@@ -223,7 +223,7 @@ CREATE TABLE embedding_cache (
 | Setup             | `pip install` | Docker Compose          |
 | Embedding source  | OpenAI API    | Configurable            |
 | Storage           | SQLite        | PostgreSQL + MinIO      |
-| Chat interface    | No            | Yes                     |
+| Chat interface    | No            | Yes (+ simple `ask()`)  |
 | GraphRAG/RAPTOR   | No            | Yes                     |
 | MCP server        | No            | Custom server available |
 
@@ -239,6 +239,17 @@ CREATE TABLE embedding_cache (
 - You want a full RAG chat experience
 - You need GraphRAG or RAPTOR features
 - You want a web UI for document management
+- You need synthesis across multiple documents
+
+**RAGFlow Quick Usage:**
+
+```python
+from dsa110_contimg.ragflow import RAGFlowClient
+
+client = RAGFlowClient()  # Uses RAGFLOW_API_KEY env var
+answer = client.ask("What error detection protections are implemented?")
+print(answer)
+```
 
 ## See Also
 

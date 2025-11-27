@@ -59,14 +59,15 @@ python -m dsa110_contimg.ragflow.cli query \
 ```python
 from dsa110_contimg.ragflow import RAGFlowClient
 
-client = RAGFlowClient(api_key="your-key")
+client = RAGFlowClient()  # Uses RAGFLOW_API_KEY env var
 
-# List datasets
-datasets = client.list_datasets()
+# Simple Q&A - easiest method
+answer = client.ask("How do I convert UVH5 files to Measurement Sets?")
+print(answer)
 
-# Search documents
+# Search documents (raw retrieval)
 results = client.retrieve(
-    dataset_ids=[datasets[0]["id"]],
+    dataset_ids=["dataset-id"],
     question="How do I run the calibration pipeline?",
 )
 

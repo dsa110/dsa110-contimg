@@ -15,6 +15,7 @@ readiness across the pipeline.
 from __future__ import annotations
 
 import os
+from typing import Optional
 
 from dsa110_contimg.utils.runtime_safeguards import require_casa6_python
 
@@ -467,19 +468,8 @@ def _fix_field_phase_centers_from_times(ms_path: str) -> None:
 
             pt_dec = pt_dec_rad * u.rad
 
-            # Get telescope location from OBSERVATION table or use DSA-110 default
-            # Note: location is used implicitly by get_meridian_coords() which uses
-            # DSA-110 coordinates internally, so we don't need to store it here
-            try:
-                with _tb(ms_path + "::OBSERVATION", readonly=True) as obs_table:
-                    # Check telescope name for potential future use, but get_meridian_coords
-                    # already uses correct DSA-110 coordinates internally
-                    if obs_table.nrows() > 0 and "TELESCOPE_NAME" in obs_table.colnames():
-                        _tel_name = obs_table.getcol("TELESCOPE_NAME")[0]
-                        # get_meridian_coords() uses DSA-110 coordinates internally
-            except Exception:
-                # get_meridian_coords() uses DSA-110 coordinates internally, so no action needed
-                pass
+            # Note: get_meridian_coords() uses DSA-110 coordinates internally,
+            # so no explicit telescope location lookup is needed here.
 
             # Fix each field's phase center
             updated = False

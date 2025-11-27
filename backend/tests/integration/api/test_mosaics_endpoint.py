@@ -11,10 +11,13 @@ from fastapi.testclient import TestClient
 # Ensure backend/src is on the path for API imports
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SRC_PATH = REPO_ROOT / "src"
+TESTS_PATH = REPO_ROOT / "tests"
 if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))
+if str(TESTS_PATH) not in sys.path:
+    sys.path.insert(0, str(TESTS_PATH))
 
-from backend.tests.utils.mosaic_db import create_products_db_with_mosaic
+from utils.mosaic_db import create_products_db_with_mosaic
 
 from dsa110_contimg.api import create_app
 from dsa110_contimg.api.config import ApiConfig

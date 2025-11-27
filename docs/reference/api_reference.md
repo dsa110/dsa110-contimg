@@ -576,6 +576,49 @@ Stage execution mode.
 - `SUBPROCESS`: Isolated subprocess (for memory safety)
 - `REMOTE`: Distributed execution (future)
 
+## Utility Functions
+
+### FastMeta
+
+Fast read-only interface to UVH5 file metadata (~700x faster than UVData).
+
+**Location:** `dsa110_contimg.utils.fast_meta.FastMeta`
+
+Uses pyuvdata's `FastUVH5Meta` for lazy, on-demand metadata access without
+reading the entire file header.
+
+**Performance:**
+
+| Operation  | UVData.read(read_data=False) | FastMeta |
+| ---------- | ---------------------------- | -------- |
+| time_array | ~2.7s                        | ~0.004s  |
+| freq_array | ~2.7s                        | ~0.001s  |
+
+**Usage:**
+
+```python
+from dsa110_contimg.utils import FastMeta, get_uvh5_mid_mjd
+
+# Quick helper for common operations
+mid_mjd = get_uvh5_mid_mjd("/path/to/file.hdf5")
+
+# Context manager for multiple attributes
+with FastMeta("/path/to/file.hdf5") as meta:
+    times = meta.time_array      # Raw time array
+    freqs = meta.freq_array      # Frequency array
+    npol = meta.Npols            # Number of polarizations
+    mid_mjd = meta.mid_time_mjd  # Middle time as MJD
+```
+
+**Helper Functions:**
+
+- `get_uvh5_times(path, unique=True)` - Get times from file
+- `get_uvh5_mid_mjd(path)` - Get middle time as MJD
+- `get_uvh5_freqs(path)` - Get frequency array
+- `get_uvh5_basic_info(path)` - Get dict with common metadata
+
+**Note:** Falls back to `UVData.read(read_data=False)` if pyuvdata < 2.4.
+
 ## Related Documentation
 
 - [Pipeline Stage Architecture](../architecture/pipeline/pipeline_stage_architecture.md)

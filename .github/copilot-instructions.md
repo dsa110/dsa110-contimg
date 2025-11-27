@@ -37,6 +37,21 @@ conda activate casa6  # Always activate before running scripts
 - pyuvdata 3.2.4 (uses `Nants_telescope`, not deprecated `Nants_data`)
 - pyuvsim, astropy, numpy (see `ops/docker/environment.yml` for complete list)
 
+**Fast Metadata Reading**: Use `FastMeta` for reading UVH5 metadata (~700x
+faster):
+
+```python
+from dsa110_contimg.utils import FastMeta, get_uvh5_mid_mjd
+
+# Quick helper
+mid_mjd = get_uvh5_mid_mjd("/path/to/file.hdf5")
+
+# Context manager for multiple attributes
+with FastMeta("/path/to/file.hdf5") as meta:
+    times = meta.time_array
+    freqs = meta.freq_array
+```
+
 **Running Commands**: Use `run_in_terminal` with casa6 environment activated for
 all Python scripts and CASA tasks.
 
@@ -557,3 +572,17 @@ for r in results:
 **Alternative**: RAGFlow is also available (`dsa110_contimg.ragflow`) for
 full-featured RAG with chat, but requires Docker containers. Use DocSearch by
 default; RAGFlow is optional for advanced use cases.
+
+### RAGFlow (Alternative)
+
+For questions requiring synthesis across multiple documents:
+
+```python
+from dsa110_contimg.ragflow import RAGFlowClient
+
+client = RAGFlowClient()  # Uses RAGFLOW_API_KEY env var
+answer = client.ask("What error detection protections are implemented?")
+print(answer)
+```
+
+RAGFlow runs on `localhost:9380` (API) and `localhost:9080` (UI).
