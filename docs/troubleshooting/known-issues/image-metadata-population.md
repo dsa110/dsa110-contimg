@@ -22,7 +22,7 @@ Image creation code is not populating these columns during insertion.
 
 ### Current Insertion Code
 
-**Location:** `src/dsa110_contimg/database/products.py:468`
+**Location:** `backend/src/dsa110_contimg/database/products.py:468`
 
 ```python
 def insert_image(
@@ -83,7 +83,7 @@ parameters, but callers are not extracting and passing these values.
 
 ## Database Schema
 
-**Location:** `src/dsa110_contimg/database/products.py`
+**Location:** `backend/src/dsa110_contimg/database/products.py`
 
 ```python
 CREATE TABLE IF NOT EXISTS images (
@@ -116,7 +116,7 @@ ALTER TABLE images ADD COLUMN beam_pa_deg REAL;
 
 ### Step 2: Update Insert Function
 
-**File:** `src/dsa110_contimg/database/products.py`
+**File:** `backend/src/dsa110_contimg/database/products.py`
 
 ```python
 def insert_image(
@@ -159,8 +159,8 @@ def insert_image(
 
 ### Step 3: Extract Metadata During Image Creation
 
-**Location:** Where images are created (likely `src/dsa110_contimg/imaging/` or
-`src/dsa110_contimg/pipeline/stages_impl.py`)
+**Location:** Where images are created (likely `backend/src/dsa110_contimg/imaging/` or
+`backend/src/dsa110_contimg/pipeline/stages_impl.py`)
 
 Create helper function to extract metadata from FITS:
 
@@ -327,11 +327,11 @@ After implementing:
 
 ## Related Files
 
-- `src/dsa110_contimg/database/products.py` - Database schema and insertion
-- `src/dsa110_contimg/api/routers/images.py` - API endpoint (currently does
+- `backend/src/dsa110_contimg/database/products.py` - Database schema and insertion
+- `backend/src/dsa110_contimg/api/routers/images.py` - API endpoint (currently does
   post-filtering)
-- `src/dsa110_contimg/imaging/` - Image creation code (location TBD)
-- `src/dsa110_contimg/pipeline/stages_impl.py` - Pipeline stages (may create
+- `backend/src/dsa110_contimg/imaging/` - Image creation code (location TBD)
+- `backend/src/dsa110_contimg/pipeline/stages_impl.py` - Pipeline stages (may create
   images)
 
 ## Workaround

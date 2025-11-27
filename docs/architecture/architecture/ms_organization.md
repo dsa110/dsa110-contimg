@@ -34,7 +34,7 @@ MS files are organized into date-based subdirectories:
 ### Core Utility Module
 
 The organization logic is centralized in
-`src/dsa110_contimg/utils/ms_organization.py`:
+`backend/src/dsa110_contimg/utils/ms_organization.py`:
 
 - **`create_path_mapper()`**: Creates a path mapper function for
   direct-to-organized writing
@@ -94,7 +94,7 @@ convert_subband_groups_to_ms(
 )
 ```
 
-**Location**: `src/dsa110_contimg/conversion/`
+**Location**: `backend/src/dsa110_contimg/conversion/`
 
 **Note**: In subprocess mode (when `--use-subprocess` is used), files are
 written to flat locations and organized afterward using `organize_ms_file()`.
@@ -115,14 +115,14 @@ convert_subband_groups_to_ms(
 )
 ```
 
-**Location**: `src/dsa110_contimg/pipeline/`
+**Location**: `backend/src/dsa110_contimg/pipeline/`
 
 #### 3. Organization Stage
 
 A standalone `OrganizationStage` is available for manual workflows or
 post-processing:
 
-**Location**: `src/dsa110_contimg/pipeline/`
+**Location**: `backend/src/dsa110_contimg/pipeline/`
 
 **Usage**:
 
@@ -137,7 +137,7 @@ context = stage.execute(context)
 
 The `StreamingMosaicManager` uses the shared utility for consistency:
 
-**Location**: `src/dsa110_contimg/mosaic/`
+**Location**: `backend/src/dsa110_contimg/mosaic/`
 
 ## Database Updates
 

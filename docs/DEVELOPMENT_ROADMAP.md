@@ -17,7 +17,7 @@ Pipeline.
 - **Focus:** End-to-End Browser Testing, Health Checks, Timeout Handling.
 - **Key Deliverables:**
   - Playwright Test Suite (`scripts/tests/test_operations_page_playwright.js`)
-  - Pipeline Health Checks (`src/dsa110_contimg/pipeline/health.py`)
+  - Pipeline Health Checks (`backend/src/dsa110_contimg/pipeline/health.py`)
   - Details: Phase 1 Browser Testing Complete
 
 #### **January 2025: Advanced Monitoring & Dashboard**
@@ -46,7 +46,7 @@ Pipeline.
 - **Goal:** Automated validation of astrometry and flux scale against
   NVSS/VLASS.
 - **Status:** Implementation Started
-  (`src/dsa110_contimg/qa/catalog_validation.py`)
+  (`backend/src/dsa110_contimg/qa/catalog_validation.py`)
 - **Docs:**
   High Priority Improvements
 

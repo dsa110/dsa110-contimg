@@ -208,5 +208,5 @@ focuses solely on conversion.
 
 - **Finding transit data**: `docs/how-to/FIND_CALIBRATOR_TRANSIT_DATA.md`
 - **CalibratorMSGenerator**:
-  `src/dsa110_contimg/conversion/calibrator_ms_service.py`
+  `backend/src/dsa110_contimg/conversion/calibrator_ms_service.py`
 - **Conversion process**: `docs/archive/reports/`

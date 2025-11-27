@@ -50,13 +50,13 @@ Or manually:
 
 ```bash
 # Dry-run first
-python src/dsa110_contimg/database/migrate_calibrators.py \
+python backend/src/dsa110_contimg/database/migrate_calibrators.py \
     --products-db state/products.sqlite3 \
     --calibrators-db state/calibrators.sqlite3 \
     --dry-run
 
 # Actual migration
-python src/dsa110_contimg/database/migrate_calibrators.py \
+python backend/src/dsa110_contimg/database/migrate_calibrators.py \
     --products-db state/products.sqlite3 \
     --calibrators-db state/calibrators.sqlite3
 ```
@@ -176,7 +176,7 @@ skymodel_path = create_skymodel(
 5. **vla_flux_info**: Frequency-dependent flux information
 6. **skymodel_metadata**: Skymodel file metadata
 
-See `src/dsa110_contimg/database/calibrators.py` for full schema.
+See `backend/src/dsa110_contimg/database/calibrators.py` for full schema.
 
 ## Troubleshooting
 

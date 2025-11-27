@@ -270,4 +270,4 @@ operations
 
 - `docs/how-to/self_calibration.md` - Self-calibration user guide
 - `scripts/fix_ms_permissions.sh` - Permission fixing script
-- `src/dsa110_contimg/calibration/selfcal.py` - Implementation
+- `backend/src/dsa110_contimg/calibration/selfcal.py` - Implementation

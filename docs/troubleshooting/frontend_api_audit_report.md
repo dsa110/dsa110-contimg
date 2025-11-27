@@ -109,20 +109,20 @@ frontend code**. Possible causes:
 
 Verify these backend routes are correctly registered:
 
-1. **Pipeline routes** (`src/dsa110_contimg/api/routers/pipeline.py`):
+1. **Pipeline routes** (`backend/src/dsa110_contimg/api/routers/pipeline.py`):
    - `/executions/active` should be at `/api/pipeline/executions/active` ✓
      (router included with prefix `/api/pipeline`)
    - `/metrics/summary` should be at `/api/pipeline/metrics/summary` ✓
 
-2. **Operations routes** (`src/dsa110_contimg/api/routers/operations.py`):
+2. **Operations routes** (`backend/src/dsa110_contimg/api/routers/operations.py`):
    - `/operations/dlq/items` should be at `/api/operations/dlq/items` ✓ (router
      included with prefix `/api`)
 
-3. **Cache routes** (`src/dsa110_contimg/api/routers/cache.py`):
+3. **Cache routes** (`backend/src/dsa110_contimg/api/routers/cache.py`):
    - `/cache/stats` should be at `/api/cache/stats` ✓ (router included with
      prefix `/api/cache`)
 
-4. **Streaming routes** (in `src/dsa110_contimg/api/routes.py`):
+4. **Streaming routes** (in `backend/src/dsa110_contimg/api/routes.py`):
    - `/streaming/status` should be at `/api/streaming/status` ✓ (defined in main
      router with `/api` prefix)
 

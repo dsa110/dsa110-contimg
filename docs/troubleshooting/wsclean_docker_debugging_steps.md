@@ -343,7 +343,7 @@ with monitor_subprocess(cmd_predict, timeout=600, log_prefix="wsclean-predict"):
 1. `docs/troubleshooting/docker_wsclean_known_issue.md` - Update with findings
 2. `docs/troubleshooting/wsclean_docker_hang_fix.md` - Clarify what's fixed vs
    not
-3. `src/dsa110_contimg/src/dsa110_contimg/imaging/cli_imaging.py` - Add enhanced
+3. `backend/src/dsa110_contimg/src/dsa110_contimg/imaging/cli_imaging.py` - Add enhanced
    error handling
 4. `scripts/test_selfcal_masked.py` - Add diagnostic logging
 

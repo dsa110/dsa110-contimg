@@ -15,7 +15,7 @@ on Pydantic models. Configuration can be loaded from:
 - Configuration files (YAML/JSON)
 - Python dictionaries (for programmatic configuration)
 
-**Single Source of Truth:** `src/dsa110_contimg/pipeline/config.py`
+**Single Source of Truth:** `backend/src/dsa110_contimg/pipeline/config.py`
 
 ---
 
@@ -458,9 +458,9 @@ print(api_config.products_db)
 ## Related Documentation
 
 - **Environment Variables Reference**: `docs/reference/env.md`
-- **Pipeline Health Checks**: `src/dsa110_contimg/pipeline/health.py`
-- **Configuration Source**: `src/dsa110_contimg/pipeline/config.py`
-- **API Configuration**: `src/dsa110_contimg/api/config.py`
+- **Pipeline Health Checks**: `backend/src/dsa110_contimg/pipeline/health.py`
+- **Configuration Source**: `backend/src/dsa110_contimg/pipeline/config.py`
+- **API Configuration**: `backend/src/dsa110_contimg/api/config.py`
 
 ---
 

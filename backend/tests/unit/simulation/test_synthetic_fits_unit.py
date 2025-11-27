@@ -40,8 +40,9 @@ class TestCreateSyntheticFits:
         with fits.open(output_path) as hdul:
             data = hdul[0].data
             assert data.shape == (256, 256)
-            # FITS may use float64, check for either float32 or float64
-            assert data.dtype in (np.float32, np.float64)
+            # FITS may use float64 with big-endian byte order ('>f8')
+            # Check that the item size corresponds to float32 (4 bytes) or float64 (8 bytes)
+            assert data.dtype.kind == 'f' and data.dtype.itemsize in (4, 8)
 
     def test_fits_wcs(self, tmp_path):
         """Test that FITS has correct WCS."""

@@ -179,8 +179,8 @@ config = SelfCalConfig(
 
 - `scripts/test_selfcal_masked.py` - Uses NVSS seeding (broken)
 - `scripts/test_selfcal_simple.py` - Avoids NVSS seeding (working)
-- `src/dsa110_contimg/imaging/cli_imaging.py` - Docker WSClean calls
-- `src/dsa110_contimg/calibration/selfcal.py` - Self-cal orchestration
+- `backend/src/dsa110_contimg/imaging/cli_imaging.py` - Docker WSClean calls
+- `backend/src/dsa110_contimg/calibration/selfcal.py` - Self-cal orchestration
 
 ---
 

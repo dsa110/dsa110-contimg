@@ -15,20 +15,20 @@ apply, and imaging jobs on Measurement Sets. It provides:
 
 ### Backend (Python/FastAPI)
 
-**Database Module** (`src/dsa110_contimg/database/jobs.py`):
+**Database Module** (`backend/src/dsa110_contimg/database/jobs.py`):
 
 - SQLite schema for job tracking
 - CRUD operations: `create_job`, `get_job`, `update_job_status`,
   `append_job_log`, `list_jobs`
 
-**Job Runner** (`src/dsa110_contimg/api/job_runner.py`):
+**Job Runner** (`backend/src/dsa110_contimg/api/job_runner.py`):
 
 - `run_calibrate_job()`: Executes calibration via `calibration.cli`
 - `run_apply_job()`: Applies calibration tables via `clearcal` + `applycal`
 - `run_image_job()`: Runs imaging via `imaging.cli`
 - Streams logs to database in real-time
 
-**API Routes** (`src/dsa110_contimg/api/routes.py`):
+**API Routes** (`backend/src/dsa110_contimg/api/routes.py`):
 
 - `GET /api/ms` - List available Measurement Sets
 - `GET /api/jobs` - List recent jobs (with optional status filter)
@@ -38,7 +38,7 @@ apply, and imaging jobs on Measurement Sets. It provides:
 - `POST /api/jobs/apply` - Create apply job
 - `POST /api/jobs/image` - Create imaging job
 
-**Models** (`src/dsa110_contimg/api/models.py`):
+**Models** (`backend/src/dsa110_contimg/api/models.py`):
 
 - `JobParams`: Job configuration (field, refant, gaintables, gridder, etc.)
 - `Job`: Job state (id, type, status, ms_path, params, logs, artifacts,
@@ -235,10 +235,10 @@ print('All imports successful')
 
 **Backend**:
 
-- `src/dsa110_contimg/database/jobs.py` (NEW)
-- `src/dsa110_contimg/api/job_runner.py` (NEW)
-- `src/dsa110_contimg/api/models.py` (MODIFIED - added Job models)
-- `src/dsa110_contimg/api/routes.py` (MODIFIED - added 7 new endpoints)
+- `backend/src/dsa110_contimg/database/jobs.py` (NEW)
+- `backend/src/dsa110_contimg/api/job_runner.py` (NEW)
+- `backend/src/dsa110_contimg/api/models.py` (MODIFIED - added Job models)
+- `backend/src/dsa110_contimg/api/routes.py` (MODIFIED - added 7 new endpoints)
 
 **Frontend**:
 

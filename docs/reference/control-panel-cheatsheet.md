@@ -189,7 +189,7 @@ ps aux | grep -E "uvicorn|dsa110"
 
 ```
 /data/dsa110-contimg/
-├── src/dsa110_contimg/
+├── backend/src/dsa110_contimg/
 │   ├── api/
 │   │   ├── routes.py          # API endpoints
 │   │   ├── models.py          # Pydantic models

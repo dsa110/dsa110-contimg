@@ -410,7 +410,7 @@ export default defineConfig({
 
 If you see CORS errors in the browser console:
 
-1. **Verify CORS middleware is enabled** in `src/dsa110_contimg/api/routes.py`
+1. **Verify CORS middleware is enabled** in `backend/src/dsa110_contimg/api/routes.py`
 2. **Check allowed origins** include your frontend URL
 3. **Try using the Vite proxy** instead of direct API calls
 
@@ -448,7 +448,7 @@ node --version
 
 The dashboard currently uses mock data. To connect real data:
 
-1. **Implement database queries** in `src/dsa110_contimg/api/routes.py`
+1. **Implement database queries** in `backend/src/dsa110_contimg/api/routes.py`
 2. **Replace mock generators** with actual SQLite queries
 3. **Update data models** if schema differs from mock data
 4. **Test with real pipeline data**

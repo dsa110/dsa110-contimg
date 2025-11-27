@@ -22,7 +22,7 @@ Pipeline Framework
 
 The pipeline uses a declarative orchestration framework with dependency
 resolution, retry policies, and improved error handling (see
-`src/dsa110_contimg/pipeline/`).
+`backend/src/dsa110_contimg/pipeline/`).
 
 The framework provides:
 
@@ -48,7 +48,7 @@ Calibrator Catalog
   - To create SQLite database from CSV:
     `python -m dsa110_contimg.calibration.ingest_vla --csv <path> --out state/catalogs/vla_calibrators.sqlite3`
   - The new pipeline framework uses the same catalog resolution system
-  - See `src/dsa110_contimg/calibration/catalogs.py` for details
+  - See `backend/src/dsa110_contimg/calibration/catalogs.py` for details
 
 Telescope Identity
 

@@ -72,7 +72,7 @@ describes the architecture, design decisions, and component interactions.
 
 ### 2. API Endpoints (FastAPI)
 
-**Location:** `src/dsa110_contimg/api/routes.py`
+**Location:** `backend/src/dsa110_contimg/api/routes.py`
 
 **Endpoints:**
 
@@ -87,7 +87,7 @@ describes the architecture, design decisions, and component interactions.
 
 ### 3. Streaming Service Manager
 
-**Location:** `src/dsa110_contimg/api/streaming_service.py`
+**Location:** `backend/src/dsa110_contimg/api/streaming_service.py`
 
 **Class:** `StreamingServiceManager`
 
@@ -115,7 +115,7 @@ describes the architecture, design decisions, and component interactions.
 
 ### 4. Docker Client
 
-**Location:** `src/dsa110_contimg/api/docker_client.py`
+**Location:** `backend/src/dsa110_contimg/api/docker_client.py`
 
 **Class:** `DockerClient`
 

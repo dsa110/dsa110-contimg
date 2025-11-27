@@ -755,6 +755,6 @@ implemented)
 
 **See Also:**
 
-- `src/dsa110_contimg/pipeline/stages.py` - Base class definition
-- `src/dsa110_contimg/pipeline/stages_impl.py` - Stage implementations
-- `src/dsa110_contimg/pipeline/orchestrator.py` - Orchestrator implementation
+- `backend/src/dsa110_contimg/pipeline/stages.py` - Base class definition
+- `backend/src/dsa110_contimg/pipeline/stages_impl.py` - Stage implementations
+- `backend/src/dsa110_contimg/pipeline/orchestrator.py` - Orchestrator implementation

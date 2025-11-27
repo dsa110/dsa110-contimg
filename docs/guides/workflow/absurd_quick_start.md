@@ -250,10 +250,10 @@ curl http://localhost:8000/api/absurd/health
 
 ### Python Modules
 
-- `src/dsa110_contimg/absurd/config.py` - Configuration
-- `src/dsa110_contimg/absurd/client.py` - Async client
-- `src/dsa110_contimg/absurd/worker.py` - Worker harness
-- `src/dsa110_contimg/absurd/__init__.py` - Package exports
+- `backend/src/dsa110_contimg/absurd/config.py` - Configuration
+- `backend/src/dsa110_contimg/absurd/client.py` - Async client
+- `backend/src/dsa110_contimg/absurd/worker.py` - Worker harness
+- `backend/src/dsa110_contimg/absurd/__init__.py` - Package exports
 
 ### Scripts
 
@@ -263,7 +263,7 @@ curl http://localhost:8000/api/absurd/health
 
 ### API
 
-- `src/dsa110_contimg/api/routers/absurd.py` - FastAPI router
+- `backend/src/dsa110_contimg/api/routers/absurd.py` - FastAPI router
 
 ### Frontend
 

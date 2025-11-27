@@ -293,5 +293,5 @@ docker stats carta-backend
 - `src/components/CARTA/CARTAIframe.tsx` - Iframe integration component
 - `src/components/CARTA/CARTAViewer.tsx` - WebSocket integration component
 - `src/pages/CARTAPage.tsx` - CARTA dashboard page
-- `src/dsa110_contimg/api/carta_service.py` - Backend service manager
-- `src/dsa110_contimg/api/visualization_routes.py` - API endpoints
+- `backend/src/dsa110_contimg/api/carta_service.py` - Backend service manager
+- `backend/src/dsa110_contimg/api/visualization_routes.py` - API endpoints

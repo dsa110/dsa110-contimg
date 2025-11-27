@@ -268,7 +268,7 @@ def add_thermal_noise(
     # Real and imaginary parts are independent, each with sigma = rms/sqrt(2)
     noise_real = rng.normal(0.0, rms_jy / np.sqrt(2.0), visibilities.shape)
     noise_imag = rng.normal(0.0, rms_jy / np.sqrt(2.0), visibilities.shape)
-    noise = noise_real + 1j * noise_imag
+    noise = (noise_real + 1j * noise_imag).astype(visibilities.dtype)
 
     return visibilities + noise
 

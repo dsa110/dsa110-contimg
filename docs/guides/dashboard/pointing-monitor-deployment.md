@@ -456,8 +456,8 @@ Configure logrotate if needed:
 
 ## References
 
-- **Monitor Script**: `src/dsa110_contimg/pointing/monitor.py`
-- **Pointing Utilities**: `src/dsa110_contimg/pointing/utils.py`
+- **Monitor Script**: `backend/src/dsa110_contimg/pointing/monitor.py`
+- **Pointing Utilities**: `backend/src/dsa110_contimg/pointing/utils.py`
 - **Service File**: `ops/systemd/contimg-pointing-monitor.service`
 - **API Endpoint**: `/api/pointing-monitor/status`
 - **Review Document**: `docs/archive/reports/POINTING_MONITORING_REVIEW.md`

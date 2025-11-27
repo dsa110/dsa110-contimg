@@ -335,16 +335,14 @@ def build_uvdata_from_scratch(
     uv = UVData()
 
     # Set basic dimensions
-    uv.Nblts = nbls * ntimes
-    uv.Nbls = nbls
-    uv.Ntimes = ntimes
-    uv.Nfreqs = config.channels_per_subband
+    # Note: Nblts, Nbls, Ntimes, Nfreqs, Nants_data, Nants_telescope are computed
+    # properties in pyuvdata 3.x - they are derived from the data arrays
+    # We set the arrays first, then the computed properties are derived automatically
     uv.Nspws = 1
     uv.Npols = len(config.polarizations)
-    uv.Nants_data = nants
-    uv.Nants_telescope = nants
+    uv.Nfreqs = config.channels_per_subband
 
-    # Set antenna arrays
+    # Set antenna arrays (these define Nants_data and Nants_telescope)
     uv.ant_1_array = np.repeat(ant1_list, ntimes)
     uv.ant_2_array = np.repeat(ant2_list, ntimes)
     uv.antenna_numbers = np.array(ant_indices, dtype=int)

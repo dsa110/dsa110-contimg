@@ -106,14 +106,19 @@ class TestLoadTelescopeConfig:
 
     def test_load_config_with_layout(self, sample_layout_meta, tmp_path):
         """Test loading telescope config with layout."""
+        # Create a dummy CSV file for antenna layout
+        csv_file = tmp_path / "antennas.csv"
+        csv_file.write_text("id,x,y,z\n0,0.0,0.0,0.0\n1,10.0,0.0,0.0\n2,0.0,10.0,0.0\n")
+
         config_file = tmp_path / "config.yaml"
         config_file.write_text(
-            """
+            f"""
 site:
   longitude_deg: 0.0
   latitude_deg: 51.5
   altitude_m: 0.0
 layout:
+  csv: "{csv_file.name}"
   polarization_array: [-5, -6]
 spectral:
   num_subbands: 4
