@@ -4,7 +4,12 @@
 
 set -e
 
+# Auto-detect project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="${1:-$(dirname "$SCRIPT_DIR")}"
+
 echo "=== Environment Check ==="
+echo "Project root: $PROJECT_ROOT"
 
 # Check Node.js
 if command -v node &> /dev/null; then
@@ -32,10 +37,10 @@ else
 fi
 
 # Check node_modules
-if [ -d "node_modules" ]; then
+if [ -d "$PROJECT_ROOT/frontend/node_modules" ]; then
     echo "✓ node_modules exists"
 else
-    echo "⚠ node_modules missing - run 'npm install'"
+    echo "⚠ node_modules missing - run 'npm install' in $PROJECT_ROOT/frontend"
 fi
 
 echo ""

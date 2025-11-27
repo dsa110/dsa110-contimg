@@ -31,7 +31,7 @@ done
 
 # Check systemd service references
 echo "--- Checking systemd services ---"
-cd "$REPO_ROOT/ops/systemd"
+cd "$PROJECT_ROOT/ops/systemd"
 
 for service in *.service; do
     # Extract ExecStart and ExecStartPre paths
