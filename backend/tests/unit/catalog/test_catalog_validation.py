@@ -421,11 +421,12 @@ class TestValidateSourceCounts:
         )
 
         # Mock catalog sources (10 sources, 1 detected = 10% completeness)
+        # Use varying flux values to avoid binning issues
         mock_query.return_value = pd.DataFrame(
             {
                 "ra_deg": [180.0 + i * 0.001 for i in range(10)],
                 "dec_deg": [0.0 + i * 0.001 for i in range(10)],
-                "flux_mjy": [1000.0] * 10,
+                "flux_mjy": [1000.0 - i * 50 for i in range(10)],  # 1000, 950, 900, ... mJy
             }
         )
 

@@ -1038,7 +1038,7 @@ def validate_source_counts(
 
     # Calculate completeness per bin
     bin_stats = (
-        catalog_filtered.groupby("flux_bin")
+        catalog_filtered.groupby("flux_bin", observed=True)
         .agg(
             {
                 "flux_jy": "count",  # Total catalog sources in bin
