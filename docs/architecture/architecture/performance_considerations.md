@@ -413,7 +413,7 @@ calculations.
 
 Use this decision tree when optimizing conversion code:
 
-```
+```text
 Is the operation I/O-bound?
 ├─ Yes → Consider parallel I/O with ThreadPoolExecutor
 │        └─ Check: Is there enough memory for concurrent loads?

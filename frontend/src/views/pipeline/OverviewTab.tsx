@@ -45,27 +45,32 @@ export default function OverviewTab() {
         </Typography>
         <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
           <Chip
-            label={`Total: ${status?.queue_status?.total ?? 0}`}
+            label={`Total: ${String(status?.queue?.total ?? 0)}`}
             color="default"
             variant="outlined"
           />
           <Chip
-            label={`Pending: ${status?.queue_status?.pending ?? 0}`}
+            label={`Collecting: ${String(status?.queue?.collecting ?? 0)}`}
+            color="secondary"
+            variant="outlined"
+          />
+          <Chip
+            label={`Pending: ${String(status?.queue?.pending ?? 0)}`}
             color="warning"
             variant="outlined"
           />
           <Chip
-            label={`In Progress: ${status?.queue_status?.in_progress ?? 0}`}
+            label={`In Progress: ${String(status?.queue?.in_progress ?? 0)}`}
             color="info"
             variant="outlined"
           />
           <Chip
-            label={`Completed: ${status?.queue_status?.completed ?? 0}`}
+            label={`Completed: ${String(status?.queue?.completed ?? 0)}`}
             color="success"
             variant="outlined"
           />
           <Chip
-            label={`Failed: ${status?.queue_status?.failed ?? 0}`}
+            label={`Failed: ${String(status?.queue?.failed ?? 0)}`}
             color="error"
             variant="outlined"
           />
