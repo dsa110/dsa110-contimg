@@ -674,40 +674,51 @@ class TestFetchRecentCalibratorMatches:
 class TestFetchObservationTimeline:
     """Test fetch_observation_timeline function."""
 
-    def test_fetch_observation_timeline_success(self, tmp_path):
+    @pytest.fixture
+    def timeline_products_db(self, tmp_path):
+        """Create a products database with hdf5_file_index table for timeline tests."""
+        db_path = tmp_path / "products.sqlite3"
+        conn = sqlite3.connect(str(db_path))
+        conn.row_factory = sqlite3.Row
+        with conn:
+            conn.execute(
+                """
+                CREATE TABLE hdf5_file_index (
+                    path TEXT PRIMARY KEY,
+                    timestamp_iso TEXT,
+                    subband INTEGER,
+                    stored INTEGER DEFAULT 1,
+                    created_at REAL
+                )
+                """
+            )
+        return db_path
+
+    def test_fetch_observation_timeline_success(self, tmp_path, timeline_products_db):
         """Test successful observation timeline retrieval."""
         from datetime import datetime
 
-        # Create test HDF5 files with timestamps
-        data_dir = tmp_path / "incoming"
-        data_dir.mkdir()
-
-        # Create files with different timestamps
-        test_files = [
-            ("2025-01-15T10:00:00_sb01.hdf5", datetime(2025, 1, 15, 10, 0, 0)),
-            (
-                "2025-01-15T10:00:00_sb02.hdf5",
-                datetime(2025, 1, 15, 10, 0, 0),
-            ),  # Same timestamp
-            (
-                "2025-01-15T10:05:00_sb01.hdf5",
-                datetime(2025, 1, 15, 10, 5, 0),
-            ),  # Within gap threshold
-            (
-                "2025-01-16T14:30:00_sb01.hdf5",
-                datetime(2025, 1, 16, 14, 30, 0),
-            ),  # New segment (>24h gap)
-            (
-                "2025-01-16T14:35:00_sb01.hdf5",
-                datetime(2025, 1, 16, 14, 35, 0),
-            ),  # Same segment
-        ]
-
-        for filename, _ in test_files:
-            (data_dir / filename).touch()
+        # Populate database with test entries
+        conn = sqlite3.connect(str(timeline_products_db))
+        with conn:
+            # Insert files with different timestamps
+            test_entries = [
+                ("/data/2025-01-15T10:00:00_sb01.hdf5", "2025-01-15T10:00:00", 1),
+                ("/data/2025-01-15T10:00:00_sb02.hdf5", "2025-01-15T10:00:00", 2),  # Same timestamp
+                ("/data/2025-01-15T10:05:00_sb01.hdf5", "2025-01-15T10:05:00", 1),  # Within gap threshold
+                ("/data/2025-01-16T14:30:00_sb01.hdf5", "2025-01-16T14:30:00", 1),  # New segment (>24h gap)
+                ("/data/2025-01-16T14:35:00_sb01.hdf5", "2025-01-16T14:35:00", 1),  # Same segment
+            ]
+            for path, ts, sb in test_entries:
+                conn.execute(
+                    "INSERT INTO hdf5_file_index(path, timestamp_iso, subband, stored) VALUES(?,?,?,1)",
+                    (path, ts, sb),
+                )
 
         # Test with default gap threshold (24 hours)
-        timeline = fetch_observation_timeline(data_dir, gap_threshold_hours=24.0)
+        data_dir = tmp_path / "incoming"
+        data_dir.mkdir()
+        timeline = fetch_observation_timeline(data_dir, gap_threshold_hours=24.0, products_db=timeline_products_db)
 
         assert timeline is not None
         assert timeline.total_files == 5
@@ -726,12 +737,12 @@ class TestFetchObservationTimeline:
         assert timeline.segments[1].end_time == datetime(2025, 1, 16, 14, 35, 0)
         assert timeline.segments[1].file_count == 2
 
-    def test_fetch_observation_timeline_empty_dir(self, tmp_path):
-        """Test observation timeline with empty directory."""
+    def test_fetch_observation_timeline_empty_dir(self, tmp_path, timeline_products_db):
+        """Test observation timeline with empty database."""
         data_dir = tmp_path / "empty"
         data_dir.mkdir()
 
-        timeline = fetch_observation_timeline(data_dir)
+        timeline = fetch_observation_timeline(data_dir, products_db=timeline_products_db)
 
         assert timeline is not None
         assert timeline.total_files == 0
@@ -741,10 +752,11 @@ class TestFetchObservationTimeline:
         assert len(timeline.segments) == 0
 
     def test_fetch_observation_timeline_nonexistent_dir(self, tmp_path):
-        """Test observation timeline with nonexistent directory."""
+        """Test observation timeline with nonexistent database."""
         data_dir = tmp_path / "nonexistent"
+        products_db = tmp_path / "missing.sqlite3"
 
-        timeline = fetch_observation_timeline(data_dir)
+        timeline = fetch_observation_timeline(data_dir, products_db=products_db)
 
         assert timeline is not None
         assert timeline.total_files == 0
@@ -753,41 +765,52 @@ class TestFetchObservationTimeline:
         assert timeline.latest_time is None
         assert len(timeline.segments) == 0
 
-    def test_fetch_observation_timeline_invalid_filenames(self, tmp_path):
-        """Test observation timeline with invalid filenames (should skip them)."""
+    def test_fetch_observation_timeline_invalid_filenames(self, tmp_path, timeline_products_db):
+        """Test observation timeline with invalid timestamps (should skip them)."""
+        # Insert entries with invalid timestamp formats
+        conn = sqlite3.connect(str(timeline_products_db))
+        with conn:
+            conn.execute(
+                "INSERT INTO hdf5_file_index(path, timestamp_iso, subband, stored) VALUES(?,?,?,1)",
+                ("/data/invalid.hdf5", "not-a-timestamp", 1),
+            )
+            conn.execute(
+                "INSERT INTO hdf5_file_index(path, timestamp_iso, subband, stored) VALUES(?,?,?,1)",
+                ("/data/null_ts.hdf5", None, 1),
+            )
+
         data_dir = tmp_path / "invalid"
         data_dir.mkdir()
 
-        # Create files with invalid names
-        (data_dir / "not_hdf5.txt").touch()
-        (data_dir / "invalid_format.hdf5").touch()
-        (data_dir / "2025-01-15T10:00:00.hdf5").touch()  # Missing _sbXX
-
-        timeline = fetch_observation_timeline(data_dir)
+        timeline = fetch_observation_timeline(data_dir, products_db=timeline_products_db)
 
         assert timeline is not None
         assert timeline.total_files == 0
         assert timeline.unique_timestamps == 0
 
-    def test_fetch_observation_timeline_custom_gap_threshold(self, tmp_path):
+    def test_fetch_observation_timeline_custom_gap_threshold(self, tmp_path, timeline_products_db):
         """Test observation timeline with custom gap threshold."""
+        # Populate database with entries that have 1-hour gaps
+        conn = sqlite3.connect(str(timeline_products_db))
+        with conn:
+            test_entries = [
+                ("/data/2025-01-15T10:00:00_sb01.hdf5", "2025-01-15T10:00:00", 1),
+                ("/data/2025-01-15T11:00:00_sb01.hdf5", "2025-01-15T11:00:00", 1),  # 1 hour gap
+                ("/data/2025-01-15T12:00:00_sb01.hdf5", "2025-01-15T12:00:00", 1),  # 1 hour gap
+                # 2 hour gap - should split with 1.5h threshold
+                ("/data/2025-01-15T14:00:00_sb01.hdf5", "2025-01-15T14:00:00", 1),
+            ]
+            for path, ts, sb in test_entries:
+                conn.execute(
+                    "INSERT INTO hdf5_file_index(path, timestamp_iso, subband, stored) VALUES(?,?,?,1)",
+                    (path, ts, sb),
+                )
 
         data_dir = tmp_path / "custom_gap"
         data_dir.mkdir()
 
-        # Create files with 1-hour gaps
-        test_files = [
-            "2025-01-15T10:00:00_sb01.hdf5",
-            "2025-01-15T11:00:00_sb01.hdf5",  # 1 hour gap
-            "2025-01-15T12:00:00_sb01.hdf5",  # 1 hour gap
-            "2025-01-15T14:00:00_sb01.hdf5",  # 2 hour gap - should split with 1.5h threshold
-        ]
-
-        for filename in test_files:
-            (data_dir / filename).touch()
-
         # Test with 1.5 hour gap threshold
-        timeline = fetch_observation_timeline(data_dir, gap_threshold_hours=1.5)
+        timeline = fetch_observation_timeline(data_dir, gap_threshold_hours=1.5, products_db=timeline_products_db)
 
         assert timeline is not None
         assert timeline.total_files == 4

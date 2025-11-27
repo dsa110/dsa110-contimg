@@ -887,12 +887,14 @@ def fetch_mosaics_recent(products_db: Path, limit: int = 10) -> tuple[list[dict]
             )
 
             # Determine status (use default if column doesn't exist)
-            status = r.get("status") if has_status else "completed"
+            # Note: sqlite3.Row doesn't have .get(), use dict conversion
+            row_dict = dict(r)
+            status = row_dict.get("status") if has_status else "completed"
             if not status:
                 status = "completed"
             
             # Get method if column exists
-            method = r.get("method") if has_method else None
+            method = row_dict.get("method") if has_method else None
 
             mosaics.append(
                 {
@@ -906,12 +908,12 @@ def fetch_mosaics_recent(products_db: Path, limit: int = 10) -> tuple[list[dict]
                     "created_at": created_dt.isoformat(),
                     "status": status,
                     "method": method,
-                    "image_count": r.get("n_images"),
-                    "noise_jy": r.get("noise_jy"),
-                    "source_count": r.get("n_sources"),
-                    "center_ra_deg": r.get("center_ra_deg"),
-                    "center_dec_deg": r.get("center_dec_deg"),
-                    "thumbnail_path": r.get("thumbnail_path"),
+                    "image_count": row_dict.get("n_images"),
+                    "noise_jy": row_dict.get("noise_jy"),
+                    "source_count": row_dict.get("n_sources"),
+                    "center_ra_deg": row_dict.get("center_ra_deg"),
+                    "center_dec_deg": row_dict.get("center_dec_deg"),
+                    "thumbnail_path": row_dict.get("thumbnail_path"),
                 }
             )
 

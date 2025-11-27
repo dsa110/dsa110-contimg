@@ -60,7 +60,8 @@ class TestGetImageFrequency:
     def test_restfrq_keyword(self, tmp_path):
         """Test frequency extraction from RESTFRQ keyword."""
         hdu = fits.PrimaryHDU(data=np.zeros((10, 10)))
-        hdu.header["RESTFRQ"] = 1.4  # GHz
+        # Source code multiplies by 1e6 (MHz to Hz), so set value in MHz
+        hdu.header["RESTFRQ"] = 1400  # MHz -> 1.4e9 Hz
         hdu.header["NAXIS1"] = 10
         hdu.header["NAXIS2"] = 10
 
@@ -73,7 +74,8 @@ class TestGetImageFrequency:
     def test_freq_keyword(self, tmp_path):
         """Test frequency extraction from FREQ keyword."""
         hdu = fits.PrimaryHDU(data=np.zeros((10, 10)))
-        hdu.header["FREQ"] = 3.0  # GHz
+        # Source code multiplies by 1e6 (MHz to Hz), so set value in MHz
+        hdu.header["FREQ"] = 3000  # MHz -> 3.0e9 Hz
         hdu.header["NAXIS1"] = 10
         hdu.header["NAXIS2"] = 10
 
@@ -321,6 +323,7 @@ class TestValidateFluxScale:
                     peak_err_jyb=0.05,  # 5% error
                     pix_x=50.0,
                     pix_y=50.0,
+                    box_size_pix=5,
                 )
             else:
                 return ForcedPhotometryResult(
@@ -330,6 +333,7 @@ class TestValidateFluxScale:
                     peak_err_jyb=0.025,  # 5% error
                     pix_x=51.0,
                     pix_y=51.0,
+                    box_size_pix=5,
                 )
 
         mock_forced_peak.side_effect = mock_forced_peak_side_effect
@@ -353,6 +357,15 @@ class TestValidateSourceCounts:
         hdu = fits.PrimaryHDU(data=np.zeros((100, 100)))
         hdu.header["NAXIS1"] = 100
         hdu.header["NAXIS2"] = 100
+        # Add proper WCS headers for pixel-to-world conversion
+        hdu.header["CTYPE1"] = "RA---TAN"
+        hdu.header["CTYPE2"] = "DEC--TAN"
+        hdu.header["CRPIX1"] = 50.0
+        hdu.header["CRPIX2"] = 50.0
+        hdu.header["CRVAL1"] = 180.0
+        hdu.header["CRVAL2"] = 0.0
+        hdu.header["CDELT1"] = -0.001  # degrees/pixel
+        hdu.header["CDELT2"] = 0.001
 
         image_path = tmp_path / "test.fits"
         hdu.writeto(image_path, overwrite=True)
@@ -389,6 +402,15 @@ class TestValidateSourceCounts:
         hdu = fits.PrimaryHDU(data=np.zeros((100, 100)))
         hdu.header["NAXIS1"] = 100
         hdu.header["NAXIS2"] = 100
+        # Add proper WCS headers for pixel-to-world conversion
+        hdu.header["CTYPE1"] = "RA---TAN"
+        hdu.header["CTYPE2"] = "DEC--TAN"
+        hdu.header["CRPIX1"] = 50.0
+        hdu.header["CRPIX2"] = 50.0
+        hdu.header["CRVAL1"] = 180.0
+        hdu.header["CRVAL2"] = 0.0
+        hdu.header["CDELT1"] = -0.001  # degrees/pixel
+        hdu.header["CDELT2"] = 0.001
 
         image_path = tmp_path / "test.fits"
         hdu.writeto(image_path, overwrite=True)

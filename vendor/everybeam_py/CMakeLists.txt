@@ -20,6 +20,9 @@ set(CASACORE_ROOT "/opt/miniforge/envs/casa6"
 set(CASACORE_INCLUDE_DIR "${CASACORE_ROOT}/include")
 set(CASACORE_LIB_DIR "${CASACORE_ROOT}/lib")
 
+# Use Boost's config package instead of the deprecated FindBoost module.
+cmake_policy(SET CMP0167 NEW)
+
 if(NOT EXISTS "${EVERYBEAM_INCLUDE_DIR}/EveryBeam")
   message(FATAL_ERROR "EveryBeam headers not found in ${EVERYBEAM_INCLUDE_DIR}")
 endif()
@@ -43,8 +46,7 @@ endif()
 find_package(pybind11 CONFIG REQUIRED)
 find_package(Threads REQUIRED)
 find_package(OpenMP)
-find_package(Boost REQUIRED)
-message(STATUS "Boost include dirs: ${Boost_INCLUDE_DIRS}")
+find_package(Boost 1.84 CONFIG REQUIRED)
 
 function(_find_required_library out_var lib_name)
   find_library(${out_var}
@@ -91,7 +93,6 @@ target_include_directories(
     ${AOCOMMON_INCLUDE_DIR}
     ${CASACORE_INCLUDE_DIR}
     ${CASACORE_INCLUDE_DIR}/casacore
-    ${Boost_INCLUDE_DIRS}
 )
 
 target_link_libraries(
