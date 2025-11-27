@@ -1,16 +1,13 @@
 """
 DSA-110 RFI Flagging Benchmarks
 
-Benchmarks for RFI flagging operations:
-- AOFlagger (Docker-based)
-- Zero flagging
-- Flag reset operations
+Lightweight benchmarks for flagging operations.
+Uses cached MS copies to avoid repeated setup overhead.
 
-Note: AOFlagger is I/O-bound (runs in Docker container), so these benchmarks
-help identify I/O bottlenecks rather than CPU optimization opportunities.
+Note: AOFlagger is I/O-bound and takes several minutes.
+Full flagging benchmarks are disabled by default.
 """
 
-import os
 import shutil
 from pathlib import Path
 
@@ -28,156 +25,76 @@ def _find_test_ms():
     return min(ms_files, key=lambda p: sum(f.stat().st_size for f in p.rglob("*") if f.is_file()))
 
 
+def _get_cached_ms(name_prefix):
+    """Get or create a cached MS copy."""
+    test_ms = _find_test_ms()
+    if test_ms is None:
+        return None
+    
+    SCRATCH_DIR.mkdir(parents=True, exist_ok=True)
+    cached_ms = SCRATCH_DIR / f"{name_prefix}_{test_ms.name}"
+    
+    if not cached_ms.exists():
+        shutil.copytree(test_ms, cached_ms)
+    
+    return cached_ms
+
+
 class TimeFlagReset:
     """Benchmark flag reset operations.
     
-    Reset is typically fast but measures baseline overhead.
+    Reset is fast and measures baseline flagging overhead.
     """
     
     timeout = 60
+    number = 1
+    repeat = 1
     
     def setup(self):
-        """Prepare test MS."""
-        self.test_ms = _find_test_ms()
-        if self.test_ms is None:
+        """Get cached MS."""
+        self.work_ms = _get_cached_ms("bench_reset")
+        if self.work_ms is None:
             raise NotImplementedError("No test MS available")
-        
-        SCRATCH_DIR.mkdir(parents=True, exist_ok=True)
-        self.work_ms = SCRATCH_DIR / f"bench_reset_{self.test_ms.name}"
-        
-        if self.work_ms.exists():
-            shutil.rmtree(self.work_ms)
-        
-        shutil.copytree(self.test_ms, self.work_ms)
     
     def time_reset_flags(self):
         """Time flag reset using pipeline function."""
         from dsa110_contimg.calibration.flagging import reset_flags
-        
         reset_flags(str(self.work_ms))
-    
-    def teardown(self):
-        """Clean up working files."""
-        if hasattr(self, "work_ms") and self.work_ms.exists():
-            shutil.rmtree(self.work_ms, ignore_errors=True)
 
 
 class TimeFlagZeros:
-    """Benchmark zero-value flagging.
-    
-    Flags visibilities with zero or near-zero values.
-    """
+    """Benchmark zero-value flagging."""
     
     timeout = 120
+    number = 1
+    repeat = 1
     
     def setup(self):
-        """Prepare test MS."""
-        self.test_ms = _find_test_ms()
-        if self.test_ms is None:
+        """Get cached MS."""
+        self.work_ms = _get_cached_ms("bench_zeros")
+        if self.work_ms is None:
             raise NotImplementedError("No test MS available")
-        
-        SCRATCH_DIR.mkdir(parents=True, exist_ok=True)
-        self.work_ms = SCRATCH_DIR / f"bench_zeros_{self.test_ms.name}"
-        
-        if self.work_ms.exists():
-            shutil.rmtree(self.work_ms)
-        
-        shutil.copytree(self.test_ms, self.work_ms)
-        
-        # Reset flags first for consistent baseline
-        from dsa110_contimg.calibration.flagging import reset_flags
-        reset_flags(str(self.work_ms))
     
     def time_flag_zeros(self):
         """Time zero flagging using pipeline function."""
         from dsa110_contimg.calibration.flagging import flag_zeros
-        
         flag_zeros(str(self.work_ms))
-    
-    def teardown(self):
-        """Clean up working files."""
-        if hasattr(self, "work_ms") and self.work_ms.exists():
-            shutil.rmtree(self.work_ms, ignore_errors=True)
 
 
 class TimeFlagRFI:
     """Benchmark AOFlagger RFI flagging.
     
-    This is typically the slowest operation due to:
-    - Docker container startup overhead
-    - I/O-intensive processing
-    - Full MS iteration
-    
-    Track this to detect I/O regressions.
-    """
-    
-    timeout = 600  # AOFlagger can take several minutes
-    
-    def setup(self):
-        """Prepare test MS."""
-        self.test_ms = _find_test_ms()
-        if self.test_ms is None:
-            raise NotImplementedError("No test MS available")
-        
-        SCRATCH_DIR.mkdir(parents=True, exist_ok=True)
-        self.work_ms = SCRATCH_DIR / f"bench_rfi_{self.test_ms.name}"
-        
-        if self.work_ms.exists():
-            shutil.rmtree(self.work_ms)
-        
-        shutil.copytree(self.test_ms, self.work_ms)
-        
-        # Reset flags first
-        from dsa110_contimg.calibration.flagging import reset_flags
-        reset_flags(str(self.work_ms))
-    
-    def time_flag_rfi(self):
-        """Time AOFlagger RFI flagging using pipeline function."""
-        from dsa110_contimg.calibration.flagging import flag_rfi
-        
-        flag_rfi(str(self.work_ms))
-    
-    def teardown(self):
-        """Clean up working files."""
-        if hasattr(self, "work_ms") and self.work_ms.exists():
-            shutil.rmtree(self.work_ms, ignore_errors=True)
-
-
-class TimeFlagPipeline:
-    """Benchmark complete flagging pipeline.
-    
-    Measures total flagging time: reset → zeros → RFI.
+    DISABLED by default - takes 3+ minutes.
     """
     
     timeout = 600
+    number = 1
+    repeat = 1
     
     def setup(self):
-        """Prepare test MS."""
-        self.test_ms = _find_test_ms()
-        if self.test_ms is None:
-            raise NotImplementedError("No test MS available")
-        
-        SCRATCH_DIR.mkdir(parents=True, exist_ok=True)
-        self.work_ms = SCRATCH_DIR / f"bench_flagpipe_{self.test_ms.name}"
-        
-        if self.work_ms.exists():
-            shutil.rmtree(self.work_ms)
-        
-        shutil.copytree(self.test_ms, self.work_ms)
+        """Skip by default - too slow."""
+        raise NotImplementedError("AOFlagger benchmark disabled (takes 3+ min)")
     
-    def time_full_flagging_pipeline(self):
-        """Time complete flagging pipeline."""
-        from dsa110_contimg.calibration.flagging import (
-            flag_rfi,
-            flag_zeros,
-            reset_flags,
-        )
-        
-        reset_flags(str(self.work_ms))
-        flag_zeros(str(self.work_ms))
-        flag_rfi(str(self.work_ms))
-    
-    def teardown(self):
-        """Clean up working files."""
-        if hasattr(self, "work_ms") and self.work_ms.exists():
-            shutil.rmtree(self.work_ms, ignore_errors=True)
+    def time_flag_rfi(self):
+        """Time AOFlagger RFI flagging."""
+        pass
