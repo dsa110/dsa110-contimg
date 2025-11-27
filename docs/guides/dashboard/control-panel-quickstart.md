@@ -1,9 +1,13 @@
 # Control Panel Quick Start Guide
 
+> **Note:** For the main dashboard quick start, see
+> [dashboard-quickstart.md](dashboard-quickstart.md). This guide focuses
+> specifically on the Control Panel for calibration and imaging operations.
+
 ## Prerequisites
 
 - Backend running: FastAPI server on port 8000
-- Frontend running: React dev server on port 3000
+- Frontend running: Vite dev server on port 5173
 - At least one MS in `ms_index` table (or in `/stage/dsa110-contimg/ms/`)
 - CASA environment configured (`casa6` conda environment)
 
@@ -23,7 +27,7 @@ uvicorn dsa110_contimg.api.server:app --host 0.0.0.0 --port 8000 --reload
 
 Expected output:
 
-```
+```text
 INFO:     Started server process [12345]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
@@ -34,23 +38,21 @@ INFO:     Uvicorn running on http://0.0.0.0:8000
 
 ```bash
 cd /data/dsa110-contimg/frontend
-npm start
+npm run dev
 ```
 
 Expected output:
 
-```
-Compiled successfully!
+```text
+  VITE v5.x.x  ready in xxx ms
 
-You can now view dsa110-dashboard in the browser.
-
-  Local:            http://localhost:3000
-  On Your Network:  http://192.168.x.x:3000
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://192.168.x.x:5173/
 ```
 
 ## Accessing the Control Panel
 
-1. Open browser to `http://localhost:3000`
+1. Open browser to `http://localhost:5173`
 2. Click "Control" in the navigation bar
 3. You should see:
    - Left side: MS picker and operation tabs
@@ -61,12 +63,14 @@ You can now view dsa110-dashboard in the browser.
 ### Step 1: Calibrate a Calibrator MS
 
 1. **Select MS**: Choose a calibrator MS from dropdown
+
    - Example:
      `/stage/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.ms`
 
 2. **Go to "Calibrate" tab**
 
 3. **Set parameters**:
+
    - Field ID: `0` (first field, usually calibrator)
    - Reference Antenna: `103` (or another stable antenna)
 
@@ -118,6 +122,7 @@ You can now view dsa110-dashboard in the browser.
 2. **Go to "Image" tab**
 
 3. **Set parameters**:
+
    - Gridder: `wproject`
    - W-Projection Planes: `-1` (auto)
    - Data Column: `corrected`

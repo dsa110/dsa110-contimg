@@ -53,6 +53,7 @@ class TestNVSSRadiusCalculation:
                 return_value="data",
             ),
             patch("dsa110_contimg.imaging.cli_imaging.run_wsclean"),
+            patch("dsa110_contimg.imaging.cli_imaging.tclean"),
             patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
             patch(
                 "dsa110_contimg.utils.validation.validate_corrected_data_quality",
@@ -142,6 +143,7 @@ class TestNVSSRadiusCalculation:
                 return_value="data",
             ),
             patch("dsa110_contimg.imaging.cli_imaging.run_wsclean"),
+            patch("dsa110_contimg.imaging.cli_imaging.tclean"),
             patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
             patch(
                 "dsa110_contimg.utils.validation.validate_corrected_data_quality",
@@ -260,6 +262,7 @@ class TestNVSSSeedingIntegration:
                 return_value="data",
             ),
             patch("dsa110_contimg.imaging.cli_imaging.run_wsclean"),
+            patch("dsa110_contimg.imaging.cli_imaging.tclean"),
             patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
             patch(
                 "dsa110_contimg.utils.validation.validate_corrected_data_quality",
@@ -338,6 +341,7 @@ class TestNVSSSeedingIntegration:
                 return_value="data",
             ),
             patch("dsa110_contimg.imaging.cli_imaging.run_wsclean"),
+            patch("dsa110_contimg.imaging.cli_imaging.tclean"),
             patch("dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None),
             patch(
                 "dsa110_contimg.utils.validation.validate_corrected_data_quality",

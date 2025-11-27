@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -138,7 +138,15 @@ class TestBatchConvertEndpoint:
                         "end_time": "2025-11-12T11:50:00",
                     },
                 ],
-                "params": {},
+                "params": {
+                    "input_dir": "/data/incoming",
+                    "output_dir": "/stage/ms",
+                    "start_time": "2025-11-12T09:30:00",
+                    "end_time": "2025-11-12T12:30:00",
+                    "writer": "parallel-subband",
+                    "stage_to_tmpfs": False,
+                    "max_workers": 2,
+                },
             },
         }
 
@@ -184,35 +192,75 @@ class TestBatchPublishEndpoint:
         self, mock_ensure_db, mock_run_job, mock_create_job, client, mock_products_db
     ):
         """Test creating a batch publish job."""
-        mock_conn = MagicMock()
-        mock_ensure_db.return_value = mock_conn
+        import sqlite3
 
-        mock_cursor = MagicMock()
-        mock_conn.execute.return_value = mock_cursor
-        mock_conn.cursor.return_value = mock_cursor
+        conn = sqlite3.connect(":memory:")
+        cursor = conn.cursor()
 
-        # Mock batch job creation
-        mock_create_job.return_value = 1
-
-        # Mock batch job query
-        mock_cursor.fetchone.return_value = (
-            1,  # id
-            "batch_publish",  # type
-            1234567890.0,  # created_at
-            "pending",  # status
-            2,  # total_items
-            0,  # completed_items
-            0,  # failed_items
-            '{"products_base": "/data/products"}',  # params
+        cursor.execute(
+            """
+            CREATE TABLE batch_jobs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                type TEXT NOT NULL,
+                created_at REAL NOT NULL,
+                status TEXT NOT NULL,
+                total_items INTEGER NOT NULL,
+                completed_items INTEGER DEFAULT 0,
+                failed_items INTEGER DEFAULT 0,
+                params TEXT
+            )
+            """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE batch_job_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                batch_id INTEGER NOT NULL,
+                ms_path TEXT NOT NULL,
+                job_id INTEGER,
+                status TEXT NOT NULL,
+                error TEXT,
+                started_at REAL,
+                completed_at REAL
+            )
+            """
         )
 
-        # Mock batch items query
-        mock_items_cursor = MagicMock()
-        mock_items_cursor.fetchall.return_value = [
-            ("mosaic_001", None, "pending", None, None, None),
-            ("mosaic_002", None, "pending", None, None, None),
-        ]
-        mock_conn.execute.return_value = mock_items_cursor
+        cursor.execute(
+            """
+            INSERT INTO batch_jobs (type, created_at, status, total_items, completed_items, failed_items, params)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "batch_publish",
+                1234567890.0,
+                "pending",
+                2,
+                0,
+                0,
+                '{"products_base": "/data/products"}',
+            ),
+        )
+        batch_id = cursor.lastrowid
+
+        cursor.execute(
+            """
+            INSERT INTO batch_job_items (batch_id, ms_path, status)
+            VALUES (?, ?, ?)
+            """,
+            (batch_id, "mosaic_001", "pending"),
+        )
+        cursor.execute(
+            """
+            INSERT INTO batch_job_items (batch_id, ms_path, status)
+            VALUES (?, ?, ?)
+            """,
+            (batch_id, "mosaic_002", "pending"),
+        )
+        conn.commit()
+
+        mock_ensure_db.return_value = conn
+        mock_create_job.return_value = batch_id
 
         request_body = {
             "job_type": "publish",

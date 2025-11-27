@@ -1,13 +1,37 @@
 # Dashboard Quick Start Guide
 
-This is the primary dashboard documentation. For a TL;DR version, see
-[quickstart_dashboard.md](quickstart_dashboard.md).
+**Status:** ✅ Authoritative Reference  
+**Last Updated:** November 26, 2025
+
+This is the primary dashboard documentation for the DSA-110 Continuum Imaging
+Pipeline web interface.
+
+## TL;DR - Quick Start
+
+```bash
+# Terminal 1 - Backend
+cd /data/dsa110-contimg
+conda activate casa6
+uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8000 --reload
+
+# Terminal 2 - Frontend
+cd /data/dsa110-contimg/frontend
+conda activate casa6
+npm run dev -- --host 0.0.0.0 --port 5173
+```
+
+**Access:** http://localhost:5173
+
+**Tech Stack:** React 18 + TypeScript + Vite + Material-UI + React Query +
+Plotly.js + AG Grid
+
+---
 
 ## Accessing the Dashboard
 
 Open your browser to:
 
-```
+```text
 http://localhost:5173
 ```
 
