@@ -380,6 +380,11 @@ class PipelineContext:
 - Calculate flux scale corrections
 - Store results in database
 
+**Default behavior (2025-11):** `CrossMatchConfig.catalog_types` now defaults to
+`["nvss", "rax"]` so NVSS + RACS are queried automatically, and the RACS strip
+resolver allows filenames up to ±6° from the requested declination to match the
+12° strip width produced by `build_rax_strip_db`.
+
 **Inputs:**
 
 - `image_path` (image with sources)

@@ -622,18 +622,23 @@ matches_df = cross_match_sources(
 
 ```python
 class CrossMatchConfig:
-    enabled: bool = False  # Enable cross-matching stage
-    catalog_types: List[str] = ["nvss", "first", "rax"]  # Catalogs to query
+    enabled: bool = True  # Enable cross-matching stage
+    catalog_types: List[str] = ["nvss", "rax"]  # Query NVSS + RACS by default
     radius_arcsec: float = 10.0  # Matching radius
-    method: str = "nearest"  # Matching method: "nearest" or "all"
+    method: str = "basic"  # Matching method: "basic" (nearest) or "advanced"
+    store_in_database: bool = True  # Persist matches in products DB
+    min_separation_arcsec: float = 0.1
+    max_separation_arcsec: float = 60.0
+    calculate_spectral_indices: bool = True
 ```
 
 **Pipeline Stage**:
 
 ```python
 # Automatic cross-matching in pipeline
-config.crossmatch.enabled = True
-config.crossmatch.catalog_types = ["nvss", "first", "vlass"]
+config.crossmatch.enabled = True  # default
+# NVSS + RACS are queried automatically; append FIRST/VLASS if desired
+config.crossmatch.catalog_types = ["nvss", "rax", "first"]
 # Stage executes automatically after imaging/photometry
 ```
 
@@ -656,9 +661,12 @@ CREATE TABLE cross_matches (
 
 **Notes**:
 
-- Cross-matching optional (disabled by default for speed)
-- Enable for QA validation and catalog comparison studies
-- Results used for systematic error characterization
+- Cross-matching is enabled by default (NVSS + RACS) but can be disabled for
+  speed or sandbox runs
+- RACS strip resolution tolerates filenames up to ±6° from the requested
+  declination to match the 12° strip width produced by `build_rax_strip_db`
+- Results are used for QA validation, catalog comparisons, and systematic error
+  characterization
 
 ---
 

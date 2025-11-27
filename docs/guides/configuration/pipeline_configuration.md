@@ -296,6 +296,11 @@ Mosaic stage configuration.
   True)
 - `output_format: str` - Output format: 'fits' or 'casa' (default: `"fits"`)
 
+**CrossMatch defaults (2025-11):** When `enable_crossmatch` is true,
+`CrossMatchConfig.catalog_types` now defaults to `["nvss", "rax"]`, and the RACS
+strip resolver accepts filenames up to ±6° from the requested declination to
+match the 12° strip width produced by `build_rax_strip_db`.
+
 ### LightCurveConfig
 
 Light curve computation stage configuration.
