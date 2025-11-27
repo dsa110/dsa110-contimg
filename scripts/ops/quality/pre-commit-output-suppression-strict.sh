@@ -61,7 +61,7 @@ for file in $STAGED_FILES; do
                         echo "  $file:$line_num:category:reason" >&2
                         echo "" >&2
                         echo "Categories: infrastructure, error-detection, optional-check, cleanup" >&2
-                        echo "See docs/dev/OUTPUT_SUPPRESSION_EXCEPTIONS.md for details." >&2
+                        echo "See docs/dev-notes/OUTPUT_SUPPRESSION_EXCEPTIONS.md for details." >&2
                         echo "" >&2
                         FOUND_ISSUES=1
                         BLOCKED_FILES+=("$file:$line_num")
@@ -86,7 +86,7 @@ if [ $FOUND_ISSUES -eq 1 ]; then
     echo "  1. Remove the suppression pattern, OR" >&2
     echo "  2. Add to .output-suppression-whitelist with justification" >&2
     echo "" >&2
-    echo "See docs/dev/OUTPUT_SUPPRESSION_TO_100_PERCENT.md for details." >&2
+    echo "See docs/dev-notes/OUTPUT_SUPPRESSION_TO_100_PERCENT.md for details." >&2
     exit 1
 fi
 

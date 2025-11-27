@@ -1,6 +1,6 @@
 [Unit]
 Description=DSA-110 Disk Usage Monitor
-Documentation=file:///data/dsa110-contimg/internal/docs/dev/analysis/INTEGRATION_GUIDE.md
+Documentation=file:///data/dsa110-contimg/internal/docs/dev-notes/analysis/INTEGRATION_GUIDE.md
 After=network.target
 Wants=network-online.target
 

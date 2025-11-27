@@ -345,7 +345,7 @@ robust task orchestration via the Absurd system.
 
 ## Related Documents
 
-- **Roadmap**: `docs/dev/TODO_ROADMAP.md` - Detailed implementation plan
+- **Roadmap**: `docs/dev-notes/TODO_ROADMAP.md` - Detailed implementation plan
 - **Absurd Status**: `backend/docs/reports/ABSURD_IMPLEMENTATION_STATUS.md` -
   Current status
 - **Architecture**: `docs/architecture/architecture/DIRECTORY_ARCHITECTURE.md` -

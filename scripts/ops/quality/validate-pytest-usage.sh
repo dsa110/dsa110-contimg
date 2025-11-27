@@ -46,7 +46,7 @@ done
 if [ $FOUND_ISSUES -eq 1 ]; then
     echo "ERROR: Found problematic pytest usage patterns!" >&2
     echo "Please use scripts/pytest-safe.sh for pytest invocations." >&2
-    echo "See docs/dev/PYTEST_REDIRECTION_FIX.md for details." >&2
+    echo "See docs/dev-notes/PYTEST_REDIRECTION_FIX.md for details." >&2
     exit 1
 fi
 

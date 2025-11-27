@@ -9,7 +9,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 AUDIT_DATE=$(date +%Y%m%d)
-AUDIT_FILE="$PROJECT_ROOT/docs/dev/audits/output-suppression-audit-${AUDIT_DATE}.txt"
+AUDIT_FILE="$PROJECT_ROOT/docs/dev-notes/audits/output-suppression-audit-${AUDIT_DATE}.txt"
 WHITELIST_FILE="$PROJECT_ROOT/.output-suppression-whitelist"
 
 # Create audits directory if it doesn't exist

@@ -14,7 +14,7 @@ except Exception:  # pragma: no cover
     h5py = None  # type: ignore[assignment]
 
 # CASA imports moved to function level to prevent logs in workspace root
-# See: docs/dev/analysis/casa_log_handling_investigation.md
+# See: docs/dev-notes/analysis/casa_log_handling_investigation.md
 
 
 def _choose_freq_index(freqs_hz: np.ndarray, prefer_hz: Optional[float]) -> int:

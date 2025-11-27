@@ -255,7 +255,7 @@ phase_2_documentation() {
     
     # Consolidate development docs
     if [[ -d "$ROOT_DIR/docs/dev" ]]; then
-        move_dir "$ROOT_DIR/docs/dev" "$ROOT_DIR/docs/guides/dev" "Moving docs/dev/ to docs/guides/dev/"
+        move_dir "$ROOT_DIR/docs/dev" "$ROOT_DIR/docs/guides/dev" "Moving docs/dev-notes/ to docs/guides/dev/"
     fi
     if [[ -d "$ROOT_DIR/docs/development" ]]; then
         move_dir "$ROOT_DIR/docs/development" "$ROOT_DIR/docs/guides/development" "Moving docs/development/ to docs/guides/development/"

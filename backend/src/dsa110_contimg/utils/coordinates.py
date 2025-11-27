@@ -7,7 +7,7 @@ Adapted from dsacalib.utils
 import astropy.units as u
 
 # CASA import moved to function level to prevent logs in workspace root
-# See: docs/dev/analysis/casa_log_handling_investigation.md
+# See: docs/dev-notes/analysis/casa_log_handling_investigation.md
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 

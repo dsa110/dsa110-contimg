@@ -307,5 +307,5 @@ For issues or questions:
 
 - Check logs: `sudo journalctl -u dsa110-monitoring -f`
 - See integration guide:
-  `/data/dsa110-contimg/internal/docs/dev/analysis/INTEGRATION_GUIDE.md`
+  `/data/dsa110-contimg/internal/docs/dev-notes/analysis/INTEGRATION_GUIDE.md`
 - Test modules individually using CLI commands above

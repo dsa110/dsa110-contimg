@@ -14,7 +14,7 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
 # CASA import moved to function level to prevent logs in workspace root
-# See: docs/dev/analysis/casa_log_handling_investigation.md
+# See: docs/dev-notes/analysis/casa_log_handling_investigation.md
 import numpy as np
 from astropy.coordinates import angular_separation
 from scipy.special import j1  # pylint: disable=no-name-in-module

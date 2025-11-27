@@ -130,13 +130,13 @@ ABSURD_DLQ_QUEUE_NAME=dsa110-pipeline-dlq  # Dead-letter queue name
 🔄 **Phase 2 Pending** - Pipeline integration  
 📋 **Phase 3 Planned** - UI and testing
 
-See `docs/dev/status/2025-11/absurd_implementation_status.md` for details.
+See `docs/dev-notes/status/2025-11/absurd_implementation_status.md` for details.
 
 ## Documentation
 
 - Quick Start: `docs/how-to/absurd_quick_start.md`
 - Implementation Status:
-  `docs/dev/status/2025-11/absurd_implementation_status.md`
+  `docs/dev-notes/status/2025-11/absurd_implementation_status.md`
 - Absurd Roadmap: `src/absurd/ABSURD_IMPLEMENTATION_ROADMAP.md`
 
 ## Dependencies

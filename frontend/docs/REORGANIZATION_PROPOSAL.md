@@ -41,7 +41,7 @@ The current directory contains **scattered state/logs directories**, **fragmente
 ### 2. Consolidate Documentation → `docs/`
 
 **Current Issues:**
-- `docs/dev/` and `docs/development/` have overlapping purposes
+- `docs/dev-notes/` and `docs/development/` have overlapping purposes
 - `docs/logs/` contains dev progress logs (not runtime logs)
 - `docs/archive/analysis/` is a 32 KB nested duplicate
 - Excessive subdirectory depth
@@ -75,7 +75,7 @@ docs/
 ```
 
 **Removals (merge into parent):**
-- `docs/dev/` → merge into `docs/guides/development/`
+- `docs/dev-notes/` → merge into `docs/guides/development/`
 - `docs/development/` → merge into `docs/guides/development/`
 - `docs/indices/` → if empty, remove
 - `docs/javascripts/` → if only for mkdocs, note in README
@@ -187,7 +187,7 @@ vendor/
 | `docs/concepts/` | `docs/architecture/` | Rename for clarity |
 | `docs/how-to/` + `docs/tutorials/` | `docs/guides/` | Merge similar |
 | `docs/logs/` | `docs/archive/progress-logs/` | These are dev logs, not runtime |
-| `docs/dev/` + `docs/development/` | `docs/guides/development/` | Merge duplicates |
+| `docs/dev-notes/` + `docs/development/` | `docs/guides/development/` | Merge duplicates |
 | `docs/implementation/` | `docs/architecture/implementation/` | Consolidate |
 | `docs/contributing/` | `docs/guides/contributing/` | |
 | `docs/known-issues/` | `docs/troubleshooting/known-issues/` | |

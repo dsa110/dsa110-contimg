@@ -78,7 +78,7 @@ if [ -n "$STAGED_MARKDOWN_IN_ROOT" ]; then
   echo "  Files to move:" >&2
   echo "$STAGED_MARKDOWN_IN_ROOT" | while read -r file; do
     echo "    - $file" >&2
-    echo "      Suggested location: docs/dev/status/$(date +%Y-%m)/$(basename "$file")" >&2
+    echo "      Suggested location: docs/dev-notes/status/$(date +%Y-%m)/$(basename "$file")" >&2
   done
   echo "" >&2
   echo "  To fix: Move files to docs/ structure and unstage, then re-add from new location" >&2

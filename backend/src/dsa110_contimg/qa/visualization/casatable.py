@@ -22,7 +22,7 @@ except ImportError:
     HTML = str
 
 # Lazy CASA imports to avoid segfault during module initialization
-# See docs/dev/CASA_SEGFAULT_ROOT_CAUSE.md for details
+# See docs/dev-notes/CASA_SEGFAULT_ROOT_CAUSE.md for details
 _CASACORE_TABLE = None
 _CASACORE_AVAILABLE = None
 

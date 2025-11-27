@@ -55,9 +55,9 @@ if [ -n "$ROOT_MARKDOWN" ]; then
   info "Found markdown files in root directory"
   echo "$ROOT_MARKDOWN" | while read -r file; do
     BASENAME=$(basename "$file")
-    # Suggest moving to docs/dev/status/YYYY-MM/ (using current date)
+    # Suggest moving to docs/dev-notes/status/YYYY-MM/ (using current date)
     YEAR_MONTH=$(date +%Y-%m)
-    TARGET_DIR="docs/dev/status/${YEAR_MONTH}"
+    TARGET_DIR="docs/dev-notes/status/${YEAR_MONTH}"
     TARGET="${TARGET_DIR}/${BASENAME}"
     
     info "   Found: $file"

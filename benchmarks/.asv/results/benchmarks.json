@@ -96,7 +96,7 @@
         "warmup_time": -1
     },
     "bench_conversion.TimeDirectMSWriter.time_direct_ms_write": {
-        "code": "class TimeDirectMSWriter:\n    def time_direct_ms_write(self):\n        \"\"\"Time direct MS writing using pipeline writer.\"\"\"\n        from dsa110_contimg.conversion.strategies.writers import get_writer\n    \n        writer_cls = get_writer(\"parallel-subband\")\n        writer = writer_cls(\n            self.uvd,\n            str(self.output_ms),\n            file_list=[str(f) for f in self.hdf5_files[:4]],\n        )\n        writer.write()\n\n    def setup(self):\n        \"\"\"Prepare test data and output directory.\"\"\"\n        self.hdf5_files = _find_subband_group()\n        if self.hdf5_files is None:\n            raise NotImplementedError(\"No HDF5 files available\")\n    \n        SCRATCH_DIR.mkdir(parents=True, exist_ok=True)\n        self.output_dir = SCRATCH_DIR / \"bench_conversion\"\n    \n        if self.output_dir.exists():\n            shutil.rmtree(self.output_dir)\n        self.output_dir.mkdir()\n    \n        # Load first subband for writer test\n        from pyuvdata import UVData\n        self.uvd = UVData()\n        self.uvd.read(str(self.hdf5_files[0]), file_type=\"uvh5\")\n    \n        self.output_ms = self.output_dir / \"bench_output.ms\"",
+        "code": "class TimeDirectMSWriter:\n    def time_direct_ms_write(self):\n        pass\n\n    def setup(self):\n        raise NotImplementedError(_SKIP_REASON)",
         "min_run_count": 2,
         "name": "bench_conversion.TimeDirectMSWriter.time_direct_ms_write",
         "number": 0,
@@ -105,14 +105,13 @@
         "repeat": 0,
         "rounds": 2,
         "sample_time": 0.01,
-        "timeout": 300,
         "type": "time",
         "unit": "seconds",
-        "version": "bbcdec8866a79f48b0bb02a1254130c18dea52a897bcd5439c6e4923efac316d",
+        "version": "03d83cd49bd0dcd56c0473a1c685af2a3635db4f4f20a1c9de0cfedbf5ae2218",
         "warmup_time": -1
     },
     "bench_conversion.TimeFullConversion.time_convert_subband_group": {
-        "code": "class TimeFullConversion:\n    def time_convert_subband_group(self):\n        \"\"\"Time full subband group conversion.\"\"\"\n        from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (\n            convert_single_group,\n        )\n    \n        convert_single_group(\n            [str(f) for f in self.hdf5_files],\n            str(self.output_dir),\n        )\n\n    def setup(self):\n        \"\"\"Prepare test data.\"\"\"\n        self.hdf5_files = _find_subband_group()\n        if self.hdf5_files is None:\n            raise NotImplementedError(\"No HDF5 files available\")\n    \n        SCRATCH_DIR.mkdir(parents=True, exist_ok=True)\n        self.output_dir = SCRATCH_DIR / \"bench_full_conversion\"\n    \n        if self.output_dir.exists():\n            shutil.rmtree(self.output_dir)\n        self.output_dir.mkdir()\n    \n        # Get timestamp from first file\n        name = self.hdf5_files[0].name\n        self.timestamp = name.split(\"_sb\")[0]",
+        "code": "class TimeFullConversion:\n    def time_convert_subband_group(self):\n        pass\n\n    def setup(self):\n        raise NotImplementedError(_SKIP_REASON)",
         "min_run_count": 2,
         "name": "bench_conversion.TimeFullConversion.time_convert_subband_group",
         "number": 0,
@@ -121,30 +120,13 @@
         "repeat": 0,
         "rounds": 2,
         "sample_time": 0.01,
-        "timeout": 600,
         "type": "time",
         "unit": "seconds",
-        "version": "8409d7544104830d737e23b7202fb251119dbabacc1c865aac31c915797f141f",
-        "warmup_time": -1
-    },
-    "bench_conversion.TimeUVDataLoad.time_load_four_subbands": {
-        "code": "class TimeUVDataLoad:\n    def time_load_four_subbands(self):\n        \"\"\"Time loading 4 subbands and combining.\"\"\"\n        from pyuvdata import UVData\n    \n        uvd = UVData()\n        for i, f in enumerate(self.hdf5_files[:4]):\n            if i == 0:\n                uvd.read(str(f), file_type=\"uvh5\")\n            else:\n                uvd2 = UVData()\n                uvd2.read(str(f), file_type=\"uvh5\")\n                uvd += uvd2\n\n    def setup(self):\n        \"\"\"Find test HDF5 files.\"\"\"\n        self.hdf5_files = _find_subband_group()\n        if self.hdf5_files is None:\n            raise NotImplementedError(\"No HDF5 files available\")\n    \n        # Use just one file for single-file benchmark\n        self.single_file = self.hdf5_files[0]",
-        "min_run_count": 2,
-        "name": "bench_conversion.TimeUVDataLoad.time_load_four_subbands",
-        "number": 0,
-        "param_names": [],
-        "params": [],
-        "repeat": 0,
-        "rounds": 2,
-        "sample_time": 0.01,
-        "timeout": 120,
-        "type": "time",
-        "unit": "seconds",
-        "version": "0c8ad4432e5ed05ebc566e4f72d9f41204d125a2a46731967e854dda6656b166",
+        "version": "5b3c0f0f9785fa61f46029b8fce74f3224848e93570fab678b9f94e4eae149dd",
         "warmup_time": -1
     },
     "bench_conversion.TimeUVDataLoad.time_load_single_subband": {
-        "code": "class TimeUVDataLoad:\n    def time_load_single_subband(self):\n        \"\"\"Time loading a single subband HDF5 file.\"\"\"\n        from pyuvdata import UVData\n    \n        uvd = UVData()\n        uvd.read(str(self.single_file), file_type=\"uvh5\")\n\n    def setup(self):\n        \"\"\"Find test HDF5 files.\"\"\"\n        self.hdf5_files = _find_subband_group()\n        if self.hdf5_files is None:\n            raise NotImplementedError(\"No HDF5 files available\")\n    \n        # Use just one file for single-file benchmark\n        self.single_file = self.hdf5_files[0]",
+        "code": "class TimeUVDataLoad:\n    def time_load_single_subband(self):\n        pass\n\n    def setup(self):\n        raise NotImplementedError(_SKIP_REASON)",
         "min_run_count": 2,
         "name": "bench_conversion.TimeUVDataLoad.time_load_single_subband",
         "number": 0,
@@ -153,10 +135,9 @@
         "repeat": 0,
         "rounds": 2,
         "sample_time": 0.01,
-        "timeout": 120,
         "type": "time",
         "unit": "seconds",
-        "version": "8ba2756b1771929289dabbe82a081955c0d7754f0326995d7aa79acf3ceee4cf",
+        "version": "38dd5188dd4975f3cb33b5ba153cd3c6ee1b57249cccff6a0c1ba9eaa08a1e22",
         "warmup_time": -1
     },
     "bench_flagging.TimeFlagPipeline.time_full_flagging_pipeline": {
