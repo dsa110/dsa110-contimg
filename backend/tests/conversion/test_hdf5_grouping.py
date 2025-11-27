@@ -19,6 +19,31 @@ from dsa110_contimg.database.hdf5_index import (
 )
 
 
+def create_hdf5_table(conn):
+    """Create the hdf5_file_index table with the correct schema."""
+    conn.execute(
+        """
+        CREATE TABLE hdf5_file_index (
+            path TEXT PRIMARY KEY,
+            filename TEXT NOT NULL,
+            group_id TEXT NOT NULL,
+            subband_code TEXT NOT NULL,
+            subband_num INTEGER,
+            timestamp_iso TEXT NOT NULL,
+            timestamp_mjd REAL NOT NULL,
+            file_size_bytes INTEGER,
+            modified_time REAL,
+            indexed_at REAL,
+            stored INTEGER DEFAULT 1,
+            ra_deg REAL,
+            dec_deg REAL,
+            obs_date TEXT,
+            obs_time TEXT
+        )
+    """
+    )
+
+
 class TestHDF5ProximityGrouping:
     """Test the proximity-based grouping algorithm."""
 
@@ -28,37 +53,28 @@ class TestHDF5ProximityGrouping:
         db_path = tmp_path / "test_hdf5.sqlite3"
         conn = sqlite3.connect(str(db_path))
 
-        # Create table
-        conn.execute(
-            """
-            CREATE TABLE hdf5_file_index (
-                file_path TEXT PRIMARY KEY,
-                group_id TEXT NOT NULL,
-                subband_code TEXT NOT NULL,
-                subband_num INTEGER,
-                mjd_mid REAL NOT NULL,
-                stored INTEGER DEFAULT 1,
-                ra_deg REAL,
-                dec_deg REAL,
-                obs_date TEXT,
-                obs_time TEXT
-            )
-        """
-        )
+        create_hdf5_table(conn)
 
         # Insert complete group with 60s jitter tolerance
-        base_mjd = 60218.0
+        # MJD for 2025-10-02T01:00:00 is approximately 60950.04167
+        base_mjd = 60950.04167
         for sb_num in range(16):
             # Add small jitter (up to 30 seconds)
             jitter_days = (sb_num * 2 - 15) / 86400.0  # ±30 seconds
+            filename = f"test_sb{sb_num:02d}.hdf5"
             conn.execute(
-                """INSERT INTO hdf5_file_index VALUES 
-                   (?, ?, ?, ?, ?, 1, ?, ?, ?, ?)""",
+                """INSERT INTO hdf5_file_index 
+                   (path, filename, group_id, subband_code, subband_num, 
+                    timestamp_iso, timestamp_mjd, stored, ra_deg, dec_deg, 
+                    obs_date, obs_time)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)""",
                 (
-                    f"/data/test_sb{sb_num:02d}.hdf5",
+                    f"/data/{filename}",
+                    filename,
                     "2025-10-02T01:00:00",
                     f"sb{sb_num:02d}",
                     sb_num,
+                    "2025-10-02T01:00:00",
                     base_mjd + jitter_days,
                     128.5 if sb_num == 0 else None,
                     55.5 if sb_num == 0 else None,
@@ -68,19 +84,26 @@ class TestHDF5ProximityGrouping:
             )
 
         # Insert incomplete group (missing sb06)
-        base_mjd2 = 60218.1
+        # MJD for 2025-10-02T03:00:00 is approximately 60950.125
+        base_mjd2 = 60950.125
         for sb_num in range(16):
             if sb_num == 6:  # Skip sb06
                 continue
             jitter_days = (sb_num * 2 - 15) / 86400.0
+            filename = f"test2_sb{sb_num:02d}.hdf5"
             conn.execute(
-                """INSERT INTO hdf5_file_index VALUES 
-                   (?, ?, ?, ?, ?, 1, ?, ?, ?, ?)""",
+                """INSERT INTO hdf5_file_index 
+                   (path, filename, group_id, subband_code, subband_num, 
+                    timestamp_iso, timestamp_mjd, stored, ra_deg, dec_deg, 
+                    obs_date, obs_time)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)""",
                 (
-                    f"/data/test2_sb{sb_num:02d}.hdf5",
+                    f"/data/{filename}",
+                    filename,
                     "2025-10-02T03:00:00",
                     f"sb{sb_num:02d}",
                     sb_num,
+                    "2025-10-02T03:00:00",
                     base_mjd2 + jitter_days,
                     128.5 if sb_num == 0 else None,
                     55.5 if sb_num == 0 else None,
@@ -168,56 +191,43 @@ class TestHDF5GroupingEdgeCases:
         db_path = tmp_path / "edge_cases.sqlite3"
         conn = sqlite3.connect(str(db_path))
 
-        conn.execute(
-            """
-            CREATE TABLE hdf5_file_index (
-                file_path TEXT PRIMARY KEY,
-                group_id TEXT NOT NULL,
-                subband_code TEXT NOT NULL,
-                subband_num INTEGER,
-                mjd_mid REAL NOT NULL,
-                stored INTEGER DEFAULT 1,
-                ra_deg REAL,
-                dec_deg REAL,
-                obs_date TEXT,
-                obs_time TEXT
-            )
-        """
-        )
+        create_hdf5_table(conn)
 
         # Group with duplicate subband (should only count once)
-        base_mjd = 60218.0
+        # MJD for 2025-10-03T01:00:00
+        base_mjd = 60951.04167
         for sb_num in range(16):
+            filename = f"dup1_sb{sb_num:02d}.hdf5"
             conn.execute(
-                """INSERT INTO hdf5_file_index VALUES 
-                   (?, ?, ?, ?, ?, 1, ?, ?, ?, ?)""",
+                """INSERT INTO hdf5_file_index 
+                   (path, filename, group_id, subband_code, subband_num, 
+                    timestamp_iso, timestamp_mjd, stored)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, 1)""",
                 (
-                    f"/data/dup1_sb{sb_num:02d}.hdf5",
+                    f"/data/{filename}",
+                    filename,
                     "2025-10-03T01:00:00",
                     f"sb{sb_num:02d}",
                     sb_num,
+                    "2025-10-03T01:00:00",
                     base_mjd + sb_num / 86400.0,
-                    None,
-                    None,
-                    None,
-                    None,
                 ),
             )
 
         # Add duplicate sb00
         conn.execute(
-            """INSERT INTO hdf5_file_index VALUES 
-               (?, ?, ?, ?, ?, 1, ?, ?, ?, ?)""",
+            """INSERT INTO hdf5_file_index 
+               (path, filename, group_id, subband_code, subband_num, 
+                timestamp_iso, timestamp_mjd, stored)
+               VALUES (?, ?, ?, ?, ?, ?, ?, 1)""",
             (
                 "/data/dup1_sb00_v2.hdf5",
+                "dup1_sb00_v2.hdf5",
                 "2025-10-03T01:00:00",
                 "sb00",
                 0,
+                "2025-10-03T01:00:00",
                 base_mjd,
-                None,
-                None,
-                None,
-                None,
             ),
         )
 
@@ -245,18 +255,7 @@ class TestHDF5GroupingEdgeCases:
         """Test querying empty database."""
         db_path = tmp_path / "empty.sqlite3"
         conn = sqlite3.connect(str(db_path))
-        conn.execute(
-            """
-            CREATE TABLE hdf5_file_index (
-                file_path TEXT PRIMARY KEY,
-                group_id TEXT NOT NULL,
-                subband_code TEXT NOT NULL,
-                subband_num INTEGER,
-                mjd_mid REAL NOT NULL,
-                stored INTEGER DEFAULT 1
-            )
-        """
-        )
+        create_hdf5_table(conn)
         conn.commit()
         conn.close()
 
@@ -275,35 +274,26 @@ class TestHDF5GroupingEdgeCases:
         db_path = tmp_path / "stored_filter.sqlite3"
         conn = sqlite3.connect(str(db_path))
 
-        conn.execute(
-            """
-            CREATE TABLE hdf5_file_index (
-                file_path TEXT PRIMARY KEY,
-                group_id TEXT NOT NULL,
-                subband_code TEXT NOT NULL,
-                subband_num INTEGER,
-                mjd_mid REAL NOT NULL,
-                stored INTEGER DEFAULT 0
-            )
-        """
-        )
+        create_hdf5_table(conn)
 
         # Insert group with stored=0
-        base_mjd = 60218.0
+        # MJD for 2025-10-04T01:00:00
+        base_mjd = 60952.04167
         for sb_num in range(16):
+            filename = f"unstored_sb{sb_num:02d}.hdf5"
             conn.execute(
-                """INSERT INTO hdf5_file_index VALUES 
-                   (?, ?, ?, ?, ?, 0, ?, ?, ?, ?)""",
+                """INSERT INTO hdf5_file_index 
+                   (path, filename, group_id, subband_code, subband_num, 
+                    timestamp_iso, timestamp_mjd, stored)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, 0)""",
                 (
-                    f"/data/unstored_sb{sb_num:02d}.hdf5",
+                    f"/data/{filename}",
+                    filename,
                     "2025-10-04T01:00:00",
                     f"sb{sb_num:02d}",
                     sb_num,
+                    "2025-10-04T01:00:00",
                     base_mjd + sb_num / 86400.0,
-                    None,
-                    None,
-                    None,
-                    None,
                 ),
             )
 
@@ -339,39 +329,30 @@ class TestGroupingPerformance:
         db_path = tmp_path / "large.sqlite3"
         conn = sqlite3.connect(str(db_path))
 
-        conn.execute(
-            """
-            CREATE TABLE hdf5_file_index (
-                file_path TEXT PRIMARY KEY,
-                group_id TEXT NOT NULL,
-                subband_code TEXT NOT NULL,
-                subband_num INTEGER,
-                mjd_mid REAL NOT NULL,
-                stored INTEGER DEFAULT 1
-            )
-        """
-        )
+        create_hdf5_table(conn)
 
         # Insert 100 complete groups (1600 files)
         import time
 
-        base_mjd = 60218.0
+        # MJD for 2025-10-05T00:00:00
+        base_mjd = 60953.0
         for group_idx in range(100):
             for sb_num in range(16):
                 mjd = base_mjd + (group_idx * 0.01) + (sb_num / 86400.0)
+                filename = f"g{group_idx}_sb{sb_num:02d}.hdf5"
                 conn.execute(
-                    """INSERT INTO hdf5_file_index VALUES 
-                       (?, ?, ?, ?, ?, 1, ?, ?, ?, ?)""",
+                    """INSERT INTO hdf5_file_index 
+                       (path, filename, group_id, subband_code, subband_num, 
+                        timestamp_iso, timestamp_mjd, stored)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, 1)""",
                     (
-                        f"/data/g{group_idx}_sb{sb_num:02d}.hdf5",
+                        f"/data/{filename}",
+                        filename,
                         f"2025-10-05T{group_idx:02d}:00:00",
                         f"sb{sb_num:02d}",
                         sb_num,
+                        f"2025-10-05T{group_idx:02d}:00:00",
                         mjd,
-                        None,
-                        None,
-                        None,
-                        None,
                     ),
                 )
 
