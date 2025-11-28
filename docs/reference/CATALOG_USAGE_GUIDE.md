@@ -135,18 +135,15 @@ CREATE INDEX idx_radec ON sources(ra_deg, dec_deg);
 ### Best Practices
 
 1. **Use Appropriate Matching Radius:**
-
    - FIRST: 1-2 arcsec
    - NVSS: 1-2 arcsec
    - RACS: 2-3 arcsec (after declination correction)
 
 2. **Prefer Isolated Sources:**
-
    - Use point sources or isolated extended sources
    - Avoid confused/blended sources for astrometric calibration
 
 3. **Consider Source Type:**
-
    - Extended sources: Larger matching radius may be needed
    - Compact sources: Smaller matching radius appropriate
 
@@ -264,19 +261,16 @@ NVSS/FIRST due to similar frequency.
 ### Pipeline Usage
 
 1. **Catalog Selection:**
-
    - Use NVSS as default (widest coverage)
    - Use FIRST for high-resolution needs (when available)
    - Use RACS for southern sky (< -40° declination)
 
 2. **Flux Scale Validation:**
-
    - Apply spectral index corrections for RACS comparisons
    - Use RACS-mid for NVSS/FIRST comparisons
    - Account for frequency differences in error estimates
 
 3. **Astrometric Validation:**
-
    - Use FIRST as reference when available (best accuracy)
    - Apply RACS declination corrections if needed
    - Consider source type (extended vs. compact) in matching
@@ -363,7 +357,8 @@ flux_1400 = racs_flux_888 * (1400.0 / 888.0) ** spectral_index
 
 - Survey specifications (see NVSS/FIRST/RACS papers)
 
-- FIRST coverage details: Check FIRST survey footprint at http://sundog.stsci.edu/
+- FIRST coverage details: Check FIRST survey footprint at
+  http://sundog.stsci.edu/
 - `backend/src/dsa110_contimg/catalog/query.py` - Catalog query interface
 - `backend/src/dsa110_contimg/qa/catalog_validation.py` - Catalog validation
   functions

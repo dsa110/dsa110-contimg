@@ -20,10 +20,10 @@ This directory provides reference implementations for integrating with
 `DocSearch` in `docs/docsearch/` instead. RAGFlow is optional and intended for
 advanced use cases requiring full RAG capabilities.
 
-**Location & usage:** Lives in `docs/ragflow/` as standalone reference code
-(not installed as `dsa110_contimg.ragflow`). Prefer the REST API via the CLI
-and `client.py`. The old MCP server is archived (`mcp_server_dormant.py`) and
-should not be used.
+**Location & usage:** Lives in `docs/ragflow/` as standalone reference code (not
+installed as `dsa110_contimg.ragflow`). Prefer the REST API via the CLI and
+`client.py`. The old MCP server is archived (`mcp_server_dormant.py`) and should
+not be used.
 
 RAGFlow provides:
 
@@ -180,10 +180,10 @@ above.
 
 ### Service URLs
 
-| Service    | URL                         | Description            |
-| ---------- | --------------------------- | ---------------------- |
-| Web UI     | `http://localhost:9080`     | RAGFlow user interface |
-| REST API   | `http://localhost:9380`     | RAGFlow REST API       |
+| Service    | URL                                | Description            |
+| ---------- | ---------------------------------- | ---------------------- |
+| Web UI     | `http://localhost:9080`            | RAGFlow user interface |
+| REST API   | `http://localhost:9380`            | RAGFlow REST API       |
 | Custom MCP | Archived (`mcp_server_dormant.py`) | Not recommended        |
 
 ## Architecture

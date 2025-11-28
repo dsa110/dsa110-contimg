@@ -4,7 +4,6 @@
 > serve as the specification for the new `backend` implementation. See
 > `legacy.backend/src/dsa110_contimg/api/` for the reference implementation.
 
-
 ## Overview
 
 The DSA-110 Continuum Imaging Pipeline provides comprehensive validation
@@ -14,8 +13,8 @@ consistency. All endpoints are prefixed with the base path
 api/qa/images/{image_id}.
 
 **Note:** The validation system uses a centralized configuration system. See
-[Validation Guide](api_reference.md) for details on using the
-configuration system in Python.
+[Validation Guide](api_reference.md) for details on using the configuration
+system in Python.
 
 ## Endpoints
 

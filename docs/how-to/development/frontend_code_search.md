@@ -3,7 +3,6 @@
 **Date:** 2025-11-27  
 **Purpose:** Semantic search over frontend TypeScript/React code
 
-
 > **⚠️ Migration Note:** The frontend is being rewritten. The new `frontend/`
 > contains a minimal scaffold. See `legacy.frontend/` for the full reference
 > implementation. API endpoint examples below reference `legacy.backend`.
@@ -516,7 +515,6 @@ from search import DocSearch
 **Full frontend indexing** (~87 files, ~500 chunks):
 
 - **First run**: 2-5 minutes
-
   - File reading: ~30-60s (HDD-bound)
   - Embedding generation: ~60-180s (OpenAI API calls)
   - Database writes: ~10-20s

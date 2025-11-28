@@ -2,7 +2,10 @@
 
 ## Overview
 
-The DSA-110 Continuum Imaging Pipeline is designed to convert radio telescope visibility data from UVH5 (HDF5) format into CASA Measurement Sets for calibration and imaging. The pipeline processes data from the DSA-110 telescope, which generates multiple subband files per observation.
+The DSA-110 Continuum Imaging Pipeline is designed to convert radio telescope
+visibility data from UVH5 (HDF5) format into CASA Measurement Sets for
+calibration and imaging. The pipeline processes data from the DSA-110 telescope,
+which generates multiple subband files per observation.
 
 ## Project Structure
 
@@ -21,7 +24,8 @@ The project is organized into several modules, each serving a specific purpose:
 
 ## Installation
 
-To set up the project, ensure you have the required dependencies specified in `pyproject.toml`. You can install them using:
+To set up the project, ensure you have the required dependencies specified in
+`pyproject.toml`. You can install them using:
 
 ```bash
 pip install -e .
@@ -29,7 +33,8 @@ pip install -e .
 
 ## Usage
 
-To run the conversion process, use the command-line interface provided in the `conversion/cli.py` module. For example:
+To run the conversion process, use the command-line interface provided in the
+`conversion/cli.py` module. For example:
 
 ```bash
 python -m dsa110_contimg.conversion.cli --input-dir /path/to/input --output-dir /path/to/output
@@ -37,7 +42,8 @@ python -m dsa110_contimg.conversion.cli --input-dir /path/to/input --output-dir 
 
 ## Testing
 
-Unit tests are located in the `tests/unit` directory, while integration tests can be found in `tests/integration`. To run the tests, use:
+Unit tests are located in the `tests/unit` directory, while integration tests
+can be found in `tests/integration`. To run the tests, use:
 
 ```bash
 pytest tests/
@@ -45,8 +51,11 @@ pytest tests/
 
 ## Contributing
 
-Contributions to the DSA-110 Continuum Imaging Pipeline are welcome. Please follow the standard practices for contributing to open-source projects, including forking the repository and submitting pull requests.
+Contributions to the DSA-110 Continuum Imaging Pipeline are welcome. Please
+follow the standard practices for contributing to open-source projects,
+including forking the repository and submitting pull requests.
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for more details.
+This project is licensed under the MIT License. See the LICENSE file for more
+details.

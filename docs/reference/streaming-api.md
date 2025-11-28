@@ -2,8 +2,8 @@
 
 > **⚠️ Migration Note:** These endpoints are implemented in `legacy.backend` and
 > serve as the specification for the new `backend` implementation. See
-> `legacy.backend/src/dsa110_contimg/api/routes.py` for the reference implementation.
-
+> `legacy.backend/src/dsa110_contimg/api/routes.py` for the reference
+> implementation.
 
 ## Overview
 
@@ -1099,7 +1099,6 @@ async function safeRestart() {
 
 - [Streaming Control Guide](../guides/workflow/streaming.md) - User guide for
   dashboard control
-- [Streaming Architecture](../architecture/pipeline/streaming-architecture.md) - System
-  architecture
-- [Docker Client Reference](streaming-api.md) - Docker integration
-  details
+- [Streaming Architecture](../architecture/pipeline/streaming-architecture.md) -
+  System architecture
+- [Docker Client Reference](streaming-api.md) - Docker integration details

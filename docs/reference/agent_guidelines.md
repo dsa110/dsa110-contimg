@@ -13,8 +13,7 @@ This document provides AI agents with standardized templates, formats, and
 guidelines for creating and maintaining documentation in a consistent,
 searchable, and maintainable format.
 
-**For formatting rules, see:**
-[DOCUMENTATION_QUICK_REFERENCE.md]()
+**For formatting rules, see:** [DOCUMENTATION_QUICK_REFERENCE.md]()
 
 ---
 
@@ -489,9 +488,7 @@ Before finalizing a document, verify:
 - `health_check_fix.md`
 - `testing_strategy.md`
 
-**See:**
-[DOCUMENTATION_QUICK_REFERENCE.md]()
-for full naming rules
+**See:** [DOCUMENTATION_QUICK_REFERENCE.md]() for full naming rules
 
 ### Directory Structure
 

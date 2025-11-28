@@ -138,26 +138,26 @@ workflow visualization.
 
 **Response Fields:**
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `stages` | array | List of stage status objects (see below) |
-| `overall_health` | string | Overall pipeline health: `"healthy"`, `"degraded"`, or `"stalled"` |
-| `bottleneck` | string\|null | Name of bottleneck stage, or null if none detected |
-| `total_pending` | number | Total items pending across all stages |
-| `total_completed_today` | number | Total items completed in last 24 hours |
-| `total_failed_today` | number | Total items failed in last 24 hours |
-| `estimated_completion` | string\|null | ISO timestamp for estimated completion, or null |
+| Field                   | Type         | Description                                                        |
+| ----------------------- | ------------ | ------------------------------------------------------------------ |
+| `stages`                | array        | List of stage status objects (see below)                           |
+| `overall_health`        | string       | Overall pipeline health: `"healthy"`, `"degraded"`, or `"stalled"` |
+| `bottleneck`            | string\|null | Name of bottleneck stage, or null if none detected                 |
+| `total_pending`         | number       | Total items pending across all stages                              |
+| `total_completed_today` | number       | Total items completed in last 24 hours                             |
+| `total_failed_today`    | number       | Total items failed in last 24 hours                                |
+| `estimated_completion`  | string\|null | ISO timestamp for estimated completion, or null                    |
 
 **Stage Status Fields:**
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `name` | string | Stage identifier (snake_case) |
-| `display_name` | string | Human-readable stage name |
-| `pending` | number | Items waiting to be processed |
-| `processing` | number | Items currently being processed |
-| `completed_today` | number | Items completed in last 24 hours |
-| `failed_today` | number | Items that failed in last 24 hours |
+| Field             | Type   | Description                        |
+| ----------------- | ------ | ---------------------------------- |
+| `name`            | string | Stage identifier (snake_case)      |
+| `display_name`    | string | Human-readable stage name          |
+| `pending`         | number | Items waiting to be processed      |
+| `processing`      | number | Items currently being processed    |
+| `completed_today` | number | Items completed in last 24 hours   |
+| `failed_today`    | number | Items that failed in last 24 hours |
 
 **Health Status Logic:**
 
@@ -168,6 +168,7 @@ workflow visualization.
 **Bottleneck Detection:**
 
 A stage is flagged as a bottleneck when:
+
 - `pending > completed_today * 2` (backlog growing faster than processing)
 - `pending > 10` and `processing == 0` (queue stalled)
 
@@ -223,11 +224,11 @@ List pipeline executions with optional filtering.
 
 **Query Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `status` | string | Filter by status: `running`, `completed`, `failed` |
-| `limit` | number | Maximum results (default: 50) |
-| `offset` | number | Pagination offset (default: 0) |
+| Parameter | Type   | Description                                        |
+| --------- | ------ | -------------------------------------------------- |
+| `status`  | string | Filter by status: `running`, `completed`, `failed` |
+| `limit`   | number | Maximum results (default: 50)                      |
+| `offset`  | number | Pagination offset (default: 0)                     |
 
 **Response:**
 
@@ -281,8 +282,8 @@ Get details for a specific execution.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter      | Type   | Description          |
+| -------------- | ------ | -------------------- |
 | `execution_id` | string | Execution identifier |
 
 **Response:**
@@ -300,8 +301,8 @@ Get details for a specific execution.
   "started_at": "2025-11-26T14:00:00Z",
   "completed_at": "2025-11-26T14:35:00Z",
   "stages": [
-    {"name": "catalog_setup", "status": "completed", "duration_seconds": 12},
-    {"name": "conversion", "status": "completed", "duration_seconds": 180}
+    { "name": "catalog_setup", "status": "completed", "duration_seconds": 12 },
+    { "name": "conversion", "status": "completed", "duration_seconds": 180 }
   ],
   "outputs": {
     "ms_path": "/stage/dsa110-contimg/ms/2025-11-26T14:00:00.ms",
@@ -321,13 +322,13 @@ Get the dependency graph for pipeline stages.
 ```json
 {
   "nodes": [
-    {"id": "catalog_setup", "label": "Catalog Setup"},
-    {"id": "conversion", "label": "Conversion"},
-    {"id": "calibration_solve", "label": "Calibration Solve"}
+    { "id": "catalog_setup", "label": "Catalog Setup" },
+    { "id": "conversion", "label": "Conversion" },
+    { "id": "calibration_solve", "label": "Calibration Solve" }
   ],
   "edges": [
-    {"from": "catalog_setup", "to": "conversion"},
-    {"from": "conversion", "to": "calibration_solve"}
+    { "from": "catalog_setup", "to": "conversion" },
+    { "from": "conversion", "to": "calibration_solve" }
   ]
 }
 ```
@@ -382,8 +383,8 @@ Get detailed metrics for a specific stage.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter    | Type   | Description             |
+| ------------ | ------ | ----------------------- |
 | `stage_name` | string | Stage name (snake_case) |
 
 **Response:**
@@ -400,9 +401,7 @@ Get detailed metrics for a specific stage.
   "total_runs_24h": 45,
   "failed_runs_24h": 1,
   "retries_24h": 3,
-  "common_errors": [
-    {"error": "WSClean timeout", "count": 1}
-  ]
+  "common_errors": [{ "error": "WSClean timeout", "count": 1 }]
 }
 ```
 
@@ -422,12 +421,12 @@ All endpoints return standard error responses:
 
 **Common Status Codes:**
 
-| Code | Description |
-|------|-------------|
-| 200 | Success |
-| 400 | Bad Request (invalid parameters) |
-| 404 | Not Found (execution/stage not found) |
-| 500 | Internal Server Error |
+| Code | Description                           |
+| ---- | ------------------------------------- |
+| 200  | Success                               |
+| 400  | Bad Request (invalid parameters)      |
+| 404  | Not Found (execution/stage not found) |
+| 500  | Internal Server Error                 |
 
 ---
 

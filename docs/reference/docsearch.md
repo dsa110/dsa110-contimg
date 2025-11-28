@@ -230,15 +230,15 @@ CREATE TABLE embedding_cache (
 
 ## Comparison with RAGFlow
 
-| Feature           | DocSearch     | RAGFlow                 |
-| ----------------- | ------------- | ----------------------- |
-| External services | None          | Docker containers       |
+| Feature           | DocSearch                        | RAGFlow                 |
+| ----------------- | -------------------------------- | ----------------------- |
+| External services | None                             | Docker containers       |
 | Setup             | Local scripts (`docs/docsearch`) | Docker Compose          |
-| Embedding source  | OpenAI API    | Configurable            |
-| Storage           | SQLite        | PostgreSQL + MinIO      |
-| Chat interface    | No            | Yes (+ simple `ask()`)  |
-| GraphRAG/RAPTOR   | No            | Yes                     |
-| MCP server        | No            | Custom server available |
+| Embedding source  | OpenAI API                       | Configurable            |
+| Storage           | SQLite                           | PostgreSQL + MinIO      |
+| Chat interface    | No                               | Yes (+ simple `ask()`)  |
+| GraphRAG/RAPTOR   | No                               | Yes                     |
+| MCP server        | No                               | Custom server available |
 
 **Use DocSearch when:**
 
