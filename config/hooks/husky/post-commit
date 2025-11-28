@@ -1,9 +1,6 @@
-#!/usr/bin/env sh
 # Post-commit hook: Check for common issues after commit
 
-. "$(dirname -- "$0")/_/husky.sh"
-
-REPO_ROOT="$(cd "$(dirname -- "$0")/../.." && pwd)"
+REPO_ROOT="$(cd "$(dirname -- "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 
 # Check if setup was run (non-blocking, just informational)
@@ -39,4 +36,3 @@ if [ "$ROOT_MARKDOWN" -gt 0 ]; then
   echo "   Documentation should be in docs/ structure" >&2
   echo "   See: docs/DOCUMENTATION_QUICK_REFERENCE.md" >&2
 fi
-
