@@ -14,34 +14,43 @@ requiring any external services to run. It uses:
 This is an alternative to RAGFlow that requires no Docker containers or
 background services - just Python and an OpenAI API key.
 
+> Location: DocSearch now lives in `docs/docsearch/` as standalone reference
+> code. It is **not** part of the `dsa110_contimg` Python package; run it from
+> that directory or add it to `PYTHONPATH` when importing.
+
 ## Quick Start
 
 ### Index Documentation
 
 ```bash
 conda activate casa6
+cd /data/dsa110-contimg/docs/docsearch
 
 # Index the docs directory (run once, then incrementally)
-python -m dsa110_contimg.docsearch.cli index
+python cli.py index
 
 # Force re-index everything
-python -m dsa110_contimg.docsearch.cli index --force
+python cli.py index --force
 ```
 
 ### Search from Command Line
 
 ```bash
 # Basic search
-python -m dsa110_contimg.docsearch.cli search "how to convert UVH5 files"
+cd /data/dsa110-contimg/docs/docsearch
+python cli.py search "how to convert UVH5 files"
 
 # More results with lower threshold
-python -m dsa110_contimg.docsearch.cli search "calibration" --top-k 10 --min-score 0.2
+python cli.py search "calibration" --top-k 10 --min-score 0.2
 ```
 
 ### Python API
 
 ```python
-from dsa110_contimg.docsearch import DocSearch
+import sys
+sys.path.insert(0, "/data/dsa110-contimg/docs/docsearch")  # add local module directory
+
+from search import DocSearch
 
 # Initialize (uses OPENAI_API_KEY from environment)
 search = DocSearch()
@@ -69,7 +78,8 @@ print(f"Indexed {stats['chunks_indexed']} chunks from {stats['files_processed']}
 ### `index` - Index Documentation
 
 ```bash
-python -m dsa110_contimg.docsearch.cli index [OPTIONS]
+cd /data/dsa110-contimg/docs/docsearch
+python cli.py index [OPTIONS]
 ```
 
 | Option         | Default                     | Description                          |
@@ -81,7 +91,8 @@ python -m dsa110_contimg.docsearch.cli index [OPTIONS]
 ### `search` - Search Documents
 
 ```bash
-python -m dsa110_contimg.docsearch.cli search QUERY [OPTIONS]
+cd /data/dsa110-contimg/docs/docsearch
+python cli.py search QUERY [OPTIONS]
 ```
 
 | Option        | Default | Description                        |
@@ -93,13 +104,15 @@ python -m dsa110_contimg.docsearch.cli search QUERY [OPTIONS]
 ### `stats` - Show Statistics
 
 ```bash
-python -m dsa110_contimg.docsearch.cli stats
+cd /data/dsa110-contimg/docs/docsearch
+python cli.py stats
 ```
 
 ### `clear` - Clear Index
 
 ```bash
-python -m dsa110_contimg.docsearch.cli clear [-y]
+cd /data/dsa110-contimg/docs/docsearch
+python cli.py clear [-y]
 ```
 
 ## API Reference
@@ -220,7 +233,7 @@ CREATE TABLE embedding_cache (
 | Feature           | DocSearch     | RAGFlow                 |
 | ----------------- | ------------- | ----------------------- |
 | External services | None          | Docker containers       |
-| Setup             | `pip install` | Docker Compose          |
+| Setup             | Local scripts (`docs/docsearch`) | Docker Compose          |
 | Embedding source  | OpenAI API    | Configurable            |
 | Storage           | SQLite        | PostgreSQL + MinIO      |
 | Chat interface    | No            | Yes (+ simple `ask()`)  |
@@ -244,7 +257,10 @@ CREATE TABLE embedding_cache (
 **RAGFlow Quick Usage:**
 
 ```python
-from dsa110_contimg.ragflow import RAGFlowClient
+import sys
+sys.path.insert(0, "/data/dsa110-contimg/docs/ragflow")  # add standalone module
+
+from client import RAGFlowClient
 
 client = RAGFlowClient()  # Uses RAGFLOW_API_KEY env var
 answer = client.ask("What error detection protections are implemented?")

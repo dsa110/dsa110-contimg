@@ -1,5 +1,9 @@
 # Control Panel Quick Reference Card
 
+> **⚠️ Migration Note:** This cheatsheet references the `legacy.backend` API.
+> The new `backend` is under development. See `legacy.backend/` for reference.
+
+
 ## 🚀 Starting Services
 
 ```bash
@@ -33,7 +37,7 @@ curl http://localhost:8000/api/jobs
 curl http://localhost:8000/api/jobs/1
 
 # Stream logs (SSE)
-curl -N http://localhost:8000/api/jobs/1/logs
+curl -N http://localhost:8000/api/jobs/id/1/logs
 
 # Create calibration job
 curl -X POST http://localhost:8000/api/jobs/calibrate \
@@ -92,7 +96,7 @@ uvicorn dsa110_contimg.api.routes:create_app --factory --host 0.0.0.0 --port 800
 # Look for /api/jobs/id/{job_id}/logs with type "eventsource"
 
 # Test SSE endpoint
-curl -N http://localhost:8000/api/jobs/1/logs
+curl -N http://localhost:8000/api/jobs/id/1/logs
 ```
 
 ### Job Stuck in Pending

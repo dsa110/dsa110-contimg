@@ -34,6 +34,8 @@ Practical how-to guides for common tasks.
 - **[Guides Index](guides/index.md)**: All practical guides
 - **[ABSURD Quickstart](guides/ABSURD_QUICKSTART.md)**: Getting started with the
   pipeline
+- **[Frontend Code Search](guides/code-search.md)**: Search components, hooks,
+  and API usage
 - **[Dashboard Quickstart](guides/dashboard/dashboard-quickstart.md)**: Web
   interface guide
 - **[Streaming Guide](guides/workflow/streaming.md)**: Real-time data processing

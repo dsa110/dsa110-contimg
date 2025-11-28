@@ -1,26 +1,25 @@
-// Initialize patches BEFORE any other code loads
-// This ensures custom element guard and JS9 setTimeout patcher are active
-// before third-party libraries register custom elements or use setTimeout
-import "./utils/initCustomElementGuard";
-import "./utils/js9/initPatcher";
-
-// CRITICAL: Import React explicitly to ensure it's in the main bundle
-// This ensures React is available before any lazy-loaded modules (like Plotly) load
-import React, { StrictMode } from "react";
+import React from "react";
 import { createRoot } from "react-dom/client";
 
-// Ensure React is available globally for libraries that may access it at module load time
-// This prevents "Cannot set properties of undefined" errors
-if (typeof window !== "undefined") {
-  (window as any).React = React;
-}
-import "./index.css";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
-import App from "./App.tsx";
+/**
+ * Main entry point for the DSA-110 Pipeline UI.
+ * This is a minimal bootstrap; full application components will be added as development continues.
+ */
+const App: React.FC = () => {
+  return (
+    <div style={{ fontFamily: "system-ui, sans-serif", padding: "20px" }}>
+      <h1>DSA-110 Pipeline UI</h1>
+      <p>Frontend is running. Connect to the backend API to see data.</p>
+    </div>
+  );
+};
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+const container = document.getElementById("root");
+if (container) {
+  const root = createRoot(container);
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+}

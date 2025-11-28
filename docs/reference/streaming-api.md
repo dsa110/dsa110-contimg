@@ -1,5 +1,10 @@
 # Streaming Service API Reference
 
+> **⚠️ Migration Note:** These endpoints are implemented in `legacy.backend` and
+> serve as the specification for the new `backend` implementation. See
+> `legacy.backend/src/dsa110_contimg/api/routes.py` for the reference implementation.
+
+
 ## Overview
 
 The Streaming Service API provides RESTful endpoints for controlling and

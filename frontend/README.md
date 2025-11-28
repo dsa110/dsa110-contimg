@@ -1,225 +1,104 @@
-# DSA-110 Continuum Pipeline - Frontend
+# Frontend Project Documentation
 
-**Date:** 2025-11-16
+## Overview
 
-> 📚 **Documentation Index**: For complete documentation navigation, see
-> [Documentation Home](../docs/index.md)  
-> 📝 **Quick Reference**: For formatting and structure guidelines, see
-> [Quick Reference](../docs/reference/quick_ref.md)  
-> 🤖 **AI Agent Guidelines**: For creating/updating docs, see
-> [Agent Guidelines](../docs/reference/agent_guidelines.md)
-
-React + TypeScript web interface for monitoring the DSA-110 continuum imaging
-pipeline.
-
-## Tech Stack
-
-- **Framework**: React 19 + TypeScript
-- **Build Tool**: Vite 6
-- **UI Library**: Material-UI (MUI) v7
-- **State Management**: TanStack React Query (for API state)
-- **Routing**: React Router v7
-- **Visualization**: Plotly.js, D3.js
-- **Tables**: AG Grid
-- **HTTP Client**: Axios
-
-## Development Setup
-
-### Prerequisites
-
-- Node.js v22+ (available in `casa6` conda environment)
-- Backend API running on `localhost:8000`
-
-### Installation
-
-```bash
-# Using casa6 conda environment (recommended for Ubuntu 18.x)
-cd /data/dsa110-contimg/frontend
-conda run -n casa6 npm install
-```
-
-### Development Server
-
-```bash
-# Start dev server with hot reload
-conda run -n casa6 npm run dev
-
-# Or specify custom port
-conda run -n casa6 npm run dev
-```
-
-Frontend will be available at http://localhost:3210
-
-### Build for Production
-
-```bash
-# Create optimized production build
-conda run -n casa6 npm run build
-
-# Output in dist/ directory
-```
-
-### Preview Production Build
-
-```bash
-conda run -n casa6 npm run preview
-```
+This project is a frontend application designed to handle and display provenance
+information and error responses in a user-friendly manner. It utilizes React and
+TypeScript to create reusable components and hooks that manage state and data
+effectively.
 
 ## Project Structure
 
-```
-frontend/
-├── README.md                 # This file
-├── index.html                # Entry point
-├── package.json              # Dependencies
-├── eslint.config.js          # Linting configuration
-│
-├── config/                   # All configuration files
-│   ├── docker/               # Docker configs (Dockerfile.dev, nginx.conf)
-│   ├── playwright/           # Playwright test configs
-│   ├── typescript/           # TypeScript configs (tsconfig.*.json)
-│   └── vite/                 # Vite/Vitest configs
-│
-├── scripts/                  # Utility scripts
-│   ├── build/                # Build scripts (build-in-scratch.sh)
-│   ├── dev/                  # Dev server scripts (start-dev.sh, etc.)
-│   ├── test/                 # Test runner scripts
-│   └── tools/                # Misc tools (fix-imports.js, etc.)
-│
-├── src/                      # Source code
-│   ├── api/                  # API client & React Query hooks
-│   │   ├── client.ts         # Axios instance
-│   │   ├── types.ts          # TypeScript interfaces
-│   │   └── queries.ts        # React Query hooks
-│   ├── components/           # React components
-│   │   ├── CARTA/            # CARTA integration
-│   │   ├── Pipeline/         # Pipeline workflow
-│   │   ├── QA/               # Quality assurance
-│   │   ├── Sky/              # Sky/image gallery
-│   │   └── ...               # Many more component groups
-│   ├── pages/                # Page-level components
-│   ├── theme/                # MUI theme (dark mode)
-│   ├── utils/                # Utility functions
-│   ├── App.tsx               # Main app component
-│   └── main.tsx              # Entry point
-│
-├── tests/                    # Test files
-├── docs/                     # Frontend-specific documentation
-├── public/                   # Static assets (JS9, CARTA protos)
-│
-├── dist/                     # Build output (gitignored)
-├── node_modules/             # Dependencies (gitignored)
-├── state/                    # Runtime cache (gitignored)
-└── playwright-report/        # Test reports (gitignored)
+The project is organized into several directories:
 
-# Root symlinks for tool compatibility:
-# tsconfig.json → config/typescript/tsconfig.json
-# vite.config.ts → config/vite/vite.config.ts
-# playwright.config.ts → config/playwright/playwright.config.ts
-```
+- **src**: Contains the main source code for the application.
+  - **components**: Contains reusable React components for displaying provenance
+    information and error messages.
+    - **provenance**: Components related to provenance data.
+    - **errors**: Components for displaying error messages and handling error
+      states.
+  - **hooks**: Custom hooks for managing application state and data retrieval.
+  - **utils**: Utility functions for common tasks such as error mapping and
+    coordinate formatting.
+  - **types**: TypeScript types and interfaces used throughout the application.
+  - **constants**: Constants used for error mappings and other fixed values.
+  - **api**: API client and error interceptor for handling HTTP requests.
 
-## Environment Variables
+- **legacy**: Contains documentation or notes related to legacy code that has
+  been displaced.
 
-Create `.env.local` to override defaults:
+- **package.json**: Configuration file for npm, listing dependencies and
+  scripts.
 
-```bash
-VITE_API_URL=http://localhost:8000
-```
+- **tsconfig.json**: TypeScript configuration file specifying compiler options.
 
-## Backend API Integration
+- **vite.config.ts**: Configuration file for Vite, specifying build and
+  development settings.
 
-The frontend expects the following API endpoints:
+## Getting Started
 
-- `GET /api/status` - Pipeline status and queue stats
-- `GET /api/metrics/system` - Current system metrics
-- `GET /api/metrics/system/history` - Historical metrics
-- `GET /api/qa` - QA artifacts
-- `GET /api/qa/file/{group}/{name}` - Serve QA files
+To get started with the project, follow these steps:
 
-See `src/api/types.ts` for complete interface definitions.
+1. **Clone the repository**:
 
-## Features
-
-### Implemented (Phase 1)
-
-- [x] Dashboard with pipeline status
-- [x] System health metrics
-- [x] Recent observations table
-- [x] Real-time polling (10s refresh)
-- [x] Dark mode optimized for astronomy
-
-### Planned (Phase 2-4)
-
-- [ ] ESE candidate panel with >5σ auto-flagging
-- [ ] Mosaic gallery (display existing mosaics)
-- [ ] Source monitoring table with NVSS IDs
-- [ ] Flux timeseries plots
-- [ ] Sky coverage visualization
-- [ ] FITS image viewer
-- [ ] Slack alert integration
-
-## Development Notes
-
-### Ubuntu 18.x Compatibility
-
-This project uses the `casa6` conda environment which provides Node.js v22.6.0.
-While Vite officially requires v22.12.0+, v22.6.0 works fine for our use case.
-If you encounter issues:
-
-1. Use Docker alternative:
-
-   ```bash
-   docker run -it -v /data/dsa110-contimg:/workspace -w /workspace/frontend node:22 npm install
+   ```
+   git clone <repository-url>
+   cd frontend
    ```
 
-2. Or upgrade Node in a separate conda env (not recommended on Ubuntu 18.x)
+2. **Install dependencies**:
 
-### API Connection Issues
+   ```
+   npm install
+   ```
 
-If frontend can't connect to backend:
+3. **Run the development server**:
 
-1. Check backend is running: `curl http://localhost:8000/api/status`
-2. Check CORS settings in FastAPI backend
-3. Verify `.env.development` has correct `VITE_API_URL`
+   ```
+   npm run dev
+   ```
 
-### TypeScript Errors
+4. **Build the project**:
+   ```
+   npm run build
+   ```
 
-```bash
-# Run type checking
-conda run -n casa6 npm run type-check
+## Components
 
-# Check linting
-conda run -n casa6 npm run lint
-```
+### Provenance Components
 
-## Deployment
+- **ProvenanceStrip**: Displays a compact strip showing provenance information.
+- **ProvenanceBadge**: Displays a badge indicating the quality assessment (QA)
+  grade.
+- **ProvenanceLink**: Renders a link to the QA report or other relevant URLs.
 
-### Static Build (Nginx/Apache)
+### Error Components
 
-```bash
-conda run -n casa6 npm run build
-# Serve dist/ directory
-```
+- **ErrorDisplay**: Presents a normalized error response to the user.
+- **ErrorDetailsExpander**: Allows users to expand and view detailed error
+  information.
+- **ErrorActionHint**: Provides actionable hints based on the displayed error.
 
-### With FastAPI Backend
+## Hooks
 
-```python
-# In api/routes.py
-from fastapi.staticfiles import StaticFiles
+- **useErrorHandler**: Manages error states and provides functions to handle
+  errors.
+- **useProvenance**: Retrieves and manages provenance data.
+- **useErrorMapping**: Maps error codes to user-friendly messages and actions.
 
-app.mount("/ui", StaticFiles(directory="frontend/dist", html=True), name="ui")
-```
+## Utilities
 
-Access at: http://your-server/ui
+- **errorCodes**: Constants representing various error codes.
+- **errorMapper**: Maps error responses to user-friendly messages.
+- **coordinateFormatter**: Utility functions for formatting coordinates.
+- **relativeTime**: Converts timestamps to relative time strings.
 
 ## Contributing
 
-1. Create feature branch
-2. Make changes with TypeScript type safety
-3. Test locally with `npm run dev`
-4. Build and verify: `npm run build && npm run preview`
-5. Submit PR
+Contributions are welcome! Please submit a pull request or open an issue for
+discussion.
 
 ## License
 
-Internal project - DSA-110 @ Caltech
+This project is licensed under the MIT License. See the LICENSE file for
+details.

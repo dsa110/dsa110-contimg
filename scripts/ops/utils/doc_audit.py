@@ -35,31 +35,12 @@ def gather_routes() -> Set[str]:
 
     routes: Set[str] = set()
 
-    # Locate API source tree (supports legacy src/ and current backend/src/)
+    # Locate API source trees - check ALL candidates (backend + legacy.backend)
     api_root_candidates = [
         ROOT / "backend" / "src" / "dsa110_contimg" / "api",
+        ROOT / "legacy.backend" / "src" / "dsa110_contimg" / "api",
         ROOT / "src" / "dsa110_contimg" / "api",
     ]
-    api_root = next((p for p in api_root_candidates if p.exists()), None)
-    if not api_root:
-        return routes
-
-    routes_py = api_root / "routes.py"
-    # Map router alias -> module name
-    alias_to_mod: Dict[str, str] = {}
-    # Map module/alias -> prefix as included
-    alias_prefix: Dict[str, str] = {}
-    if routes_py.exists():
-        s = routes_py.read_text(encoding="utf-8")
-        for m in import_alias_pat.finditer(s):
-            alias_to_mod[m.group("alias")] = m.group("mod")
-        for m in include_alias_pat.finditer(s):
-            alias = m.group("alias")
-            prefix = m.group("prefix") or ""
-            alias_prefix[alias] = prefix
-        for m in include_module_pat.finditer(s):
-            mod = m.group("mod")
-            alias_prefix[mod] = m.group("prefix")
 
     # Helper to add decorated routes from a file, with optional prefix
     def add_from_file(path: Path, prefix: str = ""):
@@ -79,29 +60,48 @@ def gather_routes() -> Set[str]:
                 full = p
             routes.add(full)
 
-    # Include subrouter modules with discovered prefixes
-    routers_dir = api_root / "routers"
-    if routers_dir.exists():
-        for f in routers_dir.glob("*.py"):
-            mod = f.stem
-            prefix = None
-            # Prefer explicit module mapping
-            if mod in alias_prefix:
-                prefix = alias_prefix[mod]
-            else:
-                # Try via alias mapping
-                for alias, a_mod in alias_to_mod.items():
-                    if a_mod == mod and alias in alias_prefix:
-                        prefix = alias_prefix[alias]
-                        break
-            add_from_file(f, prefix or "/api")
+    # Process ALL existing API roots (not just first match)
+    for api_root in api_root_candidates:
+        if not api_root.exists():
+            continue
 
-    # Add routes declared in routes.py 'router' (no prefix)
-    # For routes.py, apply APIRouter prefix (/api) to router-decorated endpoints
-    add_from_file(routes_py, "/api")
+        routes_py = api_root / "routes.py"
+        # Map router alias -> module name
+        alias_to_mod: Dict[str, str] = {}
+        # Map module/alias -> prefix as included
+        alias_prefix: Dict[str, str] = {}
+        if routes_py.exists():
+            s = routes_py.read_text(encoding="utf-8")
+            for m in import_alias_pat.finditer(s):
+                alias_to_mod[m.group("alias")] = m.group("mod")
+            for m in include_alias_pat.finditer(s):
+                alias = m.group("alias")
+                prefix = m.group("prefix") or ""
+                alias_prefix[alias] = prefix
+            for m in include_module_pat.finditer(s):
+                mod = m.group("mod")
+                alias_prefix[mod] = m.group("prefix")
 
-    # Also include health + metrics from app-level decorators
-    # They are already picked up by add_from_file(routes.py)
+        # Include subrouter modules with discovered prefixes
+        routers_dir = api_root / "routers"
+        if routers_dir.exists():
+            for f in routers_dir.glob("*.py"):
+                mod = f.stem
+                prefix = None
+                # Prefer explicit module mapping
+                if mod in alias_prefix:
+                    prefix = alias_prefix[mod]
+                else:
+                    # Try via alias mapping
+                    for alias, a_mod in alias_to_mod.items():
+                        if a_mod == mod and alias in alias_prefix:
+                            prefix = alias_prefix[alias]
+                            break
+                add_from_file(f, prefix or "/api")
+
+        # Add routes declared in routes.py 'router' (no prefix)
+        # For routes.py, apply APIRouter prefix (/api) to router-decorated endpoints
+        add_from_file(routes_py, "/api")
 
     return routes
 
@@ -115,8 +115,24 @@ def extract_api_paths(md_text: str) -> Set[str]:
 
 def extract_file_paths(md_text: str) -> Set[str]:
     # Look for inline code blocks with repo paths like src/... or scripts/... or ops/...
-    cands = set(re.findall(r"`((?:src|scripts|ops|frontend|docs)/[^`\s]+)`,?", md_text))
+    cands = set(re.findall(r"`((?:src|scripts|ops|frontend|docs)/[^`\s]+)`", md_text))
     return cands
+
+
+def is_placeholder_or_glob(path: str) -> bool:
+    """Check if a path is a glob pattern or placeholder, not a literal file reference."""
+    # Glob patterns
+    if "*" in path or "?" in path:
+        return True
+    # Placeholder patterns like <ComponentName> or ...
+    if "<" in path and ">" in path:
+        return True
+    if "..." in path:
+        return True
+    # Template placeholders
+    if "{" in path and "}" in path:
+        return True
+    return False
 
 
 def find_md_files(patterns: Iterable[str]) -> List[Path]:
@@ -141,13 +157,6 @@ def find_md_files(patterns: Iterable[str]) -> List[Path]:
 
 def main(argv: List[str]) -> int:
     routes = gather_routes()
-    # create a helper set with and without /api prefix
-    routes_with_api = set()
-    for r in routes:
-        routes_with_api.add(r)
-        if not r.startswith("/api/") and not r.startswith("/metrics") and not r.startswith("/"):
-            continue
-    # We'll match by stripping optional /api prefix from doc endpoints and compare
     files = find_md_files(argv[1:])
     missing: List[Tuple[str, str, str]] = []
     bad_files: List[Tuple[str, str]] = []
@@ -165,6 +174,9 @@ def main(argv: List[str]) -> int:
                 missing.append((str(f.relative_to(ROOT)), ep, "not found in app routes"))
         paths = extract_file_paths(text)
         for p in sorted(paths):
+            # Skip glob patterns and placeholder paths
+            if is_placeholder_or_glob(p):
+                continue
             full = ROOT / p
             if not full.exists():
                 bad_files.append((str(f.relative_to(ROOT)), p))
@@ -230,7 +242,6 @@ def generate_verified_docs(routes: Set[str]) -> None:
             new = re.sub(f"{start}.*?{end}", block, content, flags=re.S)
         else:
             # Insert near top after title
-            parts = content.split("\n", 2)
             new = content + "\n\n" + block
         dash.write_text(new, encoding="utf-8")
 

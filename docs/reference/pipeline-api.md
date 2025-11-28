@@ -2,7 +2,10 @@
 
 **Purpose:** REST API documentation for pipeline execution and monitoring  
 **Last Updated:** 2025-11-26  
-**Status:** Production
+**Status:** Reference (Legacy Backend)
+
+> **⚠️ Migration Note:** These endpoints are implemented in `legacy.backend` and
+> serve as the specification for the new `backend` implementation.
 
 ---
 

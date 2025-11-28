@@ -126,6 +126,102 @@ def cmd_clear(args):
     print("Index cleared.")
 
 
+def cmd_index_frontend(args):
+    """Index frontend TypeScript/React code."""
+    from .code_indexer import CodeDocSearch
+
+    code_search = CodeDocSearch()
+    frontend_dir = Path(args.frontend_dir)
+
+    if not frontend_dir.exists():
+        print(f"Error: Frontend directory not found: {frontend_dir}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Indexing frontend code in {frontend_dir}...")
+    stats = code_search.index_frontend_directory(
+        frontend_dir=frontend_dir,
+        extensions=tuple(args.extensions),
+        exclude_patterns=tuple(args.exclude),
+        force=args.force,
+    )
+
+    print(f"\nIndexing complete!")
+    print(f"  Files processed: {stats['files_processed']}")
+    print(f"  Chunks indexed: {stats['chunks_indexed']}")
+    print(f"  Files skipped: {stats['files_skipped']}")
+
+    if stats['errors']:
+        print(f"  Errors: {len(stats['errors'])}")
+        for err in stats['errors'][:5]:
+            print(f"    - {err['file']}: {err['error']}")
+
+
+def cmd_search_components(args):
+    """Search for React components."""
+    from .code_indexer import CodeDocSearch
+
+    code_search = CodeDocSearch()
+    results = code_search.search_components(args.query, top_k=args.top_k)
+
+    if not results:
+        print("No components found.")
+        return
+
+    print(f"\nFound {len(results)} components:\n")
+
+    for i, r in enumerate(results, 1):
+        print(f"━━━ {i}. {r['component']} ━━━")
+        print(f"File: {r['file']}:{r['line']}")
+        print(f"Score: {r['score']:.3f}")
+        print()
+        print(r['snippet'])
+        print()
+
+
+def cmd_search_hooks(args):
+    """Search for React hooks."""
+    from .code_indexer import CodeDocSearch
+
+    code_search = CodeDocSearch()
+    results = code_search.search_hooks(args.query, top_k=args.top_k)
+
+    if not results:
+        print("No hooks found.")
+        return
+
+    print(f"\nFound {len(results)} hooks:\n")
+
+    for i, r in enumerate(results, 1):
+        print(f"━━━ {i}. {r['hook']} ━━━")
+        print(f"File: {r['file']}:{r['line']}")
+        print(f"Score: {r['score']:.3f}")
+        print()
+        print(r['snippet'])
+        print()
+
+
+def cmd_find_api(args):
+    """Find where an API endpoint is used."""
+    from .code_indexer import CodeDocSearch
+
+    code_search = CodeDocSearch()
+    results = code_search.search_api_calls(args.endpoint, top_k=args.top_k)
+
+    if not results:
+        print(f"No usage found for endpoint: {args.endpoint}")
+        return
+
+    print(f"\nFound {len(results)} usages of {args.endpoint}:\n")
+
+    for i, r in enumerate(results, 1):
+        print(f"━━━ {i}. {r['location']} ━━━")
+        print(f"Context: {r['context']}")
+        print(f"Score: {r['score']:.3f}")
+        print()
+        print(r['snippet'])
+        print()
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Local documentation search using SQLite and embeddings"
@@ -185,6 +281,78 @@ def main():
         help="Skip confirmation"
     )
     clear_parser.set_defaults(func=cmd_clear)
+
+    # Index frontend code
+    index_frontend_parser = subparsers.add_parser(
+        "index-frontend",
+        help="Index frontend TypeScript/React code"
+    )
+    index_frontend_parser.add_argument(
+        "--frontend-dir",
+        type=str,
+        default="/data/dsa110-contimg/frontend/src",
+        help="Frontend source directory (default: /data/dsa110-contimg/frontend/src)"
+    )
+    index_frontend_parser.add_argument(
+        "--extensions",
+        nargs="+",
+        default=[".ts", ".tsx"],
+        help="File extensions to index (default: .ts .tsx)"
+    )
+    index_frontend_parser.add_argument(
+        "--exclude",
+        nargs="+",
+        default=["node_modules", "dist", "build", ".test.", ".spec.", "__tests__"],
+        help="Patterns to exclude"
+    )
+    index_frontend_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Re-index all files even if unchanged"
+    )
+    index_frontend_parser.set_defaults(func=cmd_index_frontend)
+
+    # Search components
+    search_components_parser = subparsers.add_parser(
+        "search-components",
+        help="Search for React components"
+    )
+    search_components_parser.add_argument("query", type=str, help="Search query")
+    search_components_parser.add_argument(
+        "--top-k",
+        type=int,
+        default=5,
+        help="Number of results"
+    )
+    search_components_parser.set_defaults(func=cmd_search_components)
+
+    # Search hooks
+    search_hooks_parser = subparsers.add_parser(
+        "search-hooks",
+        help="Search for React hooks"
+    )
+    search_hooks_parser.add_argument("query", type=str, help="Search query")
+    search_hooks_parser.add_argument(
+        "--top-k",
+        type=int,
+        default=5,
+        help="Number of results"
+    )
+    search_hooks_parser.set_defaults(func=cmd_search_hooks)
+
+    # Find API usage
+    find_api_parser = subparsers.add_parser(
+        "find-api",
+        help="Find API endpoint usage"
+    )
+    find_api_parser.add_argument("endpoint", type=str, help="API endpoint path")
+    find_api_parser.add_argument(
+        "--top-k",
+        type=int,
+        default=10,
+        help="Number of results"
+    )
+    find_api_parser.set_defaults(func=cmd_find_api)
 
     args = parser.parse_args()
 

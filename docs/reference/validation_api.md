@@ -1,5 +1,10 @@
 # Validation API Reference
 
+> **⚠️ Migration Note:** These endpoints are implemented in `legacy.backend` and
+> serve as the specification for the new `backend` implementation. See
+> `legacy.backend/src/dsa110_contimg/api/` for the reference implementation.
+
+
 ## Overview
 
 The DSA-110 Continuum Imaging Pipeline provides comprehensive validation

@@ -1,1 +1,3 @@
-"""Imaging worker components for the DSA-110 continuum pipeline."""
+# backend/src/dsa110_contimg/imaging/__init__.py
+
+"""This file initializes the imaging module."""

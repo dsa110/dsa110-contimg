@@ -361,9 +361,9 @@ flux_1400 = racs_flux_888 * (1400.0 / 888.0) ** spectral_index
 
 ## Related Documentation
 
-- `docs/reference/RADIO_SURVEY_CATALOG_COMPARISON.md` - Survey specifications
-  comparison
-- `docs/reference/FIRST_DECLINATION_COVERAGE.md` - FIRST coverage details
+- Survey specifications (see NVSS/FIRST/RACS papers)
+
+- FIRST coverage details: Check FIRST survey footprint at http://sundog.stsci.edu/
 - `backend/src/dsa110_contimg/catalog/query.py` - Catalog query interface
 - `backend/src/dsa110_contimg/qa/catalog_validation.py` - Catalog validation
   functions

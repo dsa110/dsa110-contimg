@@ -1,44 +1,33 @@
-"""
-Writer strategies for DSA-110 UVH5 to MS conversion.
+from dsa110_contimg.utils.constants import OVRO_LOCATION
+from dsa110_contimg.utils.antpos_local import get_itrf
+from pyuvdata import UVData
 
-This module provides a Strategy pattern implementation for different
-MS writing approaches.
+class BaseWriter:
+    def __init__(self, uvdata: UVData, output_path: str, **kwargs):
+        self.uvdata = uvdata
+        self.output_path = output_path
+        self.writer_kwargs = kwargs
 
-Production use: Always use 'parallel-subband' (or 'direct-subband' alias).
-Testing use: 'pyuvdata' is available for testing scenarios with ≤2 subbands.
-"""
-
-from .direct_subband import DirectSubbandWriter
-from .pyuvdata_monolithic import PyuvdataMonolithicWriter
+    def write(self):
+        raise NotImplementedError("Subclasses should implement this method.")
 
 
-def get_writer(strategy: str) -> type:
-    """Get a writer strategy class by name.
+class ParallelSubbandWriter(BaseWriter):
+    def write(self):
+        # Implement parallel writing logic for subband data
+        pass
 
-    Production processing always uses 16 subbands and should use 'parallel-subband'.
-    The 'pyuvdata' writer is available for testing scenarios with ≤2 subbands only.
 
-    Args:
-        strategy: Name of the strategy:
-            - 'parallel-subband': Production writer (default for 16 subbands)
-            - 'direct-subband': Alias for 'parallel-subband' (backward compatibility)
-            - 'pyuvdata': Testing-only writer (for ≤2 subbands)
+class PyuvdataWriter(BaseWriter):
+    def write(self):
+        # Implement writing logic using pyuvdata
+        pass
 
-    Returns:
-        MSWriter class
 
-    Raises:
-        ValueError: If strategy is not recognized
-    """
-    strategies = {
-        "pyuvdata": PyuvdataMonolithicWriter,  # Testing only: ≤2 subbands
-        "parallel-subband": DirectSubbandWriter,  # Production: 16 subbands
-        "direct-subband": DirectSubbandWriter,  # Backward compatibility alias
-    }
-
-    if strategy not in strategies:
-        raise ValueError(
-            f"Unknown writer strategy: {strategy}. Available: {list(strategies.keys())}"
-        )
-
-    return strategies[strategy]
+def get_writer(writer_type: str):
+    if writer_type == 'parallel-subband':
+        return ParallelSubbandWriter
+    elif writer_type == 'pyuvdata':
+        return PyuvdataWriter
+    else:
+        raise ValueError(f"Unknown writer type: {writer_type}")

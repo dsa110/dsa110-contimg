@@ -108,8 +108,8 @@ How to test the implementation...
 
 ## References
 
-- Related components: `src/components/...`
-- Related hooks: `src/hooks/...`
+- Related components: `frontend/src/components/<ComponentName>``
+- Related hooks: `frontend/src/hooks/<hookName>``
 - Related documentation: [Document Link]
 ```
 
@@ -381,15 +381,15 @@ See [Testing Documentation](./INDEX.md#3-testing-documentation)
 ```markdown
 # File references (use code reference format)
 
-See `src/components/ComponentName.tsx`
+See `frontend/src/components/<ComponentName>.tsx`
 
 # Function/class references
 
-See `useHookName()` in `src/hooks/`
+See `useHookName()` in `frontend/src/hooks/`
 
 # Full paths for clarity
 
-Implementation: `src/components/Feature/FeatureComponent.tsx`
+Implementation: `frontend/src/components/<Feature>/<FeatureComponent>.tsx`
 ```
 
 ### External Links

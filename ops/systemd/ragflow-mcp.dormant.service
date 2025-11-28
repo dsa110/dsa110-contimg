@@ -1,0 +1,16 @@
+[Unit]
+Description=RAGFlow MCP Server for DSA-110 Documentation
+After=network.target docker-ragflow-cpu-1.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/data/dsa110-contimg/docs/ragflow
+Environment="PATH=/opt/miniforge/envs/casa6/bin:/opt/miniforge/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+EnvironmentFile=/data/dsa110-contimg/config/ragflow.env
+ExecStart=/opt/miniforge/envs/casa6/bin/python /data/dsa110-contimg/docs/ragflow/mcp_server.py --sse --port 9400
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

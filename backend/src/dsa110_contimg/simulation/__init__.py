@@ -1,1 +1,1 @@
-"""Simulation utilities for generating synthetic DSA-110 datasets."""
+# This file initializes the simulation module.

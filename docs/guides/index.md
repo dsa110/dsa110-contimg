@@ -6,6 +6,8 @@ Practical guides for operators, developers, and users.
 
 - [ABSURD Quickstart](ABSURD_QUICKSTART.md) - Pipeline workflow setup
 - [Dashboard Quickstart](dashboard/dashboard-quickstart.md) - Web interface
+- [Frontend Code Search](code-search.md) - Search components, hooks, and API
+  usage
 
 ## Workflow
 

@@ -7,9 +7,12 @@ RAGFlow Integration - Reference Implementation
 
 **Recommended Usage:**
 
-For lightweight documentation search, use `dsa110_contimg.docsearch` instead:
+For lightweight documentation search, use the standalone DocSearch in
+`docs/docsearch/` instead:
 
-    >>> from dsa110_contimg.docsearch import DocSearch
+    >>> import sys
+    >>> sys.path.insert(0, "/data/dsa110-contimg/docs/docsearch")
+    >>> from search import DocSearch
     >>> search = DocSearch()
     >>> results = search.search("your query")
 
@@ -26,20 +29,16 @@ For RAGFlow integration:
     python cli.py upload --docs-dir /path/to/docs
     ```
 
-MCP Server:
-    Run the MCP server for AI agent integration:
-    
-    ```bash
-    cd /data/dsa110-contimg/docs/ragflow
-    python mcp_server.py --sse --port 9400
-    ```
+MCP Server (archived):
+    A legacy MCP server is preserved as `mcp_server_dormant.py` for reference
+    only. Prefer the REST API and CLI flows above.
 
 **Note:** These files are examples and require manual setup. They are not
 automatically installed or imported by the pipeline.
 """
 
-# These imports only work when running scripts directly from this directory
-# They are NOT available via `from dsa110_contimg.ragflow import ...`
+# These imports only work when running scripts directly from this directory.
+# They are NOT exposed as a package import.
 try:
     from client import RAGFlowClient
     from uploader import DocumentUploader

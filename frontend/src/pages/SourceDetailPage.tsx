@@ -1,418 +1,222 @@
+import React, { useEffect, useState } from "react";
+import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
+import ErrorDisplay from "../components/errors/ErrorDisplay";
+import { mapProvenanceFromSourceDetail, SourceDetailResponse } from "../utils/provenanceMappers";
+import type { ErrorResponse } from "../types/errors";
+import type { ProvenanceStripProps } from "../types/provenance";
+import apiClient from "../api/client";
+
+interface SourceDetailPageProps {
+  sourceId: string;
+}
+
 /**
- * Source Detail Page
- *
- * VAST-inspired source detail page with three-column layout:
- * - Column 1: Source details and metadata
- * - Column 2: Sky visualization (Aladin Lite)
- * - Column 3: Comments/Annotations
- *
- * Full-width sections below:
- * - Light curve visualization
- * - Detections table (using GenericTable)
- * - Related sources table
- *
- * Inspired by VAST's source_detail.html
- *
- * @module pages/SourceDetailPage
+ * Detail page for an astronomical source.
+ * Displays source info, lightcurve, contributing images, and provenance.
  */
+const SourceDetailPage: React.FC<SourceDetailPageProps> = ({ sourceId }) => {
+  const [source, setSource] = useState<SourceDetailResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<ErrorResponse | null>(null);
+  const [selectedImageId, setSelectedImageId] = useState<string | undefined>(undefined);
 
-import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import {
-  Container,
-  Typography,
-  Button,
-  Stack,
-  Chip,
-  Divider,
-  Collapse,
-  IconButton,
-  Alert,
-  Card,
-  CardContent,
-  CardHeader,
-  Tooltip,
-  Snackbar,
-} from "@mui/material";
-import { SkeletonLoader } from "../components/SkeletonLoader";
-import {
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
-  Link as LinkIcon,
-  ContentCopy as ContentCopyIcon,
-} from "@mui/icons-material";
-import { useSourceDetail, useSourceLightcurve } from "../api/queries";
-import GenericTable from "../components/GenericTable";
-import type { TableColumn } from "../components/GenericTable";
-import { Box } from "@mui/material";
-import PageBreadcrumbs from "../components/PageBreadcrumbs";
-import { formatRA, formatDec, copyToClipboard } from "../utils/coordinateUtils";
-import { formatDateTime } from "../utils/dateUtils";
-import { LightCurveChart } from "../components/LightCurveChart";
+  useEffect(() => {
+    const fetchSource = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await apiClient.get<SourceDetailResponse>(`/sources/${sourceId}`);
+        setSource(response.data);
+        // Default to first contributing image
+        if (response.data.contributing_images?.length) {
+          setSelectedImageId(response.data.contributing_images[0].image_id);
+        }
+      } catch (err) {
+        setError(err as ErrorResponse);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-export default function SourceDetailPage() {
-  const { sourceId } = useParams<{ sourceId: string }>();
-  const navigate = useNavigate();
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    lightCurve: true,
-    detections: true,
-    related: true,
-  });
-  const [copyFeedback, setCopyFeedback] = useState(false);
+    fetchSource();
+  }, [sourceId]);
 
-  // Fetch source data
-  const {
-    data: source,
-    isLoading: sourceLoading,
-    error: sourceError,
-  } = useSourceDetail(sourceId || null);
-
-  // Fetch lightcurve data
-  const {
-    data: lightcurveData,
-    isLoading: lightcurveLoading,
-    error: lightcurveError,
-  } = useSourceLightcurve(sourceId || null);
-
-  const toggleSection = (section: string) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
-
-  const handleCopyCoordinates = () => {
-    if (source) {
-      const text = `RA: ${source.ra_deg}, Dec: ${source.dec_deg}`;
-      copyToClipboard(text).then(() => setCopyFeedback(true));
-    }
-  };
-
-  // Detection columns for GenericTable
-  const detectionColumns: TableColumn<any>[] = [
-    {
-      field: "name",
-      label: "Name",
-      sortable: true,
-    },
-    {
-      field: "ra",
-      label: "RA (deg)",
-      sortable: true,
-      render: (value) => (value ? value.toFixed(6) : "N/A"),
-    },
-    {
-      field: "dec",
-      label: "Dec (deg)",
-      sortable: true,
-      render: (value) => (value ? value.toFixed(6) : "N/A"),
-    },
-    {
-      field: "flux_peak",
-      label: "Peak Flux (mJy/beam)",
-      sortable: true,
-      render: (value, row) => {
-        if (!value) return "N/A";
-        const err = row.flux_peak_err ? ` ± ${row.flux_peak_err.toFixed(3)}` : "";
-        return `${value.toFixed(3)}${err}`;
-      },
-    },
-    {
-      field: "flux_int",
-      label: "Int. Flux (mJy)",
-      sortable: true,
-      render: (value, row) => {
-        if (!value) return "N/A";
-        const err = row.flux_int_err ? ` ± ${row.flux_int_err.toFixed(3)}` : "";
-        return `${value.toFixed(3)}${err}`;
-      },
-    },
-    {
-      field: "snr",
-      label: "SNR",
-      sortable: true,
-      render: (value) => (value ? value.toFixed(2) : "N/A"),
-    },
-    {
-      field: "forced",
-      label: "Forced",
-      sortable: true,
-      render: (value) => (value ? "Yes" : "No"),
-    },
-    {
-      field: "measured_at",
-      label: "Date",
-      sortable: true,
-      render: (value) => formatDateTime(value),
-    },
-  ];
-
-  if (sourceLoading) {
+  if (loading) {
     return (
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        <SkeletonLoader variant="cards" rows={4} />
-      </Container>
+      <div className="page-loading" style={{ padding: "20px", textAlign: "center" }}>
+        Loading source details...
+      </div>
     );
   }
 
-  if (sourceError || !source) {
+  if (error) {
     return (
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Alert severity="error">
-          Failed to load source details.{" "}
-          {sourceError instanceof Error ? sourceError.message : "Unknown error"}
-        </Alert>
-      </Container>
+      <div className="page-error" style={{ padding: "20px" }}>
+        <ErrorDisplay error={error} />
+      </div>
     );
   }
+
+  if (!source) {
+    return (
+      <div className="page-empty" style={{ padding: "20px" }}>
+        Source not found.
+      </div>
+    );
+  }
+
+  const provenance: ProvenanceStripProps | null = mapProvenanceFromSourceDetail(
+    source,
+    selectedImageId
+  );
 
   return (
-    <>
-      <PageBreadcrumbs />
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        {/* Page Header */}
-        <Box
-          sx={{
-            mb: 4,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Box>
-            <Typography variant="h4" gutterBottom>
-              <strong>Source:</strong> {source.name}
-            </Typography>
-            {source.ese_probability && source.ese_probability > 0 && (
-              <Chip
-                label={`ESE Candidate (${(source.ese_probability * 100).toFixed(1)}%)`}
-                color="warning"
-                size="small"
-                sx={{ mt: 1 }}
-              />
-            )}
-            {source.new_source && (
-              <Chip label="New Source" color="success" size="small" sx={{ mt: 1, ml: 1 }} />
-            )}
-          </Box>
-          <Stack direction="row" spacing={1}>
-            {/* External links */}
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={<LinkIcon />}
-              href={`https://simbad.u-strasbg.fr/simbad/sim-coo?Coord=${source.ra_deg}d${source.dec_deg}d`}
-              target="_blank"
-            >
-              SIMBAD
-            </Button>
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={<LinkIcon />}
-              href={`https://ned.ipac.caltech.edu/conesearch?coordinates=${source.ra_deg}d%20${source.dec_deg}d`}
-              target="_blank"
-            >
-              NED
-            </Button>
-          </Stack>
-        </Box>
+    <div className="source-detail-page" style={{ padding: "20px" }}>
+      <header style={{ marginBottom: "20px" }}>
+        <h1 style={{ margin: "0 0 12px" }}>Source: {source.name || source.id}</h1>
+        {provenance && <ProvenanceStrip {...provenance} />}
+      </header>
 
-        {/* Three-Column Layout */}
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
-            gap: 3,
-          }}
-        >
-          {/* Column 1: Details */}
-          <Box>
-            <Card>
-              <CardHeader
-                title="Details"
-                action={
-                  <Tooltip title="Copy Coordinates">
-                    <IconButton onClick={handleCopyCoordinates} size="small">
-                      <ContentCopyIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                }
-              />
-              <CardContent>
-                <Typography variant="body2" paragraph>
-                  <strong>Name:</strong> {source.name}
-                </Typography>
-                <Divider sx={{ my: 2 }} />
+      <section className="source-coordinates" style={{ marginBottom: "20px" }}>
+        <h2>Coordinates</h2>
+        <table style={{ borderCollapse: "collapse", width: "100%", maxWidth: "400px" }}>
+          <tbody>
+            <tr>
+              <td style={{ padding: "8px", borderBottom: "1px solid #eee", fontWeight: "bold" }}>
+                RA
+              </td>
+              <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>
+                {source.ra_deg.toFixed(6)}°
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: "8px", borderBottom: "1px solid #eee", fontWeight: "bold" }}>
+                Dec
+              </td>
+              <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>
+                {source.dec_deg.toFixed(6)}°
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-                <Typography variant="body2" paragraph>
-                  <strong>Position:</strong>
-                  <br />
-                  {formatRA(source.ra_deg)} {formatDec(source.dec_deg)}
-                  <br />
-                  <strong>Decimal:</strong> {source.ra_deg.toFixed(6)} {source.dec_deg.toFixed(6)}
-                </Typography>
-
-                <Divider sx={{ my: 2 }} />
-
-                <Typography variant="body2" paragraph>
-                  <strong>Flux Statistics:</strong>
-                  <br />
-                  {source.mean_flux_jy && (
-                    <>
-                      Mean Flux: {(source.mean_flux_jy * 1000).toFixed(3)} mJy
-                      <br />
-                    </>
-                  )}
-                  {source.std_flux_jy && (
-                    <>
-                      Std Flux: {(source.std_flux_jy * 1000).toFixed(3)} mJy
-                      <br />
-                    </>
-                  )}
-                  {source.max_snr && (
-                    <>
-                      Max SNR: {source.max_snr.toFixed(2)}
-                      <br />
-                    </>
-                  )}
-                  {source.variability_metrics && (
-                    <>
-                      Variability (v): {source.variability_metrics.v.toFixed(3)}
-                      <br />
-                      Variability (η): {source.variability_metrics.eta.toFixed(3)}
-                    </>
-                  )}
-                </Typography>
-
-                <Divider sx={{ my: 2 }} />
-
-                <Typography variant="body2" paragraph>
-                  <strong>Measurements:</strong>
-                  <br />
-                  Total: {source.n_meas}
-                  <br />
-                  Forced: {source.n_meas_forced}
-                </Typography>
-
-                {source.ese_probability !== undefined && source.ese_probability > 0 && (
-                  <>
-                    <Divider sx={{ my: 2 }} />
-                    <Typography variant="body2" paragraph>
-                      <strong>ESE Metrics:</strong>
-                      <br />
-                      Probability: {(source.ese_probability * 100).toFixed(1)}%
-                    </Typography>
-                  </>
+      {source.contributing_images && source.contributing_images.length > 0 && (
+        <section className="source-images" style={{ marginBottom: "20px" }}>
+          <h2>Contributing Images ({source.contributing_images.length})</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: "600px" }}>
+            {source.contributing_images.map((img) => (
+              <div
+                key={img.image_id}
+                style={{
+                  padding: "12px",
+                  border: selectedImageId === img.image_id ? "2px solid #0066cc" : "1px solid #ddd",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  backgroundColor: selectedImageId === img.image_id ? "#f0f7ff" : "white",
+                }}
+                onClick={() => setSelectedImageId(img.image_id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    setSelectedImageId(img.image_id);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+              >
+                <div style={{ fontWeight: "bold" }}>
+                  <a href={`/images/${img.image_id}`}>{img.path.split("/").pop()}</a>
+                </div>
+                {img.ms_path && (
+                  <div style={{ fontSize: "0.9em", color: "#666" }}>
+                    MS: {img.ms_path.split("/").pop()}
+                  </div>
                 )}
-              </CardContent>
-            </Card>
-          </Box>
+                <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
+                  {img.qa_grade && (
+                    <span
+                      style={{
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                        fontSize: "0.8em",
+                        backgroundColor:
+                          img.qa_grade === "good"
+                            ? "#d4edda"
+                            : img.qa_grade === "warn"
+                              ? "#fff3cd"
+                              : "#f8d7da",
+                        color:
+                          img.qa_grade === "good"
+                            ? "#155724"
+                            : img.qa_grade === "warn"
+                              ? "#856404"
+                              : "#721c24",
+                      }}
+                    >
+                      {img.qa_grade.toUpperCase()}
+                    </span>
+                  )}
+                  {img.created_at && (
+                    <span style={{ fontSize: "0.8em", color: "#999" }}>
+                      {new Date(img.created_at).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
-          {/* Column 2: Sky Visualization */}
-          {/* Temporarily simplified until Aladin Lite is fully integrated */}
-          <Box>
-            <Card>
-              <CardHeader title="Sky View" />
-              <CardContent>
-                <Box
-                  sx={{
-                    width: "100%",
-                    height: "400px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    bgcolor: "background.default",
-                    border: "1px solid",
-                    borderColor: "divider",
-                    borderRadius: 1,
-                  }}
-                >
-                  <Button variant="contained" onClick={() => navigate("/sky")}>
-                    Open Interactive Sky Map
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-          </Box>
-
-          {/* Column 3: Comments/Annotations */}
-          <Box>
-            <Card>
-              <CardHeader title="Comments & Annotations" />
-              <CardContent>
-                <Alert severity="info">No comments yet.</Alert>
-              </CardContent>
-            </Card>
-          </Box>
-        </Box>
-
-        {/* Full-width: Light Curve */}
-        <Box sx={{ mt: 3 }}>
-          <Card>
-            <CardHeader
-              title="Light Curve"
-              action={
-                <IconButton onClick={() => toggleSection("lightCurve")}>
-                  {expandedSections.lightCurve ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                </IconButton>
-              }
-            />
-            <Collapse in={expandedSections.lightCurve}>
-              <CardContent>
-                <LightCurveChart
-                  data={lightcurveData}
-                  isLoading={lightcurveLoading}
-                  error={lightcurveError as Error | null}
-                  height={400}
-                />
-              </CardContent>
-            </Collapse>
-          </Card>
-        </Box>
-
-        {/* Full-width: Detections Table */}
-        <Box sx={{ mt: 3 }}>
-          <Card>
-            <CardHeader
-              title="Detections"
-              action={
-                <IconButton onClick={() => toggleSection("detections")}>
-                  {expandedSections.detections ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                </IconButton>
-              }
-            />
-            <Collapse in={expandedSections.detections}>
-              <CardContent>
-                <GenericTable<any>
-                  apiEndpoint={`/sources/${sourceId}/detections`}
-                  columns={detectionColumns}
-                  title=""
-                  searchable={true}
-                  exportable={true}
-                  pageSize={25}
-                  onRowClick={(row) => {
-                    if (row.image_id) {
-                      navigate(`/images/${row.image_id}`);
-                    }
-                  }}
-                  transformData={(data) => ({
-                    rows: data.items || [],
-                    total: data.total || 0,
-                  })}
-                />
-              </CardContent>
-            </Collapse>
-          </Card>
-        </Box>
-      </Container>
-
-      <Snackbar
-        open={copyFeedback}
-        autoHideDuration={2000}
-        onClose={() => setCopyFeedback(false)}
-        message="Coordinates copied to clipboard"
-      />
-    </>
+      <section
+        className="source-actions"
+        style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}
+      >
+        <button
+          type="button"
+          style={{
+            padding: "10px 16px",
+            backgroundColor: "#0066cc",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+          onClick={() => window.open(`/api/sources/${sourceId}/lightcurve`, "_blank")}
+        >
+          View Lightcurve
+        </button>
+        <button
+          type="button"
+          style={{
+            padding: "10px 16px",
+            backgroundColor: "#28a745",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+          onClick={() => window.open(`/api/sources/${sourceId}/postage_stamps`, "_blank")}
+        >
+          Download Postage Stamps
+        </button>
+        <button
+          type="button"
+          style={{
+            padding: "10px 16px",
+            backgroundColor: "#6c757d",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+          onClick={() => window.open(`/api/sources/${sourceId}/variability`, "_blank")}
+        >
+          Variability Analysis
+        </button>
+      </section>
+    </div>
   );
-}
+};
+
+export default SourceDetailPage;

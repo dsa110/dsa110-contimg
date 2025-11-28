@@ -136,8 +136,8 @@ CREATE INDEX IF NOT EXISTS idx_caltables_source ON caltables(source_ms_path);
 **Migration**: Existing databases are automatically migrated when accessed. Old
 entries will have NULL values for provenance fields.
 
-**See Also**: `docs/dev-notes/calibration_provenance_tracking_implementation.md` for
-complete documentation.
+**See Also**: the `caltables` table schema above for
+provenance field descriptions.
 
 ---
 

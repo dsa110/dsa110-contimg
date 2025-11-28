@@ -17,14 +17,19 @@ This directory provides reference implementations for integrating with
 (Retrieval-Augmented Generation).
 
 **Recommended Alternative:** For lightweight documentation search, use
-`DocSearch` (`dsa110_contimg.docsearch`) instead. RAGFlow is optional and
-intended for advanced use cases requiring full RAG capabilities.
+`DocSearch` in `docs/docsearch/` instead. RAGFlow is optional and intended for
+advanced use cases requiring full RAG capabilities.
+
+**Location & usage:** Lives in `docs/ragflow/` as standalone reference code
+(not installed as `dsa110_contimg.ragflow`). Prefer the REST API via the CLI
+and `client.py`. The old MCP server is archived (`mcp_server_dormant.py`) and
+should not be used.
 
 RAGFlow provides:
 
 - **Document indexing** for DSA-110 documentation
 - **Semantic search** with embedding-based retrieval
-- **MCP server** for AI agent integration
+- **REST API** for search/chat (preferred entry point)
 
 ## Quick Start
 
@@ -97,8 +102,9 @@ for chunk in results:
     print(chunk["content"][:200])
 ```
 
-**Note:** This approach is for reference/testing only. For production, use the
-REST API directly or the DocSearch module.
+**Note:** All code here calls the RAGFlow REST API (default
+`http://localhost:9380`). For agents, prefer hitting the REST API directly
+instead of the archived MCP server.
 
 ## CLI Commands
 
@@ -155,102 +161,11 @@ python cli.py create-chat "DSA-110 Assistant" \
     --prompt "You are an expert on DSA-110..."
 ```
 
-## MCP Server Integration
+## MCP Server (Archived)
 
-This directory includes a custom MCP (Model Context Protocol) server that
-exposes RAGFlow's retrieval capabilities as tools for VS Code/Copilot and other
-AI agents.
-
-### Start the MCP Server
-
-```bash
-# Activate environment
-conda activate casa6
-cd /data/dsa110-contimg/docs/ragflow
-
-# Start MCP server on port 9400
-export RAGFLOW_API_KEY="your-api-key"
-python mcp_server.py --sse --port 9400
-
-# Or use systemd (update service file to point to new location)
-sudo cp ops/systemd/ragflow-mcp.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl start ragflow-mcp
-```
-
-### VS Code GitHub Copilot
-
-Update the MCP configuration in `.vscode/mcp.json`:
-
-```json
-{
-  "servers": {
-    "ragflow-dsa110": {
-      "type": "sse",
-      "url": "http://localhost:9400/sse",
-      "description": "DSA-110 documentation search via RAGFlow"
-    }
-  }
-}
-```
-
-Or use stdio mode:
-
-```json
-{
-  "servers": {
-    "ragflow-dsa110": {
-      "type": "stdio",
-      "command": "python",
-      "args": ["/data/dsa110-contimg/docs/ragflow/mcp_server.py", "--stdio"],
-      "env": {
-        "RAGFLOW_API_KEY": "your-api-key"
-      }
-    }
-  }
-}
-```
-
-### Available MCP Tools
-
-The MCP server exposes these tools:
-
-1. **search_dsa110_docs**: Search documentation with a query
-   - Parameters: `query` (string), `top_k` (integer, optional)
-   - Returns: Relevant document chunks with similarity scores
-
-2. **ask_dsa110_assistant**: Ask a question to the chat assistant
-   - Parameters: `question` (string)
-   - Returns: AI-generated answer with source citations
-
-### Claude Desktop
-
-Add to `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "ragflow-dsa110": {
-      "command": "python",
-      "args": ["-m", "dsa110_contimg.ragflow.mcp_server", "--stdio"],
-      "env": {
-        "RAGFLOW_API_KEY": "YOUR_API_KEY",
-        "RAGFLOW_BASE_URL": "http://localhost:9380"
-      }
-    }
-  }
-}
-```
-
-### Test MCP Connection
-
-```bash
-# Health check
-curl http://localhost:9400/health
-
-# SSE endpoint test (should return session endpoint)
-curl -H "Accept: text/event-stream" http://localhost:9400/sse
-```
+An old MCP server implementation is preserved as `mcp_server_dormant.py` for
+reference only. It is not maintained or recommended; prefer the REST API flows
+above.
 
 ## Configuration
 
@@ -269,7 +184,7 @@ curl -H "Accept: text/event-stream" http://localhost:9400/sse
 | ---------- | --------------------------- | ---------------------- |
 | Web UI     | `http://localhost:9080`     | RAGFlow user interface |
 | REST API   | `http://localhost:9380`     | RAGFlow REST API       |
-| Custom MCP | `http://localhost:9400/sse` | Our MCP server (SSE)   |
+| Custom MCP | Archived (`mcp_server_dormant.py`) | Not recommended        |
 
 ## Architecture
 
@@ -277,7 +192,7 @@ curl -H "Accept: text/event-stream" http://localhost:9400/sse
 ┌─────────────────────────────────────────────────────────────┐
 │                    RAGFlow Stack                            │
 ├─────────────────────────────────────────────────────────────┤
-│  Web UI (9080)  │  API (9380)  │  MCP Server (9382)         │
+│  Web UI (9080)  │  API (9380)  │  MCP Server (archived)     │
 ├─────────────────────────────────────────────────────────────┤
 │                    RAGFlow Core                             │
 │  - Document Parsing (DeepDoc)                               │
@@ -318,32 +233,26 @@ curl -H "Authorization: Bearer $RAGFLOW_API_KEY" \
 2. Check that parsing completed (status should be DONE)
 3. Try lowering the similarity threshold: `--threshold 0.1`
 
-### MCP Connection Issues
-
-1. Ensure API key is set in environment
-2. Check MCP endpoint responds:
-   ```bash
-   curl -v http://localhost:9382/sse -H "api_key: $RAGFLOW_API_KEY"
-   ```
-
 ## Development
 
 ### Module Structure
 
 ```
-backend/src/dsa110_contimg/ragflow/
-├── __init__.py      # Package exports
-├── client.py        # RAGFlow API client
+docs/ragflow/
+├── __init__.py      # Reference exports (not installed)
+├── client.py        # RAGFlow API client wrapper
 ├── config.py        # Configuration management
 ├── uploader.py      # Batch document uploader
-└── cli.py           # Command-line interface
+├── cli.py           # Command-line interface
+└── mcp_server_dormant.py  # Archived MCP server (do not use)
 ```
 
 ### Running Tests
 
 ```bash
 conda activate casa6
-python -m pytest backend/tests/ragflow/ -v
+cd /data/dsa110-contimg/docs/ragflow
+python cli.py --help
 ```
 
 ## See Also
