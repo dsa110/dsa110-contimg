@@ -1,6 +1,7 @@
 {
   "name": "frontend",
   "version": "1.0.0",
+  "type": "module",
   "description": "Frontend application for managing provenance and error handling.",
   "main": "src/index.tsx",
   "scripts": {
