@@ -29,7 +29,7 @@ const CoordinateDisplay: React.FC<CoordinateDisplayProps> = ({
   allowFormatToggle = false,
 }) => {
   const [showHMS, setShowHMS] = useState(true);
-  
+
   const raHMS = formatRA(raDeg);
   const decDMS = formatDec(decDeg);
 
@@ -77,7 +77,12 @@ const CoordinateDisplay: React.FC<CoordinateDisplayProps> = ({
               title={showHMS ? "Switch to decimal degrees" : "Switch to HMS/DMS"}
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                />
               </svg>
               {showHMS ? "Decimal" : "HMS/DMS"}
             </button>
@@ -98,9 +103,7 @@ const CoordinateDisplay: React.FC<CoordinateDisplayProps> = ({
           ) : (
             <>
               <div className="font-mono text-sm text-gray-900">{formatDegrees(raDeg, 6)}</div>
-              {showDecimal && (
-                <div className="font-mono text-xs text-gray-500">{raHMS}</div>
-              )}
+              {showDecimal && <div className="font-mono text-xs text-gray-500">{raHMS}</div>}
             </>
           )}
         </div>
@@ -117,9 +120,7 @@ const CoordinateDisplay: React.FC<CoordinateDisplayProps> = ({
           ) : (
             <>
               <div className="font-mono text-sm text-gray-900">{formatDegrees(decDeg, 6)}</div>
-              {showDecimal && (
-                <div className="font-mono text-xs text-gray-500">{decDMS}</div>
-              )}
+              {showDecimal && <div className="font-mono text-xs text-gray-500">{decDMS}</div>}
             </>
           )}
         </div>

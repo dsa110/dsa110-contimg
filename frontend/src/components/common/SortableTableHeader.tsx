@@ -42,9 +42,7 @@ const SortableTableHeader: React.FC<SortableTableHeaderProps> = ({
         <span>{children}</span>
         <span className="inline-flex flex-col text-[10px] leading-none ml-1">
           <span
-            className={`${
-              isActive && sortDirection === "asc" ? "text-blue-600" : "text-gray-300"
-            }`}
+            className={`${isActive && sortDirection === "asc" ? "text-blue-600" : "text-gray-300"}`}
           >
             ▲
           </span>
@@ -74,20 +72,23 @@ export function useTableSort<T>(
   const [sortColumn, setSortColumn] = React.useState<string | null>(defaultColumn);
   const [sortDirection, setSortDirection] = React.useState<SortDirection>(defaultDirection);
 
-  const handleSort = React.useCallback((columnKey: string) => {
-    if (sortColumn !== columnKey) {
-      setSortColumn(columnKey);
-      setSortDirection("asc");
-    } else if (sortDirection === "asc") {
-      setSortDirection("desc");
-    } else if (sortDirection === "desc") {
-      setSortColumn(null);
-      setSortDirection(null);
-    } else {
-      setSortColumn(columnKey);
-      setSortDirection("asc");
-    }
-  }, [sortColumn, sortDirection]);
+  const handleSort = React.useCallback(
+    (columnKey: string) => {
+      if (sortColumn !== columnKey) {
+        setSortColumn(columnKey);
+        setSortDirection("asc");
+      } else if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else if (sortDirection === "desc") {
+        setSortColumn(null);
+        setSortDirection(null);
+      } else {
+        setSortColumn(columnKey);
+        setSortDirection("asc");
+      }
+    },
+    [sortColumn, sortDirection]
+  );
 
   const sortedData = React.useMemo(() => {
     if (!data || !sortColumn || !sortDirection) return data;

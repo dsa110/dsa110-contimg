@@ -1,19 +1,27 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useSources } from "../hooks/useQueries";
+import { LoadingSpinner, SortableTableHeader, useTableSort } from "../components/common";
+
+interface Source {
+  id: string;
+  name?: string;
+  ra_deg?: number;
+  dec_deg?: number;
+  num_images?: number;
+}
 
 /**
  * List page showing all detected sources.
  */
 const SourcesListPage: React.FC = () => {
   const { data: sources, isLoading, error } = useSources();
+  const { sortColumn, sortDirection, handleSort, sortedData } = useTableSort<Source>(
+    sources as Source[] | undefined
+  );
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500">Loading sources...</div>
-      </div>
-    );
+    return <LoadingSpinner label="Loading sources..." />;
   }
 
   if (error) {
@@ -28,20 +36,58 @@ const SourcesListPage: React.FC = () => {
     <div className="max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Sources</h1>
 
-      {sources && sources.length > 0 ? (
+      {sortedData && sortedData.length > 0 ? (
         <div className="card overflow-hidden">
           <table className="table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th className="text-right">RA (deg)</th>
-                <th className="text-right">Dec (deg)</th>
-                <th className="text-center">Images</th>
+                <SortableTableHeader
+                  columnKey="id"
+                  sortColumn={sortColumn}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
+                >
+                  ID
+                </SortableTableHeader>
+                <SortableTableHeader
+                  columnKey="name"
+                  sortColumn={sortColumn}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
+                >
+                  Name
+                </SortableTableHeader>
+                <SortableTableHeader
+                  columnKey="ra_deg"
+                  sortColumn={sortColumn}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
+                  className="text-right"
+                >
+                  RA (deg)
+                </SortableTableHeader>
+                <SortableTableHeader
+                  columnKey="dec_deg"
+                  sortColumn={sortColumn}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
+                  className="text-right"
+                >
+                  Dec (deg)
+                </SortableTableHeader>
+                <SortableTableHeader
+                  columnKey="num_images"
+                  sortColumn={sortColumn}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
+                  className="text-center"
+                >
+                  Images
+                </SortableTableHeader>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {sources.map((source) => (
+              {sortedData.map((source) => (
                 <tr key={source.id}>
                   <td>
                     <Link
