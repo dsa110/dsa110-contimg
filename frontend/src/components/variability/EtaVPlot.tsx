@@ -92,6 +92,9 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
     [sources, controls.minDataPoints]
   );
 
+  // Count filtered out sources
+  const filteredOutCount = sources.length - filteredSources.length;
+
   // Identify candidates (above both thresholds)
   const { etaLine, vLine } = calculateThresholds();
   const candidates = useMemo(
